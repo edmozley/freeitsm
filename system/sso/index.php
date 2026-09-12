@@ -465,49 +465,23 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                             <option value="basic"><?php echo htmlspecialchars(t('system.sso.carddav_auth_basic')); ?></option>
                         </select>
                     </div>
-                    <div class="form-field">
-                        <label><?php echo htmlspecialchars(t('system.sso.field_carddav_book')); ?></label>
-                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_carddav_book_hint')); ?></div>
-                        <?php /* A select rather than a text box, populated by Test
-                                 connection. Asking somebody to type a DAV collection
-                                 path by hand is asking for a typo they cannot debug
-                                 — and the server will happily tell us the real list. */ ?>
-                        <select id="fCardDavBook">
-                            <option value=""><?php echo htmlspecialchars(t('system.sso.carddav_book_untested')); ?></option>
-                        </select>
-                    </div>
+                    <?php /* The dialog CREATES the source; everything else is on
+                             carddav.php. Which address book, and which groups or
+                             tags inside it, need a list of tick boxes and a
+                             multi-line test result — that is a page, and putting
+                             it here is how provider.php's import settings ended
+                             up below the fold and were presumed missing.
+
+                             Test connection stays, because proving the
+                             credentials work is worth doing before you commit to
+                             creating anything. */ ?>
                     <div class="form-field">
                         <label><?php echo htmlspecialchars(t('system.sso.carddav_test')); ?></label>
-                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.carddav_test_desc')); ?></div>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.carddav_test_desc_create')); ?></div>
                         <div class="issuer-row">
                             <button class="btn btn-test" id="testCardDavBtn" type="button"><?php echo htmlspecialchars(t('system.sso.test')); ?></button>
                         </div>
                         <div class="test-result" id="cardDavTestResult"></div>
-                    </div>
-
-                    <?php /* WHICH records to bring in.
-                             🔑 "A specific contact group" means three different
-                             things in CardDAV — a separate address book, a
-                             KIND:group card, or a CATEGORIES tag — and rather
-                             than guess which one an operator's server uses, or
-                             ask them to type a name they cannot verify,
-                             FreeITSM reads the chosen book and offers whatever
-                             is genuinely in it. Test connection fills both
-                             lists; an option with nothing behind it is disabled
-                             and says so, rather than being silently absent. */ ?>
-                    <div class="form-field">
-                        <label for="fCardDavScope"><?php echo htmlspecialchars(t('system.sso.field_carddav_scope')); ?></label>
-                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_carddav_scope_hint')); ?></div>
-                        <select id="fCardDavScope">
-                            <option value="all"><?php echo htmlspecialchars(t('system.sso.carddav_scope_all')); ?></option>
-                            <option value="group"><?php echo htmlspecialchars(t('system.sso.carddav_scope_group')); ?></option>
-                            <option value="category"><?php echo htmlspecialchars(t('system.sso.carddav_scope_category')); ?></option>
-                        </select>
-                    </div>
-                    <div class="form-field" id="cardDavScopeValueField" style="display:none;">
-                        <label for="fCardDavScopeValue" id="cardDavScopeValueLabel"><?php echo htmlspecialchars(t('system.sso.field_carddav_scope_value')); ?></label>
-                        <div class="hint" id="cardDavScopeValueHint"></div>
-                        <select id="fCardDavScopeValue"></select>
                     </div>
                 </div><!-- /#carddavFields -->
 
@@ -707,14 +681,19 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                         ? '<span class="jit-off">' + window.t('system.sso.jit_na') + '</span>'
                         : (p.auto_create_users ? '<span class="badge-jit">' + window.t('system.sso.jit_on') + '</span>' : '<span class="jit-off">' + window.t('system.sso.jit_off') + '</span>')}</td>
                 <td style="text-align:right;">
-                    ${isLdap
+                    ${(isLdap || isCardDav)
                         /* A directory has a connection, a sign-in scope, group gating, an
                            import scope, attribute mapping, safety settings and a run
                            history. That is a page, not a dialog — the import section
                            ended up below the fold in the modal and people reasonably
                            concluded it was not there. OIDC keeps the dialog: an issuer,
-                           a client id and a secret genuinely is a dialog's worth. */
-                        ? `<a class="table-action-btn" href="provider.php?id=${p.id}" title="${esc(window.t('system.sso.configure'))}" aria-label="${esc(window.t('system.sso.configure'))}">${ICON_CONFIGURE}</a>`
+                           a client id and a secret genuinely is a dialog's worth.
+
+                           A CardDAV source went the same way within a day of existing:
+                           a connection, a book to choose, a multi-line test result and a
+                           list of groups to tick. The dialog had already needed sticky
+                           chrome to stay usable, which was the same warning sign. */
+                        ? `<a class="table-action-btn" href="${isCardDav ? 'carddav' : 'provider'}.php?id=${p.id}" title="${esc(window.t('system.sso.configure'))}" aria-label="${esc(window.t('system.sso.configure'))}">${ICON_CONFIGURE}</a>`
                         : `<button class="table-action-btn" data-edit="${p.id}" title="${esc(window.t('system.sso.edit'))}" aria-label="${esc(window.t('system.sso.edit'))}">${ICON_EDIT}</button>`}
                     <button class="table-action-btn danger" data-del="${p.id}" title="${esc(window.t('system.sso.delete'))}" aria-label="${esc(window.t('system.sso.delete'))}">${ICON_DELETE}</button>
                 </td>
@@ -834,31 +813,8 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             cdPw.placeholder = '';
             $('cardDavPasswordHint').textContent = window.t('system.sso.field_carddav_password_hint');
         }
-        // ⚠️ The book picker is filled by Test connection, so on open there is
-        // nothing to choose from yet. Seed it with whatever is already SAVED so
-        // editing a working provider and pressing Save without re-testing does
-        // not silently blank the address book it was using.
-        const book = $('fCardDavBook');
-        book.innerHTML = '';
-        if (p && p.carddav_addressbook) {
-            book.appendChild(new Option(p.carddav_addressbook, p.carddav_addressbook, true, true));
-        } else {
-            book.appendChild(new Option(window.t('system.sso.carddav_book_untested'), ''));
-        }
-
-        // Scope. Same reasoning as the book: seed from what is SAVED so editing
-        // a working provider and saving without re-testing keeps its scope.
-        // ⚠️ cardDavScan is cleared, because what is inside the book is not
-        // stored — it is read live, and a stale list from the last provider
-        // edited would offer groups belonging to somebody else's server.
-        cardDavScan = null;
-        $('fCardDavScope').value = (p && p.carddav_scope) ? p.carddav_scope : 'all';
-        const scopeVal = $('fCardDavScopeValue');
-        scopeVal.innerHTML = '';
-        if (p && p.carddav_scope_value) {
-            scopeVal.appendChild(new Option(p.carddav_scope_value, p.carddav_scope_value, true, true));
-        }
-        syncCardDavScope();
+        // The address book and the group/tag choice live on carddav.php — this
+        // dialog only has to get the source created and its credentials proven.
 
         // Directory sync fields live on provider.php, not in this dialog.
         $('fLdapTestUser').value = '';
@@ -974,90 +930,11 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
      * typo they have no way to debug — the server knows the real list, so it
      * gets asked and the answer becomes the dropdown.
      */
-    /* What Test connection last found inside the chosen book. Held so changing
-       the scope dropdown can refill the value list without another round trip. */
-    let cardDavScan = null;
-
-    /**
-     * Show the right second dropdown for the chosen scope, and fill it.
-     *
-     * ⚠️ An option whose list is empty is DISABLED with the reason in the
-     * label, not hidden. Hiding it makes "this server has no groups" look
-     * identical to "FreeITSM does not support groups", and the operator cannot
-     * tell which — so they go looking for a feature that is right there.
-     */
-    function syncCardDavScope() {
-        const scope = $('fCardDavScope').value;
-        const field = $('cardDavScopeValueField');
-        const sel   = $('fCardDavScopeValue');
-        const hint  = $('cardDavScopeValueHint');
-        const label = $('cardDavScopeValueLabel');
-        const opts  = $('fCardDavScope').options;
-
-        // Label the two scoped options with what is actually available.
-        if (cardDavScan) {
-            opts[1].disabled = cardDavScan.groups.length === 0;
-            opts[2].disabled = cardDavScan.categories.length === 0;
-            opts[1].textContent = cardDavScan.groups.length
-                ? window.t('system.sso.carddav_scope_group')
-                : window.t('system.sso.carddav_scope_group_none');
-            opts[2].textContent = cardDavScan.categories.length
-                ? window.t('system.sso.carddav_scope_category')
-                : window.t('system.sso.carddav_scope_category_none');
-        }
-
-        if (scope === 'all') { field.style.display = 'none'; return; }
-
-        const list = scope === 'group'
-            ? (cardDavScan ? cardDavScan.groups : [])
-            : (cardDavScan ? cardDavScan.categories : []);
-
-        label.textContent = scope === 'group'
-            ? window.t('system.sso.field_carddav_group')
-            : window.t('system.sso.field_carddav_category');
-
-        const previous = sel.value;
-        sel.innerHTML = '';
-        if (!list.length) {
-            // ⚠️ "Not tested yet" and "tested, and there are none" are different
-            // facts and must not share a message — the same distinction as the
-            // DAV parse failure versus an empty account. Telling somebody to
-            // press Test connection when they just did reads as the button not
-            // working.
-            const tested = cardDavScan !== null;
-            sel.appendChild(new Option(window.t(tested
-                ? 'system.sso.carddav_scope_none'
-                : 'system.sso.carddav_scope_untested'), ''));
-            hint.textContent = window.t(tested
-                ? 'system.sso.carddav_scope_none_hint'
-                : 'system.sso.carddav_scope_untested_hint');
-        } else {
-            list.forEach(item => {
-                // Count alongside the name: "itsm (2 contacts)" is the only way
-                // to tell the real group from a stray tag on one card.
-                const label2 = scope === 'group'
-                    ? window.t('system.sso.carddav_group_option', { name: item.name, n: item.members })
-                    : window.t('system.sso.carddav_category_option', { name: item.name, n: item.contacts });
-                sel.appendChild(new Option(label2, scope === 'group' ? (item.uid || item.name) : item.name));
-            });
-            if (previous && [...sel.options].some(o => o.value === previous)) sel.value = previous;
-            hint.textContent = '';
-        }
-        field.style.display = '';
-    }
-    $('fCardDavScope').addEventListener('change', syncCardDavScope);
-    // Choosing a different book invalidates what we know about its contents —
-    // the groups in one book say nothing about another.
-    $('fCardDavBook').addEventListener('change', function () {
-        cardDavScan = null;
-        syncCardDavScope();
-        $('cardDavTestResult').className = 'test-result';
-        $('cardDavTestResult').textContent = window.t('system.sso.carddav_book_changed');
-    });
+    /* The scope picker moved to carddav.php: it needs a list of tick boxes
+       and a multi-line test result, which is a page rather than a dialog. */
 
     $('testCardDavBtn').addEventListener('click', async function () {
         const box  = $('cardDavTestResult');
-        const book = $('fCardDavBook');
         const url  = $('fCardDavUrl').value.trim();
         if (!url) {
             box.className = 'test-result err';
@@ -1075,10 +952,7 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                     carddav_url:      url,
                     carddav_username: $('fCardDavUsername').value.trim(),
                     carddav_password: $('fCardDavPassword').value,
-                    carddav_auth:     $('fCardDavAuth').value,
-                    // Sending the chosen book asks the server what is INSIDE it
-                    // as well, in the same round trip.
-                    carddav_addressbook: $('fCardDavBook').value || ''
+                    carddav_auth:     $('fCardDavAuth').value
                 })
             });
             const d = await r.json();
@@ -1098,36 +972,15 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                 return;
             }
 
-            // Keep whatever was already chosen if the server still offers it —
-            // re-testing should not quietly move a working provider onto a
-            // different address book.
-            const previous = book.value;
-            book.innerHTML = '';
-            d.books.forEach(b => book.appendChild(new Option(b.name + '  (' + b.href + ')', b.href)));
-            if (previous && d.books.some(b => b.href === previous)) book.value = previous;
-
             box.className = 'test-result ok';
             let txt = d.message;
             if (d.auth_offered) {
                 txt += '\n' + window.t('system.sso.carddav_test_auth', { scheme: d.auth_offered });
             }
-
-            // What is inside the chosen book, if one was chosen.
-            cardDavScan = d.scan || null;
-            if (d.scan) {
-                txt += '\n' + window.t('system.sso.carddav_test_scan', {
-                    contacts:   d.scan.contacts,
-                    groups:     d.scan.groups.length,
-                    categories: d.scan.categories.length
-                });
-            } else if (d.scan_error) {
-                // Read the book but not its contents: say so without claiming
-                // the connection failed, because it plainly did not.
-                txt += '\n' + window.t('system.sso.carddav_scan_failed', { error: d.scan_error });
-            } else {
-                txt += '\n' + window.t('system.sso.carddav_test_pick');
-            }
-            syncCardDavScope();
+            // In the dialog the job is only "do these credentials work" — which
+            // book, and which groups inside it, are chosen on carddav.php once
+            // the source exists.
+            txt += '\n' + window.t('system.sso.carddav_test_next');
             box.textContent = txt;
         } catch (e) {
             box.className = 'test-result err';
@@ -1214,10 +1067,7 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                 carddav_url:         $('fCardDavUrl').value.trim(),
                 carddav_username:    $('fCardDavUsername').value.trim(),
                 carddav_password:    $('fCardDavPassword').value,
-                carddav_auth:        $('fCardDavAuth').value,
-                carddav_addressbook: $('fCardDavBook').value,
-                carddav_scope:       $('fCardDavScope').value,
-                carddav_scope_value: $('fCardDavScope').value === 'all' ? '' : $('fCardDavScopeValue').value
+                carddav_auth:        $('fCardDavAuth').value
             });
         }
 
@@ -1235,24 +1085,11 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                 showToast(window.t('system.sso.carddav_url_required'), 'error');
                 return;
             }
-            // 🔑 An address book is required, and it is worth blocking rather
-            // than defaulting. Saving with none means "read every book this
-            // account can see", which is almost never what somebody wants —
-            // the entire request behind this feature was to scope it to ONE
-            // group — and a sync that quietly imported a personal address book
-            // of several thousand contacts is not a mistake you can undo by
-            // changing a setting afterwards.
-            if (!payload.carddav_addressbook) {
-                showToast(window.t('system.sso.carddav_book_required'), 'error');
-                return;
-            }
-            // 🔑 Choosing "only this group" and then leaving the group blank
-            // would fall back to importing everything — the exact outcome the
-            // operator was trying to avoid by choosing a scope at all. Block it.
-            if (payload.carddav_scope !== 'all' && !payload.carddav_scope_value) {
-                showToast(window.t('system.sso.carddav_scope_required'), 'error');
-                return;
-            }
+            // ⚠️ No address-book check HERE. The dialog creates the source and
+            // carddav.php chooses the book, so requiring one at creation would
+            // make it impossible to create anything. The check lives on that
+            // page instead — where it matters, because until a book is chosen
+            // there is nothing to import from and nothing has run.
         } else if (!payload.issuer_url || !payload.client_id) {
             showToast(window.t('system.sso.required_fields'), 'error');
             return;

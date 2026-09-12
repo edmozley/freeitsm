@@ -472,6 +472,27 @@ function cardDavScanBook(array $cfg, string $bookHref): array
 }
 
 /**
+ * Read `carddav_scope_value` into a list.
+ *
+ * Newline-separated in the column, same as `sync_ou_includes`. Deduplicated
+ * case-insensitively but stored as typed, because a CATEGORIES value is
+ * matched case-insensitively by every client that writes one, while a group UID
+ * is opaque and must survive untouched.
+ */
+function cardDavScopeList($stored): array
+{
+    $out = [];
+    foreach (preg_split('/\R/', (string)$stored) as $line) {
+        $line = trim($line);
+        if ($line === '') continue;
+        $out[mb_strtolower($line)] = $line;
+        // A browser is not a promise: cap it rather than storing an essay.
+        if (count($out) >= 200) break;
+    }
+    return array_values($out);
+}
+
+/**
  * Build the config array a request needs from an `auth_providers` row.
  *
  * ⚠️ Decrypts here and nowhere earlier: the row travels around as stored, and

@@ -171,7 +171,14 @@ return [
         //   category  cards carrying a CATEGORIES value (Thunderbird, Android)
         // `carddav_scope_value` holds the group's UID or the category name.
         'carddav_scope'          => "VARCHAR(10) NOT NULL DEFAULT 'all'",
-        'carddav_scope_value'    => 'VARCHAR(255) NULL',
+        // ⚠️ TEXT and newline-separated, holding as MANY groups or tags as the
+        // operator ticks — not one. Restricting an import to a single group was
+        // an arbitrary limit: a service desk plausibly wants "itsm" and
+        // "partners" and not the other forty. Same shape and same storage
+        // convention as `sync_ou_includes`, which has held a newline-separated
+        // list since directory sync shipped, so there is one idiom rather than
+        // two. Read with cardDavScopeList().
+        'carddav_scope_value'    => 'TEXT NULL',
 
         'sync_last_run_datetime' => 'DATETIME NULL',
         'sync_last_count'        => 'INT NULL',

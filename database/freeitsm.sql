@@ -177,8 +177,10 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     --   group     the MEMBERs of a KIND:group card (how Apple Contacts does it)
     --   category  cards carrying a CATEGORIES value (Thunderbird, Android)
     `carddav_scope`          VARCHAR(10) NOT NULL DEFAULT 'all',
-    -- The group's UID, or the category name. NULL when scope = 'all'.
-    `carddav_scope_value`    VARCHAR(255) NULL,
+    -- The chosen groups' UIDs, or the chosen tag names — newline-separated, so
+    -- AS MANY as the operator ticks rather than one. Same convention as
+    -- `sync_ou_includes` above. NULL when scope = 'all'.
+    `carddav_scope_value`    TEXT NULL,
 
     `sync_last_run_datetime` DATETIME NULL,
     -- People found by the last SUCCESSFUL run. The number the brake compares
