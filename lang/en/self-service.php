@@ -432,7 +432,8 @@ return [
 
         's6_title'           => 'Account & security',
         's6_p1'              => 'Click your initials in the top-right corner to open the account menu. From there:',
-        's6_li1'             => '<strong>My Account</strong> — set a <strong>preferred name</strong> (e.g. <em>"Ed"</em> instead of <em>"Ed Mozley"</em>) that\'s used when the system greets you in emails. Change your password.',
+        's6_li1'             => '<strong>My Account</strong> — set a <strong>preferred name</strong> (e.g. <em>"Ed"</em> instead of <em>"Ed Mozley"</em>) that\'s used when the system greets you in emails, keep your own <strong>contact details</strong> up to date, choose how the portal looks, and change your password.',
+        's6_li_details'      => '<strong>Your own contact details</strong> — job title, office, phone and mobile, all optional. Worth keeping current: they are what the IT team look at when they need to reach you about a ticket, and only they can see them. If your organisation signs you in through its own staff directory, these come from there instead and are shown but not editable — ask your IT team to change them, and the correction will reach the portal on its own.',
         's6_li2'             => '<strong>Multi-factor authentication (MFA)</strong> — turn on TOTP-based MFA using an authenticator app like Google Authenticator, Microsoft Authenticator, or Authy. Strongly recommended — the portal is on the internet, and a second factor is your best protection if your password ever leaks.',
         's6_li3'             => '<strong>Sign out</strong> — ends your session. Useful on shared computers.',
         's6_tip'             => '<strong>About the feedback survey</strong>: when your ticket is closed, the IT team may email you a short 1&ndash;5 satisfaction survey. It takes 5 seconds — please do fill it in. It helps them improve the service and makes a real difference in development conversations within the team.',
@@ -472,6 +473,25 @@ return [
         'close'               => 'Close',
         'name_saved'          => 'Preferred name saved. Refresh the page to see the change.',
         'name_save_failed'    => 'Failed to save',
+
+        // Your own contact details. Deliberately only the four a person knows
+        // better than the service desk — see USER_SELF_EDITABLE_FIELDS in
+        // includes/users.php for why department, employee ID and manager are not
+        // offered here.
+        'job_title'             => 'Job title',
+        'job_title_placeholder' => 'e.g. Finance Manager',
+        'office'                => 'Office',
+        'office_placeholder'    => 'e.g. Leeds',
+        'office_hint'           => 'Which site or building you work from.',
+        'phone'                 => 'Phone',
+        'phone_placeholder'     => 'e.g. 0113 496 0000',
+        'mobile'                => 'Mobile',
+        'mobile_placeholder'    => 'e.g. 07700 900000',
+        'contact_hint'          => 'Keeping these up to date helps the IT team reach you about your tickets. Only they can see them.',
+        'details_saved'         => 'Your details have been saved.',
+        'managed_note'          => 'Your name and contact details come from your organisation\'s directory, so they cannot be changed here. Ask your IT team to update them.',
+        'load_failed'           => 'Your details could not be loaded, so they cannot be edited right now. Please close this and try again.',
+        'too_long'              => 'That is too long — please keep it to {max} characters or fewer.',
         'pw_fields_required'  => 'All fields are required',
         'pw_changed'          => 'Password changed successfully',
         'pw_change_failed'    => 'Failed to change password',

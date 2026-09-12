@@ -320,6 +320,7 @@ require __DIR__ . '/includes/header.php';
             <p><?php echo t('self-service.help.s6_p1'); ?></p>
             <ul>
                 <li><?php echo t('self-service.help.s6_li1'); ?></li>
+                <li><?php echo t('self-service.help.s6_li_details'); ?></li>
                 <li><?php echo t('self-service.help.s6_li2'); ?></li>
                 <li><?php echo t('self-service.help.s6_li3'); ?></li>
             </ul>

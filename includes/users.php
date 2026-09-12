@@ -56,6 +56,44 @@ const USER_DIRECTORY_OWNED = [
 ];
 
 /**
+ * Of those, the ones a person may change about THEMSELVES in the self-service
+ * portal.
+ *
+ * This is the narrowest of the three lists and deliberately so. The question is
+ * not "what is harmless?" but "what does this person know better than the
+ * service desk?" — their own telephone number, obviously; their own job title
+ * after a promotion, reasonably; where they sit, usefully, because the ticket
+ * asset picker searches on location and nobody fills that in by hand.
+ *
+ * 🔴 THE THREE THAT ARE ABSENT MATTER MORE THAN THE FOUR THAT ARE HERE:
+ *
+ *  - `manager_id` — a requester must never choose their own approver. Nothing
+ *    routes along the chain TODAY (`includes/catalogue_approvals.php` sends
+ *    catalogue approvals to a designated analyst and calls manager-based
+ *    routing "a later slice"), so this is not a live hole. It becomes one the
+ *    day that slice lands, and by then a portal full of self-chosen managers
+ *    would already be in place. Excluded now, while it costs nothing.
+ *  - `employee_id` — a payroll number is an identity claim, not a contact
+ *    detail. It is the join key when reconciling against HR, so a person
+ *    typing their own would be asserting who they are in another system.
+ *  - `department` — an organisational fact the service desk maintains, not
+ *    something about the person. `idx_users_department` exists and the asset
+ *    search reads it, so self-service reorganisation is somebody else's data
+ *    changing under them.
+ *
+ * ⚠️ A field being in this list still does NOT mean it is editable: a record
+ * flagged `is_managed` refuses all of USER_DIRECTORY_OWNED, and every one of
+ * these is in that list too. The directory stays the source of truth; this list
+ * only governs what an UNMANAGED person may do for themselves.
+ */
+const USER_SELF_EDITABLE_FIELDS = [
+    'job_title',
+    'office',
+    'phone',
+    'mobile',
+];
+
+/**
  * Normalise one incoming person field.
  *
  * Blank always becomes NULL, never '': the columns are nullable so that "not

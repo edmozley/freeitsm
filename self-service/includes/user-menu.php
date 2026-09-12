@@ -326,6 +326,39 @@ if (count($_um_parts) > 1) {
                 <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.preferred_name_hint')); ?></div>
             </div>
 
+            <?php /* Your own contact details.
+                     The narrowest of the three field lists — see
+                     USER_SELF_EDITABLE_FIELDS in includes/users.php for why
+                     department, employee ID and manager are deliberately absent.
+                     Saved by the SAME button as the preferred name: one Save for
+                     "things about me" reads as one action, and two adjacent Save
+                     buttons invite the reader to wonder which one they need. */ ?>
+            <div id="ssContactBlock">
+                <div class="ss-msg" id="ssManagedNote" style="display:none;"></div>
+
+                <div class="ss-form-group">
+                    <label class="ss-form-label" for="ssJobTitle"><?php echo htmlspecialchars(t('self-service.account.job_title')); ?></label>
+                    <input type="text" class="ss-form-input" id="ssJobTitle" maxlength="150" placeholder="<?php echo htmlspecialchars(t('self-service.account.job_title_placeholder')); ?>" autocomplete="off">
+                </div>
+
+                <div class="ss-form-group">
+                    <label class="ss-form-label" for="ssOffice"><?php echo htmlspecialchars(t('self-service.account.office')); ?></label>
+                    <input type="text" class="ss-form-input" id="ssOffice" maxlength="150" placeholder="<?php echo htmlspecialchars(t('self-service.account.office_placeholder')); ?>" autocomplete="off">
+                    <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.office_hint')); ?></div>
+                </div>
+
+                <div class="ss-form-group">
+                    <label class="ss-form-label" for="ssPhone"><?php echo htmlspecialchars(t('self-service.account.phone')); ?></label>
+                    <input type="tel" class="ss-form-input" id="ssPhone" maxlength="50" placeholder="<?php echo htmlspecialchars(t('self-service.account.phone_placeholder')); ?>" autocomplete="tel">
+                </div>
+
+                <div class="ss-form-group">
+                    <label class="ss-form-label" for="ssMobile"><?php echo htmlspecialchars(t('self-service.account.mobile')); ?></label>
+                    <input type="tel" class="ss-form-input" id="ssMobile" maxlength="50" placeholder="<?php echo htmlspecialchars(t('self-service.account.mobile_placeholder')); ?>" autocomplete="tel">
+                    <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.contact_hint')); ?></div>
+                </div>
+            </div>
+
             <div style="margin-bottom:24px;">
                 <button class="ss-btn ss-btn-primary" id="ssNameSaveBtn" onclick="ssSavePreferredName()"><?php echo htmlspecialchars(t('self-service.account.save')); ?></button>
             </div>
@@ -456,14 +489,73 @@ function ssCloseAccountModal() {
     document.getElementById('ssAccountModal').classList.remove('active');
 }
 
+/* Payload key -> field id for "your own contact details". The server sends the
+   authoritative list in `data.fields`; this only says where each one is drawn. */
+const SS_CONTACT_ELS = {
+    job_title: 'ssJobTitle',
+    office:    'ssOffice',
+    phone:     'ssPhone',
+    mobile:    'ssMobile',
+};
+
+/* Does a directory own this record? Set from the server on every load, never
+   assumed. ⚠️ It starts as TRUE, not false: an unloaded boolean must not read
+   as "editable", because the user would then type into a form whose Save is
+   going to be refused — or worse, on a future code path, accepted. Pessimistic
+   until the server says otherwise. */
+let ssProfileManaged = true;
+
 async function ssLoadProfile() {
+    const note = document.getElementById('ssManagedNote');
     try {
         const resp = await fetch(_ssApi + 'get_profile.php');
         const data = await resp.json();
-        if (data.success) {
-            document.getElementById('ssPreferredName').value = data.preferred_name || '';
+
+        // ⚠️ A failed load must NOT leave an empty, editable, saveable form.
+        // Every field would read as "blank" and Save would write those blanks
+        // over real values the user never saw. Lock it and say so instead.
+        if (!data.success) {
+            ssSetContactEnabled(false);
+            note.style.display = '';
+            note.className = 'ss-msg error';
+            note.textContent = window.t('self-service.account.load_failed');
+            return;
         }
-    } catch (e) {}
+
+        document.getElementById('ssPreferredName').value = data.preferred_name || '';
+
+        // Drive the form from the server's list, so a field added to
+        // USER_SELF_EDITABLE_FIELDS appears here without a second edit and one
+        // removed from it stops being posted.
+        (data.fields || Object.keys(SS_CONTACT_ELS)).forEach(function (key) {
+            const el = document.getElementById(SS_CONTACT_ELS[key]);
+            if (el) el.value = data[key] || '';
+        });
+
+        ssProfileManaged = data.is_managed === true;
+        ssSetContactEnabled(!ssProfileManaged);
+        if (ssProfileManaged) {
+            note.style.display = '';
+            note.className = 'ss-msg';
+            note.textContent = window.t('self-service.account.managed_note');
+        } else {
+            note.style.display = 'none';
+        }
+    } catch (e) {
+        ssSetContactEnabled(false);
+        note.style.display = '';
+        note.className = 'ss-msg error';
+        note.textContent = window.t('self-service.account.load_failed');
+    }
+}
+
+/* `disabled` rather than `readonly`: read-only still looks typeable and still
+   submits, and the point is that these values are the directory's to change. */
+function ssSetContactEnabled(on) {
+    Object.values(SS_CONTACT_ELS).forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.disabled = !on;
+    });
 }
 
 function ssShowAcctMsg(msg, type) {
@@ -511,15 +603,36 @@ async function ssSavePreferredName() {
     btn.disabled = true;
     document.getElementById('ssAcctMsg').className = 'ss-msg';
 
+    const payload = { preferred_name: document.getElementById('ssPreferredName').value.trim() };
+
+    // ⚠️ The contact fields are omitted WHOLESALE on a directory-owned record.
+    // update_profile.php refuses the whole save if a managed body mentions any
+    // of them, so posting them would turn "I changed my preferred name" into an
+    // error about a job title — the preferred name is NOT directory-owned and
+    // must stay editable for everybody.
+    if (!ssProfileManaged) {
+        Object.entries(SS_CONTACT_ELS).forEach(function ([key, id]) {
+            const el = document.getElementById(id);
+            if (el) payload[key] = el.value.trim();
+        });
+    }
+
     try {
         const resp = await fetch(_ssApi + 'update_profile.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ preferred_name: document.getElementById('ssPreferredName').value.trim() })
+            body: JSON.stringify(payload)
         });
         const data = await resp.json();
         if (data.success) {
-            ssShowAcctMsg(window.t('self-service.account.name_saved'), 'success');
+            ssShowAcctMsg(window.t('self-service.account.details_saved'), 'success');
+        } else if (data.error === 'managed') {
+            // The record became directory-owned since the form was opened.
+            // Re-read rather than arguing with a stale page.
+            ssShowAcctMsg(window.t('self-service.account.managed_note'), 'error');
+            ssLoadProfile();
+        } else if (data.error === 'too_long') {
+            ssShowAcctMsg(window.t('self-service.account.too_long', { max: data.max }), 'error');
         } else {
             ssShowAcctMsg(data.error, 'error');
         }

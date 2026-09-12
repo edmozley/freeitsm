@@ -1828,7 +1828,13 @@ return [
             'department_placeholder'     => 'e.g. Finance',
             'office'                     => 'Office',
             'office_placeholder'         => 'e.g. Leeds',
-            'office_help'                => 'Where they are based. Worth filling in: the ticket asset picker searches on an asset\'s location.',
+            // ⚠️ Do NOT claim this feeds the ticket asset picker. That picker
+            // searches `asset_locations.name` through the asset's own
+            // `location_id` and never reads `users.office`. The schema comment
+            // beside the column is about a DIRECTORY knowing where somebody
+            // sits, which is a different point, and reading it too quickly put
+            // a wrong claim into the help, the wiki and a release-notes draft.
+            'office_help'                => 'Which site or building they work from. A directory fills this in for you where you have one.',
             'phone'                      => 'Phone',
             'phone_placeholder'          => 'e.g. 0113 496 0000',
             'mobile'                     => 'Mobile',
@@ -1838,7 +1844,11 @@ return [
             'employee_id_help'           => 'Their payroll or HR number, for reconciling against a system that has never heard of an email address.',
             'manager'                    => 'Manager',
             'manager_none'               => 'No manager',
-            'manager_help'               => 'Who they report to. Catalogue request approvals route along this chain.',
+            // ⚠️ Do NOT say approvals route along this chain. They do not:
+            // includes/catalogue_approvals.php routes to a DESIGNATED ANALYST and
+            // says in as many words that manager-based routing is "a later
+            // slice". The chain is recorded so it is there when that lands.
+            'manager_help'               => 'Who they report to. Recorded for the reporting line, and filled in from your directory where you have one.',
         ],
 
         'tabs' => [
@@ -2231,7 +2241,7 @@ return [
             'add_email'   => '<strong>Email</strong> (required) &mdash; must be unique, and must not collide with an analyst account.',
             'add_names'   => '<strong>Display name / preferred name</strong> &mdash; optional. Preferred name is what the user sees themselves greeted with in emails (e.g. <em>"Ed"</em> instead of <em>"Ed Mozley"</em>).',
             'add_password'=> '<strong>Password</strong> &mdash; optional. Leaving it blank creates a <em>passwordless</em> account &mdash; exactly the same state inbound-ticket users start in. The user can later claim the account via the self-service portal\'s register flow by setting their own password.',
-            'add_details' => '<strong>Job title, department, office, phone, mobile, employee ID and manager</strong> &mdash; all optional, and all describing the <em>person</em> rather than the login. Worth filling in: <strong>office</strong> is what the ticket asset picker searches on, <strong>manager</strong> is the chain that catalogue request approvals route along, and <strong>employee ID</strong> is the join key when you reconcile against a payroll system that has never heard of an email address.',
+            'add_details' => '<strong>Job title, department, office, phone, mobile, employee ID and manager</strong> &mdash; all optional, and all describing the <em>person</em> rather than the login. Worth filling in: <strong>office</strong> tells you which site somebody is at before you go looking for them, <strong>manager</strong> records the reporting line, and <strong>employee ID</strong> is the join key when you reconcile against a payroll system that has never heard of an email address. Where you sync from a directory, all of these arrive filled in.',
 
             'managed_heading' => '<strong>People maintained by a directory</strong>',
             'managed_body'    => 'Where a person was imported from LDAP or Active Directory, those same details are <strong>read-only</strong> and the modal says so. The directory is the source of truth for them, and the next sync would overwrite anything typed here &mdash; so the save is refused outright rather than accepted and quietly reverted an hour later. Change the value in the directory instead; everything else on the record, including their company and password, stays editable.',
