@@ -10,7 +10,32 @@ operator running his own address book server. Background and the phase order:
 
 | Service | Port | What it is |
 |---|---|---|
-| `baikal` | [8092](http://localhost:8092) | Baikal — CardDAV + CalDAV on `sabre/dav`, with an admin UI |
+| `baikal` | [8092](http://localhost:8092) | **Baikal 0.12.1** — CardDAV + CalDAV on `sabre/dav`, with an admin UI |
+
+## 🔴🔴 READ THIS FIRST: Baikal speaks DIGEST, not Basic
+
+A stock Baikal ships `dav_auth_type: Digest`. Measured against this fixture:
+
+| What the client sends | Result |
+|---|---|
+| **Basic** (`curl --basic`) | 🔴 **401** |
+| **Digest** (`curl --digest`) | ✅ 207 |
+| **Negotiated** (`curl --anyauth`) | ✅ 207 |
+
+⚠️ **So an implementation that reaches for Basic — the obvious first choice, and
+what almost every REST integration uses — gets a flat 401 against a default
+install.** The operator then sees "authentication failed" and checks their
+password, which is fine, and their username, which is fine, and concludes
+FreeITSM is broken. It is the same shape as the API keys that were dead for
+three weeks because a bodiless request sent `text/plain`, and the IMAP check
+that reported "not authenticated" when the real fault was elsewhere.
+
+🔑 **Use `CURLAUTH_ANY` and let it negotiate**, and have *Test connection* report
+*which* scheme succeeded — because the answer is the one thing an operator
+cannot find out for themselves.
+
+Baikal can be switched to Basic in its admin UI, and mbsouth's server may well
+be either, which is the other reason to negotiate rather than pick.
 
 ## Why Baikal, and not "SabreDAV"
 
@@ -29,32 +54,38 @@ underneath.
 docker compose -f docker/carddav-test/docker-compose.yml up -d
 ```
 
-Then open <http://localhost:8092> and complete the **install wizard by hand**
-— it cannot be scripted, and it runs once:
+The image builds from the official release zip with its checksum verified, so
+the first run takes a minute. Then open <http://localhost:8092> and complete the
+**install wizard by hand** — it cannot be scripted, and it runs once:
 
 1. Set the admin password to `admin` (this is a scratch server).
-2. Leave the database as **SQLite**.
-3. Finish, then sign in at <http://localhost:8092/admin/> as `admin`.
-4. **Users → Add user**: `itsm` / `itsm` / email `itsm@carddav.test`.
-5. That user gets a default address book automatically. Add a second one called
-   **`itsm`** if you are testing the "scope it to one group" case — see the note
-   on what "group" means below.
+2. Leave the database as **SQLite**, and finish.
 
-The address book URL you give FreeITSM then looks like:
-
-```
-http://localhost:8092/dav.php/addressbooks/itsm/default/
-```
-
-## Seeding contacts
+Everything after that is scripted:
 
 ```bash
-docker/carddav-test/seed-contacts.sh
+bash docker/carddav-test/seed.sh
 ```
 
-Writes a handful of vCards straight over CardDAV with `curl`, so the fixture is
-repeatable and does not depend on clicking through the UI. Re-running replaces
-them rather than duplicating — each card is `PUT` to a fixed URL.
+That creates the `itsm` / `itsm` user, two address books and five contacts.
+Idempotent — re-running replaces the cards (`201` the first time, `204`
+afterwards) rather than duplicating them, so it doubles as a reset.
+
+| | |
+|---|---|
+| **Admin UI** | <http://localhost:8092/admin/> — `admin` / `admin` |
+| **Address book URL** | `http://localhost:8092/dav.php/addressbooks/itsm/itsm/` |
+| **Credentials** | `itsm` / `itsm` |
+
+What gets seeded, and why each one is there:
+
+| Card | In book | Why it exists |
+|---|---|---|
+| Alice Fairweather | `itsm` | everything filled in — the happy path |
+| Bruno Kowalczyk | `itsm` | 🔑 **no email address.** A real contact can have no mailbox, and an importer that matches on email alone silently drops him |
+| Chen Wei | `itsm` | no organisation or job title — sparse but perfectly valid |
+| `ITSM` | `itsm` | a **`KIND:group`** card whose `MEMBER` properties point at the others |
+| Dora Nkemelu | `default` | 🔑 **outside** the `itsm` book. If she ever turns up in FreeITSM, the scoping is not working |
 
 ## 🔴 "Scope it to one group" is not one question
 

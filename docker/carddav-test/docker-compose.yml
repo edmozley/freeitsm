@@ -14,9 +14,16 @@
 # everyone uses, and it ships both an Apache and an nginx variant. Pinned to a
 # digest-less tag deliberately: this is a scratch fixture, and tracking upstream
 # is more useful here than reproducibility.
+#
+# 🔴 BUILT LOCALLY, NOT PULLED. `ckulka/baikal` — the image everyone points at —
+# tops out at Baikal 0.10.1 on every tag it publishes, and 0.12.1 fixes a Baikal
+# security hole (admin takeover by renaming a calendar). See the Dockerfile.
 services:
   baikal:
-    image: ckulka/baikal:nginx
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: freeitsm/baikal:0.12.1
     container_name: freeitsm-carddav
     restart: unless-stopped
     ports:
