@@ -1034,7 +1034,7 @@ return [
         'copy'             => 'Copy',
 
         'providers_heading' => 'Sign-in methods',
-        'providers_desc'    => 'Each row is one way to sign in — an identity provider (SSO) or a directory (LDAP). Assign different users to different methods to run pilots in parallel.',
+        'providers_desc'    => 'Where your people come from. Most rows are a way to sign in — an identity provider (SSO) or a directory (LDAP) — and you can assign different users to different methods to run pilots in parallel. A CardDAV address book is the exception: it brings contacts in and nobody signs in through it.',
         'add'               => '+ Add',
 
         'col_name'        => 'Name',
@@ -1052,6 +1052,9 @@ return [
         'disabled'       => 'Disabled',
         'jit_on'         => 'JIT on',
         'jit_off'        => 'Off',
+        // Not "Off": off implies a switch somebody could flip, and for a
+        // contacts source there is nothing to flip.
+        'jit_na'         => 'Not applicable',
         'edit'           => 'Edit',
         'delete'         => 'Delete',
 
@@ -1059,6 +1062,7 @@ return [
         'modal_edit_title' => 'Edit provider',
         'field_display_name' => 'Display name',
         'field_display_name_hint' => 'Shown on the login button, e.g. "Sign in with Keycloak"',
+        'field_display_name_hint_carddav' => 'Just a name for your own reference, e.g. "Customer address book". It never appears on the login page — nobody signs in through an address book.',
         'field_display_name_placeholder' => 'Sign in with Keycloak',
         'field_issuer'     => 'Issuer URL',
         'field_issuer_hint'=> "The provider's base URL. e.g. http://localhost:8080/realms/freeitsm",
@@ -1090,9 +1094,40 @@ return [
         'field_protocol_hint'  => 'How people sign in with this provider.',
         'protocol_oidc'        => 'OpenID Connect (single sign-on)',
         'protocol_ldap'        => 'LDAP / Active Directory',
+        // 🔑 The label says "contacts only" because the dropdown is otherwise a
+        // list of ways to sign in, and an address book is not one — it cannot
+        // authenticate anybody. Saying so here is cheaper than an operator
+        // wondering why no login button appeared.
+        'protocol_carddav'     => 'CardDAV address book (contacts only, no sign-in)',
+
+        // --- CardDAV address book (GitHub issue #133) ---
+        'field_carddav_url'          => 'Address of the server',
+        'field_carddav_url_hint'     => 'The CardDAV path, not the web page. On Baïkal, Nextcloud or another sabre/dav server it usually looks like https://dav.example.com/dav.php/addressbooks/jsmith/ — point it at the level that holds your address books, and Test connection will list what it finds.',
+        'field_carddav_username'     => 'Username',
+        'field_carddav_username_hint'=> 'An account on the address book server that can read the contacts. A read-only account is enough for now.',
+        'field_carddav_password'     => 'Password',
+        'field_carddav_password_hint'=> 'Stored encrypted, and never shown again once saved.',
+        'carddav_password_stored_hint' => 'A password is stored. Leave blank to keep it.',
+        'field_carddav_auth'         => 'Authentication',
+        'field_carddav_auth_hint'    => 'Leave this on Automatic unless you have a reason not to. Most servers, including a standard Baïkal, want Digest rather than Basic — Automatic asks the server and uses whichever it offers.',
+        'carddav_auth_auto'          => 'Automatic (recommended)',
+        'carddav_auth_digest'        => 'Digest',
+        'carddav_auth_basic'         => 'Basic',
+        'field_carddav_book'         => 'Address book',
+        'field_carddav_book_hint'    => 'Which address book to read contacts from. Press Test connection and this fills in with the books your account can see.',
+        'carddav_book_untested'      => 'Press Test connection to see your address books',
+        'carddav_book_required'      => 'Choose an address book. Press Test connection first to list them.',
+        'carddav_url_required'       => 'Enter the address of your CardDAV server first.',
+        'carddav_test'               => 'Test connection',
+        'carddav_test_desc'          => 'Checks that FreeITSM can reach the server and sign in, and lists the address books it can see.',
+        'carddav_test_running'       => 'Connecting…',
+        'carddav_test_failed'        => 'Could not test the connection.',
+        'carddav_test_auth'          => 'The server is using {scheme} authentication.',
+        'carddav_test_pick'          => 'Choose one in Address book above, then Save.',
         'col_type'             => 'Type',
         'ldap_badge'           => 'LDAP',
         'oidc_badge'           => 'OIDC',
+        'carddav_badge'        => 'CardDAV',
 
         'ldap_preset'          => 'Preset',
         'ldap_preset_hint'     => 'Fills in the usual filter and attribute names for your directory. You can still change anything below.',

@@ -272,6 +272,13 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                     <select id="fProtocol">
                         <option value="oidc"><?php echo htmlspecialchars(t('system.sso.protocol_oidc')); ?></option>
                         <option value="ldap"><?php echo htmlspecialchars(t('system.sso.protocol_ldap')); ?></option>
+                        <?php /* 🔑 A CardDAV address book is a CONTACT SOURCE, not a
+                                 sign-in method — an address book cannot authenticate
+                                 anybody. So it lives on this screen because this is
+                                 where "where do our people come from" is configured,
+                                 and the option label says so plainly rather than
+                                 letting somebody expect a login button from it. */ ?>
+                        <option value="carddav"><?php echo htmlspecialchars(t('system.sso.protocol_carddav')); ?></option>
                     </select>
                     <?php if (!extension_loaded('ldap')): ?>
                         <div class="hint" style="color:var(--danger,#c0392b);margin-top:6px;"><?php echo htmlspecialchars(t('system.sso.ldap_ext_missing')); ?></div>
@@ -279,7 +286,10 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                 </div>
                 <div class="form-field">
                     <label><?php echo htmlspecialchars(t('system.sso.field_display_name')); ?></label>
-                    <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_display_name_hint')); ?></div>
+                    <?php /* The hint is swapped per protocol by syncProtocolFields():
+                             "shown on the login button" is a promise a CardDAV source
+                             cannot keep, since it never appears on the login page. */ ?>
+                    <div class="hint" id="displayNameHint"><?php echo htmlspecialchars(t('system.sso.field_display_name_hint')); ?></div>
                     <input type="text" id="fDisplayName" placeholder="<?php echo htmlspecialchars(t('system.sso.field_display_name_placeholder')); ?>">
                 </div>
 
@@ -387,6 +397,58 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                          only for OIDC providers, which have none of it. -->
                 </div>
 
+                <!-- ===== CardDAV address book ===== -->
+                <?php /* Four fields and a Test. Deliberately short: everything the
+                         sync itself needs — what to do about an existing person, how
+                         many missed runs before somebody counts as gone, the sanity
+                         brake — is POLICY that already exists and is shared with
+                         directory sync, so it does not get asked twice here. */ ?>
+                <div id="carddavFields" style="display:none;">
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_carddav_url')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_carddav_url_hint')); ?></div>
+                        <input type="text" id="fCardDavUrl" placeholder="https://dav.example.com/dav.php/addressbooks/jsmith/">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_carddav_username')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_carddav_username_hint')); ?></div>
+                        <input type="text" id="fCardDavUsername" autocomplete="off">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_carddav_password')); ?></label>
+                        <div class="hint" id="cardDavPasswordHint"><?php echo htmlspecialchars(t('system.sso.field_carddav_password_hint')); ?></div>
+                        <input type="password" id="fCardDavPassword" autocomplete="new-password">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_carddav_auth')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_carddav_auth_hint')); ?></div>
+                        <select id="fCardDavAuth">
+                            <option value="auto"><?php echo htmlspecialchars(t('system.sso.carddav_auth_auto')); ?></option>
+                            <option value="digest"><?php echo htmlspecialchars(t('system.sso.carddav_auth_digest')); ?></option>
+                            <option value="basic"><?php echo htmlspecialchars(t('system.sso.carddav_auth_basic')); ?></option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_carddav_book')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_carddav_book_hint')); ?></div>
+                        <?php /* A select rather than a text box, populated by Test
+                                 connection. Asking somebody to type a DAV collection
+                                 path by hand is asking for a typo they cannot debug
+                                 — and the server will happily tell us the real list. */ ?>
+                        <select id="fCardDavBook">
+                            <option value=""><?php echo htmlspecialchars(t('system.sso.carddav_book_untested')); ?></option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.carddav_test')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.carddav_test_desc')); ?></div>
+                        <div class="issuer-row">
+                            <button class="btn btn-test" id="testCardDavBtn" type="button"><?php echo htmlspecialchars(t('system.sso.test')); ?></button>
+                        </div>
+                        <div class="test-result" id="cardDavTestResult"></div>
+                    </div>
+                </div><!-- /#carddavFields -->
+
                 <!-- ===== OpenID Connect ===== -->
                 <div id="oidcFields">
                 <div class="form-field">
@@ -418,7 +480,11 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                     <input type="checkbox" id="fEnabled" checked>
                     <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_enabled')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_enabled_desc')); ?></span></div>
                 </div>
-                <div class="checkbox-field">
+                <?php /* Given an id so it can be hidden for CardDAV, where
+                         "create the person the first time they sign in" describes
+                         something that cannot happen — an address book signs
+                         nobody in. */ ?>
+                <div class="checkbox-field" id="autoCreateField">
                     <input type="checkbox" id="fAutoCreate">
                     <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_autocreate')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_autocreate_desc')); ?></span></div>
                 </div>
@@ -539,19 +605,32 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             return;
         }
         body.innerHTML = providers.map(p => {
-            const isLdap = p.protocol === 'ldap';
-            // "Issuer" is an OIDC idea; for a directory show where we connect to.
-            const target = isLdap
-                ? ((p.ldap_host || '') + (p.ldap_port ? ':' + p.ldap_port : ''))
-                : (p.issuer_url || '');
+            const isLdap    = p.protocol === 'ldap';
+            const isCardDav = p.protocol === 'carddav';
+            // "Issuer" is an OIDC idea; for a directory show where we connect
+            // to, and for an address book show its URL.
+            // ⚠️ `isLdap ? … : issuer_url` gave a CardDAV row a BLANK target and
+            // an OIDC badge, because "not LDAP" quietly stopped meaning OIDC.
+            const target = isLdap    ? ((p.ldap_host || '') + (p.ldap_port ? ':' + p.ldap_port : ''))
+                         : isCardDav ? (p.carddav_url || '')
+                         : (p.issuer_url || '');
+            const badge  = isLdap    ? window.t('system.sso.ldap_badge')
+                         : isCardDav ? window.t('system.sso.carddav_badge')
+                         : window.t('system.sso.oidc_badge');
             return `
             <tr>
                 <td><strong>${esc(p.display_name)}</strong></td>
                 ${MULTI_TENANT ? `<td>${p.tenant_name ? esc(p.tenant_name) : '<span class="tenant-global">' + window.t('system.sso.global_badge') + '</span>'}</td>` : ''}
-                <td><span class="proto-badge">${isLdap ? window.t('system.sso.ldap_badge') : window.t('system.sso.oidc_badge')}</span></td>
+                <td><span class="proto-badge">${badge}</span></td>
                 <td class="issuer-cell" title="${esc(target)}">${esc(target)}</td>
                 <td><span class="status-badge ${p.enabled ? 'on' : 'off'}">${p.enabled ? window.t('system.sso.enabled') : window.t('system.sso.disabled')}</span></td>
-                <td>${p.auto_create_users ? '<span class="badge-jit">' + window.t('system.sso.jit_on') + '</span>' : '<span class="jit-off">' + window.t('system.sso.jit_off') + '</span>'}</td>
+                <?php /* "Auto-create on first sign-in" cannot apply to something
+                         nobody signs in through, so a CardDAV row says "not
+                         applicable" rather than "Off" — Off implies a setting
+                         somebody could turn on. */ ?>
+                <td>${isCardDav
+                        ? '<span class="jit-off">' + window.t('system.sso.jit_na') + '</span>'
+                        : (p.auto_create_users ? '<span class="badge-jit">' + window.t('system.sso.jit_on') + '</span>' : '<span class="jit-off">' + window.t('system.sso.jit_off') + '</span>')}</td>
                 <td style="text-align:right;">
                     ${isLdap
                         /* A directory has a connection, a sign-in scope, group gating, an
@@ -606,11 +685,27 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
 
     /** Show only the fields that belong to the selected protocol. */
     function syncProtocolFields() {
-        const isLdap = $('fProtocol').value === 'ldap';
-        $('ldapFields').style.display = isLdap ? '' : 'none';
-        $('oidcFields').style.display = isLdap ? 'none' : '';
-        // email_verified is an OIDC claim; it means nothing for a directory bind.
-        $('requireVerifiedField').style.display = isLdap ? 'none' : '';
+        // ⚠️ Three protocols now, so `isLdap ? a : b` is no longer a complete
+        // question — written that way, choosing CardDAV showed the OIDC fields,
+        // because "not LDAP" used to mean OIDC and silently stopped meaning it.
+        const proto      = $('fProtocol').value;
+        const isLdap     = proto === 'ldap';
+        const isCardDav  = proto === 'carddav';
+        const isOidc     = proto === 'oidc';
+        $('ldapFields').style.display    = isLdap    ? '' : 'none';
+        $('carddavFields').style.display = isCardDav ? '' : 'none';
+        $('oidcFields').style.display    = isOidc    ? '' : 'none';
+        // email_verified is an OIDC claim; it means nothing for a directory bind
+        // and nothing at all for an address book.
+        $('requireVerifiedField').style.display = isOidc ? '' : 'none';
+        // 🔑 Nor does "create them on first sign-in": an address book cannot
+        // sign anybody in, so offering the toggle would promise something that
+        // can never happen.
+        $('autoCreateField').style.display = isCardDav ? 'none' : '';
+        // "Shown on the login button" is false for an address book.
+        $('displayNameHint').textContent = isCardDav
+            ? window.t('system.sso.field_display_name_hint_carddav')
+            : window.t('system.sso.field_display_name_hint');
     }
     $('fProtocol').addEventListener('change', syncProtocolFields);
 
@@ -639,6 +734,33 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         $('fLdapUserGroup').value = p ? (p.ldap_user_group || '') : '';
         $('fLdapGroupFilter').value = p ? (p.ldap_group_filter || '') : '';
         $('fLdapGroupBaseDn').value = p ? (p.ldap_group_base_dn || '') : '';
+        // --- CardDAV ---
+        $('fCardDavUrl').value      = p ? (p.carddav_url || '') : '';
+        $('fCardDavUsername').value = p ? (p.carddav_username || '') : '';
+        $('fCardDavAuth').value     = p ? (p.carddav_auth || 'auto') : 'auto';
+        $('cardDavTestResult').className = 'test-result';
+        $('cardDavTestResult').textContent = '';
+        const cdPw = $('fCardDavPassword');
+        cdPw.value = '';
+        if (p && p.has_carddav_password) {
+            cdPw.placeholder = window.t('system.sso.secret_stored_placeholder');
+            $('cardDavPasswordHint').textContent = window.t('system.sso.carddav_password_stored_hint');
+        } else {
+            cdPw.placeholder = '';
+            $('cardDavPasswordHint').textContent = window.t('system.sso.field_carddav_password_hint');
+        }
+        // ⚠️ The book picker is filled by Test connection, so on open there is
+        // nothing to choose from yet. Seed it with whatever is already SAVED so
+        // editing a working provider and pressing Save without re-testing does
+        // not silently blank the address book it was using.
+        const book = $('fCardDavBook');
+        book.innerHTML = '';
+        if (p && p.carddav_addressbook) {
+            book.appendChild(new Option(p.carddav_addressbook, p.carddav_addressbook, true, true));
+        } else {
+            book.appendChild(new Option(window.t('system.sso.carddav_book_untested'), ''));
+        }
+
         // Directory sync fields live on provider.php, not in this dialog.
         $('fLdapTestUser').value = '';
         $('fLdapTestPass').value = '';
@@ -739,6 +861,77 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
 
 
 
+    /**
+     * Test a CardDAV address book, and fill the book picker from the answer.
+     *
+     * ⭐ The listing is the whole point. "Which address book?" is a DAV
+     * collection path, and asking somebody to type one by hand is asking for a
+     * typo they have no way to debug — the server knows the real list, so it
+     * gets asked and the answer becomes the dropdown.
+     */
+    $('testCardDavBtn').addEventListener('click', async function () {
+        const box  = $('cardDavTestResult');
+        const book = $('fCardDavBook');
+        const url  = $('fCardDavUrl').value.trim();
+        if (!url) {
+            box.className = 'test-result err';
+            box.textContent = window.t('system.sso.carddav_url_required');
+            return;
+        }
+        this.disabled = true;
+        box.className = 'test-result';
+        box.textContent = window.t('system.sso.carddav_test_running');
+        try {
+            const r = await fetch(API + 'system/test_carddav_connection.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id:               document.getElementById('providerId').value || null,
+                    carddav_url:      url,
+                    carddav_username: $('fCardDavUsername').value.trim(),
+                    carddav_password: $('fCardDavPassword').value,
+                    carddav_auth:     $('fCardDavAuth').value
+                })
+            });
+            const d = await r.json();
+            box.style.whiteSpace = 'pre-line';
+
+            if (!d.success) {
+                box.className = 'test-result err';
+                box.textContent = d.error || window.t('system.sso.carddav_test_failed');
+                return;
+            }
+
+            // Reached the server and signed in, but nothing at that address.
+            // A warning, not a tick: the credentials are fine and the URL is not.
+            if (d.warning) {
+                box.className = 'test-result err';
+                box.textContent = d.warning;
+                return;
+            }
+
+            // Keep whatever was already chosen if the server still offers it —
+            // re-testing should not quietly move a working provider onto a
+            // different address book.
+            const previous = book.value;
+            book.innerHTML = '';
+            d.books.forEach(b => book.appendChild(new Option(b.name + '  (' + b.href + ')', b.href)));
+            if (previous && d.books.some(b => b.href === previous)) book.value = previous;
+
+            box.className = 'test-result ok';
+            let txt = d.message;
+            if (d.auth_offered) {
+                txt += '\n' + window.t('system.sso.carddav_test_auth', { scheme: d.auth_offered });
+            }
+            txt += '\n' + window.t('system.sso.carddav_test_pick');
+            box.textContent = txt;
+        } catch (e) {
+            box.className = 'test-result err';
+            box.textContent = window.t('system.sso.carddav_test_failed') + ' ' + e.message;
+        } finally {
+            this.disabled = false;
+        }
+    });
+
     $('testLdapBtn').addEventListener('click', async function () {
         const box = $('ldapTestResult');
         const body = ldapPayload();
@@ -790,10 +983,15 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
 
     // ---------- Save provider ----------
     document.getElementById('saveProviderBtn').addEventListener('click', async function () {
-        const isLdap = $('fProtocol').value === 'ldap';
+        // ⚠️ `isLdap ? 'ldap' : 'oidc'` was a complete answer with two protocols
+        // and is a silent bug with three — it would have saved every CardDAV
+        // provider as OIDC. Read the value.
+        const proto     = $('fProtocol').value;
+        const isLdap    = proto === 'ldap';
+        const isCardDav = proto === 'carddav';
         const payload = {
             id: document.getElementById('providerId').value || 0,
-            protocol: isLdap ? 'ldap' : 'oidc',
+            protocol: proto,
             display_name: document.getElementById('fDisplayName').value.trim(),
             issuer_url: document.getElementById('fIssuerUrl').value.trim(),
             client_id: document.getElementById('fClientId').value.trim(),
@@ -806,6 +1004,15 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             tenant_id: (document.getElementById('fTenant') ? (document.getElementById('fTenant').value || null) : null)
         };
         if (isLdap) Object.assign(payload, ldapPayload(), { id: payload.id });
+        if (isCardDav) {
+            Object.assign(payload, {
+                carddav_url:         $('fCardDavUrl').value.trim(),
+                carddav_username:    $('fCardDavUsername').value.trim(),
+                carddav_password:    $('fCardDavPassword').value,
+                carddav_auth:        $('fCardDavAuth').value,
+                carddav_addressbook: $('fCardDavBook').value
+            });
+        }
 
         if (!payload.display_name) {
             showToast(window.t('system.sso.required_fields'), 'error');
@@ -814,6 +1021,22 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         if (isLdap) {
             if (!payload.ldap_host || !payload.ldap_base_dn || !payload.ldap_user_filter) {
                 showToast(window.t('system.sso.ldap_required_fields'), 'error');
+                return;
+            }
+        } else if (isCardDav) {
+            if (!payload.carddav_url) {
+                showToast(window.t('system.sso.carddav_url_required'), 'error');
+                return;
+            }
+            // 🔑 An address book is required, and it is worth blocking rather
+            // than defaulting. Saving with none means "read every book this
+            // account can see", which is almost never what somebody wants —
+            // the entire request behind this feature was to scope it to ONE
+            // group — and a sync that quietly imported a personal address book
+            // of several thousand contacts is not a mistake you can undo by
+            // changing a setting afterwards.
+            if (!payload.carddav_addressbook) {
+                showToast(window.t('system.sso.carddav_book_required'), 'error');
                 return;
             }
         } else if (!payload.issuer_url || !payload.client_id) {

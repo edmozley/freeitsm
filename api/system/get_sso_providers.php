@@ -30,7 +30,9 @@ try {
                 p.ldap_host, p.ldap_port, p.ldap_encryption, p.ldap_bind_dn, p.ldap_bind_password,
                 p.ldap_base_dn, p.ldap_user_filter, p.ldap_attr_username, p.ldap_attr_email,
                 p.ldap_attr_name, p.ldap_attr_guid,
-                p.ldap_group_base_dn, p.ldap_group_filter, p.ldap_analyst_group, p.ldap_user_group
+                p.ldap_group_base_dn, p.ldap_group_filter, p.ldap_analyst_group, p.ldap_user_group,
+                p.carddav_url, p.carddav_username, p.carddav_password,
+                p.carddav_addressbook, p.carddav_auth
            FROM auth_providers p
            LEFT JOIN tenants t ON t.id = p.tenant_id
           ORDER BY p.sort_order, p.display_name"
@@ -72,6 +74,16 @@ try {
             'ldap_user_group'    => $r['ldap_user_group'],
             // Same rule as the OIDC secret: flag only, never the password itself.
             'has_bind_password'  => ($r['ldap_bind_password'] !== null && $r['ldap_bind_password'] !== ''),
+
+            // --- CardDAV address book ---
+            'carddav_url'         => $r['carddav_url'],
+            'carddav_username'    => $r['carddav_username'],
+            'carddav_addressbook' => $r['carddav_addressbook'],
+            'carddav_auth'        => $r['carddav_auth'],
+            // ⚠️ And the same rule again for the third secret. The encrypted
+            // value is selected above only so this flag can be computed — it
+            // must not be added to the response, here or later.
+            'has_carddav_password' => ($r['carddav_password'] !== null && $r['carddav_password'] !== ''),
         ];
     }
 

@@ -70,7 +70,12 @@ function ssoDnLines($value): ?string
     return $out ? implode("\n", array_values($out)) : null;
 }
 
-$protocol    = ($data['protocol'] ?? 'oidc') === 'ldap' ? 'ldap' : 'oidc';
+// ⚠️ `=== 'ldap' ? 'ldap' : 'oidc'` was a complete answer while there were two
+// protocols and silently wrong the moment there were three — every CardDAV
+// provider would have been stored as OIDC. Validate against the list instead,
+// so an unknown value still falls back safely but a known one survives.
+$protoInput  = $data['protocol'] ?? 'oidc';
+$protocol    = in_array($protoInput, ['oidc', 'ldap', 'carddav'], true) ? $protoInput : 'oidc';
 $displayName = trim($data['display_name'] ?? '');
 if ($displayName === '') bail('Display name is required');
 
@@ -87,8 +92,73 @@ $id              = isset($data['id']) ? (int)$data['id'] : 0;
 
 // --- Per-protocol fields ---
 // The unused column group is written empty, so switching a provider's protocol
-// cannot leave stale settings from the other one behind and quietly in force.
-if ($protocol === 'oidc') {
+// cannot leave stale settings from another one behind and quietly in force.
+//
+// 🔑 With three protocols that rule is what stops a real accident: a directory
+// switched to CardDAV must not keep a live `sync_base_dn`, and a CardDAV source
+// switched to LDAP must not keep a URL and password pointing at an address book
+// nobody remembers configuring.
+$LDAP_EMPTY = [
+    'host' => null, 'port' => null, 'encryption' => null, 'bind_dn' => null,
+    'base_dn' => null, 'user_filter' => null,
+    'attr_username' => null, 'attr_email' => null, 'attr_name' => null, 'attr_guid' => null,
+    'group_base_dn' => null, 'group_filter' => null, 'analyst_group' => null, 'user_group' => null,
+    'sync_enabled' => 0, 'sync_base_dn' => null, 'sync_filter' => null,
+    'sync_ou_includes' => null, 'sync_ou_excludes' => null,
+    'sync_on_conflict' => 'adopt', 'sync_deactivate_after' => 3, 'sync_brake_percent' => 20,
+    'attr_job_title' => null, 'attr_department' => null, 'attr_office' => null,
+    'attr_phone' => null, 'attr_mobile' => null, 'attr_employee_id' => null, 'attr_manager' => null,
+];
+$CARDDAV_EMPTY = ['url' => null, 'username' => null, 'addressbook' => null, 'auth' => 'auto'];
+
+$carddav          = $CARDDAV_EMPTY;
+$cardDavSecretIn  = '';
+
+if ($protocol === 'carddav') {
+    // A contact SOURCE, not a sign-in method: issuer_url / client_id are NOT
+    // NULL so they store '', exactly as an LDAP row does.
+    $issuerUrl = '';
+    $clientId  = '';
+    $scopes    = 'openid email profile';   // column default; unused here
+    $ldap      = $LDAP_EMPTY;
+
+    $url = trim($data['carddav_url'] ?? '');
+    if ($url === '') {
+        bail('The address of the CardDAV server is required');
+    }
+    if (!preg_match('#^https?://#i', $url)) {
+        bail('The CardDAV address must start with http:// or https://');
+    }
+
+    $authIn = $data['carddav_auth'] ?? 'auto';
+    $carddav = [
+        'url'         => $url,
+        'username'    => trim($data['carddav_username'] ?? ''),
+        // May be blank: an address book open to anyone on the LAN is unusual but
+        // legal, and refusing it would be inventing a rule the protocol has not.
+        'addressbook' => trim($data['carddav_addressbook'] ?? '') ?: null,
+        'auth'        => in_array($authIn, ['auto', 'digest', 'basic'], true) ? $authIn : 'auto',
+    ];
+    $cardDavSecretIn = $data['carddav_password'] ?? '';
+    // ⚠️ Both of these MUST be set, even though a CardDAV provider has neither
+    // secret. The shared code below reads them unconditionally, so leaving them
+    // undefined emitted two "Undefined variable" warnings — printed BEFORE the
+    // JSON body, so every caller's JSON.parse() would have thrown on a save
+    // that had in fact succeeded. Second time in one afternoon; the lesson is
+    // to assert that a response PARSES, not that it reads correctly.
+    // '' is also the right value semantically: it means "no secret supplied",
+    // which is what keeps the columns NULL rather than storing an encrypted
+    // empty string.
+    $secretInput     = '';
+    $ldapSecretInput = '';
+
+    // An address book cannot authenticate anybody, so these two are meaningless
+    // here and are forced off rather than trusted from the request — the dialog
+    // hides them, and a hidden control is not a guard.
+    $autoCreate      = 0;
+    $requireVerified = 0;
+
+} elseif ($protocol === 'oidc') {
     $issuerUrl = rtrim(trim($data['issuer_url'] ?? ''), '/');
     $clientId  = trim($data['client_id'] ?? '');
     if ($issuerUrl === '' || $clientId === '') {
@@ -101,18 +171,9 @@ if ($protocol === 'oidc') {
     if ($scopes === '') $scopes = 'openid email profile';
 
     $secretInput = $data['client_secret'] ?? '';
-    $ldap = [
-        'host' => null, 'port' => null, 'encryption' => null, 'bind_dn' => null,
-        'base_dn' => null, 'user_filter' => null,
-        'attr_username' => null, 'attr_email' => null, 'attr_name' => null, 'attr_guid' => null,
-        'group_base_dn' => null, 'group_filter' => null, 'analyst_group' => null, 'user_group' => null,
-        // Directory sync is LDAP-only; an OIDC provider stores the column defaults.
-        'sync_enabled' => 0, 'sync_base_dn' => null, 'sync_filter' => null,
-        'sync_ou_includes' => null, 'sync_ou_excludes' => null,
-        'sync_on_conflict' => 'adopt', 'sync_deactivate_after' => 3, 'sync_brake_percent' => 20,
-        'attr_job_title' => null, 'attr_department' => null, 'attr_office' => null,
-        'attr_phone' => null, 'attr_mobile' => null, 'attr_employee_id' => null, 'attr_manager' => null,
-    ];
+    // Directory sync is not an OIDC thing; this provider stores the column
+    // defaults. Shared with the CardDAV branch so the two cannot drift.
+    $ldap = $LDAP_EMPTY;
     $ldapSecretInput = '';
 
 } else {
@@ -209,7 +270,8 @@ try {
              'sync_enabled', 'sync_base_dn', 'sync_ou_includes', 'sync_ou_excludes', 'sync_filter', 'sync_on_conflict',
              'sync_deactivate_after', 'sync_brake_percent',
              'ldap_attr_job_title', 'ldap_attr_department', 'ldap_attr_office',
-             'ldap_attr_phone', 'ldap_attr_mobile', 'ldap_attr_employee_id', 'ldap_attr_manager'];
+             'ldap_attr_phone', 'ldap_attr_mobile', 'ldap_attr_employee_id', 'ldap_attr_manager',
+             'carddav_url', 'carddav_username', 'carddav_addressbook', 'carddav_auth'];
     $vals = [$displayName, $protocol, $issuerUrl, $clientId, $scopes,
              $enabled, $autoCreate, $requireVerified,
              $defaultModules, $sortOrder, $tenantId,
@@ -220,15 +282,18 @@ try {
              $ldap['sync_enabled'], $ldap['sync_base_dn'], $ldap['sync_ou_includes'], $ldap['sync_ou_excludes'], $ldap['sync_filter'], $ldap['sync_on_conflict'],
              $ldap['sync_deactivate_after'], $ldap['sync_brake_percent'],
              $ldap['attr_job_title'], $ldap['attr_department'], $ldap['attr_office'],
-             $ldap['attr_phone'], $ldap['attr_mobile'], $ldap['attr_employee_id'], $ldap['attr_manager']];
+             $ldap['attr_phone'], $ldap['attr_mobile'], $ldap['attr_employee_id'], $ldap['attr_manager'],
+             $carddav['url'], $carddav['username'], $carddav['addressbook'], $carddav['auth']];
 
     // A blank/masked secret on update = keep what is stored.
-    $writeSecret     = !isMaskedNoChangeValue($secretInput);
-    $writeLdapSecret = !isMaskedNoChangeValue($ldapSecretInput);
+    $writeSecret        = !isMaskedNoChangeValue($secretInput);
+    $writeLdapSecret    = !isMaskedNoChangeValue($ldapSecretInput);
+    $writeCardDavSecret = !isMaskedNoChangeValue($cardDavSecretIn);
 
     if ($id > 0) {
-        if ($writeSecret)     { $cols[] = 'client_secret';      $vals[] = encryptValue($secretInput); }
-        if ($writeLdapSecret) { $cols[] = 'ldap_bind_password'; $vals[] = encryptValue($ldapSecretInput); }
+        if ($writeSecret)        { $cols[] = 'client_secret';      $vals[] = encryptValue($secretInput); }
+        if ($writeLdapSecret)    { $cols[] = 'ldap_bind_password'; $vals[] = encryptValue($ldapSecretInput); }
+        if ($writeCardDavSecret) { $cols[] = 'carddav_password';   $vals[] = encryptValue($cardDavSecretIn); }
 
         $set  = implode(', ', array_map(function ($c) { return "`$c` = ?"; }, $cols));
         $vals[] = $id;
@@ -241,6 +306,8 @@ try {
         $vals[] = ($writeSecret && $secretInput !== '') ? encryptValue($secretInput) : null;
         $cols[] = 'ldap_bind_password';
         $vals[] = ($writeLdapSecret && $ldapSecretInput !== '') ? encryptValue($ldapSecretInput) : null;
+        $cols[] = 'carddav_password';
+        $vals[] = ($writeCardDavSecret && $cardDavSecretIn !== '') ? encryptValue($cardDavSecretIn) : null;
 
         $names  = '`' . implode('`, `', $cols) . '`';
         $marks  = implode(', ', array_fill(0, count($cols), '?'));
