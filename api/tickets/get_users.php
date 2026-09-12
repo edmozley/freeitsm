@@ -59,6 +59,27 @@ try {
                 u.created_at,
                 u.tenant_id,
                 ten.name AS tenant_name,
+                -- The person, as opposed to the login. Written by the users screen
+                -- and by directory sync; see includes/users.php for why the list of
+                -- them lives in one place.
+                u.job_title,
+                u.department,
+                u.office,
+                u.phone,
+                u.mobile,
+                u.employee_id,
+                u.manager_id,
+                -- ⚠️ Load-bearing, not decoration. The edit form refuses to SEND the
+                -- directory-owned fields on a managed record, because save_user.php
+                -- refuses to accept them. Without this column the form would assume
+                -- unmanaged, post them, and the save would fail with an error the
+                -- analyst did nothing to deserve.
+                u.is_managed,
+                -- Deliberately NOT a join to users for the manager's name: manager_id
+                -- is not tenant-scoped, so `LEFT JOIN users mgr` would hand an analyst
+                -- scoped to one company the name of somebody in another. The name is
+                -- resolved client-side from this same tenant-filtered list instead, so
+                -- a manager you cannot see reads as blank rather than leaking.
                 (SELECT COUNT(*) FROM tickets t WHERE t.user_id = u.id{$ttSql}) as ticket_count
             FROM users u
             LEFT JOIN tenants ten ON ten.id = u.tenant_id";

@@ -551,10 +551,14 @@ try {
                         <div><?php echo t('tickets.help.users.add_email'); ?></div>
                         <div><?php echo t('tickets.help.users.add_names'); ?></div>
                         <div><?php echo t('tickets.help.users.add_password'); ?></div>
+                        <div><?php echo t('tickets.help.users.add_details'); ?></div>
                     </div>
 
                     <p style="margin-top: 16px;"><?php echo t('tickets.help.users.edit_heading'); ?></p>
                     <p><?php echo t('tickets.help.users.edit_body'); ?></p>
+
+                    <p style="margin-top: 16px;"><?php echo t('tickets.help.users.managed_heading'); ?></p>
+                    <p><?php echo t('tickets.help.users.managed_body'); ?></p>
 
                     <p style="margin-top: 16px;"><?php echo t('tickets.help.users.delete_heading'); ?></p>
                     <p><?php echo t('tickets.help.users.delete_body'); ?></p>

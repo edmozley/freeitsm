@@ -1780,6 +1780,18 @@ return [
             'total_tickets' => 'Total Tickets',
             'company'       => 'Company',
             'company_none'  => 'Not set — tickets go to triage',
+            // The person, as opposed to the login. Blank ones are omitted from
+            // the pane rather than shown empty, so these labels only ever appear
+            // beside a real value.
+            'job_title'        => 'Job title',
+            'department'       => 'Department',
+            'office'           => 'Office',
+            'phone'            => 'Phone',
+            'mobile'           => 'Mobile',
+            'employee_id'      => 'Employee ID',
+            'manager'          => 'Manager',
+            'source'           => 'Details from',
+            'source_directory' => 'A directory, not editable here',
         ],
         'table' => [
             'ticket_number' => 'Ticket #',
@@ -1805,6 +1817,28 @@ return [
             'password_placeholder'       => 'Leave blank for passwordless account',
             'password_help'              => 'Optional. If blank, the user can set their own password later via the self-service portal.',
             'confirm_delete'             => 'Delete user "{name}"? This cannot be undone.',
+
+            // The person, as opposed to the login. Every one of these is a field a
+            // directory owns when there is one, so all of them grey out together
+            // and `managed_note` explains it once rather than seven times.
+            'managed_note'               => 'This person is kept up to date from a directory, so the details below are read-only. Change them in the directory instead.',
+            'job_title'                  => 'Job title',
+            'job_title_placeholder'      => 'e.g. Finance Manager',
+            'department'                 => 'Department',
+            'department_placeholder'     => 'e.g. Finance',
+            'office'                     => 'Office',
+            'office_placeholder'         => 'e.g. Leeds',
+            'office_help'                => 'Where they are based. Worth filling in: the ticket asset picker searches on an asset\'s location.',
+            'phone'                      => 'Phone',
+            'phone_placeholder'          => 'e.g. 0113 496 0000',
+            'mobile'                     => 'Mobile',
+            'mobile_placeholder'         => 'e.g. 07700 900000',
+            'employee_id'                => 'Employee ID',
+            'employee_id_placeholder'    => 'e.g. 04821',
+            'employee_id_help'           => 'Their payroll or HR number, for reconciling against a system that has never heard of an email address.',
+            'manager'                    => 'Manager',
+            'manager_none'               => 'No manager',
+            'manager_help'               => 'Who they report to. Catalogue request approvals route along this chain.',
         ],
 
         'tabs' => [
@@ -2197,6 +2231,10 @@ return [
             'add_email'   => '<strong>Email</strong> (required) &mdash; must be unique, and must not collide with an analyst account.',
             'add_names'   => '<strong>Display name / preferred name</strong> &mdash; optional. Preferred name is what the user sees themselves greeted with in emails (e.g. <em>"Ed"</em> instead of <em>"Ed Mozley"</em>).',
             'add_password'=> '<strong>Password</strong> &mdash; optional. Leaving it blank creates a <em>passwordless</em> account &mdash; exactly the same state inbound-ticket users start in. The user can later claim the account via the self-service portal\'s register flow by setting their own password.',
+            'add_details' => '<strong>Job title, department, office, phone, mobile, employee ID and manager</strong> &mdash; all optional, and all describing the <em>person</em> rather than the login. Worth filling in: <strong>office</strong> is what the ticket asset picker searches on, <strong>manager</strong> is the chain that catalogue request approvals route along, and <strong>employee ID</strong> is the join key when you reconcile against a payroll system that has never heard of an email address.',
+
+            'managed_heading' => '<strong>People maintained by a directory</strong>',
+            'managed_body'    => 'Where a person was imported from LDAP or Active Directory, those same details are <strong>read-only</strong> and the modal says so. The directory is the source of truth for them, and the next sync would overwrite anything typed here &mdash; so the save is refused outright rather than accepted and quietly reverted an hour later. Change the value in the directory instead; everything else on the record, including their company and password, stays editable.',
             'edit_heading' => '<strong>Edit user</strong>',
             'edit_body'    => 'Select a user from the list, then click <strong>Edit</strong> in the detail header. Same modal, pre-filled. Saving without a password leaves the existing hash untouched; supplying one resets it.',
             'delete_heading' => '<strong>Delete user</strong>',
