@@ -136,6 +136,33 @@ return [
         'ldap_attr_mobile'       => 'VARCHAR(64) NULL',
         'ldap_attr_employee_id'  => 'VARCHAR(64) NULL',
         'ldap_attr_manager'      => 'VARCHAR(64) NULL',
+
+        // --- CardDAV address book (protocol = 'carddav') ---
+        // A contact source rather than a sign-in method: an address book cannot
+        // authenticate anybody, so a carddav provider has no Signing in tab and
+        // never appears on the login page. See the wiki: CardDAV Contact Sync.
+        //
+        // 🔑 The `sync_*` columns above are reused UNCHANGED — on_conflict,
+        // deactivate_after and brake_percent are policy, not transport, and
+        // that policy layer is the expensive part nobody should rebuild. Only
+        // the LDAP-shaped ones (`sync_base_dn`, `sync_ou_*`, `sync_filter`) do
+        // not apply; `carddav_addressbook` is this transport's equivalent.
+        'carddav_url'            => 'VARCHAR(500) NULL',
+        'carddav_username'       => 'VARCHAR(255) NULL',
+        // Encrypted at rest with encryptValue(), exactly like
+        // `ldap_bind_password`, and never returned by a GET endpoint — those
+        // report `has_carddav_password` instead.
+        'carddav_password'       => 'VARCHAR(500) NULL',
+        // Which address book to read. NULL means "every book this account can
+        // see", which is almost never what somebody wants — the request behind
+        // this feature was explicitly to scope it to one group.
+        'carddav_addressbook'    => 'VARCHAR(500) NULL',
+        // 'auto' | 'digest' | 'basic'. ⚠️ Defaults to auto and should stay
+        // there: a stock Baikal ships Digest, and Basic against it is a flat
+        // 401 that reads to an operator as a wrong password. The override
+        // exists for a server that mis-advertises, not for normal use.
+        'carddav_auth'           => "VARCHAR(10) NOT NULL DEFAULT 'auto'",
+
         'sync_last_run_datetime' => 'DATETIME NULL',
         'sync_last_count'        => 'INT NULL',
         'enabled'                => 'TINYINT(1) NOT NULL DEFAULT 1',

@@ -145,6 +145,32 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     -- The manager attribute holds a DN, not a name, so it is resolved to a
     -- person in a second pass once everybody exists.
     `ldap_attr_manager`      VARCHAR(64) NULL,
+
+    -- ---------------------------------------------------------------------
+    -- CardDAV address book (protocol = 'carddav').
+    --
+    -- A contact SOURCE, not a sign-in method. An address book cannot
+    -- authenticate anybody, so a carddav provider has no "Signing in" tab and
+    -- never appears on the login page. Asked for in GitHub issue #133.
+    --
+    -- The `sync_*` columns above are reused unchanged: on_conflict,
+    -- deactivate_after and brake_percent are policy rather than transport, and
+    -- that policy is the part that was expensive to get right. Only the
+    -- LDAP-shaped ones do not carry over.
+    -- ---------------------------------------------------------------------
+    `carddav_url`            VARCHAR(500) NULL,
+    `carddav_username`       VARCHAR(255) NULL,
+    -- Encrypted with encryptValue(), like `ldap_bind_password`, and never
+    -- returned by a GET endpoint.
+    `carddav_password`       VARCHAR(500) NULL,
+    -- Which address book to read. NULL = every book the account can see, which
+    -- is rarely wanted: the whole request was to scope it to one group.
+    `carddav_addressbook`    VARCHAR(500) NULL,
+    -- 'auto' | 'digest' | 'basic'. ⚠️ Leave it on auto. A stock Baikal ships
+    -- Digest, and Basic against it is a flat 401 that reads as a wrong
+    -- password; the override is for a server that mis-advertises.
+    `carddav_auth`           VARCHAR(10) NOT NULL DEFAULT 'auto',
+
     `sync_last_run_datetime` DATETIME NULL,
     -- People found by the last SUCCESSFUL run. The number the brake compares
     -- against; NULL means "no baseline yet", so a first run is never braked.
