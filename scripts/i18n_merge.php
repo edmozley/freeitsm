@@ -116,8 +116,25 @@ function i18nMergeOne(string $loc, string $ns, string $tsvPath, bool $dryRun): a
     }
     $roundTrip = i18nFlatten(i18nLoad($tmp));
     @unlink($tmp);
-    if ($roundTrip !== $result) {
-        return ['ok'=>false,'added'=>0,'messages'=>array_merge($msgs, ['🔴 REFUSING: emitted file does not read back identically'])];
+    /* ⚠️ Compare CONTENT, not order. `$roundTrip !== $result` also compares key
+       order, and the two legitimately differ: keys English no longer has are
+       appended to the end of the working list, but re-emitting nests them back
+       into their own section, which may sit earlier in the file. That is
+       correct — and comparing with !== rejected the two locales that happen to
+       carry extra keys, with 0 keys lost and 0 values changed. */
+    $lost   = array_diff_key($result, $roundTrip);
+    $gained = array_diff_key($roundTrip, $result);
+    $changed = [];
+    foreach ($result as $k => $v) {
+        if (array_key_exists($k, $roundTrip) && $roundTrip[$k] !== $v) $changed[] = $k;
+    }
+    if ($lost || $gained || $changed) {
+        $why = [];
+        if ($lost)    $why[] = count($lost) . ' key(s) lost: ' . implode(', ', array_slice(array_keys($lost), 0, 4));
+        if ($gained)  $why[] = count($gained) . ' key(s) appeared: ' . implode(', ', array_slice(array_keys($gained), 0, 4));
+        if ($changed) $why[] = count($changed) . ' value(s) changed: ' . implode(', ', array_slice($changed, 0, 4));
+        return ['ok'=>false,'added'=>0,'messages'=>array_merge($msgs,
+            ['🔴 REFUSING: emitted file does not read back with the same content — ' . implode('; ', $why)])];
     }
 
     if ($dryRun) { $msgs[] = 'dry run — nothing written'; return ['ok'=>true,'added'=>$added,'messages'=>$msgs]; }

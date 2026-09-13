@@ -115,10 +115,20 @@ function i18nVerifyChunk(string $enPath, string $trPath): array
                       . '] translation [' . implode(' ', $tp['printf']) . '] (they substitute by POSITION)';
         }
 
-        // 4. HTML
-        $eh = i18nHtmlTags($enV); $th = i18nHtmlTags($trV);
-        if ($eh !== $th) {
-            $errors[] = "$k: HTML tags differ — English <" . implode('><', $eh) . '> translation <' . implode('><', $th) . '>';
+        // 4. HTML — the multiset and the nesting, NOT the linear order
+        $em = i18nHtmlMultiset($enV); $tm = i18nHtmlMultiset($trV);
+        if ($em !== $tm) {
+            $fmt = function (array $c) {
+                $p = []; foreach ($c as $n => $x) $p[] = "$n x$x";
+                return $p ? implode(', ', $p) : 'none';
+            };
+            $errors[] = "$k: HTML tags lost or gained — English has [" . $fmt($em) . '] translation has [' . $fmt($tm) . ']';
+        } elseif (!i18nHtmlBalanced($trV)) {
+            $errors[] = "$k: HTML is not balanced — a tag is left open or closed out of order";
+        } elseif (i18nHtmlTags($enV) !== i18nHtmlTags($trV)) {
+            /* Same tags, same counts, balanced, different sequence. Legitimate
+               in a subject-object-verb language; noted so it stays visible. */
+            $warnings[] = "$k: HTML tags reordered (same tags, still balanced) — normal for SOV word order";
         }
 
         // 5. newlines
@@ -163,19 +173,53 @@ function i18nVerifySelfTest(): int
         'a.lines'    => "First line\nSecond line",
         'a.blank'    => '',
         'a.brand'    => 'IMAP',
+        // Regression guards from the first real run, both found by using it:
+        'a.percent'  => 'served at ~10% of normal cost',          // NOT a "% o" token
+        'a.reorder'  => 'Click <strong>Reset</strong> to clear <em>all</em> of it',
     ];
     i18nWriteTsv($enP, $en);
 
+    // The good translation every case starts from.
+    $base = [
+        'a.greeting'=>'Hola {name}, tienes {n} tickets',
+        'a.counts'  =>'Importados %d de %s',
+        'a.markup'  =>'Ver <strong>la guia</strong> para <em>detalles</em>',
+        'a.lines'   =>"Primera linea\nSegunda linea",
+        'a.blank'   =>'',
+        'a.brand'   =>'IMAP',
+        'a.percent' =>'servido al ~10% del coste normal',
+        'a.reorder' =>'<em>Todo</em> se borra al pulsar <strong>Reset</strong>',
+    ];
+
+    /** Each case is the good translation with exactly one thing done to it. */
+    $with = function (array $changes) use ($base) {
+        $r = $base;
+        foreach ($changes as $k => $v) {
+            if ($v === null) unset($r[$k]); else $r[$k] = $v;
+        }
+        return $r;
+    };
+
     $cases = [
-        'a good translation'             => [['a.greeting'=>'Hola {name}, tienes {n} tickets','a.counts'=>'Importados %d de %s','a.markup'=>'Ver <strong>la guia</strong> para <em>detalles</em>','a.lines'=>"Primera linea\nSegunda linea",'a.blank'=>'','a.brand'=>'IMAP'], true],
-        'a dropped {placeholder}'        => [['a.greeting'=>'Hola, tienes {n} tickets','a.counts'=>'Importados %d de %s','a.markup'=>'Ver <strong>la guia</strong> para <em>detalles</em>','a.lines'=>"Primera linea\nSegunda linea",'a.blank'=>'','a.brand'=>'IMAP'], false],
-        'SWAPPED %d and %s'              => [['a.greeting'=>'Hola {name}, tienes {n} tickets','a.counts'=>'Importados %s de %d','a.markup'=>'Ver <strong>la guia</strong> para <em>detalles</em>','a.lines'=>"Primera linea\nSegunda linea",'a.blank'=>'','a.brand'=>'IMAP'], false],
-        'a lost HTML tag'                => [['a.greeting'=>'Hola {name}, tienes {n} tickets','a.counts'=>'Importados %d de %s','a.markup'=>'Ver la guia para <em>detalles</em>','a.lines'=>"Primera linea\nSegunda linea",'a.blank'=>'','a.brand'=>'IMAP'], false],
-        'a lost line break'              => [['a.greeting'=>'Hola {name}, tienes {n} tickets','a.counts'=>'Importados %d de %s','a.markup'=>'Ver <strong>la guia</strong> para <em>detalles</em>','a.lines'=>'Primera linea Segunda linea','a.blank'=>'','a.brand'=>'IMAP'], false],
-        'a missing key'                  => [['a.greeting'=>'Hola {name}, tienes {n} tickets','a.counts'=>'Importados %d de %s','a.markup'=>'Ver <strong>la guia</strong> para <em>detalles</em>','a.lines'=>"Primera linea\nSegunda linea",'a.blank'=>''], false],
-        'an invented key'                => [['a.greeting'=>'Hola {name}, tienes {n} tickets','a.counts'=>'Importados %d de %s','a.markup'=>'Ver <strong>la guia</strong> para <em>detalles</em>','a.lines'=>"Primera linea\nSegunda linea",'a.blank'=>'','a.brand'=>'IMAP','a.extra'=>'nuevo'], false],
-        'reordered keys'                 => [['a.counts'=>'Importados %d de %s','a.greeting'=>'Hola {name}, tienes {n} tickets','a.markup'=>'Ver <strong>la guia</strong> para <em>detalles</em>','a.lines'=>"Primera linea\nSegunda linea",'a.blank'=>'','a.brand'=>'IMAP'], false],
-        'a blanked value'                => [['a.greeting'=>'','a.counts'=>'Importados %d de %s','a.markup'=>'Ver <strong>la guia</strong> para <em>detalles</em>','a.lines'=>"Primera linea\nSegunda linea",'a.blank'=>'','a.brand'=>'IMAP'], false],
+        'a good translation'        => [$base, true],
+        'a dropped {placeholder}'  => [$with(['a.greeting' => 'Hola, tienes {n} tickets']), false],
+        'SWAPPED %d and %s'        => [$with(['a.counts'   => 'Importados %s de %d']), false],
+        'a lost HTML tag'          => [$with(['a.markup'   => 'Ver la guia para <em>detalles</em>']), false],
+        'UNBALANCED html'          => [$with(['a.markup'   => 'Ver <strong>la guia para <em>detalles</em>']), false],
+        'a lost line break'        => [$with(['a.lines'    => 'Primera linea Segunda linea']), false],
+        'a missing key'            => [$with(['a.brand'    => null]), false],
+        'an invented key'          => [$with(['a.extra'    => 'nuevo']), false],
+        'reordered keys'           => [array_reverse($base, true), false],
+        'a blanked value'          => [$with(['a.greeting' => '']), false],
+
+        /* ── regressions from the first real run (39 agents, 7,531 strings) ──
+           Both of these were REJECTED by the original rules and should not be.
+           They are the reason this self-test grew. */
+        'prose % translated freely' => [$with(['a.percent' => 'servido a aproximadamente el 10 por ciento del coste']), true],
+        'HTML reordered for SOV'    => [$with(['a.reorder' => '<strong>Reset</strong> pulsa para borrar <em>todo</em>']), true],
+        /* ...and the one real fault the relaxed rule must STILL catch: an
+           emphasised phrase dropped, so the multiset no longer matches. */
+        'an <em> pair dropped'      => [$with(['a.reorder' => 'Click <strong>Reset</strong> to clear all of it']), false],
     ];
 
     $pass = 0; $fail = 0;

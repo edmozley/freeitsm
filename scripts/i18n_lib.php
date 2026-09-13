@@ -140,8 +140,15 @@ function i18nPlaceholders(string $s): array
     $curly = [];
     if (preg_match_all('/\{[a-zA-Z0-9_]+\}/', $s, $m)) $curly = $m[0];
     $printf = [];
-    // %s %d %1$s %02d — the conversion, as written, in the order it appears.
-    if (preg_match_all('/%(?:\d+\$)?[-+ 0#\']*[0-9]*(?:\.\d+)?[bcdeEfFgGosuxX%]/', $s, $m)) {
+    /* %s %d %1$s %02d %-10s — the conversion, as written, in the order it appears.
+       ⚠️ THE SPACE FLAG IS DELIBERATELY NOT SUPPORTED. C allows "% d", but no
+       English string in this product uses it, and matching it made every prose
+       percentage look like a placeholder: "~10% of normal cost" parsed as the
+       token "% o", so a correct translation that moved the word "of" was
+       rejected. Measured before removing it — all five `% <letter>` occurrences
+       in the corpus are literal percent signs ("{pct}% uploaded", "this % of
+       their SLA elapsed"), and none is a conversion. */
+    if (preg_match_all('/%(?:\d+\$)?[-+0#\']*[0-9]*(?:\.\d+)?[bcdeEfFgGosuxX%]/', $s, $m)) {
         $printf = array_values(array_filter($m[0], function ($t) { return $t !== '%%'; }));
     }
     return ['curly' => $curly, 'printf' => $printf];
@@ -153,6 +160,49 @@ function i18nHtmlTags(string $s): array
     $tags = [];
     if (preg_match_all('#</?([a-zA-Z][a-zA-Z0-9]*)\b#', $s, $m)) $tags = array_map('strtolower', $m[1]);
     return $tags;
+}
+
+/**
+ * The tags as a multiset: name => count. This, not the sequence, is what must
+ * match across a translation.
+ *
+ * 🔑 WHY NOT THE ORDER. Hindi, Tamil and the other Indian languages here are
+ * subject-object-verb, so the emphasised phrase in a sentence legitimately
+ * moves: `<strong>Reset</strong> to clear` becomes a clause where the
+ * `<strong>` lands after the link rather than before it. Requiring the same
+ * linear order rejected four correct translations in the first real run.
+ *
+ * What must NOT change is which tags appear, how many of each, and that they
+ * still nest — so those are checked instead, and a pure reorder is reported as
+ * a note rather than a failure.
+ */
+function i18nHtmlMultiset(string $s): array
+{
+    $c = array_count_values(i18nHtmlTags($s));
+    ksort($c);
+    return $c;
+}
+
+/**
+ * Is the markup in this string balanced and properly nested?
+ *
+ * This is the half of the old order check that was actually load-bearing: a
+ * translation that drops a closing tag renders the rest of the screen inside a
+ * bold link, and nothing reports it.
+ */
+function i18nHtmlBalanced(string $s): bool
+{
+    $void = ['br','img','hr','input','meta','link'];
+    $stack = [];
+    if (preg_match_all('#<(/?)([a-zA-Z][a-zA-Z0-9]*)\b[^>]*?(/?)>#', $s, $m, PREG_SET_ORDER)) {
+        foreach ($m as $t) {
+            $name = strtolower($t[2]);
+            if ($t[3] === '/' || in_array($name, $void, true)) continue;   // self-closing or void
+            if ($t[1] === '') { $stack[] = $name; continue; }
+            if (array_pop($stack) !== $name) return false;
+        }
+    }
+    return $stack === [];
 }
 
 /** Emit a lang array as a PHP file, stable and readable. */
