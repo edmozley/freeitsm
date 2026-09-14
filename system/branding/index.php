@@ -717,6 +717,7 @@ $translationNamespaces = ['common', 'system'];
         /* One field table per screen, and the values for all three, so switching
            between them needs no round trip and nothing is lost until you save. */
         const LN_SCOPES   = ['login', 'portal', 'home'];
+        const LN_BG_FILES = { login: null, portal: null, home: null };
         const LN_PAGES    = <?php echo json_encode(array_map(fn($x) => $x['page'], brandingScopes()), JSON_HEX_TAG | JSON_HEX_AMP); ?>;
         const LN_FIELDSET = <?php echo json_encode(['login' => brandingLoginFields('login'), 'portal' => brandingLoginFields('portal'), 'home' => brandingLoginFields('home')], JSON_HEX_TAG | JSON_HEX_AMP); ?>;
         const LN_ALL      = <?php echo json_encode(['login' => brandingLoginDesign(null, 'login'), 'portal' => brandingLoginDesign(null, 'portal'), 'home' => brandingLoginDesign(null, 'home')], JSON_HEX_TAG | JSON_HEX_AMP); ?>;
@@ -855,6 +856,12 @@ $translationNamespaces = ['common', 'system'];
             const el = lnEl(f);
             if (el) el.addEventListener('input', lnSync);
         }
+        const bgFileInput = document.getElementById('ln_bg_file');
+        if (bgFileInput) {
+            bgFileInput.addEventListener('change', function() {
+                LN_BG_FILES[LN_SCOPE] = this.files && this.files[0] ? this.files[0] : null;
+            });
+        }
         /* Fit the 1280x800 frame into whatever width the panel has. Recomputed
            on resize, because this panel is half of a two-column grid that
            becomes one column on a narrow screen.
@@ -915,6 +922,7 @@ $translationNamespaces = ['common', 'system'];
             document.getElementById('ln_open_tab').href = frame.src;
 
             lnWrite(LN_ALL[scope]);
+            if (bgFileInput) bgFileInput.value = '';
         }
 
         document.querySelectorAll('.scope').forEach(b =>
@@ -948,8 +956,9 @@ $translationNamespaces = ['common', 'system'];
         for (const sc of LN_SCOPES) {
             for (const f in LN_FIELDSET[sc]) fd.append(sc + '_' + f, LN_ALL[sc][f]);
         }
-        const lnBg = document.getElementById('ln_bg_file');
-        if (lnBg && lnBg.files[0]) fd.append('login_bg', lnBg.files[0]);
+        for (const sc of LN_SCOPES) {
+            if (LN_BG_FILES[sc]) fd.append(sc + '_bg', LN_BG_FILES[sc]);
+        }
         fd.append('header_left',   document.getElementById('headerLeft').value);
         fd.append('header_center', document.getElementById('headerCenter').value);
         fd.append('header_right',  document.getElementById('headerRight').value);

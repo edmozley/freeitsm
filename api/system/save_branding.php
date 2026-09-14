@@ -174,31 +174,25 @@ try {
         }
     }
 
-    $loginFields = brandingLoginFields();
+    // The background image, if chosen, follows the same upload pipeline as the
+    // logo — refusing SVG because SVG is XML that can carry a script.
+    foreach (array_keys(brandingScopes()) as $scope) {
+        $bgInputKey = $scope . '_bg';
+        if (isset($_FILES[$bgInputKey]) && $_FILES[$bgInputKey]['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../../system/uploads/branding';
+            uploadPrepareWebServableDir($uploadDir);
 
-    // The background image, if one was chosen. Same upload pipeline as the
-    // logo — which refuses SVG, because an SVG is XML that can carry a script
-    // and it would be served from our own origin.
-    if (isset($_FILES['login_bg']) && $_FILES['login_bg']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/../../system/uploads/branding';
-        uploadPrepareWebServableDir($uploadDir);
-        $prev = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'branding_login_bg_image_path'");
-        $prev->execute();
-        $prevPath = (string)($prev->fetchColumn() ?: '');
-        if ($prevPath !== '' && brandingPathIsSafe($prevPath)) {
-            @unlink(__DIR__ . '/../../' . $prevPath);
+            $settingKey = brandingLoginKey('bg_image_path', $scope);
+            $prev = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?");
+            $prev->execute([$settingKey]);
+            $prevPath = (string)($prev->fetchColumn() ?: '');
+            if ($prevPath !== '' && brandingPathIsSafe($prevPath)) {
+                @unlink(__DIR__ . '/../../' . $prevPath);
+            }
+
+            $stored = uploadStoreFile($_FILES[$bgInputKey], $uploadDir, UPLOAD_TYPES_IMAGE, 4 * 1024 * 1024);
+            $upsert($conn, $settingKey, BRANDING_UPLOAD_DIR . $stored['stored_name']);
         }
-        $stored = uploadStoreFile($_FILES['login_bg'], $uploadDir, UPLOAD_TYPES_IMAGE, 4 * 1024 * 1024);
-        $upsert($conn, 'branding_login_bg_image_path', BRANDING_UPLOAD_DIR . $stored['stored_name']);
-    }
-
-    foreach ($loginFields as $field => $spec) {
-        // The image path is owned by the upload branch above; a form post never
-        // sets it directly, or a crafted request could point it at any file.
-        if ($field === 'bg_image_path') continue;
-        if (!array_key_exists('login_' . $field, $_POST)) continue;
-        $clean = brandingLoginValidate($field, $_POST['login_' . $field], $spec);
-        $upsert($conn, brandingLoginKey($field), (string)$clean);
     }
     echo json_encode(['success' => true]);
 } catch (Exception $e) {
