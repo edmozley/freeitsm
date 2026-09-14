@@ -452,7 +452,9 @@ $translationNamespaces = ['common', 'system'];
                             </label>
                             <div data-when="image">
                                 <label class="dlabel"><?php echo htmlspecialchars(t('system.branding.login_bg_upload')); ?>
-                                    <input type="file" id="ln_bg_file" name="login_bg" accept=".png,.jpg,.jpeg,image/png,image/jpeg">
+                                    <?php foreach (array_keys(brandingScopes()) as $sc): ?>
+                                        <input type="file" id="ln_<?php echo $sc; ?>_bg_file" name="<?php echo $sc; ?>_bg" class="ln-bg-input" data-scope="<?php echo $sc; ?>" accept=".png,.jpg,.jpeg,image/png,image/jpeg" style="display: <?php echo $sc === 'login' ? 'block' : 'none'; ?>;">
+                                    <?php endforeach; ?>
                                 </label>
                                 <label class="dlabel"><?php echo htmlspecialchars(t('system.branding.login_dim')); ?> <output id="ln_dim_out"></output>
                                     <input type="range" id="ln_bg_dim" min="0" max="80" step="5">
@@ -717,7 +719,6 @@ $translationNamespaces = ['common', 'system'];
         /* One field table per screen, and the values for all three, so switching
            between them needs no round trip and nothing is lost until you save. */
         const LN_SCOPES   = ['login', 'portal', 'home'];
-        const LN_BG_FILES = { login: null, portal: null, home: null };
         const LN_PAGES    = <?php echo json_encode(array_map(fn($x) => $x['page'], brandingScopes()), JSON_HEX_TAG | JSON_HEX_AMP); ?>;
         const LN_FIELDSET = <?php echo json_encode(['login' => brandingLoginFields('login'), 'portal' => brandingLoginFields('portal'), 'home' => brandingLoginFields('home')], JSON_HEX_TAG | JSON_HEX_AMP); ?>;
         const LN_ALL      = <?php echo json_encode(['login' => brandingLoginDesign(null, 'login'), 'portal' => brandingLoginDesign(null, 'portal'), 'home' => brandingLoginDesign(null, 'home')], JSON_HEX_TAG | JSON_HEX_AMP); ?>;
@@ -856,12 +857,6 @@ $translationNamespaces = ['common', 'system'];
             const el = lnEl(f);
             if (el) el.addEventListener('input', lnSync);
         }
-        const bgFileInput = document.getElementById('ln_bg_file');
-        if (bgFileInput) {
-            bgFileInput.addEventListener('change', function() {
-                LN_BG_FILES[LN_SCOPE] = this.files && this.files[0] ? this.files[0] : null;
-            });
-        }
         /* Fit the 1280x800 frame into whatever width the panel has. Recomputed
            on resize, because this panel is half of a two-column grid that
            becomes one column on a narrow screen.
@@ -922,7 +917,9 @@ $translationNamespaces = ['common', 'system'];
             document.getElementById('ln_open_tab').href = frame.src;
 
             lnWrite(LN_ALL[scope]);
-            if (bgFileInput) bgFileInput.value = '';
+            document.querySelectorAll('.ln-bg-input').forEach(input => {
+                input.style.display = (input.dataset.scope === scope) ? 'block' : 'none';
+            });
         }
 
         document.querySelectorAll('.scope').forEach(b =>
@@ -957,7 +954,10 @@ $translationNamespaces = ['common', 'system'];
             for (const f in LN_FIELDSET[sc]) fd.append(sc + '_' + f, LN_ALL[sc][f]);
         }
         for (const sc of LN_SCOPES) {
-            if (LN_BG_FILES[sc]) fd.append(sc + '_bg', LN_BG_FILES[sc]);
+            const bgInput = document.getElementById('ln_' + sc + '_bg_file');
+            if (bgInput && bgInput.files && bgInput.files[0]) {
+                fd.append(sc + '_bg', bgInput.files[0]);
+            }
         }
         fd.append('header_left',   document.getElementById('headerLeft').value);
         fd.append('header_center', document.getElementById('headerCenter').value);
