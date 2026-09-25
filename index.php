@@ -290,7 +290,7 @@ $translationNamespaces = ['common'];
         <img src="<?php echo htmlspecialchars(brandingLogoUrl()); ?>" alt="Company Logo" class="company-logo">
         <div class="welcome-text">
             <h2><?php echo htmlspecialchars($brand && $brand['heading'] !== '' ? $brand['heading'] : t('common.home.welcome_heading')); ?></h2>
-            <p><?php echo htmlspecialchars($brand && $brand['subheading'] !== '' ? $brand['subheading'] : t('common.home.welcome_subtitle')); ?></p>
+            <p data-tagline="1" data-default="<?php echo htmlspecialchars(t('common.home.welcome_subtitle')); ?>"><?php echo htmlspecialchars($brand && $brand['subheading'] !== '' ? $brand['subheading'] : t('common.home.welcome_subtitle')); ?></p>
         </div>
 
         <div class="modules-grid">

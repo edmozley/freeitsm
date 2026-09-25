@@ -118,7 +118,8 @@ function brandingScopes(): array
         'portal' => ['prefix' => 'branding_portal_', 'page' => 'self-service/login.php'],
         // No form on this one, so no form position and no panel style.
         'home'   => ['prefix' => 'branding_home_',   'page' => 'index.php',
-                     'omit'   => ['form_position', 'card_style'],
+                     // …and one line under the welcome heading is all that page has.
+                     'omit'   => ['form_position', 'card_style', 'subheading2'],
                      // …and it keeps the theme's own background unless asked otherwise.
                      'defaults' => ['bg_style' => 'theme']],
     ];
@@ -198,6 +199,9 @@ function brandingLoginFields(string $scope = 'login'): array
         // ---- words ----
         'heading'         => ['type' => 'text',   'default' => '', 'max' => 80],
         'subheading'      => ['type' => 'text',   'default' => '', 'max' => 160],
+        // A second line under the first (GH #150). On the portal it replaces
+        // "Sign in to view your tickets" when set; empty keeps that default.
+        'subheading2'     => ['type' => 'text',   'default' => '', 'max' => 160],
         'accent'          => ['type' => 'colour', 'default' => '#2b88d8'],
 
         // ---- banner strip ----

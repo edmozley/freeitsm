@@ -609,8 +609,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* …and they must not sit on top of each other. */
         body:has(.login-strip-banner[data-at="bottom"]) .login-strip-footer { bottom: 42px; }
 
+        /* Pulled up into the header's 30px bottom margin, so the lines sit
+           under the heading rather than halfway to the form. */
+        .login-taglines { margin: -14px 0 22px; }
+        .login-taglines:not(:has(.login-tagline:not([hidden]))) { display: none; }
         .login-tagline {
-            margin: -14px 0 22px;
+            margin: 0 0 4px;
             color: #555;
             font-size: 14px;
             text-align: center;
@@ -855,8 +859,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1><?php echo htmlspecialchars($brand && $brand['heading'] !== '' ? $brand['heading'] : tr('heading', 'ITSM Login')); ?></h1>
             <?php endif; ?>
         </div>
-        <?php if ($brand && $brand['subheading'] !== '' && !$mfa_required): ?>
-            <p class="login-tagline"><?php echo htmlspecialchars($brand['subheading']); ?></p>
+        <?php /* Both lines are always printed, empty ones hidden, so the branding
+                 preview fills in the SAME elements the page uses rather than
+                 guessing where to put new ones (GH #150). */ ?>
+        <?php if (!$mfa_required): ?>
+            <div class="login-taglines">
+                <?php foreach (['1' => 'subheading', '2' => 'subheading2'] as $n => $f): $v = $brand[$f] ?? ''; ?>
+                    <p class="login-tagline" data-tagline="<?php echo $n; ?>"<?php echo $v === '' ? ' hidden' : ''; ?>><?php echo htmlspecialchars($v); ?></p>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
 
         <?php if ($mfa_required): ?>

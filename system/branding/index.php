@@ -504,6 +504,10 @@ $translationNamespaces = ['common', 'system'];
                                 <input type="text" id="ln_subheading" class="slot-input" maxlength="160"
                                        placeholder="<?php echo htmlspecialchars(t('system.branding.login_subheading_ph')); ?>">
                             </label>
+                            <label class="dlabel"><?php echo htmlspecialchars(t('system.branding.login_subheading2')); ?>
+                                <input type="text" id="ln_subheading2" class="slot-input" maxlength="160"
+                                       placeholder="<?php echo htmlspecialchars(t('system.branding.login_subheading2_ph')); ?>">
+                            </label>
                         </div>
 
                         <div class="dgroup">
@@ -785,7 +789,7 @@ $translationNamespaces = ['common', 'system'];
             const msg = {
                 css: lnCss(d), formPos: d.form_position, card: d.card_style,
                 logoPos: d.logo_position, logo: LN_LOGO,
-                heading: d.heading, subheading: d.subheading,
+                heading: d.heading, subheading: d.subheading, subheading2: d.subheading2,
                 bannerText: d.banner_text, bannerAt: d.banner_position,
                 footerText: d.footer_text
             };

@@ -75,12 +75,24 @@ $previewDefaultHeading = $previewDefaultHeading ?? '';
         setText('h1', d.heading);
         strip('banner', d.bannerText, ok(ENUMS.bannerAt, d.bannerAt));
         strip('footer', d.footerText, 'bottom');
-        var tag = document.querySelector('.login-tagline');
-        if (d.subheading) {
-            if (!tag) { tag = document.createElement('p'); tag.className = 'login-tagline';
-                        document.querySelector('.login-header').after(tag); }
-            tag.textContent = d.subheading;
-        } else if (tag) { tag.remove(); }
+        /* 🔴 GH #150. This used to CREATE the tagline when the page had none and
+           drop it after .login-header. Right for the analyst login, wrong for
+           the portal, where the header also holds "Sign in to view your
+           tickets" - so the preview showed the tagline below that line and the
+           saved page showed it above. The preview guessed where the page puts
+           it, and guessed differently.
+           Now each page prints its tagline lines ALWAYS (empty ones hidden),
+           marked data-tagline="1|2", and this only fills them in. Where they
+           sit is decided in one place: the page. A line with data-default
+           shows that text when the field is empty, as the server does. */
+        var TAGLINE = { '1': d.subheading, '2': d.subheading2 };
+        document.querySelectorAll('[data-tagline]').forEach(function (el) {
+            var v = TAGLINE[el.getAttribute('data-tagline')];
+            v = (typeof v === 'string') ? v.trim() : '';
+            var fallback = el.getAttribute('data-default');
+            el.textContent = v !== '' ? v : (fallback || '');
+            el.hidden = el.textContent === '';
+        });
     }
     /* The heading the page uses when the designer supplies none — printed
        here because only the server knows the translated default. */

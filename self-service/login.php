@@ -127,7 +127,10 @@ $localAllowed = $localOn || $forceLocal;
         }
         /* …and they must not sit on top of each other. */
         body:has(.login-strip-banner[data-at="bottom"]) .login-strip-footer { bottom: 42px; }
-        .login-tagline { margin: -14px 0 22px; color: #555; font-size: 14px; text-align: center; }
+        /* Inside .login-header, straight under the h1 - so no negative margin
+           here. The -14px copied from the analyst login (where the tagline sits
+           OUTSIDE the header) pulled it up into the heading (GH #150). */
+        .login-header .login-tagline { margin: 0 0 6px; color: #555; font-size: 14px; }
         body[data-logo-pos="hidden"] .login-header img,
         body[data-logo-pos="hidden"] .company-logo { display: none; }
         body[data-form-pos="left"]  .login-container { margin-right: auto; margin-left: 6vw; }
@@ -306,8 +309,14 @@ $localAllowed = $localOn || $forceLocal;
         <div class="login-header">
             <img src="<?php echo htmlspecialchars(brandingLogoUrl()); ?>" alt="Company Logo">
             <h1><?php echo htmlspecialchars($brand && $brand['heading'] !== '' ? $brand['heading'] : t('self-service.login.heading')); ?></h1>
-            <?php if ($brand && $brand['subheading'] !== ''): ?><p class="login-tagline"><?php echo htmlspecialchars($brand['subheading']); ?></p><?php endif; ?>
-            <p id="loginSubtitle"><?php echo htmlspecialchars(t('self-service.login.subtitle')); ?></p>
+            <?php /* GH #150. Tagline 1 under the heading; Tagline 2 takes the
+                     place of "Sign in to view your tickets", which stays as the
+                     default when it is empty. Both always printed so the branding
+                     preview fills in these elements instead of guessing. */
+                  $tag1 = $brand['subheading'] ?? '';
+                  $tag2 = $brand['subheading2'] ?? ''; ?>
+            <p class="login-tagline" data-tagline="1"<?php echo $tag1 === '' ? ' hidden' : ''; ?>><?php echo htmlspecialchars($tag1); ?></p>
+            <p id="loginSubtitle" data-tagline="2" data-default="<?php echo htmlspecialchars(t('self-service.login.subtitle')); ?>"><?php echo htmlspecialchars($tag2 !== '' ? $tag2 : t('self-service.login.subtitle')); ?></p>
         </div>
 
         <div class="error-message" id="errorMsg"<?php if ($sso_error): ?> style="display:block;"<?php endif; ?>><?php echo $sso_error ? htmlspecialchars($sso_error) : ''; ?></div>
@@ -385,6 +394,10 @@ $localAllowed = $localOn || $forceLocal;
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js?v=3"></script>
     <script>
+    // The line under the heading as the page opened (Tagline 2, or the default).
+    // The two-step code step borrows it for its own instruction and puts it back.
+    const LOGIN_SUBTITLE = document.getElementById('loginSubtitle').textContent;
+
     async function handleLogin(e) {
         e.preventDefault();
         const btn = document.getElementById('loginBtn');
@@ -467,7 +480,9 @@ $localAllowed = $localOn || $forceLocal;
     function backToLogin() {
         document.getElementById('mfaSection').classList.remove('active');
         document.getElementById('loginSection').style.display = '';
-        document.getElementById('loginSubtitle').textContent = t('self-service.login.subtitle');
+        // Back to what the page opened with, which may be the admin's Tagline 2
+        // rather than the built-in "Sign in to view your tickets".
+        document.getElementById('loginSubtitle').textContent = LOGIN_SUBTITLE;
         document.getElementById('errorMsg').style.display = 'none';
         document.getElementById('loginBtn').disabled = false;
         document.getElementById('loginBtn').textContent = t('self-service.login.sign_in');
