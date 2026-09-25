@@ -102,6 +102,9 @@ requireModuleAccess('system');
             padding: 4px; background: var(--surface, #fff);
         }
         .ssp-logo-hint { margin-top: 6px; }
+        /* .btn is display:inline-flex, which beats the [hidden] attribute, so
+           Remove showed with no logo to remove. */
+        .ssp-logo-row [hidden] { display: none !important; }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=152">
 </head>
@@ -410,7 +413,11 @@ requireModuleAccess('system');
     document.addEventListener('DOMContentLoaded', function () {
         sspBindColour('sspHeaderColour', 'sspHeaderColourPick');
         sspBindColour('sspTableColour', 'sspTableColourPick');
-        document.getElementById('sspLogo').addEventListener('input', sspPaintPreview);
+        // GH #151. A listener on the old logo path box stood here after the box
+        // was replaced by the file picker (#1960). getElementById returned null,
+        // the line threw, and sspLoad() below never ran: the form showed
+        // defaults, and saving wrote those defaults over the real settings.
+        // Nothing may sit between here and sspLoad() that can throw.
         sspLoad();
     });
     </script>
