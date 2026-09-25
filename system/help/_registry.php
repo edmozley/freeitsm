@@ -42,6 +42,18 @@ function getHelpTopics() {
             ],
             'terms' => 'aes key secret credentials at rest cipher rotate',
         ],
+        'docker' => [
+            'hero' => 'Docker',
+            'sub'  => 'Turn on HTTPS for FreeITSM running in its Docker image, with a certificate for the name your people type - no certificate knowledge needed.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'why',      'label' => 'Why not Let\'s Encrypt'],
+                ['id' => 'steps',    'label' => 'Turning HTTPS on'],
+                ['id' => 'changes',  'label' => 'Changing the name or IP'],
+                ['id' => 'trouble',  'label' => 'Troubleshooting'],
+            ],
+            'terms' => 'https ssl tls certificate cert padlock not secure warning container compose 443 8443 dns hosts file root authority ca group policy intune',
+        ],
         'analysts' => [
             'hero' => 'Analysts',
             'sub'  => 'Create the people who work in FreeITSM, decide who is an administrator, control which companies and modules each of them can reach, put them into teams and reset their passwords.',

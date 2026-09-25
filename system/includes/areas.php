@@ -11,8 +11,9 @@
  * below — keeps the markup out of the data and the registry easy to scan.
  *
  * 'requires' (optional) gates an area behind a runtime condition the landing
- * page evaluates: currently only 'multitenant' (hidden until a 2nd company
- * exists), keeping the registry itself free of DB lookups.
+ * page evaluates: 'multitenant' (hidden until a 2nd company exists) and
+ * 'container' (only inside the Docker image), keeping the registry itself free
+ * of DB lookups.
  */
 
 /** @return array<int,array<string,string>> The ordered list of system areas. */
@@ -24,6 +25,16 @@ function getSystemAreas() {
             'title'    => 'system.landing.encryption_title',
             'desc'     => 'system.landing.encryption_desc',
             'keywords' => 'system.landing.encryption_keywords',
+        ],
+        // HTTPS for the container. Only shown inside Docker: anywhere else the
+        // web server belongs to whoever runs it and nothing here could reach it.
+        [
+            'icon'     => 'docker',
+            'url'      => 'docker/',
+            'title'    => 'system.landing.docker_title',
+            'desc'     => 'system.landing.docker_desc',
+            'keywords' => 'system.landing.docker_keywords',
+            'requires' => 'container',
         ],
         [
             'icon'     => 'analysts',
@@ -247,6 +258,8 @@ function systemAreaIcon($key) {
         'self_service' => '<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M2 9h20"></path><path d="M13.5 14.5 16 12l2.5 2.5L16 17z"></path><path d="M6 13h4"></path><path d="M6 16h3"></path>',
         'portal_profile' => '<circle cx="9" cy="7" r="4"></circle><path d="M2 21v-2a4 4 0 0 1 4-4h5"></path><path d="M18.4 12.6a1.9 1.9 0 0 1 2.7 2.7L15 21.4l-3.6.9.9-3.6z"></path>',
         'encryption'  => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
+        // A shipping container with a padlock on its door - "HTTPS for the container".
+        'docker'      => '<path d="M2 7l10-4 10 4v10l-10 4-10-4z"></path><path d="M2 7l10 4 10-4"></path><path d="M12 11v10"></path><rect x="15" y="12" width="4" height="3.5" rx="0.5"></rect><path d="M15.8 12v-1a1.2 1.2 0 0 1 2.4 0v1"></path>',
         'modules'     => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
         'analysts'    => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="15 11 17 13 21 9"></polyline>',
         'teams'       => '<circle cx="8" cy="8" r="3.5"></circle><circle cx="17.5" cy="10" r="2.5"></circle><path d="M2 19v-1a5.5 5.5 0 0 1 11 0v1"></path><path d="M15 13.2A4 4 0 0 1 21 17v1"></path>',

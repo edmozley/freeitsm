@@ -41,19 +41,25 @@ COPY docker/db_config.php /var/www/html/db_config.php
 # dropped into conf.d rather than relying on the copy in the app root.
 COPY docker/php.ini /usr/local/etc/php/conf.d/freeitsm.ini
 
-# Create directories for uploads, attachments, and encryption keys
+# HTTPS site for the certificate made on System -> Docker. Installed but NOT
+# enabled: entrypoint.sh turns it (and mod_ssl) on at start only when a valid
+# certificate is present in /var/www/tls.
+COPY docker/apache-ssl.conf /etc/apache2/sites-available/freeitsm-ssl.conf
+
+# Create directories for uploads, attachments, encryption keys and certificates
 RUN mkdir -p /var/www/html/tickets/attachments \
     /var/www/html/change-management/attachments \
     /var/www/encryption_keys \
-    && chown -R www-data:www-data /var/www/html /var/www/encryption_keys \
+    /var/www/tls \
+    && chown -R www-data:www-data /var/www/html /var/www/encryption_keys /var/www/tls \
     && chmod -R 755 /var/www/html \
-    && chmod 700 /var/www/encryption_keys
+    && chmod 700 /var/www/encryption_keys /var/www/tls
 
 # Copy entrypoint script (auto-generates encryption key on first boot)
 # sed strips Windows CRLF line endings that break bash in Linux
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE 80
+EXPOSE 80 443
 
 ENTRYPOINT ["entrypoint.sh"]

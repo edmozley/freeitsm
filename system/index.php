@@ -35,8 +35,10 @@ $isMultiTenant = false;
 try { $isMultiTenant = isMultiTenant(connectToDatabase()); } catch (Exception $e) { $isMultiTenant = false; }
 
 // Filter the registry down to the areas this install should show.
-$systemAreas = array_filter(getSystemAreas(), function ($area) use ($isMultiTenant) {
+$inContainer = storagePersistenceInContainer();
+$systemAreas = array_filter(getSystemAreas(), function ($area) use ($isMultiTenant, $inContainer) {
     if (($area['requires'] ?? '') === 'multitenant') return $isMultiTenant;
+    if (($area['requires'] ?? '') === 'container') return $inContainer;
     return true;
 });
 

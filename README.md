@@ -60,6 +60,7 @@ Then open [http://localhost:8080/setup/](http://localhost:8080/setup/) to verify
 
 - **Manual install** (WAMP / XAMPP / LAMP): follow the **[Installation guide](https://github.com/edmozley/freeitsm/wiki/Installation)** — prerequisites, database setup, encryption key, and configuration files.
 - **Running in Docker?** FreeITSM checks whether the folders holding your uploaded files are on Docker volumes, and warns you on the System screen if an update would discard them. **System → Debug Tools → D013** shows the detail and what to do about it. Native installs are unaffected and see nothing.
+- **HTTPS in Docker**: **System → Docker** makes a certificate for the name your people type (such as `freeitsm.internal`) and walks you through the rest: the DNS record, installing its authority certificate on your PCs, and restarting the container. HTTPS is then served on port 8443. The authority can only vouch for that one name, so trusting it on your PCs does not let it impersonate any other site.
 - **First login**: `admin` / `freeitsm` — change it immediately via the account menu.
 - **Demo data**: System → Demo Data populates every module with realistic sample data, so you can evaluate with the system feeling alive. Every row it creates is marked as demo data, so re-importing a module replaces only its own sample records and leaves anything you have created alone.
 
