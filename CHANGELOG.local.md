@@ -14,10 +14,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
-| 1983 | Authentication    | Fix         | Behind a reverse proxy terminating HTTPS with TRUST_PROXY_HTTPS on, the SSO redirect URI (sign-in, settings page, help page, logout) was built as http:// and Entra rejected it with AADSTS50011 - it now uses the new requestScheme() helper (GH #152). |
-| 1984 | System            | Fix         | The same bare $_SERVER['HTTPS'] test built http:// links behind a proxy in 13 more places - password reset and self-service emails, CSAT links, calendar sync links, QR labels, API and webhooks pages, the webhook test and two debug tools - and left the landing cookie without Secure; all now use requestScheme() / requestIsHttps() (GH #152). |
-| 1985 | Docker            | Fix         | Apache's own redirects (/login.php to /login, a folder without its slash) went to http:// behind a proxy; with TRUST_PROXY_HTTPS set the entrypoint now gives the site an https ServerName (docker/apache-proxy.conf) (GH #152). |
-| 1986 | Docker            | Improvement | docker/proxy-test: FreeITSM behind nginx terminating TLS, with check.sh reporting every request-built address that comes back http:// and a TRUST_PROXY_HTTPS=0 negative case. |
 
 
 
@@ -1171,6 +1167,15 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 317 | Tasks             | Fix         | **Drag-reorder drop indicator invisible in scrolling board columns.** The purple line that shows where a dragged card will land vanished whenever its column had enough cards to scroll. Cause: `.board-cards` is a `flex-direction:column` container and the `.drop-indicator` is an empty `<div>` &mdash; so its min-content height is 0, and when the column overflowed, flexbox's `flex-shrink` compressed the indicator to 0px (the cards resist because their text gives them a min-content height; the empty indicator does not). Fixed by adding `flex-shrink:0` to `.drop-indicator` (and to `.task-card` for good measure, so cards can never be squished either). `tasks.css` bumped to `?v=6`. |
 
 ## Published
+
+### 2.7.1 - 26 September 2026
+
+| ID   | Module            | Type        | Description |
+|------|-------------------|-------------|-------------|
+| 1983 | Authentication    | Fix         | Behind a reverse proxy terminating HTTPS with TRUST_PROXY_HTTPS on, the SSO redirect URI (sign-in, settings page, help page, logout) was built as http:// and Entra rejected it with AADSTS50011 - it now uses the new requestScheme() helper (GH #152). |
+| 1984 | System            | Fix         | The same bare $_SERVER['HTTPS'] test built http:// links behind a proxy in 13 more places - password reset and self-service emails, CSAT links, calendar sync links, QR labels, API and webhooks pages, the webhook test and two debug tools - and left the landing cookie without Secure; all now use requestScheme() / requestIsHttps() (GH #152). |
+| 1985 | Docker            | Fix         | Apache's own redirects (/login.php to /login, a folder without its slash) went to http:// behind a proxy; with TRUST_PROXY_HTTPS set the entrypoint now gives the site an https ServerName (docker/apache-proxy.conf) (GH #152). |
+| 1986 | Docker            | Improvement | docker/proxy-test: FreeITSM behind nginx terminating TLS, with check.sh reporting every request-built address that comes back http:// and a TRUST_PROXY_HTTPS=0 negative case. |
 
 ### 2.7.0 - 25 September 2026
 
