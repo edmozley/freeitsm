@@ -6,7 +6,7 @@
 require __DIR__ . '/_init.php';
 
 // The redirect URI the admin registers in their IdP (same one for every provider).
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme = requestScheme();
 $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'api/auth/oidc_callback.php';
 
 $helpSlug = 'sso';

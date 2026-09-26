@@ -9,6 +9,7 @@
  */
 require_once __DIR__ . '/encryption.php';       // decryptMailboxRow
 require_once __DIR__ . '/template_email.php';   // templateGetValidAccessToken, templateSendViaGraph
+require_once __DIR__ . '/session_security.php';  // requestScheme() — proxy-aware (GH #152)
 
 /** First active, send-capable mailbox (has credentials), decrypted. Null if none. */
 function ssGetSendingMailbox(PDO $conn): ?array {
@@ -92,7 +93,7 @@ function ssSendSystemEmail(PDO $conn, string $to, string $subject, string $htmlB
 
 /** Absolute URL to the self-service email-verification page for a raw token. */
 function ssBuildVerifyUrl(string $rawToken): string {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $scheme = requestScheme();
     $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
     $appRoot = rtrim(str_replace('\\', '/', realpath(__DIR__ . '/..')), '/');
@@ -109,7 +110,7 @@ function ssBuildVerifyUrl(string $rawToken): string {
  * a phishing attempt.
  */
 function ssBuildResetUrl(string $rawToken): string {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $scheme = requestScheme();
     $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
     $appRoot = rtrim(str_replace('\\', '/', realpath(__DIR__ . '/..')), '/');

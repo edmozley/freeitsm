@@ -15,6 +15,7 @@ require_once __DIR__ . '/../../includes/db.php';   // dbConnectionOptions() — 
 require_once '../../includes/encryption.php';
 require_once '../../includes/mailbox_graph.php';    // mailboxCanSend
 require_once '../../includes/template_email.php';   // templateGraphContext, templateSendViaGraph
+require_once '../../includes/session_security.php';  // requestScheme() — proxy-aware (GH #152)
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);
@@ -72,7 +73,7 @@ try {
     $stmt->execute([$analyst['id'], $tokenHash]);
 
     // Build reset URL
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $protocol = requestScheme();
     $host = $_SERVER['HTTP_HOST'];
     $basePath = rtrim(dirname(dirname(dirname($_SERVER['SCRIPT_NAME']))), '/\\');
     $resetUrl = $protocol . '://' . $host . $basePath . '/reset-password.php?token=' . $token;

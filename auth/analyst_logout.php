@@ -32,7 +32,7 @@ if ($ssoProviderId) {
         if ($provider) {
             $disco = oidcDiscover($provider['issuer_url']);
             if (!empty($disco['end_session_endpoint'])) {
-                $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $scheme = requestScheme();
                 $postLogout = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
                 $params = ['post_logout_redirect_uri' => $postLogout];
                 // id_token_hint is preferred; fall back to client_id (both satisfy Keycloak).

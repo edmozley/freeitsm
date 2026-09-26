@@ -22,6 +22,7 @@
  */
 
 require_once __DIR__ . '/calendar_sync.php';
+require_once __DIR__ . '/../session_security.php'; // requestScheme() — proxy-aware (GH #152)
 
 /**
  * Make the calendar match the ticket.
@@ -314,7 +315,7 @@ function calendarSyncEventFromTask(array $t, string $kind): ?array
     // ⚠️ `?task=`, not `?id=`. assets/js/tasks.js reads exactly that parameter,
     // so the wrong name opens the board and quietly does nothing.
     $url = ($host && $base !== '')
-        ? ((!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http')
+        ? (requestScheme()
             . '://' . $host . $base . '/tasks/?task=' . (int)$t['id'])
         : '';
 
@@ -438,7 +439,7 @@ function calendarSyncEventFromTicket(array $t): array
     // Only offer a link when we can build an absolute one. A relative URL in a
     // calendar event is worse than none — it looks clickable and goes nowhere.
     $url = ($host && $base !== '')
-        ? ((!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http')
+        ? (requestScheme()
             . '://' . $host . $base . '/tickets/?ticket_id=' . (int)$t['id'])
         : '';
 

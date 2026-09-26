@@ -21,7 +21,7 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'system'];
 
 // The live base URL of the v1 API for this deployment.
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme = requestScheme();
 $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'api/v1';
 ?>
 <!DOCTYPE html>

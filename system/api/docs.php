@@ -21,7 +21,7 @@ require_once __DIR__ . '/../includes/page_gate.php';
 $path_prefix = '../../';
 $translationNamespaces = ['common', 'system'];
 
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme = requestScheme();
 $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'api/v1';
 
 // Endpoint catalogue: SINGLE SOURCE OF TRUTH, shared with the OpenAPI generator

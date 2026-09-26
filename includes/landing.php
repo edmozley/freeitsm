@@ -19,6 +19,8 @@
  * unrecognised falls back to the default.
  */
 
+require_once __DIR__ . '/session_security.php';   // requestIsHttps() — proxy-aware (GH #152)
+
 /** Cookie holding the analyst's own choice. Read pre-auth; see landingResolve(). */
 const LANDING_COOKIE = 'freeitsm_landing';
 
@@ -106,7 +108,7 @@ function landingSetCookie(?string $key): void
     $params = [
         'expires'  => $key === null ? time() - 3600 : time() + 31536000,
         'path'     => '/',
-        'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'secure'   => requestIsHttps(),
         'httponly' => true,
         'samesite' => 'Lax',
     ];

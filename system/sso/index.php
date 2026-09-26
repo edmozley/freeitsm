@@ -33,7 +33,7 @@ $ssoColspan = $ssoMultiTenant ? 7 : 6; // providers table column count (Company 
 
 // The redirect URI the admin must register in their IdP. Built from the
 // deployment's BASE_URL so it's correct whatever path the app is served at.
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme = requestScheme();
 $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'api/auth/oidc_callback.php';
 ?>
 <!DOCTYPE html>

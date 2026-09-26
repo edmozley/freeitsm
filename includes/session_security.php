@@ -79,6 +79,20 @@ function requestIsHttps(): bool
 }
 
 /**
+ * 'https' or 'http' — the scheme to put on an absolute URL built from this request.
+ *
+ * ⚠️ Use this, never a bare `$_SERVER['HTTPS']` test. Behind a proxy that terminates
+ * TLS (nginx, Caddy, Traefik, an AWS ALB) Apache only ever sees plain HTTP, so the
+ * bare test says 'http' and every link built from it is wrong. For an OIDC redirect
+ * URI that is fatal rather than cosmetic: Entra and friends refuse a non-TLS redirect
+ * URI outright (GH #152).
+ */
+function requestScheme(): string
+{
+    return requestIsHttps() ? 'https' : 'http';
+}
+
+/**
  * The attributes an authenticated session cookie must carry.
  *
  * SameSite=Lax is doing the CSRF work here: it stops the cookie riding along with a

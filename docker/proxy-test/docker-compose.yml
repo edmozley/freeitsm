@@ -1,0 +1,74 @@
+# FreeITSM behind an nginx reverse proxy that terminates HTTPS.
+# DEVELOPMENT ONLY - the passwords are public and the certificate is self-signed.
+#
+# WHY THIS EXISTS
+# ---------------
+# GH #152: behind a proxy doing TLS, Apache in the container only ever sees plain
+# HTTP, so any code that asks `$_SERVER['HTTPS']` builds http:// links. For the
+# SSO redirect URI that is fatal - Entra rejects it (AADSTS50011). This is the
+# commonest production layout and nothing on a WAMP box looks like it.
+#
+# Run from the repo root, as its own project so it never touches the main stack:
+#
+#   docker compose -p proxytest -f docker/proxy-test/docker-compose.yml up -d --build
+#
+# then open https://localhost:8453 (accept the certificate warning).
+services:
+  proxy:
+    image: nginx:1.27-alpine
+    ports:
+      # 8453 so it can run next to the app's own 8080/8443.
+      - "127.0.0.1:8453:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # Make a throwaway self-signed certificate, then start nginx as normal.
+    command:
+      - sh
+      - -c
+      - >-
+        mkdir -p /etc/nginx/tls &&
+        { [ -f /etc/nginx/tls/proxy.crt ] ||
+        { apk add --no-cache openssl >/dev/null &&
+        openssl req -x509 -nodes -newkey rsa:2048 -days 30 -subj /CN=localhost -keyout /etc/nginx/tls/proxy.key -out /etc/nginx/tls/proxy.crt 2>/dev/null; }; } &&
+        exec nginx -g 'daemon off;'
+    depends_on:
+      - app
+
+  app:
+    build: ../..
+    # No ports: the proxy is the only way in, which is the only situation in which
+    # TRUST_PROXY_HTTPS is safe to turn on.
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_SERVER=db
+      - DB_NAME=freeitsm
+      - DB_USERNAME=freeitsm
+      - DB_PASSWORD=freeitsm
+      - ENCRYPTION_KEY_PATH=/var/www/encryption_keys/freeitsm.key
+      # TRUST_PROXY_HTTPS=0 in front of `docker compose` checks the negative case:
+      # with it off, a client-sent X-Forwarded-Proto must change nothing.
+      - TRUST_PROXY_HTTPS=${TRUST_PROXY_HTTPS:-1}
+    volumes:
+      - encryption-keys:/var/www/encryption_keys
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: freeitsm
+      MYSQL_USER: freeitsm
+      MYSQL_PASSWORD: freeitsm
+    volumes:
+      - db-data:/var/lib/mysql
+      - ../../database/freeitsm.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:
+  encryption-keys:

@@ -16,6 +16,7 @@
 
 require_once __DIR__ . '/template_email.php';
 require_once __DIR__ . '/encryption.php';   // csat_token_secret is stored encrypted
+require_once __DIR__ . '/session_security.php'; // requestScheme() — proxy-aware (GH #152)
 
 /**
  * Read a system_settings key with a default fallback.
@@ -54,7 +55,7 @@ function csatGenerateToken(): string {
  * config changes.
  */
 function csatBuildUrl(string $token): string {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $scheme = requestScheme();
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     // Find the install root — config.php sits at the repo root, so we walk
     // up from this file's directory to derive it relative to DOCUMENT_ROOT.

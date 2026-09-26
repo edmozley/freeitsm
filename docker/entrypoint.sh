@@ -63,5 +63,19 @@ else
     tls_off
 fi
 
+# Behind a reverse proxy that terminates HTTPS: Apache's own redirects must say
+# https too. Decided on every start, like HTTPS above, so unsetting the variable
+# and restarting really turns it off. See docker/apache-proxy.conf (GH #152).
+# Empty and 0 mean off, exactly as PHP's getenv() test in docker/config.php reads them.
+case "$TRUST_PROXY_HTTPS" in
+    ""|0)
+        rm -f /etc/apache2/freeitsm-proxy.conf
+        ;;
+    *)
+        cp /etc/apache2/freeitsm-proxy.conf.available /etc/apache2/freeitsm-proxy.conf
+        echo "TRUST_PROXY_HTTPS is set: Apache's own redirects will use https."
+        ;;
+esac
+
 # Start Apache in foreground
 exec apache2-foreground

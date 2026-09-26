@@ -31,7 +31,7 @@ if ($ssoProviderId) {
         if ($provider) {
             $disco = oidcDiscover($provider['issuer_url']);
             if (!empty($disco['end_session_endpoint'])) {
-                $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $scheme = requestScheme();
                 $postLogout = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'self-service/login.php';
                 $params = ['post_logout_redirect_uri' => $postLogout];
                 if ($ssoIdToken) { $params['id_token_hint'] = $ssoIdToken; }

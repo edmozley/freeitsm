@@ -73,7 +73,7 @@ $problems = [];
 $fixes    = [];
 
 // ---- 1. Where are we asking? -----------------------------------------------
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme = requestScheme();
 $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $base   = $scheme . '://' . $host . (defined('BASE_URL') ? BASE_URL : '/');
 

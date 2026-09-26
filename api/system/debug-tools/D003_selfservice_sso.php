@@ -418,7 +418,7 @@ if (!$relevantIds) {
 
 // ---- 12. REDIRECT URI --------------------------------------------------
 
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme = requestScheme();
 $base   = defined('BASE_URL') ? BASE_URL : '/';
 $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $base . 'api/auth/oidc_callback.php';
 addSection($sections, "REDIRECT URI", [

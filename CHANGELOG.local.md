@@ -14,6 +14,10 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 1983 | Authentication    | Fix         | Behind a reverse proxy terminating HTTPS with TRUST_PROXY_HTTPS on, the SSO redirect URI (sign-in, settings page, help page, logout) was built as http:// and Entra rejected it with AADSTS50011 - it now uses the new requestScheme() helper (GH #152). |
+| 1984 | System            | Fix         | The same bare $_SERVER['HTTPS'] test built http:// links behind a proxy in 15 more places - password reset and self-service emails, CSAT links, calendar sync links, QR labels, API and webhooks pages, the webhook test and two debug tools - and left the landing cookie without Secure; all now use requestScheme() / requestIsHttps() (GH #152). |
+| 1985 | Docker            | Fix         | Apache's own redirects (/login.php to /login, a folder without its slash) went to http:// behind a proxy; with TRUST_PROXY_HTTPS set the entrypoint now gives the site an https ServerName (docker/apache-proxy.conf) (GH #152). |
+| 1986 | Docker            | Improvement | docker/proxy-test: FreeITSM behind nginx terminating TLS, with check.sh reporting every request-built address that comes back http:// and a TRUST_PROXY_HTTPS=0 negative case. |
 
 
 

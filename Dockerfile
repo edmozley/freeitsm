@@ -46,6 +46,13 @@ COPY docker/php.ini /usr/local/etc/php/conf.d/freeitsm.ini
 # certificate is present in /var/www/tls.
 COPY docker/apache-ssl.conf /etc/apache2/sites-available/freeitsm-ssl.conf
 
+# Behind a reverse proxy doing HTTPS: make Apache's own redirects keep https.
+# The site includes the file only if it exists, and entrypoint.sh puts it there
+# only when TRUST_PROXY_HTTPS is set - see the file (GH #152).
+COPY docker/apache-proxy.conf /etc/apache2/freeitsm-proxy.conf.available
+RUN sed -i 's#^\(\s*\)DocumentRoot .*#&\n\1IncludeOptional /etc/apache2/freeitsm-proxy.conf#' /etc/apache2/sites-available/000-default.conf \
+    && grep -q freeitsm-proxy.conf /etc/apache2/sites-available/000-default.conf
+
 # Create directories for uploads, attachments, encryption keys and certificates
 RUN mkdir -p /var/www/html/tickets/attachments \
     /var/www/html/change-management/attachments \

@@ -154,7 +154,7 @@ function assetPublicBaseUrl(): string {
     try {
         $host = messagingPublicBaseUrl(connectToDatabase());
     } catch (Exception $e) {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $scheme = requestScheme();
         $host = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
     }
 

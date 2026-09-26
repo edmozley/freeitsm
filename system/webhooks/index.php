@@ -169,7 +169,7 @@ function whRate($delivered, $dead) {
 
 // Exact commands for this install.
 $scriptPath = realpath(__DIR__ . '/../../cron/webhook_deliveries.php') ?: 'cron/webhook_deliveries.php';
-$scheme     = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme     = requestScheme();
 $httpUrl    = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL
             . 'cron/webhook_deliveries.php?token=' . urlencode($cronToken);
 $cliCmd     = 'php ' . $scriptPath;

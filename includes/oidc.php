@@ -16,6 +16,7 @@
 
 require_once __DIR__ . '/encryption.php';
 require_once __DIR__ . '/sso_identity.php';   // ssoClearDanglingLink() — shared with LDAP
+require_once __DIR__ . '/session_security.php'; // requestScheme() — proxy-aware (GH #152)
 require_once __DIR__ . '/vendor/firebase-jwt/src/JWT.php';
 require_once __DIR__ . '/vendor/firebase-jwt/src/JWK.php';
 require_once __DIR__ . '/vendor/firebase-jwt/src/Key.php';
@@ -36,7 +37,7 @@ JWT::$leeway = 60;
  * MUST be identical in the login-redirect step and the token exchange.
  */
 function oidcRedirectUri(): string {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $scheme = requestScheme();
     $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
     return $scheme . '://' . $host . BASE_URL . 'api/auth/oidc_callback.php';
 }

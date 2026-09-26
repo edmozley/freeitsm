@@ -48,7 +48,7 @@ foreach (['url', 'secret'] as $k) {
 // to realistic values in the test send. We prefer the most recent REAL ticket
 // (so the Full-record format has an actual object to send and template vars look
 // true-to-life); if the install has no tickets yet, we fall back to synthetic.
-$scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme  = requestScheme();
 $appBase = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
 $conn = connectToDatabase();
 
