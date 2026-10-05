@@ -14,7 +14,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
-| 2164 | System            | Fix         | **On Apache with PHP-FPM, an uploaded logo, the portal logo and LMS courses returned HTTP 500** ([#115](https://github.com/edmozley/freeitsm/issues/115)): nine upload folders' `.htaccess` and the three run-time templates (`uploadPrepareDir()`, `uploadPrepareWebServableDir()`, `lmsHardenContentDir()`) carried `php_flag engine off` outside `<IfModule mod_php.c>`, an unknown command without mod_php, so Apache 500'd the whole folder; the unguarded line is removed (wrapped in lms/content, its only copy), Verify database wraps any left in run-time-written copies (`uploadRepairHtaccessTree()`), `tests/htaccess-php-guard.php` runs in CI, and a live Debian Apache + php8.2-fpm vs php:8.4-apache comparison showed the logo 500 to 200, a planted shell.php 403 on both, and mod_php unchanged. |
 
 
 
@@ -1168,6 +1167,12 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 317 | Tasks             | Fix         | **Drag-reorder drop indicator invisible in scrolling board columns.** The purple line that shows where a dragged card will land vanished whenever its column had enough cards to scroll. Cause: `.board-cards` is a `flex-direction:column` container and the `.drop-indicator` is an empty `<div>` &mdash; so its min-content height is 0, and when the column overflowed, flexbox's `flex-shrink` compressed the indicator to 0px (the cards resist because their text gives them a min-content height; the empty indicator does not). Fixed by adding `flex-shrink:0` to `.drop-indicator` (and to `.task-card` for good measure, so cards can never be squished either). `tasks.css` bumped to `?v=6`. |
 
 ## Published
+
+### 3.1.1 - 6 October 2026
+
+| ID   | Module            | Type        | Description |
+|------|-------------------|-------------|-------------|
+| 2164 | System            | Fix         | **On Apache with PHP-FPM, an uploaded logo, the portal logo and LMS courses returned HTTP 500** ([#115](https://github.com/edmozley/freeitsm/issues/115)): nine upload folders' `.htaccess` and the three run-time templates (`uploadPrepareDir()`, `uploadPrepareWebServableDir()`, `lmsHardenContentDir()`) carried `php_flag engine off` outside `<IfModule mod_php.c>`, an unknown command without mod_php, so Apache 500'd the whole folder; the unguarded line is removed (wrapped in lms/content, its only copy), Verify database wraps any left in run-time-written copies (`uploadRepairHtaccessTree()`), `tests/htaccess-php-guard.php` runs in CI, and a live Debian Apache + php8.2-fpm vs php:8.4-apache comparison showed the logo 500 to 200, a planted shell.php 403 on both, and mod_php unchanged. |
 
 ### 3.1.0 - 4 October 2026
 
