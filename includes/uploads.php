@@ -287,9 +287,9 @@ IIS
 
 # Belt and braces for a server that ignores the deny above: even if something is
 # reachable, it must never run.
-php_flag engine off
 RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .jsp .asp .aspx .shtml
 RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py
+# TRAP: php_flag / php_value only ever inside <IfModule mod_php*.c>. Unguarded, Apache running PHP through PHP-FPM does not know the command and refuses EVERY file in this folder with a 500 (GH #115).
 <IfModule mod_php.c>
   php_flag engine off
 </IfModule>
@@ -310,6 +310,9 @@ RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py
 </FilesMatch>
 HT
         );
+    } else {
+        // An install written before GH #115 has the unguarded php_flag in here.
+        uploadRepairHtaccessFile($htaccess);
     }
 }
 
@@ -405,9 +408,9 @@ IIS
         @file_put_contents($htaccess, <<<'HT'
 # Web-servable uploads: static content IS served, nothing executes.
 # See includes/uploads.php — uploadPrepareWebServableDir().
-php_flag engine off
 RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .jsp .asp .aspx .shtml
 RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py
+# TRAP: php_flag / php_value only ever inside <IfModule mod_php*.c>. Unguarded, Apache running PHP through PHP-FPM does not know the command and refuses EVERY file in this folder with a 500 (GH #115).
 <IfModule mod_php.c>
   php_flag engine off
 </IfModule>
@@ -435,7 +438,142 @@ RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py
 </IfModule>
 HT
         );
+    } else {
+        // An install written before GH #115 has the unguarded php_flag in here.
+        uploadRepairHtaccessFile($htaccess);
     }
+}
+
+/**
+ * The folders FreeITSM writes uploaded files into, relative to the application
+ * root. Every .htaccess under them is one this file either shipped or wrote.
+ *
+ * Used by Database Verify to repair the .htaccess files an older release wrote
+ * (GH #115). forms/images is here and not in storagePersistenceDirectories()
+ * because that list is about what a container must persist, not about what
+ * holds an .htaccess.
+ */
+const UPLOAD_HTACCESS_ROOTS = [
+    'tickets/attachments',
+    'change-management/attachments',
+    'war-room/attachments',
+    'uploads',
+    'forms/images',
+    'lms/content',
+    'recordings',
+    'contracts/rfp-builder/uploads',
+    'system/uploads',
+];
+
+/**
+ * Line numbers (1-based) of every php_flag / php_value / php_admin_* directive in
+ * an .htaccess that is NOT inside an <IfModule> for mod_php.
+ *
+ * 🔴 WHY THIS MATTERS (GH #115). Those directives belong to mod_php. On Apache
+ * running PHP through PHP-FPM (proxy_fcgi), mod_php is not loaded, so Apache
+ * does not know the command — and an unknown command in an .htaccess is not
+ * skipped, it is a configuration error that answers EVERY request for every
+ * file in that folder, and every folder below it, with a 500. Every upload
+ * folder used to carry one unguarded `php_flag engine off`, so on PHP-FPM the
+ * logo, the portal logo and LMS course content all failed to load. Wrapped in
+ * <IfModule mod_php.c>, mod_php obeys it and every other server skips it.
+ *
+ * This is a line scanner, not an Apache parser: it follows the nesting of
+ * <Container> ... </Container> tags so a directive inside <FilesMatch> inside
+ * <IfModule mod_php.c> still counts as guarded. A negated <IfModule !mod_php.c>
+ * is not a guard — it means the opposite.
+ *
+ * @return int[]
+ */
+function htaccessUnguardedPhpDirectives(string $text): array
+{
+    $lines = preg_split('/\r\n|\n|\r/', $text);
+    $stack = [];          // one entry per open container: true if it is a mod_php guard
+    $out   = [];
+    foreach ($lines as $i => $line) {
+        $t = trim($line);
+        if ($t === '' || $t[0] === '#') continue;
+        if (preg_match('#^</\s*[A-Za-z]+\s*>#', $t)) {
+            array_pop($stack);
+            continue;
+        }
+        if (preg_match('#^<\s*([A-Za-z]+)\b\s*([^>]*)>#', $t, $m)) {
+            $isGuard = strcasecmp($m[1], 'IfModule') === 0
+                && preg_match('/^(mod_php[0-9]*\.c|php[0-9]*_module)$/i', trim($m[2]));
+            $stack[] = (bool)$isGuard;
+            continue;
+        }
+        if (preg_match('/^php_(admin_)?(flag|value)\b/i', $t) && !in_array(true, $stack, true)) {
+            $out[] = $i + 1;
+        }
+    }
+    return $out;
+}
+
+/**
+ * Wrap every unguarded PHP directive in an .htaccess in <IfModule> blocks for
+ * mod_php 8 (mod_php.c) and mod_php 7 (mod_php7.c), keeping its indentation and
+ * the file's own line endings. Returns the text unchanged when there is nothing
+ * to do, so it is safe to run on every file every time.
+ *
+ * Wrapping rather than deleting, so the repair never changes what mod_php does:
+ * a file whose only copy of the directive was the unguarded one keeps it.
+ */
+function htaccessGuardPhpDirectives(string $text): string
+{
+    $bad = htaccessUnguardedPhpDirectives($text);
+    if (!$bad) return $text;
+
+    $nl    = strpos($text, "\r\n") !== false ? "\r\n" : "\n";
+    $lines = preg_split('/\r\n|\n|\r/', $text);
+    foreach ($bad as $n) {
+        $line   = $lines[$n - 1];
+        $indent = substr($line, 0, strlen($line) - strlen(ltrim($line)));
+        $d      = trim($line);
+        $lines[$n - 1] = $indent . '<IfModule mod_php.c>' . $nl . $indent . '  ' . $d . $nl . $indent . '</IfModule>' . $nl
+                       . $indent . '<IfModule mod_php7.c>' . $nl . $indent . '  ' . $d . $nl . $indent . '</IfModule>';
+    }
+    return implode($nl, $lines);
+}
+
+/**
+ * Repair one .htaccess in place. True if it was changed.
+ */
+function uploadRepairHtaccessFile(string $path): bool
+{
+    $text = @file_get_contents($path);
+    if (!is_string($text)) return false;
+    $fixed = htaccessGuardPhpDirectives($text);
+    if ($fixed === $text) return false;
+    return @file_put_contents($path, $fixed) !== false;
+}
+
+/**
+ * Repair every .htaccess under the upload folders. Returns how many changed.
+ *
+ * The committed .htaccess files are fixed by updating FreeITSM, but the ones it
+ * WROTE itself — one per ticket attachment folder, the portal logo folder,
+ * per-form image folders — stay as they were written until something rewrites
+ * them. Database Verify calls this so an upgraded install is repaired in one go.
+ */
+function uploadRepairHtaccessTree(string $appRoot): int
+{
+    $changed = 0;
+    foreach (UPLOAD_HTACCESS_ROOTS as $rel) {
+        $root = rtrim($appRoot, '/\\') . '/' . $rel;
+        if (!is_dir($root)) continue;
+        $it = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::LEAVES_ONLY,
+            RecursiveIteratorIterator::CATCH_GET_CHILD     // an unreadable folder is skipped, not fatal
+        );
+        foreach ($it as $f) {
+            if ($f->getFilename() === '.htaccess' && uploadRepairHtaccessFile($f->getPathname())) {
+                $changed++;
+            }
+        }
+    }
+    return $changed;
 }
 
 /**

@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2164 | System            | Fix         | **On Apache with PHP-FPM, an uploaded logo, the portal logo and LMS courses returned HTTP 500** ([#115](https://github.com/edmozley/freeitsm/issues/115)): nine upload folders' `.htaccess` and the three run-time templates (`uploadPrepareDir()`, `uploadPrepareWebServableDir()`, `lmsHardenContentDir()`) carried `php_flag engine off` outside `<IfModule mod_php.c>`, an unknown command without mod_php, so Apache 500'd the whole folder; the unguarded line is removed (wrapped in lms/content, its only copy), Verify database wraps any left in run-time-written copies (`uploadRepairHtaccessTree()`), `tests/htaccess-php-guard.php` runs in CI, and a live Debian Apache + php8.2-fpm vs php:8.4-apache comparison showed the logo 500 to 200, a planted shell.php 403 on both, and mod_php unchanged. |
 
 
 

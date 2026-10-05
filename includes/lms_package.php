@@ -150,13 +150,24 @@ function lmsExtractPackage(ZipArchive $zip, string $destDir, array $files): void
 function lmsHardenContentDir(string $contentRoot): void
 {
     $htaccess = $contentRoot . '/.htaccess';
-    if (file_exists($htaccess)) return;
+    if (file_exists($htaccess)) {
+        // An install written before GH #115 has the unguarded php_flag in here.
+        require_once __DIR__ . '/uploads.php';
+        uploadRepairHtaccessFile($htaccess);
+        return;
+    }
 
     $rules = <<<'HTACCESS'
 # Course content is uploaded data, not application code. Nothing in this tree may
 # ever execute — this is defence in depth behind the extension allowlist in
 # includes/lms_package.php. Do not remove.
-php_flag engine off
+# TRAP: php_flag / php_value only ever inside <IfModule mod_php*.c>. Unguarded, Apache running PHP through PHP-FPM does not know the command and refuses EVERY file in this folder with a 500 (GH #115).
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
 
 <IfModule mod_mime.c>
     RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .cgi .pl .py .asp .aspx .jsp .sh

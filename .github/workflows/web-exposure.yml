@@ -28,3 +28,9 @@ jobs:
           coverage: none
       - name: tests/ and scripts/ refuse to run over HTTP
         run: php tests/web-exposure-guard.php
+
+      # GH #115: a php_flag outside <IfModule mod_php.c> made Apache with PHP-FPM
+      # answer every file in the upload folders with a 500. Same job because it
+      # is the same kind of check: files only, no database, no web server.
+      - name: no .htaccess breaks Apache with PHP-FPM
+        run: php tests/htaccess-php-guard.php

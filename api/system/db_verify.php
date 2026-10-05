@@ -2004,6 +2004,23 @@ try {
         }
     }
 
+    // GH #115: every upload folder's .htaccess used to carry an unguarded
+    // `php_flag engine off`. On Apache with PHP-FPM that is an unknown command,
+    // and Apache answers every file in the folder with a 500 - the logo, the
+    // portal logo and LMS courses never load. Updating FreeITSM fixes the files it
+    // ships; this fixes the ones it WROTE (one per attachment folder, the portal
+    // logo folder, per-form image folders). Idempotent: a repaired file is skipped.
+    try {
+        $htFixed = uploadRepairHtaccessTree(dirname(__DIR__, 2));
+        if ($htFixed > 0) {
+            $results[] = ['table' => 'upload folders', 'status' => 'migrated',
+                          'details' => ["Repaired $htFixed .htaccess file(s) so they no longer break Apache with PHP-FPM"]];
+        }
+    } catch (Throwable $e) {
+        $results[] = ['table' => 'upload folders', 'status' => 'warning',
+                      'details' => ['Could not check the upload folders\' .htaccess files: ' . $e->getMessage()]];
+    }
+
     // Same migration for target_mailboxes. token_data was absent from
     // ENCRYPTED_MAILBOX_COLUMNS, so on an existing install the azure_* columns are
     // ciphertext while the access + refresh tokens minted with them sit in the next

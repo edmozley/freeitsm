@@ -30,6 +30,8 @@ $DB_VERIFY_TABLE_OVERRIDES = [
     // where they are administered. NOT prefixed, because "document_*" would also
     // swallow directory_sync's tables if that prefix rule ever loosened.
     'documents'      => 'system',
+    // Not a table: the .htaccess repair across the upload folders (GH #115).
+    'upload folders' => 'system',
     'document_links' => 'system',
     // Feature Bingo's "Not for us" list - administered in System.
     'feature_bingo_dismissed' => 'system',
