@@ -15,6 +15,7 @@ require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
 require_once '../includes/tenancy.php';
+require_once '../includes/projects/methodologies.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -24,20 +25,39 @@ $current_page = 'help';
 $path_prefix = '../';
 $multi = isMultiTenant(connectToDatabase());
 
-// id => number of plain paragraphs (help.<id>.p1 ... pN).
+// id => number of plain paragraphs (help.<id>.p1 ... pN) shown before the
+// section's own block (cards, defs, steps). Paragraphs AFTER that block are
+// listed in $after.
 $sections = [
     'overview'  => 1,
     'portfolio' => 2,
     'project'   => 2,
     'plan'      => 3,
     'methods'   => 2,
+    'tools'     => 1,
+    'people'    => 3,
+    'scope'     => 1,
+    'raci'      => 1,
+    'raid'      => 3,
+    'gates'     => 3,
     'health'    => 1,
     'tasks'     => 2,
     'connections' => 2,
     'companies' => 1,
+    'settings'  => 1,
     'coming'    => 1,
 ];
 if (!$multi) unset($sections['companies']);
+$after = [
+    'tools'    => ['p2'],
+    'scope'    => ['p2'],
+    'raci'     => ['p2'],
+    'gates'    => ['p4'],
+    'health'   => ['p2'],
+    'settings' => ['p2', 'p3'],
+];
+// The tools each method switches on, read from the presets so the help can never disagree with them.
+$prjToolList = fn(string $method) => implode(', ', array_map(fn($k) => t('projects.tools.' . $k), projectMethodologies()[$method]['tools']));
 $h = fn(string $k, array $p = []) => htmlspecialchars(t('projects.help.' . $k, $p));
 /** Paragraph text may carry **bold**. */
 $para = fn(string $k) => preg_replace('/\*\*([^*]+)\*\*/', '<strong>$1</strong>', htmlspecialchars(t('projects.help.' . $k)));
@@ -59,7 +79,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=9">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=181">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=182">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
         body {
@@ -149,8 +169,66 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
                         </div>
                         <?php endforeach; ?>
                     </div>
-                    <p><?php echo $para('health.p2'); ?></p>
                     <?php endif; ?>
+
+                    <?php if ($id === 'tools'): ?>
+                    <div class="help-defs">
+                        <?php foreach (array_keys(projectMethodologies()) as $m): ?>
+                        <div class="help-def">
+                            <div class="help-def-term"><?php echo htmlspecialchars(t('projects.method.' . $m)); ?></div>
+                            <div class="help-def-desc"><?php echo htmlspecialchars($prjToolList($m)); ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if ($id === 'scope'): ?>
+                    <div class="help-defs">
+                        <?php foreach (['must', 'should', 'could', 'wont'] as $k): ?>
+                        <div class="help-def">
+                            <div class="help-def-term"><?php echo htmlspecialchars(t('projects.scope.' . $k)); ?></div>
+                            <div class="help-def-desc"><?php echo htmlspecialchars(t('projects.scope.' . $k . '_hint')); ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if ($id === 'raci'): ?>
+                    <div class="help-defs">
+                        <?php foreach (['r', 'a', 'c', 'i'] as $k): ?>
+                        <div class="help-def">
+                            <div class="help-def-term"><?php echo strtoupper($k) . ' - ' . htmlspecialchars(t('projects.raci.' . $k)); ?></div>
+                            <div class="help-def-desc"><?php echo htmlspecialchars(t('projects.raci.' . $k . '_hint')); ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if ($id === 'gates'): ?>
+                    <div class="help-defs">
+                        <?php foreach (['go', 'go_with_conditions', 'stop'] as $k): ?>
+                        <div class="help-def">
+                            <div class="help-def-term"><?php echo htmlspecialchars(t('projects.gates.' . $k)); ?></div>
+                            <div class="help-def-desc"><?php echo $h('gates.' . $k . '_d'); ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if ($id === 'settings'): ?>
+                    <div class="help-defs">
+                        <?php foreach (['general', 'health', 'roles', 'raid'] as $k): ?>
+                        <div class="help-def">
+                            <div class="help-def-term"><?php echo htmlspecialchars(t('projects.settings.tab_' . $k)); ?></div>
+                            <div class="help-def-desc"><?php echo $h('settings.' . $k . '_d'); ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php foreach ($after[$id] ?? [] as $pk): ?>
+                    <p><?php echo $para($id . '.' . $pk); ?></p>
+                    <?php endforeach; ?>
 
                     <?php if ($id === 'plan'): ?>
                     <div class="help-steps">
@@ -196,6 +274,6 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
             });
         });
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=76"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=77"></script>
 </body>
 </html>

@@ -39,7 +39,7 @@ $translationNamespaces = ['common', 'tickets'];
             --on-accent:    var(--accent-on-accent);
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=182">
 </head>
 <body data-mobile-page="tickets-help-sla">
 <?php include 'includes/header.php'; ?>
@@ -414,6 +414,6 @@ $translationNamespaces = ['common', 'tickets'];
         });
     });
 </script>
-    <script src="../assets/js/mobile.js?v=76"></script>
+    <script src="../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

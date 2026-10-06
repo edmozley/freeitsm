@@ -328,6 +328,9 @@ class ProjectToolsService
         $st->execute([$stageId, $projectId]);
         $stage = $st->fetch(PDO::FETCH_ASSOC);
         if (!$stage) throw new ServiceError('not_found', 'not_found', 'Stage not found.');
+        // A gate is the END of a stage: one that has not started has nothing to
+        // decide, and closing it here would skip the one-active-stage rule.
+        if ($stage['status'] === 'planned') throw new ServiceError('validation', 'invalid_field', 'That stage has not started yet.');
         $notes = self::str($notes, 20000);
         if ($decision === 'go_with_conditions' && !$notes) throw new ServiceError('validation', 'missing_field', 'Say what the conditions are.');
         $conn->beginTransaction();

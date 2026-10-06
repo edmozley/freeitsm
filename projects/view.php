@@ -42,7 +42,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
     <link rel="stylesheet" href="../assets/css/projects.css?v=9">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=182">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
     <?php include 'includes/header.php'; ?>
@@ -260,6 +260,6 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects.js?v=5"></script>
     <script src="../assets/js/projects-tools.js?v=3"></script>
     <script src="../assets/js/projects-view.js?v=8"></script>
-    <script src="../assets/js/mobile.js?v=76"></script>
+    <script src="../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

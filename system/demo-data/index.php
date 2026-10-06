@@ -303,7 +303,7 @@ if (!isset($_SESSION['analyst_id'])) {
         [data-theme-mode="dark"] .error-text { color: var(--danger-text, #fca5a5); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=181">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=182">
 </head>
 <body data-mobile-module="system" data-mobile-page="demo-data">
     <?php include '../includes/header.php'; ?>
@@ -496,7 +496,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
             <div class="module-card" data-module="tasks">
                 <h4>Tasks and Projects</h4>
-                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments - plus 3 projects (Staged, Agile and Simple) with their phases and 14 tasks of their own.</p>
+                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments - plus 3 projects (Staged, Agile and Simple) with their phases and 14 tasks of their own; the office move also has a team with roles, a MoSCoW scope, a RACI matrix, a RAID log, tolerances, a business case and a recorded gate.</p>
                 <div class="module-footer">
                     <span class="record-count">~42 records</span>
                     <button class="import-btn" id="btn-tasks" onclick="importModule('tasks', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
@@ -714,6 +714,6 @@ if (!isset($_SESSION['analyst_id'])) {
             } catch (e) { /* ignore - user can still click Import */ }
         })();
     </script>
-    <script src="../../assets/js/mobile.js?v=76"></script>
+    <script src="../../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

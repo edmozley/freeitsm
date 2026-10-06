@@ -45,6 +45,44 @@
                 "_match_by": "name",
                 "_match_value": "Escalation Team"
             }
+        ],
+        "project_roles": [
+            {
+                "_ref": "role_exec",
+                "_skip_insert": true,
+                "_match_by": "name",
+                "_match_value": "Executive"
+            },
+            {
+                "_ref": "role_pm",
+                "_skip_insert": true,
+                "_match_by": "name",
+                "_match_value": "Project Manager"
+            },
+            {
+                "_ref": "role_tm",
+                "_skip_insert": true,
+                "_match_by": "name",
+                "_match_value": "Team Manager"
+            },
+            {
+                "_ref": "role_su",
+                "_skip_insert": true,
+                "_match_by": "name",
+                "_match_value": "Senior User"
+            },
+            {
+                "_ref": "role_member",
+                "_skip_insert": true,
+                "_match_by": "name",
+                "_match_value": "Team member"
+            },
+            {
+                "_ref": "role_stake",
+                "_skip_insert": true,
+                "_match_by": "name",
+                "_match_value": "Stakeholder"
+            }
         ]
     },
     "tier2": {
@@ -64,7 +102,8 @@
                 "icon": "building",
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:-40d__",
-                "updated_datetime": "__RELATIVE_DATE:-1d__"
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "business_case": "The Leeds lease ends next year and renewing it costs more than the move.\n\nBenefits: one site instead of two, room to grow, and a modern network with no legacy kit.\nCosts: cabling and switches (quoted), two days of disruption on move day.\nMain risks: kit delivery and landlord access - both in the RAID log."
             },
             {
                 "_ref": "prj_win11",
@@ -111,7 +150,11 @@
                 "position": 1,
                 "status": "closed",
                 "start_date": "__RELATIVE_DATEONLY:-40d__",
-                "end_date": "__RELATIVE_DATEONLY:-15d__"
+                "end_date": "__RELATIVE_DATEONLY:-15d__",
+                "gate_decision": "go",
+                "gate_notes": "Desk plan signed off by every manager. Network kit ordered.",
+                "gate_decided_by": "@analysts.admin",
+                "gate_decided_datetime": "__RELATIVE_DATE:-15d__"
             },
             {
                 "_ref": "ps_office_network",
@@ -824,6 +867,284 @@
                 "analyst_id": "@analysts.lbrown",
                 "comment": "Found 11 stale shared mailboxes - 7 archived, 3 retained at owner's request, 1 already deleted. Sign-off attached.",
                 "created_datetime": "__RELATIVE_DATE:-14d__"
+            }
+        ]
+    },
+    "tier3": {
+        "project_members": [
+            {
+                "_ref": "pm_admin",
+                "project_id": "@projects.prj_office",
+                "analyst_id": "@analysts.admin",
+                "role_id": "@project_roles.role_exec",
+                "position": 1
+            },
+            {
+                "_ref": "pm_sw",
+                "project_id": "@projects.prj_office",
+                "analyst_id": "@analysts.swilliams",
+                "role_id": "@project_roles.role_pm",
+                "position": 2
+            },
+            {
+                "_ref": "pm_lb",
+                "project_id": "@projects.prj_office",
+                "analyst_id": "@analysts.lbrown",
+                "role_id": "@project_roles.role_tm",
+                "position": 3
+            },
+            {
+                "_ref": "pm_mj",
+                "project_id": "@projects.prj_office",
+                "analyst_id": "@analysts.mjones",
+                "role_id": "@project_roles.role_member",
+                "position": 4
+            },
+            {
+                "_ref": "pm_desk",
+                "project_id": "@projects.prj_office",
+                "team_id": "@teams.servicedesk",
+                "role_id": "@project_roles.role_stake",
+                "position": 5
+            }
+        ],
+        "project_items": [
+            {
+                "_ref": "pi_network",
+                "project_id": "@projects.prj_office",
+                "title": "Network live on every floor",
+                "moscow": "must",
+                "status": "in_progress",
+                "stage_id": "@project_stages.ps_office_network",
+                "position": 1,
+                "acceptance_criteria": "Every desk patched and tested; Wi-Fi survey passed on all floors."
+            },
+            {
+                "_ref": "pi_phones",
+                "project_id": "@projects.prj_office",
+                "title": "Phones working on day one",
+                "moscow": "must",
+                "status": "agreed",
+                "stage_id": "@project_stages.ps_office_move",
+                "position": 2
+            },
+            {
+                "_ref": "pi_desks",
+                "project_id": "@projects.prj_office",
+                "title": "Desk plan agreed with managers",
+                "moscow": "must",
+                "status": "accepted",
+                "stage_id": "@project_stages.ps_office_design",
+                "position": 3
+            },
+            {
+                "_ref": "pi_rooms",
+                "project_id": "@projects.prj_office",
+                "title": "Meeting rooms with screens",
+                "moscow": "should",
+                "status": "agreed",
+                "position": 4
+            },
+            {
+                "_ref": "pi_print",
+                "project_id": "@projects.prj_office",
+                "title": "Printers on each floor",
+                "moscow": "should",
+                "status": "proposed",
+                "position": 5
+            },
+            {
+                "_ref": "pi_heat",
+                "project_id": "@projects.prj_office",
+                "title": "Wi-Fi heat map for the new floor",
+                "moscow": "could",
+                "status": "proposed",
+                "position": 6
+            },
+            {
+                "_ref": "pi_lockers",
+                "project_id": "@projects.prj_office",
+                "title": "Smart lockers",
+                "moscow": "wont",
+                "status": "dropped",
+                "position": 7
+            }
+        ],
+        "project_raid": [
+            {
+                "project_id": "@projects.prj_office",
+                "type": "risk",
+                "title": "Switch delivery slips past the cabling date",
+                "probability": 4,
+                "impact": 4,
+                "response": "reduce",
+                "response_plan": "Order from a second distributor if not shipped by Friday",
+                "owner_analyst_id": "@analysts.lbrown",
+                "status": "open",
+                "raised_by_id": "@analysts.swilliams",
+                "raised_datetime": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "type": "risk",
+                "title": "Landlord access to the comms room delayed",
+                "probability": 2,
+                "impact": 5,
+                "response": "reduce",
+                "response_plan": "Agree access dates in writing this week",
+                "owner_analyst_id": "@analysts.swilliams",
+                "status": "open",
+                "raised_by_id": "@analysts.swilliams",
+                "raised_datetime": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "type": "risk",
+                "title": "Phone number porting fails on move day",
+                "probability": 2,
+                "impact": 4,
+                "response": "transfer",
+                "response_plan": "Carrier keeps the old lines live for a week",
+                "owner_analyst_id": "@analysts.mjones",
+                "status": "open",
+                "raised_by_id": "@analysts.swilliams",
+                "raised_datetime": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "type": "assumption",
+                "title": "The landlord finishes the fit-out on time",
+                "owner_analyst_id": "@analysts.swilliams",
+                "status": "open",
+                "raised_by_id": "@analysts.swilliams",
+                "raised_datetime": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "type": "issue",
+                "title": "Two floor boxes are in the wrong place",
+                "impact": 3,
+                "owner_analyst_id": "@analysts.lbrown",
+                "status": "open",
+                "raised_by_id": "@analysts.lbrown",
+                "raised_datetime": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "type": "decision",
+                "title": "Keep the old phones until move day",
+                "owner_analyst_id": "@analysts.admin",
+                "status": "open",
+                "raised_by_id": "@analysts.admin",
+                "raised_datetime": "__RELATIVE_DATE:-20d__"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "type": "lesson",
+                "title": "Book the comms room survey before signing the lease",
+                "status": "open",
+                "raised_by_id": "@analysts.swilliams",
+                "raised_datetime": "__RELATIVE_DATE:-25d__"
+            }
+        ],
+        "project_tolerances": [
+            {
+                "project_id": "@projects.prj_office",
+                "dimension": "time",
+                "value": 7
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "dimension": "risk",
+                "value": 15
+            }
+        ]
+    },
+    "tier4": {
+        "project_raci": [
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_network",
+                "member_id": "@project_members.pm_admin",
+                "letter": "A"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_network",
+                "member_id": "@project_members.pm_lb",
+                "letter": "R"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_network",
+                "member_id": "@project_members.pm_sw",
+                "letter": "C"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_network",
+                "member_id": "@project_members.pm_desk",
+                "letter": "I"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_phones",
+                "member_id": "@project_members.pm_sw",
+                "letter": "A"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_phones",
+                "member_id": "@project_members.pm_mj",
+                "letter": "R"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_phones",
+                "member_id": "@project_members.pm_desk",
+                "letter": "I"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_desks",
+                "member_id": "@project_members.pm_sw",
+                "letter": "A"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_desks",
+                "member_id": "@project_members.pm_lb",
+                "letter": "C"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_desks",
+                "member_id": "@project_members.pm_admin",
+                "letter": "I"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_rooms",
+                "member_id": "@project_members.pm_lb",
+                "letter": "A"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_rooms",
+                "member_id": "@project_members.pm_mj",
+                "letter": "R"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_print",
+                "member_id": "@project_members.pm_lb",
+                "letter": "A"
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "item_id": "@project_items.pi_print",
+                "member_id": "@project_members.pm_mj",
+                "letter": "R"
             }
         ]
     }

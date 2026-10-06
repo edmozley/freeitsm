@@ -401,7 +401,7 @@
             const r = await call({ action: 'gate_decide', stage_id: document.getElementById('pgStage').value, decision: gateDecision, notes: document.getElementById('pgNotes').value });
             P.closeModal('prjGateModal');
             await ctx.refresh();
-            if (gateDecision !== 'stop') {
+            if (gateDecision !== 'stop' && r.closed) {
                 P.celebrate(document.querySelector('#pvGates .prj-gate-list') || null);
                 P.toast(r.next ? T('gates.next_started', { stage: r.next }) : T('gates.saved'));
             } else P.toast(T('gates.saved'));

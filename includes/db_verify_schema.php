@@ -5257,6 +5257,7 @@ return [
         'item_id'    => 'INT NOT NULL',
         'member_id'  => 'INT NOT NULL',
         'letter'     => 'CHAR(1) NOT NULL',
+        'is_demo'    => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_raid' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
@@ -5284,5 +5285,6 @@ return [
         'stage_id'   => 'INT NULL',
         'dimension'  => 'VARCHAR(12) NOT NULL',
         'value'      => 'INT NOT NULL',
+        'is_demo'    => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 ];

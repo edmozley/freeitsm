@@ -5605,3 +5605,233 @@
     if (mq.addEventListener) { mq.addEventListener('change', sync); }
     else if (mq.addListener) { mq.addListener(sync); }
 })();
+
+/* ==========================================================================
+   LAYER 44d - Projects scope: change a deliverable's priority without a drag
+
+   On desktop a card is dragged between the MoSCoW columns. On a phone the
+   board is one column per row (mobile.css 44k), so the column you want is a
+   screen or more away and a drag would have to scroll the page mid-gesture
+   - the same reasons as the plan's lanes (44c). So each card gets 44c's
+   picker button, opening 44c's bottom sheet listing the five columns, the
+   card's own one ticked and not choosable. (Tapping the card itself still
+   opens its dialog, whose Priority field does the same thing with more
+   taps; the picker is the one-tap move the drag is on desktop.)
+
+   🔑 Wrap, don't edit (§1): choosing a column dispatches the events
+   projects-tools.js already listens for - `dragstart` on the card,
+   `dragover` on the column (its handler moves the card into the column, so
+   the order it sends includes it), `drop`, `dragend` - and its own item_move
+   call and redraw do the rest. Not one line of projects-tools.js changed.
+
+   Zero new strings: the column names come from the columns' own headings
+   (text nodes only, so the count badge stays behind), the sheet's title is
+   the card's own title, the button's name is the dialog's own "Priority"
+   label, and the toast is the plan's existing "Moved". Only cards the
+   analyst may change carry draggable="true", so only they get a picker.
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    if (!document.body || document.body.getAttribute('data-mobile-page') !== 'projects-view') return;
+
+    var mq = window.matchMedia('(max-width: 768px)');
+    var scope = document.getElementById('pvScope');
+    if (!scope || !window.MutationObserver) return;
+
+    function tr(key, fallback) {
+        if (typeof window.t !== 'function') return fallback;
+        var v = window.t(key);
+        return (!v || v === key) ? fallback : v;
+    }
+    function txt(el) { return el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
+    /** A column heading's own words - text nodes only, so the count badge
+        beside them does not come along. */
+    function headText(h) {
+        if (!h) return '';
+        var s = '';
+        for (var i = 0; i < h.childNodes.length; i++) {
+            if (h.childNodes[i].nodeType === 3) s += h.childNodes[i].nodeValue;
+        }
+        return s.replace(/\s+/g, ' ').trim();
+    }
+    var ICON_MOVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4"/><path d="M17 20V4M13 8l4-4 4 4"/></svg>';
+    var ICON_CLOSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+    var sheet = null, sheetTitle = null, sheetBody = null, current = null, pending = null;
+
+    function build() {
+        if (sheet) return;
+        sheet = document.createElement('div');
+        sheet.className = 'prj-msheet prj-move-sheet';
+        sheet.setAttribute('role', 'dialog');
+        sheet.setAttribute('aria-modal', 'true');
+        var head = document.createElement('div');
+        head.className = 'prj-msheet-head';
+        sheetTitle = document.createElement('span');
+        sheetTitle.className = 'prj-msheet-title';
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'prj-msheet-close';
+        close.innerHTML = ICON_CLOSE;
+        close.setAttribute('aria-label', tr('common.close', 'Close'));
+        close.addEventListener('click', function () { setOpen(false); });
+        head.appendChild(sheetTitle);
+        head.appendChild(close);
+        sheetBody = document.createElement('div');
+        sheetBody.className = 'prj-msheet-body';
+        sheet.appendChild(head);
+        sheet.appendChild(sheetBody);
+        document.body.appendChild(sheet);
+        sheet.addEventListener('click', function (e) { if (e.target === sheet) setOpen(false); });
+        sheetBody.addEventListener('click', function (e) {
+            var opt = e.target.closest ? e.target.closest('.prj-move-opt') : null;
+            if (!opt || opt.getAttribute('aria-current') === 'true') return;
+            moveTo(opt.getAttribute('data-moscow'));
+        });
+    }
+
+    function setOpen(open) {
+        if (!sheet) return;
+        sheet.classList.toggle('open', !!open);
+        if (!open) current = null;
+    }
+
+    function openFor(card) {
+        build();
+        current = card.getAttribute('data-item');
+        var here = card.closest('.prj-moscow-col');
+        sheetTitle.textContent = txt(card.querySelector('.prj-item-title'));
+        sheetBody.innerHTML = '';
+        Array.prototype.forEach.call(scope.querySelectorAll('.prj-moscow-col'), function (col) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'prj-move-opt';
+            b.setAttribute('data-moscow', col.getAttribute('data-moscow') || '');
+            if (col === here) b.setAttribute('aria-current', 'true');
+            var n = document.createElement('span');
+            n.textContent = headText(col.querySelector('header h4'));
+            b.appendChild(n);
+            sheetBody.appendChild(b);
+        });
+        setOpen(true);
+    }
+
+    function fire(target, type) {
+        var ev = new Event(type, { bubbles: true, cancelable: true });
+        var dt = { effectAllowed: 'move', dropEffect: 'move', setData: function () {}, getData: function () { return current || ''; } };
+        try { Object.defineProperty(ev, 'dataTransfer', { value: dt }); } catch (err) { /* very old engines */ }
+        target.dispatchEvent(ev);
+    }
+
+    function moveTo(moscow) {
+        var card = current ? scope.querySelector('.prj-item[data-item="' + current + '"]') : null;
+        var col = scope.querySelector('.prj-moscow-col[data-moscow="' + moscow + '"]');
+        var zone = col ? col.querySelector('.prj-moscow-cards') : null;
+        if (!card || !zone) { setOpen(false); return; }
+        pending = { item: current, moscow: moscow };
+        fire(card, 'dragstart');
+        fire(zone, 'dragover');     // the page moves the card into the column here
+        fire(zone, 'drop');
+        fire(card, 'dragend');
+        setOpen(false);
+    }
+
+    function decorate() {
+        if (!mq.matches) return;
+        var label = txt(document.querySelector('label[for="piMoscow"]'));
+        Array.prototype.forEach.call(scope.querySelectorAll('.prj-item[draggable="true"]'), function (card) {
+            if (card.querySelector('.prj-move-btn')) return;
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'prj-move-btn';
+            btn.innerHTML = ICON_MOVE;
+            if (label) btn.setAttribute('aria-label', label);
+            card.appendChild(btn);
+        });
+        // A move finished: the page redrew the board with the card in its new column.
+        if (pending) {
+            var moved = scope.querySelector('.prj-moscow-col[data-moscow="' + pending.moscow + '"] .prj-item[data-item="' + pending.item + '"]');
+            if (moved && moved.querySelector('.prj-move-btn')) {
+                pending = null;
+                if (typeof window.showToast === 'function' && window.Prj && window.Prj.T) window.showToast(window.Prj.T('plan.moved'), 'success');
+            }
+        }
+    }
+
+    function strip() {
+        Array.prototype.forEach.call(scope.querySelectorAll('.prj-move-btn'), function (b) { b.remove(); });
+        setOpen(false);
+        if (sheet) sheet.style.display = 'none';
+    }
+
+    /* The picker sits inside the card, whose own click opens the dialog -
+       capture, and stop the tap there. */
+    scope.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('.prj-move-btn') : null;
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        openFor(btn.closest('.prj-item'));
+    }, true);
+
+    new MutationObserver(decorate).observe(scope, { childList: true, subtree: true });
+
+    function sync() {
+        if (mq.matches) {
+            if (sheet) sheet.style.display = '';
+            decorate();
+        } else {
+            strip();
+        }
+    }
+    sync();
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
+})();
+
+/* ==========================================================================
+   LAYER 44e - Projects RACI: each cell's member name, for the card feed
+
+   mobile.css 44l turns the matrix into one card per deliverable with the
+   header hidden, so each cell needs to say whose it is. The names are
+   already on the page, translated, in the hidden header (§21) - but the
+   shared FEEDS harvester cannot be used: it reads the header's text nodes
+   (these headers are all spans) and, rightly for a report, refuses to label
+   an empty cell - and here the empty cell is exactly where you tap to
+   assign someone. So: the `.prj-raci-name` of the matching header, stamped
+   on every cell, as data-prj-member (the shared data-mobile-label is
+   printed BEFORE a cell by the §21 CSS; here the name follows the button).
+   renderRaci() replaces the whole table on every change, so
+   the panel is watched; phone only, and removed when leaving mobile.
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    if (!document.body || document.body.getAttribute('data-mobile-page') !== 'projects-view') return;
+
+    var mq = window.matchMedia('(max-width: 768px)');
+    var box = document.getElementById('pvRaci');
+    if (!box || !window.MutationObserver) return;
+
+    function apply() {
+        var table = box.querySelector('table.prj-raci');
+        if (!table || !table.tHead || !table.tHead.rows.length || !table.tBodies[0]) return;
+        var heads = table.tHead.rows[0].cells;
+        Array.prototype.forEach.call(table.tBodies[0].rows, function (row) {
+            if (row.cells.length !== heads.length) return;
+            for (var i = 1; i < row.cells.length; i++) {
+                var cell = row.cells[i];
+                if (!mq.matches) { cell.removeAttribute('data-prj-member'); continue; }
+                var name = heads[i].querySelector('.prj-raci-name');
+                var text = name ? (name.textContent || '').replace(/\s+/g, ' ').trim() : '';
+                if (text && cell.getAttribute('data-prj-member') !== text) cell.setAttribute('data-prj-member', text);
+            }
+        });
+    }
+
+    new MutationObserver(function () { if (mq.matches) apply(); }).observe(box, { childList: true, subtree: true });
+    apply();
+    if (mq.addEventListener) { mq.addEventListener('change', apply); }
+    else if (mq.addListener) { mq.addListener(apply); }
+})();

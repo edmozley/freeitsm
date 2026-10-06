@@ -7982,6 +7982,7 @@ CREATE TABLE IF NOT EXISTS `project_raci` (
     `item_id`     INT NOT NULL,
     `member_id`   INT NOT NULL,
     `letter`      CHAR(1) NOT NULL,                                 -- R | A | C | I
+    `is_demo`     TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_praci_cell` (`item_id`, `member_id`),
     KEY `ix_praci_project` (`project_id`),
@@ -8027,6 +8028,7 @@ CREATE TABLE IF NOT EXISTS `project_tolerances` (
     `stage_id`    INT NULL,
     `dimension`   VARCHAR(12) NOT NULL,                             -- time | risk
     `value`       INT NOT NULL,
+    `is_demo`     TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_ptol_dimension` (`project_id`, `stage_id`, `dimension`),
     CONSTRAINT `fk_ptol_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,

@@ -206,7 +206,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         .btn-primary:hover { background-color: var(--con-accent-hover, #d97706); }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../../assets/css/mobile.css?v=181">
+    <link rel="stylesheet" href="../../../assets/css/mobile.css?v=182">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="contracts-supplier">
     <?php include '../../includes/header.php'; ?>
@@ -685,6 +685,6 @@ if ($showDomains) $translationNamespaces[] = 'domains';
     })();
     </script>
     <?php endif; ?>
-    <script src="../../../assets/js/mobile.js?v=76"></script>
+    <script src="../../../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

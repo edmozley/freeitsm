@@ -15918,4 +15918,212 @@
     body[data-mobile-module="projects"] .prj-form-banner { padding: 14px 16px; }
     body[data-mobile-module="projects"] .prj-swatch { width: 32px; height: 32px; }
     body[data-mobile-module="projects"] .prj-icon-choice { width: 40px; height: 40px; }
+
+    /* ====================================================================
+       44j-44p - the phase-2 tools (People, Scope, RACI, RAID, Gates), their
+       four dialogs and Projects -> Settings. Measured at 360x740 first:
+       nothing spilled off the document on any tab, and the faults were the
+       quieter kind - a five-column board two-up at 158px with its add
+       fields cut to "A deliverable o", a 700px RACI matrix showing ONE
+       member column beside a 220px sticky deliverable column (§11's "can
+       they, on this screen?"), RAID rows with their titles squeezed past an
+       84px type column, and every segmented picker and small button 24-27px
+       tall. The tab row (now up to nine tabs) already swipes - 44e.
+       ==================================================================== */
+
+    /* ---- 44j. People --------------------------------------------------------
+       Already one card per row (minmax(280px) fits once in 328) - but 280 is
+       a floor that a 300px phone would not meet (§14), so the track takes
+       minmax(0, 1fr). The remove cross is revealed and 36px by 44f, so the
+       name keeps clear of it; the role picker gets tap height. */
+    body[data-mobile-page="projects-view"] .prj-people-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+    body[data-mobile-page="projects-view"] .prj-person { padding: 12px 14px; }
+    body[data-mobile-page="projects-view"] .prj-person-name { padding-right: 36px; overflow-wrap: anywhere; }
+    body[data-mobile-page="projects-view"] .prj-pm-badge { display: inline-block; white-space: nowrap; }
+    body[data-mobile-page="projects-view"] .prj-person .prj-task-remove { top: 4px; right: 4px; }
+    body[data-mobile-page="projects-view"] .prj-role-select { min-height: 40px; width: 100%; }
+
+    /* ---- 44k. Scope: the MoSCoW board as one list in priority order -------
+       projects.css's own 1100px block puts the five columns two-up at 158px:
+       titles a word or two a line, each add field cut to "A deliverable o"
+       beside a 20px "+". One column per row reads as what the board IS - the
+       scope in priority order, Must first - with nothing to swipe to.
+       Changing a card's priority is the picker on each card (mobile.js 44d,
+       44c's sheet), because the drag between columns is a desktop gesture
+       here: the columns are a screen apart once stacked (§22). Tapping a
+       card still opens its dialog, whose Priority field does the same. */
+    body[data-mobile-page="projects-view"] .prj-moscow {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+    body[data-mobile-page="projects-view"] .prj-moscow-col { min-width: 0; min-height: 0; padding: 10px 10px 12px; }
+    body[data-mobile-page="projects-view"] .prj-moscow-col header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+    body[data-mobile-page="projects-view"] .prj-moscow-cards { min-height: 0; }
+    body[data-mobile-page="projects-view"] .prj-item {
+        position: relative;
+        min-height: 44px;
+        padding: 10px 52px 10px 12px;
+        box-sizing: border-box;
+    }
+    body[data-mobile-page="projects-view"] .prj-item-title { overflow-wrap: anywhere; }
+    /* §7: a lift-on-hover sticks after a tap. */
+    body[data-mobile-page="projects-view"] .prj-item:hover { transform: none; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    body[data-mobile-page="projects-view"] .prj-moscow-add { gap: 6px; }
+    body[data-mobile-page="projects-view"] .prj-moscow-add input { min-height: 40px; box-sizing: border-box; }
+    body[data-mobile-page="projects-view"] .prj-moscow-add .prj-icon-btn { flex: 0 0 40px; width: 40px; height: 40px; }
+    /* The priority picker: injected on a phone only (§25), in the card's
+       corner so the title keeps the width. It reuses 44c's button look. */
+    body[data-mobile-page="projects-view"] .prj-item .prj-move-btn {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        margin-top: -18px;
+    }
+
+    /* ---- 44l. RACI: one card per deliverable ------------------------------
+       700px of matrix in a 328px scroller, and the sticky 220px deliverable
+       column left room for ONE member at a time - so the comparison the
+       table exists for was not available on this screen either way (§11's
+       follow-up question). A RACI is read a deliverable at a time (who does
+       it, who owns it; the "nobody accountable" warning is per row), which
+       is a card feed. Each card: the deliverable, then its cells two-up,
+       each cell's button followed by the member's name - harvested from the
+       hidden header by mobile.js 44e, so no string is invented (§21) - into
+       its own attribute, not data-mobile-label, because the shared §21 rule
+       prints that one BEFORE the cell and here the name follows the button. The
+       button is the page's own: a tap still cycles R, A, C, I. */
+    body[data-mobile-page="projects-view"] .prj-raci-wrap {
+        overflow: visible;
+        background: none;
+        box-shadow: none;
+        border-radius: 0;
+    }
+    body[data-mobile-page="projects-view"] .prj-raci,
+    body[data-mobile-page="projects-view"] .prj-raci tbody { display: block; width: 100%; }
+    body[data-mobile-page="projects-view"] .prj-raci thead { display: none; }
+    body[data-mobile-page="projects-view"] .prj-raci tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px 10px;
+        margin-bottom: 10px;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--surface, #fff);
+        box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 0 0 1px var(--border-soft, #eee);
+    }
+    body[data-mobile-page="projects-view"] .prj-raci tbody th.prj-raci-item {
+        grid-column: 1 / -1;
+        position: static;
+        min-width: 0;
+        padding: 0 0 4px;
+        border: 0;
+        background: none;
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="projects-view"] .prj-raci tbody td {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        text-align: left;
+    }
+    body[data-mobile-page="projects-view"] .prj-raci tbody td[data-prj-member]::after {
+        content: attr(data-prj-member);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 13px;
+        color: var(--text, #222);
+    }
+    body[data-mobile-page="projects-view"] .prj-raci-cell { flex: 0 0 40px; width: 40px; height: 40px; }
+    body[data-mobile-page="projects-view"] .prj-raci-cell:hover:not(:disabled) { transform: none; }
+
+    /* ---- 44m. RAID -----------------------------------------------------------
+       The layout is already one column (its own 1100px block); the heat map
+       fits at 328 with 40px squares. Left: a hover scale and fade that stick
+       after a tap (§7), a type filter wrapping 4 + 2 at 27px tall, and rows
+       whose titles were squeezed past an 84px type column. */
+    body[data-mobile-page="projects-view"] .prj-raid-layout { gap: 12px; }
+    body[data-mobile-page="projects-view"] .prj-heat-cell:hover { transform: none; opacity: .35; }
+    body[data-mobile-page="projects-view"] .prj-heat-cell.has:hover,
+    body[data-mobile-page="projects-view"] .prj-heat-cell.sel:hover { opacity: 1; }
+    body[data-mobile-page="projects-view"] .prj-heat-panel .prj-link[data-heat-clear] { min-height: 40px; }
+    /* The filter: three even columns (§10 - a grid lines up, flex-wrap
+       packs), every button tap height. */
+    body[data-mobile-page="projects-view"] .prj-raid-filters .prj-seg {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+        box-sizing: border-box;
+    }
+    body[data-mobile-page="projects-view"] .prj-raid-filters .prj-seg button {
+        min-width: 0;
+        min-height: 40px;
+        padding: 6px 4px;
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="projects-view"] .prj-raid-filters .prj-check { min-height: 40px; }
+    /* A row: the type as a kicker on the first line, the title the full
+       width below it, the score in the corner across both. */
+    body[data-mobile-page="projects-view"] .prj-raid-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 2px 10px;
+        padding: 10px 12px;
+    }
+    body[data-mobile-page="projects-view"] .prj-raid-row:hover { transform: none; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+    body[data-mobile-page="projects-view"] .prj-raid-type { grid-column: 1; grid-row: 1; min-width: 0; }
+    body[data-mobile-page="projects-view"] .prj-raid-main { grid-column: 1; grid-row: 2; }
+    body[data-mobile-page="projects-view"] .prj-raid-title { overflow-wrap: anywhere; }
+    body[data-mobile-page="projects-view"] .prj-raid-score { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+
+    /* ---- 44n. Gates ----------------------------------------------------------
+       Already one column (its own 1100px block). Save and Decide were 24px
+       tall; the tolerance fields keep their 90px beside their labels. */
+    body[data-mobile-page="projects-view"] .prj-gates-grid { gap: 12px; }
+    body[data-mobile-page="projects-view"] #pvGates .set-actions .prj-btn,
+    body[data-mobile-page="projects-view"] .prj-gate .btn.sm {
+        min-height: 40px;
+        padding: 8px 16px;
+    }
+    body[data-mobile-page="projects-view"] .prj-tol input { min-height: 40px; box-sizing: border-box; }
+    body[data-mobile-page="projects-view"] .prj-gate { gap: 12px; }
+    body[data-mobile-page="projects-view"] .prj-gate .btn.sm { flex: 0 0 auto; }
+
+    /* ---- 44o. The four dialogs' segmented pickers --------------------------
+       LAYER 3 makes the dialogs sheets and 44b gives their fields 16px. The
+       RAID type picker wrapped 4 + 1 at 27px tall and the People one sat
+       left-aligned at 27px: both become even full-width rows of 40px
+       buttons (three across, so RAID's five are 3 + 2). */
+    body[data-mobile-module="projects"] .modal .prj-seg {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+        box-sizing: border-box;
+    }
+    body[data-mobile-module="projects"] .modal .prj-seg button {
+        min-width: 0;
+        min-height: 40px;
+        padding: 6px 4px;
+        overflow-wrap: anywhere;
+    }
+
+    /* ---- 44p. Projects -> Settings --------------------------------------------
+       The shared settings layer already answers the shell, the tabs and the
+       set-row grid (one column, 16px fields). One thing is this page's: the
+       role list's grip appears only on :hover (§26), so on a phone "Drag to
+       reorder" pointed at nothing. The row is draggable="true" - HTML5, the
+       kind §22 says iOS drives from a long press - so the grip is revealed
+       and given touch-action: none. */
+    body[data-mobile-page="settings"] .prj-role .prj-grip {
+        opacity: 1;
+        touch-action: none;
+        padding: 8px 2px;
+    }
 }
