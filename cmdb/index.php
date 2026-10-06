@@ -325,6 +325,6 @@ $translationNamespaces = ['common', 'cmdb'];
     <script src="browse.js?v=4"></script>
     <!-- The mobile layer's JS. Without it the module nav has no hamburger and
          sits off-screen — a CSS-only opt-in is not an opt-in (Techniques §25). -->
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

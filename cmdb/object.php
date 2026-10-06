@@ -929,6 +929,6 @@ if ($showDomains) $translationNamespaces[] = 'domains';
     <script src="options-editor.js?v=3"></script>
     <script src="../assets/js/domain-links.js?v=1"></script>
     <script src="object.js?v=11"></script>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

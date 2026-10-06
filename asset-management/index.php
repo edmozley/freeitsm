@@ -4535,6 +4535,6 @@ $translationNamespaces = ['common', 'asset-management'];
              behaviour inside is gated on matchMedia(768px), so on desktop it is
              inert. (#936) */ ?>
     <script src="../assets/js/network-mapper-icons.js?v=3"></script>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

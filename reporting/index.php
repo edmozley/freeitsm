@@ -187,6 +187,6 @@ $translationNamespaces = ['common', 'reporting'];
             </div>
         </div>
     </div>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

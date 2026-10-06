@@ -225,6 +225,6 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
         apply();   // honours any ?q= in the URL
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=72"></script>
+    <script src="../../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

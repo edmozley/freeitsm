@@ -112,6 +112,6 @@ $translationNamespaces = ['common', 'cmdb'];
 
     <script src="../assets/js/theme.js?v=3"></script>
     <script src="audit.js?v=1"></script>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

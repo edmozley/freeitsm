@@ -941,6 +941,6 @@ $translationNamespaces = ['common', 'forms'];
     </script>
     <!-- Mobile layer. Adds the views hamburger and the module drawer on a phone.
          Loaded last so it can wrap the page's own globals rather than edit them. -->
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=72"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=73"></script>
 </body>
 </html>

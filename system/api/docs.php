@@ -705,6 +705,6 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
     // --- Boot -------------------------------------------------------------------------
     route();
     </script>
-    <script src="../../assets/js/mobile.js?v=72"></script>
+    <script src="../../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

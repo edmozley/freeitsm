@@ -1263,6 +1263,23 @@
         };
     }
 
+    // The other way a ticket opens: by id. The ?ticket_id= deep link (Users ->
+    // a user's ticket, notifications, Calendar's "Open in inbox") and the
+    // linked-ticket pills all call loadTicketById, which renders via
+    // displayEmail and never touches selectEmail - so on a phone the ticket
+    // loaded behind the list and you were left looking at the inbox. Same
+    // treatment as selectEmail: show the reading pane, then the refinements.
+    if (typeof window.loadTicketById === 'function') {
+        var _loadTicketById = window.loadTicketById;
+        window.loadTicketById = function () {
+            if (mq.matches && currentPane() !== 'reading') pushPane('reading');
+            var r = _loadTicketById.apply(this, arguments);
+            if (r && typeof r.then === 'function') r.then(afterTicketRender);
+            else afterTicketRender();
+            return r;
+        };
+    }
+
     if (typeof window.selectFolder === 'function') {
         var _selectFolder = window.selectFolder;
         window.selectFolder = function () {

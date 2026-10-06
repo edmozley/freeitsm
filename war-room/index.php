@@ -222,6 +222,6 @@ foreach ($channels as $ch) {
         window.WR_MENTION_STYLE = <?php echo json_encode($mentionStyle); ?>;
     </script>
     <script src="../assets/js/war-room.js?v=8"></script>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

@@ -808,6 +808,6 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
         loadAlbum();
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=72"></script>
+    <script src="../../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

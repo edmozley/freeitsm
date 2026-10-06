@@ -1247,6 +1247,6 @@ $translationNamespaces = ['common', 'morning-checks'];
             loadGroups();
         });
     </script>
-    <script src="../../assets/js/mobile.js?v=72"></script>
+    <script src="../../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

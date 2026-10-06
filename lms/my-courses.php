@@ -190,6 +190,6 @@ $canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_
 
     <script>window.API_BASE = '../api/lms/';</script>
     <script src="../assets/js/lms-my-courses.js?v=4"></script>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

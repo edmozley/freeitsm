@@ -419,6 +419,6 @@ $translationNamespaces = ['common', 'network-mapper'];
     </script>
     <!-- After the page's own script, so mobile.js can wrap globals it exposes
          rather than edit them (Techniques §1). -->
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

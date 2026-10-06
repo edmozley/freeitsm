@@ -132,6 +132,6 @@ try {
     <script src="../assets/js/data-table.js?v=6"></script>
     <script src="../assets/js/asset-table.js?v=8"></script>
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

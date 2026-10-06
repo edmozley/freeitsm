@@ -325,6 +325,6 @@ button.submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 <?php endif; ?>
 
 </div>
-    <script src="../../assets/js/mobile.js?v=72"></script>
+    <script src="../../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

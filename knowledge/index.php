@@ -569,6 +569,6 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/vendor/prism-json.min.js"></script>
     <script src="../assets/js/vendor/prism-toolbar.min.js"></script>
     <script src="../assets/js/vendor/prism-copy-to-clipboard.min.js"></script>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

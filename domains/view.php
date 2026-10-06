@@ -189,6 +189,6 @@ $translationNamespaces = ['common', 'domains'];
     <script src="../assets/js/domains.js?v=1"></script>
     <script src="../assets/js/domains-view.js?v=6"></script>
     <?php endif; ?>
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

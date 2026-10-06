@@ -980,6 +980,6 @@ $translationNamespaces = ['common', 'software'];
             if (e.key === 'Escape') closeLicenceModal();
         });
     </script>
-    <script src="../../assets/js/mobile.js?v=72"></script>
+    <script src="../../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

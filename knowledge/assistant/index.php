@@ -570,6 +570,6 @@ async function kaSaveDraft() {
     } catch (e) { /* the list still works without the status line */ }
 })();
 </script>
-    <script src="../../assets/js/mobile.js?v=72"></script>
+    <script src="../../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

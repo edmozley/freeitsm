@@ -46,6 +46,6 @@ $backUrl = (($_GET['from'] ?? '') === 'system')
 <body data-mobile-page="manager-access">
 <?php include 'includes/header.php'; ?>
 <?php managerAccessRender($managerId, $backUrl); ?>
-<script src="../assets/js/mobile.js?v=72"></script>
+<script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>

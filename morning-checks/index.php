@@ -1462,6 +1462,6 @@ $translationNamespaces = ['common', 'morning-checks'];
     <!-- The mobile layer's JS: gives this page the views hamburger (top right)
          and moves the page controls into that drawer on a phone. Loaded last so
          it can wrap the page's own globals rather than edit them. -->
-    <script src="../assets/js/mobile.js?v=72"></script>
+    <script src="../assets/js/mobile.js?v=73"></script>
 </body>
 </html>
