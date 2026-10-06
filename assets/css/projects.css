@@ -443,6 +443,96 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 .prj-role-use { font-size: 11px; font-weight: 650; color: var(--text-muted, #666); background: var(--surface-hover, #f1f5f9); border-radius: 99px; padding: 2px 9px; white-space: nowrap; }
 .prj-check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text, #333); cursor: pointer; }
 @media (max-width: 900px) { .prj-settings .set-row { grid-template-columns: 1fr; gap: 8px; } }
+/* ---------- people ------------------------------------------------------ */
+.prj-people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.prj-person {
+    position: relative; display: flex; gap: 12px; align-items: flex-start; background: var(--surface, #fff); border-radius: 14px;
+    padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 0 0 1px var(--border-soft, #eee); animation: prj-rise .3s ease both;
+}
+.prj-person:hover .prj-task-remove { opacity: 1; }
+.prj-person .prj-task-remove { position: absolute; top: 8px; right: 8px; }
+.prj-avatar.lg { width: 44px; height: 44px; font-size: 15px; }
+.prj-person-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.prj-person-name { font-weight: 700; font-size: 15px; color: var(--text, #222); padding-right: 18px; }
+.prj-person-kind { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-dim, #888); }
+.prj-person-role { font-size: 13px; color: var(--text-muted, #555); }
+.prj-pm-badge { font-size: 10px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #fff; background: var(--prj-gradient, linear-gradient(135deg, #f43f5e, #7c3aed)); border-radius: 5px; padding: 2px 6px; vertical-align: 2px; }
+.prj-role-select { margin-top: 2px; padding: 5px 8px; border: 1px solid var(--border, #ddd); border-radius: 7px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); max-width: 100%; }
+.prj-seg { display: inline-flex; background: var(--surface-hover, #f1f5f9); border-radius: 9px; padding: 3px; margin-bottom: 14px; }
+.prj-seg button { border: none; background: none; padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--text-muted, #666); cursor: pointer; }
+.prj-seg button.active { background: var(--surface, #fff); color: var(--prj-accent, #e11d48); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+#pmPersonWrap { position: relative; }
+
+/* ---------- scope: the MoSCoW board ------------------------------------ */
+.prj-scope-summary { font-size: 13px; font-weight: 600; color: var(--text-muted, #555); white-space: nowrap; }
+.prj-moscow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.prj-moscow-col { background: var(--surface-hover, #f1f3f6); border-radius: 14px; padding: 10px; min-height: 160px; transition: box-shadow .15s ease; border-top: 4px solid var(--mc, #94a3b8); }
+.prj-moscow-col.mc-must { --mc: #e11d48; }
+.prj-moscow-col.mc-should { --mc: #f59e0b; }
+.prj-moscow-col.mc-could { --mc: #14b8a6; }
+.prj-moscow-col.mc-wont { --mc: #94a3b8; }
+.prj-moscow-col.mc-none { --mc: transparent; border-top-style: dashed; border-top-color: var(--border, #ddd); background: transparent; box-shadow: inset 0 0 0 1.5px var(--border, #ddd); }
+.prj-moscow-col.drop-over { box-shadow: 0 0 0 2px var(--mc, var(--prj-accent, #e11d48)); }
+.prj-moscow-col header { padding: 2px 4px 8px; }
+.prj-moscow-col h4 { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text, #222); }
+.prj-moscow-col small { font-size: 11.5px; color: var(--text-dim, #888); }
+.prj-moscow-cards { display: flex; flex-direction: column; gap: 8px; min-height: 30px; }
+.prj-item {
+    background: var(--surface, #fff); border-radius: 10px; padding: 10px 12px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    border-left: 3px solid var(--mc, #94a3b8); transition: transform .12s ease, box-shadow .12s ease;
+}
+.prj-item:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.prj-item.dragging { opacity: .4; }
+.prj-item.dropped .prj-item-title { text-decoration: line-through; color: var(--text-dim, #999); }
+.prj-item.accepted .prj-item-title::before { content: '\2713  '; color: #16a34a; font-weight: 800; }
+.prj-item-title { font-size: 13.5px; font-weight: 600; color: var(--text, #222); line-height: 1.35; }
+.prj-item-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.prj-item-status, .prj-item-stage { font-size: 10.5px; font-weight: 650; border-radius: 99px; padding: 1px 7px; background: var(--surface-hover, #f1f5f9); color: var(--text-muted, #555); }
+.prj-item-status.st-agreed { background: #e0f2fe; color: #075985; }
+.prj-item-status.st-in_progress { background: #fef3c7; color: #92400e; }
+.prj-item-status.st-accepted { background: #dcfce7; color: #166534; }
+.prj-item-status.st-dropped { background: #f1f5f9; color: #64748b; }
+.prj-moscow-add { display: flex; gap: 4px; margin-top: 8px; }
+.prj-moscow-add input { flex: 1; min-width: 0; padding: 6px 8px; border: 1px dashed var(--border, #ccc); border-radius: 8px; font-size: 12.5px; background: var(--surface, #fff); color: var(--text, #333); }
+.prj-moscow-add input:focus { border-style: solid; border-color: var(--mc, var(--prj-accent, #e11d48)); outline: none; }
+
+/* ---------- RACI --------------------------------------------------------- */
+.prj-raci-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 10px 0 14px; font-size: 13px; color: var(--text, #333); }
+.prj-raci-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.prj-raci-legend small { color: var(--text-dim, #888); }
+.prj-raci-letter { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 12px; color: #fff; }
+.l-r, .prj-raci-letter.l-r { --lc: #2563eb; }
+.l-a, .prj-raci-letter.l-a { --lc: #e11d48; }
+.l-c, .prj-raci-letter.l-c { --lc: #d97706; }
+.l-i, .prj-raci-letter.l-i { --lc: #64748b; }
+.prj-raci-letter { background: var(--lc); }
+.prj-raci-wrap { overflow-x: auto; background: var(--surface, #fff); border-radius: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.prj-raci { border-collapse: separate; border-spacing: 0; width: 100%; }
+.prj-raci th, .prj-raci td { border-bottom: 1px solid var(--border-soft, #f0f0f0); padding: 8px; text-align: center; }
+.prj-raci thead th { font-size: 12px; font-weight: 600; color: var(--text-muted, #555); vertical-align: bottom; min-width: 96px; }
+.prj-raci thead th > * { display: block; margin: 0 auto; }
+.prj-raci-name { margin-top: 4px !important; font-size: 12px; color: var(--text, #222); }
+.prj-raci-role { font-size: 10.5px; font-weight: 500; color: var(--text-dim, #999); }
+.prj-raci-item { text-align: left !important; min-width: 220px; position: sticky; left: 0; background: var(--surface, #fff); z-index: 1; }
+.prj-raci tbody .prj-raci-item span { font-size: 13.5px; font-weight: 600; color: var(--text, #222); }
+.prj-raci-warn { display: block; font-size: 11px; font-weight: 600; color: #d97706; margin-top: 2px; }
+.prj-raci-cell {
+    width: 38px; height: 38px; border-radius: 10px; border: 1.5px dashed var(--border, #ddd); background: transparent; cursor: pointer;
+    font-size: 15px; font-weight: 800; color: #fff; transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.prj-raci-cell:hover:not(:disabled) { border-color: var(--prj-accent, #e11d48); transform: scale(1.06); }
+.prj-raci-cell[class*=" l-"] { background: var(--lc); border: none; box-shadow: 0 2px 6px color-mix(in srgb, var(--lc) 40%, transparent); }
+.prj-raci-cell:disabled { cursor: default; }
+
+/* ---------- tools in the project dialog --------------------------------- */
+.prj-tool-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.prj-tool-check { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid var(--border, #ddd); border-radius: 10px; cursor: pointer; }
+.prj-tool-check:has(input:checked) { border-color: var(--prj-accent, #e11d48); background: var(--prj-accent-soft, #fff1f2); }
+.prj-tool-check input { margin-top: 3px; }
+.prj-tool-check span { display: flex; flex-direction: column; gap: 2px; }
+.prj-tool-check strong { font-size: 13px; color: var(--text, #222); }
+.prj-tool-check small { font-size: 11.5px; color: var(--text-dim, #888); line-height: 1.35; }
+@media (max-width: 1100px) { .prj-moscow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* ---------- read-only (Projects -> Settings -> General) ----------------- */
 /* Not on the project's team: everything that would change it is hidden. The
    server refuses those calls anyway - this only stops the page offering them. */

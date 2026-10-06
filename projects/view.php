@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=6">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=7">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -75,18 +75,75 @@ $projectId = (int)($_GET['id'] ?? 0);
         <nav class="prj-tabs" id="prjTabs" hidden>
             <button type="button" data-tab="overview" class="active"><?php echo htmlspecialchars(t('projects.view.tab_overview')); ?></button>
             <button type="button" data-tab="plan"><?php echo htmlspecialchars(t('projects.view.tab_plan')); ?></button>
+            <button type="button" data-tab="people" data-tool="people" hidden><?php echo htmlspecialchars(t('projects.tools.people')); ?></button>
+            <button type="button" data-tab="scope" data-tool="scope" hidden><?php echo htmlspecialchars(t('projects.tools.scope')); ?></button>
+            <button type="button" data-tab="raci" data-tool="raci" hidden><?php echo htmlspecialchars(t('projects.tools.raci')); ?></button>
             <button type="button" data-tab="connections"><?php echo htmlspecialchars(t('projects.view.tab_connections')); ?></button>
             <button type="button" data-tab="history"><?php echo htmlspecialchars(t('projects.view.tab_history')); ?></button>
         </nav>
 
         <section class="prj-tab-panel" data-panel="overview" id="pvOverview"></section>
         <section class="prj-tab-panel" data-panel="plan" id="pvPlan" hidden></section>
+        <section class="prj-tab-panel" data-panel="people" id="pvPeople" hidden></section>
+        <section class="prj-tab-panel" data-panel="scope" id="pvScope" hidden></section>
+        <section class="prj-tab-panel" data-panel="raci" id="pvRaci" hidden></section>
         <section class="prj-tab-panel" data-panel="connections" id="pvConnections" hidden></section>
         <section class="prj-tab-panel" data-panel="history" id="pvHistory" hidden></section>
 
         <div class="prj-not-found" id="prjNotFound" hidden>
             <p><?php echo htmlspecialchars(t('projects.view.not_found')); ?></p>
             <a class="btn btn-secondary" href="<?php echo BASE_URL; ?>projects/"><?php echo htmlspecialchars(t('projects.view.back')); ?></a>
+        </div>
+    </div>
+
+    <!-- Add / edit a deliverable (Scope) -->
+    <div class="modal" id="prjItemModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:560px">
+            <div class="modal-header" id="piTitle"></div>
+            <div class="modal-body">
+                <input type="hidden" id="piId">
+                <div class="form-group"><label for="piName"><?php echo htmlspecialchars(t('projects.scope.item_title')); ?></label><input type="text" id="piName" maxlength="255" autocomplete="off"></div>
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="piMoscow"><?php echo htmlspecialchars(t('projects.scope.priority')); ?></label><select id="piMoscow"></select></div>
+                    <div class="form-group"><label for="piStatus"><?php echo htmlspecialchars(t('projects.scope.status')); ?></label><select id="piStatus"></select></div>
+                    <div class="form-group"><label for="piStage" id="piStageLabel"></label><select id="piStage"></select></div>
+                </div>
+                <div class="form-group"><label for="piDesc"><?php echo htmlspecialchars(t('projects.scope.description')); ?></label><textarea id="piDesc" rows="3"></textarea></div>
+                <div class="form-group"><label for="piAcc"><?php echo htmlspecialchars(t('projects.scope.acceptance')); ?></label><textarea id="piAcc" rows="3" placeholder="<?php echo htmlspecialchars(t('projects.scope.acceptance_ph')); ?>"></textarea></div>
+                <div class="prj-form-error" id="piError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="piDelete" style="margin-right:auto" hidden><?php echo htmlspecialchars(t('common.delete')); ?></button>
+                <button type="button" class="btn btn-secondary" data-prj-close="prjItemModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="piSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add someone to the project (People) -->
+    <div class="modal" id="prjMemberModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('projects.people.add_title')); ?></div>
+            <div class="modal-body">
+                <div class="prj-seg" id="pmKind" role="tablist">
+                    <button type="button" data-kind="analyst" class="active"><?php echo htmlspecialchars(t('projects.people.kind_analyst')); ?></button>
+                    <button type="button" data-kind="team"><?php echo htmlspecialchars(t('projects.people.kind_team')); ?></button>
+                    <button type="button" data-kind="person"><?php echo htmlspecialchars(t('projects.people.kind_person')); ?></button>
+                </div>
+                <div class="form-group" id="pmPickWrap"><label for="pmPick" id="pmPickLabel"></label><select id="pmPick"></select></div>
+                <div class="form-group" id="pmPersonWrap" hidden>
+                    <label for="pmPerson"><?php echo htmlspecialchars(t('projects.people.kind_person')); ?></label>
+                    <input type="text" id="pmPerson" placeholder="<?php echo htmlspecialchars(t('projects.people.person_ph')); ?>" autocomplete="off">
+                    <ul class="prj-conn-results" id="pmPersonResults" hidden></ul>
+                    <input type="hidden" id="pmPersonId">
+                </div>
+                <div class="form-group"><label for="pmRole"><?php echo htmlspecialchars(t('projects.people.role')); ?></label><select id="pmRole"></select></div>
+                <div class="prj-form-error" id="pmError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjMemberModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pmSave"><?php echo htmlspecialchars(t('common.add')); ?></button>
+            </div>
         </div>
     </div>
 
@@ -134,8 +191,9 @@ $projectId = (int)($_GET['id'] ?? 0);
 
     <?php include 'includes/project_form.php'; ?>
 
-    <script src="../assets/js/projects.js?v=4"></script>
-    <script src="../assets/js/projects-view.js?v=5"></script>
+    <script src="../assets/js/projects.js?v=5"></script>
+    <script src="../assets/js/projects-tools.js?v=1"></script>
+    <script src="../assets/js/projects-view.js?v=6"></script>
     <script src="../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

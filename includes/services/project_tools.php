@@ -1,0 +1,327 @@
+<?php
+/**
+ * ProjectToolsService - the project-management tools on a project (3.2.0
+ * phase 2): its people (members and their roles), its scope (deliverables and
+ * requirements, prioritised with MoSCoW) and the RACI matrix that joins the two.
+ *
+ * Kept apart from ProjectsService so neither grows into a thousand-line file;
+ * every method still starts from ProjectsService::loadForActor() (company scope
+ * as not-found) and ProjectsService::assertCanChange() (Projects -> Settings ->
+ * General), so the rules are the same ones.
+ *
+ * 🔑 RACI rule: at most ONE "A" (accountable) per deliverable. Setting A on a
+ * cell demotes any other A in that row to R rather than refusing - the person
+ * clicking has just said who is accountable, and the previous one is still doing
+ * the work. A row with no A or no R is allowed (a draft) and the screen flags it.
+ */
+
+require_once __DIR__ . '/projects.php';
+
+class ProjectToolsService
+{
+    const MOSCOW = ['must', 'should', 'could', 'wont'];
+    const ITEM_STATUSES = ['proposed', 'agreed', 'in_progress', 'accepted', 'dropped'];
+    const RACI = ['R', 'A', 'C', 'I'];
+
+    // ======================================================================
+    //  People
+    // ======================================================================
+
+    /** Add a member: exactly one of analyst_id / team_id / user_id. Returns its id. */
+    public static function addMember(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        $project = self::changeable($conn, $ctx, $projectId);
+        $analyst = (int)($in['analyst_id'] ?? 0); $team = (int)($in['team_id'] ?? 0); $user = (int)($in['user_id'] ?? 0);
+        if ((($analyst > 0) + ($team > 0) + ($user > 0)) !== 1) {
+            throw new ServiceError('validation', 'invalid_field', 'Choose one analyst, team or person.');
+        }
+        if ($analyst > 0) self::mustExist($conn, "SELECT 1 FROM analysts WHERE id = ? AND is_active = 1", $analyst, 'That analyst does not exist or is inactive.');
+        if ($team > 0)    self::mustExist($conn, "SELECT 1 FROM teams WHERE id = ?", $team, 'That team does not exist.');
+        if ($user > 0) {
+            // A person from People must be in the project's company - a project is
+            // one company's work.
+            $st = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
+            $st->execute([$user]);
+            $t = $st->fetchColumn();
+            if ($t === false) throw new ServiceError('validation', 'invalid_field', 'That person does not exist.');
+            if (isMultiTenant($conn)) {
+                $def = (int)getDefaultTenantId($conn);
+                $pt = $project['tenant_id'] === null ? $def : (int)$project['tenant_id'];
+                if (($t === null ? $def : (int)$t) !== $pt) throw new ServiceError('validation', 'invalid_field', 'That person belongs to a different company from the project.');
+            }
+        }
+        $col = $analyst > 0 ? 'analyst_id' : ($team > 0 ? 'team_id' : 'user_id');
+        $val = $analyst ?: ($team ?: $user);
+        $dup = $conn->prepare("SELECT id FROM project_members WHERE project_id = ? AND $col = ?");
+        $dup->execute([$projectId, $val]);
+        if ($dup->fetchColumn()) throw new ServiceError('conflict', 'conflict', 'They are already on this project.');
+        $role = self::roleId($conn, $in['role_id'] ?? null);
+        $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_members WHERE project_id = " . $projectId)->fetchColumn();
+        $conn->prepare("INSERT INTO project_members (project_id, $col, role_id, notes, position, created_by_analyst_id, created_datetime)
+                        VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$projectId, $val, $role, self::str($in['notes'] ?? null, 255), $pos, $ctx->actorId > 0 ? $ctx->actorId : null]);
+        $id = (int)$conn->lastInsertId();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'member_added', null, self::memberName($conn, $id), self::src($ctx));
+        return $id;
+    }
+
+    public static function updateMember(PDO $conn, ActorContext $ctx, int $projectId, int $memberId, array $in): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $m = self::member($conn, $projectId, $memberId);
+        $sets = []; $args = [];
+        if (array_key_exists('role_id', $in)) { $sets[] = 'role_id = ?'; $args[] = self::roleId($conn, $in['role_id']); }
+        if (array_key_exists('notes', $in))   { $sets[] = 'notes = ?';   $args[] = self::str($in['notes'], 255); }
+        if (!$sets) return;
+        $args[] = $memberId;
+        $conn->prepare("UPDATE project_members SET " . implode(', ', $sets) . " WHERE id = ?")->execute($args);
+        if (array_key_exists('role_id', $in) && (string)$m['role_id'] !== (string)self::roleId($conn, $in['role_id'])) {
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'member_role', self::memberName($conn, $memberId), self::roleName($conn, self::roleId($conn, $in['role_id'])), self::src($ctx));
+        }
+    }
+
+    /** Remove a member. Their RACI letters go with them (FK cascade, and by hand). */
+    public static function removeMember(PDO $conn, ActorContext $ctx, int $projectId, int $memberId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        self::member($conn, $projectId, $memberId);
+        $name = self::memberName($conn, $memberId);
+        $conn->prepare("DELETE FROM project_raci WHERE member_id = ?")->execute([$memberId]);
+        $conn->prepare("DELETE FROM project_members WHERE id = ?")->execute([$memberId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'member_removed', $name, null, self::src($ctx));
+    }
+
+    // ======================================================================
+    //  Scope (deliverables and requirements, MoSCoW)
+    // ======================================================================
+
+    public static function saveItem(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $id = (int)($in['id'] ?? 0);
+        $cur = $id > 0 ? self::item($conn, $projectId, $id) : null;
+        $title = trim((string)($in['title'] ?? ($cur['title'] ?? '')));
+        if ($title === '') throw new ServiceError('validation', 'missing_field', 'Give it a title.');
+        if (mb_strlen($title) > 255) throw new ServiceError('validation', 'invalid_field', 'The title is too long.');
+        $moscow = array_key_exists('moscow', $in) ? self::moscow($in['moscow']) : ($cur['moscow'] ?? null);
+        $status = array_key_exists('status', $in) ? (string)$in['status'] : ($cur['status'] ?? 'proposed');
+        if (!in_array($status, self::ITEM_STATUSES, true)) throw new ServiceError('validation', 'invalid_field', 'Unknown status.');
+        $stage = array_key_exists('stage_id', $in) ? self::stageOf($conn, $projectId, $in['stage_id']) : ($cur['stage_id'] ?? null);
+        $desc  = array_key_exists('description', $in) ? self::str($in['description'], 20000) : ($cur['description'] ?? null);
+        $acc   = array_key_exists('acceptance_criteria', $in) ? self::str($in['acceptance_criteria'], 20000) : ($cur['acceptance_criteria'] ?? null);
+        if ($cur) {
+            $conn->prepare("UPDATE project_items SET title = ?, description = ?, acceptance_criteria = ?, moscow = ?, stage_id = ?, status = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$title, $desc, $acc, $moscow, $stage, $status, $id]);
+            if ((string)$cur['moscow'] !== (string)$moscow) {
+                ProjectsService::audit($conn, $projectId, $ctx->actorId, 'item_moscow', $title . ': ' . ($cur['moscow'] ?: '-'), $title . ': ' . ($moscow ?: '-'), self::src($ctx));
+            }
+            return $id;
+        }
+        $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_items WHERE project_id = " . $projectId)->fetchColumn();
+        $conn->prepare("INSERT INTO project_items (project_id, title, description, acceptance_criteria, moscow, stage_id, status, position, created_datetime, updated_datetime)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+             ->execute([$projectId, $title, $desc, $acc, $moscow, $stage, $status, $pos]);
+        $newId = (int)$conn->lastInsertId();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'item_added', null, $title, self::src($ctx));
+        return $newId;
+    }
+
+    public static function deleteItem(PDO $conn, ActorContext $ctx, int $projectId, int $itemId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $item = self::item($conn, $projectId, $itemId);
+        $conn->prepare("DELETE FROM project_raci WHERE item_id = ?")->execute([$itemId]);
+        $conn->prepare("UPDATE project_items SET parent_id = NULL WHERE parent_id = ?")->execute([$itemId]);
+        $conn->prepare("DELETE FROM project_items WHERE id = ?")->execute([$itemId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'item_removed', $item['title'], null, self::src($ctx));
+    }
+
+    /** Move an item to a MoSCoW column, in the given order within it (the drag on the board). */
+    public static function moveItem(PDO $conn, ActorContext $ctx, int $projectId, int $itemId, $moscow, array $orderedIds): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $item = self::item($conn, $projectId, $itemId);
+        $to = self::moscow($moscow);
+        $conn->prepare("UPDATE project_items SET moscow = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$to, $itemId]);
+        $st = $conn->prepare("UPDATE project_items SET position = ? WHERE id = ? AND project_id = ?");
+        $pos = 1;
+        foreach ($orderedIds as $oid) $st->execute([$pos++, (int)$oid, $projectId]);
+        if ((string)$item['moscow'] !== (string)$to) {
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'item_moscow', $item['title'] . ': ' . ($item['moscow'] ?: '-'), $item['title'] . ': ' . ($to ?: '-'), self::src($ctx));
+        }
+    }
+
+    // ======================================================================
+    //  RACI
+    // ======================================================================
+
+    /**
+     * Set one cell: R, A, C, I or '' to clear. Returns the row's letters after
+     * the change ({member_id: letter}), so the screen can redraw a demoted A.
+     */
+    public static function setRaci(PDO $conn, ActorContext $ctx, int $projectId, int $itemId, int $memberId, string $letter): array
+    {
+        self::changeable($conn, $ctx, $projectId);
+        self::item($conn, $projectId, $itemId);
+        self::member($conn, $projectId, $memberId);
+        $letter = strtoupper(trim($letter));
+        if ($letter !== '' && !in_array($letter, self::RACI, true)) throw new ServiceError('validation', 'invalid_field', 'Use R, A, C or I.');
+        if ($letter === '') {
+            $conn->prepare("DELETE FROM project_raci WHERE item_id = ? AND member_id = ?")->execute([$itemId, $memberId]);
+        } else {
+            if ($letter === 'A') {
+                // One accountable person per deliverable: the previous A keeps doing the work, as R.
+                $conn->prepare("UPDATE project_raci SET letter = 'R' WHERE item_id = ? AND letter = 'A' AND member_id <> ?")->execute([$itemId, $memberId]);
+            }
+            $conn->prepare("INSERT INTO project_raci (project_id, item_id, member_id, letter) VALUES (?, ?, ?, ?)
+                            ON DUPLICATE KEY UPDATE letter = VALUES(letter)")->execute([$projectId, $itemId, $memberId, $letter]);
+        }
+        ProjectsService::touchProject($conn, $projectId);
+        $st = $conn->prepare("SELECT member_id, letter FROM project_raci WHERE item_id = ?");
+        $st->execute([$itemId]);
+        $out = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[(int)$r['member_id']] = $r['letter'];
+        return $out;
+    }
+
+    // ======================================================================
+    //  Reads for the project page
+    // ======================================================================
+
+    /** Members with display names, roles and kinds, in order. */
+    public static function members(PDO $conn, int $projectId): array
+    {
+        try {
+            $st = $conn->prepare(
+                "SELECT m.id, m.analyst_id, m.team_id, m.user_id, m.role_id, r.name AS role_name, m.notes, m.position,
+                        COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email)) AS name,
+                        CASE WHEN m.analyst_id IS NOT NULL THEN 'analyst' WHEN m.team_id IS NOT NULL THEN 'team' ELSE 'person' END AS kind,
+                        COALESCE(a.email, u.email) AS email, u.job_title
+                   FROM project_members m
+              LEFT JOIN project_roles r ON r.id = m.role_id
+              LEFT JOIN analysts a ON a.id = m.analyst_id
+              LEFT JOIN teams tm ON tm.id = m.team_id
+              LEFT JOIN users u ON u.id = m.user_id
+                  WHERE m.project_id = ? ORDER BY m.position, m.id");
+            $st->execute([$projectId]);
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    public static function items(PDO $conn, int $projectId): array
+    {
+        try {
+            $st = $conn->prepare("SELECT i.*, s.name AS stage_name FROM project_items i LEFT JOIN project_stages s ON s.id = i.stage_id
+                                   WHERE i.project_id = ? ORDER BY i.position, i.id");
+            $st->execute([$projectId]);
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    /** {item_id: {member_id: letter}} */
+    public static function raci(PDO $conn, int $projectId): array
+    {
+        $out = [];
+        try {
+            $st = $conn->prepare("SELECT item_id, member_id, letter FROM project_raci WHERE project_id = ?");
+            $st->execute([$projectId]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[(int)$r['item_id']][(int)$r['member_id']] = $r['letter'];
+        } catch (Throwable $e) { /* before Verification */ }
+        return $out;
+    }
+
+    // ======================================================================
+    //  Helpers
+    // ======================================================================
+
+    private static function changeable(PDO $conn, ActorContext $ctx, int $projectId): array
+    {
+        $p = ProjectsService::loadForActor($conn, $ctx, $projectId);
+        ProjectsService::assertCanChange($conn, $ctx, $p);
+        return $p;
+    }
+
+    private static function member(PDO $conn, int $projectId, int $memberId): array
+    {
+        $st = $conn->prepare("SELECT * FROM project_members WHERE id = ? AND project_id = ?");
+        $st->execute([$memberId, $projectId]);
+        $r = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'They are not on this project.');
+        return $r;
+    }
+
+    private static function item(PDO $conn, int $projectId, int $itemId): array
+    {
+        $st = $conn->prepare("SELECT * FROM project_items WHERE id = ? AND project_id = ?");
+        $st->execute([$itemId, $projectId]);
+        $r = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'That deliverable is not part of this project.');
+        return $r;
+    }
+
+    private static function moscow($v): ?string
+    {
+        if ($v === null || $v === '') return null;
+        $v = strtolower((string)$v);
+        if (!in_array($v, self::MOSCOW, true)) throw new ServiceError('validation', 'invalid_field', 'Use Must, Should, Could or Won\'t.');
+        return $v;
+    }
+
+    private static function stageOf(PDO $conn, int $projectId, $stageId): ?int
+    {
+        if ($stageId === null || $stageId === '' || (int)$stageId <= 0) return null;
+        $st = $conn->prepare("SELECT id FROM project_stages WHERE id = ? AND project_id = ?");
+        $st->execute([(int)$stageId, $projectId]);
+        if (!$st->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'That stage is not part of this project.');
+        return (int)$stageId;
+    }
+
+    private static function roleId(PDO $conn, $v): ?int
+    {
+        if ($v === null || $v === '' || (int)$v <= 0) return null;
+        $st = $conn->prepare("SELECT id FROM project_roles WHERE id = ?");
+        $st->execute([(int)$v]);
+        if (!$st->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'Unknown role.');
+        return (int)$v;
+    }
+
+    private static function roleName(PDO $conn, ?int $id): ?string
+    {
+        if (!$id) return null;
+        $st = $conn->prepare("SELECT name FROM project_roles WHERE id = ?");
+        $st->execute([$id]);
+        return ($n = $st->fetchColumn()) !== false ? (string)$n : null;
+    }
+
+    private static function memberName(PDO $conn, int $memberId): string
+    {
+        $st = $conn->prepare("SELECT COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email)) FROM project_members m
+                                LEFT JOIN analysts a ON a.id = m.analyst_id LEFT JOIN teams tm ON tm.id = m.team_id LEFT JOIN users u ON u.id = m.user_id
+                               WHERE m.id = ?");
+        $st->execute([$memberId]);
+        return (string)($st->fetchColumn() ?: ('#' . $memberId));
+    }
+
+    private static function mustExist(PDO $conn, string $sql, int $id, string $msg): void
+    {
+        $st = $conn->prepare($sql);
+        $st->execute([$id]);
+        if (!$st->fetchColumn()) throw new ServiceError('validation', 'invalid_field', $msg);
+    }
+
+    private static function str($v, int $max): ?string
+    {
+        if ($v === null) return null;
+        $s = trim((string)$v);
+        return $s === '' ? null : mb_substr($s, 0, $max);
+    }
+
+    private static function src(ActorContext $ctx): string
+    {
+        return $ctx->source === 'api' ? 'api' : 'app';
+    }
+}

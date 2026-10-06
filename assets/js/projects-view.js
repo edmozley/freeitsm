@@ -150,7 +150,8 @@
         else if (f === 'health') detail = T('history.from_to', { from: T('health.' + h.old_value), to: T('health.' + h.new_value) });
         else if (f === 'methodology') detail = T('history.from_to', { from: T('method.' + h.old_value), to: T('method.' + h.new_value) });
         else if (['start_date', 'target_end_date', 'actual_end_date'].includes(f)) detail = T('history.from_to', { from: h.old_value ? P.fmtDate(h.old_value) : '-', to: h.new_value ? P.fmtDate(h.new_value) : '-' });
-        else if (['colour', 'icon'].includes(f)) detail = '';
+        else if (['colour', 'icon', 'tailoring', 'business_case'].includes(f)) detail = '';
+        else if (f === 'item_moscow') detail = (h.new_value || '').replace(/: (must|should|could|wont|-)$/, (m, k) => ': ' + (k === '-' ? T('scope.unsorted') : T('scope.' + k)));
         else if (h.new_value) detail = h.old_value ? T('history.from_to', { from: h.old_value, to: h.new_value }) : h.new_value;
         const when = window.fmtDateTime ? window.fmtDateTime(h.created_datetime) : h.created_datetime;
         return '<li><span class="prj-avatar sm">' + esc(P.initials(who)) + '</span><div><span class="prj-feed-line"><strong>' + esc(who) + '</strong> ' + esc(what)
@@ -264,6 +265,13 @@
         renderPlan();
         renderConnections();
         renderHistory();
+        // Phase 2 tools: a tab per tool the project has switched on (its method's
+        // defaults, then its tailoring); a hidden tool's tab is never the open one.
+        const tools = data.project.tools || [];
+        document.querySelectorAll('#prjTabs [data-tool]').forEach(b => { b.hidden = !tools.includes(b.dataset.tool); });
+        const cur = document.querySelector('#prjTabs [data-tab="' + tab + '"]');
+        if (!cur || cur.hidden) tab = 'overview';
+        if (window.PrjTools) window.PrjTools.render({ data: data, L: L, projectId: projectId, refresh: refresh, page: page });
         showTab(tab);
     }
 
@@ -531,7 +539,7 @@
     // ---- Wiring -----------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         const start = (location.hash || '').replace('#', '');
-        if (['overview', 'plan', 'connections', 'history'].includes(start)) tab = start;
+        if (['overview', 'plan', 'people', 'scope', 'raci', 'connections', 'history'].includes(start)) tab = start;
         if (/[?&]new=1/.test(location.search)) tab = 'plan';
 
         document.getElementById('prjTabs').addEventListener('click', e => {

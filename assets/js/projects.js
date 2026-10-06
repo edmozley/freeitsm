@@ -242,6 +242,12 @@
         pick('pfMethods', 'data-method', formState.method);
         $('pfMethodNote').hidden = !isEdit;
 
+        // Tools (edit only): what this project uses, against its method's defaults.
+        const on = isEdit ? (project.tools || []) : [];
+        $('pfTools').innerHTML = Object.keys(L.tools || {}).map(k =>
+            '<label class="prj-tool-check"><input type="checkbox" data-tool-key="' + esc(k) + '"' + (on.includes(k) ? ' checked' : '') + '>'
+            + '<span><strong>' + esc(T('tools.' + k)) + '</strong><small>' + esc(T('tools.' + k + '_desc')) + '</small></span></label>').join('');
+
         $('pfColours').innerHTML = L.colours.map(c =>
             '<button type="button" class="prj-swatch" role="radio" data-colour="' + esc(c.key) + '" title="' + esc(c.key) + '" aria-label="' + esc(c.key) + '" style="background:linear-gradient(135deg,' + esc(c.from) + ',' + esc(c.to) + ')"></button>').join('');
         pick('pfColours', 'data-colour', formState.colour);
@@ -294,6 +300,11 @@
                 body.actual_end_date = $('pfActual').value || null;
                 body.health = $('pfHealth').value;
                 body.health_note = body.health === 'auto' ? null : ($('pfHealthNote').value.trim() || null);
+                const tail = {};
+                document.querySelectorAll('#pfTools [data-tool-key]').forEach(c => { tail[c.dataset.toolKey] = c.checked; });
+                // A method change resets the tools to the new method's own set.
+                if (formState.method === formState.origMethod) body.tailoring = tail;
+                else body.tailoring = null;
             } else if (!$('pfCompanyWrap').hidden) {
                 body.company_id = $('pfCompany').value;
             }

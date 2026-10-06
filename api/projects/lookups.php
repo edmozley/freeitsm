@@ -21,6 +21,9 @@ projectApiRun(function () use ($conn, $analystId) {
     foreach (projectMethodologies() as $k => $m) {
         $methods[] = ['key' => $k, 'label' => t($m['label_key']), 'description' => t($m['desc_key']), 'timebox' => $m['timebox']];
     }
+    $roles = [];
+    try { $roles = $conn->query("SELECT id, name, description FROM project_roles WHERE is_active = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC); } catch (Throwable $e) {}
+    $teams = $conn->query("SELECT id, name FROM teams ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
     $colours = [];
     foreach (projectColours() as $k => $c) $colours[] = ['key' => $k, 'from' => $c[0], 'to' => $c[1]];
     projectApiOk([
@@ -29,6 +32,9 @@ projectApiRun(function () use ($conn, $analystId) {
         'active_company'  => isMultiTenant($conn) ? getActiveTenantId($conn, $analystId) : null,
         'multi_company'   => isMultiTenant($conn),
         'default_method'  => projectSetting($conn, 'project_default_method'),
+        'roles'           => $roles,
+        'teams'           => $teams,
+        'tools'           => projectToolDefinitions(),
         'methodologies'   => $methods,
         'statuses'        => projectStatuses(),
         'colours'         => $colours,

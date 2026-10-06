@@ -72,6 +72,12 @@
                 <textarea id="pfSummary" rows="3" placeholder="<?php echo htmlspecialchars(t('projects.form.summary_ph')); ?>"></textarea>
             </div>
 
+            <div class="prj-look prj-edit-only">
+                <div class="prj-look-title"><?php echo htmlspecialchars(t('projects.form.tools')); ?></div>
+                <p class="prj-hint" style="margin:-4px 0 10px"><?php echo htmlspecialchars(t('projects.form.tools_hint')); ?></p>
+                <div class="prj-tool-checks" id="pfTools"></div>
+            </div>
+
             <div class="prj-look">
                 <div class="prj-look-title"><?php echo htmlspecialchars(t('projects.form.look')); ?></div>
                 <div class="prj-look-row">

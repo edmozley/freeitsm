@@ -56,10 +56,42 @@ function projectColourHex(?string $key): string
 function projectMethodologies(): array
 {
     return [
-        'simple' => ['label_key' => 'projects.method.simple', 'desc_key' => 'projects.method.simple_desc', 'timebox' => 'phase',  'single_active' => false],
-        'staged' => ['label_key' => 'projects.method.staged', 'desc_key' => 'projects.method.staged_desc', 'timebox' => 'stage',  'single_active' => true],
-        'agile'  => ['label_key' => 'projects.method.agile',  'desc_key' => 'projects.method.agile_desc',  'timebox' => 'sprint', 'single_active' => true],
+        'simple' => ['label_key' => 'projects.method.simple', 'desc_key' => 'projects.method.simple_desc', 'timebox' => 'phase',  'single_active' => false, 'tools' => ['people']],
+        'staged' => ['label_key' => 'projects.method.staged', 'desc_key' => 'projects.method.staged_desc', 'timebox' => 'stage',  'single_active' => true,  'tools' => ['people', 'scope', 'raci', 'raid', 'gates']],
+        'agile'  => ['label_key' => 'projects.method.agile',  'desc_key' => 'projects.method.agile_desc',  'timebox' => 'sprint', 'single_active' => true,  'tools' => ['people', 'scope', 'raid']],
     ];
+}
+
+/**
+ * The tools a project can switch on (phase 2). A method turns a set on by
+ * default ('tools' in projectMethodologies()); a project can TAILOR that - PRINCE2's
+ * own "tailor to suit the project" principle - and its choices are stored as JSON
+ * in projects.tailoring ({"raci": true, "raid": false}). Switching a tool off
+ * HIDES it; nothing it holds is deleted.
+ *
+ * @return array<string,array{label_key:string,desc_key:string}>
+ */
+function projectToolDefinitions(): array
+{
+    return [
+        'people' => ['label_key' => 'projects.tools.people', 'desc_key' => 'projects.tools.people_desc'],
+        'scope'  => ['label_key' => 'projects.tools.scope',  'desc_key' => 'projects.tools.scope_desc'],
+        'raci'   => ['label_key' => 'projects.tools.raci',   'desc_key' => 'projects.tools.raci_desc'],
+        'raid'   => ['label_key' => 'projects.tools.raid',   'desc_key' => 'projects.tools.raid_desc'],
+        'gates'  => ['label_key' => 'projects.tools.gates',  'desc_key' => 'projects.tools.gates_desc'],
+    ];
+}
+
+/** The tools switched on for one project: its method's defaults, then its tailoring. */
+function projectEnabledTools(array $project): array
+{
+    $preset = projectMethodologies()[$project['methodology'] ?? 'simple'] ?? projectMethodologies()['simple'];
+    $on = array_fill_keys($preset['tools'], true);
+    $tail = json_decode((string)($project['tailoring'] ?? ''), true);
+    if (is_array($tail)) {
+        foreach ($tail as $k => $v) if (isset(projectToolDefinitions()[$k])) $on[$k] = (bool)$v;
+    }
+    return array_keys(array_filter($on));
 }
 
 function projectStatuses(): array

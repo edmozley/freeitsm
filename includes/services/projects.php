@@ -57,6 +57,8 @@ class ProjectsService
             'actual_end_date'  => ['type' => 'date'],
             'colour'           => ['type' => 'enum',   'values' => array_keys(projectColours())],
             'icon'             => ['type' => 'enum',   'values' => projectIcons()],
+            'business_case'    => ['type' => 'text',   'max' => 50000],
+            'tailoring'        => ['type' => 'tailoring'],
         ];
     }
 
@@ -181,6 +183,12 @@ class ProjectsService
             $st = $conn->prepare("UPDATE tasks SET project_id = NULL, project_stage_id = NULL WHERE project_id = ?");
             $st->execute([$id]);
             $detached = $st->rowCount();
+            // Phase 2's records, by hand too - each on its own, because before
+            // Database Verification a table may not exist, and that must never
+            // stop a project being deleted.
+            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances'] as $t) {
+                try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
+            }
             foreach (['project_stages', 'project_audit'] as $t) {
                 $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]);
             }
@@ -482,6 +490,14 @@ class ProjectsService
                 return $s;
             case 'date':
                 return self::date($v);
+            case 'tailoring':
+                // {tool: bool}, only known tools; stored as JSON, NULL = the method's defaults.
+                if ($blank) return null;
+                $arr = is_array($v) ? $v : json_decode((string)$v, true);
+                if (!is_array($arr)) throw new ServiceError('validation', 'invalid_field', 'Tailoring must be a list of tools.');
+                $clean = [];
+                foreach ($arr as $k => $on) if (isset(projectToolDefinitions()[$k])) $clean[$k] = (bool)$on;
+                return $clean ? json_encode($clean) : null;
             case 'analyst':
                 if ($blank || (int)$v <= 0) return null;
                 $st = $conn->prepare("SELECT id FROM analysts WHERE id = ? AND is_active = 1");
@@ -527,6 +543,11 @@ class ProjectsService
         return $ctx->source === 'api' ? 'api' : 'app';
     }
 
+    public static function touchProject(PDO $conn, int $projectId): void
+    {
+        self::touch($conn, $projectId);
+    }
+
     private static function touch(PDO $conn, int $projectId): void
     {
         $conn->prepare("UPDATE projects SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$projectId]);
@@ -554,7 +575,8 @@ class ProjectsService
             $st->execute([(int)$v]);
             return ($n = $st->fetchColumn()) !== false ? (string)$n : '#' . $v;
         }
-        if ($field === 'summary') return mb_strlen((string)$v) > 120 ? mb_substr((string)$v, 0, 117) . '...' : (string)$v;
+        if ($field === 'tailoring') return null;
+        if ($field === 'summary' || $field === 'business_case') return mb_strlen((string)$v) > 120 ? mb_substr((string)$v, 0, 117) . '...' : (string)$v;
         return (string)$v;
     }
 }
