@@ -570,6 +570,39 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 .prj-raid-score.sc-low { background: #22c55e; } .prj-raid-score.sc-mid { background: #f59e0b; } .prj-raid-score.sc-high { background: #ef4444; }
 #prjRaidModal .prj-seg { flex-wrap: wrap; }
 @media (max-width: 1100px) { .prj-raid-layout { grid-template-columns: minmax(0, 1fr); } }
+/* ---------- gates, tolerances, exceptions -------------------------------- */
+.prj-gates-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; }
+.prj-case { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 10px; font: inherit; font-size: 14px; line-height: 1.55; background: var(--surface, #fff); color: var(--text, #333); resize: vertical; }
+.prj-case:focus { border-color: var(--prj-accent, #e11d48); outline: none; box-shadow: 0 0 0 3px var(--prj-accent-soft, #fff1f2); }
+.prj-tol { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+.prj-tol label { display: flex; flex-direction: column; font-size: 14px; font-weight: 600; color: var(--text, #222); }
+.prj-tol small { font-size: 12px; font-weight: 400; color: var(--text-dim, #888); }
+.prj-tol input { width: 90px; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 8px; font-size: 14px; background: var(--surface, #fff); color: var(--text, #333); }
+.prj-gate-list { list-style: none; margin: 0; padding: 0; position: relative; }
+.prj-gate { position: relative; display: flex; gap: 14px; align-items: flex-start; padding: 12px 0 12px 4px; }
+.prj-gate + .prj-gate { border-top: 1px solid var(--border-soft, #f0f0f0); }
+.prj-gate-dot { width: 14px; height: 14px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; background: var(--border, #ddd); box-shadow: 0 0 0 4px var(--surface-hover, #f1f5f9); }
+.prj-gate-dot.g-go { background: #16a34a; } .prj-gate-dot.g-go_with_conditions { background: #f59e0b; } .prj-gate-dot.g-stop { background: #dc2626; }
+.prj-gate-main { flex: 1; min-width: 0; }
+.prj-gate-name { font-size: 14.5px; font-weight: 700; color: var(--text, #222); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.prj-gate-decision { font-size: 13px; font-weight: 700; margin-top: 3px; }
+.prj-gate-decision small { font-weight: 500; color: var(--text-dim, #888); margin-left: 4px; }
+.prj-gate-decision.g-go { color: #16a34a; } .prj-gate-decision.g-go_with_conditions { color: #d97706; } .prj-gate-decision.g-stop { color: #dc2626; }
+.prj-gate-notes { margin: 6px 0 0; font-size: 13px; color: var(--text-muted, #555); white-space: pre-line; }
+.prj-gate-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.prj-gate-choices button { display: flex; flex-direction: column; gap: 4px; padding: 12px 10px; border-radius: 10px; border: 1.5px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text, #222); font-weight: 700; font-size: 14px; cursor: pointer; text-align: left; }
+.prj-gate-choices small { font-size: 11.5px; font-weight: 500; color: var(--text-dim, #888); line-height: 1.35; }
+.prj-gate-choices .go.selected { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.18); }
+.prj-gate-choices .cond.selected { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
+.prj-gate-choices .stop.selected { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.18); }
+.prj-exception { margin: 0 0 16px; padding: 14px 18px; border-radius: 14px; background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; animation: prj-rise .3s ease both; }
+.prj-exception-head { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #b91c1c; }
+.prj-exception ul { margin: 8px 0 6px 22px; padding: 0; font-size: 13.5px; }
+.prj-exception p { margin: 0; font-size: 12.5px; opacity: .85; }
+[data-theme="dark"] .prj-exception { background: #3b1219; border-color: #7f1d1d; color: #fecaca; }
+[data-theme="dark"] .prj-exception-head { color: #fca5a5; }
+.prj-exc-chip { font-size: 10.5px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; color: #fff; background: #dc2626; border-radius: 5px; padding: 2px 6px; }
+@media (max-width: 1100px) { .prj-gates-grid { grid-template-columns: minmax(0, 1fr); } .prj-gate-choices { grid-template-columns: 1fr; } }
 /* ---------- read-only (Projects -> Settings -> General) ----------------- */
 /* Not on the project's team: everything that would change it is hidden. The
    server refuses those calls anyway - this only stops the page offering them. */

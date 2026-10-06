@@ -262,6 +262,102 @@ class ProjectToolsService
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_removed', $r['type'] . ': ' . $r['title'], null, self::src($ctx));
     }
 
+    // ======================================================================
+    //  Gates: business case (a project field), tolerances, gate decisions
+    // ======================================================================
+
+    const GATE_DECISIONS = ['go', 'go_with_conditions', 'stop'];
+
+    /**
+     * The project's tolerances - how far it may drift before it is an exception
+     * (PRINCE2's "manage by exception", in our own words). time = days past the
+     * target finish (or the active stage's end) with work still open; risk = the
+     * highest open risk score allowed (1-25). null removes one.
+     */
+    public static function saveTolerances(PDO $conn, ActorContext $ctx, int $projectId, array $in): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $rules = ['time' => [0, 365], 'risk' => [1, 25]];
+        foreach ($rules as $dim => [$min, $max]) {
+            if (!array_key_exists($dim, $in)) continue;
+            $v = $in[$dim];
+            if ($v === null || $v === '') {
+                $conn->prepare("DELETE FROM project_tolerances WHERE project_id = ? AND stage_id IS NULL AND dimension = ?")->execute([$projectId, $dim]);
+                continue;
+            }
+            if (!preg_match('/^\d+$/', (string)$v) || (int)$v < $min || (int)$v > $max) {
+                throw new ServiceError('validation', 'invalid_field', $dim === 'time' ? 'Days late must be from 0 to 365.' : 'The risk score must be from 1 to 25.');
+            }
+            $st = $conn->prepare("SELECT id FROM project_tolerances WHERE project_id = ? AND stage_id IS NULL AND dimension = ?");
+            $st->execute([$projectId, $dim]);
+            if ($tid = $st->fetchColumn()) {
+                $conn->prepare("UPDATE project_tolerances SET value = ? WHERE id = ?")->execute([(int)$v, (int)$tid]);
+            } else {
+                $conn->prepare("INSERT INTO project_tolerances (project_id, stage_id, dimension, value) VALUES (?, NULL, ?, ?)")->execute([$projectId, $dim, (int)$v]);
+            }
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'tolerances', null, null, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    /** {time: int|null, risk: int|null} */
+    public static function tolerances(PDO $conn, int $projectId): array
+    {
+        $out = ['time' => null, 'risk' => null];
+        try {
+            $st = $conn->prepare("SELECT dimension, value FROM project_tolerances WHERE project_id = ? AND stage_id IS NULL");
+            $st->execute([$projectId]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[$r['dimension']] = (int)$r['value'];
+        } catch (Throwable $e) { /* before Verification */ }
+        return $out;
+    }
+
+    /**
+     * Record the gate at the end of a stage. Go (or go with conditions) closes
+     * the stage and starts the next planned one, so the decision IS the
+     * hand-over; Stop records the decision and leaves the plan alone - what to do
+     * next is the board's call, not the software's.
+     *
+     * @return array{closed:bool, next:?string}
+     */
+    public static function decideGate(PDO $conn, ActorContext $ctx, int $projectId, int $stageId, string $decision, ?string $notes): array
+    {
+        self::changeable($conn, $ctx, $projectId);
+        if (!in_array($decision, self::GATE_DECISIONS, true)) throw new ServiceError('validation', 'invalid_field', 'Choose go, go with conditions or stop.');
+        $st = $conn->prepare("SELECT * FROM project_stages WHERE id = ? AND project_id = ?");
+        $st->execute([$stageId, $projectId]);
+        $stage = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$stage) throw new ServiceError('not_found', 'not_found', 'Stage not found.');
+        $notes = self::str($notes, 20000);
+        if ($decision === 'go_with_conditions' && !$notes) throw new ServiceError('validation', 'missing_field', 'Say what the conditions are.');
+        $conn->beginTransaction();
+        try {
+            $conn->prepare("UPDATE project_stages SET gate_decision = ?, gate_notes = ?, gate_decided_by = ?, gate_decided_datetime = UTC_TIMESTAMP(), updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$decision, $notes, $ctx->actorId > 0 ? $ctx->actorId : null, $stageId]);
+            $closed = false; $next = null;
+            // Only a decision that CLOSES the stage hands over to the next one: a go
+            // recorded afterwards on a stage that is already finished must not start
+            // another stage while a later one is in progress.
+            if ($decision !== 'stop' && $stage['status'] !== 'closed') {
+                $conn->prepare("UPDATE project_stages SET status = 'closed' WHERE id = ?")->execute([$stageId]);
+                $closed = true;
+                $n = $conn->prepare("SELECT id, name FROM project_stages WHERE project_id = ? AND status = 'planned' AND position > ? ORDER BY position, id LIMIT 1");
+                $n->execute([$projectId, (int)$stage['position']]);
+                if ($row = $n->fetch(PDO::FETCH_ASSOC)) {
+                    $conn->prepare("UPDATE project_stages SET status = 'active', updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([(int)$row['id']]);
+                    $next = $row['name'];
+                }
+            }
+            $conn->commit();
+        } catch (Throwable $e) {
+            if ($conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'gate', $stage['name'], $decision, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return ['closed' => $closed, 'next' => $next];
+    }
+
     public static function raid(PDO $conn, int $projectId): array
     {
         try {

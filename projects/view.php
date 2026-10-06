@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=8">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=9">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -79,6 +79,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             <button type="button" data-tab="scope" data-tool="scope" hidden><?php echo htmlspecialchars(t('projects.tools.scope')); ?></button>
             <button type="button" data-tab="raci" data-tool="raci" hidden><?php echo htmlspecialchars(t('projects.tools.raci')); ?></button>
             <button type="button" data-tab="raid" data-tool="raid" hidden><?php echo htmlspecialchars(t('projects.tools.raid')); ?></button>
+            <button type="button" data-tab="gates" data-tool="gates" hidden><?php echo htmlspecialchars(t('projects.tools.gates')); ?></button>
             <button type="button" data-tab="connections"><?php echo htmlspecialchars(t('projects.view.tab_connections')); ?></button>
             <button type="button" data-tab="history"><?php echo htmlspecialchars(t('projects.view.tab_history')); ?></button>
         </nav>
@@ -89,6 +90,7 @@ $projectId = (int)($_GET['id'] ?? 0);
         <section class="prj-tab-panel" data-panel="scope" id="pvScope" hidden></section>
         <section class="prj-tab-panel" data-panel="raci" id="pvRaci" hidden></section>
         <section class="prj-tab-panel" data-panel="raid" id="pvRaid" hidden></section>
+        <section class="prj-tab-panel" data-panel="gates" id="pvGates" hidden></section>
         <section class="prj-tab-panel" data-panel="connections" id="pvConnections" hidden></section>
         <section class="prj-tab-panel" data-panel="history" id="pvHistory" hidden></section>
 
@@ -158,6 +160,28 @@ $projectId = (int)($_GET['id'] ?? 0);
                 <button type="button" class="btn btn-secondary" id="prDelete" style="margin-right:auto" hidden><?php echo htmlspecialchars(t('common.delete')); ?></button>
                 <button type="button" class="btn btn-secondary" data-prj-close="prjRaidModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary prj-btn" id="prSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record a gate decision -->
+    <div class="modal" id="prjGateModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header" id="pgTitle"></div>
+            <div class="modal-body">
+                <input type="hidden" id="pgStage">
+                <p class="prj-muted" id="pgIntro" style="margin-top:0"></p>
+                <div class="prj-gate-choices" id="pgChoices">
+                    <button type="button" data-decision="go" class="go"><?php echo htmlspecialchars(t('projects.gates.go')); ?><small><?php echo htmlspecialchars(t('projects.gates.go_hint')); ?></small></button>
+                    <button type="button" data-decision="go_with_conditions" class="cond"><?php echo htmlspecialchars(t('projects.gates.go_with_conditions')); ?><small><?php echo htmlspecialchars(t('projects.gates.cond_hint')); ?></small></button>
+                    <button type="button" data-decision="stop" class="stop"><?php echo htmlspecialchars(t('projects.gates.stop')); ?><small><?php echo htmlspecialchars(t('projects.gates.stop_hint')); ?></small></button>
+                </div>
+                <div class="form-group"><label for="pgNotes"><?php echo htmlspecialchars(t('projects.gates.notes')); ?></label><textarea id="pgNotes" rows="3"></textarea></div>
+                <div class="prj-form-error" id="pgError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjGateModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pgSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -234,8 +258,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=5"></script>
-    <script src="../assets/js/projects-tools.js?v=2"></script>
-    <script src="../assets/js/projects-view.js?v=7"></script>
+    <script src="../assets/js/projects-tools.js?v=3"></script>
+    <script src="../assets/js/projects-view.js?v=8"></script>
     <script src="../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

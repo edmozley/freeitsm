@@ -340,6 +340,74 @@
         }, 180);
     }
 
+    // ---- Gates: business case, tolerances, stage gates ----------------------------------
+    /** The red banner naming each tolerance breach - shared with the Overview. */
+    function exceptionsBanner(exc) {
+        if (!exc || !exc.length) return '';
+        return '<div class="prj-exception"><div class="prj-exception-head">' + P.icon('flag', 18) + '<strong>' + esc(T('gates.exceptions')) + '</strong></div><ul>'
+            + exc.map(x => '<li>' + esc(T('gates.exc_' + x.kind, x)) + '</li>').join('') + '</ul><p>' + esc(T('gates.exc_hint')) + '</p></div>';
+    }
+
+    function renderGates() {
+        const box = document.getElementById('pvGates');
+        const d = ctx.data, p = d.project, tol = d.tolerances || {};
+        const kind = (ctx.L.methodologies.find(m => m.key === p.methodology) || {}).timebox || 'stage';
+        let html = '<p class="prj-muted" style="margin-top:0">' + esc(T('gates.intro')) + '</p>' + exceptionsBanner(p.exceptions);
+        html += '<div class="prj-gates-grid"><div class="prj-panel"><h3>' + esc(T('gates.business_case')) + '</h3><p class="prj-muted" style="margin:-6px 0 10px">' + esc(T('gates.business_case_hint')) + '</p>'
+            + (canChange()
+                ? '<textarea id="pgCase" class="prj-case" rows="7" placeholder="' + esc(T('gates.business_case_ph')) + '">' + esc(p.business_case || '') + '</textarea><div class="set-actions"><button type="button" class="btn btn-primary prj-btn sm" data-save-case>' + esc(P.TC('save')) + '</button></div>'
+                : (p.business_case ? '<p class="prj-ov-summary">' + esc(p.business_case).replace(/\n/g, '<br>') + '</p>' : '<p class="prj-muted">' + esc(T('gates.no_case')) + '</p>'))
+            + '</div>';
+        html += '<div class="prj-panel"><h3>' + esc(T('gates.tolerances')) + '</h3><p class="prj-muted" style="margin:-6px 0 10px">' + esc(T('gates.tolerances_hint')) + '</p>'
+            + '<div class="prj-tol"><label>' + esc(T('gates.tol_time')) + '<small>' + esc(T('gates.tol_time_hint')) + '</small></label>'
+            + '<input type="number" min="0" max="365" id="pgTolTime" value="' + (tol.time ?? '') + '"' + (canChange() ? '' : ' disabled') + '></div>'
+            + '<div class="prj-tol"><label>' + esc(T('gates.tol_risk')) + '<small>' + esc(T('gates.tol_risk_hint')) + '</small></label>'
+            + '<input type="number" min="1" max="25" id="pgTolRisk" value="' + (tol.risk ?? '') + '"' + (canChange() ? '' : ' disabled') + '></div>'
+            + (canChange() ? '<div class="set-actions"><button type="button" class="btn btn-primary prj-btn sm" data-save-tol>' + esc(P.TC('save')) + '</button></div>' : '')
+            + '</div></div>';
+        html += '<div class="prj-panel" style="margin-top:16px"><h3>' + esc(T('gates.stage_gates')) + '</h3><p class="prj-muted" style="margin:-6px 0 12px">' + esc(T('gates.stage_gates_hint')) + '</p>';
+        if (!d.stages.length) html += '<div class="prj-plan-empty">' + esc(T('gates.no_stages')) + '</div>';
+        else html += '<ol class="prj-gate-list">' + d.stages.map(s => {
+            const dec = s.gate_decision;
+            const who = dec ? T('gates.decided_by', { name: (ctx.L.analysts.find(a => String(a.id) === String(s.gate_decided_by)) || {}).full_name || '-', date: window.fmtDateTime ? window.fmtDateTime(s.gate_decided_datetime) : s.gate_decided_datetime }) : '';
+            return '<li class="prj-gate st-' + esc(s.status) + '">'
+                + '<span class="prj-gate-dot ' + (dec ? 'g-' + esc(dec) : '') + '"></span>'
+                + '<div class="prj-gate-main"><div class="prj-gate-name"><span class="prj-lane-kind">' + esc(T('timebox.' + (s.kind || kind))) + '</span> ' + esc(s.name)
+                + ' <span class="prj-stage-pill sp-' + esc(s.status) + '">' + esc(T('stage_status.' + s.status)) + '</span></div>'
+                + (dec ? '<div class="prj-gate-decision g-' + esc(dec) + '">' + esc(T('gates.' + dec)) + ' <small>' + esc(who) + '</small></div>' : '<div class="prj-muted">' + esc(T('gates.undecided')) + '</div>')
+                + (s.gate_notes ? '<p class="prj-gate-notes">' + esc(s.gate_notes) + '</p>' : '') + '</div>'
+                + (canChange() && s.status !== 'planned' ? '<button type="button" class="btn btn-secondary sm" data-gate="' + s.id + '">' + esc(T('gates.decide')) + '</button>' : '')
+                + '</li>';
+        }).join('') + '</ol>';
+        html += '</div>';
+        box.innerHTML = html;
+    }
+
+    let gateDecision = null;
+    function openGate(stage) {
+        gateDecision = stage.gate_decision || null;
+        document.getElementById('pgTitle').textContent = T('gates.title', { stage: stage.name });
+        document.getElementById('pgIntro').textContent = T('gates.gate_intro');
+        document.getElementById('pgStage').value = stage.id;
+        document.getElementById('pgNotes').value = stage.gate_notes || '';
+        document.querySelectorAll('#pgChoices [data-decision]').forEach(b => b.classList.toggle('selected', b.dataset.decision === gateDecision));
+        document.getElementById('pgError').hidden = true;
+        P.openModal('prjGateModal');
+    }
+    async function saveGate() {
+        const err = document.getElementById('pgError');
+        if (!gateDecision) { err.textContent = T('gates.choose'); err.hidden = false; return; }
+        try {
+            const r = await call({ action: 'gate_decide', stage_id: document.getElementById('pgStage').value, decision: gateDecision, notes: document.getElementById('pgNotes').value });
+            P.closeModal('prjGateModal');
+            await ctx.refresh();
+            if (gateDecision !== 'stop') {
+                P.celebrate(document.querySelector('#pvGates .prj-gate-list') || null);
+                P.toast(r.next ? T('gates.next_started', { stage: r.next }) : T('gates.saved'));
+            } else P.toast(T('gates.saved'));
+        } catch (e) { err.textContent = e.message; err.hidden = false; }
+    }
+
     // ---- Wiring (once) --------------------------------------------------------------------
     function wire() {
         if (wired) return;
@@ -359,6 +427,16 @@
             const cell = e.target.closest('[data-raci]');
             if (cell && !cell.disabled) { cycleRaci(cell); return; }
             if (e.target.closest('[data-raid-add]')) { openRaid(null); return; }
+            const gb = e.target.closest('[data-gate]');
+            if (gb) { openGate(ctx.data.stages.find(s => String(s.id) === gb.dataset.gate)); return; }
+            if (e.target.closest('[data-save-case]')) {
+                try { await P.api('save.php', { id: ctx.projectId, business_case: document.getElementById('pgCase').value }); P.toast(T('gates.saved')); await ctx.refresh(); } catch (err) { P.toast(err.message, 'error'); }
+                return;
+            }
+            if (e.target.closest('[data-save-tol]')) {
+                try { await call({ action: 'tolerances_save', time: document.getElementById('pgTolTime').value, risk: document.getElementById('pgTolRisk').value }); P.toast(T('gates.saved')); await ctx.refresh(); } catch (err) { P.toast(err.message, 'error'); }
+                return;
+            }
             const rr = e.target.closest('[data-raid]');
             if (rr && !e.target.closest('a')) { openRaid((ctx.data.raid || []).find(x => String(x.id) === rr.dataset.raid)); return; }
             const hc = e.target.closest('[data-heat]');
@@ -438,6 +516,12 @@
         document.getElementById('pmSave').addEventListener('click', saveMember);
         document.getElementById('prType').addEventListener('click', e => { const b = e.target.closest('[data-rtype]'); if (b) setRaidType(b.dataset.rtype); });
         document.getElementById('prSave').addEventListener('click', saveRaid);
+        document.getElementById('pgChoices').addEventListener('click', e => {
+            const b = e.target.closest('[data-decision]'); if (!b) return;
+            gateDecision = b.dataset.decision;
+            document.querySelectorAll('#pgChoices [data-decision]').forEach(x => x.classList.toggle('selected', x === b));
+        });
+        document.getElementById('pgSave').addEventListener('click', saveGate);
         document.getElementById('prDelete').addEventListener('click', async () => {
             const ok = await window.showConfirm({ title: T('raid.delete_title'), message: T('raid.delete_body'), okLabel: P.TC('delete'), okClass: 'danger' });
             if (!ok) return;
@@ -453,6 +537,7 @@
     }
 
     window.PrjTools = {
+        exceptionsBanner: exceptionsBanner,
         render(c) {
             ctx = c;
             wire();
@@ -461,6 +546,7 @@
             if (tools.includes('scope')) renderScope();
             if (tools.includes('raci')) renderRaci();
             if (tools.includes('raid')) renderRaid();
+            if (tools.includes('gates')) renderGates();
         },
     };
 })();

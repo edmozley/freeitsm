@@ -85,7 +85,7 @@
         const today = P.todayStr();
         const upcoming = data.tasks.filter(t => !Number(t.is_closed) && t.due_date).sort((a, b) => a.due_date.localeCompare(b.due_date)).slice(0, 6);
 
-        let html = '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + t.cls + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span></div>').join('') + '</div>';
+        let html = (window.PrjTools && p.exceptions && p.exceptions.length ? window.PrjTools.exceptionsBanner(p.exceptions) : '') + '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + t.cls + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span></div>').join('') + '</div>';
         html += '<div class="prj-ov-grid">';
 
         html += '<div class="prj-panel prj-ov-about"><h3>' + esc(T('view.about')) + '</h3>'
@@ -144,6 +144,8 @@
         if (f === 'project_created') detail = '';
         else if (f === 'stage_added') detail = h.new_value || '';
         else if (f === 'stage_removed') detail = h.old_value || '';
+        else if (f === 'gate') detail = (h.old_value || '') + ': ' + T('gates.' + (h.new_value || ''));
+        else if (f === 'tolerances') detail = '';
         else if (f.indexOf('raid_') === 0) detail = (h.new_value || h.old_value || '').replace(/^(risk|assumption|issue|decision|lesson): /, (m, k) => T('raid.' + k) + ': ');
         else if (f === 'link_added' || f === 'link_removed') detail = linkHistoryText(h.new_value || h.old_value || '');
         else if (f === 'stage_status') detail = (h.new_value || '').replace(/: (planned|active|closed)$/, (m, s) => ': ' + T('stage_status.' + s));
@@ -540,7 +542,7 @@
     // ---- Wiring -----------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         const start = (location.hash || '').replace('#', '');
-        if (['overview', 'plan', 'people', 'scope', 'raci', 'raid', 'connections', 'history'].includes(start)) tab = start;
+        if (['overview', 'plan', 'people', 'scope', 'raci', 'raid', 'gates', 'connections', 'history'].includes(start)) tab = start;
         if (/[?&]new=1/.test(location.search)) tab = 'plan';
 
         document.getElementById('prjTabs').addEventListener('click', e => {

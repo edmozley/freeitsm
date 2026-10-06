@@ -67,6 +67,7 @@
             + '</div>'
             + '<div class="prj-card-foot">'
             +   '<span>' + esc(done) + '</span>'
+            +   (p.exceptions && p.exceptions.length ? '<span class="prj-exc-chip">' + esc(T('gates.exception')) + '</span>' : '')
             +   (p.task_overdue > 0 && !finished ? '<span class="prj-overdue">' + esc(T('portfolio.overdue_count', { count: p.task_overdue })) + '</span>' : '')
             +   '<span class="prj-card-bar"><span style="width:' + p.progress + '%;background:' + P.gradient(p.colour) + '"></span></span>'
             + '</div>'

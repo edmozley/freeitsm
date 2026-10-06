@@ -15,6 +15,8 @@
  *      raci_set       {item_id, member_id, letter: R|A|C|I|''}
  *      raid_save      {id?, type, title, description?, probability?, impact?, response?, response_plan?, owner_analyst_id?, status?, due_date?, ticket_id?}
  *      raid_delete    {id}
+ *      tolerances_save {time?: days|null, risk?: score|null}
+ *      gate_decide    {stage_id, decision: go|go_with_conditions|stop, notes?}
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -66,6 +68,11 @@ projectApiRun(function () use ($conn, $ctx) {
         case 'raid_delete':
             ProjectToolsService::deleteRaid($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk();
+        case 'tolerances_save':
+            ProjectToolsService::saveTolerances($conn, $ctx, $pid, $in);
+            projectApiOk();
+        case 'gate_decide':
+            projectApiOk(ProjectToolsService::decideGate($conn, $ctx, $pid, (int)($in['stage_id'] ?? 0), (string)($in['decision'] ?? ''), $in['notes'] ?? null));
         case 'raci_set':
             projectApiOk(['row' => (object)ProjectToolsService::setRaci($conn, $ctx, $pid, (int)($in['item_id'] ?? 0), (int)($in['member_id'] ?? 0), (string)($in['letter'] ?? ''))]);
     }

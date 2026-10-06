@@ -79,6 +79,54 @@ function projectHealthConfig(PDO $conn): array
     ];
 }
 
+/** Has Database Verification created the phase 2 tables? The portfolio query names them. */
+function projectsPhase2Ready(PDO $conn): bool
+{
+    static $ready = null;
+    if ($ready === null) {
+        try { $conn->query("SELECT 1 FROM project_tolerances LIMIT 0"); $conn->query("SELECT 1 FROM project_raid LIMIT 0"); $ready = true; }
+        catch (Throwable $e) { $ready = false; }
+    }
+    return $ready;
+}
+
+/** The columns the exceptions are read from, as SQL - NULLs before Verification. */
+function projectExceptionColumns(PDO $conn): string
+{
+    if (!projectsPhase2Ready($conn)) return "NULL AS max_risk, NULL AS tol_time, NULL AS tol_risk, NULL AS active_stage_end";
+    return "(SELECT MAX(r.probability * r.impact) FROM project_raid r WHERE r.project_id = p.id AND r.type = 'risk' AND r.status = 'open') AS max_risk,
+            (SELECT t.value FROM project_tolerances t WHERE t.project_id = p.id AND t.stage_id IS NULL AND t.dimension = 'time') AS tol_time,
+            (SELECT t.value FROM project_tolerances t WHERE t.project_id = p.id AND t.stage_id IS NULL AND t.dimension = 'risk') AS tol_risk,
+            (SELECT s.end_date FROM project_stages s WHERE s.project_id = p.id AND s.status = 'active' ORDER BY s.position, s.id LIMIT 1) AS active_stage_end";
+}
+
+/**
+ * A project's tolerance breaches - PRINCE2-style "manage by exception". Only for
+ * a live project with the Gates tool on and a tolerance set:
+ *   time  - the target finish (or the active stage's end) is more than the
+ *           allowed days in the past with work still open;
+ *   risk  - an open risk scores above the allowed score.
+ * An exception turns automatic health red. Worked out, never stored.
+ */
+function projectExceptions(array $p, array $stats): array
+{
+    if (in_array($p['status'], projectFinishedStatuses(), true) || !in_array('gates', projectEnabledTools($p), true)) return [];
+    $out = [];
+    $open = ($stats['total'] ?? 0) - ($stats['done'] ?? 0);
+    $today = strtotime(gmdate('Y-m-d'));
+    if (isset($p['tol_time']) && $p['tol_time'] !== null && $open > 0) {
+        foreach (['target_end_date' => 'time', 'active_stage_end' => 'stage_time'] as $col => $kind) {
+            if (empty($p[$col])) continue;
+            $late = (int)floor(($today - strtotime($p[$col])) / 86400);
+            if ($late > (int)$p['tol_time']) $out[] = ['kind' => $kind, 'late' => $late, 'allowed' => (int)$p['tol_time']];
+        }
+    }
+    if (isset($p['tol_risk']) && $p['tol_risk'] !== null && !empty($p['max_risk']) && (int)$p['max_risk'] > (int)$p['tol_risk']) {
+        $out[] = ['kind' => 'risk', 'score' => (int)$p['max_risk'], 'allowed' => (int)$p['tol_risk']];
+    }
+    return $out;
+}
+
 /** Add progress, counts and the health actually shown to a project row. */
 function projectDecorate(array $p, array $stats, ?array $cfg = null): array
 {
@@ -88,6 +136,8 @@ function projectDecorate(array $p, array $stats, ?array $cfg = null): array
     $p['task_overdue'] = $s['overdue'];
     $p['progress']     = $s['total'] > 0 ? (int)round($s['done'] * 100 / $s['total']) : 0;
     $p['auto_health']  = projectAutoHealth($p, $s, $cfg);
+    $p['exceptions']   = projectExceptions($p, $s);
+    if ($p['exceptions'] && $p['auto_health'] !== null) $p['auto_health'] = 'red';
     $p['shown_health'] = in_array($p['status'], projectFinishedStatuses(), true)
         ? null
         : ($p['health'] !== 'auto' ? $p['health'] : $p['auto_health']);
@@ -127,7 +177,8 @@ function projectListRows(PDO $conn, int $analystId, array $f = []): array
                    p.start_date, p.target_end_date, p.actual_end_date, p.colour, p.icon, p.tailoring, p.created_by_id,
                    p.created_datetime, p.updated_datetime, p.closed_datetime,
                    (SELECT s.name FROM project_stages s WHERE s.project_id = p.id AND s.status = 'active' ORDER BY s.position, s.id LIMIT 1) AS active_stage_name,
-                   (SELECT COUNT(*) FROM project_stages s WHERE s.project_id = p.id) AS stage_count
+                   (SELECT COUNT(*) FROM project_stages s WHERE s.project_id = p.id) AS stage_count,
+                   " . projectExceptionColumns($conn) . "
               FROM projects p
          LEFT JOIN analysts a ON a.id = p.owner_analyst_id
          LEFT JOIN tenants tn ON tn.id = p.tenant_id
@@ -149,7 +200,7 @@ function projectListRows(PDO $conn, int $analystId, array $f = []): array
 function projectDetail(PDO $conn, array $row): array
 {
     $id = (int)$row['id'];
-    $st = $conn->prepare("SELECT a.full_name AS owner_name, tn.name AS company_name
+    $st = $conn->prepare("SELECT a.full_name AS owner_name, tn.name AS company_name, " . projectExceptionColumns($conn) . "
                             FROM projects p LEFT JOIN analysts a ON a.id = p.owner_analyst_id
                        LEFT JOIN tenants tn ON tn.id = p.tenant_id WHERE p.id = ?");
     $st->execute([$id]);
