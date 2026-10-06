@@ -570,6 +570,15 @@ $translationNamespaces = ['common'];
             </a>
             <?php endif; ?>
 
+            <?php if ($allowed_modules === null || in_array('projects', $allowed_modules)): ?>
+            <a href="projects/" class="module-card projects" title="<?php echo htmlspecialchars(t('common.modules.projects.description')); ?>">
+                <div class="module-icon projects">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="4" rx="1"></rect><rect x="7" y="10" width="11" height="4" rx="1"></rect><rect x="11" y="16" width="10" height="4" rx="1"></rect></svg>
+                </div>
+                <div class="module-name"><?php echo htmlspecialchars(t('common.modules.projects.name')); ?></div>
+            </a>
+            <?php endif; ?>
+
             <?php if ($allowed_modules === null || in_array('cmdb', $allowed_modules)): ?>
             <a href="cmdb/" class="module-card cmdb" title="<?php echo htmlspecialchars(t('common.modules.cmdb.description')); ?>">
                 <div class="module-icon cmdb">

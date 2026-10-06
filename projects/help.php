@@ -1,0 +1,200 @@
+<?php
+/**
+ * Projects - help. Numbered sections with a scroll-spy sidebar, the house layout
+ * from assets/css/help.css (the People and Domains guides' model). The words
+ * live in lang/<locale>/projects.php under help.*, one entry per paragraph, so
+ * every section is translatable and this file is only the shape.
+ *
+ * ⚠️ The health rules in section "health" must match projectAutoHealth() in
+ * includes/projects/read.php. Change one, change the other.
+ */
+session_start();
+require_once '../config.php';
+require_once '../includes/functions.php';
+require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
+require_once '../includes/timezone.php';
+require_once '../includes/tenancy.php';
+I18n::initFromSession();
+Tz::init();
+
+requireModuleAccess('projects');
+
+$current_page = 'help';
+$path_prefix = '../';
+$multi = isMultiTenant(connectToDatabase());
+
+// id => number of plain paragraphs (help.<id>.p1 ... pN).
+$sections = [
+    'overview'  => 1,
+    'portfolio' => 2,
+    'project'   => 2,
+    'plan'      => 3,
+    'methods'   => 2,
+    'health'    => 1,
+    'tasks'     => 2,
+    'companies' => 1,
+    'coming'    => 1,
+];
+if (!$multi) unset($sections['companies']);
+$h = fn(string $k, array $p = []) => htmlspecialchars(t('projects.help.' . $k, $p));
+/** Paragraph text may carry **bold**. */
+$para = fn(string $k) => preg_replace('/\*\*([^*]+)\*\*/', '<strong>$1</strong>', htmlspecialchars(t('projects.help.' . $k)));
+// ⚠️ Not $icon: includes/header.php loops its nav as [$href, $label, $icon] and would overwrite it.
+$prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' . $paths . '</svg>';
+?>
+<!DOCTYPE html>
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
+<head>
+    <link rel="icon" type="image/svg+xml" href="<?php echo BASE_URL; ?>favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo htmlspecialchars(systemName() . ' - ' . t('projects.help.title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs(['common', 'projects']), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=180">
+    <style>
+        /* The only thing a help page should need to say for itself: its colour. */
+        body {
+            --accent:       var(--prj-accent, #e11d48);
+            --accent-hover: var(--prj-accent-hover, #be123c);
+            --accent-soft:  var(--prj-accent-soft, rgba(225, 29, 72, .1));
+            --on-accent:    #fff;
+        }
+    </style>
+</head>
+<body data-mobile-module="projects" data-mobile-page="projects-help">
+    <?php include 'includes/header.php'; ?>
+
+    <div class="help-container">
+        <div class="help-sidebar">
+            <h3><?php echo $h('guide'); ?></h3>
+            <?php $n = 0; foreach ($sections as $id => $_): $n++; ?>
+            <a href="#<?php echo $id; ?>" class="help-nav-link<?php echo $n === 1 ? ' active' : ''; ?>" data-section="<?php echo $id; ?>">
+                <span class="help-nav-num"><?php echo $n; ?></span>
+                <?php echo $h($id . '.nav'); ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="help-main" id="helpMain">
+            <div class="help-hero">
+                <h2><?php echo $h('hero_heading'); ?></h2>
+                <p><?php echo $h('hero_sub'); ?></p>
+            </div>
+            <div class="help-content">
+                <?php $n = 0; foreach ($sections as $id => $paras): $n++; ?>
+                <div class="help-section" id="<?php echo $id; ?>">
+                    <div class="help-section-header">
+                        <span class="help-section-num"><?php echo $n; ?></span>
+                        <div>
+                            <h3><?php echo $h($id . '.title'); ?></h3>
+                            <p><?php echo $h($id . '.intro'); ?></p>
+                        </div>
+                    </div>
+
+                    <?php for ($i = 1; $i <= $paras; $i++): ?>
+                    <p><?php echo $para($id . '.p' . $i); ?></p>
+                    <?php endfor; ?>
+
+                    <?php if ($id === 'overview'): ?>
+                    <div class="help-cards">
+                        <div class="help-card">
+                            <div class="help-card-icon"><?php echo $prjHelpIcon('<rect x="3" y="4" width="10" height="4" rx="1"></rect><rect x="7" y="10" width="11" height="4" rx="1"></rect><rect x="11" y="16" width="10" height="4" rx="1"></rect>'); ?></div>
+                            <h4><?php echo $h('overview.card_plan_title'); ?></h4>
+                            <p><?php echo $h('overview.card_plan_desc'); ?></p>
+                        </div>
+                        <div class="help-card">
+                            <div class="help-card-icon"><?php echo $prjHelpIcon('<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>'); ?></div>
+                            <h4><?php echo $h('overview.card_tasks_title'); ?></h4>
+                            <p><?php echo $h('overview.card_tasks_desc'); ?></p>
+                        </div>
+                        <div class="help-card">
+                            <div class="help-card-icon"><?php echo $prjHelpIcon('<circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path>'); ?></div>
+                            <h4><?php echo $h('overview.card_health_title'); ?></h4>
+                            <p><?php echo $h('overview.card_health_desc'); ?></p>
+                        </div>
+                        <div class="help-card">
+                            <div class="help-card-icon"><?php echo $prjHelpIcon('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><path d="M4 22v-7"></path>'); ?></div>
+                            <h4><?php echo $h('overview.card_method_title'); ?></h4>
+                            <p><?php echo $h('overview.card_method_desc'); ?></p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if ($id === 'methods'): ?>
+                    <div class="help-defs">
+                        <?php foreach (['simple', 'staged', 'agile'] as $m): ?>
+                        <div class="help-def">
+                            <div class="help-def-term"><?php echo htmlspecialchars(t('projects.method.' . $m)); ?></div>
+                            <div class="help-def-desc"><?php echo $h('methods.' . $m . '_d'); ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if ($id === 'health'): ?>
+                    <div class="help-defs">
+                        <?php foreach (['green', 'amber', 'red'] as $c): ?>
+                        <div class="help-def">
+                            <div class="help-def-term"><span class="prj-health-badge h-<?php echo $c; ?>"><span class="dot"></span><?php echo htmlspecialchars(t('projects.health.' . $c)); ?></span></div>
+                            <div class="help-def-desc"><?php echo $h('health.' . $c . '_d'); ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <p><?php echo $para('health.p2'); ?></p>
+                    <?php endif; ?>
+
+                    <?php if ($id === 'plan'): ?>
+                    <div class="help-steps">
+                        <?php for ($i = 1; $i <= 4; $i++): ?>
+                        <div class="help-step">
+                            <div class="help-step-num"><?php echo $i; ?></div>
+                            <div><?php echo $para('plan.step' . $i); ?></div>
+                        </div>
+                        <?php endfor; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Scroll-spy: highlight the section in view (the house help-page script).
+        const helpMain = document.getElementById('helpMain');
+        const navLinks = document.querySelectorAll('.help-nav-link');
+        const sections = [];
+        navLinks.forEach(link => {
+            const el = document.getElementById(link.dataset.section);
+            if (el) sections.push({ id: link.dataset.section, el });
+        });
+        helpMain.addEventListener('scroll', function () {
+            const scrollTop = helpMain.scrollTop;
+            let current = sections[0]?.id;
+            for (const s of sections) if (s.el.offsetTop - 200 <= scrollTop) current = s.id;
+            navLinks.forEach(link => link.classList.toggle('active', link.dataset.section === current));
+        });
+        navLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const el = document.getElementById(this.dataset.section);
+                if (el) {
+                    const containerTop = helpMain.getBoundingClientRect().top;
+                    helpMain.scrollTo({ top: helpMain.scrollTop + (el.getBoundingClientRect().top - containerTop) - 20, behavior: 'smooth' });
+                }
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=75"></script>
+</body>
+</html>

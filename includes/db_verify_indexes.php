@@ -261,6 +261,8 @@ return [
     ['api_key_rate_limits', 'uq_api_key_window', 'unique', '(`api_key_id`,`window_start`)'],
     ['task_statuses', 'uq_task_statuses_name', 'unique', '(`name`)'],
     ['task_priorities', 'uq_task_priorities_name', 'unique', '(`name`)'],
+    ['tasks', 'ix_tasks_project', 'key', '(`project_id`)'],
+    ['tasks', 'ix_tasks_project_stage', 'key', '(`project_stage_id`)'],
     ['tasks', 'ix_tasks_status_id', 'key', '(`status_id`)'],
     ['tasks', 'ix_tasks_priority_id', 'key', '(`priority_id`)'],
     ['tasks', 'idx_tasks_tenant', 'key', '(`tenant_id`)'],
@@ -443,4 +445,9 @@ return [
     ['cost_centres', 'uq_cost_centres_code', 'unique', '(`tenant_id`,`code`)'],
     ['cost_centres', 'ix_cost_centres_parent', 'key', '(`parent_id`)'],
     ['photo_album', 'ix_photo_album_analyst', 'key', '(`analyst_id`,`created_datetime`)'],
+    ['projects', 'idx_projects_tenant', 'key', '(`tenant_id`)'],
+    ['projects', 'idx_projects_status', 'key', '(`status`)'],
+    ['projects', 'idx_projects_owner', 'key', '(`owner_analyst_id`)'],
+    ['project_stages', 'idx_project_stages_project', 'key', '(`project_id`,`position`)'],
+    ['project_audit', 'idx_project_audit_project', 'key', '(`project_id`,`created_datetime`)'],
 ];

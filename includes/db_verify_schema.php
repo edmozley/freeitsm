@@ -3671,6 +3671,10 @@ return [
         // majority of tasks, which do not repeat.
         'recurrence_id'        => 'INT NULL',
         'recurrence_master_id' => 'INT NULL',
+        // Projects (3.2.0): a project's work items ARE tasks, so a task names the
+        // project and the stage/phase it belongs to. NULL on every other task.
+        'project_id'          => 'INT NULL',
+        'project_stage_id'    => 'INT NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
@@ -5108,5 +5112,56 @@ return [
         'colours'          => 'MEDIUMTEXT NULL',
         'thumbnail'        => 'MEDIUMTEXT NOT NULL',
         'created_datetime' => 'DATETIME NOT NULL',
+    ],
+
+    // ---- Projects (3.2.0) - see docs/design/projects.md -------------------
+    // A container over ordinary tasks (tasks.project_id), scoped like tickets.
+    'projects' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'        => 'INT NULL',
+        'name'             => 'VARCHAR(200) NOT NULL',
+        'summary'          => 'TEXT NULL',
+        'goal'             => 'VARCHAR(500) NULL',
+        // A LENS, not a schema: switching method converts and deletes nothing.
+        'methodology'      => "VARCHAR(20) NOT NULL DEFAULT 'simple'",
+        'status'           => "VARCHAR(20) NOT NULL DEFAULT 'proposed'",
+        'health'           => "VARCHAR(10) NOT NULL DEFAULT 'auto'",
+        'health_note'      => 'VARCHAR(500) NULL',
+        'owner_analyst_id' => 'INT NULL',
+        'start_date'       => 'DATE NULL',
+        'target_end_date'  => 'DATE NULL',
+        'actual_end_date'  => 'DATE NULL',
+        'colour'           => "VARCHAR(20) NOT NULL DEFAULT 'coral'",
+        'icon'             => "VARCHAR(30) NOT NULL DEFAULT 'rocket'",
+        'created_by_id'    => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'closed_datetime'  => 'DATETIME NULL',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    // Phases, stages and sprints in ONE table - the same thing through different methods.
+    'project_stages' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'       => 'INT NOT NULL',
+        'kind'             => "VARCHAR(10) NOT NULL DEFAULT 'phase'",
+        'name'             => 'VARCHAR(150) NOT NULL',
+        'goal'             => 'VARCHAR(500) NULL',
+        'start_date'       => 'DATE NULL',
+        'end_date'         => 'DATE NULL',
+        'position'         => 'INT NOT NULL DEFAULT 0',
+        'status'           => "VARCHAR(10) NOT NULL DEFAULT 'planned'",
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    'project_audit' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'       => 'INT NOT NULL',
+        'analyst_id'       => 'INT NULL',
+        'field_name'       => 'VARCHAR(100) NOT NULL',
+        'old_value'        => 'VARCHAR(1000) NULL',
+        'new_value'        => 'VARCHAR(1000) NULL',
+        'source'           => "VARCHAR(20) NOT NULL DEFAULT 'app'",
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 ];

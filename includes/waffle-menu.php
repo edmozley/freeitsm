@@ -157,6 +157,12 @@ $modules = [
         'path' => 'tasks/',
         'icon' => '<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>'
     ],
+    'projects' => [
+        'name' => t('common.modules.projects.name'),
+        'path' => 'projects/',
+        // Staggered bars - a timeline at a glance, apart from Tasks' tick-box.
+        'icon' => '<rect x="3" y="4" width="10" height="4" rx="1"></rect><rect x="7" y="10" width="11" height="4" rx="1"></rect><rect x="11" y="16" width="10" height="4" rx="1"></rect>'
+    ],
     'cmdb' => [
         'name' => t('common.modules.cmdb.name'),
         'path' => 'cmdb/',

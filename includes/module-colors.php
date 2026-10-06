@@ -31,6 +31,9 @@ $defaultModuleColors = [
     'lms'            => ['#2563eb', '#1d4ed8'],
     'process-mapper' => ['#6366f1', '#4f46e5'],
     'tasks'          => ['#7c3aed', '#6d28d9'],
+    // Projects (3.2.0): coral to violet, Ed's pick - a two-colour identity for the
+    // most visual module, ending near Tasks' violet because projects sit on tasks.
+    'projects'       => ['#f43f5e', '#7c3aed'],
     'cmdb'           => ['#be185d', '#9d174d'],
     'network-mapper' => ['#06b6d4', '#0891b2'],
     // Workflows uses an orange distinct from contracts' amber so the two

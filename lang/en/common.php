@@ -243,6 +243,7 @@ return [
         'lms'            => ['name' => 'LMS',         'description' => 'Learning Management System with SCORM course player'],
         'process-mapper' => ['name' => 'Processes',   'description' => 'Visual flowchart and process mapping tool'],
         'tasks'          => ['name' => 'Tasks',       'description' => 'Kanban board and list view for tracking tasks'],
+        'projects'       => ['name' => 'Projects',    'description' => 'Plan and run IT projects, built on your tasks and linked to everything else'],
         'cmdb'           => ['name' => 'CMDB',        'description' => 'Configuration Management Database'],
         'network-mapper' => ['name' => 'Network',     'description' => 'Design and document network diagrams'],
         'workflow'       => ['name' => 'Workflows',   'description' => 'Cross-module automation — triggers, conditions, actions'],

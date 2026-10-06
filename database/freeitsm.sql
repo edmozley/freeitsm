@@ -4778,8 +4778,15 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     -- The constraints are added after task_recurrences is created, below.
     `recurrence_id`        INT NULL,
     `recurrence_master_id` INT NULL,
+    -- Projects (3.2.0). A project's work items ARE tasks - there is no second task
+    -- system - so a task simply names the project, and the stage or phase of it,
+    -- that it belongs to. Both NULL on every task that is not project work.
+    `project_id`          INT NULL,
+    `project_stage_id`    INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
+    KEY `ix_tasks_project` (`project_id`),
+    KEY `ix_tasks_project_stage` (`project_stage_id`),
     KEY `ix_tasks_status_id` (`status_id`),
     KEY `ix_tasks_priority_id` (`priority_id`),
     KEY `idx_tasks_tenant` (`tenant_id`),
@@ -4800,6 +4807,10 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     CONSTRAINT `fk_tasks_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_contract` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
+    -- SET NULL, never CASCADE: deleting a project must not delete the work people
+    -- did. ProjectsService::deleteProject() detaches its tasks by hand as well.
+    CONSTRAINT `fk_tasks_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_tasks_project_stage` FOREIGN KEY (`project_stage_id`) REFERENCES `project_stages` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`),
     CONSTRAINT `fk_tasks_status` FOREIGN KEY (`status_id`) REFERENCES `task_statuses` (`id`),
     CONSTRAINT `fk_tasks_priority` FOREIGN KEY (`priority_id`) REFERENCES `task_priorities` (`id`)
@@ -7720,6 +7731,84 @@ CREATE TABLE IF NOT EXISTS `photo_album` (
     PRIMARY KEY (`id`),
     KEY `ix_photo_album_analyst` (`analyst_id`, `created_datetime`),
     CONSTRAINT `fk_photo_album_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
+-- Projects (3.2.0). Design: docs/design/projects.md.
+-- ----------------------------------------------------------
+-- A project is a CONTAINER over ordinary tasks (tasks.project_id), not a second
+-- task system. Scoped data like tickets: NULL tenant_id = the Default company.
+CREATE TABLE IF NOT EXISTS `projects` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`         INT NULL,
+    `name`              VARCHAR(200) NOT NULL,
+    `summary`           TEXT NULL,                        -- a paragraph: what and why
+    `goal`              VARCHAR(500) NULL,                -- one sentence: what "done" means
+    -- A key into the code-defined presets (includes/projects/methodologies.php).
+    -- A LENS over one data model: switching it converts and deletes nothing.
+    `methodology`       VARCHAR(20) NOT NULL DEFAULT 'simple',   -- simple | staged | agile
+    `status`            VARCHAR(20) NOT NULL DEFAULT 'proposed', -- proposed | active | on_hold | closed | cancelled
+    -- 'auto' = worked out from the plan; anything else is a person's call, and
+    -- health_note says why.
+    `health`            VARCHAR(10) NOT NULL DEFAULT 'auto',     -- auto | green | amber | red
+    `health_note`       VARCHAR(500) NULL,
+    `owner_analyst_id`  INT NULL,                         -- the project manager
+    `start_date`        DATE NULL,
+    `target_end_date`   DATE NULL,
+    `actual_end_date`   DATE NULL,
+    -- The project's identity on its card: a colour from a fixed palette and an
+    -- icon key from a fixed set (validated by the service, never free CSS/SVG).
+    `colour`            VARCHAR(20) NOT NULL DEFAULT 'coral',
+    `icon`              VARCHAR(30) NOT NULL DEFAULT 'rocket',
+    `created_by_id`     INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `closed_datetime`   DATETIME NULL,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
+    PRIMARY KEY (`id`),
+    KEY `idx_projects_tenant` (`tenant_id`),
+    KEY `idx_projects_status` (`status`),
+    KEY `idx_projects_owner` (`owner_analyst_id`),
+    CONSTRAINT `fk_projects_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_projects_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_projects_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The TIME BOXES of a project. One table for phases, stages and sprints, because
+-- they are the same thing seen through different methods - which is what makes
+-- switching method safe: nothing has to be converted.
+CREATE TABLE IF NOT EXISTS `project_stages` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `project_id`        INT NOT NULL,
+    `kind`              VARCHAR(10) NOT NULL DEFAULT 'phase',    -- phase | stage | sprint
+    `name`              VARCHAR(150) NOT NULL,
+    `goal`              VARCHAR(500) NULL,
+    `start_date`        DATE NULL,
+    `end_date`          DATE NULL,
+    `position`          INT NOT NULL DEFAULT 0,
+    `status`            VARCHAR(10) NOT NULL DEFAULT 'planned',  -- planned | active | closed
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_project_stages_project` (`project_id`, `position`),
+    CONSTRAINT `fk_project_stages_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A project's history: who changed what, when. Method switches, status changes
+-- and health overrides always land here.
+CREATE TABLE IF NOT EXISTS `project_audit` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `project_id`       INT NOT NULL,
+    `analyst_id`       INT NULL,
+    `field_name`       VARCHAR(100) NOT NULL,
+    `old_value`        VARCHAR(1000) NULL,
+    `new_value`        VARCHAR(1000) NULL,
+    `source`           VARCHAR(20) NOT NULL DEFAULT 'app',   -- app | api | demo
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_project_audit_project` (`project_id`, `created_datetime`),
+    CONSTRAINT `fk_project_audit_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 

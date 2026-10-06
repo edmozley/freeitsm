@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2177 | Projects          | Feature     | New Projects module, phase 1 foundation (docs/design/projects.md, gitignored): tables `projects`, `project_stages` (phases / stages / sprints in one table), `project_audit` and `tasks.project_id` / `project_stage_id` (SET NULL - a project's work items ARE ordinary tasks, created through TasksService so emails, bell and workflows fire); ProjectsService (create/update/delete, methodology as a lens - switching relabels open time boxes and leaves closed ones, single-active rule for Staged/Agile, stages, assign/create task, company scope as not-found); api/projects/*; portfolio (views, tiles, cards with the project's own colour + icon and a health ring), project page (banner, Overview, Plan with drag between lanes and add-in-place, History), create/edit dialog with live preview, celebration burst on finishing a stage or closing a project (reduced-motion aware), help page; health worked out from overdue work and the target date, never stored; module colour coral to violet (`--prj-*` tokens, theme.css v26); 43-check end-to-end run through the real endpoints. |
 
 
 

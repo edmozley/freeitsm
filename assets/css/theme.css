@@ -103,6 +103,13 @@
     --tsk-accent:      #7c3aed;  --tsk-accent-hover: #6d28d9;
     --tsk-accent-soft: #f3f0ff;  --tsk-on-accent:    #ffffff;
 
+    /* Projects module (coral to violet, 3.2.0). The accent is the coral end;
+       --prj-accent-2 is the violet end, for the module's two-colour gradients. */
+    --prj-accent:      #e11d48;  --prj-accent-hover: #be123c;
+    --prj-accent-2:    #7c3aed;
+    --prj-accent-soft: #fff1f2;  --prj-on-accent:    #ffffff;
+    --prj-gradient:    linear-gradient(135deg, #f43f5e, #7c3aed);
+
     /* Contracts module (amber) accents — contracts, suppliers, RFP builder.
        Amber is the module's registered brand colour (module-colors.php). */
     --con-accent:      #f59e0b;  --con-accent-hover: #d97706;
@@ -243,6 +250,12 @@
     /* Tasks module (violet) — accent nudged lighter to read on dark */
     --tsk-accent:      #a78bfa;  --tsk-accent-hover: #c4b5fd;
     --tsk-accent-soft: #2a2145;  --tsk-on-accent:    #ffffff;
+
+    /* Projects module (coral to violet) - lifted to read on dark */
+    --prj-accent:      #fb7185;  --prj-accent-hover: #fda4af;
+    --prj-accent-2:    #a78bfa;
+    --prj-accent-soft: #3a1622;  --prj-on-accent:    #ffffff;
+    --prj-gradient:    linear-gradient(135deg, #e11d48, #6d28d9);
 
     /* Contracts module (amber) — accent nudged lighter to read on dark */
     --con-accent:      #fbbf24;  --con-accent-hover: #fcd34d;

@@ -2838,6 +2838,24 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // Projects foreign keys (3.2.0). Names + rules match freeitsm.sql. A task keeps
+    // its work when its project or stage goes (SET NULL, never CASCADE); a project's
+    // own stages and history go with it.
+    $projectFks = [
+        ['projects',       'fk_projects_tenant',        "ALTER TABLE projects ADD CONSTRAINT fk_projects_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"],
+        ['projects',       'fk_projects_owner',         "ALTER TABLE projects ADD CONSTRAINT fk_projects_owner FOREIGN KEY (owner_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['projects',       'fk_projects_created_by',    "ALTER TABLE projects ADD CONSTRAINT fk_projects_created_by FOREIGN KEY (created_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_stages', 'fk_project_stages_project', "ALTER TABLE project_stages ADD CONSTRAINT fk_project_stages_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_audit',  'fk_project_audit_project',  "ALTER TABLE project_audit ADD CONSTRAINT fk_project_audit_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['tasks',          'fk_tasks_project',          "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE SET NULL"],
+        ['tasks',          'fk_tasks_project_stage',    "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_project_stage FOREIGN KEY (project_stage_id) REFERENCES project_stages (id) ON DELETE SET NULL"],
+    ];
+    foreach ($projectFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        if ($tbl === 'tasks' && !$tableExists('projects')) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // Cost centres (GH #160). Names + rules match freeitsm.sql: a company takes
     // its cost centres with it; a parent going leaves its children at the top
     // level (CostCentresService refuses to delete a parent first anyway).
