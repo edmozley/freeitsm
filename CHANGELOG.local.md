@@ -14,18 +14,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
-| 2165 | Tickets           | Fix         | On a phone, the Attach / Suggest / Summarise / Send buttons under a Telegram, WhatsApp, Slack or web chat reply box ran off the right of the screen; they now sit in a two-by-two grid. |
-| 2166 | Tickets           | Improvement | On a phone, the Links item in the ticket footer's "…" panel shows how many links the ticket has, e.g. "Links (2)", and keeps the count current as links load or are removed. |
-| 2167 | Tickets           | Improvement | On a phone, the Link to problem / change / ticket lists fill the screen instead of stopping halfway down. |
-| 2168 | Tickets           | Fix         | On a phone, long-press "Link to task" opened its picker inside the hidden Links sheet so nothing seemed to happen; it now opens a full-screen list of tasks like Link to change, and an empty task search lists the 20 most recent tasks. |
-| 2169 | Tickets           | Fix         | On a phone, the CSAT page's Response rate card ran off the right of the screen; the headline cards now sit two across with Response rate on its own row. |
-| 2170 | Tickets           | Improvement | On a phone, the attachments popup drops the table and shows one full-width card per attachment - preview on top when there is one, then the filename, From, Date/Time and Size; the heading puts "Attachments" and the ticket number on separate lines. |
-| 2171 | Tickets           | Fix         | On a phone, Users: the selected user's details could not be scrolled, the People / Edit / Manager access / Delete buttons ran off the right, and their ticket list was a crushed five-column grid; the pane now scrolls, the buttons wrap under the name, each ticket is a small card, and very long names or usernames in the list are cut short with an ellipsis. |
-| 2172 | Tickets           | Improvement | On a phone, a user's People / Edit / Manager access / Delete buttons move into a sticky footer as icons, as on the Domains page. |
-| 2173 | Tickets           | Fix         | On a phone, opening a ticket by link (tapping one of a user's tickets, a notification, Calendar's "Open in inbox", a linked-ticket pill) loaded it behind the inbox list and left you on the list; it now opens the ticket. |
-| 2174 | Contracts         | Improvement | On a phone, the contracts page gets a sticky footer - Overview (the figures), Contracts (the list), Search, Add and Filter (a sheet with the suppliers / customers choice) - instead of stacking everything on one page. |
-| 2175 | LMS               | Improvement | The competency Tests pages (list, question bank, candidates, the test builder and a candidate result) work on a phone: the lists become cards, the builder and its skill rows restack, and every field is large enough that a phone does not zoom. |
-| 2176 | Checklists        | Improvement | On a phone, the template editor uses less padding around its panels, and each step puts its role drop-down on its own line under the title instead of squeezing both onto one row. |
 
 
 
@@ -1179,6 +1167,23 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 317 | Tasks             | Fix         | **Drag-reorder drop indicator invisible in scrolling board columns.** The purple line that shows where a dragged card will land vanished whenever its column had enough cards to scroll. Cause: `.board-cards` is a `flex-direction:column` container and the `.drop-indicator` is an empty `<div>` &mdash; so its min-content height is 0, and when the column overflowed, flexbox's `flex-shrink` compressed the indicator to 0px (the cards resist because their text gives them a min-content height; the empty indicator does not). Fixed by adding `flex-shrink:0` to `.drop-indicator` (and to `.task-card` for good measure, so cards can never be squished either). `tasks.css` bumped to `?v=6`. |
 
 ## Published
+
+### 3.1.2 - 6 October 2026
+
+| ID   | Module            | Type        | Description |
+|------|-------------------|-------------|-------------|
+| 2165 | Tickets           | Fix         | On a phone, the Attach / Suggest / Summarise / Send buttons under a Telegram, WhatsApp, Slack or web chat reply box ran off the right of the screen; they now sit in a two-by-two grid. |
+| 2166 | Tickets           | Improvement | On a phone, the Links item in the ticket footer's "…" panel shows how many links the ticket has, e.g. "Links (2)", and keeps the count current as links load or are removed. |
+| 2167 | Tickets           | Improvement | On a phone, the Link to problem / change / ticket lists fill the screen instead of stopping halfway down. |
+| 2168 | Tickets           | Fix         | On a phone, long-press "Link to task" opened its picker inside the hidden Links sheet so nothing seemed to happen; it now opens a full-screen list of tasks like Link to change, and an empty task search lists the 20 most recent tasks. |
+| 2169 | Tickets           | Fix         | On a phone, the CSAT page's Response rate card ran off the right of the screen; the headline cards now sit two across with Response rate on its own row. |
+| 2170 | Tickets           | Improvement | On a phone, the attachments popup drops the table and shows one full-width card per attachment - preview on top when there is one, then the filename, From, Date/Time and Size; the heading puts "Attachments" and the ticket number on separate lines. |
+| 2171 | Tickets           | Fix         | On a phone, Users: the selected user's details could not be scrolled, the People / Edit / Manager access / Delete buttons ran off the right, and their ticket list was a crushed five-column grid; the pane now scrolls, the buttons wrap under the name, each ticket is a small card, and very long names or usernames in the list are cut short with an ellipsis. |
+| 2172 | Tickets           | Improvement | On a phone, a user's People / Edit / Manager access / Delete buttons move into a sticky footer as icons, as on the Domains page. |
+| 2173 | Tickets           | Fix         | On a phone, opening a ticket by link (tapping one of a user's tickets, a notification, Calendar's "Open in inbox", a linked-ticket pill) loaded it behind the inbox list and left you on the list; it now opens the ticket. |
+| 2174 | Contracts         | Improvement | On a phone, the contracts page gets a sticky footer - Overview (the figures), Contracts (the list), Search, Add and Filter (a sheet with the suppliers / customers choice) - instead of stacking everything on one page. |
+| 2175 | LMS               | Improvement | The competency Tests pages (list, question bank, candidates, the test builder and a candidate result) work on a phone: the lists become cards, the builder and its skill rows restack, and every field is large enough that a phone does not zoom. |
+| 2176 | Checklists        | Improvement | On a phone, the template editor uses less padding around its panels, and each step puts its role drop-down on its own line under the title instead of squeezing both onto one row. |
 
 ### 3.1.1 - 6 October 2026
 
