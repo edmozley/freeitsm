@@ -4318,6 +4318,105 @@
 })();
 
 /* ============================================================================
+   LAYER 39a2 - Tickets -> Users: a user's actions in a sticky footer (Ed)
+
+   People / Edit / Manager access / Delete wrapped under the name and scrolled
+   away with it. They move to a footer pinned to the bottom, as icons - the
+   Domains 41i shape:
+
+   - The REAL buttons move, never copies, and each one's words go into
+     aria-label (an icon has no name).
+   - selectUser() redraws #userDetail wholesale, so the footer is refilled on
+     every redraw (watched, as the Back button is); the previous user's
+     buttons simply go with the old markup.
+   - A group (selectGroup draws into the same pane) has none of the four, so
+     the footer hides. "Add to address book" stays in the header.
+   - Above 768px the buttons go back where they were.
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    if (!document.body || document.body.getAttribute('data-mobile-page') !== 'tickets-users') return;
+    var detail = document.getElementById('userDetail');
+    if (!detail) return;
+    var mq = window.matchMedia('(max-width: 768px)');
+
+    var SVG = function (paths) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+               'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+    };
+    // Matched by what each control does, not by its (translated) words.
+    var ACTIONS = [
+        { sel: 'a[href*="person"]',
+          icon: SVG('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/>') },
+        { sel: 'button[onclick^="openUserModal"]',
+          icon: SVG('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>') },
+        { sel: 'a[href^="manager-access.php"]',
+          icon: SVG('<path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/>') },
+        { sel: 'button[onclick^="deleteUser"]', danger: true,
+          icon: SVG('<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>') }
+    ];
+
+    var footer = document.createElement('div');
+    footer.className = 'users-detail-bar';
+    footer.style.display = 'none';
+    document.body.appendChild(footer);
+    var saved = [];
+
+    function restore() {
+        saved.forEach(function (s) {
+            if (!s.parent.isConnected) return;          // that user's markup is gone
+            s.el.innerHTML = s.html;
+            s.el.removeAttribute('aria-label');
+            s.el.removeAttribute('title');
+            s.el.classList.remove('udb-btn', 'udb-danger');
+            s.parent.insertBefore(s.el, s.next);
+        });
+        saved = [];
+        footer.innerHTML = '';
+    }
+
+    function fill() {
+        restore();
+        var actions = detail.querySelector('.user-detail-header > div > div:last-child');
+        if (!actions) { footer.style.display = 'none'; document.body.classList.remove('has-users-bar'); return; }
+        ACTIONS.forEach(function (a) {
+            var el = actions.querySelector(a.sel);
+            if (!el) return;
+            saved.push({ el: el, html: el.innerHTML, parent: el.parentNode, next: el.nextSibling });
+            var label = (el.textContent || '').replace(/\s+/g, ' ').trim();
+            el.innerHTML = a.icon;
+            if (label) { el.setAttribute('aria-label', label); el.title = label; }
+            el.classList.add('udb-btn');
+            if (a.danger) el.classList.add('udb-danger');
+            footer.appendChild(el);
+        });
+        var any = footer.children.length > 0;
+        footer.style.display = any ? '' : 'none';
+        document.body.classList.toggle('has-users-bar', any);
+    }
+
+    var busy = false;
+    new MutationObserver(function () {
+        if (busy || !mq.matches) return;
+        busy = true;
+        try { fill(); } finally { busy = false; }
+    }).observe(detail, { childList: true });
+
+    function sync() {
+        if (mq.matches) { fill(); }
+        else {
+            restore();
+            footer.style.display = 'none';
+            document.body.classList.remove('has-users-bar');
+        }
+    }
+    sync();
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
+})();
+
+/* ============================================================================
    LAYER 39b - the tickets calendar's ticket modal: icon buttons on a phone.
 
    Ed's request, and the footer is four controls wide: Close, Open in inbox,

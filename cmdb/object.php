@@ -785,7 +785,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         }
     </style>
     <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=175">
 </head>
 <body data-mobile-module="cmdb" data-mobile-page="cmdb-object">
     <?php include 'includes/header.php'; ?>
@@ -929,6 +929,6 @@ if ($showDomains) $translationNamespaces[] = 'domains';
     <script src="options-editor.js?v=3"></script>
     <script src="../assets/js/domain-links.js?v=1"></script>
     <script src="object.js?v=11"></script>
-    <script src="../assets/js/mobile.js?v=71"></script>
+    <script src="../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

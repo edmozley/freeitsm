@@ -382,7 +382,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
         .checkbox-row label { margin: 0; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=175">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="contract-view">
     <?php include 'includes/header.php'; ?>
@@ -1452,6 +1452,6 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
     </div>
     <script>window.CT_SHOW_DOMAINS = <?php echo $ctShowDomains ? 'true' : 'false'; ?>; window.CT_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="../assets/js/domain-links.js?v=1"></script>
-    <script src="../assets/js/mobile.js?v=71"></script>
+    <script src="../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

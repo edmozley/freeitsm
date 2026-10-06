@@ -189,7 +189,7 @@ $translationNamespaces = ['common', 'contracts'];
         .party-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; background: var(--con-accent-soft, #fef3c7); color: var(--text, #333); vertical-align: 1px; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=175">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="contracts-list">
     <?php include 'includes/header.php'; ?>
@@ -564,6 +564,6 @@ $translationNamespaces = ['common', 'contracts'];
             return div.innerHTML;
         }
     </script>
-    <script src="../assets/js/mobile.js?v=71"></script>
+    <script src="../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

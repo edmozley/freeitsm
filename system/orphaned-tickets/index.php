@@ -92,7 +92,7 @@ if (!isset($_SESSION['analyst_id'])) {
         [data-theme-mode="dark"] .orph-error { color: var(--danger-text, #fca5a5); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo $path_prefix; ?>assets/js/tz.js?v=5"></script>
 </head>
@@ -226,6 +226,6 @@ if (!isset($_SESSION['analyst_id'])) {
 
     load();
     </script>
-    <script src="../../assets/js/mobile.js?v=71"></script>
+    <script src="../../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

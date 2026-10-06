@@ -205,7 +205,7 @@ button.submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     font-size: 14px;
 }
 </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
 </head>
 <body data-mobile-page="csat-survey">
 <div class="card">
@@ -325,6 +325,6 @@ button.submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 <?php endif; ?>
 
 </div>
-    <script src="../../assets/js/mobile.js?v=71"></script>
+    <script src="../../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

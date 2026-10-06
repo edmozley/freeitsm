@@ -114,7 +114,7 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
 
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
 </head>
@@ -225,6 +225,6 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
         apply();   // honours any ?q= in the URL
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=71"></script>
+    <script src="../../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

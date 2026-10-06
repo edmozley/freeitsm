@@ -70,7 +70,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         .st-list .action-btn svg { width: 16px; height: 16px; }
         @media (max-width: 900px) { .set-row { grid-template-columns: 1fr; gap: 8px; } }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
 </head>
 <body data-mobile-module="domains" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
@@ -370,6 +370,6 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         document.addEventListener('DOMContentLoaded', () => { loadSettings().catch(e => showToast(e.message, 'error')); loadStatuses().catch(() => {}); });
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=71"></script>
+    <script src="../../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

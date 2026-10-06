@@ -88,7 +88,7 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
         .rl-picker .rl-check .rl-admin-note { color: var(--text-dim, #9aa); font-size: 11.5px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
 </head>
 <body data-mobile-module="system" data-mobile-page="settings" data-mobile-shell="own">
     <div class="settings-shell">
@@ -199,6 +199,6 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
     <script src="../../assets/js/toast.js"></script>
     <script src="../../assets/js/confirm.js"></script>
     <script src="../../assets/js/system-roles.js?v=1"></script>
-    <script src="../../assets/js/mobile.js?v=71"></script>
+    <script src="../../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

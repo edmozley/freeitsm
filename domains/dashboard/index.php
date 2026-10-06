@@ -35,7 +35,7 @@ $translationNamespaces = ['common', 'domains'];
     <link rel="stylesheet" href="../../assets/css/theme.css?v=25">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
     <link rel="stylesheet" href="../../assets/css/domains.css?v=7">
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
     <script src="../../assets/js/vendor/chart.umd.min.js"></script>
 </head>
 <body data-mobile-module="domains" data-mobile-page="domains-dashboard">
@@ -141,6 +141,6 @@ $translationNamespaces = ['common', 'domains'];
         });
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=71"></script>
+    <script src="../../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

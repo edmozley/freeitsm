@@ -13527,6 +13527,44 @@
         justify-content: flex-start !important;
     }
 
+    /* A user's actions in a sticky footer (Ed) - mobile.js LAYER 39a2 moves
+       the real People / Edit / Manager access / Delete buttons here as icons.
+       The Domains 41i bar: fixed, z-index 1200 so dialogs at 2000 cover it,
+       env() for the iPhone home indicator. Hidden while the list is showing;
+       Delete sits apart and keeps a danger colour. */
+    body[data-mobile-page="tickets-users"] .users-detail-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1200;
+        display: flex;
+        gap: 8px;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+        background: var(--surface, #fff);
+        border-top: 1px solid var(--border, #ddd);
+    }
+    body[data-mobile-page="tickets-users"][data-users-pane="list"] .users-detail-bar { display: none !important; }
+    body[data-mobile-page="tickets-users"] .users-detail-bar .udb-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        height: 46px;
+        padding: 0;
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+    body[data-mobile-page="tickets-users"] .users-detail-bar .udb-btn svg { width: 22px; height: 22px; }
+    body[data-mobile-page="tickets-users"] .users-detail-bar .udb-danger {
+        margin-left: 10px;
+        color: var(--danger, #c62828);
+    }
+    /* Room under the last ticket card so it is not hidden behind the bar. */
+    body[data-mobile-page="tickets-users"].has-users-bar .user-detail-container { padding-bottom: 72px; }
+
     /* A very long name or username in the list ran past the edge; cut it to
        one line with an ellipsis (the full value is on the detail pane). */
     body[data-mobile-page="tickets-users"] .user-item { min-width: 0; }

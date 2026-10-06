@@ -48,7 +48,7 @@ $translationNamespaces = ['common', 'tasks'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include '../includes/header.php'; ?>
@@ -150,6 +150,6 @@ $translationNamespaces = ['common', 'tasks'];
     </script>
     <script src="../../assets/js/tasks-quick-panel.js?v=1"></script>
     <script src="../../assets/js/tasks-calendar.js?v=12"></script>
-    <script src="../../assets/js/mobile.js?v=71"></script>
+    <script src="../../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

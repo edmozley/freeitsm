@@ -46,7 +46,7 @@ try {
            application's brand colour, which help.css already reads from
            --accent. So there is nothing for this page to say. */
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=175">
 </head>
 <body data-mobile-page="tickets-help">
     <?php include 'includes/header.php'; ?>
@@ -1271,6 +1271,6 @@ try {
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=71"></script>
+    <script src="../assets/js/mobile.js?v=72"></script>
 </body>
 </html>

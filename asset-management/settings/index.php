@@ -529,7 +529,7 @@ $translationNamespaces = ['common', 'asset-management'];
     </style>
     <?php /* Mobile-friendly opt-in (#937). AFTER this page's own <style> so its
              @media rules win on ties. Every rule inside is gated at 768px. */ ?>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=174">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
     <script src="../../assets/js/qrcode.min.js"></script>
 </head>
 <?php /* The marker mobile.css LAYER 15e keys on. `.container` is far too common
@@ -4762,6 +4762,6 @@ $translationNamespaces = ['common', 'asset-management'];
     <script src="../../assets/js/proxmox-settings.js?v=2"></script>
     <script src="../../assets/js/vcloud-settings.js?v=2"></script>
     <script src="../../assets/js/network-mapper-icons.js?v=3"></script>
-    <script src="../../assets/js/mobile.js?v=71"></script>
+    <script src="../../assets/js/mobile.js?v=72"></script>
 </body>
 </html>
