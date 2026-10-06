@@ -86,6 +86,7 @@ function featureBingoModules(): array
         'service-status' => 'Service Status',
         'workflow'       => 'Workflows',
         'tasks'          => 'Tasks',
+        'projects'       => 'Projects',
         'calendar'       => 'Calendar',
         'contracts'      => 'Contracts',
         'domains'        => 'Domains',

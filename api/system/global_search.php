@@ -418,6 +418,32 @@ try {
         } catch (Exception $e) { /* table not ready — no domain results */ }
     }
 
+    // --- Projects (3.2.0): by name, goal or the PRJ-0042 reference ------------
+    // Scoped data: the analyst's active company, as the portfolio's own list.
+    if ($can('projects')) {
+        try {
+            [$tSql, $tArgs] = activeTenantFilter($conn, $analystId, 'p');
+            $num = preg_match('/^(?:prj-?)?0*(\d+)$/i', trim($q), $m) ? (int)$m[1] : 0;
+            $sql = "SELECT p.id, p.name, p.status, p.target_end_date
+                      FROM projects p
+                     WHERE (p.name LIKE ? OR p.goal LIKE ? OR p.id = ?)" . $tSql . "
+                     ORDER BY FIELD(p.status, 'active', 'proposed', 'on_hold', 'closed', 'cancelled'), p.name
+                     LIMIT " . $perType;
+            $stmt = $conn->prepare($sql);
+            $stmt->execute(array_merge([$like, $like, $num], $tArgs));
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $results[] = [
+                    'type'     => 'project',
+                    'module'   => 'projects',
+                    'id'       => (int) $r['id'],
+                    'title'    => $r['name'],
+                    'subtitle' => trim('PRJ-' . str_pad((string)$r['id'], 4, '0', STR_PAD_LEFT) . ' · ' . ucfirst(str_replace('_', ' ', $r['status'])) . ($r['target_end_date'] ? ' · ' . $r['target_end_date'] : '')),
+                    'url'      => entityLink('project', (int) $r['id']),
+                ];
+            }
+        } catch (Exception $e) { /* table not ready — no project results */ }
+    }
+
     // --- Attached documents (discussion #76) -----------------------------
     //
     // ⚠️ THE ONLY SOURCE HERE WHOSE PERMISSION IS NOT ITS OWN. Every block above

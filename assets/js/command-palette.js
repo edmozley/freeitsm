@@ -58,6 +58,8 @@
     // Suppliers and their contacts in People (#153 step 3): a van, and a person.
     ICONS.supplier = '<rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle>';
     ICONS.supplier_contact = ICONS.person;
+    // Projects (3.2.0): the staggered bars of its module tile.
+    ICONS.project = '<rect x="3" y="4" width="10" height="4" rx="1"></rect><rect x="7" y="10" width="11" height="4" rx="1"></rect><rect x="11" y="16" width="10" height="4" rx="1"></rect>';
     // Built lazily: the palette is constructed on first open, by which point
     // window.translations is certainly in place.
     function typeLabel(type) {
@@ -68,6 +70,7 @@
             knowledge:        cp('type_article', 'Article'),
             contract:         cp('type_contract', 'Contract'),
             domain:           cp('type_domain', 'Domain'),
+            project:          cp('type_project', 'Project'),
             person:           cp('type_person', 'Person'),
             company:          cp('type_company', 'Company'),
             supplier:         cp('type_supplier', 'Supplier'),
@@ -227,7 +230,7 @@
             // be returning results perfectly and the palette will show nothing,
             // with no error anywhere — which is exactly what happened when
             // documents were added server-side (#76).
-            ['ticket', 'change', 'problem', 'knowledge', 'person', 'company', 'supplier', 'supplier_contact', 'contract', 'domain', 'asset', 'ci', 'document', 'ticket_content', 'article_content', 'document_content'].forEach(function (type) {
+            ['ticket', 'change', 'problem', 'knowledge', 'person', 'company', 'supplier', 'supplier_contact', 'contract', 'domain', 'project', 'asset', 'ci', 'document', 'ticket_content', 'article_content', 'document_content'].forEach(function (type) {
                 var group = serverResults.filter(function (r) { return r.type === type; });
                 if (!group.length) return;
                 html += '<div class="cmdp-group-label">' + esc(pluralType(type)) + '</div>';
@@ -296,6 +299,7 @@
             knowledge: cp('group_knowledge', 'Knowledge'),
             contract: cp('group_contract', 'Contracts'),
             domain: cp('group_domain', 'Domains'),
+            project: cp('group_project', 'Projects'),
             person: cp('group_person', 'People'),
             company: cp('group_company', 'Companies'),
             supplier: cp('group_supplier', 'Suppliers'),

@@ -135,7 +135,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=2"></script>
-    <script src="../assets/js/projects-view.js?v=3"></script>
+    <script src="../assets/js/projects-view.js?v=4"></script>
     <script src="../assets/js/mobile.js?v=75"></script>
 </body>
 </html>

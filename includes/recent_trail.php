@@ -104,6 +104,7 @@ const RECENT_TRAIL_MODULES = [
     'knowledge_article' => 'knowledge',
     'contract'          => 'contracts',
     'domain'            => 'domains',
+    'project'           => 'projects',
     'person'            => 'people',
     'company'           => 'people',
     'supplier'          => 'people',
@@ -466,6 +467,18 @@ function recentTrailLabelsForType(PDO $conn, int $analystId, string $type, array
         case 'domain':
             $sql  = "SELECT id, COALESCE(NULLIF(display_name, ''), domain_name) AS label FROM domains WHERE id IN ($in)";
             $gate = fn($id) => analystCanAccessDomain($conn, $analystId, $id);
+            break;
+
+        case 'project':
+            // Projects (3.2.0): the name, gated like the project page itself - its company.
+            $sql  = "SELECT id, name AS label FROM projects WHERE id IN ($in)";
+            $gate = function ($id) use ($conn, $analystId) {
+                $st = $conn->prepare("SELECT tenant_id FROM projects WHERE id = ?");
+                $st->execute([(int)$id]);
+                $t = $st->fetchColumn();
+                if ($t === false) return false;
+                return !isMultiTenant($conn) || analystCanAccessTenant($conn, $analystId, $t === null ? (int)getDefaultTenantId($conn) : (int)$t);
+            };
             break;
 
         case 'person':

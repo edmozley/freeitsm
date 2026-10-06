@@ -831,7 +831,7 @@ function renderWaffleMenuJS() {
         window.CP_BASE = <?php echo json_encode(BASE_URL); ?>;
         window.CP_MODULES = <?php echo json_encode($cpModules, JSON_UNESCAPED_SLASHES); ?>;
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/command-palette.js?v=11"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/command-palette.js?v=12"></script>
     <?php
     // The palette can return documents, and a document row offers an ⓘ that opens
     // the "attached to" dialogue — which lives in the documents component. The

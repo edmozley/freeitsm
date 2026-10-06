@@ -277,6 +277,8 @@
             // first thing on the Plan tab is somewhere to type.
             if (!data.tasks.length && !data.stages.length) openAdd = '';
             renderAll();
+            // The recent trail (#124).
+            if (window.trailVisit) window.trailVisit('project', projectId);
         } catch (e) {
             document.getElementById('prjNotFound').hidden = false;
             document.querySelectorAll('.prj-tab-panel').forEach(s => { s.hidden = true; });
