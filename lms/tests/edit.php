@@ -8,7 +8,7 @@ $testId = (int)($_GET['id'] ?? 0);
 $ctSettings = lmsCtSettings(connectToDatabase());
 ctHead(lt('heading', 'Competency tests'));
 ?>
-<body data-ct-page="edit" data-test-id="<?php echo $testId; ?>" data-default-limit="<?php echo (int)$ctSettings[LMS_CT_TIME_LIMIT]; ?>">
+<body data-ct-page="edit" data-mobile-module="lms" data-mobile-page="lms-tests-edit" data-test-id="<?php echo $testId; ?>" data-default-limit="<?php echo (int)$ctSettings[LMS_CT_TIME_LIMIT]; ?>">
 <div class="ct-page">
     <?php include __DIR__ . '/../includes/header.php'; ?>
     <div class="ct-scroll">

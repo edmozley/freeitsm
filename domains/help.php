@@ -74,7 +74,7 @@ $para = fn(string $k) => preg_replace(['/\*\*([^*]+)\*\*/', '/`([^`]+)`/'], ['<s
             --on-accent:    var(--dom-on-accent, #fff);
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=176">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=179">
 </head>
 <body data-mobile-module="domains" data-mobile-page="domains-help">
     <?php include 'includes/header.php'; ?>
@@ -142,6 +142,6 @@ $para = fn(string $k) => preg_replace(['/\*\*([^*]+)\*\*/', '/`([^`]+)`/'], ['<s
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=74"></script>
+    <script src="../assets/js/mobile.js?v=75"></script>
 </body>
 </html>

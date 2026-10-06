@@ -15157,3 +15157,195 @@
         font-weight: 600;
     }
 }
+
+@media (max-width: 768px) {
+    /* ====================================================================
+       LAYER 29t - LMS -> Tests (competency tests, 3.0.0): list, builder,
+       question bank, candidates, a candidate's result. lms/tests/_page.php is
+       the one shell all three pages share, so opting in was one include.
+       Built after LAYER 29, and it follows that layer's shapes on purpose:
+       the same card feed (12px 14px, `flex: 1 1 60%` name, thumb-sized action
+       row), the same scrolling tab strip, the house 12px page padding.
+
+       Measured at 360x740 against stubbed fixtures - the install has no tests,
+       so an unstubbed run proves nothing (Techniques §30's third form):
+         docW 360/360 - but only because `.ct-scroll` declares overflow-y alone
+           and so scrolls SIDEWAYS too (§12), swallowing two tables that ran
+           off the right edge (Candidates: 13 crushed cells, actions unseen)
+         question cards: actions held a right-hand column, the question text
+           one word per line (§11's crushed signature)
+         builder: a `200px 200px 1fr` grid with the title and role fields past
+           the edge, a six-column skill row, 20 fields at 13-14px (§3 zoom)
+       ==================================================================== */
+
+    /* §28: hand the scroller role over explicitly. `.ct-page` is a direct
+       child of LAYER 2's 100dvh flex body and sizes itself `height: 100vh`,
+       which on iOS is the LARGE viewport - the LMS shells' #1399 fault. */
+    body[data-mobile-page^="lms-tests"] .ct-page {
+        height: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    /* §12 / LAYER 33: nothing may hide off the side again. */
+    body[data-mobile-page^="lms-tests"] .ct-scroll { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    body[data-mobile-page^="lms-tests"] .ct-wrap { padding: 12px 12px 40px; }
+    body[data-mobile-page^="lms-tests"] .ct-section { padding: 14px; border-radius: 10px; }
+    body[data-mobile-page^="lms-tests"] .ct-intro { margin: -4px 0 12px; font-size: 13.5px; }
+
+    /* §3: 16px on every focusable field, or iOS zooms and reflows. Exclude
+       what must not change - checkboxes and radios keep their size. Covers
+       the builder, the bank filters and the question / send dialogs. */
+    body[data-mobile-page^="lms-tests"] input:not([type=checkbox]):not([type=radio]),
+    body[data-mobile-page^="lms-tests"] select,
+    body[data-mobile-page^="lms-tests"] textarea { font-size: 16px; }
+
+    /* ---- the two tables: card feeds (§11 - one row at a time, and the
+       Skills column is prose). Same shape as LAYER 29's courses feed. The
+       head stays in the DOM because §21 reads its labels from it. */
+    body[data-mobile-page^="lms-tests"] .lms-table,
+    body[data-mobile-page^="lms-tests"] .lms-table tbody { display: block; width: 100%; }
+    body[data-mobile-page^="lms-tests"] .lms-table thead { display: none; }
+    body[data-mobile-page^="lms-tests"] .lms-table tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-soft, #f0f0f0);
+    }
+    body[data-mobile-page^="lms-tests"] .lms-table tbody td {
+        display: block;
+        flex: 1 1 100%;
+        min-width: 0;                  /* LAYER 27: one nowrap cell pins the card */
+        padding: 0;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+        overflow-wrap: anywhere;
+    }
+    /* The name leads; the candidate status pill rides beside it (§23 middle
+       basis). Keyed on the pill rather than a position, because the status is
+       column 3 on the Candidates tab and column 2 in the builder. */
+    body[data-mobile-page^="lms-tests"] .lms-table tbody td:first-child {
+        flex: 1 1 60%;
+        order: -2;
+        font-size: 15px;
+        color: var(--text, #333);
+    }
+    body[data-mobile-page^="lms-tests"] .lms-table tbody td:has(> .ct-state) {
+        flex: 0 0 auto;
+        order: -1;
+        text-align: right;
+    }
+    body[data-mobile-page^="lms-tests"] .lms-table tbody td:first-child .ct-note { font-size: 12.5px; }
+    /* Actions: full width and thumb-sized. `:not(:first-child)` for the
+       empty-state warning in §11, though these tables draw their empty state
+       as a .ct-empty div rather than a row. */
+    body[data-mobile-page^="lms-tests"] .lms-table tbody td:last-child:not(:first-child) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        white-space: normal !important;     /* beat the inline nowrap */
+    }
+    body[data-mobile-page^="lms-tests"] .lms-table tbody td:last-child:not(:first-child) > * {
+        flex: 1 1 auto;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ---- question cards (bank, builder, the bank picker): the actions take
+       their own row under the question instead of a column beside it. */
+    body[data-mobile-page^="lms-tests"] .ct-q { padding: 12px 14px; }
+    body[data-mobile-page^="lms-tests"] .ct-q-top { flex-wrap: wrap; }
+    body[data-mobile-page^="lms-tests"] .ct-q-body { flex: 1 1 0; }
+    body[data-mobile-page^="lms-tests"] .ct-q-actions {
+        flex: 1 1 100%;
+        justify-content: flex-start;
+        margin-top: 8px;
+    }
+    body[data-mobile-page^="lms-tests"] .ct-q-actions .btn { min-height: 36px; padding: 6px 14px; }
+
+    /* ---- bank filters: search on its own row, the selects two-up on a grid
+       (§10 - they line up instead of packing 1-2-1). */
+    body[data-mobile-page^="lms-tests"] .ct-filters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    body[data-mobile-page^="lms-tests"] .ct-filters input[type=search] { grid-column: 1 / -1; min-width: 0; }
+    body[data-mobile-page^="lms-tests"] .ct-filters select,
+    body[data-mobile-page^="lms-tests"] .ct-filters input { width: 100%; min-width: 0; box-sizing: border-box; }
+    body[data-mobile-page^="lms-tests"] .ct-bulk { flex-wrap: wrap; }
+
+    /* ---- builder: section headings with buttons wrap the buttons under the
+       heading instead of crushing it. */
+    body[data-mobile-page^="lms-tests"] .ct-section > h2 { flex-wrap: wrap; row-gap: 8px; }
+    body[data-mobile-page^="lms-tests"] .ct-section > h2 .ct-head-actions { flex: 1 1 100%; margin-left: 0; }
+    body[data-mobile-page^="lms-tests"] .ct-head-actions .btn { min-height: 36px; }
+    body[data-mobile-page^="lms-tests"] .ct-row-actions .btn { min-height: 40px; }
+
+    /* The role: title and description full width, time limit and pass mark
+       two-up. In the question dialog the skill takes a row and difficulty /
+       format share the next. `minmax(0, ...)` per the Techniques 34i note. */
+    body[data-mobile-page^="lms-tests"] .ct-grid2,
+    body[data-mobile-page^="lms-tests"] .ct-modal .ct-grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    body[data-mobile-page^="lms-tests"] .ct-modal .ct-grid2 > :first-child { grid-column: 1 / -1; }
+    body[data-mobile-page^="lms-tests"] .ct-grid2 input,
+    body[data-mobile-page^="lms-tests"] .ct-grid2 select,
+    body[data-mobile-page^="lms-tests"] .ct-grid2 textarea { width: 100%; min-width: 0; box-sizing: border-box; }
+
+    /* Skills: the six-column row becomes a small card. The column heads go
+       (one row of headings cannot label a stack of cards), and the one value
+       that means nothing bare - the question COUNT, a lone "5" - gets its
+       heading back as the row ::before, from the attribute mobile.js
+       harvests out of that hidden head (§21: translated for free). Difficulty
+       and format are selects whose shown value says what it is. */
+    body[data-mobile-page^="lms-tests"] .ct-skill-head { display: none; }
+    body[data-mobile-page^="lms-tests"] .ct-skill {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+            "name name"
+            "diff fmt"
+            "lbl  have"
+            "count acts";
+        gap: 8px;
+        padding: 10px;
+    }
+    body[data-mobile-page^="lms-tests"] .ct-skill .skName  { grid-area: name; }
+    body[data-mobile-page^="lms-tests"] .ct-skill .skDiff  { grid-area: diff; }
+    body[data-mobile-page^="lms-tests"] .ct-skill .skFmt   { grid-area: fmt; }
+    body[data-mobile-page^="lms-tests"] .ct-skill .skCount { grid-area: count; }
+    body[data-mobile-page^="lms-tests"] .ct-skill .ct-skill-have { grid-area: have; align-self: end; text-align: right; }
+    body[data-mobile-page^="lms-tests"] .ct-skill > span:last-child { grid-area: acts; justify-content: flex-end; align-items: center; }
+    body[data-mobile-page^="lms-tests"] .ct-skill[data-mobile-count-label]::before {
+        content: attr(data-mobile-count-label);
+        grid-area: lbl;
+        align-self: end;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        color: var(--text-muted, #666);
+    }
+    body[data-mobile-page^="lms-tests"] .ct-skill .skFill { min-height: 40px; }
+    body[data-mobile-page^="lms-tests"] .ct-skill .ct-x { min-width: 40px; min-height: 40px; }
+
+    /* ---- a candidate result */
+    body[data-mobile-page^="lms-tests"] .ct-title-row h1 { font-size: 20px; overflow-wrap: anywhere; }
+    body[data-mobile-page^="lms-tests"] .ct-score-big { font-size: 38px; }
+    /* §10: the six facts two-up on a grid, not one tall column. */
+    body[data-mobile-page^="lms-tests"] .ct-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+    body[data-mobile-page^="lms-tests"] .ct-meta > div { min-width: 0; overflow-wrap: anywhere; }
+    /* By skill: the name on its own line, then the bar and the figure. */
+    body[data-mobile-page^="lms-tests"] .ct-skillbar { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin-bottom: 12px; }
+    body[data-mobile-page^="lms-tests"] .ct-skillbar > span:first-child { grid-column: 1 / -1; }
+    /* "<- their answer": the row is a FLEX row, so the label needs a full-width
+       basis to drop under the answer (display: block is inert on a flex item -
+       §27); the indent lines it up with the answer text, past the mark. */
+    body[data-mobile-page^="lms-tests"] .ct-answers li.picked { flex-wrap: wrap; row-gap: 0; }
+    body[data-mobile-page^="lms-tests"] .ct-answers li.picked > span:not(.ct-mark) { flex: 1 1 0; min-width: 0; }
+    body[data-mobile-page^="lms-tests"] .ct-answers li.picked::after { flex: 1 1 100%; margin: 0; padding-left: 36px; }
+}

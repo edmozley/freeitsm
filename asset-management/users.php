@@ -189,7 +189,7 @@ $translationNamespaces = ['common', 'asset-management'];
         }
     </style>
     <!-- Mobile layer: AFTER the page's own <style> so its @media rules win on ties (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=176">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=179">
 </head>
 <body data-mobile-module="assets" data-mobile-page="assets-users">
 <?php include 'includes/header.php'; ?>
@@ -578,6 +578,6 @@ loadPeople('');
     if (n > 0) selectPerson(n);
 })();
 </script>
-<script src="../assets/js/mobile.js?v=74"></script>
+<script src="../assets/js/mobile.js?v=75"></script>
 </body>
 </html>

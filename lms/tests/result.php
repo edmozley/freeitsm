@@ -7,7 +7,7 @@ require __DIR__ . '/_page.php';
 $sittingId = (int)($_GET['id'] ?? 0);
 ctHead(lt('result_heading', 'Candidate result'));
 ?>
-<body data-ct-page="result" data-sitting-id="<?php echo $sittingId; ?>">
+<body data-ct-page="result" data-mobile-module="lms" data-mobile-page="lms-tests-result" data-sitting-id="<?php echo $sittingId; ?>">
 <div class="ct-page">
     <?php include __DIR__ . '/../includes/header.php'; ?>
     <div class="ct-scroll">

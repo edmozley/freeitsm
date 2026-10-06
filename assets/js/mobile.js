@@ -2022,7 +2022,22 @@
            with the whole detail pane, so it does not exist at load: watch
            the pane. */
         { table: 'body[data-mobile-page="assets-users"] .au-table',
-          columns: [3, 4, 5], watch: '#auDetail' }
+          columns: [3, 4, 5], watch: '#auDetail' },
+
+        /* ---- LMS -> Tests (LAYER 29t) ----
+           All three tables are built whole by lms-tests.js into a container,
+           so each watches its container (the Reporting rule above).
+           Tests: two bare counts - questions and candidates. */
+        { table: 'body[data-mobile-page="lms-tests"] #testsList .lms-table',
+          columns: [2, 3], watch: '#testsList' },
+        /* Candidates, all tests: the test name (a second name under a
+           person's), a bare score and two bare dates - sent and finished,
+           which are indistinguishable unlabelled. Status is a pill. */
+        { table: 'body[data-mobile-page="lms-tests"] #candList .lms-table',
+          columns: [1, 3, 4, 5], watch: '#candList' },
+        /* The same table in the builder, one test so no Test column. */
+        { table: 'body[data-mobile-page="lms-tests-edit"] #sittings .lms-table',
+          columns: [2, 3, 4], watch: '#sittings' }
     ];
 
     function labelCardFeed(table, columns) {
@@ -5132,4 +5147,42 @@
     sync();
     if (mq.addEventListener) { mq.addEventListener('change', sync); }
     else if (mq.addListener) { mq.addListener(sync); }
+})();
+
+/* ==========================================================================
+   LAYER 29t - LMS -> Tests builder: the question count gets its heading back
+
+   On a phone each skill row is a small card and the one row of column heads
+   above them is hidden (it cannot label a stack). Difficulty and format are
+   selects that say what they are; the count is a bare "5". Harvest the
+   heading from the hidden head - already translated - onto each row as an
+   attribute, and LAYER 29t prints it as the row ::before. Rows are added,
+   removed and rebuilt by lms-tests.js, so the list is watched (§21).
+   Phone only, and the attribute is removed again above 768px (§25).
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    if (!document.body || document.body.getAttribute('data-mobile-page') !== 'lms-tests-edit') return;
+    var list = document.getElementById('skills');
+    var head = document.querySelector('.ct-skill-head');
+    if (!list || !head) return;
+    var mq = window.matchMedia('(max-width: 768px)');
+    var ATTR = 'data-mobile-count-label';
+
+    function label() {
+        var cell = head.children[2];
+        return cell ? (cell.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    }
+    function apply() {
+        var text = mq.matches ? label() : '';
+        Array.prototype.forEach.call(list.querySelectorAll('.ct-skill'), function (row) {
+            if (text) { if (row.getAttribute(ATTR) !== text) row.setAttribute(ATTR, text); }
+            else row.removeAttribute(ATTR);
+        });
+    }
+    new MutationObserver(apply).observe(list, { childList: true });
+    apply();
+    if (mq.addEventListener) { mq.addEventListener('change', apply); }
+    else if (mq.addListener) { mq.addListener(apply); }
 })();

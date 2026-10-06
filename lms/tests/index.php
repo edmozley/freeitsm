@@ -5,7 +5,7 @@
 require __DIR__ . '/_page.php';
 ctHead(lt('heading', 'Competency tests'));
 ?>
-<body data-ct-page="index">
+<body data-ct-page="index" data-mobile-module="lms" data-mobile-page="lms-tests">
 <div class="ct-page">
     <?php include __DIR__ . '/../includes/header.php'; ?>
     <div class="ct-scroll">

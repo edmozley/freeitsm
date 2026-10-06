@@ -62,7 +62,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/i18n.js?v=3"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
     <!-- Mobile-friendly overrides (LAYER 17). Linked LAST so its @media rules win ties against knowledge.css. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=176">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=179">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -569,6 +569,6 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/vendor/prism-json.min.js"></script>
     <script src="../assets/js/vendor/prism-toolbar.min.js"></script>
     <script src="../assets/js/vendor/prism-copy-to-clipboard.min.js"></script>
-    <script src="../assets/js/mobile.js?v=74"></script>
+    <script src="../assets/js/mobile.js?v=75"></script>
 </body>
 </html>

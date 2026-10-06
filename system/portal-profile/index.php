@@ -94,7 +94,7 @@ requireModuleAccess('system');
         .pp-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=176">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=179">
 </head>
 <body data-mobile-module="system" data-mobile-page="portal-profile">
     <?php include '../includes/header.php'; ?>
@@ -244,6 +244,6 @@ requireModuleAccess('system');
 
         ppLoad();
     </script>
-    <script src="../../assets/js/mobile.js?v=74"></script>
+    <script src="../../assets/js/mobile.js?v=75"></script>
 </body>
 </html>

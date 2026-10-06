@@ -24,6 +24,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2172 | Tickets           | Improvement | On a phone, a user's People / Edit / Manager access / Delete buttons move into a sticky footer as icons, as on the Domains page. |
 | 2173 | Tickets           | Fix         | On a phone, opening a ticket by link (tapping one of a user's tickets, a notification, Calendar's "Open in inbox", a linked-ticket pill) loaded it behind the inbox list and left you on the list; it now opens the ticket. |
 | 2174 | Contracts         | Improvement | On a phone, the contracts page gets a sticky footer - Overview (the figures), Contracts (the list), Search, Add and Filter (a sheet with the suppliers / customers choice) - instead of stacking everything on one page. |
+| 2175 | LMS               | Improvement | The competency Tests pages (list, question bank, candidates, the test builder and a candidate result) work on a phone: the lists become cards, the builder and its skill rows restack, and every field is large enough that a phone does not zoom. |
 
 
 

@@ -89,6 +89,6 @@ $sections = $data['sections'] ?? [];
         </div>
     <?php endif; ?>
     </main>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=74"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=75"></script>
 </body>
 </html>

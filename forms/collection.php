@@ -165,7 +165,7 @@ $translationNamespaces = ['common', 'forms'];
             .coll-card { box-shadow: none; }
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=176">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=179">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -235,7 +235,7 @@ $translationNamespaces = ['common', 'forms'];
         </div>
     </div>
 
-    <script src="../assets/js/mobile.js?v=74"></script>
+    <script src="../assets/js/mobile.js?v=75"></script>
     <script>
         const API_BASE = '<?php echo defined('BASE_URL') ? BASE_URL : '../'; ?>api/forms/';
         const LOGO_URL = <?php echo json_encode(brandingLogoUrl()); ?>;
