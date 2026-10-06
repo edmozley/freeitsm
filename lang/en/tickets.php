@@ -807,6 +807,16 @@ return [
         'menu_item'          => 'CMDB object',
     ],
     // Domains on a ticket (3.0.0) - pills in the Links strip, like CMDB objects.
+    'projects' => [
+        'menu_item'          => 'Project',
+        'search_placeholder' => 'Type to search live projects...',
+        'no_matches'         => 'No live project you can change matches.',
+        'unlink_title'       => 'Unlink',
+        'unlink_confirm'     => 'Take this ticket out of the project?',
+        'unlinked_toast'     => 'Unlinked',
+        'linked_toast'       => 'Added to {name}',
+    ],
+
     'domains' => [
         'menu_item'          => 'Domain',
         'search_placeholder' => 'Type to search domains…',

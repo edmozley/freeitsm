@@ -244,6 +244,7 @@ function personDetail(PDO $conn, int $analystId, int $userId): ?array
     if ($can('domains'))   $sections['domains']   = peopleDomains($conn, $analystId, $who);
     if ($can('lms'))       $sections['courses']   = peopleCoursesForPerson($conn, $userId);
     if ($can('forms'))     $sections['forms']     = peopleForms($conn, $analystId, $who);
+    if ($can('projects'))  $sections['projects']  = peopleProjects($conn, $analystId, $who);
     return ['person' => $person, 'sections' => $sections];
 }
 
@@ -289,6 +290,7 @@ function companyDetail(PDO $conn, int $analystId, int $tenantId): ?array
     if ($can('domains'))   $sections['domains']   = peopleDomains($conn, $analystId, $who);
     if ($can('lms'))       $sections['courses']   = peopleCoursesForCompany($conn, $tenantId);
     if ($can('forms'))     $sections['forms']     = peopleForms($conn, $analystId, $who);
+    if ($can('projects'))  $sections['projects']  = peopleProjects($conn, $analystId, $who);
     return ['company' => $company, 'sections' => $sections];
 }
 
@@ -428,6 +430,46 @@ function peopleDomains(PDO $conn, int $analystId, array $who): array
         'expiry' => $r['expiry_date'], 'grade' => $r['security_grade'], 'status' => $r['status'],
         'status_colour' => $r['status_colour'], 'url' => entityLink('domain', (int)$r['id']),
     ], $st->fetchAll(PDO::FETCH_ASSOC));
+    return ['total' => count($rows), 'rows' => $rows];
+}
+
+/**
+ * Projects (3.2.0): for a person, the projects they are a member of (People
+ * tab of a project) with their role; for a company, its projects. Live ones
+ * first. Limited to the companies the analyst can access, like Projects itself.
+ */
+function peopleProjects(PDO $conn, int $analystId, array $who): array
+{
+    require_once __DIR__ . '/projects/methodologies.php';
+    if (!projectsSchemaReady($conn)) return ['total' => 0, 'rows' => []];
+    require_once __DIR__ . '/projects/read.php';
+    [$scope, $args] = peopleScope($conn, $analystId, 'p.tenant_id');
+    if (isset($who['user'])) {
+        if (!projectsPhase2Ready($conn)) return ['total' => 0, 'rows' => []];
+        $sql = "SELECT p.*, a.full_name AS owner_name, GROUP_CONCAT(DISTINCT r.name ORDER BY r.display_order SEPARATOR ', ') AS role_names
+                  FROM project_members m JOIN projects p ON p.id = m.project_id
+             LEFT JOIN project_roles r ON r.id = m.role_id
+             LEFT JOIN analysts a ON a.id = p.owner_analyst_id
+                 WHERE m.user_id = ? $scope GROUP BY p.id";
+        $mArgs = [(int)$who['user']];
+    } else {
+        [$match, $mArgs] = peopleCompanyMatch($conn, (int)$who['company'], 'p.tenant_id');
+        $sql = "SELECT p.*, a.full_name AS owner_name, NULL AS role_names
+                  FROM projects p LEFT JOIN analysts a ON a.id = p.owner_analyst_id
+                 WHERE 1=1 $match $scope";
+    }
+    $st = $conn->prepare($sql . " ORDER BY FIELD(p.status, 'active', 'proposed', 'on_hold', 'closed', 'cancelled'), p.name LIMIT " . PEOPLE_SECTION_LIMIT);
+    $st->execute(array_merge($mArgs, $args));
+    $raw = $st->fetchAll(PDO::FETCH_ASSOC);
+    $stats = projectTaskStats($conn, array_column($raw, 'id'));
+    $cfg = projectHealthConfig($conn);
+    $rows = array_map(function ($r) use ($stats, $cfg) {
+        $d = projectDecorate($r, $stats[(int)$r['id']] ?? [], $cfg);
+        return ['id' => (int)$d['id'], 'code' => $d['code'], 'name' => $d['name'], 'status' => $d['status'],
+                'colour' => projectColourHex($d['colour']), 'health' => $d['shown_health'], 'progress' => (int)$d['progress'],
+                'owner' => $d['owner_name'], 'role' => $r['role_names'], 'target_end_date' => $d['target_end_date'],
+                'url' => entityLink('project', (int)$d['id'])];
+    }, $raw);
     return ['total' => count($rows), 'rows' => $rows];
 }
 

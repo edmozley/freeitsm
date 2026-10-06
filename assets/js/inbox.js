@@ -3154,6 +3154,7 @@ ${classificationFields}
     loadTicketAttachments(email.ticket_id);
     loadCmdbObjects(email.ticket_id);
     loadTicketDomains(email.ticket_id);
+    loadTicketProjects(email.ticket_id);
     loadTicketAssets(email.ticket_id);
     loadTicketTasks(email.ticket_id);
     loadTimeEntries(email.ticket_id);
@@ -3577,6 +3578,7 @@ function buildLinksSection(email) {
         <span class="strip-pill-group" id="stripAssetPills"></span>
         <span class="strip-pill-group" id="stripCmdbPills"></span>
         <span class="strip-pill-group" id="stripDomainPills"></span>
+        <span class="strip-pill-group" id="stripProjectPills"></span>
         <span class="strip-pill-group" id="stripTaskPills"></span>
         <div class="link-add-wrap">
             <button class="problem-link-btn" onclick="toggleLinkAddMenu(event)">Link to… ▾</button>
@@ -3587,6 +3589,7 @@ function buildLinksSection(email) {
                 <button type="button" onclick="linkAddChoose('equipment')">${escapeHtml(t('tickets.assets.menu_item'))}</button>
                 <button type="button" onclick="linkAddChoose('cmdb')">${escapeHtml(t('tickets.cmdb.menu_item'))}</button>
                 ${window.TICKETS_SHOW_DOMAINS ? `<button type="button" onclick="linkAddChoose('domain')">${escapeHtml(t('tickets.domains.menu_item'))}</button>` : ''}
+                ${window.TICKETS_SHOW_PROJECTS ? `<button type="button" onclick="linkAddChoose('project')">${escapeHtml(t('tickets.projects.menu_item'))}</button>` : ''}
                 <button type="button" onclick="linkAddChoose('tracker')">${escapeHtml(t('tickets.tracker.menu_item'))}</button>
                 <button type="button" onclick="linkAddChoose('task')">${escapeHtml(t('tickets.tasks.menu_item'))}</button>
             </div>
@@ -3606,7 +3609,8 @@ function syncLinksStripEmpty() {
     const a = document.getElementById('stripAssetPills');
     const c = document.getElementById('stripCmdbPills');
     const dm = document.getElementById('stripDomainPills');
-    const has = (a && a.children.length) || (c && c.children.length) || (dm && dm.children.length);
+    const pj = document.getElementById('stripProjectPills');
+    const has = (a && a.children.length) || (c && c.children.length) || (dm && dm.children.length) || (pj && pj.children.length);
     note.hidden = !!has;
 }
 
@@ -3664,6 +3668,7 @@ function linkAddChoose(kind) {
     else if (kind === 'equipment') openLinkAssetPicker(id);
     else if (kind === 'cmdb') openLinkCmdbPicker(id);
     else if (kind === 'domain') openLinkDomainPicker(id);
+    else if (kind === 'project') openLinkProjectPicker(id);
     else if (kind === 'task') openLinkTaskPicker(id);
     else openLinkTicketModal(id, ref, subj);
 }
@@ -5862,6 +5867,103 @@ async function removeTicketDomain(ev, domainId, ticketId) {
         if (!data.success) throw new Error(data.error || 'Unlink failed');
         showToast(t('tickets.domains.unlinked_toast'), 'success');
         await loadTicketDomains(ticketId);
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+// ============================================================
+// Projects on a ticket (3.2.0) - the projects this ticket is part of, as pills
+// in the Links strip, with "Project" in the Link to... menu. Every rule
+// (Projects access, same company, who may change the project) is server-side in
+// includes/projects/links.php; for an analyst who cannot open Projects none of
+// this is drawn.
+// ============================================================
+let projectsForTicket = [];
+let projectAcTimer = null;
+
+async function loadTicketProjects(ticketId) {
+    const host = document.getElementById('stripProjectPills');
+    if (!host || !window.TICKETS_SHOW_PROJECTS) return;
+    projectsForTicket = [];
+    try {
+        const res = await fetch('../api/projects/links.php?for=ticket&id=' + ticketId);
+        const data = await res.json();
+        if (data.success) projectsForTicket = data.projects || [];
+    } catch (e) { /* silent - the strip simply shows no project pills */ }
+    host.innerHTML = projectsForTicket.map(p => `<a class="pm-ticket-badge" href="../${escapeHtml(p.url)}" title="${escapeHtml(p.code + ' - ' + (p.status || ''))}">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${escapeHtml(p.colour)};margin-right:5px"></span>${escapeHtml(p.name)}
+            <span class="pm-ticket-unlink" title="${escapeHtml(t('tickets.projects.unlink_title'))}" onclick="event.preventDefault();event.stopPropagation();removeTicketProject(event, ${p.id}, ${ticketId});">&#10005;</span>
+        </a>`).join('');
+    if (typeof syncLinksStripEmpty === 'function') syncLinksStripEmpty();
+}
+
+function openLinkProjectPicker(ticketId) {
+    const ui = openStripPicker(t('tickets.projects.search_placeholder'));
+    if (!ui) return;
+    const { input, results, close } = ui;
+    let current = [], hi = -1;
+    const renderResults = () => {
+        if (!current.length) {
+            results.innerHTML = `<div class="cmdb-picker-empty">${escapeHtml(t('tickets.projects.no_matches'))}</div>`;
+            results.classList.add('active');
+            return;
+        }
+        results.innerHTML = current.map((r, i) => `
+            <div class="cmdb-picker-result ${i === hi ? 'highlighted' : ''}" data-idx="${i}">
+                <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${escapeHtml(r.colour)};margin-right:6px"></span>${escapeHtml(r.name)}</span>
+                <span class="cmdb-picker-class">${escapeHtml(r.code)}</span>
+            </div>`).join('');
+        results.classList.add('active');
+        results.querySelectorAll('.cmdb-picker-result').forEach(el => {
+            el.addEventListener('mousedown', e => { e.preventDefault(); pick(current[parseInt(el.dataset.idx, 10)]); });
+        });
+    };
+    const pick = async (r) => {
+        try {
+            const res = await fetch('../api/projects/links.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'add', project_id: r.id, kind: 'ticket', target_id: ticketId })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Link failed');
+            showToast(t('tickets.projects.linked_toast', { name: r.name }), 'success');
+            close();
+            await loadTicketProjects(ticketId);
+        } catch (err) { showToast('Error: ' + err.message, 'error'); }
+    };
+    const search = async () => {
+        try {
+            const res = await fetch('../api/projects/links.php?for=ticket&id=' + ticketId + '&pick=1&q=' + encodeURIComponent(input.value.trim()));
+            const data = await res.json();
+            current = data.success ? (data.projects || []) : [];
+            hi = -1;
+            renderResults();
+        } catch (e) { /* silent */ }
+    };
+    input.oninput = () => { if (projectAcTimer) clearTimeout(projectAcTimer); projectAcTimer = setTimeout(search, 200); };
+    input.onkeydown = e => {
+        if (!results.classList.contains('active')) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(current.length - 1, hi + 1); renderResults(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(0, hi - 1); renderResults(); }
+        else if (e.key === 'Enter' && hi >= 0) { e.preventDefault(); pick(current[hi]); }
+        else if (e.key === 'Escape') { close(); }
+    };
+    // Live projects are a short list: show them straight away.
+    search();
+}
+
+async function removeTicketProject(ev, projectId, ticketId) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (!(await showConfirm({ title: 'Confirm', message: t('tickets.projects.unlink_confirm'), okLabel: 'OK', okClass: 'primary' }))) return;
+    try {
+        const res = await fetch('../api/projects/links.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'remove', project_id: projectId, kind: 'ticket', target_id: ticketId })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Unlink failed');
+        showToast(t('tickets.projects.unlinked_toast'), 'success');
+        await loadTicketProjects(ticketId);
     } catch (err) { showToast('Error: ' + err.message, 'error'); }
 }
 

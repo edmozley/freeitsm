@@ -2155,6 +2155,7 @@ function renderArticleDetail() {
         </div>
         <div id="kbDocuments" style="margin-top:24px;"></div>
         <div id="kbDomains" style="margin-top:16px;"></div>
+        <div id="kbProjects" style="margin-top:16px;"></div>
     `;
 
     // Apply syntax highlighting to any code blocks
@@ -2192,6 +2193,10 @@ function renderArticleDetail() {
         DomainLinks.mount(document.getElementById('kbDomains'), {
             kind: 'article', id: currentArticle.id, base: window.KB_BASE, editable: false, hideEmpty: true
         });
+    }
+    // Projects (3.2.0) this article is part of - listed when reading, linked in the editor.
+    if (window.KB_SHOW_PROJECTS && window.ProjectLinks) {
+        ProjectLinks.mount(document.getElementById('kbProjects'), { kind: 'article', id: currentArticle.id, base: window.KB_BASE, editable: false, hideEmpty: true });
     }
 }
 
@@ -3445,6 +3450,8 @@ function mountEditorDocuments() {
         const read = document.getElementById('kbDomains');
         if (read) DomainLinks.mount(read, { kind: 'article', id: id, base: window.KB_BASE, editable: false, hideEmpty: true });
     } });
+    const prj = document.getElementById('kbEditorProjects');
+    if (prj && window.KB_SHOW_PROJECTS && window.ProjectLinks) ProjectLinks.mount(prj, { kind: 'article', id: id, base: window.KB_BASE });
     FreeITSMDocuments.mount(box, {
         parentType: 'knowledge_article',
         parentId:   id,

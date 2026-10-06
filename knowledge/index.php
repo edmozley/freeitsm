@@ -53,6 +53,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
     <link rel="stylesheet" href="../assets/css/knowledge.css?v=27">
     <link rel="stylesheet" href="../assets/css/domain-links.css?v=1">
+    <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
     <!-- Prism.js for code syntax highlighting -->
     <link rel="stylesheet" href="../assets/css/vendor/prism-tomorrow.min.css">
     <link rel="stylesheet" href="../assets/css/vendor/prism-toolbar.min.css">
@@ -311,6 +312,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                         <div class="editor-documents" id="kbEditorDocumentsWrap">
                             <div id="kbEditorDocuments"></div>
                             <?php if ($showDomains): ?><div id="kbEditorDomains" style="margin-top:16px;"></div><?php endif; ?>
+                            <div id="kbEditorProjects" style="margin-top:16px;"></div>
                             <p class="field-hint" id="kbEditorDocumentsHint" style="display:none;"><?php echo htmlspecialchars(t('knowledge.editor.documents_after_save')); ?></p>
                         </div>
                     </div>
@@ -555,9 +557,10 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <!-- jsPDF for searchable PDF generation -->
     <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
     <script>window.API_BASE = '../api/knowledge/';</script>
-    <script>window.KB_SHOW_DOMAINS = <?php echo $showDomains ? 'true' : 'false'; ?>; window.KB_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
+    <script>window.KB_SHOW_DOMAINS = <?php echo $showDomains ? 'true' : 'false'; ?>; window.KB_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.KB_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="../assets/js/domain-links.js?v=1"></script>
-    <script src="../assets/js/knowledge.js?v=58"></script>
+    <script src="../assets/js/project-links.js?v=1"></script>
+    <script src="../assets/js/knowledge.js?v=59"></script>
     <!-- Prism.js for code syntax highlighting when viewing articles -->
     <script src="../assets/js/vendor/prism.min.js"></script>
     <script src="../assets/js/vendor/prism-powershell.min.js"></script>

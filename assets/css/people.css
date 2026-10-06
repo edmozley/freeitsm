@@ -183,3 +183,6 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
     .ppl-intro { display: none; }
     .ppl-main-list, .ppl-page { padding: 14px; }
 }
+
+/* Projects section (3.2.0): the project colour before its name */
+.ppl-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 7px; vertical-align: 1px; }

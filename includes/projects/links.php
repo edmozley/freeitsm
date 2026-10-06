@@ -307,6 +307,85 @@ if (!defined('PROJECT_LINKS_LOADED')) {
         return projectLinkDescribe($conn, $kind, $ids);
     }
 
+    // ------------------------------------------------------------------
+    //  The other direction: the record's own page (3.2.0, "show the project
+    //  from the other side"). Same rules as above, read from the other end.
+    // ------------------------------------------------------------------
+
+    /** Projects by id, shaped for a list on another module's page. */
+    function projectLinkProjectRows(PDO $conn, array $ids): array
+    {
+        if (!$ids) return [];
+        require_once __DIR__ . '/read.php';
+        $in = implode(',', array_fill(0, count($ids), '?'));
+        $st = $conn->prepare("SELECT p.*, a.full_name AS owner_name FROM projects p LEFT JOIN analysts a ON a.id = p.owner_analyst_id
+                               WHERE p.id IN ($in) ORDER BY FIELD(p.status, 'active', 'proposed', 'on_hold', 'closed', 'cancelled'), p.name");
+        $st->execute(array_map('intval', $ids));
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        $stats = projectTaskStats($conn, array_column($rows, 'id'));
+        $cfg = projectHealthConfig($conn);
+        return array_map(function ($r) use ($stats, $cfg) {
+            $d = projectDecorate($r, $stats[(int)$r['id']] ?? [], $cfg);
+            return ['id' => (int)$d['id'], 'code' => $d['code'], 'name' => $d['name'], 'status' => $d['status'],
+                    'colour' => projectColourHex($d['colour']), 'icon' => $d['icon'], 'health' => $d['shown_health'],
+                    'progress' => $d['progress'], 'owner_name' => $d['owner_name'], 'target_end_date' => $d['target_end_date'],
+                    'url' => entityLink('project', (int)$d['id'])];
+        }, $rows);
+    }
+
+    /**
+     * The projects one record (asset, change, ticket, contract, CI, article) is
+     * linked to that this analyst may see. Empty - never an error - when they
+     * cannot open Projects, the other module, or the record, so a page can call
+     * it unconditionally.
+     */
+    function projectsLinkedTo(PDO $conn, ActorContext $ctx, string $kind, int $targetId): array
+    {
+        $k = projectLinkKinds()[$kind] ?? null;
+        if ($k === null || !projectLinksReady($conn) || !projectLinkKindAllowed($conn, $ctx->actorId, $kind)) return [];
+        if (!projectLinkTargetOk($conn, $ctx->actorId, $kind, $targetId, null)) return [];
+        $st = $conn->prepare("SELECT project_id FROM {$k['table']} WHERE {$k['col']} = ?");
+        $st->execute([$targetId]);
+        require_once __DIR__ . '/../services/projects.php';
+        $ids = array_values(array_filter(array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)), function ($pid) use ($conn, $ctx) {
+            try { ProjectsService::loadForActor($conn, $ctx, $pid); return true; } catch (Throwable $e) { return false; }
+        }));
+        return projectLinkProjectRows($conn, $ids);
+    }
+
+    /**
+     * The picker on the record's page: live projects this analyst may CHANGE,
+     * in the record's company (for company records), not already linked,
+     * matching $q. At most 20.
+     */
+    function projectsPickableFor(PDO $conn, ActorContext $ctx, string $kind, int $targetId, string $q): array
+    {
+        $k = projectLinkKinds()[$kind] ?? null;
+        if ($k === null || !projectLinksReady($conn) || !projectLinkKindAllowed($conn, $ctx->actorId, $kind)) return [];
+        if (!projectLinkTargetOk($conn, $ctx->actorId, $kind, $targetId, null)) return [];
+        require_once __DIR__ . '/../services/projects.php';
+        require_once __DIR__ . '/settings.php';
+        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($q)) . '%';
+        $sql = "SELECT p.* FROM projects p WHERE p.status NOT IN ('closed', 'cancelled') AND (p.name LIKE ? OR p.id = ?)
+                  AND NOT EXISTS (SELECT 1 FROM {$k['table']} l WHERE l.project_id = p.id AND l.{$k['col']} = ?)";
+        $args = [$like, (int)preg_replace('/\D/', '', $q), $targetId];
+        if ($k['scoped'] && isMultiTenant($conn)) {
+            $default = (int)getDefaultTenantId($conn);
+            $sql .= " AND COALESCE(p.tenant_id, $default) = ?";
+            $args[] = projectLinkTenantOf($conn, $k['scoped'], $targetId);
+        }
+        $st = $conn->prepare($sql . " ORDER BY p.name LIMIT 60");
+        $st->execute($args);
+        $ids = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $p) {
+            try { ProjectsService::loadForActor($conn, $ctx, (int)$p['id']); } catch (Throwable $e) { continue; }
+            if (!projectCanChange($conn, $ctx->actorId, $p)) continue;
+            $ids[] = (int)$p['id'];
+            if (count($ids) >= 20) break;
+        }
+        return projectLinkProjectRows($conn, $ids);
+    }
+
     /** Remove every link a project holds - called when the project is deleted. */
     function projectLinksDeleteAll(PDO $conn, int $projectId): void
     {

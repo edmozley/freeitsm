@@ -30,6 +30,7 @@ function pplStats(array $sections, bool $person, array $labels = []): string
     if (isset($sections['domains']))   $add('domains', t($person ? 'people.section.domains_person' : 'people.section.domains'), (string)$sections['domains']['total']);
     if (isset($sections['courses']))   $add('courses', t('people.section.courses'), (string)$sections['courses']['total']);
     if (isset($sections['forms']))     $add('forms', t('people.section.forms'), (string)$sections['forms']['total']);
+    if (isset($sections['projects']))  $add('projects', t($person ? 'people.section.projects_person' : 'people.section.projects'), (string)$sections['projects']['total']);
     return $out === '' ? '' : '<div class="ppl-stats">' . $out . '</div>';
 }
 
@@ -169,6 +170,27 @@ function pplSectionForms(array $s, bool $person): string
     return pplCard('forms', t('people.section.forms'), $s['total'], $head, $rows, $s['total'] >= PEOPLE_SECTION_LIMIT);
 }
 
+/** Projects (3.2.0): a person's memberships with their role, or a company's projects. */
+function pplSectionProjects(array $s, bool $person): string
+{
+    $head = [t('people.section.col_project')];
+    if ($person) $head[] = t('people.section.col_role');
+    array_push($head, t('people.section.col_status'), t('people.section.col_progress'), t('people.section.col_owner'), t('people.section.col_target'));
+    $health = ['green' => 'good', 'amber' => '', 'red' => 'bad'];
+    $rows = array_map(function ($r) use ($person, $health) {
+        $status = t('projects.status.' . $r['status']);
+        $cells = ['<span class="ppl-swatch" style="background:' . pplE($r['colour']) . '"></span>' . pplLink($r['url'], $r['name']) . '<div class="ppl-dim">' . pplE($r['code']) . '</div>'];
+        if ($person) $cells[] = pplE($r['role'] ?? '');
+        array_push($cells,
+            pplPill($status, null, $health[$r['health']] ?? 'muted'),
+            pplE($r['progress'] . '%'),
+            pplE($r['owner'] ?? ''),
+            pplE(peopleBareDate($r['target_end_date'])));
+        return $cells;
+    }, $s['rows']);
+    return pplCard('projects', t($person ? 'people.section.projects_person' : 'people.section.projects'), $s['total'], $head, $rows, $s['total'] >= PEOPLE_SECTION_LIMIT);
+}
+
 /** Every section present, in a fixed order. */
 function pplSections(array $sections, bool $person): string
 {
@@ -179,6 +201,7 @@ function pplSections(array $sections, bool $person): string
     if (isset($sections['domains']))   $h .= pplSectionDomains($sections['domains'], $person);
     if (isset($sections['courses']))   $h .= $person ? pplSectionCoursesPerson($sections['courses']) : pplSectionCoursesCompany($sections['courses']);
     if (isset($sections['forms']))     $h .= pplSectionForms($sections['forms'], $person);
+    if (isset($sections['projects']))  $h .= pplSectionProjects($sections['projects'], $person);
     return $h;
 }
 
@@ -197,7 +220,7 @@ function pplHead(string $title, array $namespaces = ['common', 'people'], array 
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=25">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=76">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/people.css?v=4">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/people.css?v=5">
     <?php foreach ($extraCss as $css): ?><link rel="stylesheet" href="<?php echo BASE_URL . pplE($css); ?>">
     <?php endforeach; ?>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=182">

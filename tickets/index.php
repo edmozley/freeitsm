@@ -1005,6 +1005,7 @@ $translationNamespaces = ['common', 'tickets'];
         window.KB_WRITEUP_ENABLED = <?php echo analystCanAccessModule(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0), 'knowledge') ? 'true' : 'false'; ?>;
         // Domains on a ticket (3.0.0): Domains' data, so only for analysts who can open it.
         window.TICKETS_SHOW_DOMAINS = <?php echo analystCanAccessModule(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0), 'domains') ? 'true' : 'false'; ?>;
+        window.TICKETS_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0), 'projects') ? 'true' : 'false'; ?>;
         window.KB_BASE = '../api/knowledge/';
         // What this analyst's ticket rows show (discussion #61). Resolved
         // server-side — their own choice over the install default — and already
@@ -1031,7 +1032,7 @@ $translationNamespaces = ['common', 'tickets'];
     <script src="../assets/js/schedule.js?v=1"></script>
     <script src="../checklists/search_scoring.js?v=1"></script>
     <script src="../checklists/ticket_view.js?v=9"></script>
-    <script src="../assets/js/inbox.js?v=149"></script>
+    <script src="../assets/js/inbox.js?v=150"></script>
     <script src="../assets/js/mobile.js?v=77"></script>
     <script>
     // Auto-check mailboxes every 60 seconds - and refresh the inbox whenever

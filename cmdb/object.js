@@ -242,6 +242,7 @@ function render() {
             '<div class="o2-sec"><div id="cmdbDocuments"></div></div>' +
             // The domains this CI depends on (3.0.0): what breaks if one lapses.
             (window.SHOW_DOMAINS ? '<div class="o2-sec"><div id="cmdbDomains"></div></div>' : '') +
+            (window.SHOW_PROJECTS ? '<div class="o2-sec"><div id="cmdbProjects"></div></div>' : '') +
             '<div class="o2-sec">' + activityHtml() + '</div>' +
             '<div class="o2-sec">' + dangerHtml() + '</div>' +
         '</div>';
@@ -258,6 +259,13 @@ function render() {
 
     if (window.SHOW_DOMAINS && window.DomainLinks && obj && obj.id) {
         DomainLinks.mount(document.getElementById('cmdbDomains'), {
+            kind: 'cmdb', id: obj.id, base: window.APP_BASE,
+            cardClass: 'o2-card', headClass: 'o2-card-head', titleClass: 'o2-card-title'
+        });
+    }
+
+    if (window.SHOW_PROJECTS && window.ProjectLinks && obj && obj.id) {
+        ProjectLinks.mount(document.getElementById('cmdbProjects'), {
             kind: 'cmdb', id: obj.id, base: window.APP_BASE,
             cardClass: 'o2-card', headClass: 'o2-card-head', titleClass: 'o2-card-title'
         });

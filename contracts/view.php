@@ -19,6 +19,7 @@ $translationNamespaces = ['common', 'contracts'];
 // The domains renewed or billed under a contract (3.0.0) - Domains' data, so
 // only for analysts who can open Domains.
 $ctShowDomains = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'domains');
+$ctShowProjects = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects');   // 3.2.0
 if ($ctShowDomains) $translationNamespaces[] = 'domains';
 $contract_id = $_GET['id'] ?? null;
 
@@ -51,6 +52,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
     <link rel="stylesheet" href="../assets/css/theme.css?v=24">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
     <link rel="stylesheet" href="../assets/css/domain-links.css?v=1">
+    <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
     <style>
         body { --accent: var(--con-accent, #f59e0b); }
         /* Full-screen layout with sidebar - matches contracts dashboard */
@@ -658,6 +660,7 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
                         </h3>
                         <div id="relatedAssetsList" class="related-empty">${escapeHtml(window.t('common.loading'))}</div>
                     </div>
+                    ${window.CT_SHOW_PROJECTS ? '<div class="related-section" id="relatedProjectsSection"><h3>' + escapeHtml(window.tf ? window.tf('projects.links_other.title', 'Projects') : 'Projects') + '</h3><div id="relatedProjectsList"></div></div>' : ''}
                     ${window.CT_SHOW_DOMAINS ? '<div class="related-section" id="relatedDomainsSection"><h3>' + escapeHtml(window.t('domains.links.domains_title')) + '</h3><div id="relatedDomainsList"></div></div>' : ''}
                     <div class="related-section" id="relatedTasksSection">
                         <h3>${escapeHtml(window.t('contracts.detail.related_tasks'))}</h3>
@@ -814,6 +817,9 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
             loadRelatedAssets();
             if (window.CT_SHOW_DOMAINS && window.DomainLinks && currentContract) {
                 DomainLinks.mount(document.getElementById('relatedDomainsList'), { kind: 'contract', id: currentContract.id, base: window.CT_BASE, bare: true });
+            }
+            if (window.CT_SHOW_PROJECTS && window.ProjectLinks && currentContract) {
+                ProjectLinks.mount(document.getElementById('relatedProjectsList'), { kind: 'contract', id: currentContract.id, base: window.CT_BASE, bare: true });
             }
             loadRelatedTasks();
             loadRelatedEvents();
@@ -1450,8 +1456,9 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
             </div>
         </div>
     </div>
-    <script>window.CT_SHOW_DOMAINS = <?php echo $ctShowDomains ? 'true' : 'false'; ?>; window.CT_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
+    <script>window.CT_SHOW_DOMAINS = <?php echo $ctShowDomains ? 'true' : 'false'; ?>; window.CT_SHOW_PROJECTS = <?php echo $ctShowProjects ? 'true' : 'false'; ?>; window.CT_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="../assets/js/domain-links.js?v=1"></script>
+    <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

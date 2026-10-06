@@ -1476,6 +1476,7 @@ $translationNamespaces = ['common', 'asset-management'];
              <style> block so its @media rules win on ties — the ordering rule
              from the wiki's Mobile-Friendly-Techniques. Every rule inside it is
              gated at 768px, so the desktop layout is untouched. */ ?>
+    <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=182">
 </head>
 <body>
@@ -2248,6 +2249,7 @@ $translationNamespaces = ['common', 'asset-management'];
                         <button class="detail-tab" onclick="switchDetailTab('software')" data-dtab="software">${window.t('asset-management.detail.tab_software')} <span class="tab-count" id="softwareCountBadge">...</span></button>
                         <button class="detail-tab" onclick="switchDetailTab('tickets')" data-dtab="tickets">${window.t('asset-management.detail.tab_tickets')} <span class="tab-count" id="ticketsCountBadge">...</span></button>
                         <button class="detail-tab" onclick="switchDetailTab('contracts')" data-dtab="contracts">${window.t('asset-management.detail.tab_contracts')} <span class="tab-count" id="contractsCountBadge">...</span></button>
+                        ${window.ASSET_SHOW_PROJECTS ? `<button class="detail-tab" onclick="switchDetailTab('projects')" data-dtab="projects">${window.tf ? window.tf('projects.links_other.title', 'Projects') : 'Projects'}</button>` : ''}
                         <button class="detail-tab" onclick="switchDetailTab('documents')" data-dtab="documents">${window.t('common.documents.heading')}</button>
                     </div>
                 </div>
@@ -2461,6 +2463,7 @@ $translationNamespaces = ['common', 'asset-management'];
                             <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
+                    ${window.ASSET_SHOW_PROJECTS ? '<div class="detail-tab-panel detail-tab-panel--scroll" id="projectsPanel" data-dtab-panel="projects"><div id="assetProjects" style="padding:4px 2px"></div></div>' : ''}
                     <div class="detail-tab-panel detail-tab-panel--scroll" id="documentsPanel" data-dtab-panel="documents">
                         <div id="assetDocuments"></div>
                     </div>
@@ -2475,6 +2478,8 @@ $translationNamespaces = ['common', 'asset-management'];
             loadIntuneDevice(assetId);
             loadAssetTickets(assetId);
             loadAssetContracts(assetId);
+            // Projects (3.2.0): the projects this asset is part of.
+            if (window.ASSET_SHOW_PROJECTS && window.ProjectLinks) ProjectLinks.mount(document.getElementById('assetProjects'), { kind: 'asset', id: assetId, base: window.APP_BASE || '../', bare: true });
             loadCustomFields(assetId);
 
             // ⚠️ MOUNTED, not re-pointed. This detail pane rebuilds its whole DOM
@@ -4535,6 +4540,8 @@ $translationNamespaces = ['common', 'asset-management'];
              behaviour inside is gated on matchMedia(768px), so on desktop it is
              inert. (#936) */ ?>
     <script src="../assets/js/network-mapper-icons.js?v=3"></script>
+    <script>window.ASSET_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.APP_BASE = window.APP_BASE || <?php echo json_encode(BASE_URL); ?>;</script>
+    <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

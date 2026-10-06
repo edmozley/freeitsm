@@ -658,6 +658,9 @@ function renderChangeDetail() {
     // CAB Review panel
     html += renderCabReviewPanel(c);
 
+    // Projects (3.2.0): the projects this change is part of.
+    if (window.CHG_SHOW_PROJECTS) html += '<div id="changeProjects" class="chg-projects"></div>';
+
     // Detail sections — only include visible fields
     let sections = '';
     if (v('description')) sections += renderDetailSection(window.t('change-management.detail.description'), c.description);
@@ -722,6 +725,7 @@ function renderChangeDetail() {
     html += '<div class="detail-section"><h3>Documents</h3><div id="chgDocuments"></div></div>';
 
     document.getElementById('changeDetailContent').innerHTML = html;
+    if (window.CHG_SHOW_PROJECTS && window.ProjectLinks) ProjectLinks.mount(document.getElementById('changeProjects'), { kind: 'change', id: c.id, base: window.CHG_BASE });
 
     // Attached documents (discussion #76). Mounted, not re-pointed: this content
     // is rebuilt for every change, so the previous element is already gone.

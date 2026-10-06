@@ -361,6 +361,13 @@ return [
         'exc_risk'       => 'An open risk scores {score} - {allowed} allowed.',
         'exc_hint'       => 'The project is outside what was agreed. It needs a decision - re-plan, change the tolerances, or stop.',
     ],
+    'links_other' => [
+        'title'       => 'Projects',
+        'none'        => 'Not part of any project.',
+        'add_ph'      => 'Add to a project...',
+        'no_projects' => 'No live project you can change matches.',
+    ],
+
     'links' => [
         'intro'      => 'Everything this project touches, from the rest of FreeITSM. You see the kinds of record you can open; each link shows on the project for everyone who can see both sides.',
         'not_ready'  => 'Run System - Database Verification to switch Connections on.',

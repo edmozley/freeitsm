@@ -77,6 +77,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
     <link rel="stylesheet" href="../assets/css/theme.css?v=24">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
     <link rel="stylesheet" href="../assets/css/domain-links.css?v=1">
+    <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -920,6 +921,8 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         window.OBJECT_ID = <?php echo isset($_GET['id']) ? (int)$_GET['id'] : 0; ?>;
         window.CAN_MAKE_DIAGRAM = <?php echo $canMakeDiagram ? 'true' : 'false'; ?>;
         window.SHOW_DOMAINS = <?php echo $showDomains ? 'true' : 'false'; ?>;
+        // Projects (3.2.0): the projects this CI is part of, for analysts who can open Projects.
+        window.SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int) $_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>;
         window.APP_BASE = <?php echo json_encode(BASE_URL); ?>;
     </script>
     <!-- The class-icon library. Its own docblock names CMDB as consumer #1;
@@ -928,7 +931,8 @@ if ($showDomains) $translationNamespaces[] = 'domains';
     <!-- The shared dropdown-options editor, same one the settings page uses. -->
     <script src="options-editor.js?v=3"></script>
     <script src="../assets/js/domain-links.js?v=1"></script>
-    <script src="object.js?v=11"></script>
+    <script src="../assets/js/project-links.js?v=1"></script>
+    <script src="object.js?v=12"></script>
     <script src="../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

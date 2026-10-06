@@ -34,6 +34,7 @@ $translationNamespaces = ['common', 'change-management'];
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/record-preview.css?v=1">
     <script src="<?php echo BASE_URL; ?>assets/js/record-preview.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js"></script>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/project-links.css?v=1">
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include __DIR__ . '/includes/header.php'; ?>
@@ -531,7 +532,9 @@ $translationNamespaces = ['common', 'change-management'];
         window.openCreateOnLoad = true;
         <?php endif; ?>
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=21"></script>
+    <script>window.CHG_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.CHG_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
+    <script src="<?php echo BASE_URL; ?>assets/js/project-links.js?v=1"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=22"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=77"></script>
 </body>
 </html>

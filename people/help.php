@@ -122,7 +122,7 @@ $pplHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
 
                     <?php if ($id === 'person'): ?>
                     <div class="help-defs">
-                        <?php foreach (['tickets', 'assets', 'contracts', 'domains', 'courses', 'forms'] as $s): ?>
+                        <?php foreach (['tickets', 'assets', 'contracts', 'domains', 'courses', 'forms', 'projects'] as $s): ?>
                         <div class="help-def">
                             <div class="help-def-term"><?php echo $h('person.sec_' . $s); ?></div>
                             <div class="help-def-desc"><?php echo $h('person.sec_' . $s . '_d'); ?></div>
