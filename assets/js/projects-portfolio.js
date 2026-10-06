@@ -103,6 +103,9 @@
             const d = await P.api('list.php');
             all = d.projects || [];
             window.PRJ_MULTI = !!d.multi_company;
+            // Projects -> Settings -> General may keep creating to people who manage Projects.
+            document.getElementById('prjNew').hidden = !d.can_create;
+            document.getElementById('prjEmptyNew').hidden = !d.can_create;
             const L = await P.lookups();
             P.setPalette(L.colours);
             render();

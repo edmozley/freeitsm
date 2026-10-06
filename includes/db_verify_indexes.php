@@ -462,4 +462,12 @@ return [
     ['project_cmdb_objects', 'ix_pcm_target', 'key', '(`cmdb_object_id`)'],
     ['project_knowledge_articles', 'uq_pka_pair', 'unique', '(`project_id`,`article_id`)'],
     ['project_knowledge_articles', 'ix_pka_target', 'key', '(`article_id`)'],
+    ['project_roles', 'uq_project_roles_name', 'unique', '(`name`)'],
+    ['project_members', 'idx_project_members_project', 'key', '(`project_id`,`position`)'],
+    ['project_members', 'ix_pmem_analyst', 'key', '(`analyst_id`)'],
+    ['project_items', 'idx_project_items_project', 'key', '(`project_id`,`position`)'],
+    ['project_raci', 'uq_praci_cell', 'unique', '(`item_id`,`member_id`)'],
+    ['project_raci', 'ix_praci_project', 'key', '(`project_id`)'],
+    ['project_raid', 'idx_project_raid_project', 'key', '(`project_id`,`type`,`status`)'],
+    ['project_tolerances', 'uq_ptol_dimension', 'unique', '(`project_id`,`stage_id`,`dimension`)'],
 ];

@@ -766,6 +766,24 @@ try {
     // above (GitHub #42): a fresh install landed with an empty Type dropdown because
     // types were only ever created by the demo data. Global defaults (tenant_id NULL);
     // only ever seeded into an empty table, so a deliberately-cleared list is respected.
+    // Seed the project roles (3.2.0) into an empty table only, so an edited list
+    // is never put back. Same words as the freeitsm.sql seed.
+    if ($tableExists('project_roles')) {
+        if ((int) $conn->query("SELECT COUNT(*) FROM project_roles")->fetchColumn() === 0) {
+            $conn->exec("INSERT INTO project_roles (name, description, display_order) VALUES
+                ('Executive', 'Owns the business case and makes the final call at each gate', 1),
+                ('Senior User', 'Speaks for the people who will use what the project delivers', 2),
+                ('Senior Supplier', 'Speaks for the people building or supplying it', 3),
+                ('Project Manager', 'Runs the project day to day', 4),
+                ('Team Manager', 'Leads a team delivering part of the work', 5),
+                ('Project Assurance', 'Checks independently that the project is being run properly', 6),
+                ('Project Support', 'Helps with plans, records and admin', 7),
+                ('Team member', 'Does the work', 8),
+                ('Stakeholder', 'Needs to be kept informed', 9)");
+            $results[] = ['table' => 'project_roles', 'status' => 'seeded', 'details' => ['Inserted 9 default project roles']];
+        }
+    }
+
     // Seed default domain statuses (#154) into an empty table only, the same rule
     // as ticket types below. "Letting lapse" and "Cancelled" carry
     // alerts_enabled = 0: choosing them is how an operator stops the reminders.
@@ -2849,6 +2867,25 @@ try {
         ['project_audit',  'fk_project_audit_project',  "ALTER TABLE project_audit ADD CONSTRAINT fk_project_audit_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['tasks',          'fk_tasks_project',          "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE SET NULL"],
         ['tasks',          'fk_tasks_project_stage',    "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_project_stage FOREIGN KEY (project_stage_id) REFERENCES project_stages (id) ON DELETE SET NULL"],
+        // Phase 2.
+        ['project_members', 'fk_pmem_project', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_members', 'fk_pmem_analyst', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"],
+        ['project_members', 'fk_pmem_team', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_team FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE"],
+        ['project_members', 'fk_pmem_user', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE"],
+        ['project_members', 'fk_pmem_role', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_role FOREIGN KEY (role_id) REFERENCES project_roles (id) ON DELETE SET NULL"],
+        ['project_members', 'fk_pmem_created_by', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_created_by FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_items', 'fk_pitem_project', "ALTER TABLE project_items ADD CONSTRAINT fk_pitem_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_items', 'fk_pitem_parent', "ALTER TABLE project_items ADD CONSTRAINT fk_pitem_parent FOREIGN KEY (parent_id) REFERENCES project_items (id) ON DELETE SET NULL"],
+        ['project_items', 'fk_pitem_stage', "ALTER TABLE project_items ADD CONSTRAINT fk_pitem_stage FOREIGN KEY (stage_id) REFERENCES project_stages (id) ON DELETE SET NULL"],
+        ['project_raci', 'fk_praci_project', "ALTER TABLE project_raci ADD CONSTRAINT fk_praci_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_raci', 'fk_praci_item', "ALTER TABLE project_raci ADD CONSTRAINT fk_praci_item FOREIGN KEY (item_id) REFERENCES project_items (id) ON DELETE CASCADE"],
+        ['project_raci', 'fk_praci_member', "ALTER TABLE project_raci ADD CONSTRAINT fk_praci_member FOREIGN KEY (member_id) REFERENCES project_members (id) ON DELETE CASCADE"],
+        ['project_raid', 'fk_praid_project', "ALTER TABLE project_raid ADD CONSTRAINT fk_praid_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_raid', 'fk_praid_owner', "ALTER TABLE project_raid ADD CONSTRAINT fk_praid_owner FOREIGN KEY (owner_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_raid', 'fk_praid_ticket', "ALTER TABLE project_raid ADD CONSTRAINT fk_praid_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE SET NULL"],
+        ['project_raid', 'fk_praid_raised_by', "ALTER TABLE project_raid ADD CONSTRAINT fk_praid_raised_by FOREIGN KEY (raised_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_tolerances', 'fk_ptol_project', "ALTER TABLE project_tolerances ADD CONSTRAINT fk_ptol_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_tolerances', 'fk_ptol_stage', "ALTER TABLE project_tolerances ADD CONSTRAINT fk_ptol_stage FOREIGN KEY (stage_id) REFERENCES project_stages (id) ON DELETE CASCADE"],
         // Connections - every link goes with either side.
         ['project_assets', 'fk_pas_project', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_assets', 'fk_pas_target', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_target FOREIGN KEY (asset_id) REFERENCES assets (id) ON DELETE CASCADE"],

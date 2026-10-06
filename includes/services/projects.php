@@ -36,6 +36,7 @@
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../projects/methodologies.php';
+require_once __DIR__ . '/../projects/settings.php';
 
 class ProjectsService
 {
@@ -81,9 +82,14 @@ class ProjectsService
                 throw new ServiceError('forbidden', 'forbidden', 'You cannot add projects for that company.');
             }
         }
+        if ($ctx->actorId > 0 && !projectCanCreate($conn, $ctx->actorId)) {
+            throw new ServiceError('forbidden', 'forbidden', 'Only people who manage Projects can create projects here.');
+        }
         if (trim((string)($in['name'] ?? '')) === '') {
             throw new ServiceError('validation', 'missing_field', 'Give the project a name.');
         }
+        // A new project starts the way Projects -> Settings says, unless told otherwise.
+        if (!array_key_exists('methodology', $in)) $in['methodology'] = projectSetting($conn, 'project_default_method');
         // A new project is led by whoever created it unless told otherwise.
         if (!array_key_exists('owner_analyst_id', $in) && $ctx->actorId > 0) $in['owner_analyst_id'] = $ctx->actorId;
 
@@ -111,6 +117,7 @@ class ProjectsService
     public static function updateProject(PDO $conn, ActorContext $ctx, int $id, array $in): int
     {
         $cur = self::loadForActor($conn, $ctx, $id);
+        self::assertCanChange($conn, $ctx, $cur);
         $sets = []; $args = []; $changes = [];
         foreach (self::fieldMap() as $field => $def) {
             if (!array_key_exists($field, $in)) continue;
@@ -165,7 +172,10 @@ class ProjectsService
      */
     public static function deleteProject(PDO $conn, ActorContext $ctx, int $id): array
     {
-        self::loadForActor($conn, $ctx, $id);
+        $cur = self::loadForActor($conn, $ctx, $id);
+        if ($ctx->actorId > 0 && !projectCanDelete($conn, $ctx->actorId, $cur)) {
+            throw new ServiceError('forbidden', 'forbidden', 'Only the project manager, the person who created it or someone who manages Projects can delete a project.');
+        }
         $conn->beginTransaction();
         try {
             $st = $conn->prepare("UPDATE tasks SET project_id = NULL, project_stage_id = NULL WHERE project_id = ?");
@@ -221,6 +231,7 @@ class ProjectsService
     public static function saveStage(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
     {
         $project = self::loadForActor($conn, $ctx, $projectId);
+        self::assertCanChange($conn, $ctx, $project);
         $preset  = projectMethodologies()[$project['methodology']] ?? projectMethodologies()['simple'];
         $stageId = (int)($in['id'] ?? 0);
         $cur = null;
@@ -269,7 +280,7 @@ class ProjectsService
     /** Delete a time box. Its tasks stay in the project, unassigned to any stage. */
     public static function deleteStage(PDO $conn, ActorContext $ctx, int $projectId, int $stageId): void
     {
-        self::loadForActor($conn, $ctx, $projectId);
+        self::assertCanChange($conn, $ctx, self::loadForActor($conn, $ctx, $projectId));
         $stage = self::loadStage($conn, $stageId);
         if ((int)$stage['project_id'] !== $projectId) throw new ServiceError('not_found', 'not_found', 'Stage not found.');
         $conn->beginTransaction();
@@ -288,7 +299,7 @@ class ProjectsService
     /** Put the project's time boxes in the given order (ids not listed keep their place after). */
     public static function reorderStages(PDO $conn, ActorContext $ctx, int $projectId, array $ids): void
     {
-        self::loadForActor($conn, $ctx, $projectId);
+        self::assertCanChange($conn, $ctx, self::loadForActor($conn, $ctx, $projectId));
         $st = $conn->prepare("UPDATE project_stages SET position = ? WHERE id = ? AND project_id = ?");
         $pos = 1;
         foreach ($ids as $sid) {
@@ -314,12 +325,17 @@ class ProjectsService
         if (!$task) throw new ServiceError('not_found', 'not_found', 'Task not found.');
         self::assertScope($conn, $ctx, $task, 'Task not found.');
 
+        // Taking a task OUT of a project is a change to that project.
+        if (!empty($task['project_id']) && (int)$task['project_id'] !== (int)$projectId) {
+            try { self::assertCanChange($conn, $ctx, self::loadRow($conn, (int)$task['project_id'])); } catch (ServiceError $e) { if ($e->kind === 'forbidden') throw $e; }
+        }
         if ($projectId === null || $projectId <= 0) {
             $conn->prepare("UPDATE tasks SET project_id = NULL, project_stage_id = NULL, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$taskId]);
             if (!empty($task['project_id'])) self::touch($conn, (int)$task['project_id']);
             return;
         }
         $project = self::loadForActor($conn, $ctx, $projectId);
+        self::assertCanChange($conn, $ctx, $project);
         if (!self::sameTenant($conn, $task['tenant_id'], $project['tenant_id'])) {
             throw new ServiceError('validation', 'invalid_field', 'That task belongs to a different company from the project.');
         }
@@ -345,6 +361,7 @@ class ProjectsService
     public static function createTaskInProject(PDO $conn, ActorContext $ctx, int $projectId, ?int $stageId, array $in): int
     {
         $project = self::loadForActor($conn, $ctx, $projectId);
+        self::assertCanChange($conn, $ctx, $project);
         if ($stageId !== null && $stageId > 0) {
             $s = self::loadStage($conn, $stageId);
             if ((int)$s['project_id'] !== $projectId) throw new ServiceError('validation', 'invalid_field', 'That stage is not part of this project.');
@@ -397,6 +414,20 @@ class ProjectsService
         $row = $st->fetch(PDO::FETCH_ASSOC);
         if (!$row) throw new ServiceError('not_found', 'not_found', 'Stage not found.');
         return $row;
+    }
+
+    /**
+     * May this caller change this project? Projects -> Settings -> General decides
+     * (its team, or everyone with the module); people who manage Projects always
+     * may. A system actor (actorId 0 - demo import, scheduled work) is not a person
+     * and is not asked.
+     */
+    public static function assertCanChange(PDO $conn, ActorContext $ctx, array $project): void
+    {
+        if ($ctx->actorId <= 0) return;
+        if (!projectCanChange($conn, $ctx->actorId, $project)) {
+            throw new ServiceError('forbidden', 'forbidden', 'Only this project\'s team, or someone who manages Projects, can change it.');
+        }
     }
 
     private static function assertScope(PDO $conn, ActorContext $ctx, array $row, string $notFound): void

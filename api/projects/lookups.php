@@ -28,6 +28,7 @@ projectApiRun(function () use ($conn, $analystId) {
         'companies'       => $companies,
         'active_company'  => isMultiTenant($conn) ? getActiveTenantId($conn, $analystId) : null,
         'multi_company'   => isMultiTenant($conn),
+        'default_method'  => projectSetting($conn, 'project_default_method'),
         'methodologies'   => $methods,
         'statuses'        => projectStatuses(),
         'colours'         => $colours,

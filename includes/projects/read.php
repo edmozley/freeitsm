@@ -17,6 +17,7 @@
 
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/methodologies.php';
+require_once __DIR__ . '/settings.php';
 
 /** Per-project task counts in one query: total, done, overdue (top-level tasks only). */
 function projectTaskStats(PDO $conn, array $projectIds): array
@@ -50,31 +51,43 @@ function projectTaskStats(PDO $conn, array $projectIds): array
  * Finished projects have no health (null). Written in the help page too - keep
  * the two in step.
  */
-function projectAutoHealth(array $p, array $stats): ?string
+function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
 {
     if (in_array($p['status'], projectFinishedStatuses(), true)) return null;
+    // Projects -> Settings -> Health; the defaults are 14 days, 75% and 25%.
+    $cfg = $cfg ?? ['amber_days' => 14, 'amber_progress' => 75, 'red_overdue_pct' => 25];
     $total = $stats['total'] ?? 0; $done = $stats['done'] ?? 0; $overdue = $stats['overdue'] ?? 0;
     $open = $total - $done;
     $today = gmdate('Y-m-d');
     if (!empty($p['target_end_date']) && $p['target_end_date'] < $today && $open > 0) return 'red';
-    if ($open > 0 && $overdue * 4 >= $open && $overdue > 0) return 'red';
+    if ($open > 0 && $overdue > 0 && $overdue * 100 >= $open * $cfg['red_overdue_pct']) return 'red';
     if ($overdue > 0) return 'amber';
     if (!empty($p['target_end_date']) && $open > 0) {
         $days = (strtotime($p['target_end_date']) - strtotime($today)) / 86400;
-        if ($days <= 14 && $total > 0 && ($done / $total) < 0.75) return 'amber';
+        if ($days <= $cfg['amber_days'] && $total > 0 && ($done * 100 / $total) < $cfg['amber_progress']) return 'amber';
     }
     return 'green';
 }
 
+/** The Health tab's thresholds, as numbers. */
+function projectHealthConfig(PDO $conn): array
+{
+    return [
+        'amber_days'      => (int)projectSetting($conn, 'project_amber_days'),
+        'amber_progress'  => (int)projectSetting($conn, 'project_amber_progress'),
+        'red_overdue_pct' => (int)projectSetting($conn, 'project_red_overdue_pct'),
+    ];
+}
+
 /** Add progress, counts and the health actually shown to a project row. */
-function projectDecorate(array $p, array $stats): array
+function projectDecorate(array $p, array $stats, ?array $cfg = null): array
 {
     $s = $stats + ['total' => 0, 'done' => 0, 'overdue' => 0];
     $p['task_total']   = $s['total'];
     $p['task_done']    = $s['done'];
     $p['task_overdue'] = $s['overdue'];
     $p['progress']     = $s['total'] > 0 ? (int)round($s['done'] * 100 / $s['total']) : 0;
-    $p['auto_health']  = projectAutoHealth($p, $s);
+    $p['auto_health']  = projectAutoHealth($p, $s, $cfg);
     $p['shown_health'] = in_array($p['status'], projectFinishedStatuses(), true)
         ? null
         : ($p['health'] !== 'auto' ? $p['health'] : $p['auto_health']);
@@ -123,8 +136,9 @@ function projectListRows(PDO $conn, int $analystId, array $f = []): array
     $st->execute(array_merge($args, $tArgs));
     $rows = $st->fetchAll(PDO::FETCH_ASSOC);
     $stats = projectTaskStats($conn, array_column($rows, 'id'));
+    $cfg = projectHealthConfig($conn);
     foreach ($rows as &$r) {
-        $r = projectDecorate($r, $stats[(int)$r['id']] ?? []);
+        $r = projectDecorate($r, $stats[(int)$r['id']] ?? [], $cfg);
     }
     unset($r);
     return $rows;
@@ -140,7 +154,7 @@ function projectDetail(PDO $conn, array $row): array
     $st->execute([$id]);
     $row += $st->fetch(PDO::FETCH_ASSOC) ?: [];
     $stats = projectTaskStats($conn, [$id]);
-    $project = projectDecorate($row, $stats[$id] ?? []);
+    $project = projectDecorate($row, $stats[$id] ?? [], projectHealthConfig($conn));
 
     $s = $conn->prepare("SELECT s.*,
                                 (SELECT COUNT(*) FROM tasks t WHERE t.project_stage_id = s.id AND t.parent_task_id IS NULL) AS task_total,

@@ -247,10 +247,18 @@
         html += data.stages.map(s => lane(s, byStage[s.id] || [])).join('');
         html += lane(null, byStage[''] || []);
         document.getElementById('pvPlan').innerHTML = html;
+        if (data.permissions && !data.permissions.can_change) document.querySelectorAll('#pvPlan .prj-task').forEach(r => { r.draggable = false; });
     }
 
     // ---- Drawing everything ---------------------------------------------------------
     function renderAll() {
+        // What this analyst may do (Projects -> Settings -> General). The server
+        // refuses anything else; this only stops the page offering it.
+        const perms = data.permissions || { can_change: true, can_delete: true };
+        page.classList.toggle('prj-readonly', !perms.can_change);
+        document.getElementById('pvEdit').hidden = !perms.can_change;
+        document.getElementById('pvDelete').hidden = !perms.can_delete;
+        page.querySelectorAll('.prj-task[draggable]').forEach(r => { r.draggable = !!perms.can_change; });
         renderBanner();
         renderOverview();
         renderPlan();

@@ -220,6 +220,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
         $k = projectLinkKind($kind);
         if (!projectLinksReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System → Database Verification first.');
         $tenant = projectLinkProjectTenant($conn, $ctx, $projectId);
+        ProjectsService::assertCanChange($conn, $ctx, ProjectsService::loadRow($conn, $projectId));
         if (!projectLinkKindAllowed($conn, $ctx->actorId, $kind) || !projectLinkTargetOk($conn, $ctx->actorId, $kind, $targetId, $tenant)) {
             throw new ServiceError('not_found', 'not_found', 'That record cannot be linked to this project.');
         }
@@ -238,6 +239,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
         $k = projectLinkKind($kind);
         if (!projectLinksReady($conn)) return false;
         $tenant = projectLinkProjectTenant($conn, $ctx, $projectId);
+        ProjectsService::assertCanChange($conn, $ctx, ProjectsService::loadRow($conn, $projectId));
         // Removing needs the same right as adding: both ends visible. A link you
         // cannot see is not yours to delete.
         if (!projectLinkKindAllowed($conn, $ctx->actorId, $kind) || !projectLinkTargetOk($conn, $ctx->actorId, $kind, $targetId, $tenant)) {

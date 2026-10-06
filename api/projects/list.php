@@ -11,5 +11,6 @@ projectApiRun(function () use ($conn, $analystId) {
         'status' => $_GET['status'] ?? '',
         'mine'   => !empty($_GET['mine']),
     ]);
-    projectApiOk(['projects' => $rows, 'multi_company' => isMultiTenant($conn)]);
+    require_once __DIR__ . '/../../includes/projects/settings.php';
+    projectApiOk(['projects' => $rows, 'multi_company' => isMultiTenant($conn), 'can_create' => projectCanCreate($conn, $analystId)]);
 });

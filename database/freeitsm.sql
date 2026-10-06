@@ -7760,6 +7760,11 @@ CREATE TABLE IF NOT EXISTS `projects` (
     -- icon key from a fixed set (validated by the service, never free CSS/SVG).
     `colour`            VARCHAR(20) NOT NULL DEFAULT 'coral',
     `icon`              VARCHAR(30) NOT NULL DEFAULT 'rocket',
+    -- Phase 2. The business case (Staged projects - reviewed at every gate) and
+    -- the tailoring: which tools this project uses, as JSON, against its method's
+    -- defaults. NULL = the method's defaults.
+    `business_case`     TEXT NULL,
+    `tailoring`         VARCHAR(500) NULL,
     `created_by_id`     INT NULL,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -7787,6 +7792,11 @@ CREATE TABLE IF NOT EXISTS `project_stages` (
     `end_date`          DATE NULL,
     `position`          INT NOT NULL DEFAULT 0,
     `status`            VARCHAR(10) NOT NULL DEFAULT 'planned',  -- planned | active | closed
+    -- The gate at the end of a stage (Staged projects): go | go_with_conditions | stop.
+    `gate_decision`         VARCHAR(20) NULL,
+    `gate_notes`            TEXT NULL,
+    `gate_decided_by`       INT NULL,
+    `gate_decided_datetime` DATETIME NULL,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
@@ -7897,7 +7907,148 @@ CREATE TABLE IF NOT EXISTS `project_knowledge_articles` (
     CONSTRAINT `fk_pka_target` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_pka_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---- Projects phase 2 (3.2.0): roles, members, scope, RACI, RAID, tolerances ----
+
+-- The project roles offered on a project's People tab. Seeded with the
+-- PRINCE2-style roles plus Team member and Stakeholder; editable in
+-- Projects -> Settings -> Roles. Install-wide, like a list of words.
+CREATE TABLE IF NOT EXISTS `project_roles` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) NOT NULL,
+    `description`       VARCHAR(255) NULL,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_project_roles_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Who is on a project: exactly one of an analyst, a team or a person from People
+-- (a business sponsor with no analyst account can still hold a role). They are
+-- the RACI matrix's columns.
+CREATE TABLE IF NOT EXISTS `project_members` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `analyst_id`            INT NULL,
+    `team_id`               INT NULL,
+    `user_id`               INT NULL,
+    `role_id`               INT NULL,
+    `notes`                 VARCHAR(255) NULL,
+    `position`              INT NOT NULL DEFAULT 0,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`               TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_project_members_project` (`project_id`, `position`),
+    KEY `ix_pmem_analyst` (`analyst_id`),
+    CONSTRAINT `fk_pmem_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pmem_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pmem_team` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pmem_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pmem_role` FOREIGN KEY (`role_id`) REFERENCES `project_roles` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pmem_created_by` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Deliverables and requirements, in one tree. The MoSCoW board and the RACI
+-- matrix are two views of it: MoSCoW sorts the rows, RACI says who does what.
+CREATE TABLE IF NOT EXISTS `project_items` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `project_id`          INT NOT NULL,
+    `parent_id`           INT NULL,
+    `title`               VARCHAR(255) NOT NULL,
+    `description`         TEXT NULL,
+    `acceptance_criteria` TEXT NULL,
+    `moscow`              VARCHAR(10) NULL,                         -- must | should | could | wont
+    `stage_id`            INT NULL,
+    `status`              VARCHAR(20) NOT NULL DEFAULT 'proposed',  -- proposed | agreed | in_progress | accepted | dropped
+    `position`            INT NOT NULL DEFAULT 0,
+    `created_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`             TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_project_items_project` (`project_id`, `position`),
+    CONSTRAINT `fk_pitem_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pitem_parent` FOREIGN KEY (`parent_id`) REFERENCES `project_items` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pitem_stage` FOREIGN KEY (`stage_id`) REFERENCES `project_stages` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The RACI matrix: one letter per (item, member). Exactly one A per item is a
+-- rule the screen enforces and the service checks.
+CREATE TABLE IF NOT EXISTS `project_raci` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `project_id`  INT NOT NULL,
+    `item_id`     INT NOT NULL,
+    `member_id`   INT NOT NULL,
+    `letter`      CHAR(1) NOT NULL,                                 -- R | A | C | I
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_praci_cell` (`item_id`, `member_id`),
+    KEY `ix_praci_project` (`project_id`),
+    CONSTRAINT `fk_praci_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_praci_item` FOREIGN KEY (`item_id`) REFERENCES `project_items` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_praci_member` FOREIGN KEY (`member_id`) REFERENCES `project_members` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The RAID log: risks, assumptions, issues, decisions (and lessons). The risk
+-- heat map is drawn from it, never kept separately.
+CREATE TABLE IF NOT EXISTS `project_raid` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `project_id`        INT NOT NULL,
+    `type`              VARCHAR(12) NOT NULL,                       -- risk | assumption | issue | decision | lesson
+    `title`             VARCHAR(255) NOT NULL,
+    `description`       TEXT NULL,
+    `probability`       TINYINT NULL,                               -- 1-5, risks only
+    `impact`            TINYINT NULL,                               -- 1-5, risks and issues
+    `response`          VARCHAR(12) NULL,                           -- avoid | reduce | transfer | accept | share
+    `response_plan`     TEXT NULL,
+    `owner_analyst_id`  INT NULL,
+    `status`            VARCHAR(10) NOT NULL DEFAULT 'open',        -- open | closed
+    `due_date`          DATE NULL,
+    `ticket_id`         INT NULL,                                   -- an issue that became, or came from, a ticket
+    `raised_by_id`      INT NULL,
+    `raised_datetime`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `closed_datetime`   DATETIME NULL,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_project_raid_project` (`project_id`, `type`, `status`),
+    CONSTRAINT `fk_praid_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_praid_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_praid_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_praid_raised_by` FOREIGN KEY (`raised_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tolerances: how far a project (stage_id NULL) or a stage may drift before it is
+-- an exception. time = days late; risk = the highest open risk score (1-25).
+CREATE TABLE IF NOT EXISTS `project_tolerances` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `project_id`  INT NOT NULL,
+    `stage_id`    INT NULL,
+    `dimension`   VARCHAR(12) NOT NULL,                             -- time | risk
+    `value`       INT NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ptol_dimension` (`project_id`, `stage_id`, `dimension`),
+    CONSTRAINT `fk_ptol_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ptol_stage` FOREIGN KEY (`stage_id`) REFERENCES `project_stages` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- Seed: the project roles a fresh install starts with (PRINCE2-style, in our
+-- own words). Only into an empty table, so an edited list is never put back.
+INSERT INTO `project_roles` (`name`, `description`, `display_order`)
+SELECT * FROM (
+    SELECT 'Executive' AS n, 'Owns the business case and makes the final call at each gate' AS d, 1 AS o UNION ALL
+    SELECT 'Senior User', 'Speaks for the people who will use what the project delivers', 2 UNION ALL
+    SELECT 'Senior Supplier', 'Speaks for the people building or supplying it', 3 UNION ALL
+    SELECT 'Project Manager', 'Runs the project day to day', 4 UNION ALL
+    SELECT 'Team Manager', 'Leads a team delivering part of the work', 5 UNION ALL
+    SELECT 'Project Assurance', 'Checks independently that the project is being run properly', 6 UNION ALL
+    SELECT 'Project Support', 'Helps with plans, records and admin', 7 UNION ALL
+    SELECT 'Team member', 'Does the work', 8 UNION ALL
+    SELECT 'Stakeholder', 'Needs to be kept informed', 9
+) s
+WHERE NOT EXISTS (SELECT 1 FROM `project_roles` LIMIT 1);
 
 -- Seed: the domain statuses a fresh install starts with. Only into an empty
 -- table, so a deliberately edited list is never put back.

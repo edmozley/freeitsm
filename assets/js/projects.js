@@ -198,7 +198,7 @@
         formState = {
             colour: (project && project.colour) || L.colours[Math.floor(Math.random() * L.colours.length)].key,
             icon: (project && project.icon) || 'rocket',
-            method: (project && project.methodology) || 'simple',
+            method: (project && project.methodology) || L.default_method || 'simple',
             origMethod: isEdit ? project.methodology : null,
             onSaved: onSaved,
         };

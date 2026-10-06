@@ -217,6 +217,16 @@ final class Cap
     // Service Status page, which customers read - sensitive for that reason.
     const DOMAINS_SERVICE_STATUS = 'domains.service_status';
 
+    // ---- Projects (3.2.0) --------------------------------------------------
+    // GENERAL decides who may create and change projects - the module's own
+    // permission rules - so it is sensitive. HEALTH tunes the traffic light;
+    // ROLES and RAID are lists of words and scales.
+    const PROJECTS_MANAGE  = 'projects.manage';      // umbrella; also may change and delete ANY project
+    const PROJECTS_GENERAL = 'projects.general';
+    const PROJECTS_HEALTH  = 'projects.health';
+    const PROJECTS_ROLES   = 'projects.roles';
+    const PROJECTS_RAID    = 'projects.raid';
+
     // ---- Tickets -----------------------------------------------------------
     // The module the whole per-tab design was argued FOR. Fourteen tabs, and they are
     // emphatically not the same kind of thing: MAILBOXES holds the OAuth credentials and
