@@ -326,7 +326,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .btn-link { color: #ef5350; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=172">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=173">
 </head>
 <body data-mobile-module="system" data-mobile-page="branding">
     <?php include '../includes/header.php'; ?>

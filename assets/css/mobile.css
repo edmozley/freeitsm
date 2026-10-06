@@ -13494,6 +13494,66 @@
     }
     body[data-mobile-page="tickets-users"] .users-mobile-back svg { width: 18px; height: 18px; }
 
+    /* The detail pane could not be scrolled. Desktop clips the pane
+       (`overflow: hidden`) and scrolls only the tickets list at the bottom;
+       on a phone the header and the now single-column info grid fill the
+       screen, so that list is squeezed to nothing and there is nothing left
+       that scrolls. Here the whole pane scrolls instead, and the tickets
+       section takes its natural height. */
+    body[data-mobile-page="tickets-users"] .user-detail-container {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+    }
+    body[data-mobile-page="tickets-users"] .user-detail-container .tickets-section {
+        flex: none;
+        overflow: visible;
+    }
+    body[data-mobile-page="tickets-users"] .user-detail-container .tickets-list { overflow: visible; }
+
+    /* People / Edit / Manager access / Delete sat beside the name in a
+       `flex-shrink: 0` row, so on a phone they ran off the right edge. Here
+       the name goes on top and the buttons wrap underneath it. The rows are
+       inline-styled in selectUser(), hence !important. */
+    body[data-mobile-page="tickets-users"] .user-detail-header { padding: 14px 16px; }
+    body[data-mobile-page="tickets-users"] .user-detail-header > div {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+    body[data-mobile-page="tickets-users"] .user-detail-header > div > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+    body[data-mobile-page="tickets-users"] .user-detail-header > div > div:last-child {
+        flex-shrink: 1 !important;
+        justify-content: flex-start !important;
+    }
+
+    /* The user's tickets: a five-column grid (130px 1fr 150px 80px 130px)
+       left the subject a couple of letters wide and cut Priority and Created
+       off the right. Each row becomes a small card - number and status, the
+       subject in full, then priority and date - and the header row goes,
+       since there are no columns left for it to label. */
+    body[data-mobile-page="tickets-users"] .ticket-row-header { display: none; }
+    body[data-mobile-page="tickets-users"] .ticket-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "num status"
+            "subject subject"
+            "priority date";
+        gap: 4px 10px;
+        padding: 12px 16px;
+    }
+    body[data-mobile-page="tickets-users"] .ticket-row .ticket-number   { grid-area: num; }
+    body[data-mobile-page="tickets-users"] .ticket-row .ticket-status   { grid-area: status; justify-self: end; }
+    body[data-mobile-page="tickets-users"] .ticket-row .ticket-subject  {
+        grid-area: subject;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="tickets-users"] .ticket-row .ticket-priority { grid-area: priority; padding-left: 0; font-size: 12px; color: var(--text-dim, #888); }
+    body[data-mobile-page="tickets-users"] .ticket-row .ticket-date     { grid-area: date; justify-self: end; font-size: 12px; }
+
     /* ---- 39b. The calendar modal's four buttons become icons -----------
        Ed asked for this, mobile only. mobile.js swaps the markup and puts the
        label into aria-label; this makes them square and keeps them on one row
