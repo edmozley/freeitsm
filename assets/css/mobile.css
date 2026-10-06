@@ -15372,3 +15372,550 @@
     body[data-mobile-page^="lms-tests"] .ct-answers li.picked > span:not(.ct-mark) { flex: 1 1 0; min-width: 0; }
     body[data-mobile-page^="lms-tests"] .ct-answers li.picked::after { flex: 1 1 100%; margin: 0; padding-left: 36px; }
 }
+
+@media (max-width: 768px) {
+    /* ====================================================================
+       LAYER 44 - Projects (3.2.0)
+       --------------------------------------------------------------------
+       Built after the rollout with mobile.css linked AFTER projects.css and
+       markers on all three pages, so nothing spilled off the document - and
+       two pages were still unusable, which only the pane widths showed
+       (Techniques §30, measured at 360x740 through an explicit-width
+       iframe):
+
+         portfolio  a 240px flex-shrink:0 sidebar left .prj-main 120px wide,
+                    holding a 300px card grid - the fixed-sidebar shape for
+                    the sixth time (§32). Sidebar -> a §4 sheet behind a
+                    Filters bar (mobile.js LAYER 44a, the Domains 41 shape).
+         a project  the banner's icon + text + 92px ring in one flex row left
+                    the text 10px wide: the name one word per line, a banner
+                    755px tall. Lane heads the same (titles 41px). The
+                    actions -> a sticky footer (41i's shape, mobile.js 44b);
+                    tasks get a phase picker, because the drag between lanes
+                    is not a phone control here (44c, §22).
+         help       the shared guide layer already answers it.
+
+       Every field in the module was 13px (§3) - 44b fixes it module-wide.
+       ==================================================================== */
+
+    /* ---- 44a. The scrolling shells (§28) ----------------------------------
+       Both pages are `height: calc(100vh - 62px)` shells. On a phone the
+       header is not 62px and 100vh runs under Safari's address bar; LAYER 2
+       already makes <body> a 100dvh flex column, so each shell takes the
+       remainder - and min-height: 0, or its content becomes its floor and
+       nothing scrolls. */
+    body[data-mobile-page="projects-portfolio"] .prj-layout {
+        flex: 1 1 auto;
+        flex-direction: column;
+        height: auto;
+        min-height: 0;
+    }
+    body[data-mobile-page="projects-portfolio"] .prj-main {
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px 12px calc(var(--prj-bar-h, 64px) + 12px);
+    }
+    body[data-mobile-page="projects-view"] .prj-page {
+        flex: 1 1 auto;
+        height: auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px 12px calc(var(--prj-vbar-h, 64px) + 16px);
+    }
+
+    /* ---- 44b. 16px on every field in this module (§3) -------------------
+       Excluding what must not change rather than listing what must, so a
+       field type added later is covered by default. The dialogs are inside
+       <body> too, so this reaches them whatever LAYER 3's selectors miss. */
+    body[data-mobile-module="projects"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]),
+    body[data-mobile-module="projects"] select,
+    body[data-mobile-module="projects"] textarea {
+        font-size: 16px;
+    }
+    /* §20: a native date field sizes itself to the date it draws, which on
+       iOS spells the month out. LAYER 3 resets the dialogs' fields; the
+       add-a-task row is not in a dialog. */
+    body[data-mobile-module="projects"] .prj-add-task input[type="date"] {
+        -webkit-appearance: none;
+        appearance: none;
+        box-sizing: border-box;
+        min-width: 0;
+    }
+    body[data-mobile-module="projects"] .prj-add-task input[type="date"]::-webkit-date-and-time-value {
+        margin: 0;
+        text-align: left;
+    }
+
+    /* ---- 44c. The portfolio ------------------------------------------------
+       The figures are already two-up (projects.css's own 1100px block); they
+       get the house density. One card per row - `minmax(300px, 1fr)` fits
+       one 300px track in 336px and the card's own min-width: auto would
+       still hold it (§14), so the track is minmax(0, 1fr). */
+    body[data-mobile-page="projects-portfolio"] .prj-tiles { gap: 10px; margin-bottom: 12px; }
+    body[data-mobile-module="projects"] .prj-tile { min-width: 0; padding: 11px 12px 11px 14px; }
+    body[data-mobile-module="projects"] .prj-tile-num { font-size: 22px; }
+    body[data-mobile-module="projects"] .prj-tile-label { overflow-wrap: anywhere; }
+    body[data-mobile-page="projects-portfolio"] .prj-toolbar { margin-bottom: 12px; }
+    body[data-mobile-page="projects-portfolio"] .prj-toolbar .prj-btn { min-height: 40px; }
+    body[data-mobile-page="projects-portfolio"] .prj-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+    body[data-mobile-page="projects-portfolio"] .prj-card { min-width: 0; }
+    /* §7: a lift-on-hover sticks after a tap on a touchscreen. */
+    body[data-mobile-page="projects-portfolio"] .prj-card:hover {
+        transform: none;
+        box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 0 0 1px var(--border-soft, #eee);
+    }
+    body[data-mobile-page="projects-portfolio"] .prj-empty { margin: 32px auto; }
+
+    /* The Filters bar and its sheet (mobile.js 44a moves the REAL sidebar in,
+       so projects-portfolio.js keeps every listener it attached) - the
+       Domains register's 41d furniture under this module's names. */
+    body[data-mobile-page="projects-portfolio"] .prj-fbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1200;
+        display: flex;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+        background: var(--surface, #fff);
+        border-top: 1px solid var(--border, #ddd);
+    }
+    body[data-mobile-page="projects-portfolio"] .prj-fbar-btn {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--border, #ddd);
+        border-radius: 8px;
+        background: var(--surface, #fff);
+        color: var(--text, #1e293b);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    body[data-mobile-page="projects-portfolio"] .prj-fbar-btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    /* The current view rides on the button, harvested from the view's own
+       label, so no new string. */
+    body[data-mobile-page="projects-portfolio"] .prj-fbar-view {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 500;
+        color: var(--prj-accent, #e11d48);
+    }
+
+    /* The sheet chrome, shared by the Filters sheet and the phase picker. */
+    body[data-mobile-module="projects"] .prj-msheet {
+        position: fixed;
+        inset: 0;
+        z-index: 1300;          /* over the bar that opens it */
+        display: none;
+        flex-direction: column;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-module="projects"] .prj-msheet.open { display: flex; }
+    body[data-mobile-module="projects"] .prj-msheet-head {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px;
+        padding-top: calc(12px + env(safe-area-inset-top));
+        border-bottom: 1px solid var(--border-soft, #e2e8f0);
+    }
+    body[data-mobile-module="projects"] .prj-msheet-title {
+        min-width: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text, #1e293b);
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-module="projects"] .prj-msheet-close {
+        flex: 0 0 44px;
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text, #1e293b);
+        cursor: pointer;
+    }
+    body[data-mobile-module="projects"] .prj-msheet-close svg { width: 22px; height: 22px; }
+    body[data-mobile-module="projects"] .prj-msheet-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    /* The relocated sidebar, inside the sheet: full width, no rail chrome,
+       and the sheet does the scrolling. */
+    body[data-mobile-page="projects-portfolio"] .prj-msheet .prj-sidebar {
+        width: auto;
+        border: 0;
+        padding: 12px;
+        overflow: visible;
+    }
+    body[data-mobile-page="projects-portfolio"] .prj-msheet .prj-views li {
+        min-height: 44px;
+        box-sizing: border-box;
+        font-size: 15px;
+    }
+
+    /* ---- 44d. A project: the banner ---------------------------------------
+       Icon, text and the 92px ring shared one row and left the text 10px.
+       Icon and ring now share the first line (the ring's caption beside it,
+       at the right) and the text takes the full width below. */
+    body[data-mobile-page="projects-view"] .prj-banner {
+        padding: 16px 14px 14px;
+        border-radius: 14px;
+    }
+    body[data-mobile-page="projects-view"] .prj-banner-main {
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+    }
+    body[data-mobile-page="projects-view"] .prj-banner-icon {
+        order: 1;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+    }
+    body[data-mobile-page="projects-view"] .prj-banner-ring {
+        order: 2;
+        flex: 1 1 auto;
+        min-width: 0;
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+    body[data-mobile-page="projects-view"] .prj-ring-caption {
+        align-items: flex-end;
+        text-align: right;
+        min-width: 0;
+    }
+    body[data-mobile-page="projects-view"] .prj-banner-text {
+        order: 3;
+        flex: 1 1 100%;
+    }
+    body[data-mobile-page="projects-view"] .prj-banner h1 { font-size: 22px; overflow-wrap: anywhere; }
+    body[data-mobile-page="projects-view"] .prj-banner-goal { font-size: 14px; }
+    body[data-mobile-page="projects-view"] .prj-banner-facts { gap: 6px 14px; margin-top: 10px; }
+    /* Edit and Delete moved to the footer (44h), so the row they left would
+       be an empty strip. */
+    body[data-mobile-page="projects-view"] .prj-banner-actions { display: none; }
+
+    /* ---- 44e. The tabs: one row that swipes (41g's idiom) ---------------- */
+    body[data-mobile-page="projects-view"] .prj-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+        margin: 14px 0 12px;
+    }
+    body[data-mobile-page="projects-view"] .prj-tabs::-webkit-scrollbar { display: none; }
+    body[data-mobile-page="projects-view"] .prj-tabs button {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        min-height: 44px;
+        padding: 10px 14px;
+    }
+
+    /* ---- 44f. Overview, Connections, History -------------------------------
+       The grids are already one column (projects.css's own 1100px block);
+       what is left is density and the controls a phone cannot see. */
+    body[data-mobile-page="projects-view"] .prj-ov-tiles { gap: 10px; margin-bottom: 12px; }
+    /* 🔴 projects.css's own 1100px block stacks both grids to a bare `1fr`,
+       and a bare 1fr track has min-content for a floor: one linked record's
+       nowrap label held the Connections track at 452px inside a 328px pane,
+       every panel cut off at the right. The shell clips sideways, so the
+       document measured a perfectly contained 360 (§30). minmax(0, 1fr) is
+       the guard the stacking dropped (Techniques: "check it kept the
+       minmax(0, ...)"). */
+    body[data-mobile-page="projects-view"] .prj-ov-grid,
+    body[data-mobile-page="projects-view"] .prj-conn-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+    body[data-mobile-page="projects-view"] .prj-conn { min-width: 0; }
+    body[data-mobile-page="projects-view"] .prj-panel { padding: 14px; }
+    body[data-mobile-page="projects-view"] .prj-ov-links { margin-top: 12px; }
+    body[data-mobile-page="projects-view"] .prj-link { padding: 9px 0; }
+    body[data-mobile-page="projects-view"] .prj-next a { min-height: 40px; padding: 6px 0; }
+    body[data-mobile-page="projects-view"] .prj-next-title { min-width: 0; overflow-wrap: anywhere; }
+    body[data-mobile-page="projects-view"] .prj-link-chip { min-height: 38px; box-sizing: border-box; }
+    /* §26: the unlink and remove crosses appear only on :hover, and a phone
+       never hovers - they were there, tappable by accident and invisible. */
+    body[data-mobile-page="projects-view"] .prj-task-remove {
+        opacity: 1;
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        font-size: 22px;
+        border-radius: 8px;
+    }
+    body[data-mobile-page="projects-view"] .prj-conn-row { padding: 6px 0 6px 4px; }
+    body[data-mobile-page="projects-view"] .prj-conn-main { min-height: 36px; justify-content: center; }
+    body[data-mobile-page="projects-view"] .prj-conn-results button { min-height: 44px; justify-content: center; }
+
+    /* ---- 44g. The plan ----------------------------------------------------- */
+    body[data-mobile-page="projects-view"] .prj-plan-head {
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    body[data-mobile-page="projects-view"] .prj-plan-head .prj-btn { min-height: 40px; }
+    /* Lane head: the kind chip and the name share the first line, and the
+       side cluster (dates, status, count, Start/Finish, edit) takes a line
+       of its own instead of squeezing the name to 41px. */
+    body[data-mobile-page="projects-view"] .prj-lane-head {
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        padding: 12px 12px 10px;
+    }
+    body[data-mobile-page="projects-view"] .prj-lane-titles { flex: 1 1 0; }
+    body[data-mobile-page="projects-view"] .prj-lane-head h3 { overflow-wrap: anywhere; }
+    body[data-mobile-page="projects-view"] .prj-lane-side {
+        flex: 1 1 100%;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+    body[data-mobile-page="projects-view"] .prj-lane-side .btn.sm { min-height: 36px; padding: 6px 14px; }
+    body[data-mobile-page="projects-view"] .prj-lane-side .prj-icon-btn {
+        margin-left: auto;
+        width: 40px;
+        height: 40px;
+    }
+    /* "Drag a task onto a phase" describes the desktop gesture; here the
+       move is the picker on each row (44c in mobile.js). */
+    body[data-mobile-page="projects-view"] .prj-lane.unassigned .prj-lane-head .prj-muted { display: none; }
+
+    /* Task rows. The title was cut to "Install switches a..." in a row of
+       seven things. Now: the title (wrapping, never cut) with the phase
+       picker and the remove cross on the first line; who and when - and the
+       subtask count and priority, when there are any - on the line below.
+       A zero-height full-width item placed by `order` is the line break
+       (the Domains feed's 41e), so the second line starts at the left
+       whatever the title's length. The status dot sits in the corner and
+       the row is indented past it, so whichever chip comes first lines up
+       under the title. The markup is the page's own; only `order` moves. */
+    body[data-mobile-page="projects-view"] .prj-lane-tasks { padding: 2px 6px; }
+    body[data-mobile-page="projects-view"] .prj-task {
+        position: relative;
+        flex-wrap: wrap;
+        gap: 0 6px;
+        padding: 6px 2px 8px 24px;
+    }
+    body[data-mobile-page="projects-view"] .prj-task:hover { background: none; }
+    body[data-mobile-page="projects-view"] .prj-grip { display: none; }
+    body[data-mobile-page="projects-view"] .prj-task-status {
+        position: absolute;
+        left: 7px;
+        top: 19px;
+    }
+    body[data-mobile-page="projects-view"] .prj-task-title {
+        order: 1;
+        flex: 1 1 0;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="projects-view"] .prj-move-btn { order: 2; }
+    body[data-mobile-page="projects-view"] .prj-task-remove { order: 3; }
+    body[data-mobile-page="projects-view"] .prj-task::after {
+        content: "";
+        order: 4;
+        flex: 0 0 100%;
+        height: 0;
+    }
+    body[data-mobile-page="projects-view"] .prj-task > .prj-task-sub,
+    body[data-mobile-page="projects-view"] .prj-task > .prj-task-prio,
+    body[data-mobile-page="projects-view"] .prj-task > .prj-due,
+    body[data-mobile-page="projects-view"] .prj-task > .prj-avatar { order: 5; }
+    body[data-mobile-page="projects-view"] .prj-due.none { display: none; }
+    /* The phase picker - injected by mobile.js on a phone only, so it has no
+       desktop state to hide (§25). */
+    body[data-mobile-page="projects-view"] .prj-move-btn {
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid var(--border, #ddd);
+        border-radius: 8px;
+        background: var(--surface, #fff);
+        color: var(--text-muted, #555);
+        cursor: pointer;
+    }
+    body[data-mobile-page="projects-view"] .prj-move-btn svg { width: 18px; height: 18px; }
+    body[data-mobile-page="projects-view"] .prj-add-toggle { min-height: 40px; margin: 4px 10px 10px; }
+    /* The add-a-task form: what needs doing on its own line, then who, then
+       the due date and Add. */
+    body[data-mobile-page="projects-view"] .prj-add-task {
+        flex-wrap: wrap;
+        padding: 8px 12px 12px;
+    }
+    body[data-mobile-page="projects-view"] .prj-add-task input[type="text"],
+    body[data-mobile-page="projects-view"] .prj-add-task select {
+        flex: 1 1 100%;
+        max-width: none;
+        min-height: 40px;
+        box-sizing: border-box;
+    }
+    body[data-mobile-page="projects-view"] .prj-add-task input[type="date"] {
+        flex: 1 1 0;
+        min-height: 40px;
+    }
+    body[data-mobile-page="projects-view"] .prj-add-task .prj-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding: 6px 18px;
+        justify-content: center;
+    }
+
+    /* The phase picker: a list of the plan's own lanes, harvested from their
+       headings. The lane the task is in is marked and cannot be chosen. */
+    body[data-mobile-page="projects-view"] .prj-move-opt {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 52px;
+        padding: 10px 14px;
+        border: 0;
+        border-bottom: 1px solid var(--border-soft, #f0f0f0);
+        background: none;
+        color: var(--text, #222);
+        font: inherit;
+        font-size: 15px;
+        text-align: left;
+        cursor: pointer;
+    }
+    /* A handful of choices: a bottom sheet over the dimmed plan rather than
+       a whole empty screen (LAYER 16's popup shape). A tap on the dimmed
+       part closes it. */
+    body[data-mobile-page="projects-view"] .prj-move-sheet {
+        justify-content: flex-end;
+        background: rgba(15, 23, 42, .45);
+    }
+    body[data-mobile-page="projects-view"] .prj-move-sheet .prj-msheet-head {
+        background: var(--surface, #fff);
+        border-radius: 14px 14px 0 0;
+        padding-top: 8px;
+    }
+    body[data-mobile-page="projects-view"] .prj-move-sheet .prj-msheet-body {
+        flex: 0 1 auto;
+        max-height: 60dvh;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-page="projects-view"] .prj-move-opt .prj-lane-kind { flex: 0 0 auto; }
+    body[data-mobile-page="projects-view"] .prj-move-opt span:last-child { min-width: 0; overflow-wrap: anywhere; }
+    body[data-mobile-page="projects-view"] .prj-move-opt[aria-current="true"] {
+        color: var(--text-dim, #888);
+        font-weight: 600;
+        cursor: default;
+    }
+    body[data-mobile-page="projects-view"] .prj-move-opt[aria-current="true"]::after {
+        content: "\2713";
+        margin-left: auto;
+        color: var(--prj-accent, #e11d48);
+    }
+
+    /* ---- 44h. A project's actions in a sticky footer (41i's shape) ---------
+       mobile.js moves the real back link, Edit and Delete into this bar as
+       icons. Fixed, bottom, z-index 1200 so the dialogs and the confirm sit
+       over it, env() for the iPhone home indicator, height measured into
+       --prj-vbar-h rather than assumed. The banner's ghost buttons are drawn
+       for a dark gradient, so in a white bar they get the house look: Edit
+       in the module's gradient, Delete in red, set apart on the right. */
+    body[data-mobile-page="projects-view"] .prj-view-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1200;
+        display: flex;
+        gap: 8px;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+        background: var(--surface, #fff);
+        border-top: 1px solid var(--border, #ddd);
+    }
+    body[data-mobile-page="projects-view"] .prj-vb-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        height: 46px;
+        margin: 0;
+        padding: 0 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-decoration: none;
+    }
+    body[data-mobile-page="projects-view"] .prj-vb-btn svg { width: 20px; height: 20px; flex: 0 0 auto; }
+    body[data-mobile-page="projects-view"] .prj-back.prj-vb-btn {
+        flex: 0 0 46px;
+        border: 1px solid var(--border, #ddd);
+        background: var(--surface, #fff);
+        color: var(--text, #333);
+    }
+    body[data-mobile-page="projects-view"] #pvEdit.prj-vb-btn {
+        border: 0;
+        background: var(--prj-gradient, linear-gradient(135deg, #f43f5e, #7c3aed));
+        color: #fff;
+    }
+    body[data-mobile-page="projects-view"] #pvDelete.prj-vb-btn {
+        margin-left: 10px;
+        border: 1px solid #fecaca;
+        background: var(--surface, #fff);
+        color: #dc2626;
+    }
+    /* Until the project has loaded (or when it was not found) there is
+       nothing to edit or delete - the banner is still [hidden] then. */
+    body[data-mobile-page="projects-view"]:has(#prjBanner[hidden]) #pvEdit.prj-vb-btn,
+    body[data-mobile-page="projects-view"]:has(#prjBanner[hidden]) #pvDelete.prj-vb-btn { display: none; }
+
+    /* ---- 44i. The dialogs ---------------------------------------------------
+       Both are .modal-content, so LAYER 3 already makes them full-screen
+       sheets. Inside: the three method cards were 100px columns with their
+       descriptions wrapping a word a line, and the field grid two-up. Both
+       stack (a grid, so grid-template-columns - §27). */
+    body[data-mobile-module="projects"] .prj-method-cards,
+    body[data-mobile-module="projects"] .prj-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    body[data-mobile-module="projects"] .prj-method-card { min-height: 44px; }
+    body[data-mobile-module="projects"] .prj-form-banner { padding: 14px 16px; }
+    body[data-mobile-module="projects"] .prj-swatch { width: 32px; height: 32px; }
+    body[data-mobile-module="projects"] .prj-icon-choice { width: 40px; height: 40px; }
+}

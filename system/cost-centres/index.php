@@ -146,7 +146,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
             .cc-toolbar input[type=search] { width: 100%; }
         }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="system" data-mobile-page="cost-centres">
     <?php include '../includes/header.php'; ?>
@@ -602,6 +602,6 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         load();
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=75"></script>
+    <script src="../../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

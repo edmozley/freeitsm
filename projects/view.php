@@ -41,8 +41,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=3">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=4">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
     <?php include 'includes/header.php'; ?>
@@ -136,6 +136,6 @@ $projectId = (int)($_GET['id'] ?? 0);
 
     <script src="../assets/js/projects.js?v=2"></script>
     <script src="../assets/js/projects-view.js?v=4"></script>
-    <script src="../assets/js/mobile.js?v=75"></script>
+    <script src="../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

@@ -512,7 +512,7 @@ if (!isset($_SESSION['analyst_id'])) {
         [data-theme-mode="dark"] .kbadge.uni { background: #16293f; color: #93c5fd; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="system" data-mobile-page="db-verify">
     <?php include '../includes/header.php'; ?>
@@ -989,6 +989,6 @@ if (!isset($_SESSION['analyst_id'])) {
             return div.innerHTML;
         }
     </script>
-    <script src="../../assets/js/mobile.js?v=75"></script>
+    <script src="../../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

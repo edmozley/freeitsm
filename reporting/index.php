@@ -129,7 +129,7 @@ $translationNamespaces = ['common', 'reporting'];
     </style>
     <!-- Mobile layer LAST, after this page's own <style> block, or a rule at
          equal specificity loses on document order (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="reporting" data-mobile-page="rep-landing">
     <?php include 'includes/header.php'; ?>
@@ -187,6 +187,6 @@ $translationNamespaces = ['common', 'reporting'];
             </div>
         </div>
     </div>
-    <script src="../assets/js/mobile.js?v=75"></script>
+    <script src="../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

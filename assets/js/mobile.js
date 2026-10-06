@@ -5186,3 +5186,422 @@
     if (mq.addEventListener) { mq.addEventListener('change', apply); }
     else if (mq.addListener) { mq.addListener(apply); }
 })();
+
+/* ==========================================================================
+   LAYER 44a - Projects portfolio: the sidebar as a sheet (Techniques §4)
+
+   A 240px sidebar beside the cards left the card grid 120px wide on a phone.
+   The Domains register's answer (LAYER 41), under this module's names: the
+   REAL `.prj-sidebar` moves into a full-screen sheet opened from a Filters
+   bar at the bottom, and moves home when the viewport leaves mobile - so
+   every listener projects-portfolio.js attached keeps working, and desktop
+   never builds the sheet or the bar.
+
+   🔑 A view is an arrival: the sheet closes on it. The search box keeps it
+   open while you type. The bar shows the current view, harvested from the
+   view's own label, so no string is invented.
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    if (!document.body || document.body.getAttribute('data-mobile-page') !== 'projects-portfolio') return;
+
+    var mq = window.matchMedia('(max-width: 768px)');
+    var sidebar = document.querySelector('.prj-sidebar');
+    if (!sidebar) return;
+    var home = { parent: sidebar.parentNode, next: sidebar.nextSibling };
+
+    function tr(key, fallback) {
+        if (typeof window.t !== 'function') return fallback;
+        var v = window.t(key);
+        return (!v || v === key) ? fallback : v;
+    }
+    var ICONS = {
+        filter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 5h18M7 12h10M10 19h4"/></svg>',
+        close:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>'
+    };
+
+    var sheet = null, sheetBody = null, bar = null, viewLabel = null;
+
+    function build() {
+        if (sheet) return;
+        sheet = document.createElement('div');
+        sheet.className = 'prj-msheet';
+        sheet.setAttribute('role', 'dialog');
+        sheet.setAttribute('aria-modal', 'true');
+        var head = document.createElement('div');
+        head.className = 'prj-msheet-head';
+        var title = document.createElement('span');
+        title.className = 'prj-msheet-title';
+        title.textContent = tr('common.filter', 'Filter');
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'prj-msheet-close';
+        close.innerHTML = ICONS.close;
+        close.setAttribute('aria-label', tr('common.close', 'Close'));
+        close.addEventListener('click', function () { setOpen(false); });
+        head.appendChild(title);
+        head.appendChild(close);
+        sheetBody = document.createElement('div');
+        sheetBody.className = 'prj-msheet-body';
+        sheet.appendChild(head);
+        sheet.appendChild(sheetBody);
+        document.body.appendChild(sheet);
+
+        bar = document.createElement('div');
+        bar.className = 'prj-fbar';
+        var open = document.createElement('button');
+        open.type = 'button';
+        open.className = 'prj-fbar-btn';
+        open.innerHTML = ICONS.filter + '<span>' + tr('common.filter', 'Filter') + '</span>';
+        viewLabel = document.createElement('span');
+        viewLabel.className = 'prj-fbar-view';
+        open.appendChild(viewLabel);
+        open.addEventListener('click', function () { setOpen(true); });
+        bar.appendChild(open);
+        document.body.appendChild(bar);
+
+        /* CAPTURE phase - the Domains lesson: a page that redraws what was
+           tapped detaches it before a bubbling listener can ask where it was.
+           This page only toggles classes today, but the capture costs
+           nothing and survives the day it starts redrawing. */
+        sheetBody.addEventListener('click', function (e) {
+            var li = e.target.closest ? e.target.closest('#prjViews li[data-view]') : null;
+            if (li) setOpen(false);
+        }, true);
+
+        var views = document.getElementById('prjViews');
+        if (views && window.MutationObserver) {
+            new MutationObserver(showView).observe(views, { subtree: true, attributes: true, attributeFilter: ['class'] });
+        }
+        showView();
+    }
+
+    function showView() {
+        if (!viewLabel) return;
+        var active = document.querySelector('#prjViews li.active > span');
+        var text = active ? (active.textContent || '').replace(/\s+/g, ' ').trim() : '';
+        viewLabel.textContent = text ? '· ' + text : '';
+        bar.querySelector('.prj-fbar-btn').setAttribute('aria-label', tr('common.filter', 'Filter') + (text ? ' - ' + text : ''));
+    }
+
+    function setOpen(open) {
+        if (!sheet) return;
+        sheet.classList.toggle('open', !!open);
+        if (open && sheetBody) sheetBody.scrollTop = 0;
+    }
+
+    function place(intoSheet) {
+        if (intoSheet) {
+            if (sheetBody && sidebar.parentNode !== sheetBody) sheetBody.appendChild(sidebar);
+        } else if (sidebar.parentNode !== home.parent) {
+            home.parent.insertBefore(sidebar, home.next);
+        }
+    }
+
+    function reserve() {
+        if (!bar) return;
+        document.body.style.setProperty('--prj-bar-h', Math.ceil(bar.getBoundingClientRect().height) + 'px');
+    }
+
+    function sync() {
+        if (mq.matches) {
+            build();
+            place(true);
+            bar.style.display = '';
+            sheet.style.display = '';
+            reserve();
+        } else {
+            place(false);
+            setOpen(false);
+            if (bar) bar.style.display = 'none';
+            if (sheet) sheet.style.display = 'none';
+            document.body.style.removeProperty('--prj-bar-h');
+        }
+    }
+    sync();
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
+})();
+
+/* ==========================================================================
+   LAYER 44b - Projects: a project's actions in a sticky footer (41i's shape)
+
+   "All projects" was a small grey text link, and Edit / Delete sat at the
+   foot of the banner and scrolled away. On a phone all three live in a
+   footer pinned to the bottom - Back as a chevron square, Edit and Delete as
+   icons - done exactly as the Domains view (41i):
+
+   - The REAL link and buttons move, never copies: projects-view.js binds
+     #pvEdit and #pvDelete by id, so a clone would do nothing.
+   - Each one's own label goes into aria-label (an icon has no name).
+   - Above 768px everything returns exactly where it was.
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    if (!document.body || document.body.getAttribute('data-mobile-page') !== 'projects-view') return;
+
+    var mq = window.matchMedia('(max-width: 768px)');
+    var btns = [document.querySelector('#prjPage > .prj-back'), document.getElementById('pvEdit'), document.getElementById('pvDelete')];
+    if (btns.indexOf(null) !== -1) return;
+
+    var ICONS = {
+        back:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+        pvEdit:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+        pvDelete: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
+    };
+
+    var footer = null;
+    var saved = [];
+
+    function build() {
+        if (footer) return;
+        footer = document.createElement('div');
+        footer.className = 'prj-view-bar';
+        document.body.appendChild(footer);
+    }
+
+    function toIcons() {
+        if (saved.length) return;
+        btns.forEach(function (el) {
+            saved.push({ el: el, html: el.innerHTML, parent: el.parentNode, next: el.nextSibling,
+                         hadAria: el.hasAttribute('aria-label') });
+            // The back link reads "← All projects": the arrow becomes the icon.
+            var label = (el.textContent || '').replace(/\s+/g, ' ').replace(/^[←<]+\s*/, '').trim();
+            // Two actions leave room for their own words (one each, "Edit" /
+            // "Delete"); Back is the square, as in the Domains footer.
+            var word = document.createElement('span');
+            word.textContent = label;
+            el.innerHTML = ICONS[el.id] ? ICONS[el.id] + word.outerHTML : ICONS.back;
+            if (label) el.setAttribute('aria-label', label);
+            el.classList.add('prj-vb-btn');
+            footer.appendChild(el);
+        });
+    }
+
+    function toText() {
+        saved.forEach(function (s) {
+            s.el.innerHTML = s.html;
+            if (!s.hadAria) s.el.removeAttribute('aria-label');
+            s.el.classList.remove('prj-vb-btn');
+            s.parent.insertBefore(s.el, s.next);      // exactly where it was
+        });
+        saved = [];
+    }
+
+    function reserve() {
+        if (!footer) return;
+        document.body.style.setProperty('--prj-vbar-h', Math.ceil(footer.getBoundingClientRect().height) + 'px');
+    }
+
+    function sync() {
+        if (mq.matches) {
+            build();
+            footer.style.display = '';
+            toIcons();
+            reserve();
+        } else {
+            toText();
+            if (footer) footer.style.display = 'none';
+            document.body.style.removeProperty('--prj-vbar-h');
+        }
+    }
+    sync();
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
+})();
+
+/* ==========================================================================
+   LAYER 44c - Projects plan: move a task to another phase without a drag
+
+   On desktop a task is dragged between lanes (HTML5 drag-and-drop). §22
+   says that kind of drag CAN fire on iOS from a long press - but here the
+   grip only appears on :hover (§26), the row is mostly a link whose long
+   press opens the link menu, and a 360px screen shows one lane at a time, so
+   the lane you want is usually off-screen. A phone gets a picker instead: a
+   small button on each row opens a sheet listing the plan's own lanes.
+
+   🔑 Wrap, don't edit (§1), Network Mapper's way (LAYER 31): choosing a
+   lane dispatches the SAME events the page already listens for - a
+   `dragstart` on the row and a `drop` on the lane - so projects-view.js's own
+   moveTask() does the API call and the redraw, and not one line of it
+   changed. The events carry a stub dataTransfer, so no browser needs the
+   DataTransfer constructor.
+
+   Zero new strings: the lane names and kind chips come from the lanes'
+   own headings, the sheet's title is the task's own title, and the button's
+   name is the plan's own word for a lane ("Phase", "Stage", "Sprint").
+   Rows are rebuilt on every change, so the plan is watched; nothing is
+   injected above 768px, and everything injected is removed when the
+   viewport leaves mobile.
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    if (!document.body || document.body.getAttribute('data-mobile-page') !== 'projects-view') return;
+
+    var mq = window.matchMedia('(max-width: 768px)');
+    var plan = document.getElementById('pvPlan');
+    if (!plan || !window.MutationObserver) return;
+
+    function tr(key, fallback) {
+        if (typeof window.t !== 'function') return fallback;
+        var v = window.t(key);
+        return (!v || v === key) ? fallback : v;
+    }
+    function txt(el) { return el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
+    var ICON_MOVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4"/><path d="M17 20V4M13 8l4-4 4 4"/></svg>';
+    var ICON_CLOSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+    var sheet = null, sheetTitle = null, sheetBody = null, current = null, pending = null;
+
+    function build() {
+        if (sheet) return;
+        sheet = document.createElement('div');
+        sheet.className = 'prj-msheet prj-move-sheet';
+        sheet.setAttribute('role', 'dialog');
+        sheet.setAttribute('aria-modal', 'true');
+        var head = document.createElement('div');
+        head.className = 'prj-msheet-head';
+        sheetTitle = document.createElement('span');
+        sheetTitle.className = 'prj-msheet-title';
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'prj-msheet-close';
+        close.innerHTML = ICON_CLOSE;
+        close.setAttribute('aria-label', tr('common.close', 'Close'));
+        close.addEventListener('click', function () { setOpen(false); });
+        head.appendChild(sheetTitle);
+        head.appendChild(close);
+        sheetBody = document.createElement('div');
+        sheetBody.className = 'prj-msheet-body';
+        sheet.appendChild(head);
+        sheet.appendChild(sheetBody);
+        document.body.appendChild(sheet);
+        // A tap on the dimmed plan above the choices closes the sheet.
+        sheet.addEventListener('click', function (e) { if (e.target === sheet) setOpen(false); });
+        sheetBody.addEventListener('click', function (e) {
+            var opt = e.target.closest ? e.target.closest('.prj-move-opt') : null;
+            if (!opt || opt.getAttribute('aria-current') === 'true') return;
+            moveTo(opt.getAttribute('data-lane'));
+        });
+    }
+
+    function setOpen(open) {
+        if (!sheet) return;
+        sheet.classList.toggle('open', !!open);
+        if (!open) current = null;
+    }
+
+    /** The plan's own word for a lane, from the first lane's kind chip. */
+    function laneWord() {
+        return txt(plan.querySelector('.prj-lane-kind'));
+    }
+
+    function openFor(row) {
+        build();
+        current = row.getAttribute('data-task');
+        var here = row.closest('.prj-lane');
+        sheetTitle.textContent = txt(row.querySelector('.prj-task-title'));
+        var html = '';
+        Array.prototype.forEach.call(plan.querySelectorAll('.prj-lane'), function (lane) {
+            var id = lane.getAttribute('data-lane') || '';
+            var kind = lane.querySelector('.prj-lane-kind');
+            var name = txt(lane.querySelector('.prj-lane-head h3'));
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'prj-move-opt';
+            b.setAttribute('data-lane', id);
+            if (lane === here) b.setAttribute('aria-current', 'true');
+            if (kind) {
+                var k = document.createElement('span');
+                k.className = 'prj-lane-kind';
+                k.textContent = txt(kind);
+                b.appendChild(k);
+            }
+            var n = document.createElement('span');
+            n.textContent = name;
+            b.appendChild(n);
+            html += b.outerHTML;
+        });
+        sheetBody.innerHTML = html;
+        setOpen(true);
+    }
+
+    function fire(target, type) {
+        var ev = new Event(type, { bubbles: true, cancelable: true });
+        var dt = { effectAllowed: 'move', dropEffect: 'move', setData: function () {}, getData: function () { return current || ''; } };
+        try { Object.defineProperty(ev, 'dataTransfer', { value: dt }); } catch (err) { /* very old engines */ }
+        target.dispatchEvent(ev);
+    }
+
+    function moveTo(laneId) {
+        var row = current ? plan.querySelector('.prj-task[data-task="' + current + '"]') : null;
+        var lane = plan.querySelector('.prj-lane[data-lane="' + laneId + '"]');
+        if (!row || !lane) { setOpen(false); return; }
+        pending = { task: current, lane: laneId };
+        fire(row, 'dragstart');
+        fire(lane.querySelector('.prj-lane-tasks') || lane, 'drop');
+        fire(row, 'dragend');
+        setOpen(false);
+    }
+
+    function decorate() {
+        if (!mq.matches) return;
+        var word = laneWord();
+        // Nothing to move between until the plan has at least one lane besides
+        // "not in a phase yet".
+        var lanes = plan.querySelectorAll('.prj-lane').length;
+        Array.prototype.forEach.call(plan.querySelectorAll('.prj-task'), function (row) {
+            var btn = row.querySelector('.prj-move-btn');
+            if (lanes < 2) { if (btn) btn.remove(); return; }
+            if (btn) return;
+            btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'prj-move-btn';
+            btn.innerHTML = ICON_MOVE;
+            if (word) btn.setAttribute('aria-label', word);
+            var rm = row.querySelector('.prj-task-remove');
+            row.insertBefore(btn, rm || null);
+        });
+        // A move finished: the page redrew the plan with the task in its new lane.
+        if (pending) {
+            var moved = plan.querySelector('.prj-lane[data-lane="' + pending.lane + '"] .prj-task[data-task="' + pending.task + '"]');
+            if (moved) {
+                pending = null;
+                if (typeof window.showToast === 'function' && window.Prj && window.Prj.T) window.showToast(window.Prj.T('plan.moved'), 'success');
+            }
+        }
+    }
+
+    function strip() {
+        Array.prototype.forEach.call(plan.querySelectorAll('.prj-move-btn'), function (b) { b.remove(); });
+        setOpen(false);
+        if (sheet) sheet.style.display = 'none';
+    }
+
+    /* The picker button lives in the row, so a tap on it must not reach the
+       row's link or the page's own click handler's other branches. */
+    plan.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('.prj-move-btn') : null;
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        openFor(btn.closest('.prj-task'));
+    }, true);
+
+    new MutationObserver(decorate).observe(plan, { childList: true, subtree: true });
+
+    function sync() {
+        if (mq.matches) {
+            if (sheet) sheet.style.display = '';
+            decorate();
+        } else {
+            strip();
+        }
+    }
+    sync();
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
+})();

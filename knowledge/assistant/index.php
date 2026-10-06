@@ -126,7 +126,7 @@ $canAnalyse = analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_
         .ka-draft-note { font-size:12px; color:var(--text-muted); margin-top:12px; }
     </style>
     <!-- Mobile: LAYER 17g. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=181">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
@@ -570,6 +570,6 @@ async function kaSaveDraft() {
     } catch (e) { /* the list still works without the status line */ }
 })();
 </script>
-    <script src="../../assets/js/mobile.js?v=75"></script>
+    <script src="../../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

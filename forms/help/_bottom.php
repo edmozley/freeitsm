@@ -45,6 +45,6 @@
         });
     </script>
     <!-- Mobile layer. Loaded last so it can wrap the page's own globals. -->
-    <script src="../../assets/js/mobile.js?v=75"></script>
+    <script src="../../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

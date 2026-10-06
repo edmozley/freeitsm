@@ -90,7 +90,7 @@ $translationNamespaces = ['common', 'lms'];
         .rem-preview strong { font-size: 1.05em; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=181">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
@@ -356,6 +356,6 @@ $translationNamespaces = ['common', 'lms'];
         lmsSettingsTab('tests');
     }
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=75"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=76"></script>
 </body>
 </html>

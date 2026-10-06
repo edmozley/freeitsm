@@ -187,7 +187,7 @@ $translationNamespaces = ['common', 'tickets'];
         .form-group input[type="checkbox"] { accent-color: var(--accent, #546e7a); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="system" data-mobile-page="settings" data-mobile-shell="own">
     <div class="settings-shell">
@@ -990,6 +990,6 @@ $translationNamespaces = ['common', 'tickets'];
             loadAnalysts();
         });
     </script>
-    <script src="../../assets/js/mobile.js?v=75"></script>
+    <script src="../../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

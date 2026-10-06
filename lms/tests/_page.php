@@ -50,7 +50,7 @@ function ctHead(string $title): void
     <link rel="stylesheet" href="<?php echo $b; ?>assets/css/lms.css?v=10">
     <link rel="stylesheet" href="<?php echo $b; ?>assets/css/lms-tests.css?v=2">
     <?php /* mobile.css LAST, after every module sheet: its @media rules win ties on load order (wiki Mobile-Friendly-Techniques §9). */ ?>
-    <link rel="stylesheet" href="<?php echo $b; ?>assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="<?php echo $b; ?>assets/css/mobile.css?v=181">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
             window.CT_BASE = <?php echo json_encode($b); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -62,7 +62,7 @@ function ctHead(string $title): void
 function ctFoot(): void
 { ?>
     <script src="<?php echo BASE_URL; ?>assets/js/lms-tests.js?v=2"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=75"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=76"></script>
 </body>
 </html>
 <?php }

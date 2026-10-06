@@ -413,7 +413,7 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 }
 .prj-link-chip b { color: var(--text, #222); }
 .prj-link-chip:hover { border-color: var(--prj-accent, #e11d48); color: var(--prj-accent, #e11d48); transform: translateY(-1px); }
-@media (max-width: 1100px) { .prj-conn-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .prj-conn-grid { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- celebration ------------------------------------------------ */
 .prj-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 5000; }

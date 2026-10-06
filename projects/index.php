@@ -36,8 +36,8 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=3">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=4">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-portfolio">
     <?php include 'includes/header.php'; ?>
@@ -93,6 +93,6 @@ $translationNamespaces = ['common', 'projects'];
 
     <script src="../assets/js/projects.js?v=2"></script>
     <script src="../assets/js/projects-portfolio.js?v=1"></script>
-    <script src="../assets/js/mobile.js?v=75"></script>
+    <script src="../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

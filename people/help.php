@@ -176,6 +176,6 @@ $pplHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
             });
         });
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=75"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=76"></script>
 </body>
 </html>

@@ -414,7 +414,7 @@ try {
            inline, which reads on both grounds (the tint is the same hue as the
            text), so there is nothing left here to flip for dark mode. */
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=180">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -1294,6 +1294,6 @@ try {
     // Auto-refresh every 5 minutes
     refreshTimer = setInterval(loadDashboard, 5 * 60 * 1000);
     </script>
-    <script src="../assets/js/mobile.js?v=75"></script>
+    <script src="../assets/js/mobile.js?v=76"></script>
 </body>
 </html>
