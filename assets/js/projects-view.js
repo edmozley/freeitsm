@@ -20,7 +20,8 @@
     let data = null;      // {project, stages, tasks, history}
     let L = null;         // lookups
     let tab = 'overview';
-    let openAdd = null;   // the lane (stage id, '' = not in one) whose add-a-task form is open
+    let openAdd = null;
+    let links = null;     // {links: {kind: [...]}, ready} from api/projects/links.php   // the lane (stage id, '' = not in one) whose add-a-task form is open
 
     function timeboxKind() {
         const m = (L && L.methodologies || []).find(x => x.key === data.project.methodology);
@@ -119,6 +120,7 @@
             + '</div>';
 
         html += '</div>';
+        html += linksSummary();
         document.getElementById('pvOverview').innerHTML = html;
         void kind;
     }
@@ -142,6 +144,7 @@
         if (f === 'project_created') detail = '';
         else if (f === 'stage_added') detail = h.new_value || '';
         else if (f === 'stage_removed') detail = h.old_value || '';
+        else if (f === 'link_added' || f === 'link_removed') detail = linkHistoryText(h.new_value || h.old_value || '');
         else if (f === 'stage_status') detail = (h.new_value || '').replace(/: (planned|active|closed)$/, (m, s) => ': ' + T('stage_status.' + s));
         else if (f === 'status') detail = T('history.from_to', { from: T('status.' + h.old_value), to: T('status.' + h.new_value) });
         else if (f === 'health') detail = T('history.from_to', { from: T('health.' + h.old_value), to: T('health.' + h.new_value) });
@@ -251,6 +254,7 @@
         renderBanner();
         renderOverview();
         renderPlan();
+        renderConnections();
         renderHistory();
         showTab(tab);
     }
@@ -264,8 +268,9 @@
 
     async function load() {
         try {
-            const [d, lk] = await Promise.all([P.api('get.php?id=' + projectId), P.lookups()]);
+            const [d, lk, ln] = await Promise.all([P.api('get.php?id=' + projectId), P.lookups(), P.api('links.php?project_id=' + projectId).catch(() => null)]);
             L = lk;
+            links = ln;
             P.setPalette(L.colours);
             data = d;
             // A brand-new project has nothing in it yet: open the add box so the
@@ -282,6 +287,95 @@
         const d = await P.api('get.php?id=' + projectId);
         data = d;
         renderAll();
+    }
+
+    // ---- Connections ------------------------------------------------------------------
+    const LINK_ICONS = {
+        asset: 'laptop', change: 'wrench', ticket: 'mail', contract: 'box', cmdb: 'network', article: 'star',
+    };
+
+    function linkHistoryText(v) {
+        const m = /^(\w+): (.*)$/.exec(v);
+        if (!m) return v;
+        return T('links.kind.' + m[1]) + ': ' + m[2];
+    }
+
+    /** "Connected to" chips on the Overview, one per kind that has links. */
+    function linksSummary() {
+        if (!links || !links.links) return '';
+        const chips = Object.entries(links.links).filter(([, rows]) => rows.length)
+            .map(([kind, rows]) => '<button type="button" class="prj-link-chip" data-goto="connections">' + P.icon(LINK_ICONS[kind], 15)
+                + '<b>' + rows.length + '</b> ' + esc(T('links.kind.' + kind)) + '</button>');
+        if (!chips.length) return '';
+        return '<div class="prj-panel prj-ov-links"><h3>' + esc(T('links.summary')) + '</h3><div class="prj-link-chips">' + chips.join('') + '</div></div>';
+    }
+
+    function linkRow(kind, r) {
+        return '<li class="prj-conn-row' + (r.closed ? ' closed' : '') + '">'
+            + '<a href="' + esc(window.PRJ_BASE + r.url) + '" class="prj-conn-main">'
+            +   '<span class="prj-conn-label">' + esc(r.label) + '</span>'
+            +   (r.sub ? '<span class="prj-conn-sub">' + esc(r.sub) + '</span>' : '')
+            + '</a>'
+            + (r.status ? '<span class="prj-conn-status"' + (r.status_colour ? ' style="--sc:' + esc(r.status_colour) + '"' : '') + '>' + esc(r.status) + '</span>' : '')
+            + '<button type="button" class="prj-task-remove" data-unlink="' + esc(kind) + ':' + r.id + '" title="' + esc(T('links.remove')) + '" aria-label="' + esc(T('links.remove')) + '">&times;</button>'
+            + '</li>';
+    }
+
+    function renderConnections() {
+        const box = document.getElementById('pvConnections');
+        if (!links) { box.innerHTML = ''; return; }
+        if (!links.ready) { box.innerHTML = '<div class="prj-plan-empty">' + esc(T('links.not_ready')) + '</div>'; return; }
+        const kinds = Object.keys(links.links || {});
+        if (!kinds.length) { box.innerHTML = '<div class="prj-plan-empty">' + esc(T('links.none_kinds')) + '</div>'; return; }
+        box.innerHTML = '<p class="prj-muted prj-conn-intro">' + esc(T('links.intro')) + '</p><div class="prj-conn-grid">'
+            + kinds.map(kind => {
+                const rows = links.links[kind] || [];
+                return '<section class="prj-panel prj-conn" data-kind="' + esc(kind) + '">'
+                    + '<header class="prj-conn-head"><span class="prj-conn-icon">' + P.icon(LINK_ICONS[kind], 18) + '</span>'
+                    + '<div><h4>' + esc(T('links.kind.' + kind)) + ' <span class="prj-conn-count">' + rows.length + '</span></h4>'
+                    + '<p class="prj-muted">' + esc(T('links.hint.' + kind)) + '</p></div></header>'
+                    + (rows.length ? '<ul class="prj-conn-list">' + rows.map(r => linkRow(kind, r)).join('') + '</ul>' : '<p class="prj-conn-empty">' + esc(T('links.empty')) + '</p>')
+                    + '<div class="prj-conn-add"><input type="text" data-link-search="' + esc(kind) + '" placeholder="' + esc(T('links.add_ph')) + '" autocomplete="off">'
+                    + '<ul class="prj-conn-results" hidden></ul></div>'
+                    + '</section>';
+            }).join('') + '</div>';
+    }
+
+    async function reloadLinks() {
+        try { links = await P.api('links.php?project_id=' + projectId); } catch (e) { /* keep the last copy */ }
+        renderConnections();
+        renderOverview();
+    }
+
+    let searchTimer = null;
+    function searchLinks(input) {
+        clearTimeout(searchTimer);
+        const kind = input.dataset.linkSearch;
+        const list = input.parentNode.querySelector('.prj-conn-results');
+        searchTimer = setTimeout(async () => {
+            try {
+                const d = await P.api('links.php?project_id=' + projectId + '&search=' + encodeURIComponent(kind) + '&q=' + encodeURIComponent(input.value.trim()));
+                list.innerHTML = (d.results || []).length
+                    ? d.results.map(r => '<li><button type="button" data-link-add="' + esc(kind) + ':' + r.id + '"><span class="prj-conn-label">' + esc(r.label) + '</span>'
+                        + (r.sub ? '<span class="prj-conn-sub">' + esc(r.sub) + '</span>' : '') + '</button></li>').join('')
+                    : '<li class="prj-conn-noresult">' + esc(T('links.no_results')) + '</li>';
+                list.hidden = false;
+            } catch (e) { P.toast(e.message, 'error'); }
+        }, 180);
+    }
+
+    async function linkAction(action, value) {
+        const [kind, id] = value.split(':');
+        try {
+            await P.api('links.php', { action: action, project_id: projectId, kind: kind, target_id: parseInt(id, 10) });
+            P.toast(T(action === 'add' ? 'links.linked' : 'links.unlinked'));
+            const d = await P.api('get.php?id=' + projectId);   // the history shows the change
+            data = d;
+            await reloadLinks();
+            renderHistory();
+            const again = document.querySelector('[data-link-search="' + kind + '"]');
+            if (again && action === 'add') again.focus();
+        } catch (e) { P.toast(e.message, 'error'); }
     }
 
     // ---- Stages -------------------------------------------------------------------
@@ -427,7 +521,7 @@
     // ---- Wiring -----------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         const start = (location.hash || '').replace('#', '');
-        if (['overview', 'plan', 'history'].includes(start)) tab = start;
+        if (['overview', 'plan', 'connections', 'history'].includes(start)) tab = start;
         if (/[?&]new=1/.test(location.search)) tab = 'plan';
 
         document.getElementById('prjTabs').addEventListener('click', e => {
@@ -447,6 +541,9 @@
             const st = e.target.closest('[data-stage-start]'); if (st) { setStageStatus(st.dataset.stageStart, 'active'); return; }
             const fi = e.target.closest('[data-stage-finish]'); if (fi) { setStageStatus(fi.dataset.stageFinish, 'closed'); return; }
             const rm = e.target.closest('[data-remove-task]'); if (rm) { e.preventDefault(); removeTask(rm.dataset.removeTask); return; }
+            const la = e.target.closest('[data-link-add]'); if (la) { linkAction('add', la.dataset.linkAdd); return; }
+            const ul = e.target.closest('[data-unlink]'); if (ul) { linkAction('remove', ul.dataset.unlink); return; }
+            if (!e.target.closest('.prj-conn-add')) document.querySelectorAll('.prj-conn-results').forEach(l => { l.hidden = true; });
             const ao = e.target.closest('[data-add-open]');
             if (ao) {
                 openAdd = ao.dataset.addOpen;
@@ -455,7 +552,14 @@
                 if (f) f.focus();
             }
         });
+        page.addEventListener('input', e => {
+            const s = e.target.closest('[data-link-search]'); if (s) searchLinks(s);
+        });
+        page.addEventListener('focusin', e => {
+            const s = e.target.closest('[data-link-search]'); if (s) searchLinks(s);
+        });
         page.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && e.target.closest('[data-link-search]')) { e.target.parentNode.querySelector('.prj-conn-results').hidden = true; }
             if (e.key === 'Escape' && e.target.closest('.prj-add-task')) { openAdd = null; renderPlan(); }
         });
         page.addEventListener('submit', e => {

@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=2">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=3">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=180">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -75,11 +75,13 @@ $projectId = (int)($_GET['id'] ?? 0);
         <nav class="prj-tabs" id="prjTabs" hidden>
             <button type="button" data-tab="overview" class="active"><?php echo htmlspecialchars(t('projects.view.tab_overview')); ?></button>
             <button type="button" data-tab="plan"><?php echo htmlspecialchars(t('projects.view.tab_plan')); ?></button>
+            <button type="button" data-tab="connections"><?php echo htmlspecialchars(t('projects.view.tab_connections')); ?></button>
             <button type="button" data-tab="history"><?php echo htmlspecialchars(t('projects.view.tab_history')); ?></button>
         </nav>
 
         <section class="prj-tab-panel" data-panel="overview" id="pvOverview"></section>
         <section class="prj-tab-panel" data-panel="plan" id="pvPlan" hidden></section>
+        <section class="prj-tab-panel" data-panel="connections" id="pvConnections" hidden></section>
         <section class="prj-tab-panel" data-panel="history" id="pvHistory" hidden></section>
 
         <div class="prj-not-found" id="prjNotFound" hidden>
@@ -133,7 +135,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=2"></script>
-    <script src="../assets/js/projects-view.js?v=2"></script>
+    <script src="../assets/js/projects-view.js?v=3"></script>
     <script src="../assets/js/mobile.js?v=75"></script>
 </body>
 </html>

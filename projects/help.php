@@ -33,6 +33,7 @@ $sections = [
     'methods'   => 2,
     'health'    => 1,
     'tasks'     => 2,
+    'connections' => 2,
     'companies' => 1,
     'coming'    => 1,
 ];
@@ -56,7 +57,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=180">
     <style>

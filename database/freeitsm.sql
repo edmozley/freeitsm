@@ -7810,6 +7810,93 @@ CREATE TABLE IF NOT EXISTS `project_audit` (
     KEY `idx_project_audit_project` (`project_id`, `created_datetime`),
     CONSTRAINT `fk_project_audit_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Projects joined to the rest of FreeITSM (3.2.0). One join table per kind -
+-- the Domains pattern - so every link is a real FK that cascades with either
+-- side, and permission checks stay per module (includes/projects/links.php).
+CREATE TABLE IF NOT EXISTS `project_assets` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `asset_id`              INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_pas_pair` (`project_id`, `asset_id`),
+    KEY `ix_pas_target` (`asset_id`),
+    CONSTRAINT `fk_pas_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pas_target` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pas_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `project_changes` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `change_id`             INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_pch_pair` (`project_id`, `change_id`),
+    KEY `ix_pch_target` (`change_id`),
+    CONSTRAINT `fk_pch_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pch_target` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pch_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `project_tickets` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `ticket_id`             INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ptk_pair` (`project_id`, `ticket_id`),
+    KEY `ix_ptk_target` (`ticket_id`),
+    CONSTRAINT `fk_ptk_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ptk_target` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ptk_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `project_contracts` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `contract_id`           INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_pco_pair` (`project_id`, `contract_id`),
+    KEY `ix_pco_target` (`contract_id`),
+    CONSTRAINT `fk_pco_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pco_target` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pco_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `project_cmdb_objects` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `cmdb_object_id`        INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_pcm_pair` (`project_id`, `cmdb_object_id`),
+    KEY `ix_pcm_target` (`cmdb_object_id`),
+    CONSTRAINT `fk_pcm_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pcm_target` FOREIGN KEY (`cmdb_object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pcm_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `project_knowledge_articles` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `article_id`            INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_pka_pair` (`project_id`, `article_id`),
+    KEY `ix_pka_target` (`article_id`),
+    CONSTRAINT `fk_pka_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pka_target` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pka_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Seed: the domain statuses a fresh install starts with. Only into an empty

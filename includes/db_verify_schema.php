@@ -5164,4 +5164,47 @@ return [
         'source'           => "VARCHAR(20) NOT NULL DEFAULT 'app'",
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
+    // Projects joined to the rest of FreeITSM (3.2.0) - one join table per kind.
+    'project_assets' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'            => 'INT NOT NULL',
+        'asset_id'              => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'project_changes' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'            => 'INT NOT NULL',
+        'change_id'             => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'project_tickets' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'            => 'INT NOT NULL',
+        'ticket_id'             => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'project_contracts' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'            => 'INT NOT NULL',
+        'contract_id'           => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'project_cmdb_objects' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'            => 'INT NOT NULL',
+        'cmdb_object_id'        => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'project_knowledge_articles' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'            => 'INT NOT NULL',
+        'article_id'            => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
 ];

@@ -369,6 +369,52 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 
 .prj-not-found { max-width: 480px; margin: 60px auto; text-align: center; color: var(--text-muted, #666); }
 
+/* ---------- connections ------------------------------------------------- */
+.prj-conn-intro { margin: 0 0 14px; max-width: 820px; }
+.prj-conn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.prj-conn { display: flex; flex-direction: column; gap: 10px; }
+.prj-conn-head { display: flex; gap: 12px; align-items: flex-start; }
+.prj-conn-head h4 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text, #222); display: flex; align-items: center; gap: 8px; }
+.prj-conn-head .prj-muted { margin-top: 2px; }
+.prj-conn-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; color: #fff; background: var(--prj-gradient, linear-gradient(135deg, #f43f5e, #7c3aed)); }
+.prj-conn-count { font-size: 11px; font-weight: 700; color: var(--text-muted, #666); background: var(--surface-hover, #f1f5f9); border-radius: 99px; padding: 1px 8px; }
+.prj-conn-list { list-style: none; margin: 0; padding: 0; }
+.prj-conn-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-radius: 8px; }
+.prj-conn-row + .prj-conn-row { border-top: 1px solid var(--border-soft, #f3f3f3); }
+.prj-conn-row:hover { background: var(--surface-hover, #f8fafc); }
+.prj-conn-row:hover .prj-task-remove { opacity: 1; }
+.prj-conn-row.closed .prj-conn-label { color: var(--text-dim, #999); }
+.prj-conn-main { flex: 1; min-width: 0; display: flex; flex-direction: column; text-decoration: none; }
+.prj-conn-label { font-size: 14px; font-weight: 600; color: var(--text, #222); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prj-conn-main:hover .prj-conn-label { color: var(--prj-accent, #e11d48); }
+.prj-conn-sub { font-size: 12px; color: var(--text-dim, #888); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prj-conn-status { font-size: 11px; font-weight: 650; color: var(--sc, var(--text-muted, #555)); background: color-mix(in srgb, var(--sc, #94a3b8) 14%, transparent); border-radius: 99px; padding: 2px 8px; white-space: nowrap; }
+.prj-conn-empty { margin: 0; font-size: 13px; color: var(--text-dim, #999); }
+.prj-conn-add { position: relative; margin-top: auto; }
+.prj-conn-add input {
+    width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px dashed var(--border, #ddd); border-radius: 8px;
+    font-size: 13px; background: var(--surface, #fff); color: var(--text, #333);
+}
+.prj-conn-add input:focus { border-style: solid; border-color: var(--prj-accent, #e11d48); outline: none; box-shadow: 0 0 0 3px var(--prj-accent-soft, #fff1f2); }
+.prj-conn-results {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 50; list-style: none; margin: 0; padding: 4px;
+    background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 10px; box-shadow: 0 12px 28px rgba(0,0,0,.14);
+    max-height: 280px; overflow-y: auto; animation: prj-rise .16s ease both;
+}
+.prj-conn-results button { display: flex; flex-direction: column; width: 100%; text-align: left; background: none; border: none; padding: 8px 10px; border-radius: 7px; cursor: pointer; }
+.prj-conn-results button:hover { background: var(--prj-accent-soft, #fff1f2); }
+.prj-conn-noresult { padding: 10px; font-size: 13px; color: var(--text-dim, #888); }
+.prj-ov-links { grid-column: 1 / -1; margin-top: 16px; }
+.prj-link-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.prj-link-chip {
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 99px; cursor: pointer;
+    border: 1px solid var(--border, #e0e0e0); background: var(--surface, #fff); color: var(--text-muted, #555); font-size: 13px;
+    transition: border-color .12s ease, color .12s ease, transform .12s ease;
+}
+.prj-link-chip b { color: var(--text, #222); }
+.prj-link-chip:hover { border-color: var(--prj-accent, #e11d48); color: var(--prj-accent, #e11d48); transform: translateY(-1px); }
+@media (max-width: 1100px) { .prj-conn-grid { grid-template-columns: 1fr; } }
+
 /* ---------- celebration ------------------------------------------------ */
 .prj-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 5000; }
 .prj-confetti i {

@@ -174,6 +174,11 @@ class ProjectsService
             foreach (['project_stages', 'project_audit'] as $t) {
                 $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]);
             }
+            // Its links too, by hand - an install whose FKs failed to add has no
+            // cascade to rely on. Each table on its own: before Verification it
+            // may not exist, and that must never stop a project being deleted.
+            require_once __DIR__ . '/../projects/links.php';
+            projectLinksDeleteAll($conn, $id);
             $conn->prepare("DELETE FROM projects WHERE id = ?")->execute([$id]);
             $conn->commit();
         } catch (Throwable $e) {

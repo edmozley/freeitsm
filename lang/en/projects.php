@@ -126,6 +126,7 @@ return [
     'view' => [
         'tab_overview' => 'Overview',
         'tab_plan'     => 'Plan',
+        'tab_connections' => 'Connections',
         'tab_history'  => 'History',
         'back'         => 'All projects',
         'edit'         => 'Edit',
@@ -186,6 +187,35 @@ return [
         'moved'         => 'Moved',
     ],
 
+    'links' => [
+        'intro'      => 'Everything this project touches, from the rest of FreeITSM. You see the kinds of record you can open; each link shows on the project for everyone who can see both sides.',
+        'not_ready'  => 'Run System - Database Verification to switch Connections on.',
+        'none_kinds' => 'You cannot open any of the modules a project links to.',
+        'add_ph'     => 'Search to link...',
+        'no_results' => 'Nothing found that can be linked.',
+        'empty'      => 'Nothing linked yet.',
+        'remove'     => 'Unlink',
+        'linked'     => 'Linked',
+        'unlinked'   => 'Unlinked',
+        'summary'    => 'Connected to',
+        'kind' => [
+            'asset'    => 'Equipment',
+            'change'   => 'Changes',
+            'ticket'   => 'Tickets',
+            'contract' => 'Contracts',
+            'cmdb'     => 'Configuration items',
+            'article'  => 'Knowledge',
+        ],
+        'hint' => [
+            'asset'    => 'The laptops, servers and kit this project works on.',
+            'change'   => 'Changes the project raises, and whether they are approved.',
+            'ticket'   => 'Tickets about the project - including the ones it caused.',
+            'contract' => 'Supplier contracts the project relies on.',
+            'cmdb'     => 'The services and systems it touches.',
+            'article'  => 'Runbooks, plans and write-ups.',
+        ],
+    ],
+
     'history' => [
         'project_created' => 'created the project',
         'name'            => 'renamed it',
@@ -204,6 +234,8 @@ return [
         'stage_added'     => 'added',
         'stage_removed'   => 'removed',
         'stage_status'    => 'moved',
+        'link_added'      => 'linked',
+        'link_removed'    => 'unlinked',
         'from_to'         => '{from} to {to}',
         'someone'         => 'Someone',
     ],
@@ -280,6 +312,13 @@ return [
             'p1'    => 'A task added to a project is a normal task: it appears on the Tasks board, can be assigned, scheduled, timed, commented on and given subtasks and checklists, and sends the usual emails and notifications. Progress counts top-level tasks; subtasks belong to their task.',
             'p2'    => 'Deleting a project never deletes its tasks. They stay on the Tasks board and simply stop belonging to a project. Removing a phase works the same way: its tasks stay in the project, just not in a phase.',
         ],
+        'connections' => [
+            'nav'   => 'Connections',
+            'title' => 'Connecting a project to everything else',
+            'intro' => 'Equipment, changes, tickets, contracts, configuration items and knowledge.',
+            'p1'    => 'The Connections tab links a project to the records it touches: the laptops being replaced, the changes it raises (with whether they are approved), the tickets it caused, the supplier contracts it relies on, the systems in the CMDB and the runbooks in Knowledge. Type in the box under a kind to search, and pick a result to link it. The Overview shows how many of each are connected.',
+            'p2'    => 'You see a kind only if you can open its module, and a link only if you can open the record at the other end. On an install with more than one company, equipment, changes, tickets and configuration items must belong to the project\'s own company. Unlinking never changes the record itself, and both are written to the project\'s history.',
+        ],
         'companies' => [
             'nav'   => 'Companies',
             'title' => 'Projects and companies',
@@ -290,7 +329,7 @@ return [
             'nav'   => 'Coming next',
             'title' => 'What is coming next',
             'intro' => 'Projects is being built in stages.',
-            'p1'    => 'Next come the tools project people know - a RACI matrix, MoSCoW priorities and a log of risks, issues and decisions - followed by links to assets, changes and contracts, tolerances for staged projects, and later an AI project manager that drafts your status reports for you to check.',
+            'p1'    => 'Next come the tools project people know - a RACI matrix, MoSCoW priorities and a log of risks, issues and decisions - then tolerances for staged projects, project templates, and later an AI project manager that drafts your status reports for you to check.',
         ],
     ],
 

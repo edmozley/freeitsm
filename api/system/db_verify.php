@@ -2849,6 +2849,25 @@ try {
         ['project_audit',  'fk_project_audit_project',  "ALTER TABLE project_audit ADD CONSTRAINT fk_project_audit_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['tasks',          'fk_tasks_project',          "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE SET NULL"],
         ['tasks',          'fk_tasks_project_stage',    "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_project_stage FOREIGN KEY (project_stage_id) REFERENCES project_stages (id) ON DELETE SET NULL"],
+        // Connections - every link goes with either side.
+        ['project_assets', 'fk_pas_project', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_assets', 'fk_pas_target', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_target FOREIGN KEY (asset_id) REFERENCES assets (id) ON DELETE CASCADE"],
+        ['project_assets', 'fk_pas_analyst', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_changes', 'fk_pch_project', "ALTER TABLE project_changes ADD CONSTRAINT fk_pch_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_changes', 'fk_pch_target', "ALTER TABLE project_changes ADD CONSTRAINT fk_pch_target FOREIGN KEY (change_id) REFERENCES changes (id) ON DELETE CASCADE"],
+        ['project_changes', 'fk_pch_analyst', "ALTER TABLE project_changes ADD CONSTRAINT fk_pch_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_tickets', 'fk_ptk_project', "ALTER TABLE project_tickets ADD CONSTRAINT fk_ptk_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_tickets', 'fk_ptk_target', "ALTER TABLE project_tickets ADD CONSTRAINT fk_ptk_target FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"],
+        ['project_tickets', 'fk_ptk_analyst', "ALTER TABLE project_tickets ADD CONSTRAINT fk_ptk_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_contracts', 'fk_pco_project', "ALTER TABLE project_contracts ADD CONSTRAINT fk_pco_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_contracts', 'fk_pco_target', "ALTER TABLE project_contracts ADD CONSTRAINT fk_pco_target FOREIGN KEY (contract_id) REFERENCES contracts (id) ON DELETE CASCADE"],
+        ['project_contracts', 'fk_pco_analyst', "ALTER TABLE project_contracts ADD CONSTRAINT fk_pco_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_cmdb_objects', 'fk_pcm_project', "ALTER TABLE project_cmdb_objects ADD CONSTRAINT fk_pcm_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_cmdb_objects', 'fk_pcm_target', "ALTER TABLE project_cmdb_objects ADD CONSTRAINT fk_pcm_target FOREIGN KEY (cmdb_object_id) REFERENCES cmdb_objects (id) ON DELETE CASCADE"],
+        ['project_cmdb_objects', 'fk_pcm_analyst', "ALTER TABLE project_cmdb_objects ADD CONSTRAINT fk_pcm_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_knowledge_articles', 'fk_pka_project', "ALTER TABLE project_knowledge_articles ADD CONSTRAINT fk_pka_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_knowledge_articles', 'fk_pka_target', "ALTER TABLE project_knowledge_articles ADD CONSTRAINT fk_pka_target FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE CASCADE"],
+        ['project_knowledge_articles', 'fk_pka_analyst', "ALTER TABLE project_knowledge_articles ADD CONSTRAINT fk_pka_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
     ];
     foreach ($projectFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
