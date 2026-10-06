@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=7">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=8">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=181">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -78,6 +78,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             <button type="button" data-tab="people" data-tool="people" hidden><?php echo htmlspecialchars(t('projects.tools.people')); ?></button>
             <button type="button" data-tab="scope" data-tool="scope" hidden><?php echo htmlspecialchars(t('projects.tools.scope')); ?></button>
             <button type="button" data-tab="raci" data-tool="raci" hidden><?php echo htmlspecialchars(t('projects.tools.raci')); ?></button>
+            <button type="button" data-tab="raid" data-tool="raid" hidden><?php echo htmlspecialchars(t('projects.tools.raid')); ?></button>
             <button type="button" data-tab="connections"><?php echo htmlspecialchars(t('projects.view.tab_connections')); ?></button>
             <button type="button" data-tab="history"><?php echo htmlspecialchars(t('projects.view.tab_history')); ?></button>
         </nav>
@@ -87,6 +88,7 @@ $projectId = (int)($_GET['id'] ?? 0);
         <section class="prj-tab-panel" data-panel="people" id="pvPeople" hidden></section>
         <section class="prj-tab-panel" data-panel="scope" id="pvScope" hidden></section>
         <section class="prj-tab-panel" data-panel="raci" id="pvRaci" hidden></section>
+        <section class="prj-tab-panel" data-panel="raid" id="pvRaid" hidden></section>
         <section class="prj-tab-panel" data-panel="connections" id="pvConnections" hidden></section>
         <section class="prj-tab-panel" data-panel="history" id="pvHistory" hidden></section>
 
@@ -116,6 +118,46 @@ $projectId = (int)($_GET['id'] ?? 0);
                 <button type="button" class="btn btn-secondary" id="piDelete" style="margin-right:auto" hidden><?php echo htmlspecialchars(t('common.delete')); ?></button>
                 <button type="button" class="btn btn-secondary" data-prj-close="prjItemModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary prj-btn" id="piSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add / edit a RAID entry -->
+    <div class="modal" id="prjRaidModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:600px">
+            <div class="modal-header" id="prTitle"></div>
+            <div class="modal-body">
+                <input type="hidden" id="prId">
+                <div class="prj-seg" id="prType" role="tablist">
+                    <button type="button" data-rtype="risk"><?php echo htmlspecialchars(t('projects.raid.risk')); ?></button>
+                    <button type="button" data-rtype="assumption"><?php echo htmlspecialchars(t('projects.raid.assumption')); ?></button>
+                    <button type="button" data-rtype="issue"><?php echo htmlspecialchars(t('projects.raid.issue')); ?></button>
+                    <button type="button" data-rtype="decision"><?php echo htmlspecialchars(t('projects.raid.decision')); ?></button>
+                    <button type="button" data-rtype="lesson"><?php echo htmlspecialchars(t('projects.raid.lesson')); ?></button>
+                </div>
+                <div class="form-group"><label for="prName"><?php echo htmlspecialchars(t('projects.raid.title')); ?></label><input type="text" id="prName" maxlength="255" autocomplete="off"></div>
+                <div class="form-group"><label for="prDesc"><?php echo htmlspecialchars(t('projects.raid.description')); ?></label><textarea id="prDesc" rows="3"></textarea></div>
+                <div class="prj-form-grid">
+                    <div class="form-group" data-for="risk"><label for="prProb"><?php echo htmlspecialchars(t('projects.raid.probability')); ?></label><select id="prProb"></select></div>
+                    <div class="form-group" data-for="risk issue"><label for="prImpact"><?php echo htmlspecialchars(t('projects.raid.impact')); ?></label><select id="prImpact"></select></div>
+                    <div class="form-group" data-for="risk"><label for="prResp"><?php echo htmlspecialchars(t('projects.raid.response')); ?></label><select id="prResp"></select></div>
+                    <div class="form-group"><label for="prOwner"><?php echo htmlspecialchars(t('projects.raid.owner')); ?></label><select id="prOwner"></select></div>
+                    <div class="form-group"><label for="prDue"><?php echo htmlspecialchars(t('projects.raid.due')); ?></label><input type="date" id="prDue"></div>
+                    <div class="form-group"><label for="prStatus"><?php echo htmlspecialchars(t('projects.raid.status')); ?></label><select id="prStatus"></select></div>
+                </div>
+                <div class="form-group" data-for="risk"><label for="prPlan"><?php echo htmlspecialchars(t('projects.raid.plan')); ?></label><textarea id="prPlan" rows="2"></textarea></div>
+                <div class="form-group" data-for="issue" style="position:relative">
+                    <label for="prTicket"><?php echo htmlspecialchars(t('projects.raid.ticket')); ?></label>
+                    <input type="text" id="prTicket" placeholder="<?php echo htmlspecialchars(t('projects.links.add_ph')); ?>" autocomplete="off">
+                    <ul class="prj-conn-results" id="prTicketResults" hidden></ul>
+                    <input type="hidden" id="prTicketId">
+                </div>
+                <div class="prj-form-error" id="prError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="prDelete" style="margin-right:auto" hidden><?php echo htmlspecialchars(t('common.delete')); ?></button>
+                <button type="button" class="btn btn-secondary" data-prj-close="prjRaidModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="prSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -192,8 +234,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=5"></script>
-    <script src="../assets/js/projects-tools.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=6"></script>
+    <script src="../assets/js/projects-tools.js?v=2"></script>
+    <script src="../assets/js/projects-view.js?v=7"></script>
     <script src="../assets/js/mobile.js?v=76"></script>
 </body>
 </html>

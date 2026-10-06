@@ -533,6 +533,43 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 .prj-tool-check strong { font-size: 13px; color: var(--text, #222); }
 .prj-tool-check small { font-size: 11.5px; color: var(--text-dim, #888); line-height: 1.35; }
 @media (max-width: 1100px) { .prj-moscow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* ---------- RAID: the heat map and the log ------------------------------ */
+.prj-raid-layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 16px; align-items: start; }
+.prj-heat-wrap { display: flex; align-items: stretch; gap: 6px; }
+.prj-heat-y { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; font-weight: 700; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: .5px; text-align: center; }
+.prj-heat { flex: 1; display: grid; grid-template-columns: 74px repeat(5, minmax(0, 1fr)); gap: 4px; }
+.prj-heat-label { font-size: 10.5px; color: var(--text-dim, #888); display: flex; align-items: center; line-height: 1.15; }
+.prj-heat-label.y { justify-content: flex-end; text-align: right; padding-right: 4px; }
+.prj-heat-label.x { justify-content: center; text-align: center; padding-top: 4px; }
+.prj-heat-x { text-align: center; margin: 4px 0 0 80px; font-size: 11px; font-weight: 700; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: .5px; }
+.prj-heat-cell { aspect-ratio: 1; border: none; border-radius: 8px; cursor: pointer; opacity: .35; transition: transform .12s ease, opacity .12s ease, box-shadow .12s ease; display: grid; place-items: center; color: #fff; font-size: 14px; }
+.prj-heat-cell.sc-low { background: #22c55e; }
+.prj-heat-cell.sc-mid { background: #f59e0b; }
+.prj-heat-cell.sc-high { background: #ef4444; }
+.prj-heat-cell.has { opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+.prj-heat-cell:hover { transform: scale(1.08); opacity: .9; }
+.prj-heat-cell.sel { outline: 3px solid var(--text, #222); outline-offset: 2px; opacity: 1; }
+.prj-raid-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.prj-raid-filters .prj-seg { margin-bottom: 0; flex-wrap: wrap; }
+.prj-raid-filters .prj-seg small { font-size: 10.5px; opacity: .75; }
+.prj-raid-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.prj-raid-row {
+    display: flex; align-items: center; gap: 12px; background: var(--surface, #fff); border-radius: 12px; padding: 10px 14px; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07); border-left: 4px solid var(--rt, #94a3b8); transition: transform .12s ease, box-shadow .12s ease;
+}
+.prj-raid-row:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.prj-raid-row.closed { opacity: .6; }
+.prj-raid-row.t-risk { --rt: #ef4444; } .prj-raid-row.t-assumption { --rt: #0ea5e9; } .prj-raid-row.t-issue { --rt: #f59e0b; }
+.prj-raid-row.t-decision { --rt: #8b5cf6; } .prj-raid-row.t-lesson { --rt: #14b8a6; }
+.prj-raid-type { font-size: 10.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--rt); min-width: 84px; }
+.prj-raid-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.prj-raid-title { font-size: 14px; font-weight: 600; color: var(--text, #222); }
+.prj-raid-meta { font-size: 12px; color: var(--text-dim, #888); }
+.prj-raid-meta a { color: var(--prj-accent, #e11d48); }
+.prj-raid-score { min-width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: #fff; }
+.prj-raid-score.sc-low { background: #22c55e; } .prj-raid-score.sc-mid { background: #f59e0b; } .prj-raid-score.sc-high { background: #ef4444; }
+#prjRaidModal .prj-seg { flex-wrap: wrap; }
+@media (max-width: 1100px) { .prj-raid-layout { grid-template-columns: minmax(0, 1fr); } }
 /* ---------- read-only (Projects -> Settings -> General) ----------------- */
 /* Not on the project's team: everything that would change it is hidden. The
    server refuses those calls anyway - this only stops the page offering them. */

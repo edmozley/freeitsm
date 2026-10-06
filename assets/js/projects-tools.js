@@ -215,6 +215,131 @@
         } catch (e) { P.toast(e.message, 'error'); await ctx.refresh(); }
     }
 
+    // ---- RAID log ------------------------------------------------------------------------
+    const RAID_TYPES = ['risk', 'assumption', 'issue', 'decision', 'lesson'];
+    let raidFilter = { type: '', closed: false, cell: null };   // cell = 'p:i' from the heat map
+
+    function scoreClass(s) { return s >= 15 ? 'sc-high' : (s >= 8 ? 'sc-mid' : 'sc-low'); }
+
+    function heatMap(risks) {
+        const L = ctx.L;
+        const open = risks.filter(r => r.status === 'open' && r.probability && r.impact);
+        let html = '<div class="prj-heat-wrap"><div class="prj-heat-y">' + esc(T('raid.probability')) + '</div><div class="prj-heat">';
+        for (let p = 5; p >= 1; p--) {
+            html += '<div class="prj-heat-label y">' + esc((L.probability_labels || [])[p - 1] || p) + '</div>';
+            for (let i = 1; i <= 5; i++) {
+                const n = open.filter(r => Number(r.probability) === p && Number(r.impact) === i).length;
+                const sel = raidFilter.cell === p + ':' + i;
+                html += '<button type="button" class="prj-heat-cell ' + scoreClass(p * i) + (n ? ' has' : '') + (sel ? ' sel' : '') + '" data-heat="' + p + ':' + i + '"'
+                    + ' title="' + esc(T('raid.score', { score: p * i })) + '">' + (n ? '<b>' + n + '</b>' : '') + '</button>';
+            }
+        }
+        html += '<div></div>' + [1, 2, 3, 4, 5].map(i => '<div class="prj-heat-label x">' + esc((L.impact_labels || [])[i - 1] || i) + '</div>').join('');
+        html += '</div></div><div class="prj-heat-x">' + esc(T('raid.impact')) + '</div>';
+        return html;
+    }
+
+    function raidRow(r) {
+        const score = r.score ? '<span class="prj-raid-score ' + scoreClass(Number(r.score)) + '" title="' + esc(T('raid.score', { score: r.score })) + '">' + esc(r.score) + '</span>' : '';
+        const meta = [];
+        if (r.owner_name) meta.push(esc(r.owner_name));
+        if (r.due_date) meta.push(esc(P.fmtDate(r.due_date)));
+        if (r.response) meta.push(esc(T('raid.resp_' + r.response)));
+        if (r.ticket_number) meta.push('<a href="' + esc(window.PRJ_BASE + r.ticket_url) + '">' + esc(r.ticket_number) + '</a>');
+        return '<li class="prj-raid-row t-' + esc(r.type) + (r.status === 'closed' ? ' closed' : '') + '" data-raid="' + r.id + '">'
+            + '<span class="prj-raid-type">' + esc(T('raid.' + r.type)) + '</span>'
+            + '<div class="prj-raid-main"><span class="prj-raid-title">' + esc(r.title) + '</span>'
+            + (meta.length ? '<span class="prj-raid-meta">' + meta.join(' &middot; ') + '</span>' : '') + '</div>'
+            + score + '</li>';
+    }
+
+    function renderRaid() {
+        const box = document.getElementById('pvRaid');
+        const all = ctx.data.raid || [];
+        const risks = all.filter(r => r.type === 'risk');
+        let rows = all.filter(r => (raidFilter.closed || r.status === 'open') && (!raidFilter.type || r.type === raidFilter.type));
+        if (raidFilter.cell) {
+            const [p, i] = raidFilter.cell.split(':');
+            rows = rows.filter(r => r.type === 'risk' && String(r.probability) === p && String(r.impact) === i);
+        }
+        const counts = {}; RAID_TYPES.forEach(t => { counts[t] = all.filter(r => r.type === t && r.status === 'open').length; });
+        let html = '<div class="prj-plan-head"><p class="prj-muted">' + esc(T('raid.intro')) + '</p>'
+            + (canChange() ? '<button type="button" class="btn btn-primary prj-btn" data-raid-add>+ ' + esc(T('raid.add')) + '</button>' : '') + '</div>';
+        html += '<div class="prj-raid-layout"><div class="prj-panel prj-heat-panel"><h3>' + esc(T('raid.heat_title')) + '</h3>'
+            + '<p class="prj-muted" style="margin:-6px 0 12px">' + esc(T('raid.heat_hint')) + '</p>' + heatMap(risks)
+            + (raidFilter.cell ? '<button type="button" class="prj-link" data-heat-clear style="margin-top:10px">' + esc(T('raid.heat_clear')) + '</button>' : '') + '</div>';
+        html += '<div class="prj-raid-listwrap"><div class="prj-raid-filters"><div class="prj-seg">'
+            + '<button type="button" data-rfilter=""' + (raidFilter.type === '' ? ' class="active"' : '') + '>' + esc(T('raid.all')) + '</button>'
+            + RAID_TYPES.map(t => '<button type="button" data-rfilter="' + t + '"' + (raidFilter.type === t ? ' class="active"' : '') + '>' + esc(T('raid.' + t + 's'))
+                + (counts[t] ? ' <small>' + counts[t] + '</small>' : '') + '</button>').join('')
+            + '</div><label class="prj-check"><input type="checkbox" data-rclosed' + (raidFilter.closed ? ' checked' : '') + '> ' + esc(T('raid.show_closed')) + '</label></div>';
+        html += rows.length ? '<ul class="prj-raid-list">' + rows.map(raidRow).join('') + '</ul>'
+            : '<div class="prj-plan-empty">' + esc(all.length ? T('raid.empty_filtered') : T('raid.empty')) + '</div>';
+        html += '</div></div>';
+        box.innerHTML = html;
+    }
+
+    let raidType = 'risk';
+    function setRaidType(t) {
+        raidType = t;
+        document.querySelectorAll('#prType [data-rtype]').forEach(b => b.classList.toggle('active', b.dataset.rtype === t));
+        document.querySelectorAll('#prjRaidModal [data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(t); });
+    }
+    function openRaid(r) {
+        const L = ctx.L;
+        const scale = (labels) => '<option value="">' + esc(T('raid.none')) + '</option>' + [1, 2, 3, 4, 5].map(n => '<option value="' + n + '">' + n + ' - ' + esc((labels || [])[n - 1] || '') + '</option>').join('');
+        document.getElementById('prTitle').textContent = r ? T('raid.edit') : T('raid.new');
+        document.getElementById('prId').value = r ? r.id : '';
+        document.getElementById('prName').value = r ? r.title : '';
+        document.getElementById('prDesc').value = r ? (r.description || '') : '';
+        document.getElementById('prProb').innerHTML = scale(L.probability_labels);
+        document.getElementById('prImpact').innerHTML = scale(L.impact_labels);
+        document.getElementById('prProb').value = r && r.probability ? r.probability : '';
+        document.getElementById('prImpact').value = r && r.impact ? r.impact : '';
+        document.getElementById('prResp').innerHTML = '<option value="">' + esc(T('raid.none')) + '</option>' + ['avoid', 'reduce', 'transfer', 'accept', 'share'].map(k => '<option value="' + k + '">' + esc(T('raid.resp_' + k)) + '</option>').join('');
+        document.getElementById('prResp').value = r ? (r.response || '') : '';
+        document.getElementById('prOwner').innerHTML = '<option value="">' + esc(T('raid.nobody')) + '</option>' + L.analysts.map(a => '<option value="' + a.id + '">' + esc(a.full_name) + '</option>').join('');
+        document.getElementById('prOwner').value = r ? (r.owner_analyst_id || '') : '';
+        document.getElementById('prDue').value = r ? (r.due_date || '') : '';
+        document.getElementById('prStatus').innerHTML = '<option value="open">' + esc(T('raid.open')) + '</option><option value="closed">' + esc(T('raid.closed')) + '</option>';
+        document.getElementById('prStatus').value = r ? r.status : 'open';
+        document.getElementById('prPlan').value = r ? (r.response_plan || '') : '';
+        document.getElementById('prTicketId').value = r ? (r.ticket_id || '') : '';
+        document.getElementById('prTicket').value = r && r.ticket_number ? r.ticket_number + ' - ' + (r.ticket_subject || '') : '';
+        document.getElementById('prDelete').hidden = !r || !canChange();
+        document.getElementById('prSave').hidden = !canChange();
+        document.getElementById('prError').hidden = true;
+        setRaidType(r ? r.type : (raidFilter.type || 'risk'));
+        P.openModal('prjRaidModal');
+        setTimeout(() => document.getElementById('prName').focus(), 60);
+    }
+    async function saveRaid() {
+        try {
+            await call({ action: 'raid_save', id: document.getElementById('prId').value || null, type: raidType,
+                title: document.getElementById('prName').value, description: document.getElementById('prDesc').value,
+                probability: document.getElementById('prProb').value || null, impact: document.getElementById('prImpact').value || null,
+                response: document.getElementById('prResp').value || null, response_plan: document.getElementById('prPlan').value,
+                owner_analyst_id: document.getElementById('prOwner').value || null, due_date: document.getElementById('prDue').value || null,
+                status: document.getElementById('prStatus').value, ticket_id: document.getElementById('prTicketId').value || null });
+            P.closeModal('prjRaidModal');
+            await ctx.refresh();
+        } catch (e) { const er = document.getElementById('prError'); er.textContent = e.message; er.hidden = false; }
+    }
+    let ticketTimer = null;
+    function searchTicket() {
+        clearTimeout(ticketTimer);
+        const input = document.getElementById('prTicket'), list = document.getElementById('prTicketResults');
+        document.getElementById('prTicketId').value = '';
+        ticketTimer = setTimeout(async () => {
+            try {
+                const d = await P.api('links.php?project_id=' + ctx.projectId + '&search=ticket&q=' + encodeURIComponent(input.value.trim()));
+                list.innerHTML = (d.results || []).length ? d.results.map(r => '<li><button type="button" data-ticket="' + r.id + '" data-ticket-label="' + esc(r.label + ' - ' + (r.sub || '')) + '"><span class="prj-conn-label">' + esc(r.label) + '</span><span class="prj-conn-sub">' + esc(r.sub || '') + '</span></button></li>').join('')
+                    : '<li class="prj-conn-noresult">' + esc(T('links.no_results')) + '</li>';
+                list.hidden = false;
+            } catch (e) { /* the module may not be open to this analyst */ }
+        }, 180);
+    }
+
     // ---- Wiring (once) --------------------------------------------------------------------
     function wire() {
         if (wired) return;
@@ -232,9 +357,18 @@
             const card = e.target.closest('.prj-item');
             if (card) { openItem(ctx.data.items.find(i => String(i.id) === card.dataset.item)); return; }
             const cell = e.target.closest('[data-raci]');
-            if (cell && !cell.disabled) { cycleRaci(cell); }
+            if (cell && !cell.disabled) { cycleRaci(cell); return; }
+            if (e.target.closest('[data-raid-add]')) { openRaid(null); return; }
+            const rr = e.target.closest('[data-raid]');
+            if (rr && !e.target.closest('a')) { openRaid((ctx.data.raid || []).find(x => String(x.id) === rr.dataset.raid)); return; }
+            const hc = e.target.closest('[data-heat]');
+            if (hc) { raidFilter.cell = raidFilter.cell === hc.dataset.heat ? null : hc.dataset.heat; if (raidFilter.cell) raidFilter.type = ''; renderRaid(); return; }
+            if (e.target.closest('[data-heat-clear]')) { raidFilter.cell = null; renderRaid(); return; }
+            const rf = e.target.closest('[data-rfilter]');
+            if (rf) { raidFilter.type = rf.dataset.rfilter; raidFilter.cell = null; renderRaid(); return; }
         });
         page.addEventListener('change', async e => {
+            if (e.target.closest('[data-rclosed]')) { raidFilter.closed = e.target.checked; renderRaid(); return; }
             const sel = e.target.closest('[data-member-role]');
             if (!sel) return;
             try { await call({ action: 'member_update', member_id: sel.dataset.memberRole, role_id: sel.value || null }); await ctx.refresh(); } catch (err) { P.toast(err.message, 'error'); }
@@ -302,6 +436,20 @@
             document.getElementById('pmPersonResults').hidden = true;
         });
         document.getElementById('pmSave').addEventListener('click', saveMember);
+        document.getElementById('prType').addEventListener('click', e => { const b = e.target.closest('[data-rtype]'); if (b) setRaidType(b.dataset.rtype); });
+        document.getElementById('prSave').addEventListener('click', saveRaid);
+        document.getElementById('prDelete').addEventListener('click', async () => {
+            const ok = await window.showConfirm({ title: T('raid.delete_title'), message: T('raid.delete_body'), okLabel: P.TC('delete'), okClass: 'danger' });
+            if (!ok) return;
+            try { await call({ action: 'raid_delete', id: document.getElementById('prId').value }); P.closeModal('prjRaidModal'); await ctx.refresh(); } catch (err) { P.toast(err.message, 'error'); }
+        });
+        document.getElementById('prTicket').addEventListener('input', searchTicket);
+        document.getElementById('prTicketResults').addEventListener('click', e => {
+            const b = e.target.closest('[data-ticket]'); if (!b) return;
+            document.getElementById('prTicketId').value = b.dataset.ticket;
+            document.getElementById('prTicket').value = b.dataset.ticketLabel;
+            document.getElementById('prTicketResults').hidden = true;
+        });
     }
 
     window.PrjTools = {
@@ -312,6 +460,7 @@
             if (tools.includes('people')) renderPeople();
             if (tools.includes('scope')) renderScope();
             if (tools.includes('raci')) renderRaci();
+            if (tools.includes('raid')) renderRaid();
         },
     };
 })();

@@ -144,6 +144,7 @@
         if (f === 'project_created') detail = '';
         else if (f === 'stage_added') detail = h.new_value || '';
         else if (f === 'stage_removed') detail = h.old_value || '';
+        else if (f.indexOf('raid_') === 0) detail = (h.new_value || h.old_value || '').replace(/^(risk|assumption|issue|decision|lesson): /, (m, k) => T('raid.' + k) + ': ');
         else if (f === 'link_added' || f === 'link_removed') detail = linkHistoryText(h.new_value || h.old_value || '');
         else if (f === 'stage_status') detail = (h.new_value || '').replace(/: (planned|active|closed)$/, (m, s) => ': ' + T('stage_status.' + s));
         else if (f === 'status') detail = T('history.from_to', { from: T('status.' + h.old_value), to: T('status.' + h.new_value) });
@@ -539,7 +540,7 @@
     // ---- Wiring -----------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         const start = (location.hash || '').replace('#', '');
-        if (['overview', 'plan', 'people', 'scope', 'raci', 'connections', 'history'].includes(start)) tab = start;
+        if (['overview', 'plan', 'people', 'scope', 'raci', 'raid', 'connections', 'history'].includes(start)) tab = start;
         if (/[?&]new=1/.test(location.search)) tab = 'plan';
 
         document.getElementById('prjTabs').addEventListener('click', e => {

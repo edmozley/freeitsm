@@ -13,6 +13,8 @@
  *      item_delete    {id}
  *      item_move      {id, moscow, order:[ids in that column]}
  *      raci_set       {item_id, member_id, letter: R|A|C|I|''}
+ *      raid_save      {id?, type, title, description?, probability?, impact?, response?, response_plan?, owner_analyst_id?, status?, due_date?, ticket_id?}
+ *      raid_delete    {id}
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -58,6 +60,11 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk();
         case 'item_move':
             ProjectToolsService::moveItem($conn, $ctx, $pid, (int)($in['id'] ?? 0), $in['moscow'] ?? null, is_array($in['order'] ?? null) ? $in['order'] : []);
+            projectApiOk();
+        case 'raid_save':
+            projectApiOk(['id' => ProjectToolsService::saveRaid($conn, $ctx, $pid, $in)]);
+        case 'raid_delete':
+            ProjectToolsService::deleteRaid($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk();
         case 'raci_set':
             projectApiOk(['row' => (object)ProjectToolsService::setRaci($conn, $ctx, $pid, (int)($in['item_id'] ?? 0), (int)($in['member_id'] ?? 0), (string)($in['letter'] ?? ''))]);

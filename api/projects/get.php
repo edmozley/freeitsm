@@ -16,5 +16,6 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
         'members'     => ProjectToolsService::members($conn, $pid),
         'items'       => ProjectToolsService::items($conn, $pid),
         'raci'        => (object)ProjectToolsService::raci($conn, $pid),
+        'raid'        => ProjectToolsService::raid($conn, $pid),
     ]);
 });

@@ -185,6 +185,114 @@ class ProjectToolsService
     }
 
     // ======================================================================
+    //  RAID log
+    // ======================================================================
+
+    const RAID_TYPES = ['risk', 'assumption', 'issue', 'decision', 'lesson'];
+    const RAID_RESPONSES = ['avoid', 'reduce', 'transfer', 'accept', 'share'];
+
+    /**
+     * Create or update a RAID entry. Probability is for risks only and impact for
+     * risks and issues (both 1-5); a risk's score is probability x impact (1-25),
+     * which is what the heat map and the risk tolerance read.
+     */
+    public static function saveRaid(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        $project = self::changeable($conn, $ctx, $projectId);
+        $id = (int)($in['id'] ?? 0);
+        $cur = null;
+        if ($id > 0) {
+            $st = $conn->prepare("SELECT * FROM project_raid WHERE id = ? AND project_id = ?");
+            $st->execute([$id, $projectId]);
+            $cur = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$cur) throw new ServiceError('not_found', 'not_found', 'That entry is not part of this project.');
+        }
+        $type = (string)($in['type'] ?? ($cur['type'] ?? ''));
+        if (!in_array($type, self::RAID_TYPES, true)) throw new ServiceError('validation', 'invalid_field', 'Choose risk, assumption, issue, decision or lesson.');
+        $title = trim((string)($in['title'] ?? ($cur['title'] ?? '')));
+        if ($title === '') throw new ServiceError('validation', 'missing_field', 'Give it a title.');
+        if (mb_strlen($title) > 255) throw new ServiceError('validation', 'invalid_field', 'The title is too long.');
+        $scale = function ($v) { if ($v === null || $v === '') return null; $n = (int)$v; if ($n < 1 || $n > 5) throw new ServiceError('validation', 'invalid_field', 'Use a value from 1 to 5.'); return $n; };
+        $prob   = $type === 'risk' ? $scale(array_key_exists('probability', $in) ? $in['probability'] : ($cur['probability'] ?? null)) : null;
+        $impact = in_array($type, ['risk', 'issue'], true) ? $scale(array_key_exists('impact', $in) ? $in['impact'] : ($cur['impact'] ?? null)) : null;
+        $resp = $type === 'risk' ? (array_key_exists('response', $in) ? ($in['response'] ?: null) : ($cur['response'] ?? null)) : null;
+        if ($resp !== null && !in_array($resp, self::RAID_RESPONSES, true)) throw new ServiceError('validation', 'invalid_field', 'Unknown response.');
+        $status = (string)($in['status'] ?? ($cur['status'] ?? 'open'));
+        if (!in_array($status, ['open', 'closed'], true)) throw new ServiceError('validation', 'invalid_field', 'Unknown status.');
+        $owner = array_key_exists('owner_analyst_id', $in) ? ((int)$in['owner_analyst_id'] ?: null) : ($cur['owner_analyst_id'] ?? null);
+        if ($owner) self::mustExist($conn, "SELECT 1 FROM analysts WHERE id = ? AND is_active = 1", (int)$owner, 'That analyst does not exist or is inactive.');
+        $due = array_key_exists('due_date', $in) ? self::date($in['due_date']) : ($cur['due_date'] ?? null);
+        $ticket = array_key_exists('ticket_id', $in) ? ((int)$in['ticket_id'] ?: null) : ($cur['ticket_id'] ?? null);
+        if ($ticket) {
+            // A linked ticket must be one this analyst can open, in the project's company.
+            require_once __DIR__ . '/../projects/links.php';
+            $pt = $project['tenant_id'] === null ? (int)getDefaultTenantId($conn) : (int)$project['tenant_id'];
+            if (!projectLinkTargetOk($conn, $ctx->actorId, 'ticket', (int)$ticket, $pt)) throw new ServiceError('validation', 'invalid_field', 'That ticket cannot be linked to this project.');
+        }
+        $desc = array_key_exists('description', $in) ? self::str($in['description'], 20000) : ($cur['description'] ?? null);
+        $plan = array_key_exists('response_plan', $in) ? self::str($in['response_plan'], 20000) : ($cur['response_plan'] ?? null);
+        $vals = [$type, $title, $desc, $prob, $impact, $resp, $plan, $owner, $status, $due, $ticket];
+        if ($cur) {
+            $closedSql = $status === 'closed' && $cur['status'] !== 'closed' ? ', closed_datetime = UTC_TIMESTAMP()' : ($status === 'open' ? ', closed_datetime = NULL' : '');
+            $conn->prepare("UPDATE project_raid SET type = ?, title = ?, description = ?, probability = ?, impact = ?, response = ?, response_plan = ?,
+                                   owner_analyst_id = ?, status = ?, due_date = ?, ticket_id = ?, updated_datetime = UTC_TIMESTAMP()$closedSql WHERE id = ?")
+                 ->execute(array_merge($vals, [$id]));
+            if ($cur['status'] !== $status) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_' . $status, null, $type . ': ' . $title, self::src($ctx));
+            ProjectsService::touchProject($conn, $projectId);
+            return $id;
+        }
+        $conn->prepare("INSERT INTO project_raid (type, title, description, probability, impact, response, response_plan, owner_analyst_id, status, due_date, ticket_id,
+                                                  project_id, raised_by_id, raised_datetime, updated_datetime, closed_datetime)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), " . ($status === 'closed' ? 'UTC_TIMESTAMP()' : 'NULL') . ")")
+             ->execute(array_merge($vals, [$projectId, $ctx->actorId > 0 ? $ctx->actorId : null]));
+        $newId = (int)$conn->lastInsertId();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_added', null, $type . ': ' . $title, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return $newId;
+    }
+
+    public static function deleteRaid(PDO $conn, ActorContext $ctx, int $projectId, int $raidId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $st = $conn->prepare("SELECT type, title FROM project_raid WHERE id = ? AND project_id = ?");
+        $st->execute([$raidId, $projectId]);
+        $r = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'That entry is not part of this project.');
+        $conn->prepare("DELETE FROM project_raid WHERE id = ?")->execute([$raidId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_removed', $r['type'] . ': ' . $r['title'], null, self::src($ctx));
+    }
+
+    public static function raid(PDO $conn, int $projectId): array
+    {
+        try {
+            $st = $conn->prepare("SELECT r.*, a.full_name AS owner_name, t.ticket_number, t.subject AS ticket_subject,
+                                         CASE WHEN r.type = 'risk' AND r.probability IS NOT NULL AND r.impact IS NOT NULL THEN r.probability * r.impact END AS score
+                                    FROM project_raid r
+                               LEFT JOIN analysts a ON a.id = r.owner_analyst_id
+                               LEFT JOIN tickets t ON t.id = r.ticket_id
+                                   WHERE r.project_id = ?
+                                ORDER BY r.status = 'closed', score IS NULL, score DESC, r.raised_datetime DESC");
+            $st->execute([$projectId]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+            require_once __DIR__ . '/../entity_links.php';
+            foreach ($rows as &$r) $r['ticket_url'] = $r['ticket_id'] ? entityLink('ticket', (int)$r['ticket_id']) : null;
+            unset($r);
+            return $rows;
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    private static function date($v): ?string
+    {
+        if ($v === null || trim((string)$v) === '') return null;
+        $s = trim((string)$v);
+        $d = DateTime::createFromFormat('!Y-m-d', $s);
+        if (!$d || $d->format('Y-m-d') !== $s) throw new ServiceError('bad_request', 'invalid_field', "\"$s\" is not a date.");
+        return $s;
+    }
+
+    // ======================================================================
     //  Reads for the project page
     // ======================================================================
 

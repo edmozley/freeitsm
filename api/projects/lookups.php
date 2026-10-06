@@ -35,6 +35,8 @@ projectApiRun(function () use ($conn, $analystId) {
         'roles'           => $roles,
         'teams'           => $teams,
         'tools'           => projectToolDefinitions(),
+        'probability_labels' => explode(',', projectSetting($conn, 'project_probability_labels')),
+        'impact_labels'      => explode(',', projectSetting($conn, 'project_impact_labels')),
         'methodologies'   => $methods,
         'statuses'        => projectStatuses(),
         'colours'         => $colours,
