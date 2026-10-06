@@ -84,7 +84,7 @@ try {
     <script src="../assets/js/vendor/jspdf.plugin.autotable.min.js"></script>
     <?php /* Mobile-friendly opt-in (#937). Last stylesheet so its @media rules
              win on ties. Every rule inside is gated at 768px. */ ?>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=175">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=176">
     <style>
         /* The "not seen in N days" banner (#97). Amber to match the Watchtower
            card it is reached from, and shrink-proof so it cannot be squeezed to
@@ -132,6 +132,6 @@ try {
     <script src="../assets/js/data-table.js?v=6"></script>
     <script src="../assets/js/asset-table.js?v=8"></script>
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
-    <script src="../assets/js/mobile.js?v=73"></script>
+    <script src="../assets/js/mobile.js?v=74"></script>
 </body>
 </html>

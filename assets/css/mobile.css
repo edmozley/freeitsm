@@ -15030,3 +15030,130 @@
     body[data-mobile-page="manager-access"] .ma-line { flex-wrap: wrap; }
     body[data-mobile-page="manager-access"] .ma-team li { padding: 10px 8px; }
 }
+
+@media (max-width: 768px) {
+    /* ====================================================================
+       Contracts list: Overview / Contracts views + a sticky footer (Ed)
+       --------------------------------------------------------------------
+       mobile.js builds .ctr-mbar and sets data-contracts-view on <body>;
+       this is the furniture - the tickets rota's switcher (fixed, bottom,
+       z-index 1200 so dialogs at 2000 cover it, env() for the iPhone home
+       indicator). Search and New contract move from the top of the page into
+       the footer, and the party drop-down into the Filter sheet, so the
+       strip no longer starts the page with two controls and a select.
+       ==================================================================== */
+    body[data-contracts-view="list"] .contracts-sidebar { display: none; }
+    body[data-contracts-view="overview"] .contracts-main { display: none; }
+    body[data-contracts-view] .contracts-sidebar .sidebar-section:has(.sidebar-search-btn),
+    body[data-contracts-view] .contracts-sidebar .sidebar-section:has(.sidebar-add-btn) { display: none; }
+    body[data-contracts-view] .contracts-main .party-filter { display: none; }
+    body[data-contracts-view] .contracts-layout {
+        padding-bottom: calc(70px + env(safe-area-inset-bottom));
+    }
+
+    .ctr-mbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1200;
+        display: flex;
+        gap: 4px;
+        padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+        background: var(--surface, #fff);
+        border-top: 1px solid var(--border, #ddd);
+    }
+    .ctr-mbar-btn {
+        position: relative;
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 48px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 4px 2px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: none;
+        color: var(--text-muted, #666);
+        font: inherit;
+        font-size: 11px;
+        line-height: 1.1;
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .ctr-mbar-btn span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .ctr-mbar-btn svg { width: 21px; height: 21px; flex-shrink: 0; }
+    .ctr-mbar-btn[aria-pressed="true"] {
+        background: var(--surface-hover, #f0f0f0);
+        border-color: var(--border, #ddd);
+        color: var(--accent, #0078d4);
+    }
+    /* A filter is on while its select is out of sight. */
+    .ctr-mbar-btn.has-dot::after {
+        content: "";
+        position: absolute;
+        top: 6px;
+        right: calc(50% - 16px);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent, #0078d4);
+    }
+
+    /* The Filter sheet: options as full-width rows over a dimmed page. */
+    .ctr-filter-sheet {
+        position: fixed;
+        inset: 0;
+        z-index: 1300;
+        background: rgba(0, 0, 0, 0.4);
+        align-items: flex-end;
+    }
+    .ctr-filter-sheet .cfs-panel {
+        width: 100%;
+        background: var(--surface, #fff);
+        border-radius: 14px 14px 0 0;
+        padding: 6px 12px calc(12px + env(safe-area-inset-bottom));
+    }
+    .ctr-filter-sheet .cfs-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 4px 10px;
+        font-weight: 600;
+        color: var(--text, #333);
+    }
+    .ctr-filter-sheet .cfs-close {
+        border: none;
+        background: none;
+        color: var(--accent, #0078d4);
+        font: inherit;
+        font-size: 15px;
+        padding: 8px;
+        cursor: pointer;
+    }
+    .ctr-filter-sheet .cfs-opt {
+        display: block;
+        width: 100%;
+        min-height: 48px;
+        margin-bottom: 6px;
+        padding: 10px 14px;
+        text-align: left;
+        border: 1px solid var(--border, #ddd);
+        border-radius: 10px;
+        background: var(--surface, #fff);
+        color: var(--text, #333);
+        font: inherit;
+        font-size: 15px;
+        cursor: pointer;
+    }
+    .ctr-filter-sheet .cfs-opt.on {
+        border-color: var(--accent, #0078d4);
+        color: var(--accent, #0078d4);
+        font-weight: 600;
+    }
+}

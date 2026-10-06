@@ -4988,3 +4988,148 @@
     if (mq.addEventListener) { mq.addEventListener('change', sync); }
     else if (mq.addListener) { mq.addListener(sync); }
 })();
+
+/* ==========================================================================
+   Contracts list on a phone: Overview / Contracts views + a sticky footer (Ed)
+
+   The page is a sidebar (search, the five figures, quick links, New contract)
+   stacked over the contract cards, so the cards started a screen and a half
+   down. On a phone it becomes two views and a footer, the tickets rota's
+   switcher shape (fixed, bottom, z-index 1200, env() for the home indicator):
+
+     Overview   the figures and quick links (the sidebar)
+     Contracts  the list on its own
+     Search     the page's own search modal (openSearchModal)
+     Add        the sidebar's New contract link (edit.php)
+     Filter     a sheet built FROM the page's #partyFilter options; picking
+                one sets the real select and fires its change, so
+                loadContracts() does the work exactly as on desktop. A dot on
+                the button says a filter is on while the select is hidden.
+
+   The view is ONE attribute on <body>; CSS does the hiding. Which view you
+   were on is remembered per browser (a convenience, so wrapped in try).
+   Zero new strings: every label already exists and is translated.
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    if (!document.body || document.body.getAttribute('data-mobile-page') !== 'contracts-list') return;
+    var mq = window.matchMedia('(max-width: 768px)');
+    var select = document.getElementById('partyFilter');
+    var KEY = 'freeitsm.contracts.mobileView';
+
+    function tr(key, fallback) {
+        if (typeof window.t !== 'function') return fallback;
+        var v = window.t(key);
+        return (!v || v === key) ? fallback : v;
+    }
+    function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+    var SVG = function (p) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+               'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+    };
+    var ITEMS = [
+        { id: 'overview', label: tr('contracts.list.overview', 'Overview'),
+          icon: SVG('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') },
+        { id: 'list', label: tr('contracts.nav.contracts', 'Contracts'),
+          icon: SVG('<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>') },
+        { id: 'search', label: tr('common.search', 'Search'),
+          icon: SVG('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>') },
+        { id: 'add', label: tr('common.add', 'Add'),
+          icon: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>') },
+        { id: 'filter', label: tr('common.filter', 'Filter'),
+          icon: SVG('<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>') }
+    ];
+
+    var bar = document.createElement('nav');
+    bar.className = 'ctr-mbar';
+    bar.style.display = 'none';
+    var btns = {};
+    ITEMS.forEach(function (it) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ctr-mbar-btn';
+        b.setAttribute('data-act', it.id);
+        b.innerHTML = it.icon + '<span>' + esc(it.label) + '</span>';
+        b.addEventListener('click', function () { act(it.id); });
+        bar.appendChild(b);
+        btns[it.id] = b;
+    });
+    document.body.appendChild(bar);
+
+    // The filter sheet: one row per option of the real select.
+    var sheet = document.createElement('div');
+    sheet.className = 'ctr-filter-sheet';
+    sheet.style.display = 'none';
+    document.body.appendChild(sheet);
+
+    function buildSheet() {
+        if (!select) return;
+        var title = select.getAttribute('aria-label') || tr('common.filter', 'Filter');
+        var html = '<div class="cfs-panel" role="dialog" aria-label="' + esc(title) + '">' +
+                   '<div class="cfs-head"><span>' + esc(title) + '</span>' +
+                   '<button type="button" class="cfs-close">' + esc(tr('common.close', 'Close')) + '</button></div>';
+        Array.prototype.forEach.call(select.options, function (o, i) {
+            html += '<button type="button" class="cfs-opt' + (o.value === select.value ? ' on' : '') +
+                    '" data-i="' + i + '">' + esc(o.textContent) + '</button>';
+        });
+        sheet.innerHTML = html + '</div>';
+        sheet.querySelector('.cfs-close').addEventListener('click', closeSheet);
+        Array.prototype.forEach.call(sheet.querySelectorAll('.cfs-opt'), function (el) {
+            el.addEventListener('click', function () {
+                select.selectedIndex = parseInt(el.getAttribute('data-i'), 10);
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                syncDot();
+                closeSheet();
+                setView('list');
+            });
+        });
+    }
+    function openSheet() { buildSheet(); sheet.style.display = 'flex'; }
+    function closeSheet() { sheet.style.display = 'none'; }
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
+
+    function syncDot() {
+        btns.filter.classList.toggle('has-dot', !!(select && select.value));
+    }
+
+    function setView(v) {
+        document.body.setAttribute('data-contracts-view', v);
+        btns.overview.setAttribute('aria-pressed', v === 'overview' ? 'true' : 'false');
+        btns.list.setAttribute('aria-pressed', v === 'list' ? 'true' : 'false');
+        try { localStorage.setItem(KEY, v); } catch (e) {}
+        window.scrollTo(0, 0);
+        var lay = document.querySelector('.contracts-layout');
+        if (lay) lay.scrollTop = 0;
+    }
+
+    function act(id) {
+        if (id === 'overview' || id === 'list') setView(id);
+        else if (id === 'search' && typeof window.openSearchModal === 'function') window.openSearchModal();
+        else if (id === 'add') {
+            var a = document.querySelector('.sidebar-add-btn');
+            window.location.href = a ? a.getAttribute('href') : 'edit.php';
+        }
+        else if (id === 'filter') openSheet();
+    }
+
+    function sync() {
+        if (mq.matches) {
+            var v = 'overview';
+            try { v = localStorage.getItem(KEY) || 'overview'; } catch (e) {}
+            setView(v === 'list' ? 'list' : 'overview');
+            bar.style.display = '';
+            syncDot();
+            if (!select) btns.filter.style.display = 'none';
+        } else {
+            document.body.removeAttribute('data-contracts-view');
+            bar.style.display = 'none';
+            closeSheet();
+        }
+    }
+    sync();
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
+})();

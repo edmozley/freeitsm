@@ -109,6 +109,6 @@ $sections = $data['sections'] ?? [];
         });
     })();
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=73"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=74"></script>
 </body>
 </html>

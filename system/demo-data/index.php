@@ -303,7 +303,7 @@ if (!isset($_SESSION['analyst_id'])) {
         [data-theme-mode="dark"] .error-text { color: var(--danger-text, #fca5a5); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=176">
 </head>
 <body data-mobile-module="system" data-mobile-page="demo-data">
     <?php include '../includes/header.php'; ?>
@@ -714,6 +714,6 @@ if (!isset($_SESSION['analyst_id'])) {
             } catch (e) { /* ignore - user can still click Import */ }
         })();
     </script>
-    <script src="../../assets/js/mobile.js?v=73"></script>
+    <script src="../../assets/js/mobile.js?v=74"></script>
 </body>
 </html>

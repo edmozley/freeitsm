@@ -170,7 +170,7 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         [data-theme-mode="dark"] .steps a:not(.btn) { color: var(--sys-accent, #90a4ae); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=175">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=176">
 </head>
 <body data-mobile-module="system" data-mobile-page="docker">
     <?php include '../includes/header.php'; ?>
@@ -363,6 +363,6 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         });
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=73"></script>
+    <script src="../../assets/js/mobile.js?v=74"></script>
 </body>
 </html>
