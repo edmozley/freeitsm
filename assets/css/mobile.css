@@ -13530,6 +13530,20 @@
     body[data-mobile-page="tickets-csat"] .analyst-table th,
     body[data-mobile-page="tickets-csat"] .analyst-table td { overflow-wrap: anywhere; }
     body[data-mobile-page="tickets-csat"] .panel { min-width: 0; }
+    /* Headline cards: the page's `repeat(3, 1fr)` has a min-content floor, so
+       three 20px-padded cards with 32px figures pushed Response rate off the
+       right of a phone. Two shrinkable columns (the rep-intune pattern), with
+       the third card taking the full row underneath. */
+    body[data-mobile-page="tickets-csat"] .kpi-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    body[data-mobile-page="tickets-csat"] .kpi-card { padding: 14px; min-width: 0; }
+    body[data-mobile-page="tickets-csat"] .kpi-card:nth-child(3) { grid-column: 1 / -1; }
+    body[data-mobile-page="tickets-csat"] .kpi-value { font-size: 26px; }
+    body[data-mobile-page="tickets-csat"] .kpi-label,
+    body[data-mobile-page="tickets-csat"] .kpi-sub { overflow-wrap: anywhere; }
 
     /* ---- 39e. CSAT filters (GH #157): a sticky Filters button + a sheet ---
        Ed: "on mobile can we have a sticky footer with a filter icon that lets

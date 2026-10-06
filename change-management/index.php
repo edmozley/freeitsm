@@ -26,7 +26,7 @@ $translationNamespaces = ['common', 'change-management'];
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=24">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=76">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=7">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=169">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=170">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>

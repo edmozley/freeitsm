@@ -18,6 +18,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2166 | Tickets           | Improvement | On a phone, the Links item in the ticket footer's "…" panel shows how many links the ticket has, e.g. "Links (2)", and keeps the count current as links load or are removed. |
 | 2167 | Tickets           | Improvement | On a phone, the Link to problem / change / ticket lists fill the screen instead of stopping halfway down. |
 | 2168 | Tickets           | Fix         | On a phone, long-press "Link to task" opened its picker inside the hidden Links sheet so nothing seemed to happen; it now opens a full-screen list of tasks like Link to change, and an empty task search lists the 20 most recent tasks. |
+| 2169 | Tickets           | Fix         | On a phone, the CSAT page's Response rate card ran off the right of the screen; the headline cards now sit two across with Response rate on its own row. |
 
 
 

@@ -121,7 +121,7 @@ foreach ($providers as $pk => $pmeta) {
         .provider-count.is-none { background: var(--surface-2); color: var(--text-faint); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=169">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=170">
 </head>
 <body data-mobile-module="system" data-mobile-page="integrations">
     <?php include '../includes/header.php'; ?>
