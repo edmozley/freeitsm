@@ -81,6 +81,18 @@ return [
         'check'    => ['rows', 'project_stages', 'gate_decision IS NOT NULL'],
     ],
     [
+        'id'       => 'projects.asset_targets',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Project progress counted from Assets',
+        'what'     => 'An asset target on a project\'s Overview counts assets that meet a rule - "Latitude 5430s retired", "Windows 11 everywhere" - with a line of its progress and the list still to do.',
+        'why'      => 'A refresh or rollout reports its real progress from the estate itself, and falls behind on the health ring the moment it slips.',
+        'done'     => 'At least one project has an asset target.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_asset_targets'],
+    ],
+    [
         'id'       => 'projects.connections',
         'module'   => 'projects',
         'tier'     => 'extra',

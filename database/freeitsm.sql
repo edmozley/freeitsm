@@ -8034,6 +8034,48 @@ CREATE TABLE IF NOT EXISTS `project_tolerances` (
     CONSTRAINT `fk_ptol_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_ptol_stage` FOREIGN KEY (`stage_id`) REFERENCES `project_stages` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Asset targets (3.2.0): live progress measured from Assets - "312 of 480
+-- laptops replaced". A set of assets in scope (the project's linked assets, or
+-- a filter: type and/or a field containing a value, in the project's company)
+-- and a rule for when one counts as done. Counts are worked out on read, never
+-- stored; the snapshots only keep one point a day for the burn-up line.
+CREATE TABLE IF NOT EXISTS `project_asset_targets` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `name`                  VARCHAR(150) NOT NULL,
+    `scope`                 VARCHAR(10) NOT NULL DEFAULT 'filter',   -- filter | linked
+    `scope_type_id`         INT NULL,                                 -- asset_types.id, filter only
+    `scope_field`           VARCHAR(30) NULL,                         -- model | manufacturer | operating_system | hostname
+    `scope_value`           VARCHAR(100) NULL,                        -- "contains" text for scope_field
+    `done_field`            VARCHAR(30) NOT NULL,                     -- status | location | operating_system | feature_release | model | manufacturer | bitlocker_status | tpm_version
+    `done_op`               VARCHAR(20) NOT NULL,                     -- is | is_not | contains | not_contains | at_least
+    `done_value`            VARCHAR(100) NULL,
+    `target_date`           DATE NULL,                                -- NULL = the project's target end date
+    `position`              INT NOT NULL DEFAULT 0,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL,
+    `is_demo`               TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_patg_project` (`project_id`, `position`),
+    CONSTRAINT `fk_patg_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_patg_type` FOREIGN KEY (`scope_type_id`) REFERENCES `asset_types` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_patg_created_by` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One point a day per target for the burn-up line, written when the project is opened.
+CREATE TABLE IF NOT EXISTS `project_asset_target_snapshots` (
+    `id`         INT NOT NULL AUTO_INCREMENT,
+    `target_id`  INT NOT NULL,
+    `snap_date`  DATE NOT NULL,
+    `done`       INT NOT NULL DEFAULT 0,
+    `total`      INT NOT NULL DEFAULT 0,
+    `is_demo`    TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_patgs_day` (`target_id`, `snap_date`),
+    CONSTRAINT `fk_patgs_target` FOREIGN KEY (`target_id`) REFERENCES `project_asset_targets` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Seed: the project roles a fresh install starts with (PRINCE2-style, in our

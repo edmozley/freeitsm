@@ -470,4 +470,6 @@ return [
     ['project_raci', 'ix_praci_project', 'key', '(`project_id`)'],
     ['project_raid', 'idx_project_raid_project', 'key', '(`project_id`,`type`,`status`)'],
     ['project_tolerances', 'uq_ptol_dimension', 'unique', '(`project_id`,`stage_id`,`dimension`)'],
+    ['project_asset_targets', 'idx_patg_project', 'key', '(`project_id`,`position`)'],
+    ['project_asset_target_snapshots', 'uq_patgs_day', 'unique', '(`target_id`,`snap_date`)'],
 ];

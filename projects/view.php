@@ -41,8 +41,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=9">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=182">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=10">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=183">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
     <?php include 'includes/header.php'; ?>
@@ -186,6 +186,57 @@ $projectId = (int)($_GET['id'] ?? 0);
         </div>
     </div>
 
+    <!-- Asset targets (3.2.0): set one up -->
+    <div class="modal" id="prjTargetModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:560px">
+            <div class="modal-header" id="ptTitle"></div>
+            <div class="modal-body">
+                <input type="hidden" id="ptId">
+                <div class="form-group"><label for="ptName"><?php echo htmlspecialchars(t('projects.targets.name')); ?></label><input type="text" id="ptName" maxlength="150" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.targets.name_ph')); ?>"></div>
+                <label class="prj-tg-label"><?php echo htmlspecialchars(t('projects.targets.which')); ?></label>
+                <div class="prj-seg" id="ptScope" role="tablist" data-scope="filter">
+                    <button type="button" data-scope="filter" class="active"><?php echo htmlspecialchars(t('projects.targets.scope_filter_btn')); ?></button>
+                    <button type="button" data-scope="linked"><?php echo htmlspecialchars(t('projects.targets.scope_linked_btn')); ?></button>
+                </div>
+                <div class="prj-form-grid" id="ptFilter">
+                    <div class="form-group"><label for="ptType"><?php echo htmlspecialchars(t('projects.targets.type')); ?></label><select id="ptType"></select></div>
+                    <div class="form-group"><label for="ptSField"><?php echo htmlspecialchars(t('projects.targets.where')); ?></label><select id="ptSField"></select></div>
+                    <div class="form-group"><label for="ptSValue"><?php echo htmlspecialchars(t('projects.targets.contains_label')); ?></label><input type="text" id="ptSValue" maxlength="100" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.targets.contains_ph')); ?>"></div>
+                </div>
+                <p class="prj-muted" id="ptLinkedNote" hidden><?php echo htmlspecialchars(t('projects.targets.linked_note')); ?></p>
+                <label class="prj-tg-label"><?php echo htmlspecialchars(t('projects.targets.done_when')); ?></label>
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="ptField"><?php echo htmlspecialchars(t('projects.targets.field_label')); ?></label><select id="ptField"></select></div>
+                    <div class="form-group"><label for="ptOp"><?php echo htmlspecialchars(t('projects.targets.op_label')); ?></label><select id="ptOp"></select></div>
+                    <div class="form-group"><label for="ptValue"><?php echo htmlspecialchars(t('projects.targets.value_label')); ?></label><input type="text" id="ptValue" maxlength="100" autocomplete="off"><select id="ptValueList" hidden></select></div>
+                </div>
+                <div class="form-group"><label for="ptDue"><?php echo htmlspecialchars(t('projects.targets.due')); ?></label><input type="date" id="ptDue"><small class="prj-muted"><?php echo htmlspecialchars(t('projects.targets.due_hint')); ?></small></div>
+                <div class="prj-tg-preview none" id="ptPreview" aria-live="polite"></div>
+                <div class="prj-form-error" id="ptError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="ptDelete" style="margin-right:auto" hidden><?php echo htmlspecialchars(t('common.delete')); ?></button>
+                <button type="button" class="btn btn-secondary" data-prj-close="prjTargetModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="ptSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asset targets: the assets behind one -->
+    <div class="modal" id="prjTargetListModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:820px">
+            <div class="modal-header" id="ptlTitle"></div>
+            <div class="modal-body">
+                <p class="prj-muted" id="ptlSub" style="margin-top:0"></p>
+                <div class="prj-seg" id="ptlSeg" role="tablist"><button type="button" data-show="left"></button><button type="button" data-show="done"></button></div>
+                <div id="ptlBody"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjTargetListModal"><?php echo htmlspecialchars(t('common.close')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add someone to the project (People) -->
     <div class="modal" id="prjMemberModal" aria-hidden="true">
         <div class="modal-content" style="max-width:520px">
@@ -259,7 +310,8 @@ $projectId = (int)($_GET['id'] ?? 0);
 
     <script src="../assets/js/projects.js?v=5"></script>
     <script src="../assets/js/projects-tools.js?v=3"></script>
-    <script src="../assets/js/projects-view.js?v=8"></script>
+    <script src="../assets/js/projects-targets.js?v=1"></script>
+    <script src="../assets/js/projects-view.js?v=9"></script>
     <script src="../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

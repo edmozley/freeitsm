@@ -16126,4 +16126,29 @@
         touch-action: none;
         padding: 8px 2px;
     }
+
+    /* ---- 44q. Asset targets (Overview) -------------------------------------
+       The cards are an auto-fill grid of 260px and already fall to one column.
+       The pencil was a 22px target - 40px here. The dialog's three-across
+       rows (Type / Where / Contains, Field / Is / Value) were 90px each: one
+       column. Its two pickers sat in 44o's three-column grid with a hole -
+       two across. The "what's left" table was five columns in a 340px sheet:
+       each row becomes a card with its labels (the td data-label idiom). */
+    body[data-mobile-page="projects-view"] .prj-tg-edit { min-width: 40px; min-height: 40px; justify-content: center; }
+    body[data-mobile-page="projects-view"] .prj-tg-left { min-height: 40px; }
+    body[data-mobile-module="projects"] #prjTargetModal .prj-form-grid { grid-template-columns: minmax(0, 1fr); }
+    body[data-mobile-module="projects"] #ptScope,
+    body[data-mobile-module="projects"] #ptlSeg { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body[data-mobile-module="projects"] .prj-tg-table-wrap { max-height: none; border: none; }
+    body[data-mobile-module="projects"] .prj-tg-table thead { display: none; }
+    body[data-mobile-module="projects"] .prj-tg-table,
+    body[data-mobile-module="projects"] .prj-tg-table tbody,
+    body[data-mobile-module="projects"] .prj-tg-table tr,
+    body[data-mobile-module="projects"] .prj-tg-table td { display: block; width: 100%; box-sizing: border-box; }
+    body[data-mobile-module="projects"] .prj-tg-table tr { border: 1px solid var(--border, #e5e7eb); border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; }
+    body[data-mobile-module="projects"] .prj-tg-table td { border: none; padding: 3px 0; display: flex; gap: 10px; overflow-wrap: anywhere; }
+    body[data-mobile-module="projects"] .prj-tg-table td:empty { display: none; }
+    body[data-mobile-module="projects"] .prj-tg-table td::before { content: attr(data-label); flex: 0 0 38%; color: var(--text-dim, #888); font-size: 12px; }
+    body[data-mobile-module="projects"] .prj-tg-table td:first-child { font-size: 15px; }
+    body[data-mobile-module="projects"] .prj-tg-table td:first-child::before { display: none; }
 }

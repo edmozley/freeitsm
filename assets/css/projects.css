@@ -16,7 +16,7 @@
 
 /* TRAP: a class that sets display (inline-flex, grid...) beats the UA [hidden]
    rule, so a hidden chip still showed. Re-assert it for everything in the module. */
-.prj-layout [hidden], .prj-page [hidden], .prj-form-modal [hidden] { display: none !important; }
+.prj-layout [hidden], .prj-page [hidden], .prj-form-modal [hidden], #prjTargetModal [hidden], #prjTargetListModal [hidden] { display: none !important; }
 
 body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-hover, #be123c); --on-accent: var(--prj-on-accent, #fff); }
 
@@ -633,3 +633,43 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
     .pulse { animation: none; }
     .prj-ring-arc, .prj-bar span, .prj-card-bar span { transition: none; }
 }
+
+/* ---- Asset targets (3.2.0): live progress from Assets, on the Overview ---- */
+.prj-tg-panel { margin: 14px 0; }
+.prj-tg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.prj-tg { position: relative; border: 1px solid var(--border, #e5e7eb); border-radius: 12px; padding: 14px 16px 12px; background: var(--surface, #fff); display: flex; flex-direction: column; min-width: 0; }
+.prj-tg::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: var(--prj-gradient, linear-gradient(180deg, #f43f5e, #7c3aed)); }
+.prj-tg-head { display: flex; align-items: center; gap: 8px; }
+.prj-tg-name { font-weight: 700; font-size: 14px; color: var(--text, #222); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prj-tg-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: #16a34a; }
+.prj-tg.h-amber .prj-tg-dot { background: #d97706; }
+.prj-tg.h-red .prj-tg-dot { background: #dc2626; }
+.prj-tg-edit { margin-left: auto; border: none; background: none; color: var(--text-dim, #888); cursor: pointer; padding: 4px; border-radius: 6px; display: inline-flex; }
+.prj-tg-edit:hover { color: var(--prj-accent, #e11d48); background: var(--surface-hover, #f1f5f9); }
+.prj-tg-big { display: flex; align-items: baseline; gap: 6px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.prj-tg-big strong { font-size: 30px; font-weight: 750; line-height: 1; color: var(--text, #222); }
+.prj-tg-big span { font-size: 14px; color: var(--text-dim, #888); }
+.prj-tg-big em { margin-left: auto; font-style: normal; font-weight: 700; font-size: 13px; color: var(--prj-accent, #e11d48); }
+.prj-tg.h-red .prj-tg-big em { color: #dc2626; }
+.prj-tg-rule { font-size: 12px; color: var(--text-muted, #666); margin-top: 4px; }
+.prj-tg-spark { display: block; width: 100%; height: 44px; margin-top: 10px; color: var(--tg-c, #e11d48); }
+.prj-tg-spark.empty { height: auto; font-size: 11px; color: var(--text-dim, #888); border-top: 1px dashed var(--border, #e5e7eb); padding-top: 8px; }
+.prj-tg-foot { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--text-dim, #888); min-width: 0; }
+.prj-tg-scope { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.prj-tg-when { margin-left: auto; white-space: nowrap; font-weight: 600; }
+.prj-tg-when.late { color: #dc2626; }
+.prj-tg-left { margin: 8px 0 0; align-self: flex-start; }
+.prj-tg-empty { display: flex; gap: 14px; align-items: center; width: 100%; text-align: left; border: 2px dashed var(--border, #e5e7eb); border-radius: 12px; background: none; padding: 16px 18px; cursor: pointer; color: var(--prj-accent, #e11d48); font: inherit; }
+.prj-tg-empty:hover { border-color: var(--prj-accent, #e11d48); background: var(--prj-accent-soft, #fff1f2); }
+.prj-tg-empty span { display: flex; flex-direction: column; gap: 3px; color: var(--text-muted, #666); font-size: 13px; }
+.prj-tg-empty strong { color: var(--text, #222); font-size: 14px; }
+.prj-tg-label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #888); margin: 6px 0 8px; }
+.prj-tg-preview { margin-top: 4px; padding: 10px 12px; border-radius: 9px; font-size: 13px; font-weight: 600; background: var(--prj-accent-soft, #fff1f2); color: var(--prj-accent, #e11d48); }
+.prj-tg-preview.none { background: var(--surface-hover, #f1f5f9); color: var(--text-muted, #666); font-weight: 500; }
+.prj-tg-preview:empty { display: none; }
+.prj-tg-table-wrap { max-height: 52vh; overflow: auto; border: 1px solid var(--border, #e5e7eb); border-radius: 10px; }
+.prj-tg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.prj-tg-table th { position: sticky; top: 0; background: var(--surface, #fff); text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #888); padding: 8px 10px; border-bottom: 1px solid var(--border, #e5e7eb); }
+.prj-tg-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-soft, #f0f0f0); color: var(--text, #222); }
+.prj-tg-table a { color: var(--prj-accent, #e11d48); font-weight: 600; text-decoration: none; }
+#prjTargetModal .prj-form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

@@ -86,6 +86,8 @@
         const upcoming = data.tasks.filter(t => !Number(t.is_closed) && t.due_date).sort((a, b) => a.due_date.localeCompare(b.due_date)).slice(0, 6);
 
         let html = (window.PrjTools && p.exceptions && p.exceptions.length ? window.PrjTools.exceptionsBanner(p.exceptions) : '') + '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + t.cls + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span></div>').join('') + '</div>';
+        // Asset targets (3.2.0) - drawn by projects-targets.js after this.
+        html += '<div id="pvTargets" hidden></div>';
         html += '<div class="prj-ov-grid">';
 
         html += '<div class="prj-panel prj-ov-about"><h3>' + esc(T('view.about')) + '</h3>'
@@ -146,6 +148,7 @@
         else if (f === 'stage_removed') detail = h.old_value || '';
         else if (f === 'gate') detail = (h.old_value || '') + ': ' + T('gates.' + (h.new_value || ''));
         else if (f === 'tolerances') detail = '';
+        else if (f === 'target_saved' || f === 'target_removed') detail = h.new_value || h.old_value || '';
         else if (f.indexOf('raid_') === 0) detail = (h.new_value || h.old_value || '').replace(/^(risk|assumption|issue|decision|lesson): /, (m, k) => T('raid.' + k) + ': ');
         else if (f === 'link_added' || f === 'link_removed') detail = linkHistoryText(h.new_value || h.old_value || '');
         else if (f === 'stage_status') detail = (h.new_value || '').replace(/: (planned|active|closed)$/, (m, s) => ': ' + T('stage_status.' + s));
@@ -275,6 +278,7 @@
         const cur = document.querySelector('#prjTabs [data-tab="' + tab + '"]');
         if (!cur || cur.hidden) tab = 'overview';
         if (window.PrjTools) window.PrjTools.render({ data: data, L: L, projectId: projectId, refresh: refresh, page: page });
+        if (window.PrjTargets) window.PrjTargets.render({ data: data, projectId: projectId, refresh: refresh });
         showTab(tab);
     }
 

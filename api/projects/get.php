@@ -18,5 +18,7 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
         'raci'        => (object)ProjectToolsService::raci($conn, $pid),
         'raid'        => ProjectToolsService::raid($conn, $pid),
         'tolerances'  => ProjectToolsService::tolerances($conn, $pid),
+        'targets'     => projectTargetsDetail($conn, $pid),
+        'can_assets'  => analystCanAccessModule($conn, $analystId, 'assets'),
     ]);
 });

@@ -5,6 +5,9 @@
  * this only routes.
  *
  * GET  ?project_id=N&people=Q          people from People in the project's company, for the picker
+ *      ?project_id=N&target_options=1  types, statuses, locations and fields for the target dialog (Assets access)
+ *      ?project_id=N&target_preview=1&<rule fields>  {done, total} for a rule being edited (Assets access)
+ *      ?project_id=N&target_assets=ID&show=left|done  the assets behind a target, at most 200 (Assets access)
  * POST {action, project_id, ...}
  *      member_add     {analyst_id | team_id | user_id, role_id?, notes?}
  *      member_update  {member_id, role_id?, notes?}
@@ -17,6 +20,8 @@
  *      raid_delete    {id}
  *      tolerances_save {time?: days|null, risk?: score|null}
  *      gate_decide    {stage_id, decision: go|go_with_conditions|stop, notes?}
+ *      target_save    {id?, name, scope: filter|linked, scope_type_id?, scope_field?, scope_value?, done_field, done_op, done_value, target_date?}
+ *      target_delete  {id}
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -40,6 +45,19 @@ projectApiRun(function () use ($conn, $ctx) {
             $st = $conn->prepare($sql . " ORDER BY name LIMIT 20");
             $st->execute($args);
             projectApiOk(['people' => $st->fetchAll(PDO::FETCH_ASSOC)]);
+        }
+        // Asset targets (3.2.0): everything that reads the estate needs Assets.
+        if (isset($_GET['target_options']) || isset($_GET['target_preview']) || isset($_GET['target_assets'])) {
+            require_once __DIR__ . '/../../includes/projects/targets.php';
+            ProjectToolsService::assertAssets($conn, $ctx);
+            if (isset($_GET['target_options'])) projectApiOk(['options' => projectTargetOptions($conn, $project)]);
+            if (isset($_GET['target_preview'])) {
+                [$done, $total] = projectTargetCount($conn, $project, $_GET);
+                projectApiOk(['done' => $done, 'total' => $total]);
+            }
+            $t = ProjectToolsService::target($conn, (int)$project['id'], (int)$_GET['target_assets']);
+            $doneOnes = ($_GET['show'] ?? 'left') === 'done';
+            projectApiOk(['assets' => projectTargetAssets($conn, $project, $t, $doneOnes, 200)]);
         }
         projectApiFail('Unknown request.');
     }
@@ -73,6 +91,11 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk();
         case 'gate_decide':
             projectApiOk(ProjectToolsService::decideGate($conn, $ctx, $pid, (int)($in['stage_id'] ?? 0), (string)($in['decision'] ?? ''), $in['notes'] ?? null));
+        case 'target_save':
+            projectApiOk(['id' => ProjectToolsService::saveTarget($conn, $ctx, $pid, $in)]);
+        case 'target_delete':
+            ProjectToolsService::deleteTarget($conn, $ctx, $pid, (int)($in['id'] ?? 0));
+            projectApiOk();
         case 'raci_set':
             projectApiOk(['row' => (object)ProjectToolsService::setRaci($conn, $ctx, $pid, (int)($in['item_id'] ?? 0), (int)($in['member_id'] ?? 0), (string)($in['letter'] ?? ''))]);
     }

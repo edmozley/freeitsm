@@ -18,8 +18,13 @@
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/methodologies.php';
 require_once __DIR__ . '/settings.php';
+require_once __DIR__ . '/targets.php';
 
-/** Per-project task counts in one query: total, done, overdue (top-level tasks only). */
+/**
+ * Per-project task counts in one query: total, done, overdue (top-level tasks
+ * only), plus targets_health - the worst of the project's asset targets
+ * (includes/projects/targets.php) - so every screen's health agrees.
+ */
 function projectTaskStats(PDO $conn, array $projectIds): array
 {
     $out = [];
@@ -38,6 +43,9 @@ function projectTaskStats(PDO $conn, array $projectIds): array
     foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $out[(int)$r['project_id']] = ['total' => (int)$r['total'], 'done' => (int)$r['done'], 'overdue' => (int)$r['overdue']];
     }
+    foreach (projectTargetsFor($conn, $projectIds) as $pid => $targets) {
+        $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['targets_health' => projectTargetsWorst($targets)];
+    }
     return $out;
 }
 
@@ -48,6 +56,8 @@ function projectTaskStats(PDO $conn, array $projectIds): array
  *   amber - any open work overdue, or the target date within 14 days and less
  *           than three quarters done;
  *   green - otherwise.
+ * An asset target that is red makes the project red; an amber one makes a
+ * green project amber (projectTargetHealth).
  * Finished projects have no health (null). Written in the help page too - keep
  * the two in step.
  */
@@ -58,6 +68,8 @@ function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
     $cfg = $cfg ?? ['amber_days' => 14, 'amber_progress' => 75, 'red_overdue_pct' => 25];
     $total = $stats['total'] ?? 0; $done = $stats['done'] ?? 0; $overdue = $stats['overdue'] ?? 0;
     $open = $total - $done;
+    $targets = $stats['targets_health'] ?? null;
+    if ($targets === 'red') return 'red';
     $today = gmdate('Y-m-d');
     if (!empty($p['target_end_date']) && $p['target_end_date'] < $today && $open > 0) return 'red';
     if ($open > 0 && $overdue > 0 && $overdue * 100 >= $open * $cfg['red_overdue_pct']) return 'red';
@@ -66,7 +78,7 @@ function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
         $days = (strtotime($p['target_end_date']) - strtotime($today)) / 86400;
         if ($days <= $cfg['amber_days'] && $total > 0 && ($done * 100 / $total) < $cfg['amber_progress']) return 'amber';
     }
-    return 'green';
+    return $targets === 'amber' ? 'amber' : 'green';
 }
 
 /** The Health tab's thresholds, as numbers. */

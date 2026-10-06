@@ -382,6 +382,75 @@ class ProjectToolsService
         }
     }
 
+    // ======================================================================
+    //  Asset targets (3.2.0) - rules in includes/projects/targets.php
+    // ======================================================================
+
+    /**
+     * Add or change an asset target. Needs the project to be changeable AND
+     * Assets access: the rule names asset types, statuses and models, and the
+     * dialog's live count would otherwise tell somebody without Assets what is
+     * in the estate. Returns its id.
+     */
+    public static function saveTarget(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        require_once __DIR__ . '/../projects/targets.php';
+        $p = self::changeable($conn, $ctx, $projectId);
+        self::assertAssets($conn, $ctx);
+        if (!projectTargetsReady($conn)) throw new ServiceError('unavailable', 'not_ready', 'Run Database Verification first.');
+        $t = projectTargetNormalise($in);
+        if ($t['scope_type_id'] !== null) {
+            $ok = in_array($t['scope_type_id'], array_map('intval', array_column(projectTargetOptions($conn, $p)['types'], 'id')), true);
+            if (!$ok) throw new ServiceError('validation', 'invalid_field', 'That asset type is not available here.');
+        }
+        $id = (int)($in['id'] ?? 0);
+        if ($id > 0) {
+            self::target($conn, $projectId, $id);
+            $conn->prepare("UPDATE project_asset_targets SET name = ?, scope = ?, scope_type_id = ?, scope_field = ?, scope_value = ?,
+                                   done_field = ?, done_op = ?, done_value = ?, target_date = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$t['name'], $t['scope'], $t['scope_type_id'], $t['scope_field'], $t['scope_value'], $t['done_field'], $t['done_op'], $t['done_value'], $t['target_date'], $id]);
+            // The rule changed, so yesterday's points measured something else.
+            $conn->prepare("DELETE FROM project_asset_target_snapshots WHERE target_id = ?")->execute([$id]);
+        } else {
+            $pos = $conn->prepare("SELECT COALESCE(MAX(position), 0) + 1 FROM project_asset_targets WHERE project_id = ?");
+            $pos->execute([$projectId]);
+            $conn->prepare("INSERT INTO project_asset_targets (project_id, name, scope, scope_type_id, scope_field, scope_value, done_field, done_op, done_value, target_date, position, created_by_analyst_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                 ->execute([$projectId, $t['name'], $t['scope'], $t['scope_type_id'], $t['scope_field'], $t['scope_value'], $t['done_field'], $t['done_op'], $t['done_value'], $t['target_date'], (int)$pos->fetchColumn(), $ctx->actorId > 0 ? $ctx->actorId : null]);
+            $id = (int)$conn->lastInsertId();
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'target_saved', null, $t['name'], self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return $id;
+    }
+
+    public static function deleteTarget(PDO $conn, ActorContext $ctx, int $projectId, int $targetId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $t = self::target($conn, $projectId, $targetId);
+        $conn->prepare("DELETE FROM project_asset_targets WHERE id = ?")->execute([$targetId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'target_removed', $t['name'], null, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    /** Assets access, for anything that reads the estate through a target. */
+    public static function assertAssets(PDO $conn, ActorContext $ctx): void
+    {
+        if ($ctx->actorId > 0 && !analystCanAccessModule($conn, $ctx->actorId, 'assets')) {
+            throw new ServiceError('forbidden', 'forbidden', 'Asset targets need access to Assets.');
+        }
+    }
+
+    public static function target(PDO $conn, int $projectId, int $targetId): array
+    {
+        $st = $conn->prepare("SELECT * FROM project_asset_targets WHERE id = ? AND project_id = ?");
+        $st->execute([$targetId, $projectId]);
+        $r = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'That target is not part of this project.');
+        return $r;
+    }
+
+
     private static function date($v): ?string
     {
         if ($v === null || trim((string)$v) === '') return null;
