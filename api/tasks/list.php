@@ -155,6 +155,35 @@ try {
     $stmt->execute($params);
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Projects (3.2.0): which project, and which stage of it, each task belongs
+    // to - for the chip on the card and the Project filter. A separate read, not
+    // a join in the query above, so an install that has not yet run Database
+    // Verification (no tasks.project_id) keeps a working board and just shows no
+    // projects. The project is named even to analysts without the Projects
+    // module: it is a fact about a task they can already see.
+    require_once '../../includes/projects/methodologies.php';
+    if ($tasks && projectsSchemaReady($conn)) {
+        $pIds = array_column($tasks, 'id');
+        $ph = implode(',', array_fill(0, count($pIds), '?'));
+        $pst = $conn->prepare(
+            "SELECT t.id, t.project_id, t.project_stage_id, p.name AS project_name, p.colour AS project_colour, s.name AS project_stage_name
+               FROM tasks t
+               JOIN projects p ON p.id = t.project_id
+          LEFT JOIN project_stages s ON s.id = t.project_stage_id
+              WHERE t.id IN ($ph)");
+        $pst->execute($pIds);
+        $byTask = [];
+        foreach ($pst->fetchAll(PDO::FETCH_ASSOC) as $pr) $byTask[(int)$pr['id']] = $pr;
+        foreach ($tasks as &$tk) {
+            $pr = $byTask[(int)$tk['id']] ?? null;
+            $tk['project_id']         = $pr ? (int)$pr['project_id'] : null;
+            $tk['project_name']       = $pr['project_name'] ?? null;
+            $tk['project_colour']     = $pr ? projectColourHex($pr['project_colour']) : null;
+            $tk['project_stage_name'] = $pr['project_stage_name'] ?? null;
+        }
+        unset($tk);
+    }
+
     // Get subtask counts for all parent tasks
     $taskIds = array_column($tasks, 'id');
     $subtaskCounts = [];

@@ -66,6 +66,13 @@ try {
 } catch (Throwable $e) {
     // Un-migrated install, or no preferences row: the side panel, as before.
 }
+// Projects (3.2.0): may this analyst open Projects? Decides whether the task
+// window offers a Project picker or just names the project.
+$taskCanProjects = false;
+try {
+    $__mods = getAnalystAllowedModules(connectToDatabase(), (int) ($_SESSION['analyst_id'] ?? 0));
+    $taskCanProjects = $__mods === null || in_array('projects', $__mods, true);
+} catch (Throwable $e) { /* leave it off */ }
 I18n::initFromSession();
 Tz::init();
 
@@ -82,7 +89,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('tasks.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=24">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
-    <link rel="stylesheet" href="../assets/css/tasks.css?v=37">
+    <link rel="stylesheet" href="../assets/css/tasks.css?v=38">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -161,6 +168,14 @@ $translationNamespaces = ['common', 'tasks'];
                 <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.analyst')); ?></div>
                 <select id="analystFilter" class="sidebar-select" onchange="setAnalystFilter(this.value)">
                     <option value=""><?php echo htmlspecialchars(t('tasks.filter.all_analysts')); ?></option>
+                </select>
+            </div>
+
+            <!-- Projects (3.2.0): shown only when a task here belongs to a project. -->
+            <div class="sidebar-section" id="projectFilterSection" style="display:none;">
+                <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.project')); ?></div>
+                <select id="projectFilter" class="sidebar-select" onchange="setProjectFilter(this.value)">
+                    <option value=""><?php echo htmlspecialchars(t('tasks.filter.all_projects')); ?></option>
                 </select>
             </div>
 
@@ -317,10 +332,11 @@ $translationNamespaces = ['common', 'tasks'];
     window.TASK_VIEW = <?php echo json_encode($taskView); ?>;
     window.TASK_BOARD_GROUP = <?php echo json_encode($taskBoardGroup); ?>;
     window.TASK_HIDE_DONE_SUBTASKS = <?php echo json_encode($taskHideDoneSubtasks); ?>;
-    window.TASK_FILTER = <?php echo json_encode($taskFilter); ?>;</script>
+    window.TASK_FILTER = <?php echo json_encode($taskFilter); ?>;
+    window.TASK_CAN_PROJECTS = <?php echo json_encode($taskCanProjects); ?>;</script>
     <script src="../assets/js/tasks-priority.js?v=1"></script>
     <script src="../assets/js/tasks-ctx-menu.js?v=4"></script>
-    <script src="../assets/js/tasks.js?v=46"></script>
+    <script src="../assets/js/tasks.js?v=47"></script>
     <script src="../assets/js/mobile.js?v=75"></script>
 </body>
 </html>

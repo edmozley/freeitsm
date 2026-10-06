@@ -75,6 +75,23 @@ try {
     $task['collaborators'] = TasksService::collaboratorsFor($conn, (int)$id);
     $task['collaborator_completion'] = TasksService::collaboratorCompletionEnabled($conn);
 
+    // Projects (3.2.0): the project and stage this task belongs to, for the
+    // "Part of" line and the Project field in the task window. Guarded, like
+    // the list, for installs that have not run Database Verification yet.
+    require_once '../../includes/projects/methodologies.php';
+    $task['project_name'] = $task['project_colour'] = $task['project_stage_name'] = null;
+    if (!empty($task['project_id']) && projectsSchemaReady($conn)) {
+        $pst = $conn->prepare("SELECT p.name, p.colour, s.name AS stage_name
+                                 FROM projects p LEFT JOIN project_stages s ON s.id = ? AND s.project_id = p.id
+                                WHERE p.id = ?");
+        $pst->execute([(int)($task['project_stage_id'] ?? 0), (int)$task['project_id']]);
+        if ($pr = $pst->fetch(PDO::FETCH_ASSOC)) {
+            $task['project_name'] = $pr['name'];
+            $task['project_colour'] = projectColourHex($pr['colour']);
+            $task['project_stage_name'] = $pr['stage_name'];
+        }
+    }
+
     // Get parent task info if this is a subtask
     if ($task['parent_task_id']) {
         $stmt = $conn->prepare("SELECT id, title FROM tasks WHERE id = ?");

@@ -27,6 +27,7 @@ return [
         'team'     => 'Team',
         'analyst'  => 'Analyst',
         'tag'      => 'Tag',
+        'project'  => 'Project',
         'legend'   => 'Legend',
         'group_by' => 'Group by',
         'show'     => 'Show',
@@ -43,6 +44,8 @@ return [
         'all_teams'     => 'All teams',
         'all_analysts'  => 'All analysts',
         'all_tags'      => 'All tags',
+        'all_projects'  => 'All projects',
+        'no_project'    => 'Not in a project',
         // Task calendar only (#90). A subtask is the same record as a task, so
         // the list endpoint leaves subtasks out unless a caller opts in.
         'parents_only'         => 'Tasks only',
@@ -84,6 +87,13 @@ return [
 
     'detail' => [
         'heading'        => 'Task Details',
+        // Projects (3.2.0)
+        'project'         => 'Project',
+        'no_project'      => 'Not in a project',
+        'open_project'    => 'Open',
+        'project_stage'   => 'Part of',
+        'project_set'     => 'Added to the project',
+        'project_cleared' => 'Taken out of the project',
         'delete'         => 'Delete',
         'close'          => 'Close',
         'view_to_modal'  => 'Open in a large window',

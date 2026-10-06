@@ -17,6 +17,37 @@
  */
 
 /**
+ * Has Database Verification created the Projects schema yet?
+ *
+ * 🔑 Tasks reads project names onto every card. On an install that has pulled
+ * 3.2.0 but not yet run Verification, `tasks.project_id` does not exist and a
+ * query naming it would take the WHOLE Tasks board down. Callers outside the
+ * Projects module (api/tasks/*) ask this first and simply leave projects out.
+ * Cached per request.
+ */
+function projectsSchemaReady(PDO $conn): bool
+{
+    static $ready = null;
+    if ($ready !== null) return $ready;
+    try {
+        $st = $conn->query("SELECT COUNT(*) FROM information_schema.COLUMNS
+                             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tasks' AND COLUMN_NAME = 'project_id'");
+        $ready = (int)$st->fetchColumn() === 1
+            && (int)$conn->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'projects'")->fetchColumn() === 1;
+    } catch (Throwable $e) {
+        $ready = false;
+    }
+    return $ready;
+}
+
+/** The first colour of a project's palette key - for a dot or a chip outside the module. */
+function projectColourHex(?string $key): string
+{
+    $p = projectColours();
+    return ($p[$key] ?? $p['coral'])[0];
+}
+
+/**
  * The presets. 'timebox' is the project_stages.kind used for new and open time
  * boxes; 'single_active' allows only one active time box at a time.
  *

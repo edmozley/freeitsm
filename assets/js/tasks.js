@@ -42,6 +42,10 @@ let tagSettings = {
     surface_search: 1, surface_calendar: 0
 };
 let currentTagFilter = '';
+// Projects (3.2.0): the sidebar Project filter, and the live projects the task
+// window offers (only fetched for analysts who can open Projects).
+let currentProjectFilter = '';
+let projectChoices = null;
 let detailTags = [];
 // What the open task is linked to, so replacing a link can ask first (Ed).
 let detailLinks = { ticket_id: null, ticket_label: '', change_id: null, change_label: '' };
@@ -174,6 +178,7 @@ async function loadTasks() {
         if (data.success) {
             tasks = data.tasks;
             tasks.forEach(t => t._search = buildSearchText(t));
+            refreshProjectFilter();
             if (currentView === 'board') renderBoard();
             else renderList();
         }
@@ -265,6 +270,42 @@ function setTagFilter(tagId) {
     currentTagFilter = tagId;
     if (currentView === 'board') renderBoard();
     else renderList();
+}
+
+// ── Project filter (3.2.0) ───────────────────────────────────────────
+
+function taskMatchesProject(t) {
+    if (!currentProjectFilter) return true;
+    if (currentProjectFilter === 'none') return !t.project_id;
+    return String(t.project_id || '') === String(currentProjectFilter);
+}
+
+function setProjectFilter(v) {
+    currentProjectFilter = v;
+    if (currentView === 'board') renderBoard();
+    else renderList();
+}
+
+/**
+ * The Project filter lists the projects the loaded tasks belong to - nothing to
+ * fetch, and never a project with no tasks here to show. Hidden when no task on
+ * the board belongs to a project, so an install that does not use Projects
+ * sees no change at all.
+ */
+function refreshProjectFilter() {
+    const section = document.getElementById('projectFilterSection');
+    const sel = document.getElementById('projectFilter');
+    if (!section || !sel) return;
+    const seen = new Map();
+    tasks.forEach(t => { if (t.project_id && !seen.has(t.project_id)) seen.set(t.project_id, t.project_name); });
+    section.style.display = seen.size ? '' : 'none';
+    if (!seen.size && currentProjectFilter) currentProjectFilter = '';
+    const keep = currentProjectFilter;
+    sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_projects')) + '</option>'
+        + '<option value="none">' + esc(window.t('tasks.filter.no_project')) + '</option>'
+        + Array.from(seen.entries()).sort((a, b) => String(a[1]).localeCompare(String(b[1])))
+            .map(([id, name]) => `<option value="${id}">${esc(name)}</option>`).join('');
+    sel.value = keep;
 }
 
 // Populate the sidebar tag filter and show/hide it per the surface setting
@@ -439,7 +480,7 @@ function switchBoardGroup(group) {
 
 function renderBoardByAnalyst() {
     const board = document.getElementById('boardView');
-    const visible = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t));
+    const visible = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t));
 
     // One column per analyst who has a task in view, yours first, then by name;
     // Unassigned last. Your own column is always there, so you can drag work
@@ -516,7 +557,7 @@ function renderBoard() {
         const cardsEl = col.querySelector('.board-cards');
         const countEl = col.querySelector('.column-count');
         const filtered = tasks.filter(t =>
-            t.status === status && taskMatchesSearch(t) && taskMatchesTag(t));
+            t.status === status && taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t));
         if (countEl) countEl.textContent = filtered.length;
 
         if (filtered.length === 0) {
@@ -605,8 +646,13 @@ function renderCard(t) {
         const st = (statusList || []).find(s => s.name === t.status);
         statusChip = `<span class="task-card-status" style="--st:${escAttr((st && st.colour) || '#6b7280')}">${esc(t.status)}</span>`;
     }
+    // Projects (3.2.0): which project this task is part of, in the project's own colour.
+    const projectChip = t.project_id
+        ? `<div class="task-card-project" style="--pc:${escAttr(t.project_colour || '#e11d48')}" title="${escAttr(window.t('tasks.detail.project') + ': ' + t.project_name + (t.project_stage_name ? ' - ' + t.project_stage_name : ''))}"><span class="task-card-project-dot"></span>${esc(t.project_name)}</div>`
+        : '';
     return `<div class="task-card" data-id="${t.id}" onclick="openDetailPanel(${t.id})"${accent}>
         ${statusChip}
+        ${projectChip}
         <div class="task-card-title">${esc(t.title)}</div>
         ${descHtml}
         ${meta.length ? `<div class="task-card-meta">${meta.join('')}</div>` : ''}
@@ -982,7 +1028,7 @@ async function endDrag(e) {
 // ── List Rendering ─────────────────────────────────────────────────
 
 function renderList() {
-    const sorted = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t)).sort((a, b) => {
+    const sorted = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t)).sort((a, b) => {
         let va = a[sortField] || '';
         let vb = b[sortField] || '';
         if (typeof va === 'string') va = va.toLowerCase();
@@ -1325,7 +1371,10 @@ async function openDetailPanel(taskId) {
 
     selectedTaskId = taskId;
     try {
-        const data = await fetch(API_BASE + 'get.php?id=' + taskId).then(r => r.json());
+        const [data] = await Promise.all([
+            fetch(API_BASE + 'get.php?id=' + taskId).then(r => r.json()),
+            loadProjectChoices(),   // once per page, for the Project field (3.2.0)
+        ]);
         if (!data.success) return;
         // The recent trail (#124).
         if (window.trailVisit) window.trailVisit('task', taskId);
@@ -1443,6 +1492,8 @@ function renderDetailPanel(task) {
                 ${moveCompanies.map(co => `<option value="${co.id}"${String(co.id) === String(task.tenant_id ?? defaultTenantId) ? ' selected' : ''}>${esc(co.name)}</option>`).join('')}
             </select>
         </div>` : ''}
+
+        ${!task.parent_task_id ? projectFieldHtml(task) : ''}
 
         <!-- Who else is on this task (GH #89). Directly under Assignee, because
              "who owns it" and "who else is on it" are one question asked twice,
@@ -3170,6 +3221,65 @@ let priorityList = [];
 // Active statuses and priorities — drive the board columns, the
 // shared context menu (assets/js/tasks-ctx-menu.js), and the
 // detail-panel dropdowns
+// ── Projects in the task window (3.2.0) ────────────────────────────────
+
+/**
+ * The live projects the task window can file a task under. Only fetched for
+ * analysts who can open Projects (TASK_CAN_PROJECTS) - the endpoint refuses
+ * everyone else, and they see the project as plain text instead.
+ */
+async function loadProjectChoices() {
+    if (!window.TASK_CAN_PROJECTS || projectChoices !== null) return;
+    try {
+        const d = await fetch(APP_BASE + 'api/projects/list.php').then(r => r.json());
+        projectChoices = d.success ? (d.projects || []) : [];
+    } catch (e) { projectChoices = []; }
+}
+
+/**
+ * Top-level tasks only: a subtask belongs wherever its parent does. Offers the
+ * live projects (plus the task's own, if that one has since finished), and links
+ * to the project's page. The server refuses a project from another company.
+ */
+function projectFieldHtml(task) {
+    const link = task.project_id && window.TASK_CAN_PROJECTS
+        ? ` <a class="detail-project-open" href="${escAttr(APP_BASE + 'projects/view.php?id=' + task.project_id + '#plan')}">${esc(window.t('tasks.detail.open_project'))}</a>` : '';
+    const stage = task.project_stage_name ? `<span class="detail-project-stage">${esc(task.project_stage_name)}</span>` : '';
+    if (!window.TASK_CAN_PROJECTS) {
+        if (!task.project_id) return '';
+        return `<div class="detail-field"><label>${esc(window.t('tasks.detail.project'))}</label>
+            <div class="detail-project-readonly"><span class="task-card-project-dot" style="--pc:${escAttr(task.project_colour || '#e11d48')}"></span>${esc(task.project_name || '')} ${stage}</div></div>`;
+    }
+    const live = (projectChoices || []).filter(p => !['closed', 'cancelled'].includes(p.status) || String(p.id) === String(task.project_id));
+    const opts = `<option value="">${esc(window.t('tasks.detail.no_project'))}</option>`
+        + live.map(p => `<option value="${p.id}"${String(p.id) === String(task.project_id) ? ' selected' : ''}>${esc(p.code + ' ' + p.name)}</option>`).join('')
+        + (task.project_id && !live.some(p => String(p.id) === String(task.project_id))
+            ? `<option value="${task.project_id}" selected>${esc(task.project_name || ('#' + task.project_id))}</option>` : '');
+    return `<div class="detail-field">
+        <label>${esc(window.t('tasks.detail.project'))}${link}</label>
+        <select class="detail-select" data-previous="${task.project_id || ''}" onchange="setTaskProject(${task.id}, this)">${opts}</select>
+        ${stage ? `<div class="detail-project-under">${esc(window.t('tasks.detail.project_stage'))} ${stage}</div>` : ''}
+    </div>`;
+}
+
+async function setTaskProject(taskId, sel) {
+    const value = sel.value;
+    try {
+        const r = await fetch(APP_BASE + 'api/projects/task_assign.php', {
+            method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_id: taskId, project_id: value || null, stage_id: null }),
+        }).then(x => x.json());
+        if (!r.success) throw new Error(r.error || 'Failed');
+        sel.dataset.previous = value;
+        if (typeof showToast === 'function') showToast(window.t(value ? 'tasks.detail.project_set' : 'tasks.detail.project_cleared'), 'success');
+        await loadTasks();
+        openDetailPanel(taskId);
+    } catch (e) {
+        sel.value = sel.dataset.previous || '';
+        if (typeof showToast === 'function') showToast(e.message, 'error');
+    }
+}
+
 async function loadLookups() {
     try {
         const [sRes, pRes, tRes] = await Promise.all([
