@@ -48,6 +48,116 @@
         ]
     },
     "tier2": {
+        "projects": [
+            {
+                "_ref": "prj_office",
+                "name": "Move to the Bradford office",
+                "goal": "All 40 staff working from Bradford by the end of next quarter",
+                "summary": "The Leeds lease ends next year. Survey and design are done; the network is being built now, then move day.",
+                "methodology": "staged",
+                "status": "active",
+                "health": "auto",
+                "owner_analyst_id": "@analysts.swilliams",
+                "start_date": "__RELATIVE_DATEONLY:-40d__",
+                "target_end_date": "__RELATIVE_DATEONLY:+50d__",
+                "colour": "sunset",
+                "icon": "building",
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "prj_win11",
+                "name": "Windows 11 laptop refresh",
+                "goal": "Every laptop on Windows 11 before Windows 10 support ends",
+                "summary": "Two-week sprints, one department at a time. The standard image and the IT pilot are done.",
+                "methodology": "agile",
+                "status": "active",
+                "health": "auto",
+                "owner_analyst_id": "@analysts.jsmith",
+                "start_date": "__RELATIVE_DATEONLY:-30d__",
+                "target_end_date": "__RELATIVE_DATEONLY:+25d__",
+                "colour": "sky",
+                "icon": "laptop",
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "prj_firewall",
+                "name": "Firewall replacement",
+                "goal": "New firewalls live at both sites with no unplanned outage",
+                "summary": "Waiting on budget sign-off. Quotes are in from two suppliers.",
+                "methodology": "simple",
+                "status": "proposed",
+                "health": "auto",
+                "owner_analyst_id": "@analysts.mjones",
+                "start_date": "__RELATIVE_DATEONLY:+20d__",
+                "target_end_date": "__RELATIVE_DATEONLY:+110d__",
+                "colour": "coral",
+                "icon": "shield",
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-5d__",
+                "updated_datetime": "__RELATIVE_DATE:-5d__"
+            }
+        ],
+        "project_stages": [
+            {
+                "_ref": "ps_office_design",
+                "project_id": "@projects.prj_office",
+                "kind": "stage",
+                "name": "Survey and design",
+                "goal": "A desk plan everyone has agreed",
+                "position": 1,
+                "status": "closed",
+                "start_date": "__RELATIVE_DATEONLY:-40d__",
+                "end_date": "__RELATIVE_DATEONLY:-15d__"
+            },
+            {
+                "_ref": "ps_office_network",
+                "project_id": "@projects.prj_office",
+                "kind": "stage",
+                "name": "Build the network",
+                "goal": "Wired and wireless working on every floor",
+                "position": 2,
+                "status": "active",
+                "start_date": "__RELATIVE_DATEONLY:-14d__",
+                "end_date": "__RELATIVE_DATEONLY:+20d__"
+            },
+            {
+                "_ref": "ps_office_move",
+                "project_id": "@projects.prj_office",
+                "kind": "stage",
+                "name": "Move day",
+                "goal": "Everyone in, everything working on day one",
+                "position": 3,
+                "status": "planned",
+                "start_date": "__RELATIVE_DATEONLY:+21d__",
+                "end_date": "__RELATIVE_DATEONLY:+50d__"
+            },
+            {
+                "_ref": "ps_win11_s1",
+                "project_id": "@projects.prj_win11",
+                "kind": "sprint",
+                "name": "Sprint 1",
+                "goal": "Image built and piloted with IT",
+                "position": 1,
+                "status": "closed",
+                "start_date": "__RELATIVE_DATEONLY:-30d__",
+                "end_date": "__RELATIVE_DATEONLY:-16d__"
+            },
+            {
+                "_ref": "ps_win11_s2",
+                "project_id": "@projects.prj_win11",
+                "kind": "sprint",
+                "name": "Sprint 2",
+                "goal": "Finance, Sales and the warehouse done",
+                "position": 2,
+                "status": "active",
+                "start_date": "__RELATIVE_DATEONLY:-15d__",
+                "end_date": "__RELATIVE_DATEONLY:-1d__"
+            }
+        ],
         "tasks": [
             {
                 "_ref": "t_access_review",
@@ -215,7 +325,6 @@
                 "updated_datetime": "__RELATIVE_DATE:-9d__",
                 "completed_datetime": "__RELATIVE_DATE:-9d__"
             },
-
             {
                 "title": "Create AD account & assign licences",
                 "status": "Done",
@@ -273,7 +382,6 @@
                 "created_datetime": "__RELATIVE_DATE:-6d__",
                 "updated_datetime": "__RELATIVE_DATE:-6d__"
             },
-
             {
                 "title": "Inventory shares and map permissions",
                 "status": "Done",
@@ -319,7 +427,6 @@
                 "created_datetime": "__RELATIVE_DATE:-12d__",
                 "updated_datetime": "__RELATIVE_DATE:-12d__"
             },
-
             {
                 "title": "Build base 24H2 image in MDT",
                 "status": "Done",
@@ -365,7 +472,6 @@
                 "created_datetime": "__RELATIVE_DATE:-9d__",
                 "updated_datetime": "__RELATIVE_DATE:-9d__"
             },
-
             {
                 "title": "Notify users of cutover date",
                 "status": "Done",
@@ -423,7 +529,6 @@
                 "created_datetime": "__RELATIVE_DATE:-20d__",
                 "updated_datetime": "__RELATIVE_DATE:-20d__"
             },
-
             {
                 "title": "Test new VPN client in lab",
                 "status": "To Do",
@@ -467,6 +572,208 @@
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:-2d__",
                 "updated_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "pt_0",
+                "title": "Survey the new floor",
+                "status": "Done",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "project_id": "@projects.prj_office",
+                "project_stage_id": "@project_stages.ps_office_design",
+                "due_date": "__RELATIVE_DATEONLY:-30d__",
+                "completed_datetime": "__RELATIVE_DATE:-30d__",
+                "board_position": 100,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_1",
+                "title": "Agree the desk plan with managers",
+                "status": "Done",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "project_id": "@projects.prj_office",
+                "project_stage_id": "@project_stages.ps_office_design",
+                "due_date": "__RELATIVE_DATEONLY:-20d__",
+                "completed_datetime": "__RELATIVE_DATE:-20d__",
+                "board_position": 101,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_2",
+                "title": "Order switches and access points",
+                "status": "Done",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "project_id": "@projects.prj_office",
+                "project_stage_id": "@project_stages.ps_office_design",
+                "due_date": "__RELATIVE_DATEONLY:-16d__",
+                "completed_datetime": "__RELATIVE_DATE:-16d__",
+                "board_position": 102,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_3",
+                "title": "Cable the comms room",
+                "status": "Done",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "project_id": "@projects.prj_office",
+                "project_stage_id": "@project_stages.ps_office_network",
+                "due_date": "__RELATIVE_DATEONLY:-5d__",
+                "completed_datetime": "__RELATIVE_DATE:-5d__",
+                "board_position": 103,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_4",
+                "title": "Install switches and access points",
+                "status": "In Progress",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "project_id": "@projects.prj_office",
+                "project_stage_id": "@project_stages.ps_office_network",
+                "due_date": "__RELATIVE_DATEONLY:+4d__",
+                "board_position": 104,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_5",
+                "title": "Survey Wi-Fi coverage on each floor",
+                "status": "To Do",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.mjones",
+                "project_id": "@projects.prj_office",
+                "project_stage_id": "@project_stages.ps_office_network",
+                "due_date": "__RELATIVE_DATEONLY:+12d__",
+                "board_position": 105,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_6",
+                "title": "Pack and label desks",
+                "status": "To Do",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "project_id": "@projects.prj_office",
+                "project_stage_id": "@project_stages.ps_office_move",
+                "due_date": "__RELATIVE_DATEONLY:+35d__",
+                "board_position": 106,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_7",
+                "title": "Move the phones and test every line",
+                "status": "To Do",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "project_id": "@projects.prj_office",
+                "project_stage_id": "@project_stages.ps_office_move",
+                "due_date": "__RELATIVE_DATEONLY:+45d__",
+                "board_position": 107,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_8",
+                "title": "Build the Windows 11 standard image",
+                "status": "Done",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "project_id": "@projects.prj_win11",
+                "project_stage_id": "@project_stages.ps_win11_s1",
+                "due_date": "__RELATIVE_DATEONLY:-22d__",
+                "completed_datetime": "__RELATIVE_DATE:-22d__",
+                "board_position": 108,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_9",
+                "title": "Pilot with the IT team",
+                "status": "Done",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "project_id": "@projects.prj_win11",
+                "project_stage_id": "@project_stages.ps_win11_s1",
+                "due_date": "__RELATIVE_DATEONLY:-17d__",
+                "completed_datetime": "__RELATIVE_DATE:-17d__",
+                "board_position": 109,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_10",
+                "title": "Finance rollout (12 laptops)",
+                "status": "Done",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.mjones",
+                "project_id": "@projects.prj_win11",
+                "project_stage_id": "@project_stages.ps_win11_s2",
+                "due_date": "__RELATIVE_DATEONLY:-6d__",
+                "completed_datetime": "__RELATIVE_DATE:-6d__",
+                "board_position": 110,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_11",
+                "title": "Sales rollout (18 laptops)",
+                "status": "In Progress",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.mjones",
+                "project_id": "@projects.prj_win11",
+                "project_stage_id": "@project_stages.ps_win11_s2",
+                "due_date": "__RELATIVE_DATEONLY:-2d__",
+                "board_position": 111,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_12",
+                "title": "Warehouse rollout (9 laptops)",
+                "status": "To Do",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "project_id": "@projects.prj_win11",
+                "project_stage_id": "@project_stages.ps_win11_s2",
+                "due_date": "__RELATIVE_DATEONLY:-1d__",
+                "board_position": 112,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "pt_13",
+                "title": "Get two more firewall quotes",
+                "status": "To Do",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.mjones",
+                "project_id": "@projects.prj_firewall",
+                "due_date": "__RELATIVE_DATEONLY:+14d__",
+                "board_position": 113,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
             }
         ],
         "task_comments": [

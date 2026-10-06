@@ -495,8 +495,8 @@ if (!isset($_SESSION['analyst_id'])) {
             </div>
 
             <div class="module-card" data-module="tasks">
-                <h4>Tasks</h4>
-                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments.</p>
+                <h4>Tasks and Projects</h4>
+                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments - plus 3 projects (Staged, Agile and Simple) with their phases and 14 tasks of their own.</p>
                 <div class="module-footer">
                     <span class="record-count">~42 records</span>
                     <button class="import-btn" id="btn-tasks" onclick="importModule('tasks', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
