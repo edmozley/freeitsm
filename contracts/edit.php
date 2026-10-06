@@ -228,7 +228,7 @@ $contract_id = $_GET['id'] ?? null;
         .party-hint { display: block; margin-top: 6px; color: var(--text-muted, #777); font-size: 12px; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=171">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=172">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="contract-edit">
     <?php include 'includes/header.php'; ?>

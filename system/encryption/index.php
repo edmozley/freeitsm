@@ -302,7 +302,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=171">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=172">
 </head>
 <body data-mobile-module="system" data-mobile-page="encryption">
     <?php include '../includes/header.php'; ?>

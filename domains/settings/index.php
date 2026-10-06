@@ -70,7 +70,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         .st-list .action-btn svg { width: 16px; height: 16px; }
         @media (max-width: 900px) { .set-row { grid-template-columns: 1fr; gap: 8px; } }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=171">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=172">
 </head>
 <body data-mobile-module="domains" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>

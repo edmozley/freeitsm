@@ -335,6 +335,13 @@
        preview on top when there is one, then filename and From / Date/Time /
        Size as label-value lines. Desktop keeps the table and the 240px
        preview tiles; none of these classes exist there. */
+    .att-modal-ref {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-dim, #888);
+        margin-top: 2px;
+    }
     .att-cards { display: flex; flex-direction: column; gap: 12px; }
     .att-card {
         border: 1px solid var(--border, #e5e7eb);

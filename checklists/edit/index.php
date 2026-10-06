@@ -136,7 +136,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
 
         .ed-empty { text-align: center; padding: 26px; font-size: 13px; color: var(--text-muted, #64748b); border: 1px dashed var(--border-soft, #cbd5e1); border-radius: 6px; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=171">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=172">
 </head>
 <body data-mobile-page="checklists-edit" data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>" class="ed-shell">
     <?php include __DIR__ . '/../includes/header.php'; ?>

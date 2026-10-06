@@ -6199,7 +6199,11 @@ function showAttachmentList() {
         <div class="modal-content attachment-list-modal">
             <button class="modal-close-top" onclick="closeAttachmentListModal()">&times;</button>
             <div class="modal-header">
-                <h3>${escapeHtml(t('tickets.reading_pane.attach_modal_title', { ref: currentEmail.ticket_number }))}</h3>
+                ${ticketMenuIsSheet()
+                    // Phone: word and ticket number on two lines (reuses the
+                    // reply modal's already-translated "Attachments").
+                    ? `<h3>${escapeHtml(t('tickets.reply_modal.attachments'))}<span class="att-modal-ref">${escapeHtml(currentEmail.ticket_number || '')}</span></h3>`
+                    : `<h3>${escapeHtml(t('tickets.reading_pane.attach_modal_title', { ref: currentEmail.ticket_number }))}</h3>`}
             </div>
             <div class="modal-body">
                 ${ticketMenuIsSheet() ? attachmentCardsHtml(trackerLink) : previewsHtml + tableHtml}
