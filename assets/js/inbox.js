@@ -6202,13 +6202,52 @@ function showAttachmentList() {
                 <h3>${escapeHtml(t('tickets.reading_pane.attach_modal_title', { ref: currentEmail.ticket_number }))}</h3>
             </div>
             <div class="modal-body">
-                ${previewsHtml}
-                ${tableHtml}
+                ${ticketMenuIsSheet() ? attachmentCardsHtml(trackerLink) : previewsHtml + tableHtml}
             </div>
         </div>
     `;
 
     document.body.appendChild(modal);
+}
+
+// Phone-only body for the attachment list: no table (six columns cannot fit a
+// phone), one full-width card per attachment instead - the preview when the
+// browser can show one, then the filename and every column the table had as
+// label/value lines. Tapping the details downloads, as a table row does.
+// Desktop never calls this (showAttachmentList gates on ticketMenuIsSheet).
+function attachmentCardsHtml(trackerLink) {
+    const line = (label, value) => value ? `<div class="att-card-line">
+        <span class="att-card-k">${escapeHtml(label)}</span><span class="att-card-v">${value}</span></div>` : '';
+    return `<div class="att-cards">${ticketAttachments.map(att => {
+        const url = `${API_BASE}get_attachment.php?id=${att.id}`;
+        const ct = (att.content_type || '').toLowerCase();
+        let media = '';
+        if (ct.startsWith('image/')) {
+            media = `<img src="${url}" alt="${escapeHtml(att.filename)}" class="att-card-media" loading="lazy" onclick="window.open('${url}','_blank')" title="${escapeHtml(t('tickets.reading_pane.attach_click_fullsize'))}">`;
+        } else if (ct.startsWith('audio/')) {
+            media = `<audio controls preload="none" src="${url}" class="att-card-audio"></audio>`;
+        } else if (ct.startsWith('video/')) {
+            media = `<video controls preload="metadata" src="${url}" class="att-card-media"></video>`;
+        }
+        const send = (trackerLink && !att.is_inline)
+            ? `<button class="att-send-btn" data-att="${att.id}" data-link="${trackerLink.id}"
+                       data-name="${escapeHtml(att.filename)}" data-issue="${escapeHtml(trackerLink.external_key || '')}"
+                       onclick="sendAttachmentToTracker(this)">${
+                    escapeHtml(t('tickets.tracker.attach_send_btn').replace('{issue}', trackerLink.external_key || ''))
+                }</button>`
+            : '';
+        return `<div class="att-card">
+            ${media}
+            <div class="att-card-info" onclick="openAttachment(${att.id})" title="${escapeHtml(t('tickets.reading_pane.attach_click_download'))}">
+                <div class="att-card-name"><span class="attachment-icon">${getFileIcon(att.filename)}</span>${escapeHtml(att.filename)}${
+                    att.is_inline ? ` <span class="inline-badge">${escapeHtml(t('tickets.reading_pane.attach_inline_badge'))}</span>` : ''}</div>
+                ${line(t('tickets.reading_pane.attach_col_from'), escapeHtml(att.from_name || att.from_address || ''))}
+                ${line(t('tickets.reading_pane.attach_col_datetime'), escapeHtml(formatDateDMY(att.received_datetime)))}
+                ${line(t('tickets.reading_pane.attach_col_size'), escapeHtml(formatFileSize(att.file_size || 0)))}
+            </div>
+            ${send}
+        </div>`;
+    }).join('')}</div>`;
 }
 
 // Close attachment list modal

@@ -19,6 +19,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2167 | Tickets           | Improvement | On a phone, the Link to problem / change / ticket lists fill the screen instead of stopping halfway down. |
 | 2168 | Tickets           | Fix         | On a phone, long-press "Link to task" opened its picker inside the hidden Links sheet so nothing seemed to happen; it now opens a full-screen list of tasks like Link to change, and an empty task search lists the 20 most recent tasks. |
 | 2169 | Tickets           | Fix         | On a phone, the CSAT page's Response rate card ran off the right of the screen; the headline cards now sit two across with Response rate on its own row. |
+| 2170 | Tickets           | Improvement | On a phone, the attachments popup drops the table and shows one full-width card per attachment - preview on top when there is one, then the filename, From, Date/Time and Size. |
 
 
 

@@ -330,6 +330,43 @@
     #linkTicketModal .lp-list,
     #linkTaskModal .lp-list { flex: 1; min-height: 0; max-height: none; }
 
+    /* Attachment list: on a phone inbox.js renders one full-width card per
+       attachment (attachmentCardsHtml) instead of the six-column table -
+       preview on top when there is one, then filename and From / Date/Time /
+       Size as label-value lines. Desktop keeps the table and the 240px
+       preview tiles; none of these classes exist there. */
+    .att-cards { display: flex; flex-direction: column; gap: 12px; }
+    .att-card {
+        border: 1px solid var(--border, #e5e7eb);
+        border-radius: 10px;
+        background: var(--surface-2, #fafbfc);
+        padding: 10px;
+        min-width: 0;
+    }
+    .att-card-media {
+        display: block;
+        width: 100%;
+        max-height: 60vh;
+        object-fit: contain;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        background: var(--surface, #fff);
+    }
+    .att-card-audio { display: block; width: 100%; margin-bottom: 10px; }
+    .att-card-info { cursor: pointer; padding: 2px 4px; }
+    .att-card-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text, #333);
+        overflow-wrap: anywhere;
+        margin-bottom: 6px;
+    }
+    .att-card-name .attachment-icon { margin-right: 6px; }
+    .att-card-line { display: flex; gap: 10px; font-size: 13px; line-height: 1.6; }
+    .att-card-k { flex: 0 0 84px; color: var(--text-dim, #888); }
+    .att-card-v { flex: 1; min-width: 0; color: var(--text, #444); overflow-wrap: anywhere; }
+    .att-card .att-send-btn { width: 100%; margin-top: 10px; min-height: 40px; }
+
     /* Small gap between the ticket subject line and the first "Date" field. */
     #scheduleModal .schedule-ticket-info { margin-bottom: 12px; }
 
