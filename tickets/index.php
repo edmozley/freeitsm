@@ -36,7 +36,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=24">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=168">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=169">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <?php
@@ -875,6 +875,24 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
+    <!-- Link-to-task modal: PHONE ONLY, behind the long-press menu. On desktop the
+         menu opens the ticket's inline strip picker instead; on a phone that strip
+         lives in the hidden Links sheet, so the picker opened out of sight. -->
+    <div class="modal" id="linkTaskModal">
+        <div class="modal-content" style="max-width: 620px;">
+            <div class="modal-header" id="linkTaskTitle"></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <input type="text" class="form-input" id="linkTaskSearch" placeholder="<?php echo htmlspecialchars(t('tickets.tasks.search_placeholder')); ?>" autocomplete="off" oninput="linkTaskSearchDebounced()">
+                </div>
+                <div class="lp-list" id="linkTaskList"><div class="lp-empty">…</div></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLinkTaskModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Link-to-ticket modal (#38): pick a relationship type, then search the target ticket -->
     <div class="modal" id="linkTicketModal">
         <div class="modal-content" style="max-width: 620px;">
@@ -1013,8 +1031,8 @@ $translationNamespaces = ['common', 'tickets'];
     <script src="../assets/js/schedule.js?v=1"></script>
     <script src="../checklists/search_scoring.js?v=1"></script>
     <script src="../checklists/ticket_view.js?v=9"></script>
-    <script src="../assets/js/inbox.js?v=146"></script>
-    <script src="../assets/js/mobile.js?v=70"></script>
+    <script src="../assets/js/inbox.js?v=147"></script>
+    <script src="../assets/js/mobile.js?v=71"></script>
     <script>
     // Auto-check mailboxes every 60 seconds - and refresh the inbox whenever
     // ANYTHING new has arrived, however it came in.

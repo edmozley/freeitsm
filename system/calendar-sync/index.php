@@ -134,7 +134,7 @@ $translationNamespaces = ['common', 'system'];
         .cs-editor h3 { font-size: 14px; font-weight: 600; margin: 0 0 12px; color: var(--text, #333); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=168">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=169">
 </head>
 <body data-mobile-module="system" data-mobile-page="settings" data-mobile-shell="own">
     <div class="settings-shell">
@@ -930,6 +930,6 @@ $translationNamespaces = ['common', 'system'];
 
         csLoad();
     </script>
-    <script src="../../assets/js/mobile.js?v=70"></script>
+    <script src="../../assets/js/mobile.js?v=71"></script>
 </body>
 </html>

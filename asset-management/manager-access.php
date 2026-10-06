@@ -41,11 +41,11 @@ $backUrl = (($_GET['from'] ?? '') === 'system')
     <script src="../assets/js/i18n.js?v=3"></script>
     <script src="../assets/js/toast.js"></script>
     <!-- Mobile layer. The shared page prints its own <style> inside <body>, so LAYER 43d wins on specificity, not order (§24). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=168">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=169">
 </head>
 <body data-mobile-page="manager-access">
 <?php include 'includes/header.php'; ?>
 <?php managerAccessRender($managerId, $backUrl); ?>
-<script src="../assets/js/mobile.js?v=70"></script>
+<script src="../assets/js/mobile.js?v=71"></script>
 </body>
 </html>

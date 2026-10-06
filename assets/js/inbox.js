@@ -3874,7 +3874,9 @@ async function postTaskLink(ticketId, body, okMessage) {
         const host = document.getElementById('stripPickerHost');
         if (host) { host.hidden = true; host.innerHTML = ''; }
         showToast(okMessage, 'success');
-        await loadTicketTasks(ticketId);
+        // From the phone modal the ticket may not be the open one; the open
+        // one's strip is the only one there is to refresh.
+        if (!currentEmail || currentEmail.ticket_id == ticketId) await loadTicketTasks(ticketId);
     } catch (e) {
         showToast(t('tickets.tasks.link_failed'), 'error');
     }
@@ -10597,8 +10599,93 @@ async function openContextLinkTask() {
     closeTicketContextMenu();
     if (!ctxTargetTicketId) return;
     const id = ctxTargetTicketId;
+    // TRAP: on a phone the strip picker opens inside the Links sheet, which
+    // mobile.js has moved out of the reading pane and keeps hidden - the menu
+    // item looked like it glitched and did nothing. Phones get a modal list
+    // instead, built like Link to change; desktop keeps the strip picker.
+    if (ticketMenuIsSheet()) { openLinkTaskModal(id, ctxTargetTicketRef); return; }
     await loadTicketById(id);
     openLinkTaskPicker(id);
+}
+
+// Phone Link to task modal: the change modal's shape (search box, a create row,
+// then the list) over the same endpoint and link/create calls as the strip
+// picker. An empty search lists the most recently updated tasks.
+let linkTaskTicketId = null;
+let linkTaskSearchTimer = null;
+let linkTaskRows = [];
+
+function openLinkTaskModal(ticketId, ticketRef) {
+    linkTaskTicketId = ticketId;
+    document.getElementById('linkTaskTitle').textContent =
+        t('tickets.tasks.modal_title', { ticket: ticketRef || ('#' + ticketId) });
+    const s = document.getElementById('linkTaskSearch'); if (s) s.value = '';
+    document.getElementById('linkTaskModal').classList.add('active');
+    loadLinkTaskList();
+}
+function closeLinkTaskModal() { document.getElementById('linkTaskModal').classList.remove('active'); }
+function linkTaskSearchDebounced() { clearTimeout(linkTaskSearchTimer); linkTaskSearchTimer = setTimeout(loadLinkTaskList, 250); }
+
+async function loadLinkTaskList() {
+    const list = document.getElementById('linkTaskList');
+    const typed = ((document.getElementById('linkTaskSearch') || {}).value || '').trim();
+    list.innerHTML = '<div class="lp-empty">…</div>';
+    let rows = [];
+    try {
+        const data = await fetch('../api/tickets/search_linkable_tasks.php?ticket_id=' + linkTaskTicketId
+            + '&q=' + encodeURIComponent(typed)).then(r => r.json());
+        if (!data.success) { list.innerHTML = '<div class="lp-empty">' + escapeHtml(data.error || t('tickets.tasks.link_failed')) + '</div>'; return; }
+        rows = data.results || [];
+    } catch (e) { /* still offer to create what they typed */ }
+    linkTaskRows = rows;
+
+    const createRow = typed
+        ? `<div class="lp-row lp-create" onclick="pickLinkTask(-1)">
+            <span class="lp-plus">＋</span><span>${escapeHtml(t('tickets.tasks.create_named', { title: typed }))}</span></div>`
+        : '';
+    // Indexed rather than inlined: a title with a quote would break an onclick
+    // built by string concatenation (same reason the strip picker binds).
+    const body = rows.map((r, i) => {
+        const box = r.status_is_closed ? '&#9745;' : '&#9744;';
+        const detail = r.linked_elsewhere
+            ? t('tickets.tasks.moves_from', { ticket: r.linked_ticket_number || '' })
+            : (r.status || '');
+        return `<div class="lp-row" onclick="pickLinkTask(${i})">
+            <span class="lp-num">${box}</span>
+            <span class="lp-title">${escapeHtml(r.title || '')}</span>
+            <span class="lp-status">${escapeHtml(detail)}</span></div>`;
+    }).join('');
+    const empty = typed ? t('tickets.tasks.no_matches') : t('tickets.tasks.none_yet');
+    list.innerHTML = createRow + (body || '<div class="lp-empty">' + escapeHtml(empty) + '</div>');
+}
+
+async function pickLinkTask(idx) {
+    const ticketId = linkTaskTicketId;
+    if (idx < 0) {
+        const typed = ((document.getElementById('linkTaskSearch') || {}).value || '').trim();
+        if (!typed) return;
+        closeLinkTaskModal();
+        await createTaskForTicket(ticketId, typed);
+        return;
+    }
+    const r = linkTaskRows[idx];
+    if (!r) return;
+    // Same consent as the strip picker: a task belongs to ONE ticket, so this
+    // takes it off the other one.
+    if (r.linked_elsewhere) {
+        const ok = await showConfirm({
+            title:   t('tickets.tasks.move_title'),
+            message: t('tickets.tasks.move_confirm', {
+                title:  r.title || '',
+                ticket: r.linked_ticket_number || t('tickets.tasks.another_ticket')
+            }),
+            okLabel: t('tickets.tasks.move_ok'),
+            okClass: 'primary'
+        });
+        if (!ok) return;
+    }
+    closeLinkTaskModal();
+    await linkTaskToTicket(ticketId, r.id);
 }
 
 function openContextLinkCmdb() {

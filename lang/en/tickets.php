@@ -384,6 +384,10 @@ return [
         'no_matches'         => 'No matching tasks — the row above creates one',
         'create_named'       => 'Create task "{title}"',
         'moves_from'         => 'currently on {ticket}',
+        // Phone-only modal behind the long-press "Link to task" (the inline
+        // strip picker lives in the hidden Links sheet there).
+        'modal_title'        => 'Link {ticket} to a task',
+        'none_yet'           => 'No tasks yet - type a title above to create one',
         // A task belongs to ONE ticket, so linking one that is already attached
         // takes it off the other ticket. Saying so in the row was not enough —
         // it has to be asked. (Ed)

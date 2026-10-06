@@ -36,10 +36,10 @@ try {
     if ($ticketId > 0 && !analystCanAccessTicket($conn, $analystId, $ticketId)) {
         throw new Exception('Ticket not found');
     }
-    if ($q === '') {
-        echo json_encode(['success' => true, 'results' => []]);
-        exit;
-    }
+    // An empty search lists the most recent tasks (the phone Link to task modal
+    // opens on a list, like Link to change). The desktop strip picker never
+    // sends an empty q - it shows "type to search" without calling this.
+    $limit = $q === '' ? 20 : 10;
 
     [$tSql, $tArgs] = activeTenantFilter($conn, $analystId, 'tk');
 
@@ -57,7 +57,7 @@ try {
             AND tk.parent_task_id IS NULL
             AND (tk.ticket_id IS NULL OR tk.ticket_id <> ?)" . $tSql . "
        ORDER BY (ts.is_closed = 1), tk.updated_datetime DESC
-          LIMIT 10"
+          LIMIT $limit"
     );
     $stmt->execute(array_merge(['%' . $q . '%', $ticketId], $tArgs));
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);

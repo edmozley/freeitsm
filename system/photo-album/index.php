@@ -128,7 +128,7 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
             .pa-stage { min-height: 240px; }
         }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=168">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=169">
 </head>
 <body data-mobile-module="system" data-mobile-page="photo-album">
     <?php include '../includes/header.php'; ?>
@@ -808,6 +808,6 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
         loadAlbum();
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=70"></script>
+    <script src="../../assets/js/mobile.js?v=71"></script>
 </body>
 </html>

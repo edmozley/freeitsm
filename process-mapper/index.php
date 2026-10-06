@@ -61,7 +61,7 @@ try {
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=168">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=169">
 </head>
 <body data-mobile-module="process-mapper">
     <?php include 'includes/header.php'; ?>
@@ -507,6 +507,6 @@ try {
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
     <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
     <script src="../assets/js/process-mapper.js?v=14"></script>
-    <script src="../assets/js/mobile.js?v=70"></script>
+    <script src="../assets/js/mobile.js?v=71"></script>
 </body>
 </html>

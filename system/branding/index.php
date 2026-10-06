@@ -326,7 +326,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .btn-link { color: #ef5350; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=168">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=169">
 </head>
 <body data-mobile-module="system" data-mobile-page="branding">
     <?php include '../includes/header.php'; ?>
@@ -1002,6 +1002,6 @@ $translationNamespaces = ['common', 'system'];
 
     loadBranding();
     </script>
-    <script src="../../assets/js/mobile.js?v=70"></script>
+    <script src="../../assets/js/mobile.js?v=71"></script>
 </body>
 </html>

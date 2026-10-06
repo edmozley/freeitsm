@@ -316,6 +316,20 @@
         text-align: left;
     }
     #scheduleModal .modal-body { overflow-x: hidden; }
+
+    /* Link to problem / change / ticket / task: the sheet is already full-screen, but
+       inbox.css caps the results list at 50vh, leaving half the phone blank
+       under it. Let the list take everything below the search box and scroll
+       itself (the body stops scrolling so the search stays put). */
+    #linkProblemModal .modal-body,
+    #linkChangeModal .modal-body,
+    #linkTicketModal .modal-body,
+    #linkTaskModal .modal-body { display: flex; flex-direction: column; overflow: hidden; }
+    #linkProblemModal .lp-list,
+    #linkChangeModal .lp-list,
+    #linkTicketModal .lp-list,
+    #linkTaskModal .lp-list { flex: 1; min-height: 0; max-height: none; }
+
     /* Small gap between the ticket subject line and the first "Date" field. */
     #scheduleModal .schedule-ticket-info { margin-bottom: 12px; }
 

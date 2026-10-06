@@ -1380,12 +1380,28 @@
                 var btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'action-btn mobile-sheet-btn mobile-sheet-btn-' + def.cls;
-                btn.innerHTML = '<span class="action-btn-icon">' + def.icon + '</span><span>' + def.label + '</span>';
+                btn.innerHTML = '<span class="action-btn-icon">' + def.icon + '</span><span class="msb-label">' + def.label + '</span>';
                 btn.addEventListener('click', function () { def.sheet.style.display = 'flex'; });
                 toolbar.appendChild(btn);
             }
         });
+        syncLinksCount();
     }
+
+    // "Links (2)" on the Links button. The word only shows in the "…" panel
+    // (the bar is icon-only), but the count is set either way. Equipment, CMDB,
+    // domain and task pills arrive by their own fetches AFTER the strip is drawn,
+    // and unlinking redraws a group in place, so a one-off count at relocate time
+    // would be wrong - the observer recounts whenever the strip's pills change.
+    // Every pill in the strip, early or late, is an `a.pm-ticket-badge`.
+    var linksDef = SECTIONS[0];
+    function syncLinksCount() {
+        var btn = document.querySelector('.mobile-sheet-btn-links .msb-label');
+        if (!btn) return;
+        var n = linksDef.body.querySelectorAll('.links-strip .pm-ticket-badge').length;
+        btn.textContent = n ? linksDef.label + ' (' + n + ')' : linksDef.label;
+    }
+    new MutationObserver(syncLinksCount).observe(linksDef.body, { childList: true, subtree: true });
 
     // ---- Opened-ticket refinements ----------------------------------------
     // Run after every ticket render: relocate the section sheets, then apply
