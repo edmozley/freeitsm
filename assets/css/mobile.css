@@ -13527,6 +13527,17 @@
         justify-content: flex-start !important;
     }
 
+    /* A very long name or username in the list ran past the edge; cut it to
+       one line with an ellipsis (the full value is on the detail pane). */
+    body[data-mobile-page="tickets-users"] .user-item { min-width: 0; }
+    body[data-mobile-page="tickets-users"] .user-item .user-name,
+    body[data-mobile-page="tickets-users"] .user-item .user-email {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+
     /* The user's tickets: a five-column grid (130px 1fr 150px 80px 130px)
        left the subject a couple of letters wide and cut Priority and Created
        off the right. Each row becomes a small card - number and status, the
