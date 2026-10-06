@@ -228,7 +228,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
         $added = $st->rowCount() > 0;
         if ($added) {
             $d = projectLinkDescribe($conn, $kind, [$targetId]);
-            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'link_added', null, $kind . ': ' . ($d[0]['label'] ?? $targetId));
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'link_added', null, $kind . ': ' . ($d[0]['label'] ?? $targetId), $ctx->source === 'api' ? 'api' : 'app');
         }
         return $added;
     }
@@ -247,7 +247,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
         $st = $conn->prepare("DELETE FROM {$k['table']} WHERE project_id = ? AND {$k['col']} = ?");
         $st->execute([$projectId, $targetId]);
         $removed = $st->rowCount() > 0;
-        if ($removed) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'link_removed', $kind . ': ' . ($d[0]['label'] ?? $targetId), null);
+        if ($removed) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'link_removed', $kind . ': ' . ($d[0]['label'] ?? $targetId), null, $ctx->source === 'api' ? 'api' : 'app');
         return $removed;
     }
 

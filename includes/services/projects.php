@@ -353,8 +353,14 @@ class ProjectsService
         }
         require_once __DIR__ . '/tasks.php';
         // No ticket / parent links from here, and no company of its own: both are
-        // the project's to decide.
-        unset($in['id'], $in['tenant_id'], $in['ticket_id'], $in['parent_task_id']);
+        // the project's to decide. The project's company is passed EXPLICITLY, so
+        // the task is created there and the task.created / task.assigned events
+        // and notifications carry the right company - not created in the
+        // analyst's active company and moved afterwards.
+        unset($in['id'], $in['ticket_id'], $in['parent_task_id']);
+        $in['tenant_id'] = isMultiTenant($conn)
+            ? ($project['tenant_id'] === null ? (int)getDefaultTenantId($conn) : (int)$project['tenant_id'])
+            : null;
         $res = TasksService::saveTask($conn, $ctx, $in);
         $taskId = (int)$res['id'];
         $conn->prepare("UPDATE tasks SET tenant_id = ?, project_id = ?, project_stage_id = ? WHERE id = ?")

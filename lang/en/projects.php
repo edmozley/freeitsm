@@ -269,7 +269,7 @@ return [
         'project' => [
             'nav'   => 'A project',
             'title' => 'A project\'s page',
-            'intro' => 'The banner, then Overview, Plan and History.',
+            'intro' => 'The banner, then Overview, Plan, Connections and History.',
             'p1'    => 'The banner shows the project\'s name, its goal (what done looks like), its status, how it is run, who leads it, its dates and the health ring. **Edit** changes any of it, including the status: setting a project to Closed fills in today as the actual finish if nobody has set one.',
             'p2'    => 'Overview gathers the numbers, what is happening now, what is due next and the latest changes. History lists everything that has changed and who changed it.',
         ],
