@@ -85,7 +85,7 @@ $translationNamespaces = ['common', 'forms'];
     </style>
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
          mobile rules must win on equal specificity. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=179">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=180">
 </head>
 <body>
     <?php include __DIR__ . '/../includes/header.php'; ?>

@@ -13921,6 +13921,29 @@
         white-space: nowrap;
     }
 
+    /* ---- 40f. The editor's padding, and the step rows (Ed) -------------
+       Padding: the page was on the desktop's 24px/32px and each card on
+       20px/22px, so a field started 54px in from each edge of a 360px
+       screen - the card measured x=32, w=296. The house figure is 12px
+       (Techniques §31's padding note), and the card keeps 14px inside. */
+    body[data-mobile-page="checklists-edit"] .ed-body { padding-left: 12px; padding-right: 12px; padding-top: 12px; }
+    body[data-mobile-page="checklists-edit"] .ed-grid { gap: 12px; }
+    body[data-mobile-page="checklists-edit"] .ed-card { padding: 14px; }
+
+    /* Step rows: handle, number, title, role and delete were one flex row,
+       measured at a 77px title and a 54px role drop-down - neither readable.
+       The row wraps: handle, number, title and delete stay on the first line
+       (the title takes the rest of it), and the role drops to its own full
+       line underneath. `order` moves the role after delete without touching
+       the markup, which the drag-and-drop code builds and re-reads. */
+    body[data-mobile-page="checklists-edit"] .step-head { flex-wrap: wrap; row-gap: 8px; }
+    body[data-mobile-page="checklists-edit"] .step-head .step-title { flex: 1 1 0; min-width: 0; }
+    body[data-mobile-page="checklists-edit"] .step-head .step-role { flex: 1 1 100%; order: 5; min-width: 0; }
+    body[data-mobile-page="checklists-edit"] .step-head .step-del { min-width: 36px; min-height: 36px; justify-content: center; align-items: center; }
+    /* The toggles under it were indented 28px to sit under a desktop title;
+       here they line up with the role above them. */
+    body[data-mobile-page="checklists-edit"] .step-opts { padding-left: 0; gap: 4px 18px; }
+
     /* ---- 40d. 16px on every field in this module -----------------------
        🔴 NOT COSMETIC, and Ed hit it on the template search box (`.chk-search`
        is 13px). Techniques §3: iOS zooms on focus for any field under 16px,
