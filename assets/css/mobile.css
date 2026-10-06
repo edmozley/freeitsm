@@ -359,6 +359,23 @@
     .action-toolbar .action-btn span:not(.action-btn-icon) { display: none; }
     .action-toolbar .action-btn-icon { font-size: 18px; }
 
+    /* Channel reply composer (Telegram / WhatsApp / Slack / web chat): its
+       Attach / Suggest / Summarise / Send row is one unwrapped flex line on
+       desktop and ran off the right edge of a phone. Two-up grid, words kept,
+       thumb-sized; an odd button out (3 shown) takes the full last row. */
+    .channel-composer-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    .channel-composer-actions .action-btn {
+        justify-content: center;
+        min-height: 40px;
+        padding: 8px 10px;
+        min-width: 0;
+    }
+    .channel-composer-actions .action-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
     /* ====================================================================
        LAYER 6 — Collapsible ticket header (Gmail-app style).
        On a phone the From/To/Date/Cc meta starts collapsed behind the subject;

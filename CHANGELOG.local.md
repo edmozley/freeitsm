@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2165 | Tickets           | Fix         | On a phone, the Attach / Suggest / Summarise / Send buttons under a Telegram, WhatsApp, Slack or web chat reply box ran off the right of the screen; they now sit in a two-by-two grid. |
 
 
 

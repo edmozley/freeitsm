@@ -34,7 +34,7 @@ $translationNamespaces = ['common', 'reporting'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=167">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=168">
 </head>
 <body data-mobile-module="reporting" data-mobile-page="rep-packs">
     <?php include '../includes/header.php'; ?>

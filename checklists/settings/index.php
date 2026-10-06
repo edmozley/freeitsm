@@ -150,7 +150,7 @@ if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
         .lk-name-input { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--border-soft, #cbd5e1); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #1e293b); }
         .lk-modal-x { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-muted, #64748b); }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=167">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=168">
 </head>
 <body data-mobile-page="checklists-settings" data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>" class="settings-shell">
     <?php include __DIR__ . '/../includes/header.php'; ?>

@@ -84,7 +84,7 @@ $m = fn(string $k) => t('system.managers.' . $k);
         .mg-pager { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; color: var(--text-muted, #666); }
         .mg-empty { padding: 20px 10px; color: var(--text-muted, #888); font-size: 13px; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=167">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=168">
 </head>
 <body data-mobile-module="system" data-mobile-page="managers">
     <?php include '../includes/header.php'; ?>

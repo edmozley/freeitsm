@@ -212,7 +212,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         @media (max-width: 700px) { .prov-wrap { padding: 14px 12px 50px; } }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=167">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=168">
 </head>
 <body data-mobile-module="system" data-mobile-page="sso-carddav">
 <?php include '../includes/header.php'; ?>

@@ -106,7 +106,7 @@ requireModuleAccess('system');
            Remove showed with no logo to remove. */
         .ssp-logo-row [hidden] { display: none !important; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=167">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=168">
 </head>
 <body data-mobile-module="system" data-mobile-page="self-service">
     <?php include '../includes/header.php'; ?>
