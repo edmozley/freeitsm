@@ -509,6 +509,7 @@ return [
         'link_removed'    => 'unlinked',
         'template_used'   => 'started it from the template',
         'template_saved'  => 'saved it as the template',
+        'template_replaced' => 'replaced the plan of the template',
         'from_to'         => '{from} to {to}',
         'someone'         => 'Someone',
     ],
@@ -520,7 +521,7 @@ return [
         'tab_raid'     => 'RAID',
         'tab_templates' => 'Templates',
         'templates_title' => 'Project templates',
-        'templates_intro' => 'The templates offered when someone creates a project. Hide a built-in one you never use. To add your own, open a project that went well and press Template.',
+        'templates_intro' => 'The templates offered when someone creates a project. Hide a built-in one you never use. To add your own, open a project that went well and press Template. To change what is in one, start a project from it, change the project, then press Template and replace it.',
         'templates_builtin' => 'Built in',
         'templates_saved'   => 'Your own',
         'templates_none'    => 'None yet. Open a project and press Template to save its plan as one.',
@@ -601,6 +602,12 @@ return [
         'part_targets' => 'Asset targets',
         'never_kept'   => 'People, the company, links and progress are never kept, so the template works for any company.',
         'saved'        => 'Template saved',
+        'mode_new'     => 'Save as a new template',
+        'mode_replace' => 'Replace one of your templates',
+        'replace_title'=> 'Replace {name}?',
+        'replace_body' => 'Its plan is replaced with this project\'s. Projects already started from it are not changed.',
+        'replace_ok'   => 'Replace',
+        'replaced'     => 'Template replaced',
     ],
 
     'scale' => [
@@ -725,7 +732,7 @@ return [
             'intro' => 'A project that arrives already planned.',
             'p1'    => 'When you create a project, **Start from** offers templates: an office move, a laptop refresh, a mail migration, a Windows 11 rollout and a service desk improvement come built in. Pick one and the project is created with its stages, tasks, scope, risks and tolerances already in place, and its way of running, colour, icon and goal filled in for you. Anything you type in the form wins over the template.',
             'p2'    => 'A template keeps its dates as days from the start, so every date is planned from the **start date** you give - today if you leave it empty - and the target finish follows unless you set one. The tasks are ordinary tasks, nobody is assigned to them, and nothing is ticked off. An asset target that needs a status or location by name (for example "Retired") is only added when that name exists on your install.',
-            'p3'    => 'To make your own, open a project that went well and press **Template**. Choose what to keep: the stages and tasks, the scope, the risks and assumptions, the tolerances and the asset targets. People, the company, links and progress are never kept, so one template works for any company. **Projects - Settings - Templates** lists them all: hide a built-in one you never use, and rename, switch off or delete your own. Saving and looking after templates needs the Templates permission; anyone who may create projects can start from one.',
+            'p3'    => 'To make your own, open a project that went well and press **Template**. Choose what to keep: the stages and tasks, the scope, the risks and assumptions, the tolerances and the asset targets. To change a template, start a project from it, change the project, press **Template** and choose **Replace one of your templates** - built-in ones can be copied this way, never overwritten. People, the company, links and progress are never kept, so one template works for any company. **Projects - Settings - Templates** lists them all: hide a built-in one you never use, and rename, switch off or delete your own. Saving and looking after templates needs the Templates permission; anyone who may create projects can start from one.',
         ],
         'targets' => [
             'nav'   => 'Asset targets',

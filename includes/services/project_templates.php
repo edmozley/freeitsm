@@ -125,20 +125,34 @@ class ProjectTemplatesService
      * Save a project as a template. $parts: plan, scope, raid, tolerances,
      * targets. Needs the Templates capability - templates are shared by every
      * company on the install.
+     *
+     * With $in['id'] it REPLACES that saved template's plan instead - the way a
+     * template is edited: start a project from it, change the project, save it
+     * back. The template keeps its id and whether it is offered; projects
+     * already started from it are untouched. Built-ins have no id, so they can
+     * only be copied, never overwritten.
      */
     public static function saveFromProject(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
     {
         self::assertManage($conn, $ctx);
         if (!projectTemplatesReady($conn)) throw new ServiceError('unavailable', 'not_ready', 'Run Database Verification first.');
         $project = ProjectsService::loadForActor($conn, $ctx, $projectId);
+        $replaceId = (int)($in['id'] ?? 0);
+        if ($replaceId > 0) self::row($conn, $replaceId);
         [$name, $desc] = self::nameDesc($in);
         $parts = array_values(array_intersect((array)($in['parts'] ?? []), ['plan', 'scope', 'raid', 'tolerances', 'targets']));
-        $content = projectTemplateCapture($conn, $project, $parts);
-        $conn->prepare("INSERT INTO project_templates (name, description, content, is_active, created_by_analyst_id, created_datetime, updated_datetime)
-                        VALUES (?, ?, ?, 1, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
-             ->execute([$name, $desc, json_encode($content, JSON_UNESCAPED_UNICODE), $ctx->actorId > 0 ? $ctx->actorId : null]);
-        $id = (int)$conn->lastInsertId();
-        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'template_saved', null, $name, 'app');
+        $content = json_encode(projectTemplateCapture($conn, $project, $parts), JSON_UNESCAPED_UNICODE);
+        if ($replaceId > 0) {
+            $conn->prepare("UPDATE project_templates SET name = ?, description = ?, content = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$name, $desc, $content, $replaceId]);
+            $id = $replaceId;
+        } else {
+            $conn->prepare("INSERT INTO project_templates (name, description, content, is_active, created_by_analyst_id, created_datetime, updated_datetime)
+                            VALUES (?, ?, ?, 1, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+                 ->execute([$name, $desc, $content, $ctx->actorId > 0 ? $ctx->actorId : null]);
+            $id = (int)$conn->lastInsertId();
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, $replaceId > 0 ? 'template_replaced' : 'template_saved', null, $name, 'app');
         return $id;
     }
 

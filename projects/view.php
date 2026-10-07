@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=12">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=13">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -312,6 +312,11 @@ $projectId = (int)($_GET['id'] ?? 0);
         <div class="modal-content" style="max-width:520px">
             <div class="modal-header"><?php echo htmlspecialchars(t('projects.templates.save_title')); ?></div>
             <div class="modal-body">
+                <div class="form-group prj-tpl-mode" id="tpsModeWrap" hidden>
+                    <label class="prj-check"><input type="radio" name="tpsMode" value="new" checked> <?php echo htmlspecialchars(t('projects.templates.mode_new')); ?></label>
+                    <label class="prj-check"><input type="radio" name="tpsMode" value="replace"> <?php echo htmlspecialchars(t('projects.templates.mode_replace')); ?></label>
+                    <select id="tpsReplace" hidden></select>
+                </div>
                 <div class="form-group"><label for="tpsName"><?php echo htmlspecialchars(t('projects.templates.name')); ?></label><input type="text" id="tpsName" maxlength="150" autocomplete="off"></div>
                 <div class="form-group"><label for="tpsDesc"><?php echo htmlspecialchars(t('projects.templates.description')); ?></label><input type="text" id="tpsDesc" maxlength="500" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.templates.description_ph')); ?>"></div>
                 <div class="form-group">
@@ -338,7 +343,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-tools.js?v=3"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-view.js?v=9"></script>
-    <script src="../assets/js/projects-templates.js?v=1"></script>
+    <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

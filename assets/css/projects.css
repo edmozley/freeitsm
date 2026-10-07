@@ -451,6 +451,8 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 .prj-tpl-name { font-weight: 700; font-size: 13px; line-height: 1.25; }
 .prj-tpl-meta { font-size: 11.5px; color: var(--text-dim, #888); }
 .prj-tpl-parts { display: flex; flex-direction: column; gap: 6px; }
+.prj-tpl-mode { display: flex; flex-direction: column; gap: 6px; }
+.prj-tpl-mode select { margin-top: 2px; }
 .prj-role { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 8px; }
 .prj-role + .prj-role { border-top: 1px solid var(--border-soft, #f0f0f0); }
 .prj-role:hover { background: var(--surface-hover, #f8fafc); }
