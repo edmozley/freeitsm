@@ -434,6 +434,23 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 .prj-set-note { margin-top: 14px; padding: 12px 14px; border-radius: 8px; background: var(--prj-accent-soft, #fff1f2); color: var(--text, #333); font-size: 13px; line-height: 1.5; }
 .prj-set-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
 .prj-role-list { list-style: none; margin: 0; padding: 0; }
+.prj-set-sub { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); margin: 22px 0 6px; }
+.prj-tpl-toggle { white-space: nowrap; font-size: 13px; }
+/* Templates: the "Start from" cards in the new-project form, and the list rows. */
+.prj-tpl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.prj-tpl-card {
+    display: flex; align-items: center; gap: 10px; text-align: left; padding: 9px 10px; border-radius: 10px; cursor: pointer;
+    border: 1.5px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text, #333);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.prj-tpl-card:hover { border-color: var(--prj-accent, #e11d48); }
+.prj-tpl-card.selected { border-color: var(--prj-accent, #e11d48); box-shadow: 0 0 0 3px var(--prj-accent-soft, #fff1f2); }
+.prj-tpl-icon { flex: 0 0 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+.prj-tpl-icon.blank { background: var(--surface-hover, #f1f5f9); color: var(--text-dim, #888); border: 1.5px dashed var(--border, #ddd); box-sizing: border-box; }
+.prj-tpl-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.prj-tpl-name { font-weight: 700; font-size: 13px; line-height: 1.25; }
+.prj-tpl-meta { font-size: 11.5px; color: var(--text-dim, #888); }
+.prj-tpl-parts { display: flex; flex-direction: column; gap: 6px; }
 .prj-role { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 8px; }
 .prj-role + .prj-role { border-top: 1px solid var(--border-soft, #f0f0f0); }
 .prj-role:hover { background: var(--surface-hover, #f8fafc); }

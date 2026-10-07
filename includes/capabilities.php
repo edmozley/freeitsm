@@ -220,12 +220,14 @@ final class Cap
     // ---- Projects (3.2.0) --------------------------------------------------
     // GENERAL decides who may create and change projects - the module's own
     // permission rules - so it is sensitive. HEALTH tunes the traffic light;
-    // ROLES and RAID are lists of words and scales.
-    const PROJECTS_MANAGE  = 'projects.manage';      // umbrella; also may change and delete ANY project
-    const PROJECTS_GENERAL = 'projects.general';
-    const PROJECTS_HEALTH  = 'projects.health';
-    const PROJECTS_ROLES   = 'projects.roles';
-    const PROJECTS_RAID    = 'projects.raid';
+    // ROLES and RAID are lists of words and scales. TEMPLATES saves a project
+    // as a template and looks after the list - shared by every company.
+    const PROJECTS_MANAGE    = 'projects.manage';      // umbrella; also may change and delete ANY project
+    const PROJECTS_GENERAL   = 'projects.general';
+    const PROJECTS_HEALTH    = 'projects.health';
+    const PROJECTS_ROLES     = 'projects.roles';
+    const PROJECTS_RAID      = 'projects.raid';
+    const PROJECTS_TEMPLATES = 'projects.templates';
 
     // ---- Tickets -----------------------------------------------------------
     // The module the whole per-tab design was argued FOR. Fourteen tabs, and they are

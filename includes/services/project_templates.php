@@ -3,8 +3,7 @@
  * ProjectTemplatesService - start a project from a template, save a project as
  * one, and look after the list (3.2.0).
  *
- * STATUS 2026-10-07: IN PROGRESS, NOT WIRED IN - see includes/projects/templates.php. The template format and the built-ins
- * are in includes/projects/templates.php.
+ * The template format and the built-ins are in includes/projects/templates.php.
  *
  * 🔑 A PROJECT FROM A TEMPLATE IS BUILT THROUGH THE SAME DOORS AS ONE BUILT BY
  * HAND: createProject() (who may create, which company), and
@@ -39,7 +38,10 @@ class ProjectTemplatesService
         // Day 0 is the start date - today when the form leaves it empty, because
         // a template's dates mean nothing without one.
         if (empty($in['start_date'])) $in['start_date'] = gmdate('Y-m-d');
-        $d0 = strtotime($in['start_date']);
+        // TRAP: read the date as UTC midnight. strtotime("2026-10-07") is LOCAL midnight,
+        // which gmdate() below turns into the day before whenever the server is ahead of
+        // UTC (British Summer Time) - every stage and task a day early.
+        $d0 = strtotime($in['start_date'] . ' 00:00:00 UTC');
         if ($d0 === false) throw new ServiceError('validation', 'invalid_field', 'The start date is not a date.');
         $at = fn($day) => $day === null ? null : gmdate('Y-m-d', $d0 + (int)$day * 86400);
         if (empty($in['target_end_date']) && $c['duration_days'] !== null) $in['target_end_date'] = $at($c['duration_days']);

@@ -57,6 +57,8 @@
         phone:    '<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
         database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
         star:     '<path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+        // Not a project icon (projectIcons() does not offer it): the Blank template card.
+        plus:     '<path d="M12 5v14M5 12h14"/>',
         heart:    '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
     };
     function icon(key, size) {
@@ -200,6 +202,8 @@
             icon: (project && project.icon) || 'rocket',
             method: (project && project.methodology) || L.default_method || 'simple',
             origMethod: isEdit ? project.methodology : null,
+            template: '',
+            tplGoal: null,
             onSaved: onSaved,
         };
         const $ = id => document.getElementById(id);
@@ -235,6 +239,23 @@
         $('pfHealth').value = isEdit ? project.health : 'auto';
         $('pfHealthNoteWrap').hidden = !isEdit || $('pfHealth').value === 'auto';
 
+        // Start from a template (new projects only): a card per template the
+        // picker offers, Blank first. Choosing one fills method, look and goal.
+        const tpls = (!isEdit && L.templates) ? L.templates : [];
+        $('pfTplWrap').hidden = !tpls.length;
+        $('pfTplNote').hidden = true;
+        $('pfTemplates').innerHTML = tpls.length ? (
+            '<button type="button" class="prj-tpl-card" role="radio" data-tpl="">'
+            + '<span class="prj-tpl-icon blank">' + icon('plus', 18) + '</span>'
+            + '<span class="prj-tpl-text"><span class="prj-tpl-name">' + esc(T('templates.blank')) + '</span>'
+            + '<span class="prj-tpl-meta">' + esc(T('templates.blank_desc')) + '</span></span></button>'
+            + tpls.map(t => '<button type="button" class="prj-tpl-card" role="radio" data-tpl="' + esc(t.key) + '" title="' + esc(t.description || '') + '">'
+                + '<span class="prj-tpl-icon" style="background:' + gradient(t.colour) + '">' + icon(t.icon, 18) + '</span>'
+                + '<span class="prj-tpl-text"><span class="prj-tpl-name">' + esc(t.name) + '</span>'
+                + '<span class="prj-tpl-meta">' + esc(templateMeta(t)) + '</span></span></button>').join('')
+        ) : '';
+        pick('pfTemplates', 'data-tpl', '');
+
         $('pfMethods').innerHTML = L.methodologies.map(m =>
             '<button type="button" class="prj-method-card" role="radio" data-method="' + esc(m.key) + '">'
             + '<span class="prj-method-name">' + esc(m.label) + '</span>'
@@ -260,11 +281,44 @@
         setTimeout(() => $('pfName').focus(), 60);
     }
 
+    /** "4 stages · 16 tasks · 12 weeks" - what a template brings. */
+    function templateMeta(t) {
+        const n = (key, count) => count === 1 ? T('templates.' + key + '_one') : T('templates.' + key, { count: count });
+        const bits = [n('count_stages', t.counts.stages), n('count_tasks', t.counts.tasks)];
+        if (t.duration_days) bits.push(n('weeks', Math.max(1, Math.round(t.duration_days / 7))));
+        return bits.join(' · ');
+    }
+
+    async function chooseTemplate(key) {
+        const L = await lookups();
+        const $ = id => document.getElementById(id);
+        const t = (L.templates || []).find(x => x.key === key);
+        formState.template = t ? key : '';
+        pick('pfTemplates', 'data-tpl', formState.template);
+        // The goal is the template's until someone types their own.
+        const goal = $('pfGoal');
+        if (goal.value.trim() === '' || goal.value === formState.tplGoal) {
+            goal.value = t && t.goal ? t.goal : '';
+            formState.tplGoal = goal.value || null;
+        }
+        if (t) {
+            formState.method = t.methodology; pick('pfMethods', 'data-method', formState.method);
+            formState.colour = t.colour; pick('pfColours', 'data-colour', formState.colour);
+            formState.icon = t.icon; pick('pfIcons', 'data-icon', formState.icon);
+            paintBanner();
+        }
+        $('pfTplNote').textContent = t ? ((t.description ? t.description + ' ' : '') + T('templates.dates_hint')) : '';
+        $('pfTplNote').hidden = !t;
+    }
+
     function wireForm() {
         const modal = document.getElementById('prjFormModal');
         if (!modal || modal.dataset.wired) return;
         modal.dataset.wired = '1';
         const $ = id => document.getElementById(id);
+        $('pfTemplates').addEventListener('click', e => {
+            const b = e.target.closest('[data-tpl]'); if (b) chooseTemplate(b.getAttribute('data-tpl'));
+        });
         $('pfMethods').addEventListener('click', e => {
             const b = e.target.closest('[data-method]'); if (!b) return;
             formState.method = b.getAttribute('data-method'); pick('pfMethods', 'data-method', formState.method);
@@ -305,8 +359,9 @@
                 // A method change resets the tools to the new method's own set.
                 if (formState.method === formState.origMethod) body.tailoring = tail;
                 else body.tailoring = null;
-            } else if (!$('pfCompanyWrap').hidden) {
-                body.company_id = $('pfCompany').value;
+            } else {
+                if (!$('pfCompanyWrap').hidden) body.company_id = $('pfCompany').value;
+                if (formState.template) body.template = formState.template;
             }
             $('pfSave').disabled = true;
             try {
@@ -361,6 +416,6 @@
     window.Prj = {
         T, TC, esc, api, lookups, icon, gradient, setPalette, ring, statusPill, healthBadge,
         fmtDate, daysTo, todayStr, targetPhrase, initials, timeboxWord, toast,
-        openModal, closeModal, openProjectForm, celebrate,
+        openModal, closeModal, openProjectForm, celebrate, templateMeta,
     };
 })();

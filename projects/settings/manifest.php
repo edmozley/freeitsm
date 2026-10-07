@@ -50,5 +50,11 @@ return [
             'label_key' => 'projects.settings.tab_raid',
             'grant'     => 'Maintain the risk scales used in the RAID log',
         ],
+        [
+            'id'        => 'templates',
+            'cap'       => Cap::PROJECTS_TEMPLATES,
+            'label_key' => 'projects.settings.tab_templates',
+            'grant'     => 'Save projects as templates, and choose which templates are offered for new projects',
+        ],
     ],
 ];

@@ -41,8 +41,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=11">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=183">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=12">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
     <?php include 'includes/header.php'; ?>
@@ -68,6 +68,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             </div>
             <div class="prj-banner-actions">
                 <button type="button" class="btn prj-ghost-btn" id="pvEdit"><?php echo htmlspecialchars(t('projects.view.edit')); ?></button>
+                <button type="button" class="btn prj-ghost-btn" id="pvTemplate" title="<?php echo htmlspecialchars(t('projects.templates.button_title')); ?>" hidden><?php echo htmlspecialchars(t('projects.templates.button')); ?></button>
                 <button type="button" class="btn prj-ghost-btn danger" id="pvDelete"><?php echo htmlspecialchars(t('projects.view.delete')); ?></button>
             </div>
         </section>
@@ -306,12 +307,38 @@ $projectId = (int)($_GET['id'] ?? 0);
         </div>
     </div>
 
+    <!-- Save this project as a template (assets/js/projects-templates.js) -->
+    <div class="modal" id="prjTemplateModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('projects.templates.save_title')); ?></div>
+            <div class="modal-body">
+                <div class="form-group"><label for="tpsName"><?php echo htmlspecialchars(t('projects.templates.name')); ?></label><input type="text" id="tpsName" maxlength="150" autocomplete="off"></div>
+                <div class="form-group"><label for="tpsDesc"><?php echo htmlspecialchars(t('projects.templates.description')); ?></label><input type="text" id="tpsDesc" maxlength="500" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.templates.description_ph')); ?>"></div>
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('projects.templates.parts')); ?></label>
+                    <div class="prj-tpl-parts" id="tpsParts">
+                        <?php foreach (['plan', 'scope', 'raid', 'tolerances', 'targets'] as $part): ?>
+                        <label class="prj-check"><input type="checkbox" data-part="<?php echo $part; ?>" checked> <?php echo htmlspecialchars(t('projects.templates.part_' . $part)); ?></label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <p class="prj-hint"><?php echo htmlspecialchars(t('projects.templates.never_kept')); ?></p>
+                <div class="prj-form-error" id="tpsError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjTemplateModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="tpsSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <?php include 'includes/project_form.php'; ?>
 
-    <script src="../assets/js/projects.js?v=5"></script>
+    <script src="../assets/js/projects.js?v=6"></script>
     <script src="../assets/js/projects-tools.js?v=3"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-view.js?v=9"></script>
-    <script src="../assets/js/mobile.js?v=77"></script>
+    <script src="../assets/js/projects-templates.js?v=1"></script>
+    <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

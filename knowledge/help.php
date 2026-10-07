@@ -82,7 +82,7 @@ $translationNamespaces = ['common', 'knowledge'];
         .kb-help-ai-bubble.ai { background: var(--surface-2, #fafafa); }
     </style>
     <!-- Mobile: the guide body is already responsive (help-page house style); LAYER 16h adds the app shell and the scroll container. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=183">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -661,6 +661,6 @@ $translationNamespaces = ['common', 'knowledge'];
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=77"></script>
+    <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

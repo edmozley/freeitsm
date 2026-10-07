@@ -34,7 +34,7 @@ $translationNamespaces = ['common', 'reporting'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=183">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="reporting" data-mobile-page="rep-packs">
     <?php include '../includes/header.php'; ?>
@@ -122,6 +122,6 @@ $translationNamespaces = ['common', 'reporting'];
 
     <script>window.RP_API = '../../api/reporting/packs/';</script>
     <script src="../../assets/js/report-packs/list.js?v=1"></script>
-    <script src="../../assets/js/mobile.js?v=77"></script>
+    <script src="../../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 /**
  * Projects -> Settings (3.2.0).
  *
- * Four tabs, four capabilities (projects/settings/manifest.php). Only the tabs
+ * Five tabs, five capabilities (projects/settings/manifest.php). Only the tabs
  * this analyst may use are rendered. Every value is read from and saved to
  * api/projects/settings.php, which validates it and checks the same capability
  * as its tab - the defaults shown come from the server, so the screen and the
@@ -48,8 +48,8 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=11">
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=183">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=12">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
@@ -114,6 +114,37 @@ $row = function (string $label, string $desc, string $control) {
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="raid"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
         </div>
         <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'templates')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'templates' ? ' active' : ''; ?>" id="templates-tab" data-capability="<?php echo Cap::PROJECTS_TEMPLATES; ?>">
+            <h2><?php echo $tt('templates_title'); ?></h2>
+            <p class="prj-muted"><?php echo $tt('templates_intro'); ?></p>
+            <h3 class="prj-set-sub"><?php echo $tt('templates_builtin'); ?></h3>
+            <ul class="prj-role-list" id="tplBuiltin"></ul>
+            <h3 class="prj-set-sub"><?php echo $tt('templates_saved'); ?></h3>
+            <ul class="prj-role-list" id="tplSaved"></ul>
+            <p class="prj-muted" id="tplNone" hidden><?php echo $tt('templates_none'); ?></p>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Edit a saved template -->
+    <div class="modal" id="prjTplModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:480px">
+            <div class="modal-header"><?php echo $tt('template_edit'); ?></div>
+            <div class="modal-body">
+                <input type="hidden" id="tmId">
+                <div class="form-group"><label for="tmName"><?php echo htmlspecialchars(t('projects.templates.name')); ?></label><input type="text" id="tmName" maxlength="150"></div>
+                <div class="form-group"><label for="tmDesc"><?php echo htmlspecialchars(t('projects.templates.description')); ?></label><input type="text" id="tmDesc" maxlength="500"></div>
+                <label class="prj-check"><input type="checkbox" id="tmActive" checked> <?php echo $tt('template_offered'); ?></label>
+                <div class="prj-form-error" id="tmError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="tmDelete" style="margin-right:auto"><?php echo htmlspecialchars(t('common.delete')); ?></button>
+                <button type="button" class="btn btn-secondary" data-prj-close="prjTplModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="tmSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
     </div>
 
     <!-- Add / edit a role -->
@@ -135,8 +166,8 @@ $row = function (string $label, string $desc, string $control) {
         </div>
     </div>
 
-    <script src="../../assets/js/projects.js?v=5"></script>
-    <script src="../../assets/js/projects-settings.js?v=2"></script>
-    <script src="../../assets/js/mobile.js?v=77"></script>
+    <script src="../../assets/js/projects.js?v=6"></script>
+    <script src="../../assets/js/projects-settings.js?v=3"></script>
+    <script src="../../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

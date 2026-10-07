@@ -118,6 +118,6 @@ $path_prefix = '../';
         load();
     })();
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=77"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=78"></script>
 </body>
 </html>

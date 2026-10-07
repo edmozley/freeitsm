@@ -1477,7 +1477,7 @@ $translationNamespaces = ['common', 'asset-management'];
              from the wiki's Mobile-Friendly-Techniques. Every rule inside it is
              gated at 768px, so the desktop layout is untouched. */ ?>
     <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=183">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -4542,6 +4542,6 @@ $translationNamespaces = ['common', 'asset-management'];
     <script src="../assets/js/network-mapper-icons.js?v=3"></script>
     <script>window.ASSET_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.APP_BASE = window.APP_BASE || <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="../assets/js/project-links.js?v=1"></script>
-    <script src="../assets/js/mobile.js?v=77"></script>
+    <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

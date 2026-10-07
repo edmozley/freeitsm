@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/i18n.php';
 I18n::initFromSession();
+require_once __DIR__ . '/../../includes/projects/templates.php';
 
 projectApiRun(function () use ($conn, $analystId) {
     $analysts = $conn->query("SELECT id, full_name FROM analysts WHERE is_active = 1 ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
@@ -37,6 +38,8 @@ projectApiRun(function () use ($conn, $analystId) {
         'tools'           => projectToolDefinitions(),
         'probability_labels' => projectScaleLabels($conn, 'probability'),
         'impact_labels'      => projectScaleLabels($conn, 'impact'),
+        'templates'          => projectTemplateList($conn),
+        'can_manage_templates' => analystHasCapability($conn, $analystId, Cap::PROJECTS_TEMPLATES),
         'methodologies'   => $methods,
         'statuses'        => projectStatuses(),
         'colours'         => $colours,

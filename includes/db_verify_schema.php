@@ -5314,4 +5314,16 @@ return [
         'total'     => 'INT NOT NULL DEFAULT 0',
         'is_demo'   => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
+    // Project templates saved from a project (3.2.0); built-ins live in code.
+    'project_templates' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'name'                  => 'VARCHAR(150) NOT NULL',
+        'description'           => 'VARCHAR(500) NULL',
+        'content'               => 'MEDIUMTEXT NOT NULL',
+        'is_active'             => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL',
+        'is_demo'               => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
 ];

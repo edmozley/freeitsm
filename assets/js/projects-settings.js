@@ -3,8 +3,9 @@
  *
  * Fills every [data-k] control from api/projects/settings.php, shows each
  * default under it, saves a tab at a time (the server checks that tab's
- * capability), and runs the Roles list (add, edit, deactivate, delete, drag to
- * reorder).
+ * capability), runs the Roles list (add, edit, deactivate, delete, drag to
+ * reorder) and the Templates list (show or hide a built-in; rename, switch off
+ * or delete a saved one) over api/projects/templates.php.
  */
 (function () {
     'use strict';
@@ -65,6 +66,73 @@
         } catch (e) { P.toast(e.message, 'error'); }
     }
 
+    // ---- Templates ----------------------------------------------------------------
+    let templates = [];
+    function renderTemplates() {
+        const b = document.getElementById('tplBuiltin');
+        if (!b) return;
+        const row = (t, control) =>
+            '<li class="prj-role' + (t.active ? '' : ' inactive') + '">'
+            + '<span class="prj-tpl-icon" style="background:' + P.gradient(t.colour) + '">' + P.icon(t.icon, 16) + '</span>'
+            + '<div class="prj-role-text"><strong>' + esc(t.name) + '</strong><span>' + esc(P.templateMeta(t))
+            + (t.created_by_name ? ' · ' + esc(T('settings.template_by', { name: t.created_by_name })) : '') + '</span></div>'
+            + (t.active ? '' : '<span class="prj-role-use">' + esc(T('settings.role_inactive')) + '</span>')
+            + control + '</li>';
+        b.innerHTML = templates.filter(t => t.builtin).map(t => row(t,
+            '<label class="prj-check prj-tpl-toggle"><input type="checkbox" data-tpl-show="' + esc(t.key) + '"' + (t.active ? ' checked' : '') + '> ' + esc(T('settings.template_offered')) + '</label>')).join('');
+        const saved = templates.filter(t => !t.builtin);
+        document.getElementById('tplSaved').innerHTML = saved.map(t => row(t,
+            '<button type="button" class="prj-icon-btn" data-tpl-edit="' + t.id + '" title="' + esc(P.TC('edit')) + '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>')).join('');
+        document.getElementById('tplNone').hidden = saved.length > 0;
+    }
+    async function tplCall(body) {
+        try {
+            const r = await P.api('templates.php', body);
+            templates = r.templates;
+            renderTemplates();
+            return true;
+        } catch (e) {
+            const er = document.getElementById('tmError');
+            if (er && document.getElementById('prjTplModal').classList.contains('active')) { er.textContent = e.message; er.hidden = false; }
+            else P.toast(e.message, 'error');
+            return false;
+        }
+    }
+    async function wireTemplates() {
+        if (!document.getElementById('tplBuiltin')) return;
+        try {
+            // The colour keys need the palette, which only the lookups carry.
+            const [r, L] = await Promise.all([P.api('templates.php'), P.lookups()]);
+            P.setPalette(L.colours);
+            templates = r.templates;
+        } catch (e) { P.toast(e.message, 'error'); return; }
+        renderTemplates();
+        document.getElementById('tplBuiltin').addEventListener('change', e => {
+            const c = e.target.closest('[data-tpl-show]');
+            if (c) tplCall({ action: 'builtin_hidden', key: c.dataset.tplShow, hidden: !c.checked });
+        });
+        document.getElementById('tplSaved').addEventListener('click', e => {
+            const b = e.target.closest('[data-tpl-edit]'); if (!b) return;
+            const t = templates.find(x => String(x.id) === b.dataset.tplEdit); if (!t) return;
+            document.getElementById('tmId').value = t.id;
+            document.getElementById('tmName').value = t.name;
+            document.getElementById('tmDesc').value = t.description || '';
+            document.getElementById('tmActive').checked = !!t.active;
+            document.getElementById('tmError').hidden = true;
+            P.openModal('prjTplModal');
+        });
+        document.getElementById('tmSave').addEventListener('click', async () => {
+            if (await tplCall({ action: 'update', id: document.getElementById('tmId').value, name: document.getElementById('tmName').value,
+                description: document.getElementById('tmDesc').value, is_active: document.getElementById('tmActive').checked })) {
+                P.closeModal('prjTplModal'); P.toast(T('settings.saved'));
+            }
+        });
+        document.getElementById('tmDelete').addEventListener('click', async () => {
+            const ok = await window.showConfirm({ title: T('settings.template_delete_title'), message: T('settings.template_delete_body'), okLabel: P.TC('delete'), okClass: 'danger' });
+            if (ok && await tplCall({ action: 'delete', id: document.getElementById('tmId').value })) P.closeModal('prjTplModal');
+        });
+    }
+
     // ---- Roles --------------------------------------------------------------------
     function renderRoles() {
         const list = document.getElementById('roleList');
@@ -113,6 +181,7 @@
         } catch (e) { P.toast(e.message, 'error'); return; }
 
         document.querySelectorAll('[data-save]').forEach(b => b.addEventListener('click', () => save(b.dataset.save)));
+        wireTemplates();
         const add = document.getElementById('roleAdd');
         if (add) add.addEventListener('click', () => openRole(null));
         const list = document.getElementById('roleList');

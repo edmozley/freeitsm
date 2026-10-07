@@ -34,6 +34,7 @@ $sections = [
     'project'   => 2,
     'plan'      => 3,
     'methods'   => 2,
+    'templates' => 3,
     'tools'     => 1,
     'people'    => 3,
     'scope'     => 1,
@@ -78,9 +79,9 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=11">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=12">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=183">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=184">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
         body {
@@ -218,7 +219,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
 
                     <?php if ($id === 'settings'): ?>
                     <div class="help-defs">
-                        <?php foreach (['general', 'health', 'roles', 'raid'] as $k): ?>
+                        <?php foreach (['general', 'health', 'roles', 'raid', 'templates'] as $k): ?>
                         <div class="help-def">
                             <div class="help-def-term"><?php echo htmlspecialchars(t('projects.settings.tab_' . $k)); ?></div>
                             <div class="help-def-desc"><?php echo $h('settings.' . $k . '_d'); ?></div>
@@ -275,6 +276,6 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
             });
         });
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=77"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=78"></script>
 </body>
 </html>

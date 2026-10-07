@@ -2,9 +2,8 @@
 /**
  * Projects - templates (3.2.0): start a project already planned.
  *
- * STATUS 2026-10-07: IN PROGRESS, NOT WIRED IN. Nothing includes this file yet -
- * the project_templates table, Cap::PROJECTS_TEMPLATES, the API, the picker and
- * the Settings tab are still to build (Projects-Developer-Guide §17).
+ * Used by api/projects/save.php (a new project with `template`),
+ * api/projects/templates.php and api/projects/lookups.php (the picker).
  *
  * A template is a plan with no dates and no people:
  *   methodology, colour, icon, goal, summary, duration_days,
@@ -308,8 +307,8 @@ function projectTemplateCapture(PDO $conn, array $project, array $parts): array
         $st->execute([$pid]);
         $base = $st->fetchColumn() ?: substr((string)$project['created_datetime'], 0, 10);
     }
-    $d0 = strtotime($base);
-    $day = fn($d) => $d ? max(0, (int)round((strtotime($d) - $d0) / 86400)) : null;
+    $d0 = strtotime($base . ' 00:00:00 UTC');
+    $day = fn($d) => $d ? max(0, (int)round((strtotime(substr((string)$d, 0, 10) . ' 00:00:00 UTC') - $d0) / 86400)) : null;
     $c = [
         'methodology' => $project['methodology'], 'colour' => $project['colour'], 'icon' => $project['icon'],
         'goal' => $project['goal'], 'summary' => $project['summary'],

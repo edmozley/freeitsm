@@ -15900,8 +15900,18 @@
         background: var(--surface, #fff);
         color: #dc2626;
     }
+    /* Template: an icon square like Back; hidden without the permission. */
+    body[data-mobile-page="projects-view"] #pvTemplate.prj-vb-btn {
+        flex: 0 0 46px;
+        border: 1px solid var(--border, #ddd);
+        background: var(--surface, #fff);
+        color: var(--text, #333);
+    }
+    body[data-mobile-page="projects-view"] #pvTemplate.prj-vb-btn span { display: none; }
+    body[data-mobile-page="projects-view"] #pvTemplate.prj-vb-btn[hidden] { display: none; }
     /* Until the project has loaded (or when it was not found) there is
        nothing to edit or delete - the banner is still [hidden] then. */
+    body[data-mobile-page="projects-view"]:has(#prjBanner[hidden]) #pvTemplate.prj-vb-btn,
     body[data-mobile-page="projects-view"]:has(#prjBanner[hidden]) #pvEdit.prj-vb-btn,
     body[data-mobile-page="projects-view"]:has(#prjBanner[hidden]) #pvDelete.prj-vb-btn { display: none; }
 

@@ -33,7 +33,7 @@ $path_prefix = '../';
             --on-accent:    var(--pm-on-accent);
         }
     </style>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=183">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=184">
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
 </head>
@@ -203,6 +203,6 @@ $path_prefix = '../';
             });
         });
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=77"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=78"></script>
 </body>
 </html>

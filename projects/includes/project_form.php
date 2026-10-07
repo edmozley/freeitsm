@@ -17,6 +17,11 @@
         </div>
         <div class="modal-body prj-form-body">
             <input type="hidden" id="pfId">
+            <div class="form-group prj-tpl-pick" id="pfTplWrap" hidden>
+                <label><?php echo htmlspecialchars(t('projects.templates.start_from')); ?></label>
+                <div class="prj-tpl-cards" id="pfTemplates" role="radiogroup"></div>
+                <p class="prj-hint" id="pfTplNote" hidden></p>
+            </div>
             <div class="form-group">
                 <label for="pfName"><?php echo htmlspecialchars(t('projects.form.name')); ?></label>
                 <input type="text" id="pfName" maxlength="200" placeholder="<?php echo htmlspecialchars(t('projects.form.name_ph')); ?>" autocomplete="off">

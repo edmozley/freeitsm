@@ -472,4 +472,5 @@ return [
     ['project_tolerances', 'uq_ptol_dimension', 'unique', '(`project_id`,`stage_id`,`dimension`)'],
     ['project_asset_targets', 'idx_patg_project', 'key', '(`project_id`,`position`)'],
     ['project_asset_target_snapshots', 'uq_patgs_day', 'unique', '(`target_id`,`snap_date`)'],
+    ['project_templates', 'idx_project_templates_name', 'key', '(`name`)'],
 ];

@@ -41,6 +41,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // "the defaults in the viewer's language" - see projectScaleLabels().
             'project_probability_labels' => ['', 'labels5', 'raid'],
             'project_impact_labels'      => ['', 'labels5', 'raid'],
+            // ---- Templates --------------------------------------------------
+            // Built-in template keys not offered for new projects. Written only by
+            // ProjectTemplatesService::setBuiltinHidden(), never by the settings save.
+            'project_hidden_templates'   => ['', 'builtin_keys', 'templates'],
         ];
     }
 
@@ -113,6 +117,9 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // following each viewer's language.
             if ($parts === projectScaleDefaults($key === 'project_impact_labels' ? 'impact' : 'probability')) return '';
             return json_encode($parts, JSON_UNESCAPED_UNICODE);
+        }
+        if ($rule === 'builtin_keys') {
+            throw new InvalidArgumentException('Hide or show templates on the Templates tab.');
         }
         throw new InvalidArgumentException("Unknown setting: $key");
     }

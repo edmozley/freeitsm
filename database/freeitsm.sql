@@ -8076,6 +8076,24 @@ CREATE TABLE IF NOT EXISTS `project_asset_target_snapshots` (
     UNIQUE KEY `uq_patgs_day` (`target_id`, `snap_date`),
     CONSTRAINT `fk_patgs_target` FOREIGN KEY (`target_id`) REFERENCES `project_asset_targets` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Project templates saved from a project (3.2.0). The plan is JSON with days
+-- counted from the start and no people, companies or links, so one template
+-- serves every company. The built-in templates live in code, not here.
+CREATE TABLE IF NOT EXISTS `project_templates` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `name`                  VARCHAR(150) NOT NULL,
+    `description`           VARCHAR(500) NULL,
+    `content`               MEDIUMTEXT NOT NULL,                      -- see includes/projects/templates.php
+    `is_active`             TINYINT(1) NOT NULL DEFAULT 1,            -- 0 = not offered for new projects
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL,
+    `is_demo`               TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_project_templates_name` (`name`),
+    CONSTRAINT `fk_ptpl_created_by` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Seed: the project roles a fresh install starts with (PRINCE2-style, in our

@@ -107,4 +107,18 @@ return [
             ['rows', 'project_contracts'], ['rows', 'project_cmdb_objects'], ['rows', 'project_knowledge_articles'],
         ]],
     ],
+    [
+        'id'       => 'projects.templates',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Projects started from a template',
+        'what'     => 'A new project picks a template - an office move, a laptop refresh, or one saved from your own best project - and arrives with its stages, tasks, scope and risks already planned.',
+        'why'      => 'The second office move starts where the first one finished, instead of from a blank page and somebody\'s memory.',
+        'done'     => 'At least one project has been started from a template, or a project has been saved as one.',
+        'link'     => 'projects/',
+        'check'    => ['any', [
+            ['rows', 'project_audit', "field_name = 'template_used'"], ['rows', 'project_templates'],
+        ]],
+    ],
 ];
