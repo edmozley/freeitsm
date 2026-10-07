@@ -555,9 +555,23 @@ return [
         'raid_title'     => 'RAID log',
         'raid_intro'     => 'The words for the five steps of each risk scale. A risk\'s score is probability times impact, from 1 to 25.',
         'probability_labels' => 'Probability, lowest first',
-        'probability_labels_desc' => 'Five labels separated by commas.',
+        'probability_labels_desc' => 'How likely a risk is to happen, from 1 to 5.',
         'impact_labels'  => 'Impact, lowest first',
-        'impact_labels_desc' => 'Five labels separated by commas.',
+        'impact_labels_desc' => 'How much harm it would do, from 1 to 5.',
+    ],
+    // The default words of the RAID risk scales, lowest first. An install that
+    // has not changed them on Settings -> RAID shows these in each viewer's language.
+    'scale' => [
+        'probability_1' => 'Rare',
+        'probability_2' => 'Unlikely',
+        'probability_3' => 'Possible',
+        'probability_4' => 'Likely',
+        'probability_5' => 'Almost certain',
+        'impact_1'      => 'Negligible',
+        'impact_2'      => 'Minor',
+        'impact_3'      => 'Moderate',
+        'impact_4'      => 'Major',
+        'impact_5'      => 'Severe',
     ],
     'help' => [
         'title'        => 'Projects - Help',

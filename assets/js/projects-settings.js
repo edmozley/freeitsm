@@ -22,6 +22,7 @@
         if (key === 'project_default_method') return T('method.' + value);
         if (key === 'project_create_policy') return T('settings.create_' + value);
         if (key === 'project_change_policy') return T('settings.change_' + value);
+        if (Array.isArray(value)) return value.join(', ');
         return value;
     }
 
@@ -29,7 +30,19 @@
         const L = state.lookups;
         const methodSel = document.querySelector('[data-k="project_default_method"]');
         if (methodSel) methodSel.innerHTML = L.methodologies.map(m => '<option value="' + esc(m.key) + '">' + esc(m.label) + '</option>').join('');
-        document.querySelectorAll('[data-k]').forEach(el => { el.value = state.settings[el.dataset.k] ?? ''; });
+        document.querySelectorAll('[data-k]').forEach(el => {
+            const v = state.settings[el.dataset.k];
+            if (el.classList.contains('prj-scale')) {
+                // A risk scale: one box per step, the default word as a hint.
+                const def = (state.definitions[el.dataset.k] || {}).default || [];
+                el.querySelectorAll('[data-step]').forEach(inp => {
+                    inp.value = (v || [])[inp.dataset.step] ?? '';
+                    inp.placeholder = def[inp.dataset.step] || '';
+                });
+            } else {
+                el.value = v ?? '';
+            }
+        });
         document.querySelectorAll('[data-d]').forEach(el => {
             const def = state.definitions[el.dataset.d];
             el.textContent = def ? T('settings.default_is', { value: defaultLabel(el.dataset.d, def.default) }) : '';
@@ -39,7 +52,11 @@
 
     async function save(tab) {
         const settings = {};
-        document.querySelectorAll('[data-settings-tab="' + tab + '"] [data-k]').forEach(el => { settings[el.dataset.k] = el.value; });
+        document.querySelectorAll('[data-settings-tab="' + tab + '"] [data-k]').forEach(el => {
+            settings[el.dataset.k] = el.classList.contains('prj-scale')
+                ? Array.from(el.querySelectorAll('[data-step]')).map(i => i.value)
+                : el.value;
+        });
         try {
             const r = await P.api('settings.php', { action: 'save', tab: tab, settings: settings });
             state.settings = r.settings;

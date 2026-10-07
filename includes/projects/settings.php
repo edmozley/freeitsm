@@ -37,9 +37,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // Red when this share (%) or more of the open work is overdue.
             'project_red_overdue_pct'  => ['25',       'int:1:100',   'health'],
             // ---- RAID -------------------------------------------------------
-            // Five labels each, lowest first.
-            'project_probability_labels' => ['Rare,Unlikely,Possible,Likely,Almost certain', 'labels5', 'raid'],
-            'project_impact_labels'      => ['Negligible,Minor,Moderate,Major,Severe',       'labels5', 'raid'],
+            // Five labels each, lowest first, stored as a JSON array. Empty means
+            // "the defaults in the viewer's language" - see projectScaleLabels().
+            'project_probability_labels' => ['', 'labels5', 'raid'],
+            'project_impact_labels'      => ['', 'labels5', 'raid'],
         ];
     }
 
@@ -84,7 +85,7 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         $defs = projectSettingDefinitions();
         if (!isset($defs[$key])) throw new InvalidArgumentException("Unknown setting: $key");
         $rule = $defs[$key][1];
-        $v = trim((string)$raw);
+        $v = is_array($raw) ? '' : trim((string)$raw);
         if ($rule === 'method') {
             if (!isset(projectMethodologies()[$v])) throw new InvalidArgumentException('Choose a way of running projects.');
             return $v;
@@ -105,12 +106,59 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             return (string)(int)$v;
         }
         if ($rule === 'labels5') {
-            $parts = array_values(array_filter(array_map('trim', explode(',', $v)), fn($s) => $s !== ''));
-            if (count($parts) !== 5) throw new InvalidArgumentException('Give exactly five labels, lowest first, separated by commas.');
+            $parts = is_array($raw) ? array_map(fn($p) => trim((string)$p), array_values($raw)) : projectScaleParse($v);
+            if (count($parts) !== 5 || in_array('', $parts, true)) throw new InvalidArgumentException('Give a word for each of the five steps.');
             foreach ($parts as $p) if (mb_strlen($p) > 40) throw new InvalidArgumentException('Each label must be 40 characters or fewer.');
-            return implode(',', $parts);
+            // The defaults, unchanged, are stored as "not set" so the scale keeps
+            // following each viewer's language.
+            if ($parts === projectScaleDefaults($key === 'project_impact_labels' ? 'impact' : 'probability')) return '';
+            return json_encode($parts, JSON_UNESCAPED_UNICODE);
         }
         throw new InvalidArgumentException("Unknown setting: $key");
+    }
+
+    // ======================================================================
+    //  RAID risk scales - five words each, lowest first
+    // ======================================================================
+
+    /**
+     * The five default words for a scale ('probability' or 'impact') in the
+     * viewer's language. They live in lang/<locale>/projects.php, not in the
+     * setting, so an install that never changed them reads them in German for a
+     * German analyst.
+     */
+    function projectScaleDefaults(string $scale): array
+    {
+        if (!class_exists('I18n')) {
+            require_once __DIR__ . '/../i18n.php';
+            I18n::initFromSession();
+        }
+        $out = [];
+        for ($i = 1; $i <= 5; $i++) $out[] = t('projects.scale.' . $scale . '_' . $i);
+        return $out;
+    }
+
+    /**
+     * Read a stored scale. A JSON array is the format; a comma-separated string
+     * is what the first 3.2.0 builds wrote, read the same way so nothing needs
+     * migrating (it is rewritten as JSON the next time the tab is saved).
+     */
+    function projectScaleParse(string $stored): array
+    {
+        $stored = trim($stored);
+        if ($stored === '') return [];
+        if ($stored[0] === '[') {
+            $a = json_decode($stored, true);
+            return is_array($a) ? array_map(fn($p) => trim((string)$p), array_values($a)) : [];
+        }
+        return array_values(array_filter(array_map('trim', explode(',', $stored)), fn($p) => $p !== ''));
+    }
+
+    /** The five words to show for a scale: the saved ones, or the translated defaults. */
+    function projectScaleLabels(PDO $conn, string $scale): array
+    {
+        $saved = projectScaleParse(projectSetting($conn, 'project_' . $scale . '_labels'));
+        return count($saved) === 5 ? $saved : projectScaleDefaults($scale);
     }
 
     // ======================================================================

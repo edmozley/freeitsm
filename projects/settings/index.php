@@ -48,7 +48,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=10">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=11">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=183">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -100,8 +100,16 @@ $row = function (string $label, string $desc, string $control) {
             <h2><?php echo $tt('raid_title'); ?></h2>
             <p class="prj-muted"><?php echo $tt('raid_intro'); ?></p>
             <?php
-            $row($tt('probability_labels'), $tt('probability_labels_desc'), '<input type="text" data-k="project_probability_labels"><div class="dflt" data-d="project_probability_labels"></div>');
-            $row($tt('impact_labels'), $tt('impact_labels_desc'), '<input type="text" data-k="project_impact_labels"><div class="dflt" data-d="project_impact_labels"></div>');
+            // Five boxes per scale, numbered - the number is what a risk stores.
+            $scale = function (string $key) {
+                $h = '<div class="prj-scale" data-k="' . $key . '">';
+                for ($i = 1; $i <= 5; $i++) {
+                    $h .= '<label class="prj-scale-step"><span class="prj-scale-n">' . $i . '</span><input type="text" maxlength="40" data-step="' . ($i - 1) . '"></label>';
+                }
+                return $h . '</div><div class="dflt" data-d="' . $key . '"></div>';
+            };
+            $row($tt('probability_labels'), $tt('probability_labels_desc'), $scale('project_probability_labels'));
+            $row($tt('impact_labels'), $tt('impact_labels_desc'), $scale('project_impact_labels'));
             ?>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="raid"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
         </div>
@@ -128,7 +136,7 @@ $row = function (string $label, string $desc, string $control) {
     </div>
 
     <script src="../../assets/js/projects.js?v=5"></script>
-    <script src="../../assets/js/projects-settings.js?v=1"></script>
+    <script src="../../assets/js/projects-settings.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=77"></script>
 </body>
 </html>

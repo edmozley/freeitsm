@@ -13,6 +13,8 @@
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/projects/settings.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $tabCaps = [
     'general' => Cap::PROJECTS_GENERAL,
@@ -33,6 +35,14 @@ function projectRolesForSettings(PDO $conn): array
     }
 }
 
+/** Settings as the screen shows them: each risk scale as its five words. */
+function projectSettingsForScreen(PDO $conn): array
+{
+    $out = projectSettings($conn, true);
+    foreach (['probability', 'impact'] as $scale) $out['project_' . $scale . '_labels'] = projectScaleLabels($conn, $scale);
+    return $out;
+}
+
 projectApiRun(function () use ($conn, $analystId, $tabCaps) {
     $canWrite = [];
     foreach ($tabCaps as $tab => $cap) {
@@ -42,8 +52,9 @@ projectApiRun(function () use ($conn, $analystId, $tabCaps) {
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
         $defs = [];
         foreach (projectSettingDefinitions() as $k => $d) $defs[$k] = ['default' => $d[0], 'tab' => $d[2]];
+        foreach (['probability', 'impact'] as $scale) $defs['project_' . $scale . '_labels']['default'] = projectScaleDefaults($scale);
         projectApiOk([
-            'settings'    => projectSettings($conn, true),
+            'settings'    => projectSettingsForScreen($conn),
             'definitions' => $defs,
             'can_write'   => $canWrite,
             'roles'       => projectRolesForSettings($conn),
@@ -100,5 +111,5 @@ projectApiRun(function () use ($conn, $analystId, $tabCaps) {
         catch (InvalidArgumentException $e) { projectApiFail($e->getMessage()); }
     }
     foreach ($clean as $k => $v) projectSettingWrite($conn, $k, $v);
-    projectApiOk(['settings' => projectSettings($conn, true)]);
+    projectApiOk(['settings' => projectSettingsForScreen($conn)]);
 });
