@@ -8007,6 +8007,7 @@ CREATE TABLE IF NOT EXISTS `project_raid` (
     `status`            VARCHAR(10) NOT NULL DEFAULT 'open',        -- open | closed
     `due_date`          DATE NULL,
     `ticket_id`         INT NULL,                                   -- an issue that became, or came from, a ticket
+    `knowledge_article_id` INT NULL,                                -- a lesson turned into a Knowledge article
     `raised_by_id`      INT NULL,
     `raised_datetime`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -8017,7 +8018,8 @@ CREATE TABLE IF NOT EXISTS `project_raid` (
     CONSTRAINT `fk_praid_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_praid_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_praid_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_praid_raised_by` FOREIGN KEY (`raised_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_praid_raised_by` FOREIGN KEY (`raised_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_praid_article` FOREIGN KEY (`knowledge_article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tolerances: how far a project (stage_id NULL) or a stage may drift before it is

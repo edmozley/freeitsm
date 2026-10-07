@@ -39,7 +39,7 @@ $sections = [
     'people'    => 3,
     'scope'     => 1,
     'raci'      => 1,
-    'raid'      => 3,
+    'raid'      => 4,
     'gates'     => 3,
     'targets'   => 3,
     'health'    => 1,
@@ -79,7 +79,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=13">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=14">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=184">
     <style>

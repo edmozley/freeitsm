@@ -147,6 +147,9 @@ return [
         'projects_person' => 'Projects they are part of',
         'col_project'    => 'Project',
         'col_role'       => 'Role',
+        // A person's RACI duties on a project, under their role: "Accountable for Phones working on day one".
+        'duty'           => '{role} for {items}',
+        'duty_more'      => 'and {n} more',
         'col_owner'      => 'Owner',
         'col_target'     => 'Target end',
         'empty'          => 'Nothing yet.',

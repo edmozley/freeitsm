@@ -2884,6 +2884,7 @@ try {
         ['project_raid', 'fk_praid_owner', "ALTER TABLE project_raid ADD CONSTRAINT fk_praid_owner FOREIGN KEY (owner_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['project_raid', 'fk_praid_ticket', "ALTER TABLE project_raid ADD CONSTRAINT fk_praid_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE SET NULL"],
         ['project_raid', 'fk_praid_raised_by', "ALTER TABLE project_raid ADD CONSTRAINT fk_praid_raised_by FOREIGN KEY (raised_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_raid', 'fk_praid_article', "ALTER TABLE project_raid ADD CONSTRAINT fk_praid_article FOREIGN KEY (knowledge_article_id) REFERENCES knowledge_articles (id) ON DELETE SET NULL"],
         ['project_tolerances', 'fk_ptol_project', "ALTER TABLE project_tolerances ADD CONSTRAINT fk_ptol_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_tolerances', 'fk_ptol_stage', "ALTER TABLE project_tolerances ADD CONSTRAINT fk_ptol_stage FOREIGN KEY (stage_id) REFERENCES project_stages (id) ON DELETE CASCADE"],
         ['project_asset_targets', 'fk_patg_project', "ALTER TABLE project_asset_targets ADD CONSTRAINT fk_patg_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],

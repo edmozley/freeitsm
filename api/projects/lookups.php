@@ -40,6 +40,9 @@ projectApiRun(function () use ($conn, $analystId) {
         'impact_labels'      => projectScaleLabels($conn, 'impact'),
         'templates'          => projectTemplateList($conn),
         'can_manage_templates' => analystHasCapability($conn, $analystId, Cap::PROJECTS_TEMPLATES),
+        // RAID: a lesson -> Knowledge, an issue -> a new ticket. Only offered with the module.
+        'can_knowledge'   => analystCanAccessModule($conn, $analystId, 'knowledge'),
+        'can_tickets'     => analystCanAccessModule($conn, $analystId, 'tickets'),
         'methodologies'   => $methods,
         'statuses'        => projectStatuses(),
         'colours'         => $colours,

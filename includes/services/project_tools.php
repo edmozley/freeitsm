@@ -262,6 +262,134 @@ class ProjectToolsService
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_removed', $r['type'] . ': ' . $r['title'], null, self::src($ctx));
     }
 
+    /**
+     * A lesson becomes a Knowledge article, in one click (3.2.0).
+     *
+     * Saved as a DRAFT through KnowledgeService, like the Knowledge assistant's
+     * write-ups: somebody reads it before anyone else can, and it gets the same
+     * validation, search entry and history as any article. It belongs to the
+     * project's company (an MSP's lesson is that client's until somebody shares
+     * it), is linked on the project's Connections tab, and remembered on the
+     * lesson so it is made once. Needs Knowledge as well as being allowed to
+     * change the project. Returns ['id', 'url'].
+     */
+    public static function lessonToKnowledge(PDO $conn, ActorContext $ctx, int $projectId, int $raidId): array
+    {
+        $project = self::changeable($conn, $ctx, $projectId);
+        $r = self::raidRow($conn, $projectId, $raidId);
+        if ($r['type'] !== 'lesson') throw new ServiceError('validation', 'invalid_field', 'Only a lesson can become a Knowledge article.');
+        if (!array_key_exists('knowledge_article_id', $r)) throw new ServiceError('validation', 'not_ready', 'Run System → Database Verification first.');
+        if ($r['knowledge_article_id']) throw new ServiceError('conflict', 'conflict', 'This lesson is already a Knowledge article.');
+        if ($ctx->actorId > 0 && !analystCanAccessModule($conn, $ctx->actorId, 'knowledge')) {
+            throw new ServiceError('forbidden', 'forbidden', 'Turning a lesson into an article needs access to Knowledge.');
+        }
+        require_once __DIR__ . '/knowledge.php';
+        require_once __DIR__ . '/../public_url.php';
+        require_once __DIR__ . '/../entity_links.php';
+        require_once __DIR__ . '/../projects/read.php';
+        $code = projectCode((int)$project['id']);
+        $body = '';
+        foreach (preg_split('/\n{2,}/', trim((string)$r['description'])) as $para) {
+            if (trim($para) !== '') $body .= '<p>' . nl2br(htmlspecialchars(trim($para))) . '</p>';
+        }
+        $body .= '<p><em>Learned on the project <a href="' . htmlspecialchars(publicAbsoluteUrl($conn, entityLink('project', (int)$project['id']))) . '">'
+               . htmlspecialchars($code . ' ' . $project['name']) . '</a>.</em></p>';
+        $res = KnowledgeService::saveArticle($conn, $ctx, [
+            'title'        => mb_substr($r['title'], 0, 255),
+            'body_html'    => $body,
+            'is_published' => false,
+            'owner_id'     => $ctx->actorId > 0 ? $ctx->actorId : null,
+            'tenant_id'    => isMultiTenant($conn) ? ($project['tenant_id'] === null ? (int)getDefaultTenantId($conn) : (int)$project['tenant_id']) : null,
+        ]);
+        $articleId = (int)$res['id'];
+        $conn->prepare("UPDATE project_raid SET knowledge_article_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$articleId, $raidId]);
+        self::linkQuietly($conn, $ctx, $projectId, 'article', $articleId);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_to_knowledge', null, $r['title'], self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return ['id' => $articleId, 'url' => entityLink('knowledge_article', $articleId)];
+    }
+
+    /**
+     * Raise a NEW ticket from an issue (3.2.0) - before, an issue could only be
+     * linked to a ticket that already existed.
+     *
+     * Through TicketsService::createTicket(), so it numbers, routes, notifies and
+     * fires ticket.created like any ticket. It is filed in the project's company,
+     * raised by (requester) the analyst pressing the button - it is the IT team's
+     * own work - and assigned to the issue's owner, else to them, as a ticket
+     * made by hand is. The issue then points at it, and the project is linked to
+     * it, so it shows on the ticket and on the Connections tab. Needs Tickets.
+     * Returns ['id', 'number', 'url'].
+     */
+    public static function issueToTicket(PDO $conn, ActorContext $ctx, int $projectId, int $raidId): array
+    {
+        $project = self::changeable($conn, $ctx, $projectId);
+        $r = self::raidRow($conn, $projectId, $raidId);
+        if ($r['type'] !== 'issue') throw new ServiceError('validation', 'invalid_field', 'Only an issue can raise a ticket.');
+        if ($r['ticket_id']) throw new ServiceError('conflict', 'conflict', 'This issue already has a ticket.');
+        if ($ctx->actorId <= 0 || !analystCanAccessModule($conn, $ctx->actorId, 'tickets')) {
+            throw new ServiceError('forbidden', 'forbidden', 'Raising a ticket needs access to Tickets.');
+        }
+        $st = $conn->prepare("SELECT full_name, email FROM analysts WHERE id = ?");
+        $st->execute([$ctx->actorId]);
+        $me = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+        $email = trim((string)($me['email'] ?? ''));
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new ServiceError('validation', 'missing_field', 'Your account has no email address, so it cannot be the ticket\'s requester. Add one under your profile.');
+        }
+        require_once __DIR__ . '/tickets.php';
+        require_once __DIR__ . '/../entity_links.php';
+        require_once __DIR__ . '/../projects/read.php';
+        $code = projectCode((int)$project['id']);
+        $desc = trim((string)$r['description']);
+        if ($r['impact']) {
+            require_once __DIR__ . '/../projects/settings.php';
+            $labels = projectScaleLabels($conn, 'impact');
+            $desc .= ($desc !== '' ? "\n\n" : '') . 'Impact: ' . (int)$r['impact'] . ' - ' . ($labels[(int)$r['impact'] - 1] ?? '');
+        }
+        $desc .= ($desc !== '' ? "\n\n" : '') . 'Raised from the RAID log of project ' . $code . ' ' . $project['name'] . '.';
+        $tenant = $project['tenant_id'] === null ? (int)getDefaultTenantId($conn) : (int)$project['tenant_id'];
+        $ticketId = TicketsService::createTicket($conn, $ctx, $tenant, [
+            'subject'         => mb_substr($r['title'], 0, 255),
+            'description'     => $desc,
+            'requester_email' => $email,
+            'requester_name'  => (string)($me['full_name'] ?? ''),
+        ], $r['owner_analyst_id'] ? (int)$r['owner_analyst_id'] : $ctx->actorId, 'Raised from project ' . $code . ' (RAID issue)');
+        $conn->prepare("UPDATE project_raid SET ticket_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$ticketId, $raidId]);
+        self::linkQuietly($conn, $ctx, $projectId, 'ticket', $ticketId);
+        $num = $conn->prepare("SELECT ticket_number FROM tickets WHERE id = ?");
+        $num->execute([$ticketId]);
+        $number = (string)$num->fetchColumn();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_ticket_raised', null, $number . ' ' . $r['title'], self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return ['id' => $ticketId, 'number' => $number, 'url' => entityLink('ticket', $ticketId)];
+    }
+
+    /** One RAID entry of this project, or not found. */
+    private static function raidRow(PDO $conn, int $projectId, int $raidId): array
+    {
+        $st = $conn->prepare("SELECT * FROM project_raid WHERE id = ? AND project_id = ?");
+        $st->execute([$raidId, $projectId]);
+        $r = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'That entry is not part of this project.');
+        return $r;
+    }
+
+    /**
+     * Link the new record on the Connections tab too. The record is already
+     * made and remembered on the entry, so a link that cannot be added (the
+     * tables not verified yet) must not undo it.
+     */
+    private static function linkQuietly(PDO $conn, ActorContext $ctx, int $projectId, string $kind, int $id): void
+    {
+        try {
+            require_once __DIR__ . '/../projects/links.php';
+            projectLinkAdd($conn, $ctx, $projectId, $kind, $id);
+        } catch (Throwable $e) {
+            error_log('projects: could not link the new ' . $kind . ' ' . $id . ' - ' . $e->getMessage());
+        }
+    }
+
     // ======================================================================
     //  Gates: business case (a project field), tolerances, gate decisions
     // ======================================================================
@@ -374,7 +502,20 @@ class ProjectToolsService
             $st->execute([$projectId]);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC);
             require_once __DIR__ . '/../entity_links.php';
-            foreach ($rows as &$r) $r['ticket_url'] = $r['ticket_id'] ? entityLink('ticket', (int)$r['ticket_id']) : null;
+            // A lesson's article: looked up separately rather than joined, so a
+            // RAID log on an install that has not verified the new column still loads.
+            $articleIds = array_filter(array_map(fn($r) => (int)($r['knowledge_article_id'] ?? 0), $rows));
+            $titles = [];
+            if ($articleIds) {
+                $in = implode(',', array_unique($articleIds));
+                foreach ($conn->query("SELECT id, title, is_published FROM knowledge_articles WHERE id IN ($in)")->fetchAll(PDO::FETCH_ASSOC) as $a) $titles[(int)$a['id']] = $a;
+            }
+            foreach ($rows as &$r) {
+                $r['ticket_url'] = $r['ticket_id'] ? entityLink('ticket', (int)$r['ticket_id']) : null;
+                $aid = (int)($r['knowledge_article_id'] ?? 0);
+                $r['article_url'] = $aid && isset($titles[$aid]) ? entityLink('knowledge_article', $aid) : null;
+                $r['article_published'] = $aid && isset($titles[$aid]) ? (bool)(int)$titles[$aid]['is_published'] : null;
+            }
             unset($r);
             return $rows;
         } catch (Throwable $e) {

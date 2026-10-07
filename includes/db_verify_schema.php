@@ -5273,6 +5273,7 @@ return [
         'status'           => "VARCHAR(10) NOT NULL DEFAULT 'open'",
         'due_date'         => 'DATE NULL',
         'ticket_id'        => 'INT NULL',
+        'knowledge_article_id' => 'INT NULL',
         'raised_by_id'     => 'INT NULL',
         'raised_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',

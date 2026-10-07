@@ -435,8 +435,9 @@ function peopleDomains(PDO $conn, int $analystId, array $who): array
 
 /**
  * Projects (3.2.0): for a person, the projects they are a member of (People
- * tab of a project) with their role; for a company, its projects. Live ones
- * first. Limited to the companies the analyst can access, like Projects itself.
+ * tab of a project) with their role and their RACI duties ("Accountable for
+ * Phones working on day one"); for a company, its projects. Live ones first.
+ * Limited to the companies the analyst can access, like Projects itself.
  */
 function peopleProjects(PDO $conn, int $analystId, array $who): array
 {
@@ -463,11 +464,24 @@ function peopleProjects(PDO $conn, int $analystId, array $who): array
     $raw = $st->fetchAll(PDO::FETCH_ASSOC);
     $stats = projectTaskStats($conn, array_column($raw, 'id'));
     $cfg = projectHealthConfig($conn);
-    $rows = array_map(function ($r) use ($stats, $cfg) {
+    // A person's RACI duties per project: letter => the deliverables, in scope order.
+    $duties = [];
+    if (isset($who['user']) && $raw) {
+        $in = implode(',', array_map('intval', array_column($raw, 'id')));
+        $dq = $conn->prepare("SELECT m.project_id, x.letter, i.title
+                                FROM project_raci x
+                                JOIN project_members m ON m.id = x.member_id
+                                JOIN project_items i ON i.id = x.item_id
+                               WHERE m.user_id = ? AND m.project_id IN ($in) AND i.status <> 'dropped'
+                            ORDER BY FIELD(x.letter, 'A', 'R', 'C', 'I'), i.position, i.id");
+        $dq->execute([(int)$who['user']]);
+        foreach ($dq->fetchAll(PDO::FETCH_ASSOC) as $d) $duties[(int)$d['project_id']][$d['letter']][] = $d['title'];
+    }
+    $rows = array_map(function ($r) use ($stats, $cfg, $duties) {
         $d = projectDecorate($r, $stats[(int)$r['id']] ?? [], $cfg);
         return ['id' => (int)$d['id'], 'code' => $d['code'], 'name' => $d['name'], 'status' => $d['status'],
                 'colour' => projectColourHex($d['colour']), 'health' => $d['shown_health'], 'progress' => (int)$d['progress'],
-                'owner' => $d['owner_name'], 'role' => $r['role_names'], 'target_end_date' => $d['target_end_date'],
+                'owner' => $d['owner_name'], 'role' => $r['role_names'], 'duties' => $duties[(int)$d['id']] ?? [], 'target_end_date' => $d['target_end_date'],
                 'url' => entityLink('project', (int)$d['id'])];
     }, $raw);
     return ['total' => count($rows), 'rows' => $rows];

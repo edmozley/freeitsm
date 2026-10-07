@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=13">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=14">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -140,6 +140,7 @@ $projectId = (int)($_GET['id'] ?? 0);
                 </div>
                 <div class="form-group"><label for="prName"><?php echo htmlspecialchars(t('projects.raid.title')); ?></label><input type="text" id="prName" maxlength="255" autocomplete="off"></div>
                 <div class="form-group"><label for="prDesc"><?php echo htmlspecialchars(t('projects.raid.description')); ?></label><textarea id="prDesc" rows="3"></textarea></div>
+                <div class="prj-raid-action" id="prKb" data-for="lesson"></div>
                 <div class="prj-form-grid">
                     <div class="form-group" data-for="risk"><label for="prProb"><?php echo htmlspecialchars(t('projects.raid.probability')); ?></label><select id="prProb"></select></div>
                     <div class="form-group" data-for="risk issue"><label for="prImpact"><?php echo htmlspecialchars(t('projects.raid.impact')); ?></label><select id="prImpact"></select></div>
@@ -154,6 +155,7 @@ $projectId = (int)($_GET['id'] ?? 0);
                     <input type="text" id="prTicket" placeholder="<?php echo htmlspecialchars(t('projects.links.add_ph')); ?>" autocomplete="off">
                     <ul class="prj-conn-results" id="prTicketResults" hidden></ul>
                     <input type="hidden" id="prTicketId">
+                    <div class="prj-raid-action" id="prRaise"></div>
                 </div>
                 <div class="prj-form-error" id="prError" hidden></div>
             </div>
@@ -340,7 +342,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=6"></script>
-    <script src="../assets/js/projects-tools.js?v=3"></script>
+    <script src="../assets/js/projects-tools.js?v=4"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-view.js?v=9"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>

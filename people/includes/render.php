@@ -170,7 +170,24 @@ function pplSectionForms(array $s, bool $person): string
     return pplCard('forms', t('people.section.forms'), $s['total'], $head, $rows, $s['total'] >= PEOPLE_SECTION_LIMIT);
 }
 
-/** Projects (3.2.0): a person's memberships with their role, or a company's projects. */
+/**
+ * A person's RACI duties on one project, one line per letter: "Accountable for
+ * Phones working on day one, Every desk patched and 2 more". The full list is
+ * the line's tooltip.
+ */
+function pplRaciDuties(array $duties): string
+{
+    $h = '';
+    foreach ($duties as $letter => $titles) {
+        $shown = array_slice($titles, 0, 2);
+        $items = implode(', ', $shown) . (count($titles) > 2 ? ' ' . t('people.section.duty_more', ['n' => count($titles) - 2]) : '');
+        $h .= '<div class="ppl-dim" title="' . pplE(implode("\n", $titles)) . '">'
+            . pplE(t('people.section.duty', ['role' => t('projects.raci.' . strtolower($letter)), 'items' => $items])) . '</div>';
+    }
+    return $h;
+}
+
+/** Projects (3.2.0): a person's memberships with their role and RACI duties, or a company's projects. */
 function pplSectionProjects(array $s, bool $person): string
 {
     $head = [t('people.section.col_project')];
@@ -180,7 +197,7 @@ function pplSectionProjects(array $s, bool $person): string
     $rows = array_map(function ($r) use ($person, $health) {
         $status = t('projects.status.' . $r['status']);
         $cells = ['<span class="ppl-swatch" style="background:' . pplE($r['colour']) . '"></span>' . pplLink($r['url'], $r['name']) . '<div class="ppl-dim">' . pplE($r['code']) . '</div>'];
-        if ($person) $cells[] = pplE($r['role'] ?? '');
+        if ($person) $cells[] = pplE($r['role'] ?? '') . pplRaciDuties($r['duties'] ?? []);
         array_push($cells,
             pplPill($status, null, $health[$r['health']] ?? 'muted'),
             pplE($r['progress'] . '%'),

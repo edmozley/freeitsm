@@ -246,6 +246,7 @@
         if (r.due_date) meta.push(esc(P.fmtDate(r.due_date)));
         if (r.response) meta.push(esc(T('raid.resp_' + r.response)));
         if (r.ticket_number) meta.push('<a href="' + esc(window.PRJ_BASE + r.ticket_url) + '">' + esc(r.ticket_number) + '</a>');
+        if (r.article_url) meta.push('<a href="' + esc(window.PRJ_BASE + r.article_url) + '">' + esc(T('raid.kb_row')) + (r.article_published === false ? ' (' + esc(T('raid.kb_draft')) + ')' : '') + '</a>');
         return '<li class="prj-raid-row t-' + esc(r.type) + (r.status === 'closed' ? ' closed' : '') + '" data-raid="' + r.id + '">'
             + '<span class="prj-raid-type">' + esc(T('raid.' + r.type)) + '</span>'
             + '<div class="prj-raid-main"><span class="prj-raid-title">' + esc(r.title) + '</span>'
@@ -306,6 +307,8 @@
         document.getElementById('prPlan').value = r ? (r.response_plan || '') : '';
         document.getElementById('prTicketId').value = r ? (r.ticket_id || '') : '';
         document.getElementById('prTicket').value = r && r.ticket_number ? r.ticket_number + ' - ' + (r.ticket_subject || '') : '';
+        document.getElementById('prKb').innerHTML = raidKbHtml(r);
+        document.getElementById('prRaise').innerHTML = raidRaiseHtml(r);
         document.getElementById('prDelete').hidden = !r || !canChange();
         document.getElementById('prSave').hidden = !canChange();
         document.getElementById('prError').hidden = true;
@@ -313,17 +316,56 @@
         P.openModal('prjRaidModal');
         setTimeout(() => document.getElementById('prName').focus(), 60);
     }
+    function raidBody() {
+        return { action: 'raid_save', id: document.getElementById('prId').value || null, type: raidType,
+            title: document.getElementById('prName').value, description: document.getElementById('prDesc').value,
+            probability: document.getElementById('prProb').value || null, impact: document.getElementById('prImpact').value || null,
+            response: document.getElementById('prResp').value || null, response_plan: document.getElementById('prPlan').value,
+            owner_analyst_id: document.getElementById('prOwner').value || null, due_date: document.getElementById('prDue').value || null,
+            status: document.getElementById('prStatus').value, ticket_id: document.getElementById('prTicketId').value || null };
+    }
     async function saveRaid() {
         try {
-            await call({ action: 'raid_save', id: document.getElementById('prId').value || null, type: raidType,
-                title: document.getElementById('prName').value, description: document.getElementById('prDesc').value,
-                probability: document.getElementById('prProb').value || null, impact: document.getElementById('prImpact').value || null,
-                response: document.getElementById('prResp').value || null, response_plan: document.getElementById('prPlan').value,
-                owner_analyst_id: document.getElementById('prOwner').value || null, due_date: document.getElementById('prDue').value || null,
-                status: document.getElementById('prStatus').value, ticket_id: document.getElementById('prTicketId').value || null });
+            await call(raidBody());
             P.closeModal('prjRaidModal');
             await ctx.refresh();
         } catch (e) { const er = document.getElementById('prError'); er.textContent = e.message; er.hidden = false; }
+    }
+
+    // A lesson -> a draft Knowledge article; an issue -> a new ticket (3.2.0).
+    // Only on a saved entry, only with the other module, only when the project
+    // can be changed - the server checks all three again.
+    function raidKbHtml(r) {
+        if (!r || r.type !== 'lesson') return '';
+        if (r.article_url) {
+            return '<a class="prj-link" href="' + esc(window.PRJ_BASE + r.article_url) + '">' + esc(T('raid.kb_open'))
+                + (r.article_published === false ? ' (' + esc(T('raid.kb_draft')) + ')' : '') + '</a>';
+        }
+        if (!canChange() || !ctx.L.can_knowledge) return '';
+        return '<button type="button" class="btn btn-secondary" data-raid-act="raid_to_knowledge">' + esc(T('raid.kb_button')) + '</button>'
+            + '<span class="prj-hint">' + esc(T('raid.kb_hint')) + '</span>';
+    }
+    function raidRaiseHtml(r) {
+        if (!r || r.type !== 'issue' || r.ticket_id || !canChange() || !ctx.L.can_tickets) return '';
+        return '<button type="button" class="btn btn-secondary" data-raid-act="raid_to_ticket">' + esc(T('raid.ticket_raise')) + '</button>'
+            + '<span class="prj-hint">' + esc(T('raid.ticket_raise_hint')) + '</span>';
+    }
+    async function raidAct(action, btn) {
+        const er = document.getElementById('prError');
+        er.hidden = true;
+        btn.disabled = true;
+        try {
+            // Keep anything typed into the dialog: save it first, then act on it.
+            await call(raidBody());
+            const r = await call({ action: action, id: document.getElementById('prId').value });
+            P.closeModal('prjRaidModal');
+            await ctx.refresh();
+            P.toast(action === 'raid_to_ticket' ? T('raid.ticket_done', { number: r.ticket.number }) : T('raid.kb_done'));
+        } catch (e) {
+            er.textContent = e.message; er.hidden = false;
+        } finally {
+            btn.disabled = false;
+        }
     }
     let ticketTimer = null;
     function searchTicket() {
@@ -516,6 +558,9 @@
         document.getElementById('pmSave').addEventListener('click', saveMember);
         document.getElementById('prType').addEventListener('click', e => { const b = e.target.closest('[data-rtype]'); if (b) setRaidType(b.dataset.rtype); });
         document.getElementById('prSave').addEventListener('click', saveRaid);
+        document.getElementById('prjRaidModal').addEventListener('click', e => {
+            const b = e.target.closest('[data-raid-act]'); if (b) raidAct(b.dataset.raidAct, b);
+        });
         document.getElementById('pgChoices').addEventListener('click', e => {
             const b = e.target.closest('[data-decision]'); if (!b) return;
             gateDecision = b.dataset.decision;

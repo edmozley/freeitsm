@@ -125,7 +125,11 @@ if (!defined('PROJECT_LINKS_LOADED')) {
                 return (bool)$st->fetchColumn();
             case 'article':
                 require_once __DIR__ . '/../knowledge/visibility.php';
-                return knowledgeCanRead($conn, KnowledgeViewer::forAnalyst($conn, $analystId), $targetId);
+                // 'unarchived', as the analyst article list: a DRAFT can be linked.
+                // A lesson turned into an article (3.2.0) is saved as a draft and
+                // linked at once; the default 'live' refused it. Permissions are
+                // unchanged - only the publish state is no longer a bar.
+                return knowledgeCanRead($conn, KnowledgeViewer::forAnalyst($conn, $analystId), $targetId, ['lifecycle' => 'unarchived']);
         }
         // A company record: must exist and sit in the project's company.
         if (!$multi || $projectTenant === null) {

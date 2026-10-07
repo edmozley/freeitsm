@@ -18,6 +18,8 @@
  *      raci_set       {item_id, member_id, letter: R|A|C|I|''}
  *      raid_save      {id?, type, title, description?, probability?, impact?, response?, response_plan?, owner_analyst_id?, status?, due_date?, ticket_id?}
  *      raid_delete    {id}
+ *      raid_to_knowledge {id}   a lesson -> a draft Knowledge article (Knowledge access)
+ *      raid_to_ticket    {id}   an issue -> a new ticket (Tickets access)
  *      tolerances_save {time?: days|null, risk?: score|null}
  *      gate_decide    {stage_id, decision: go|go_with_conditions|stop, notes?}
  *      target_save    {id?, name, scope: filter|linked, scope_type_id?, scope_field?, scope_value?, done_field, done_op, done_value, target_date?}
@@ -83,6 +85,10 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk();
         case 'raid_save':
             projectApiOk(['id' => ProjectToolsService::saveRaid($conn, $ctx, $pid, $in)]);
+        case 'raid_to_knowledge':
+            projectApiOk(['article' => ProjectToolsService::lessonToKnowledge($conn, $ctx, $pid, (int)($in['id'] ?? 0))]);
+        case 'raid_to_ticket':
+            projectApiOk(['ticket' => ProjectToolsService::issueToTicket($conn, $ctx, $pid, (int)($in['id'] ?? 0))]);
         case 'raid_delete':
             ProjectToolsService::deleteRaid($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk();
