@@ -607,6 +607,21 @@ try {
                 <div class="wt-card-body"><div class="wt-card-loading"><div class="wt-spinner"></div></div></div>
             </div>
 
+            <!-- Projects (3.2.0): live projects off track or at risk, by name, and
+                 stages ending this week. Hidden from anybody without Projects. -->
+            <div class="wt-card" id="wtProjects">
+                <div class="wt-card-header">
+                    <div class="wt-card-header-left">
+                        <div class="wt-card-icon" style="background:linear-gradient(135deg, #f43f5e, #7c3aed);">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+                        </div>
+                        <div class="wt-card-name"><a href="../projects/"><?php echo htmlspecialchars(t('watchtower.cards.projects')); ?></a></div>
+                    </div>
+                    <div class="wt-status-dot" id="wtPjDot"></div>
+                </div>
+                <div class="wt-card-body"><div class="wt-card-loading"><div class="wt-spinner"></div></div></div>
+            </div>
+
             <!-- Workflows — hidden entirely if the engine's tables aren't there yet -->
             <div class="wt-card" id="wtWorkflows" style="display:none;">
                 <div class="wt-card-header">
@@ -667,7 +682,7 @@ try {
         morning_checks: 'wtMorningChecks', tickets: 'wtTickets', changes: 'wtChanges',
         calendar: 'wtCalendar', service_status: 'wtServiceStatus', contracts: 'wtContracts',
         software: 'wtSoftware', domains: 'wtDomains',
-        knowledge: 'wtKnowledge', assets: 'wtAssets', tasks: 'wtTasks', workflows: 'wtWorkflows',
+        knowledge: 'wtKnowledge', assets: 'wtAssets', tasks: 'wtTasks', projects: 'wtProjects', workflows: 'wtWorkflows',
     };
 
     function applyCardVisibility(cards) {
@@ -1005,6 +1020,38 @@ try {
         setBody('wtDomains', html);
     }
 
+    // Projects (3.2.0). Red when any live project is off track; amber for one
+    // at risk, beyond a tolerance, or with a stage ending in the next 7 days.
+    // The off-track ones are named and linked - the name is the useful part.
+    function renderProjects(d) {
+        const pj = d.projects;
+        const card = document.getElementById('wtProjects');
+        if (!pj || pj.allowed === false) { if (card) card.style.display = 'none'; return; }
+        const T = (k, p) => window.t('watchtower.projects.' + k, p);
+        if (!pj.show || pj.live === 0) {
+            setDot('wtPjDot', 'green');
+            setBody('wtProjects', '<div class="wt-attention">' + attentionItem('green', T('none')) + '</div>');
+            return;
+        }
+        setDot('wtPjDot', pj.red > 0 ? 'red' : ((pj.amber + pj.breaches + pj.stages_week) > 0 ? 'amber' : 'green'));
+        let html = '<div class="wt-metrics">';
+        html += metric(pj.red, T('metric_red'), pj.red > 0 ? '#ef4444' : '#94a3b8');
+        html += metric(pj.amber, T('metric_amber'), pj.amber > 0 ? '#f59e0b' : '#94a3b8');
+        html += metric(pj.stages_week, T('metric_week'), pj.stages_week > 0 ? '#f59e0b' : '#94a3b8');
+        html += '</div><div class="wt-attention">';
+        (pj.off_track || []).forEach(p => {
+            const link = '<a href="../projects/view.php?id=' + encodeURIComponent(p.id) + '" class="wt-attention-bold" style="color:inherit;">' + escapeHtml(p.name) + '</a>';
+            html += attentionItem('red', T('off_track', { name: link }));
+        });
+        const more = pj.red - (pj.off_track || []).length;
+        if (more > 0) html += attentionItem('red', T('more_off_track', { count: more }));
+        if (pj.breaches > 0) html += attentionItem('amber', T('breaches', { count: pj.breaches }));
+        if (pj.stages_week > 0) html += attentionItem('amber', T('stages_week', { count: pj.stages_week }));
+        if (pj.red === 0 && pj.amber === 0 && pj.breaches === 0 && pj.stages_week === 0) html += attentionItem('green', T('all_clear', { count: pj.live }));
+        html += '</div>';
+        setBody('wtProjects', html);
+    }
+
     function renderKnowledge(d) {
         const kb = d.knowledge;
 
@@ -1268,6 +1315,7 @@ try {
                 renderKnowledge(d);
                 renderAssets(d);
                 renderTasks(d);
+                renderProjects(d);
                 renderWorkflows(d);
 
                 // 🔴 LAST. applyCardVisibility() and renderWorkflows() both set

@@ -520,7 +520,7 @@
     document.addEventListener('selectionchange', () => { if (S.editing) refreshRibbonState(); });
 
     // ── The toolbox ──────────────────────────────────────────────────────
-    const AREAS = [['layout', 'designer.area.layout'], ['tickets', 'designer.area.tickets'], ['status', 'designer.area.status'], ['software', 'designer.area.software'], ['assets', 'designer.area.assets']];
+    const AREAS = [['layout', 'designer.area.layout'], ['tickets', 'designer.area.tickets'], ['status', 'designer.area.status'], ['software', 'designer.area.software'], ['assets', 'designer.area.assets'], ['projects', 'designer.area.projects']];
     const TOOL_ICON = (t) => t.type === 'heading' ? 'heading' : t.type === 'text' ? 'text' : t.type === 'pagebreak' ? 'pagebreak'
         : t.type === 'spacer' ? 'space' : t.type === 'divider' ? 'line'
         : ({ chart: 'chart', table: 'table', kpi: 'kpi', uptime: 'uptime' }[(S.catalogue.handlers[t.handler] || {}).kind] || 'chart');

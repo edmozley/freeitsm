@@ -33,6 +33,7 @@ require_once __DIR__ . '/blocks_tickets.php';
 require_once __DIR__ . '/blocks_status.php';
 require_once __DIR__ . '/blocks_software.php';
 require_once __DIR__ . '/blocks_assets.php';
+require_once __DIR__ . '/blocks_projects.php';
 
 const RP_CHART_TYPES = ['bar', 'hbar', 'line', 'doughnut', 'pie'];
 
@@ -217,6 +218,44 @@ function rpHandlers(): array
         'intune.kpis' => [
             'module' => 'reporting', 'kind' => 'kpi', 'fn' => 'rpIntuneKpis', 'opts' => [],
         ],
+
+        // ── Projects (3.2.0) ────────────────────────────────────────────
+        'projects.kpis' => [
+            'module' => 'projects', 'kind' => 'kpi', 'fn' => 'rpProjectsKpis', 'opts' => [],
+        ],
+        'projects.health' => [
+            'module' => 'projects', 'kind' => 'chart', 'fn' => 'rpProjectsHealth',
+            'opts' => [
+                'projects' => rpOptMulti(t('reporting.packs.opt.projects'), 'projects'),
+                'chart'    => rpChartOpt('doughnut'),
+            ],
+        ],
+        'projects.status' => [
+            'module' => 'projects', 'kind' => 'table', 'fn' => 'rpProjectsStatus',
+            'opts' => [
+                'projects' => rpOptMulti(t('reporting.packs.opt.projects'), 'projects'),
+                'scope'    => rpOptSelect(t('reporting.packs.opt.which_projects'), [
+                    'live' => t('reporting.packs.projects.scope_live'),
+                    'all'  => t('reporting.packs.projects.scope_all'),
+                ], 'live'),
+                'manager'  => rpOptBool(t('reporting.packs.opt.col_manager'), true),
+                'notes'    => rpOptBool(t('reporting.packs.opt.health_notes'), true),
+            ],
+        ],
+        'projects.milestones' => [
+            'module' => 'projects', 'kind' => 'table', 'fn' => 'rpProjectsMilestones',
+            'opts' => [
+                'projects' => rpOptMulti(t('reporting.packs.opt.projects'), 'projects'),
+            ],
+        ],
+        'projects.risks' => [
+            'module' => 'projects', 'kind' => 'table', 'fn' => 'rpProjectsRisks',
+            'opts' => [
+                'projects' => rpOptMulti(t('reporting.packs.opt.projects'), 'projects'),
+                'limit'    => rpOptInt(t('reporting.packs.opt.rows'), 3, 100, 10),
+                'plans'    => rpOptBool(t('reporting.packs.opt.risk_plans'), true),
+            ],
+        ],
     ];
 }
 
@@ -269,6 +308,13 @@ function rpToolboxItems(): array
         'intune_compliance'  => ['handler' => 'intune.breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'compliance', 'chart' => 'doughnut'], 'kw' => 'intune compliance compliant'],
         'intune_os'          => ['handler' => 'intune.breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'os', 'chart' => 'bar'], 'kw' => 'intune operating system'],
         'intune_encryption'  => ['handler' => 'intune.breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'encryption', 'chart' => 'pie'], 'kw' => 'intune bitlocker encryption'],
+
+        // Projects
+        'projects_kpis'       => ['handler' => 'projects.kpis',       'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'summary portfolio on track at risk off track rag'],
+        'projects_health'     => ['handler' => 'projects.health',     'area' => 'projects', 'span' => 6,  'opts' => [], 'kw' => 'health rag green amber red doughnut portfolio'],
+        'projects_status'     => ['handler' => 'projects.status',     'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'status highlight report progress health rag board'],
+        'projects_milestones' => ['handler' => 'projects.milestones', 'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'milestones stages deadlines dates met missed gates'],
+        'projects_risks'      => ['handler' => 'projects.risks',      'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'risks raid top risk register score'],
     ];
 }
 
@@ -320,8 +366,11 @@ function rpModuleName(string $key): string
 }
 
 /** Choices for a 'multi' option's source (the Properties pane's checkboxes). */
-function rpOptionSource(PDO $conn, string $source): array
+function rpOptionSource(PDO $conn, string $source, int $analystId = 0): array
 {
+    if ($source === 'projects') {
+        return rpProjectChoices($conn, $analystId);
+    }
     if ($source === 'status_services') {
         $out = [];
         foreach ($conn->query("SELECT id, name FROM status_services WHERE is_active = 1 ORDER BY display_order, name") as $r) {
@@ -348,7 +397,7 @@ function rpCatalogue(PDO $conn, int $analystId): array
                 $o['values'] = array_map(fn($v, $l) => ['value' => $v, 'label' => $l], array_keys($def['values']), $def['values']);
             }
             if ($def['type'] === 'multi') {
-                $o['choices'] = analystCanAccessModule($conn, $analystId, $h['module']) ? rpOptionSource($conn, $def['source']) : [];
+                $o['choices'] = analystCanAccessModule($conn, $analystId, $h['module']) ? rpOptionSource($conn, $def['source'], $analystId) : [];
             }
             $opts[$k] = $o;
         }

@@ -155,7 +155,7 @@ $translationNamespaces = ['common', 'reporting'];
 
                     <h4><?php echo htmlspecialchars(t('reporting.help.packs_blocks_heading')); ?></h4>
                     <div class="help-defs">
-                        <?php foreach (['tickets', 'status', 'software', 'assets', 'layout'] as $k): ?>
+                        <?php foreach (['tickets', 'status', 'software', 'assets', 'projects', 'layout'] as $k): ?>
                         <div class="help-def">
                             <span class="help-def-term"><?php echo htmlspecialchars(t('reporting.help.packs_area_' . $k)); ?></span>
                             <div class="help-def-desc"><?php echo htmlspecialchars(t('reporting.help.packs_area_' . $k . '_body')); ?></div>

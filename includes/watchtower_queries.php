@@ -828,6 +828,58 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
         'total_open'  => $taskTotalOpen
     ];
 
+    // -- Projects (3.2.0) --
+    //
+    // Live projects (proposed or active) by the health the portfolio shows -
+    // worked out by the SAME projectDecorate() the Projects screens use, so the
+    // card can never call a project green that its own page calls red - plus the
+    // stages ending in the next 7 days. Names the off-track ones, as the
+    // Workflows card names its failing rules: "2 off track" says less than which.
+    //
+    // 🔑 SCOPED, unlike contracts or domains: a project HAS an owner whose
+    // workload it is, the project manager. Mine = the projects I manage, Team =
+    // those my teams' analysts manage. Company-scoped and module-gated like
+    // Domains; $analystId 0 (the browser extension with no analyst) sees all.
+    $pj = ['live' => 0, 'green' => 0, 'amber' => 0, 'red' => 0, 'breaches' => 0, 'stages_week' => 0, 'off_track' => [], 'show' => false];
+    $pjAllowed = $analystId <= 0 || analystCanAccessModule($conn, $analystId, 'projects');
+    if ($pjAllowed) {
+        try {
+            require_once __DIR__ . '/projects/read.php';
+            [$pjT, $pjTA] = $analystId > 0 ? activeTenantFilter($conn, $analystId, 'p') : ['', []];
+            [$pjS, $pjSA] = wtScopeClause($conn, $analystId, $scope, 'p.owner_analyst_id');
+            $st = $conn->prepare(
+                "SELECT p.id, p.tenant_id, p.name, p.methodology, p.status, p.health, p.owner_analyst_id, p.target_end_date, p.tailoring,
+                        " . projectExceptionColumns($conn) . "
+                   FROM projects p
+                  WHERE p.status IN ('proposed', 'active'){$pjT}{$pjS}");
+            $st->execute(array_merge($pjTA, $pjSA));
+            $pjRows = $st->fetchAll(PDO::FETCH_ASSOC);
+            $pjStats = projectTaskStats($conn, array_column($pjRows, 'id'));
+            $pjCfg = projectHealthConfig($conn);
+            foreach ($pjRows as $p) {
+                $p = projectDecorate($p, $pjStats[(int)$p['id']] ?? [], $pjCfg);
+                $pj['live']++;
+                if (isset($pj[$p['shown_health']])) $pj[$p['shown_health']]++;
+                if ($p['exceptions']) $pj['breaches']++;
+                if ($p['shown_health'] === 'red') $pj['off_track'][] = ['id' => (int)$p['id'], 'name' => $p['name'], 'code' => $p['code']];
+            }
+            $pj['off_track'] = array_slice($pj['off_track'], 0, 3);
+            if ($pjRows) {
+                $ids = wtIdListSql(array_column($pjRows, 'id'));
+                $pj['stages_week'] = (int)$conn->query(
+                    "SELECT COUNT(*) FROM project_stages
+                      WHERE project_id IN $ids AND status <> 'closed'
+                        AND end_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 7 DAY)"
+                )->fetchColumn();
+            }
+            $pj['show'] = true;
+        } catch (Throwable $e) {
+            $pj['show'] = false;   // tables not there yet - draw nothing rather than zeroes
+        }
+    }
+    $pj['allowed'] = $pjAllowed;
+    $projectsWt = $pj;
+
     // -- Workflows --
     // A failing workflow is silent by design: the engine swallows its own errors
     // so a broken rule can never break the ticket save that triggered it. Which
@@ -913,11 +965,12 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
         'knowledge'      => $knowledge,
         'assets'         => $assets,
         'tasks'          => $tasksWt,
+        'projects'       => $projectsWt,
         'workflows'      => $wf,
         // Which cards this installation wants on screen. Every card is visible
         // unless somebody has said otherwise, so an install that never opens
         // Watchtower → Settings sees exactly what it saw before.
         // Domains is hidden outright from anybody who cannot open the module.
-        'cards'          => array_merge(wtVisibleCards($conn), ($dmAllowed ?? true) ? [] : ['domains' => false])
+        'cards'          => array_merge(wtVisibleCards($conn), ($dmAllowed ?? true) ? [] : ['domains' => false], $pjAllowed ? [] : ['projects' => false])
     ];
 }

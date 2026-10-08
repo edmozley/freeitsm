@@ -198,6 +198,8 @@ return [
         'packs_area_software_body' => 'Software by publisher, the most installed applications, licences and their renewals, and headline figures. These show the inventory as it is now.',
         'packs_area_assets'        => 'Assets and Intune',
         'packs_area_assets_body'   => 'Assets by type, operating system or status, warranties and leases ending in the period, Intune compliance, operating systems and encryption, and headline figures.',
+        'packs_area_projects'      => 'Projects',
+        'packs_area_projects_body' => 'A project summary, project health as a doughnut, a status table (health, progress, current stage, target date, project manager and why), the milestones in the period and whether each was met, and the top open risks. Health, status and risks show the projects as they are now.',
         'packs_area_layout'        => 'Layout',
         'packs_area_layout_body'   => 'Headings (which can start a new page and appear in the contents), text boxes, lines, spaces and page breaks. A cover page and a contents page are switched on from the Insert tab.',
         'packs_keys_heading' => 'Shortcuts',
@@ -452,6 +454,7 @@ return [
                 'status'   => 'Service Status',
                 'software' => 'Software',
                 'assets'   => 'Assets and Intune',
+                'projects' => 'Projects',
             ],
             'palette' => [
                 'default' => 'Colourful',
@@ -633,6 +636,25 @@ return [
             'system_components' => 'Include system components',
             'renewing_only'     => 'Only licences renewing in the period',
             'expiry'            => 'Ending',
+            'projects'          => 'Projects (none ticked = all)',
+            'which_projects'    => 'Which projects',
+            'col_manager'       => 'Project manager column',
+            'health_notes'      => 'Why, under each project',
+            'risk_plans'        => 'Response plan under each risk',
+        ],
+        // Projects blocks (3.2.0) - includes/report_packs/blocks_projects.php.
+        'projects' => [
+            'scope_live' => 'Proposed and active',
+            'scope_all'  => 'All, including on hold and closed',
+            'exception'  => 'Beyond a tolerance',
+            'why'        => 'Why: {note}',
+            'stage_ends' => '{stage} ends',
+            'target_end' => 'Target finish',
+            'state' => [
+                'done'   => 'Done',
+                'missed' => 'Missed',
+                'due'    => 'Due',
+            ],
         ],
 
         'basis' => [
@@ -654,6 +676,7 @@ return [
             'machines' => 'Machines',
             'assets'   => 'Assets',
             'devices'  => 'Devices',
+            'projects' => 'Projects',
         ],
         'expiry' => [
             'warranty' => 'Warranty',
@@ -711,6 +734,16 @@ return [
             'user'          => 'User',
             'warranty_ends' => 'Warranty ends',
             'lease_ends'    => 'Lease ends',
+            'project'       => 'Project',
+            'health'        => 'Health',
+            'progress'      => 'Progress',
+            'stage'         => 'Stage',
+            'target'        => 'Target',
+            'manager'       => 'Project manager',
+            'milestone'     => 'Milestone',
+            'risk'          => 'Risk',
+            'score'         => 'Score',
+            'owner'         => 'Owner',
         ],
 
         'kpi' => [
@@ -739,6 +772,9 @@ return [
             'encrypted'       => 'Encrypted',
             'stale'           => 'Not syncing',
             'stale_hint'      => 'no sync for 30 days',
+            'now'             => 'now',
+            'projects_live'   => 'Live projects',
+            'stages_ending'   => 'Stages ending',
         ],
 
         'empty' => [
@@ -747,6 +783,9 @@ return [
             'incidents' => 'No incidents in this period.',
             'licences'  => 'No licences to show.',
             'expiring'  => 'Nothing ends in this period.',
+            'projects'   => 'No projects to show.',
+            'milestones' => 'No stage ends or target finishes in this period.',
+            'risks'      => 'No open risks.',
         ],
 
         'err' => [
@@ -802,6 +841,12 @@ return [
             'intune_compliance' => ['title' => 'Intune compliance',      'desc' => 'Compliant and non-compliant devices.'],
             'intune_os'         => ['title' => 'Intune operating systems', 'desc' => 'Operating systems across Intune devices.'],
             'intune_encryption' => ['title' => 'Intune encryption',      'desc' => 'Encrypted and unencrypted devices.'],
+
+            'projects_kpis'       => ['title' => 'Project summary',    'desc' => 'Live projects, how many are on track, at risk and off track now, and the stages ending in the period.'],
+            'projects_health'     => ['title' => 'Project health',     'desc' => 'Live projects by health - on track, at risk and off track - in their own colours.'],
+            'projects_status'     => ['title' => 'Project status',     'desc' => 'Each project with its health, progress, current stage, target date and project manager, and why it is the colour it is.'],
+            'projects_milestones' => ['title' => 'Project milestones', 'desc' => 'Stage ends and target finishes in the period, and whether each was done, missed or is still due.'],
+            'projects_risks'      => ['title' => 'Top project risks',  'desc' => 'The highest-scoring open risks across your projects, with their owners and response plans.'],
         ],
     ],
 ];

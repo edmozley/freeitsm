@@ -77,6 +77,8 @@ return [
         'card_assets_desc'         => 'Warranties and leases expiring, and assets not seen recently.',
         'card_tasks'               => 'Tasks',
         'card_tasks_desc'          => 'Open tasks by status, overdue and due today.',
+        'card_projects'            => 'Projects',
+        'card_projects_desc'       => 'Live projects off track or at risk, by name, and stages ending in the next 7 days.',
         'card_workflows'           => 'Workflows',
         'card_workflows_desc'      => 'Failed or aborted runs, and webhooks that have stopped delivering.',
 
@@ -113,6 +115,7 @@ return [
         'knowledge'      => 'Knowledge',
         'assets'         => 'Assets',
         'tasks'          => 'Tasks',
+        'projects'       => 'Projects',
         'workflows'      => 'Workflows',
     ],
 
@@ -223,6 +226,19 @@ return [
         'services_at_risk' => '<span class="wt-attention-bold">{count}</span> Service Status service(s) at risk from a domain problem',
         'all_clear'  => 'All {count} domains in good order',
         'none'       => 'No domains in the register yet',
+    ],
+
+    // Projects card (3.2.0). {name} is a link, already escaped.
+    'projects' => [
+        'metric_red'     => 'Off track',
+        'metric_amber'   => 'At risk',
+        'metric_week'    => 'Stages this week',
+        'off_track'      => '{name} is off track',
+        'more_off_track' => '<span class="wt-attention-bold">{count}</span> more project(s) off track',
+        'breaches'       => '<span class="wt-attention-bold">{count}</span> project(s) beyond a tolerance',
+        'stages_week'    => '<span class="wt-attention-bold">{count}</span> stage(s) end in the next 7 days',
+        'all_clear'      => 'All {count} live projects on track',
+        'none'           => 'No live projects',
     ],
 
     // Knowledge card.

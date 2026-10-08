@@ -145,4 +145,16 @@ return [
         'link'     => 'workflow/',
         'check'    => ['rows', 'workflows', "trigger_event LIKE 'project.%' AND is_active = 1"],
     ],
+    [
+        'id'       => 'projects.report_pack',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Projects in a report pack',
+        'what'     => 'A Report Pack with a Projects block - the summary, health, status, milestones or top risks - so the monthly board pack covers the projects without anybody copying figures out.',
+        'why'      => 'The board sees which projects are on track, which milestones were met and what could still go wrong, in the same pack as the service figures.',
+        'done'     => 'At least one report pack has a Projects block.',
+        'link'     => 'reporting/packs/',
+        'check'    => ['rows', 'report_packs', "design LIKE '%\"handler\":\"projects.%'"],
+    ],
 ];

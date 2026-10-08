@@ -34,7 +34,7 @@ const WT_INSTALL_SCOPE = 0;
 function wtCardKeys(): array
 {
     return ['morning_checks', 'tickets', 'changes', 'calendar', 'service_status',
-            'contracts', 'software', 'domains', 'knowledge', 'assets', 'tasks', 'workflows'];
+            'contracts', 'software', 'domains', 'knowledge', 'assets', 'tasks', 'projects', 'workflows'];
 }
 
 // ─── Whose work am I looking at? (discussion #58) ───────────────────────────

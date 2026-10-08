@@ -821,7 +821,7 @@ return [
             'nav'   => 'Coming next',
             'title' => 'What is coming next',
             'intro' => 'Projects is being built in stages.',
-            'p1'    => 'Next come a Report Packs block and a Watchtower card for projects, and later an AI project manager that drafts your status reports for you to check.',
+            'p1'    => 'Next come warnings before a stage gate about changes not yet approved, planned disruption announced on Service Status, a budget tracker, and later an AI project manager that drafts your status reports for you to check.',
         ],
     ],
 
