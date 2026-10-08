@@ -344,6 +344,12 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Delete a submission and its answers',
             ],
         ],
+        'mcp' => [
+            'label'   => 'MCP server',
+            'actions' => [
+                'read' => 'Connect an AI assistant through the MCP server (api/mcp/) - read-only tools, each limited to what the key\'s analyst may open and the key\'s companies',
+            ],
+        ],
         'workflows' => [
             'label'   => 'Workflows',
             'actions' => [

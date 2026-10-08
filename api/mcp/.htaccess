@@ -1,0 +1,7 @@
+# FreeITSM MCP server - the endpoint is this folder's index.php.
+# Some Apache/FastCGI/PHP-FPM setups strip the Authorization header from PHP
+# (GH #115); hand it through as an environment variable the auth code reads.
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+DirectoryIndex index.php

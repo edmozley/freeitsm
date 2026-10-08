@@ -27,6 +27,18 @@ return [
         'check'    => ['rows', 'api_keys', 'active = 1'],
     ],
     [
+        'id'       => 'system.mcp_server',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'ai',
+        'title'    => 'An AI assistant connected through MCP',
+        'what'     => 'An API key with the MCP server permission, so an assistant such as Claude Code can read FreeITSM - projects, incidents, service status, changes - read-only and as one analyst.',
+        'why'      => 'Ask "which projects are off track and why" or "what changed this morning" in plain words, and get the answer from your own data.',
+        'done'     => 'An active API key has the MCP server permission.',
+        'link'     => 'system/api/',
+        'check'    => ['rows', 'api_keys', "active = 1 AND permissions LIKE '%\"mcp\"%'"],
+    ],
+    [
         'id'       => 'system.api_key_expiry',
         'module'   => 'system',
         'tier'     => 'extra',

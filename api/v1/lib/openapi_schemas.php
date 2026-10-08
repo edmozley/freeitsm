@@ -13324,6 +13324,14 @@ return array (
                     'type' => 'string',
                   ),
                 ),
+                'mcp' =>
+                array (
+                  'type' => 'array',
+                  'items' =>
+                  array (
+                    'type' => 'string',
+                  ),
+                ),
                 'contracts' =>
                 array (
                   'type' => 'array',

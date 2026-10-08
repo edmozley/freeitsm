@@ -23,6 +23,8 @@ $translationNamespaces = ['common', 'system'];
 // The live base URL of the v1 API for this deployment.
 $scheme = requestScheme();
 $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'api/v1';
+// The MCP server (3.2.0) - api/mcp/, same keys, its own permission.
+$mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'api/mcp/';
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -178,6 +180,18 @@ $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_UR
                 <code><?php echo htmlspecialchars($apiBaseUrl); ?>/openapi.json</code>
                 <a class="btn btn-secondary" href="<?php echo htmlspecialchars($apiBaseUrl); ?>/openapi.json" target="_blank" rel="noopener"><?php echo htmlspecialchars(t('system.api.view_json')); ?></a>
                 <a class="btn btn-secondary" href="<?php echo htmlspecialchars($apiBaseUrl); ?>/openapi.yaml" target="_blank" rel="noopener"><?php echo htmlspecialchars(t('system.api.view_yaml')); ?></a>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <h3><?php echo htmlspecialchars(t('system.api.mcp')); ?></h3>
+            <p class="card-desc"><?php echo t('system.api.mcp_desc'); ?></p>
+            <div class="base-url-box">
+                <code id="mcpUrl"><?php echo htmlspecialchars($mcpUrl); ?></code>
+            </div>
+            <p class="card-desc" style="margin-top:14px;"><?php echo htmlspecialchars(t('system.api.mcp_claude_code')); ?></p>
+            <div class="base-url-box">
+                <code style="white-space:pre-wrap;word-break:break-all;">claude mcp add --transport http freeitsm <?php echo htmlspecialchars($mcpUrl); ?> --header "Authorization: Bearer YOUR_KEY"</code>
             </div>
         </div>
 

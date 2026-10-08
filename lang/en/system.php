@@ -1719,6 +1719,9 @@ return [
         'docs_desc'       => '<strong>Documentation</strong> is the interactive reference — browse every endpoint, try live calls, and copy ready-made code in seven languages.',
 
         'openapi'         => 'OpenAPI specification',
+        'mcp'             => 'Connect an AI assistant (MCP)',
+        'mcp_desc'        => 'FreeITSM speaks the <strong>Model Context Protocol</strong>, so an AI assistant such as Claude Code or Claude Desktop can read it - projects, open incidents, service status, changes, assets and more. It is <strong>read-only</strong> and sees exactly what the key\'s analyst may see: their modules, and the key\'s companies. Create a key below with the <strong>MCP server</strong> permission and give the assistant this address. See <a href="https://github.com/edmozley/freeitsm/wiki/MCP-Server" target="_blank" rel="noopener">the guide</a>.',
+        'mcp_claude_code' => 'For Claude Code, run this in a terminal (with your key in place of YOUR_KEY):',
         'openapi_desc'    => 'A machine-readable description of the whole API. Import it into <strong>Postman</strong> or <strong>Insomnia</strong>, generate a client library, or feed it to any OpenAPI tool &mdash; so you don\'t have to wire up each endpoint by hand. New to this? See <a href="https://github.com/edmozley/freeitsm/wiki/REST-API-OpenAPI" target="_blank" rel="noopener">the guide</a>.',
         'view_json'       => 'View JSON',
         'view_yaml'       => 'View YAML',
