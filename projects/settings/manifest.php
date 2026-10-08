@@ -56,5 +56,12 @@ return [
             'label_key' => 'projects.settings.tab_templates',
             'grant'     => 'Save projects as templates, and choose which templates are offered for new projects',
         ],
+        [
+            'id'        => 'budget',
+            'cap'       => Cap::PROJECTS_BUDGET,
+            'label_key' => 'projects.settings.tab_budget',
+            'grant'     => 'Set the budget currency, how labour is costed, and the hourly rates - including each analyst\'s',
+            'sensitive' => true,   // per-analyst rates are close to pay
+        ],
     ],
 ];

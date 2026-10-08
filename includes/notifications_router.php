@@ -277,9 +277,11 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
                 $title = $name . ': ' . ($payload['from'] ?? '?') . ' to ' . ($payload['to'] ?? '?');
                 break;
             case 'project.tolerance_breached':
-                $title = $payload['kind'] === 'risk'
+                $title = $payload['kind'] === 'cost'
+                    ? $name . ': ' . (int)$payload['over_pct'] . '% over budget (allowed ' . (int)$payload['allowed'] . '%)'
+                    : ($payload['kind'] === 'risk'
                     ? $name . ': a risk scores ' . (int)$payload['score'] . ' (allowed ' . (int)$payload['allowed'] . ')'
-                    : $name . ': ' . (int)$payload['late_days'] . ' day(s) late' . ($payload['kind'] === 'stage_time' ? ' on the current stage' : '') . ' (allowed ' . (int)$payload['allowed'] . ')';
+                    : $name . ': ' . (int)$payload['late_days'] . ' day(s) late' . ($payload['kind'] === 'stage_time' ? ' on the current stage' : '') . ' (allowed ' . (int)$payload['allowed'] . ')');
                 break;
             case 'project.stage_due':
                 $d = (int)($payload['days_remaining'] ?? 0);

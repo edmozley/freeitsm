@@ -408,7 +408,7 @@ class ProjectToolsService
     public static function saveTolerances(PDO $conn, ActorContext $ctx, int $projectId, array $in): void
     {
         self::changeable($conn, $ctx, $projectId);
-        $rules = ['time' => [0, 365], 'risk' => [1, 25]];
+        $rules = ['time' => [0, 365], 'risk' => [1, 25], 'cost' => [0, 500]];
         foreach ($rules as $dim => [$min, $max]) {
             if (!array_key_exists($dim, $in)) continue;
             $v = $in[$dim];
@@ -417,7 +417,7 @@ class ProjectToolsService
                 continue;
             }
             if (!preg_match('/^\d+$/', (string)$v) || (int)$v < $min || (int)$v > $max) {
-                throw new ServiceError('validation', 'invalid_field', $dim === 'time' ? 'Days late must be from 0 to 365.' : 'The risk score must be from 1 to 25.');
+                throw new ServiceError('validation', 'invalid_field', $dim === 'time' ? 'Days late must be from 0 to 365.' : ($dim === 'cost' ? 'The overspend allowed must be from 0 to 500 percent.' : 'The risk score must be from 1 to 25.'));
             }
             $st = $conn->prepare("SELECT id FROM project_tolerances WHERE project_id = ? AND stage_id IS NULL AND dimension = ?");
             $st->execute([$projectId, $dim]);
@@ -435,7 +435,7 @@ class ProjectToolsService
     /** {time: int|null, risk: int|null} */
     public static function tolerances(PDO $conn, int $projectId): array
     {
-        $out = ['time' => null, 'risk' => null];
+        $out = ['time' => null, 'risk' => null, 'cost' => null];
         try {
             $st = $conn->prepare("SELECT dimension, value FROM project_tolerances WHERE project_id = ? AND stage_id IS NULL");
             $st->execute([$projectId]);
@@ -752,6 +752,129 @@ class ProjectToolsService
     private static function src(ActorContext $ctx): string
     {
         return $ctx->source === 'api' ? 'api' : 'app';
+    }
+
+    // ======================================================================
+    //  Budget (3.2.0) - includes/projects/budget.php
+    // ======================================================================
+
+    /** Create (no id) or update a budget line. Returns its id. */
+    public static function saveBudgetLine(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        require_once __DIR__ . '/../projects/budget.php';
+        $p = self::changeable($conn, $ctx, $projectId);
+        if (!projectBudgetReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        $title = trim((string)($in['title'] ?? ''));
+        if ($title === '') throw new ServiceError('validation', 'missing_field', 'Give the line a name.');
+        if (mb_strlen($title) > 200) throw new ServiceError('validation', 'invalid_field', 'The name is too long.');
+        $cat = (string)($in['category'] ?? 'other');
+        if (!in_array($cat, PROJECT_BUDGET_CATEGORIES, true)) throw new ServiceError('validation', 'invalid_field', 'Unknown category.');
+        $planned = projectMoney($in['planned'] ?? null);
+        $actual  = projectMoney($in['actual'] ?? null);
+        $notes = trim((string)($in['notes'] ?? '')) ?: null;
+        if ($notes !== null && mb_strlen($notes) > 500) throw new ServiceError('validation', 'invalid_field', 'The notes are too long.');
+
+        // A contract: one linked to the project on Connections, by somebody who can open Contracts.
+        $contractId = !empty($in['contract_id']) ? (int)$in['contract_id'] : null;
+        if ($contractId !== null) {
+            if ($ctx->actorId > 0 && !analystCanAccessModule($conn, $ctx->actorId, 'contracts')) throw new ServiceError('forbidden', 'forbidden', 'You need Contracts to name a contract.');
+            if (!in_array($contractId, array_column(projectBudgetContracts($conn, $projectId), 'id'), true)) {
+                throw new ServiceError('validation', 'invalid_field', 'Link the contract to the project on the Connections tab first.');
+            }
+        }
+        // A cost centre: active, and in the project's company.
+        $ccId = !empty($in['cost_centre_id']) ? (int)$in['cost_centre_id'] : null;
+        $id = (int)($in['id'] ?? 0);
+        if ($ccId !== null && !in_array($ccId, array_column(projectBudgetCostCentres($conn, $p), 'id'), true)) {
+            // An existing line keeps a cost centre that has since been switched off.
+            $keep = $id > 0 ? $conn->prepare("SELECT 1 FROM project_budget_lines WHERE id = ? AND cost_centre_id = ?") : null;
+            if (!$keep || !$keep->execute([$id, $ccId]) || !$keep->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'Choose an active cost centre of the project\'s company.');
+        }
+        projectStampCurrency($conn, $projectId);
+
+        if ($id > 0) {
+            $st = $conn->prepare("SELECT title FROM project_budget_lines WHERE id = ? AND project_id = ?");
+            $st->execute([$id, $projectId]);
+            if ($st->fetchColumn() === false) throw new ServiceError('not_found', 'not_found', 'That line is not part of this project.');
+            $conn->prepare("UPDATE project_budget_lines SET title = ?, category = ?, planned_amount = ?, actual_amount = ?, contract_id = ?, cost_centre_id = ?, notes = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$title, $cat, $planned, $actual, $contractId, $ccId, $notes, $id]);
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'budget_line_changed', null, $title, self::src($ctx));
+        } else {
+            $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_budget_lines WHERE project_id = " . $projectId)->fetchColumn();
+            $conn->prepare("INSERT INTO project_budget_lines (project_id, title, category, planned_amount, actual_amount, contract_id, cost_centre_id, notes, position, created_by_id, created_datetime, updated_datetime)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+                 ->execute([$projectId, $title, $cat, $planned, $actual, $contractId, $ccId, $notes, $pos, $ctx->actorId > 0 ? $ctx->actorId : null]);
+            $id = (int)$conn->lastInsertId();
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'budget_line_added', null, $title, self::src($ctx));
+        }
+        ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::afterChange($conn, $projectId);   // spend can breach the cost tolerance
+        return $id;
+    }
+
+    public static function deleteBudgetLine(PDO $conn, ActorContext $ctx, int $projectId, int $lineId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $st = $conn->prepare("SELECT title FROM project_budget_lines WHERE id = ? AND project_id = ?");
+        $st->execute([$lineId, $projectId]);
+        $title = $st->fetchColumn();
+        if ($title === false) throw new ServiceError('not_found', 'not_found', 'That line is not part of this project.');
+        $conn->prepare("DELETE FROM project_budget_lines WHERE id = ?")->execute([$lineId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'budget_line_removed', $title, null, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::afterChange($conn, $projectId);
+    }
+
+    /**
+     * The project's own hourly rate from a date (labour mode "rate"), in the
+     * project's currency. Each rate is a new row: the old one still prices the
+     * time logged before the new one's date.
+     */
+    public static function addProjectRate(PDO $conn, ActorContext $ctx, int $projectId, $rate, ?string $from): void
+    {
+        require_once __DIR__ . '/../projects/budget.php';
+        self::changeable($conn, $ctx, $projectId);
+        if (projectSetting($conn, 'project_labour_mode') !== 'rate') throw new ServiceError('validation', 'invalid_field', 'Projects - Settings - Budget does not use a rate per project.');
+        $r = projectMoney($rate);
+        if ($r === null || $r < 0) throw new ServiceError('validation', 'invalid_field', 'Enter an hourly rate.');
+        $from = $from ?: gmdate('Y-m-d');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) throw new ServiceError('validation', 'invalid_field', 'Enter the date it applies from.');
+        projectStampCurrency($conn, $projectId);
+        $conn->prepare("INSERT INTO project_labour_rates (scope, ref_id, hourly_rate, effective_from, created_by_id, created_datetime) VALUES ('project', ?, ?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$projectId, $r, $from, $ctx->actorId > 0 ? $ctx->actorId : null]);
+        projectLabourRatesReset();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'labour_rate', null, $r . ' from ' . $from, self::src($ctx));
+        ProjectsService::afterChange($conn, $projectId);
+    }
+
+    /** Remove one of the project's own rates (entered by mistake). */
+    public static function deleteProjectRate(PDO $conn, ActorContext $ctx, int $projectId, string $from): void
+    {
+        require_once __DIR__ . '/../projects/budget.php';
+        self::changeable($conn, $ctx, $projectId);
+        $conn->prepare("DELETE FROM project_labour_rates WHERE scope = 'project' AND ref_id = ? AND effective_from = ?")->execute([$projectId, $from]);
+        projectLabourRatesReset();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'labour_rate_removed', 'from ' . $from, null, self::src($ctx));
+        ProjectsService::afterChange($conn, $projectId);
+    }
+
+    /**
+     * Change the project's currency - a RELABEL: amounts are not converted, and
+     * the page says so before anyone presses Save. Only when Projects -> Settings
+     * -> Budget lets projects choose.
+     */
+    public static function setCurrency(PDO $conn, ActorContext $ctx, int $projectId, string $code): void
+    {
+        require_once __DIR__ . '/../projects/budget.php';
+        $p = self::changeable($conn, $ctx, $projectId);
+        if (projectSetting($conn, 'project_currency_per_project') !== '1') throw new ServiceError('forbidden', 'forbidden', 'Every project uses the install\'s currency (Projects - Settings - Budget).');
+        $code = strtoupper(trim($code));
+        if (!projectValidCurrency($code)) throw new ServiceError('validation', 'invalid_field', 'Enter a three-letter currency code, like GBP, EUR or USD.');
+        $old = projectCurrencyOf($conn, $p);
+        if ($old === $code) return;
+        $conn->prepare("UPDATE projects SET currency = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$code, $projectId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'currency', $old, $code, self::src($ctx));
+        ProjectsService::afterChange($conn, $projectId);
     }
 
     // ======================================================================

@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=16">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=17">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -81,6 +81,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             <button type="button" data-tab="raci" data-tool="raci" hidden><?php echo htmlspecialchars(t('projects.tools.raci')); ?></button>
             <button type="button" data-tab="raid" data-tool="raid" hidden><?php echo htmlspecialchars(t('projects.tools.raid')); ?></button>
             <button type="button" data-tab="gates" data-tool="gates" hidden><?php echo htmlspecialchars(t('projects.tools.gates')); ?></button>
+            <button type="button" data-tab="budget" data-tool="budget" hidden><?php echo htmlspecialchars(t('projects.tools.budget')); ?></button>
             <button type="button" data-tab="connections"><?php echo htmlspecialchars(t('projects.view.tab_connections')); ?></button>
             <button type="button" data-tab="history"><?php echo htmlspecialchars(t('projects.view.tab_history')); ?></button>
         </nav>
@@ -92,6 +93,7 @@ $projectId = (int)($_GET['id'] ?? 0);
         <section class="prj-tab-panel" data-panel="raci" id="pvRaci" hidden></section>
         <section class="prj-tab-panel" data-panel="raid" id="pvRaid" hidden></section>
         <section class="prj-tab-panel" data-panel="gates" id="pvGates" hidden></section>
+        <section class="prj-tab-panel" data-panel="budget" id="pvBudget" hidden></section>
         <section class="prj-tab-panel" data-panel="connections" id="pvConnections" hidden></section>
         <section class="prj-tab-panel" data-panel="history" id="pvHistory" hidden></section>
 
@@ -163,6 +165,31 @@ $projectId = (int)($_GET['id'] ?? 0);
                 <button type="button" class="btn btn-secondary" id="prDelete" style="margin-right:auto" hidden><?php echo htmlspecialchars(t('common.delete')); ?></button>
                 <button type="button" class="btn btn-secondary" data-prj-close="prjRaidModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary prj-btn" id="prSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- A budget line (3.2.0) -->
+    <div class="modal" id="prjBudgetModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:540px">
+            <div class="modal-header" id="pbTitle"></div>
+            <div class="modal-body">
+                <input type="hidden" id="pbId">
+                <div class="form-group"><label for="pbName"><?php echo htmlspecialchars(t('projects.budget.line_name')); ?></label><input type="text" id="pbName" maxlength="200" placeholder="<?php echo htmlspecialchars(t('projects.budget.line_name_ph')); ?>"></div>
+                <div class="form-group"><label for="pbCategory"><?php echo htmlspecialchars(t('projects.budget.col_category')); ?></label><select id="pbCategory"></select></div>
+                <div class="prj-ann-when">
+                    <div class="form-group"><label for="pbPlanned"><?php echo htmlspecialchars(t('projects.budget.planned')); ?></label><input type="text" inputmode="decimal" id="pbPlanned"></div>
+                    <div class="form-group"><label for="pbActual"><?php echo htmlspecialchars(t('projects.budget.actual')); ?></label><input type="text" inputmode="decimal" id="pbActual"><small class="prj-muted"><?php echo htmlspecialchars(t('projects.budget.actual_hint')); ?></small></div>
+                </div>
+                <div class="form-group" id="pbContractWrap"><label for="pbContract"><?php echo htmlspecialchars(t('projects.budget.contract')); ?></label><select id="pbContract"></select><small class="prj-muted"><?php echo htmlspecialchars(t('projects.budget.contract_hint')); ?></small></div>
+                <div class="form-group"><label for="pbCostCentre"><?php echo htmlspecialchars(t('projects.budget.cost_centre')); ?></label><select id="pbCostCentre"></select></div>
+                <div class="form-group"><label for="pbNotes"><?php echo htmlspecialchars(t('projects.budget.notes')); ?></label><input type="text" id="pbNotes" maxlength="500"></div>
+                <div class="prj-form-error" id="pbError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="pbDelete" style="margin-right:auto"><?php echo htmlspecialchars(t('common.delete')); ?></button>
+                <button type="button" class="btn btn-secondary" data-prj-close="prjBudgetModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pbSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -368,9 +395,10 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=6"></script>
-    <script src="../assets/js/projects-tools.js?v=5"></script>
+    <script src="../assets/js/projects-tools.js?v=6"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=11"></script>
+    <script src="../assets/js/projects-budget.js?v=1"></script>
+    <script src="../assets/js/projects-view.js?v=12"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

@@ -57,7 +57,7 @@ function projectMethodologies(): array
 {
     return [
         'simple' => ['label_key' => 'projects.method.simple', 'desc_key' => 'projects.method.simple_desc', 'timebox' => 'phase',  'single_active' => false, 'tools' => ['people']],
-        'staged' => ['label_key' => 'projects.method.staged', 'desc_key' => 'projects.method.staged_desc', 'timebox' => 'stage',  'single_active' => true,  'tools' => ['people', 'scope', 'raci', 'raid', 'gates']],
+        'staged' => ['label_key' => 'projects.method.staged', 'desc_key' => 'projects.method.staged_desc', 'timebox' => 'stage',  'single_active' => true,  'tools' => ['people', 'scope', 'raci', 'raid', 'gates', 'budget']],
         'agile'  => ['label_key' => 'projects.method.agile',  'desc_key' => 'projects.method.agile_desc',  'timebox' => 'sprint', 'single_active' => true,  'tools' => ['people', 'scope', 'raid']],
     ];
 }
@@ -79,6 +79,7 @@ function projectToolDefinitions(): array
         'raci'   => ['label_key' => 'projects.tools.raci',   'desc_key' => 'projects.tools.raci_desc'],
         'raid'   => ['label_key' => 'projects.tools.raid',   'desc_key' => 'projects.tools.raid_desc'],
         'gates'  => ['label_key' => 'projects.tools.gates',  'desc_key' => 'projects.tools.gates_desc'],
+        'budget' => ['label_key' => 'projects.tools.budget', 'desc_key' => 'projects.tools.budget_desc'],
     ];
 }
 

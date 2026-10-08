@@ -169,4 +169,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'status_planned', 'project_id IS NOT NULL'],
     ],
+    [
+        'id'       => 'projects.budget',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'A project budget, planned against actual',
+        'what'     => 'Budget lines with planned and actual amounts, contracts and cost centres, and the time logged on the project\'s tasks - priced at your hourly rates if you want.',
+        'why'      => 'You see a project going over budget while there is still time to act, not in the post-project review.',
+        'done'     => 'At least one project has a budget line.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_budget_lines'],
+    ],
 ];

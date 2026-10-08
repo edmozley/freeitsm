@@ -405,6 +405,9 @@
             + '<input type="number" min="0" max="365" id="pgTolTime" value="' + (tol.time ?? '') + '"' + (canChange() ? '' : ' disabled') + '></div>'
             + '<div class="prj-tol"><label>' + esc(T('gates.tol_risk')) + '<small>' + esc(T('gates.tol_risk_hint')) + '</small></label>'
             + '<input type="number" min="1" max="25" id="pgTolRisk" value="' + (tol.risk ?? '') + '"' + (canChange() ? '' : ' disabled') + '></div>'
+            // Cost (3.2.0): only when the Budget tool is on - there is nothing to measure otherwise.
+            + ((p.tools || []).includes('budget') ? '<div class="prj-tol"><label>' + esc(T('gates.tol_cost')) + '<small>' + esc(T('gates.tol_cost_hint')) + '</small></label>'
+                + '<input type="number" min="0" max="500" id="pgTolCost" value="' + (tol.cost ?? '') + '"' + (canChange() ? '' : ' disabled') + '></div>' : '')
             + (canChange() ? '<div class="set-actions"><button type="button" class="btn btn-primary prj-btn sm" data-save-tol>' + esc(P.TC('save')) + '</button></div>' : '')
             + '</div></div>';
         html += '<div class="prj-panel" style="margin-top:16px"><h3>' + esc(T('gates.stage_gates')) + '</h3><p class="prj-muted" style="margin:-6px 0 12px">' + esc(T('gates.stage_gates_hint')) + '</p>';
@@ -501,7 +504,8 @@
                 return;
             }
             if (e.target.closest('[data-save-tol]')) {
-                try { await call({ action: 'tolerances_save', time: document.getElementById('pgTolTime').value, risk: document.getElementById('pgTolRisk').value }); P.toast(T('gates.saved')); await ctx.refresh(); } catch (err) { P.toast(err.message, 'error'); }
+                try { await call(Object.assign({ action: 'tolerances_save', time: document.getElementById('pgTolTime').value, risk: document.getElementById('pgTolRisk').value },
+                    document.getElementById('pgTolCost') ? { cost: document.getElementById('pgTolCost').value } : {})); P.toast(T('gates.saved')); await ctx.refresh(); } catch (err) { P.toast(err.message, 'error'); }
                 return;
             }
             const rr = e.target.closest('[data-raid]');

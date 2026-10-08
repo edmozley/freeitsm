@@ -54,6 +54,14 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // "the defaults in the viewer's language" - see projectScaleLabels().
             'project_probability_labels' => ['', 'labels5', 'raid'],
             'project_impact_labels'      => ['', 'labels5', 'raid'],
+            // ---- Budget (3.2.0) - includes/projects/budget.php ---------------
+            // The currency new projects take (each project keeps the one it was
+            // given), whether a project may choose another, and how labour is
+            // costed: hours only, one rate (with a per-project override), or a
+            // rate per analyst. Rates themselves live in project_labour_rates.
+            'project_currency'             => ['GBP',   'currency', 'budget'],
+            'project_currency_per_project' => ['0',     'bool',     'budget'],
+            'project_labour_mode'          => ['hours', 'labour',   'budget'],
             // ---- Templates --------------------------------------------------
             // Built-in template keys not offered for new projects. Written only by
             // ProjectTemplatesService::setBuiltinHidden(), never by the settings save.
@@ -109,6 +117,18 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'create') {
             if (!in_array($v, ['anyone', 'managers'], true)) throw new InvalidArgumentException('Choose who may create projects.');
+            return $v;
+        }
+        if ($rule === 'currency') {
+            $v = strtoupper($v);
+            if (!preg_match('/^[A-Z]{3}$/', $v)) throw new InvalidArgumentException('Enter a three-letter currency code, like GBP, EUR or USD.');
+            return $v;
+        }
+        if ($rule === 'bool') {
+            return in_array($v, ['1', 'true', 'on'], true) ? '1' : '0';
+        }
+        if ($rule === 'labour') {
+            if (!in_array($v, ['hours', 'rate', 'analyst'], true)) throw new InvalidArgumentException('Choose how labour is costed.');
             return $v;
         }
         if ($rule === 'disruption') {

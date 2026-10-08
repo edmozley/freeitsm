@@ -57,6 +57,20 @@ function projectTaskStats(PDO $conn, array $projectIds): array
             $out[(int)$r['project_id']] = ($out[(int)$r['project_id']] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['tickets_7d' => (int)$r['n']];
         }
     } catch (Throwable $e) { /* no links yet: no jump to see */ }
+    // Budget totals (3.2.0) - planned and actual in each project's currency, for
+    // the cost tolerance. Their own try, like the tickets above.
+    try {
+        require_once __DIR__ . '/budget.php';
+        if (projectBudgetReady($conn)) {
+            $cur = $conn->prepare("SELECT id, currency FROM projects WHERE id IN ($ph)");
+            $cur->execute(array_map('intval', $projectIds));
+            $rows = [];
+            foreach ($cur->fetchAll(PDO::FETCH_ASSOC) as $r) $rows[(int)$r['id']] = $r;
+            foreach (projectBudgetTotals($conn, $rows) as $pid => $b) {
+                $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['budget' => $b];
+            }
+        }
+    } catch (Throwable $e) { /* no budget yet */ }
     foreach (projectTargetsFor($conn, $projectIds) as $pid => $targets) {
         $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['targets_health' => projectTargetsWorst($targets)];
     }
@@ -129,10 +143,11 @@ function projectsPhase2Ready(PDO $conn): bool
 /** The columns the exceptions are read from, as SQL - NULLs before Verification. */
 function projectExceptionColumns(PDO $conn): string
 {
-    if (!projectsPhase2Ready($conn)) return "NULL AS max_risk, NULL AS tol_time, NULL AS tol_risk, NULL AS active_stage_end";
+    if (!projectsPhase2Ready($conn)) return "NULL AS max_risk, NULL AS tol_time, NULL AS tol_risk, NULL AS tol_cost, NULL AS active_stage_end";
     return "(SELECT MAX(r.probability * r.impact) FROM project_raid r WHERE r.project_id = p.id AND r.type = 'risk' AND r.status = 'open') AS max_risk,
             (SELECT t.value FROM project_tolerances t WHERE t.project_id = p.id AND t.stage_id IS NULL AND t.dimension = 'time') AS tol_time,
             (SELECT t.value FROM project_tolerances t WHERE t.project_id = p.id AND t.stage_id IS NULL AND t.dimension = 'risk') AS tol_risk,
+            (SELECT t.value FROM project_tolerances t WHERE t.project_id = p.id AND t.stage_id IS NULL AND t.dimension = 'cost') AS tol_cost,
             (SELECT s.end_date FROM project_stages s WHERE s.project_id = p.id AND s.status = 'active' ORDER BY s.position, s.id LIMIT 1) AS active_stage_end";
 }
 
@@ -159,6 +174,11 @@ function projectExceptions(array $p, array $stats): array
     }
     if (isset($p['tol_risk']) && $p['tol_risk'] !== null && !empty($p['max_risk']) && (int)$p['max_risk'] > (int)$p['tol_risk']) {
         $out[] = ['kind' => 'risk', 'score' => (int)$p['max_risk'], 'allowed' => (int)$p['tol_risk']];
+    }
+    // Cost (3.2.0): actual spend more than the allowed share over the planned budget.
+    $b = $stats['budget'] ?? null;
+    if (isset($p['tol_cost']) && $p['tol_cost'] !== null && $b && $b['planned'] > 0 && $b['actual'] > $b['planned'] * (1 + (int)$p['tol_cost'] / 100)) {
+        $out[] = ['kind' => 'cost', 'over_pct' => (int)floor(($b['actual'] / $b['planned'] - 1) * 100), 'allowed' => (int)$p['tol_cost']];
     }
     return $out;
 }

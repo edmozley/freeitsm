@@ -5166,6 +5166,8 @@ return [
         // What the alert scan last saw - see includes/projects/alerts.php.
         'alert_health'     => 'VARCHAR(10) NULL',
         'alert_exceptions' => 'VARCHAR(100) NULL',
+        // Budget currency, stamped at creation - see includes/projects/budget.php.
+        'currency'         => 'CHAR(3) NULL',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Phases, stages and sprints in ONE table - the same thing through different methods.
@@ -5314,6 +5316,32 @@ return [
         'dimension'  => 'VARCHAR(12) NOT NULL',
         'value'      => 'INT NOT NULL',
         'is_demo'    => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    // Budget (3.2.0) - includes/projects/budget.php.
+    'project_budget_lines' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'       => 'INT NOT NULL',
+        'title'            => 'VARCHAR(200) NOT NULL',
+        'category'         => "VARCHAR(20) NOT NULL DEFAULT 'other'",
+        'planned_amount'   => 'DECIMAL(18,2) NULL',
+        'actual_amount'    => 'DECIMAL(18,2) NULL',
+        'contract_id'      => 'INT NULL',
+        'cost_centre_id'   => 'INT NULL',
+        'notes'            => 'VARCHAR(500) NULL',
+        'position'         => 'INT NOT NULL DEFAULT 0',
+        'created_by_id'    => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    'project_labour_rates' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'scope'            => 'VARCHAR(10) NOT NULL',
+        'ref_id'           => 'INT NULL',
+        'hourly_rate'      => 'DECIMAL(12,2) NOT NULL',
+        'effective_from'   => 'DATE NOT NULL',
+        'created_by_id'    => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
     // Asset targets (3.2.0): live progress measured from Assets.
     'project_asset_targets' => [

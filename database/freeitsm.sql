@@ -7820,6 +7820,10 @@ CREATE TABLE IF NOT EXISTS `projects` (
     -- records, so an upgrade does not ring every bell at once.
     `alert_health`      VARCHAR(10) NULL,
     `alert_exceptions`  VARCHAR(100) NULL,
+    -- The project's budget currency (ISO 4217), stamped when it is created and
+    -- never derived on read: changing the install's default later must not
+    -- relabel a budget that already exists (includes/projects/budget.php).
+    `currency`          CHAR(3) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `idx_projects_tenant` (`tenant_id`),
@@ -7828,6 +7832,50 @@ CREATE TABLE IF NOT EXISTS `projects` (
     CONSTRAINT `fk_projects_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_projects_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_projects_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Budget lines (3.2.0) - includes/projects/budget.php. Planned and actual per
+-- line, in the PROJECT's currency. A line can name a contract (its value is
+-- the actual unless one is typed, and only when the currencies match) and a
+-- cost centre of the project's company. Labour is not a line: it is worked
+-- out from the time logged on the project's tasks.
+CREATE TABLE IF NOT EXISTS `project_budget_lines` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `project_id`       INT NOT NULL,
+    `title`            VARCHAR(200) NOT NULL,
+    `category`         VARCHAR(20) NOT NULL DEFAULT 'other',   -- hardware | software | services | labour | travel | other
+    `planned_amount`   DECIMAL(18,2) NULL,
+    `actual_amount`    DECIMAL(18,2) NULL,
+    `contract_id`      INT NULL,
+    `cost_centre_id`   INT NULL,
+    `notes`            VARCHAR(500) NULL,
+    `position`         INT NOT NULL DEFAULT 0,
+    `created_by_id`    INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `ix_pbl_project` (`project_id`),
+    CONSTRAINT `fk_pbl_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pbl_contract` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pbl_cost_centre` FOREIGN KEY (`cost_centre_id`) REFERENCES `cost_centres` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Hourly rates for labour (3.2.0), each from a date. Time logged on a day is
+-- priced at the rate in force THAT day, so raising a rate never re-prices the
+-- past. scope: default (ref_id NULL, the install's currency) | project
+-- (ref_id = project, its currency) | analyst (ref_id = analyst, the install's
+-- currency). Which scopes count is Projects -> Settings -> Budget.
+CREATE TABLE IF NOT EXISTS `project_labour_rates` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `scope`            VARCHAR(10) NOT NULL,
+    `ref_id`           INT NULL,
+    `hourly_rate`      DECIMAL(12,2) NOT NULL,
+    `effective_from`   DATE NOT NULL,
+    `created_by_id`    INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_plr_scope` (`scope`, `ref_id`, `effective_from`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- The TIME BOXES of a project. One table for phases, stages and sprints, because

@@ -281,6 +281,7 @@
         if (!cur || cur.hidden) tab = 'overview';
         if (window.PrjTools) window.PrjTools.render({ data: data, L: L, projectId: projectId, refresh: refresh, page: page });
         if (window.PrjTargets) window.PrjTargets.render({ data: data, projectId: projectId, refresh: refresh });
+        if (window.PrjBudget) window.PrjBudget.render({ data: data, projectId: projectId, refresh: refresh });
         showTab(tab);
     }
 
@@ -641,7 +642,7 @@
     // ---- Wiring -----------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         const start = (location.hash || '').replace('#', '');
-        if (['overview', 'plan', 'people', 'scope', 'raci', 'raid', 'gates', 'connections', 'history'].includes(start)) tab = start;
+        if (['overview', 'plan', 'people', 'scope', 'raci', 'raid', 'gates', 'budget', 'connections', 'history'].includes(start)) tab = start;
         if (/[?&]new=1/.test(location.search)) tab = 'plan';
 
         document.getElementById('prjTabs').addEventListener('click', e => {

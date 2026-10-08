@@ -228,6 +228,9 @@ final class Cap
     const PROJECTS_ROLES     = 'projects.roles';
     const PROJECTS_RAID      = 'projects.raid';
     const PROJECTS_TEMPLATES = 'projects.templates';
+    // BUDGET sets the currency, how labour is costed and the hourly rates -
+    // including each analyst's, which is close to pay: sensitive.
+    const PROJECTS_BUDGET    = 'projects.budget';
 
     // ---- Tickets -----------------------------------------------------------
     // The module the whole per-tab design was argued FOR. Fourteen tabs, and they are

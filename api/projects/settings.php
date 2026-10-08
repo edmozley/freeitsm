@@ -21,6 +21,7 @@ $tabCaps = [
     'health'  => Cap::PROJECTS_HEALTH,
     'roles'   => Cap::PROJECTS_ROLES,
     'raid'    => Cap::PROJECTS_RAID,
+    'budget'  => Cap::PROJECTS_BUDGET,
 ];
 
 /** The roles list with how many members hold each - for the Roles tab. */
@@ -30,6 +31,19 @@ function projectRolesForSettings(PDO $conn): array
         return $conn->query("SELECT r.id, r.name, r.description, r.display_order, r.is_active,
                                     (SELECT COUNT(*) FROM project_members m WHERE m.role_id = r.id) AS in_use
                                FROM project_roles r ORDER BY r.display_order, r.name")->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+/** Default and analyst rates with their dates, newest first - Budget tab only. */
+function projectRatesForSettings(PDO $conn): array
+{
+    try {
+        return $conn->query("SELECT r.id, r.scope, r.ref_id, r.hourly_rate, r.effective_from, a.full_name AS analyst_name
+                               FROM project_labour_rates r LEFT JOIN analysts a ON a.id = r.ref_id AND r.scope = 'analyst'
+                              WHERE r.scope IN ('default', 'analyst')
+                           ORDER BY r.scope, a.full_name, r.effective_from DESC")->fetchAll(PDO::FETCH_ASSOC);
     } catch (Throwable $e) {
         return [];
     }
@@ -58,11 +72,42 @@ projectApiRun(function () use ($conn, $analystId, $tabCaps) {
             'definitions' => $defs,
             'can_write'   => $canWrite,
             'roles'       => projectRolesForSettings($conn),
+            // Rates only for somebody who may change them: they are close to pay.
+            'rates'       => !empty($canWrite['budget']) ? projectRatesForSettings($conn) : [],
+            'analysts'    => !empty($canWrite['budget']) ? $conn->query("SELECT id, full_name FROM analysts WHERE is_active = 1 ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC) : [],
         ]);
     }
 
     $in = projectApiBody();
     $action = (string)($in['action'] ?? 'save');
+
+    // Hourly rates (Budget tab): the default and each analyst's, from a date.
+    // Never shown to anybody without the Budget permission - they are close to pay.
+    if (strpos($action, 'rate_') === 0) {
+        if (empty($canWrite['budget'])) projectApiFail('You do not have permission to change hourly rates.', 403);
+        require_once __DIR__ . '/../../includes/projects/budget.php';
+        if ($action === 'rate_save') {
+            $scope = (string)($in['scope'] ?? '');
+            if (!in_array($scope, ['default', 'analyst'], true)) projectApiFail('Unknown kind of rate.');
+            $ref = $scope === 'analyst' ? (int)($in['analyst_id'] ?? 0) : null;
+            if ($scope === 'analyst') {
+                $ok = $conn->prepare("SELECT 1 FROM analysts WHERE id = ?");
+                $ok->execute([$ref]);
+                if (!$ok->fetchColumn()) projectApiFail('Choose an analyst.');
+            }
+            try { $rate = projectMoney($in['rate'] ?? null); } catch (ServiceError $e) { projectApiFail($e->getMessage()); }
+            if ($rate === null || $rate < 0) projectApiFail('Enter an hourly rate.');
+            $from = (string)($in['from'] ?? '') ?: gmdate('Y-m-d');
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) projectApiFail('Enter the date it applies from.');
+            $conn->prepare("INSERT INTO project_labour_rates (scope, ref_id, hourly_rate, effective_from, created_by_id, created_datetime) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())")
+                 ->execute([$scope, $ref, $rate, $from, $analystId]);
+        } elseif ($action === 'rate_delete') {
+            $conn->prepare("DELETE FROM project_labour_rates WHERE id = ? AND scope IN ('default', 'analyst')")->execute([(int)($in['id'] ?? 0)]);
+        } elseif ($action !== 'rate_list') {
+            projectApiFail('Unknown action.');
+        }
+        projectApiOk(['rates' => projectRatesForSettings($conn)]);
+    }
 
     if (strpos($action, 'role_') === 0) {
         if (empty($canWrite['roles'])) projectApiFail('You do not have permission to change project roles.', 403);

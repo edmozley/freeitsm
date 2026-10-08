@@ -48,7 +48,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=16">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=17">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -118,6 +118,30 @@ $row = function (string $label, string $desc, string $control) {
         </div>
         <?php endif; ?>
 
+        <?php if (settingsTabVisible($visibleTabs, 'budget')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'budget' ? ' active' : ''; ?>" id="budget-tab" data-capability="<?php echo Cap::PROJECTS_BUDGET; ?>" data-settings-tab="budget">
+            <h2><?php echo $tt('budget_title'); ?></h2>
+            <p class="prj-muted"><?php echo $tt('budget_intro'); ?></p>
+            <?php
+            $row($tt('currency'), $tt('currency_desc'), '<input type="text" maxlength="3" style="text-transform:uppercase;max-width:120px" data-k="project_currency"><div class="dflt" data-d="project_currency"></div>');
+            $row($tt('currency_per_project'), $tt('currency_per_project_desc'), '<select data-k="project_currency_per_project"><option value="0">' . htmlspecialchars(t('common.no')) . '</option><option value="1">' . htmlspecialchars(t('common.yes')) . '</option></select><div class="dflt" data-d="project_currency_per_project"></div>');
+            $row($tt('labour_mode'), $tt('labour_mode_desc'), '<select data-k="project_labour_mode"><option value="hours">' . $tt('labour_hours') . '</option><option value="rate">' . $tt('labour_rate') . '</option><option value="analyst">' . $tt('labour_analyst') . '</option></select><div class="dflt" data-d="project_labour_mode"></div>');
+            ?>
+            <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="budget"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
+
+            <h3 style="margin-top:28px"><?php echo $tt('rates'); ?></h3>
+            <p class="prj-muted"><?php echo $tt('rates_desc'); ?></p>
+            <p class="prj-muted"><?php echo $tt('rates_private'); ?></p>
+            <div class="prj-rate-add">
+                <label><?php echo $tt('rate_scope'); ?> <select id="rtScope"></select></label>
+                <label><?php echo $tt('rate_amount'); ?> <input type="number" min="0" step="0.01" id="rtRate"></label>
+                <label><?php echo $tt('rate_from'); ?> <input type="date" id="rtFrom"></label>
+                <button type="button" class="btn btn-secondary" id="rtAdd"><?php echo $tt('rate_add'); ?></button>
+            </div>
+            <div id="rateList"></div>
+        </div>
+        <?php endif; ?>
+
         <?php if (settingsTabVisible($visibleTabs, 'templates')): ?>
         <div class="tab-content<?php echo $activeTabId === 'templates' ? ' active' : ''; ?>" id="templates-tab" data-capability="<?php echo Cap::PROJECTS_TEMPLATES; ?>">
             <h2><?php echo $tt('templates_title'); ?></h2>
@@ -170,7 +194,7 @@ $row = function (string $label, string $desc, string $control) {
     </div>
 
     <script src="../../assets/js/projects.js?v=6"></script>
-    <script src="../../assets/js/projects-settings.js?v=5"></script>
+    <script src="../../assets/js/projects-settings.js?v=6"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

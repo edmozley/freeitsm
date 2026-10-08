@@ -26,6 +26,11 @@
  *      target_delete  {id}
  *      announce       {title, comment?, start?, end?, services:[{service_id, impact_level_id}]}  (Service Status)
  *      announce_withdraw {id}
+ *      budget_line_save {id?, title, category, planned?, actual?, contract_id?, cost_centre_id?, notes?}
+ *      budget_line_delete {id}
+ *      budget_rate_add {rate, from?}      the project's own hourly rate (labour mode 'rate')
+ *      budget_rate_delete {from}
+ *      budget_currency {currency}         relabel - only when projects may choose
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -109,6 +114,20 @@ projectApiRun(function () use ($conn, $ctx) {
         case 'announce_withdraw':
             ProjectToolsService::withdrawAnnouncement($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk(['announcements' => ProjectToolsService::announcements($conn, $ctx->actorId, $pid)]);
+        case 'budget_line_save':
+            projectApiOk(['id' => ProjectToolsService::saveBudgetLine($conn, $ctx, $pid, $in)]);
+        case 'budget_line_delete':
+            ProjectToolsService::deleteBudgetLine($conn, $ctx, $pid, (int)($in['id'] ?? 0));
+            projectApiOk();
+        case 'budget_rate_add':
+            ProjectToolsService::addProjectRate($conn, $ctx, $pid, $in['rate'] ?? null, $in['from'] ?? null);
+            projectApiOk();
+        case 'budget_rate_delete':
+            ProjectToolsService::deleteProjectRate($conn, $ctx, $pid, (string)($in['from'] ?? ''));
+            projectApiOk();
+        case 'budget_currency':
+            ProjectToolsService::setCurrency($conn, $ctx, $pid, (string)($in['currency'] ?? ''));
+            projectApiOk();
         case 'raci_set':
             projectApiOk(['row' => (object)ProjectToolsService::setRaci($conn, $ctx, $pid, (int)($in['item_id'] ?? 0), (int)($in['member_id'] ?? 0), (string)($in['letter'] ?? ''))]);
     }

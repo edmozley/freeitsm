@@ -25,6 +25,8 @@
         if (key === 'project_change_policy') return T('settings.change_' + value);
         if (key === 'project_calendar') return T('settings.calendar_' + value);
         if (key === 'project_disruption') return T('settings.disruption_' + value);
+        if (key === 'project_labour_mode') return T('settings.labour_' + value);
+        if (key === 'project_currency_per_project') return value === '1' ? P.TC('yes') : P.TC('no');
         if (Array.isArray(value)) return value.join(', ');
         return value;
     }
@@ -161,6 +163,42 @@
         setTimeout(() => document.getElementById('rmName').focus(), 60);
     }
 
+    // ---- Hourly rates (Budget tab, 3.2.0) ----------------------------------
+    // Each from a date: a new rate never re-prices time already logged.
+    function renderRates() {
+        const box = document.getElementById('rateList');
+        if (!box) return;
+        const cur = state.settings.project_currency || 'GBP';
+        const money = v => { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur }).format(v); } catch (e) { return cur + ' ' + v; } };
+        if (!state.rates.length) { box.innerHTML = '<p class="prj-muted">' + esc(T('settings.no_rates')) + '</p>'; return; }
+        box.innerHTML = '<table class="prj-budget-table"><tbody>' + state.rates.map(r =>
+            '<tr><td>' + esc(r.scope === 'default' ? T('settings.rate_default') : (r.analyst_name || '#' + r.ref_id)) + '</td>'
+            + '<td class="num">' + esc(money(Number(r.hourly_rate))) + '</td><td>' + esc(P.fmtDate(r.effective_from)) + '</td>'
+            + '<td class="num"><button type="button" class="prj-task-remove" style="opacity:1" data-rate-del="' + r.id + '" aria-label="' + esc(P.TC('delete')) + '">&times;</button></td></tr>').join('') + '</tbody></table>';
+    }
+    async function rateCall(body) {
+        try { const r = await P.api('settings.php', body); state.rates = r.rates || []; renderRates(); return true; }
+        catch (e) { P.toast(e.message, 'error'); return false; }
+    }
+    function wireRates() {
+        const sel = document.getElementById('rtScope');
+        if (!sel) return;
+        sel.innerHTML = '<option value="default">' + esc(T('settings.rate_default')) + '</option>'
+            + state.analysts.map(a => '<option value="a' + a.id + '">' + esc(a.full_name) + '</option>').join('');
+        document.getElementById('rtFrom').value = P.todayStr();
+        renderRates();
+        document.getElementById('rtAdd').addEventListener('click', async () => {
+            const v = sel.value;
+            const ok = await rateCall({ action: 'rate_save', scope: v === 'default' ? 'default' : 'analyst', analyst_id: v === 'default' ? null : parseInt(v.slice(1), 10),
+                rate: document.getElementById('rtRate').value, from: document.getElementById('rtFrom').value });
+            if (ok) { document.getElementById('rtRate').value = ''; P.toast(T('settings.saved')); }
+        });
+        document.getElementById('rateList').addEventListener('click', e => {
+            const b = e.target.closest('[data-rate-del]');
+            if (b) rateCall({ action: 'rate_delete', id: parseInt(b.dataset.rateDel, 10) });
+        });
+    }
+
     async function roleCall(body) {
         try {
             const r = await P.api('settings.php', body);
@@ -178,8 +216,9 @@
     document.addEventListener('DOMContentLoaded', async () => {
         try {
             const [s, L] = await Promise.all([P.api('settings.php'), P.lookups()]);
-            state = { settings: s.settings, definitions: s.definitions, roles: s.roles, lookups: L };
+            state = { settings: s.settings, definitions: s.definitions, roles: s.roles, lookups: L, rates: s.rates || [], analysts: s.analysts || [] };
             fill();
+            wireRates();
         } catch (e) { P.toast(e.message, 'error'); return; }
 
         document.querySelectorAll('[data-save]').forEach(b => b.addEventListener('click', () => save(b.dataset.save)));

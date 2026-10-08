@@ -167,6 +167,7 @@ function projectAlertsScan(PDO $conn, ?int $projectId = null): array
                 'kind'      => $ex['kind'],                // time | stage_time | risk
                 'late_days' => $ex['late'] ?? null,
                 'score'     => $ex['score'] ?? null,
+                'over_pct'  => $ex['over_pct'] ?? null,
                 'allowed'   => $ex['allowed'],
             ]);
             $out['breaches']++;

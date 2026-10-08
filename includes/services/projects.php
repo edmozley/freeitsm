@@ -113,6 +113,9 @@ class ProjectsService
                         VALUES ($ph, UTC_TIMESTAMP(), UTC_TIMESTAMP())")->execute($vals);
         $id = (int)$conn->lastInsertId();
         self::audit($conn, $id, $ctx->actorId, 'project_created', null, trim((string)$in['name']), self::source($ctx));
+        // Its budget currency, fixed now (includes/projects/budget.php).
+        require_once __DIR__ . '/../projects/budget.php';
+        projectStampCurrency($conn, $id);
         self::syncCalendar($conn);
         self::dispatch($conn, 'project.created', $id);
         self::afterChange($conn, $id);
@@ -194,7 +197,7 @@ class ProjectsService
             // Phase 2's records, by hand too - each on its own, because before
             // Database Verification a table may not exist, and that must never
             // stop a project being deleted.
-            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances'] as $t) {
+            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             }
             foreach (['project_stages', 'project_audit'] as $t) {
