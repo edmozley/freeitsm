@@ -20,5 +20,10 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
         'tolerances'  => ProjectToolsService::tolerances($conn, $pid),
         'targets'     => projectTargetsDetail($conn, $pid),
         'can_assets'  => analystCanAccessModule($conn, $analystId, 'assets'),
+        // Linked changes not yet approved, for the stage gate. null = this analyst
+        // cannot open Changes, so the gate says nothing rather than "none".
+        'gate_changes' => analystCanAccessModule($conn, $analystId, 'changes')
+            ? (function () use ($conn, $pid) { require_once __DIR__ . '/../../includes/projects/links.php'; return projectUnapprovedChanges($conn, $pid); })()
+            : null,
     ]);
 });

@@ -446,7 +446,7 @@ class WorkflowEngine
             // kind: time (the target finish), stage_time (the active stage's end) or risk.
             'project.tolerance_breached' => array_merge($projectFields, ['kind', 'late_days', 'score', 'allowed']),
             // gate_decision is empty when the stage was closed by hand.
-            'project.stage_closed'       => array_merge($projectFields, $stageFields, ['gate_decision', 'next_stage']),
+            'project.stage_closed'       => array_merge($projectFields, $stageFields, ['gate_decision', 'next_stage', 'unapproved_changes']),
             'project.stage_due'          => array_merge($projectFields, $stageFields, ['days_remaining', 'window_days']),
         ];
         if (isset($byTrigger[$trigger])) {

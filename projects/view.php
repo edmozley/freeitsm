@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=14">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=15">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -174,6 +174,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             <div class="modal-body">
                 <input type="hidden" id="pgStage">
                 <p class="prj-muted" id="pgIntro" style="margin-top:0"></p>
+                <div id="pgChanges" hidden></div>
                 <div class="prj-gate-choices" id="pgChoices">
                     <button type="button" data-decision="go" class="go"><?php echo htmlspecialchars(t('projects.gates.go')); ?><small><?php echo htmlspecialchars(t('projects.gates.go_hint')); ?></small></button>
                     <button type="button" data-decision="go_with_conditions" class="cond"><?php echo htmlspecialchars(t('projects.gates.go_with_conditions')); ?><small><?php echo htmlspecialchars(t('projects.gates.cond_hint')); ?></small></button>
@@ -342,9 +343,9 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=6"></script>
-    <script src="../assets/js/projects-tools.js?v=4"></script>
+    <script src="../assets/js/projects-tools.js?v=5"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=9"></script>
+    <script src="../assets/js/projects-view.js?v=10"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

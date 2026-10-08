@@ -397,4 +397,44 @@ if (!defined('PROJECT_LINKS_LOADED')) {
             try { $conn->prepare("DELETE FROM {$k['table']} WHERE project_id = ?")->execute([$projectId]); } catch (Throwable $e) { /* not created yet */ }
         }
     }
+
+    /**
+     * The project's linked changes that are still open and NOT approved - what a
+     * stage gate warns about (3.2.0, "going live safely").
+     *
+     * Approved is the recorded fact (changes.approval_datetime), the same test
+     * Watchtower's "awaiting approval" uses, so an extra approval stage in the
+     * change workflow needs no list here. Unlike Watchtower it KEEPS drafts (a
+     * change still in its starting status): at a gate, a change nobody has even
+     * submitted is the bigger worry, and the list says which ones are drafts.
+     * Closed changes (done, failed, cancelled, rejected) are not waiting on anyone.
+     *
+     * Changes have no stage, so this is the project's whole list; the gate shows
+     * each one's planned start so the board can see what falls in the next stage.
+     */
+    function projectUnapprovedChanges(PDO $conn, int $projectId): array
+    {
+        try {
+            $st = $conn->prepare(
+                "SELECT c.id, c.title, c.work_start_datetime, s.name AS status, s.colour AS status_colour, COALESCE(s.is_default, 0) AS is_draft
+                   FROM project_changes pc
+                   JOIN changes c ON c.id = pc.change_id
+              LEFT JOIN change_statuses s ON s.id = c.status_id
+                  WHERE pc.project_id = ? AND c.approval_datetime IS NULL AND COALESCE(s.is_closed, 0) = 0
+               ORDER BY c.work_start_datetime IS NULL, c.work_start_datetime, c.id");
+            $st->execute([$projectId]);
+        } catch (Throwable $e) {
+            return [];   // before Database Verification: nothing linked
+        }
+        return array_map(fn($r) => [
+            'id'            => (int)$r['id'],
+            'label'         => 'CHG-' . str_pad((string)$r['id'], 4, '0', STR_PAD_LEFT),
+            'title'         => $r['title'],
+            'status'        => $r['status'],
+            'status_colour' => $r['status_colour'],
+            'draft'         => (int)$r['is_draft'] === 1,
+            'work_start'    => $r['work_start_datetime'],
+            'url'           => entityLink('change', (int)$r['id']),
+        ], $st->fetchAll(PDO::FETCH_ASSOC));
+    }
 }

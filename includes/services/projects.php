@@ -604,6 +604,12 @@ class ProjectsService
                 'stage'         => ['id' => (int)$s['id'], 'name' => $s['name'], 'kind' => $s['kind'], 'end_date' => $s['end_date'], 'status' => $s['status']],
                 'gate_decision' => $decision,
                 'next_stage'    => $next,
+                // Linked changes still not approved when the stage closed - so a
+                // workflow can say "closed with 2 unapproved changes".
+                'unapproved_changes' => (function () use ($conn, $projectId) {
+                    require_once __DIR__ . '/../projects/links.php';
+                    return count(projectUnapprovedChanges($conn, $projectId));
+                })(),
             ]);
         } catch (Throwable $e) {
             error_log('projects stage_closed: ' . $e->getMessage());

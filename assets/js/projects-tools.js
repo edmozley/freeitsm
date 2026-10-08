@@ -417,12 +417,34 @@
                 + '<div class="prj-gate-main"><div class="prj-gate-name"><span class="prj-lane-kind">' + esc(T('timebox.' + (s.kind || kind))) + '</span> ' + esc(s.name)
                 + ' <span class="prj-stage-pill sp-' + esc(s.status) + '">' + esc(T('stage_status.' + s.status)) + '</span></div>'
                 + (dec ? '<div class="prj-gate-decision g-' + esc(dec) + '">' + esc(T('gates.' + dec)) + ' <small>' + esc(who) + '</small></div>' : '<div class="prj-muted">' + esc(T('gates.undecided')) + '</div>')
+                + (s.status === 'active' && gateChanges().length ? '<div class="prj-gate-chip-warn">' + esc(T('gates.changes_chip', { count: gateChanges().length })) + '</div>' : '')
                 + (s.gate_notes ? '<p class="prj-gate-notes">' + esc(s.gate_notes) + '</p>' : '') + '</div>'
                 + (canChange() && s.status !== 'planned' ? '<button type="button" class="btn btn-secondary sm" data-gate="' + s.id + '">' + esc(T('gates.decide')) + '</button>' : '')
                 + '</li>';
         }).join('') + '</ol>';
         html += '</div>';
         box.innerHTML = html;
+    }
+
+    /**
+     * Linked changes not yet approved (3.2.0, going live safely). A WARNING, never
+     * a block: the gate is the board's decision, and it may know the change is a
+     * formality. ctx.data.gate_changes is null when this analyst cannot open
+     * Changes - then the gate says nothing, rather than "none".
+     */
+    function gateChanges() {
+        const list = ctx.data.gate_changes;
+        return Array.isArray(list) ? list : [];
+    }
+    function gateChangesBox() {
+        const list = gateChanges();
+        if (!list.length) return '';
+        return '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('gates.changes_title', { count: list.length })) + '</strong></div><ul>'
+            + list.map(c => '<li><a href="' + esc(window.PRJ_BASE + c.url) + '" target="_blank" rel="noopener">' + esc(c.label) + '</a> ' + esc(c.title)
+                + ' <span class="prj-gate-warn-st">' + esc(c.draft ? T('gates.change_draft') : (c.status || '')) + '</span>'
+                + (c.work_start ? ' <small>' + esc(T('gates.change_starts', { date: window.fmtDateTime ? window.fmtDateTime(c.work_start) : c.work_start })) + '</small>' : '')
+                + '</li>').join('')
+            + '</ul><p>' + esc(T('gates.changes_hint')) + '</p></div>';
     }
 
     let gateDecision = null;
@@ -433,6 +455,9 @@
         document.getElementById('pgStage').value = stage.id;
         document.getElementById('pgNotes').value = stage.gate_notes || '';
         document.querySelectorAll('#pgChoices [data-decision]').forEach(b => b.classList.toggle('selected', b.dataset.decision === gateDecision));
+        // Only a gate still to close needs the warning; a closed stage's is history.
+        const warn = document.getElementById('pgChanges');
+        if (warn) { warn.innerHTML = stage.status !== 'closed' ? gateChangesBox() : ''; warn.hidden = warn.innerHTML === ''; }
         document.getElementById('pgError').hidden = true;
         P.openModal('prjGateModal');
     }

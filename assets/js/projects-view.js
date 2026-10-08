@@ -86,6 +86,8 @@
         const upcoming = data.tasks.filter(t => !Number(t.is_closed) && t.due_date).sort((a, b) => a.due_date.localeCompare(b.due_date)).slice(0, 6);
 
         let html = (window.PrjTools && p.exceptions && p.exceptions.length ? window.PrjTools.exceptionsBanner(p.exceptions) : '') + '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + t.cls + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span></div>').join('') + '</div>';
+        // A jump in linked tickets (3.2.0) - why the ring may be amber when the tasks look fine.
+        if (p.ticket_spike) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('gates.ticket_spike', { count: p.tickets_7d })) + '</strong></div></div>';
         // Asset targets (3.2.0) - drawn by projects-targets.js after this.
         html += '<div id="pvTargets" hidden></div>';
         html += '<div class="prj-ov-grid">';

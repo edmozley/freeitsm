@@ -56,7 +56,7 @@ $after = [
     'tools'    => ['p2'],
     'scope'    => ['p2'],
     'raci'     => ['p2'],
-    'gates'    => ['p4'],
+    'gates'    => ['p4', 'p5'],
     'health'   => ['p2'],
     'settings' => ['p2', 'p3'],
 ];
@@ -81,7 +81,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=14">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=15">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=184">
     <style>

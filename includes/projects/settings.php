@@ -39,6 +39,9 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             'project_amber_progress'   => ['75',       'int:1:100',   'health'],
             // Red when this share (%) or more of the open work is overdue.
             'project_red_overdue_pct'  => ['25',       'int:1:100',   'health'],
+            // Amber when this many linked tickets were raised in the last 7 days -
+            // the jump after a go-live. 0 = not used.
+            'project_ticket_amber'     => ['5',        'int:0:500',   'health'],
             // ---- RAID -------------------------------------------------------
             // Five labels each, lowest first, stored as a JSON array. Empty means
             // "the defaults in the viewer's language" - see projectScaleLabels().

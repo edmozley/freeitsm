@@ -48,7 +48,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=14">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=15">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -81,6 +81,7 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('amber_days'), $tt('amber_days_desc'), '<input type="number" min="1" max="120" data-k="project_amber_days"><div class="dflt" data-d="project_amber_days"></div>');
             $row($tt('amber_progress'), $tt('amber_progress_desc'), '<input type="number" min="1" max="100" data-k="project_amber_progress"><div class="dflt" data-d="project_amber_progress"></div>');
             $row($tt('red_overdue'), $tt('red_overdue_desc'), '<input type="number" min="1" max="100" data-k="project_red_overdue_pct"><div class="dflt" data-d="project_red_overdue_pct"></div>');
+            $row($tt('ticket_amber'), $tt('ticket_amber_desc'), '<input type="number" min="0" max="500" data-k="project_ticket_amber"><div class="dflt" data-d="project_ticket_amber"></div>');
             ?>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="health"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
         </div>

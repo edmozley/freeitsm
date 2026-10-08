@@ -43,6 +43,20 @@ function projectTaskStats(PDO $conn, array $projectIds): array
     foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $out[(int)$r['project_id']] = ['total' => (int)$r['total'], 'done' => (int)$r['done'], 'overdue' => (int)$r['overdue']];
     }
+    // Linked tickets raised in the last 7 days - the go-live jump (3.2.0). Its own
+    // query and its own try: before Database Verification the link table may be
+    // missing, and that must never take the task counts with it.
+    try {
+        $tk = $conn->prepare(
+            "SELECT pt.project_id, COUNT(*) AS n
+               FROM project_tickets pt JOIN tickets t ON t.id = pt.ticket_id
+              WHERE pt.project_id IN ($ph) AND t.created_datetime >= UTC_TIMESTAMP() - INTERVAL 7 DAY
+           GROUP BY pt.project_id");
+        $tk->execute(array_map('intval', $projectIds));
+        foreach ($tk->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $out[(int)$r['project_id']] = ($out[(int)$r['project_id']] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['tickets_7d' => (int)$r['n']];
+        }
+    } catch (Throwable $e) { /* no links yet: no jump to see */ }
     foreach (projectTargetsFor($conn, $projectIds) as $pid => $targets) {
         $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['targets_health' => projectTargetsWorst($targets)];
     }
@@ -65,7 +79,7 @@ function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
 {
     if (in_array($p['status'], projectFinishedStatuses(), true)) return null;
     // Projects -> Settings -> Health; the defaults are 14 days, 75% and 25%.
-    $cfg = $cfg ?? ['amber_days' => 14, 'amber_progress' => 75, 'red_overdue_pct' => 25];
+    $cfg = $cfg ?? ['amber_days' => 14, 'amber_progress' => 75, 'red_overdue_pct' => 25, 'ticket_amber' => 5];
     $total = $stats['total'] ?? 0; $done = $stats['done'] ?? 0; $overdue = $stats['overdue'] ?? 0;
     $open = $total - $done;
     $targets = $stats['targets_health'] ?? null;
@@ -74,11 +88,20 @@ function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
     if (!empty($p['target_end_date']) && $p['target_end_date'] < $today && $open > 0) return 'red';
     if ($open > 0 && $overdue > 0 && $overdue * 100 >= $open * $cfg['red_overdue_pct']) return 'red';
     if ($overdue > 0) return 'amber';
+    // A jump in linked tickets - usually just after go-live - is a warning, never red.
+    if (projectTicketSpike($stats, $cfg)) return 'amber';
     if (!empty($p['target_end_date']) && $open > 0) {
         $days = (strtotime($p['target_end_date']) - strtotime($today)) / 86400;
         if ($days <= $cfg['amber_days'] && $total > 0 && ($done * 100 / $total) < $cfg['amber_progress']) return 'amber';
     }
     return $targets === 'amber' ? 'amber' : 'green';
+}
+
+/** Have this many linked tickets been raised in the last 7 days? (Projects -> Settings -> Health) */
+function projectTicketSpike(array $stats, array $cfg): bool
+{
+    $n = (int)($cfg['ticket_amber'] ?? 0);
+    return $n > 0 && (int)($stats['tickets_7d'] ?? 0) >= $n;
 }
 
 /** The Health tab's thresholds, as numbers. */
@@ -88,6 +111,7 @@ function projectHealthConfig(PDO $conn): array
         'amber_days'      => (int)projectSetting($conn, 'project_amber_days'),
         'amber_progress'  => (int)projectSetting($conn, 'project_amber_progress'),
         'red_overdue_pct' => (int)projectSetting($conn, 'project_red_overdue_pct'),
+        'ticket_amber'    => (int)projectSetting($conn, 'project_ticket_amber'),
     ];
 }
 
@@ -147,6 +171,8 @@ function projectDecorate(array $p, array $stats, ?array $cfg = null): array
     $p['task_done']    = $s['done'];
     $p['task_overdue'] = $s['overdue'];
     $p['progress']     = $s['total'] > 0 ? (int)round($s['done'] * 100 / $s['total']) : 0;
+    $p['tickets_7d']   = (int)($s['tickets_7d'] ?? 0);
+    $p['ticket_spike'] = projectTicketSpike($s, $cfg ?? ['ticket_amber' => 5]);
     $p['auto_health']  = projectAutoHealth($p, $s, $cfg);
     $p['exceptions']   = projectExceptions($p, $s);
     if ($p['exceptions'] && $p['auto_health'] !== null) $p['auto_health'] = 'red';
