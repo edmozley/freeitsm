@@ -114,6 +114,8 @@ class ProjectsService
         $id = (int)$conn->lastInsertId();
         self::audit($conn, $id, $ctx->actorId, 'project_created', null, trim((string)$in['name']), self::source($ctx));
         self::syncCalendar($conn);
+        self::dispatch($conn, 'project.created', $id);
+        self::afterChange($conn, $id);
         return $id;
     }
 
@@ -168,6 +170,8 @@ class ProjectsService
         }
         // A name, a status, a date or a method (which renames its stages) can all move an entry.
         self::syncCalendar($conn);
+        self::dispatch($conn, 'project.updated', $id, ['changed' => implode(',', array_keys($changes))]);
+        self::afterChange($conn, $id);
         return $id;
     }
 
@@ -181,6 +185,7 @@ class ProjectsService
         if ($ctx->actorId > 0 && !projectCanDelete($conn, $ctx->actorId, $cur)) {
             throw new ServiceError('forbidden', 'forbidden', 'Only the project manager, the person who created it or someone who manages Projects can delete a project.');
         }
+        $event = self::eventFor($conn, $id);   // read now: afterwards there is nothing to read
         $conn->beginTransaction();
         try {
             $st = $conn->prepare("UPDATE tasks SET project_id = NULL, project_stage_id = NULL WHERE project_id = ?");
@@ -207,6 +212,10 @@ class ProjectsService
             throw $e;
         }
         self::syncCalendar($conn);
+        if ($event) {
+            require_once __DIR__ . '/../projects/alerts.php';
+            projectDispatch('project.deleted', ['project' => $event]);
+        }
         return ['id' => $id, 'tasks_detached' => $detached];
     }
 
@@ -275,8 +284,10 @@ class ProjectsService
                  ->execute([$name, $goal, $start, $end, $status, $stageId]);
             if ($cur['status'] !== $status) {
                 self::audit($conn, $projectId, $ctx->actorId, 'stage_status', $cur['name'] . ': ' . $cur['status'], $name . ': ' . $status, self::source($ctx));
+                if ($status === 'closed') self::stageClosed($conn, $projectId, $stageId, null, null);
             }
             self::syncCalendar($conn);
+            self::afterChange($conn, $projectId);
             return $stageId;
         }
 
@@ -288,6 +299,7 @@ class ProjectsService
         self::audit($conn, $projectId, $ctx->actorId, 'stage_added', null, $name, self::source($ctx));
         self::touch($conn, $projectId);
         self::syncCalendar($conn);
+        self::afterChange($conn, $projectId);
         return $newId;
     }
 
@@ -309,6 +321,7 @@ class ProjectsService
         self::audit($conn, $projectId, $ctx->actorId, 'stage_removed', $stage['name'], null, self::source($ctx));
         self::touch($conn, $projectId);
         self::syncCalendar($conn);
+        self::afterChange($conn, $projectId);
     }
 
     /** Put the project's time boxes in the given order (ids not listed keep their place after). */
@@ -562,6 +575,58 @@ class ProjectsService
         } catch (Throwable $e) {
             error_log('projects calendar sync: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * After a change to one project: fire what its health and tolerances now say
+     * (includes/projects/alerts.php). Runs as the person who made the change, so
+     * the bell does not tell them about it. Never throws.
+     */
+    public static function afterChange(PDO $conn, int $projectId): void
+    {
+        try {
+            require_once __DIR__ . '/../projects/alerts.php';
+            projectAlertsScan($conn, $projectId);
+        } catch (Throwable $e) {
+            error_log('projects alerts: ' . $e->getMessage());
+        }
+    }
+
+    /** project.stage_closed - by its gate ($decision) or by hand (null). */
+    public static function stageClosed(PDO $conn, int $projectId, int $stageId, ?string $decision, ?string $next): void
+    {
+        try {
+            $p = self::eventFor($conn, $projectId);
+            $s = self::loadStage($conn, $stageId);
+            if (!$p) return;
+            projectDispatch('project.stage_closed', [
+                'project'       => $p,
+                'stage'         => ['id' => (int)$s['id'], 'name' => $s['name'], 'kind' => $s['kind'], 'end_date' => $s['end_date'], 'status' => $s['status']],
+                'gate_decision' => $decision,
+                'next_stage'    => $next,
+            ]);
+        } catch (Throwable $e) {
+            error_log('projects stage_closed: ' . $e->getMessage());
+        }
+    }
+
+    /** The project as its events carry it, with the health it shows; null if it is gone. */
+    private static function eventFor(PDO $conn, int $id): ?array
+    {
+        try {
+            require_once __DIR__ . '/../projects/alerts.php';
+            $rows = projectAlertRows($conn, $id);
+            return $rows ? projectEventPayload($rows[0]) : null;
+        } catch (Throwable $e) {
+            error_log('projects event payload: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    private static function dispatch(PDO $conn, string $event, int $id, array $extra = []): void
+    {
+        $p = self::eventFor($conn, $id);
+        if ($p) projectDispatch($event, ['project' => $p] + $extra);
     }
 
     public static function touchProject(PDO $conn, int $projectId): void

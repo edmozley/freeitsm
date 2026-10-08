@@ -360,6 +360,12 @@ return [
                 'ssl_expiring' => 'A certificate on your domain is expiring',
                 'changed'      => 'Something changed on a domain you own',
             ],
+            'project' => [
+                'health_changed'     => 'The health of a project you manage changed',
+                'tolerance_breached' => 'A project you manage went beyond a tolerance',
+                'stage_due'          => 'A stage of a project you manage ends soon',
+                'stage_closed'       => 'A stage of a project you manage closed',
+            ],
         ],
         // Labels for the per-type switches on the Preferences page. Same nesting
         // rule as above, and for the same reason.
@@ -393,6 +399,12 @@ return [
                 'expiring'     => 'A domain I own is approaching its expiry date',
                 'ssl_expiring' => 'A certificate on a domain I own is approaching expiry',
                 'changed'      => 'Name servers, registrar, locks or mail records change on a domain I own',
+            ],
+            'project' => [
+                'health_changed'     => 'The health of a project I manage changes',
+                'tolerance_breached' => 'A project I manage goes beyond a time or risk tolerance',
+                'stage_due'          => 'A stage of a project I manage ends in 7 days, and the day before',
+                'stage_closed'       => 'A stage of a project I manage closes',
             ],
         ],
     ],

@@ -239,6 +239,7 @@ class ProjectToolsService
                  ->execute(array_merge($vals, [$id]));
             if ($cur['status'] !== $status) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_' . $status, null, $type . ': ' . $title, self::src($ctx));
             ProjectsService::touchProject($conn, $projectId);
+            ProjectsService::afterChange($conn, $projectId);   // a risk, tolerance or target can move health or breach a tolerance
             return $id;
         }
         $conn->prepare("INSERT INTO project_raid (type, title, description, probability, impact, response, response_plan, owner_analyst_id, status, due_date, ticket_id,
@@ -248,6 +249,7 @@ class ProjectToolsService
         $newId = (int)$conn->lastInsertId();
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_added', null, $type . ': ' . $title, self::src($ctx));
         ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::afterChange($conn, $projectId);   // a risk, tolerance or target can move health or breach a tolerance
         return $newId;
     }
 
@@ -260,6 +262,7 @@ class ProjectToolsService
         if (!$r) throw new ServiceError('not_found', 'not_found', 'That entry is not part of this project.');
         $conn->prepare("DELETE FROM project_raid WHERE id = ?")->execute([$raidId]);
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_removed', $r['type'] . ': ' . $r['title'], null, self::src($ctx));
+        ProjectsService::afterChange($conn, $projectId);
     }
 
     /**
@@ -426,6 +429,7 @@ class ProjectToolsService
         }
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'tolerances', null, null, self::src($ctx));
         ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::afterChange($conn, $projectId);   // a risk, tolerance or target can move health or breach a tolerance
     }
 
     /** {time: int|null, risk: int|null} */
@@ -486,8 +490,12 @@ class ProjectToolsService
         }
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'gate', $stage['name'], $decision, self::src($ctx));
         ProjectsService::touchProject($conn, $projectId);
-        // A closed stage leaves the Calendar.
-        if ($closed) ProjectsService::syncCalendar($conn);
+        // A closed stage leaves the Calendar, and is an event of its own.
+        if ($closed) {
+            ProjectsService::syncCalendar($conn);
+            ProjectsService::stageClosed($conn, $projectId, $stageId, $decision, $next);
+        }
+        ProjectsService::afterChange($conn, $projectId);
         return ['closed' => $closed, 'next' => $next];
     }
 
@@ -564,6 +572,7 @@ class ProjectToolsService
         }
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'target_saved', null, $t['name'], self::src($ctx));
         ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::afterChange($conn, $projectId);   // a risk, tolerance or target can move health or breach a tolerance
         return $id;
     }
 
@@ -574,6 +583,7 @@ class ProjectToolsService
         $conn->prepare("DELETE FROM project_asset_targets WHERE id = ?")->execute([$targetId]);
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'target_removed', $t['name'], null, self::src($ctx));
         ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::afterChange($conn, $projectId);   // a risk, tolerance or target can move health or breach a tolerance
     }
 
     /** Assets access, for anything that reads the estate through a target. */

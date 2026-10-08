@@ -176,6 +176,13 @@ class WorkflowEngine
             'domain.changed'           => 'Something important changed on a domain - name servers, registrar, locks, mail records (found by the daily check)',
             'domain.certificate_issued'=> 'A new certificate was issued for a domain (Certificate Transparency watch)',
             'domain.lookalike_found'   => 'A look-alike of a domain was found (look-alike scan)',
+            // Projects (3.2.0) - includes/projects/alerts.php. Health and tolerances
+            // are worked out, never stored, so these two are found by a scan (the
+            // scheduled-trigger cron, opening the portfolio, or a change to the project).
+            'project.health_changed'     => 'A project\'s health changes - green, amber or red (worked out, or set by hand)',
+            'project.tolerance_breached' => 'A project goes beyond a time or risk tolerance',
+            'project.stage_closed'       => 'A project stage, phase or sprint closes',
+            'project.stage_due'          => 'A project stage ends in 7 days, and again the day before (time-based)',
             // ── Issue trackers. NOT time-based: something genuinely happened —
             // a developer moved the issue or wrote a comment. The poll is only
             // how we find out, because a self-hosted install cannot be called.
@@ -210,6 +217,7 @@ class WorkflowEngine
         return [
             // Domain entities
             'contract'          => ['A contract', ['contract.id', 'contract.title', 'contract.status_id', 'contract.supplier_id', 'contract.party_type', 'contract.customer_tenant_id', 'contract.customer_user_id']],
+            'project'           => ['A project', ['project.id', 'project.code', 'project.name', 'project.status', 'project.health', 'project.methodology', 'project.owner_analyst_id', 'project.company_id', 'project.target_end_date']],
             'domain'            => ['A domain', ['domain.id', 'domain.name', 'domain.expiry_date', 'domain.status_id', 'domain.purpose', 'domain.owner_analyst_id', 'domain.registrar', 'domain.company_id', 'domain.customer_user_id', 'domain.security_grade']],
             'supplier'          => ['A supplier', ['supplier.id', 'supplier.name', 'supplier.status_id', 'supplier.type_id']],
             'supplier_contact'  => ['A supplier contact', ['supplier_contact.id', 'supplier_contact.name', 'supplier_contact.supplier_id']],
@@ -279,6 +287,9 @@ class WorkflowEngine
             'ticket.owner_id', 'ticket.origin_id', 'ticket.created_by',
             'ticket.requester_email',
         ];
+        $projectFields = ['project.id', 'project.code', 'project.name', 'project.status', 'project.health', 'project.methodology',
+                          'project.owner_analyst_id', 'project.owner_name', 'project.company_id', 'project.target_end_date'];
+        $stageFields   = ['stage.id', 'stage.name', 'stage.kind', 'stage.end_date'];
         $byTrigger = [
             'ticket.created'          => $fullTicket,
             'ticket.status_changed'   => array_merge($fullTicket, ['old_status_id', 'new_status_id']),
@@ -430,6 +441,13 @@ class WorkflowEngine
             ],
             'domain.certificate_issued' => ['domain.id', 'domain.name', 'count', 'issuers', 'names'],
             'domain.lookalike_found'    => ['domain.id', 'domain.name', 'count', 'lookalikes'],
+            // Projects (3.2.0). from / to are green | amber | red; manual = set by hand.
+            'project.health_changed'     => array_merge($projectFields, ['from', 'to', 'manual']),
+            // kind: time (the target finish), stage_time (the active stage's end) or risk.
+            'project.tolerance_breached' => array_merge($projectFields, ['kind', 'late_days', 'score', 'allowed']),
+            // gate_decision is empty when the stage was closed by hand.
+            'project.stage_closed'       => array_merge($projectFields, $stageFields, ['gate_decision', 'next_stage']),
+            'project.stage_due'          => array_merge($projectFields, $stageFields, ['days_remaining', 'window_days']),
         ];
         if (isset($byTrigger[$trigger])) {
             return $byTrigger[$trigger];

@@ -5139,6 +5139,9 @@ return [
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'closed_datetime'  => 'DATETIME NULL',
+        // What the alert scan last saw - see includes/projects/alerts.php.
+        'alert_health'     => 'VARCHAR(10) NULL',
+        'alert_exceptions' => 'VARCHAR(100) NULL',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Phases, stages and sprints in ONE table - the same thing through different methods.

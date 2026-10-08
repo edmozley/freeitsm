@@ -234,6 +234,17 @@ function workflowScheduledRun(PDO $conn): array
     return [
         'contract_expiring'        => workflowEmitContractExpiries($conn),
         'asset_warranty_expiring'  => workflowEmitWarrantyExpiries($conn),
+        // Projects keep their own fire-once state (includes/projects/alerts.php):
+        // health and tolerance changes, and stages ending soon.
+        'projects'                 => (function () use ($conn) {
+            try {
+                require_once __DIR__ . '/projects/alerts.php';
+                return array_sum(projectAlertsRun($conn));   // the cron prints one number per entry
+            } catch (Throwable $e) {
+                error_log('[workflow_scheduled] projects: ' . $e->getMessage());
+                return 0;
+            }
+        })(),
     ];
 }
 

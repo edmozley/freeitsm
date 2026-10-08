@@ -181,6 +181,15 @@ class NotificationsService
             'domain.expiring'         => ['default' => true,  'entity' => 'domain'],
             'domain.ssl_expiring'     => ['default' => true,  'entity' => 'domain'],
             'domain.changed'          => ['default' => true,  'entity' => 'domain'],
+            // Projects (3.2.0) - to the PROJECT MANAGER (projects.owner_analyst_id).
+            // Health and tolerances fire on a change only (includes/projects/alerts.php),
+            // so a project that stays red is not a bell every hour. On by default:
+            // each is something going wrong, or a date arriving, never your own doing.
+            'project.health_changed'     => ['default' => true,  'entity' => 'project'],
+            'project.tolerance_breached' => ['default' => true,  'entity' => 'project'],
+            'project.stage_due'          => ['default' => true,  'entity' => 'project'],
+            // Off: the project manager usually closed it themselves.
+            'project.stage_closed'       => ['default' => false, 'entity' => 'project'],
         ];
     }
 
@@ -290,6 +299,11 @@ class NotificationsService
         // existing row instead of adding another. Deliberately NOT keyed on
         // event_type: the point is "this ticket moved 3 times", not three
         // separate rows that happen to be about one ticket.
+        //
+        // The title follows the newest event too. For a ticket or task it is the
+        // subject, so that only keeps it current; for a domain or a project it is
+        // WHAT HAPPENED ("Bradford move: amber to red"), and keeping the first one
+        // would show yesterday's news under today's count.
         try {
             $find = $conn->prepare(
                 "SELECT id FROM $table
@@ -306,11 +320,12 @@ class NotificationsService
                     "UPDATE $table
                      SET event_count = event_count + 1,
                          event_type  = ?,
+                         title       = COALESCE(?, title),
                          body        = ?,
                          actor_name  = ?,
                          updated_datetime = UTC_TIMESTAMP()
                      WHERE id = ?"
-                )->execute([$eventType, $body, $actorName, (int)$existingId]);
+                )->execute([$eventType, $title, $body, $actorName, (int)$existingId]);
                 return (int)$existingId;
             }
 

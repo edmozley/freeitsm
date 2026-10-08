@@ -7769,6 +7769,12 @@ CREATE TABLE IF NOT EXISTS `projects` (
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `closed_datetime`   DATETIME NULL,
+    -- What the alert scan last SAW (includes/projects/alerts.php): the health
+    -- shown and the tolerance breaches, so an alert fires on a change only and
+    -- re-arms once it clears. NULL health = never scanned: the first scan only
+    -- records, so an upgrade does not ring every bell at once.
+    `alert_health`      VARCHAR(10) NULL,
+    `alert_exceptions`  VARCHAR(100) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `idx_projects_tenant` (`tenant_id`),

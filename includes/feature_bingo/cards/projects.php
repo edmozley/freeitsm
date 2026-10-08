@@ -133,4 +133,16 @@ return [
         'link'     => 'projects/settings/',
         'check'    => ['rows', 'calendar_events', "source IN ('project_end', 'project_stage')"],
     ],
+    [
+        'id'       => 'projects.workflows',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'A workflow that acts on a project',
+        'what'     => 'A workflow triggered by a project - its health changing, a tolerance breached, a stage closing or ending soon - that posts to Teams or Slack, raises a ticket or sends an email.',
+        'why'      => 'The people who need to know a project has gone red hear it where they already are, without anybody remembering to tell them.',
+        'done'     => 'An active workflow is triggered by a project event.',
+        'link'     => 'workflow/',
+        'check'    => ['rows', 'workflows', "trigger_event LIKE 'project.%' AND is_active = 1"],
+    ],
 ];

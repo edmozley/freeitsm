@@ -234,6 +234,10 @@ function notificationsRecipientFor(string $event, array $payload): int
     if (isset($payload['domain']['owner_analyst_id'])) {
         return (int)$payload['domain']['owner_analyst_id'];
     }
+    // Projects (3.2.0): the project manager. A project with none has nobody to tell.
+    if (isset($payload['project']['owner_analyst_id'])) {
+        return (int)$payload['project']['owner_analyst_id'];
+    }
     return 0;
 }
 
@@ -259,6 +263,35 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
             $title = $name . ' - ' . $what . ($d < 0 ? ' expired ' . (-$d) . ' day(s) ago' : ($d === 0 ? ' expires today' : ' expires in ' . $d . ' day(s)'));
         }
         return ['id' => $id, 'ref' => mb_substr($name, 0, 64), 'title' => $title];
+    }
+
+    if ($entityType === 'project') {
+        $id = isset($payload['project']['id']) ? (int)$payload['project']['id'] : 0;
+        if ($id <= 0) return null;
+        // As with domains, the title says what happened - the name alone does not.
+        // English, like the domain titles: it is stored.
+        $name = (string)($payload['project']['name'] ?? '');
+        $stage = (string)($payload['stage']['name'] ?? '');
+        switch ($event) {
+            case 'project.health_changed':
+                $title = $name . ': ' . ($payload['from'] ?? '?') . ' to ' . ($payload['to'] ?? '?');
+                break;
+            case 'project.tolerance_breached':
+                $title = $payload['kind'] === 'risk'
+                    ? $name . ': a risk scores ' . (int)$payload['score'] . ' (allowed ' . (int)$payload['allowed'] . ')'
+                    : $name . ': ' . (int)$payload['late_days'] . ' day(s) late' . ($payload['kind'] === 'stage_time' ? ' on the current stage' : '') . ' (allowed ' . (int)$payload['allowed'] . ')';
+                break;
+            case 'project.stage_due':
+                $d = (int)($payload['days_remaining'] ?? 0);
+                $title = $name . ': ' . $stage . ($d === 0 ? ' ends today' : ($d === 1 ? ' ends tomorrow' : ' ends in ' . $d . ' days'));
+                break;
+            case 'project.stage_closed':
+                $title = $name . ': ' . $stage . ' closed';
+                break;
+            default:
+                $title = $name;
+        }
+        return ['id' => $id, 'ref' => (string)($payload['project']['code'] ?? ''), 'title' => mb_substr($title, 0, 255)];
     }
 
     $id = isset($payload['ticket']['id']) ? (int)$payload['ticket']['id'] : 0;

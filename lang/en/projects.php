@@ -790,6 +790,14 @@ return [
             'p1'    => 'Every proposed or active project puts its target end date on the shared Calendar as "Project due", and each stage, phase or sprint that has not closed puts its end date there as well. They are all-day entries in a category called Projects, which you can rename or recolour on the Calendar. Change a date in the project and the Calendar follows; close a stage, or put the project on hold, close or cancel it, and its entries go. **Projects - Settings - General** chooses whether the Calendar shows both kinds, only target end dates, or nothing.',
             'p2'    => 'The entries are written by Projects, so a change made to one on the Calendar is replaced the next time any project changes. Their wording is in English, as the other automatic entries are. Calendar entries have no company, so on an install with more than one company everyone who can open the Calendar sees every project\'s dates.',
         ],
+        'alerts' => [
+            'nav'   => 'Alerts and workflows',
+            'title' => 'Alerts, and projects in Workflows',
+            'intro' => 'The project manager hears when something needs them, and Workflows can act on it.',
+            'p1'    => 'The notification bell tells a project\'s manager when its health changes (green, amber or red, worked out or set by hand), when it goes beyond a time or risk tolerance, and when a stage, phase or sprint ends in 7 days and again the day before. Each one is said once, when it happens: a project that stays red does not ring every hour, and a breach that clears and comes back is new news. Nobody is told about a change they made themselves. Each person can switch these off, or switch on a bell when a stage closes, in **Preferences - Notifications**.',
+            'p2'    => 'The same moments are triggers in **Workflows**: a project\'s health changes, a tolerance is breached, a stage closes, a stage ends soon, and a project is created, updated or deleted. A workflow can post to Teams or Slack when a project goes red, raise a ticket when a tolerance is breached, or email the board when a stage closes, using the project\'s name, code, health, manager and dates.',
+            'p3'    => 'Health and tolerances are worked out from the plan, so something has to look. Saving anything on a project looks at once; otherwise the scheduled workflow job does it (cron/workflow_scheduled.php, hourly is plenty), and on an install with no scheduled jobs, opening the portfolio looks at most every 15 minutes. A task going overdue overnight is noticed by whichever comes first.',
+        ],
         'companies' => [
             'nav'   => 'Companies',
             'title' => 'Projects and companies',
@@ -813,7 +821,7 @@ return [
             'nav'   => 'Coming next',
             'title' => 'What is coming next',
             'intro' => 'Projects is being built in stages.',
-            'p1'    => 'Next come alerts when a project needs attention and project events in Workflows, and later an AI project manager that drafts your status reports for you to check.',
+            'p1'    => 'Next come a Report Packs block and a Watchtower card for projects, and later an AI project manager that drafts your status reports for you to check.',
         ],
     ],
 

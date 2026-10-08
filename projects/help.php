@@ -46,6 +46,7 @@ $sections = [
     'tasks'     => 2,
     'connections' => 2,
     'calendar'  => 2,
+    'alerts'    => 3,
     'companies' => 1,
     'settings'  => 1,
     'coming'    => 1,
