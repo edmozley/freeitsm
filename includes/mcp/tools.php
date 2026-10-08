@@ -28,6 +28,8 @@
  *                 the Projects tools below). A tool that is NOT company-safe is
  *                 offered on a multi-company install only to a key that sees
  *                 every company (company_scope null) - never narrowed by guess.
+ *                 company_scope here is the EFFECTIVE one (mcpEffectiveScope):
+ *                 the key's companies narrowed to its analyst's.
  *
  * Plus the key's own API permission (mcp.read) and Warbot's capability rule. A
  * tool the key may not run is not LISTED, rather than listed and refused: an
@@ -53,8 +55,13 @@ function mcpWarbotToolMap(): array
         'known_errors'     => ['problems',       false],
         'supplier_contact' => ['contracts',      true],    // suppliers and contracts are install-wide
         'morning_checks'   => ['morning-checks', true],
-        'search_chat'      => ['war-room',       true],    // the module's own search: channels the analyst is in
-        'search_knowledge' => ['knowledge',      true],    // knowledgeVisibilitySql as the analyst
+        // NOT search_chat (security review, 2026-10-09): the war room's search
+        // includes the analyst's DIRECT MESSAGES and private channels, and an
+        // administrator can make a key act as any analyst - so a key would read
+        // somebody's private conversations, which no screen lets an admin do.
+        // NOT Warbot's search_knowledge either: it scopes by the analyst's ACTIVE
+        // company (a session value an API call does not have) and ignores the
+        // key's companies. MCP has its own, below, through KnowledgeViewer::forApiKey.
     ];
 }
 
@@ -69,10 +76,19 @@ function mcpTools(): array
         if (!isset($warbot[$name])) continue;
         $w = $warbot[$name];
         $tools[$name] = ['description' => $w['description'], 'schema' => $w['schema'], 'module' => $module, 'company_safe' => $safe,
-            'capability' => $w['capability'], 'handler' => fn($conn, $args, $analystId, $key) => warbotRunTool($conn, $analystId, $name, $args)];
+            // The handler itself, NOT warbotRunTool(): that returns an exception's
+            // message as the answer ('That lookup failed: SQLSTATE...'), which would
+            // hand table and column names to the client. mcpRunTool() catches,
+            // logs and answers generically. Capability is checked by mcpToolAllowed().
+            'capability' => $w['capability'], 'handler' => fn($conn, $args, $analystId, $key) => call_user_func($w['handler'], $conn, $args, $analystId)];
     }
     $project = ['type' => 'string', 'description' => 'The project: its code (PRJ-0042), its id, or enough of its name to be unique.'];
     $tools += [
+        'search_knowledge' => [
+            'description' => 'Search published Knowledge article titles. Use it for "is there a runbook for X" or "how do we do Y". Titles only - open the article in Knowledge to read it.',
+            'schema' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string', 'description' => 'Words in the title.']], 'required' => ['query']],
+            'module' => 'knowledge', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolSearchKnowledge',
+        ],
         'list_projects' => [
             'description' => 'List projects with their health (green / amber / red, worked out from the plan), status, progress, target finish, project manager and any tolerance exceptions. '
                            . 'Use it for "which projects are off track", "what is Sam running", "what finishes this month".',
@@ -100,7 +116,7 @@ function mcpTools(): array
             'module' => 'projects', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolProjectRaid',
         ],
         'project_budget' => [
-            'description' => 'A project\'s budget: planned against actual in its own currency, each budget line, and the labour from time logged on its tasks. Never shows one person\'s hourly rate.',
+            'description' => 'A project\'s budget: planned against actual in its own currency, each budget line, and the labour from time logged on its tasks. It does not list hourly rates; with labour costed per analyst and only one person\'s time logged, cost divided by hours is that person\'s rate - as on the Budget tab.',
             'schema' => ['type' => 'object', 'properties' => ['project' => $project], 'required' => ['project']],
             'module' => 'projects', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolProjectBudget',
         ],
@@ -114,6 +130,33 @@ function mcpTools(): array
         ],
     ];
     return $tools;
+}
+
+/**
+ * 🔴 THE KEY'S EFFECTIVE COMPANIES (security review, 2026-10-09). A key's own
+ * company_scope is null when an administrator left it on "all companies" - and
+ * the REST API reads null as EVERY company, even when the analyst the key acts
+ * as is limited to one. The MCP server promises "you see what that analyst may
+ * see", so it intersects: the key's companies AND the analyst's.
+ *
+ *   single-company install                     -> null (nothing to narrow)
+ *   analyst who may see every company          -> the key's own scope (null = all)
+ *   analyst limited to some companies          -> key scope ∩ theirs (null key = theirs)
+ *
+ * The endpoint stores the result back in $apiKey['company_scope'] straight after
+ * authenticating, so every tool and helper below reads the narrowed value.
+ */
+function mcpEffectiveScope(PDO $conn, array $apiKey): ?array
+{
+    if (!isMultiTenant($conn)) return null;
+    $analystId = (int)$apiKey['analyst_id'];
+    $key = $apiKey['company_scope'] ?? null;
+    $st = $conn->prepare("SELECT can_access_all_tenants FROM analysts WHERE id = ?");
+    $st->execute([$analystId]);
+    if ((int)$st->fetchColumn() === 1) return $key === null ? null : array_values(array_map('intval', $key));
+    $theirs = array_map('intval', getAccessibleTenantIds($conn, $analystId));
+    if ($key === null) return array_values($theirs);
+    return array_values(array_intersect(array_map('intval', $key), $theirs));
 }
 
 /** May this key run this tool? (permission is checked once, by the endpoint) */
@@ -311,10 +354,22 @@ function mcpToolProjectOverview(PDO $conn, array $args, int $analystId, array $a
         $unapproved = projectUnapprovedChanges($conn, $pid);
         if ($unapproved) $out[] = count($unapproved) . ' linked change(s) not yet approved: ' . implode(', ', array_map(fn($c) => $c['label'] . ' ' . $c['title'], $unapproved)) . '.';
     }
-    $h = $conn->prepare("SELECT pa.field_name, pa.new_value, pa.created_datetime, an.full_name FROM project_audit pa LEFT JOIN analysts an ON an.id = pa.analyst_id
+    $h = $conn->prepare("SELECT pa.field_name, pa.old_value, pa.new_value, pa.created_datetime, an.full_name FROM project_audit pa LEFT JOIN analysts an ON an.id = pa.analyst_id
                           WHERE pa.project_id = ? ORDER BY pa.id DESC LIMIT 8");
     $h->execute([$pid]);
-    $hist = $h->fetchAll(PDO::FETCH_ASSOC);
+    // A history row can name a record in another module ("contract: Fibre circuit",
+    // a raised ticket, a Knowledge article). Leave out the ones whose module the
+    // analyst cannot open - the security review's finding 6.
+    $hist = array_values(array_filter($h->fetchAll(PDO::FETCH_ASSOC), function ($r) use ($conn, $analystId) {
+        if (in_array($r['field_name'], ['link_added', 'link_removed'], true)) {
+            $kind = strtok((string)$r['new_value'] ?: (string)$r['old_value'], ':');
+            return projectLinkKindAllowed($conn, $analystId, (string)$kind);
+        }
+        if ($r['field_name'] === 'raid_ticket_raised') return analystCanAccessModule($conn, $analystId, 'tickets');
+        if ($r['field_name'] === 'raid_to_knowledge') return analystCanAccessModule($conn, $analystId, 'knowledge');
+        if ($r['field_name'] === 'disruption_announced' || $r['field_name'] === 'disruption_withdrawn') return analystCanAccessModule($conn, $analystId, 'service-status');
+        return true;
+    }));
     if ($hist) {
         $out[] = 'Recent history:';
         foreach ($hist as $r) $out[] = sprintf('- %s %s %s%s', substr($r['created_datetime'], 0, 10), $r['full_name'] ?: 'Someone', str_replace('_', ' ', $r['field_name']), $r['new_value'] !== null ? ': ' . mb_substr($r['new_value'], 0, 120) : '');
@@ -383,5 +438,26 @@ function mcpToolProjectTasks(PDO $conn, array $args, int $analystId, array $apiK
         $lines[] = sprintf('- %s%s [%s]%s%s', $late ? 'OVERDUE ' : '', $r['title'], $r['status'] ?: '?',
             $r['due_date'] ? ', due ' . $r['due_date'] : '', ($r['assignee'] ? ', ' . $r['assignee'] : ', unassigned') . ($r['stage'] ? ', ' . $r['stage'] : ''));
     }
+    return implode("\n", $lines);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   KNOWLEDGE - by the KEY's companies (KnowledgeViewer::forApiKey), not the
+   analyst's active company, which an API call does not have.
+   ══════════════════════════════════════════════════════════════════════════ */
+function mcpToolSearchKnowledge(PDO $conn, array $args, int $analystId, array $apiKey): string
+{
+    require_once __DIR__ . '/../knowledge/visibility.php';
+    $q = trim((string)($args['query'] ?? ''));
+    if ($q === '') return 'Give me something to search for.';
+    $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q) . '%';
+    [$visSql, $visParams] = knowledgeVisibilitySql($conn, KnowledgeViewer::forApiKey($conn, $apiKey), '', ['lifecycle' => 'live']);
+    $st = $conn->prepare("SELECT id, title FROM knowledge_articles WHERE title LIKE ? ESCAPE '\\\\'" . $visSql . " ORDER BY view_count DESC, title LIMIT 8");
+    $st->execute(array_merge([$like], $visParams));
+    $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+    if (!$rows) return "No published article title matches \"$q\".";
+    $lines = [count($rows) . " article(s) matching \"$q\":"];
+    foreach ($rows as $r) $lines[] = sprintf('- #%d %s', $r['id'], $r['title']);
+    $lines[] = 'Titles only - open the article in Knowledge to read it.';
     return implode("\n", $lines);
 }

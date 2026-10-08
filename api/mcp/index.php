@@ -21,9 +21,12 @@
  * analyst's module access and capabilities, and the key's company scope - in
  * includes/mcp/tools.php. Read-only: nothing here writes.
  *
- * ⚠️ ORIGIN: the MCP spec requires a server to refuse a browser request from
- * another site (DNS-rebinding). A request carrying an Origin that is not this
- * server is refused; MCP clients send none.
+ * ⚠️ ORIGIN: a request from a web page carrying an Origin that is not this
+ * server's own Host is refused; MCP clients send none. Said plainly (security
+ * review): this does NOT stop DNS rebinding - there the Origin and the Host are
+ * both the attacker's name. What protects this endpoint from a browser is that
+ * it takes ONLY a bearer key: no cookies, no CORS headers, OPTIONS is 405, so a
+ * page can never send a credential here. This check is a second, cheap fence.
  */
 
 require_once dirname(__DIR__, 2) . '/config.php';
@@ -60,7 +63,7 @@ set_exception_handler(function ($e) {
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if ($origin !== '') {
     $host = strtolower((string)parse_url($origin, PHP_URL_HOST));
-    $self = strtolower(explode(':', (string)($_SERVER['HTTP_HOST'] ?? ''))[0]);
+    $self = strtolower((string)parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));   // IPv6-safe
     if ($host === '' || $host !== $self) mcpReply(403, ['error' => 'Origin not allowed.']);
 }
 
@@ -81,6 +84,8 @@ if (apiExtractKey() === null) {
 }
 $conn = connectToDatabase();
 $apiKey = apiAuthenticate($conn);
+// Never wider than the analyst the key acts as (includes/mcp/tools.php).
+$apiKey['company_scope'] = mcpEffectiveScope($conn, $apiKey);
 $perms = $apiKey['permissions'] ?? [];
 if (!in_array('read', $perms['mcp'] ?? [], true)) {
     mcpReply(403, ['error' => "This API key does not have the 'mcp.read' permission (System - API)."]);
