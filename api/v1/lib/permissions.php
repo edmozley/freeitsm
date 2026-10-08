@@ -235,6 +235,15 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Delete a cost centre that has nothing below it',
             ],
         ],
+        'projects' => [
+            'label'   => 'Projects',
+            'actions' => [
+                'read'   => 'List and view projects (company-scoped) with their health, progress, stages, scope, RAID log, budget, tasks, connections and history',
+                'create' => 'Create projects, from scratch or from a template',
+                'update' => 'Change projects and their stages, gate decisions, scope, RAID log and budget lines - within the project rules of the key\'s analyst',
+                'delete' => 'Delete a project (its tasks are kept, detached) - only where the key\'s analyst may',
+            ],
+        ],
         'contract_terms' => [
             'label'   => 'Contract terms',
             'actions' => [

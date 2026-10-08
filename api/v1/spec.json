@@ -6648,6 +6648,1275 @@
             ]
         },
         {
+            "section": "Projects",
+            "items": [
+                {
+                    "m": "GET",
+                    "p": "\/projects",
+                    "perm": "projects.read",
+                    "s": "List \/ search projects",
+                    "d": "The projects of the key's companies, each with its health, progress, active stage, tolerance exceptions and budget totals. health is the health the portfolio shows - set by hand or worked out from tasks, dates, asset targets, linked tickets and tolerances (health_mode says which) - so filtering by health works on that, not on a stored column. Default order: soonest target finish first.",
+                    "params": [
+                        {
+                            "name": "status",
+                            "in": "query",
+                            "desc": "proposed, active, on_hold, closed, cancelled - several comma-separated",
+                            "req": false
+                        },
+                        {
+                            "name": "health",
+                            "in": "query",
+                            "desc": "green, amber, red - several comma-separated",
+                            "req": false
+                        },
+                        {
+                            "name": "methodology",
+                            "in": "query",
+                            "desc": "simple, staged, agile",
+                            "req": false
+                        },
+                        {
+                            "name": "project_manager_id",
+                            "in": "query",
+                            "desc": "Projects led by this analyst",
+                            "req": false
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "query",
+                            "desc": "Narrow to one company inside the key's scope",
+                            "req": false
+                        },
+                        {
+                            "name": "q",
+                            "in": "query",
+                            "desc": "Search name, summary and goal",
+                            "req": false
+                        },
+                        {
+                            "name": "sort",
+                            "in": "query",
+                            "desc": "target_end_date (default), name, start_date, created_at, updated_at, id - prefix \"-\" for descending",
+                            "req": false
+                        },
+                        {
+                            "name": "page \/ per_page",
+                            "in": "query",
+                            "desc": "Pagination (default 1 \/ 25, max per_page 100)",
+                            "req": false
+                        }
+                    ],
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Live projects that are off track",
+                                "note": "What a weekly report would chase.",
+                                "query": {
+                                    "status": "proposed,active",
+                                    "health": "red"
+                                }
+                            },
+                            {
+                                "title": "One analyst's projects",
+                                "note": "Everything they lead.",
+                                "query": {
+                                    "project_manager_id": 4
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 400,
+                                "slug": "invalid_parameter",
+                                "when": "An unknown status, health, methodology or sort field."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "company_id is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects",
+                    "perm": "projects.create",
+                    "s": "Create a project",
+                    "d": "name is required. Everything else is optional: a new project starts as Projects - Settings says (its way of running, led by the key's analyst) unless told otherwise. With template (\"builtin:office_move\", \"saved:12\") it is created already planned - stages, tasks, scope, risks and tolerances - with every date counted from start_date (today if omitted). Whether the key's analyst may create projects at all is Projects - Settings - General.",
+                    "params": [
+                        {
+                            "name": "name",
+                            "in": "body",
+                            "desc": "Up to 200 characters",
+                            "req": true
+                        },
+                        {
+                            "name": "summary \/ goal",
+                            "in": "body",
+                            "desc": "What and why; one sentence saying what done means",
+                            "req": false
+                        },
+                        {
+                            "name": "methodology",
+                            "in": "body",
+                            "desc": "simple, staged or agile",
+                            "req": false
+                        },
+                        {
+                            "name": "status",
+                            "in": "body",
+                            "desc": "proposed (default), active, on_hold, closed, cancelled",
+                            "req": false
+                        },
+                        {
+                            "name": "project_manager_id",
+                            "in": "body",
+                            "desc": "The analyst who leads it (default: the key's analyst)",
+                            "req": false
+                        },
+                        {
+                            "name": "start_date \/ target_end_date",
+                            "in": "body",
+                            "desc": "YYYY-MM-DD",
+                            "req": false
+                        },
+                        {
+                            "name": "health \/ health_note",
+                            "in": "body",
+                            "desc": "auto (default), green, amber or red; and why",
+                            "req": false
+                        },
+                        {
+                            "name": "colour \/ icon",
+                            "in": "body",
+                            "desc": "From the fixed palette and icon set",
+                            "req": false
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "body",
+                            "desc": "Company (default: the key's default company)",
+                            "req": false
+                        },
+                        {
+                            "name": "template",
+                            "in": "body",
+                            "desc": "builtin:<key> or saved:<id> - start already planned",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "name": "Move to the Bradford office",
+                        "goal": "Everyone working from Bradford by 20 November",
+                        "methodology": "staged",
+                        "start_date": "2026-10-12",
+                        "target_end_date": "2026-11-20"
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "A plain project",
+                                "note": "Led by the key's analyst, run the default way.",
+                                "body": {
+                                    "name": "Firewall replacement",
+                                    "target_end_date": "2027-02-03"
+                                }
+                            },
+                            {
+                                "title": "From a template",
+                                "note": "Arrives with its stages, tasks, scope and risks.",
+                                "body": {
+                                    "name": "Leeds office move",
+                                    "template": "builtin:office_move",
+                                    "start_date": "2026-11-02"
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "Only people who manage Projects may create projects here, or company_id is outside the key's scope."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}",
+                    "perm": "projects.read",
+                    "s": "Get a project",
+                    "d": "One project with its health, progress, active stage, tolerance exceptions and budget totals. Its stages, scope, RAID log, budget lines, tasks, connections and history each have their own endpoint below.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/projects\/{id}",
+                    "perm": "projects.update",
+                    "s": "Update a project",
+                    "d": "Change any of the fields accepted on create (not company_id or template). Only what is sent changes, and every change is written to the project's history. Setting status to closed stamps the actual finish if none is set. Switching methodology relabels the open stages and converts nothing. A change of health, dates or status is picked up by the alert scan at once, so the project manager's bell and project.* workflows react as they do to a change on screen.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "(any field from create)",
+                            "in": "body",
+                            "desc": "Only the fields sent are changed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "status": "active",
+                        "health": "amber",
+                        "health_note": "Waiting on the landlord for access"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "patch-projects-id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/projects\/{id}",
+                    "perm": "projects.delete",
+                    "s": "Delete a project",
+                    "d": "Deletes the project with its stages, scope, RAID log, budget lines, connections and history. Its TASKS ARE KEPT, detached from the project - tasks_detached says how many. Only the project manager, the person who created it or somebody who manages Projects may delete a project, whatever the key's permissions.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst is not the project manager or creator and does not manage Projects."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "delete-projects-id"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/stages",
+                    "perm": "projects.read",
+                    "s": "List a project's stages",
+                    "d": "Its phases, stages or sprints in order (kind says which - it follows the project's way of running), each with its task counts and any gate decision.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-stages"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/stages",
+                    "perm": "projects.update",
+                    "s": "Add a stage",
+                    "d": "Adds a stage at the end. Its kind (phase, stage or sprint) follows the project's way of running. A Staged or Agile project allows one active stage at a time.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "name",
+                            "in": "body",
+                            "desc": "Up to 150 characters",
+                            "req": true
+                        },
+                        {
+                            "name": "goal",
+                            "in": "body",
+                            "desc": "What it must deliver",
+                            "req": false
+                        },
+                        {
+                            "name": "start_date \/ end_date",
+                            "in": "body",
+                            "desc": "YYYY-MM-DD",
+                            "req": false
+                        },
+                        {
+                            "name": "status",
+                            "in": "body",
+                            "desc": "planned (default), active, closed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "name": "Build the network",
+                        "start_date": "2026-10-19",
+                        "end_date": "2026-11-06"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-stages"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/projects\/{id}\/stages\/{stage_id}",
+                    "perm": "projects.update",
+                    "s": "Update a stage",
+                    "d": "Change its name, goal, dates or status. Closing it by status is recorded as a stage closed (no gate decision); to record a decision use the gate endpoint.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "stage_id",
+                            "in": "path",
+                            "desc": "Stage id",
+                            "req": true
+                        },
+                        {
+                            "name": "name \/ goal \/ start_date \/ end_date \/ status",
+                            "in": "body",
+                            "desc": "Only the fields sent are changed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "end_date": "2026-11-13"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or stage, or the project is outside the key's scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "patch-projects-id-stages-stage_id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/projects\/{id}\/stages\/{stage_id}",
+                    "perm": "projects.update",
+                    "s": "Delete a stage",
+                    "d": "Its tasks stay in the project, no longer in a stage.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "stage_id",
+                            "in": "path",
+                            "desc": "Stage id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or stage."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "delete-projects-id-stages-stage_id"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/stages\/{stage_id}\/gate",
+                    "perm": "projects.update",
+                    "s": "Record a gate decision",
+                    "d": "go or go_with_conditions closes the stage (if it is still open) and starts the next planned one; stop records the decision and changes no stages. Conditions are required with go_with_conditions. A planned stage has no gate yet. The response says whether the stage closed and which stage started.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "stage_id",
+                            "in": "path",
+                            "desc": "Stage id",
+                            "req": true
+                        },
+                        {
+                            "name": "decision",
+                            "in": "body",
+                            "desc": "go, go_with_conditions or stop",
+                            "req": true
+                        },
+                        {
+                            "name": "notes",
+                            "in": "body",
+                            "desc": "Required with go_with_conditions",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "decision": "go_with_conditions",
+                        "notes": "Label the patch panels before move day"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or stage."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "An unknown decision, no conditions with go_with_conditions, or a stage that has not started."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-stages-stage_id-gate"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/items",
+                    "perm": "projects.read",
+                    "s": "List a project's scope",
+                    "d": "Its deliverables, each with its MoSCoW priority (must, should, could, wont, or null when unsorted), status and stage.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-items"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/items",
+                    "perm": "projects.update",
+                    "s": "Add a deliverable",
+                    "d": "Adds a deliverable to the project's scope.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "title",
+                            "in": "body",
+                            "desc": "Up to 255 characters",
+                            "req": true
+                        },
+                        {
+                            "name": "description \/ acceptance_criteria",
+                            "in": "body",
+                            "desc": "What it is, and how you will know it is done",
+                            "req": false
+                        },
+                        {
+                            "name": "moscow",
+                            "in": "body",
+                            "desc": "must, should, could, wont or null",
+                            "req": false
+                        },
+                        {
+                            "name": "status",
+                            "in": "body",
+                            "desc": "proposed (default), agreed, in_progress, accepted, dropped",
+                            "req": false
+                        },
+                        {
+                            "name": "stage_id",
+                            "in": "body",
+                            "desc": "A stage of this project",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "title": "Phones working on day one",
+                        "moscow": "must"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-items"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/projects\/{id}\/items\/{item_id}",
+                    "perm": "projects.update",
+                    "s": "Update a deliverable",
+                    "d": "Only the fields sent are changed. A change of MoSCoW priority is written to the history.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "item_id",
+                            "in": "path",
+                            "desc": "Item id",
+                            "req": true
+                        },
+                        {
+                            "name": "(any field from add)",
+                            "in": "body",
+                            "desc": "Only the fields sent are changed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "status": "accepted"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or deliverable."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "patch-projects-id-items-item_id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/projects\/{id}\/items\/{item_id}",
+                    "perm": "projects.update",
+                    "s": "Delete a deliverable",
+                    "d": "Its RACI letters go with it.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "item_id",
+                            "in": "path",
+                            "desc": "Item id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or deliverable."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "delete-projects-id-items-item_id"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/raid",
+                    "perm": "projects.read",
+                    "s": "List a project's RAID log",
+                    "d": "Risks, assumptions, issues, decisions and lessons - open first, then risks by score. A risk's score is probability times impact, 1 to 25.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "type",
+                            "in": "query",
+                            "desc": "risk, assumption, issue, decision, lesson",
+                            "req": false
+                        },
+                        {
+                            "name": "status",
+                            "in": "query",
+                            "desc": "open or closed",
+                            "req": false
+                        }
+                    ],
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Open risks",
+                                "note": "Highest score first.",
+                                "query": {
+                                    "type": "risk",
+                                    "status": "open"
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-raid"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/raid",
+                    "perm": "projects.update",
+                    "s": "Log a RAID entry",
+                    "d": "probability (1-5) applies to risks; impact (1-5) to risks and issues; response (avoid, reduce, transfer, accept, share) to risks. A linked ticket must be one the key's analyst can open, in the project's company. An open risk above the project's risk tolerance makes it an exception.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "type",
+                            "in": "body",
+                            "desc": "risk, assumption, issue, decision or lesson",
+                            "req": true
+                        },
+                        {
+                            "name": "title",
+                            "in": "body",
+                            "desc": "Up to 255 characters",
+                            "req": true
+                        },
+                        {
+                            "name": "description \/ response_plan",
+                            "in": "body",
+                            "desc": "Detail, and how a risk will be handled",
+                            "req": false
+                        },
+                        {
+                            "name": "probability \/ impact",
+                            "in": "body",
+                            "desc": "1 to 5",
+                            "req": false
+                        },
+                        {
+                            "name": "response",
+                            "in": "body",
+                            "desc": "avoid, reduce, transfer, accept or share",
+                            "req": false
+                        },
+                        {
+                            "name": "owner_analyst_id",
+                            "in": "body",
+                            "desc": "An active analyst",
+                            "req": false
+                        },
+                        {
+                            "name": "due_date",
+                            "in": "body",
+                            "desc": "YYYY-MM-DD - review by",
+                            "req": false
+                        },
+                        {
+                            "name": "ticket_id",
+                            "in": "body",
+                            "desc": "A ticket the issue is about",
+                            "req": false
+                        },
+                        {
+                            "name": "status",
+                            "in": "body",
+                            "desc": "open (default) or closed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "type": "risk",
+                        "title": "Landlord delays access to the comms room",
+                        "probability": 3,
+                        "impact": 4,
+                        "response": "reduce",
+                        "response_plan": "Agree access dates in the lease addendum"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-raid"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/projects\/{id}\/raid\/{raid_id}",
+                    "perm": "projects.update",
+                    "s": "Update a RAID entry",
+                    "d": "Only the fields sent are changed. Closing or reopening is written to the history.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "raid_id",
+                            "in": "path",
+                            "desc": "Raid id",
+                            "req": true
+                        },
+                        {
+                            "name": "(any field from log)",
+                            "in": "body",
+                            "desc": "Only the fields sent are changed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "status": "closed"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or entry."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "patch-projects-id-raid-raid_id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/projects\/{id}\/raid\/{raid_id}",
+                    "perm": "projects.update",
+                    "s": "Delete a RAID entry",
+                    "d": "Removes it from the log; the history keeps a line saying it was deleted.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "raid_id",
+                            "in": "path",
+                            "desc": "Raid id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or entry."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "delete-projects-id-raid-raid_id"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/budget",
+                    "perm": "projects.read",
+                    "s": "Get a project's budget",
+                    "d": "Planned against actual in the project's currency, with labour (the time logged on its tasks, priced as Projects - Settings - Budget says, at the rate in force on each day) and every budget line. A line naming a contract uses the contract's value as its actual unless one was entered - only in the same currency: a contract in another currency is shown with currency_mismatch and NOT counted. Amounts in different currencies are never added. Never shows one person's rate.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "not_ready",
+                                "when": "Database Verification has not run since budgets were added."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-budget"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/budget-lines",
+                    "perm": "projects.update",
+                    "s": "Add a budget line",
+                    "d": "Amounts are in the project's currency, with at most two decimals. contract_id must be a contract linked to the project and the key's analyst must have Contracts; cost_centre_id must be an active cost centre of the project's company. A spend past the project's cost tolerance makes it an exception.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "title",
+                            "in": "body",
+                            "desc": "Up to 200 characters",
+                            "req": true
+                        },
+                        {
+                            "name": "category",
+                            "in": "body",
+                            "desc": "hardware, software, services, labour, travel, other (default)",
+                            "req": false
+                        },
+                        {
+                            "name": "planned \/ actual",
+                            "in": "body",
+                            "desc": "Amounts, e.g. 1250 or 1250.50",
+                            "req": false
+                        },
+                        {
+                            "name": "contract_id",
+                            "in": "body",
+                            "desc": "A contract linked on the project",
+                            "req": false
+                        },
+                        {
+                            "name": "cost_centre_id",
+                            "in": "body",
+                            "desc": "An active cost centre of the project's company",
+                            "req": false
+                        },
+                        {
+                            "name": "notes",
+                            "in": "body",
+                            "desc": "Up to 500 characters",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "title": "40 replacement laptops",
+                        "category": "hardware",
+                        "planned": 36000,
+                        "actual": 34250,
+                        "cost_centre_id": 40
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-budget-lines"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/projects\/{id}\/budget-lines\/{line_id}",
+                    "perm": "projects.update",
+                    "s": "Update a budget line",
+                    "d": "Only the fields sent are changed; send actual: null to go back to the contract's value.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "line_id",
+                            "in": "path",
+                            "desc": "Line id",
+                            "req": true
+                        },
+                        {
+                            "name": "(any field from add)",
+                            "in": "body",
+                            "desc": "Only the fields sent are changed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "actual": 35100
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or line."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A value is missing, too long or not one of the allowed values - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "patch-projects-id-budget-lines-line_id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/projects\/{id}\/budget-lines\/{line_id}",
+                    "perm": "projects.update",
+                    "s": "Delete a budget line",
+                    "d": "Its amounts come off the budget; the history keeps a line saying it was removed.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "line_id",
+                            "in": "path",
+                            "desc": "Line id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or line."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project (Projects - Settings - General: who may change a project)."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "delete-projects-id-budget-lines-line_id"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/tasks",
+                    "perm": "projects.read",
+                    "s": "List a project's tasks",
+                    "d": "Its top-level tasks in board order, with stage, status, due date and assignee. Project tasks are ordinary tasks: read the detail and change them through \/tasks.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-tasks"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/links",
+                    "perm": "projects.read",
+                    "s": "List what a project is connected to",
+                    "d": "Its connections by kind - asset, change, ticket, contract, cmdb, article. A kind appears only if the key's analyst can open that module, and a record only if they can open it.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-links"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/history",
+                    "perm": "projects.read",
+                    "s": "Get a project's history",
+                    "d": "Every change, newest first: field, old and new values, who and when, and source (app or api).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "page \/ per_page",
+                            "in": "query",
+                            "desc": "Pagination (default 1 \/ 25, max per_page 100)",
+                            "req": false
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-history"
+                }
+            ]
+        },
+        {
             "section": "Calendar",
             "items": [
                 {

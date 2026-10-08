@@ -4775,8 +4775,8 @@ return array (
       array (
         'id' => 
         array (
-          'type' => 'string',
-          'description' => 'Echoes the id/entry_id path segment verbatim (not cast to int).',
+          'type' => 'integer',
+          'description' => 'The id from the path. The router casts every path segment to an integer before the handler runs, so it is a number.',
         ),
         'deleted' => 
         array (
@@ -11258,6 +11258,948 @@ return array (
         ),
       ),
     ),
+    'Project' => 
+    array (
+      'type' => 'object',
+      'description' => 'A project (3.2.0). health is worked out, not stored - the health the portfolio shows.',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'code' => 
+        array (
+          'type' => 'string',
+          'description' => 'The reference people say out loud, e.g. PRJ-0042.',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'summary' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'goal' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'company' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'null = the Default company.',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'methodology' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'simple',
+            1 => 'staged',
+            2 => 'agile',
+          ),
+        ),
+        'status' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'proposed',
+            1 => 'active',
+            2 => 'on_hold',
+            3 => 'closed',
+            4 => 'cancelled',
+          ),
+        ),
+        'health' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' => 
+          array (
+            0 => 'green',
+            1 => 'amber',
+            2 => 'red',
+          ),
+          'description' => 'null for a closed or cancelled project.',
+        ),
+        'health_mode' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'auto',
+            1 => 'manual',
+          ),
+          'description' => 'auto = worked out; manual = set by hand.',
+        ),
+        'health_note' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'project_manager' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'start_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'target_end_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'actual_end_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'colour' => 
+        array (
+          'type' => 'string',
+        ),
+        'icon' => 
+        array (
+          'type' => 'string',
+        ),
+        'tools' => 
+        array (
+          'type' => 'array',
+          'items' => 
+          array (
+            'type' => 'string',
+          ),
+          'description' => 'The tools switched on: people, scope, raci, raid, gates, budget.',
+        ),
+        'progress' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'percent' => 
+            array (
+              'type' => 'integer',
+            ),
+            'tasks_total' => 
+            array (
+              'type' => 'integer',
+            ),
+            'tasks_done' => 
+            array (
+              'type' => 'integer',
+            ),
+            'tasks_overdue' => 
+            array (
+              'type' => 'integer',
+            ),
+          ),
+        ),
+        'active_stage' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'exceptions' => 
+        array (
+          'type' => 'array',
+          'description' => 'Tolerances exceeded now. kind: time, stage_time, risk or cost.',
+          'items' => 
+          array (
+            'type' => 'object',
+            'properties' => 
+            array (
+              'kind' => 
+              array (
+                'type' => 'string',
+                'enum' => 
+                array (
+                  0 => 'time',
+                  1 => 'stage_time',
+                  2 => 'risk',
+                  3 => 'cost',
+                ),
+              ),
+              'allowed' => 
+              array (
+                'type' => 'integer',
+              ),
+              'late_days' => 
+              array (
+                'type' => 'integer',
+                'nullable' => true,
+              ),
+              'score' => 
+              array (
+                'type' => 'integer',
+                'nullable' => true,
+              ),
+              'over_pct' => 
+              array (
+                'type' => 'integer',
+                'nullable' => true,
+              ),
+            ),
+          ),
+        ),
+        'budget' => 
+        array (
+          'type' => 'object',
+          'description' => 'Totals in the project\'s currency; see GET /projects/{id}/budget for the detail.',
+          'properties' => 
+          array (
+            'currency' => 
+            array (
+              'type' => 'string',
+            ),
+            'planned' => 
+            array (
+              'type' => 'number',
+            ),
+            'actual' => 
+            array (
+              'type' => 'number',
+            ),
+          ),
+        ),
+        'created_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+        ),
+        'updated_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+        ),
+        'closed_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'ProjectDeleteResult' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+          'description' => 'The project id from the path.',
+        ),
+        'deleted' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'tasks_detached' => 
+        array (
+          'type' => 'integer',
+          'description' => 'Its tasks are kept, taken out of the project.',
+        ),
+      ),
+    ),
+    'ProjectStage' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'kind' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'phase',
+            1 => 'stage',
+            2 => 'sprint',
+          ),
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'goal' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'status' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'planned',
+            1 => 'active',
+            2 => 'closed',
+          ),
+        ),
+        'position' => 
+        array (
+          'type' => 'integer',
+        ),
+        'start_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'end_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'tasks_total' => 
+        array (
+          'type' => 'integer',
+        ),
+        'tasks_done' => 
+        array (
+          'type' => 'integer',
+        ),
+        'gate' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'decision' => 
+            array (
+              'type' => 'string',
+              'enum' => 
+              array (
+                0 => 'go',
+                1 => 'go_with_conditions',
+                2 => 'stop',
+              ),
+            ),
+            'notes' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'decided_by' => 
+            array (
+              'type' => 'integer',
+              'nullable' => true,
+            ),
+            'decided_at' => 
+            array (
+              'type' => 'string',
+              'format' => 'date-time',
+              'nullable' => true,
+            ),
+          ),
+        ),
+      ),
+    ),
+    'ProjectGateResult' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'stage' => 
+        array (
+          '$ref' => '#/components/schemas/ProjectStage',
+        ),
+        'closed' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'next_stage' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'The stage this decision started, if any.',
+        ),
+      ),
+    ),
+    'ProjectItem' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'title' => 
+        array (
+          'type' => 'string',
+        ),
+        'description' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'acceptance_criteria' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'moscow' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' => 
+          array (
+            0 => 'must',
+            1 => 'should',
+            2 => 'could',
+            3 => 'wont',
+          ),
+        ),
+        'status' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'proposed',
+            1 => 'agreed',
+            2 => 'in_progress',
+            3 => 'accepted',
+            4 => 'dropped',
+          ),
+        ),
+        'stage' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'position' => 
+        array (
+          'type' => 'integer',
+        ),
+        'created_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+        ),
+        'updated_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+        ),
+      ),
+    ),
+    'ProjectRaidEntry' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'type' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'risk',
+            1 => 'assumption',
+            2 => 'issue',
+            3 => 'decision',
+            4 => 'lesson',
+          ),
+        ),
+        'title' => 
+        array (
+          'type' => 'string',
+        ),
+        'description' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'status' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'open',
+            1 => 'closed',
+          ),
+        ),
+        'probability' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+        ),
+        'impact' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+        ),
+        'score' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'probability x impact, risks only.',
+        ),
+        'response' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' => 
+          array (
+            0 => 'avoid',
+            1 => 'reduce',
+            2 => 'transfer',
+            3 => 'accept',
+            4 => 'share',
+          ),
+        ),
+        'response_plan' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'owner' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'due_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'ticket' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'number' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'subject' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'raised_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+        ),
+        'updated_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+        ),
+        'closed_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'ProjectBudgetLine' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'title' => 
+        array (
+          'type' => 'string',
+        ),
+        'category' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'hardware',
+            1 => 'software',
+            2 => 'services',
+            3 => 'labour',
+            4 => 'travel',
+            5 => 'other',
+          ),
+        ),
+        'planned' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+        ),
+        'actual' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+          'description' => 'What counts: the amount entered, else the contract\'s value in the same currency.',
+        ),
+        'actual_entered' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+        ),
+        'actual_source' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' => 
+          array (
+            0 => 'typed',
+            1 => 'contract',
+          ),
+        ),
+        'currency_mismatch' => 
+        array (
+          'type' => 'boolean',
+          'description' => 'true = its contract is in another currency: shown, not counted.',
+        ),
+        'contract' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'title' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'number' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'value' => 
+            array (
+              'type' => 'number',
+              'nullable' => true,
+            ),
+            'currency' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'cost_centre' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'code' => 
+            array (
+              'type' => 'string',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+          ),
+        ),
+        'notes' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'ProjectBudget' => 
+    array (
+      'type' => 'object',
+      'description' => 'In the project\'s currency. Amounts in different currencies are never added.',
+      'properties' => 
+      array (
+        'currency' => 
+        array (
+          'type' => 'string',
+        ),
+        'planned' => 
+        array (
+          'type' => 'number',
+        ),
+        'actual' => 
+        array (
+          'type' => 'number',
+        ),
+        'remaining' => 
+        array (
+          'type' => 'number',
+        ),
+        'labour' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'mode' => 
+            array (
+              'type' => 'string',
+              'enum' => 
+              array (
+                0 => 'hours',
+                1 => 'rate',
+                2 => 'analyst',
+              ),
+            ),
+            'minutes' => 
+            array (
+              'type' => 'integer',
+            ),
+            'cost' => 
+            array (
+              'type' => 'number',
+              'nullable' => true,
+              'description' => 'null when labour is shown in hours.',
+            ),
+            'unpriced_minutes' => 
+            array (
+              'type' => 'integer',
+            ),
+          ),
+        ),
+        'lines' => 
+        array (
+          'type' => 'array',
+          'items' => 
+          array (
+            '$ref' => '#/components/schemas/ProjectBudgetLine',
+          ),
+        ),
+      ),
+    ),
+    'ProjectTaskSummary' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'title' => 
+        array (
+          'type' => 'string',
+        ),
+        'stage_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+        ),
+        'status' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'is_done' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'due_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'assignee' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+      ),
+    ),
+    'ProjectLinks' => 
+    array (
+      'type' => 'object',
+      'description' => 'By kind - asset, change, ticket, contract, cmdb, article - only those the key\'s analyst may open.',
+      'additionalProperties' => 
+      array (
+        'type' => 'array',
+        'items' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'label' => 
+            array (
+              'type' => 'string',
+            ),
+            'detail' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+            'status' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+      ),
+    ),
+    'ProjectHistoryEntry' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'field' => 
+        array (
+          'type' => 'string',
+        ),
+        'old_value' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'new_value' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'source' => 
+        array (
+          'type' => 'string',
+        ),
+        'analyst' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'created_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+        ),
+      ),
+    ),
     'CostCentre' => 
     array (
       'type' => 'object',
@@ -12374,6 +13316,14 @@ return array (
                     'type' => 'string',
                   ),
                 ),
+                'projects' =>
+                array (
+                  'type' => 'array',
+                  'items' =>
+                  array (
+                    'type' => 'string',
+                  ),
+                ),
                 'contracts' =>
                 array (
                   'type' => 'array',
@@ -13191,6 +14141,130 @@ return array (
     'POST /workflows/{id}/fire' => 
     array (
       '$ref' => '#/components/schemas/WorkflowFireResult',
+    ),
+    'GET /projects' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/Project',
+      ),
+    ),
+    'POST /projects' => 
+    array (
+      '$ref' => '#/components/schemas/Project',
+    ),
+    'GET /projects/{id}' => 
+    array (
+      '$ref' => '#/components/schemas/Project',
+    ),
+    'PATCH /projects/{id}' => 
+    array (
+      '$ref' => '#/components/schemas/Project',
+    ),
+    'DELETE /projects/{id}' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectDeleteResult',
+    ),
+    'GET /projects/{id}/stages' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/ProjectStage',
+      ),
+    ),
+    'POST /projects/{id}/stages' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectStage',
+    ),
+    'PATCH /projects/{id}/stages/{stage_id}' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectStage',
+    ),
+    'DELETE /projects/{id}/stages/{stage_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
+    'POST /projects/{id}/stages/{stage_id}/gate' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectGateResult',
+    ),
+    'GET /projects/{id}/items' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/ProjectItem',
+      ),
+    ),
+    'POST /projects/{id}/items' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectItem',
+    ),
+    'PATCH /projects/{id}/items/{item_id}' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectItem',
+    ),
+    'DELETE /projects/{id}/items/{item_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
+    'GET /projects/{id}/raid' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/ProjectRaidEntry',
+      ),
+    ),
+    'POST /projects/{id}/raid' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectRaidEntry',
+    ),
+    'PATCH /projects/{id}/raid/{raid_id}' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectRaidEntry',
+    ),
+    'DELETE /projects/{id}/raid/{raid_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
+    'GET /projects/{id}/budget' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectBudget',
+    ),
+    'POST /projects/{id}/budget-lines' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectBudgetLine',
+    ),
+    'PATCH /projects/{id}/budget-lines/{line_id}' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectBudgetLine',
+    ),
+    'DELETE /projects/{id}/budget-lines/{line_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
+    'GET /projects/{id}/tasks' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/ProjectTaskSummary',
+      ),
+    ),
+    'GET /projects/{id}/links' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectLinks',
+    ),
+    'GET /projects/{id}/history' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/ProjectHistoryEntry',
+      ),
     ),
     'DELETE /cost-centres/{id}' => 
     array (

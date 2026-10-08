@@ -977,7 +977,7 @@ return [
             'nav'   => 'Coming next',
             'title' => 'What is coming next',
             'intro' => 'Projects is being built in stages.',
-            'p1'    => 'Next come REST API endpoints for projects and a platform-wide MCP server, and then an AI project manager that drafts your status reports for you to check.',
+            'p1'    => 'Projects can now be read and changed through the REST API (System - API). Next come a platform-wide MCP server and an AI project manager that drafts your status reports for you to check.',
         ],
     ],
 

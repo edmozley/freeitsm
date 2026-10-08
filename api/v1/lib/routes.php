@@ -236,6 +236,36 @@ return [
     ['PATCH',  '#^/cost-centres/(\d+)$#',                  ['cost_centres', 'update'],        'apiCostCentresUpdate'],
     ['DELETE', '#^/cost-centres/(\d+)$#',                  ['cost_centres', 'delete'],        'apiCostCentresDelete'],
 
+    // Projects (3.2.0) — company-scoped; the key acts as its analyst, so the
+    // module's own create / change / delete rules apply. Sub-resources are
+    // reached only through their project, so they share its scope; changing
+    // one is a change to the project ('update').
+    ['GET',    '#^/projects$#',                            ['projects', 'read'],              'apiProjectsList'],
+    ['POST',   '#^/projects$#',                            ['projects', 'create'],            'apiProjectsCreate'],
+    ['GET',    '#^/projects/(\d+)$#',                      ['projects', 'read'],              'apiProjectsGet'],
+    ['PATCH',  '#^/projects/(\d+)$#',                      ['projects', 'update'],            'apiProjectsUpdate'],
+    ['DELETE', '#^/projects/(\d+)$#',                      ['projects', 'delete'],            'apiProjectsDelete'],
+    ['GET',    '#^/projects/(\d+)/stages$#',               ['projects', 'read'],              'apiProjectStagesList'],
+    ['POST',   '#^/projects/(\d+)/stages$#',               ['projects', 'update'],            'apiProjectStagesCreate'],
+    ['PATCH',  '#^/projects/(\d+)/stages/(\d+)$#',         ['projects', 'update'],            'apiProjectStagesUpdate'],
+    ['DELETE', '#^/projects/(\d+)/stages/(\d+)$#',         ['projects', 'update'],            'apiProjectStagesDelete'],
+    ['POST',   '#^/projects/(\d+)/stages/(\d+)/gate$#',    ['projects', 'update'],            'apiProjectStagesGate'],
+    ['GET',    '#^/projects/(\d+)/items$#',                ['projects', 'read'],              'apiProjectItemsList'],
+    ['POST',   '#^/projects/(\d+)/items$#',                ['projects', 'update'],            'apiProjectItemsCreate'],
+    ['PATCH',  '#^/projects/(\d+)/items/(\d+)$#',          ['projects', 'update'],            'apiProjectItemsUpdate'],
+    ['DELETE', '#^/projects/(\d+)/items/(\d+)$#',          ['projects', 'update'],            'apiProjectItemsDelete'],
+    ['GET',    '#^/projects/(\d+)/raid$#',                 ['projects', 'read'],              'apiProjectRaidList'],
+    ['POST',   '#^/projects/(\d+)/raid$#',                 ['projects', 'update'],            'apiProjectRaidCreate'],
+    ['PATCH',  '#^/projects/(\d+)/raid/(\d+)$#',           ['projects', 'update'],            'apiProjectRaidUpdate'],
+    ['DELETE', '#^/projects/(\d+)/raid/(\d+)$#',           ['projects', 'update'],            'apiProjectRaidDelete'],
+    ['GET',    '#^/projects/(\d+)/budget$#',               ['projects', 'read'],              'apiProjectBudget'],
+    ['POST',   '#^/projects/(\d+)/budget-lines$#',         ['projects', 'update'],            'apiProjectBudgetLinesCreate'],
+    ['PATCH',  '#^/projects/(\d+)/budget-lines/(\d+)$#',   ['projects', 'update'],            'apiProjectBudgetLinesUpdate'],
+    ['DELETE', '#^/projects/(\d+)/budget-lines/(\d+)$#',   ['projects', 'update'],            'apiProjectBudgetLinesDelete'],
+    ['GET',    '#^/projects/(\d+)/tasks$#',                ['projects', 'read'],              'apiProjectTasks'],
+    ['GET',    '#^/projects/(\d+)/links$#',                ['projects', 'read'],              'apiProjectLinks'],
+    ['GET',    '#^/projects/(\d+)/history$#',              ['projects', 'read'],              'apiProjectHistory'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],

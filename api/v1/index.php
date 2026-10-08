@@ -26,6 +26,7 @@ require_once __DIR__ . '/resources/cmdb.php';
 require_once __DIR__ . '/resources/contracts.php';
 require_once __DIR__ . '/resources/domains.php';
 require_once __DIR__ . '/resources/cost_centres.php';
+require_once __DIR__ . '/resources/projects.php';
 require_once __DIR__ . '/resources/calendar.php';
 require_once __DIR__ . '/resources/software.php';
 require_once __DIR__ . '/resources/service_status.php';
