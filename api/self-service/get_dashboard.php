@@ -20,6 +20,8 @@ $userId = (int)$_SESSION['ss_user_id'];
 
 try {
     $conn = connectToDatabase();
+    require_once __DIR__ . '/../../includes/service_status_planned.php';
+    statusPlannedDue($conn);   // a start or end due now is seen now, cron or not
 
     // Active statuses from the lookup — drives the summary card layout dynamically
     $statusListStmt = $conn->query(
@@ -154,6 +156,12 @@ try {
         // check lives in there rather than here, because it must hold for
         // every caller rather than for the ones that remember.
         'incidents' => ssPortalIncidents($conn),
+        // Planned maintenance not yet started (3.2.0) - behind the same switch as
+        // the incidents, so the portal is unchanged until an administrator opts in.
+        'planned' => ssPortalUpdatesEnabled($conn) ? array_map(fn($p) => [
+            'title' => $p['title'], 'comment' => $p['comment'], 'start' => $p['start'], 'end' => $p['end'],
+            'services' => array_map(fn($s) => ['name' => $s['name'], 'impact' => $s['impact'], 'colour' => $s['colour']], $p['services']),
+        ], statusPlannedList($conn, ['states' => ['scheduled'], 'limit' => 10])) : [],
         // Which level counts as "all clear" — the portal's "All systems operational"
         // banner tests against this instead of the literal name (GH #70).
         'default_impact' => $defaultImpact

@@ -272,6 +272,26 @@ $translationNamespaces = ['common', 'service-status'];
 
         /* Incidents list */
         .incidents-section { margin-bottom: 30px; }
+        /* Planned maintenance (3.2.0) */
+        .planned-section { margin-bottom: 30px; }
+        .planned-list { display: flex; flex-direction: column; gap: 10px; }
+        .planned-empty { padding: 14px 16px; border: 1px dashed var(--border, #e5e7eb); border-radius: 10px; color: var(--text-dim, #888); font-size: 13px; }
+        .planned-row { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-left: 4px solid #0891b2; border-radius: 10px; }
+        .planned-row.live { border-left-color: #f59e0b; }
+        .planned-main { flex: 1; min-width: 0; }
+        .planned-name { font-weight: 600; color: var(--text, #333); }
+        .planned-state { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(8, 145, 178, .12); color: #0e7490; margin-right: 4px; }
+        .planned-row.live .planned-state { background: rgba(245, 158, 11, .15); color: #b45309; }
+        .planned-time { font-size: 13px; color: var(--text-muted, #6b7280); margin-top: 3px; }
+        .planned-comment { font-size: 13px; color: var(--text, #333); margin-top: 6px; white-space: pre-wrap; }
+        .planned-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+        .planned-chip { font-size: 12px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--pc); color: var(--text, #333); }
+        .planned-chip small { color: var(--pc); font-weight: 600; }
+        .planned-from { font-size: 12px; color: var(--ss-accent, #10b981); }
+        .planned-btn { padding: 6px 12px; font-size: 13px; }
+        .planned-intro { font-size: 13px; color: var(--text-muted, #6b7280); margin: 0 0 14px; }
+        .planned-when { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 600px) { .planned-row { flex-direction: column; } .planned-when { grid-template-columns: 1fr; } }
 
         .incident-table {
             width: 100%;
@@ -454,6 +474,15 @@ $translationNamespaces = ['common', 'service-status'];
             <div class="empty-state"><?php echo htmlspecialchars(t('service-status.board.loading')); ?></div>
         </div>
 
+        <!-- Planned maintenance (3.2.0): not an incident until it starts. -->
+        <div class="planned-section">
+            <div class="section-title">
+                <?php echo htmlspecialchars(t('service-status.planned.title')); ?>
+                <button class="new-btn" onclick="openPlannedModal()"><?php echo htmlspecialchars(t('service-status.planned.new')); ?></button>
+            </div>
+            <div class="planned-list" id="plannedList"></div>
+        </div>
+
         <!-- Incidents -->
         <div class="incidents-section">
             <div class="section-title">
@@ -482,6 +511,45 @@ $translationNamespaces = ['common', 'service-status'];
                 <tbody id="incidentList"></tbody>
             </table>
             <div class="empty-state" id="incidentEmpty" style="display: none;"><?php echo htmlspecialchars(t('service-status.board.no_incidents')); ?></div>
+        </div>
+    </div>
+
+    <!-- Planned maintenance (3.2.0) -->
+    <div class="modal" id="plannedModal">
+        <div class="modal-content">
+            <div class="modal-header" id="plannedModalTitle"></div>
+            <form id="plannedForm" autocomplete="off">
+                <input type="hidden" id="plannedId">
+                <p class="planned-intro"><?php echo htmlspecialchars(t('service-status.planned.intro')); ?></p>
+                <div class="form-group">
+                    <label for="plannedTitle"><?php echo htmlspecialchars(t('service-status.planned.title_label')); ?></label>
+                    <input type="text" id="plannedTitle" required maxlength="255" placeholder="<?php echo htmlspecialchars(t('service-status.planned.title_ph')); ?>">
+                </div>
+                <div class="planned-when">
+                    <div class="form-group">
+                        <label for="plannedStart"><?php echo htmlspecialchars(t('service-status.planned.start')); ?></label>
+                        <input type="datetime-local" id="plannedStart" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="plannedEnd"><?php echo htmlspecialchars(t('service-status.planned.end')); ?></label>
+                        <input type="datetime-local" id="plannedEnd">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="plannedComment"><?php echo htmlspecialchars(t('service-status.planned.comment')); ?></label>
+                    <textarea id="plannedComment" placeholder="<?php echo htmlspecialchars(t('service-status.planned.comment_ph')); ?>"></textarea>
+                </div>
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('service-status.modal.affected_services')); ?></label>
+                    <div class="affected-services" id="plannedServices"></div>
+                    <button type="button" class="add-svc-btn" onclick="addPlannedServiceRow()"><?php echo htmlspecialchars(t('service-status.modal.add_service')); ?></button>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-danger" id="plannedCancelBtn" style="display:none; margin-right:auto;"><?php echo htmlspecialchars(t('service-status.planned.cancel_plan')); ?></button>
+                    <button type="button" class="btn btn-secondary" onclick="closePlannedModal()"><?php echo htmlspecialchars(t('service-status.modal.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('service-status.modal.save')); ?></button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -653,6 +721,7 @@ $translationNamespaces = ['common', 'service-status'];
                     dashboardData = data;
                     renderServiceGrid(data.services);
                     renderIncidents(data.incidents);
+                    renderPlanned(data.planned || []);
                 }
             } catch (error) {
                 console.error('Failed to load dashboard:', error);
@@ -986,6 +1055,88 @@ $translationNamespaces = ['common', 'service-status'];
                 return dateStr;
             }
         }
+
+        // --- Planned maintenance (3.2.0) ---
+        // Not an incident until it starts: the server turns it into one at its
+        // start (backdated) and resolves it at its end. Times are typed in the
+        // analyst's own zone and sent as UTC (tz.js inputToUTC / utcToInput).
+        function plannedWhen(p) {
+            const s = formatDate(p.start);
+            return p.end ? window.t('service-status.planned.when_range', { start: s, end: formatDate(p.end) })
+                         : window.t('service-status.planned.when_open', { start: s });
+        }
+        function renderPlanned(list) {
+            const box = document.getElementById('plannedList');
+            if (!list.length) { box.innerHTML = '<div class="planned-empty">' + escapeHtml(window.t('service-status.planned.none')) + '</div>'; return; }
+            box.innerHTML = list.map(p => {
+                const live = p.state === 'started';
+                const chips = (p.services || []).map(s => '<span class="planned-chip" style="--pc:' + escapeHtml(s.colour || '#64748b') + '">' + escapeHtml(s.name)
+                    + (s.impact ? ' <small>' + escapeHtml(s.impact) + '</small>' : '') + '</span>').join('');
+                const from = p.project_id ? '<a class="planned-from" href="../projects/view.php?id=' + encodeURIComponent(p.project_id) + '">'
+                    + escapeHtml(window.t('service-status.planned.from_project', { name: p.project_name || ('#' + p.project_id) })) + '</a>' : '';
+                const action = live
+                    ? (p.incident_id ? '<button type="button" class="btn btn-secondary planned-btn" onclick="editIncident(' + p.incident_id + ')">' + escapeHtml(window.t('service-status.planned.open')) + '</button>' : '')
+                    : '<button type="button" class="btn btn-secondary planned-btn" onclick="openPlannedModal(' + p.id + ')">' + escapeHtml(window.t('service-status.planned.edit')) + '</button>';
+                return '<div class="planned-row' + (live ? ' live' : '') + '">'
+                    + '<div class="planned-main"><div class="planned-name"><span class="planned-state">' + escapeHtml(window.t('service-status.planned.state_' + p.state)) + '</span> ' + escapeHtml(p.title) + '</div>'
+                    + '<div class="planned-time">' + escapeHtml(plannedWhen(p)) + '</div>'
+                    + (p.comment ? '<div class="planned-comment">' + escapeHtml(p.comment) + '</div>' : '')
+                    + '<div class="planned-chips">' + chips + from + '</div></div>' + action + '</div>';
+            }).join('');
+        }
+        function addPlannedServiceRow(serviceId, impactId) {
+            const box = document.getElementById('plannedServices');
+            const row = document.createElement('div');
+            row.className = 'affected-row';
+            // Default impact by MEANING, not name: the most serious level that does
+            // not count as downtime and is not the all-clear - Maintenance on the
+            // stock lookup, whatever it is called here.
+            const maint = impactLevels.filter(l => !Number(l.counts_as_downtime) && !Number(l.is_default)).sort((a, b) => a.severity_order - b.severity_order)[0];
+            const pick = impactId || (maint && maint.id) || (impactLevels[0] && impactLevels[0].id);
+            row.innerHTML = '<select class="svc-select">' + allServices.map(s => '<option value="' + s.id + '"' + (s.id == serviceId ? ' selected' : '') + '>' + escapeHtml(s.name) + '</option>').join('') + '</select>'
+                + '<select class="impact-select">' + impactLevels.map(l => '<option value="' + l.id + '"' + (l.id == pick ? ' selected' : '') + '>' + escapeHtml(l.name) + '</option>').join('') + '</select>'
+                + '<button type="button" class="remove-svc">&times;</button>';
+            row.querySelector('.remove-svc').addEventListener('click', () => row.remove());
+            box.appendChild(row);
+        }
+        function openPlannedModal(id) {
+            const p = id ? (dashboardData.planned || []).find(x => x.id === id) : null;
+            document.getElementById('plannedModalTitle').textContent = window.t(p ? 'service-status.planned.edit_title' : 'service-status.planned.new_title');
+            document.getElementById('plannedId').value = p ? p.id : '';
+            document.getElementById('plannedTitle').value = p ? p.title : '';
+            document.getElementById('plannedComment').value = p ? (p.comment || '') : '';
+            document.getElementById('plannedStart').value = p ? utcToInput(p.start) : '';
+            document.getElementById('plannedEnd').value = p && p.end ? utcToInput(p.end) : '';
+            document.getElementById('plannedServices').innerHTML = '';
+            if (p && p.services.length) p.services.forEach(s => addPlannedServiceRow(s.service_id, s.impact_level_id)); else addPlannedServiceRow();
+            const cancel = document.getElementById('plannedCancelBtn');
+            cancel.style.display = p ? 'inline-flex' : 'none';
+            cancel.onclick = async () => {
+                const ok = await showConfirm({ title: window.t('service-status.planned.cancel_title'), message: window.t('service-status.planned.cancel_message', { name: p.title }),
+                    okLabel: window.t('service-status.planned.cancel_plan'), okClass: 'danger' });
+                if (!ok) return;
+                const r = await fetch(API_BASE + 'planned.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'cancel', id: p.id }) }).then(x => x.json());
+                if (!r.success) { plannedError(r.error); return; }
+                closePlannedModal(); loadDashboard();
+            };
+            document.getElementById('plannedModal').classList.add('active');
+        }
+        function plannedError(msg) {
+            if (typeof showToast === 'function') showToast(msg, 'error'); else alert(msg);
+        }
+        function closePlannedModal() { document.getElementById('plannedModal').classList.remove('active'); }
+        document.getElementById('plannedForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const services = Array.from(document.querySelectorAll('#plannedServices .affected-row')).map(r => ({
+                service_id: parseInt(r.querySelector('.svc-select').value, 10), impact_level_id: parseInt(r.querySelector('.impact-select').value, 10) }));
+            const body = { action: 'save', id: document.getElementById('plannedId').value || undefined,
+                title: document.getElementById('plannedTitle').value.trim(), comment: document.getElementById('plannedComment').value.trim(),
+                start: inputToUTC(document.getElementById('plannedStart').value), end: inputToUTC(document.getElementById('plannedEnd').value), services: services };
+            const r = await fetch(API_BASE + 'planned.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(x => x.json());
+            if (!r.success) { plannedError(r.error); return; }
+            closePlannedModal();
+            loadDashboard();
+        });
 
         // --- Incident Modal ---
 

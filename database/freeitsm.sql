@@ -6519,6 +6519,51 @@ CREATE TABLE IF NOT EXISTS `status_incident_update_services` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
+-- Planned maintenance (3.2.0) - includes/service_status_planned.php
+--
+-- 🔑 NOT a status_incidents row until it starts. Fifteen readers (the board,
+-- the portal, Watchtower, uptime, Report Packs, the REST API, Warbot) decide
+-- "open" from the incident's status, and none of them knows a start time; a
+-- future incident would show the service under maintenance days early and
+-- count from the wrong moment. So the plan waits here, shown as Upcoming, and
+-- at planned_start becomes an ordinary incident (backdated to planned_start)
+-- through ServiceStatusService - workflows fire as for any incident - and at
+-- planned_end is resolved (backdated to planned_end). state: scheduled |
+-- started | finished | cancelled. planned_end NULL = resolved by hand.
+-- project_id: the project that announced it (Projects -> Connections).
+-- ----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `status_planned` (
+    `id`                      INT NOT NULL AUTO_INCREMENT,
+    `title`                   VARCHAR(255) NOT NULL,
+    `comment`                 TEXT NULL,
+    `planned_start_datetime`  DATETIME NOT NULL,   -- UTC
+    `planned_end_datetime`    DATETIME NULL,       -- UTC
+    `state`                   VARCHAR(12) NOT NULL DEFAULT 'scheduled',
+    `incident_id`             INT NULL,
+    `project_id`              INT NULL,
+    `created_by_id`           INT NULL,
+    `created_datetime`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`                 TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `ix_sp_state_start` (`state`, `planned_start_datetime`),
+    KEY `ix_sp_project` (`project_id`),
+    CONSTRAINT `fk_sp_incident` FOREIGN KEY (`incident_id`) REFERENCES `status_incidents` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_sp_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `status_planned_services` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `planned_id`        INT NOT NULL,
+    `service_id`        INT NOT NULL,
+    `impact_level_id`   INT NULL,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `ix_sps_planned` (`planned_id`),
+    CONSTRAINT `fk_sps_planned` FOREIGN KEY (`planned_id`) REFERENCES `status_planned` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
 -- CMDB (Configuration Management Database)
 -- See docs/cmdb.md for the full design rationale.
 -- ----------------------------------------------------------

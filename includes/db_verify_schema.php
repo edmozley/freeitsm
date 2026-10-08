@@ -4410,6 +4410,30 @@ return [
         'impact_level_id'   => 'INT NULL',
     ],
 
+    // Planned maintenance (3.2.0) - not an incident until it starts; see
+    // includes/service_status_planned.php and database/freeitsm.sql.
+    'status_planned' => [
+        'id'                     => 'INT NOT NULL AUTO_INCREMENT',
+        'title'                  => 'VARCHAR(255) NOT NULL',
+        'comment'                => 'TEXT NULL',
+        'planned_start_datetime' => 'DATETIME NOT NULL',
+        'planned_end_datetime'   => 'DATETIME NULL',
+        'state'                  => "VARCHAR(12) NOT NULL DEFAULT 'scheduled'",
+        'incident_id'            => 'INT NULL',
+        'project_id'             => 'INT NULL',
+        'created_by_id'          => 'INT NULL',
+        'created_datetime'       => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'       => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'                => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    'status_planned_services' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'planned_id'        => 'INT NOT NULL',
+        'service_id'        => 'INT NOT NULL',
+        'impact_level_id'   => 'INT NULL',
+        'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+
     'status_incidents' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'title'                 => 'VARCHAR(255) NOT NULL',

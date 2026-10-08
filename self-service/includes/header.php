@@ -204,7 +204,7 @@ try {
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=24">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
-    <link rel="stylesheet" href="../assets/css/self-service.css?v=21">
+    <link rel="stylesheet" href="../assets/css/self-service.css?v=22">
 <?php if ($ssAppearance['background_pattern'] !== ''): ?>
     <!-- Only fetched when a pattern is actually in use. -->
     <link rel="stylesheet" href="../assets/css/self-service-patterns.css?v=4">

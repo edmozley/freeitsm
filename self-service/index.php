@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                 renderRecentTickets(data.recent_tickets);
                 renderServiceStatus(data.services, data.default_impact);
                 renderStatusIncidents(data.incidents);
+                renderStatusPlanned(data.planned);
             } catch (err) {
                 console.error('Failed to load dashboard:', err);
             }
@@ -328,6 +329,37 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                             ${escapeHtml(window.t('self-service.status.show_updates', { n: inc.update_count }))}
                         </button>
                         <div class="inc-card-updates" id="incUpd${inc.id}" hidden></div>
+                    </div>`;
+                }).join('');
+        }
+
+        /**
+         * Planned maintenance that has not started yet (3.2.0). The same cards
+         * as the incidents, without updates to open: it is an announcement.
+         * Empty unless an administrator shows incidents on the portal at all.
+         */
+        function renderStatusPlanned(planned) {
+            const box = document.getElementById('statusPlanned');
+            if (!box) return;
+            if (!planned || !planned.length) { box.innerHTML = ''; box.hidden = true; return; }
+            box.hidden = false;
+            const when = p => {
+                const s = fmtDateTime(p.start);
+                return p.end ? window.t('self-service.status.planned_range', { start: s, end: fmtDateTime(p.end) })
+                             : window.t('self-service.status.planned_open', { start: s });
+            };
+            box.innerHTML = `<h3 class="inc-list-heading">${escapeHtml(window.t('self-service.status.planned_heading'))}</h3>`
+                + planned.map(p => {
+                    const svcs = (p.services || []).map(s =>
+                        `<span class="inc-svc"${s.colour ? ` style="background:${escapeHtml(s.colour)};color:#fff;"` : ''}>${escapeHtml(s.name)}</span>`).join('');
+                    return `
+                    <div class="inc-card">
+                        <div class="inc-card-head">
+                            <span class="inc-card-title">${escapeHtml(p.title || '')}</span>
+                            <span class="inc-card-state">${escapeHtml(when(p))}</span>
+                        </div>
+                        ${p.comment ? `<div class="inc-card-note">${escapeHtml(p.comment)}</div>` : ''}
+                        ${svcs ? `<div class="inc-card-svcs">${svcs}</div>` : ''}
                     </div>`;
                 }).join('');
         }
@@ -625,6 +657,9 @@ require __DIR__ . "/includes/header.php";
                          it needs an administrator to switch it on AND somebody
                          to have written an external update. */ ?>
                 <div id="statusIncidents" hidden></div>
+                <?php /* Planned maintenance not yet started (3.2.0) - behind the
+                         same switch as the incidents above. */ ?>
+                <div id="statusPlanned" hidden></div>
             </div>
         </div>
 

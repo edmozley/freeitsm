@@ -1050,6 +1050,7 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 /* ══ Incidents on the status panel (discussion #99) ════════════════════════
    Shown only when an administrator has switched this on AND somebody has
    written an external update, so most portals never render any of it. */
+.inc-card-note { margin: 6px 0 0; font-size: 13px; white-space: pre-wrap; }   /* planned maintenance (3.2.0) */
 .inc-list-heading {
     margin: 18px 0 10px;
     font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;

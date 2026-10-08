@@ -24,6 +24,8 @@
  *      gate_decide    {stage_id, decision: go|go_with_conditions|stop, notes?}
  *      target_save    {id?, name, scope: filter|linked, scope_type_id?, scope_field?, scope_value?, done_field, done_op, done_value, target_date?}
  *      target_delete  {id}
+ *      announce       {title, comment?, start?, end?, services:[{service_id, impact_level_id}]}  (Service Status)
+ *      announce_withdraw {id}
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -102,6 +104,11 @@ projectApiRun(function () use ($conn, $ctx) {
         case 'target_delete':
             ProjectToolsService::deleteTarget($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk();
+        case 'announce':
+            projectApiOk(['id' => ProjectToolsService::announce($conn, $ctx, $pid, $in), 'announcements' => ProjectToolsService::announcements($conn, $ctx->actorId, $pid)]);
+        case 'announce_withdraw':
+            ProjectToolsService::withdrawAnnouncement($conn, $ctx, $pid, (int)($in['id'] ?? 0));
+            projectApiOk(['announcements' => ProjectToolsService::announcements($conn, $ctx->actorId, $pid)]);
         case 'raci_set':
             projectApiOk(['row' => (object)ProjectToolsService::setRaci($conn, $ctx, $pid, (int)($in['item_id'] ?? 0), (int)($in['member_id'] ?? 0), (string)($in['letter'] ?? ''))]);
     }

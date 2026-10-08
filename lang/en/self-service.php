@@ -171,6 +171,10 @@ return [
     // Incidents on the status panel (#99)
     'status' => [
         'incidents_heading'   => 'What is happening',
+        // Planned maintenance (3.2.0)
+        'planned_heading'     => 'Planned maintenance',
+        'planned_range'       => '{start} to {end}',
+        'planned_open'        => 'From {start}',
         'show_updates'        => 'Show updates ({n})',
         'hide_updates'        => 'Hide updates',
         'loading'             => 'Loading…',

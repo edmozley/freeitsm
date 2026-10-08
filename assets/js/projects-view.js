@@ -348,13 +348,106 @@
             + '</li>';
     }
 
+    /**
+     * Service Status (3.2.0, going live safely): disruption this project has
+     * announced, and the Announce button. data.announcements is null for
+     * somebody who cannot open Service Status - then there is no panel at all.
+     * Planned maintenance is not an incident until it starts; the server turns
+     * it into one at its start and resolves it at its end.
+     */
+    function announcePanel() {
+        const a = data.announcements;
+        if (!a || (a.mode === 'off' && !a.list.length)) return '';
+        const can = data.permissions && data.permissions.can_change && a.mode !== 'off';
+        const when = p => p.end ? T('announce.when_range', { start: window.fmtDateTime(p.start), end: window.fmtDateTime(p.end) })
+                                : T('announce.when_open', { start: window.fmtDateTime(p.start) });
+        const rows = a.list.map(p => '<li class="prj-conn-row' + (p.state === 'finished' || p.state === 'cancelled' ? ' closed' : '') + '">'
+            + '<div class="prj-conn-main"><span class="prj-conn-label">' + esc(p.title) + '</span>'
+            + '<span class="prj-conn-sub">' + esc(when(p)) + ' - ' + esc((p.services || []).map(s => s.name + (s.impact ? ' (' + s.impact + ')' : '')).join(', ')) + '</span></div>'
+            + '<span class="prj-conn-status prj-ann-' + esc(p.state) + '">' + esc(T('announce.state_' + p.state)) + '</span>'
+            + (can && p.state === 'scheduled' ? '<button type="button" class="prj-task-remove" data-withdraw="' + p.id + '" title="' + esc(T('announce.withdraw')) + '" aria-label="' + esc(T('announce.withdraw')) + '">&times;</button>' : '')
+            + '</li>').join('');
+        return '<section class="prj-panel prj-conn prj-announce">'
+            + '<header class="prj-conn-head"><span class="prj-conn-icon">' + P.icon('server', 18) + '</span>'
+            + '<div><h4>' + esc(T('announce.title')) + ' <span class="prj-conn-count">' + a.list.length + '</span></h4>'
+            + '<p class="prj-muted">' + esc(T('announce.hint_' + a.mode)) + '</p></div>'
+            + (can ? '<button type="button" class="btn btn-primary prj-btn sm" data-announce>' + esc(T('announce.button')) + '</button>' : '')
+            + '</header>'
+            + (rows ? '<ul class="prj-conn-list">' + rows + '</ul>' : '<p class="prj-conn-empty">' + esc(T('announce.none')) + '</p>')
+            + '</section>';
+    }
+
+    function announceRow(serviceId, impactId) {
+        const a = data.announcements;
+        // Default impact by meaning: the most serious level that does not count
+        // as downtime and is not the all-clear - Maintenance on a stock install.
+        const maint = a.impacts.filter(l => !Number(l.counts_as_downtime) && !Number(l.is_default)).sort((x, y) => x.severity_order - y.severity_order)[0];
+        const pick = impactId || (maint && maint.id);
+        const row = document.createElement('div');
+        row.className = 'prj-ann-row';
+        row.innerHTML = '<select class="prj-ann-svc">' + a.services.map(s => '<option value="' + s.id + '"' + (String(s.id) === String(serviceId) ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '</select>'
+            + '<select class="prj-ann-impact">' + a.impacts.map(l => '<option value="' + l.id + '"' + (String(l.id) === String(pick) ? ' selected' : '') + '>' + esc(l.name) + '</option>').join('') + '</select>'
+            + '<button type="button" class="prj-task-remove" aria-label="' + esc(T('announce.remove_service')) + '">&times;</button>';
+        row.querySelector('button').addEventListener('click', () => row.remove());
+        document.getElementById('paServices').appendChild(row);
+    }
+
+    function openAnnounce() {
+        const a = data.announcements;
+        const planned = a.mode === 'planned';
+        document.getElementById('paIntro').textContent = T('announce.intro_' + a.mode);
+        document.getElementById('paTitle').value = '';
+        document.getElementById('paComment').value = '';
+        document.getElementById('paStartWrap').hidden = !planned;
+        document.getElementById('paStart').value = '';
+        document.getElementById('paEnd').value = '';
+        // The stage in progress, as a starting point for the dates.
+        const st = (data.stages || []).find(s => s.status === 'active' && s.end_date);
+        if (planned && st) document.getElementById('paStart').value = st.end_date + 'T08:00';
+        document.getElementById('paServices').innerHTML = '';
+        if (a.services.length) announceRow();
+        document.getElementById('paError').hidden = true;
+        P.openModal('prjAnnounceModal');
+    }
+
+    async function saveAnnounce() {
+        const err = document.getElementById('paError');
+        const services = Array.from(document.querySelectorAll('#paServices .prj-ann-row')).map(r => ({
+            service_id: parseInt(r.querySelector('.prj-ann-svc').value, 10), impact_level_id: parseInt(r.querySelector('.prj-ann-impact').value, 10) }));
+        try {
+            const r = await P.api('tools.php', { action: 'announce', project_id: projectId,
+                title: document.getElementById('paTitle').value.trim(), comment: document.getElementById('paComment').value.trim(),
+                start: window.inputToUTC(document.getElementById('paStart').value), end: window.inputToUTC(document.getElementById('paEnd').value), services: services });
+            data.announcements = r.announcements;
+            P.closeModal('prjAnnounceModal');
+            P.toast(T('announce.saved'));
+            const d = await P.api('get.php?id=' + projectId);   // the history shows it
+            data = d;
+            renderConnections();
+            renderHistory();
+        } catch (e) { err.textContent = e.message; err.hidden = false; }
+    }
+
+    async function withdrawAnnounce(id) {
+        const p = (data.announcements.list || []).find(x => String(x.id) === String(id));
+        if (!p) return;
+        const ok = window.showConfirm ? await window.showConfirm({ title: T('announce.withdraw_title'), message: T('announce.withdraw_message', { name: p.title }),
+            okLabel: T('announce.withdraw'), okClass: 'danger' }) : confirm(T('announce.withdraw_title'));
+        if (!ok) return;
+        try {
+            const r = await P.api('tools.php', { action: 'announce_withdraw', project_id: projectId, id: p.id });
+            data.announcements = r.announcements;
+            renderConnections();
+        } catch (e) { P.toast(e.message, 'error'); }
+    }
+
     function renderConnections() {
         const box = document.getElementById('pvConnections');
         if (!links) { box.innerHTML = ''; return; }
         if (!links.ready) { box.innerHTML = '<div class="prj-plan-empty">' + esc(T('links.not_ready')) + '</div>'; return; }
         const kinds = Object.keys(links.links || {});
         if (!kinds.length) { box.innerHTML = '<div class="prj-plan-empty">' + esc(T('links.none_kinds')) + '</div>'; return; }
-        box.innerHTML = '<p class="prj-muted prj-conn-intro">' + esc(T('links.intro')) + '</p><div class="prj-conn-grid">'
+        box.innerHTML = '<p class="prj-muted prj-conn-intro">' + esc(T('links.intro')) + '</p>' + announcePanel() + '<div class="prj-conn-grid">'
             + kinds.map(kind => {
                 const rows = links.links[kind] || [];
                 return '<section class="prj-panel prj-conn" data-kind="' + esc(kind) + '">'
@@ -557,6 +650,8 @@
         document.getElementById('pvEdit').addEventListener('click', editProject);
         document.getElementById('pvDelete').addEventListener('click', deleteProject);
         document.getElementById('psSave').addEventListener('click', saveStage);
+        document.getElementById('paSave').addEventListener('click', saveAnnounce);
+        document.getElementById('paAddService').addEventListener('click', () => announceRow());
         document.getElementById('psDelete').addEventListener('click', deleteStage);
         document.getElementById('psName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveStage(); } });
 
@@ -570,6 +665,8 @@
             const rm = e.target.closest('[data-remove-task]'); if (rm) { e.preventDefault(); removeTask(rm.dataset.removeTask); return; }
             const la = e.target.closest('[data-link-add]'); if (la) { linkAction('add', la.dataset.linkAdd); return; }
             const ul = e.target.closest('[data-unlink]'); if (ul) { linkAction('remove', ul.dataset.unlink); return; }
+            if (e.target.closest('[data-announce]')) { openAnnounce(); return; }
+            const wd = e.target.closest('[data-withdraw]'); if (wd) { withdrawAnnounce(wd.dataset.withdraw); return; }
             if (!e.target.closest('.prj-conn-add')) document.querySelectorAll('.prj-conn-results').forEach(l => { l.hidden = true; });
             const ao = e.target.closest('[data-add-open]');
             if (ao) {

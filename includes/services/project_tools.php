@@ -753,4 +753,75 @@ class ProjectToolsService
     {
         return $ctx->source === 'api' ? 'api' : 'app';
     }
+
+    // ======================================================================
+    //  Going live safely: announce disruption on Service Status (3.2.0)
+    // ======================================================================
+
+    /**
+     * Announce planned disruption from a project - "Move day: phones down
+     * Saturday". How depends on Projects -> Settings -> General:
+     *   planned  planned maintenance: upcoming until its start, then an incident
+     *   now      the same, starting now - an incident straight away
+     *   off      refused (the button is not shown)
+     * Needs Service Status as well as being allowed to change the project.
+     * Service Status is install-wide, like contracts: no company check on the
+     * services. Returns the planned maintenance id.
+     */
+    public static function announce(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        $p = self::changeable($conn, $ctx, $projectId);
+        $mode = projectSetting($conn, 'project_disruption');
+        if ($mode === 'off') throw new ServiceError('forbidden', 'forbidden', 'Announcing disruption from projects is switched off in Projects - Settings.');
+        if ($ctx->actorId > 0 && !analystCanAccessModule($conn, $ctx->actorId, 'service-status')) {
+            throw new ServiceError('forbidden', 'forbidden', 'You need Service Status to announce disruption.');
+        }
+        require_once __DIR__ . '/../service_status_planned.php';
+        $data = [
+            'title'      => $in['title'] ?? '',
+            'comment'    => $in['comment'] ?? null,
+            'start'      => $mode === 'now' ? gmdate('Y-m-d H:i:s') : ($in['start'] ?? null),
+            'end'        => $in['end'] ?? null,
+            'services'   => is_array($in['services'] ?? null) ? $in['services'] : [],
+            'project_id' => $projectId,
+        ];
+        if ($mode === 'planned' && empty($data['start'])) throw new ServiceError('validation', 'missing_field', 'Say when it starts.');
+        $id = statusPlannedSave($conn, $ctx, $data);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'disruption_announced', null, trim((string)$data['title']), self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return $id;
+    }
+
+    /** Withdraw an announcement that has not started. It must belong to this project. */
+    public static function withdrawAnnouncement(PDO $conn, ActorContext $ctx, int $projectId, int $plannedId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        if ($ctx->actorId > 0 && !analystCanAccessModule($conn, $ctx->actorId, 'service-status')) {
+            throw new ServiceError('forbidden', 'forbidden', 'You need Service Status to change an announcement.');
+        }
+        require_once __DIR__ . '/../service_status_planned.php';
+        $row = statusPlannedLoad($conn, $plannedId);
+        if ((int)$row['project_id'] !== $projectId) throw new ServiceError('not_found', 'not_found', 'Planned maintenance not found.');
+        statusPlannedCancel($conn, $ctx, $plannedId);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'disruption_withdrawn', null, $row['title'], self::src($ctx));
+    }
+
+    /**
+     * What the Connections tab needs: the mode, this project's announcements,
+     * and the services and impact levels for the dialog. null when the analyst
+     * cannot open Service Status - then the panel is not drawn at all.
+     */
+    public static function announcements(PDO $conn, int $analystId, int $projectId): ?array
+    {
+        if (!analystCanAccessModule($conn, $analystId, 'service-status')) return null;
+        require_once __DIR__ . '/../service_status_planned.php';
+        if (!statusPlannedReady($conn)) return null;
+        statusPlannedDue($conn);
+        return [
+            'mode'     => projectSetting($conn, 'project_disruption'),
+            'list'     => statusPlannedList($conn, ['project_id' => $projectId, 'states' => STATUS_PLANNED_STATES, 'limit' => 50]),
+            'services' => $conn->query("SELECT id, name FROM status_services WHERE is_active = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC),
+            'impacts'  => $conn->query("SELECT id, name, colour, is_default, counts_as_downtime, severity_order FROM service_impact_levels WHERE is_active = 1 ORDER BY severity_order")->fetchAll(PDO::FETCH_ASSOC),
+        ];
+    }
 }

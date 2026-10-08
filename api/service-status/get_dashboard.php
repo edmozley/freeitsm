@@ -18,6 +18,10 @@ requireModuleAccessJson('service-status');
 
 try {
     $conn = connectToDatabase();
+    // Planned maintenance due to start or end becomes (or stops being) an
+    // incident BEFORE the board is read, so it is on time even with no cron.
+    require_once '../../includes/service_status_planned.php';
+    statusPlannedDue($conn);
 
     // All active services with their worst current status from open incidents.
     // Severity ranking comes from service_impact_levels.severity_order (1 = worst).
@@ -86,6 +90,8 @@ try {
         'success' => true,
         'services' => $services,
         'incidents' => $incidents,
+        // Planned maintenance not yet started, and in progress (3.2.0).
+        'planned' => statusPlannedList($conn),
         // Which level counts as "all clear" — the board uses it to decide whether
         // a service is healthy without matching on a name that can be renamed.
         'default_impact' => $default

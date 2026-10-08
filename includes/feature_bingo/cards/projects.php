@@ -157,4 +157,16 @@ return [
         'link'     => 'reporting/packs/',
         'check'    => ['rows', 'report_packs', "design LIKE '%\"handler\":\"projects.%'"],
     ],
+    [
+        'id'       => 'projects.announce',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Disruption announced from a project',
+        'what'     => 'A project announces the disruption it will cause - "Move day: phones down Saturday" - as planned maintenance on Service Status, straight from its Connections tab.',
+        'why'      => 'People hear about the outage before it happens, in the place they already look, and it starts and ends on the services by itself.',
+        'done'     => 'At least one project has announced disruption on Service Status.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'status_planned', 'project_id IS NOT NULL'],
+    ],
 ];

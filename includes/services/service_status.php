@@ -282,7 +282,7 @@ class ServiceStatusService
      * Validate [{service_id, impact_level|impact_level_id}] → [[service_id, impact_id]].
      * Strict: 422 on unknown service or impact (the old UI silently skipped these).
      */
-    private static function validateIncidentServices(PDO $conn, array $services): array
+    public static function validateIncidentServices(PDO $conn, array $services): array
     {
         $out = [];
         foreach ($services as $s) {

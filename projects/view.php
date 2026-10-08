@@ -41,7 +41,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=15">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=16">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -163,6 +163,31 @@ $projectId = (int)($_GET['id'] ?? 0);
                 <button type="button" class="btn btn-secondary" id="prDelete" style="margin-right:auto" hidden><?php echo htmlspecialchars(t('common.delete')); ?></button>
                 <button type="button" class="btn btn-secondary" data-prj-close="prjRaidModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary prj-btn" id="prSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announce disruption on Service Status (3.2.0) -->
+    <div class="modal" id="prjAnnounceModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:560px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('projects.announce.heading')); ?></div>
+            <div class="modal-body">
+                <p class="prj-muted" id="paIntro" style="margin:0 0 14px"></p>
+                <div class="form-group"><label for="paTitle"><?php echo htmlspecialchars(t('projects.announce.what')); ?></label><input type="text" id="paTitle" maxlength="255" placeholder="<?php echo htmlspecialchars(t('projects.announce.what_ph')); ?>"></div>
+                <div class="prj-ann-when">
+                    <div class="form-group" id="paStartWrap"><label for="paStart"><?php echo htmlspecialchars(t('projects.announce.start')); ?></label><input type="datetime-local" id="paStart"></div>
+                    <div class="form-group"><label for="paEnd"><?php echo htmlspecialchars(t('projects.announce.end')); ?></label><input type="datetime-local" id="paEnd"><small class="prj-muted"><?php echo htmlspecialchars(t('projects.announce.end_hint')); ?></small></div>
+                </div>
+                <div class="form-group"><label for="paComment"><?php echo htmlspecialchars(t('projects.announce.comment')); ?></label><textarea id="paComment" rows="3" placeholder="<?php echo htmlspecialchars(t('projects.announce.comment_ph')); ?>"></textarea></div>
+                <div class="form-group"><label><?php echo htmlspecialchars(t('projects.announce.services')); ?></label>
+                    <div id="paServices"></div>
+                    <button type="button" class="btn btn-secondary sm" id="paAddService"><?php echo htmlspecialchars(t('projects.announce.add_service')); ?></button>
+                </div>
+                <div class="prj-form-error" id="paError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjAnnounceModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="paSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -345,7 +370,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects.js?v=6"></script>
     <script src="../assets/js/projects-tools.js?v=5"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=10"></script>
+    <script src="../assets/js/projects-view.js?v=11"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

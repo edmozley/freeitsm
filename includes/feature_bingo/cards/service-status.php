@@ -131,4 +131,16 @@ return [
             ['sql', 'SELECT COUNT(*) < 5 FROM service_incident_statuses'],
         ]],
     ],
+    [
+        'id'       => 'service-status.planned',
+        'module'   => 'service-status',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Planned maintenance announced in advance',
+        'what'     => 'Planned maintenance shows as upcoming on the board and the portal, becomes an incident at its start and resolves at its end - by itself.',
+        'why'      => 'Nobody is surprised by planned work, the services are not shown down days early, and maintenance never counts against uptime.',
+        'done'     => 'At least one piece of maintenance has been planned.',
+        'link'     => 'service-status/',
+        'check'    => ['rows', 'status_planned'],
+    ],
 ];

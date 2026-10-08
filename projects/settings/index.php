@@ -48,7 +48,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=15">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=16">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -67,6 +67,7 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('create_policy'), $tt('create_policy_desc'), '<select data-k="project_create_policy"><option value="anyone">' . $tt('create_anyone') . '</option><option value="managers">' . $tt('create_managers') . '</option></select><div class="dflt" data-d="project_create_policy"></div>');
             $row($tt('change_policy'), $tt('change_policy_desc'), '<select data-k="project_change_policy"><option value="team">' . $tt('change_team') . '</option><option value="anyone">' . $tt('change_anyone') . '</option></select><div class="dflt" data-d="project_change_policy"></div>');
             $row($tt('calendar'), $tt('calendar_desc'), '<select data-k="project_calendar"><option value="all">' . $tt('calendar_all') . '</option><option value="ends">' . $tt('calendar_ends') . '</option><option value="off">' . $tt('calendar_off') . '</option></select><div class="dflt" data-d="project_calendar"></div>');
+            $row($tt('disruption'), $tt('disruption_desc'), '<select data-k="project_disruption"><option value="planned">' . $tt('disruption_planned') . '</option><option value="now">' . $tt('disruption_now') . '</option><option value="off">' . $tt('disruption_off') . '</option></select><div class="dflt" data-d="project_disruption"></div>');
             ?>
             <div class="prj-set-note"><?php echo $tt('delete_note'); ?></div>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="general"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
@@ -169,7 +170,7 @@ $row = function (string $label, string $desc, string $control) {
     </div>
 
     <script src="../../assets/js/projects.js?v=6"></script>
-    <script src="../../assets/js/projects-settings.js?v=4"></script>
+    <script src="../../assets/js/projects-settings.js?v=5"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

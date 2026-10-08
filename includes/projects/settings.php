@@ -33,6 +33,13 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // What goes on the shared Calendar: nothing, target end dates, or end
             // dates and stage ends (includes/projects/calendar.php).
             'project_calendar'         => ['all',      'calendar',    'general'],
+            // How a project announces planned disruption on Service Status (Ed's
+            // call, 2026-10-08: a setting, not a decision made for him):
+            //   off      no Announce button
+            //   now      an ordinary incident straight away, at the level chosen
+            //   planned  planned maintenance: shown as upcoming, and it becomes an
+            //            incident by itself at its start and resolves at its end
+            'project_disruption'       => ['planned',  'disruption',  'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
             'project_amber_days'       => ['14',       'int:1:120',   'health'],
@@ -102,6 +109,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'create') {
             if (!in_array($v, ['anyone', 'managers'], true)) throw new InvalidArgumentException('Choose who may create projects.');
+            return $v;
+        }
+        if ($rule === 'disruption') {
+            if (!in_array($v, ['off', 'now', 'planned'], true)) throw new InvalidArgumentException('Choose how disruption is announced.');
             return $v;
         }
         if ($rule === 'calendar') {

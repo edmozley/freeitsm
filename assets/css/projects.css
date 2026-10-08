@@ -627,6 +627,17 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 .prj-exception ul { margin: 8px 0 6px 22px; padding: 0; font-size: 13.5px; }
 .prj-exception p { margin: 0; font-size: 12.5px; opacity: .85; }
 [data-theme="dark"] .prj-exception { background: #3b1219; border-color: #7f1d1d; color: #fecaca; }
+/* Going live safely (3.2.0): disruption announced on Service Status. */
+.prj-announce { margin-bottom: 16px; }
+.prj-announce .prj-conn-head { align-items: flex-start; }
+.prj-announce .prj-conn-head > div { flex: 1; }
+.prj-ann-scheduled { --sc: #0891b2; }
+.prj-ann-started { --sc: #d97706; }
+.prj-ann-finished, .prj-ann-cancelled { --sc: #64748b; }
+.prj-ann-row { display: grid; grid-template-columns: 1fr 150px 32px; gap: 8px; margin-bottom: 8px; align-items: center; }
+.prj-ann-row .prj-task-remove { opacity: 1; }   /* in a dialog there is no hover to reveal it */
+.prj-ann-when { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .prj-ann-when { grid-template-columns: 1fr; } .prj-ann-row { grid-template-columns: 1fr 1fr 32px; } }
 /* Going live safely (3.2.0): linked changes not yet approved, on a stage gate. Amber: a warning, not a block. */
 .prj-gate-warn { margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
 .prj-gate-warn-head { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #b45309; }

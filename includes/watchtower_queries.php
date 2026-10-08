@@ -22,6 +22,8 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     // "due today" must not change its answer for the hour either side of UTC
     // midnight. Morning Checks above already binds $today for exactly this reason.
     $todaySql = naive_today_sql();
+    // Planned maintenance due now becomes an incident before the cards count them.
+    try { require_once __DIR__ . '/service_status_planned.php'; statusPlannedDue($conn); } catch (Throwable $e) { /* never break the dashboard */ }
 
     // Whose work this dashboard is answering about (#58). 'all' reproduces the
     // behaviour every card had before, so nothing changes for anyone who never

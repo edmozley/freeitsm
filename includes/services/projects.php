@@ -205,6 +205,10 @@ class ProjectsService
             // may not exist, and that must never stop a project being deleted.
             require_once __DIR__ . '/../projects/links.php';
             projectLinksDeleteAll($conn, $id);
+            // Disruption it announced stays on Service Status - it is real work on
+            // real services - but no longer names a project that is gone. By hand:
+            // a table made by Database Verification has no FK to do it.
+            try { $conn->prepare("UPDATE status_planned SET project_id = NULL WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             $conn->prepare("DELETE FROM projects WHERE id = ?")->execute([$id]);
             $conn->commit();
         } catch (Throwable $e) {

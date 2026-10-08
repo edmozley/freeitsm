@@ -234,6 +234,17 @@ function workflowScheduledRun(PDO $conn): array
     return [
         'contract_expiring'        => workflowEmitContractExpiries($conn),
         'asset_warranty_expiring'  => workflowEmitWarrantyExpiries($conn),
+        // Service Status planned maintenance (3.2.0): start what is due, finish
+        // what has ended. Not a workflow trigger itself - the incident it makes is.
+        'planned_maintenance'      => (function () use ($conn) {
+            try {
+                require_once __DIR__ . '/service_status_planned.php';
+                return array_sum(statusPlannedRun($conn));
+            } catch (Throwable $e) {
+                error_log('[workflow_scheduled] planned maintenance: ' . $e->getMessage());
+                return 0;
+            }
+        })(),
         // Projects keep their own fire-once state (includes/projects/alerts.php):
         // health and tolerance changes, and stages ending soon.
         'projects'                 => (function () use ($conn) {

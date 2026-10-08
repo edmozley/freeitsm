@@ -20,6 +20,8 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
         'tolerances'  => ProjectToolsService::tolerances($conn, $pid),
         'targets'     => projectTargetsDetail($conn, $pid),
         'can_assets'  => analystCanAccessModule($conn, $analystId, 'assets'),
+        // Disruption announced on Service Status (3.2.0); null without Service Status.
+        'announcements' => ProjectToolsService::announcements($conn, $analystId, $pid),
         // Linked changes not yet approved, for the stage gate. null = this analyst
         // cannot open Changes, so the gate says nothing rather than "none".
         'gate_changes' => analystCanAccessModule($conn, $analystId, 'changes')
