@@ -60,6 +60,11 @@ function apiAuthenticate(PDO $conn): array {
     $key['permissions'] = apiV1NormalisePermissions(json_decode((string)$key['permissions'], true));
     $companyIds = json_decode((string)$key['company_ids'], true);
     $key['company_scope'] = is_array($companyIds) ? array_values(array_map('intval', $companyIds)) : null; // null = all companies
+    // 🔴 Never wider than the analyst the key acts as (security review, 2026-10-09).
+    // "All companies" on a key used to mean literally every company, even when its
+    // analyst could open only one - so a key could read data its own analyst could
+    // not. Narrowed here, once, so every resource and the MCP server share it.
+    $key['company_scope'] = apiEffectiveCompanyScope($conn, (int)$key['analyst_id'], $key['company_scope']);
 
     return $key;
 }
@@ -156,6 +161,52 @@ function apiRateLimit(PDO $conn, int $keyId, ?int $override): void {
 // explicit list. On a single-company install nothing is filtered, exactly
 // like the UI at N=1.
 // ---------------------------------------------------------------------------
+
+/**
+ * The companies a key may really reach: its own list, narrowed to its analyst's.
+ *
+ *   single-company install                  -> null (nothing to narrow)
+ *   analyst who may see every company       -> the key's own list (null = all)
+ *   analyst limited to some companies       -> key list ∩ theirs (no list = theirs)
+ *
+ * An empty result means the key reaches no company: reads find nothing, and
+ * creating a record is refused (apiKeyDefaultTenantId).
+ */
+function apiEffectiveCompanyScope(PDO $conn, int $analystId, ?array $keyScope): ?array {
+    if (!isMultiTenant($conn)) {
+        return null;
+    }
+    $theirs = array_values(array_unique(array_map('intval', getAccessibleTenantIds($conn, $analystId))));
+    $all = array_map('intval', $conn->query("SELECT id FROM tenants")->fetchAll(PDO::FETCH_COLUMN));
+    $analystAll = !array_diff($all, $theirs);   // reaches every company (directly or through a team)
+    if ($keyScope === null) {
+        return $analystAll ? null : $theirs;
+    }
+    $keyScope = array_values(array_map('intval', $keyScope));
+    return $analystAll ? $keyScope : array_values(array_intersect($keyScope, $theirs));
+}
+
+/**
+ * For System -> API: refuse a company list the key's analyst cannot reach, so
+ * a key is never saved promising access it will not have. Throws Exception.
+ */
+function apiKeyCheckCompanies(PDO $conn, int $analystId, ?array $companyIds): void {
+    if ($companyIds === null || !isMultiTenant($conn)) {
+        return;
+    }
+    $known = array_map('intval', $conn->query("SELECT id FROM tenants")->fetchAll(PDO::FETCH_COLUMN));
+    $unknown = array_diff($companyIds, $known);
+    if ($unknown) {
+        throw new Exception('Unknown company id: ' . implode(', ', $unknown));
+    }
+    $theirs = array_map('intval', getAccessibleTenantIds($conn, $analystId));
+    $outside = array_diff($companyIds, $theirs);
+    if ($outside) {
+        $names = $conn->prepare("SELECT name FROM tenants WHERE id IN (" . implode(',', array_fill(0, count($outside), '?')) . ")");
+        $names->execute(array_values($outside));
+        throw new Exception('The analyst this key acts as cannot see: ' . implode(', ', $names->fetchAll(PDO::FETCH_COLUMN)) . '. A key can never reach further than its analyst.');
+    }
+}
 
 /** May this key access this company? */
 function apiKeyCanAccessTenant(PDO $conn, array $apiKey, int $tenantId): bool {
@@ -283,6 +334,11 @@ function apiKeyDefaultTenantId(PDO $conn, array $apiKey): int {
     $default = getDefaultTenantId($conn);
     if (apiKeyCanAccessTenant($conn, $apiKey, $default)) {
         return $default;
+    }
+    if ($apiKey['company_scope'] === []) {
+        // The key reaches no company (its list and its analyst's do not meet):
+        // never fall back to the Default company it has no right to.
+        apiError(403, 'forbidden', 'This key cannot reach any company its analyst can see. Check its companies in System > API.');
     }
     return $apiKey['company_scope'][0] ?? $default;
 }

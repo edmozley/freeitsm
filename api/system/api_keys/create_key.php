@@ -11,6 +11,8 @@ require_once '../../../includes/admin_api_guard.php'; // System admins only (iss
 require_once '../../../includes/functions.php';
 require_once '../../../includes/tenancy.php';
 require_once '../../../api/v1/lib/permissions.php';
+require_once '../../../api/v1/lib/response.php';
+require_once '../../../api/v1/lib/auth.php';   // apiKeyCheckCompanies
 
 header('Content-Type: application/json');
 
@@ -69,6 +71,8 @@ try {
     if (!$aStmt->fetchColumn()) {
         throw new Exception('Unknown or inactive analyst');
     }
+    // A key can never reach further than its analyst (security review, 2026-10-09).
+    apiKeyCheckCompanies($conn, $analystId, $companyIds);
 
     // fitsm_ + 48 hex chars; only the hash is stored.
     $fullKey   = 'fitsm_' . bin2hex(random_bytes(24));

@@ -1748,7 +1748,7 @@ return [
         'select_all'      => 'Select all',
         'clear_all'       => 'Clear all',
         'scope'           => 'Company access',
-        'scope_all'       => 'All companies',
+        'scope_all'       => 'All companies the analyst can see',
         'scope_specific'  => 'Specific companies only',
         'expires'         => 'Expires',
         'expires_hint'    => 'Optional. The key stops working after this date.',

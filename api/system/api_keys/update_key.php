@@ -8,7 +8,10 @@ session_start(['read_and_close' => true]);
 require_once '../../../config.php';
 require_once '../../../includes/admin_api_guard.php'; // System admins only (issue #34)
 require_once '../../../includes/functions.php';
+require_once '../../../includes/tenancy.php';
 require_once '../../../api/v1/lib/permissions.php';
+require_once '../../../api/v1/lib/response.php';
+require_once '../../../api/v1/lib/auth.php';   // apiKeyCheckCompanies
 
 header('Content-Type: application/json');
 
@@ -74,6 +77,16 @@ try {
         }
         $updates[] = 'company_ids = ?';
         $args[]    = $companyIds !== null ? json_encode($companyIds) : null;
+    }
+    // A key can never reach further than its analyst: check the pair it will have
+    // after this save, whichever half is changing (security review, 2026-10-09).
+    if (array_key_exists('company_ids', $input) || array_key_exists('analyst_id', $input)) {
+        $cur = $conn->prepare("SELECT analyst_id, company_ids FROM api_keys WHERE id = ?");
+        $cur->execute([$id]);
+        $row = $cur->fetch(PDO::FETCH_ASSOC) ?: ['analyst_id' => 0, 'company_ids' => null];
+        $finalAnalyst = array_key_exists('analyst_id', $input) ? (int)$input['analyst_id'] : (int)$row['analyst_id'];
+        $finalIds = array_key_exists('company_ids', $input) ? $companyIds : (is_array(json_decode((string)$row['company_ids'], true)) ? array_map('intval', json_decode((string)$row['company_ids'], true)) : null);
+        apiKeyCheckCompanies($conn, $finalAnalyst, $finalIds);
     }
     if (array_key_exists('expires_at', $input)) {
         $expiresAt = null;

@@ -148,15 +148,10 @@ function mcpTools(): array
  */
 function mcpEffectiveScope(PDO $conn, array $apiKey): ?array
 {
-    if (!isMultiTenant($conn)) return null;
-    $analystId = (int)$apiKey['analyst_id'];
-    $key = $apiKey['company_scope'] ?? null;
-    $st = $conn->prepare("SELECT can_access_all_tenants FROM analysts WHERE id = ?");
-    $st->execute([$analystId]);
-    if ((int)$st->fetchColumn() === 1) return $key === null ? null : array_values(array_map('intval', $key));
-    $theirs = array_map('intval', getAccessibleTenantIds($conn, $analystId));
-    if ($key === null) return array_values($theirs);
-    return array_values(array_intersect(array_map('intval', $key), $theirs));
+    // apiAuthenticate() now narrows every key this way (api/v1/lib/auth.php), so
+    // this is the same rule applied again - harmless, and it keeps the MCP server
+    // safe if it is ever authenticated by another route.
+    return apiEffectiveCompanyScope($conn, (int)$apiKey['analyst_id'], $apiKey['company_scope'] ?? null);
 }
 
 /** May this key run this tool? (permission is checked once, by the endpoint) */
