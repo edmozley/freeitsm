@@ -111,5 +111,10 @@ projectApiRun(function () use ($conn, $analystId, $tabCaps) {
         catch (InvalidArgumentException $e) { projectApiFail($e->getMessage()); }
     }
     foreach ($clean as $k => $v) projectSettingWrite($conn, $k, $v);
+    // Switching the Calendar on or off redraws it now, not at the next save.
+    if (array_key_exists('project_calendar', $clean)) {
+        require_once __DIR__ . '/../../includes/projects/calendar.php';
+        projectSyncCalendar($conn);
+    }
     projectApiOk(['settings' => projectSettingsForScreen($conn)]);
 });

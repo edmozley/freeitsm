@@ -113,6 +113,7 @@ class ProjectsService
                         VALUES ($ph, UTC_TIMESTAMP(), UTC_TIMESTAMP())")->execute($vals);
         $id = (int)$conn->lastInsertId();
         self::audit($conn, $id, $ctx->actorId, 'project_created', null, trim((string)$in['name']), self::source($ctx));
+        self::syncCalendar($conn);
         return $id;
     }
 
@@ -165,6 +166,8 @@ class ProjectsService
         foreach ($changes as $f => [$o, $nv]) {
             self::audit($conn, $id, $ctx->actorId, $f, self::auditDisplay($conn, $f, $o), self::auditDisplay($conn, $f, $nv), self::source($ctx));
         }
+        // A name, a status, a date or a method (which renames its stages) can all move an entry.
+        self::syncCalendar($conn);
         return $id;
     }
 
@@ -203,6 +206,7 @@ class ProjectsService
             if ($conn->inTransaction()) $conn->rollBack();
             throw $e;
         }
+        self::syncCalendar($conn);
         return ['id' => $id, 'tasks_detached' => $detached];
     }
 
@@ -272,6 +276,7 @@ class ProjectsService
             if ($cur['status'] !== $status) {
                 self::audit($conn, $projectId, $ctx->actorId, 'stage_status', $cur['name'] . ': ' . $cur['status'], $name . ': ' . $status, self::source($ctx));
             }
+            self::syncCalendar($conn);
             return $stageId;
         }
 
@@ -282,6 +287,7 @@ class ProjectsService
         $newId = (int)$conn->lastInsertId();
         self::audit($conn, $projectId, $ctx->actorId, 'stage_added', null, $name, self::source($ctx));
         self::touch($conn, $projectId);
+        self::syncCalendar($conn);
         return $newId;
     }
 
@@ -302,6 +308,7 @@ class ProjectsService
         }
         self::audit($conn, $projectId, $ctx->actorId, 'stage_removed', $stage['name'], null, self::source($ctx));
         self::touch($conn, $projectId);
+        self::syncCalendar($conn);
     }
 
     /** Put the project's time boxes in the given order (ids not listed keep their place after). */
@@ -541,6 +548,20 @@ class ProjectsService
     private static function source(ActorContext $ctx): string
     {
         return $ctx->source === 'api' ? 'api' : 'app';
+    }
+
+    /**
+     * Keep the shared Calendar in step (includes/projects/calendar.php). Call it
+     * AFTER the write, outside any transaction; it never throws.
+     */
+    public static function syncCalendar(PDO $conn): void
+    {
+        try {
+            require_once __DIR__ . '/../projects/calendar.php';
+            projectSyncCalendar($conn);
+        } catch (Throwable $e) {
+            error_log('projects calendar sync: ' . $e->getMessage());
+        }
     }
 
     public static function touchProject(PDO $conn, int $projectId): void

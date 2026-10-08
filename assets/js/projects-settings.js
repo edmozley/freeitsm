@@ -23,6 +23,7 @@
         if (key === 'project_default_method') return T('method.' + value);
         if (key === 'project_create_policy') return T('settings.create_' + value);
         if (key === 'project_change_policy') return T('settings.change_' + value);
+        if (key === 'project_calendar') return T('settings.calendar_' + value);
         if (Array.isArray(value)) return value.join(', ');
         return value;
     }

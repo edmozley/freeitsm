@@ -121,4 +121,16 @@ return [
             ['rows', 'project_audit', "field_name = 'template_used'"], ['rows', 'project_templates'],
         ]],
     ],
+    [
+        'id'       => 'projects.calendar',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Project dates on the Calendar',
+        'what'     => 'Every live project puts its target end date, and each open stage its end date, on the shared Calendar in a Projects category, and keeps them there as the plan changes.',
+        'why'      => 'The deadline a project is working to sits where the rest of the team already plans their week, instead of only on a page someone has to open.',
+        'done'     => 'At least one project date is on the Calendar.',
+        'link'     => 'projects/settings/',
+        'check'    => ['rows', 'calendar_events', "source IN ('project_end', 'project_stage')"],
+    ],
 ];

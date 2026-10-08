@@ -45,6 +45,7 @@ $sections = [
     'health'    => 1,
     'tasks'     => 2,
     'connections' => 2,
+    'calendar'  => 2,
     'companies' => 1,
     'settings'  => 1,
     'coming'    => 1,

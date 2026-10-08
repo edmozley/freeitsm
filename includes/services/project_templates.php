@@ -103,6 +103,8 @@ class ProjectTemplatesService
             self::cleanup($conn, $pid, $taskIds);
             throw $e;
         }
+        // createProject drew the end date; the stages came after it.
+        ProjectsService::syncCalendar($conn);
         return $pid;
     }
 
@@ -119,6 +121,7 @@ class ProjectTemplatesService
             }
             $conn->prepare("DELETE FROM projects WHERE id = ?")->execute([$pid]);
         } catch (Throwable $e) { /* best effort - the original error is what matters */ }
+        ProjectsService::syncCalendar($conn);   // its end date was already drawn
     }
 
     /**

@@ -66,6 +66,7 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('default_method'), $tt('default_method_desc'), '<select data-k="project_default_method"></select><div class="dflt" data-d="project_default_method"></div>');
             $row($tt('create_policy'), $tt('create_policy_desc'), '<select data-k="project_create_policy"><option value="anyone">' . $tt('create_anyone') . '</option><option value="managers">' . $tt('create_managers') . '</option></select><div class="dflt" data-d="project_create_policy"></div>');
             $row($tt('change_policy'), $tt('change_policy_desc'), '<select data-k="project_change_policy"><option value="team">' . $tt('change_team') . '</option><option value="anyone">' . $tt('change_anyone') . '</option></select><div class="dflt" data-d="project_change_policy"></div>');
+            $row($tt('calendar'), $tt('calendar_desc'), '<select data-k="project_calendar"><option value="all">' . $tt('calendar_all') . '</option><option value="ends">' . $tt('calendar_ends') . '</option><option value="off">' . $tt('calendar_off') . '</option></select><div class="dflt" data-d="project_calendar"></div>');
             ?>
             <div class="prj-set-note"><?php echo $tt('delete_note'); ?></div>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="general"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
@@ -167,7 +168,7 @@ $row = function (string $label, string $desc, string $control) {
     </div>
 
     <script src="../../assets/js/projects.js?v=6"></script>
-    <script src="../../assets/js/projects-settings.js?v=3"></script>
+    <script src="../../assets/js/projects-settings.js?v=4"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

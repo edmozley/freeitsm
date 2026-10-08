@@ -486,6 +486,8 @@ class ProjectToolsService
         }
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'gate', $stage['name'], $decision, self::src($ctx));
         ProjectsService::touchProject($conn, $projectId);
+        // A closed stage leaves the Calendar.
+        if ($closed) ProjectsService::syncCalendar($conn);
         return ['closed' => $closed, 'next' => $next];
     }
 

@@ -30,6 +30,9 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             'project_create_policy'    => ['anyone',   'create',      'general'],
             // Who may change one: everyone who can open Projects, or its team.
             'project_change_policy'    => ['team',     'change',      'general'],
+            // What goes on the shared Calendar: nothing, target end dates, or end
+            // dates and stage ends (includes/projects/calendar.php).
+            'project_calendar'         => ['all',      'calendar',    'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
             'project_amber_days'       => ['14',       'int:1:120',   'health'],
@@ -96,6 +99,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'create') {
             if (!in_array($v, ['anyone', 'managers'], true)) throw new InvalidArgumentException('Choose who may create projects.');
+            return $v;
+        }
+        if ($rule === 'calendar') {
+            if (!in_array($v, ['off', 'ends', 'all'], true)) throw new InvalidArgumentException('Choose what goes on the Calendar.');
             return $v;
         }
         if ($rule === 'change') {
