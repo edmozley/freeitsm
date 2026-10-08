@@ -49,9 +49,10 @@ $sections = [
     'alerts'    => 3,
     'announce'  => 2,
     'budget'    => 3,
+    'reports'   => 3,
     'companies' => 1,
     'settings'  => 1,
-    'coming'    => 1,
+    'api'       => 1,
 ];
 if (!$multi) unset($sections['companies']);
 $after = [
@@ -83,7 +84,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=17">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=18">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=184">
     <style>
@@ -223,7 +224,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
 
                     <?php if ($id === 'settings'): ?>
                     <div class="help-defs">
-                        <?php foreach (['general', 'health', 'roles', 'raid', 'templates', 'budget'] as $k): ?>
+                        <?php foreach (['general', 'health', 'roles', 'raid', 'templates', 'budget', 'ai'] as $k): ?>
                         <div class="help-def">
                             <div class="help-def-term"><?php echo htmlspecialchars(t('projects.settings.tab_' . $k)); ?></div>
                             <div class="help-def-desc"><?php echo $h('settings.' . $k . '_d'); ?></div>

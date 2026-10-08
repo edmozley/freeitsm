@@ -7861,6 +7861,33 @@ CREATE TABLE IF NOT EXISTS `project_budget_lines` (
     CONSTRAINT `fk_pbl_cost_centre` FOREIGN KEY (`cost_centre_id`) REFERENCES `cost_centres` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Project reports (3.2.0) - the AI project manager's drafts and people's own
+-- reports. kind: briefing (the Overview's "Brief me" - the latest one is shown)
+-- | highlight | exception | checkpoint. status: draft | approved. The AI
+-- PROPOSES, a person approves: ai_drafted says the AI wrote it, ai_edited that
+-- a person has since changed it, and only approved reports are final.
+CREATE TABLE IF NOT EXISTS `project_reports` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `project_id`        INT NOT NULL,
+    `kind`              VARCHAR(20) NOT NULL,
+    `title`             VARCHAR(200) NOT NULL,
+    `body`              MEDIUMTEXT NULL,
+    `status`            VARCHAR(10) NOT NULL DEFAULT 'draft',
+    `ai_drafted`        TINYINT(1) NOT NULL DEFAULT 0,
+    `ai_edited`         TINYINT(1) NOT NULL DEFAULT 0,
+    `ai_model`          VARCHAR(120) NULL,
+    `created_by_id`     INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_by_id`     INT NULL,
+    `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `approved_by_id`    INT NULL,
+    `approved_datetime` DATETIME NULL,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `ix_prep_project` (`project_id`, `kind`),
+    CONSTRAINT `fk_prep_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Hourly rates for labour (3.2.0), each from a date. Time logged on a day is
 -- priced at the rate in force THAT day, so raising a rate never re-prices the
 -- past. scope: default (ref_id NULL, the install's currency) | project

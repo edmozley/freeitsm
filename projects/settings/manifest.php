@@ -63,5 +63,16 @@ return [
             'grant'     => 'Set the budget currency, how labour is costed, and the hourly rates - including each analyst\'s',
             'sensitive' => true,   // per-analyst rates are close to pay
         ],
+        [
+            'id'        => 'ai',
+            'cap'       => Cap::PROJECTS_AI,
+            'label_key' => 'projects.settings.tab_ai',
+            'grant'     => 'Choose the AI provider, model and key the AI project manager uses',
+            'sensitive' => true,   // an API key that spends the organisation's money
+            // The ONE tab with setting_keys: these are written by the shared AI
+            // settings endpoint (api/system/ai/), which authorises a namespace by
+            // the tab that owns its keys - and validates them itself.
+            'setting_keys' => ['projects_ai_provider', 'projects_ai_model', 'projects_ai_api_key', 'projects_ai_verify_ssl'],
+        ],
     ],
 ];

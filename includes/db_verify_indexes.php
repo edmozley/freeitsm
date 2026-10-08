@@ -452,6 +452,7 @@ return [
     ['projects', 'idx_projects_status', 'key', '(`status`)'],
     ['projects', 'idx_projects_owner', 'key', '(`owner_analyst_id`)'],
     ['project_budget_lines', 'ix_pbl_project', 'key', '(`project_id`)'],
+    ['project_reports', 'ix_prep_project', 'key', '(`project_id`,`kind`)'],
     ['project_labour_rates', 'ix_plr_scope', 'key', '(`scope`,`ref_id`,`effective_from`)'],
     ['project_stages', 'idx_project_stages_project', 'key', '(`project_id`,`position`)'],
     ['project_audit', 'idx_project_audit_project', 'key', '(`project_id`,`created_datetime`)'],

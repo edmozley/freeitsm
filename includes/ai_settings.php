@@ -85,6 +85,15 @@ function aiSettingsRegistry(): array
             'default_provider'=> 'anthropic',
             'default_model'   => 'claude-sonnet-4-6',
         ],
+        // The AI project manager (3.2.0): the Overview's briefing and drafted
+        // highlight / exception / checkpoint reports. Sonnet, like the war room
+        // report: the job is judgement - what slipped, what needs a decision -
+        // and a report goes to a board under the project manager's name.
+        'projects_ai' => [
+            'label'           => 'Projects AI',
+            'default_provider'=> 'anthropic',
+            'default_model'   => 'claude-sonnet-4-6',
+        ],
         // Deferred: 'rfp_ai' (RFP Builder) — needs real OpenRouter SSE streaming first.
     ];
 }

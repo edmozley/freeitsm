@@ -197,7 +197,7 @@ class ProjectsService
             // Phase 2's records, by hand too - each on its own, because before
             // Database Verification a table may not exist, and that must never
             // stop a project being deleted.
-            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines'] as $t) {
+            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             }
             foreach (['project_stages', 'project_audit'] as $t) {

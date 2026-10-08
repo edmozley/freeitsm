@@ -231,6 +231,9 @@ final class Cap
     // BUDGET sets the currency, how labour is costed and the hourly rates -
     // including each analyst's, which is close to pay: sensitive.
     const PROJECTS_BUDGET    = 'projects.budget';
+    // AI chooses the provider, model and key the AI project manager uses - the
+    // key is a secret that spends the organisation's money.
+    const PROJECTS_AI        = 'projects.ai';
 
     // ---- Tickets -----------------------------------------------------------
     // The module the whole per-tab design was argued FOR. Fourteen tabs, and they are

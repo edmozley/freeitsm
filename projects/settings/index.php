@@ -14,6 +14,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
+require_once '../../includes/ai_settings_panel.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -48,7 +49,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=17">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=18">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -142,6 +143,15 @@ $row = function (string $label, string $desc, string $control) {
         </div>
         <?php endif; ?>
 
+        <?php if (settingsTabVisible($visibleTabs, 'ai')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'ai' ? ' active' : ''; ?>" id="ai-tab" data-capability="<?php echo Cap::PROJECTS_AI; ?>">
+            <h2><?php echo $tt('ai_title'); ?></h2>
+            <p class="prj-muted"><?php echo $tt('ai_intro'); ?></p>
+            <p class="prj-muted" style="margin-bottom:18px"><?php echo $tt('ai_privacy'); ?></p>
+            <?php renderAiSettingsPanel('projects_ai'); ?>
+        </div>
+        <?php endif; ?>
+
         <?php if (settingsTabVisible($visibleTabs, 'templates')): ?>
         <div class="tab-content<?php echo $activeTabId === 'templates' ? ' active' : ''; ?>" id="templates-tab" data-capability="<?php echo Cap::PROJECTS_TEMPLATES; ?>">
             <h2><?php echo $tt('templates_title'); ?></h2>
@@ -193,8 +203,9 @@ $row = function (string $label, string $desc, string $control) {
         </div>
     </div>
 
-    <script src="../../assets/js/projects.js?v=6"></script>
+    <script src="../../assets/js/projects.js?v=7"></script>
     <script src="../../assets/js/projects-settings.js?v=6"></script>
+    <script src="../../assets/js/ai-settings.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

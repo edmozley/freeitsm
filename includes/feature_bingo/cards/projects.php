@@ -181,4 +181,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'project_budget_lines'],
     ],
+    [
+        'id'       => 'projects.ai_reports',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'An AI project manager',
+        'what'     => 'A briefing on what needs attention this week, and highlight, exception and checkpoint reports drafted by the AI from the project itself - for the project manager to check and approve.',
+        'why'      => 'The weekly report takes minutes instead of an afternoon, and nothing reaches the board until a person has approved it.',
+        'done'     => 'At least one project report has been approved.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_reports', "status = 'approved'"],
+    ],
 ];
