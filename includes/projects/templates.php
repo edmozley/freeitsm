@@ -13,7 +13,7 @@
  *   milestones [{name, day, stage?}]                   - stage = index into stages, or null (3.3.0)
  *   items   [{title, description?, moscow?}]          - scope, MoSCoW
  *   raid    [{type, title, description?, probability?, impact?, response?, response_plan?}]  type incl. dependency (3.3.0)
- *   tolerances {time?, risk?}
+ *   tolerances {time?, risk?, cost? (3.3.0)}
  *   targets [{name, scope, scope_field?, scope_value?, done_field, done_op, done_value}]
  *   tailoring {tool: bool}
  *   dependencies [{task, on, lag?}]  (3.3.0) - task waits for on to finish. Both are a task's place in the
