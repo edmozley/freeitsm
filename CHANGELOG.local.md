@@ -32,6 +32,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2229 | Projects          | Feature     | A Burndown view beside the burn-up (left to do against an ideal line to the target or stage end) and a Progress by stage chart on the Overview. |
 | 2230 | Projects          | Feature     | A Charts view on the portfolio (Cards / Roadmap / Charts): progress by project, budget against actual per project (one chart per currency, overspend and forecast-over noted), a risk heat map across projects listing the risks in a chosen square, and every milestone across projects by state (api/projects/portfolio_charts.php). |
 | 2231 | Projects          | Feature     | Earned value on the Budget tab: planned value, earned value (budget x share of work done, by estimated hours or tasks) and actual cost over time, with CPI, SPI, EAC and VAC in words and numbers; told to the AI project manager. |
+| 2232 | Projects          | Feature     | Problems can be linked to a project (a seventh Connections kind, table project_problems, same company and both-ends-visible rules), and a problem's page shows a Projects panel to add it to a project from there. |
 
 
 
