@@ -5303,10 +5303,25 @@ return [
         'due_date'         => 'DATE NULL',
         'ticket_id'        => 'INT NULL',
         'knowledge_article_id' => 'INT NULL',
+        // 3.3.0: escalation (any open entry) and the decision log.
+        'escalated_datetime' => 'DATETIME NULL',
+        'escalated_by_id'  => 'INT NULL',
+        'escalation_note'  => 'VARCHAR(500) NULL',
+        'decided_by'       => 'VARCHAR(150) NULL',
+        'decided_date'     => 'DATE NULL',
+        'rationale'        => 'TEXT NULL',
         'raised_by_id'     => 'INT NULL',
         'raised_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'closed_datetime'  => 'DATETIME NULL',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    // Follow-up actions on a RAID entry (3.3.0) - project tasks, joined.
+    'project_raid_tasks' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'raid_id'          => 'INT NOT NULL',
+        'task_id'          => 'INT NOT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_tolerances' => [

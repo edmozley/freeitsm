@@ -11,7 +11,7 @@
  *   tasks   [{title, description?, due_day?}]         - not in any stage
  *   milestones [{name, day, stage?}]                   - stage = index into stages, or null (3.3.0)
  *   items   [{title, description?, moscow?}]          - scope, MoSCoW
- *   raid    [{type, title, description?, probability?, impact?, response?, response_plan?}]
+ *   raid    [{type, title, description?, probability?, impact?, response?, response_plan?}]  type incl. dependency (3.3.0)
  *   tolerances {time?, risk?}
  *   targets [{name, scope, scope_field?, scope_value?, done_field, done_op, done_value}]
  *   tailoring {tool: bool}
@@ -216,7 +216,7 @@ function projectTemplateNormalise(array $c): array
     }
     foreach (array_slice(is_array($c['raid'] ?? null) ? $c['raid'] : [], 0, 100) as $r) {
         $title = $str($r['title'] ?? null, 255);
-        if ($title === null || !in_array($r['type'] ?? '', ['risk', 'assumption', 'issue', 'decision', 'lesson'], true)) continue;
+        if ($title === null || !in_array($r['type'] ?? '', ['risk', 'assumption', 'issue', 'dependency', 'decision', 'lesson'], true)) continue;
         $score = fn($v) => (is_numeric($v) && (int)$v >= 1 && (int)$v <= 5) ? (int)$v : null;
         $out['raid'][] = ['type' => $r['type'], 'title' => $title, 'description' => $str($r['description'] ?? null, 5000),
             'probability' => $r['type'] === 'risk' ? $score($r['probability'] ?? null) : null,
@@ -358,9 +358,10 @@ function projectTemplateCapture(PDO $conn, array $project, array $parts): array
         $c['items'] = $st->fetchAll(PDO::FETCH_ASSOC);
     }
     if (in_array('raid', $parts, true)) {
-        // Risks and assumptions carry over to the next project; issues, decisions
-        // and lessons were about this one.
-        $st = $conn->prepare("SELECT type, title, description, probability, impact, response, response_plan FROM project_raid WHERE project_id = ? AND type IN ('risk', 'assumption') ORDER BY id");
+        // Risks, assumptions and dependencies (3.3.0 - "we will need the landlord's
+        // fit-out" recurs) carry over to the next project; issues, decisions and
+        // lessons were about this one.
+        $st = $conn->prepare("SELECT type, title, description, probability, impact, response, response_plan FROM project_raid WHERE project_id = ? AND type IN ('risk', 'assumption', 'dependency') ORDER BY id");
         $st->execute([$pid]);
         $c['raid'] = $st->fetchAll(PDO::FETCH_ASSOC);
     }

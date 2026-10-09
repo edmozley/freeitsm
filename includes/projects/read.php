@@ -75,6 +75,20 @@ function projectTaskStats(PDO $conn, array $projectIds): array
     foreach (projectTargetsFor($conn, $projectIds) as $pid => $targets) {
         $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['targets_health' => projectTargetsWorst($targets)];
     }
+    // RAID (3.3.0): dependencies not arrived and decisions not made by their due
+    // date (for health), and entries escalated (for the Overview and the card).
+    try {
+        $ph2 = implode(',', array_fill(0, count($projectIds), '?'));
+        $rq = $conn->prepare("SELECT project_id,
+                                      SUM(CASE WHEN type IN ('dependency', 'decision') AND due_date IS NOT NULL AND due_date < UTC_DATE() THEN 1 ELSE 0 END) AS overdue,
+                                      SUM(CASE WHEN escalated_datetime IS NOT NULL THEN 1 ELSE 0 END) AS escalated
+                                 FROM project_raid WHERE project_id IN ($ph2) AND status = 'open' GROUP BY project_id");
+        $rq->execute(array_map('intval', $projectIds));
+        foreach ($rq->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $out[(int)$r['project_id']] = ($out[(int)$r['project_id']] ?? ['total' => 0, 'done' => 0, 'overdue' => 0])
+                + ['raid_overdue' => (int)$r['overdue'], 'raid_escalated' => (int)$r['escalated']];
+        }
+    } catch (Throwable $e) { /* before Database Verification: no escalation column */ }
     // Milestones (3.3.0): missed ones for the health, the next one for the card.
     try {
         foreach (projectMilestoneStats($conn, $projectIds) as $pid => $m) {
@@ -89,8 +103,9 @@ function projectTaskStats(PDO $conn, array $projectIds): array
  * The automatic health of a live project, from what is actually happening:
  *   red   - past its target end date with work still open, or a quarter or more
  *           of the open work overdue;
- *   amber - any open work overdue, a milestone missed (3.3.0), or the target
- *           date within 14 days and less than three quarters done;
+ *   amber - any open work overdue, a milestone missed (3.3.0), a dependency
+ *           not arrived or a decision not made by its due date (3.3.0), or the
+ *           target date within 14 days and less than three quarters done;
  *   green - otherwise.
  * An asset target that is red makes the project red; an amber one makes a
  * green project amber (projectTargetHealth).
@@ -112,6 +127,8 @@ function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
     if ($overdue > 0) return 'amber';
     // A date the project promised has gone by (includes/projects/milestones.php).
     if (($stats['milestones_missed'] ?? 0) > 0) return 'amber';
+    // Something the plan was waiting on is late: a dependency, or a decision (3.3.0).
+    if (($stats['raid_overdue'] ?? 0) > 0) return 'amber';
     // A jump in linked tickets - usually just after go-live - is a warning, never red.
     if (projectTicketSpike($stats, $cfg)) return 'amber';
     if (!empty($p['target_end_date']) && $open > 0) {
@@ -204,6 +221,8 @@ function projectDecorate(array $p, array $stats, ?array $cfg = null): array
     $p['tickets_7d']   = (int)($s['tickets_7d'] ?? 0);
     $p['milestones_missed'] = (int)($s['milestones_missed'] ?? 0);
     $p['next_milestone']    = $s['next_milestone'] ?? null;
+    $p['raid_overdue']      = (int)($s['raid_overdue'] ?? 0);
+    $p['raid_escalated']    = (int)($s['raid_escalated'] ?? 0);
     $p['ticket_spike'] = projectTicketSpike($s, $cfg ?? ['ticket_amber' => 5]);
     $p['auto_health']  = projectAutoHealth($p, $s, $cfg);
     $p['exceptions']   = projectExceptions($p, $s);

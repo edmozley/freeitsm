@@ -937,3 +937,40 @@ button.prj-tl-label { cursor: pointer; }
     font-size: 10px; font-weight: 700; color: #fff; background: var(--prj-accent, #e11d48);
 }
 .prj-tl-line.target span { background: var(--text-dim, #888); }
+
+/* ---------- RAID 3.3.0: dependencies, the decision log, escalation, actions ---------- */
+.prj-raid-row.t-dependency { --rt: #6366f1; }
+.prj-raid-late { color: #dc2626; font-weight: 600; }
+.prj-raid-row.late { box-shadow: inset 3px 0 0 #f59e0b, 0 1px 3px rgba(0,0,0,.07); }
+.prj-raid-esc {
+    flex-shrink: 0; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;
+    background: #fee2e2; color: #b91c1c; white-space: nowrap;
+}
+[data-theme="dark"] .prj-raid-esc { background: #4c1d1d; color: #fecaca; }
+/* In the decision log the reason is on the row, not hidden in the dialog. */
+.prj-raid-why { font-size: 12.5px; color: var(--text-muted, #555); margin-top: 3px; white-space: pre-line; }
+.prj-raid-log-hint { margin: 0 0 10px; }
+.prj-raid-escalation, .prj-raid-actions { margin: 4px 0 12px; }
+.prj-raid-actions > label, .prj-raid-esc-box > label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text, #333); }
+.prj-raid-esc-box { padding: 10px 12px; border-radius: 10px; border: 1px dashed var(--border, #ddd); }
+.prj-raid-esc-box.on { border: 1px solid #fca5a5; background: #fef2f2; color: #7f1d1d; }
+[data-theme="dark"] .prj-raid-esc-box.on { background: #3b1414; border-color: #7f1d1d; color: #fecaca; }
+.prj-raid-esc-box.on p { margin: 4px 0 8px; font-size: 13px; }
+.prj-raid-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.prj-raid-inline input[type="text"] { flex: 1 1 200px; min-width: 0; }
+.prj-raid-action-list { list-style: none; margin: 0 0 8px; padding: 0; }
+.prj-raid-action-list li { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: 13px; }
+.prj-raid-action-list li a { color: var(--text, #333); font-weight: 600; text-decoration: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prj-raid-action-list li a:hover { color: var(--prj-accent, #e11d48); }
+.prj-raid-action-list li.done a { text-decoration: line-through; color: var(--text-dim, #888); }
+.prj-raid-action-list li .prj-muted { margin: 0 0 0 auto; white-space: nowrap; font-size: 12px; }
+/* The dialog's inline rows (escalate, add an action) look like the Plan's add-a-task form. */
+.prj-raid-inline input, .prj-raid-inline select {
+    padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 7px; font-size: 13px;
+    background: var(--surface, #fff); color: var(--text, #333); font-family: inherit;
+}
+.prj-raid-inline input:focus, .prj-raid-inline select:focus { border-color: var(--prj-accent, #e11d48); outline: none; box-shadow: 0 0 0 3px var(--prj-accent-soft, #fff1f2); }
+.prj-raid-inline select { max-width: 170px; }
+.prj-raid-decision { margin-top: 14px; }
+/* In the decision log a made (closed) decision is the record, not something finished with - not dimmed. */
+.prj-raid-list.log .prj-raid-row.closed { opacity: 1; }

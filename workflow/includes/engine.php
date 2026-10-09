@@ -186,6 +186,7 @@ class WorkflowEngine
             'project.milestone_due'      => 'A project milestone is 7 days away, and again the day before (time-based)',
             'project.milestone_missed'   => 'A project milestone\'s date passes without it being reached (time-based)',
             'project.milestone_reached'  => 'A project milestone is marked reached',
+            'project.raid_escalated'     => 'A project RAID entry is escalated - it needs somebody above the project manager',
             // ── Issue trackers. NOT time-based: something genuinely happened —
             // a developer moved the issue or wrote a comment. The poll is only
             // how we find out, because a self-hosted install cannot be called.
@@ -456,6 +457,8 @@ class WorkflowEngine
             'project.milestone_due'      => array_merge($projectFields, $milestoneFields, ['days_remaining', 'window_days']),
             'project.milestone_missed'   => array_merge($projectFields, $milestoneFields, ['days_late']),
             'project.milestone_reached'  => array_merge($projectFields, $milestoneFields, ['late_days']),
+            // 3.3.0. raid.type: risk | assumption | issue | dependency | decision | lesson; note = what is needed.
+            'project.raid_escalated'     => array_merge($projectFields, ['raid.id', 'raid.type', 'raid.title', 'raid.due_date', 'raid.owner_analyst_id', 'note']),
         ];
         if (isset($byTrigger[$trigger])) {
             return $byTrigger[$trigger];

@@ -197,6 +197,8 @@ class ProjectsService
             // Phase 2's records, by hand too - each on its own, because before
             // Database Verification a table may not exist, and that must never
             // stop a project being deleted.
+            // RAID actions first (3.3.0): joined to the entries about to go; the tasks stay.
+            try { $conn->prepare("DELETE rt FROM project_raid_tasks rt JOIN project_raid r ON r.id = rt.raid_id WHERE r.project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             }
@@ -622,6 +624,24 @@ class ProjectsService
             ]);
         } catch (Throwable $e) {
             error_log('projects stage_closed: ' . $e->getMessage());
+        }
+    }
+
+    /** project.raid_escalated - a RAID entry needs somebody above the project manager (3.3.0). */
+    public static function raidEscalated(PDO $conn, int $projectId, array $r): void
+    {
+        try {
+            $p = self::eventFor($conn, $projectId);
+            if (!$p) return;
+            require_once __DIR__ . '/../projects/alerts.php';
+            projectDispatch('project.raid_escalated', [
+                'project' => $p,
+                'raid'    => ['id' => (int)$r['id'], 'type' => $r['type'], 'title' => $r['title'], 'due_date' => $r['due_date'],
+                              'owner_analyst_id' => $r['owner_analyst_id'] !== null ? (int)$r['owner_analyst_id'] : null],
+                'note'    => $r['escalation_note'],
+            ]);
+        } catch (Throwable $e) {
+            error_log('projects raid_escalated: ' . $e->getMessage());
         }
     }
 

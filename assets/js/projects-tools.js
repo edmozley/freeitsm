@@ -216,7 +216,12 @@
     }
 
     // ---- RAID log ------------------------------------------------------------------------
-    const RAID_TYPES = ['risk', 'assumption', 'issue', 'decision', 'lesson'];
+    // dependency (3.3.0): something the project needs from outside it, by a date.
+    const RAID_TYPES = ['risk', 'assumption', 'issue', 'dependency', 'decision', 'lesson'];
+    const RAID_PLURAL = { dependency: 'dependencies' };
+    const raidPlural = t => T('raid.' + (RAID_PLURAL[t] || t + 's'));
+    /** A dependency or a decision still open after its date is LATE - it turns health amber. */
+    const raidLate = r => r.status === 'open' && (r.type === 'dependency' || r.type === 'decision') && r.due_date && r.due_date < P.todayStr();
     let raidFilter = { type: '', closed: false, cell: null };   // cell = 'p:i' from the heat map
 
     function scoreClass(s) { return s >= 15 ? 'sc-high' : (s >= 8 ? 'sc-mid' : 'sc-low'); }
@@ -243,15 +248,22 @@
         const score = r.score ? '<span class="prj-raid-score ' + scoreClass(Number(r.score)) + '" title="' + esc(T('raid.score', { score: r.score })) + '">' + esc(r.score) + '</span>' : '';
         const meta = [];
         if (r.owner_name) meta.push(esc(r.owner_name));
-        if (r.due_date) meta.push(esc(P.fmtDate(r.due_date)));
+        // A decision made says who and when; one still to make, and a dependency, say by when.
+        if (r.type === 'decision' && r.status === 'closed' && r.decided_date) meta.push(esc(r.decided_by ? T('raid.decided_meta', { name: r.decided_by, date: P.fmtDate(r.decided_date) }) : T('raid.decided_on_meta', { date: P.fmtDate(r.decided_date) })));
+        else if (r.due_date) meta.push('<span class="' + (raidLate(r) ? 'prj-raid-late' : '') + '">' + esc(r.type === 'dependency' ? T('raid.needed_meta', { date: P.fmtDate(r.due_date) }) : (r.type === 'decision' ? T('raid.decide_meta', { date: P.fmtDate(r.due_date) }) : P.fmtDate(r.due_date))) + '</span>');
+        if (r.actions && r.actions.length) meta.push(esc(T('raid.actions_meta', { done: r.actions.filter(a => a.is_closed).length, total: r.actions.length })));
         if (r.response) meta.push(esc(T('raid.resp_' + r.response)));
         if (r.ticket_number) meta.push('<a href="' + esc(window.PRJ_BASE + r.ticket_url) + '">' + esc(r.ticket_number) + '</a>');
         if (r.article_url) meta.push('<a href="' + esc(window.PRJ_BASE + r.article_url) + '">' + esc(T('raid.kb_row')) + (r.article_published === false ? ' (' + esc(T('raid.kb_draft')) + ')' : '') + '</a>');
-        return '<li class="prj-raid-row t-' + esc(r.type) + (r.status === 'closed' ? ' closed' : '') + '" data-raid="' + r.id + '">'
+        const escBadge = r.escalated_datetime && r.status === 'open'
+            ? '<span class="prj-raid-esc" title="' + esc(r.escalation_note || '') + '">' + esc(T('raid.escalated')) + '</span>' : '';
+        // In the decision log (the Decisions filter) the reason is shown, not hidden in the dialog.
+        const why = raidFilter.type === 'decision' && r.rationale ? '<span class="prj-raid-why">' + esc(r.rationale) + '</span>' : '';
+        return '<li class="prj-raid-row t-' + esc(r.type) + (r.status === 'closed' ? ' closed' : '') + (raidLate(r) ? ' late' : '') + '" data-raid="' + r.id + '">'
             + '<span class="prj-raid-type">' + esc(T('raid.' + r.type)) + '</span>'
             + '<div class="prj-raid-main"><span class="prj-raid-title">' + esc(r.title) + '</span>'
-            + (meta.length ? '<span class="prj-raid-meta">' + meta.join(' &middot; ') + '</span>' : '') + '</div>'
-            + score + '</li>';
+            + (meta.length ? '<span class="prj-raid-meta">' + meta.join(' &middot; ') + '</span>' : '') + why + '</div>'
+            + escBadge + score + '</li>';
     }
 
     function renderRaid() {
@@ -271,10 +283,11 @@
             + (raidFilter.cell ? '<button type="button" class="prj-link" data-heat-clear style="margin-top:10px">' + esc(T('raid.heat_clear')) + '</button>' : '') + '</div>';
         html += '<div class="prj-raid-listwrap"><div class="prj-raid-filters"><div class="prj-seg">'
             + '<button type="button" data-rfilter=""' + (raidFilter.type === '' ? ' class="active"' : '') + '>' + esc(T('raid.all')) + '</button>'
-            + RAID_TYPES.map(t => '<button type="button" data-rfilter="' + t + '"' + (raidFilter.type === t ? ' class="active"' : '') + '>' + esc(T('raid.' + t + 's'))
+            + RAID_TYPES.map(t => '<button type="button" data-rfilter="' + t + '"' + (raidFilter.type === t ? ' class="active"' : '') + '>' + esc(raidPlural(t))
                 + (counts[t] ? ' <small>' + counts[t] + '</small>' : '') + '</button>').join('')
             + '</div><label class="prj-check"><input type="checkbox" data-rclosed' + (raidFilter.closed ? ' checked' : '') + '> ' + esc(T('raid.show_closed')) + '</label></div>';
-        html += rows.length ? '<ul class="prj-raid-list">' + rows.map(raidRow).join('') + '</ul>'
+        if (raidFilter.type === 'decision') html += '<p class="prj-hint prj-raid-log-hint">' + esc(T('raid.log_hint')) + '</p>';
+        html += rows.length ? '<ul class="prj-raid-list' + (raidFilter.type === 'decision' ? ' log' : '') + '">' + rows.map(raidRow).join('') + '</ul>'
             : '<div class="prj-plan-empty">' + esc(all.length ? T('raid.empty_filtered') : T('raid.empty')) + '</div>';
         html += '</div></div>';
         box.innerHTML = html;
@@ -285,6 +298,70 @@
         raidType = t;
         document.querySelectorAll('#prType [data-rtype]').forEach(b => b.classList.toggle('active', b.dataset.rtype === t));
         document.querySelectorAll('#prjRaidModal [data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(t); });
+        // What the date means depends on the type (3.3.0).
+        document.getElementById('prDueLabel').textContent = T(t === 'dependency' ? 'raid.due_needed' : (t === 'decision' ? 'raid.due_decide' : 'raid.due'));
+    }
+    let raidOpen = null;   // the saved entry the dialog shows, for escalation and actions
+    /** Escalation (3.3.0): the current one, or the box to escalate. A saved, open entry only. */
+    function raidEscalationHtml(r) {
+        if (!r || r.status !== 'open') return '';
+        if (r.escalated_datetime) {
+            return '<div class="prj-raid-esc-box on"><strong>' + esc(T('raid.escalated')) + '</strong> '
+                + esc(T('raid.escalated_by', { name: r.escalated_by_name || T('history.someone'), date: P.fmtDate(String(r.escalated_datetime).slice(0, 10)) }))
+                + '<p>' + esc(r.escalation_note || '') + '</p>'
+                + (canChange() ? '<button type="button" class="btn btn-secondary sm" data-raid-deescalate>' + esc(T('raid.deescalate')) + '</button>' : '') + '</div>';
+        }
+        if (!canChange()) return '';
+        return '<div class="prj-raid-esc-box"><label for="prEscNote">' + esc(T('raid.escalate_label')) + '</label>'
+            + '<div class="prj-raid-inline"><input type="text" id="prEscNote" maxlength="500" placeholder="' + esc(T('raid.escalate_ph')) + '">'
+            + '<button type="button" class="btn btn-secondary" data-raid-escalate>' + esc(T('raid.escalate')) + '</button></div>'
+            + '<span class="prj-hint">' + esc(T('raid.escalate_hint')) + '</span></div>';
+    }
+    /** Follow-up actions (3.3.0): project tasks, each opening on the Tasks board. */
+    function raidActionsHtml(r) {
+        if (!r) return '';
+        const rows = (r.actions || []).map(a => '<li class="' + (a.is_closed ? 'done' : '') + '"><span class="prj-task-status" style="background:' + esc(a.status_colour || '#94a3b8') + '" title="' + esc(a.status_name || '') + '"></span>'
+            + '<a href="' + esc(window.PRJ_BASE + 'tasks/?task=' + a.id) + '">' + esc(a.title) + '</a>'
+            + '<span class="prj-muted">' + esc([a.assignee_name, a.due_date ? P.fmtDate(a.due_date) : ''].filter(Boolean).join(' - ')) + '</span>'
+            + (canChange() ? '<button type="button" class="prj-task-remove" data-raid-action-remove="' + a.id + '" title="' + esc(T('raid.action_remove')) + '" aria-label="' + esc(T('raid.action_remove')) + '">&times;</button>' : '') + '</li>').join('');
+        const add = canChange() ? '<div class="prj-raid-inline"><input type="text" id="prActTitle" maxlength="255" placeholder="' + esc(T('raid.action_ph')) + '">'
+            + '<select id="prActWho" aria-label="' + esc(T('plan.assignee')) + '"><option value="">' + esc(T('plan.assignee')) + '</option>' + ctx.L.analysts.map(a => '<option value="' + a.id + '">' + esc(a.full_name) + '</option>').join('') + '</select>'
+            + '<input type="date" id="prActDue" aria-label="' + esc(T('plan.due')) + '">'
+            + '<button type="button" class="btn btn-secondary" data-raid-action-add>' + esc(T('plan.add')) + '</button></div>' : '';
+        if (!rows && !add) return '';
+        return '<label>' + esc(T('raid.actions')) + '</label>' + (rows ? '<ul class="prj-raid-action-list">' + rows + '</ul>' : '<p class="prj-hint">' + esc(T('raid.actions_none')) + '</p>') + add;
+    }
+    function fillRaidExtras(r) {
+        raidOpen = r;
+        const e = document.getElementById('prEscalation'), a = document.getElementById('prActions');
+        e.innerHTML = raidEscalationHtml(r); e.hidden = !e.innerHTML;
+        a.innerHTML = raidActionsHtml(r); a.hidden = !a.innerHTML;
+    }
+    /** Re-read the entry after an escalation or an action, keeping the dialog open. */
+    async function raidReopen(id) {
+        await ctx.refresh();
+        const r = (ctx.data.raid || []).find(x => String(x.id) === String(id));
+        if (r) fillRaidExtras(r);
+    }
+    async function raidEscalate(btn) {
+        const er = document.getElementById('prError'); er.hidden = true;
+        btn.disabled = true;
+        try {
+            await call({ action: 'raid_escalate', id: raidOpen.id, note: document.getElementById('prEscNote').value });
+            P.toast(T('raid.escalated_toast'));
+            await raidReopen(raidOpen.id);
+        } catch (e) { er.textContent = e.message; er.hidden = false; btn.disabled = false; }
+    }
+    async function raidAction(add, btn) {
+        const er = document.getElementById('prError'); er.hidden = true;
+        btn.disabled = true;
+        try {
+            if (add) await call({ action: 'raid_action_add', id: raidOpen.id, title: document.getElementById('prActTitle').value,
+                assigned_analyst_id: document.getElementById('prActWho').value || null, due_date: document.getElementById('prActDue').value || null });
+            else await call({ action: 'raid_action_remove', id: raidOpen.id, task_id: btn.dataset.raidActionRemove });
+            await raidReopen(raidOpen.id);
+            if (add) { const t = document.getElementById('prActTitle'); if (t) t.focus(); }
+        } catch (e) { er.textContent = e.message; er.hidden = false; btn.disabled = false; }
     }
     function openRaid(r) {
         const L = ctx.L;
@@ -305,6 +382,13 @@
         document.getElementById('prStatus').innerHTML = '<option value="open">' + esc(T('raid.open')) + '</option><option value="closed">' + esc(T('raid.closed')) + '</option>';
         document.getElementById('prStatus').value = r ? r.status : 'open';
         document.getElementById('prPlan').value = r ? (r.response_plan || '') : '';
+        document.getElementById('prDecidedBy').value = r ? (r.decided_by || '') : '';
+        document.getElementById('prDecidedDate').value = r ? (r.decided_date || '') : '';
+        document.getElementById('prDecidedDate').max = P.todayStr();
+        document.getElementById('prRationale').value = r ? (r.rationale || '') : '';
+        // Who decided: suggest the project's people (any name can be typed).
+        document.getElementById('prDecidedByList').innerHTML = (ctx.data.members || []).map(m => '<option value="' + esc(m.name) + '">').join('');
+        fillRaidExtras(r);
         document.getElementById('prTicketId').value = r ? (r.ticket_id || '') : '';
         document.getElementById('prTicket').value = r && r.ticket_number ? r.ticket_number + ' - ' + (r.ticket_subject || '') : '';
         document.getElementById('prKb').innerHTML = raidKbHtml(r);
@@ -322,7 +406,9 @@
             probability: document.getElementById('prProb').value || null, impact: document.getElementById('prImpact').value || null,
             response: document.getElementById('prResp').value || null, response_plan: document.getElementById('prPlan').value,
             owner_analyst_id: document.getElementById('prOwner').value || null, due_date: document.getElementById('prDue').value || null,
-            status: document.getElementById('prStatus').value, ticket_id: document.getElementById('prTicketId').value || null };
+            status: document.getElementById('prStatus').value, ticket_id: document.getElementById('prTicketId').value || null,
+            decided_by: document.getElementById('prDecidedBy').value, decided_date: document.getElementById('prDecidedDate').value || null,
+            rationale: document.getElementById('prRationale').value };
     }
     async function saveRaid() {
         try {
@@ -588,7 +674,17 @@
         document.getElementById('prType').addEventListener('click', e => { const b = e.target.closest('[data-rtype]'); if (b) setRaidType(b.dataset.rtype); });
         document.getElementById('prSave').addEventListener('click', saveRaid);
         document.getElementById('prjRaidModal').addEventListener('click', e => {
-            const b = e.target.closest('[data-raid-act]'); if (b) raidAct(b.dataset.raidAct, b);
+            const b = e.target.closest('[data-raid-act]'); if (b) { raidAct(b.dataset.raidAct, b); return; }
+            const es = e.target.closest('[data-raid-escalate]'); if (es) { raidEscalate(es); return; }
+            const de = e.target.closest('[data-raid-deescalate]');
+            if (de) { de.disabled = true; call({ action: 'raid_deescalate', id: raidOpen.id }).then(() => raidReopen(raidOpen.id)).catch(err => { P.toast(err.message, 'error'); de.disabled = false; }); return; }
+            const aa = e.target.closest('[data-raid-action-add]'); if (aa) { raidAction(true, aa); return; }
+            const ar = e.target.closest('[data-raid-action-remove]'); if (ar) { raidAction(false, ar); }
+        });
+        document.getElementById('prjRaidModal').addEventListener('keydown', e => {
+            if (e.key !== 'Enter') return;
+            if (e.target.id === 'prActTitle') { e.preventDefault(); const b = document.querySelector('[data-raid-action-add]'); if (b) raidAction(true, b); }
+            if (e.target.id === 'prEscNote') { e.preventDefault(); const b = document.querySelector('[data-raid-escalate]'); if (b) raidEscalate(b); }
         });
         document.getElementById('pgChoices').addEventListener('click', e => {
             const b = e.target.closest('[data-decision]'); if (!b) return;

@@ -7393,7 +7393,7 @@
                     "p": "\/projects\/{id}\/raid",
                     "perm": "projects.read",
                     "s": "List a project's RAID log",
-                    "d": "Risks, assumptions, issues, decisions and lessons - open first, then risks by score. A risk's score is probability times impact, 1 to 25.",
+                    "d": "Risks, assumptions, issues, dependencies, decisions and lessons - open first, then risks by score. A risk's score is probability times impact, 1 to 25. Each entry carries its escalation (or null), a decision's decided_by \/ decided_date \/ rationale, and its follow-up actions (project tasks).",
                     "params": [
                         {
                             "name": "id",
@@ -7404,7 +7404,7 @@
                         {
                             "name": "type",
                             "in": "query",
-                            "desc": "risk, assumption, issue, decision, lesson",
+                            "desc": "risk, assumption, issue, dependency, decision, lesson",
                             "req": false
                         },
                         {
@@ -7452,7 +7452,7 @@
                         {
                             "name": "type",
                             "in": "body",
-                            "desc": "risk, assumption, issue, decision or lesson",
+                            "desc": "risk, assumption, issue, dependency, decision or lesson",
                             "req": true
                         },
                         {
@@ -7501,6 +7501,12 @@
                             "name": "status",
                             "in": "body",
                             "desc": "open (default) or closed",
+                            "req": false
+                        },
+                        {
+                            "name": "decided_by \/ decided_date \/ rationale",
+                            "in": "body",
+                            "desc": "Decisions only (3.3.0): who decided (a name), when (YYYY-MM-DD, not in the future) and why. Closing a decision with no date stamps today.",
                             "req": false
                         }
                     ],

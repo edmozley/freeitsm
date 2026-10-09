@@ -409,6 +409,12 @@ function apiSerializeProjectRaid(array $r): array {
         'raised_at'     => apiIsoDate($r['raised_datetime']),
         'updated_at'    => apiIsoDate($r['updated_datetime']),
         'closed_at'     => apiIsoDate($r['closed_datetime']),
+        // 3.3.0: escalation, the decision log, follow-up actions.
+        'escalation'    => empty($r['escalated_datetime']) ? null : ['at' => apiIsoDate($r['escalated_datetime']), 'by' => $r['escalated_by_id'] === null ? null : ['id' => (int)$r['escalated_by_id'], 'name' => $r['escalated_by_name'] ?? null], 'note' => $r['escalation_note']],
+        'decided_by'    => $r['decided_by'] ?? null,
+        'decided_date'  => $r['decided_date'] ?? null,
+        'rationale'     => $r['rationale'] ?? null,
+        'actions'       => array_map(fn($a) => ['task_id' => $a['id'], 'title' => $a['title'], 'done' => $a['is_closed'], 'due_date' => $a['due_date'], 'assignee' => $a['assignee_name']], $r['actions'] ?? []),
     ];
 }
 
@@ -418,7 +424,7 @@ function apiProjectRaidRow(PDO $conn, int $pid, int $rid): array {
     return [];
 }
 
-const API_PROJECT_RAID_FIELDS = ['type', 'title', 'description', 'status', 'probability', 'impact', 'response', 'response_plan', 'owner_analyst_id', 'due_date', 'ticket_id'];
+const API_PROJECT_RAID_FIELDS = ['type', 'title', 'description', 'status', 'probability', 'impact', 'response', 'response_plan', 'owner_analyst_id', 'due_date', 'ticket_id', 'decided_by', 'decided_date', 'rationale'];
 
 function apiProjectRaidList(PDO $conn, array $apiKey, array $params, array $body): void {
     $pid = (int)$params[0];

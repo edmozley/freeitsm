@@ -20,6 +20,10 @@
  *      raid_delete    {id}
  *      raid_to_knowledge {id}   a lesson -> a draft Knowledge article (Knowledge access)
  *      raid_to_ticket    {id}   an issue -> a new ticket (Tickets access)
+ *      raid_escalate     {id, note}   (3.3.0)
+ *      raid_deescalate   {id}
+ *      raid_action_add   {id, title, assigned_analyst_id?, due_date?}   a new project task, linked
+ *      raid_action_remove {id, task_id}   unlinks; the task stays
  *      tolerances_save {time?: days|null, risk?: score|null}
  *      gate_decide    {stage_id, decision: go|go_with_conditions|stop, notes?}
  *      target_save    {id?, name, scope: filter|linked, scope_type_id?, scope_field?, scope_value?, done_field, done_op, done_value, target_date?}
@@ -99,6 +103,17 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk(['article' => ProjectToolsService::lessonToKnowledge($conn, $ctx, $pid, (int)($in['id'] ?? 0))]);
         case 'raid_to_ticket':
             projectApiOk(['ticket' => ProjectToolsService::issueToTicket($conn, $ctx, $pid, (int)($in['id'] ?? 0))]);
+        case 'raid_escalate':
+            ProjectToolsService::escalateRaid($conn, $ctx, $pid, (int)($in['id'] ?? 0), $in['note'] ?? null);
+            projectApiOk();
+        case 'raid_deescalate':
+            ProjectToolsService::deescalateRaid($conn, $ctx, $pid, (int)($in['id'] ?? 0));
+            projectApiOk();
+        case 'raid_action_add':
+            projectApiOk(['task_id' => ProjectToolsService::addRaidAction($conn, $ctx, $pid, (int)($in['id'] ?? 0), $in)]);
+        case 'raid_action_remove':
+            ProjectToolsService::removeRaidAction($conn, $ctx, $pid, (int)($in['id'] ?? 0), (int)($in['task_id'] ?? 0));
+            projectApiOk();
         case 'raid_delete':
             ProjectToolsService::deleteRaid($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk();

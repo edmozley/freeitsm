@@ -42,8 +42,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=19">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=185">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=20">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=186">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
     <?php include 'includes/header.php'; ?>
@@ -142,6 +142,7 @@ $projectId = (int)($_GET['id'] ?? 0);
                     <button type="button" data-rtype="risk"><?php echo htmlspecialchars(t('projects.raid.risk')); ?></button>
                     <button type="button" data-rtype="assumption"><?php echo htmlspecialchars(t('projects.raid.assumption')); ?></button>
                     <button type="button" data-rtype="issue"><?php echo htmlspecialchars(t('projects.raid.issue')); ?></button>
+                    <button type="button" data-rtype="dependency"><?php echo htmlspecialchars(t('projects.raid.dependency')); ?></button>
                     <button type="button" data-rtype="decision"><?php echo htmlspecialchars(t('projects.raid.decision')); ?></button>
                     <button type="button" data-rtype="lesson"><?php echo htmlspecialchars(t('projects.raid.lesson')); ?></button>
                 </div>
@@ -153,10 +154,19 @@ $projectId = (int)($_GET['id'] ?? 0);
                     <div class="form-group" data-for="risk issue"><label for="prImpact"><?php echo htmlspecialchars(t('projects.raid.impact')); ?></label><select id="prImpact"></select></div>
                     <div class="form-group" data-for="risk"><label for="prResp"><?php echo htmlspecialchars(t('projects.raid.response')); ?></label><select id="prResp"></select></div>
                     <div class="form-group"><label for="prOwner"><?php echo htmlspecialchars(t('projects.raid.owner')); ?></label><select id="prOwner"></select></div>
-                    <div class="form-group"><label for="prDue"><?php echo htmlspecialchars(t('projects.raid.due')); ?></label><input type="date" id="prDue"></div>
+                    <div class="form-group"><label for="prDue" id="prDueLabel"><?php echo htmlspecialchars(t('projects.raid.due')); ?></label><input type="date" id="prDue"></div>
                     <div class="form-group"><label for="prStatus"><?php echo htmlspecialchars(t('projects.raid.status')); ?></label><select id="prStatus"></select></div>
                 </div>
                 <div class="form-group" data-for="risk"><label for="prPlan"><?php echo htmlspecialchars(t('projects.raid.plan')); ?></label><textarea id="prPlan" rows="2"></textarea></div>
+                <!-- The decision log (3.3.0) -->
+                <div class="prj-form-grid prj-raid-decision" data-for="decision">
+                    <div class="form-group"><label for="prDecidedBy"><?php echo htmlspecialchars(t('projects.raid.decided_by')); ?></label><input type="text" id="prDecidedBy" maxlength="150" list="prDecidedByList" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.raid.decided_by_ph')); ?>"><datalist id="prDecidedByList"></datalist></div>
+                    <div class="form-group"><label for="prDecidedDate"><?php echo htmlspecialchars(t('projects.raid.decided_date')); ?></label><input type="date" id="prDecidedDate"></div>
+                </div>
+                <div class="form-group" data-for="decision"><label for="prRationale"><?php echo htmlspecialchars(t('projects.raid.rationale')); ?></label><textarea id="prRationale" rows="2" placeholder="<?php echo htmlspecialchars(t('projects.raid.rationale_ph')); ?>"></textarea></div>
+                <!-- Escalation and follow-up actions (3.3.0) - a saved entry only; projects-tools.js fills them -->
+                <div class="prj-raid-escalation" id="prEscalation" hidden></div>
+                <div class="prj-raid-actions" id="prActions" hidden></div>
                 <div class="form-group" data-for="issue" style="position:relative">
                     <label for="prTicket"><?php echo htmlspecialchars(t('projects.raid.ticket')); ?></label>
                     <input type="text" id="prTicket" placeholder="<?php echo htmlspecialchars(t('projects.links.add_ph')); ?>" autocomplete="off">
@@ -452,13 +462,13 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=7"></script>
-    <script src="../assets/js/projects-tools.js?v=6"></script>
+    <script src="../assets/js/projects-tools.js?v=7"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-budget.js?v=1"></script>
     <script src="../assets/js/projects-reports.js?v=1"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=14"></script>
+    <script src="../assets/js/projects-view.js?v=15"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

@@ -205,4 +205,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'project_milestones'],
     ],
+    [
+        'id'       => 'projects.decision_log',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'A decision log',
+        'what'     => 'Decisions on a project\'s RAID tab recorded when they are made - who decided, when and why - with the follow-up actions that came out of them as tasks.',
+        'why'      => 'Six months on, nobody has to remember why the cheaper supplier was chosen: it is written down, with who agreed it and what was done about it.',
+        'done'     => 'At least one decision has been recorded with who made it.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_raid', "type = 'decision' AND decided_by IS NOT NULL"],
+    ],
 ];

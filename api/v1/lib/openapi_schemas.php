@@ -11765,6 +11765,7 @@ return array (
             2 => 'issue',
             3 => 'decision',
             4 => 'lesson',
+            5 => 'dependency',
           ),
         ),
         'title' => 
@@ -11881,6 +11882,95 @@ return array (
           'type' => 'string',
           'format' => 'date-time',
           'nullable' => true,
+        ),
+        'escalation' =>
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'Set while the entry is escalated (3.3.0).',
+          'properties' =>
+          array (
+            'at' =>
+            array (
+              'type' => 'string',
+              'format' => 'date-time',
+              'nullable' => true,
+            ),
+            'by' =>
+            array (
+              'type' => 'object',
+              'nullable' => true,
+              'properties' =>
+              array (
+                'id' =>
+                array (
+                  'type' => 'integer',
+                ),
+                'name' =>
+                array (
+                  'type' => 'string',
+                  'nullable' => true,
+                ),
+              ),
+            ),
+            'note' =>
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'decided_by' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'Decisions: who decided (a name).',
+        ),
+        'decided_date' =>
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'rationale' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'actions' =>
+        array (
+          'type' => 'array',
+          'description' => 'Follow-up actions - project tasks (3.3.0).',
+          'items' =>
+          array (
+            'type' => 'object',
+            'properties' =>
+            array (
+              'task_id' =>
+              array (
+                'type' => 'integer',
+              ),
+              'title' =>
+              array (
+                'type' => 'string',
+              ),
+              'done' =>
+              array (
+                'type' => 'boolean',
+              ),
+              'due_date' =>
+              array (
+                'type' => 'string',
+                'format' => 'date',
+                'nullable' => true,
+              ),
+              'assignee' =>
+              array (
+                'type' => 'string',
+                'nullable' => true,
+              ),
+            ),
+          ),
         ),
       ),
     ),

@@ -107,10 +107,10 @@ function mcpTools(): array
             'module' => 'projects', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolProjectOverview',
         ],
         'project_raid' => [
-            'description' => 'A project\'s RAID log - risks (with probability x impact score), assumptions, issues, decisions and lessons.',
+            'description' => 'A project\'s RAID log - risks (with probability x impact score), assumptions, issues, dependencies, decisions (who decided, when and why) and lessons, with what is escalated.',
             'schema' => ['type' => 'object', 'properties' => [
                 'project' => $project,
-                'type'    => ['type' => 'string', 'description' => 'risk, assumption, issue, decision or lesson. Omit for all.'],
+                'type'    => ['type' => 'string', 'description' => 'risk, assumption, issue, dependency, decision or lesson. Omit for all.'],
                 'status'  => ['type' => 'string', 'description' => 'open (default), closed or all.'],
             ], 'required' => ['project']],
             'module' => 'projects', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolProjectRaid',

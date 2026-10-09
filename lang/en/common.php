@@ -368,6 +368,7 @@ return [
                 'milestone_due'      => 'A milestone of a project you manage is coming up',
                 'milestone_missed'   => 'A milestone of a project you manage was missed',
                 'milestone_reached'  => 'A milestone of a project you manage was reached',
+                'raid_escalated'     => 'Something on a project you manage was escalated',
             ],
         ],
         // Labels for the per-type switches on the Preferences page. Same nesting
@@ -411,6 +412,7 @@ return [
                 'milestone_due'      => 'A milestone of a project I manage is 7 days away, and the day before',
                 'milestone_missed'   => 'A milestone of a project I manage passes without being reached',
                 'milestone_reached'  => 'A milestone of a project I manage is marked reached',
+                'raid_escalated'     => 'Somebody escalates a risk, issue, dependency or decision on a project I manage',
             ],
         ],
     ],

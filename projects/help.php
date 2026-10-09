@@ -40,7 +40,7 @@ $sections = [
     'people'    => 3,
     'scope'     => 1,
     'raci'      => 1,
-    'raid'      => 4,
+    'raid'      => 6,
     'gates'     => 3,
     'targets'   => 3,
     'health'    => 1,
@@ -85,9 +85,9 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=19">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=20">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=185">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=186">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
         body {

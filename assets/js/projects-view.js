@@ -90,6 +90,17 @@
         if (p.ticket_spike) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('gates.ticket_spike', { count: p.tickets_7d })) + '</strong></div></div>';
         // A missed milestone (3.3.0) - the other reason the ring may be amber.
         if (p.milestones_missed > 0 && !finished) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('view.milestones_missed', { count: p.milestones_missed })) + '</strong></div></div>';
+        // RAID (3.3.0): a dependency or decision late (amber), and anything escalated - named, with what is needed.
+        if (p.raid_overdue > 0 && !finished) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('view.raid_late', { count: p.raid_overdue })) + '</strong>'
+            + ' <button type="button" class="prj-link" data-goto="raid">' + esc(T('view.see_all')) + '</button></div></div>';
+        const escalated = (data.raid || []).filter(r => r.status === 'open' && r.escalated_datetime);
+        if (escalated.length && !finished) {
+            html += '<div class="prj-gate-warn prj-esc-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('view.escalated', { count: escalated.length })) + '</strong>'
+                + ' <button type="button" class="prj-link" data-goto="raid">' + esc(T('view.see_all')) + '</button></div><ul>'
+                + escalated.map(r => '<li><strong>' + esc(T('raid.' + r.type)) + ': ' + esc(r.title) + '</strong> - ' + esc(r.escalation_note || '')
+                    + ' <span class="prj-muted">(' + esc(T('raid.escalated_by', { name: r.escalated_by_name || T('history.someone'), date: P.fmtDate(String(r.escalated_datetime).slice(0, 10)) })) + ')</span></li>').join('')
+                + '</ul></div>';
+        }
         // The AI project manager's briefing (3.2.0) - drawn by projects-reports.js after this.
         html += '<div id="pvBriefing" hidden></div>';
         // Milestones (3.3.0) - drawn by projects-milestones.js after this.
@@ -157,7 +168,7 @@
         else if (f === 'gate') detail = (h.old_value || '') + ': ' + T('gates.' + (h.new_value || ''));
         else if (f === 'tolerances') detail = '';
         else if (f === 'target_saved' || f === 'target_removed') detail = h.new_value || h.old_value || '';
-        else if (f.indexOf('raid_') === 0) detail = (h.new_value || h.old_value || '').replace(/^(risk|assumption|issue|decision|lesson): /, (m, k) => T('raid.' + k) + ': ');
+        else if (f.indexOf('raid_') === 0) detail = (h.new_value || h.old_value || '').replace(/^(risk|assumption|issue|dependency|decision|lesson): /, (m, k) => T('raid.' + k) + ': ');
         else if (f === 'link_added' || f === 'link_removed') detail = linkHistoryText(h.new_value || h.old_value || '');
         else if (f === 'milestone_moved') detail = (h.new_value || '').replace(/: (\d{4}-\d{2}-\d{2})$/, (m, d) => ': ' + T('history.from_to', { from: P.fmtDate((h.old_value || '').slice(-10)), to: P.fmtDate(d) }));
         else if (f === 'stage_status') detail = (h.new_value || '').replace(/: (planned|active|closed)$/, (m, s) => ': ' + T('stage_status.' + s));

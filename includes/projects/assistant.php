@@ -84,6 +84,8 @@ function projectAssistWhy(array $p): string
     }
     if ($p['task_overdue'] > 0) $why[] = $p['task_overdue'] . ' overdue task(s)';
     if (!empty($p['milestones_missed'])) $why[] = $p['milestones_missed'] . ' milestone(s) missed';
+    if (!empty($p['raid_overdue'])) $why[] = $p['raid_overdue'] . ' dependency or decision late';
+    if (!empty($p['raid_escalated'])) $why[] = $p['raid_escalated'] . ' escalated';
     if (!empty($p['ticket_spike'])) $why[] = $p['tickets_7d'] . ' linked tickets raised in the last 7 days';
     return implode('; ', $why);
 }
@@ -153,10 +155,13 @@ function projectAssistOverview(PDO $conn, array $scope, int $analystId, array $a
         foreach ($ms as $m) $out[] = sprintf('- %s, due %s: %s', $m['name'], $m['due_date'],
             $m['state'] === 'done' ? 'reached ' . $m['done_date'] . ($m['met'] ? ' (on time)' : ' (late)') : ($m['state'] === 'missed' ? 'MISSED' : 'not reached yet'));
     }
-    $raid = array_filter(ProjectToolsService::raid($conn, $pid), fn($r) => $r['status'] === 'open' && in_array($r['type'], ['risk', 'issue'], true));
+    $raid = array_filter(ProjectToolsService::raid($conn, $pid), fn($r) => $r['status'] === 'open' && in_array($r['type'], ['risk', 'issue', 'dependency', 'decision'], true));
     if ($raid) {
-        $out[] = 'Open risks and issues:';
-        foreach (array_slice($raid, 0, 8) as $r) $out[] = sprintf('- %s: %s%s%s', $r['type'], $r['title'], $r['score'] !== null ? ' (score ' . (int)$r['score'] . ')' : '', $r['owner_name'] ? ', owner ' . $r['owner_name'] : '');
+        $today = gmdate('Y-m-d');
+        $out[] = 'Open risks, issues, dependencies and decisions to make:';
+        foreach (array_slice($raid, 0, 10) as $r) $out[] = sprintf('- %s: %s%s%s%s%s', $r['type'], $r['title'], $r['score'] !== null ? ' (score ' . (int)$r['score'] . ')' : '',
+            $r['owner_name'] ? ', owner ' . $r['owner_name'] : '', $r['due_date'] && in_array($r['type'], ['dependency', 'decision'], true) ? ', due ' . $r['due_date'] . ($r['due_date'] < $today ? ' (LATE)' : '') : '',
+            !empty($r['escalated_datetime']) ? ' - ESCALATED: ' . $r['escalation_note'] : '');
     }
     $b = $p['_budget'] ?? null;
     if ($withBudget && $b && ($b['planned'] > 0 || $b['actual'] > 0)) {
@@ -192,7 +197,7 @@ function projectAssistOverview(PDO $conn, array $scope, int $analystId, array $a
     return implode("\n", $out);
 }
 
-/** args: project, type (risk | assumption | issue | decision | lesson), status (open | closed | all). */
+/** args: project, type (risk | assumption | issue | dependency | decision | lesson), status (open | closed | all). */
 function projectAssistRaid(PDO $conn, array $scope, array $args): string
 {
     require_once __DIR__ . '/../services/project_tools.php';
@@ -204,10 +209,13 @@ function projectAssistRaid(PDO $conn, array $scope, array $args): string
     if (!$rows) return $p['code'] . ' has no ' . ($status === 'all' ? '' : $status . ' ') . ($type ?: 'RAID') . ' entries.';
     $lines = [$p['code'] . ' ' . $p['name'] . ' - ' . count($rows) . ' entr' . (count($rows) === 1 ? 'y' : 'ies') . ':'];
     foreach ($rows as $r) {
-        $lines[] = sprintf('- [%s, %s] %s%s%s%s%s', $r['type'], $r['status'], $r['title'],
+        $lines[] = sprintf('- [%s, %s] %s%s%s%s%s%s%s', $r['type'], $r['status'], $r['title'],
             $r['score'] !== null ? ' - score ' . (int)$r['score'] . ' (probability ' . (int)$r['probability'] . ' x impact ' . (int)$r['impact'] . ')' : '',
-            $r['owner_name'] ? ', owner ' . $r['owner_name'] : '', $r['due_date'] ? ', review by ' . $r['due_date'] : '',
-            $r['response_plan'] ? '. Plan: ' . mb_substr($r['response_plan'], 0, 300) : '');
+            $r['owner_name'] ? ', owner ' . $r['owner_name'] : '', $r['due_date'] ? ', ' . ($r['type'] === 'dependency' ? 'needed by ' : 'due ') . $r['due_date'] : '',
+            $r['response_plan'] ? '. Plan: ' . mb_substr($r['response_plan'], 0, 300) : '',
+            $r['type'] === 'decision' && !empty($r['decided_date']) ? '. Decided ' . $r['decided_date'] . ($r['decided_by'] ? ' by ' . $r['decided_by'] : '') . ($r['rationale'] ? ' - why: ' . mb_substr($r['rationale'], 0, 300) : '') : '',
+            !empty($r['escalated_datetime']) ? '. ESCALATED: ' . $r['escalation_note'] : '')
+            . (!empty($r['actions']) ? ' (' . count(array_filter($r['actions'], fn($a) => $a['is_closed'])) . ' of ' . count($r['actions']) . ' follow-up actions done)' : '');
     }
     return implode("\n", $lines);
 }

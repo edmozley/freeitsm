@@ -188,13 +188,23 @@ class ProjectToolsService
     //  RAID log
     // ======================================================================
 
-    const RAID_TYPES = ['risk', 'assumption', 'issue', 'decision', 'lesson'];
+    // dependency (3.3.0): something the project needs from outside it - the
+    // landlord's fit-out, a supplier's delivery, another project. due_date is
+    // when it is needed by; closed = it arrived.
+    const RAID_TYPES = ['risk', 'assumption', 'issue', 'dependency', 'decision', 'lesson'];
     const RAID_RESPONSES = ['avoid', 'reduce', 'transfer', 'accept', 'share'];
 
     /**
      * Create or update a RAID entry. Probability is for risks only and impact for
      * risks and issues (both 1-5); a risk's score is probability x impact (1-25),
      * which is what the heat map and the risk tolerance read.
+     *
+     * Decisions (3.3.0) also carry the DECISION LOG: decided_by (a name - the
+     * person deciding is often a sponsor with no analyst account), decided_date
+     * and rationale. Closing a decision means it was made, so a decision closed
+     * with no date is stamped today. A decision still open past its due date,
+     * like a dependency not arrived by its due date, turns health amber
+     * (projectAutoHealth).
      */
     public static function saveRaid(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
     {
@@ -208,7 +218,7 @@ class ProjectToolsService
             if (!$cur) throw new ServiceError('not_found', 'not_found', 'That entry is not part of this project.');
         }
         $type = (string)($in['type'] ?? ($cur['type'] ?? ''));
-        if (!in_array($type, self::RAID_TYPES, true)) throw new ServiceError('validation', 'invalid_field', 'Choose risk, assumption, issue, decision or lesson.');
+        if (!in_array($type, self::RAID_TYPES, true)) throw new ServiceError('validation', 'invalid_field', 'Choose risk, assumption, issue, dependency, decision or lesson.');
         $title = trim((string)($in['title'] ?? ($cur['title'] ?? '')));
         if ($title === '') throw new ServiceError('validation', 'missing_field', 'Give it a title.');
         if (mb_strlen($title) > 255) throw new ServiceError('validation', 'invalid_field', 'The title is too long.');
@@ -232,11 +242,29 @@ class ProjectToolsService
         $desc = array_key_exists('description', $in) ? self::str($in['description'], 20000) : ($cur['description'] ?? null);
         $plan = array_key_exists('response_plan', $in) ? self::str($in['response_plan'], 20000) : ($cur['response_plan'] ?? null);
         $vals = [$type, $title, $desc, $prob, $impact, $resp, $plan, $owner, $status, $due, $ticket];
+        // The decision log (3.3.0) - before Database Verification the columns are
+        // not there, so they are written only when they exist.
+        $logReady = self::raidLogReady($conn);
+        $logSql = ''; $logVals = [];
+        if ($logReady) {
+            $isDecision = $type === 'decision';
+            $by  = $isDecision ? (array_key_exists('decided_by', $in) ? self::str($in['decided_by'], 150) : ($cur['decided_by'] ?? null)) : null;
+            $on  = $isDecision ? (array_key_exists('decided_date', $in) ? self::date($in['decided_date']) : ($cur['decided_date'] ?? null)) : null;
+            $why = $isDecision ? (array_key_exists('rationale', $in) ? self::str($in['rationale'], 20000) : ($cur['rationale'] ?? null)) : null;
+            if ($on !== null && $on > gmdate('Y-m-d')) throw new ServiceError('validation', 'invalid_field', 'A decision cannot have been made in the future.');
+            if ($isDecision && $status === 'closed' && $on === null) $on = gmdate('Y-m-d');   // decided = closed; when, if nobody said
+            // Closing an entry ends its escalation: there is nothing left to escalate.
+            $logSql = ', decided_by = ?, decided_date = ?, rationale = ?' . ($status === 'closed' ? ', escalated_datetime = NULL, escalated_by_id = NULL, escalation_note = NULL' : '');
+            $logVals = [$by, $on, $why];
+        }
         if ($cur) {
             $closedSql = $status === 'closed' && $cur['status'] !== 'closed' ? ', closed_datetime = UTC_TIMESTAMP()' : ($status === 'open' ? ', closed_datetime = NULL' : '');
             $conn->prepare("UPDATE project_raid SET type = ?, title = ?, description = ?, probability = ?, impact = ?, response = ?, response_plan = ?,
-                                   owner_analyst_id = ?, status = ?, due_date = ?, ticket_id = ?, updated_datetime = UTC_TIMESTAMP()$closedSql WHERE id = ?")
-                 ->execute(array_merge($vals, [$id]));
+                                   owner_analyst_id = ?, status = ?, due_date = ?, ticket_id = ?, updated_datetime = UTC_TIMESTAMP()$closedSql$logSql WHERE id = ?")
+                 ->execute(array_merge($vals, $logVals, [$id]));
+            if ($logReady && $type === 'decision' && $status === 'closed' && $cur['status'] !== 'closed') {
+                ProjectsService::audit($conn, $projectId, $ctx->actorId, 'decision_made', null, $title . ($logVals[0] ? ' (' . $logVals[0] . ')' : ''), self::src($ctx));
+            }
             if ($cur['status'] !== $status) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_' . $status, null, $type . ': ' . $title, self::src($ctx));
             ProjectsService::touchProject($conn, $projectId);
             ProjectsService::afterChange($conn, $projectId);   // a risk, tolerance or target can move health or breach a tolerance
@@ -247,6 +275,7 @@ class ProjectToolsService
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), " . ($status === 'closed' ? 'UTC_TIMESTAMP()' : 'NULL') . ")")
              ->execute(array_merge($vals, [$projectId, $ctx->actorId > 0 ? $ctx->actorId : null]));
         $newId = (int)$conn->lastInsertId();
+        if ($logReady) $conn->prepare("UPDATE project_raid SET decided_by = ?, decided_date = ?, rationale = ? WHERE id = ?")->execute(array_merge($logVals, [$newId]));
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_added', null, $type . ': ' . $title, self::src($ctx));
         ProjectsService::touchProject($conn, $projectId);
         ProjectsService::afterChange($conn, $projectId);   // a risk, tolerance or target can move health or breach a tolerance
@@ -260,9 +289,99 @@ class ProjectToolsService
         $st->execute([$raidId, $projectId]);
         $r = $st->fetch(PDO::FETCH_ASSOC);
         if (!$r) throw new ServiceError('not_found', 'not_found', 'That entry is not part of this project.');
+        // Its actions are unlinked (the tasks stay) - by hand, for an install whose FK failed to add.
+        if (self::raidActionsReady($conn)) $conn->prepare("DELETE FROM project_raid_tasks WHERE raid_id = ?")->execute([$raidId]);
         $conn->prepare("DELETE FROM project_raid WHERE id = ?")->execute([$raidId]);
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_removed', $r['type'] . ': ' . $r['title'], null, self::src($ctx));
         ProjectsService::afterChange($conn, $projectId);
+    }
+
+    /** Has Database Verification added the 3.3.0 RAID columns (escalation, decision log)? */
+    public static function raidLogReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $conn->query("SELECT escalated_datetime, decided_by FROM project_raid LIMIT 0"); $ready = true; }
+            catch (Throwable $e) { $ready = false; }
+        }
+        return $ready;
+    }
+
+    /**
+     * Escalate an open entry (3.3.0): it needs somebody above the project
+     * manager - a sponsor, the board - to act. Stamped with who and when and a
+     * note saying what is needed; shown on the Overview until it is
+     * de-escalated or the entry is closed; fires project.raid_escalated, so the
+     * project manager's bell rings (unless they escalated it) and a workflow can
+     * email the sponsor. Escalating again replaces the note and fires again.
+     */
+    public static function escalateRaid(PDO $conn, ActorContext $ctx, int $projectId, int $raidId, ?string $note): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        if (!self::raidLogReady($conn)) throw new ServiceError('unavailable', 'not_ready', 'Run Database Verification first.');
+        $r = self::raidRow($conn, $projectId, $raidId);
+        if ($r['status'] !== 'open') throw new ServiceError('validation', 'invalid_field', 'Only an open entry can be escalated.');
+        $note = self::str($note, 500);
+        if ($note === null) throw new ServiceError('validation', 'missing_field', 'Say what is needed, and from whom.');
+        $conn->prepare("UPDATE project_raid SET escalated_datetime = UTC_TIMESTAMP(), escalated_by_id = ?, escalation_note = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+             ->execute([$ctx->actorId > 0 ? $ctx->actorId : null, $note, $raidId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_escalated', null, $r['type'] . ': ' . $r['title'], self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::raidEscalated($conn, $projectId, self::raidRow($conn, $projectId, $raidId));
+    }
+
+    public static function deescalateRaid(PDO $conn, ActorContext $ctx, int $projectId, int $raidId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        if (!self::raidLogReady($conn)) throw new ServiceError('unavailable', 'not_ready', 'Run Database Verification first.');
+        $r = self::raidRow($conn, $projectId, $raidId);
+        if (empty($r['escalated_datetime'])) return;
+        $conn->prepare("UPDATE project_raid SET escalated_datetime = NULL, escalated_by_id = NULL, escalation_note = NULL, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$raidId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_deescalated', null, $r['type'] . ': ' . $r['title'], self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    /**
+     * A follow-up action on a RAID entry (3.3.0): a NEW project task, made by
+     * createTaskInProject() (TasksService - so the assigned email, the bell and
+     * task events happen as for any task), then joined to the entry. It is put
+     * in no stage - where it sits in the plan is the Plan's job. Returns the task id.
+     */
+    public static function addRaidAction(PDO $conn, ActorContext $ctx, int $projectId, int $raidId, array $in): int
+    {
+        self::changeable($conn, $ctx, $projectId);
+        if (!self::raidActionsReady($conn)) throw new ServiceError('unavailable', 'not_ready', 'Run Database Verification first.');
+        $r = self::raidRow($conn, $projectId, $raidId);
+        $title = trim((string)($in['title'] ?? ''));
+        if ($title === '') throw new ServiceError('validation', 'missing_field', 'Say what needs doing.');
+        $taskId = ProjectsService::createTaskInProject($conn, $ctx, $projectId, null, array_filter([
+            'title' => mb_substr($title, 0, 255),
+            'assigned_analyst_id' => isset($in['assigned_analyst_id']) && (int)$in['assigned_analyst_id'] > 0 ? (int)$in['assigned_analyst_id'] : null,
+            'due_date' => self::date($in['due_date'] ?? null),
+            'description' => 'Follow-up to the ' . $r['type'] . ' "' . $r['title'] . '" in the project\'s RAID log.',
+        ], fn($v) => $v !== null));
+        $conn->prepare("INSERT INTO project_raid_tasks (raid_id, task_id, created_datetime) VALUES (?, ?, UTC_TIMESTAMP())")->execute([$raidId, $taskId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'raid_action_added', null, $r['title'] . ': ' . $title, self::src($ctx));
+        return $taskId;
+    }
+
+    /** Unlink an action. The task itself stays - it is somebody's work. */
+    public static function removeRaidAction(PDO $conn, ActorContext $ctx, int $projectId, int $raidId, int $taskId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        if (!self::raidActionsReady($conn)) return;
+        self::raidRow($conn, $projectId, $raidId);
+        $conn->prepare("DELETE FROM project_raid_tasks WHERE raid_id = ? AND task_id = ?")->execute([$raidId, $taskId]);
+    }
+
+    public static function raidActionsReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $conn->query("SELECT 1 FROM project_raid_tasks LIMIT 0"); $ready = true; }
+            catch (Throwable $e) { $ready = false; }
+        }
+        return $ready;
     }
 
     /**
@@ -502,10 +621,13 @@ class ProjectToolsService
     public static function raid(PDO $conn, int $projectId): array
     {
         try {
+            $logReady = self::raidLogReady($conn);
             $st = $conn->prepare("SELECT r.*, a.full_name AS owner_name, t.ticket_number, t.subject AS ticket_subject,
-                                         CASE WHEN r.type = 'risk' AND r.probability IS NOT NULL AND r.impact IS NOT NULL THEN r.probability * r.impact END AS score
+                                         CASE WHEN r.type = 'risk' AND r.probability IS NOT NULL AND r.impact IS NOT NULL THEN r.probability * r.impact END AS score,
+                                         " . ($logReady ? 'ea.full_name' : 'NULL') . " AS escalated_by_name
                                     FROM project_raid r
                                LEFT JOIN analysts a ON a.id = r.owner_analyst_id
+                               " . ($logReady ? 'LEFT JOIN analysts ea ON ea.id = r.escalated_by_id' : '') . "
                                LEFT JOIN tickets t ON t.id = r.ticket_id
                                    WHERE r.project_id = ?
                                 ORDER BY r.status = 'closed', score IS NULL, score DESC, r.raised_datetime DESC");
@@ -520,7 +642,22 @@ class ProjectToolsService
                 $in = implode(',', array_unique($articleIds));
                 foreach ($conn->query("SELECT id, title, is_published FROM knowledge_articles WHERE id IN ($in)")->fetchAll(PDO::FETCH_ASSOC) as $a) $titles[(int)$a['id']] = $a;
             }
+            // Follow-up actions (3.3.0): the linked tasks, with whether each is done.
+            $actions = [];
+            if ($rows && self::raidActionsReady($conn)) {
+                $ids = implode(',', array_map(fn($r) => (int)$r['id'], $rows));
+                foreach ($conn->query("SELECT rt.raid_id, tk.id, tk.title, tk.due_date, ts.name AS status_name, ts.colour AS status_colour, COALESCE(ts.is_closed, 0) AS is_closed,
+                                              an.full_name AS assignee_name
+                                         FROM project_raid_tasks rt JOIN tasks tk ON tk.id = rt.task_id
+                                    LEFT JOIN task_statuses ts ON ts.id = tk.status_id
+                                    LEFT JOIN analysts an ON an.id = tk.assigned_analyst_id
+                                        WHERE rt.raid_id IN ($ids) ORDER BY rt.id")->fetchAll(PDO::FETCH_ASSOC) as $a) {
+                    $actions[(int)$a['raid_id']][] = ['id' => (int)$a['id'], 'title' => $a['title'], 'due_date' => $a['due_date'], 'status_name' => $a['status_name'],
+                        'status_colour' => $a['status_colour'], 'is_closed' => (bool)(int)$a['is_closed'], 'assignee_name' => $a['assignee_name']];
+                }
+            }
             foreach ($rows as &$r) {
+                $r['actions'] = $actions[(int)$r['id']] ?? [];
                 $r['ticket_url'] = $r['ticket_id'] ? entityLink('ticket', (int)$r['ticket_id']) : null;
                 $aid = (int)($r['knowledge_article_id'] ?? 0);
                 $r['article_url'] = $aid && isset($titles[$aid]) ? entityLink('knowledge_article', $aid) : null;

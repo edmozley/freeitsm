@@ -16185,4 +16185,17 @@
     body[data-mobile-page="projects-view"] .prj-ms-row-state { margin-left: 23px; }
     body[data-mobile-page="projects-view"] .prj-ms-row .btn { margin-left: auto; min-height: 36px; }
     body[data-mobile-page="projects-view"] .prj-ms-chip { min-height: 32px; }
+    /* RAID 3.3.0: the Escalated badge joins the row's grid (44m) under the title;
+       the dialog's inline rows (escalate, add an action) stack, each control full width. */
+    body[data-mobile-page="projects-view"] .prj-raid-esc { grid-column: 1; grid-row: 3; justify-self: start; }
+    body[data-mobile-module="projects"] .prj-raid-inline { flex-direction: column; align-items: stretch; }
+    body[data-mobile-module="projects"] .prj-raid-inline > * { width: 100%; flex: 0 0 auto; max-width: none; box-sizing: border-box; }
+    /* An action: dot, title and the unlink cross on one line, who / when under it.
+       44g pins .prj-task-status absolutely for Plan rows - not here. */
+    body[data-mobile-module="projects"] .prj-raid-action-list li { flex-wrap: wrap; }
+    body[data-mobile-module="projects"] .prj-raid-action-list .prj-task-status { position: static; order: 0; }
+    body[data-mobile-module="projects"] .prj-raid-action-list li a { order: 1; flex: 1 1 0; }
+    body[data-mobile-module="projects"] .prj-raid-action-list li .prj-task-remove { order: 2; min-width: 36px; min-height: 36px; }
+    body[data-mobile-module="projects"] .prj-raid-action-list li .prj-muted { order: 3; flex-basis: 100%; margin: 0 0 0 18px; }
+    body[data-mobile-module="projects"] .prj-raid-action-list li .prj-muted:empty { display: none; }
 }

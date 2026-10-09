@@ -195,6 +195,8 @@ class NotificationsService
             'project.milestone_due'      => ['default' => true,  'entity' => 'project'],
             'project.milestone_missed'   => ['default' => true,  'entity' => 'project'],
             'project.milestone_reached'  => ['default' => false, 'entity' => 'project'],
+            // 3.3.0: somebody escalated a RAID entry - never your own (rule 1).
+            'project.raid_escalated'     => ['default' => true,  'entity' => 'project'],
         ];
     }
 

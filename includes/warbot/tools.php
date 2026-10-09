@@ -281,12 +281,12 @@ function warbotTools(): array
             'handler'    => 'warbotToolProjectOverview',
         ],
         'project_raid' => [
-            'description' => 'A project\'s RAID log - risks with their scores, assumptions, issues, decisions and lessons. Open ones unless asked.',
+            'description' => 'A project\'s RAID log - risks with their scores, assumptions, issues, dependencies, decisions (with who decided and why) and lessons. Open ones unless asked.',
             'schema' => [
                 'type' => 'object',
                 'properties' => [
                     'project' => ['type' => 'string', 'description' => 'Its code (PRJ-0042), id, or enough of its name to be unique.'],
-                    'type'    => ['type' => 'string', 'description' => 'risk, assumption, issue, decision or lesson. Omit for all.'],
+                    'type'    => ['type' => 'string', 'description' => 'risk, assumption, issue, dependency, decision or lesson. Omit for all.'],
                     'status'  => ['type' => 'string', 'description' => 'open (default), closed or all.'],
                 ],
                 'required' => ['project'],

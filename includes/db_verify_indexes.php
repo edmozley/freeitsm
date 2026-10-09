@@ -475,6 +475,8 @@ return [
     ['project_raci', 'uq_praci_cell', 'unique', '(`item_id`,`member_id`)'],
     ['project_raci', 'ix_praci_project', 'key', '(`project_id`)'],
     ['project_raid', 'idx_project_raid_project', 'key', '(`project_id`,`type`,`status`)'],
+    ['project_raid_tasks', 'uq_prt_pair', 'unique', '(`raid_id`,`task_id`)'],
+    ['project_raid_tasks', 'ix_prt_task', 'key', '(`task_id`)'],
     ['project_tolerances', 'uq_ptol_dimension', 'unique', '(`project_id`,`stage_id`,`dimension`)'],
     ['project_asset_targets', 'idx_patg_project', 'key', '(`project_id`,`position`)'],
     ['project_asset_target_snapshots', 'uq_patgs_day', 'unique', '(`target_id`,`snap_date`)'],

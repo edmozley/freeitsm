@@ -144,15 +144,20 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
     // RAID
     $raid = ProjectToolsService::raid($conn, $pid);
     $open = array_filter($raid, fn($r) => $r['status'] === 'open');
-    foreach (['risk' => 'Open risks', 'issue' => 'Open issues', 'assumption' => 'Assumptions'] as $type => $label) {
+    foreach (['risk' => 'Open risks', 'issue' => 'Open issues', 'dependency' => 'Dependencies not yet arrived (due = needed by)', 'decision' => 'Decisions still to be made', 'assumption' => 'Assumptions'] as $type => $label) {
         $rows = array_values(array_filter($open, fn($r) => $r['type'] === $type));
         if (!$rows) continue;
         $line($label . ':');
-        foreach (array_slice($rows, 0, 12) as $r) $line(sprintf('- %s%s%s%s', $r['title'], $r['score'] !== null ? ' (score ' . (int)$r['score'] . ' of 25)' : '',
-            $r['owner_name'] ? ', owner ' . $r['owner_name'] : ', no owner', $r['response_plan'] ? '; plan: ' . mb_substr($r['response_plan'], 0, 250) : ''));
+        foreach (array_slice($rows, 0, 12) as $r) $line(sprintf('- %s%s%s%s%s%s', $r['title'], $r['score'] !== null ? ' (score ' . (int)$r['score'] . ' of 25)' : '',
+            $r['owner_name'] ? ', owner ' . $r['owner_name'] : ', no owner', $r['due_date'] ? ', due ' . $r['due_date'] . ($r['due_date'] < $today ? ' (LATE)' : '') : '',
+            $r['response_plan'] ? '; plan: ' . mb_substr($r['response_plan'], 0, 250) : '',
+            !empty($r['escalated_datetime']) ? '; ESCALATED ' . substr((string)$r['escalated_datetime'], 0, 10) . ': ' . mb_substr((string)$r['escalation_note'], 0, 250) : ''));
     }
     $recent = array_values(array_filter($raid, fn($r) => in_array($r['type'], ['decision', 'lesson'], true) && substr((string)$r['raised_datetime'], 0, 10) >= $since));
     if ($recent) { $line('Decisions and lessons logged in the period:'); foreach ($recent as $r) $line('- ' . $r['type'] . ': ' . $r['title']); }
+    // Decisions made in the period (3.3.0 decision log): who, and why.
+    $made = array_values(array_filter($raid, fn($r) => $r['type'] === 'decision' && $r['status'] === 'closed' && !empty($r['decided_date']) && $r['decided_date'] >= $since));
+    if ($made) { $line('Decisions made in the period:'); foreach ($made as $r) $line(sprintf('- %s, decided %s%s%s', $r['title'], $r['decided_date'], $r['decided_by'] ? ' by ' . $r['decided_by'] : '', $r['rationale'] ? '; why: ' . mb_substr($r['rationale'], 0, 250) : '')); }
 
     // Scope
     $items = ProjectToolsService::items($conn, $pid);

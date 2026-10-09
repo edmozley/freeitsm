@@ -8122,7 +8122,7 @@ CREATE TABLE IF NOT EXISTS `project_raci` (
 CREATE TABLE IF NOT EXISTS `project_raid` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `project_id`        INT NOT NULL,
-    `type`              VARCHAR(12) NOT NULL,                       -- risk | assumption | issue | decision | lesson
+    `type`              VARCHAR(12) NOT NULL,                       -- risk | assumption | issue | dependency (3.3.0) | decision | lesson
     `title`             VARCHAR(255) NOT NULL,
     `description`       TEXT NULL,
     `probability`       TINYINT NULL,                               -- 1-5, risks only
@@ -8134,6 +8134,12 @@ CREATE TABLE IF NOT EXISTS `project_raid` (
     `due_date`          DATE NULL,
     `ticket_id`         INT NULL,                                   -- an issue that became, or came from, a ticket
     `knowledge_article_id` INT NULL,                                -- a lesson turned into a Knowledge article
+    `escalated_datetime` DATETIME NULL,                             -- 3.3.0: set = escalated (open entries only)
+    `escalated_by_id`   INT NULL,
+    `escalation_note`   VARCHAR(500) NULL,
+    `decided_by`        VARCHAR(150) NULL,                          -- 3.3.0, decisions: who made it (a name - often not an analyst)
+    `decided_date`      DATE NULL,
+    `rationale`         TEXT NULL,                                  -- why it was decided
     `raised_by_id`      INT NULL,
     `raised_datetime`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -8145,7 +8151,25 @@ CREATE TABLE IF NOT EXISTS `project_raid` (
     CONSTRAINT `fk_praid_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_praid_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_praid_raised_by` FOREIGN KEY (`raised_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_praid_article` FOREIGN KEY (`knowledge_article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_praid_article` FOREIGN KEY (`knowledge_article_id`) REFERENCES `knowledge_articles` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_praid_escalated_by` FOREIGN KEY (`escalated_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Follow-up actions on a RAID entry (3.3.0): ordinary project tasks - what was
+-- agreed after a decision, the mitigation for a risk, the fix for an issue. A
+-- join, so the Tasks table is untouched; deleting either side drops the link
+-- only, never the task.
+CREATE TABLE IF NOT EXISTS `project_raid_tasks` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `raid_id`           INT NOT NULL,
+    `task_id`           INT NOT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_prt_pair` (`raid_id`, `task_id`),
+    KEY `ix_prt_task` (`task_id`),
+    CONSTRAINT `fk_prt_raid` FOREIGN KEY (`raid_id`) REFERENCES `project_raid` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_prt_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tolerances: how far a project (stage_id NULL) or a stage may drift before it is

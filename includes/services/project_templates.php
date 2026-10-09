@@ -126,6 +126,7 @@ class ProjectTemplatesService
                 $in = implode(',', array_map('intval', $taskIds));
                 $conn->exec("DELETE FROM tasks WHERE id IN ($in)");
             }
+            try { $conn->prepare("DELETE rt FROM project_raid_tasks rt JOIN project_raid r ON r.id = rt.raid_id WHERE r.project_id = ?")->execute([$pid]); } catch (Throwable $e) { /* not created yet */ }
             foreach (['project_milestones', 'project_asset_targets', 'project_tolerances', 'project_raid', 'project_items', 'project_stages', 'project_audit'] as $t) {
                 try { $conn->prepare("DELETE FROM $t WHERE project_id = ?")->execute([$pid]); } catch (Throwable $e) { /* table may predate Verification */ }
             }

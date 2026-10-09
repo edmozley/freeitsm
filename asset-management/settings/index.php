@@ -529,7 +529,7 @@ $translationNamespaces = ['common', 'asset-management'];
     </style>
     <?php /* Mobile-friendly opt-in (#937). AFTER this page's own <style> so its
              @media rules win on ties. Every rule inside is gated at 768px. */ ?>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=185">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=186">
     <script src="../../assets/js/qrcode.min.js"></script>
 </head>
 <?php /* The marker mobile.css LAYER 15e keys on. `.container` is far too common
