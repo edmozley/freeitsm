@@ -309,6 +309,14 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
             case 'project.signoff_requested':
                 $title = $name . ': your sign-off is needed - ' . (string)($payload['item']['title'] ?? '') . ' (' . (string)($payload['stage']['name'] ?? '') . ')';
                 break;
+            case 'project.tasks_overdue':
+                $n = (int)($payload['count'] ?? 0);
+                $title = $name . ': ' . $n . ($n === 1 ? ' task is overdue' : ' tasks are overdue');
+                break;
+            case 'project.approval_stalled':
+                $what = ['proposal' => 'the proposal', 'change_request' => 'change request', 'signoff' => 'your sign-off', 'report' => 'report draft'][$payload['kind'] ?? ''] ?? 'a decision';
+                $title = $name . ': still waiting on ' . $what . ($payload['kind'] === 'proposal' ? '' : ' - ' . (string)($payload['item']['title'] ?? '')) . ' (' . (int)($payload['waiting_days'] ?? 0) . ' days)';
+                break;
             case 'project.benefit_review_due':
                 $title = $name . ': review the benefit - ' . (string)($payload['benefit']['title'] ?? '');
                 break;

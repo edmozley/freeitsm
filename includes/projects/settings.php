@@ -79,6 +79,13 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // can see a NEW project: everyone with Projects, or its members only.
             // Each project can be changed on its own form.
             'project_default_visibility'    => ['everyone', 'visibility', 'general'],
+            // Reminders (3.3.0) - includes/projects/nudges.php. How often the project
+            // manager gets a list of the project's overdue tasks (weekly / daily /
+            // off), and after how many days something waiting for a decision - a
+            // proposal, a change request, a sign-off, a report draft - nudges the
+            // people who decide it, and again every as many days (0 = never).
+            'project_overdue_digest'        => ['weekly',  'digest',      'general'],
+            'project_nudge_days'            => ['3',       'int:0:30',    'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
             'project_amber_days'       => ['14',       'int:1:120',   'health'],
@@ -239,6 +246,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'digest') {
+            if (!in_array($v, ['weekly', 'daily', 'off'], true)) throw new InvalidArgumentException('Choose weekly, daily or off.');
             return $v;
         }
         if ($rule === 'visibility') {

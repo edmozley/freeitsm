@@ -32,6 +32,7 @@
         if (key === 'project_cost_basis') return T('settings.basis_' + value);
         if (key === 'project_gate_checklist') return T('settings.gatecheck_' + value);
         if (key === 'project_default_visibility') return T('visibility.' + value);
+        if (key === 'project_overdue_digest') return T('settings.digest_' + value);
         if (key === 'project_benefit_notify') return T('settings.bnotify_' + value);
         if (key === 'project_proposal_approval') return T('settings.proposal_' + value);
         if (key === 'project_proposal_approver') return T('settings.approver2_' + value);

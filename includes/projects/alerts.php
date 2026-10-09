@@ -16,6 +16,8 @@
  *   project.milestone_due    a milestone is 7 days away, then tomorrow (3.3.0, time-based)
  *   project.milestone_missed a milestone's date passed without it being reached (3.3.0)
  *   project.milestone_reached somebody marked a milestone reached (3.3.0, the write path)
+ *   project.tasks_overdue    a digest of overdue tasks to the project manager (3.3.0, nudges.php)
+ *   project.approval_stalled something waited too long for a decision (3.3.0, nudges.php)
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * WORKED OUT, NEVER STORED - SO SOMETHING HAS TO LOOK
@@ -188,6 +190,10 @@ function projectAlertsScan(PDO $conn, ?int $projectId = null): array
     // Benefit reviews (3.3.0) - every project that is not cancelled, closed ones included.
     require_once __DIR__ . '/benefits.php';
     $out['benefits'] = projectAlertsBenefits($conn, $projectId);
+    // The overdue digest and stalled-approval nudges (3.3.0).
+    require_once __DIR__ . '/nudges.php';
+    $out['overdue_digests'] = projectAlertsOverdueDigest($conn, $projectId);
+    $out['nudges'] = projectAlertsStalled($conn, $projectId);
     return $out;
 }
 

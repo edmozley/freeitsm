@@ -375,6 +375,8 @@ return [
                 'proposal_decided'   => 'A project you proposed was approved or rejected',
                 'benefit_review_due' => 'A project benefit is due for review',
                 'signoff_requested'  => 'Your sign-off is needed at a project gate',
+                'tasks_overdue'      => 'Overdue tasks on a project you manage',
+                'approval_stalled'   => 'Something on a project is still waiting for your decision',
             ],
         ],
         // Labels for the per-type switches on the Preferences page. Same nesting
@@ -425,6 +427,8 @@ return [
                 'proposal_decided'   => 'A project I proposed is approved or rejected',
                 'benefit_review_due' => 'A benefit I own, or of a project I manage, is due for review',
                 'signoff_requested'  => 'I am named to sign something off at a project stage gate',
+                'tasks_overdue'      => 'A project I manage has overdue tasks (weekly or daily, as Projects - Settings says)',
+                'approval_stalled'   => 'A proposal, change request, sign-off or report I decide has been waiting for days',
             ],
         ],
     ],

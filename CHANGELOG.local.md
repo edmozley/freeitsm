@@ -35,6 +35,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2232 | Projects          | Feature     | Problems can be linked to a project (a seventh Connections kind, table project_problems, same company and both-ends-visible rules), and a problem's page shows a Projects panel to add it to a project from there. |
 | 2233 | Projects          | Feature     | Export to Excel or CSV: the portfolio (the projects in the view, in its order, scoped to what the analyst may see) and a project's whole RAID log (api/projects/export.php, written by includes/spreadsheet.php). |
 | 2234 | Projects          | Feature     | Members-only projects: a project can be seen by its team and Manage Projects only (projects.visibility, default for new projects in Settings - General), enforced in one place (includes/projects/visibility.php) across the portfolio, project page, search, People, recent trail, Documents, Watchtower, Warbot, MCP, REST, Report Packs and the Calendar; Capacity counts the work under a neutral name. |
+| 2235 | Projects          | Feature     | Reminders: a weekly (or daily, or no) digest of a project's overdue tasks to its project manager, and nudges after N days (default 3, repeating) when a proposal, change request, gate sign-off or report draft waits for a decision - new bells and Workflow triggers project.tasks_overdue / project.approval_stalled (includes/projects/nudges.php). |
 
 
 

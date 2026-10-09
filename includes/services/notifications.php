@@ -208,6 +208,10 @@ class NotificationsService
             'project.benefit_review_due' => ['default' => true,  'entity' => 'project'],
             // 3.3.0 gate checklists: you are named to sign something off.
             'project.signoff_requested'  => ['default' => true,  'entity' => 'project'],
+            // 3.3.0 reminders (includes/projects/nudges.php): the overdue digest to the
+            // project manager; a nudge to whoever has left something waiting.
+            'project.tasks_overdue'      => ['default' => true,  'entity' => 'project'],
+            'project.approval_stalled'   => ['default' => true,  'entity' => 'project'],
         ];
     }
 
