@@ -123,6 +123,8 @@
         }
         // The proposal and its approval (3.3.0) - drawn by projects-intake.js after this.
         html += '<div id="pvProposal" hidden></div>';
+        // The Toolbox (3.3.0): tools not in use yet, to add as the project grows - projects-toolbox.js.
+        html += '<div id="pvToolbox" hidden></div>';
         // The AI project manager's briefing (3.2.0) - drawn by projects-reports.js after this.
         html += '<div id="pvBriefing" hidden></div>';
         // Progress over time (3.3.0) - drawn by renderBurnup() once it is on the page.
@@ -454,6 +456,7 @@
         if (window.PrjIntake) window.PrjIntake.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjBenefits) window.PrjBenefits.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjInsights) window.PrjInsights.render({ data: data, L: L, projectId: projectId });
+        if (window.PrjToolbox) window.PrjToolbox.render({ data: data, L: L, projectId: projectId, refresh: refresh });
         // Documents (3.3.0): the shared panel, mounted once - it loads and checks its own list.
         if (window.FreeITSMDocuments && !docsMounted) {
             docsMounted = true;

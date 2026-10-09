@@ -74,6 +74,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // item stops a go (block), or the go is recorded with what was still
             // open written into its notes (warn).
             'project_gate_checklist'        => ['block',   'gatecheck',   'general'],
+            // The Toolbox on the Overview (3.3.0) - assets/js/projects-toolbox.js: the
+            // tools a project is not using yet, to add as it grows. Off for teams
+            // who would rather set tools once in the Edit form.
+            'project_toolbox'               => ['1',       'bool',        'general'],
             'project_benefit_notify'        => ['both',    'bnotify',     'general'],
             // Members-only projects (3.3.0) - includes/projects/visibility.php. Who
             // can see a NEW project: everyone with Projects, or its members only.

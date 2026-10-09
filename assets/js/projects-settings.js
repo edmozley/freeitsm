@@ -38,7 +38,7 @@
         if (key === 'project_proposal_approver') return T('settings.approver2_' + value);
         if (key === 'project_proposal_on_approve') return T('settings.onapprove_' + value);
         if (key === 'project_proposal_approver_id') return String(value) === '0' ? T('settings.nobody') : value;
-        if (key === 'project_currency_per_project' || key === 'project_capacity_desk' || key === 'project_change_self' || key === 'project_forecast_labour') return value === '1' ? P.TC('yes') : P.TC('no');
+        if (key === 'project_currency_per_project' || key === 'project_capacity_desk' || key === 'project_change_self' || key === 'project_forecast_labour' || key === 'project_toolbox') return value === '1' ? P.TC('yes') : P.TC('no');
         // 3.3.0
         if (key === 'project_health_milestones' || key === 'project_health_raid_late') return T('settings.effect_' + value);
         if (key === 'project_portfolio_sort') return T('portfolio.sort_' + value);

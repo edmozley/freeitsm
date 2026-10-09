@@ -313,4 +313,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'project_budget_lines', 'planned_date IS NOT NULL'],
     ],
+    [
+        'id'       => 'projects.toolbox',
+        'module'   => 'projects',
+        'tier'     => 'recommended',
+        'category' => 'organisation',
+        'title'    => 'Grow a project with the Toolbox',
+        'what'     => 'A Simple project starts with just People; the Toolbox on its Overview offers the other tools - scope, RAID, gates, budget, RACI, change control, benefits - and suggests the ones the project needs.',
+        'why'      => 'Nobody new to projects has to face a RACI matrix on day one, and nobody experienced has to go without one.',
+        'done'     => 'A project has had a tool added or taken away.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'projects', 'tailoring IS NOT NULL'],
+    ],
 ];

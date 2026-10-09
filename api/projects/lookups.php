@@ -41,6 +41,8 @@ projectApiRun(function () use ($conn, $analystId) {
         // 3.3.0: the four priority words, the portfolio's default order, what the burn-up counts.
         'priorities'         => projectPriorities(),
         'priority_labels'    => projectScaleLabels($conn, 'priority'),
+        // The Toolbox on the Overview (3.3.0).
+        'toolbox'            => projectSetting($conn, 'project_toolbox') === '1',
         // Stakeholder map (3.3.0): the People tab draws it once the columns exist.
         'stake_ready'        => (function () use ($conn) { require_once __DIR__ . '/../../includes/services/project_tools.php'; return ProjectToolsService::stakeReady($conn); })(),
         // Members-only (3.3.0): what a new project starts as; null before Verification hides the field.
