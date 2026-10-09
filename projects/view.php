@@ -671,7 +671,7 @@ $projectId = (int)($_GET['id'] ?? 0);
                 <div class="form-group">
                     <label><?php echo htmlspecialchars(t('projects.templates.parts')); ?></label>
                     <div class="prj-tpl-parts" id="tpsParts">
-                        <?php foreach (['plan', 'scope', 'raid', 'tolerances', 'targets'] as $part): ?>
+                        <?php foreach (['plan', 'scope', 'raid', 'benefits', 'tolerances', 'targets'] as $part): ?>
                         <label class="prj-check"><input type="checkbox" data-part="<?php echo $part; ?>" checked> <?php echo htmlspecialchars(t('projects.templates.part_' . $part)); ?></label>
                         <?php endforeach; ?>
                     </div>

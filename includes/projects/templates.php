@@ -7,7 +7,8 @@
  *
  * A template is a plan with no dates and no people:
  *   methodology, colour, icon, goal, summary, duration_days,
- *   stages  [{name, goal, start_day, end_day, tasks: [{title, description?, due_day?, estimate_hours?}]}]
+ *   stages  [{name, goal, start_day, end_day, tasks: [{title, description?, due_day?, estimate_hours?}],
+ *            gate_kind? (standard | golive), gate_items? [{kind: check|document|signoff|change, title}]}]  (3.3.0)
  *   tasks   [{title, description?, due_day?}]         - not in any stage
  *   milestones [{name, day, stage?}]                   - stage = index into stages, or null (3.3.0)
  *   items   [{title, description?, moscow?}]          - scope, MoSCoW
@@ -15,6 +16,10 @@
  *   tolerances {time?, risk?}
  *   targets [{name, scope, scope_field?, scope_value?, done_field, done_op, done_value}]
  *   tailoring {tool: bool}
+ *   dependencies [{task, on, lag?}]  (3.3.0) - task waits for on to finish. Both are a task's place in the
+ *                plan: every stage's tasks in order, then the loose tasks, counting from 0.
+ *   benefits [{title, measure?, unit?, direction (up|down), target_value?, target_day?, review_months?}]  (3.3.0)
+ *                - never a baseline (that is measured on the project) and never an owner.
  * Days count from the project's start (day 0), so the same template plans a
  * project starting next week or next spring.
  *
@@ -39,6 +44,16 @@ require_once __DIR__ . '/targets.php';
 require_once __DIR__ . '/read.php';   // projectEstimatesReady()
 
 /** Has Database Verification created the table? Built-ins work either way. */
+/** Has Database Verification added project_stages.gate_kind (3.3.0)? */
+function projectGateKindReady(PDO $conn): bool
+{
+    static $ready = null;
+    if ($ready === null) {
+        try { $conn->query("SELECT gate_kind FROM project_stages LIMIT 0"); $ready = true; } catch (Throwable $e) { $ready = false; }
+    }
+    return $ready;
+}
+
 function projectTemplatesReady(PDO $conn): bool
 {
     static $ready = null;
@@ -62,7 +77,8 @@ function projectBuiltinTemplates(): array
                     $t('Survey the new building with the landlord', 5), $t('Agree the desk and room plan', 9), $t('Order the network cabling', 12), $t('Book the removals firm', 13)]],
                 ['name' => 'Build the network', 'goal' => 'Network, Wi-Fi and phones working in the new building', 'start_day' => 14, 'end_day' => 48, 'tasks' => [
                     $t('Cabling installed and tested', 34), $t('Switches and Wi-Fi installed', 41), $t('Internet line live', 41), $t('Phone numbers ported or redirected', 45), $t('Printers set up', 47)]],
-                ['name' => 'Move weekend', 'goal' => 'Everything moved and working by Monday morning', 'start_day' => 49, 'end_day' => 62, 'tasks' => [
+                ['name' => 'Move weekend', 'goal' => 'Everything moved and working by Monday morning', 'start_day' => 49, 'end_day' => 62, 'gate_kind' => 'golive',
+                 'gate_items' => [['kind' => 'signoff', 'title' => 'Facilities manager happy with the new building'], ['kind' => 'document', 'title' => 'Move plan sent to staff'], ['kind' => 'check', 'title' => 'Fallback agreed if the network is not ready']], 'tasks' => [
                     $t('Send move instructions to staff', 52), $t('Label every desk and device', 55), $t('Move day', 60), $t('Test every desk before Monday', 61)]],
                 ['name' => 'Settle in', 'goal' => 'Snags fixed and the old office handed back', 'start_day' => 63, 'end_day' => 84, 'tasks' => [
                     $t('Collect and fix snags', 70), $t('Hand back the old office keys', 77), $t('Write up lessons learned', 84)]],
@@ -79,6 +95,12 @@ function projectBuiltinTemplates(): array
             ],
             'tolerances' => ['time' => 7, 'risk' => 15],
             'milestones' => [['name' => 'Network live in the new building', 'day' => 48, 'stage' => 1], ['name' => 'Move day', 'day' => 55, 'stage' => 2], ['name' => 'Old office handed back', 'day' => 84, 'stage' => 3]],
+            // 3.3.0
+            'dependencies' => [['task' => 4, 'on' => 2], ['task' => 5, 'on' => 4], ['task' => 8, 'on' => 5], ['task' => 11, 'on' => 5], ['task' => 11, 'on' => 10], ['task' => 12, 'on' => 11], ['task' => 14, 'on' => 13]],
+            'benefits' => [
+                ['title' => 'Every desk working on day one', 'measure' => 'Desks working on the first Monday', 'unit' => '%', 'direction' => 'up', 'target_value' => 100, 'target_day' => 63, 'review_months' => 0],
+                ['title' => 'Fewer network problems', 'measure' => 'Network tickets from the office a month', 'unit' => 'tickets', 'direction' => 'down', 'target_day' => 120, 'review_months' => 3],
+            ],
         ],
         'laptop_refresh' => [
             'name' => 'Laptop refresh', 'description' => 'Replace ageing laptops in waves, then wipe and retire the old ones - tracked live from Assets.',
@@ -87,7 +109,8 @@ function projectBuiltinTemplates(): array
             'stages' => [
                 ['name' => 'Choose and order', 'goal' => 'A standard laptop chosen and ordered', 'start_day' => 0, 'end_day' => 20, 'tasks' => [
                     $t('List the laptops to replace and link them to this project', 5), $t('Choose the standard model', 10), $t('Build and test the standard image', 18), $t('Place the order', 20)]],
-                ['name' => 'Pilot', 'goal' => 'A small group on the new laptops, problems found early', 'start_day' => 21, 'end_day' => 41, 'tasks' => [
+                ['name' => 'Pilot', 'goal' => 'A small group on the new laptops, problems found early', 'start_day' => 21, 'end_day' => 41,
+                 'gate_items' => [['kind' => 'signoff', 'title' => 'Pilot users happy with the new laptops'], ['kind' => 'check', 'title' => 'Image fixes from the pilot made']], 'tasks' => [
                     $t('Pick the pilot group', 23), $t('Swap the pilot laptops', 30), $t('Collect pilot feedback and fix the image', 41)]],
                 ['name' => 'Roll out', 'goal' => 'Everyone else swapped, wave by wave', 'start_day' => 42, 'end_day' => 97, 'tasks' => [
                     $t('Publish the wave schedule', 44), $t('Wave 1', 60), $t('Wave 2', 75), $t('Wave 3', 90), $t('Mop up anyone missed', 97)]],
@@ -104,6 +127,13 @@ function projectBuiltinTemplates(): array
             ],
             'tolerances' => ['time' => 14],
             'milestones' => [['name' => 'Pilot signed off', 'day' => 41, 'stage' => 1], ['name' => 'Last wave swapped', 'day' => 97, 'stage' => 2]],
+            // 3.3.0
+            'dependencies' => [['task' => 2, 'on' => 1], ['task' => 3, 'on' => 1], ['task' => 5, 'on' => 3], ['task' => 5, 'on' => 2], ['task' => 6, 'on' => 5],
+                               ['task' => 8, 'on' => 7], ['task' => 9, 'on' => 8], ['task' => 10, 'on' => 9], ['task' => 11, 'on' => 10], ['task' => 12, 'on' => 11], ['task' => 13, 'on' => 12]],
+            'benefits' => [
+                ['title' => 'Fewer laptop faults', 'measure' => 'Laptop hardware tickets a month', 'unit' => 'tickets', 'direction' => 'down', 'target_day' => 140, 'review_months' => 3],
+                ['title' => 'Faster start-up', 'measure' => 'Minutes from switching on to working', 'unit' => 'min', 'direction' => 'down', 'target_value' => 2, 'target_day' => 112, 'review_months' => 0],
+            ],
             'targets' => [
                 ['name' => 'Old laptops retired', 'scope' => 'linked', 'done_field' => 'status', 'done_op' => 'is', 'done_value' => 'Retired'],
             ],
@@ -119,7 +149,8 @@ function projectBuiltinTemplates(): array
                     $t('Migrate the IT team', 18), $t('Test phones, shared mailboxes and calendars', 24)]],
                 ['name' => 'Migrate', 'goal' => 'Every remaining batch moved', 'start_day' => 28, 'end_day' => 55, 'tasks' => [
                     $t('Batch 1', 35), $t('Batch 2', 42), $t('Batch 3', 49), $t('Shared mailboxes and groups', 55)]],
-                ['name' => 'Cut over', 'goal' => 'Mail flowing straight to the cloud; the old server off', 'start_day' => 56, 'end_day' => 70, 'tasks' => [
+                ['name' => 'Cut over', 'goal' => 'Mail flowing straight to the cloud; the old server off', 'start_day' => 56, 'end_day' => 70, 'gate_kind' => 'golive',
+                 'gate_items' => [['kind' => 'signoff', 'title' => 'Service desk lead happy with mail flow'], ['kind' => 'document', 'title' => 'Rollback plan for the MX switch'], ['kind' => 'change', 'title' => 'Change for the MX switch approved'], ['kind' => 'check', 'title' => 'Old server backed up']], 'tasks' => [
                     $t('Switch the MX records', 57), $t('Watch mail flow for a week', 64), $t('Turn off the old mail server', 70)]],
             ],
             'items' => [
@@ -132,6 +163,12 @@ function projectBuiltinTemplates(): array
             ],
             'tolerances' => ['time' => 7, 'risk' => 12],
             'milestones' => [['name' => 'Pilot batch moved', 'day' => 27, 'stage' => 1], ['name' => 'Mail records switched', 'day' => 60, 'stage' => 3]],
+            // 3.3.0
+            'dependencies' => [['task' => 4, 'on' => 1], ['task' => 4, 'on' => 0], ['task' => 5, 'on' => 4], ['task' => 6, 'on' => 5], ['task' => 7, 'on' => 6], ['task' => 8, 'on' => 7],
+                               ['task' => 9, 'on' => 8], ['task' => 10, 'on' => 9], ['task' => 11, 'on' => 10], ['task' => 12, 'on' => 11]],
+            'benefits' => [
+                ['title' => 'Fewer mail outages', 'measure' => 'Hours of mail outage a quarter', 'unit' => 'hours', 'direction' => 'down', 'target_value' => 0, 'target_day' => 160, 'review_months' => 3],
+            ],
         ],
         'windows11' => [
             'name' => 'Windows 11 rollout', 'description' => 'Upgrade every Windows machine to Windows 11, counted straight from the inventory.',
@@ -148,6 +185,8 @@ function projectBuiltinTemplates(): array
             'raid' => [
                 ['type' => 'risk', 'title' => 'An old app does not run on Windows 11', 'probability' => 3, 'impact' => 4, 'response' => 'reduce', 'response_plan' => 'Test every app in the readiness stage'],
             ],
+            // 3.3.0
+            'dependencies' => [['task' => 3, 'on' => 1], ['task' => 4, 'on' => 3], ['task' => 5, 'on' => 4], ['task' => 6, 'on' => 2], ['task' => 7, 'on' => 5]],
             'targets' => [
                 ['name' => 'On Windows 11', 'scope' => 'filter', 'scope_field' => 'operating_system', 'scope_value' => 'Windows', 'done_field' => 'operating_system', 'done_op' => 'contains', 'done_value' => 'Windows 11'],
             ],
@@ -165,6 +204,11 @@ function projectBuiltinTemplates(): array
             'items' => [
                 ['title' => 'Knowledge articles for the top requests', 'moscow' => 'must'], ['title' => 'Auto-assignment rules', 'moscow' => 'should'],
                 ['title' => 'Portal request forms', 'moscow' => 'should'], ['title' => 'A chat channel', 'moscow' => 'could'],
+            ],
+            // 3.3.0
+            'benefits' => [
+                ['title' => 'Faster first response', 'measure' => 'Average hours to first response', 'unit' => 'hours', 'direction' => 'down', 'target_day' => 90, 'review_months' => 1],
+                ['title' => 'Fewer repeat tickets', 'measure' => 'Tickets reopened a month', 'unit' => 'tickets', 'direction' => 'down', 'target_day' => 90, 'review_months' => 1],
             ],
         ],
     ];
@@ -197,12 +241,20 @@ function projectTemplateNormalise(array $c): array
         'summary'       => $str($c['summary'] ?? null, 20000),
         'duration_days' => $day($c['duration_days'] ?? null),
         'stages' => [], 'tasks' => $tasks($c['tasks'] ?? []), 'items' => [], 'raid' => [], 'tolerances' => [], 'targets' => [], 'tailoring' => null,
+        'dependencies' => [], 'benefits' => [],
         'milestones' => [],
     ];
     foreach (array_slice(is_array($c['stages'] ?? null) ? $c['stages'] : [], 0, 40) as $s) {
         $name = $str($s['name'] ?? null, 150);
         if ($name === null) continue;
-        $out['stages'][] = ['name' => $name, 'goal' => $str($s['goal'] ?? null, 500), 'start_day' => $day($s['start_day'] ?? null), 'end_day' => $day($s['end_day'] ?? null), 'tasks' => $tasks($s['tasks'] ?? [])];
+        // Gate checklists (3.3.0): the kind of gate, and its items by kind and title - never who signs, which change or which document.
+        $gate = [];
+        foreach (array_slice(is_array($s['gate_items'] ?? null) ? $s['gate_items'] : [], 0, 30) as $gi) {
+            $gt = $str($gi['title'] ?? null, 200);
+            if ($gt !== null && in_array($gi['kind'] ?? '', ['check', 'document', 'signoff', 'change'], true)) $gate[] = ['kind' => $gi['kind'], 'title' => $gt];
+        }
+        $out['stages'][] = ['name' => $name, 'goal' => $str($s['goal'] ?? null, 500), 'start_day' => $day($s['start_day'] ?? null), 'end_day' => $day($s['end_day'] ?? null), 'tasks' => $tasks($s['tasks'] ?? []),
+            'gate_kind' => ($s['gate_kind'] ?? '') === 'golive' ? 'golive' : 'standard', 'gate_items' => $gate];
     }
     foreach (array_slice(is_array($c['milestones'] ?? null) ? $c['milestones'] : [], 0, 100) as $m) {
         $name = $str($m['name'] ?? null, 150);
@@ -238,6 +290,28 @@ function projectTemplateNormalise(array $c): array
             'scope_value' => $str($tg['scope_value'] ?? null, 100), 'done_field' => $tg['done_field'], 'done_op' => $tg['done_op'],
             'done_value' => (string)$str($tg['done_value'] ?? '', 100)];
     }
+    // Dependencies (3.3.0), by place in the plan; a pair out of range, a task waiting for itself or a repeat is dropped.
+    $count = count($out['tasks']);
+    foreach ($out['stages'] as $s) $count += count($s['tasks']);
+    $seen = [];
+    foreach (array_slice(is_array($c['dependencies'] ?? null) ? $c['dependencies'] : [], 0, 500) as $dp) {
+        $a = $dp['task'] ?? null; $b = $dp['on'] ?? null;
+        if (!is_numeric($a) || !is_numeric($b)) continue;
+        $a = (int)$a; $b = (int)$b;
+        if ($a < 0 || $b < 0 || $a >= $count || $b >= $count || $a === $b || isset($seen["$a:$b"])) continue;
+        $seen["$a:$b"] = true;
+        $out['dependencies'][] = ['task' => $a, 'on' => $b, 'lag' => max(0, min(365, (int)($dp['lag'] ?? 0)))];
+    }
+    // Benefits (3.3.0) - what the project should improve, without a baseline or an owner.
+    foreach (array_slice(is_array($c['benefits'] ?? null) ? $c['benefits'] : [], 0, 30) as $bn) {
+        $bt = $str($bn['title'] ?? null, 200);
+        if ($bt === null) continue;
+        $out['benefits'][] = ['title' => $bt, 'measure' => $str($bn['measure'] ?? null, 255), 'unit' => $str($bn['unit'] ?? null, 30),
+            'direction' => ($bn['direction'] ?? '') === 'down' ? 'down' : 'up',
+            'target_value' => isset($bn['target_value']) && is_numeric($bn['target_value']) ? round((float)$bn['target_value'], 2) : null,
+            'target_day' => $day($bn['target_day'] ?? null),
+            'review_months' => isset($bn['review_months']) && is_numeric($bn['review_months']) ? max(0, min(24, (int)$bn['review_months'])) : null];
+    }
     if (is_array($c['tailoring'] ?? null)) {
         $tl = [];
         foreach (projectToolDefinitions() as $k => $_) if (array_key_exists($k, $c['tailoring'])) $tl[$k] = (bool)$c['tailoring'][$k];
@@ -255,7 +329,9 @@ function projectTemplateSummary(string $key, string $name, ?string $desc, array 
         'key' => $key, 'name' => $name, 'description' => $desc, 'builtin' => $builtin, 'active' => $active,
         'methodology' => $c['methodology'], 'colour' => $c['colour'], 'icon' => $c['icon'], 'goal' => $c['goal'],
         'duration_days' => $c['duration_days'],
-        'counts' => ['stages' => count($c['stages']), 'tasks' => $tasks, 'items' => count($c['items']), 'risks' => count($c['raid']), 'targets' => count($c['targets']), 'milestones' => count($c['milestones'])],
+        'counts' => ['stages' => count($c['stages']), 'tasks' => $tasks, 'items' => count($c['items']), 'risks' => count($c['raid']), 'targets' => count($c['targets']), 'milestones' => count($c['milestones']),
+                     'dependencies' => count($c['dependencies'] ?? []), 'benefits' => count($c['benefits'] ?? []),
+                     'gate_items' => array_sum(array_map(fn($s) => count($s['gate_items'] ?? []), $c['stages']))],
     ];
 }
 
@@ -330,19 +406,41 @@ function projectTemplateCapture(PDO $conn, array $project, array $parts): array
         'stages' => [], 'tasks' => [],
     ];
     if (in_array('plan', $parts, true)) {
-        $stages = $conn->prepare("SELECT id, name, goal, start_date, end_date FROM project_stages WHERE project_id = ? ORDER BY position, id");
+        $stages = $conn->prepare("SELECT id, name, goal, start_date, end_date" . (projectGateKindReady($conn) ? ', gate_kind' : '') . " FROM project_stages WHERE project_id = ? ORDER BY position, id");
         $stages->execute([$pid]);
-        $tasks = $conn->prepare("SELECT title, description, due_date, project_stage_id, " . (projectEstimatesReady($conn) ? 'estimate_hours' : 'NULL AS estimate_hours') . " FROM tasks WHERE project_id = ? AND parent_task_id IS NULL ORDER BY board_position, id");
+        $tasks = $conn->prepare("SELECT id, title, description, due_date, project_stage_id, " . (projectEstimatesReady($conn) ? 'estimate_hours' : 'NULL AS estimate_hours') . " FROM tasks WHERE project_id = ? AND parent_task_id IS NULL ORDER BY board_position, id");
         $tasks->execute([$pid]);
-        $byStage = [];
+        $byStage = []; $idsByStage = []; $looseIds = [];
         foreach ($tasks->fetchAll(PDO::FETCH_ASSOC) as $tk) {
             $row = ['title' => $tk['title'], 'description' => $tk['description'], 'due_day' => $day($tk['due_date']), 'estimate_hours' => $tk['estimate_hours'] !== null ? (float)$tk['estimate_hours'] : null];
-            if ($tk['project_stage_id']) $byStage[(int)$tk['project_stage_id']][] = $row; else $c['tasks'][] = $row;
+            if ($tk['project_stage_id']) { $byStage[(int)$tk['project_stage_id']][] = $row; $idsByStage[(int)$tk['project_stage_id']][] = (int)$tk['id']; }
+            else { $c['tasks'][] = $row; $looseIds[] = (int)$tk['id']; }
         }
-        $index = [];
-        foreach ($stages->fetchAll(PDO::FETCH_ASSOC) as $s) {
+        // Gate checklists (3.3.0): kind and title only.
+        require_once __DIR__ . '/gatecheck.php';
+        $gates = [];
+        if (projectGateItemsReady($conn)) {
+            $gi = $conn->prepare("SELECT stage_id, kind, title FROM project_gate_items WHERE project_id = ? ORDER BY position, id");
+            $gi->execute([$pid]);
+            foreach ($gi->fetchAll(PDO::FETCH_ASSOC) as $g) $gates[(int)$g['stage_id']][] = ['kind' => $g['kind'], 'title' => $g['title']];
+        }
+        $index = []; $order = [];
+        $stageRows = $stages->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($stageRows as $s) {
             $index[(int)$s['id']] = count($c['stages']);
-            $c['stages'][] = ['name' => $s['name'], 'goal' => $s['goal'], 'start_day' => $day($s['start_date']), 'end_day' => $day($s['end_date']), 'tasks' => $byStage[(int)$s['id']] ?? []];
+            $c['stages'][] = ['name' => $s['name'], 'goal' => $s['goal'], 'start_day' => $day($s['start_date']), 'end_day' => $day($s['end_date']), 'tasks' => $byStage[(int)$s['id']] ?? [],
+                'gate_kind' => $s['gate_kind'] ?? 'standard', 'gate_items' => $gates[(int)$s['id']] ?? []];
+            foreach ($idsByStage[(int)$s['id']] ?? [] as $tid) $order[$tid] = count($order);
+        }
+        // Tasks in a stage that no longer exists sort with the loose ones, as createFromTemplate() would place them.
+        foreach ($looseIds as $tid) $order[$tid] = count($order);
+        // Dependencies (3.3.0), by place in the plan.
+        require_once __DIR__ . '/dependencies.php';
+        if (projectDependenciesReady($conn) && $order) {
+            $in = implode(',', array_keys($order));
+            foreach ($conn->query("SELECT task_id, depends_on_id, lag_days FROM task_dependencies WHERE task_id IN ($in) AND depends_on_id IN ($in) ORDER BY id")->fetchAll(PDO::FETCH_ASSOC) as $dp) {
+                $c['dependencies'][] = ['task' => $order[(int)$dp['task_id']], 'on' => $order[(int)$dp['depends_on_id']], 'lag' => (int)$dp['lag_days']];
+            }
         }
         // Milestones (3.3.0) - their dates as days, their stage as its place in the list.
         require_once __DIR__ . '/milestones.php';
@@ -366,6 +464,18 @@ function projectTemplateCapture(PDO $conn, array $project, array $parts): array
         $st = $conn->prepare("SELECT type, title, description, probability, impact, response, response_plan FROM project_raid WHERE project_id = ? AND type IN ('risk', 'assumption', 'dependency') ORDER BY id");
         $st->execute([$pid]);
         $c['raid'] = $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+    if (in_array('benefits', $parts, true)) {
+        // Benefits (3.3.0): what to improve and the target - never the baseline (that is this project's) or the owner.
+        require_once __DIR__ . '/benefits.php';
+        if (projectBenefitsReady($conn)) {
+            $st = $conn->prepare("SELECT title, measure, unit, direction, target_value, target_date, review_months FROM project_benefits WHERE project_id = ? ORDER BY position, id");
+            $st->execute([$pid]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $bn) {
+                $c['benefits'][] = ['title' => $bn['title'], 'measure' => $bn['measure'], 'unit' => $bn['unit'], 'direction' => $bn['direction'],
+                    'target_value' => $bn['target_value'], 'target_day' => $day($bn['target_date']), 'review_months' => $bn['review_months']];
+            }
+        }
     }
     if (in_array('tolerances', $parts, true)) {
         require_once __DIR__ . '/../services/project_tools.php';

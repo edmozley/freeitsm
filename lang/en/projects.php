@@ -1632,7 +1632,8 @@ return [
         'description'  => 'Description',
         'description_ph' => 'What kind of project it suits',
         'parts'        => 'What to keep',
-        'part_plan'    => 'Stages and tasks, with dates kept as days from the start',
+        'part_plan'    => 'Stages and tasks, with dates kept as days from the start - and their dependencies, milestones and gate checklists',
+        'part_benefits'=> 'Benefits - what it should improve and the targets (not the baselines)',
         'part_scope'   => 'Scope - the deliverables and their priorities',
         'part_raid'    => 'Risks and assumptions',
         'part_tolerances' => 'Tolerances',
@@ -1804,6 +1805,7 @@ return [
             'p1'    => 'When you create a project, **Start from** offers templates: an office move, a laptop refresh, a mail migration, a Windows 11 rollout and a service desk improvement come built in. Pick one and the project is created with its stages, tasks, scope, risks and tolerances already in place, and its way of running, colour, icon and goal filled in for you. Anything you type in the form wins over the template.',
             'p2'    => 'A template keeps its dates as days from the start, so every date is planned from the **start date** you give - today if you leave it empty - and the target finish follows unless you set one. The tasks are ordinary tasks, nobody is assigned to them, and nothing is ticked off. An asset target that needs a status or location by name (for example "Retired") is only added when that name exists on your install.',
             'p3'    => 'To make your own, open a project that went well and press **Template**. Choose what to keep: the stages and tasks, the scope, the risks and assumptions, the tolerances and the asset targets. To change a template, start a project from it, change the project, press **Template** and choose **Replace one of your templates** - built-in ones can be copied this way, never overwritten. People, the company, links and progress are never kept, so one template works for any company. **Projects - Settings - Templates** lists them all: hide a built-in one you never use, and rename, switch off or delete your own. Saving and looking after templates needs the Templates permission; anyone who may create projects can start from one.',
+            'p4'    => 'From 3.3.0 a template also carries the plan\'s **dependencies**, each stage\'s **gate checklist** (and whether it is a go-live gate - with nobody named to sign off yet) and, if you keep them, the **benefits** with their targets (never the baselines - those are measured on the new project). The five built-in templates come with all three.',
         ],
         'targets' => [
             'nav'   => 'Asset targets',

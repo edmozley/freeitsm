@@ -20,6 +20,9 @@
 require_once __DIR__ . '/projects.php';
 require_once __DIR__ . '/../projects/templates.php';
 require_once __DIR__ . '/../projects/milestones.php';
+require_once __DIR__ . '/../projects/gatecheck.php';      // 3.3.0: gate checklists
+require_once __DIR__ . '/../projects/dependencies.php';   // 3.3.0
+require_once __DIR__ . '/../projects/benefits.php';       // 3.3.0
 
 class ProjectTemplatesService
 {
@@ -69,6 +72,12 @@ class ProjectTemplatesService
                 $sid = (int)$conn->lastInsertId();
                 $stageIds[$i] = $sid;
                 foreach ($s['tasks'] as $tk) $addTask($tk, $sid);
+                // Its gate (3.3.0): go-live or standard, and the checklist - nobody named, nothing chosen yet.
+                if (projectGateItemsReady($conn)) {
+                    if (($s['gate_kind'] ?? 'standard') === 'golive') $conn->prepare("UPDATE project_stages SET gate_kind = 'golive' WHERE id = ?")->execute([$sid]);
+                    $gi = $conn->prepare("INSERT INTO project_gate_items (project_id, stage_id, kind, title, position, created_by_id, created_datetime) VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())");
+                    foreach ($s['gate_items'] ?? [] as $p => $g) $gi->execute([$pid, $sid, $g['kind'], $g['title'], $p + 1, $ctx->actorId > 0 ? $ctx->actorId : null]);
+                }
             }
             if ($c['milestones'] && projectMilestonesReady($conn)) {
                 $st = $conn->prepare("INSERT INTO project_milestones (project_id, stage_id, name, due_date, position, created_by_analyst_id, created_datetime, updated_datetime)
@@ -78,6 +87,24 @@ class ProjectTemplatesService
                 }
             }
             foreach ($c['tasks'] as $tk) $addTask($tk, null);
+            // Dependencies (3.3.0): $taskIds is in plan order - every stage's tasks, then the loose ones.
+            if ($c['dependencies'] && projectDependenciesReady($conn)) {
+                $st = $conn->prepare("INSERT IGNORE INTO task_dependencies (task_id, depends_on_id, lag_days, created_by_id, created_datetime) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())");
+                foreach ($c['dependencies'] as $dp) {
+                    if (!isset($taskIds[$dp['task']], $taskIds[$dp['on']])) continue;
+                    $st->execute([$taskIds[$dp['task']], $taskIds[$dp['on']], $dp['lag'], $ctx->actorId > 0 ? $ctx->actorId : null]);
+                }
+            }
+            // Benefits (3.3.0): first reviewed on their target date.
+            if ($c['benefits'] && projectBenefitsReady($conn)) {
+                $st = $conn->prepare("INSERT INTO project_benefits (project_id, title, measure, unit, direction, target_value, target_date, review_date, review_months, status, position, created_by_id, created_datetime)
+                                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, UTC_TIMESTAMP())");
+                foreach ($c['benefits'] as $i => $bn) {
+                    $date = $at($bn['target_day']);
+                    $months = $bn['review_months'] ?? (int)projectSetting($conn, 'project_benefit_review_months');
+                    $st->execute([$pid, $bn['title'], $bn['measure'], $bn['unit'], $bn['direction'], $bn['target_value'], $date, $date, $months, $i + 1, $ctx->actorId > 0 ? $ctx->actorId : null]);
+                }
+            }
 
             if ($c['items'] && projectsPhase2Ready($conn)) {
                 $st = $conn->prepare("INSERT INTO project_items (project_id, title, description, moscow, status, position, created_datetime, updated_datetime)
@@ -128,7 +155,7 @@ class ProjectTemplatesService
                 $conn->exec("DELETE FROM tasks WHERE id IN ($in)");
             }
             try { $conn->prepare("DELETE rt FROM project_raid_tasks rt JOIN project_raid r ON r.id = rt.raid_id WHERE r.project_id = ?")->execute([$pid]); } catch (Throwable $e) { /* not created yet */ }
-            foreach (['project_milestones', 'project_asset_targets', 'project_tolerances', 'project_raid', 'project_items', 'project_stages', 'project_audit'] as $t) {
+            foreach (['project_gate_items', 'project_benefits', 'project_milestones', 'project_asset_targets', 'project_tolerances', 'project_raid', 'project_items', 'project_stages', 'project_audit'] as $t) {
                 try { $conn->prepare("DELETE FROM $t WHERE project_id = ?")->execute([$pid]); } catch (Throwable $e) { /* table may predate Verification */ }
             }
             $conn->prepare("DELETE FROM projects WHERE id = ?")->execute([$pid]);
@@ -137,7 +164,7 @@ class ProjectTemplatesService
     }
 
     /**
-     * Save a project as a template. $parts: plan, scope, raid, tolerances,
+     * Save a project as a template. $parts: plan, scope, raid, benefits (3.3.0), tolerances,
      * targets. Needs the Templates capability - templates are shared by every
      * company on the install.
      *
@@ -155,7 +182,7 @@ class ProjectTemplatesService
         $replaceId = (int)($in['id'] ?? 0);
         if ($replaceId > 0) self::row($conn, $replaceId);
         [$name, $desc] = self::nameDesc($in);
-        $parts = array_values(array_intersect((array)($in['parts'] ?? []), ['plan', 'scope', 'raid', 'tolerances', 'targets']));
+        $parts = array_values(array_intersect((array)($in['parts'] ?? []), ['plan', 'scope', 'raid', 'benefits', 'tolerances', 'targets']));
         $content = json_encode(projectTemplateCapture($conn, $project, $parts), JSON_UNESCAPED_UNICODE);
         if ($replaceId > 0) {
             $conn->prepare("UPDATE project_templates SET name = ?, description = ?, content = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
