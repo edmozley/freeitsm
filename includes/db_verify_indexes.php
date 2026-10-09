@@ -492,6 +492,8 @@ return [
     ['project_benefits', 'idx_pben_project', 'key', '(`project_id`,`position`)'],
     ['project_benefits', 'ix_pben_review', 'key', '(`status`,`review_date`)'],
     ['project_benefits', 'ix_pben_owner', 'key', '(`owner_analyst_id`)'],
+    ['task_dependencies', 'uq_tdep_pair', 'unique', '(`task_id`,`depends_on_id`)'],
+    ['task_dependencies', 'ix_tdep_on', 'key', '(`depends_on_id`)'],
     ['project_gate_items', 'idx_pgi_stage', 'key', '(`stage_id`,`position`)'],
     ['project_gate_items', 'ix_pgi_project', 'key', '(`project_id`)'],
     ['project_gate_items', 'ix_pgi_analyst', 'key', '(`analyst_id`)'],

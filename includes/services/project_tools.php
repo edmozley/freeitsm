@@ -943,6 +943,48 @@ class ProjectToolsService
     }
 
     // ======================================================================
+    //  Task dependencies (3.3.0) - includes/projects/dependencies.php
+    // ======================================================================
+
+    /** $taskId waits for $dependsOnId to finish (+ lag days). Both in this project; no loops. Returns its id. */
+    public static function addTaskDependency(PDO $conn, ActorContext $ctx, int $projectId, int $taskId, int $dependsOnId, $lag): int
+    {
+        require_once __DIR__ . '/../projects/dependencies.php';
+        self::changeable($conn, $ctx, $projectId);
+        if (!projectDependenciesReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        if ($taskId <= 0 || $dependsOnId <= 0) throw new ServiceError('validation', 'missing_field', 'Choose both tasks.');
+        if ($taskId === $dependsOnId) throw new ServiceError('validation', 'invalid_field', 'A task cannot wait for itself.');
+        $st = $conn->prepare("SELECT id, title FROM tasks WHERE id IN (?, ?) AND project_id = ?");
+        $st->execute([$taskId, $dependsOnId, $projectId]);
+        $titles = $st->fetchAll(PDO::FETCH_KEY_PAIR);
+        if (count($titles) !== 2) throw new ServiceError('validation', 'invalid_field', 'Both tasks must be in this project.');
+        $lag = ($lag === null || $lag === '') ? 0 : $lag;
+        if (!preg_match('/^-?\d{1,3}$/', (string)$lag) || abs((int)$lag) > 365) throw new ServiceError('validation', 'invalid_field', 'The gap is a number of days, up to 365 either way.');
+        if (projectDependencyMakesCycle(projectDependencies($conn, $projectId), $taskId, $dependsOnId)) {
+            throw new ServiceError('validation', 'invalid_field', 'That would make a loop: "' . $titles[$dependsOnId] . '" already waits for "' . $titles[$taskId] . '".');
+        }
+        $conn->prepare("INSERT INTO task_dependencies (task_id, depends_on_id, lag_days, created_by_id, created_datetime) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())
+                        ON DUPLICATE KEY UPDATE lag_days = VALUES(lag_days)")
+             ->execute([$taskId, $dependsOnId, (int)$lag, $ctx->actorId > 0 ? $ctx->actorId : null]);
+        $st = $conn->prepare("SELECT id FROM task_dependencies WHERE task_id = ? AND depends_on_id = ?");
+        $st->execute([$taskId, $dependsOnId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'dependency_added', null, $titles[$taskId] . ' <- ' . $titles[$dependsOnId], self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return (int)$st->fetchColumn();
+    }
+
+    public static function removeTaskDependency(PDO $conn, ActorContext $ctx, int $projectId, int $depId): void
+    {
+        require_once __DIR__ . '/../projects/dependencies.php';
+        self::changeable($conn, $ctx, $projectId);
+        $mine = array_column(projectDependencies($conn, $projectId), null, 'id');
+        if (!isset($mine[$depId])) throw new ServiceError('not_found', 'not_found', 'That dependency is not part of this project.');
+        $conn->prepare("DELETE FROM task_dependencies WHERE id = ?")->execute([$depId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'dependency_removed', null, null, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    // ======================================================================
     //  Gate checklists (3.3.0) - includes/projects/gatecheck.php
     // ======================================================================
 

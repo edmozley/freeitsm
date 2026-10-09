@@ -5515,6 +5515,15 @@ return [
         'updated_datetime' => 'DATETIME NULL',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
+    // Task dependencies (3.3.0) - includes/projects/dependencies.php.
+    'task_dependencies' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'task_id'          => 'INT NOT NULL',
+        'depends_on_id'    => 'INT NOT NULL',
+        'lag_days'         => 'INT NOT NULL DEFAULT 0',
+        'created_by_id'    => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
     // Gate checklists (3.3.0) - includes/projects/gatecheck.php.
     'project_gate_items' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',

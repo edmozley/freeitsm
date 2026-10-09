@@ -11,7 +11,15 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
     $perms = ['can_change' => projectCanChange($conn, $analystId, $row), 'can_delete' => projectCanDelete($conn, $analystId, $row)];
     require_once __DIR__ . '/../../includes/services/project_tools.php';
     $pid = (int)$row['id'];
-    projectApiOk(projectDetail($conn, $row) + [
+    // Dependencies (3.3.0): each task learns what it waits for, whether it clashes, and the critical path.
+    require_once __DIR__ . '/../../includes/projects/dependencies.php';
+    $detail = projectDetail($conn, $row);
+    $deps = projectDependencies($conn, $pid);
+    $an = projectDependencyAnalysis($detail['tasks'], $deps);
+    foreach ($detail['tasks'] as &$tk) $tk += $an[(int)$tk['id']] ?? ['depends_on' => [], 'waiting_on' => [], 'clash' => false, 'critical' => false, 'slack' => null];
+    unset($tk);
+    projectApiOk($detail + [
+        'dependencies' => $deps,
         'permissions' => $perms,
         'members'     => ProjectToolsService::members($conn, $pid),
         'items'       => ProjectToolsService::items($conn, $pid),

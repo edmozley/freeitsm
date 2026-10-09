@@ -8391,6 +8391,23 @@ CREATE TABLE IF NOT EXISTS `project_benefits` (
     CONSTRAINT `fk_pben_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Task dependencies (3.3.0) - includes/projects/dependencies.php. Finish-to-
+-- start: task_id cannot start until depends_on_id has finished (plus lag_days).
+-- "Waiting on", clashes and the critical path are worked out on read.
+CREATE TABLE IF NOT EXISTS `task_dependencies` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `task_id`          INT NOT NULL,                                  -- the one that waits
+    `depends_on_id`    INT NOT NULL,                                  -- the one it waits for
+    `lag_days`         INT NOT NULL DEFAULT 0,
+    `created_by_id`    INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tdep_pair` (`task_id`, `depends_on_id`),
+    KEY `ix_tdep_on` (`depends_on_id`),
+    CONSTRAINT `fk_tdep_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_tdep_on` FOREIGN KEY (`depends_on_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- A stage gate's checklist (3.3.0) - includes/projects/gatecheck.php. What must
 -- be true before a go: a tick (check), a document attached to the project
 -- (document), a named analyst's sign-off (signoff) or a linked change approved

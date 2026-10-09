@@ -43,6 +43,8 @@
  *      change_save    {id?, title, description?, reason?, impact_days?, impact_cost?, impact_scope?}
  *      change_decide  {id, decision: approved|rejected, notes?}
  *      change_withdraw {id}
+ *      dep_add        {task_id, depends_on_id, lag_days?}   (3.3.0) task_id waits for depends_on_id; no loops
+ *      dep_remove     {id}
  *      gate_item_save {id?, stage_id, kind: check|document|signoff|change, title, analyst_id?, change_id?, notes?}   (3.3.0 gate checklists)
  *      gate_item_delete {id}
  *      gate_item_tick {id, done?, document_id?, notes?}   a sign-off by its named analyst only; a change item cannot be ticked
@@ -170,6 +172,11 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk();
         case 'task_estimate':
             ProjectToolsService::setTaskEstimate($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), $in['estimate_hours'] ?? null);
+            projectApiOk();
+        case 'dep_add':
+            projectApiOk(['id' => ProjectToolsService::addTaskDependency($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), (int)($in['depends_on_id'] ?? 0), $in['lag_days'] ?? 0)]);
+        case 'dep_remove':
+            ProjectToolsService::removeTaskDependency($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk();
         case 'gate_item_save':
             projectApiOk(['id' => ProjectToolsService::saveGateItem($conn, $ctx, $pid, $in)]);

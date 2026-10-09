@@ -295,6 +295,7 @@ return [
         'zoom_weeks'   => 'Weeks',
         'zoom_months'  => 'Months',
         'today'        => 'Today',
+        'critical'      => 'Critical path',
         'target'       => 'Target',
         'project_row'  => 'Project milestones',
         'unassigned'   => 'Not in a {timebox}',
@@ -355,6 +356,24 @@ return [
         'benefits'      => 'Benefits',
         'benefits_desc' => 'What the project is meant to improve, measured from a baseline towards a target and reviewed - after it closes too.',
         'control_desc' => 'Baselines of the agreed plan, how far it has drifted since, and change requests approved or rejected before the plan moves.',
+    ],
+
+    // Task dependencies (3.3.0) - assets/js/projects-timeline.js, includes/projects/dependencies.php.
+    'deps' => [
+        'button'      => 'Dependencies ({count})',
+        'title'       => 'What "{name}" waits for',
+        'intro'       => 'A task waits for another to FINISH before it can start - optionally with a gap of some days. Arrows on the Timeline show them; a loop is refused.',
+        'waits_for'   => 'It waits for',
+        'waited_by'   => 'Waiting for it',
+        'none'        => 'Nothing - it can start whenever it is ready.',
+        'pick'        => 'Choose a task it waits for',
+        'lag_label'   => 'Gap (days)',
+        'lag'         => '+{n} days',
+        'add'         => 'Add',
+        'clash'       => 'The plan clashes: this task is set to start before a task it waits for is due to finish.',
+        'clash_short' => 'Clash',
+        'waiting'     => 'Waiting on {count}',
+        'waiting_tip' => 'Waiting for: {names}',
     ],
 
     // Gate checklists (3.3.0) - assets/js/projects-gatecheck.js, includes/projects/gatecheck.php.
@@ -995,6 +1014,8 @@ return [
         'proposal_approved' => 'approved the proposal',
         'benefit_added'     => 'added the benefit',
         'gate_item_added'   => 'added to a gate checklist:',
+        'dependency_added'  => 'added a dependency:',
+        'dependency_removed'=> 'removed a dependency',
         'gate_item_removed' => 'removed from a gate checklist:',
         'gate_item_done'    => 'ticked',
         'gate_item_reopened'=> 'unticked',

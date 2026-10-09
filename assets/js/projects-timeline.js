@@ -20,6 +20,12 @@
  *
  * Dates are whole days, counted in UTC (dayNum), so a bar never shifts by one
  * when the browser's time zone is ahead of or behind the server's.
+ *
+ * DEPENDENCIES (3.3.0, includes/projects/dependencies.php): an arrow from the end
+ * of the task waited for to the start of the one that waits - red when the
+ * plan clashes (it starts before the other finishes). Critical path picks out
+ * the tasks with no slack. The link button on a task's row opens its
+ * dependencies (prjDepModal); the server refuses loops.
  */
 (function () {
     'use strict';
@@ -34,6 +40,8 @@
     let dayW = 26;
     let originDay = 0;   // dayNum of the first column
     let drag = null;
+    let crit = false;   // 3.3.0: picking out the critical path
+    try { crit = localStorage.getItem('prjTimelineCrit') === '1'; } catch (e) { /* private window */ }
     try { zoom = localStorage.getItem('prjTimelineZoom') || 'weeks'; } catch (e) { /* private window */ }
     if (!ZOOMS[zoom]) zoom = 'weeks';
 
@@ -115,6 +123,7 @@
             +   '<div class="prj-seg prj-tl-zoom" role="tablist" aria-label="' + esc(T('timeline.zoom')) + '">'
             +     ['days', 'weeks', 'months'].map(k => '<button type="button" data-tl-zoom="' + k + '"' + (k === zoom ? ' class="active"' : '') + '>' + esc(T('timeline.zoom_' + k)) + '</button>').join('')
             +   '</div>'
+            +   '<button type="button" class="btn btn-secondary sm' + (crit ? ' active' : '') + '" data-tl-crit aria-pressed="' + crit + '">' + esc(T('timeline.critical')) + '</button>'
             +   '<button type="button" class="btn btn-secondary sm" data-tl-today>' + esc(T('timeline.today')) + '</button>'
             +   (canChange() ? '<button type="button" class="btn btn-primary prj-btn sm" data-ms-new>+ ' + esc(T('milestones.add')) + '</button>' : '')
             + '</div></div>';
@@ -168,14 +177,20 @@
             let bar = '';
             if (sp) {
                 const dates = sp[0] === sp[1] ? P.fmtDate(ymd(sp[0])) : P.fmtDate(ymd(sp[0])) + ' - ' + P.fmtDate(ymd(sp[1]));
-                bar = '<div class="prj-tl-bar-task' + (closed ? ' done' : '') + (late ? ' late' : '') + (canChange() ? ' can' : '') + '" data-tl-task="' + t.id + '"'
+                bar = '<div class="prj-tl-bar-task' + (closed ? ' done' : '') + (late ? ' late' : '') + (canChange() ? ' can' : '') + (crit && t.critical ? ' crit' : '') + (crit && !t.critical ? ' dim' : '') + '" data-tl-task="' + t.id + '"'
                     + ' data-s="' + sp[0] + '" data-e="' + sp[1] + '" style="left:' + x(sp[0]) + 'px;width:' + Math.max(dayW, (sp[1] - sp[0] + 1) * dayW) + 'px;--bc:' + esc(t.status_colour || '#94a3b8') + '"'
                     + ' title="' + esc(T('timeline.task_tip', { title: t.title, dates: dates }) + (t.assignee_name ? ' - ' + t.assignee_name : '')) + '">'
                     + (canChange() ? '<span class="prj-tl-h l" data-h="l"></span>' : '') + '<span class="prj-tl-bar-text">' + esc(t.title) + '</span>'
                     + (canChange() ? '<span class="prj-tl-h r" data-h="r"></span>' : '') + '</div>';
             }
-            return '<div class="prj-tl-row" style="height:' + ROW_H + 'px"><a class="prj-tl-label task" style="width:' + LW + 'px" href="' + esc(window.PRJ_BASE + 'tasks/?task=' + t.id) + '" title="' + esc(t.title) + '">'
+            const nDeps = (t.depends_on || []).length;
+            return '<div class="prj-tl-row" style="height:' + ROW_H + 'px"><div class="prj-tl-label task" style="width:' + LW + 'px"><a class="prj-tl-name" href="' + esc(window.PRJ_BASE + 'tasks/?task=' + t.id) + '" title="' + esc(t.title) + '">'
                 + '<span class="prj-task-status" style="background:' + esc(t.status_colour || '#94a3b8') + '"></span><span class="prj-tl-label-text' + (closed ? ' done' : '') + '">' + esc(t.title) + '</span></a>'
+                // Its dependencies (3.3.0): the count when it has any; the button only for somebody who may change the plan, or to read them.
+                + (canChange() || nDeps ? '<button type="button" class="prj-tl-dep' + (nDeps ? ' has' : '') + (t.clash ? ' clash' : '') + '" data-tl-dep="' + t.id + '" title="' + esc(T('deps.button', { count: nDeps })) + '" aria-label="' + esc(T('deps.button', { count: nDeps }) + ': ' + t.title) + '">'
+                    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
+                    + (nDeps ? '<b>' + nDeps + '</b>' : '') + '</button>' : '')
+                + '</div>'
                 + '<div class="prj-tl-track" style="width:' + trackW + 'px">' + bar + '</div></div>';
         };
         d.stages.forEach(s => {
@@ -210,8 +225,89 @@
         box.innerHTML = html;
 
         const sc = box.querySelector('.prj-tl-scroll');
+        drawArrows(box, LW);
         if (keep) { sc.scrollLeft = keep.x; sc.scrollTop = keep.y; }
         else scrollToToday(sc);
+    }
+
+    /**
+     * The dependency arrows (3.3.0), drawn from the bars where they landed: from the
+     * right end of the task waited for to the left end of the one that waits, as
+     * an elbow. Red and dashed where the plan clashes. Under the bars' text, over
+     * the grid; never in the way of a click.
+     */
+    function drawArrows(box, LW) {
+        const deps = ctx.data.dependencies || [];
+        const body = box.querySelector('.prj-tl-body');
+        if (!deps.length || !body) return;
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('class', 'prj-tl-arrows');
+        svg.setAttribute('width', body.scrollWidth);
+        svg.setAttribute('height', body.scrollHeight);
+        svg.setAttribute('aria-hidden', 'true');
+        svg.innerHTML = '<defs><marker id="prjArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="prj-tl-arrowhead"/></marker>'
+            + '<marker id="prjArrowBad" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="prj-tl-arrowhead bad"/></marker></defs>';
+        const pos = id => {
+            const bar = body.querySelector('[data-tl-task="' + id + '"]');
+            if (!bar) return null;
+            const row = bar.closest('.prj-tl-row');
+            const l = LW + bar.offsetLeft;
+            return { l: l, r: l + bar.offsetWidth, y: row.offsetTop + row.offsetHeight / 2 };
+        };
+        const byId = {}; (ctx.data.tasks || []).forEach(t => { byId[t.id] = t; });
+        deps.forEach(dp => {
+            const a = pos(dp.depends_on_id), b = pos(dp.task_id);
+            if (!a || !b) return;
+            const t = byId[dp.task_id] || {};
+            const bad = !!t.clash;
+            const hot = crit && t.critical && (byId[dp.depends_on_id] || {}).critical;
+            const x1 = a.r, y1 = a.y, x2 = b.l - 1, y2 = b.y;
+            let d;
+            if (x2 - x1 >= 14) d = 'M' + x1 + ' ' + y1 + ' H' + (x1 + 7) + ' V' + y2 + ' H' + x2;
+            else { const mid = y1 + (y2 > y1 ? 16 : -16); d = 'M' + x1 + ' ' + y1 + ' H' + (x1 + 7) + ' V' + mid + ' H' + (x2 - 10) + ' V' + y2 + ' H' + x2; }
+            const path = document.createElementNS(NS, 'path');
+            path.setAttribute('d', d);
+            path.setAttribute('class', 'prj-tl-arrow' + (bad ? ' bad' : '') + (hot ? ' hot' : ''));
+            path.setAttribute('marker-end', bad ? 'url(#prjArrowBad)' : 'url(#prjArrow)');
+            svg.appendChild(path);
+        });
+        body.appendChild(svg);
+    }
+
+    // ---- Dependencies dialog (3.3.0) ------------------------------------------------------
+    let depTask = null;
+    function openDeps(taskId) {
+        const tasks = ctx.data.tasks || [];
+        const t = tasks.find(x => x.id === taskId);
+        if (!t) return;
+        depTask = t;
+        const name = id => (tasks.find(x => x.id === id) || {}).title || ('#' + id);
+        const deps = ctx.data.dependencies || [];
+        const mine = deps.filter(d => d.task_id === t.id);
+        const waiters = deps.filter(d => d.depends_on_id === t.id);
+        document.getElementById('pdpTitle').textContent = T('deps.title', { name: t.title });
+        let html = '<p class="prj-muted" style="margin-top:0">' + esc(T('deps.intro')) + '</p>';
+        if (t.clash) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('deps.clash')) + '</strong></div></div>';
+        html += '<h4 class="prj-dep-h">' + esc(T('deps.waits_for')) + '</h4>';
+        html += mine.length ? '<ul class="prj-dep-list">' + mine.map(d => '<li><span>' + esc(name(d.depends_on_id)) + (d.lag_days ? ' <small class="prj-muted">' + esc(T('deps.lag', { n: d.lag_days })) + '</small>' : '') + '</span>'
+            + (canChange() ? '<button type="button" class="prj-task-remove" data-dep-del="' + d.id + '" aria-label="' + esc(P.TC('delete')) + '">&times;</button>' : '') + '</li>').join('') + '</ul>'
+            : '<p class="prj-muted sm">' + esc(T('deps.none')) + '</p>';
+        if (canChange()) {
+            const taken = new Set(mine.map(d => d.depends_on_id).concat([t.id]));
+            html += '<div class="prj-dep-add"><select id="pdpPick" aria-label="' + esc(T('deps.pick')) + '"><option value="">' + esc(T('deps.pick')) + '</option>'
+                + tasks.filter(x => !taken.has(x.id)).map(x => '<option value="' + x.id + '">' + esc(x.title) + '</option>').join('') + '</select>'
+                + '<label class="prj-dep-lag">' + esc(T('deps.lag_label')) + ' <input type="number" id="pdpLag" value="0" min="-365" max="365"></label>'
+                + '<button type="button" class="btn btn-primary prj-btn sm" data-dep-add>' + esc(T('deps.add')) + '</button></div>';
+        }
+        if (waiters.length) html += '<h4 class="prj-dep-h">' + esc(T('deps.waited_by')) + '</h4><ul class="prj-dep-list">' + waiters.map(d => '<li><span>' + esc(name(d.task_id)) + '</span></li>').join('') + '</ul>';
+        html += '<div class="prj-form-error" id="pdpError" hidden></div>';
+        document.getElementById('pdpBody').innerHTML = html;
+        P.openModal('prjDepModal');
+    }
+    async function depCall(body) {
+        try { await P.api('tools.php', Object.assign({ project_id: ctx.projectId }, body)); await ctx.refresh(); openDeps(depTask.id); }
+        catch (e) { const er = document.getElementById('pdpError'); er.textContent = e.message; er.hidden = false; }
     }
 
     function scrollToToday(sc) {
@@ -327,6 +423,25 @@
                 return;
             }
             if (e.target.closest('[data-tl-today]')) scrollToToday();
+            if (e.target.closest('[data-tl-crit]')) {
+                crit = !crit;
+                try { localStorage.setItem('prjTimelineCrit', crit ? '1' : '0'); } catch (err) { /* private window */ }
+                render();
+                return;
+            }
+            const dep = e.target.closest('[data-tl-dep]');
+            if (dep) openDeps(Number(dep.dataset.tlDep));
+        });
+        const dm = document.getElementById('prjDepModal');
+        if (dm) dm.addEventListener('click', e => {
+            if (e.target.closest('[data-dep-add]')) {
+                const pick = document.getElementById('pdpPick').value;
+                if (!pick) return;
+                depCall({ action: 'dep_add', task_id: depTask.id, depends_on_id: Number(pick), lag_days: document.getElementById('pdpLag').value });
+                return;
+            }
+            const del = e.target.closest('[data-dep-del]');
+            if (del) depCall({ action: 'dep_remove', id: Number(del.dataset.depDel) });
         });
         let rt = null;
         window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (ctx && !box.hidden) render(); }, 150); });

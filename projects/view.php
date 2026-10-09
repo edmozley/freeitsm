@@ -43,7 +43,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=31">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=32">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -353,6 +353,15 @@ $projectId = (int)($_GET['id'] ?? 0);
         </div>
     </div>
 
+    <!-- A task's dependencies (3.3.0) - projects-timeline.js -->
+    <div class="modal" id="prjDepModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:540px">
+            <div class="modal-header" id="pdpTitle"></div>
+            <div class="modal-body" id="pdpBody"></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-prj-close="prjDepModal"><?php echo htmlspecialchars(t('common.close')); ?></button></div>
+        </div>
+    </div>
+
     <!-- Gate checklist item (3.3.0) - projects-gatecheck.js -->
     <div class="modal" id="prjGateItemModal" aria-hidden="true">
         <div class="modal-content" style="max-width:520px">
@@ -651,8 +660,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-reports.js?v=2"></script>
     <script src="../assets/js/projects-charts.js?v=4"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
-    <script src="../assets/js/projects-timeline.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=22"></script>
+    <script src="../assets/js/projects-timeline.js?v=2"></script>
+    <script src="../assets/js/projects-view.js?v=23"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>
