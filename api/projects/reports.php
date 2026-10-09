@@ -7,7 +7,7 @@
  *                           and what this analyst may do (write / approve)
  * POST {action, project_id, ...}
  *      briefing  {refresh?}       the Overview's briefing (cached for 10 minutes)
- *      draft     {kind, days?}    the AI drafts a highlight / exception / checkpoint report
+ *      draft     {kind, days?}    the AI drafts a highlight / exception / checkpoint / closure report
  *      save      {id?, kind?, title, body}   write one, or edit a draft
  *      approve   {id}
  *      schedule  {schedule, kind}  a draft each week / fortnight / month (3.3.0)

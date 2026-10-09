@@ -8235,7 +8235,7 @@ CREATE TABLE IF NOT EXISTS `project_tolerances` (
     `id`          INT NOT NULL AUTO_INCREMENT,
     `project_id`  INT NOT NULL,
     `stage_id`    INT NULL,
-    `dimension`   VARCHAR(12) NOT NULL,                             -- time | risk
+    `dimension`   VARCHAR(12) NOT NULL,                             -- time | risk | cost (3.3.0)
     `value`       INT NOT NULL,
     `is_demo`     TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),

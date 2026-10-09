@@ -249,6 +249,9 @@ class ProjectsService
             // may not exist, and that must never stop a project being deleted.
             require_once __DIR__ . '/../projects/links.php';
             projectLinksDeleteAll($conn, $id);
+            // A project's own hourly rate (3.3.0 budget): project_labour_rates has no
+            // foreign key - scope + ref_id point at different tables - so by hand.
+            try { $conn->prepare("DELETE FROM project_labour_rates WHERE scope = 'project' AND ref_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             // Disruption it announced stays on Service Status - it is real work on
             // real services - but no longer names a project that is gone. By hand:
             // a table made by Database Verification has no FK to do it.
@@ -402,10 +405,15 @@ class ProjectsService
      */
     public static function assignTask(PDO $conn, ActorContext $ctx, int $taskId, ?int $projectId, ?int $stageId = null): void
     {
-        $t = $conn->prepare("SELECT id, tenant_id, project_id FROM tasks WHERE id = ?");
+        $t = $conn->prepare("SELECT id, tenant_id, project_id, parent_task_id FROM tasks WHERE id = ?");
         $t->execute([$taskId]);
         $task = $t->fetch(PDO::FETCH_ASSOC);
         if (!$task) throw new ServiceError('not_found', 'not_found', 'Task not found.');
+        // A subtask belongs to its parent's project through its parent (3.3.0: the UI
+        // only offered top-level tasks; the API did not refuse).
+        if (!empty($task['parent_task_id']) && $projectId !== null && $projectId > 0) {
+            throw new ServiceError('validation', 'invalid_field', 'A subtask goes with its parent task - put the parent in the project.');
+        }
         self::assertScope($conn, $ctx, $task, 'Task not found.');
 
         // Taking a task OUT of a project is a change to that project.

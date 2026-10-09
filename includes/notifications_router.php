@@ -134,8 +134,10 @@ function notificationsHandleEvent(string $event, array $payload): void
  */
 function notificationsAudienceFor(PDO $conn, string $event, array $payload): array
 {
-    // Project proposals (3.3.0): the dispatcher works out who - the approvers, or
-    // whoever proposed it - because "who approves" is a Projects setting.
+    // Projects (3.3.0): any project.* event that names its audience in notify_ids -
+    // proposals (approvers / proposer), sign-offs, benefit reviews, the overdue
+    // digest, nudges, scheduled reports. The dispatcher works out who, because
+    // "who" is a Projects setting; without notify_ids the project manager is told.
     if (strpos($event, 'project.') === 0 && array_key_exists('notify_ids', $payload)) {
         return array_values(array_unique(array_filter(array_map('intval', (array)($payload['notify_ids'] ?? [])))));
     }

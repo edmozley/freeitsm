@@ -46,19 +46,25 @@ if (!defined('PROJECT_LINKS_LOADED')) {
         ];
     }
 
-    /** Before Database Verification the tables are not there: no links, never an error. */
-    function projectLinksReady(PDO $conn): bool
+    /**
+     * Before Database Verification the tables are not there: no links, never an error.
+     * With $kind, that one kind's table (3.3.0) - so an upgrade that adds a kind
+     * (problem) hides only that kind until Verification, not every link.
+     */
+    function projectLinksReady(PDO $conn, ?string $kind = null): bool
     {
-        static $ready = null;
-        if ($ready === null) {
-            try {
-                foreach (projectLinkKinds() as $k) $conn->query("SELECT 1 FROM {$k['table']} LIMIT 0");
-                $ready = true;
-            } catch (Throwable $e) {
-                $ready = false;
+        static $ready = [];
+        $kinds = $kind !== null ? [$kind => projectLinkKinds()[$kind] ?? null] : projectLinkKinds();
+        foreach ($kinds as $name => $k) {
+            if ($k === null) return false;
+            if (!isset($ready[$name])) {
+                try { $conn->query("SELECT 1 FROM {$k['table']} LIMIT 0"); $ready[$name] = true; }
+                catch (Throwable $e) { $ready[$name] = false; }
             }
+            if ($kind !== null) return $ready[$name];
         }
-        return $ready;
+        // No kind named: is ANY kind usable (the Connections tab's "run Verification" note)?
+        return in_array(true, $ready, true);
     }
 
     function projectLinkKind(string $kind): array
@@ -223,7 +229,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
         $out = [];
         if (!projectLinksReady($conn)) return $out;
         foreach (projectLinkKinds() as $kind => $k) {
-            if (!projectLinkKindAllowed($conn, $ctx->actorId, $kind)) continue;
+            if (!projectLinksReady($conn, $kind) || !projectLinkKindAllowed($conn, $ctx->actorId, $kind)) continue;
             $st = $conn->prepare("SELECT {$k['col']} FROM {$k['table']} WHERE project_id = ?");
             $st->execute([$projectId]);
             $ids = array_values(array_filter(array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)),
@@ -236,7 +242,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
     function projectLinkAdd(PDO $conn, ActorContext $ctx, int $projectId, string $kind, int $targetId): bool
     {
         $k = projectLinkKind($kind);
-        if (!projectLinksReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System → Database Verification first.');
+        if (!projectLinksReady($conn, $kind)) throw new ServiceError('validation', 'not_ready', 'Run System → Database Verification first.');
         $tenant = projectLinkProjectTenant($conn, $ctx, $projectId);
         ProjectsService::assertCanChange($conn, $ctx, ProjectsService::loadRow($conn, $projectId));
         if (!projectLinkKindAllowed($conn, $ctx->actorId, $kind) || !projectLinkTargetOk($conn, $ctx->actorId, $kind, $targetId, $tenant)) {
@@ -255,7 +261,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
     function projectLinkRemove(PDO $conn, ActorContext $ctx, int $projectId, string $kind, int $targetId): bool
     {
         $k = projectLinkKind($kind);
-        if (!projectLinksReady($conn)) return false;
+        if (!projectLinksReady($conn, $kind)) return false;
         $tenant = projectLinkProjectTenant($conn, $ctx, $projectId);
         ProjectsService::assertCanChange($conn, $ctx, ProjectsService::loadRow($conn, $projectId));
         // Removing needs the same right as adding: both ends visible. A link you
@@ -279,7 +285,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
     {
         $k = projectLinkKind($kind);
         $tenant = projectLinkProjectTenant($conn, $ctx, $projectId);
-        if (!projectLinkKindAllowed($conn, $ctx->actorId, $kind) || !projectLinksReady($conn)) return [];
+        if (!projectLinkKindAllowed($conn, $ctx->actorId, $kind) || !projectLinksReady($conn, $kind)) return [];
         $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($q)) . '%';
         $taken = "NOT EXISTS (SELECT 1 FROM {$k['table']} l WHERE l.project_id = ? AND l.{$k['col']} = x.id)";
         $multi = isMultiTenant($conn);
@@ -364,7 +370,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
     function projectsLinkedTo(PDO $conn, ActorContext $ctx, string $kind, int $targetId): array
     {
         $k = projectLinkKinds()[$kind] ?? null;
-        if ($k === null || !projectLinksReady($conn) || !projectLinkKindAllowed($conn, $ctx->actorId, $kind)) return [];
+        if ($k === null || !projectLinksReady($conn, $kind) || !projectLinkKindAllowed($conn, $ctx->actorId, $kind)) return [];
         if (!projectLinkTargetOk($conn, $ctx->actorId, $kind, $targetId, null)) return [];
         $st = $conn->prepare("SELECT project_id FROM {$k['table']} WHERE {$k['col']} = ?");
         $st->execute([$targetId]);
@@ -383,7 +389,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
     function projectsPickableFor(PDO $conn, ActorContext $ctx, string $kind, int $targetId, string $q): array
     {
         $k = projectLinkKinds()[$kind] ?? null;
-        if ($k === null || !projectLinksReady($conn) || !projectLinkKindAllowed($conn, $ctx->actorId, $kind)) return [];
+        if ($k === null || !projectLinksReady($conn, $kind) || !projectLinkKindAllowed($conn, $ctx->actorId, $kind)) return [];
         if (!projectLinkTargetOk($conn, $ctx->actorId, $kind, $targetId, null)) return [];
         require_once __DIR__ . '/../services/projects.php';
         require_once __DIR__ . '/settings.php';

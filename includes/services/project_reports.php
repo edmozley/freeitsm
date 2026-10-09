@@ -388,7 +388,9 @@ class ProjectReportsService
     {
         $kind = in_array($p['report_schedule_kind'], ['highlight', 'checkpoint', 'exception'], true) ? $p['report_schedule_kind'] : 'highlight';
         $days = ['weekly' => 7, 'fortnightly' => 14, 'monthly' => 31][$p['report_schedule']] ?? 7;
-        $facts = projectAiFacts($conn, $p, 0, $days);
+        // As the project manager - what they could see if they asked themselves. Run as
+        // nobody (0) every module-gated fact (linked tickets, changes, disruption) fell out.
+        $facts = projectAiFacts($conn, $p, (int)($p['owner_analyst_id'] ?? 0), $days);
         $text = null; $model = null;
         if (projectAiReady($conn)) {
             try {

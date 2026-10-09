@@ -112,7 +112,8 @@ function projectAlertRows(PDO $conn, ?int $projectId = null): array
     $args = [];
     if ($projectId !== null) { $where = 'p.id = ?'; $args[] = $projectId; }
     $st = $conn->prepare(
-        "SELECT p.id, p.tenant_id, p.name, p.methodology, p.status, p.health, p.owner_analyst_id, a.full_name AS owner_name,
+        // health_note, currency and priority (3.3.0): the AI facts read this row, and missed all three.
+        "SELECT p.id, p.tenant_id, p.name, p.methodology, p.status, p.health, p.health_note, p.currency, " . projectPriorityColumn($conn) . ", p.owner_analyst_id, a.full_name AS owner_name,
                 p.start_date, p.target_end_date, p.tailoring, p.alert_health, p.alert_exceptions,
                 " . projectExceptionColumns($conn) . "
            FROM projects p

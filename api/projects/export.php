@@ -26,7 +26,9 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
         $byId = [];
         foreach (projectListRows($conn, $analystId) as $r) $byId[(int)$r['id']] = $r;
         $rows = [];
-        foreach ($want ?: array_keys($byId) as $id) if (isset($byId[$id])) $rows[$id] = $byId[$id];
+        // ids given but empty = the view shows nothing; no ids at all = every project you can see.
+        $all = !isset($_GET['ids']);
+        foreach ($all ? array_keys($byId) : $want as $id) if (isset($byId[$id])) $rows[$id] = $byId[$id];
         $budgets = [];
         if ($rows && projectBudgetReady($conn)) {
             $ph = implode(',', array_fill(0, count($rows), '?'));

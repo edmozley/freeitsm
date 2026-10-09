@@ -104,7 +104,7 @@ return [
         'link'     => 'projects/',
         'check'    => ['any', [
             ['rows', 'project_assets'], ['rows', 'project_changes'], ['rows', 'project_tickets'],
-            ['rows', 'project_contracts'], ['rows', 'project_cmdb_objects'], ['rows', 'project_knowledge_articles'],
+            ['rows', 'project_contracts'], ['rows', 'project_cmdb_objects'], ['rows', 'project_knowledge_articles'], ['rows', 'project_problems'],
         ]],
     ],
     [

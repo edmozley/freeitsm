@@ -237,6 +237,53 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
         }
     }
 
+    // Dependencies (3.3.0): what is waiting on unfinished work, where the dates cannot work, and the critical path.
+    require_once __DIR__ . '/dependencies.php';
+    if (projectDependenciesReady($conn)) {
+        $ts = $conn->prepare("SELECT t.id, t.title, t.start_date, t.due_date, t.completed_datetime, COALESCE(s.is_closed, 0) AS is_closed
+                                FROM tasks t LEFT JOIN task_statuses s ON s.id = t.status_id WHERE t.project_id = ? AND t.parent_task_id IS NULL");
+        $ts->execute([$pid]);
+        $tasksAll = $ts->fetchAll(PDO::FETCH_ASSOC);
+        $an = projectDependencyAnalysis($tasksAll, projectDependencies($conn, $pid));
+        $titles = array_column($tasksAll, 'title', 'id');
+        $open = array_column(array_filter($tasksAll, fn($t) => (int)$t['is_closed'] === 0), 'id', 'id');
+        $waiting = []; $clash = []; $crit = [];
+        foreach ($an as $tid => $a) {
+            if (!isset($open[$tid])) continue;
+            if (!empty($a['waiting_on'])) $waiting[] = $titles[$tid] . ' (waits for ' . implode(', ', array_map(fn($x) => $titles[$x] ?? '#' . $x, $a['waiting_on'])) . ')';
+            if (!empty($a['clash'])) $clash[] = $titles[$tid];
+            if (!empty($a['critical'])) $crit[] = $titles[$tid];
+        }
+        if ($waiting) $line('Tasks waiting on unfinished work: ' . implode('; ', array_slice($waiting, 0, 10)) . '.');
+        if ($clash) $line('Dependency CLASHES - planned to start before what they wait for is due: ' . implode('; ', array_slice($clash, 0, 10)) . '.');
+        if ($crit) $line('Open tasks on the critical path (no slack - any slip moves the finish): ' . implode('; ', array_slice($crit, 0, 12)) . '.');
+    }
+    // Gate checklists (3.3.0): what is still open at the gates of stages not yet closed.
+    require_once __DIR__ . '/gatecheck.php';
+    $gi = projectGateItems($conn, $pid, false);
+    if ($gi) {
+        $sn = $conn->prepare("SELECT id, name, status, gate_kind FROM project_stages WHERE project_id = ? AND status <> 'closed' ORDER BY position, id");
+        $sn->execute([$pid]);
+        foreach ($sn->fetchAll(PDO::FETCH_ASSOC) as $s) {
+            $left = array_filter($gi[(int)$s['id']] ?? [], fn($x) => !$x['done']);
+            if (!$left) continue;
+            $line(sprintf('Gate checklist for %s%s, still open: %s.', $s['name'], ($s['gate_kind'] ?? '') === 'golive' ? ' (go-live gate)' : '',
+                implode('; ', array_map(fn($x) => $x['title'] . ' [' . $x['kind'] . ($x['analyst_name'] ? ', ' . $x['analyst_name'] . ' to sign' : '') . ']', $left))));
+        }
+    }
+    // Stakeholders (3.3.0): where the important people stand, and the communications plan.
+    try {
+        $sk = $conn->prepare("SELECT COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email)) AS name, m.power, m.interest, m.stance, m.keep_informed, m.notes
+                                FROM project_members m LEFT JOIN analysts a ON a.id = m.analyst_id LEFT JOIN teams tm ON tm.id = m.team_id LEFT JOIN users u ON u.id = m.user_id
+                               WHERE m.project_id = ? AND m.power IS NOT NULL AND m.interest IS NOT NULL ORDER BY m.power * m.interest DESC LIMIT 12");
+        $sk->execute([$pid]);
+        $rows = $sk->fetchAll(PDO::FETCH_ASSOC);
+        if ($rows) {
+            $line('Stakeholders (power and interest 1-5):');
+            foreach ($rows as $r) $line(sprintf('- %s%s: power %d, interest %d%s; kept informed: %s', $r['name'], $r['notes'] ? ' (' . $r['notes'] . ')' : '', (int)$r['power'], (int)$r['interest'],
+                $r['stance'] ? ', ' . strtoupper($r['stance']) : '', $r['keep_informed'] ?: 'not planned'));
+        }
+    } catch (Throwable $e) { /* before the stakeholder columns */ }
     // Other modules - only what this analyst may open
     if (analystCanAccessModule($conn, $analystId, 'changes')) {
         $ch = projectUnapprovedChanges($conn, $pid);
@@ -256,6 +303,7 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
         if (in_array($r['field_name'], ['link_added', 'link_removed'], true)) return projectLinkKindAllowed($conn, $analystId, (string)strtok((string)($r['new_value'] ?: $r['old_value']), ':'));
         if ($r['field_name'] === 'raid_ticket_raised') return analystCanAccessModule($conn, $analystId, 'tickets');
         if ($r['field_name'] === 'raid_to_knowledge') return analystCanAccessModule($conn, $analystId, 'knowledge');
+        if (in_array($r['field_name'], ['disruption_announced', 'disruption_withdrawn'], true)) return analystCanAccessModule($conn, $analystId, 'service-status');
         return true;
     });
     if ($hist) {

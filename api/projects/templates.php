@@ -5,7 +5,7 @@
  * GET                                       every template, hidden and inactive ones
  *                                           too (the Settings tab) - needs Templates
  * POST {action:'save_from_project', project_id, name, description?, parts:[...], id?}
- *                                           parts: plan, scope, raid, tolerances, targets;
+ *                                           parts: plan, scope, raid, benefits (3.3.0), tolerances, targets;
  *                                           id = replace that saved template's plan
  * POST {action:'update', id, name, description?, is_active}
  * POST {action:'delete', id}

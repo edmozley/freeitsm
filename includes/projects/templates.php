@@ -281,6 +281,7 @@ function projectTemplateNormalise(array $c): array
     $tol = is_array($c['tolerances'] ?? null) ? $c['tolerances'] : [];
     if (isset($tol['time']) && is_numeric($tol['time']) && $tol['time'] >= 0 && $tol['time'] <= 365) $out['tolerances']['time'] = (int)$tol['time'];
     if (isset($tol['risk']) && is_numeric($tol['risk']) && $tol['risk'] >= 1 && $tol['risk'] <= 25) $out['tolerances']['risk'] = (int)$tol['risk'];
+    if (isset($tol['cost']) && is_numeric($tol['cost']) && $tol['cost'] >= 0 && $tol['cost'] <= 500) $out['tolerances']['cost'] = (int)$tol['cost'];   // 3.3.0: was dropped
     foreach (array_slice(is_array($c['targets'] ?? null) ? $c['targets'] : [], 0, 20) as $tg) {
         // Shape only here - the done value of a list field is a NAME in a template.
         $f = projectTargetDoneFields()[$tg['done_field'] ?? ''] ?? null;

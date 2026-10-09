@@ -10,7 +10,7 @@
  *      ?project_id=N&target_assets=ID&show=left|done  the assets behind a target, at most 200 (Assets access)
  * POST {action, project_id, ...}
  *      member_add     {analyst_id | team_id | user_id, role_id?, notes?}
- *      member_update  {member_id, role_id?, notes?}
+ *      member_update  {member_id, role_id?, notes?, power?, interest?, stance?, keep_informed?}   (stakeholder map 3.3.0)
  *      member_remove  {member_id}
  *      item_save      {id?, title, description?, acceptance_criteria?, moscow?, stage_id?, status?}
  *      item_delete    {id}
@@ -24,13 +24,13 @@
  *      raid_deescalate   {id}
  *      raid_action_add   {id, title, assigned_analyst_id?, due_date?}   a new project task, linked
  *      raid_action_remove {id, task_id}   unlinks; the task stays
- *      tolerances_save {time?: days|null, risk?: score|null}
+ *      tolerances_save {time?: days|null, risk?: score|null, cost?: percent|null (3.3.0)}
  *      gate_decide    {stage_id, decision: go|go_with_conditions|stop, notes?}
  *      target_save    {id?, name, scope: filter|linked, scope_type_id?, scope_field?, scope_value?, done_field, done_op, done_value, target_date?}
  *      target_delete  {id}
  *      announce       {title, comment?, start?, end?, services:[{service_id, impact_level_id}]}  (Service Status)
  *      announce_withdraw {id}
- *      budget_line_save {id?, title, category, planned?, actual?, contract_id?, cost_centre_id?, notes?}
+ *      budget_line_save {id?, title, category, planned?, actual?, contract_id?, cost_centre_id?, notes?, planned_date?, spent_date?, forecast? (3.3.0)}
  *      budget_line_delete {id}
  *      budget_rate_add {rate, from?}      the project's own hourly rate (labour mode 'rate')
  *      budget_rate_delete {from}
