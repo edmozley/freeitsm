@@ -8504,6 +8504,46 @@ CREATE TABLE IF NOT EXISTS `project_benefit_measures` (
     CONSTRAINT `fk_pbm_benefit` FOREIGN KEY (`benefit_id`) REFERENCES `project_benefits` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_pbm_recorded_by` FOREIGN KEY (`recorded_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Projects 3.3.0: the AI project assistant (Ask AI on a project) - includes/projects/assistant_chat.php.
+-- One conversation per person per project (analyst_id), or one shared by the project when
+-- Projects -> Settings -> AI -> Assistant memory is 'project' (analyst_id NULL). `summary` is the
+-- long-term memory: older turns folded into a few paragraphs, so a long conversation resumes warm.
+CREATE TABLE IF NOT EXISTS `project_ai_threads` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `project_id`        INT NOT NULL,
+    `analyst_id`        INT NULL,                                   -- NULL = the project's shared conversation
+    `summary`           MEDIUMTEXT NULL,                            -- what earlier turns established
+    `summary_upto_id`   INT NULL,                                   -- the last message folded into it
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_pait_owner` (`project_id`, `analyst_id`),
+    KEY `ix_pait_analyst` (`analyst_id`),
+    CONSTRAINT `fk_pait_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pait_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `project_ai_messages` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `thread_id`         INT NOT NULL,
+    `role`              VARCHAR(10) NOT NULL,                       -- user | assistant
+    `kind`              VARCHAR(10) NOT NULL DEFAULT 'chat',        -- chat | open (a greeting) | resume (since we last spoke)
+    `content`           MEDIUMTEXT NULL,
+    `proposals`         MEDIUMTEXT NULL,                            -- JSON: changes the assistant proposed, each with its status
+    `looked_at`         TEXT NULL,                                  -- JSON: the read tools it used, for 'what did it check'
+    `analyst_id`        INT NULL,                                   -- who wrote it (a user turn), or who it answered
+    `model`             VARCHAR(120) NULL,
+    `tokens_in`         INT NULL,
+    `tokens_out`        INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_paim_thread` (`thread_id`, `id`),
+    CONSTRAINT `fk_paim_thread` FOREIGN KEY (`thread_id`) REFERENCES `project_ai_threads` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_paim_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Seed: the project roles a fresh install starts with (PRINCE2-style, in our

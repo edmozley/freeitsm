@@ -457,6 +457,7 @@
         if (window.PrjBenefits) window.PrjBenefits.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjInsights) window.PrjInsights.render({ data: data, L: L, projectId: projectId });
         if (window.PrjToolbox) window.PrjToolbox.render({ data: data, L: L, projectId: projectId, refresh: refresh });
+        if (window.PrjAssistant) window.PrjAssistant.bind({ projectId: projectId, refresh: refresh });   // Ask AI (3.3.0)
         // Documents (3.3.0): the shared panel, mounted once - it loads and checks its own list.
         if (window.FreeITSMDocuments && !docsMounted) {
             docsMounted = true;

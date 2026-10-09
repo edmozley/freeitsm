@@ -78,6 +78,9 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // tools a project is not using yet, to add as it grows. Off for teams
             // who would rather set tools once in the Edit form.
             'project_toolbox'               => ['1',       'bool',        'general'],
+            // The AI project assistant's memory (3.3.0) - includes/projects/assistant_chat.php:
+            // one private conversation per person per project, or one the project shares.
+            'project_assistant_memory'      => ['person',  'memory',      'general'],
             'project_benefit_notify'        => ['both',    'bnotify',     'general'],
             // Members-only projects (3.3.0) - includes/projects/visibility.php. Who
             // can see a NEW project: everyone with Projects, or its members only.
@@ -250,6 +253,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'memory') {
+            if (!in_array($v, ['person', 'project'], true)) throw new InvalidArgumentException('Choose each person or the whole project.');
             return $v;
         }
         if ($rule === 'digest') {

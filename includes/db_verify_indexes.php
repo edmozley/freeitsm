@@ -500,4 +500,7 @@ return [
     ['project_gate_items', 'ix_pgi_project', 'key', '(`project_id`)'],
     ['project_gate_items', 'ix_pgi_analyst', 'key', '(`analyst_id`)'],
     ['project_benefit_measures', 'idx_pbm_benefit', 'key', '(`benefit_id`,`measured_date`)'],
+    ['project_ai_threads', 'uq_pait_owner', 'unique', '(`project_id`,`analyst_id`)'],
+    ['project_ai_threads', 'ix_pait_analyst', 'key', '(`analyst_id`)'],
+    ['project_ai_messages', 'idx_paim_thread', 'key', '(`thread_id`,`id`)'],
 ];

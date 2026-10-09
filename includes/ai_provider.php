@@ -325,6 +325,16 @@ function aiProviderCallOpenAICompatible(string $url, string $model, array $authH
  * words, because "the CMDB lookup failed" is a useful thing for the model to
  * tell the reader, and an exception here would lose the whole conversation.
  *
+ * $opts['history'] (3.3.0, the Projects assistant): earlier turns of the same
+ * conversation, oldest first, as [['role' => 'user'|'assistant', 'content' => text], ...].
+ * They go in before $opts['user'], so a conversation resumes rather than starting cold.
+ * Plain text only - the tool calls of earlier turns are not replayed.
+ *
+ * Azure (3.3.0): the OpenAI wire format at the deployment's address, behind an
+ * api-key header and with no model in the body, as aiProviderChat() already does.
+ * Before this it fell through to api.openai.com with the Azure key, so tool
+ * calling - Warbot - could not work on Azure at all.
+ *
  * @param array    $tools    [['name'=>…,'description'=>…,'schema'=>[JSON Schema]], …]
  * @param callable $runTool  fn(string $name, array $args): string
  * @return array ['content','calls'=>[['name','args','result'],…],'tokens_in','tokens_out','provider','model','duration_ms']
@@ -338,7 +348,30 @@ function aiProviderChatTools(array $cfg, array $opts, array $tools, callable $ru
 
     if (!in_array($provider, AI_PROVIDER_VALID, true)) throw new RuntimeException('Unknown AI provider: ' . $provider);
     if ($apiKey === '') throw new RuntimeException('No API key configured.');
+    if ($provider === 'azure') {
+        if (trim((string)($cfg['azure_endpoint'] ?? '')) === '' || trim((string)($cfg['azure_deployment'] ?? '')) === '') {
+            throw new RuntimeException('No Azure endpoint or deployment configured.');
+        }
+        $model = trim((string)$cfg['azure_deployment']);
+    }
     if ($model  === '') throw new RuntimeException('No model configured.');
+    // Earlier turns of the conversation (3.3.0), text only, oldest first.
+    $history = [];
+    foreach ((array)($opts['history'] ?? []) as $h) {
+        $role = ($h['role'] ?? '') === 'assistant' ? 'assistant' : 'user';
+        $text = trim((string)($h['content'] ?? ''));
+        if ($text !== '') $history[] = ['role' => $role, 'content' => $text];
+    }
+    // Anthropic wants turns to alternate, starting with the user: merge neighbours
+    // from the same side, and drop a leading assistant turn.
+    $alt = [];
+    foreach ($history as $h) {
+        if ($alt && end($alt)['role'] === $h['role']) { $alt[count($alt) - 1]['content'] .= "\n\n" . $h['content']; continue; }
+        if (!$alt && $h['role'] === 'assistant') $alt[] = ['role' => 'user', 'content' => '(Earlier in this conversation.)'];
+        $alt[] = $h;
+    }
+    if ($alt && end($alt)['role'] === 'user') $alt[] = ['role' => 'assistant', 'content' => '(Noted.)'];
+    $history = $alt;
 
     // A hard ceiling on round trips. A model that keeps asking for tools would
     // otherwise loop until the request times out — during an incident, on the
@@ -353,7 +386,7 @@ function aiProviderChatTools(array $cfg, array $opts, array $tools, callable $ru
     $tokOut = 0;
 
     if ($provider === 'anthropic') {
-        $messages = [['role' => 'user', 'content' => (string)($opts['user'] ?? '')]];
+        $messages = array_merge($history, [['role' => 'user', 'content' => (string)($opts['user'] ?? '')]]);
         $wire = array_map(function ($t) {
             return ['name' => $t['name'], 'description' => $t['description'], 'input_schema' => $t['schema']];
         }, $tools);
@@ -422,7 +455,7 @@ function aiProviderChatTools(array $cfg, array $opts, array $tools, callable $ru
         return aiToolsResult('', $calls, $tokIn, $tokOut, $provider, $model, $start);
     }
 
-    // ── OpenAI-compatible (openai, openrouter) ──
+    // ── OpenAI-compatible (openai, openrouter, and azure at its own address) ──
     $base = $provider === 'openrouter'
         ? ($cfg['base_url'] ?? AI_OPENROUTER_BASE)
         : ($cfg['base_url'] ?? AI_OPENAI_BASE);
@@ -432,10 +465,11 @@ function aiProviderChatTools(array $cfg, array $opts, array $tools, callable $ru
         $extraHeaders[] = 'X-Title: ' . ($opts['title'] ?? 'FreeITSM');
     }
 
-    $messages = [
-        ['role' => 'system', 'content' => (string)($opts['system'] ?? '')],
-        ['role' => 'user',   'content' => (string)($opts['user']   ?? '')],
-    ];
+    $messages = array_merge(
+        [['role' => 'system', 'content' => (string)($opts['system'] ?? '')]],
+        $history,
+        [['role' => 'user',   'content' => (string)($opts['user']   ?? '')]]
+    );
     $wire = array_map(function ($t) {
         return ['type' => 'function', 'function' => [
             'name' => $t['name'], 'description' => $t['description'], 'parameters' => $t['schema'],
@@ -443,17 +477,22 @@ function aiProviderChatTools(array $cfg, array $opts, array $tools, callable $ru
     }, $tools);
 
     for ($round = 0; $round < $maxRounds; $round++) {
-        $body = json_encode([
+        $payload = [
             'model'       => $model,
             'max_tokens'  => $maxTokens,
             'temperature' => $temperature,
             'tools'       => $wire,
             'messages'    => $messages,
-        ]);
-        $resp = aiProviderHttpPost(rtrim($base, '/') . '/chat/completions', array_merge([
-            'Authorization: Bearer ' . $apiKey,
-            'content-type: application/json',
-        ], $extraHeaders), $body, $verify);
+        ];
+        if ($provider === 'azure') {
+            unset($payload['model']);   // the deployment decides the model (see aiProviderChat)
+            $resp = aiProviderHttpPost(aiAzureChatUrl($cfg), ['api-key: ' . $apiKey, 'content-type: application/json'], json_encode($payload), $verify);
+        } else {
+            $resp = aiProviderHttpPost(rtrim($base, '/') . '/chat/completions', array_merge([
+                'Authorization: Bearer ' . $apiKey,
+                'content-type: application/json',
+            ], $extraHeaders), json_encode($payload), $verify);
+        }
         $data = $resp['data'];
 
         $tokIn  += (int)($data['usage']['prompt_tokens']     ?? 0);

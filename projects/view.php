@@ -43,11 +43,34 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=42">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=44">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
-    <?php include 'includes/header.php'; ?>
+    <?php $prjAskAi = true; include 'includes/header.php'; ?>
+
+    <!-- The AI project assistant (3.3.0) - the same slide-in panel as Knowledge's Ask AI; projects-assistant.js -->
+    <div class="ai-chat-overlay" id="paOverlay"></div>
+    <div class="ai-chat-panel prj-pa" id="paPanel" role="dialog" aria-labelledby="paTitle">
+        <div class="ai-chat-header">
+            <div class="ai-chat-title" id="paTitle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <?php echo htmlspecialchars(t('projects.assistant.title')); ?>
+            </div>
+            <button type="button" class="prj-link prj-pa-clear" id="paClear" title="<?php echo htmlspecialchars(t('projects.assistant.clear_hint')); ?>"><?php echo htmlspecialchars(t('projects.assistant.clear')); ?></button>
+            <button type="button" class="ai-chat-close" id="paClose" aria-label="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
+        </div>
+        <div class="prj-pa-flags"><span id="paMemory" hidden><?php echo htmlspecialchars(t('projects.assistant.remembers')); ?></span><span id="paShared" hidden><?php echo htmlspecialchars(t('projects.assistant.shared')); ?></span></div>
+        <div class="ai-chat-messages" id="paMessages" aria-live="polite"></div>
+        <div class="prj-pa-chips" id="paChips"></div>
+        <div class="ai-chat-input-area">
+            <textarea id="paInput" rows="2" maxlength="4000" placeholder="<?php echo htmlspecialchars(t('projects.assistant.placeholder')); ?>" aria-label="<?php echo htmlspecialchars(t('projects.assistant.placeholder')); ?>"></textarea>
+            <button type="button" class="ai-chat-send" id="paSend" aria-label="<?php echo htmlspecialchars(t('projects.assistant.send')); ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+        <p class="prj-pa-foot"><?php echo htmlspecialchars(t('projects.assistant.foot')); ?></p>
+    </div>
 
     <div class="prj-page" id="prjPage" data-project-id="<?php echo $projectId; ?>">
         <a class="prj-back" href="<?php echo BASE_URL; ?>projects/">&larr; <?php echo htmlspecialchars(t('projects.view.back')); ?></a>
@@ -698,12 +721,13 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-gatecheck.js?v=1"></script>
     <script src="../assets/js/projects-insights.js?v=1"></script>
     <script src="../assets/js/projects-toolbox.js?v=1"></script>
+    <script src="../assets/js/projects-assistant.js?v=1"></script>
     <?php documentsPanelAssets('../'); ?>
     <script src="../assets/js/projects-reports.js?v=3"></script>
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=2"></script>
-    <script src="../assets/js/projects-view.js?v=27"></script>
+    <script src="../assets/js/projects-view.js?v=28"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

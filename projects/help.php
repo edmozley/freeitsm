@@ -56,6 +56,7 @@ $sections = [
     'control'   => 3,
     'benefits'  => 3,
     'reports'   => 4,
+    'assistant' => 4,   // 3.3.0: Ask AI - the project assistant
     'companies' => 1,
     'settings'  => 1,
     'api'       => 2,
@@ -92,7 +93,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=42">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=44">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=189">
     <script src="<?php echo BASE_URL; ?>assets/js/projects-tour.js?v=1"></script>

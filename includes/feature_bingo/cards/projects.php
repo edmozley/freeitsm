@@ -314,6 +314,18 @@ return [
         'check'    => ['rows', 'project_budget_lines', 'planned_date IS NOT NULL'],
     ],
     [
+        'id'       => 'projects.assistant',
+        'module'   => 'projects',
+        'tier'     => 'recommended',
+        'category' => 'insight',
+        'title'    => 'Ask the AI project assistant',
+        'what'     => 'Ask AI on a project opens an assistant that reads the project, coaches a blank one into a proposed set-up, flags what needs attention on a running one, and proposes changes you apply with one click. It remembers the conversation.',
+        'why'      => 'Somebody new to projects gets a patient coach; somebody busy gets the overdue tasks, the risks and the fixes in one place.',
+        'done'     => 'Somebody has had a conversation with the assistant.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_ai_messages'],
+    ],
+    [
         'id'       => 'projects.toolbox',
         'module'   => 'projects',
         'tier'     => 'recommended',
