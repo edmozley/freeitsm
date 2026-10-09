@@ -42,8 +42,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=21">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=187">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=23">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
     <?php include 'includes/header.php'; ?>
@@ -59,6 +59,7 @@ $projectId = (int)($_GET['id'] ?? 0);
                         <span class="prj-code" id="pvCode"></span>
                         <span class="prj-pill" id="pvStatus"></span>
                         <span class="prj-chip" id="pvMethod"></span>
+                        <span id="pvPriority" hidden></span>
                         <span class="prj-chip" id="pvCompany" hidden></span>
                     </div>
                     <h1 id="pvName"></h1>
@@ -461,14 +462,15 @@ $projectId = (int)($_GET['id'] ?? 0);
 
     <?php include 'includes/project_form.php'; ?>
 
-    <script src="../assets/js/projects.js?v=7"></script>
+    <script src="../assets/js/projects.js?v=8"></script>
     <script src="../assets/js/projects-tools.js?v=7"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
-    <script src="../assets/js/projects-budget.js?v=1"></script>
+    <script src="../assets/js/projects-budget.js?v=3"></script>
     <script src="../assets/js/projects-reports.js?v=1"></script>
+    <script src="../assets/js/projects-charts.js?v=2"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=16"></script>
+    <script src="../assets/js/projects-view.js?v=17"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

@@ -44,6 +44,8 @@
         let html = '<p class="prj-muted" style="margin-top:0">' + esc(T('intro')) + '</p>';
         html += '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + (t.cls || '') + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span></div>').join('') + '</div>';
         if (used !== null) html += '<div class="prj-budget-bar ' + cls + '"><span style="width:' + Math.min(100, used) + '%"></span></div>';
+        // Where the money goes (3.3.0): planned against actual, by category - drawn below once on the page.
+        html += '<div class="prj-panel prj-budget-chart" id="pbChart" hidden><h3>' + esc(T('chart_title')) + '</h3><div class="prj-budget-chart-body"></div></div>';
 
         // Currency
         html += '<div class="prj-budget-cur">' + esc(T('currency_line', { currency: cur }))
@@ -90,6 +92,31 @@
         }
         html += '</div>';
         box.innerHTML = html;
+        drawChart(b, cur);
+    }
+
+    /** Planned against actual per category; labour's actual is the costed time (3.3.0). */
+    function drawChart(b, cur) {
+        const wrap = document.getElementById('pbChart');
+        // It measures its width, so it draws once the Budget TAB is showing (shown()). Not wrap.offsetParent:
+        // the chart box itself starts hidden until there is something to draw.
+        const tabPanel = document.getElementById("pvBudget");
+        if (!wrap || !window.PrjCharts || !tabPanel || tabPanel.hidden) return;
+        const by = {};
+        b.categories.forEach(c => { by[c] = { a: 0, b: 0, any: false }; });
+        b.lines.forEach(l => {
+            const r = by[l.category]; if (!r) return;
+            if (l.planned !== null) { r.a += l.planned; r.any = true; }
+            if (l.actual !== null && !l.currency_mismatch) { r.b += l.actual; r.any = true; }
+        });
+        if (b.labour && b.labour.cost !== null && b.labour.cost > 0 && by.labour) { by.labour.b += b.labour.cost; by.labour.any = true; }
+        const rows = b.categories.filter(c => by[c].any).map(c => ({ label: T('cat_' + c), a: by[c].a || null, b: by[c].b || null }));
+        wrap.hidden = rows.length === 0;
+        if (!rows.length) return;
+        window.PrjCharts.bars(wrap.querySelector('.prj-budget-chart-body'), {
+            rows: rows, series: [T('planned'), T('actual')], fmt: v => money(v, cur),
+            labels: { table: T('chart_table'), chart: T('chart_chart'), category: T('col_category'), aria: T('chart_aria', { planned: money(b.planned, cur), actual: money(b.actual, cur) }) },
+        });
     }
 
     function openLine(line) {
@@ -167,6 +194,10 @@
             if (!(c.data.project.tools || []).includes('budget')) return;
             wire();
             render();
+        },
+        /** The tab was shown: the chart measures its width, so it draws now (3.3.0). */
+        shown() {
+            if (ctx && ctx.data.budget) drawChart(ctx.data.budget, ctx.data.budget.currency);
         },
     };
 })();

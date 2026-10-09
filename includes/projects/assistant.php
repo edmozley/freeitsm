@@ -93,8 +93,8 @@ function projectAssistWhy(array $p): string
 function projectAssistLine(array $p): string
 {
     $why = projectAssistWhy($p);
-    return sprintf('%s %s [%s, %s, %d%% of %d task(s) done%s%s]%s',
-        $p['code'], $p['name'], $p['status'], $p['shown_health'] ?? 'no health', $p['progress'], $p['task_total'],
+    return sprintf('%s %s [%s, %s, %s priority, %d%% of %d task(s) done%s%s]%s',
+        $p['code'], $p['name'], $p['status'], $p['shown_health'] ?? 'no health', $p['priority'] ?? 'medium', $p['progress'], $p['task_total'],
         $p['target_end_date'] ? ', target ' . $p['target_end_date'] : '', $p['owner_name'] ? ', led by ' . $p['owner_name'] : '',
         $why !== '' ? ' - ' . $why : '');
 }

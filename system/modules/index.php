@@ -93,7 +93,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .all-note       { color: #c4b5fd; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=187">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="system" data-mobile-page="modules">
     <?php include '../includes/header.php'; ?>

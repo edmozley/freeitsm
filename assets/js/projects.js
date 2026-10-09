@@ -101,6 +101,22 @@
         return '<span class="prj-pill s-' + esc(status) + '">' + esc(T('status.' + status)) + '</span>';
     }
 
+    /**
+     * A project's priority (3.3.0): the word from Projects -> Settings (lookups),
+     * and a chip for the cards and the banner. Medium is the ordinary case, so it
+     * gets no chip - only the exceptions stand out, as with task priorities.
+     */
+    let priorityWords = null;
+    function setPriorityLabels(l) { priorityWords = l; }
+    function priorityLabel(key) {
+        const i = ['low', 'medium', 'high', 'critical'].indexOf(key || 'medium');
+        return (priorityWords && priorityWords[i]) || T('scale.priority_' + (i + 1));
+    }
+    function priorityChip(key, always) {
+        if (!always && (!key || key === 'medium')) return '';
+        return '<span class="prj-prio p-' + esc(key || 'medium') + '">' + esc(priorityLabel(key)) + '</span>';
+    }
+
     function healthBadge(health) {
         if (!health) return '';
         return '<span class="prj-health-badge h-' + esc(health) + '"><span class="dot"></span>' + esc(T('health.' + health)) + '</span>';
@@ -216,6 +232,8 @@
         $('pfSummary').value = isEdit ? (project.summary || '') : '';
         $('pfStart').value = isEdit ? (project.start_date || '') : '';
         $('pfTarget').value = isEdit ? (project.target_end_date || '') : '';
+        $('pfPriority').innerHTML = (L.priorities || []).map((k, i) => '<option value="' + k + '">' + esc((L.priority_labels || [])[i] || k) + '</option>').join('');
+        $('pfPriority').value = isEdit ? (project.priority || 'medium') : 'medium';
         $('pfActual').value = isEdit ? (project.actual_end_date || '') : '';
         $('pfHealthNote').value = isEdit ? (project.health_note || '') : '';
         $('pfError').hidden = true;
@@ -346,6 +364,7 @@
                 owner_analyst_id: $('pfOwner').value || null,
                 start_date: $('pfStart').value || null,
                 target_end_date: $('pfTarget').value || null,
+                priority: $('pfPriority').value || 'medium',
                 colour: formState.colour,
                 icon: formState.icon,
             };
@@ -416,7 +435,7 @@
     document.addEventListener('DOMContentLoaded', wireForm);
 
     window.Prj = {
-        T, TC, esc, api, lookups, icon, gradient, setPalette, ring, statusPill, healthBadge,
+        T, TC, esc, api, lookups, icon, gradient, setPalette, ring, statusPill, healthBadge, priorityLabel, priorityChip, setPriorityLabels,
         fmtDate, daysTo, todayStr, targetPhrase, initials, timeboxWord, toast,
         openModal, closeModal, openProjectForm, celebrate, templateMeta,
     };

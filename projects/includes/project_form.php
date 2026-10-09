@@ -54,6 +54,10 @@
                     <label for="pfTarget"><?php echo htmlspecialchars(t('projects.form.target')); ?></label>
                     <input type="date" id="pfTarget">
                 </div>
+                <div class="form-group">
+                    <label for="pfPriority"><?php echo htmlspecialchars(t('projects.form.priority')); ?></label>
+                    <select id="pfPriority"></select>
+                </div>
                 <div class="form-group prj-edit-only">
                     <label for="pfStatus"><?php echo htmlspecialchars(t('projects.form.status')); ?></label>
                     <select id="pfStatus"></select>

@@ -38,6 +38,11 @@ projectApiRun(function () use ($conn, $analystId) {
         'tools'           => projectToolDefinitions(),
         'probability_labels' => projectScaleLabels($conn, 'probability'),
         'impact_labels'      => projectScaleLabels($conn, 'impact'),
+        // 3.3.0: the four priority words, the portfolio's default order, what the burn-up counts.
+        'priorities'         => projectPriorities(),
+        'priority_labels'    => projectScaleLabels($conn, 'priority'),
+        'portfolio_sort'     => projectSetting($conn, 'project_portfolio_sort'),
+        'burnup_measure'     => projectSetting($conn, 'project_burnup_measure'),
         'templates'          => projectTemplateList($conn),
         'can_manage_templates' => analystHasCapability($conn, $analystId, Cap::PROJECTS_TEMPLATES),
         // RAID: a lesson -> Knowledge, an issue -> a new ticket. Only offered with the module.

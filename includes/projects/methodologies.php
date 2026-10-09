@@ -101,6 +101,12 @@ function projectStatuses(): array
 }
 
 /** Statuses a project is finished in: no health, not counted as live. */
+/** Project priorities, lowest first (3.3.0). Stored as these keys; shown as projectScaleLabels('priority'). */
+function projectPriorities(): array
+{
+    return ['low', 'medium', 'high', 'critical'];
+}
+
 function projectFinishedStatuses(): array
 {
     return ['closed', 'cancelled'];

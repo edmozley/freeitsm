@@ -40,6 +40,12 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             //   planned  planned maintenance: shown as upcoming, and it becomes an
             //            incident by itself at its start and resolves at its end
             'project_disruption'       => ['planned',  'disruption',  'general'],
+            // 3.3.0. The four priority words, lowest first (empty = the defaults in
+            // each viewer's language, as the RAID scales); how the portfolio is
+            // sorted until somebody picks another order; and what the burn-up counts.
+            'project_priority_labels'  => ['',         'labels4',     'general'],
+            'project_portfolio_sort'   => ['target',   'sort',        'general'],
+            'project_burnup_measure'   => ['tasks',    'measure',     'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
             'project_amber_days'       => ['14',       'int:1:120',   'health'],
@@ -55,6 +61,15 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             'project_capacity_hours'    => ['37.5',     'num:1:80',    'health'],
             'project_capacity_amber'    => ['85',       'int:50:100',  'health'],
             'project_capacity_projects' => ['3',        'int:2:20',    'health'],
+            // Which days are working days (ISO 1 = Monday ... 7 = Sunday) - where
+            // capacity spreads a task's hours - and whether rota shifts count as time
+            // away from projects (some rotas are on-call only).
+            'project_capacity_days'     => ['1,2,3,4,5', 'weekdays',   'health'],
+            'project_capacity_desk'     => ['1',        'bool',        'health'],
+            // What a missed milestone, and a dependency or decision past its date, do
+            // to worked-out health: nothing, amber (the default) or red.
+            'project_health_milestones' => ['amber',    'effect',      'health'],
+            'project_health_raid_late'  => ['amber',    'effect',      'health'],
             // ---- RAID -------------------------------------------------------
             // Five labels each, lowest first, stored as a JSON array. Empty means
             // "the defaults in the viewer's language" - see projectScaleLabels().
@@ -165,14 +180,34 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             }
             return (string)(int)$v;
         }
-        if ($rule === 'labels5') {
+        if ($rule === 'labels5' || $rule === 'labels4') {
+            $n = (int)substr($rule, 6);
             $parts = is_array($raw) ? array_map(fn($p) => trim((string)$p), array_values($raw)) : projectScaleParse($v);
-            if (count($parts) !== 5 || in_array('', $parts, true)) throw new InvalidArgumentException('Give a word for each of the five steps.');
+            if (count($parts) !== $n || in_array('', $parts, true)) throw new InvalidArgumentException($n === 5 ? 'Give a word for each of the five steps.' : 'Give a word for each of the four steps.');
             foreach ($parts as $p) if (mb_strlen($p) > 40) throw new InvalidArgumentException('Each label must be 40 characters or fewer.');
             // The defaults, unchanged, are stored as "not set" so the scale keeps
             // following each viewer's language.
-            if ($parts === projectScaleDefaults($key === 'project_impact_labels' ? 'impact' : 'probability')) return '';
+            if ($parts === projectScaleDefaults(substr($key, 8, -7))) return '';
             return json_encode($parts, JSON_UNESCAPED_UNICODE);
+        }
+        if ($rule === 'sort') {
+            if (!in_array($v, ['target', 'priority', 'health', 'name'], true)) throw new InvalidArgumentException('Choose how the portfolio is sorted.');
+            return $v;
+        }
+        if ($rule === 'measure') {
+            if (!in_array($v, ['tasks', 'hours'], true)) throw new InvalidArgumentException('Choose tasks or hours.');
+            return $v;
+        }
+        if ($rule === 'effect') {
+            if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'weekdays') {
+            $days = is_array($raw) ? $raw : explode(',', $v);
+            $days = array_values(array_unique(array_filter(array_map('intval', $days), fn($d) => $d >= 1 && $d <= 7)));
+            sort($days);
+            if (!$days) throw new InvalidArgumentException('Choose at least one working day.');
+            return implode(',', $days);
         }
         if ($rule === 'builtin_keys') {
             throw new InvalidArgumentException('Hide or show templates on the Templates tab.');
@@ -197,7 +232,7 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             I18n::initFromSession();
         }
         $out = [];
-        for ($i = 1; $i <= 5; $i++) $out[] = t('projects.scale.' . $scale . '_' . $i);
+        for ($i = 1; $i <= projectScaleSize($scale); $i++) $out[] = t('projects.scale.' . $scale . '_' . $i);
         return $out;
     }
 
@@ -217,11 +252,17 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         return array_values(array_filter(array_map('trim', explode(',', $stored)), fn($p) => $p !== ''));
     }
 
-    /** The five words to show for a scale: the saved ones, or the translated defaults. */
+    /** How many steps a scale has: five for the RAID scales, four for priority (3.3.0). */
+    function projectScaleSize(string $scale): int
+    {
+        return $scale === 'priority' ? 4 : 5;
+    }
+
+    /** The words to show for a scale: the saved ones, or the translated defaults. */
     function projectScaleLabels(PDO $conn, string $scale): array
     {
         $saved = projectScaleParse(projectSetting($conn, 'project_' . $scale . '_labels'));
-        return count($saved) === 5 ? $saved : projectScaleDefaults($scale);
+        return count($saved) === projectScaleSize($scale) ? $saved : projectScaleDefaults($scale);
     }
 
     // ======================================================================

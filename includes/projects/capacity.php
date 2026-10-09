@@ -8,12 +8,15 @@
  *   project hours  every OPEN project task they are assigned, in a live project
  *                  the viewer can see: its estimate less the time already logged
  *                  on it (and its subtasks), spread evenly over the WORKING days
- *                  (Monday to Friday) from its start - or today, if that is later
+ *                  (Monday to Friday unless project_capacity_days says
+ *                  otherwise) from its start - or today, if that is later
  *                  - to its due date. Late work (due before today) lands in this
  *                  week. Only the part inside a week is counted in that week.
  *   desk hours     their shifts on the service-desk rota that week (Tickets ->
  *                  Rota), each shift's length. On the rota, they are not on the
- *                  project. Shown only to a viewer who can open Tickets.
+ *                  project. Shown only to a viewer who can open Tickets, and
+ *                  not at all when project_capacity_desk is off (an on-call
+ *                  rota is not time away from projects).
  *   load           (project + desk) / hours per week (Projects -> Settings ->
  *                  Health). Amber at the amber share, red over 100%.
  *
@@ -39,13 +42,12 @@ require_once __DIR__ . '/read.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/../tenancy.php';
 
-/** The working days (Mon-Fri) from $from to $to inclusive, as Y-m-d. */
-function projectCapacityWorkdays(string $from, string $to): array
+/** The working days from $from to $to inclusive, as Y-m-d. $days: ISO weekdays (1 = Monday), Monday to Friday by default. */
+function projectCapacityWorkdays(string $from, string $to, array $days = [1, 2, 3, 4, 5]): array
 {
     $out = [];
     for ($t = strtotime($from . ' 00:00:00 UTC'), $end = strtotime($to . ' 00:00:00 UTC'); $t <= $end; $t += 86400) {
-        $dow = (int)gmdate('N', $t);
-        if ($dow <= 5) $out[] = gmdate('Y-m-d', $t);
+        if (in_array((int)gmdate('N', $t), $days, true)) $out[] = gmdate('Y-m-d', $t);
     }
     return $out;
 }
@@ -69,6 +71,9 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
     $hoursPerWeek = (float)($set['project_capacity_hours'] ?? 37.5);
     $amber = (int)($set['project_capacity_amber'] ?? 85);
     $several = (int)($set['project_capacity_projects'] ?? 3);
+    // Projects -> Settings -> Health (3.3.0): which days are working days, and whether rota shifts count.
+    $workdays = array_map('intval', explode(',', (string)($set['project_capacity_days'] ?? '1,2,3,4,5'))) ?: [1, 2, 3, 4, 5];
+    $countDesk = ($set['project_capacity_desk'] ?? '1') === '1';
 
     $today = gmdate('Y-m-d');
     $monday = gmdate('Y-m-d', strtotime($today . ' 00:00:00 UTC') - ((int)gmdate('N', strtotime($today . ' 00:00:00 UTC')) - 1) * 86400);
@@ -84,7 +89,7 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
     };
     $canTickets = analystCanAccessModule($conn, $viewerId, 'tickets');
     $out = ['weeks' => $weekList, 'hours_per_week' => $hoursPerWeek, 'amber' => $amber, 'several' => $several,
-            'can_tickets' => $canTickets, 'rows' => [], 'team_hours' => 0.0, 'team_tasks' => 0, 'estimates_ready' => projectEstimatesReady($conn)];
+            'can_tickets' => $canTickets, 'count_desk' => $countDesk, 'rows' => [], 'team_hours' => 0.0, 'team_tasks' => 0, 'estimates_ready' => projectEstimatesReady($conn)];
 
     // Live projects the viewer can see.
     [$tSql, $tArgs] = activeTenantReadFilter($conn, $viewerId, 'p');
@@ -147,7 +152,7 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
         } else {
             $from = max($t['start_date'] ?: $today, $today);
             if ($from > $t['due_date']) $from = $t['due_date'];
-            $days = projectCapacityWorkdays($from, $t['due_date']) ?: [$t['due_date']];
+            $days = projectCapacityWorkdays($from, $t['due_date'], $workdays) ?: [$t['due_date']];
             $share = $remaining / count($days);
             foreach ($days as $d) {
                 $w = $weekOf($d);
@@ -170,8 +175,8 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
     $in = implode(',', array_keys($people));
 
     if ($canTickets) {
-        // The desk: rota shifts in the window.
-        try {
+        // The desk: rota shifts in the window - unless this install's rota is not desk time.
+        if ($countDesk) try {
             $rs = $conn->prepare("SELECT e.analyst_id, e.rota_date, s.start_time, s.end_time FROM ticket_rota_entries e JOIN ticket_rota_shifts s ON s.id = e.shift_id
                                    WHERE e.analyst_id IN ($in) AND e.rota_date BETWEEN ? AND ?");
             $rs->execute([$monday, $windowEnd]);

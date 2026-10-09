@@ -1034,3 +1034,99 @@ button.prj-tl-label { cursor: pointer; }
 .prj-cap-legend i { display: inline-block; width: 14px; height: 8px; border-radius: 99px; margin-right: 6px; vertical-align: middle; }
 .prj-cap-legend i.s-green { background: #16a34a; } .prj-cap-legend i.s-amber { background: #f59e0b; } .prj-cap-legend i.s-red { background: #dc2626; }
 .prj-cap-legend i.desk { background: repeating-linear-gradient(135deg, rgba(0,0,0,.35) 0 3px, #cbd5e1 3px 6px); }
+
+/* ---------- charts (3.3.0) - assets/js/projects-charts.js ------------------- */
+/* Series slots 1 and 2 of the dataviz palette, validated (CVD and contrast) on
+   this app's own surfaces. Dark mode has its OWN steps, chosen for the dark
+   surface (#1e2228) - not an automatic flip. */
+:root { --prj-viz-1: #2a78d6; --prj-viz-2: #eb6834; }
+[data-theme="dark"] { --prj-viz-1: #3987e5; --prj-viz-2: #d95926; }
+.prj-viz-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.prj-viz-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--text-muted, #555); }
+.prj-viz-key { display: inline-flex; align-items: center; gap: 6px; }
+.prj-viz-swatch { display: inline-block; width: 12px; height: 10px; border-radius: 3px; }
+.prj-viz-swatch.line { width: 14px; height: 2px; border-radius: 2px; }
+.prj-viz-swatch.viz-s1 { background: var(--prj-viz-1); } .prj-viz-swatch.viz-s2 { background: var(--prj-viz-2); }
+.prj-viz-toggle { margin-left: auto; }
+.prj-viz-plot { position: relative; }
+.prj-viz-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.prj-viz-svg:focus { outline: 2px solid var(--prj-accent, #e11d48); outline-offset: 2px; border-radius: 4px; }
+.prj-viz-svg .viz-grid { stroke: var(--border-soft, #eee); stroke-width: 1; }
+.prj-viz-svg .viz-axis { stroke: var(--border, #ddd); stroke-width: 1; }
+.prj-viz-svg .viz-ref { stroke: var(--text-dim, #888); stroke-width: 1; }
+.prj-viz-svg .viz-cross { stroke: var(--text-dim, #888); stroke-width: 1; }
+.prj-viz-svg .viz-tick { fill: var(--text-dim, #888); font-size: 11px; font-variant-numeric: tabular-nums; }
+.prj-viz-svg .viz-label { fill: var(--text-muted, #555); font-size: 12px; }
+.prj-viz-svg .viz-end { fill: var(--text, #333); font-size: 11.5px; font-weight: 600; }
+.prj-viz-svg .viz-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.prj-viz-svg .viz-line.viz-s1 { stroke: var(--prj-viz-1); } .prj-viz-svg .viz-line.viz-s2 { stroke: var(--prj-viz-2); }
+.prj-viz-svg .viz-area.viz-s1 { fill: var(--prj-viz-1); opacity: .1; stroke: none; }
+.prj-viz-svg .viz-dot { stroke: var(--surface, #fff); stroke-width: 2; }
+.prj-viz-svg .viz-dot.viz-s1, .prj-viz-svg .viz-bar.viz-s1 { fill: var(--prj-viz-1); }
+.prj-viz-svg .viz-dot.viz-s2, .prj-viz-svg .viz-bar.viz-s2 { fill: var(--prj-viz-2); }
+.prj-viz-svg .viz-hit { outline: none; cursor: default; }
+.prj-viz-svg .viz-hit:focus { stroke: var(--prj-accent, #e11d48); stroke-width: 1.5; }
+.prj-viz-tip {
+    position: absolute; z-index: 5; pointer-events: none; min-width: 120px; padding: 8px 10px; border-radius: 8px;
+    background: var(--surface, #fff); box-shadow: 0 6px 18px rgba(0,0,0,.18), 0 0 0 1px var(--border-soft, #eee); font-size: 12px; color: var(--text, #333);
+}
+.prj-viz-tip-head { font-size: 11px; color: var(--text-dim, #888); margin-bottom: 4px; }
+.prj-viz-tip-row { display: flex; align-items: center; gap: 7px; }
+.prj-viz-tip-row strong { font-size: 13px; }
+.prj-viz-tip-row span { color: var(--text-muted, #555); }
+.prj-viz-table { overflow-x: auto; max-height: 320px; overflow-y: auto; }
+.prj-viz-table table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.prj-viz-table th, .prj-viz-table td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--border-soft, #eee); }
+.prj-viz-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.prj-viz-table th { font-size: 11px; color: var(--text-dim, #888); font-weight: 700; position: sticky; top: 0; background: var(--surface, #fff); }
+.prj-burn { margin-bottom: 16px; }
+.prj-burn .prj-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.prj-burn-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.prj-burn-controls .prj-seg { margin: 0; }
+.prj-burn-stage { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 7px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; max-width: 220px; }
+.prj-burn-intro { margin: 4px 0 10px; }
+.prj-budget-chart { margin: 14px 0 16px; }
+
+/* ---------- priority (3.3.0) ---------------------------------------------- */
+.prj-prio { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; background: rgba(255,255,255,.9); color: #334155; }
+.prj-prio.p-high { background: #fff7ed; color: #c2410c; }
+.prj-prio.p-critical { background: #fef2f2; color: #b91c1c; }
+.prj-prio.p-low { background: rgba(255,255,255,.75); color: #64748b; }
+.prj-tl-label .prj-prio, .prj-tl-label .prj-rm-health { flex-shrink: 0; }
+
+/* ---------- portfolio: order, health strip, roadmap (3.3.0) ----------------- */
+.prj-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.prj-sort { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim, #888); }
+.prj-sort select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 7px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; }
+.prj-layout-seg { margin: 0; }
+.prj-hstrip-wrap { background: var(--surface, #fff); border-radius: 12px; box-shadow: 0 0 0 1px var(--border-soft, #eee); padding: 12px 16px; margin-bottom: 16px; }
+.prj-hstrip-head h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); }
+/* Part to whole: 2px surface gaps between segments, rounded only at the two ends. */
+.prj-hstrip { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; }
+.prj-hseg { flex: 1 1 0; min-width: 6px; outline: none; }
+.prj-hseg:hover, .prj-hseg:focus { filter: brightness(1.12); box-shadow: inset 0 0 0 2px rgba(255,255,255,.6); }
+.prj-hseg.h-green, .prj-hlegend i.h-green { background: #16a34a; }
+.prj-hseg.h-amber, .prj-hlegend i.h-amber { background: #f59e0b; }
+.prj-hseg.h-red, .prj-hlegend i.h-red { background: #dc2626; }
+.prj-hseg.h-none, .prj-hlegend i.h-none { background: #94a3b8; }
+.prj-hlegend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 12.5px; color: var(--text-muted, #555); }
+.prj-hlegend span { display: inline-flex; align-items: center; gap: 6px; }
+.prj-hlegend span.zero { opacity: .55; }
+.prj-hlegend i { display: inline-block; width: 12px; height: 10px; border-radius: 3px; }
+.prj-hlegend b { color: var(--text, #333); }
+.prj-roadmap { margin-bottom: 12px; }
+.prj-rm-scroll { max-height: calc(100vh - 340px); }
+.prj-rm-label { gap: 8px; }
+.prj-card-icon-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.prj-rm-health { font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 999px; }
+.prj-rm-health.h-green { color: #15803d; background: rgba(22,163,74,.12); }
+.prj-rm-health.h-amber { color: #b45309; background: rgba(245,158,11,.16); }
+.prj-rm-health.h-red { color: #b91c1c; background: rgba(220,38,38,.12); }
+[data-theme="dark"] .prj-rm-health.h-green { color: #4ade80; } [data-theme="dark"] .prj-rm-health.h-amber { color: #fbbf24; } [data-theme="dark"] .prj-rm-health.h-red { color: #f87171; }
+.prj-rm-bar { top: 9px; height: 22px; overflow: hidden; text-decoration: none; opacity: .55; }
+.prj-rm-bar:hover { opacity: .8; }
+.prj-rm-progress { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(0,0,0,.28); }
+.prj-rm-bar .prj-tl-bar-text { position: relative; z-index: 1; color: #fff; }
+.prj-rm-nodates { position: absolute; left: 10px; top: 11px; font-size: 12px; color: var(--text-dim, #888); }
+.prj-days { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.prj-rm-scroll { min-height: 0; }

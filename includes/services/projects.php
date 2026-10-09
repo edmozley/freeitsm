@@ -51,6 +51,7 @@ class ProjectsService
             'status'           => ['type' => 'enum',   'values' => projectStatuses()],
             'health'           => ['type' => 'enum',   'values' => projectHealthValues()],
             'health_note'      => ['type' => 'string', 'max' => 500],
+            'priority'         => ['type' => 'enum',   'values' => projectPriorities()],
             'owner_analyst_id' => ['type' => 'analyst'],
             'start_date'       => ['type' => 'date'],
             'target_end_date'  => ['type' => 'date'],

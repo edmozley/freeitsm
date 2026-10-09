@@ -42,6 +42,10 @@
         document.getElementById('pvCode').textContent = p.code;
         document.getElementById('pvStatus').outerHTML = P.statusPill(p.status).replace('<span ', '<span id="pvStatus" ');
         document.getElementById('pvMethod').textContent = T('view.method_chip', { method: methodLabel() });
+        // Priority (3.3.0), only when it is not the ordinary Medium.
+        const pc = document.getElementById('pvPriority');
+        pc.innerHTML = P.priorityChip(p.priority);
+        pc.hidden = !pc.innerHTML;
         const comp = document.getElementById('pvCompany');
         comp.hidden = !(L.multi_company && p.company_name);
         comp.textContent = p.company_name || '';
@@ -107,6 +111,8 @@
         }
         // The AI project manager's briefing (3.2.0) - drawn by projects-reports.js after this.
         html += '<div id="pvBriefing" hidden></div>';
+        // Progress over time (3.3.0) - drawn by renderBurnup() once it is on the page.
+        html += '<div id="pvBurnup"></div>';
         // Milestones (3.3.0) - drawn by projects-milestones.js after this.
         html += '<div id="pvMilestones" hidden></div>';
         // Asset targets (3.2.0) - drawn by projects-targets.js after this.
@@ -147,7 +153,69 @@
         html += '</div>';
         html += linksSummary();
         document.getElementById('pvOverview').innerHTML = html;
+        renderBurnup();
         void kind;
+    }
+
+    // ---- Progress over time: the burn-up (3.3.0) ------------------------------------------
+    let burnStage = '';        // '' = the whole project
+    let burnMeasure = null;    // tasks | hours; null until lookups give the install's default
+    /**
+     * Scope and done over time, worked out here from the tasks the page already
+     * has: each top-level task counts from the day it was created (scope) and the
+     * day it was completed (done) - one each, or its estimate in hours. A task
+     * moved into the project later counts from its creation; that is the honest
+     * reading of what is stored.
+     */
+    function burnupPoints() {
+        const val = t => burnMeasure === 'hours' ? (t.estimate_hours !== null && t.estimate_hours !== undefined ? Number(t.estimate_hours) : 0) : 1;
+        const tasks = data.tasks.filter(t => !burnStage || String(t.project_stage_id || '') === burnStage);
+        if (!tasks.length) return null;
+        const created = t => String(t.created_datetime || '').slice(0, 10);
+        const doneOn = t => Number(t.is_closed) && t.completed_datetime ? String(t.completed_datetime).slice(0, 10) : null;
+        const today = P.todayStr();
+        let first = tasks.map(created).filter(Boolean).sort()[0] || today;
+        if (data.project.start_date && data.project.start_date < first) first = data.project.start_date;
+        const dn = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+        const iso = n => new Date(n * 86400000).toISOString().slice(0, 10);
+        const span = dn(today) - dn(first);
+        const step = span > 120 ? 7 : 1;
+        const pts = [];
+        for (let n = dn(first); n <= dn(today); n += step) pts.push(iso(n));
+        if (pts[pts.length - 1] !== today) pts.push(today);
+        return pts.map(d => ({ d: d,
+            scope: tasks.reduce((s, t) => s + (created(t) && created(t) <= d ? val(t) : 0), 0),
+            done: tasks.reduce((s, t) => s + (doneOn(t) && doneOn(t) <= d ? val(t) : 0), 0) }));
+    }
+    function renderBurnup() {
+        const box = document.getElementById('pvBurnup');
+        if (!box || !window.PrjCharts) return;
+        if (burnMeasure === null) burnMeasure = (L && L.burnup_measure) || 'tasks';
+        if (!data.tasks.length) { box.innerHTML = ''; return; }
+        if (burnStage && !data.stages.some(s => String(s.id) === burnStage)) burnStage = '';
+        const kind = timeboxKind();
+        const stageSel = data.stages.length ? '<select class="prj-burn-stage" data-burn-stage aria-label="' + esc(T('burnup.stage')) + '"><option value="">' + esc(T('burnup.whole')) + '</option>'
+            + data.stages.map(s => '<option value="' + s.id + '"' + (String(s.id) === burnStage ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '</select>' : '';
+        box.innerHTML = '<div class="prj-panel prj-burn"><div class="prj-panel-head"><h3>' + esc(T('burnup.title')) + '</h3><div class="prj-burn-controls">' + stageSel
+            + '<div class="prj-seg" role="tablist" aria-label="' + esc(T('burnup.measure')) + '"><button type="button" data-burn-measure="tasks"' + (burnMeasure === 'tasks' ? ' class="active"' : '') + '>' + esc(T('burnup.tasks')) + '</button>'
+            + '<button type="button" data-burn-measure="hours"' + (burnMeasure === 'hours' ? ' class="active"' : '') + '>' + esc(T('burnup.hours')) + '</button></div></div></div>'
+            + '<p class="prj-muted prj-burn-intro"></p><div class="prj-burn-chart"></div></div>';
+        const pts = burnupPoints();
+        const intro = box.querySelector('.prj-burn-intro');
+        const chart = box.querySelector('.prj-burn-chart');
+        if (!pts || (burnMeasure === 'hours' && pts[pts.length - 1].scope === 0)) {
+            intro.textContent = burnMeasure === 'hours' ? T('burnup.no_estimates') : T('burnup.no_tasks', { timebox: P.timeboxWord(kind) });
+            return;
+        }
+        const last = pts[pts.length - 1];
+        intro.textContent = T(burnMeasure === 'hours' ? 'burnup.intro_hours' : 'burnup.intro_tasks', { done: (Math.round(last.done * 10) / 10), scope: (Math.round(last.scope * 10) / 10) });
+        const stage = burnStage ? data.stages.find(s => String(s.id) === burnStage) : null;
+        window.PrjCharts.burnup(chart, {
+            points: pts, target: stage ? stage.end_date : data.project.target_end_date,
+            series: [T('burnup.scope'), T('burnup.done')], unit: burnMeasure === 'hours' ? 'h' : '', fmtDate: P.fmtDate,
+            labels: { table: T('burnup.show_table'), chart: T('burnup.show_chart'), date: T('burnup.date'), target: stage ? T('burnup.stage_end') : T('timeline.target'),
+                aria: T('burnup.aria', { done: last.done, scope: last.scope }) },
+        });
     }
 
     function stageMini(s) {
@@ -177,6 +245,7 @@
         else if (f === 'milestone_moved') detail = (h.new_value || '').replace(/: (\d{4}-\d{2}-\d{2})$/, (m, d) => ': ' + T('history.from_to', { from: P.fmtDate((h.old_value || '').slice(-10)), to: P.fmtDate(d) }));
         else if (f === 'stage_status') detail = (h.new_value || '').replace(/: (planned|active|closed)$/, (m, s) => ': ' + T('stage_status.' + s));
         else if (f === 'status') detail = T('history.from_to', { from: T('status.' + h.old_value), to: T('status.' + h.new_value) });
+        else if (f === 'priority') detail = T('history.from_to', { from: P.priorityLabel(h.old_value), to: P.priorityLabel(h.new_value) });
         else if (f === 'health') detail = T('history.from_to', { from: T('health.' + h.old_value), to: T('health.' + h.new_value) });
         else if (f === 'methodology') detail = T('history.from_to', { from: T('method.' + h.old_value), to: T('method.' + h.new_value) });
         else if (['start_date', 'target_end_date', 'actual_end_date'].includes(f)) detail = T('history.from_to', { from: h.old_value ? P.fmtDate(h.old_value) : '-', to: h.new_value ? P.fmtDate(h.new_value) : '-' });
@@ -346,6 +415,8 @@
         document.querySelectorAll('#prjTabs [data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
         document.querySelectorAll('.prj-tab-panel').forEach(s => { s.hidden = s.dataset.panel !== name; });
         if (name === 'timeline' && window.PrjTimeline) window.PrjTimeline.shown();
+        if (name === 'overview') renderBurnup();   // it measures its width, so draw it where it can be seen
+        if (name === 'budget' && window.PrjBudget && window.PrjBudget.shown) window.PrjBudget.shown();
         try { history.replaceState(null, '', '#' + name); } catch (e) { /* ignore */ }
     }
 
@@ -355,6 +426,7 @@
             L = lk;
             links = ln;
             P.setPalette(L.colours);
+            P.setPriorityLabels(L.priority_labels);
             data = d;
             // A brand-new project has nothing in it yet: open the add box so the
             // first thing on the Plan tab is somewhere to type.
@@ -746,6 +818,13 @@
                 await refresh();
                 if (next) { const el = document.querySelector('[data-estimate="' + next + '"]'); if (el) { el.focus(); el.select(); } }
             } catch (err) { P.toast(err.message, 'error'); await refresh(); }
+        });
+        // The burn-up's own controls (3.3.0).
+        page.addEventListener('change', e => {
+            const s = e.target.closest('[data-burn-stage]'); if (s) { burnStage = s.value; renderBurnup(); }
+        });
+        page.addEventListener('click', e => {
+            const m = e.target.closest('[data-burn-measure]'); if (m) { burnMeasure = m.dataset.burnMeasure; renderBurnup(); }
         });
         page.addEventListener('input', e => {
             const s = e.target.closest('[data-link-search]'); if (s) searchLinks(s);

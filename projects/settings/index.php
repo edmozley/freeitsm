@@ -49,8 +49,8 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=21">
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=187">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=23">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
@@ -69,6 +69,12 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('change_policy'), $tt('change_policy_desc'), '<select data-k="project_change_policy"><option value="team">' . $tt('change_team') . '</option><option value="anyone">' . $tt('change_anyone') . '</option></select><div class="dflt" data-d="project_change_policy"></div>');
             $row($tt('calendar'), $tt('calendar_desc'), '<select data-k="project_calendar"><option value="all">' . $tt('calendar_all') . '</option><option value="ends">' . $tt('calendar_ends') . '</option><option value="off">' . $tt('calendar_off') . '</option></select><div class="dflt" data-d="project_calendar"></div>');
             $row($tt('disruption'), $tt('disruption_desc'), '<select data-k="project_disruption"><option value="planned">' . $tt('disruption_planned') . '</option><option value="now">' . $tt('disruption_now') . '</option><option value="off">' . $tt('disruption_off') . '</option></select><div class="dflt" data-d="project_disruption"></div>');
+            // 3.3.0: priority words, the portfolio's order, what the burn-up counts.
+            $pr = '<div class="prj-scale" data-k="project_priority_labels">';
+            for ($i = 1; $i <= 4; $i++) $pr .= '<label class="prj-scale-step"><span class="prj-scale-n">' . $i . '</span><input type="text" maxlength="40" data-step="' . ($i - 1) . '"></label>';
+            $row($tt('priority_labels'), $tt('priority_labels_desc'), $pr . '</div><div class="dflt" data-d="project_priority_labels"></div>');
+            $row($tt('portfolio_sort'), $tt('portfolio_sort_desc'), '<select data-k="project_portfolio_sort"><option value="target">' . htmlspecialchars(t('projects.portfolio.sort_target')) . '</option><option value="priority">' . htmlspecialchars(t('projects.portfolio.sort_priority')) . '</option><option value="health">' . htmlspecialchars(t('projects.portfolio.sort_health')) . '</option><option value="name">' . htmlspecialchars(t('projects.portfolio.sort_name')) . '</option></select><div class="dflt" data-d="project_portfolio_sort"></div>');
+            $row($tt('burnup_measure'), $tt('burnup_measure_desc'), '<select data-k="project_burnup_measure"><option value="tasks">' . $tt('measure_tasks') . '</option><option value="hours">' . $tt('measure_hours') . '</option></select><div class="dflt" data-d="project_burnup_measure"></div>');
             ?>
             <div class="prj-set-note"><?php echo $tt('delete_note'); ?></div>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="general"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
@@ -84,11 +90,19 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('amber_progress'), $tt('amber_progress_desc'), '<input type="number" min="1" max="100" data-k="project_amber_progress"><div class="dflt" data-d="project_amber_progress"></div>');
             $row($tt('red_overdue'), $tt('red_overdue_desc'), '<input type="number" min="1" max="100" data-k="project_red_overdue_pct"><div class="dflt" data-d="project_red_overdue_pct"></div>');
             $row($tt('ticket_amber'), $tt('ticket_amber_desc'), '<input type="number" min="0" max="500" data-k="project_ticket_amber"><div class="dflt" data-d="project_ticket_amber"></div>');
+            // 3.3.0: what missed dates do to health - nothing, amber or red.
+            $effect = fn(string $k) => '<select data-k="' . $k . '"><option value="off">' . $tt('effect_off') . '</option><option value="amber">' . $tt('effect_amber') . '</option><option value="red">' . $tt('effect_red') . '</option></select><div class="dflt" data-d="' . $k . '"></div>';
+            $row($tt('health_milestones'), $tt('health_milestones_desc'), $effect('project_health_milestones'));
+            $row($tt('health_raid_late'), $tt('health_raid_late_desc'), $effect('project_health_raid_late'));
             // Capacity (3.3.0) - the Capacity page reads these.
             echo '<h3 class="prj-set-sub">' . $tt('capacity_title') . '</h3><p class="prj-muted">' . $tt('capacity_intro') . '</p>';
             $row($tt('capacity_hours'), $tt('capacity_hours_desc'), '<input type="number" min="1" max="80" step="0.5" data-k="project_capacity_hours"><div class="dflt" data-d="project_capacity_hours"></div>');
             $row($tt('capacity_amber'), $tt('capacity_amber_desc'), '<input type="number" min="50" max="100" data-k="project_capacity_amber"><div class="dflt" data-d="project_capacity_amber"></div>');
             $row($tt('capacity_projects'), $tt('capacity_projects_desc'), '<input type="number" min="2" max="20" data-k="project_capacity_projects"><div class="dflt" data-d="project_capacity_projects"></div>');
+            $days = '<div class="prj-days" data-k="project_capacity_days">';
+            for ($i = 1; $i <= 7; $i++) $days .= '<label class="prj-check"><input type="checkbox" data-day="' . $i . '"> ' . $tt('day_' . $i) . '</label>';
+            $row($tt('capacity_days'), $tt('capacity_days_desc'), $days . '</div><div class="dflt" data-d="project_capacity_days"></div>');
+            $row($tt('capacity_desk'), $tt('capacity_desk_desc'), '<select data-k="project_capacity_desk"><option value="1">' . htmlspecialchars(t('common.yes')) . '</option><option value="0">' . htmlspecialchars(t('common.no')) . '</option></select><div class="dflt" data-d="project_capacity_desk"></div>');
             ?>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="health"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
         </div>
@@ -208,8 +222,8 @@ $row = function (string $label, string $desc, string $control) {
         </div>
     </div>
 
-    <script src="../../assets/js/projects.js?v=7"></script>
-    <script src="../../assets/js/projects-settings.js?v=6"></script>
+    <script src="../../assets/js/projects.js?v=8"></script>
+    <script src="../../assets/js/projects-settings.js?v=7"></script>
     <script src="../../assets/js/ai-settings.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>

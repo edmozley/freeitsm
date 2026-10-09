@@ -11360,6 +11360,18 @@ return array (
           'type' => 'string',
           'nullable' => true,
         ),
+        'priority' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'low',
+            1 => 'medium',
+            2 => 'high',
+            3 => 'critical',
+          ),
+          'description' => 'How much the project matters next to the others (3.3.0). The words shown for each are a setting.',
+        ),
         'project_manager' => 
         array (
           'type' => 'object',

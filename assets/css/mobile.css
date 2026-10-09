@@ -16222,4 +16222,11 @@
     body[data-mobile-page="projects-view"] .prj-est-input { border-color: var(--border, #ddd); background: var(--surface, #fff); width: 64px; }
     /* On the Plan row it joins the meta line under the title (44g's order 5), not the start of the row. */
     body[data-mobile-page="projects-view"] .prj-task > .prj-est { order: 5; }
+    /* The portfolio's Sort and Cards / Roadmap (3.3.0) take their own row under New. */
+    body[data-mobile-page="projects-portfolio"] .prj-toolbar { flex-wrap: wrap; }
+    body[data-mobile-page="projects-portfolio"] .prj-toolbar-right { width: 100%; margin-left: 0; justify-content: space-between; }
+    body[data-mobile-page="projects-portfolio"] .prj-layout-seg button { min-height: 40px; }
+    body[data-mobile-page="projects-portfolio"] .prj-sort select { min-height: 40px; }
+    body[data-mobile-page="projects-view"] .prj-burn-controls { width: 100%; }
+    body[data-mobile-page="projects-view"] .prj-burn-stage { flex: 1 1 auto; max-width: none; min-height: 40px; }
 }

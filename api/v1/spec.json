@@ -6790,6 +6790,12 @@
                             "req": false
                         },
                         {
+                            "name": "priority",
+                            "in": "body",
+                            "desc": "low, medium (default), high or critical (3.3.0)",
+                            "req": false
+                        },
+                        {
                             "name": "colour \/ icon",
                             "in": "body",
                             "desc": "From the fixed palette and icon set",

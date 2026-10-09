@@ -194,7 +194,7 @@ $translationNamespaces = ['common', 'contracts'];
         .error-state { color: #d13438; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=187">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="contracts">
     <?php include '../includes/header.php'; ?>

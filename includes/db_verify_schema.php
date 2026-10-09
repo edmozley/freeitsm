@@ -5154,6 +5154,9 @@ return [
         'status'           => "VARCHAR(20) NOT NULL DEFAULT 'proposed'",
         'health'           => "VARCHAR(10) NOT NULL DEFAULT 'auto'",
         'health_note'      => 'VARCHAR(500) NULL',
+        // 3.3.0: how much the project matters next to the others. The four keys
+        // are fixed; the words shown for them are project_priority_labels.
+        'priority'         => "VARCHAR(10) NOT NULL DEFAULT 'medium'",
         'owner_analyst_id' => 'INT NULL',
         'start_date'       => 'DATE NULL',
         'target_end_date'  => 'DATE NULL',

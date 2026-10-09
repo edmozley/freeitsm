@@ -36,8 +36,8 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=21">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=187">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=23">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-portfolio">
     <?php include 'includes/header.php'; ?>
@@ -73,9 +73,28 @@ $translationNamespaces = ['common', 'projects'];
                     <?php echo htmlspecialchars(t('projects.portfolio.new')); ?>
                 </button>
                 <span class="prj-count" id="prjCount"></span>
+                <!-- 3.3.0: order and layout. The default order is Projects -> Settings -> General. -->
+                <div class="prj-toolbar-right">
+                    <label class="prj-sort"><span><?php echo htmlspecialchars(t('projects.portfolio.sort_label')); ?></span>
+                        <select id="prjSort">
+                            <option value="target"><?php echo htmlspecialchars(t('projects.portfolio.sort_target')); ?></option>
+                            <option value="priority"><?php echo htmlspecialchars(t('projects.portfolio.sort_priority')); ?></option>
+                            <option value="health"><?php echo htmlspecialchars(t('projects.portfolio.sort_health')); ?></option>
+                            <option value="name"><?php echo htmlspecialchars(t('projects.portfolio.sort_name')); ?></option>
+                        </select>
+                    </label>
+                    <div class="prj-seg prj-layout-seg" role="tablist" aria-label="<?php echo htmlspecialchars(t('projects.portfolio.layout')); ?>">
+                        <button type="button" data-layout="cards" class="active"><?php echo htmlspecialchars(t('projects.portfolio.layout_cards')); ?></button>
+                        <button type="button" data-layout="roadmap"><?php echo htmlspecialchars(t('projects.portfolio.layout_roadmap')); ?></button>
+                    </div>
+                </div>
             </div>
 
+            <!-- How the live projects stand (3.3.0) - projects-portfolio.js -->
+            <div class="prj-hstrip-wrap" id="prjHealthStrip" hidden></div>
+
             <div class="prj-grid" id="prjGrid" aria-live="polite"></div>
+            <div class="prj-roadmap" id="prjRoadmap" hidden></div>
 
             <div class="prj-empty" id="prjEmpty" hidden>
                 <div class="prj-empty-art" aria-hidden="true">
@@ -91,8 +110,8 @@ $translationNamespaces = ['common', 'projects'];
 
     <?php include 'includes/project_form.php'; ?>
 
-    <script src="../assets/js/projects.js?v=7"></script>
-    <script src="../assets/js/projects-portfolio.js?v=5"></script>
+    <script src="../assets/js/projects.js?v=8"></script>
+    <script src="../assets/js/projects-portfolio.js?v=7"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

@@ -26,7 +26,12 @@
         if (key === 'project_calendar') return T('settings.calendar_' + value);
         if (key === 'project_disruption') return T('settings.disruption_' + value);
         if (key === 'project_labour_mode') return T('settings.labour_' + value);
-        if (key === 'project_currency_per_project') return value === '1' ? P.TC('yes') : P.TC('no');
+        if (key === 'project_currency_per_project' || key === 'project_capacity_desk') return value === '1' ? P.TC('yes') : P.TC('no');
+        // 3.3.0
+        if (key === 'project_health_milestones' || key === 'project_health_raid_late') return T('settings.effect_' + value);
+        if (key === 'project_portfolio_sort') return T('portfolio.sort_' + value);
+        if (key === 'project_burnup_measure') return T('settings.measure_' + value);
+        if (key === 'project_capacity_days') return String(value).split(',').map(d => T('settings.day_' + d)).join(', ');
         if (Array.isArray(value)) return value.join(', ');
         return value;
     }
@@ -37,6 +42,12 @@
         if (methodSel) methodSel.innerHTML = L.methodologies.map(m => '<option value="' + esc(m.key) + '">' + esc(m.label) + '</option>').join('');
         document.querySelectorAll('[data-k]').forEach(el => {
             const v = state.settings[el.dataset.k];
+            if (el.classList.contains('prj-days')) {
+                // Working days (3.3.0): one box per weekday.
+                const on = String(v || '').split(',');
+                el.querySelectorAll('[data-day]').forEach(cb => { cb.checked = on.includes(cb.dataset.day); });
+                return;
+            }
             if (el.classList.contains('prj-scale')) {
                 // A risk scale: one box per step, the default word as a hint.
                 const def = (state.definitions[el.dataset.k] || {}).default || [];
@@ -60,7 +71,9 @@
         document.querySelectorAll('[data-settings-tab="' + tab + '"] [data-k]').forEach(el => {
             settings[el.dataset.k] = el.classList.contains('prj-scale')
                 ? Array.from(el.querySelectorAll('[data-step]')).map(i => i.value)
-                : el.value;
+                : el.classList.contains('prj-days')
+                    ? Array.from(el.querySelectorAll('[data-day]:checked')).map(cb => cb.dataset.day).join(',')
+                    : el.value;
         });
         try {
             const r = await P.api('settings.php', { action: 'save', tab: tab, settings: settings });

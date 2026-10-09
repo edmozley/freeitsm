@@ -94,6 +94,7 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
     if (!empty($p['ticket_spike']) && analystCanAccessModule($conn, $analystId, 'tickets')) $why[] = $p['tickets_7d'] . ' tickets linked to the project were raised in the last 7 days';
     if (!empty($p['milestones_missed'])) $why[] = $p['milestones_missed'] . ' milestone(s) missed';
     $line('Health: ' . ($p['shown_health'] ?? 'none (finished)') . ($why ? ' - ' . implode('; ', $why) : '') . '.');
+    $line('Priority: ' . ($p['priority'] ?? 'medium') . '.');
     $line("Tasks: {$p['task_total']} in all, {$p['task_done']} done ({$p['progress']}%), {$p['task_overdue']} overdue.");
     // Effort (3.3.0): estimates against time logged on the project's tasks.
     if (projectEstimatesReady($conn)) {

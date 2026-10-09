@@ -106,6 +106,8 @@ function projectTaskStats(PDO $conn, array $projectIds): array
  *   amber - any open work overdue, a milestone missed (3.3.0), a dependency
  *           not arrived or a decision not made by its due date (3.3.0), or the
  *           target date within 14 days and less than three quarters done;
+ *           the two 3.3.0 rules are settings (project_health_milestones /
+ *           project_health_raid_late: off, amber - the default - or red);
  *   green - otherwise.
  * An asset target that is red makes the project red; an amber one makes a
  * green project amber (projectTargetHealth).
@@ -116,7 +118,11 @@ function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
 {
     if (in_array($p['status'], projectFinishedStatuses(), true)) return null;
     // Projects -> Settings -> Health; the defaults are 14 days, 75% and 25%.
-    $cfg = $cfg ?? ['amber_days' => 14, 'amber_progress' => 75, 'red_overdue_pct' => 25, 'ticket_amber' => 5];
+    $cfg = $cfg ?? ['amber_days' => 14, 'amber_progress' => 75, 'red_overdue_pct' => 25, 'ticket_amber' => 5, 'milestones' => 'amber', 'raid_late' => 'amber'];
+    $msEffect = $cfg['milestones'] ?? 'amber';
+    $raidEffect = $cfg['raid_late'] ?? 'amber';
+    $missed = ($stats['milestones_missed'] ?? 0) > 0;
+    $raidLate = ($stats['raid_overdue'] ?? 0) > 0;
     $total = $stats['total'] ?? 0; $done = $stats['done'] ?? 0; $overdue = $stats['overdue'] ?? 0;
     $open = $total - $done;
     $targets = $stats['targets_health'] ?? null;
@@ -124,11 +130,13 @@ function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
     $today = gmdate('Y-m-d');
     if (!empty($p['target_end_date']) && $p['target_end_date'] < $today && $open > 0) return 'red';
     if ($open > 0 && $overdue > 0 && $overdue * 100 >= $open * $cfg['red_overdue_pct']) return 'red';
+    // An install that treats a missed date as off track (Projects -> Settings -> Health).
+    if (($missed && $msEffect === 'red') || ($raidLate && $raidEffect === 'red')) return 'red';
     if ($overdue > 0) return 'amber';
     // A date the project promised has gone by (includes/projects/milestones.php).
-    if (($stats['milestones_missed'] ?? 0) > 0) return 'amber';
+    if ($missed && $msEffect === 'amber') return 'amber';
     // Something the plan was waiting on is late: a dependency, or a decision (3.3.0).
-    if (($stats['raid_overdue'] ?? 0) > 0) return 'amber';
+    if ($raidLate && $raidEffect === 'amber') return 'amber';
     // A jump in linked tickets - usually just after go-live - is a warning, never red.
     if (projectTicketSpike($stats, $cfg)) return 'amber';
     if (!empty($p['target_end_date']) && $open > 0) {
@@ -153,6 +161,8 @@ function projectHealthConfig(PDO $conn): array
         'amber_progress'  => (int)projectSetting($conn, 'project_amber_progress'),
         'red_overdue_pct' => (int)projectSetting($conn, 'project_red_overdue_pct'),
         'ticket_amber'    => (int)projectSetting($conn, 'project_ticket_amber'),
+        'milestones'      => projectSetting($conn, 'project_health_milestones'),
+        'raid_late'       => projectSetting($conn, 'project_health_raid_late'),
     ];
 }
 
@@ -262,7 +272,7 @@ function projectListRows(PDO $conn, int $analystId, array $f = []): array
         $where[] = 'p.owner_analyst_id = ?'; $args[] = $analystId;
     }
     $sql = "SELECT p.id, p.tenant_id, tn.name AS company_name, p.name, p.summary, p.goal, p.methodology,
-                   p.status, p.health, p.health_note, p.owner_analyst_id, a.full_name AS owner_name,
+                   p.status, p.health, p.health_note, " . projectPriorityColumn($conn) . ", p.owner_analyst_id, a.full_name AS owner_name,
                    p.start_date, p.target_end_date, p.actual_end_date, p.colour, p.icon, p.tailoring, p.created_by_id,
                    p.created_datetime, p.updated_datetime, p.closed_datetime,
                    (SELECT s.name FROM project_stages s WHERE s.project_id = p.id AND s.status = 'active' ORDER BY s.position, s.id LIMIT 1) AS active_stage_name,
@@ -283,6 +293,17 @@ function projectListRows(PDO $conn, int $analystId, array $f = []): array
     }
     unset($r);
     return $rows;
+}
+
+/** p.priority, or 'medium' before Database Verification has added the column (3.3.0). */
+function projectPriorityColumn(PDO $conn): string
+{
+    static $ready = null;
+    if ($ready === null) {
+        try { $conn->query("SELECT priority FROM projects LIMIT 0"); $ready = true; }
+        catch (Throwable $e) { $ready = false; }
+    }
+    return $ready ? 'p.priority' : "'medium' AS priority";
 }
 
 /** Has Database Verification added tasks.estimate_hours (3.3.0)? Reads stay working before it. */
@@ -319,7 +340,7 @@ function projectDetail(PDO $conn, array $row): array
     $t = $conn->prepare("SELECT t.id, t.title, t.status_id, ts.name AS status_name, ts.colour AS status_colour, COALESCE(ts.is_closed, 0) AS is_closed,
                                 t.priority_id, tp.name AS priority_name, tp.colour AS priority_colour,
                                 t.start_date, t.due_date, t.assigned_analyst_id, an.full_name AS assignee_name,
-                                t.assigned_team_id, tm.name AS team_name, t.project_stage_id, t.completed_datetime,
+                                t.assigned_team_id, tm.name AS team_name, t.project_stage_id, t.completed_datetime, t.created_datetime,
                                 (SELECT COUNT(*) FROM tasks c WHERE c.parent_task_id = t.id) AS subtask_count,
                                 " . (projectEstimatesReady($conn) ? 't.estimate_hours' : 'NULL AS estimate_hours') . ",
                                 -- Time logged on the task and its subtasks (3.3.0: estimate vs logged).

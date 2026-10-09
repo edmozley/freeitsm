@@ -64,7 +64,7 @@
     function render() {
         const c = data;
         const body = document.getElementById('capBody');
-        document.getElementById('capIntro').textContent = T(c.can_tickets ? 'capacity.intro' : 'capacity.intro_no_desk', { hours: hrs(c.hours_per_week), amber: c.amber });
+        document.getElementById('capIntro').textContent = T(c.can_tickets && c.count_desk ? 'capacity.intro' : 'capacity.intro_no_desk', { hours: hrs(c.hours_per_week), amber: c.amber });
         document.querySelectorAll('[data-weeks]').forEach(b => b.classList.toggle('active', Number(b.dataset.weeks) === weeks));
         if (!c.estimates_ready) { body.innerHTML = '<div class="prj-plan-empty">' + esc(T('capacity.not_ready')) + '</div>'; document.getElementById('capTiles').innerHTML = ''; return; }
         if (!c.rows.length) {
@@ -92,7 +92,7 @@
         });
         html += '</tbody></table></div>';
         html += '<div class="prj-cap-legend"><span><i class="s-green"></i>' + esc(T('capacity.legend_ok')) + '</span><span><i class="s-amber"></i>' + esc(T('capacity.legend_amber', { amber: c.amber }))
-            + '</span><span><i class="s-red"></i>' + esc(T('capacity.legend_red')) + '</span>' + (c.can_tickets ? '<span><i class="desk"></i>' + esc(T('capacity.legend_desk')) + '</span>' : '') + '</div>';
+            + '</span><span><i class="s-red"></i>' + esc(T('capacity.legend_red')) + '</span>' + (c.can_tickets && c.count_desk ? '<span><i class="desk"></i>' + esc(T('capacity.legend_desk')) + '</span>' : '') + '</div>';
         if (c.team_tasks) html += '<p class="prj-hint">' + esc(T('capacity.team_note', { count: c.team_tasks, hours: hrs(c.team_hours) })) + '</p>';
         html += '<p class="prj-hint">' + esc(T('capacity.how')) + '</p>';
         body.innerHTML = html;

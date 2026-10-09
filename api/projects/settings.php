@@ -53,7 +53,7 @@ function projectRatesForSettings(PDO $conn): array
 function projectSettingsForScreen(PDO $conn): array
 {
     $out = projectSettings($conn, true);
-    foreach (['probability', 'impact'] as $scale) $out['project_' . $scale . '_labels'] = projectScaleLabels($conn, $scale);
+    foreach (['probability', 'impact', 'priority'] as $scale) $out['project_' . $scale . '_labels'] = projectScaleLabels($conn, $scale);
     return $out;
 }
 
@@ -66,7 +66,7 @@ projectApiRun(function () use ($conn, $analystId, $tabCaps) {
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
         $defs = [];
         foreach (projectSettingDefinitions() as $k => $d) $defs[$k] = ['default' => $d[0], 'tab' => $d[2]];
-        foreach (['probability', 'impact'] as $scale) $defs['project_' . $scale . '_labels']['default'] = projectScaleDefaults($scale);
+        foreach (['probability', 'impact', 'priority'] as $scale) $defs['project_' . $scale . '_labels']['default'] = projectScaleDefaults($scale);
         projectApiOk([
             'settings'    => projectSettingsForScreen($conn),
             'definitions' => $defs,

@@ -7798,6 +7798,7 @@ CREATE TABLE IF NOT EXISTS `projects` (
     -- health_note says why.
     `health`            VARCHAR(10) NOT NULL DEFAULT 'auto',     -- auto | green | amber | red
     `health_note`       VARCHAR(500) NULL,
+    `priority`          VARCHAR(10) NOT NULL DEFAULT 'medium',  -- 3.3.0: low | medium | high | critical (the words are a setting)
     `owner_analyst_id`  INT NULL,                         -- the project manager
     `start_date`        DATE NULL,
     `target_end_date`   DATE NULL,

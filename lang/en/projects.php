@@ -63,6 +63,20 @@ return [
     ],
 
     'portfolio' => [
+        // 3.3.0: order, layout, the health strip and the roadmap.
+        'sort_label'      => 'Sort',
+        'sort_target'     => 'Target date',
+        'sort_priority'   => 'Priority',
+        'sort_health'     => 'Health',
+        'sort_name'       => 'Name',
+        'layout'          => 'Layout',
+        'layout_cards'    => 'Cards',
+        'layout_roadmap'  => 'Roadmap',
+        'health_title'    => 'Live projects by health',
+        'health_unknown'  => 'Not worked out',
+        'roadmap_col'     => 'Project',
+        'roadmap_no_dates'=> 'No dates yet',
+        'roadmap_hint'    => 'Each bar runs from a project\'s start (or the day it was created) to its target finish, darker for the share of its work that is done; the diamond is its next milestone. Click a bar to open the project.',
         'search'          => 'Search',
         'search_ph'       => 'Name, goal or summary...',
         'views'           => 'Views',
@@ -99,6 +113,7 @@ return [
     ],
 
     'form' => [
+        'priority'     => 'Priority',
         'new_title'    => 'New project',
         'edit_title'   => 'Edit project',
         'name'         => 'Name',
@@ -164,6 +179,27 @@ return [
     ],
 
     // Effort (3.3.0): task estimates against time logged.
+    // The burn-up on the Overview (3.3.0).
+    'burnup' => [
+        'title'        => 'Progress over time',
+        'stage'        => 'Stage',
+        'whole'        => 'Whole project',
+        'measure'      => 'Count',
+        'tasks'        => 'Tasks',
+        'hours'        => 'Hours',
+        'scope'        => 'Scope',
+        'done'         => 'Done',
+        'show_table'   => 'Table',
+        'show_chart'   => 'Chart',
+        'date'         => 'Date',
+        'stage_end'    => 'Stage end',
+        'intro_tasks'  => '{done} of {scope} tasks done. Scope is every task in the plan so far - when it climbs, work has been added.',
+        'intro_hours'  => '{done} of {scope} estimated hours done. Tasks without an estimate count as nothing here.',
+        'no_tasks'     => 'No tasks in this {timebox} yet.',
+        'no_estimates' => 'None of these tasks has an estimate yet, so there are no hours to show. Add estimates on the Plan, or switch to Tasks.',
+        'aria'         => 'Burn-up chart: {done} of {scope} done.',
+    ],
+
     'effort' => [
         'tile'       => '{est} estimated - {logged} logged',
         'lane'       => '{est} est. - {logged} logged',
@@ -630,6 +666,7 @@ return [
     ],
 
     'history' => [
+        'priority'        => 'changed the priority',
         'project_created' => 'created the project',
         'target_saved'    => 'saved an asset target',
         'target_removed'  => 'removed an asset target',
@@ -747,6 +784,11 @@ return [
 
     // Budget (3.2.0) - includes/projects/budget.php.
     'budget' => [
+        // 3.3.0: where the money goes.
+        'chart_title'  => 'Where the money goes',
+        'chart_table'  => 'Table',
+        'chart_chart'  => 'Chart',
+        'chart_aria'   => 'Planned against actual by category: {planned} planned, {actual} spent in all.',
         'intro'         => 'Planned against actual for this project, in its own currency. Actual is what you type on each line, or the value of a contract it names, plus the time logged on the project\'s tasks.',
         'not_ready'     => 'Run System - Database Verification to switch the budget on.',
         'planned'       => 'Planned',
@@ -913,6 +955,27 @@ return [
         'capacity_amber_desc' => 'A week at or above this share of the hours shows amber; over 100% is red.',
         'capacity_projects' => 'On "several" projects from',
         'capacity_projects_desc' => 'A person with open work on this many live projects or more is flagged.',
+        // 3.3.0 options
+        'priority_labels'      => 'Priority words',
+        'priority_labels_desc' => 'The four priorities a project can have, lowest first. Leave them as they are to follow each person\'s language.',
+        'portfolio_sort'       => 'Portfolio order',
+        'portfolio_sort_desc'  => 'How the portfolio is sorted until somebody chooses another order (their choice is remembered in their browser).',
+        'burnup_measure'       => 'Progress over time counts',
+        'burnup_measure_desc'  => 'What the burn-up on a project\'s Overview counts at first: tasks, or estimated hours. Anyone can switch it on the chart.',
+        'measure_tasks'        => 'Tasks',
+        'measure_hours'        => 'Estimated hours',
+        'effect_off'           => 'Nothing',
+        'effect_amber'         => 'At risk (amber)',
+        'effect_red'           => 'Off track (red)',
+        'health_milestones'    => 'A missed milestone makes a project',
+        'health_milestones_desc' => 'A milestone whose date has passed without it being reached.',
+        'health_raid_late'     => 'A late dependency or decision makes a project',
+        'health_raid_late_desc'=> 'An open dependency, or a decision not yet made, after its date on the RAID log.',
+        'capacity_days'        => 'Working days',
+        'capacity_days_desc'   => 'The days a task\'s remaining hours are spread over on the Capacity page.',
+        'day_1'                => 'Mon', 'day_2' => 'Tue', 'day_3' => 'Wed', 'day_4' => 'Thu', 'day_5' => 'Fri', 'day_6' => 'Sat', 'day_7' => 'Sun',
+        'capacity_desk'        => 'Count service-desk shifts',
+        'capacity_desk_desc'   => 'Shifts on the rota in Tickets take time away from projects. Turn this off if your rota is on-call only.',
         'health_intro'   => 'When a live project\'s ring turns amber or red, unless somebody sets its health by hand.',
         'amber_days'     => 'Amber when the target is this close (days)',
         'amber_days_desc'=> 'Together with the next setting: close to the target date with too little done.',
@@ -988,6 +1051,10 @@ return [
         'impact_3'      => 'Moderate',
         'impact_4'      => 'Major',
         'impact_5'      => 'Severe',
+        'priority_1'    => 'Low',
+        'priority_2'    => 'Medium',
+        'priority_3'    => 'High',
+        'priority_4'    => 'Critical',
     ],
     'help' => [
         'title'        => 'Projects - Help',
@@ -1014,13 +1081,14 @@ return [
             'intro' => 'Every project as a card.',
             'p1'    => 'Projects opens on the portfolio: one card per project, in the colour and with the icon its owner picked. The ring shows how much of the work is done and is coloured by its health; underneath are the target date, who leads it and what is happening now.',
             'p2'    => 'The views on the left answer the usual questions - what is live, what do I lead, what needs attention, what is finished - and the tiles at the top count what matters across all of them. Press **New** to start a project.',
+            'p3'    => 'Under the tiles, a bar shows how the live projects stand - on track, at risk, off track, or no health yet - with the count for each. **Sort** orders the cards by target date, priority, health or name (Projects - Settings - General sets the starting order), and **Roadmap** swaps the cards for one bar per project across the calendar: from its start to its target finish, darker for the work done, with its next milestone. Each project has a **priority** - Low, Medium, High or Critical, or your own four words from the settings - shown on its card when it is not Medium.',
         ],
         'project' => [
             'nav'   => 'A project',
             'title' => 'A project\'s page',
             'intro' => 'The banner, then Overview, Plan, the project\'s tools, Connections and History.',
             'p1'    => 'The banner shows the project\'s name, its goal (what done looks like), its status, how it is run, who leads it, its dates and the health ring. **Edit** changes any of it, including the status: setting a project to Closed fills in today as the actual finish if nobody has set one.',
-            'p2'    => 'Overview gathers the numbers, what is happening now, what is due next and the latest changes. Between Plan and Connections sit a tab for each tool the project uses - People, Scope, RACI, RAID and Gates, described below. History lists everything that has changed and who changed it.',
+            'p2'    => 'Overview gathers the numbers, **Progress over time** (a burn-up: every task in the plan against those done, by day or week, with the target finish marked - choose a phase to see just that, or count estimated hours instead of tasks), what is happening now, what is due next and the latest changes. Between Plan and Connections sit a tab for each tool the project uses - People, Scope, RACI, RAID and Gates, described below. History lists everything that has changed and who changed it.',
         ],
         'plan' => [
             'nav'   => 'The plan',
@@ -1049,7 +1117,7 @@ return [
             'intro' => 'Who has room, and who is over-committed, in the weeks ahead.',
             'p1'    => 'Give a task an **estimate** - how many hours it should take - in the box on its Plan row, or in the task window on the Tasks board. Each lane and the Overview then show estimated against logged time, and a row turns red when more time has been logged than estimated.',
             'p2'    => 'The **Capacity** page, at the top of Projects, has a row for each person with project work and a column for each week. A week\'s load is the project work they have left - each task\'s estimate less the time already logged, spread over the working days from its start (or today) to its due date - plus their shifts on the service-desk rota, against the hours they work in a week. Green has room, amber is stretched, red is over-committed. Open a row to see the tasks behind it.',
-            'p3'    => 'Beside the weeks are how many live projects each person has open work on (flagged at three or more), their open tickets, and work with no due date. Tasks with no estimate are counted but not added in, so the page says how many there are - unknown work is a risk, not nothing. **Projects - Settings - Health** sets the hours in a week (37.5), when a week turns amber (85%) and how many projects is several.',
+            'p3'    => 'Beside the weeks are how many live projects each person has open work on (flagged at three or more), their open tickets, and work with no due date. Tasks with no estimate are counted but not added in, so the page says how many there are - unknown work is a risk, not nothing. **Projects - Settings - Health** sets the hours in a week (37.5), when a week turns amber (85%), how many projects is several, which days are working days, and whether rota shifts count (turn it off for an on-call-only rota).',
         ],
         'methods' => [
             'nav'   => 'Ways of working',
@@ -1136,7 +1204,7 @@ return [
             'intro' => 'From the plan, not from anyone\'s mood.',
             'p1'    => 'Unless somebody sets it by hand, a live project\'s health is worked out from its tasks and its target date every time it is shown. The figures below are the defaults; they can be changed in **Projects - Settings - Health**.',
             'green_d' => 'Nothing below applies.',
-            'amber_d' => 'At least one open task is overdue, a milestone was missed, a dependency or decision is past its date, the target date is close and too little of the work is done - by default within 14 days with less than three quarters done - or a jump in linked tickets: by default 5 or more raised in the last 7 days, which after a go-live usually means something needs fixing.',
+            'amber_d' => 'At least one open task is overdue, a milestone was missed or a dependency or decision is past its date (each of those two can be set to red, or to nothing, in Projects - Settings - Health), the target date is close and too little of the work is done - by default within 14 days with less than three quarters done - or a jump in linked tickets: by default 5 or more raised in the last 7 days, which after a go-live usually means something needs fixing.',
             'red_d'   => 'The target date has passed with work still open, too much of the open work is overdue - by default a quarter or more - or the project has gone past one of its tolerances (see Gates). Asset targets count too: one past its date turns the project red, one well behind turns a green project amber (see Asset targets).',
             'p2'    => 'To set it yourself, edit the project and choose a health; add a line saying why. Choose **Work it out for me** to hand it back. Closed and cancelled projects have no health.',
         ],
@@ -1175,6 +1243,7 @@ return [
             'intro' => 'What the project was meant to cost, what it has cost, and how far apart they are.',
             'p1'    => 'The Budget tab (on for Staged projects; switch it on for others under Tools) shows the planned budget, the actual spend, what remains and how much is used. Add a **budget line** for each thing you expect to spend on - hardware, licences, suppliers - with what was planned and what has been spent. A line can name a contract linked on the Connections tab: if you leave its actual empty, the contract\'s value is used. It can also carry a cost centre of the project\'s company.',
             'p2'    => '**Labour** is the time logged on the project\'s tasks. Projects - Settings - Budget decides whether it is shown in hours, priced at one hourly rate (which a project can override), or priced at each analyst\'s rate. Every rate applies from a date, so a new rate never re-prices time already logged, and switching the setting rewrites nothing - time is stored as time.',
+            'p4'    => '**Where the money goes** charts planned against actual for each category, labour included once it is priced. **Table** shows the same figures as a table.',
             'p3'    => 'Each project keeps the **currency** it was created with, and amounts in different currencies are never added together: a contract in another currency is shown on its line but not counted. If Projects - Settings lets projects choose, the Currency button relabels the project - it does not convert. On the Gates tab, **Overspend allowed** sets a cost tolerance: going further over budget than that makes the project an exception, and Off track.',
         ],
         'announce' => [

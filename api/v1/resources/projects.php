@@ -67,6 +67,7 @@ function apiSerializeProject(PDO $conn, array $p): array {
         'health'          => $p['shown_health'],
         'health_mode'     => $p['health'] === 'auto' ? 'auto' : 'manual',
         'health_note'     => $p['health_note'],
+        'priority'        => $p['priority'] ?? 'medium',
         'project_manager' => $rel($p['owner_analyst_id'], $p['owner_name'] ?? null),
         'start_date'      => $p['start_date'],
         'target_end_date' => $p['target_end_date'],
