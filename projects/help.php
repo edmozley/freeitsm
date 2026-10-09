@@ -29,10 +29,10 @@ $multi = isMultiTenant(connectToDatabase());
 // section's own block (cards, defs, steps). Paragraphs AFTER that block are
 // listed in $after.
 $sections = [
-    'overview'  => 1,
+    'overview'  => 2,   // 3.3.0: p2 the demo data
     'map'       => 1,   // 3.3.0: How it fits together - the interactive map (projects-tour.js)
     'portfolio' => 5,
-    'project'   => 3,
+    'project'   => 4,
     'plan'      => 4,
     'timeline'  => 4,
     'capacity'  => 3,
@@ -48,9 +48,9 @@ $sections = [
     'targets'   => 3,
     'health'    => 1,
     'tasks'     => 2,
-    'connections' => 2,
+    'connections' => 3,
     'calendar'  => 2,
-    'alerts'    => 4,
+    'alerts'    => 5,
     'announce'  => 2,
     'budget'    => 6,
     'control'   => 3,
@@ -62,7 +62,7 @@ $sections = [
 ];
 if (!$multi) unset($sections['companies']);
 $after = [
-    'tools'    => ['p2'],
+    'tools'    => ['p2', 'p3'],   // 3.3.0: p3 the Toolbox
     'scope'    => ['p2'],
     'raci'     => ['p2'],
     'gates'    => ['p4', 'p5', 'p6'],
