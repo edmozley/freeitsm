@@ -168,7 +168,7 @@ function projectChatSystem(PDO $conn, array $project, int $analystId, array $mat
         . ($canChange
             ? '- You change NOTHING yourself. To change the project, call the propose_* tools: each proposal appears to the user as a line on a card with Apply and Dismiss, and only Apply makes it happen (with their permissions). Never say a change is made - say you have proposed it and they can apply it. Group related proposals in one turn. Dates are YYYY-MM-DD. You may refer to a stage or task you are proposing in the same turn by its name or title.' . "\n"
             : '- ' . $name . ' may NOT change this project (only its team or people who manage Projects can). Do not call any propose_* tool; advise, and say who could make the change.' . "\n")
-        . '- Work can be given to a contractor - a supplier, and optionally a person there (list_suppliers, then propose_task with supplier_id, or propose_task_contractor). The assignee stays the person here who owns and chases it. Contractor work is not in anybody\'s capacity here, so when an outside firm is doing something, say so and chase the person who owns it.' . "\n"
+        . '- Work can be given to a contractor - a supplier, and optionally a person there (list_suppliers, then propose_task with supplier_id, or propose_task_contractor). The assignee stays the person here who owns and chases it. Giving tasks to a firm does NOT put it on the team: when a firm is doing real work on the project, also offer propose_member with its supplier_id (and contact_id), so it appears on the People tab, RACI and the stakeholder map. Contractor work is not in anybody\'s capacity here, so when an outside firm is doing something, say so and chase the person who owns it.' . "\n"
         . '- Suggest switching on a tool (propose_tools) only when the project clearly needs it. Tools on now: ' . ($tools ?: 'none') . '. All tools: ' . $all . '.' . "\n"
         . "\nWHERE THIS PROJECT IS: " . strtoupper($maturity['stage']) . ' (' . $maturity['done'] . ' of ' . $maturity['of'] . " set up)\n" . $mode . "\n"
         . 'Checklist: ' . $check . '. Counts: ' . $c['tasks'] . ' tasks (' . $c['overdue'] . ' overdue), ' . $c['stages'] . ' stages, ' . $c['members'] . ' members, '
@@ -214,7 +214,7 @@ function projectChatTools(): array
         ['name' => 'propose_budget_line', 'description' => 'Propose a budget line.', 'schema' => $s(['title' => $str, 'category' => ['type' => 'string', 'enum' => ['hardware', 'software', 'services', 'labour', 'travel', 'other']], 'planned' => $num, 'planned_date' => $date], ['title', 'planned'])],
         ['name' => 'propose_benefit', 'description' => 'Propose a benefit the project should deliver, with how it is measured.', 'schema' => $s([
             'title' => $str, 'measure' => $str, 'unit' => $str, 'direction' => ['type' => 'string', 'enum' => ['up', 'down']], 'baseline' => $num, 'target' => $num, 'target_date' => $date], ['title'])],
-        ['name' => 'propose_member', 'description' => 'Propose adding an analyst to the project team with a role (by name, e.g. Project Manager, Team member).', 'schema' => $s(['analyst_id' => $int, 'role_name' => $str], ['analyst_id'])],
+        ['name' => 'propose_member', 'description' => 'Propose adding someone to the project team with a role (by name, e.g. Project Manager, Team member): an analyst (analyst_id), or a contractor - a supplier (supplier_id) and optionally a person there (contact_id), from list_suppliers. Giving tasks to a contractor does not put them on the team; when a firm is doing real work on the project, offer this too.', 'schema' => $s(['analyst_id' => $int, 'supplier_id' => $int, 'contact_id' => $int, 'role_name' => $str])],
         ['name' => 'propose_tools', 'description' => 'Propose switching on tools for this project.', 'schema' => $s(['tools' => ['type' => 'array', 'items' => ['type' => 'string', 'enum' => array_keys(projectToolDefinitions())]]], ['tools'])],
     ];
 }
@@ -301,7 +301,7 @@ function projectChatDescribe(string $type, array $a): string
         case 'dependency': return t('projects.assistant.p_dependency', ['task' => $a['task_title'] ?? ('#' . ($a['task_id'] ?? '?')), 'on' => $a['depends_on_title'] ?? ('#' . ($a['depends_on_id'] ?? '?'))]);
         case 'budget_line':return t('projects.assistant.p_budget', ['title' => $a['title'] ?? '', 'amount' => number_format((float)($a['planned'] ?? 0), 2), 'date' => $d($a['planned_date'] ?? null)]);
         case 'benefit':    return t('projects.assistant.p_benefit', ['title' => $a['title'] ?? '']);
-        case 'member':     return t('projects.assistant.p_member', ['name' => $a['_label'] ?? ('#' . ($a['analyst_id'] ?? '?')), 'role' => $a['role_name'] ?? '-']);
+        case 'member':     return t('projects.assistant.p_member', ['name' => $a['_label'] ?? ($a['_supplier'] ?? ('#' . ($a['analyst_id'] ?? '?'))), 'role' => $a['role_name'] ?? '-']);
         case 'tools':      return t('projects.assistant.p_tools', ['tools' => implode(', ', array_map(fn($k) => t('projects.tools.' . $k), (array)($a['tools'] ?? [])))]);
     }
     return $type;
@@ -349,7 +349,8 @@ function projectChatTurn(PDO $conn, ActorContext $ctx, array $project, string $m
         if (strpos($name, 'propose_') !== 0) { $looked[] = $name; return projectChatRead($conn, $pid, $name, $args); }
         if (!$canChange) return 'Not proposed: this user may not change the project.';
         $type = substr($name, 8);
-        if ($type === 'task_contractor' || ($type === 'task' && (!empty($args['supplier_id']) || !empty($args['contact_id'])))) {
+        $ctrMember = $type === 'member' && empty($args['analyst_id']) && (!empty($args['supplier_id']) || !empty($args['contact_id']));
+        if ($type === 'task_contractor' || $ctrMember || ($type === 'task' && (!empty($args['supplier_id']) || !empty($args['contact_id'])))) {
             if (!$canContracts) return 'Not proposed: this user cannot choose suppliers (that needs the Contracts module).';
             require_once __DIR__ . '/../task_contractors.php';
             if (!empty($args['supplier_id']) || !empty($args['contact_id'])) {
@@ -370,7 +371,7 @@ function projectChatTurn(PDO $conn, ActorContext $ctx, array $project, string $m
                 $args['_label'] = (string)$label;
             }
         }
-        if ($type === 'task_dates' || $type === 'member') {
+        if ($type === 'task_dates' || ($type === 'member' && !$ctrMember)) {
             // A label the card can show, looked up now (the model gave an id).
             $q = $type === 'task_dates' ? "SELECT title FROM tasks WHERE id = ? AND project_id = $pid" : "SELECT full_name FROM analysts WHERE id = ? AND is_active = 1";
             $st = $conn->prepare($q); $st->execute([(int)($args[$type === 'task_dates' ? 'task_id' : 'analyst_id'] ?? 0)]);
@@ -513,7 +514,7 @@ function projectChatApplyOne(PDO $conn, ActorContext $ctx, int $pid, string $typ
         throw new ServiceError('validation', 'invalid_field', 'That task is not in the project.');
     };
     // Contractors (3.3.0): whoever applies it must be able to choose suppliers too (memory may be shared).
-    if (($type === 'task_contractor' || ($type === 'task' && (!empty($a['supplier_id']) || !empty($a['contact_id']))))
+    if (($type === 'task_contractor' || (($type === 'task' || ($type === 'member' && empty($a['analyst_id']))) && (!empty($a['supplier_id']) || !empty($a['contact_id']))))
         && $ctx->actorId > 0 && !analystCanAccessModule($conn, $ctx->actorId, 'contracts')) {
         throw new ServiceError('forbidden', 'forbidden', 'Choosing a contractor needs access to Contracts.');
     }
@@ -586,7 +587,10 @@ function projectChatApplyOne(PDO $conn, ActorContext $ctx, int $pid, string $typ
                 $st = $conn->prepare("SELECT id FROM project_roles WHERE is_active = 1 AND LOWER(name) = LOWER(?) LIMIT 1"); $st->execute([trim((string)$a['role_name'])]);
                 $role = $st->fetchColumn() ?: null;
             }
-            ProjectToolsService::addMember($conn, $ctx, $pid, array_filter(['analyst_id' => (int)($a['analyst_id'] ?? 0), 'role_id' => $role ? (int)$role : null]));
+            // An analyst, or (3.3.0) a contractor - a supplier and optionally a person there.
+            ProjectToolsService::addMember($conn, $ctx, $pid, array_filter(!empty($a['analyst_id'])
+                ? ['analyst_id' => (int)$a['analyst_id'], 'role_id' => $role ? (int)$role : null]
+                : ['supplier_id' => (int)($a['supplier_id'] ?? 0), 'contact_id' => (int)($a['contact_id'] ?? 0), 'role_id' => $role ? (int)$role : null]));
             return;
     }
     throw new ServiceError('validation', 'invalid_field', 'Unknown kind of change.');

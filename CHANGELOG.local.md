@@ -52,6 +52,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2249 | Projects          | Feature     | Contractors on projects: the firm on Plan rows and Timeline bars, Add someone - Contractor (project_members.supplier_id / contact_id) for roles, RACI and the stakeholder map, Capacity keeps contractor work out of people's load and lists it per firm, the overdue digest, AI facts and Ask AI name the contractor (list_suppliers, propose_task with a supplier, propose_task_contractor); setting project_contractor_email (off) emails the person there when given a task, two days before it is due and once it is missed. |
 | 2250 | People            | Feature     | A supplier's page and a supplier contact's page list the tasks given to them (Tasks with them), open first, with the project and who here chases each one. |
 | 2251 | System            | Improvement | Demo data: a record can list `_optional_fields` - references left empty, not fatal, when another module's demo data is not there - so demo project tasks can be given to Contracts' demo suppliers whether or not Contracts' demo data is imported. |
+| 2252 | Projects          | Fix         | Ask AI could give tasks to a contractor but not put the firm on the team (propose_member took analysts only), so the People tab stayed empty; propose_member now takes a supplier and a person there, checked against Contracts when proposed and when applied, and the assistant is told to offer it. |
 
 
 
