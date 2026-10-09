@@ -49,6 +49,8 @@
         if (b.cost_basis === 'forecast') html += '<p class="prj-muted sm" style="margin:-6px 0 10px">' + esc(T('basis_forecast')) + '</p>';
         if (used !== null) html += '<div class="prj-budget-bar ' + cls + '"><span style="width:' + Math.min(100, used) + '%"></span></div>';
         // Where the money goes (3.3.0): planned against actual, by category - drawn below once on the page.
+        // Earned value (3.3.0) - drawn by drawEarned() once the tab shows.
+        html += '<div class="prj-panel prj-budget-chart" id="pbEarned" hidden><h3>' + esc(T('ev_title')) + '</h3><div class="prj-ev-tiles"></div><p class="prj-muted sm prj-ev-note"></p><div class="prj-budget-chart-body"></div></div>';
         html += '<div class="prj-panel prj-budget-chart" id="pbSpend" hidden><h3>' + esc(T('spend_title')) + '</h3><p class="prj-muted sm prj-spend-note"></p><div class="prj-budget-chart-body"></div></div>';
         html += '<div class="prj-panel prj-budget-chart" id="pbChart" hidden><h3>' + esc(T('chart_title')) + '</h3><div class="prj-budget-chart-body"></div></div>';
 
@@ -112,6 +114,42 @@
         box.innerHTML = html;
         drawChart(b, cur);
         drawSpend(b, cur);
+        drawEarned(b, cur);
+    }
+
+    /**
+     * Earned value (3.3.0): planned value (orange - the plan, as on Spend over time),
+     * actual cost (blue - what was spent, likewise) and earned value (aqua - the
+     * work done, valued at its budget), with today's indices in words as well as numbers.
+     */
+    function drawEarned(b, cur) {
+        const wrap = document.getElementById('pbEarned');
+        const tabPanel = document.getElementById('pvBudget');
+        const e = b.earned;
+        if (!wrap || !window.PrjCharts || !tabPanel || tabPanel.hidden) return;
+        wrap.hidden = !e;
+        if (!e) return;
+        const word = (v, good, bad) => v === null ? T('ev_unknown') : (v >= 1 ? good : bad);
+        const tiles = [
+            { n: e.cpi === null ? '-' : e.cpi.toFixed(2), l: T('ev_cpi'), sub: word(e.cpi, T('ev_cpi_good'), T('ev_cpi_bad')), cls: e.cpi !== null && e.cpi < 1 ? 'bad' : '' },
+            { n: e.spi === null ? '-' : e.spi.toFixed(2), l: T('ev_spi'), sub: word(e.spi, T('ev_spi_good'), T('ev_spi_bad')), cls: e.spi !== null && e.spi < 1 ? 'warn' : '' },
+            { n: money(e.ev, cur), l: T('ev_ev'), sub: T('ev_of', { bac: money(e.bac, cur) }) },
+            { n: e.eac === null ? '-' : money(e.eac, cur), l: T('ev_eac'), sub: e.vac === null ? '' : T(e.vac < 0 ? 'ev_vac_over' : 'ev_vac_under', { amount: money(Math.abs(e.vac), cur) }), cls: e.vac !== null && e.vac < 0 ? 'bad' : '' },
+        ];
+        wrap.querySelector('.prj-ev-tiles').innerHTML = '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + (t.cls || '') + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span>'
+            + (t.sub ? '<span class="prj-tile-sub">' + esc(t.sub) + '</span>' : '') + '</div>').join('') + '</div>';
+        wrap.querySelector('.prj-ev-note').textContent = T(e.measure === 'hours' ? 'ev_note_hours' : 'ev_note_tasks');
+        let tick;
+        try { const nf = new Intl.NumberFormat(undefined, { style: 'currency', currency: cur, notation: 'compact', maximumFractionDigits: 1 }); tick = v => nf.format(v); }
+        catch (er) { tick = v => Math.round(v).toLocaleString(); }
+        window.PrjCharts.lines(wrap.querySelector('.prj-budget-chart-body'), {
+            points: e.points.map(p => ({ d: p.d, values: [p.pv, p.ev, p.d <= b.timeline.today ? p.ac : null] })),
+            series: [{ name: T('ev_pv'), slot: 2 }, { name: T('ev_ev'), slot: 3 }, { name: T('ev_ac'), slot: 1 }],
+            refs: [{ v: e.bac, label: T('ev_bac') }], today: b.timeline.today, step: true,
+            fmt: v => money(v, cur), fmtTick: tick, fmtDate: P.fmtDate,
+            labels: { table: T('chart_table'), chart: T('chart_chart'), date: T('col_date'), today: T('today'),
+                aria: T('ev_aria', { pv: money(e.pv, cur), ev: money(e.ev, cur), ac: money(e.ac, cur) }) },
+        });
     }
 
     /** Spend over time (3.3.0): cumulative planned and actual, the forecast, and what to measure them against. */
@@ -250,7 +288,7 @@
         },
         /** The tab was shown: the chart measures its width, so it draws now (3.3.0). */
         shown() {
-            if (ctx && ctx.data.budget) { drawChart(ctx.data.budget, ctx.data.budget.currency); drawSpend(ctx.data.budget, ctx.data.budget.currency); }
+            if (ctx && ctx.data.budget) { drawChart(ctx.data.budget, ctx.data.budget.currency); drawSpend(ctx.data.budget, ctx.data.budget.currency); drawEarned(ctx.data.budget, ctx.data.budget.currency); }
         },
     };
 })();

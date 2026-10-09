@@ -196,6 +196,18 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
         $line(sprintf('Budget (%s): %s planned, %s spent, %s remaining; forecast to cost %s in the end.', $cur, number_format($b['planned'], 2), number_format($b['actual'], 2), number_format($b['planned'] - $b['actual'], 2), number_format((float)($b['forecast'] ?? $b['actual']), 2)));
     }
 
+    // Earned value (3.3.0): today's indices, when the budget and the work allow them.
+    if ($b && $b['planned'] > 0) {
+        require_once __DIR__ . '/budget.php';
+        $detail = projectBudgetDetail($conn, $project, $analystId);
+        if ($e = $detail['earned'] ?? null) {
+            $line(sprintf('Earned value: planned value %s, earned value %s, actual cost %s; CPI %s (%s), SPI %s (%s); estimate at completion %s.',
+                number_format($e['pv'], 2), number_format($e['ev'], 2), number_format($e['ac'], 2),
+                $e['cpi'] ?? '-', $e['cpi'] === null ? 'nothing spent yet' : ($e['cpi'] >= 1 ? 'under budget for the work done' : 'over budget for the work done'),
+                $e['spi'] ?? '-', $e['spi'] === null ? 'nothing planned yet' : ($e['spi'] >= 1 ? 'ahead of plan' : 'behind plan'),
+                $e['eac'] !== null ? number_format($e['eac'], 2) : 'not known yet'));
+        }
+    }
     // Benefits (3.3.0): each with where it started, where it is and where it should get to.
     require_once __DIR__ . '/benefits.php';
     if ($bens = projectBenefits($conn, $pid)) {

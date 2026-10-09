@@ -327,6 +327,64 @@ function projectBudgetTimeline(PDO $conn, array $project, array $lineRows, array
     ];
 }
 
+/**
+ * Earned value (3.3.0), from what the budget already holds:
+ *   BAC  budget at completion - the planned total
+ *   PV   planned value by date - the cumulative planned spend (the timeline's planned line)
+ *   EV   earned value by date - BAC x the share of the work done by then: by estimated
+ *        hours when the project's open-and-done tasks have estimates, otherwise by count
+ *   AC   actual cost by date - the cumulative actual (the timeline's actual line)
+ * Today's indices: CPI = EV / AC (above 1 = under budget), SPI = EV / PV (above 1 =
+ * ahead), CV = EV - AC, SV = EV - PV, EAC = BAC / CPI, VAC = BAC - EAC.
+ * Null when there is no planned budget or no work to measure.
+ */
+function projectEarnedValue(PDO $conn, int $projectId, array $timeline, float $bac): ?array
+{
+    if ($bac <= 0 || empty($timeline['points'])) return null;
+    try {
+        $st = $conn->prepare("SELECT DATE(t.created_datetime) AS c, DATE(t.completed_datetime) AS f, t.estimate_hours AS h, COALESCE(s.is_closed, 0) AS closed
+                                FROM tasks t LEFT JOIN task_statuses s ON s.id = t.status_id
+                               WHERE t.project_id = ? AND t.parent_task_id IS NULL");
+        $st->execute([$projectId]);
+        $tasks = $st->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return null;   // before estimates existed
+    }
+    if (!$tasks) return null;
+    $byHours = array_sum(array_map(fn($t) => (float)($t['h'] ?? 0), $tasks)) > 0;
+    $weight = fn($t) => $byHours ? (float)($t['h'] ?? 0) : 1.0;
+    // A finished task with no completed date counts as finished from when it was created.
+    $doneOn = fn($t) => $t['f'] ?: ((int)$t['closed'] === 1 ? $t['c'] : null);
+    $pct = function (string $d) use ($tasks, $weight, $doneOn) {
+        $scope = 0.0; $done = 0.0;
+        foreach ($tasks as $t) {
+            if (!$t['c'] || $t['c'] > $d) continue;
+            $w = $weight($t); $scope += $w;
+            $fin = $doneOn($t);
+            if ($fin && $fin <= $d) $done += $w;
+        }
+        return $scope > 0 ? $done / $scope : 0.0;
+    };
+    $today = gmdate('Y-m-d');
+    $points = [];
+    foreach ($timeline['points'] as $p) {
+        $points[] = ['d' => $p['d'], 'pv' => $p['planned'], 'ev' => $p['d'] <= $today ? round($bac * $pct($p['d']), 2) : null, 'ac' => $p['actual']];
+    }
+    $now = null;
+    foreach ($points as $p) if ($p['d'] <= $today) $now = $p;
+    if (!$now) return null;
+    $ev = (float)$now['ev']; $pv = (float)$now['pv']; $ac = (float)$now['ac'];
+    $cpi = $ac > 0 ? round($ev / $ac, 2) : null;
+    $spi = $pv > 0 ? round($ev / $pv, 2) : null;
+    $eac = $cpi ? round($bac / $cpi, 2) : null;
+    return [
+        'bac' => round($bac, 2), 'pv' => round($pv, 2), 'ev' => round($ev, 2), 'ac' => round($ac, 2),
+        'cv' => round($ev - $ac, 2), 'sv' => round($ev - $pv, 2), 'cpi' => $cpi, 'spi' => $spi,
+        'eac' => $eac, 'vac' => $eac !== null ? round($bac - $eac, 2) : null,
+        'measure' => $byHours ? 'hours' : 'tasks', 'points' => $points,
+    ];
+}
+
 /** Everything the Budget tab shows. */
 function projectBudgetDetail(PDO $conn, array $project, int $analystId): array
 {
@@ -390,7 +448,9 @@ function projectBudgetDetail(PDO $conn, array $project, int $analystId): array
         'forecast'      => round($forecast, 2),
         'labour_to_come'=> $toCome + ['counted' => $withToCome],
         'cost_basis'    => projectSetting($conn, 'project_cost_basis') === 'forecast' ? 'forecast' : 'actual',
-        'timeline'      => projectBudgetTimeline($conn, $project, $timelineRows, $days, $planned, $actual, $forecast),
+        'timeline'      => ($tl = projectBudgetTimeline($conn, $project, $timelineRows, $days, $planned, $actual, $forecast)),
+        // 3.3.0: planned value, earned value and actual cost, with today's indices.
+        'earned'        => projectEarnedValue($conn, $pid, $tl, $planned),
         'categories'    => PROJECT_BUDGET_CATEGORIES,
         'cost_centres'  => projectBudgetCostCentres($conn, $project),
         'contracts'     => analystCanAccessModule($conn, $analystId, 'contracts') ? projectBudgetContracts($conn, $pid) : null,

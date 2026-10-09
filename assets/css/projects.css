@@ -1086,7 +1086,8 @@ button.prj-tl-label { cursor: pointer; }
 .prj-viz-svg .viz-label { fill: var(--text-muted, #555); font-size: 12px; }
 .prj-viz-svg .viz-end { fill: var(--text, #333); font-size: 11.5px; font-weight: 600; }
 .prj-viz-svg .viz-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.prj-viz-svg .viz-line.viz-s1 { stroke: var(--prj-viz-1); } .prj-viz-svg .viz-line.viz-s2 { stroke: var(--prj-viz-2); }
+.prj-viz-svg .viz-line.viz-s1 { stroke: var(--prj-viz-1); } .prj-viz-svg .viz-line.viz-s2 { stroke: var(--prj-viz-2); } .prj-viz-svg .viz-line.viz-s3 { stroke: var(--prj-viz-3); }
+.prj-viz-svg .viz-dot.viz-s3 { fill: var(--prj-viz-3); }
 .prj-viz-svg .viz-area.viz-s1 { fill: var(--prj-viz-1); opacity: .1; stroke: none; }
 .prj-viz-svg .viz-dot { stroke: var(--surface, #fff); stroke-width: 2; }
 .prj-viz-svg .viz-dot.viz-s1, .prj-viz-svg .viz-bar.viz-s1 { fill: var(--prj-viz-1); }

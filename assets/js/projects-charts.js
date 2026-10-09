@@ -612,7 +612,92 @@
         });
     }
 
-    window.PrjCharts = { burnup: burnup, burndown: burndown, bars: bars, spend: spend, stack: stack, flow: flow, milestones: milestones, slot: slot };
+    /**
+     * Several lines over time on one money axis (3.3.0) - earned value: planned
+     * value, earned value and actual cost. Up to three series (slots 1-3, the
+     * all-pairs-safe set); a null value ends that line (earned value stops today).
+     * Reference lines as spend(); crosshair + one tooltip for every line.
+     * opts: {points: [{d, values: [n|null...]}], series: [{name, slot}], refs?: [{v, label}], today?, fmt, fmtTick, fmtDate, labels: {table, chart, date, today, aria}}
+     */
+    function lines(container, opts) {
+        const pts = opts.points, S = opts.series, L = opts.labels;
+        const f = frame(container, L.table, L.chart, () => tableView([L.date].concat(S.map(s => s.name)),
+            pts.map(p => [opts.fmtDate(p.d)].concat(p.values.map(v => v === null || v === undefined ? '-' : opts.fmt(v))))));
+        f.tools.insertBefore(legend(S.map(s => ({ name: s.name, cls: slot(s.slot), line: true }))), f.tools.firstChild);
+        const W = Math.max(280, f.plot.clientWidth || container.clientWidth || 600), H = 250;
+        const m = { l: 62, r: 16, t: 16, b: 28 };
+        const pw = W - m.l - m.r, ph = H - m.t - m.b;
+        const dn = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+        const x0 = dn(pts[0].d), x1 = Math.max(dn(pts[pts.length - 1].d), x0 + 1);
+        const vals = [].concat(...pts.map(p => p.values.filter(v => v !== null && v !== undefined)));
+        const ny = nice(Math.max(1, ...vals, ...(opts.refs || []).map(r => r.v)));
+        const X = d => m.l + (dn(d) - x0) / (x1 - x0) * pw;
+        const Y = v => m.t + ph - (v / ny.max) * ph;
+        const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', class: 'prj-viz-svg', tabindex: '0', 'aria-label': L.aria });
+        for (let v = 0; v <= ny.max + 1e-9; v += ny.step) {
+            el('line', { x1: m.l, x2: m.l + pw, y1: Y(v), y2: Y(v), class: v === 0 ? 'viz-axis' : 'viz-grid' }, svg);
+            el('text', { x: m.l - 8, y: Y(v) + 4, 'text-anchor': 'end', class: 'viz-tick' }, svg).textContent = opts.fmtTick(v);
+        }
+        const ticks = Math.max(1, Math.min(5, Math.floor(pw / 110)));
+        for (let i = 0; i <= ticks; i++) {
+            const iso = new Date(Math.round(x0 + (x1 - x0) * i / ticks) * 86400000).toISOString().slice(0, 10);
+            el('text', { x: X(iso), y: H - 8, 'text-anchor': i === 0 ? 'start' : (i === ticks ? 'end' : 'middle'), class: 'viz-tick' }, svg).textContent = opts.fmtDate(iso);
+        }
+        (opts.refs || []).forEach(r => {
+            el('line', { x1: m.l, x2: m.l + pw, y1: Y(r.v), y2: Y(r.v), class: 'viz-ref viz-refline' }, svg);
+            el('text', { x: m.l + 6, y: Y(r.v) - 4, class: 'viz-reflabel' }, svg).textContent = r.label + ' ' + opts.fmt(r.v);
+        });
+        if (opts.today && dn(opts.today) > x0 && dn(opts.today) < x1) {
+            const tx = X(opts.today);
+            el('line', { x1: tx, x2: tx, y1: m.t, y2: m.t + ph, class: 'viz-ref' }, svg);
+            el('text', { x: tx + 4, y: m.t + ph - 6, class: 'viz-tick' }, svg).textContent = L.today;
+        }
+        S.forEach((s, j) => {
+            const seg = pts.filter(p => p.values[j] !== null && p.values[j] !== undefined);
+            if (!seg.length) return;
+            // opts.step: the values change ON a day (money spent, work finished) - draw steps, not slopes between days.
+            const d = opts.step
+                ? seg.map((p, i) => i ? 'H' + X(p.d).toFixed(1) + ' V' + Y(p.values[j]).toFixed(1) : 'M' + X(p.d).toFixed(1) + ' ' + Y(p.values[j]).toFixed(1)).join(' ')
+                : seg.map((p, i) => (i ? 'L' : 'M') + X(p.d).toFixed(1) + ' ' + Y(p.values[j]).toFixed(1)).join(' ');
+            el('path', { d: d, class: 'viz-line ' + slot(s.slot) }, svg);
+            const last = seg[seg.length - 1];
+            el('circle', { cx: X(last.d), cy: Y(last.values[j]), r: 4, class: 'viz-dot ' + slot(s.slot) }, svg);
+        });
+        const cross = el('line', { y1: m.t, y2: m.t + ph, class: 'viz-cross', visibility: 'hidden' }, svg);
+        const hit = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' }, svg);
+        f.plot.appendChild(svg);
+        const tip = tooltip(f.plot);
+        let at = pts.length - 1;
+        function show(i) {
+            at = Math.max(0, Math.min(pts.length - 1, i));
+            const p = pts[at], cx = X(p.d);
+            cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible');
+            tip.textContent = '';
+            tip.appendChild(html('div', 'prj-viz-tip-head', opts.fmtDate(p.d)));
+            S.forEach((s, j) => { if (p.values[j] !== null && p.values[j] !== undefined) tipRow(tip, opts.fmt(p.values[j]), s.name, slot(s.slot)); });
+            tip.hidden = false;
+            const left = cx / W * f.plot.clientWidth;
+            tip.style.left = Math.min(Math.max(0, left + 12), f.plot.clientWidth - tip.offsetWidth - 4) + 'px';
+            tip.style.top = '8px';
+        }
+        const hide = () => { cross.setAttribute('visibility', 'hidden'); tip.hidden = true; };
+        hit.addEventListener('pointermove', e => {
+            const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+            let best = 0, dist = Infinity;
+            pts.forEach((p, i) => { const dd = Math.abs(X(p.d) - px); if (dd < dist) { dist = dd; best = i; } });
+            show(best);
+        });
+        hit.addEventListener('pointerleave', hide);
+        svg.addEventListener('focus', () => show(at));
+        svg.addEventListener('blur', hide);
+        svg.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') { e.preventDefault(); show(at - 1); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); show(at + 1); }
+        });
+    }
+
+    window.PrjCharts = { burnup: burnup, burndown: burndown, bars: bars, spend: spend, stack: stack, flow: flow, milestones: milestones, lines: lines, slot: slot };
+
 
 
 
