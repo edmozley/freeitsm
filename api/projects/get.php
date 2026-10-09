@@ -26,6 +26,11 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
             require_once __DIR__ . '/../../includes/projects/budget.php';
             return projectBudgetReady($conn) ? projectBudgetDetail($conn, $row, $analystId) : null;
         })(),
+        // Intake (3.3.0): the proposal and its approval - null when it never needed one.
+        'proposal' => (function () use ($conn, $row, $analystId) {
+            require_once __DIR__ . '/../../includes/projects/intake.php';
+            return projectProposalDetail($conn, $row, $analystId);
+        })(),
         // Change control (3.3.0): baselines with their drift, change requests - null before Verification.
         'control' => (function () use ($conn, $row, $analystId) {
             require_once __DIR__ . '/../../includes/projects/control.php';

@@ -56,6 +56,15 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             'project_change_approver'  => ['owner',    'approver',    'general'],
             'project_change_self'      => ['1',        'bool',        'general'],
             'project_change_apply'     => ['plan',     'apply',       'general'],
+            // Intake and approval (3.3.0) - includes/projects/intake.php. Which new
+            // projects wait for approval before they can start (those proposed on
+            // a form / every new one / none), who approves (Manage Projects, or a
+            // named analyst as well), and what approving does (leave it proposed
+            // for its project manager to start, or start it).
+            'project_proposal_approval'    => ['forms',    'proposal',    'general'],
+            'project_proposal_approver'    => ['managers', 'approver2',   'general'],
+            'project_proposal_approver_id' => ['0',        'analyst',     'general'],
+            'project_proposal_on_approve'  => ['proposed', 'onapprove',   'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
             'project_amber_days'       => ['14',       'int:1:120',   'health'],
@@ -217,6 +226,23 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
             return $v;
+        }
+        if ($rule === 'proposal') {
+            if (!in_array($v, ['forms', 'all', 'off'], true)) throw new InvalidArgumentException('Choose which new projects need approval.');
+            return $v;
+        }
+        if ($rule === 'approver2') {
+            if (!in_array($v, ['managers', 'person'], true)) throw new InvalidArgumentException('Choose who approves proposals.');
+            return $v;
+        }
+        if ($rule === 'onapprove') {
+            if (!in_array($v, ['proposed', 'active'], true)) throw new InvalidArgumentException('Choose what approving a proposal does.');
+            return $v;
+        }
+        if ($rule === 'analyst') {
+            // An active analyst's id, or 0 for nobody. Checked against the table by the settings endpoint's caller.
+            if (!preg_match('/^\d+$/', $v)) throw new InvalidArgumentException('Choose an analyst.');
+            return (string)(int)$v;
         }
         if ($rule === 'basis') {
             if (!in_array($v, ['actual', 'forecast'], true)) throw new InvalidArgumentException('Choose actual or forecast spend.');

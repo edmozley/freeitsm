@@ -36,7 +36,7 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=27">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=28">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-portfolio">
@@ -53,6 +53,7 @@ $translationNamespaces = ['common', 'projects'];
                 <li data-view="mine"><span><?php echo htmlspecialchars(t('projects.portfolio.view_mine')); ?></span><b data-count="mine"></b></li>
                 <li data-view="at_risk"><span><?php echo htmlspecialchars(t('projects.portfolio.view_at_risk')); ?></span><b data-count="at_risk"></b></li>
                 <li data-view="proposed"><span><?php echo htmlspecialchars(t('projects.portfolio.view_proposed')); ?></span><b data-count="proposed"></b></li>
+                <li data-view="approval"><span><?php echo htmlspecialchars(t('projects.portfolio.view_approval')); ?></span><b data-count="approval"></b></li>
                 <li data-view="on_hold"><span><?php echo htmlspecialchars(t('projects.portfolio.view_on_hold')); ?></span><b data-count="on_hold"></b></li>
                 <li data-view="finished"><span><?php echo htmlspecialchars(t('projects.portfolio.view_closed')); ?></span><b data-count="finished"></b></li>
                 <li data-view="all"><span><?php echo htmlspecialchars(t('projects.portfolio.view_all')); ?></span><b data-count="all"></b></li>
@@ -111,7 +112,7 @@ $translationNamespaces = ['common', 'projects'];
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=8"></script>
-    <script src="../assets/js/projects-portfolio.js?v=8"></script>
+    <script src="../assets/js/projects-portfolio.js?v=9"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

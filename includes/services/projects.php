@@ -60,6 +60,9 @@ class ProjectsService
             'icon'             => ['type' => 'enum',   'values' => projectIcons()],
             'business_case'    => ['type' => 'text',   'max' => 50000],
             'tailoring'        => ['type' => 'tailoring'],
+            // Intake (3.3.0): a proposal's own figures - includes/projects/intake.php.
+            'estimated_cost'   => ['type' => 'money'],
+            'estimated_benefit'=> ['type' => 'text',   'max' => 5000],
         ];
     }
 
@@ -96,10 +99,18 @@ class ProjectsService
         // A new project is led by whoever created it unless told otherwise.
         if (!array_key_exists('owner_analyst_id', $in) && $ctx->actorId > 0) $in['owner_analyst_id'] = $ctx->actorId;
 
+        // Intake (3.3.0): a new project that needs approval starts proposed and
+        // waits (includes/projects/intake.php). A form says so with _from_form.
+        require_once __DIR__ . '/../projects/intake.php';
+        $pending = projectProposalNeedsApproval($conn, !empty($in['_from_form']));
+        if ($pending) $in['status'] = 'proposed';
+
         $cols = ['tenant_id', 'created_by_id'];
         $vals = [$store, $ctx->actorId > 0 ? $ctx->actorId : null];
+        if ($pending) { $cols[] = 'approval_status'; $vals[] = 'pending'; }
         foreach (self::fieldMap() as $field => $def) {
             if (!array_key_exists($field, $in)) continue;
+            if (str_starts_with($field, 'estimated_') && !projectIntakeReady($conn)) continue;   // before Verification
             $cols[] = $field;
             $vals[] = self::validateField($conn, $field, $in[$field], $def);
         }
@@ -119,6 +130,8 @@ class ProjectsService
         projectStampCurrency($conn, $id);
         self::syncCalendar($conn);
         self::dispatch($conn, 'project.created', $id);
+        // A proposal from a form is announced by intake.php once its proposer is stamped.
+        if ($pending && empty($in['_from_form'])) self::proposalEvent($conn, $id, 'project.proposal_submitted');
         self::afterChange($conn, $id);
         return $id;
     }
@@ -130,12 +143,18 @@ class ProjectsService
         $sets = []; $args = []; $changes = [];
         foreach (self::fieldMap() as $field => $def) {
             if (!array_key_exists($field, $in)) continue;
+            if (!array_key_exists($field, $cur)) continue;   // a column Database Verification has not added yet
             $v = self::validateField($conn, $field, $in[$field], $def);
             if (self::same($cur[$field], $v)) continue;
             $sets[] = "$field = ?"; $args[] = $v;
             $changes[$field] = [$cur[$field], $v];
         }
         if (!$sets) return $id;
+        // Intake (3.3.0): a proposal waiting for approval may stay proposed or be withdrawn, nothing else.
+        require_once __DIR__ . '/../projects/intake.php';
+        if (isset($changes['status']) && projectProposalBlocksStatus($cur, $changes['status'][1])) {
+            throw new ServiceError('validation', 'invalid_field', 'This proposal is waiting for approval. It can start once it is approved.');
+        }
 
         $start  = array_key_exists('start_date', $changes) ? $changes['start_date'][1] : $cur['start_date'];
         $target = array_key_exists('target_end_date', $changes) ? $changes['target_end_date'][1] : $cur['target_end_date'];
@@ -538,6 +557,12 @@ class ProjectsService
                 $clean = [];
                 foreach ($arr as $k => $on) if (isset(projectToolDefinitions()[$k])) $clean[$k] = (bool)$on;
                 return $clean ? json_encode($clean) : null;
+            case 'money':
+                // Stored as DECIMAL(18,2); the same two-decimal string the database hands back, so an unchanged value is not a change.
+                if ($blank) return null;
+                $s = str_replace([',', ' '], '', trim((string)$v));
+                if (!preg_match('/^\d{1,15}(\.\d{1,2})?$/', $s)) throw new ServiceError('validation', 'invalid_field', 'Enter an amount like 12500 or 12500.50.');
+                return sprintf('%.2f', (float)$s);
             case 'analyst':
                 if ($blank || (int)$v <= 0) return null;
                 $st = $conn->prepare("SELECT id FROM analysts WHERE id = ? AND is_active = 1");
@@ -651,6 +676,78 @@ class ProjectsService
             ]);
         } catch (Throwable $e) {
             error_log('projects raid_escalated: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Approve or reject a proposal (3.3.0, includes/projects/intake.php). Approving
+     * records who and when and - when project_proposal_on_approve is 'active' -
+     * starts the project; rejecting cancels it. Either way it is audited and the
+     * proposer is told. Compare-and-set, so two approvers decide it once.
+     */
+    public static function decideProposal(PDO $conn, ActorContext $ctx, int $projectId, string $decision, $notes): array
+    {
+        require_once __DIR__ . '/../projects/intake.php';
+        $p = self::loadForActor($conn, $ctx, $projectId);
+        if (!in_array($decision, ['approved', 'rejected'], true)) throw new ServiceError('validation', 'invalid_field', 'Approve or reject.');
+        if (($p['approval_status'] ?? null) !== 'pending') throw new ServiceError('validation', 'invalid_field', 'This project is not waiting for approval.');
+        if (!projectCanDecideProposal($conn, $ctx->actorId)) throw new ServiceError('forbidden', 'forbidden', 'You may not approve or reject project proposals.');
+        $notes = self::str($notes, 20000);
+        if ($decision === 'rejected' && !$notes) throw new ServiceError('validation', 'missing_field', 'Say why it was rejected.');
+        $start = $decision === 'approved' && projectSetting($conn, 'project_proposal_on_approve') === 'active';
+        $newStatus = $decision === 'rejected' ? 'cancelled' : ($start ? 'active' : 'proposed');
+        $u = $conn->prepare("UPDATE projects SET approval_status = ?, approval_by_id = ?, approval_datetime = UTC_TIMESTAMP(), approval_notes = ?, status = ?,
+                                    closed_datetime = " . ($newStatus === 'cancelled' ? 'UTC_TIMESTAMP()' : 'closed_datetime') . ", updated_datetime = UTC_TIMESTAMP()
+                              WHERE id = ? AND approval_status = 'pending'");
+        $u->execute([$decision, $ctx->actorId > 0 ? $ctx->actorId : null, $notes, $newStatus, $projectId]);
+        if ($u->rowCount() !== 1) throw new ServiceError('validation', 'invalid_field', 'This project is not waiting for approval.');
+        self::audit($conn, $projectId, $ctx->actorId, $decision === 'approved' ? 'proposal_approved' : 'proposal_rejected', null, $notes, self::source($ctx));
+        if ($newStatus !== 'proposed') self::audit($conn, $projectId, $ctx->actorId, 'status', 'proposed', $newStatus, self::source($ctx));
+        if ($start) { require_once __DIR__ . '/../projects/control.php'; projectBaselineAuto($conn, $projectId, $ctx->actorId, 'start'); }
+        self::syncCalendar($conn);
+        self::proposalEvent($conn, $projectId, 'project.proposal_decided');
+        self::afterChange($conn, $projectId);
+        return ['status' => $newStatus];
+    }
+
+    /**
+     * project.proposal_submitted (to the approvers) / project.proposal_decided
+     * (to whoever proposed it, when that was an analyst) - 3.3.0. The payload
+     * carries the proposer's email so a workflow can tell somebody who asked on
+     * a form and has no bell.
+     */
+    public static function proposalEvent(PDO $conn, int $projectId, string $event): void
+    {
+        try {
+            $p = self::eventFor($conn, $projectId);
+            if (!$p) return;
+            require_once __DIR__ . '/../projects/intake.php';
+            require_once __DIR__ . '/../projects/alerts.php';
+            $st = $conn->prepare("SELECT p.estimated_cost, p.estimated_benefit, p.business_case, p.approval_status, p.approval_notes, p.approval_by_id,
+                                         p.created_by_id, p.proposed_by_name, p.proposed_by_email, p.form_submission_id
+                                    FROM projects p WHERE p.id = ?");
+            $st->execute([$projectId]);
+            $r = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+            projectDispatch($event, [
+                'project'  => $p,
+                'proposal' => [
+                    'status'            => $r['approval_status'] ?? null,
+                    'estimated_cost'    => isset($r['estimated_cost']) ? (float)$r['estimated_cost'] : null,
+                    'estimated_benefit' => $r['estimated_benefit'] ?? null,
+                    'business_case'     => $r['business_case'] ?? null,
+                    'notes'             => $r['approval_notes'] ?? null,
+                    'decided_by_id'     => isset($r['approval_by_id']) ? (int)$r['approval_by_id'] : null,
+                    'proposed_by_name'  => $r['proposed_by_name'] ?? null,
+                    'proposed_by_email' => $r['proposed_by_email'] ?? null,
+                    'proposed_by_analyst_id' => isset($r['created_by_id']) ? (int)$r['created_by_id'] : null,
+                    'submission_id'     => isset($r['form_submission_id']) ? (int)$r['form_submission_id'] : null,
+                ],
+                // Who the bell goes to (notifications_router.php reads this list).
+                'notify_ids' => $event === 'project.proposal_submitted' ? projectProposalApprovers($conn)
+                    : array_values(array_filter([isset($r['created_by_id']) ? (int)$r['created_by_id'] : 0])),
+            ]);
+        } catch (Throwable $e) {
+            error_log('projects ' . $event . ': ' . $e->getMessage());
         }
     }
 

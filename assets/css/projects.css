@@ -1175,3 +1175,11 @@ button.prj-tl-label { cursor: pointer; }
 [data-theme="dark"] .prj-ctl-impact.up { background: #3a1d0c; color: #fdba74; }
 [data-theme="dark"] .prj-ctl-did { color: #86efac; }
 [data-theme="dark"] .prj-ctl-moved li.late, [data-theme="dark"] .prj-ctl-count { color: #fbbf24; }
+/* ---- Intake (3.3.0) - projects-intake.js ----------------------------------- */
+#pvProposal { margin-bottom: 16px; }
+.prj-proposal.st-pending { border-left: 4px solid #f59e0b; }
+.prj-proposal-facts { display: grid; grid-template-columns: minmax(120px, 180px) 1fr; gap: 6px 16px; margin: 0; font-size: 13.5px; }
+.prj-proposal-facts dt { color: var(--text-muted, #64748b); font-weight: 600; }
+.prj-proposal-facts dd { margin: 0; color: var(--text, #222); overflow-wrap: anywhere; }
+.prj-proposal-decision { margin: 10px 0 0; font-size: 13.5px; color: var(--text, #222); }
+@media (max-width: 600px) { .prj-proposal-facts { grid-template-columns: 1fr; gap: 2px; } .prj-proposal-facts dd { margin-bottom: 8px; } }

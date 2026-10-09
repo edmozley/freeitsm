@@ -371,6 +371,8 @@ return [
                 'raid_escalated'     => 'Something on a project you manage was escalated',
                 'change_raised'      => 'A change request was raised on a project you manage',
                 'change_decided'     => 'A change request on a project you manage was decided',
+                'proposal_submitted' => 'A project proposal is waiting for your approval',
+                'proposal_decided'   => 'A project you proposed was approved or rejected',
             ],
         ],
         // Labels for the per-type switches on the Preferences page. Same nesting
@@ -417,6 +419,8 @@ return [
                 'raid_escalated'     => 'Somebody escalates a risk, issue, dependency or decision on a project I manage',
                 'change_raised'      => 'Somebody raises a change request on a project I manage',
                 'change_decided'     => 'Somebody approves or rejects a change request on a project I manage',
+                'proposal_submitted' => 'A project is proposed and I am one of the people who approve proposals',
+                'proposal_decided'   => 'A project I proposed is approved or rejected',
             ],
         ],
     ],

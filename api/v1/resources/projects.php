@@ -68,6 +68,8 @@ function apiSerializeProject(PDO $conn, array $p): array {
         'health_mode'     => $p['health'] === 'auto' ? 'auto' : 'manual',
         'health_note'     => $p['health_note'],
         'priority'        => $p['priority'] ?? 'medium',
+        // 3.3.0 intake: null = needed no approval; pending | approved | rejected. Decided in the app.
+        'approval'        => $p['approval_status'] ?? null,
         'project_manager' => $rel($p['owner_analyst_id'], $p['owner_name'] ?? null),
         'start_date'      => $p['start_date'],
         'target_end_date' => $p['target_end_date'],

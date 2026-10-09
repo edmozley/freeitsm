@@ -134,6 +134,12 @@ function notificationsHandleEvent(string $event, array $payload): void
  */
 function notificationsAudienceFor(PDO $conn, string $event, array $payload): array
 {
+    // Project proposals (3.3.0): the dispatcher works out who - the approvers, or
+    // whoever proposed it - because "who approves" is a Projects setting.
+    if (strpos($event, 'project.proposal_') === 0) {
+        return array_values(array_unique(array_filter(array_map('intval', (array)($payload['notify_ids'] ?? [])))));
+    }
+
     // Everyone on the task: the owner, plus the people listed as Involved.
     $taskWide = [
         'task.completed', 'task.comment_added',
@@ -299,6 +305,12 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
                 break;
             case 'project.milestone_reached':
                 $title = $name . ': ' . (string)($payload['milestone']['name'] ?? '') . ' reached';
+                break;
+            case 'project.proposal_submitted':
+                $title = $name . ': proposed, waiting for approval';
+                break;
+            case 'project.proposal_decided':
+                $title = $name . ': proposal ' . (string)($payload['proposal']['status'] ?? 'decided');
                 break;
             case 'project.change_raised':
                 $title = $name . ': ' . (string)($payload['change_request']['reference'] ?? '') . ' raised - ' . (string)($payload['change_request']['title'] ?? '');

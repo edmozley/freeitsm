@@ -42,7 +42,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=27">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=28">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -348,6 +348,39 @@ $projectId = (int)($_GET['id'] ?? 0);
         </div>
     </div>
 
+    <!-- Intake (3.3.0): approve or reject a proposal - projects-intake.js -->
+    <div class="modal" id="prjProposalModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header" id="ppTitle"></div>
+            <div class="modal-body">
+                <p id="ppIntro" style="margin:0 0 14px"></p>
+                <div class="form-group"><label for="ppNotes" id="ppNotesLabel"></label><textarea id="ppNotes" rows="3"></textarea></div>
+                <div class="prj-form-error" id="ppError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjProposalModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="ppSave"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intake (3.3.0): the proposal's figures -->
+    <div class="modal" id="prjProposalEditModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:600px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('projects.intake.edit_title')); ?></div>
+            <div class="modal-body">
+                <div class="form-group"><label for="peCase"><?php echo htmlspecialchars(t('projects.intake.business_case')); ?></label><textarea id="peCase" rows="5"></textarea></div>
+                <div class="form-group"><label for="peCost" id="peCostLabel"></label><input type="text" inputmode="decimal" id="peCost"></div>
+                <div class="form-group"><label for="peBenefit"><?php echo htmlspecialchars(t('projects.intake.benefit')); ?></label><textarea id="peBenefit" rows="3" placeholder="<?php echo htmlspecialchars(t('projects.intake.benefit_ph')); ?>"></textarea></div>
+                <div class="prj-form-error" id="peError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjProposalEditModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="peSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Asset targets (3.2.0): set one up -->
     <div class="modal" id="prjTargetModal" aria-hidden="true">
         <div class="modal-content" style="max-width:560px">
@@ -531,11 +564,12 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-budget.js?v=4"></script>
     <script src="../assets/js/projects-control.js?v=1"></script>
+    <script src="../assets/js/projects-intake.js?v=1"></script>
     <script src="../assets/js/projects-reports.js?v=1"></script>
     <script src="../assets/js/projects-charts.js?v=4"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=19"></script>
+    <script src="../assets/js/projects-view.js?v=20"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

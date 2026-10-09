@@ -449,6 +449,7 @@ return [
     ['cost_centres', 'ix_cost_centres_parent', 'key', '(`parent_id`)'],
     ['photo_album', 'ix_photo_album_analyst', 'key', '(`analyst_id`,`created_datetime`)'],
     ['projects', 'idx_projects_tenant', 'key', '(`tenant_id`)'],
+    ['projects', 'idx_projects_approval', 'key', '(`approval_status`)'],
     ['projects', 'idx_projects_status', 'key', '(`status`)'],
     ['projects', 'idx_projects_owner', 'key', '(`owner_analyst_id`)'],
     ['project_budget_lines', 'ix_pbl_project', 'key', '(`project_id`)'],

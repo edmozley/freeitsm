@@ -11372,6 +11372,18 @@ return array (
           ),
           'description' => 'How much the project matters next to the others (3.3.0). The words shown for each are a setting.',
         ),
+        'approval' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' => 
+          array (
+            0 => 'pending',
+            1 => 'approved',
+            2 => 'rejected',
+          ),
+          'description' => '3.3.0. Where a proposal\'s approval stands; null when the project needed none.',
+        ),
         'project_manager' => 
         array (
           'type' => 'object',

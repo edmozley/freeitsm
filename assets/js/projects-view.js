@@ -112,6 +112,8 @@
                     + ' <span class="prj-muted">(' + esc(T('raid.escalated_by', { name: r.escalated_by_name || T('history.someone'), date: P.fmtDate(String(r.escalated_datetime).slice(0, 10)) })) + ')</span></li>').join('')
                 + '</ul></div>';
         }
+        // The proposal and its approval (3.3.0) - drawn by projects-intake.js after this.
+        html += '<div id="pvProposal" hidden></div>';
         // The AI project manager's briefing (3.2.0) - drawn by projects-reports.js after this.
         html += '<div id="pvBriefing" hidden></div>';
         // Progress over time (3.3.0) - drawn by renderBurnup() once it is on the page.
@@ -250,6 +252,7 @@
         else if (f === 'status') detail = T('history.from_to', { from: T('status.' + h.old_value), to: T('status.' + h.new_value) });
         // Change control (3.3.0): "CR-2: title" as stored; "Baseline 3" in the viewer's words.
         else if (f === 'change_raised' || f === 'change_approved' || f === 'change_rejected' || f === 'change_withdrawn' || f === 'change_edited') detail = h.new_value || '';
+        else if (f === 'proposal_approved' || f === 'proposal_rejected') detail = h.new_value || '';
         else if (f === 'baseline_taken') detail = String(h.new_value || '').replace(/^Baseline (\d+)/, (m, n) => T('control.baseline_n', { n: n }));
         else if (f === 'priority') detail = T('history.from_to', { from: P.priorityLabel(h.old_value), to: P.priorityLabel(h.new_value) });
         else if (f === 'health') detail = T('history.from_to', { from: T('health.' + h.old_value), to: T('health.' + h.new_value) });
@@ -412,6 +415,7 @@
         if (window.PrjTargets) window.PrjTargets.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjBudget) window.PrjBudget.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjControl) window.PrjControl.render({ data: data, projectId: projectId, refresh: refresh });
+        if (window.PrjIntake) window.PrjIntake.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjReports) window.PrjReports.render({ data: data, projectId: projectId, refresh: refresh });
         showTab(tab);
         if (window.PrjTimeline) window.PrjTimeline.render(toolCtx);   // after showTab: it draws only when visible

@@ -82,6 +82,10 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
     if (!empty($project['goal'])) $line('Goal: ' . $project['goal']);
     if (!empty($project['summary'])) $line('Summary: ' . mb_substr($project['summary'], 0, 1200));
     if (!empty($project['business_case'])) $line('Business case: ' . mb_substr($project['business_case'], 0, 1500));
+    // Intake (3.3.0): a proposal, its figures and where its approval stands.
+    if (!empty($project['approval_status'])) $line('Proposal: ' . (['pending' => 'WAITING FOR APPROVAL - it cannot start until approved', 'approved' => 'approved', 'rejected' => 'rejected'][$project['approval_status']] ?? $project['approval_status']));
+    if (isset($project['estimated_cost']) && $project['estimated_cost'] !== null) $line('Estimated cost when proposed: ' . number_format((float)$project['estimated_cost'], 2));
+    if (!empty($project['estimated_benefit'])) $line('Expected benefit: ' . mb_substr($project['estimated_benefit'], 0, 1000));
 
     // Health and why
     $why = [];

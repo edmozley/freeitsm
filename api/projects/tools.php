@@ -43,6 +43,7 @@
  *      change_save    {id?, title, description?, reason?, impact_days?, impact_cost?, impact_scope?}
  *      change_decide  {id, decision: approved|rejected, notes?}
  *      change_withdraw {id}
+ *      proposal_decide {decision: approved|rejected, notes?}   (3.3.0 intake - includes/projects/intake.php; notes required to reject)
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -162,6 +163,8 @@ projectApiRun(function () use ($conn, $ctx) {
         case 'task_estimate':
             ProjectToolsService::setTaskEstimate($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), $in['estimate_hours'] ?? null);
             projectApiOk();
+        case 'proposal_decide':
+            projectApiOk(ProjectsService::decideProposal($conn, $ctx, $pid, (string)($in['decision'] ?? ''), $in['notes'] ?? null));
         case 'baseline_take':
             projectApiOk(['id' => ProjectToolsService::takeBaseline($conn, $ctx, $pid, $in['label'] ?? null)]);
         case 'change_save':

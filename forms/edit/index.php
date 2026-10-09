@@ -1159,6 +1159,12 @@ foreach ($formActionDefs as $def) {
                     .map(o => `<option value="${faEsc(o.id)}"${String(o.id) === String(value) ? ' selected' : ''}>${faEsc(o.label)}</option>`)
                     .join('');
                 control = `<select id="${id}" onchange="${onInput}"><option value="">${faEsc(window.t('forms.actions.arg_unset'))}</option>${opts}</select>`;
+            } else if (spec.type === 'select') {
+                // Fixed choices ({value, label}) - the same shape the workflow editor reads (3.3.0).
+                const opts = (spec.options || [])
+                    .map(o => `<option value="${faEsc(o.value)}"${String(o.value) === String(value ?? spec.default ?? '') ? ' selected' : ''}>${faEsc(o.label)}</option>`)
+                    .join('');
+                control = `<select id="${id}" onchange="${onInput}">${opts}</select>`;
             } else if (spec.type === 'textarea') {
                 control = `<textarea id="${id}" rows="3" oninput="${onInput}">${faEsc(value)}</textarea>`;
             } else if (spec.type === 'number') {

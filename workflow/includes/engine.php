@@ -189,6 +189,8 @@ class WorkflowEngine
             'project.raid_escalated'     => 'A project RAID entry is escalated - it needs somebody above the project manager',
             'project.change_raised'      => 'A change request is raised on a project',
             'project.change_decided'     => 'A change request on a project is approved or rejected',
+            'project.proposal_submitted' => 'A project is proposed and waits for approval',
+            'project.proposal_decided'   => 'A project proposal is approved or rejected',
             // ── Issue trackers. NOT time-based: something genuinely happened —
             // a developer moved the issue or wrote a comment. The poll is only
             // how we find out, because a self-hosted install cannot be called.
@@ -464,6 +466,9 @@ class WorkflowEngine
             // 3.3.0 change control. status: proposed (raised) | approved | rejected; impact_days + later, impact_cost + more.
             'project.change_raised'      => array_merge($projectFields, $crFields = ['change_request.id', 'change_request.reference', 'change_request.title', 'change_request.status', 'change_request.impact_days', 'change_request.impact_cost', 'change_request.impact_scope', 'change_request.raised_by_id']),
             'project.change_decided'     => array_merge($projectFields, $crFields, ['change_request.decided_by_id', 'change_request.decision_notes']),
+            // 3.3.0 intake. proposal.status: pending | approved | rejected. proposed_by_email is whoever asked on a form.
+            'project.proposal_submitted' => array_merge($projectFields, $propFields = ['proposal.status', 'proposal.estimated_cost', 'proposal.estimated_benefit', 'proposal.business_case', 'proposal.proposed_by_name', 'proposal.proposed_by_email', 'proposal.proposed_by_analyst_id', 'proposal.submission_id']),
+            'project.proposal_decided'   => array_merge($projectFields, $propFields, ['proposal.notes', 'proposal.decided_by_id']),
         ];
         if (isset($byTrigger[$trigger])) {
             return $byTrigger[$trigger];
@@ -1251,6 +1256,25 @@ class WorkflowEngine
                     'from_name'           => ['type' => 'text', 'label' => 'Requester name', 'supports_vars' => true],
                 ],
             ],
+            // Projects intake (3.3.0) - includes/projects/intake.php. A form's
+            // answers fill what is left blank: the summary becomes the answers.
+            'create_project' => [
+                'label'       => 'Create a project proposal',
+                'description' => 'Create a proposed project - from a form, a "propose a project" request. When Projects - Settings says proposals need approval it waits for an approver before it can start. The company is the requester\'s; left blank, the name is the form and who sent it, and the summary is their answers.',
+                'args'        => [
+                    'name'              => ['type' => 'text', 'label' => 'Project name (blank = the form and who sent it)', 'supports_vars' => true],
+                    'summary'           => ['type' => 'textarea', 'label' => 'Summary (blank = the answers)', 'supports_vars' => true],
+                    'business_case'     => ['type' => 'textarea', 'label' => 'Why it is needed (business case)', 'supports_vars' => true],
+                    'estimated_cost'    => ['type' => 'text', 'label' => 'Estimated cost', 'supports_vars' => true],
+                    'estimated_benefit' => ['type' => 'textarea', 'label' => 'Expected benefit', 'supports_vars' => true],
+                    'target_end_date'   => ['type' => 'text', 'label' => 'Wanted by (YYYY-MM-DD)', 'supports_vars' => true],
+                    'methodology'       => ['type' => 'select', 'label' => 'How it is run', 'options' => [
+                        ['value' => '', 'label' => 'The default (Projects - Settings)'], ['value' => 'simple', 'label' => 'Simple'], ['value' => 'staged', 'label' => 'Staged'], ['value' => 'agile', 'label' => 'Agile']]],
+                    'priority'          => ['type' => 'select', 'label' => 'Priority', 'options' => [
+                        ['value' => '', 'label' => 'Medium (the default)'], ['value' => 'low', 'label' => 'Low'], ['value' => 'medium', 'label' => 'Medium'], ['value' => 'high', 'label' => 'High'], ['value' => 'critical', 'label' => 'Critical']]],
+                    'owner_analyst_id'  => ['type' => 'lookup', 'label' => 'Project manager (blank = decided later)', 'lookup' => 'analyst'],
+                ],
+            ],
             'send_webhook' => [
                 'label'       => 'Send a webhook',
                 'description' => 'POST a message to an external URL when this rule fires — the universal way to push events into Slack, Teams, Discord, PagerDuty, Zapier/Make, or any system that accepts an incoming webhook. Pick a preset for the common chat tools, choose "Full record" to send the entire object (the same JSON as the REST API), or choose "Custom (raw JSON)" and write the exact payload the target expects. Delivery is queued and sent by a background worker with automatic retries, so a slow or dead endpoint never delays anything — track every send under System > Webhooks queue.',
@@ -1747,6 +1771,7 @@ class WorkflowEngine
             case 'send_email':          return self::action_send_email($args, $payload);
             case 'create_task':         return self::action_create_task($args, $payload);
             case 'create_ticket':       return self::action_create_ticket($args, $payload);
+            case 'create_project':      return self::action_create_project($args, $payload);
             case 'send_webhook':        return self::action_send_webhook($args, $payload);
             case 'escalate_to_tracker':  return self::action_escalate_to_tracker($args, $payload);
             case 'send_note_to_tracker': return self::action_send_note_to_tracker($args, $payload);
@@ -2373,6 +2398,17 @@ class WorkflowEngine
             'assignee_id' => $assigneeId,
             'ticket_id'   => $ticketId,
         ];
+    }
+
+    /** A project proposal (3.3.0) - the rules are includes/projects/intake.php's. */
+    private static function action_create_project(array $args, array $payload): array
+    {
+        $a = [];
+        foreach (['name', 'summary', 'business_case', 'estimated_cost', 'estimated_benefit', 'target_end_date'] as $k) $a[$k] = self::argString($args, $k, $payload);
+        foreach (['methodology', 'priority'] as $k) $a[$k] = (string)($args[$k] ?? '');
+        $a['owner_analyst_id'] = self::argInt($args, 'owner_analyst_id', $payload);
+        require_once __DIR__ . '/../../includes/projects/intake.php';
+        return projectCreateFromAction(connectToDatabase(), $a, $payload);
     }
 
     private static function action_create_ticket(array $args, array $payload): array

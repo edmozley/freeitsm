@@ -7826,14 +7826,31 @@ CREATE TABLE IF NOT EXISTS `projects` (
     -- never derived on read: changing the install's default later must not
     -- relabel a budget that already exists (includes/projects/budget.php).
     `currency`          CHAR(3) NULL,
+    -- Intake and approval (3.3.0) - includes/projects/intake.php. The case for
+    -- the project is business_case; these are the proposal's own figures, who
+    -- proposed it when that was not an analyst (a form), and the approval.
+    -- approval_status: NULL = needs none (and every project before 3.3.0),
+    -- pending, approved, rejected.
+    `estimated_cost`    DECIMAL(18,2) NULL,
+    `estimated_benefit` TEXT NULL,
+    `approval_status`   VARCHAR(10) NULL,
+    `approval_by_id`    INT NULL,
+    `approval_datetime` DATETIME NULL,
+    `approval_notes`    TEXT NULL,
+    `form_submission_id` INT NULL,
+    `proposed_by_name`  VARCHAR(200) NULL,
+    `proposed_by_email` VARCHAR(255) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `idx_projects_tenant` (`tenant_id`),
+    KEY `idx_projects_approval` (`approval_status`),
     KEY `idx_projects_status` (`status`),
     KEY `idx_projects_owner` (`owner_analyst_id`),
     CONSTRAINT `fk_projects_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_projects_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_projects_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_projects_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_projects_approval_by` FOREIGN KEY (`approval_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_projects_submission` FOREIGN KEY (`form_submission_id`) REFERENCES `form_submissions` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Budget lines (3.2.0) - includes/projects/budget.php. Planned and actual per

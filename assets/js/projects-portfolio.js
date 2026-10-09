@@ -29,6 +29,7 @@
             case 'mine':     return LIVE.includes(p.status) && Number(p.owner_analyst_id) === Number(window.PRJ_ME);
             case 'at_risk':  return LIVE.includes(p.status) && (p.shown_health === 'red' || p.shown_health === 'amber');
             case 'proposed': return p.status === 'proposed';
+            case 'approval': return p.approval_status === 'pending';   // 3.3.0 intake
             case 'on_hold':  return p.status === 'on_hold';
             case 'finished': return p.status === 'closed' || p.status === 'cancelled';
             default:         return true;
@@ -173,6 +174,7 @@
             +   (p.task_overdue > 0 && !finished ? '<span class="prj-overdue">' + esc(T('portfolio.overdue_count', { count: p.task_overdue })) + '</span>' : '')
             +   (p.milestones_missed > 0 && !finished ? '<span class="prj-overdue">' + esc(T('view.milestones_missed', { count: p.milestones_missed })) + '</span>' : '')
             +   (p.raid_escalated > 0 && !finished ? '<span class="prj-exc-chip">' + esc(T('view.escalated', { count: p.raid_escalated })) + '</span>' : '')
+            +   (p.approval_status === 'pending' ? '<span class="prj-ctl-chip">' + esc(T('intake.waiting')) + '</span>' : '')
             +   (p.changes_pending > 0 && !finished && (p.tools || []).includes('control') ? '<span class="prj-ctl-chip">' + esc(T('control.waiting', { count: p.changes_pending })) + '</span>' : '')
             +   '<span class="prj-card-bar"><span style="width:' + p.progress + '%;background:' + P.gradient(p.colour) + '"></span></span>'
             + '</div>'

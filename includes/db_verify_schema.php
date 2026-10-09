@@ -5174,6 +5174,16 @@ return [
         'alert_exceptions' => 'VARCHAR(100) NULL',
         // Budget currency, stamped at creation - see includes/projects/budget.php.
         'currency'         => 'CHAR(3) NULL',
+        // Intake and approval (3.3.0) - includes/projects/intake.php.
+        'estimated_cost'     => 'DECIMAL(18,2) NULL',
+        'estimated_benefit'  => 'TEXT NULL',
+        'approval_status'    => 'VARCHAR(10) NULL',
+        'approval_by_id'     => 'INT NULL',
+        'approval_datetime'  => 'DATETIME NULL',
+        'approval_notes'     => 'TEXT NULL',
+        'form_submission_id' => 'INT NULL',
+        'proposed_by_name'   => 'VARCHAR(200) NULL',
+        'proposed_by_email'  => 'VARCHAR(255) NULL',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Phases, stages and sprints in ONE table - the same thing through different methods.

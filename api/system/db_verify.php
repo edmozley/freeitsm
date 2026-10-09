@@ -2863,6 +2863,8 @@ try {
         ['projects',       'fk_projects_tenant',        "ALTER TABLE projects ADD CONSTRAINT fk_projects_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"],
         ['projects',       'fk_projects_owner',         "ALTER TABLE projects ADD CONSTRAINT fk_projects_owner FOREIGN KEY (owner_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['projects',       'fk_projects_created_by',    "ALTER TABLE projects ADD CONSTRAINT fk_projects_created_by FOREIGN KEY (created_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['projects',       'fk_projects_approval_by',   "ALTER TABLE projects ADD CONSTRAINT fk_projects_approval_by FOREIGN KEY (approval_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['projects',       'fk_projects_submission',    "ALTER TABLE projects ADD CONSTRAINT fk_projects_submission FOREIGN KEY (form_submission_id) REFERENCES form_submissions (id) ON DELETE SET NULL"],
         ['project_stages', 'fk_project_stages_project', "ALTER TABLE project_stages ADD CONSTRAINT fk_project_stages_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_audit',  'fk_project_audit_project',  "ALTER TABLE project_audit ADD CONSTRAINT fk_project_audit_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['tasks',          'fk_tasks_project',          "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE SET NULL"],

@@ -49,7 +49,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=28">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -79,6 +79,13 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('baseline_auto'), $tt('baseline_auto_desc'), '<select data-k="project_baseline_auto"><option value="stage">' . $tt('baseline_auto_stage') . '</option><option value="start">' . $tt('baseline_auto_start') . '</option><option value="off">' . $tt('baseline_auto_off') . '</option></select><div class="dflt" data-d="project_baseline_auto"></div>');
             $row($tt('change_approver'), $tt('change_approver_desc'), '<select data-k="project_change_approver"><option value="owner">' . $tt('approver_owner') . '</option><option value="team">' . $tt('approver_team') . '</option><option value="managers">' . $tt('approver_managers') . '</option></select><div class="dflt" data-d="project_change_approver"></div>');
             $row($tt('change_self'), $tt('change_self_desc'), '<select data-k="project_change_self"><option value="1">' . htmlspecialchars(t('common.yes')) . '</option><option value="0">' . htmlspecialchars(t('common.no')) . '</option></select><div class="dflt" data-d="project_change_self"></div>');
+            // 3.3.0 intake and approval.
+            $row($tt('proposal_approval'), $tt('proposal_approval_desc'), '<select data-k="project_proposal_approval"><option value="forms">' . $tt('proposal_forms') . '</option><option value="all">' . $tt('proposal_all') . '</option><option value="off">' . $tt('proposal_off') . '</option></select><div class="dflt" data-d="project_proposal_approval"></div>');
+            $row($tt('proposal_approver'), $tt('proposal_approver_desc'), '<select data-k="project_proposal_approver"><option value="managers">' . $tt('approver2_managers') . '</option><option value="person">' . $tt('approver2_person') . '</option></select><div class="dflt" data-d="project_proposal_approver"></div>');
+            $people = '<option value="0">' . $tt('nobody') . '</option>';
+            try { foreach (connectToDatabase()->query("SELECT id, full_name FROM analysts WHERE is_active = 1 ORDER BY full_name") as $an) $people .= '<option value="' . (int)$an['id'] . '">' . htmlspecialchars($an['full_name']) . '</option>'; } catch (Throwable $e) { /* the list stays empty */ }
+            $row($tt('proposal_person'), $tt('proposal_person_desc'), '<select data-k="project_proposal_approver_id">' . $people . '</select><div class="dflt" data-d="project_proposal_approver_id"></div>');
+            $row($tt('proposal_on_approve'), $tt('proposal_on_approve_desc'), '<select data-k="project_proposal_on_approve"><option value="proposed">' . $tt('onapprove_proposed') . '</option><option value="active">' . $tt('onapprove_active') . '</option></select><div class="dflt" data-d="project_proposal_on_approve"></div>');
             $row($tt('change_apply'), $tt('change_apply_desc'), '<select data-k="project_change_apply"><option value="plan">' . $tt('apply_plan') . '</option><option value="baseline">' . $tt('apply_baseline') . '</option></select><div class="dflt" data-d="project_change_apply"></div>');
             ?>
             <div class="prj-set-note"><?php echo $tt('delete_note'); ?></div>
@@ -231,7 +238,7 @@ $row = function (string $label, string $desc, string $control) {
     </div>
 
     <script src="../../assets/js/projects.js?v=8"></script>
-    <script src="../../assets/js/projects-settings.js?v=9"></script>
+    <script src="../../assets/js/projects-settings.js?v=10"></script>
     <script src="../../assets/js/ai-settings.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>

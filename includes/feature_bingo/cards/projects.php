@@ -253,4 +253,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'project_budget_lines', 'planned_date IS NOT NULL OR spent_date IS NOT NULL OR forecast_amount IS NOT NULL'],
     ],
+    [
+        'id'       => 'projects.intake',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Propose a project on a form',
+        'what'     => 'A form that turns "can we have..." into a proposed project - with why it is needed, what it would cost and what it would save - waiting for an approver before it can start.',
+        'why'      => 'Ideas stop arriving as corridor conversations and emails: every proposal is in one place, with its case written down, and nothing starts until somebody has said yes.',
+        'done'     => 'At least one project has been proposed and decided.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'projects', "approval_status IN ('approved', 'rejected')"],
+    ],
 ];

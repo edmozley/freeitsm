@@ -201,6 +201,9 @@ class NotificationsService
             // decided is news to the project manager only when somebody else decided it.
             'project.change_raised'      => ['default' => true,  'entity' => 'project'],
             'project.change_decided'     => ['default' => true,  'entity' => 'project'],
+            // 3.3.0 intake: approvers hear about a proposal, the analyst who proposed one about the decision.
+            'project.proposal_submitted' => ['default' => true,  'entity' => 'project'],
+            'project.proposal_decided'   => ['default' => true,  'entity' => 'project'],
         ];
     }
 
