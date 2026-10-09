@@ -3746,7 +3746,7 @@
                         {
                             "name": "start_date \/ due_date",
                             "in": "body",
-                            "desc": "YYYY-MM-DD",
+                            "desc": "YYYY-MM-DD. estimate_hours (3.3.0): how long it should take, in hours (e.g. 1.5); null = not estimated",
                             "req": false
                         },
                         {

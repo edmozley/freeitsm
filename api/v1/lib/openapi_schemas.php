@@ -9292,6 +9292,12 @@ return array (
           'format' => 'date',
           'nullable' => true,
         ),
+        'estimate_hours' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+          'description' => 'How long the task should take, in hours (3.3.0).',
+        ),
         'parent_task_id' => 
         array (
           'type' => 'integer',

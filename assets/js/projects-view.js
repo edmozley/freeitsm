@@ -73,8 +73,12 @@
         const open = p.task_total - p.task_done;
         const d = P.daysTo(p.target_end_date);
         const finished = p.status === 'closed' || p.status === 'cancelled';
+        // Effort (3.3.0): estimated against logged, under the progress figure.
+        const ef = p.effort || {};
+        const effort = ef.estimated_tasks > 0 || ef.logged_hours > 0
+            ? T('effort.tile', { est: hrsTxt(ef.estimate_hours || 0), logged: hrsTxt(ef.logged_hours || 0) }) : '';
         const tiles = [
-            { n: p.progress + '%', l: T('view.progress'), cls: '' },
+            { n: p.progress + '%', l: T('view.progress'), cls: '', sub: effort },
             { n: open, l: T('view.open_tasks'), cls: '' },
             { n: p.task_overdue, l: T('view.overdue'), cls: p.task_overdue > 0 ? 'bad' : '' },
             (d === null || finished) ? { n: '-', l: T('view.days_left'), cls: '' }
@@ -85,7 +89,7 @@
         const today = P.todayStr();
         const upcoming = data.tasks.filter(t => !Number(t.is_closed) && t.due_date).sort((a, b) => a.due_date.localeCompare(b.due_date)).slice(0, 6);
 
-        let html = (window.PrjTools && p.exceptions && p.exceptions.length ? window.PrjTools.exceptionsBanner(p.exceptions) : '') + '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + t.cls + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span></div>').join('') + '</div>';
+        let html = (window.PrjTools && p.exceptions && p.exceptions.length ? window.PrjTools.exceptionsBanner(p.exceptions) : '') + '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + t.cls + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span>' + (t.sub ? '<span class="prj-tile-sub">' + esc(t.sub) + '</span>' : '') + '</div>').join('') + '</div>';
         // A jump in linked tickets (3.2.0) - why the ring may be amber when the tasks look fine.
         if (p.ticket_spike) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('gates.ticket_spike', { count: p.tickets_7d })) + '</strong></div></div>';
         // A missed milestone (3.3.0) - the other reason the ring may be amber.
@@ -191,6 +195,26 @@
     }
 
     // ---- Plan -----------------------------------------------------------------------
+    /** "4h" / "1.5h" in the page's language. */
+    function hrsTxt(h) {
+        return (Math.round(Number(h) * 10) / 10).toLocaleString(document.documentElement.lang || undefined) + 'h';
+    }
+    /**
+     * A task's estimate on the Plan (3.3.0): a small box to type it in, for those
+     * who may change the project; text for everyone else. Time logged shows
+     * beside it, red once it is over the estimate.
+     */
+    function estimateCell(t) {
+        const est = t.estimate_hours !== null && t.estimate_hours !== undefined ? Number(t.estimate_hours) : null;
+        const logged = Number(t.logged_minutes || 0) / 60;
+        const over = est !== null && logged > est;
+        const log = logged > 0 ? '<span class="prj-est-logged' + (over ? ' over' : '') + '" title="' + esc(T('effort.logged_tip', { hours: hrsTxt(logged) })) + '">' + esc(hrsTxt(logged)) + '</span>' : '';
+        const canEdit = !data.permissions || data.permissions.can_change;
+        if (!canEdit) return '<span class="prj-est">' + log + (est !== null ? '<span class="prj-est-val">' + esc(hrsTxt(est)) + '</span>' : '') + '</span>';
+        return '<span class="prj-est">' + log + '<input type="number" class="prj-est-input" min="0" max="9999" step="0.25" inputmode="decimal" data-estimate="' + t.id + '"'
+            + ' value="' + (est !== null ? est : '') + '" placeholder="' + esc(T('effort.ph')) + '" title="' + esc(T('effort.input_tip')) + '" aria-label="' + esc(T('effort.input_tip')) + '"></span>';
+    }
+
     function taskRow(t) {
         const closed = !!Number(t.is_closed);
         const late = !closed && t.due_date && t.due_date < P.todayStr();
@@ -200,6 +224,7 @@
             + '<a class="prj-task-title" href="' + esc(window.PRJ_BASE + 'tasks/?task=' + t.id) + '" title="' + esc(T('plan.task_open')) + '">' + esc(t.title) + '</a>'
             + (Number(t.subtask_count) ? '<span class="prj-task-sub">' + esc(t.subtask_count) + '</span>' : '')
             + (t.priority_name && !isDefaultPriority(t.priority_id) ? '<span class="prj-task-prio" style="--c:' + esc(t.priority_colour || '#94a3b8') + '">' + esc(t.priority_name) + '</span>' : '')
+            + estimateCell(t)
             + (t.due_date ? '<span class="prj-due' + (late ? ' late' : '') + '">' + esc(P.fmtDate(t.due_date)) + '</span>' : '<span class="prj-due none"></span>')
             + '<span class="prj-avatar sm" title="' + esc(t.assignee_name || t.team_name || T('plan.unassigned_person')) + '">' + esc(t.assignee_name ? P.initials(t.assignee_name) : (t.team_name ? P.initials(t.team_name) : '-')) + '</span>'
             + '<button type="button" class="prj-task-remove" data-remove-task="' + t.id + '" title="' + esc(T('plan.remove_task')) + '" aria-label="' + esc(T('plan.remove_task')) + '">&times;</button>'
@@ -242,6 +267,10 @@
         }
         const total = Number(stage.task_total), done = Number(stage.task_done);
         const pct = total ? Math.round(done * 100 / total) : 0;
+        // Effort in this lane (3.3.0), only once something is estimated or logged.
+        const est = tasks.reduce((s, t) => s + (t.estimate_hours !== null && t.estimate_hours !== undefined ? Number(t.estimate_hours) : 0), 0);
+        const logged = tasks.reduce((s, t) => s + Number(t.logged_minutes || 0), 0) / 60;
+        const effort = est > 0 || logged > 0 ? '<span class="prj-lane-count" title="' + esc(T('effort.lane_tip')) + '">' + esc(T('effort.lane', { est: hrsTxt(est), logged: hrsTxt(logged) })) + '</span>' : '';
         const dates = stage.start_date || stage.end_date
             ? '<span class="prj-lane-dates">' + esc((stage.start_date ? P.fmtDate(stage.start_date) : '...') + ' - ' + (stage.end_date ? P.fmtDate(stage.end_date) : '...')) + '</span>' : '';
         const action = stage.status === 'planned'
@@ -255,7 +284,7 @@
             +     (window.PrjMilestones ? window.PrjMilestones.chips(stage.id) : '') + '</div>'
             +   '<div class="prj-lane-side">' + dates
             +     '<span class="prj-stage-pill sp-' + esc(stage.status) + '">' + esc(T('stage_status.' + stage.status)) + '</span>'
-            +     '<span class="prj-lane-count">' + esc(T('plan.stage_done', { done: done, total: total })) + '</span>'
+            +     '<span class="prj-lane-count">' + esc(T('plan.stage_done', { done: done, total: total })) + '</span>' + effort
             +     action
             +     '<button type="button" class="prj-icon-btn" data-stage-edit="' + stage.id + '" title="' + esc(T('plan.stage_edit', { timebox: P.timeboxWord(stage.kind || kind) })) + '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'
             +   '</div>'
@@ -705,6 +734,19 @@
                 if (f) f.focus();
             }
         });
+        // The Plan's estimate box (3.3.0): saved when it is left or Enter is pressed.
+        page.addEventListener('change', async e => {
+            const box = e.target.closest('[data-estimate]');
+            if (!box) return;
+            try {
+                await P.api('tools.php', { action: 'task_estimate', project_id: projectId, task_id: parseInt(box.dataset.estimate, 10), estimate_hours: box.value === '' ? null : box.value });
+                // Tabbing down the list moved focus to the next box before the redraw
+                // replaced it: put it back, so a column of estimates can be typed in one go.
+                const next = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.estimate : null;
+                await refresh();
+                if (next) { const el = document.querySelector('[data-estimate="' + next + '"]'); if (el) { el.focus(); el.select(); } }
+            } catch (err) { P.toast(err.message, 'error'); await refresh(); }
+        });
         page.addEventListener('input', e => {
             const s = e.target.closest('[data-link-search]'); if (s) searchLinks(s);
         });
@@ -714,6 +756,7 @@
         page.addEventListener('keydown', e => {
             if (e.key === 'Escape' && e.target.closest('[data-link-search]')) { e.target.parentNode.querySelector('.prj-conn-results').hidden = true; }
             if (e.key === 'Escape' && e.target.closest('.prj-add-task')) { openAdd = null; renderPlan(); }
+            if (e.key === 'Enter' && e.target.closest('[data-estimate]')) { e.preventDefault(); e.target.blur(); }
         });
         page.addEventListener('submit', e => {
             const f = e.target.closest('.prj-add-task'); if (!f) return;

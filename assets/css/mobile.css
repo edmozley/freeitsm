@@ -16198,4 +16198,28 @@
     body[data-mobile-module="projects"] .prj-raid-action-list li .prj-task-remove { order: 2; min-width: 36px; min-height: 36px; }
     body[data-mobile-module="projects"] .prj-raid-action-list li .prj-muted { order: 3; flex-basis: 100%; margin: 0 0 0 18px; }
     body[data-mobile-module="projects"] .prj-raid-action-list li .prj-muted:empty { display: none; }
+
+    /* The Capacity page (3.3.0): the same scrolling shell as a project's page
+       (44a, §28) - no footer bar here, so ordinary bottom padding. The table
+       keeps its columns and scrolls sideways in its own box (§2/§3) with the
+       person column sticky; the weeks picker takes the full width. The Plan's
+       estimate box is always outlined on a phone (there is no hover to reveal it). */
+    body[data-mobile-page="projects-capacity"] .prj-page {
+        flex: 1 1 auto;
+        height: auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px 12px 24px;
+    }
+    body[data-mobile-page="projects-capacity"] .prj-cap-weeks { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    body[data-mobile-page="projects-capacity"] .prj-cap-weeks button { min-height: 40px; }
+    body[data-mobile-page="projects-capacity"] .prj-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    body[data-mobile-page="projects-capacity"] .prj-cap th.who { min-width: 132px; }
+    body[data-mobile-page="projects-capacity"] .prj-cap-name { max-width: 88px; }
+    body[data-mobile-page="projects-capacity"] .prj-cap-row { height: 48px; }
+    body[data-mobile-page="projects-view"] .prj-est-input { border-color: var(--border, #ddd); background: var(--surface, #fff); width: 64px; }
+    /* On the Plan row it joins the meta line under the title (44g's order 5), not the start of the row. */
+    body[data-mobile-page="projects-view"] .prj-task > .prj-est { order: 5; }
 }

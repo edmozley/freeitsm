@@ -974,3 +974,63 @@ button.prj-tl-label { cursor: pointer; }
 .prj-raid-decision { margin-top: 14px; }
 /* In the decision log a made (closed) decision is the record, not something finished with - not dimmed. */
 .prj-raid-list.log .prj-raid-row.closed { opacity: 1; }
+/* The unlink cross on a RAID action: the Plan row's cross only shows on that row's hover. */
+.prj-raid-action-list .prj-task-remove { opacity: .65; }
+
+/* ---------- effort (3.3.0): estimates against logged time ------------------ */
+.prj-tile-sub { display: block; margin-top: 4px; font-size: 11.5px; color: var(--text-muted, #666); }
+.prj-est { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.prj-est-input {
+    width: 58px; padding: 3px 6px; border: 1px solid transparent; border-radius: 6px; font-size: 12px; text-align: right;
+    background: transparent; color: var(--text-muted, #666); font-family: inherit; -moz-appearance: textfield;
+}
+.prj-est-input::-webkit-outer-spin-button, .prj-est-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.prj-task:hover .prj-est-input, .prj-est-input:focus, .prj-est-input:not(:placeholder-shown) { border-color: var(--border, #ddd); background: var(--surface, #fff); }
+.prj-est-input:focus { outline: none; border-color: var(--prj-accent, #e11d48); box-shadow: 0 0 0 3px var(--prj-accent-soft, #fff1f2); color: var(--text, #333); }
+.prj-est-input::placeholder { color: var(--text-faint, #bbb); }
+.prj-est-val { font-size: 12px; color: var(--text-muted, #666); }
+.prj-est-logged { font-size: 11.5px; color: var(--text-dim, #888); white-space: nowrap; }
+.prj-est-logged.over { color: #dc2626; font-weight: 700; }
+
+/* ---------- the Capacity page (3.3.0) - assets/js/projects-capacity.js ------ */
+.prj-cap-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; margin-bottom: 16px; }
+.prj-cap-head h1 { margin: 0; font-size: 22px; color: var(--text, #222); }
+.prj-cap-head .prj-muted { max-width: 760px; }
+.prj-cap-weeks { margin: 0; }
+.prj-cap-scroll { overflow-x: auto; overscroll-behavior-x: contain; background: var(--surface, #fff); border-radius: 12px; box-shadow: 0 0 0 1px var(--border-soft, #eee); }
+.prj-cap { width: 100%; border-collapse: collapse; font-size: 13px; }
+.prj-cap th, .prj-cap td { padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f0f0f0); text-align: left; white-space: nowrap; }
+.prj-cap thead th { font-size: 11.5px; font-weight: 700; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: .03em; background: var(--surface, #fff); }
+.prj-cap .num { text-align: right; }
+.prj-cap td.num.warn { color: #d97706; font-weight: 700; }
+.prj-cap th.who { position: sticky; left: 0; z-index: 1; background: var(--surface, #fff); min-width: 180px; }
+.prj-cap-row { cursor: pointer; }
+.prj-cap-row:hover td, .prj-cap-row:hover th.who { background: var(--surface-hover, #f8f9fb); }
+.prj-cap-row:focus { outline: 2px solid var(--prj-accent, #e11d48); outline-offset: -2px; }
+.prj-cap-row th.who { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text, #333); }
+.prj-cap-caret { width: 0; height: 0; border-left: 5px solid var(--text-dim, #888); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .15s ease; }
+.prj-cap-row.open .prj-cap-caret { transform: rotate(90deg); }
+.prj-cap-name { overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.prj-cap-flag { display: inline-block; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 700; background: #fef3c7; color: #92400e; }
+[data-theme="dark"] .prj-cap-flag { background: #422006; color: #fde68a; }
+.prj-cap-cell { min-width: 96px; }
+.prj-cap-bar { position: relative; display: inline-block; vertical-align: middle; width: 64px; height: 8px; border-radius: 99px; background: var(--border-soft, #eef0f3); overflow: hidden; margin-right: 6px; }
+.prj-cap-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: #16a34a; }
+.prj-cap-desk { position: absolute; left: 0; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, rgba(0,0,0,.28) 0 3px, transparent 3px 6px); }
+.s-amber .prj-cap-fill { background: #f59e0b; }
+.s-red .prj-cap-fill { background: #dc2626; }
+.prj-cap-pct { font-size: 12px; font-weight: 700; color: var(--text-muted, #555); }
+.s-red .prj-cap-pct { color: #dc2626; }
+.s-amber .prj-cap-pct { color: #d97706; }
+.prj-cap-more > td { background: var(--app-bg, #f5f5f5); padding: 10px 14px 14px; white-space: normal; }
+.prj-cap-detail-scroll { overflow-x: auto; }
+.prj-cap-detail { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+.prj-cap-detail th, .prj-cap-detail td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
+.prj-cap-detail th { font-size: 11px; color: var(--text-dim, #888); font-weight: 700; }
+.prj-cap-detail .num { text-align: right; }
+.prj-cap-detail a { color: var(--text, #333); text-decoration: none; font-weight: 600; }
+.prj-cap-detail a:hover { color: var(--prj-accent, #e11d48); }
+.prj-cap-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 12px 2px 4px; font-size: 12px; color: var(--text-dim, #888); }
+.prj-cap-legend i { display: inline-block; width: 14px; height: 8px; border-radius: 99px; margin-right: 6px; vertical-align: middle; }
+.prj-cap-legend i.s-green { background: #16a34a; } .prj-cap-legend i.s-amber { background: #f59e0b; } .prj-cap-legend i.s-red { background: #dc2626; }
+.prj-cap-legend i.desk { background: repeating-linear-gradient(135deg, rgba(0,0,0,.35) 0 3px, #cbd5e1 3px 6px); }

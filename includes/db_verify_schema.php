@@ -3675,6 +3675,9 @@ return [
         // project and the stage/phase it belongs to. NULL on every other task.
         'project_id'          => 'INT NULL',
         'project_stage_id'    => 'INT NULL',
+        // 3.3.0: how long the work is expected to take, in hours. Read by the
+        // Projects capacity view and estimate-vs-logged; NULL = not estimated.
+        'estimate_hours'      => 'DECIMAL(7,2) NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 

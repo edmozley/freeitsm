@@ -861,6 +861,22 @@ class ProjectToolsService
         ProjectsService::afterChange($conn, $projectId);   // an overdue task moves health
     }
 
+    /**
+     * Set a project task's estimate from the Plan (3.3.0): {estimate_hours}
+     * (empty = not estimated). Through TasksService, like setTaskDates() - the
+     * task window and the REST API write the same column the same way.
+     */
+    public static function setTaskEstimate(PDO $conn, ActorContext $ctx, int $projectId, int $taskId, $hours): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $st = $conn->prepare("SELECT id FROM tasks WHERE id = ? AND project_id = ?");
+        $st->execute([$taskId, $projectId]);
+        if (!$st->fetchColumn()) throw new ServiceError('not_found', 'not_found', 'That task is not part of this project.');
+        require_once __DIR__ . '/tasks.php';
+        TasksService::saveTask($conn, $ctx, ['id' => $taskId, 'estimate_hours' => $hours]);
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
     // ======================================================================
     //  Reads for the project page
     // ======================================================================

@@ -49,8 +49,8 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=20">
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=186">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=21">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=187">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
@@ -84,6 +84,11 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('amber_progress'), $tt('amber_progress_desc'), '<input type="number" min="1" max="100" data-k="project_amber_progress"><div class="dflt" data-d="project_amber_progress"></div>');
             $row($tt('red_overdue'), $tt('red_overdue_desc'), '<input type="number" min="1" max="100" data-k="project_red_overdue_pct"><div class="dflt" data-d="project_red_overdue_pct"></div>');
             $row($tt('ticket_amber'), $tt('ticket_amber_desc'), '<input type="number" min="0" max="500" data-k="project_ticket_amber"><div class="dflt" data-d="project_ticket_amber"></div>');
+            // Capacity (3.3.0) - the Capacity page reads these.
+            echo '<h3 class="prj-set-sub">' . $tt('capacity_title') . '</h3><p class="prj-muted">' . $tt('capacity_intro') . '</p>';
+            $row($tt('capacity_hours'), $tt('capacity_hours_desc'), '<input type="number" min="1" max="80" step="0.5" data-k="project_capacity_hours"><div class="dflt" data-d="project_capacity_hours"></div>');
+            $row($tt('capacity_amber'), $tt('capacity_amber_desc'), '<input type="number" min="50" max="100" data-k="project_capacity_amber"><div class="dflt" data-d="project_capacity_amber"></div>');
+            $row($tt('capacity_projects'), $tt('capacity_projects_desc'), '<input type="number" min="2" max="20" data-k="project_capacity_projects"><div class="dflt" data-d="project_capacity_projects"></div>');
             ?>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="health"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
         </div>

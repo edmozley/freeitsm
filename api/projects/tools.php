@@ -38,6 +38,7 @@
  *      milestone_save {id?, name?, due_date?, stage_id?, notes?, done?, done_date?}   (3.3.0)
  *      milestone_delete {id}
  *      task_dates     {task_id, start_date?, due_date?}   the Timeline moving a bar (3.3.0)
+ *      task_estimate  {task_id, estimate_hours}   the Plan's estimate box (3.3.0)
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -153,6 +154,9 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk();
         case 'task_dates':
             ProjectToolsService::setTaskDates($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), $in);
+            projectApiOk();
+        case 'task_estimate':
+            ProjectToolsService::setTaskEstimate($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), $in['estimate_hours'] ?? null);
             projectApiOk();
         case 'raci_set':
             projectApiOk(['row' => (object)ProjectToolsService::setRaci($conn, $ctx, $pid, (int)($in['item_id'] ?? 0), (int)($in['member_id'] ?? 0), (string)($in['letter'] ?? ''))]);

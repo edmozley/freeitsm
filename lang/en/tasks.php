@@ -163,6 +163,8 @@ return [
         'work_end'       => 'Work ends',
         'work_all_day'   => 'All day',
         'due_date'       => 'Due Date',
+        'estimate'       => 'Estimate (hours)',
+        'estimate_ph'    => 'e.g. 4',
         'tags'           => 'Tags',
         'description'    => 'Description',
         'links'          => 'Links',

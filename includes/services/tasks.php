@@ -36,7 +36,8 @@
  *
  * Canonical input keys: title, description, status / status_id, priority /
  * priority_id, assigned_analyst_id, assigned_team_id, start_date, due_date,
- * parent_task_id, ticket_id, change_id, contract_id, board_position, tags[].
+ * parent_task_id, ticket_id, change_id, contract_id, board_position, tags[],
+ * estimate_hours (3.3.0; hours, up to two decimals, NULL = not estimated).
  */
 
 require_once __DIR__ . '/../service_context.php';
@@ -86,6 +87,7 @@ class TasksService
         $startDate = self::parseDateOnly($in['start_date'] ?? null, 'start_date');
         $dueDate   = self::parseDateOnly($in['due_date'] ?? null, 'due_date');
         $description = trim((string)($in['description'] ?? '')) ?: null;
+        $estimate  = self::parseEstimate($in['estimate_hours'] ?? null);
 
         $tagIds = null;
         if (isset($in['tags']) && is_array($in['tags'])) {
@@ -125,6 +127,9 @@ class TasksService
             !empty($status[2]) ? gmdate('Y-m-d H:i:s') : null,
         ]);
         $taskId = (int)$conn->lastInsertId();
+        // Its own statement, so an install that has not run Database Verification
+        // (no estimate_hours column yet) can still create tasks.
+        if ($estimate !== null) $conn->prepare("UPDATE tasks SET estimate_hours = ? WHERE id = ?")->execute([$estimate, $taskId]);
 
         if ($tagIds !== null) {
             self::syncTags($conn, $taskId, $tagIds);
@@ -181,6 +186,10 @@ class TasksService
         if (array_key_exists('description', $in)) {
             $updates[] = 'description = ?';
             $args[]    = trim((string)$in['description']) ?: null;
+        }
+        if (array_key_exists('estimate_hours', $in)) {
+            $updates[] = 'estimate_hours = ?';
+            $args[]    = self::parseEstimate($in['estimate_hours']);
         }
 
         // Status — completed_datetime mechanics + workflow dispatch.
@@ -1533,6 +1542,19 @@ class TasksService
         if ($stmt->fetchColumn() === false) {
             throw new ServiceError('validation', 'invalid_field', "Unknown or inactive analyst id: {$analystId}");
         }
+    }
+
+    /**
+     * An estimate in hours (3.3.0): empty = not estimated; otherwise more than 0
+     * and at most 9999, to two decimals ("1.5" = an hour and a half).
+     */
+    private static function parseEstimate($v): ?float
+    {
+        if ($v === null || (is_string($v) && trim($v) === '')) return null;
+        if (!is_numeric($v) || (float)$v <= 0 || (float)$v > 9999) {
+            throw new ServiceError('validation', 'invalid_field', "'estimate_hours' must be a number of hours above 0 and at most 9999.");
+        }
+        return round((float)$v, 2);
     }
 
     private static function parseDateOnly($value, string $field): ?string

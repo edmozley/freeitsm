@@ -95,6 +95,16 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
     if (!empty($p['milestones_missed'])) $why[] = $p['milestones_missed'] . ' milestone(s) missed';
     $line('Health: ' . ($p['shown_health'] ?? 'none (finished)') . ($why ? ' - ' . implode('; ', $why) : '') . '.');
     $line("Tasks: {$p['task_total']} in all, {$p['task_done']} done ({$p['progress']}%), {$p['task_overdue']} overdue.");
+    // Effort (3.3.0): estimates against time logged on the project's tasks.
+    if (projectEstimatesReady($conn)) {
+        $ef = $conn->prepare("SELECT COALESCE(SUM(t.estimate_hours), 0) AS est, SUM(t.estimate_hours IS NOT NULL) AS n, COUNT(*) AS total,
+                                     (SELECT COALESCE(SUM(e.time_spent_minutes), 0) FROM task_time_entries e JOIN tasks x ON x.id = e.task_id
+                                       WHERE e.is_active = 1 AND (x.project_id = ? OR x.parent_task_id IN (SELECT id FROM tasks WHERE project_id = ?))) AS logged
+                                FROM tasks t WHERE t.project_id = ? AND t.parent_task_id IS NULL");
+        $ef->execute([$pid, $pid, $pid]);
+        $e = $ef->fetch(PDO::FETCH_ASSOC);
+        if ((int)$e['n'] > 0 || (int)$e['logged'] > 0) $line(sprintf('Effort: %s hours estimated on %d of %d tasks; %s hours logged.', round((float)$e['est'], 1), (int)$e['n'], (int)$e['total'], round((int)$e['logged'] / 60, 1)));
+    }
 
     $tol = ProjectToolsService::tolerances($conn, $pid);
     $tols = array_filter(['days late allowed' => $tol['time'], 'highest risk score allowed' => $tol['risk'], 'overspend allowed %' => $tol['cost']], fn($v) => $v !== null);

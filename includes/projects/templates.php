@@ -7,7 +7,7 @@
  *
  * A template is a plan with no dates and no people:
  *   methodology, colour, icon, goal, summary, duration_days,
- *   stages  [{name, goal, start_day, end_day, tasks: [{title, description?, due_day?}]}]
+ *   stages  [{name, goal, start_day, end_day, tasks: [{title, description?, due_day?, estimate_hours?}]}]
  *   tasks   [{title, description?, due_day?}]         - not in any stage
  *   milestones [{name, day, stage?}]                   - stage = index into stages, or null (3.3.0)
  *   items   [{title, description?, moscow?}]          - scope, MoSCoW
@@ -36,6 +36,7 @@
 require_once __DIR__ . '/methodologies.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/targets.php';
+require_once __DIR__ . '/read.php';   // projectEstimatesReady()
 
 /** Has Database Verification created the table? Built-ins work either way. */
 function projectTemplatesReady(PDO $conn): bool
@@ -182,7 +183,8 @@ function projectTemplateNormalise(array $c): array
         foreach (array_slice(is_array($list) ? $list : [], 0, 200) as $tk) {
             $title = $str($tk['title'] ?? null, 255);
             if ($title === null) continue;
-            $out[] = array_filter(['title' => $title, 'description' => $str($tk['description'] ?? null, 5000), 'due_day' => $day($tk['due_day'] ?? null)], fn($v) => $v !== null);
+            $est = isset($tk['estimate_hours']) && is_numeric($tk['estimate_hours']) && (float)$tk['estimate_hours'] > 0 && (float)$tk['estimate_hours'] <= 9999 ? round((float)$tk['estimate_hours'], 2) : null;
+            $out[] = array_filter(['title' => $title, 'description' => $str($tk['description'] ?? null, 5000), 'due_day' => $day($tk['due_day'] ?? null), 'estimate_hours' => $est], fn($v) => $v !== null);
         }
         return $out;
     };
@@ -330,11 +332,11 @@ function projectTemplateCapture(PDO $conn, array $project, array $parts): array
     if (in_array('plan', $parts, true)) {
         $stages = $conn->prepare("SELECT id, name, goal, start_date, end_date FROM project_stages WHERE project_id = ? ORDER BY position, id");
         $stages->execute([$pid]);
-        $tasks = $conn->prepare("SELECT title, description, due_date, project_stage_id FROM tasks WHERE project_id = ? AND parent_task_id IS NULL ORDER BY board_position, id");
+        $tasks = $conn->prepare("SELECT title, description, due_date, project_stage_id, " . (projectEstimatesReady($conn) ? 'estimate_hours' : 'NULL AS estimate_hours') . " FROM tasks WHERE project_id = ? AND parent_task_id IS NULL ORDER BY board_position, id");
         $tasks->execute([$pid]);
         $byStage = [];
         foreach ($tasks->fetchAll(PDO::FETCH_ASSOC) as $tk) {
-            $row = ['title' => $tk['title'], 'description' => $tk['description'], 'due_day' => $day($tk['due_date'])];
+            $row = ['title' => $tk['title'], 'description' => $tk['description'], 'due_day' => $day($tk['due_date']), 'estimate_hours' => $tk['estimate_hours'] !== null ? (float)$tk['estimate_hours'] : null];
             if ($tk['project_stage_id']) $byStage[(int)$tk['project_stage_id']][] = $row; else $c['tasks'][] = $row;
         }
         $index = [];

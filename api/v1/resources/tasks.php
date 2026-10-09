@@ -99,6 +99,7 @@ function apiSerializeTask(PDO $conn, array $r): array {
         }, TasksService::collaboratorsFor($conn, (int)$r['id'])),
         'start_date'  => $r['start_date'],
         'due_date'    => $r['due_date'],
+        'estimate_hours' => isset($r['estimate_hours']) && $r['estimate_hours'] !== null ? (float)$r['estimate_hours'] : null,
         'parent_task_id' => $r['parent_task_id'] !== null ? (int)$r['parent_task_id'] : null,
         'ticket_id'   => $r['ticket_id'] !== null ? (int)$r['ticket_id'] : null,
         'change_id'   => $r['change_id'] !== null ? (int)$r['change_id'] : null,

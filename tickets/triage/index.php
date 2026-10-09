@@ -80,7 +80,7 @@ $translationNamespaces = ['common', 'tickets'];
         .triage-email-summary { font-size: 12px; color: #777; background: #f7f8f9; border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; }
         .freemail-note { font-size: 12px; color: #ef6c00; margin-bottom: 12px; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=186">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=187">
 </head>
 <body data-mobile-page="tickets-triage">
     <?php include '../includes/header.php'; ?>

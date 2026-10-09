@@ -58,6 +58,7 @@ class ProjectTemplatesService
             $addTask = function (array $tk, ?int $stageId) use ($conn, $ctx, $pid, $at, &$taskIds) {
                 $taskIds[] = ProjectsService::createTaskInProject($conn, $ctx, $pid, $stageId, array_filter([
                     'title' => $tk['title'], 'description' => $tk['description'] ?? null, 'due_date' => $at($tk['due_day'] ?? null),
+                    'estimate_hours' => $tk['estimate_hours'] ?? null,
                 ], fn($v) => $v !== null));
             };
             $stageIds = [];

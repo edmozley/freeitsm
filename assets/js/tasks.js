@@ -1516,6 +1516,14 @@ function renderDetailPanel(task) {
             </div>
         </div>
 
+        <!-- How long it should take (3.3.0) - Projects reads it for capacity and estimate vs logged. -->
+        <div class="detail-field">
+            <label>${esc(window.t('tasks.detail.estimate'))}</label>
+            <input type="number" class="detail-input" min="0" max="9999" step="0.25" inputmode="decimal" style="max-width:140px"
+                   value="${task.estimate_hours !== null && task.estimate_hours !== undefined ? Number(task.estimate_hours) : ''}"
+                   placeholder="${esc(window.t('tasks.detail.estimate_ph'))}" onchange="saveField('estimate_hours', this.value === '' ? null : this.value)">
+        </div>
+
         ${timeAllowedFor(task) ? `
         <!-- WHEN THE WORK IS PLANNED FOR. Naive wall-clock values, shown exactly
              as typed for every reader, like a ticket's scheduled work. Never run

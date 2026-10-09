@@ -4783,6 +4783,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     -- that it belongs to. Both NULL on every task that is not project work.
     `project_id`          INT NULL,
     `project_stage_id`    INT NULL,
+    `estimate_hours`      DECIMAL(7,2) NULL,                -- 3.3.0: how long the work is expected to take (capacity, estimate vs actual)
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_tasks_project` (`project_id`),

@@ -240,7 +240,7 @@ function pplHead(string $title, array $namespaces = ['common', 'people'], array 
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/people.css?v=5">
     <?php foreach ($extraCss as $css): ?><link rel="stylesheet" href="<?php echo BASE_URL . pplE($css); ?>">
     <?php endforeach; ?>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=186">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=187">
     <script>function pplShowAll(b) { b.closest('.ppl-card').querySelectorAll('tr.ppl-extra').forEach(function (r) { r.hidden = false; }); b.remove(); }</script>
     <?php
 }

@@ -217,4 +217,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'project_raid', "type = 'decision' AND decided_by IS NOT NULL"],
     ],
+    [
+        'id'       => 'projects.capacity',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Who has room? (Capacity)',
+        'what'     => 'Estimates on project tasks, and the Capacity page: each person\'s load in the weeks ahead - the project work they have left plus their service-desk shifts - against the hours they work.',
+        'why'      => 'You see that the engineer on the move is also on the desk three days next week before the move slips, not after.',
+        'done'     => 'At least one project task has an estimate.',
+        'link'     => 'projects/capacity.php',
+        'check'    => ['rows', 'tasks', 'project_id IS NOT NULL AND estimate_hours IS NOT NULL'],
+    ],
 ];

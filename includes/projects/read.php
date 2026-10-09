@@ -285,6 +285,17 @@ function projectListRows(PDO $conn, int $analystId, array $f = []): array
     return $rows;
 }
 
+/** Has Database Verification added tasks.estimate_hours (3.3.0)? Reads stay working before it. */
+function projectEstimatesReady(PDO $conn): bool
+{
+    static $ready = null;
+    if ($ready === null) {
+        try { $conn->query("SELECT estimate_hours FROM tasks LIMIT 0"); $ready = true; }
+        catch (Throwable $e) { $ready = false; }
+    }
+    return $ready;
+}
+
 /** One project for its page: the row, its time boxes with their counts, its tasks and its history. */
 function projectDetail(PDO $conn, array $row): array
 {
@@ -309,7 +320,11 @@ function projectDetail(PDO $conn, array $row): array
                                 t.priority_id, tp.name AS priority_name, tp.colour AS priority_colour,
                                 t.start_date, t.due_date, t.assigned_analyst_id, an.full_name AS assignee_name,
                                 t.assigned_team_id, tm.name AS team_name, t.project_stage_id, t.completed_datetime,
-                                (SELECT COUNT(*) FROM tasks c WHERE c.parent_task_id = t.id) AS subtask_count
+                                (SELECT COUNT(*) FROM tasks c WHERE c.parent_task_id = t.id) AS subtask_count,
+                                " . (projectEstimatesReady($conn) ? 't.estimate_hours' : 'NULL AS estimate_hours') . ",
+                                -- Time logged on the task and its subtasks (3.3.0: estimate vs logged).
+                                (SELECT COALESCE(SUM(e.time_spent_minutes), 0) FROM task_time_entries e
+                                  WHERE e.is_active = 1 AND (e.task_id = t.id OR e.task_id IN (SELECT c2.id FROM tasks c2 WHERE c2.parent_task_id = t.id))) AS logged_minutes
                            FROM tasks t
                       LEFT JOIN task_statuses ts ON ts.id = t.status_id
                       LEFT JOIN task_priorities tp ON tp.id = t.priority_id
@@ -324,6 +339,14 @@ function projectDetail(PDO $conn, array $row): array
                            FROM project_audit pa LEFT JOIN analysts an ON an.id = pa.analyst_id
                           WHERE pa.project_id = ? ORDER BY pa.created_datetime DESC, pa.id DESC LIMIT 50");
     $h->execute([$id]);
+
+    // Effort (3.3.0): what the tasks were estimated at, and what has been logged.
+    $est = 0.0; $estCount = 0; $logged = 0;
+    foreach ($tasks as $tk) {
+        if ($tk['estimate_hours'] !== null) { $est += (float)$tk['estimate_hours']; $estCount++; }
+        $logged += (int)$tk['logged_minutes'];
+    }
+    $project['effort'] = ['estimate_hours' => round($est, 2), 'estimated_tasks' => $estCount, 'logged_hours' => round($logged / 60, 2), 'tasks' => count($tasks)];
 
     return ['project' => $project, 'stages' => $stages, 'tasks' => $tasks, 'history' => $h->fetchAll(PDO::FETCH_ASSOC)];
 }

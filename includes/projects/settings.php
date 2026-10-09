@@ -49,6 +49,12 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // Amber when this many linked tickets were raised in the last 7 days -
             // the jump after a go-live. 0 = not used.
             'project_ticket_amber'     => ['5',        'int:0:500',   'health'],
+            // Capacity (3.3.0) - includes/projects/capacity.php. The hours a person
+            // works in a week, the load (%) that shows amber (over 100% is red), and
+            // how many live projects at once is "several".
+            'project_capacity_hours'    => ['37.5',     'num:1:80',    'health'],
+            'project_capacity_amber'    => ['85',       'int:50:100',  'health'],
+            'project_capacity_projects' => ['3',        'int:2:20',    'health'],
             // ---- RAID -------------------------------------------------------
             // Five labels each, lowest first, stored as a JSON array. Empty means
             // "the defaults in the viewer's language" - see projectScaleLabels().
@@ -142,6 +148,15 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         if ($rule === 'change') {
             if (!in_array($v, ['anyone', 'team'], true)) throw new InvalidArgumentException('Choose who may change a project.');
             return $v;
+        }
+        if (strpos($rule, 'num:') === 0) {
+            // A number with up to two decimals (37.5 hours a week).
+            [, $min, $max] = explode(':', $rule);
+            $v = str_replace(',', '.', $v);
+            if (!preg_match('/^\d+(\.\d{1,2})?$/', $v) || (float)$v < (float)$min || (float)$v > (float)$max) {
+                throw new InvalidArgumentException("Enter a number from $min to $max.");
+            }
+            return (string)(float)$v;
         }
         if (strpos($rule, 'int:') === 0) {
             [, $min, $max] = explode(':', $rule);
