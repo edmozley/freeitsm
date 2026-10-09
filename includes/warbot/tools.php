@@ -244,7 +244,97 @@ function warbotTools(): array
             'capability' => null,
             'handler'    => 'warbotToolSearchKnowledge',
         ],
+
+        /* ── projects (3.3.0) - is a project behind this, or about to cause one ── */
+        // 🔑 These five carry 'module' => 'projects': only somebody who can open
+        // Projects is offered them, and they answer only about the projects that
+        // person can see (their active company, as on the portfolio). The answers
+        // are includes/projects/assistant.php - the same text the MCP server gives -
+        // WITHOUT the budget: a channel is read by everyone in it, and money is not
+        // an operational fact.
+        'list_projects' => [
+            'description' => 'List projects with their health (green / amber / red, worked out from the plan), status, progress, target finish and project manager. '
+                           . 'Use this for "which projects are off track" or "what projects are live".',
+            'schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'status' => ['type' => 'string', 'description' => 'live (proposed + active, the default), all, or one of proposed, active, on_hold, closed, cancelled.'],
+                    'health' => ['type' => 'string', 'description' => 'green, amber or red.'],
+                    'q'      => ['type' => 'string', 'description' => 'Words in the name, summary or goal.'],
+                ],
+                'required' => [],
+            ],
+            'capability' => null,
+            'module'     => 'projects',
+            'handler'    => 'warbotToolListProjects',
+        ],
+        'project_overview' => [
+            'description' => 'One project in full: health and why, progress, dates, stages and gates, milestones (reached, missed or due), open risks and issues, '
+                           . 'linked changes not yet approved, and recent history. Use this for "how is the office move going".',
+            'schema' => [
+                'type' => 'object',
+                'properties' => ['project' => ['type' => 'string', 'description' => 'Its code (PRJ-0042), id, or enough of its name to be unique.']],
+                'required' => ['project'],
+            ],
+            'capability' => null,
+            'module'     => 'projects',
+            'handler'    => 'warbotToolProjectOverview',
+        ],
+        'project_raid' => [
+            'description' => 'A project\'s RAID log - risks with their scores, assumptions, issues, decisions and lessons. Open ones unless asked.',
+            'schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'project' => ['type' => 'string', 'description' => 'Its code (PRJ-0042), id, or enough of its name to be unique.'],
+                    'type'    => ['type' => 'string', 'description' => 'risk, assumption, issue, decision or lesson. Omit for all.'],
+                    'status'  => ['type' => 'string', 'description' => 'open (default), closed or all.'],
+                ],
+                'required' => ['project'],
+            ],
+            'capability' => null,
+            'module'     => 'projects',
+            'handler'    => 'warbotToolProjectRaid',
+        ],
+        'project_tasks' => [
+            'description' => 'A project\'s tasks - overdue first, then by due date - with stage, status and who has them.',
+            'schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'project'   => ['type' => 'string', 'description' => 'Its code (PRJ-0042), id, or enough of its name to be unique.'],
+                    'open_only' => ['type' => 'boolean', 'description' => 'Only tasks not yet done (default true).'],
+                ],
+                'required' => ['project'],
+            ],
+            'capability' => null,
+            'module'     => 'projects',
+            'handler'    => 'warbotToolProjectTasks',
+        ],
+        'project_dates' => [
+            'description' => 'Project dates coming up across every project - stage ends, milestones and target finishes in the next N days - and milestones already missed. '
+                           . 'Use this for "is any project doing something big this week" - a go-live or a move is often what is behind an incident.',
+            'schema' => [
+                'type' => 'object',
+                'properties' => ['days' => ['type' => 'integer', 'description' => 'How far ahead (default 14, max 90).']],
+                'required' => [],
+            ],
+            'capability' => null,
+            'module'     => 'projects',
+            'handler'    => 'warbotToolProjectDates',
+        ],
     ];
+}
+
+/**
+ * May this analyst use this tool? The capability, and - for a tool that names
+ * one (3.3.0, the Projects tools) - access to the module whose data it reads.
+ * The older tools name no module and are unchanged: whether the war room is
+ * install-wide is the open question in warbotToolSearchKnowledge() below.
+ */
+function warbotToolAllowed(PDO $conn, int $analystId, array $t): bool
+{
+    if ($t['capability'] !== null && !analystHasCapability($conn, $analystId, $t['capability'])) return false;
+    if (!empty($t['module']) && !analystCanAccessModule($conn, $analystId, $t['module'])) return false;
+    return true;
 }
 
 /**
@@ -257,7 +347,7 @@ function warbotToolsFor(PDO $conn, int $analystId): array
 {
     $out = [];
     foreach (warbotTools() as $name => $t) {
-        if ($t['capability'] !== null && !analystHasCapability($conn, $analystId, $t['capability'])) continue;
+        if (!warbotToolAllowed($conn, $analystId, $t)) continue;
         $out[] = ['name' => $name, 'description' => $t['description'], 'schema' => $t['schema']];
     }
     return $out;
@@ -273,7 +363,7 @@ function warbotRunTool(PDO $conn, int $analystId, string $name, array $args): st
     $tools = warbotTools();
     if (!isset($tools[$name])) return 'No such tool.';
     $t = $tools[$name];
-    if ($t['capability'] !== null && !analystHasCapability($conn, $analystId, $t['capability'])) {
+    if (!warbotToolAllowed($conn, $analystId, $t)) {
         return 'You do not have permission to use that.';
     }
     try {
@@ -792,4 +882,57 @@ function warbotToolSearchKnowledge(PDO $conn, array $args, int $analystId): stri
     // wall of text nobody asked for, and may contain more than the room needs.
     $lines[] = 'Titles only — open the article in Knowledge to read it.';
     return implode("\n", $lines);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PROJECTS (3.3.0) - includes/projects/assistant.php, scoped like the portfolio.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/** The asking analyst's projects: their active company, or every company they can see under "All". */
+function warbotProjectScope(PDO $conn, int $analystId): array
+{
+    require_once __DIR__ . '/../tenancy.php';
+    require_once __DIR__ . '/../projects/assistant.php';
+    return activeTenantReadFilter($conn, $analystId, 'p');
+}
+
+/** A ServiceError (no such project, several match) is an answer to give the room, not a failure. */
+function warbotProjectAnswer(callable $fn): string
+{
+    try {
+        return $fn();
+    } catch (ServiceError $e) {
+        return $e->getMessage();
+    }
+}
+
+function warbotToolListProjects(PDO $conn, array $args, int $analystId): string
+{
+    $scope = warbotProjectScope($conn, $analystId);
+    // A channel answer, so a shorter list than the MCP server's default.
+    return warbotProjectAnswer(fn() => projectAssistList($conn, $scope, ['limit' => 10] + $args));
+}
+
+function warbotToolProjectOverview(PDO $conn, array $args, int $analystId): string
+{
+    $scope = warbotProjectScope($conn, $analystId);
+    return warbotProjectAnswer(fn() => projectAssistOverview($conn, $scope, $analystId, $args, false));
+}
+
+function warbotToolProjectRaid(PDO $conn, array $args, int $analystId): string
+{
+    $scope = warbotProjectScope($conn, $analystId);
+    return warbotProjectAnswer(fn() => projectAssistRaid($conn, $scope, $args));
+}
+
+function warbotToolProjectTasks(PDO $conn, array $args, int $analystId): string
+{
+    $scope = warbotProjectScope($conn, $analystId);
+    return warbotProjectAnswer(fn() => projectAssistTasks($conn, $scope, $args));
+}
+
+function warbotToolProjectDates(PDO $conn, array $args, int $analystId): string
+{
+    $scope = warbotProjectScope($conn, $analystId);
+    return warbotProjectAnswer(fn() => projectAssistDates($conn, $scope, $args));
 }

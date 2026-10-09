@@ -303,6 +303,9 @@ $translationNamespaces = ['common', 'war-room'];
                         <code>/impact &lt;name&gt;</code>     <span><?php echo htmlspecialchars(t('war-room.help.cmd_impact')); ?></span>
                         <code>/linked &lt;ref&gt;</code>      <span><?php echo htmlspecialchars(t('war-room.help.cmd_linked')); ?></span>
                         <code>/supplier &lt;name&gt;</code>   <span><?php echo htmlspecialchars(t('war-room.help.cmd_supplier')); ?></span>
+                        <code>/projects</code>          <span><?php echo htmlspecialchars(t('war-room.help.cmd_projects')); ?></span>
+                        <code>/project &lt;name&gt;</code>    <span><?php echo htmlspecialchars(t('war-room.help.cmd_project')); ?></span>
+                        <code>/dates [days]</code>      <span><?php echo htmlspecialchars(t('war-room.help.cmd_dates')); ?></span>
                         <code>/help</code>              <span><?php echo htmlspecialchars(t('war-room.help.cmd_help')); ?></span>
                     </div>
 

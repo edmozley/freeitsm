@@ -128,6 +128,11 @@ function mcpTools(): array
             ], 'required' => ['project']],
             'module' => 'projects', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolProjectTasks',
         ],
+        'project_dates' => [
+            'description' => 'Project dates coming up across every project - stage ends, milestones and target finishes in the next N days - and milestones already missed. Use it for "is any project doing something big this week".',
+            'schema' => ['type' => 'object', 'properties' => ['days' => ['type' => 'integer', 'description' => 'How far ahead (default 14, max 90).']], 'required' => []],
+            'module' => 'projects', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolProjectDates',
+        ],
     ];
     return $tools;
 }
@@ -201,14 +206,10 @@ function mcpRunTool(PDO $conn, array $apiKey, string $name, array $args): ?array
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   PROJECTS - company-scoped by the key, read through the Projects code.
+   PROJECTS - company-scoped by the key. The answers themselves live in
+   includes/projects/assistant.php, shared with Warbot (3.3.0); only the
+   scope (the key's effective companies) and the budget are the MCP server's.
    ══════════════════════════════════════════════════════════════════════════ */
-
-function mcpProjectCtx(array $apiKey): ActorContext
-{
-    require_once __DIR__ . '/../service_context.php';
-    return new ActorContext((int)$apiKey['analyst_id'], $apiKey['company_scope'] ?? null, 'api', 'en', (string)($apiKey['analyst_name'] ?? ''));
-}
 
 /** " AND p.tenant_id ..." for the key's companies (NULL company = the Default one). */
 function mcpProjectScopeSql(PDO $conn, array $apiKey): array
@@ -222,223 +223,55 @@ function mcpProjectScopeSql(PDO $conn, array $apiKey): array
         : [" AND p.tenant_id IN ($ph)", $ids];
 }
 
-/** Decorated project rows (health, progress, exceptions, budget) for a WHERE. */
-function mcpProjectRows(PDO $conn, array $apiKey, string $where, array $args, int $limit): array
-{
-    require_once __DIR__ . '/../projects/read.php';
-    require_once __DIR__ . '/../projects/budget.php';
-    [$sSql, $sArgs] = mcpProjectScopeSql($conn, $apiKey);
-    $st = $conn->prepare("SELECT p.*, a.full_name AS owner_name,
-                                 (SELECT s.name FROM project_stages s WHERE s.project_id = p.id AND s.status = 'active' ORDER BY s.position, s.id LIMIT 1) AS active_stage_name,
-                                 " . projectExceptionColumns($conn) . "
-                            FROM projects p LEFT JOIN analysts a ON a.id = p.owner_analyst_id
-                           WHERE $where $sSql
-                        ORDER BY FIELD(p.status, 'active', 'proposed', 'on_hold', 'closed', 'cancelled'), p.target_end_date IS NULL, p.target_end_date, p.name
-                           LIMIT " . max(1, min(500, $limit)));
-    $st->execute(array_merge($args, $sArgs));
-    $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-    if (!$rows) return [];
-    $stats = projectTaskStats($conn, array_map(fn($r) => (int)$r['id'], $rows));
-    $cfg = projectHealthConfig($conn);
-    return array_map(fn($r) => projectDecorate($r, $stats[(int)$r['id']] ?? [], $cfg) + ['_budget' => $stats[(int)$r['id']]['budget'] ?? null], $rows);
-}
-
-/** Find one project the key may see, by code, id or a unique part of its name. */
-function mcpFindProject(PDO $conn, array $apiKey, $ref): array
-{
-    $ref = trim((string)$ref);
-    if ($ref === '') throw new ServiceError('validation', 'missing_field', 'Say which project: its code (PRJ-0042), id or name.');
-    if (preg_match('/^(?:PRJ-?)?0*(\d+)$/i', $ref, $m)) {
-        $rows = mcpProjectRows($conn, $apiKey, 'p.id = ?', [(int)$m[1]], 1);
-    } else {
-        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $ref) . '%';
-        $rows = mcpProjectRows($conn, $apiKey, 'p.name LIKE ?', [$like], 6);
-        if (count($rows) > 1) {
-            $exact = array_values(array_filter($rows, fn($r) => mb_strtolower($r['name']) === mb_strtolower($ref)));
-            if (count($exact) === 1) return $exact[0];
-            throw new ServiceError('validation', 'ambiguous', 'Several projects match "' . $ref . '": '
-                . implode(', ', array_map(fn($r) => $r['code'] . ' ' . $r['name'], $rows)) . '. Use the code.');
-        }
-    }
-    if (!$rows) throw new ServiceError('not_found', 'not_found', 'No project "' . $ref . '" that you can see.');
-    return $rows[0];
-}
-
-function mcpMoney(?float $v, string $cur): string
-{
-    return $v === null ? '-' : $cur . ' ' . number_format($v, 2);
-}
-
-/** Why a project is the colour it is, in words. */
-function mcpProjectWhy(array $p): string
-{
-    $why = [];
-    if ($p['health'] !== 'auto') $why[] = 'set by hand' . ($p['health_note'] ? ': ' . $p['health_note'] : '');
-    foreach ($p['exceptions'] as $e) {
-        if ($e['kind'] === 'risk') $why[] = 'a risk scores ' . $e['score'] . ' (tolerance ' . $e['allowed'] . ')';
-        elseif ($e['kind'] === 'cost') $why[] = $e['over_pct'] . '% over budget (tolerance ' . $e['allowed'] . '%)';
-        else $why[] = $e['late'] . ' days late' . ($e['kind'] === 'stage_time' ? ' on the current stage' : '') . ' (tolerance ' . $e['allowed'] . ')';
-    }
-    if ($p['task_overdue'] > 0) $why[] = $p['task_overdue'] . ' overdue task(s)';
-    if (!empty($p['ticket_spike'])) $why[] = $p['tickets_7d'] . ' linked tickets raised in the last 7 days';
-    return implode('; ', $why);
-}
-
-function mcpProjectLine(array $p): string
-{
-    $why = mcpProjectWhy($p);
-    return sprintf('%s %s [%s, %s, %d%% of %d task(s) done%s%s]%s',
-        $p['code'], $p['name'], $p['status'], $p['shown_health'] ?? 'no health', $p['progress'], $p['task_total'],
-        $p['target_end_date'] ? ', target ' . $p['target_end_date'] : '', $p['owner_name'] ? ', led by ' . $p['owner_name'] : '',
-        $why !== '' ? ' - ' . $why : '');
-}
-
 function mcpToolListProjects(PDO $conn, array $args, int $analystId, array $apiKey): string
 {
-    require_once __DIR__ . '/../projects/methodologies.php';
-    $status = trim((string)($args['status'] ?? 'live')) ?: 'live';
-    $where = '1=1'; $wArgs = [];
-    if ($status === 'live') $where = "p.status IN ('proposed', 'active')";
-    elseif ($status !== 'all') {
-        if (!in_array($status, projectStatuses(), true)) return 'Unknown status "' . $status . '". Use live, all, or one of ' . implode(', ', projectStatuses()) . '.';
-        $where = 'p.status = ?'; $wArgs[] = $status;
-    }
-    if (trim((string)($args['q'] ?? '')) !== '') {
-        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($args['q'])) . '%';
-        $where .= ' AND (p.name LIKE ? OR p.summary LIKE ? OR p.goal LIKE ?)';
-        array_push($wArgs, $like, $like, $like);
-    }
-    $limit = max(1, min(100, (int)($args['limit'] ?? 25)));
-    $rows = mcpProjectRows($conn, $apiKey, $where, $wArgs, 500);
-    $health = trim((string)($args['health'] ?? ''));
-    if ($health !== '') $rows = array_values(array_filter($rows, fn($p) => $p['shown_health'] === $health));
-    if (!$rows) return 'No projects match.';
-    $lines = [count($rows) . ' project(s)' . (count($rows) > $limit ? ', the first ' . $limit . ':' : ':')];
-    foreach (array_slice($rows, 0, $limit) as $p) $lines[] = '- ' . mcpProjectLine($p);
-    return implode("\n", $lines);
+    require_once __DIR__ . '/../projects/assistant.php';
+    return projectAssistList($conn, mcpProjectScopeSql($conn, $apiKey), $args);
 }
 
 function mcpToolProjectOverview(PDO $conn, array $args, int $analystId, array $apiKey): string
 {
-    require_once __DIR__ . '/../services/project_tools.php';
-    require_once __DIR__ . '/../projects/links.php';
-    $p = mcpFindProject($conn, $apiKey, $args['project'] ?? '');
-    $pid = (int)$p['id'];
-    $cur = projectCurrencyOf($conn, $p);
-    $out = [mcpProjectLine($p)];
-    if ($p['goal']) $out[] = 'Goal: ' . $p['goal'];
-    if ($p['summary']) $out[] = 'Summary: ' . mb_substr($p['summary'], 0, 600);
-    $out[] = 'Runs as: ' . $p['methodology'] . '. Start ' . ($p['start_date'] ?: '-') . ', target finish ' . ($p['target_end_date'] ?: '-') . '.';
-
-    $st = $conn->prepare("SELECT name, kind, status, start_date, end_date, gate_decision, gate_notes FROM project_stages WHERE project_id = ? ORDER BY position, id");
-    $st->execute([$pid]);
-    $stages = $st->fetchAll(PDO::FETCH_ASSOC);
-    if ($stages) {
-        $out[] = 'Stages:';
-        foreach ($stages as $s) $out[] = sprintf('- %s (%s) %s%s%s', $s['name'], $s['kind'], $s['status'],
-            $s['end_date'] ? ', ends ' . $s['end_date'] : '', $s['gate_decision'] ? ', gate: ' . $s['gate_decision'] . ($s['gate_notes'] ? ' - ' . $s['gate_notes'] : '') : '');
-    }
-    // Milestones (3.3.0).
-    $ms = projectMilestones($conn, $pid);
-    if ($ms) {
-        $out[] = 'Milestones:';
-        foreach ($ms as $m) $out[] = sprintf('- %s, due %s: %s', $m['name'], $m['due_date'],
-            $m['state'] === 'done' ? 'reached ' . $m['done_date'] . ($m['met'] ? ' (on time)' : ' (late)') : ($m['state'] === 'missed' ? 'MISSED' : 'not reached yet'));
-    }
-    $raid = array_filter(ProjectToolsService::raid($conn, $pid), fn($r) => $r['status'] === 'open' && in_array($r['type'], ['risk', 'issue'], true));
-    if ($raid) {
-        $out[] = 'Open risks and issues:';
-        foreach (array_slice($raid, 0, 8) as $r) $out[] = sprintf('- %s: %s%s%s', $r['type'], $r['title'], $r['score'] !== null ? ' (score ' . (int)$r['score'] . ')' : '', $r['owner_name'] ? ', owner ' . $r['owner_name'] : '');
-    }
-    $b = $p['_budget'] ?? null;
-    if ($b && ($b['planned'] > 0 || $b['actual'] > 0)) $out[] = 'Budget: ' . mcpMoney($b['planned'], $cur) . ' planned, ' . mcpMoney($b['actual'], $cur) . ' spent.';
-    if (analystCanAccessModule($conn, $analystId, 'changes')) {
-        $unapproved = projectUnapprovedChanges($conn, $pid);
-        if ($unapproved) $out[] = count($unapproved) . ' linked change(s) not yet approved: ' . implode(', ', array_map(fn($c) => $c['label'] . ' ' . $c['title'], $unapproved)) . '.';
-    }
-    $h = $conn->prepare("SELECT pa.field_name, pa.old_value, pa.new_value, pa.created_datetime, an.full_name FROM project_audit pa LEFT JOIN analysts an ON an.id = pa.analyst_id
-                          WHERE pa.project_id = ? ORDER BY pa.id DESC LIMIT 8");
-    $h->execute([$pid]);
-    // A history row can name a record in another module ("contract: Fibre circuit",
-    // a raised ticket, a Knowledge article). Leave out the ones whose module the
-    // analyst cannot open - the security review's finding 6.
-    $hist = array_values(array_filter($h->fetchAll(PDO::FETCH_ASSOC), function ($r) use ($conn, $analystId) {
-        if (in_array($r['field_name'], ['link_added', 'link_removed'], true)) {
-            $kind = strtok((string)$r['new_value'] ?: (string)$r['old_value'], ':');
-            return projectLinkKindAllowed($conn, $analystId, (string)$kind);
-        }
-        if ($r['field_name'] === 'raid_ticket_raised') return analystCanAccessModule($conn, $analystId, 'tickets');
-        if ($r['field_name'] === 'raid_to_knowledge') return analystCanAccessModule($conn, $analystId, 'knowledge');
-        if ($r['field_name'] === 'disruption_announced' || $r['field_name'] === 'disruption_withdrawn') return analystCanAccessModule($conn, $analystId, 'service-status');
-        return true;
-    }));
-    if ($hist) {
-        $out[] = 'Recent history:';
-        foreach ($hist as $r) $out[] = sprintf('- %s %s %s%s', substr($r['created_datetime'], 0, 10), $r['full_name'] ?: 'Someone', str_replace('_', ' ', $r['field_name']), $r['new_value'] !== null ? ': ' . mb_substr($r['new_value'], 0, 120) : '');
-    }
-    return implode("\n", $out);
+    require_once __DIR__ . '/../projects/assistant.php';
+    return projectAssistOverview($conn, mcpProjectScopeSql($conn, $apiKey), $analystId, $args, true);
 }
 
 function mcpToolProjectRaid(PDO $conn, array $args, int $analystId, array $apiKey): string
 {
-    require_once __DIR__ . '/../services/project_tools.php';
-    $p = mcpFindProject($conn, $apiKey, $args['project'] ?? '');
-    $type = trim((string)($args['type'] ?? ''));
-    $status = trim((string)($args['status'] ?? 'open')) ?: 'open';
-    $rows = array_values(array_filter(ProjectToolsService::raid($conn, (int)$p['id']), fn($r) =>
-        ($type === '' || $r['type'] === $type) && ($status === 'all' || $r['status'] === $status)));
-    if (!$rows) return $p['code'] . ' has no ' . ($status === 'all' ? '' : $status . ' ') . ($type ?: 'RAID') . ' entries.';
-    $lines = [$p['code'] . ' ' . $p['name'] . ' - ' . count($rows) . ' entr' . (count($rows) === 1 ? 'y' : 'ies') . ':'];
-    foreach ($rows as $r) {
-        $lines[] = sprintf('- [%s, %s] %s%s%s%s%s', $r['type'], $r['status'], $r['title'],
-            $r['score'] !== null ? ' - score ' . (int)$r['score'] . ' (probability ' . (int)$r['probability'] . ' x impact ' . (int)$r['impact'] . ')' : '',
-            $r['owner_name'] ? ', owner ' . $r['owner_name'] : '', $r['due_date'] ? ', review by ' . $r['due_date'] : '',
-            $r['response_plan'] ? '. Plan: ' . mb_substr($r['response_plan'], 0, 300) : '');
-    }
-    return implode("\n", $lines);
-}
-
-function mcpToolProjectBudget(PDO $conn, array $args, int $analystId, array $apiKey): string
-{
-    $p = mcpFindProject($conn, $apiKey, $args['project'] ?? '');
-    if (!projectBudgetReady($conn)) return 'Budgets are not switched on yet (Database Verification).';
-    $d = projectBudgetDetail($conn, $p, $analystId);
-    $cur = $d['currency'];
-    $lines = [sprintf('%s %s budget (%s): %s planned, %s spent, %s remaining.', $p['code'], $p['name'], $cur,
-        mcpMoney($d['planned'], $cur), mcpMoney($d['actual'], $cur), mcpMoney($d['remaining'], $cur))];
-    $lab = $d['labour'];
-    $lines[] = 'Labour: ' . round($lab['minutes'] / 60, 1) . ' hours logged'
-        . ($lab['cost'] !== null ? ', costed at ' . mcpMoney($lab['cost'], $cur) : ' (shown in hours, not priced)')
-        . ($lab['unpriced_minutes'] > 0 ? '; ' . round($lab['unpriced_minutes'] / 60, 1) . ' hours have no rate in ' . $cur : '') . '.';
-    foreach ($d['lines'] as $l) {
-        $lines[] = sprintf('- %s (%s): planned %s, actual %s%s', $l['title'], $l['category'], mcpMoney($l['planned'], $cur),
-            $l['currency_mismatch'] ? 'not counted - its contract is in ' . $l['contract']['currency'] : mcpMoney($l['actual'], $cur),
-            $l['actual_source'] === 'contract' ? ' (the contract\'s value)' : '');
-    }
-    return implode("\n", $lines);
+    require_once __DIR__ . '/../projects/assistant.php';
+    return projectAssistRaid($conn, mcpProjectScopeSql($conn, $apiKey), $args);
 }
 
 function mcpToolProjectTasks(PDO $conn, array $args, int $analystId, array $apiKey): string
 {
-    $p = mcpFindProject($conn, $apiKey, $args['project'] ?? '');
-    $openOnly = !array_key_exists('open_only', $args) || (bool)$args['open_only'];
-    $st = $conn->prepare("SELECT t.title, t.due_date, ts.name AS status, COALESCE(ts.is_closed, 0) AS done, an.full_name AS assignee, s.name AS stage
-                            FROM tasks t
-                       LEFT JOIN task_statuses ts ON ts.id = t.status_id
-                       LEFT JOIN analysts an ON an.id = t.assigned_analyst_id
-                       LEFT JOIN project_stages s ON s.id = t.project_stage_id
-                           WHERE t.project_id = ? AND t.parent_task_id IS NULL" . ($openOnly ? ' AND COALESCE(ts.is_closed, 0) = 0' : '') . "
-                        ORDER BY (t.due_date IS NOT NULL AND t.due_date < UTC_DATE() AND COALESCE(ts.is_closed, 0) = 0) DESC, t.due_date IS NULL, t.due_date, t.id
-                           LIMIT 100");
-    $st->execute([(int)$p['id']]);
-    $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-    if (!$rows) return $p['code'] . ' has no ' . ($openOnly ? 'open ' : '') . 'tasks.';
-    $today = gmdate('Y-m-d');
-    $lines = [$p['code'] . ' ' . $p['name'] . ' - ' . count($rows) . ($openOnly ? ' open' : '') . ' task(s):'];
-    foreach ($rows as $r) {
-        $late = !$r['done'] && $r['due_date'] && $r['due_date'] < $today;
-        $lines[] = sprintf('- %s%s [%s]%s%s', $late ? 'OVERDUE ' : '', $r['title'], $r['status'] ?: '?',
-            $r['due_date'] ? ', due ' . $r['due_date'] : '', ($r['assignee'] ? ', ' . $r['assignee'] : ', unassigned') . ($r['stage'] ? ', ' . $r['stage'] : ''));
+    require_once __DIR__ . '/../projects/assistant.php';
+    return projectAssistTasks($conn, mcpProjectScopeSql($conn, $apiKey), $args);
+}
+
+function mcpToolProjectDates(PDO $conn, array $args, int $analystId, array $apiKey): string
+{
+    require_once __DIR__ . '/../projects/assistant.php';
+    return projectAssistDates($conn, mcpProjectScopeSql($conn, $apiKey), $args);
+}
+
+/** The budget stays MCP-only: Warbot answers in a channel everyone in it can read. */
+function mcpToolProjectBudget(PDO $conn, array $args, int $analystId, array $apiKey): string
+{
+    require_once __DIR__ . '/../projects/assistant.php';
+    require_once __DIR__ . '/../projects/budget.php';
+    $p = projectAssistFind($conn, mcpProjectScopeSql($conn, $apiKey), $args['project'] ?? '');
+    if (!projectBudgetReady($conn)) return 'Budgets are not switched on yet (Database Verification).';
+    $d = projectBudgetDetail($conn, $p, $analystId);
+    $cur = $d['currency'];
+    $lines = [sprintf('%s %s budget (%s): %s planned, %s spent, %s remaining.', $p['code'], $p['name'], $cur,
+        projectAssistMoney($d['planned'], $cur), projectAssistMoney($d['actual'], $cur), projectAssistMoney($d['remaining'], $cur))];
+    $lab = $d['labour'];
+    $lines[] = 'Labour: ' . round($lab['minutes'] / 60, 1) . ' hours logged'
+        . ($lab['cost'] !== null ? ', costed at ' . projectAssistMoney($lab['cost'], $cur) : ' (shown in hours, not priced)')
+        . ($lab['unpriced_minutes'] > 0 ? '; ' . round($lab['unpriced_minutes'] / 60, 1) . ' hours have no rate in ' . $cur : '') . '.';
+    foreach ($d['lines'] as $l) {
+        $lines[] = sprintf('- %s (%s): planned %s, actual %s%s', $l['title'], $l['category'], projectAssistMoney($l['planned'], $cur),
+            $l['currency_mismatch'] ? 'not counted - its contract is in ' . $l['contract']['currency'] : projectAssistMoney($l['actual'], $cur),
+            $l['actual_source'] === 'contract' ? ' (the contract\'s value)' : '');
     }
     return implode("\n", $lines);
 }

@@ -53,7 +53,7 @@ $sections = [
     'reports'   => 3,
     'companies' => 1,
     'settings'  => 1,
-    'api'       => 1,
+    'api'       => 2,
 ];
 if (!$multi) unset($sections['companies']);
 $after = [

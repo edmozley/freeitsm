@@ -71,6 +71,10 @@ function warbotCommands(): array
         'impact'  => ['tool' => 'impact_of',        'args' => [], 'takes' => 'name',   'hint' => '<name>',  'desc' => 'what depends on it'],
         'linked'  => ['tool' => 'related_tickets',  'args' => [], 'takes' => 'ticket', 'hint' => '<ref>',   'desc' => 'linked tickets'],
         'supplier'=> ['tool' => 'supplier_contact', 'args' => [], 'takes' => 'query',  'hint' => '<name>',  'desc' => 'who to ring'],
+        // Projects (3.3.0) - only for people who can open Projects (warbotToolAllowed).
+        'projects'=> ['tool' => 'list_projects',    'args' => [],                          'desc' => 'live projects, health'],
+        'project' => ['tool' => 'project_overview', 'args' => [], 'takes' => 'project', 'hint' => '<name>', 'desc' => 'how a project is going'],
+        'dates'   => ['tool' => 'project_dates',    'args' => [], 'takes' => 'days', 'optional' => true, 'hint' => '[days]', 'desc' => 'project dates coming up'],
         'help'    => ['tool' => null,               'args' => [],                          'desc' => 'this list'],
     ];
 }
