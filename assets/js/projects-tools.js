@@ -20,7 +20,7 @@
     async function call(body) { return P.api('tools.php', Object.assign({ project_id: ctx.projectId }, body)); }
 
     // ---- People ---------------------------------------------------------------------
-    function kindIcon(kind) { return P.icon(kind === 'team' ? 'users' : (kind === 'person' ? 'heart' : 'laptop'), 14); }
+    function kindIcon(kind) { return P.icon(kind === 'team' ? 'users' : (kind === 'person' ? 'heart' : (kind === 'contractor' ? 'building' : 'laptop')), 14); }
 
     function renderPeople() {
         const box = document.getElementById('pvPeople');
@@ -38,7 +38,7 @@
                 + '<span class="prj-avatar lg">' + esc(P.initials(m.name)) + '</span>'
                 + '<div class="prj-person-main">'
                 +   '<div class="prj-person-name">' + esc(m.name) + (m.kind === 'analyst' && String(m.analyst_id) === String(pm) ? ' <span class="prj-pm-badge">' + esc(T('people.pm_badge')) + '</span>' : '') + '</div>'
-                +   '<div class="prj-person-kind">' + kindIcon(m.kind) + esc(T('people.kind_label_' + m.kind)) + (m.job_title ? ' &middot; ' + esc(m.job_title) : '') + '</div>'
+                +   '<div class="prj-person-kind">' + kindIcon(m.kind) + esc(T('people.kind_label_' + m.kind)) + (m.kind === 'contractor' && m.contact_id && m.supplier_name ? ' &middot; ' + esc(m.supplier_name) : '') + (m.job_title ? ' &middot; ' + esc(m.job_title) : '') + '</div>'
                 +   (canChange()
                         ? '<select class="prj-role-select" data-member-role="' + m.id + '" aria-label="' + esc(T('people.role')) + '">' + roleOpts(m.role_id) + '</select>'
                         : '<div class="prj-person-role">' + esc(m.role_name || T('people.no_role')) + '</div>')
@@ -107,12 +107,37 @@
         document.getElementById('pmError').hidden = true;
         fillMemberPick();
         P.openModal('prjMemberModal');
+        // The Contractor kind only for someone who can see suppliers (Contracts).
+        loadContractors().then(c => { const b = document.querySelector('#pmKind [data-kind="contractor"]'); if (b) b.hidden = !c; });
+    }
+    // Contractors (3.3.0): suppliers and their contacts - the same list the Tasks screen uses, only with Contracts.
+    let ctrChoices = null;
+    async function loadContractors() {
+        if (ctrChoices !== null) return ctrChoices;
+        try {
+            const d = await fetch(window.PRJ_BASE + 'api/tasks/contractors.php', { credentials: 'same-origin' }).then(r => r.json());
+            ctrChoices = d.success && d.allowed && d.ready !== false ? (d.suppliers || []) : false;
+        } catch (e) { ctrChoices = false; }
+        return ctrChoices;
+    }
+    function fillContacts() {
+        const s = (ctrChoices || []).find(x => String(x.id) === document.getElementById('pmSupplier').value);
+        document.getElementById('pmContact').innerHTML = '<option value="">' + esc(T('contractors.whole_supplier')) + '</option>'
+            + ((s && s.contacts) || []).map(c => '<option value="' + c.id + '">' + esc(c.name + (c.job_title ? ' - ' + c.job_title : '')) + '</option>').join('');
     }
     function fillMemberPick() {
         const L = ctx.L, taken = ctx.data.members;
-        const person = memberKind === 'person';
-        document.getElementById('pmPickWrap').hidden = person;
+        const person = memberKind === 'person', ctr = memberKind === 'contractor';
+        document.getElementById('pmPickWrap').hidden = person || ctr;
         document.getElementById('pmPersonWrap').hidden = !person;
+        document.getElementById('pmCtrWrap').hidden = !ctr;
+        if (ctr) {
+            document.getElementById('pmSupplier').innerHTML = (ctrChoices || []).length
+                ? (ctrChoices || []).map(s => '<option value="' + s.id + '">' + esc(s.name) + '</option>').join('')
+                : '<option value="">' + esc(T('contractors.no_suppliers')) + '</option>';
+            fillContacts();
+            return;
+        }
         document.getElementById('pmPersonId').value = '';
         document.getElementById('pmPerson').value = '';
         document.getElementById('pmPersonResults').hidden = true;
@@ -143,8 +168,9 @@
     async function saveMember() {
         const body = { action: 'member_add', role_id: document.getElementById('pmRole').value || null };
         if (memberKind === 'person') body.user_id = document.getElementById('pmPersonId').value;
+        else if (memberKind === 'contractor') { body.supplier_id = document.getElementById('pmSupplier').value; body.contact_id = document.getElementById('pmContact').value || null; }
         else body[memberKind === 'team' ? 'team_id' : 'analyst_id'] = document.getElementById('pmPick').value;
-        const pick = body.user_id || body.team_id || body.analyst_id;
+        const pick = body.user_id || body.team_id || body.analyst_id || body.supplier_id;
         const err = document.getElementById('pmError');
         if (!pick) { err.textContent = T('people.choose'); err.hidden = false; return; }
         try {
@@ -721,6 +747,7 @@
             document.querySelectorAll('#pmKind [data-kind]').forEach(x => x.classList.toggle('active', x === b));
             fillMemberPick();
         });
+        document.getElementById('pmSupplier').addEventListener('change', fillContacts);
         document.getElementById('pmPerson').addEventListener('input', searchPeople);
         document.getElementById('pmPerson').addEventListener('focus', searchPeople);
         document.getElementById('pmPersonResults').addEventListener('click', e => {

@@ -46,6 +46,8 @@ let currentTagFilter = '';
 // window offers (only fetched for analysts who can open Projects).
 let currentProjectFilter = '';
 let projectChoices = null;
+let contractorChoices = null;      // 3.3.0: suppliers and their contacts, once per page (null = not loaded, false = may not choose)
+let currentContractorFilter = '';
 let detailTags = [];
 // What the open task is linked to, so replacing a link can ask first (Ed).
 let detailLinks = { ticket_id: null, ticket_label: '', change_id: null, change_label: '' };
@@ -179,6 +181,7 @@ async function loadTasks() {
             tasks = data.tasks;
             tasks.forEach(t => t._search = buildSearchText(t));
             refreshProjectFilter();
+            refreshContractorFilter();
             if (currentView === 'board') renderBoard();
             else renderList();
         }
@@ -303,6 +306,39 @@ function refreshProjectFilter() {
     const keep = currentProjectFilter;
     sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_projects')) + '</option>'
         + '<option value="none">' + esc(window.t('tasks.filter.no_project')) + '</option>'
+        + Array.from(seen.entries()).sort((a, b) => String(a[1]).localeCompare(String(b[1])))
+            .map(([id, name]) => `<option value="${id}">${esc(name)}</option>`).join('');
+    sel.value = keep;
+}
+
+// ── Contractor filter (3.3.0) ─────────────────────────────────────
+// The same shape as the Project filter: built from the loaded tasks, hidden when none has a contractor.
+
+function taskMatchesContractor(t) {
+    if (!currentContractorFilter) return true;
+    if (currentContractorFilter === 'none') return !t.supplier_id;
+    if (currentContractorFilter === 'any') return !!t.supplier_id;
+    return String(t.supplier_id || '') === String(currentContractorFilter);
+}
+
+function setContractorFilter(v) {
+    currentContractorFilter = v;
+    if (currentView === 'board') renderBoard();
+    else renderList();
+}
+
+function refreshContractorFilter() {
+    const section = document.getElementById('contractorFilterSection');
+    const sel = document.getElementById('contractorFilter');
+    if (!section || !sel) return;
+    const seen = new Map();
+    tasks.forEach(t => { if (t.supplier_id && !seen.has(t.supplier_id)) seen.set(t.supplier_id, t.supplier_name); });
+    section.style.display = seen.size ? '' : 'none';
+    if (!seen.size && currentContractorFilter) currentContractorFilter = '';
+    const keep = currentContractorFilter;
+    sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_contractors')) + '</option>'
+        + '<option value="any">' + esc(window.t('tasks.filter.any_contractor')) + '</option>'
+        + '<option value="none">' + esc(window.t('tasks.filter.no_contractor')) + '</option>'
         + Array.from(seen.entries()).sort((a, b) => String(a[1]).localeCompare(String(b[1])))
             .map(([id, name]) => `<option value="${id}">${esc(name)}</option>`).join('');
     sel.value = keep;
@@ -480,7 +516,7 @@ function switchBoardGroup(group) {
 
 function renderBoardByAnalyst() {
     const board = document.getElementById('boardView');
-    const visible = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t));
+    const visible = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t));
 
     // One column per analyst who has a task in view, yours first, then by name;
     // Unassigned last. Your own column is always there, so you can drag work
@@ -557,7 +593,7 @@ function renderBoard() {
         const cardsEl = col.querySelector('.board-cards');
         const countEl = col.querySelector('.column-count');
         const filtered = tasks.filter(t =>
-            t.status === status && taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t));
+            t.status === status && taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t));
         if (countEl) countEl.textContent = filtered.length;
 
         if (filtered.length === 0) {
@@ -650,9 +686,14 @@ function renderCard(t) {
     const projectChip = t.project_id
         ? `<div class="task-card-project" style="--pc:${escAttr(t.project_colour || '#e11d48')}" title="${escAttr(window.t('tasks.detail.project') + ': ' + t.project_name + (t.project_stage_name ? ' - ' + t.project_stage_name : ''))}"><span class="task-card-project-dot"></span>${esc(t.project_name)}</div>`
         : '';
+    // Contractors (3.3.0): a supplier doing the work, and the person there.
+    const contractorChip = t.supplier_id
+        ? `<div class="task-card-contractor" title="${escAttr(window.t('tasks.detail.contractor') + ': ' + t.supplier_name + (t.contact_name ? ' - ' + t.contact_name : ''))}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1"></rect><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"></path></svg>${esc(t.supplier_name)}${t.contact_name ? ' <span>&middot; ' + esc(t.contact_name) + '</span>' : ''}</div>`
+        : '';
     return `<div class="task-card" data-id="${t.id}" onclick="openDetailPanel(${t.id})"${accent}>
         ${statusChip}
         ${projectChip}
+        ${contractorChip}
         <div class="task-card-title">${esc(t.title)}</div>
         ${descHtml}
         ${meta.length ? `<div class="task-card-meta">${meta.join('')}</div>` : ''}
@@ -1028,7 +1069,7 @@ async function endDrag(e) {
 // ── List Rendering ─────────────────────────────────────────────────
 
 function renderList() {
-    const sorted = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t)).sort((a, b) => {
+    const sorted = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t)).sort((a, b) => {
         let va = a[sortField] || '';
         let vb = b[sortField] || '';
         if (typeof va === 'string') va = va.toLowerCase();
@@ -1374,6 +1415,7 @@ async function openDetailPanel(taskId) {
         const [data] = await Promise.all([
             fetch(API_BASE + 'get.php?id=' + taskId).then(r => r.json()),
             loadProjectChoices(),   // once per page, for the Project field (3.2.0)
+            loadContractorChoices(),   // and the Contractor field (3.3.0)
         ]);
         if (!data.success) return;
         // The recent trail (#124).
@@ -1494,6 +1536,7 @@ function renderDetailPanel(task) {
         </div>` : ''}
 
         ${!task.parent_task_id ? projectFieldHtml(task) : ''}
+        ${contractorFieldHtml(task)}
 
         <!-- Who else is on this task (GH #89). Directly under Assignee, because
              "who owns it" and "who else is on it" are one question asked twice,
@@ -3268,6 +3311,58 @@ function projectFieldHtml(task) {
         <select class="detail-select" data-previous="${task.project_id || ''}" onchange="setTaskProject(${task.id}, this)">${opts}</select>
         ${stage ? `<div class="detail-project-under">${esc(window.t('tasks.detail.project_stage'))} ${stage}</div>` : ''}
     </div>`;
+}
+
+// ── Contractor (3.3.0) - includes/task_contractors.php ──────────────────────────
+
+async function loadContractorChoices() {
+    if (contractorChoices !== null) return;
+    try {
+        const d = await fetch(API_BASE + 'contractors.php').then(r => r.json());
+        contractorChoices = d.success && d.allowed && d.ready !== false ? (d.suppliers || []) : false;
+    } catch (e) { contractorChoices = false; }
+}
+
+/**
+ * A supplier doing the work, and optionally the person there. Choosing one needs
+ * Contracts (where suppliers live); without it the field only names the contractor.
+ * The assignee above stays the person here who chases it.
+ */
+function contractorFieldHtml(task) {
+    const label = `<label>${esc(window.t('tasks.detail.contractor'))}</label>`;
+    if (!contractorChoices) {
+        if (!task.supplier_id) return '';
+        return `<div class="detail-field">${label}<div class="detail-project-readonly">${esc(task.supplier_name)}${task.contact_name ? ' &middot; ' + esc(task.contact_name) : ''}</div></div>`;
+    }
+    const sup = contractorChoices.find(s => String(s.id) === String(task.supplier_id));
+    const supOpts = `<option value="">${esc(window.t('tasks.detail.no_contractor'))}</option>`
+        + contractorChoices.map(s => `<option value="${s.id}"${String(s.id) === String(task.supplier_id) ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
+    const conOpts = `<option value="">${esc(window.t('tasks.detail.no_contact'))}</option>`
+        + ((sup && sup.contacts) || []).map(c => `<option value="${c.id}"${String(c.id) === String(task.contact_id) ? ' selected' : ''}>${esc(c.name + (c.job_title ? ' - ' + c.job_title : '') + (c.has_email ? '' : ' (' + window.t('tasks.detail.no_email') + ')'))}</option>`).join('');
+    return `<div class="detail-row">
+        <div class="detail-field">${label}
+            <select class="detail-select" onchange="setTaskContractor(${task.id}, this.value, null)">${supOpts}</select>
+        </div>
+        <div class="detail-field"><label>${esc(window.t('tasks.detail.contractor_contact'))}</label>
+            <select class="detail-select" ${task.supplier_id ? '' : 'disabled'} onchange="setTaskContractor(${task.id}, ${task.supplier_id || 'null'}, this.value)">${conOpts}</select>
+        </div>
+    </div>`;
+}
+
+async function setTaskContractor(taskId, supplierId, contactId) {
+    try {
+        const r = await fetch(API_BASE + 'save.php', {
+            method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: taskId, assigned_supplier_id: supplierId || null, assigned_contact_id: contactId || null }),
+        }).then(x => x.json());
+        if (!r.success) throw new Error(r.error || 'Failed');
+        if (typeof showToast === 'function') showToast(window.t(supplierId ? 'tasks.detail.contractor_set' : 'tasks.detail.contractor_cleared'), 'success');
+        await loadTasks();
+        openDetailPanel(taskId);
+    } catch (e) {
+        if (typeof showToast === 'function') showToast(e.message, 'error');
+        openDetailPanel(taskId);
+    }
 }
 
 async function setTaskProject(taskId, sel) {

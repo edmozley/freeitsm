@@ -673,6 +673,7 @@ function supplierDetail(PDO $conn, int $analystId, int $supplierId): ?array
     $sections['contracts'] = peopleSupplierContracts($conn, $analystId, $supplierId);
     if ($can('assets'))  $sections['assets']  = peopleSupplierAssets($conn, $analystId, $supplierId);
     if ($can('domains')) $sections['domains'] = peopleSupplierDomains($conn, $analystId, ['supplier' => $supplierId]);
+    if ($can('tasks'))   $sections['tasks']   = peopleContractorTasks($conn, $analystId, ['supplier' => $supplierId]);
     return ['supplier' => $supplier, 'sections' => $sections];
 }
 
@@ -699,7 +700,48 @@ function supplierContactDetail(PDO $conn, int $analystId, int $contactId): ?arra
     if (analystCanAccessModule($conn, $analystId, 'domains')) {
         $sections['domains'] = peopleSupplierDomains($conn, $analystId, ['contact' => $contactId]);
     }
+    if (analystCanAccessModule($conn, $analystId, 'tasks')) {
+        $sections['tasks'] = peopleContractorTasks($conn, $analystId, ['contact' => $contactId]);
+    }
     return ['contact' => $contact, 'sections' => $sections];
+}
+
+/**
+ * Tasks given to a supplier, or to one person there, as a contractor (3.3.0,
+ * includes/task_contractors.php) - open first. In companies the analyst can
+ * access; a task in a members-only project they cannot see is left out.
+ */
+function peopleContractorTasks(PDO $conn, int $analystId, array $who): array
+{
+    require_once __DIR__ . '/task_contractors.php';
+    if (!tasksContractorReady($conn)) return ['total' => 0, 'open' => 0, 'rows' => []];
+    [$scope, $args] = peopleScope($conn, $analystId, 't.tenant_id');
+    $hide = '';
+    try {
+        require_once __DIR__ . '/projects/visibility.php';
+        [$vSql, $vArgs] = projectVisibleSql($conn, $analystId, 'p');
+        if ($vSql !== '') { $hide = " AND (t.project_id IS NULL OR EXISTS (SELECT 1 FROM projects p WHERE p.id = t.project_id $vSql))"; $args = array_merge($args, $vArgs); }
+    } catch (Throwable $e) { /* no Projects tables */ }
+    $col = isset($who['contact']) ? 't.assigned_contact_id' : 't.assigned_supplier_id';
+    $st = $conn->prepare(
+        "SELECT t.id, t.title, t.due_date, t.project_id, ts.name AS status, ts.colour AS status_colour, COALESCE(ts.is_closed, 0) AS is_closed,
+                an.full_name AS owner, TRIM(CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.surname, ''))) AS contact_name,
+                (SELECT name FROM projects px WHERE px.id = t.project_id) AS project_name
+           FROM tasks t
+      LEFT JOIN task_statuses ts ON ts.id = t.status_id
+      LEFT JOIN analysts an ON an.id = t.assigned_analyst_id
+      LEFT JOIN contacts c ON c.id = t.assigned_contact_id
+          WHERE $col = ? $scope $hide
+       ORDER BY COALESCE(ts.is_closed, 0), t.due_date IS NULL, t.due_date, t.id DESC LIMIT " . PEOPLE_SECTION_LIMIT);
+    $st->execute(array_merge([(int)($who['contact'] ?? $who['supplier'])], $args));
+    $today = gmdate('Y-m-d');
+    $rows = array_map(fn($r) => [
+        'id' => (int)$r['id'], 'title' => $r['title'], 'status' => $r['status'], 'status_colour' => $r['status_colour'], 'closed' => (int)$r['is_closed'] === 1,
+        'due_date' => $r['due_date'], 'late' => !(int)$r['is_closed'] && $r['due_date'] && $r['due_date'] < $today,
+        'owner' => $r['owner'], 'contact' => $r['contact_name'] ?: null, 'project' => $r['project_name'],
+        'project_url' => $r['project_id'] ? entityLink('project', (int)$r['project_id']) : null, 'url' => entityLink('task', (int)$r['id']),
+    ], $st->fetchAll(PDO::FETCH_ASSOC));
+    return ['total' => count($rows), 'open' => count(array_filter($rows, fn($r) => !$r['closed'])), 'rows' => $rows];
 }
 
 /** Contracts with the supplier - the ordinary, "we buy from them" kind. */

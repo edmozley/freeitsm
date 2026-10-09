@@ -379,6 +379,9 @@ function projectDetail(PDO $conn, array $row): array
                        ORDER BY t.board_position, t.id");
     $t->execute([$id]);
     $tasks = $t->fetchAll(PDO::FETCH_ASSOC);
+    // Contractors (3.3.0): the supplier (and person there) doing each task.
+    require_once __DIR__ . '/../task_contractors.php';
+    $tasks = tasksWithContractors($conn, $tasks);
 
     $h = $conn->prepare("SELECT pa.field_name, pa.old_value, pa.new_value, pa.source, pa.created_datetime, an.full_name AS analyst_name
                            FROM project_audit pa LEFT JOIN analysts an ON an.id = pa.analyst_id

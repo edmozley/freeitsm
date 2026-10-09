@@ -43,7 +43,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=44">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=45">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -593,6 +593,7 @@ $projectId = (int)($_GET['id'] ?? 0);
                     <button type="button" data-kind="analyst" class="active"><?php echo htmlspecialchars(t('projects.people.kind_analyst')); ?></button>
                     <button type="button" data-kind="team"><?php echo htmlspecialchars(t('projects.people.kind_team')); ?></button>
                     <button type="button" data-kind="person"><?php echo htmlspecialchars(t('projects.people.kind_person')); ?></button>
+                    <button type="button" data-kind="contractor" hidden><?php echo htmlspecialchars(t('projects.people.kind_contractor')); ?></button>
                 </div>
                 <div class="form-group" id="pmPickWrap"><label for="pmPick" id="pmPickLabel"></label><select id="pmPick"></select></div>
                 <div class="form-group" id="pmPersonWrap" hidden>
@@ -600,6 +601,11 @@ $projectId = (int)($_GET['id'] ?? 0);
                     <input type="text" id="pmPerson" placeholder="<?php echo htmlspecialchars(t('projects.people.person_ph')); ?>" autocomplete="off">
                     <ul class="prj-conn-results" id="pmPersonResults" hidden></ul>
                     <input type="hidden" id="pmPersonId">
+                </div>
+                <!-- Contractors (3.3.0): a supplier from Contracts, and optionally a person there. -->
+                <div id="pmCtrWrap" hidden>
+                    <div class="form-group"><label for="pmSupplier"><?php echo htmlspecialchars(t('projects.contractors.supplier')); ?></label><select id="pmSupplier"></select></div>
+                    <div class="form-group"><label for="pmContact"><?php echo htmlspecialchars(t('projects.contractors.contact')); ?></label><select id="pmContact"></select></div>
                 </div>
                 <div class="form-group"><label for="pmRole"><?php echo htmlspecialchars(t('projects.people.role')); ?></label><select id="pmRole"></select></div>
                 <div class="prj-form-error" id="pmError" hidden></div>
@@ -712,7 +718,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=10"></script>
-    <script src="../assets/js/projects-tools.js?v=10"></script>
+    <script src="../assets/js/projects-tools.js?v=11"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-budget.js?v=6"></script>
     <script src="../assets/js/projects-control.js?v=1"></script>
@@ -726,8 +732,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-reports.js?v=3"></script>
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
-    <script src="../assets/js/projects-timeline.js?v=2"></script>
-    <script src="../assets/js/projects-view.js?v=28"></script>
+    <script src="../assets/js/projects-timeline.js?v=3"></script>
+    <script src="../assets/js/projects-view.js?v=29"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

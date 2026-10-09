@@ -184,6 +184,11 @@ try {
         unset($tk);
     }
 
+    // Contractors (3.3.0): the supplier (and person there) doing each task - a
+    // separate read for the same reason as the projects above.
+    require_once '../../includes/task_contractors.php';
+    if ($tasks) $tasks = tasksWithContractors($conn, $tasks);
+
     // Get subtask counts for all parent tasks
     $taskIds = array_column($tasks, 'id');
     $subtaskCounts = [];

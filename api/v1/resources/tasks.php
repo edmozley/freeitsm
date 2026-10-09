@@ -52,6 +52,12 @@ function apiTaskSelect(): string {
             LEFT JOIN analysts        cb ON cb.id = t.created_by_id";
 }
 
+/** Contractors (3.3.0): the supplier and the person there, by name - includes/task_contractors.php. */
+function apiTaskContractor(PDO $conn, int $taskId): ?array {
+    require_once __DIR__ . '/../../../includes/task_contractors.php';
+    return tasksContractors($conn, [$taskId])[$taskId] ?? null;
+}
+
 function apiSerializeTask(PDO $conn, array $r): array {
     $rel = function ($id, $name, array $extra = []) {
         return $id === null ? null : array_merge(['id' => (int)$id, 'name' => $name], $extra);
@@ -89,6 +95,10 @@ function apiSerializeTask(PDO $conn, array $r): array {
         // cognate of that word is a slur in nine of the languages we ship.
         'assigned_analyst' => $rel($r['assigned_analyst_id'], $r['analyst_name']),
         'assigned_team'    => $rel($r['assigned_team_id'], $r['team_name']),
+        // Contractors (3.3.0): a supplier doing the work, and the person there. The
+        // assignee above stays the person here who chases them.
+        'contractor'         => ($ctr = apiTaskContractor($conn, (int)$r['id'])) ? ['id' => $ctr['supplier_id'], 'name' => $ctr['supplier_name']] : null,
+        'contractor_contact' => $ctr && $ctr['contact_id'] ? ['id' => $ctr['contact_id'], 'name' => $ctr['contact_name']] : null,
         'collaborators'    => array_map(function ($c) {
             return [
                 'id'           => $c['analyst_id'],

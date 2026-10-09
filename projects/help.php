@@ -48,6 +48,7 @@ $sections = [
     'targets'   => 3,
     'health'    => 1,
     'tasks'     => 2,
+    'contractors' => 4,   // 3.3.0: work given to a supplier
     'connections' => 3,
     'calendar'  => 2,
     'alerts'    => 5,
@@ -93,7 +94,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=44">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=45">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=189">
     <script src="<?php echo BASE_URL; ?>assets/js/projects-tour.js?v=1"></script>

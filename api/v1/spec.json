@@ -3827,6 +3827,16 @@
                             {
                                 "code": 422,
                                 "slug": "invalid_field",
+                                "when": "assigned_supplier_id or assigned_contact_id (3.3.0, a contractor) names a supplier or contact that does not exist, or a contact who does not work for that supplier. A contact given alone brings its supplier; null clears either."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "assigned_supplier_id or assigned_contact_id is set and the key's analyst cannot open Contracts (where suppliers live)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
                                 "when": "tags includes a name or id that isn't in the curated tag list (Tasks > Settings manages it — the API won't create new ones)."
                             }
                         ]
@@ -3950,6 +3960,16 @@
                                 "code": 422,
                                 "slug": "invalid_field",
                                 "when": "assigned_team_id, ticket_id, change_id, contract_id or parent_task_id references a record that doesn't exist (or, for ticket_id, is outside the key's company scope)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "assigned_supplier_id or assigned_contact_id (3.3.0, a contractor) names a supplier or contact that does not exist, or a contact who does not work for that supplier. A contact given alone brings its supplier; null clears either."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "assigned_supplier_id or assigned_contact_id is set and the key's analyst cannot open Contracts (where suppliers live)."
                             },
                             {
                                 "code": 422,
@@ -14931,6 +14951,16 @@
                 {
                     "code": 422,
                     "slug": "invalid_field",
+                    "when": "assigned_supplier_id or assigned_contact_id (3.3.0, a contractor) names a supplier or contact that does not exist, or a contact who does not work for that supplier. A contact given alone brings its supplier; null clears either."
+                },
+                {
+                    "code": 403,
+                    "slug": "forbidden",
+                    "when": "assigned_supplier_id or assigned_contact_id is set and the key's analyst cannot open Contracts (where suppliers live)."
+                },
+                {
+                    "code": 422,
+                    "slug": "invalid_field",
                     "when": "tags includes a name or id that isn't in the curated tag list (Tasks > Settings manages it — the API won't create new ones)."
                 }
             ]
@@ -15005,6 +15035,16 @@
                     "code": 422,
                     "slug": "invalid_field",
                     "when": "assigned_team_id, ticket_id, change_id, contract_id or parent_task_id references a record that doesn't exist (or, for ticket_id, is outside the key's company scope)."
+                },
+                {
+                    "code": 422,
+                    "slug": "invalid_field",
+                    "when": "assigned_supplier_id or assigned_contact_id (3.3.0, a contractor) names a supplier or contact that does not exist, or a contact who does not work for that supplier. A contact given alone brings its supplier; null clears either."
+                },
+                {
+                    "code": 403,
+                    "slug": "forbidden",
+                    "when": "assigned_supplier_id or assigned_contact_id is set and the key's analyst cannot open Contracts (where suppliers live)."
                 },
                 {
                     "code": 422,

@@ -78,6 +78,15 @@ class TasksService
             self::resolveAnalyst($conn, $analystId);
         }
         $teamId = self::validateTeam($conn, $in['assigned_team_id'] ?? null);
+        // A contractor (3.3.0) - checked before anything is written.
+        $contractor = [null, null];
+        if (!empty($in['assigned_supplier_id']) || !empty($in['assigned_contact_id'])) {
+            require_once __DIR__ . '/../task_contractors.php';
+            if (tasksContractorReady($conn)) {
+                self::contractorAllowed($conn, $ctx);
+                $contractor = tasksContractorValidate($conn, $in['assigned_supplier_id'] ?? null, $in['assigned_contact_id'] ?? null);
+            }
+        }
 
         $links = [];
         foreach (['parent_task_id', 'ticket_id', 'change_id', 'contract_id'] as $field) {
@@ -130,6 +139,11 @@ class TasksService
         // Its own statement, so an install that has not run Database Verification
         // (no estimate_hours column yet) can still create tasks.
         if ($estimate !== null) $conn->prepare("UPDATE tasks SET estimate_hours = ? WHERE id = ?")->execute([$estimate, $taskId]);
+        // Likewise the contractor (3.3.0), and its contact hears about it if Projects says so.
+        if ($contractor[0] !== null) {
+            $conn->prepare("UPDATE tasks SET assigned_supplier_id = ?, assigned_contact_id = ? WHERE id = ?")->execute([$contractor[0], $contractor[1], $taskId]);
+            if ($contractor[1] !== null) tasksContractorEmail($conn, $taskId, 'assigned');
+        }
 
         if ($tagIds !== null) {
             self::syncTags($conn, $taskId, $tagIds);
@@ -241,6 +255,25 @@ class TasksService
             $updates[] = 'assigned_team_id = ?';
             $args[]    = $newTeam;
         }
+        // A contractor (3.3.0) - includes/task_contractors.php. Changing the supplier
+        // drops a contact who works for the old one; a new contact may be emailed.
+        $emailContractor = false;
+        if ((array_key_exists('assigned_supplier_id', $in) || array_key_exists('assigned_contact_id', $in)) && array_key_exists('assigned_supplier_id', $current)) {
+            require_once __DIR__ . '/../task_contractors.php';
+            $curS = $current['assigned_supplier_id'] !== null ? (int)$current['assigned_supplier_id'] : null;
+            $curC = $current['assigned_contact_id'] !== null ? (int)$current['assigned_contact_id'] : null;
+            $sIn = array_key_exists('assigned_supplier_id', $in) ? $in['assigned_supplier_id'] : $curS;
+            $cIn = array_key_exists('assigned_contact_id', $in) ? $in['assigned_contact_id']
+                  : (($sIn === '' || $sIn === null || (int)$sIn !== $curS) ? null : $curC);
+            if ($sIn === '' || $sIn === null) $cIn = array_key_exists('assigned_contact_id', $in) ? $cIn : null;
+            [$newS, $newC] = tasksContractorValidate($conn, $sIn, $cIn);
+            if ($newS !== $curS || $newC !== $curC) {
+                self::contractorAllowed($conn, $ctx);
+                $updates[] = 'assigned_supplier_id = ?'; $args[] = $newS;
+                $updates[] = 'assigned_contact_id = ?';  $args[] = $newC;
+                $emailContractor = $newC !== null && $newC !== $curC;
+            }
+        }
 
         $dueChanged = false;                // GH #89 — see the dispatches below
         foreach (['start_date', 'due_date'] as $field) {
@@ -338,6 +371,7 @@ class TasksService
         if ($assignedTo !== null) {
             self::assignedDispatch($conn, $taskId, $assignedTo);
         }
+        if ($emailContractor) tasksContractorEmail($conn, $taskId, 'assigned');   // 3.3.0: only when project_contractor_email is on
         // GH #89. Once other people can be ON a task, "what happened to it" has an
         // audience beyond the owner — so the moments that matter have to announce
         // themselves. Each is separately switchable per analyst under
@@ -1207,6 +1241,17 @@ class TasksService
             $out[] = (int)$row['is_closed'];
         }
         return $out;
+    }
+
+    /**
+     * Contractors (3.3.0): suppliers live in Contracts, so CHOOSING one needs it -
+     * from the board, the REST API or Ask AI alike. The system (actorId 0) may.
+     */
+    private static function contractorAllowed(PDO $conn, ActorContext $ctx): void
+    {
+        if ($ctx->actorId > 0 && !analystCanAccessModule($conn, $ctx->actorId, 'contracts')) {
+            throw new ServiceError('forbidden', 'forbidden', 'Choosing a contractor needs access to Contracts.');
+        }
     }
 
     /** Validate an optional team id (422 on unknown). */

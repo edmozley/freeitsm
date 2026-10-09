@@ -283,6 +283,34 @@
                 "_match_by": "name",
                 "_match_value": "SQLSVR02"
             }
+        ],
+        "suppliers": [
+            {
+                "_ref": "sup_nexus",
+                "_skip_insert": true,
+                "_match_by": "legal_name",
+                "_match_value": "Nexus Managed Services Ltd"
+            },
+            {
+                "_ref": "sup_techdirect",
+                "_skip_insert": true,
+                "_match_by": "legal_name",
+                "_match_value": "TechDirect Solutions Ltd"
+            }
+        ],
+        "contacts": [
+            {
+                "_ref": "con_mark",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "mark.evans@nexusit.example.com"
+            },
+            {
+                "_ref": "con_rachel",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "rachel.green@techdirect.example.com"
+            }
         ]
     },
     "tier2": {
@@ -1375,7 +1403,13 @@
                 "board_position": 4,
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:-30d__",
-                "updated_datetime": "__RELATIVE_DATE:-19d__"
+                "updated_datetime": "__RELATIVE_DATE:-19d__",
+                "assigned_supplier_id": "@suppliers.sup_techdirect",
+                "assigned_contact_id": "@contacts.con_rachel",
+                "_optional_fields": [
+                    "assigned_supplier_id",
+                    "assigned_contact_id"
+                ]
             },
             {
                 "_ref": "po_cabling",
@@ -1392,7 +1426,13 @@
                 "board_position": 5,
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:-19d__",
-                "updated_datetime": "__RELATIVE_DATE:-3d__"
+                "updated_datetime": "__RELATIVE_DATE:-3d__",
+                "assigned_supplier_id": "@suppliers.sup_nexus",
+                "assigned_contact_id": "@contacts.con_mark",
+                "_optional_fields": [
+                    "assigned_supplier_id",
+                    "assigned_contact_id"
+                ]
             },
             {
                 "_ref": "po_switches",
@@ -1425,7 +1465,13 @@
                 "board_position": 7,
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:-1d__",
-                "updated_datetime": "__RELATIVE_DATE:-1d__"
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "assigned_supplier_id": "@suppliers.sup_nexus",
+                "assigned_contact_id": "@contacts.con_mark",
+                "_optional_fields": [
+                    "assigned_supplier_id",
+                    "assigned_contact_id"
+                ]
             },
             {
                 "_ref": "po_internet",
@@ -1441,7 +1487,12 @@
                 "board_position": 8,
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:-14d__",
-                "updated_datetime": "__RELATIVE_DATE:-1d__"
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "assigned_supplier_id": "@suppliers.sup_nexus",
+                "_optional_fields": [
+                    "assigned_supplier_id",
+                    "assigned_contact_id"
+                ]
             },
             {
                 "_ref": "po_phones",
@@ -2640,6 +2691,20 @@
                 "stance": "neutral",
                 "keep_informed": "Staff newsletter",
                 "notes": "Office staff representative"
+            },
+            {
+                "_ref": "pm_o_nexus",
+                "project_id": "@projects.prj_office",
+                "role_id": "@project_roles.role_member",
+                "position": 9,
+                "supplier_id": "@suppliers.sup_nexus",
+                "_optional": true,
+                "contact_id": "@contacts.con_mark",
+                "power": 3,
+                "interest": 3,
+                "stance": "supporter",
+                "keep_informed": "Weekly site call with Laura",
+                "notes": "Cabling, Wi-Fi and the internet line"
             },
             {
                 "_ref": "pm_w_js",

@@ -30,6 +30,7 @@ function pplStats(array $sections, bool $person, array $labels = []): string
     if (isset($sections['domains']))   $add('domains', t($person ? 'people.section.domains_person' : 'people.section.domains'), (string)$sections['domains']['total']);
     if (isset($sections['courses']))   $add('courses', t('people.section.courses'), (string)$sections['courses']['total']);
     if (isset($sections['forms']))     $add('forms', t('people.section.forms'), (string)$sections['forms']['total']);
+    if (isset($sections['tasks']))     $add('tasks', t('people.section.contractor_tasks'), t('people.section.tickets_open', ['open' => $sections['tasks']['open'], 'total' => $sections['tasks']['total']]), $sections['tasks']['open'] > 0 ? 'accent' : '');
     if (isset($sections['projects']))  $add('projects', t($person ? 'people.section.projects_person' : 'people.section.projects'), (string)$sections['projects']['total']);
     return $out === '' ? '' : '<div class="ppl-stats">' . $out . '</div>';
 }
@@ -206,6 +207,23 @@ function pplSectionProjects(array $s, bool $person): string
         return $cells;
     }, $s['rows']);
     return pplCard('projects', t($person ? 'people.section.projects_person' : 'people.section.projects'), $s['total'], $head, $rows, $s['total'] >= PEOPLE_SECTION_LIMIT);
+}
+
+/** Contractors (3.3.0): the tasks given to a supplier, or to one person there. */
+function pplSectionContractorTasks(array $s, bool $byContact): string
+{
+    $head = [t('people.section.col_task'), t('people.section.col_status'), t('people.section.col_due'), t('people.section.col_project')];
+    if (!$byContact) $head[] = t('people.section.col_contact');
+    $head[] = t('people.section.col_chased_by');
+    $rows = array_map(function ($r) use ($byContact) {
+        $cells = [pplLink($r['url'], $r['title']), pplPill((string)$r['status'], $r['status_colour']),
+                  pplE(peopleBareDate($r['due_date'])) . ($r['late'] ? ' ' . pplPill(t('people.section.overdue'), null, 'bad') : ''),
+                  $r['project'] ? pplLink($r['project_url'], $r['project']) : ''];
+        if (!$byContact) $cells[] = pplE($r['contact'] ?? '');
+        $cells[] = pplE($r['owner'] ?? '');
+        return $cells;
+    }, $s['rows']);
+    return pplCard('tasks', t('people.section.contractor_tasks'), $s['total'], $head, $rows, $s['total'] >= PEOPLE_SECTION_LIMIT);
 }
 
 /** Every section present, in a fixed order. */

@@ -33,7 +33,10 @@ function projectAlertsOverdueDigest(PDO $conn, ?int $projectId = null): int
     $mode = projectSetting($conn, 'project_overdue_digest');
     if ($mode !== 'daily' && $mode !== 'weekly') return 0;
     $period = $mode === 'daily' ? gmdate('Y-m-d') : gmdate('o-\WW');
-    $sql = "SELECT t.project_id, t.id, t.title, t.due_date, an.full_name AS assignee_name
+    // Contractors (3.3.0): a supplier's late work says whose it is.
+    require_once __DIR__ . '/../task_contractors.php';
+    $ctr = tasksContractorReady($conn) ? "(SELECT " . tasksSupplierNameSql('sp') . " FROM suppliers sp WHERE sp.id = t.assigned_supplier_id)" : 'NULL';
+    $sql = "SELECT t.project_id, t.id, t.title, t.due_date, an.full_name AS assignee_name, $ctr AS contractor_name
               FROM tasks t
               JOIN projects p ON p.id = t.project_id
          LEFT JOIN task_statuses ts ON ts.id = t.status_id
@@ -64,7 +67,7 @@ function projectAlertsOverdueDigest(PDO $conn, ?int $projectId = null): int
             'count'   => count($tasks),
             'period'  => $mode,
             // The oldest ten - the whole list is one click away on the Plan.
-            'tasks'   => array_map(fn($t) => ['id' => (int)$t['id'], 'title' => $t['title'], 'due_date' => $t['due_date'], 'assignee_name' => $t['assignee_name'],
+            'tasks'   => array_map(fn($t) => ['id' => (int)$t['id'], 'title' => $t['title'], 'due_date' => $t['due_date'], 'assignee_name' => $t['assignee_name'], 'contractor_name' => $t['contractor_name'],
                                               'days_late' => (int)round(($today - strtotime($t['due_date'] . ' 00:00:00 UTC')) / 86400)], array_slice($tasks, 0, 10)),
             'notify_ids' => [(int)$p['owner_analyst_id']],
         ]));

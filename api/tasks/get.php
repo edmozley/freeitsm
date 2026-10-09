@@ -79,6 +79,9 @@ try {
     // "Part of" line and the Project field in the task window. Guarded, like
     // the list, for installs that have not run Database Verification yet.
     require_once '../../includes/projects/methodologies.php';
+    // Contractors (3.3.0): the supplier and the person there, by name.
+    require_once '../../includes/task_contractors.php';
+    $task = tasksWithContractors($conn, [$task])[0];
     $task['project_name'] = $task['project_colour'] = $task['project_stage_name'] = null;
     if (!empty($task['project_id']) && projectsSchemaReady($conn)) {
         $pst = $conn->prepare("SELECT p.name, p.colour, s.name AS stage_name

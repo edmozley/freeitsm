@@ -196,6 +196,11 @@ function projectAlertsScan(PDO $conn, ?int $projectId = null): array
     require_once __DIR__ . '/nudges.php';
     $out['overdue_digests'] = projectAlertsOverdueDigest($conn, $projectId);
     $out['nudges'] = projectAlertsStalled($conn, $projectId);
+    // Contractors' due-soon and overdue reminders (3.3.0) - install-wide, so the full scan only.
+    if ($projectId === null) {
+        require_once __DIR__ . '/../task_contractors.php';
+        $out['contractor_reminders'] = tasksContractorReminders($conn);
+    }
     // Scheduled report drafts (3.3.0).
     require_once __DIR__ . '/../services/project_reports.php';
     $out['reports'] = ProjectReportsService::runSchedules($conn, $projectId);

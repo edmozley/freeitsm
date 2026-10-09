@@ -112,6 +112,7 @@ $sections = $data['sections'] ?? [];
                 if (isset($sections['contracts'])) echo pplSectionContracts($sections['contracts'], false, t('people.supplier.contracts'));
                 if (isset($sections['assets']))    echo pplSectionAssets($sections['assets'], false, t('people.supplier.assets'));
                 if (isset($sections['domains']))   echo pplSectionDomains($sections['domains'], false, t('people.supplier.domains'));
+                if (isset($sections['tasks']))     echo pplSectionContractorTasks($sections['tasks'], false);
                 ?>
             </div>
         </div>

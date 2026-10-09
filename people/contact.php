@@ -85,6 +85,7 @@ $sections = $data['sections'] ?? [];
             </aside>
             <div class="ppl-main">
                 <?php if (isset($sections['domains'])) echo pplSectionDomains($sections['domains'], false, t('people.contact.domains')); ?>
+                <?php if (isset($sections['tasks'])) echo pplSectionContractorTasks($sections['tasks'], true); ?>
             </div>
         </div>
     <?php endif; ?>

@@ -27,10 +27,11 @@ class ProjectToolsService
     //  People
     // ======================================================================
 
-    /** Add a member: exactly one of analyst_id / team_id / user_id. Returns its id. */
+    /** Add a member: exactly one of analyst_id / team_id / user_id / supplier_id (+ contact_id). Returns its id. */
     public static function addMember(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
     {
         $project = self::changeable($conn, $ctx, $projectId);
+        if (!empty($in['supplier_id']) || !empty($in['contact_id'])) return self::addContractorMember($conn, $ctx, $projectId, $in);
         $analyst = (int)($in['analyst_id'] ?? 0); $team = (int)($in['team_id'] ?? 0); $user = (int)($in['user_id'] ?? 0);
         if ((($analyst > 0) + ($team > 0) + ($user > 0)) !== 1) {
             throw new ServiceError('validation', 'invalid_field', 'Choose one analyst, team or person.');
@@ -63,6 +64,51 @@ class ProjectToolsService
         $id = (int)$conn->lastInsertId();
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'member_added', null, self::memberName($conn, $id), self::src($ctx));
         return $id;
+    }
+
+    /**
+     * A contractor on the team (3.3.0): a supplier, or one person there (which
+     * brings its supplier). Suppliers live in Contracts, so adding one needs it.
+     */
+    private static function addContractorMember(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        require_once __DIR__ . '/../task_contractors.php';
+        if (!tasksContractorReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        try { $conn->query("SELECT supplier_id, contact_id FROM project_members LIMIT 0"); }
+        catch (Throwable $e) { throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.'); }
+        if ($ctx->actorId > 0 && function_exists('analystCanAccessModule') && !analystCanAccessModule($conn, $ctx->actorId, 'contracts')) {
+            throw new ServiceError('forbidden', 'forbidden', 'Adding a contractor needs access to Contracts.');
+        }
+        try { [$sid, $cid] = tasksContractorValidate($conn, $in['supplier_id'] ?? null, $in['contact_id'] ?? null); }
+        catch (Throwable $e) { throw new ServiceError('validation', 'invalid_field', $e->getMessage()); }
+        if ($sid === null) throw new ServiceError('validation', 'invalid_field', 'Choose a supplier.');
+        $dup = $conn->prepare("SELECT id FROM project_members WHERE project_id = ? AND supplier_id = ? AND contact_id <=> ?");
+        $dup->execute([$projectId, $sid, $cid]);
+        if ($dup->fetchColumn()) throw new ServiceError('conflict', 'conflict', 'They are already on this project.');
+        $role = self::roleId($conn, $in['role_id'] ?? null);
+        $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_members WHERE project_id = " . $projectId)->fetchColumn();
+        $conn->prepare("INSERT INTO project_members (project_id, supplier_id, contact_id, role_id, notes, position, created_by_analyst_id, created_datetime)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$projectId, $sid, $cid, $role, self::str($in['notes'] ?? null, 255), $pos, $ctx->actorId > 0 ? $ctx->actorId : null]);
+        $id = (int)$conn->lastInsertId();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'member_added', null, self::memberName($conn, $id), self::src($ctx));
+        return $id;
+    }
+
+    /** The member columns for a contractor (3.3.0), or NULLs before Database Verification. */
+    private static function contractorMemberSql(PDO $conn): array
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $conn->query("SELECT supplier_id, contact_id FROM project_members LIMIT 0"); $conn->query("SELECT 1 FROM suppliers LIMIT 0"); $ready = true; }
+            catch (Throwable $e) { $ready = false; }
+        }
+        if (!$ready) return ['cols' => 'NULL AS supplier_id, NULL AS contact_id, NULL AS supplier_name', 'name' => 'NULL', 'join' => ''];
+        return [
+            'cols' => 'm.supplier_id, m.contact_id, COALESCE(NULLIF(sp.trading_name, \'\'), sp.legal_name) AS supplier_name',
+            'name' => "NULLIF(TRIM(CONCAT(COALESCE(ct.first_name, ''), ' ', COALESCE(ct.surname, ''))), ''), COALESCE(NULLIF(sp.trading_name, ''), sp.legal_name)",
+            'join' => ' LEFT JOIN suppliers sp ON sp.id = m.supplier_id LEFT JOIN contacts ct ON ct.id = m.contact_id',
+        ];
     }
 
     public static function updateMember(PDO $conn, ActorContext $ctx, int $projectId, int $memberId, array $in): void
@@ -935,16 +981,18 @@ class ProjectToolsService
     public static function members(PDO $conn, int $projectId): array
     {
         try {
+            // Contractors (3.3.0): a supplier, or a person there - kind 'contractor'.
+            $c = self::contractorMemberSql($conn);
             $st = $conn->prepare(
-                "SELECT m.id, m.analyst_id, m.team_id, m.user_id, m.role_id, r.name AS role_name, m.notes, m.position, " . self::stakeColumns($conn) . ",
-                        COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email)) AS name,
-                        CASE WHEN m.analyst_id IS NOT NULL THEN 'analyst' WHEN m.team_id IS NOT NULL THEN 'team' ELSE 'person' END AS kind,
-                        COALESCE(a.email, u.email) AS email, u.job_title
+                "SELECT m.id, m.analyst_id, m.team_id, m.user_id, m.role_id, r.name AS role_name, m.notes, m.position, " . self::stakeColumns($conn) . ", " . $c['cols'] . ",
+                        COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email), " . $c['name'] . ") AS name,
+                        CASE WHEN m.analyst_id IS NOT NULL THEN 'analyst' WHEN m.team_id IS NOT NULL THEN 'team' WHEN m.user_id IS NOT NULL THEN 'person' ELSE 'contractor' END AS kind,
+                        COALESCE(a.email, u.email" . ($c['join'] ? ', ct.email' : '') . ") AS email, COALESCE(u.job_title" . ($c['join'] ? ', ct.job_title' : '') . ") AS job_title
                    FROM project_members m
               LEFT JOIN project_roles r ON r.id = m.role_id
               LEFT JOIN analysts a ON a.id = m.analyst_id
               LEFT JOIN teams tm ON tm.id = m.team_id
-              LEFT JOIN users u ON u.id = m.user_id
+              LEFT JOIN users u ON u.id = m.user_id" . $c['join'] . "
                   WHERE m.project_id = ? ORDER BY m.position, m.id");
             $st->execute([$projectId]);
             return $st->fetchAll(PDO::FETCH_ASSOC);
@@ -1495,8 +1543,9 @@ class ProjectToolsService
 
     private static function memberName(PDO $conn, int $memberId): string
     {
-        $st = $conn->prepare("SELECT COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email)) FROM project_members m
-                                LEFT JOIN analysts a ON a.id = m.analyst_id LEFT JOIN teams tm ON tm.id = m.team_id LEFT JOIN users u ON u.id = m.user_id
+        $c = self::contractorMemberSql($conn);
+        $st = $conn->prepare("SELECT COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email), " . $c['name'] . ") FROM project_members m
+                                LEFT JOIN analysts a ON a.id = m.analyst_id LEFT JOIN teams tm ON tm.id = m.team_id LEFT JOIN users u ON u.id = m.user_id" . $c['join'] . "
                                WHERE m.id = ?");
         $st->execute([$memberId]);
         return (string)($st->fetchColumn() ?: ('#' . $memberId));

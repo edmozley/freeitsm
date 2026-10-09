@@ -466,6 +466,10 @@ class ProjectsService
         // and notifications carry the right company - not created in the
         // analyst's active company and moved afterwards.
         unset($in['id'], $in['ticket_id'], $in['parent_task_id']);
+        // A contractor (3.3.0) is set after the task is in the project, so the
+        // contact's email (when Projects sends them) names the project.
+        $contractor = array_intersect_key($in, ['assigned_supplier_id' => 1, 'assigned_contact_id' => 1]);
+        unset($in['assigned_supplier_id'], $in['assigned_contact_id']);
         $in['tenant_id'] = isMultiTenant($conn)
             ? ($project['tenant_id'] === null ? (int)getDefaultTenantId($conn) : (int)$project['tenant_id'])
             : null;
@@ -473,6 +477,7 @@ class ProjectsService
         $taskId = (int)$res['id'];
         $conn->prepare("UPDATE tasks SET tenant_id = ?, project_id = ?, project_stage_id = ? WHERE id = ?")
              ->execute([$project['tenant_id'], $projectId, $stageId, $taskId]);
+        if (array_filter($contractor)) TasksService::saveTask($conn, $ctx, ['id' => $taskId] + $contractor);
         self::touch($conn, $projectId);
         return $taskId;
     }

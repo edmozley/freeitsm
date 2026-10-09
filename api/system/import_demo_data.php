@@ -306,6 +306,14 @@ try {
                     catch (Exception $e) { continue; }
                     unset($record['_optional']);
                 }
+                // "_optional_fields" (3.3.0): the record is kept and only these fields are
+                // left empty when what they point at is not there - a demo task given to a
+                // demo supplier, imported without Contracts' demo data.
+                foreach ((array)($record['_optional_fields'] ?? []) as $f) {
+                    $v = $record[$f] ?? null;
+                    if (is_string($v) && strpos($v, '@') === 0 && !isset($idMap[substr($v, 1)])) unset($record[$f]);
+                }
+                unset($record['_optional_fields']);
                 $record = resolveReferences($record, $idMap);
                 $record = resolveTokens($record, $conn);
 

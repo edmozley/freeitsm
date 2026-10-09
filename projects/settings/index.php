@@ -49,7 +49,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=44">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=45">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -83,6 +83,8 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('toolbox'), $tt('toolbox_desc'), '<select data-k="project_toolbox"><option value="1">' . htmlspecialchars(t('common.yes')) . '</option><option value="0">' . htmlspecialchars(t('common.no')) . '</option></select><div class="dflt" data-d="project_toolbox"></div>');
             // 3.3.0 the AI assistant's memory.
             $row($tt('assistant_memory'), $tt('assistant_memory_desc'), '<select data-k="project_assistant_memory"><option value="person">' . $tt('memory_person') . '</option><option value="project">' . $tt('memory_project') . '</option></select><div class="dflt" data-d="project_assistant_memory"></div>');
+            // 3.3.0 contractors.
+            $row($tt('contractor_email'), $tt('contractor_email_desc'), '<select data-k="project_contractor_email"><option value="off">' . $tt('contractor_email_off') . '</option><option value="on">' . $tt('contractor_email_on') . '</option></select><div class="dflt" data-d="project_contractor_email"></div>');
             // 3.3.0 reminders.
             $row($tt('overdue_digest'), $tt('overdue_digest_desc'), '<select data-k="project_overdue_digest"><option value="weekly">' . $tt('digest_weekly') . '</option><option value="daily">' . $tt('digest_daily') . '</option><option value="off">' . $tt('digest_off') . '</option></select><div class="dflt" data-d="project_overdue_digest"></div>');
             $row($tt('nudge_days'), $tt('nudge_days_desc'), '<input type="number" min="0" max="30" data-k="project_nudge_days"><div class="dflt" data-d="project_nudge_days"></div>');
@@ -252,7 +254,7 @@ $row = function (string $label, string $desc, string $control) {
     </div>
 
     <script src="../../assets/js/projects.js?v=10"></script>
-    <script src="../../assets/js/projects-settings.js?v=16"></script>
+    <script src="../../assets/js/projects-settings.js?v=17"></script>
     <script src="../../assets/js/ai-settings.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>

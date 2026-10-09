@@ -28,6 +28,7 @@ return [
         'analyst'  => 'Analyst',
         'tag'      => 'Tag',
         'project'  => 'Project',
+        'contractor' => 'Contractor',
         'legend'   => 'Legend',
         'group_by' => 'Group by',
         'show'     => 'Show',
@@ -45,6 +46,9 @@ return [
         'all_analysts'  => 'All analysts',
         'all_tags'      => 'All tags',
         'all_projects'  => 'All projects',
+        'all_contractors' => 'All',
+        'any_contractor'  => 'With a contractor',
+        'no_contractor'   => 'Not with a contractor',
         'no_project'    => 'Not in a project',
         // Task calendar only (#90). A subtask is the same record as a task, so
         // the list endpoint leaves subtasks out unless a caller opts in.
@@ -118,6 +122,13 @@ return [
         'team'           => 'Team',
         'unassigned'     => 'Unassigned',
         'no_team'        => 'No team',
+        'contractor'         => 'Contractor',
+        'contractor_contact' => 'Contact there',
+        'no_contractor'      => 'No contractor',
+        'no_contact'         => 'Nobody in particular',
+        'no_email'           => 'no email',
+        'contractor_set'     => 'Contractor saved',
+        'contractor_cleared' => 'Contractor removed',
         // Multi-company installs only; hidden on a subtask, which always
         // follows its parent.
         'company'        => 'Company',
@@ -566,6 +577,8 @@ return [
         'panel_field_title'    => '<strong>Title</strong> &mdash; click and type at the top of the panel.',
         'panel_field_status'   => '<strong>Status &amp; Priority</strong> &mdash; dropdowns built from your configured lookups.',
         'panel_field_assignee' => '<strong>Assignee &amp; Team</strong> &mdash; who owns the task and which team it belongs to.',
+        'panel_field_contractor' => '<strong>Contractor &amp; Contact there</strong> &mdash; when an outside firm does the work: a supplier from Contracts and, if you like, a person there. The assignee stays the person here who chases them. Choosing one needs access to Contracts.',
+        'panel_contractor_note'  => '<strong>Contractor work</strong> shows the firm&rsquo;s name on the card, and the <strong>Contractor</strong> filter in the left panel (shown once any task has one) narrows the board to one firm, to every task with a contractor, or to none. Projects can email the person at the firm when they are given a task and when it is due &mdash; off unless someone turns it on in Projects &rarr; Settings.',
         'panel_field_dates'    => '<strong>Start &amp; Due dates</strong> &mdash; together they define the span shown on the calendar and timeline.',
         'panel_field_tags'     => '<strong>Tags</strong> &mdash; a type-to-filter picker; add as many as you like, remove with the &times; on each chip.',
         'panel_field_desc'     => '<strong>Description</strong> &mdash; a rich-text editor with bold, lists and links.',

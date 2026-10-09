@@ -146,6 +146,12 @@ return [
         'projects'       => 'Projects',
         'projects_person' => 'Projects they are part of',
         'col_project'    => 'Project',
+        // Contractors (3.3.0): tasks given to a supplier or a person there.
+        'contractor_tasks' => 'Tasks with them',
+        'col_task'       => 'Task',
+        'col_due'        => 'Due',
+        'col_contact'    => 'Person there',
+        'col_chased_by'  => 'Chased by',
         'col_role'       => 'Role',
         // A person's RACI duties on a project, under their role: "Accountable for Phones working on day one".
         'duty'           => '{role} for {items}',
@@ -222,7 +228,7 @@ return [
             'card_read_title'    => 'Read, never write',
             'card_read_desc'     => 'People only shows. Changes are made where the details are kept, one click away.',
             'card_supplier_title' => 'One page per supplier',
-            'card_supplier_desc'  => 'Its contacts, contracts, the equipment bought from it and the domains it is involved in.',
+            'card_supplier_desc'  => 'Its contacts, contracts, the equipment bought from it, the domains it is involved in and the tasks it is doing.',
         ],
         'people' => [
             'nav'   => 'Finding someone',
@@ -267,7 +273,7 @@ return [
             'title' => 'Suppliers and their contacts',
             'intro' => 'The organisations in Contracts, and the people at them, each with a page of their own.',
             'p1'    => '**Suppliers** lists every organisation in Contracts → Suppliers with its type, where it is, and how many contacts and contracts it has. Search by the supplier\'s name, the town, or the name or email of anyone who works there. **Show** picks current suppliers or all of them.',
-            'p2'    => 'A supplier\'s page has its details and its contacts, then the contracts with it, the equipment bought from it, and its domains - the ones where it is the registrar, the customer, or the technical contact through one of its people. **As** says which. A contact\'s page shows how to reach them, their supplier, and the domains they are named on.',
+            'p2'    => 'A supplier\'s page has its details and its contacts, then the contracts with it, the equipment bought from it, and its domains - the ones where it is the registrar, the customer, or the technical contact through one of its people. **As** says which. A contact\'s page shows how to reach them, their supplier, and the domains they are named on. Both list the **tasks with them** - work given to them as a contractor, open first, with its project and who here chases it (3.3.0; needs Tasks).',
             'p3'    => 'Suppliers and their contacts are **shown** here, not moved here. They are still kept and edited in Contracts (**Edit in Contracts** at the top of the page), and a supplier\'s contact never becomes somebody who can sign in, raise a ticket or be picked up by directory sync.',
             'p4'    => 'Because Contracts keeps them, the Suppliers tab and these pages need **Contracts** as well as People. Each section still needs its own module, and domains and equipment are limited to the companies you can access.',
         ],

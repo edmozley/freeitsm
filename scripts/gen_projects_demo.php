@@ -48,6 +48,11 @@ foreach ([['ct_network', 'Managed Network Services'], ['ct_hardware', 'Hardware 
 foreach ([['ka_wifi', 'Troubleshooting Wi-Fi and Slow Network Connectivity'], ['ka_mail', 'Troubleshooting Email Delivery Delays'], ['ka_mobile', 'Setting Up Company Email on Mobile Devices'],
           ['ka_hardware', 'How to Request IT Hardware and Equipment']] as [$r, $v]) $skip('knowledge_articles', $r, 'title', $v);
 foreach ([['ci_sql1', 'SQLSVR01'], ['ci_sql2', 'SQLSVR02']] as [$r, $v]) $skip('cmdb_objects', $r, 'name', $v);
+// Contractors (3.3.0): Contracts' demo suppliers and a person there (contracts.json imports first).
+$skip('suppliers', 'sup_nexus', 'legal_name', 'Nexus Managed Services Ltd');
+$skip('suppliers', 'sup_techdirect', 'legal_name', 'TechDirect Solutions Ltd');
+$skip('contacts', 'con_mark', 'email', 'mark.evans@nexusit.example.com');
+$skip('contacts', 'con_rachel', 'email', 'rachel.green@techdirect.example.com');
 
 // ---- Builders ------------------------------------------------------------------------------------------
 $T = [];    // table => rows
@@ -105,9 +110,22 @@ $member = function (string $prj, string $ref, array $who, string $role, int $pos
     if (isset($who['analyst'])) $row['analyst_id'] = $A($who['analyst']);
     if (isset($who['team'])) $row['team_id'] = '@teams.' . $who['team'];
     if (isset($who['user'])) { $row['user_id'] = '@users.' . $who['user']; $row['_optional'] = true; }
+    // A contractor (3.3.0): left out when Contracts' demo data is not there.
+    if (isset($who['supplier'])) { $row['supplier_id'] = '@suppliers.' . $who['supplier']; $row['_optional'] = true; }
+    if (isset($who['contact'])) $row['contact_id'] = '@contacts.' . $who['contact'];
     foreach (['power', 'interest', 'stance', 'keep_informed'] as $k) if (isset($stake[$k])) $row[$k] = $stake[$k];
     if (!empty($who['notes'])) $row['notes'] = $who['notes'];
     $add('tier3', 'project_members', $row);
+};
+// Give a task to a contractor (3.3.0). The task is kept without one when Contracts' demo data is not there.
+$contractor = function (string $taskRef, string $sup, ?string $con = null) use (&$T) {
+    foreach ($T['tier2']['tasks'] as &$r) if ($r['_ref'] === $taskRef) {
+        $r['assigned_supplier_id'] = '@suppliers.' . $sup;
+        if ($con) $r['assigned_contact_id'] = '@contacts.' . $con;
+        $r['_optional_fields'] = ['assigned_supplier_id', 'assigned_contact_id'];
+        return;
+    }
+    die("no task $taskRef\n");
 };
 $raid = function (string $prj, array $r) use ($add, $D, $DT, $A) {
     $row = ['project_id' => '@projects.' . $prj, 'type' => $r['type'], 'title' => $r['title'], 'description' => $r['description'] ?? null,
@@ -211,6 +229,12 @@ $member('prj_office', 'pm_o_sd', ['team' => 'servicedesk'], 'role_member', 5, ['
 $member('prj_office', 'pm_o_alice', ['user' => 'u_alice', 'notes' => 'Facilities manager'], 'role_su', 6, ['power' => 4, 'interest' => 5, 'stance' => 'supporter', 'keep_informed' => 'Fortnightly call; every highlight report']);
 $member('prj_office', 'pm_o_bob', ['user' => 'u_bob', 'notes' => 'Finance director'], 'role_stake', 7, ['power' => 5, 'interest' => 2, 'stance' => 'sceptic', 'keep_informed' => 'Budget summary each month - keep it short']);
 $member('prj_office', 'pm_o_claire', ['user' => 'u_claire', 'notes' => 'Office staff representative'], 'role_stake', 8, ['power' => 1, 'interest' => 5, 'stance' => 'neutral', 'keep_informed' => 'Staff newsletter']);
+// The cabling firm (3.3.0): Nexus does the cabling, Wi-Fi and the internet line; Laura Brown and Mike Jones chase them.
+$member('prj_office', 'pm_o_nexus', ['supplier' => 'sup_nexus', 'contact' => 'con_mark', 'notes' => 'Cabling, Wi-Fi and the internet line'], 'role_member', 9, ['power' => 3, 'interest' => 3, 'stance' => 'supporter', 'keep_informed' => 'Weekly site call with Laura']);
+$contractor('po_cabling', 'sup_nexus', 'con_mark');
+$contractor('po_wifi', 'sup_nexus', 'con_mark');
+$contractor('po_internet', 'sup_nexus');
+$contractor('po_order_switch', 'sup_techdirect', 'con_rachel');
 $item('prj_office', 'pi_o_network', 'Network live on every floor', 'must', 'in_progress', 1, 'ps_office_network', 'Every desk patched and tested; Wi-Fi survey passed on all floors.');
 $item('prj_office', 'pi_o_phones', 'Phones working on day one', 'must', 'proposed', 2, 'ps_office_network', 'Every direct dial rings in Bradford on the Monday.');
 $item('prj_office', 'pi_o_desks', 'Every desk tested before Monday', 'must', 'proposed', 3, 'ps_office_move');

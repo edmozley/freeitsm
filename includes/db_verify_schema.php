@@ -3637,6 +3637,9 @@ return [
         'due_date'            => 'DATE NULL',
         'assigned_analyst_id' => 'INT NULL',
         'assigned_team_id'    => 'INT NULL',
+        // Contractors (3.3.0) - includes/task_contractors.php.
+        'assigned_supplier_id' => 'INT NULL',
+        'assigned_contact_id' => 'INT NULL',
         'parent_task_id'      => 'INT NULL',
         'ticket_id'           => 'INT NULL',
         'change_id'           => 'INT NULL',
@@ -5297,6 +5300,9 @@ return [
         'team_id'               => 'INT NULL',
         'user_id'               => 'INT NULL',
         'role_id'               => 'INT NULL',
+        // A contractor on the team (3.3.0): a supplier, and optionally one of its contacts.
+        'supplier_id'           => 'INT NULL',
+        'contact_id'            => 'INT NULL',
         'notes'                 => 'VARCHAR(255) NULL',
         // Stakeholder map (3.3.0).
         'power'                 => 'TINYINT NULL',

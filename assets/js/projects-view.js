@@ -341,6 +341,8 @@
             // Dependencies (3.3.0): what it is waiting for, and a plan that cannot be true as written.
             + ((t.waiting_on || []).length && !closed ? '<span class="prj-task-wait" title="' + esc(T('deps.waiting_tip', { names: t.waiting_on.map(id => ((data.tasks.find(x => x.id === id) || {}).title || '#' + id)).join(', ') })) + '">' + esc(T('deps.waiting', { count: t.waiting_on.length })) + '</span>' : '')
             + (t.clash && !closed ? '<span class="prj-task-clash" title="' + esc(T('deps.clash')) + '">' + esc(T('deps.clash_short')) + '</span>' : '')
+            // Contractors (3.3.0): a supplier doing the work; the avatar stays the person here who chases it.
+            + (t.supplier_id ? '<span class="prj-task-ctr" title="' + esc(T('contractors.tip', { name: t.supplier_name + (t.contact_name ? ' - ' + t.contact_name : '') })) + '">' + esc(t.supplier_name) + '</span>' : '')
             + (t.due_date ? '<span class="prj-due' + (late ? ' late' : '') + '">' + esc(P.fmtDate(t.due_date)) + '</span>' : '<span class="prj-due none"></span>')
             + '<span class="prj-avatar sm" title="' + esc(t.assignee_name || t.team_name || T('plan.unassigned_person')) + '">' + esc(t.assignee_name ? P.initials(t.assignee_name) : (t.team_name ? P.initials(t.team_name) : '-')) + '</span>'
             + '<button type="button" class="prj-task-remove" data-remove-task="' + t.id + '" title="' + esc(T('plan.remove_task')) + '" aria-label="' + esc(T('plan.remove_task')) + '">&times;</button>'

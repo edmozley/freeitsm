@@ -1539,6 +1539,15 @@ try {
             try { $conn->exec("ALTER TABLE tasks ADD CONSTRAINT fk_tasks_recurrence FOREIGN KEY (recurrence_id) REFERENCES task_recurrences (id) ON DELETE SET NULL"); } catch (Exception $e) {}
         }
     }
+    // Contractors (3.3.0): a task's supplier and contact go to NULL if either is deleted.
+    if ($tableExists('tasks') && $colExists('tasks', 'assigned_supplier_id')) {
+        if (!$fkExists('tasks', 'fk_tasks_supplier')) {
+            try { $conn->exec("ALTER TABLE tasks ADD CONSTRAINT fk_tasks_supplier FOREIGN KEY (assigned_supplier_id) REFERENCES suppliers (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('tasks', 'fk_tasks_contact')) {
+            try { $conn->exec("ALTER TABLE tasks ADD CONSTRAINT fk_tasks_contact FOREIGN KEY (assigned_contact_id) REFERENCES contacts (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+    }
     if ($tableExists('tasks') && $colExists('tasks', 'recurrence_master_id')) {
         if (!$fkExists('tasks', 'fk_tasks_recurrence_master')) {
             try { $conn->exec("ALTER TABLE tasks ADD CONSTRAINT fk_tasks_recurrence_master FOREIGN KEY (recurrence_master_id) REFERENCES tasks (id) ON DELETE SET NULL"); } catch (Exception $e) {}
@@ -2951,6 +2960,9 @@ try {
         ['project_budget_lines', 'fk_pbl_project', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_budget_lines', 'fk_pbl_contract', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_contract FOREIGN KEY (contract_id) REFERENCES contracts (id) ON DELETE SET NULL"],
         ['project_budget_lines', 'fk_pbl_cost_centre', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_cost_centre FOREIGN KEY (cost_centre_id) REFERENCES cost_centres (id) ON DELETE SET NULL"],
+        // A contractor on a project team (3.3.0): the member goes with its supplier or contact.
+        ['project_members', 'fk_pmem_supplier', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE CASCADE"],
+        ['project_members', 'fk_pmem_contact', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_contact FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE"],
         // The AI project assistant (3.3.0).
         ['project_ai_threads', 'fk_pait_project', "ALTER TABLE project_ai_threads ADD CONSTRAINT fk_pait_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_ai_threads', 'fk_pait_analyst', "ALTER TABLE project_ai_threads ADD CONSTRAINT fk_pait_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"],

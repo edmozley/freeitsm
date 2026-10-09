@@ -262,6 +262,7 @@ return [
     ['task_statuses', 'uq_task_statuses_name', 'unique', '(`name`)'],
     ['task_priorities', 'uq_task_priorities_name', 'unique', '(`name`)'],
     ['tasks', 'ix_tasks_project', 'key', '(`project_id`)'],
+    ['tasks', 'ix_tasks_supplier', 'key', '(`assigned_supplier_id`)'],
     ['tasks', 'ix_tasks_project_stage', 'key', '(`project_stage_id`)'],
     ['tasks', 'ix_tasks_status_id', 'key', '(`status_id`)'],
     ['tasks', 'ix_tasks_priority_id', 'key', '(`priority_id`)'],

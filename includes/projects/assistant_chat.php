@@ -21,7 +21,7 @@
  *     everything older folded into the thread's `summary` (projectChatSummarise())
  *     - the memory that means a resumed conversation does not start cold;
  *   - more detail on demand through READ tools (list_tasks, list_stages,
- *     list_raid, list_milestones, list_analysts), which also give it the ids a
+ *     list_raid, list_milestones, list_analysts, list_suppliers), which also give it the ids a
  *     proposal needs.
  *
  * WHAT IT CAN DO - PROPOSE, NEVER CHANGE
@@ -168,6 +168,7 @@ function projectChatSystem(PDO $conn, array $project, int $analystId, array $mat
         . ($canChange
             ? '- You change NOTHING yourself. To change the project, call the propose_* tools: each proposal appears to the user as a line on a card with Apply and Dismiss, and only Apply makes it happen (with their permissions). Never say a change is made - say you have proposed it and they can apply it. Group related proposals in one turn. Dates are YYYY-MM-DD. You may refer to a stage or task you are proposing in the same turn by its name or title.' . "\n"
             : '- ' . $name . ' may NOT change this project (only its team or people who manage Projects can). Do not call any propose_* tool; advise, and say who could make the change.' . "\n")
+        . '- Work can be given to a contractor - a supplier, and optionally a person there (list_suppliers, then propose_task with supplier_id, or propose_task_contractor). The assignee stays the person here who owns and chases it. Contractor work is not in anybody\'s capacity here, so when an outside firm is doing something, say so and chase the person who owns it.' . "\n"
         . '- Suggest switching on a tool (propose_tools) only when the project clearly needs it. Tools on now: ' . ($tools ?: 'none') . '. All tools: ' . $all . '.' . "\n"
         . "\nWHERE THIS PROJECT IS: " . strtoupper($maturity['stage']) . ' (' . $maturity['done'] . ' of ' . $maturity['of'] . " set up)\n" . $mode . "\n"
         . 'Checklist: ' . $check . '. Counts: ' . $c['tasks'] . ' tasks (' . $c['overdue'] . ' overdue), ' . $c['stages'] . ' stages, ' . $c['members'] . ' members, '
@@ -188,6 +189,8 @@ function projectChatTools(): array
         ['name' => 'list_raid', 'description' => 'The RAID log: risks, assumptions, issues, dependencies, decisions, lessons, with scores and owners.', 'schema' => $s(['open_only' => ['type' => 'boolean']])],
         ['name' => 'list_milestones', 'description' => 'The milestones with due dates and whether reached.', 'schema' => $s([])],
         ['name' => 'list_analysts', 'description' => 'Analysts who could be given work or roles, with ids. Optional search by name.', 'schema' => $s(['search' => $str])],
+        // Contractors (3.3.0): suppliers (Contracts) and the people there.
+        ['name' => 'list_suppliers', 'description' => 'Suppliers (contractors) that could be given work, with ids and their contacts\' ids. Optional search by name.', 'schema' => $s(['search' => $str])],
         ['name' => 'propose_project_details', 'description' => 'Propose setting the project\'s own details. Give only what should change.', 'schema' => $s([
             'goal' => ['type' => 'string', 'description' => 'One sentence: what done looks like'], 'summary' => $str, 'business_case' => $str,
             'methodology' => ['type' => 'string', 'enum' => ['simple', 'staged', 'agile']], 'start_date' => $date, 'target_end_date' => $date,
@@ -195,7 +198,10 @@ function projectChatTools(): array
         ['name' => 'propose_stage', 'description' => 'Propose a new stage (or phase, or sprint).', 'schema' => $s(['name' => $str, 'goal' => $str, 'start_date' => $date, 'end_date' => $date], ['name'])],
         ['name' => 'propose_task', 'description' => 'Propose a new task. Stage by id or by name (a stage proposed in this turn counts).', 'schema' => $s([
             'title' => $str, 'description' => $str, 'stage_id' => $int, 'stage_name' => $str, 'start_date' => $date, 'due_date' => $date,
-            'estimate_hours' => $num, 'assignee_id' => ['type' => 'integer', 'description' => 'An analyst id from list_analysts']], ['title'])],
+            'estimate_hours' => $num, 'assignee_id' => ['type' => 'integer', 'description' => 'An analyst id from list_analysts - the person here who owns or chases it'],
+            'supplier_id' => ['type' => 'integer', 'description' => 'A supplier id from list_suppliers, when a contractor does the work'],
+            'contact_id' => ['type' => 'integer', 'description' => 'A contact id at that supplier, from list_suppliers']], ['title'])],
+        ['name' => 'propose_task_contractor', 'description' => 'Propose giving an existing task (by id from list_tasks) to a contractor: a supplier, and optionally a person there. supplier_id 0 takes it off the contractor.', 'schema' => $s(['task_id' => $int, 'supplier_id' => $int, 'contact_id' => $int], ['task_id', 'supplier_id'])],
         ['name' => 'propose_task_dates', 'description' => 'Propose new start and/or due dates for an existing task (by id from list_tasks).', 'schema' => $s(['task_id' => $int, 'start_date' => $date, 'due_date' => $date], ['task_id'])],
         ['name' => 'propose_milestone', 'description' => 'Propose a milestone: a date the project promises.', 'schema' => $s(['name' => $str, 'due_date' => $date, 'stage_id' => $int, 'stage_name' => $str], ['name', 'due_date'])],
         ['name' => 'propose_raid', 'description' => 'Propose a RAID entry. Risks have probability and impact 1-5.', 'schema' => $s([
@@ -221,7 +227,9 @@ function projectChatRead(PDO $conn, int $pid, string $name, array $a): string
             case 'list_tasks':
                 $f = (string)($a['filter'] ?? 'open');
                 $w = ['open' => 'COALESCE(s.is_closed, 0) = 0', 'overdue' => 'COALESCE(s.is_closed, 0) = 0 AND t.due_date < UTC_DATE()', 'done' => 's.is_closed = 1', 'all' => '1=1'][$f] ?? 'COALESCE(s.is_closed, 0) = 0';
-                $st = $conn->prepare("SELECT t.id, t.title, t.start_date, t.due_date, t.estimate_hours, s.name AS status, st.name AS stage, a.full_name AS who
+                require_once __DIR__ . '/../task_contractors.php';
+                $ctr = tasksContractorReady($conn) ? "(SELECT " . tasksSupplierNameSql('sp') . " FROM suppliers sp WHERE sp.id = t.assigned_supplier_id)" : 'NULL';
+                $st = $conn->prepare("SELECT t.id, t.title, t.start_date, t.due_date, t.estimate_hours, s.name AS status, st.name AS stage, a.full_name AS who, $ctr AS contractor
                                         FROM tasks t LEFT JOIN task_statuses s ON s.id = t.status_id LEFT JOIN project_stages st ON st.id = t.project_stage_id
                                    LEFT JOIN analysts a ON a.id = t.assigned_analyst_id
                                        WHERE t.project_id = ? AND t.parent_task_id IS NULL AND $w ORDER BY t.due_date IS NULL, t.due_date, t.id LIMIT 80");
@@ -229,7 +237,7 @@ function projectChatRead(PDO $conn, int $pid, string $name, array $a): string
                 $rows = $st->fetchAll(PDO::FETCH_ASSOC);
                 if (!$rows) return 'No tasks match.';
                 return implode("\n", array_map(fn($r) => sprintf('#%d %s [%s] stage: %s; start %s; due %s; estimate %s; %s', $r['id'], $r['title'], $r['status'] ?: '?', $r['stage'] ?: '-',
-                    $r['start_date'] ?: '-', $r['due_date'] ?: '-', $r['estimate_hours'] !== null ? $r['estimate_hours'] . 'h' : '-', $r['who'] ? 'assigned to ' . $r['who'] : 'unassigned'), $rows));
+                    $r['start_date'] ?: '-', $r['due_date'] ?: '-', $r['estimate_hours'] !== null ? $r['estimate_hours'] . 'h' : '-', $r['who'] ? 'assigned to ' . $r['who'] : 'unassigned') . ($r['contractor'] ? '; contractor ' . $r['contractor'] : ''), $rows));
             case 'list_stages':
                 $st = $conn->prepare("SELECT id, name, kind, status, start_date, end_date, goal FROM project_stages WHERE project_id = ? ORDER BY position, id");
                 $st->execute([$pid]);
@@ -249,6 +257,14 @@ function projectChatRead(PDO $conn, int $pid, string $name, array $a): string
                 $rows = $st->fetchAll(PDO::FETCH_ASSOC);
                 return $rows ? implode("\n", array_map(fn($r) => sprintf('#%d %s, due %s%s - %s', $r['id'], $r['name'], $r['due_date'], $r['stage'] ? ' (' . $r['stage'] . ')' : '',
                     $r['done_date'] ? 'reached ' . $r['done_date'] : ($r['due_date'] < gmdate('Y-m-d') ? 'MISSED' : 'to come')), $rows)) : 'No milestones yet.';
+            case 'list_suppliers':
+                require_once __DIR__ . '/../task_contractors.php';
+                if (!tasksContractorReady($conn)) return 'Contractors are not set up yet (Database Verification).';
+                $q = mb_strtolower(trim((string)($a['search'] ?? '')));
+                $rows = array_filter(tasksContractorChoices($conn), fn($s) => $q === '' || mb_strpos(mb_strtolower($s['name']), $q) !== false);
+                return $rows ? implode("\n", array_map(fn($s) => '#' . $s['id'] . ' ' . $s['name'] . ($s['contacts']
+                    ? ' - contacts: ' . implode(', ', array_map(fn($c) => '#' . $c['id'] . ' ' . $c['name'] . ($c['job_title'] ? ' (' . $c['job_title'] . ')' : '') . ($c['has_email'] ? '' : ' [no email]'), $s['contacts']))
+                    : ' - no contacts'), array_slice(array_values($rows), 0, 60))) : 'No suppliers match.';
             case 'list_analysts':
                 $q = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim((string)($a['search'] ?? ''))) . '%';
                 $st = $conn->prepare("SELECT id, full_name FROM analysts WHERE is_active = 1 AND full_name LIKE ? ORDER BY full_name LIMIT 60");
@@ -273,7 +289,11 @@ function projectChatDescribe(string $type, array $a): string
                 if (isset($a[$k]) && $a[$k] !== '') $bits[] = $l . ': ' . (mb_strlen((string)$a[$k]) > 90 ? mb_substr((string)$a[$k], 0, 87) . '...' : $a[$k]);
             return t('projects.assistant.p_project', ['what' => implode('; ', $bits)]);
         case 'stage':      return t('projects.assistant.p_stage', ['name' => $a['name'] ?? '', 'from' => $d($a['start_date'] ?? null), 'to' => $d($a['end_date'] ?? null)]);
-        case 'task':       return t('projects.assistant.p_task', ['title' => $a['title'] ?? '', 'stage' => $a['stage_name'] ?? ($a['stage_id'] ?? '-'), 'due' => $d($a['due_date'] ?? null)]);
+        case 'task':       return t('projects.assistant.p_task', ['title' => $a['title'] ?? '', 'stage' => $a['stage_name'] ?? ($a['stage_id'] ?? '-'), 'due' => $d($a['due_date'] ?? null)])
+                                . (!empty($a['_supplier']) ? ' ' . t('projects.assistant.p_by_contractor', ['name' => $a['_supplier']]) : '');
+        case 'task_contractor': return !empty($a['_supplier'])
+                                ? t('projects.assistant.p_task_contractor', ['task' => $a['_label'] ?? ('#' . ($a['task_id'] ?? '?')), 'name' => $a['_supplier']])
+                                : t('projects.assistant.p_task_no_contractor', ['task' => $a['_label'] ?? ('#' . ($a['task_id'] ?? '?'))]);
         case 'task_dates': return t('projects.assistant.p_task_dates', ['task' => $a['_label'] ?? ('#' . ($a['task_id'] ?? '?')), 'from' => $d($a['start_date'] ?? null), 'due' => $d($a['due_date'] ?? null)]);
         case 'milestone':  return t('projects.assistant.p_milestone', ['name' => $a['name'] ?? '', 'due' => $d($a['due_date'] ?? null)]);
         case 'raid':       return t('projects.assistant.p_raid', ['type' => $a['type'] ?? 'risk', 'title' => $a['title'] ?? '', 'score' => !empty($a['probability']) && !empty($a['impact']) ? ' (' . ((int)$a['probability'] * (int)$a['impact']) . ')' : '']);
@@ -322,10 +342,34 @@ function projectChatTurn(PDO $conn, ActorContext $ctx, array $project, string $m
         : '(The user is coming back to this conversation after a while - last time was ' . $thread['updated_datetime'] . ' UTC. Welcome them back in one line, then say briefly what has changed or needs attention since then (the project data has the recent history), and offer the obvious next step. Do not propose changes in this turn.)');
 
     $proposals = []; $looked = [];
-    $run = function (string $name, array $args) use ($conn, $pid, $canChange, &$proposals, &$looked): string {
+    // Contractors (3.3.0): suppliers live in Contracts - without it the assistant cannot see or choose one.
+    $canContracts = $ctx->actorId > 0 && analystCanAccessModule($conn, $ctx->actorId, 'contracts');
+    $run = function (string $name, array $args) use ($conn, $pid, $canChange, $canContracts, &$proposals, &$looked): string {
+        if ($name === 'list_suppliers' && !$canContracts) return 'This user cannot see suppliers (that needs the Contracts module). Do not offer contractors.';
         if (strpos($name, 'propose_') !== 0) { $looked[] = $name; return projectChatRead($conn, $pid, $name, $args); }
         if (!$canChange) return 'Not proposed: this user may not change the project.';
         $type = substr($name, 8);
+        if ($type === 'task_contractor' || ($type === 'task' && (!empty($args['supplier_id']) || !empty($args['contact_id'])))) {
+            if (!$canContracts) return 'Not proposed: this user cannot choose suppliers (that needs the Contracts module).';
+            require_once __DIR__ . '/../task_contractors.php';
+            if (!empty($args['supplier_id']) || !empty($args['contact_id'])) {
+                try { [$sid, $cid] = tasksContractorValidate($conn, $args['supplier_id'] ?? null, $args['contact_id'] ?? null); }
+                catch (Throwable $e) { return 'Not proposed: ' . $e->getMessage() . ' Use list_suppliers for ids.'; }
+                $args['supplier_id'] = $sid; $args['contact_id'] = $cid;
+                $nm = $conn->prepare("SELECT " . tasksSupplierNameSql('sp') . " FROM suppliers sp WHERE sp.id = ?"); $nm->execute([$sid]);
+                $args['_supplier'] = (string)$nm->fetchColumn();
+                if ($cid) {
+                    $cn = $conn->prepare("SELECT TRIM(CONCAT(first_name, ' ', surname)) FROM contacts WHERE id = ?"); $cn->execute([$cid]);
+                    $args['_supplier'] .= ' (' . $cn->fetchColumn() . ')';
+                }
+            }
+            if ($type === 'task_contractor') {
+                $st = $conn->prepare("SELECT title FROM tasks WHERE id = ? AND project_id = ?"); $st->execute([(int)($args['task_id'] ?? 0), $pid]);
+                $label = $st->fetchColumn();
+                if ($label === false) return 'Not proposed: no such task in this project. Use list_tasks for ids.';
+                $args['_label'] = (string)$label;
+            }
+        }
         if ($type === 'task_dates' || $type === 'member') {
             // A label the card can show, looked up now (the model gave an id).
             $q = $type === 'task_dates' ? "SELECT title FROM tasks WHERE id = ? AND project_id = $pid" : "SELECT full_name FROM analysts WHERE id = ? AND is_active = 1";
@@ -424,7 +468,7 @@ function projectChatApply(PDO $conn, ActorContext $ctx, array $project, int $mes
     if ($dismiss) {
         foreach ($want as $i) $props[$i]['status'] = 'dismissed';
     } else {
-        $rank = ['project_details' => 0, 'tools' => 1, 'stage' => 2, 'member' => 3, 'scope_item' => 4, 'task' => 5, 'task_dates' => 6, 'milestone' => 7, 'dependency' => 8, 'raid' => 9, 'budget_line' => 10, 'benefit' => 11];
+        $rank = ['project_details' => 0, 'tools' => 1, 'stage' => 2, 'member' => 3, 'scope_item' => 4, 'task' => 5, 'task_dates' => 6, 'task_contractor' => 6, 'milestone' => 7, 'dependency' => 8, 'raid' => 9, 'budget_line' => 10, 'benefit' => 11];
         usort($want, fn($a, $b) => ($rank[$props[$a]['type']] ?? 99) <=> ($rank[$props[$b]['type']] ?? 99) ?: $a <=> $b);
         foreach ($want as $i) {
             try {
@@ -468,6 +512,11 @@ function projectChatApplyOne(PDO $conn, ActorContext $ctx, int $pid, string $typ
         }
         throw new ServiceError('validation', 'invalid_field', 'That task is not in the project.');
     };
+    // Contractors (3.3.0): whoever applies it must be able to choose suppliers too (memory may be shared).
+    if (($type === 'task_contractor' || ($type === 'task' && (!empty($a['supplier_id']) || !empty($a['contact_id']))))
+        && $ctx->actorId > 0 && !analystCanAccessModule($conn, $ctx->actorId, 'contracts')) {
+        throw new ServiceError('forbidden', 'forbidden', 'Choosing a contractor needs access to Contracts.');
+    }
     switch ($type) {
         case 'project_details':
             $in = ['id' => $pid];
@@ -489,8 +538,17 @@ function projectChatApplyOne(PDO $conn, ActorContext $ctx, int $pid, string $typ
             $id = ProjectsService::createTaskInProject($conn, $ctx, $pid, $stageId(), array_filter([
                 'title' => (string)($a['title'] ?? ''), 'description' => $a['description'] ?? null, 'start_date' => $date('start_date'), 'due_date' => $date('due_date'),
                 'assigned_analyst_id' => !empty($a['assignee_id']) ? (int)$a['assignee_id'] : null,
+                'assigned_supplier_id' => !empty($a['supplier_id']) ? (int)$a['supplier_id'] : null,
+                'assigned_contact_id' => !empty($a['contact_id']) ? (int)$a['contact_id'] : null,
             ], fn($v) => $v !== null && $v !== ''));
             if (isset($a['estimate_hours']) && is_numeric($a['estimate_hours']) && (float)$a['estimate_hours'] > 0) ProjectToolsService::setTaskEstimate($conn, $ctx, $pid, $id, $a['estimate_hours']);
+            return;
+        case 'task_contractor':
+            // Contractors (3.3.0): through the Tasks service, as the person applying it.
+            require_once __DIR__ . '/../services/tasks.php';
+            TasksService::saveTask($conn, $ctx, ['id' => $taskId('task_id', 'task_title'),
+                'assigned_supplier_id' => !empty($a['supplier_id']) ? (int)$a['supplier_id'] : null,
+                'assigned_contact_id' => !empty($a['contact_id']) ? (int)$a['contact_id'] : null]);
             return;
         case 'task_dates':
             $in = [];

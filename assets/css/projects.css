@@ -1396,6 +1396,10 @@ button.prj-tl-label { cursor: pointer; }
 .prj-task-wait, .prj-task-clash { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 99px; white-space: nowrap; }
 .prj-task-wait { background: #fef3c7; color: #92400e; }
 .prj-task-clash { background: #fee2e2; color: #991b1b; }
+/* Contractors (3.3.0): the supplier doing a task, and their line on Capacity. */
+.prj-cap-ctr-h { font-size: 15px; margin: 22px 0 6px; }
+.prj-task-ctr { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+[data-theme="dark"] .prj-task-ctr { background: #1e293b; color: #cbd5e1; border-color: #334155; }
 [data-theme="dark"] .prj-task-wait { background: #3a2a0c; color: #fcd34d; }
 [data-theme="dark"] .prj-task-clash { background: #3b1219; color: #fca5a5; }
 

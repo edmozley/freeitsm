@@ -89,7 +89,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('tasks.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=24">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
-    <link rel="stylesheet" href="../assets/css/tasks.css?v=38">
+    <link rel="stylesheet" href="../assets/css/tasks.css?v=39">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -176,6 +176,14 @@ $translationNamespaces = ['common', 'tasks'];
                 <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.project')); ?></div>
                 <select id="projectFilter" class="sidebar-select" onchange="setProjectFilter(this.value)">
                     <option value=""><?php echo htmlspecialchars(t('tasks.filter.all_projects')); ?></option>
+                </select>
+            </div>
+
+            <!-- Contractors (3.3.0): shown only when a task here is with a supplier. -->
+            <div class="sidebar-section" id="contractorFilterSection" style="display:none;">
+                <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.contractor')); ?></div>
+                <select id="contractorFilter" class="sidebar-select" onchange="setContractorFilter(this.value)">
+                    <option value=""><?php echo htmlspecialchars(t('tasks.filter.all_contractors')); ?></option>
                 </select>
             </div>
 
@@ -336,7 +344,7 @@ $translationNamespaces = ['common', 'tasks'];
     window.TASK_CAN_PROJECTS = <?php echo json_encode($taskCanProjects); ?>;</script>
     <script src="../assets/js/tasks-priority.js?v=1"></script>
     <script src="../assets/js/tasks-ctx-menu.js?v=4"></script>
-    <script src="../assets/js/tasks.js?v=48"></script>
+    <script src="../assets/js/tasks.js?v=49"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

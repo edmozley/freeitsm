@@ -144,15 +144,20 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
     }
 
     // Tasks: overdue, done in the period, due soon
-    $task = function (string $where, array $args, int $limit) use ($conn, $pid) {
-        $q = $conn->prepare("SELECT t.title, t.due_date, t.completed_datetime, ts.name AS status, an.full_name AS assignee, s.name AS stage
+    // Contractors (3.3.0): the supplier doing a task, named alongside the person here who chases it.
+    require_once __DIR__ . '/../task_contractors.php';
+    $ctrSql = tasksContractorReady($conn)
+        ? "(SELECT " . tasksSupplierNameSql('sp') . " FROM suppliers sp WHERE sp.id = t.assigned_supplier_id) AS contractor"
+        : 'NULL AS contractor';
+    $task = function (string $where, array $args, int $limit) use ($conn, $pid, $ctrSql) {
+        $q = $conn->prepare("SELECT t.title, t.due_date, t.completed_datetime, ts.name AS status, an.full_name AS assignee, s.name AS stage, $ctrSql
                                FROM tasks t LEFT JOIN task_statuses ts ON ts.id = t.status_id
                           LEFT JOIN analysts an ON an.id = t.assigned_analyst_id LEFT JOIN project_stages s ON s.id = t.project_stage_id
                               WHERE t.project_id = ? AND t.parent_task_id IS NULL AND $where LIMIT $limit");
         $q->execute(array_merge([$pid], $args));
         return $q->fetchAll(PDO::FETCH_ASSOC);
     };
-    $fmt = fn($r, $extra) => '- ' . $r['title'] . ' (' . $extra . ($r['assignee'] ? ', ' . $r['assignee'] : ', unassigned') . ($r['stage'] ? ', ' . $r['stage'] : '') . ')';
+    $fmt = fn($r, $extra) => '- ' . $r['title'] . ' (' . $extra . ($r['assignee'] ? ', ' . $r['assignee'] : ', unassigned') . ($r['contractor'] ? ', contractor ' . $r['contractor'] : '') . ($r['stage'] ? ', ' . $r['stage'] : '') . ')';
     $over = $task("COALESCE(ts.is_closed, 0) = 0 AND t.due_date IS NOT NULL AND t.due_date < UTC_DATE() ORDER BY t.due_date", [], 20);
     if ($over) { $line('Overdue tasks:'); foreach ($over as $r) $line($fmt($r, 'was due ' . $r['due_date'])); }
     $done = $task("ts.is_closed = 1 AND t.completed_datetime >= ? ORDER BY t.completed_datetime DESC", [$since . ' 00:00:00'], 20);
@@ -273,7 +278,9 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
     }
     // Stakeholders (3.3.0): where the important people stand, and the communications plan.
     try {
-        $sk = $conn->prepare("SELECT COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email)) AS name, m.power, m.interest, m.stance, m.keep_informed, m.notes
+        // A contractor member (3.3.0) is named by its supplier.
+        $skCtr = tasksContractorReady($conn) ? ", (SELECT " . tasksSupplierNameSql('sp') . " FROM suppliers sp WHERE sp.id = m.supplier_id)" : '';
+        $sk = $conn->prepare("SELECT COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email)$skCtr) AS name, m.power, m.interest, m.stance, m.keep_informed, m.notes
                                 FROM project_members m LEFT JOIN analysts a ON a.id = m.analyst_id LEFT JOIN teams tm ON tm.id = m.team_id LEFT JOIN users u ON u.id = m.user_id
                                WHERE m.project_id = ? AND m.power IS NOT NULL AND m.interest IS NOT NULL ORDER BY m.power * m.interest DESC LIMIT 12");
         $sk->execute([$pid]);

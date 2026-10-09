@@ -90,7 +90,8 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
     };
     $canTickets = analystCanAccessModule($conn, $viewerId, 'tickets');
     $out = ['weeks' => $weekList, 'hours_per_week' => $hoursPerWeek, 'amber' => $amber, 'several' => $several,
-            'can_tickets' => $canTickets, 'count_desk' => $countDesk, 'rows' => [], 'team_hours' => 0.0, 'team_tasks' => 0, 'estimates_ready' => projectEstimatesReady($conn)];
+            'can_tickets' => $canTickets, 'count_desk' => $countDesk, 'rows' => [], 'team_hours' => 0.0, 'team_tasks' => 0, 'estimates_ready' => projectEstimatesReady($conn),
+            'contractors' => []];
 
     // Live projects the viewer can see.
     [$tSql, $tArgs] = activeTenantReadFilter($conn, $viewerId, 'p');
@@ -112,14 +113,18 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
     $pin = implode(',', array_keys($projects));
 
     $est = $out['estimates_ready'] ? 't.estimate_hours' : 'NULL AS estimate_hours';
+    // Contractors (3.3.0): a supplier's work is not in anybody's load here - it is listed on its own.
+    require_once __DIR__ . '/../task_contractors.php';
+    $ctr = tasksContractorReady($conn);
+    $ctrCols = $ctr ? 't.assigned_supplier_id, ' . tasksSupplierNameSql('sp') . ' AS supplier_name' : 'NULL AS assigned_supplier_id, NULL AS supplier_name';
     $tasks = $conn->query(
-        "SELECT t.id, t.title, t.start_date, t.due_date, $est, t.assigned_analyst_id, t.assigned_team_id, t.project_id,
+        "SELECT t.id, t.title, t.start_date, t.due_date, $est, t.assigned_analyst_id, t.assigned_team_id, t.project_id, $ctrCols,
                 (SELECT COALESCE(SUM(e.time_spent_minutes), 0) FROM task_time_entries e
                   WHERE e.is_active = 1 AND (e.task_id = t.id OR e.task_id IN (SELECT c.id FROM tasks c WHERE c.parent_task_id = t.id))) AS logged_minutes
            FROM tasks t
-      LEFT JOIN task_statuses ts ON ts.id = t.status_id
+      LEFT JOIN task_statuses ts ON ts.id = t.status_id" . ($ctr ? " LEFT JOIN suppliers sp ON sp.id = t.assigned_supplier_id" : '') . "
           WHERE t.project_id IN ($pin) AND t.parent_task_id IS NULL AND COALESCE(ts.is_closed, 0) = 0
-            AND (t.assigned_analyst_id IS NOT NULL OR t.assigned_team_id IS NOT NULL)"
+            AND (t.assigned_analyst_id IS NOT NULL OR t.assigned_team_id IS NOT NULL" . ($ctr ? ' OR t.assigned_supplier_id IS NOT NULL' : '') . ")"
     )->fetchAll(PDO::FETCH_ASSOC);
 
     $people = [];
@@ -137,6 +142,16 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
 
     foreach ($tasks as $t) {
         $remaining = $t['estimate_hours'] !== null ? max(0.0, (float)$t['estimate_hours'] - (int)$t['logged_minutes'] / 60) : null;
+        if ($t['assigned_supplier_id'] !== null) {
+            $sid = (int)$t['assigned_supplier_id'];
+            $c = &$out['contractors'][$sid];
+            $c ??= ['supplier_id' => $sid, 'name' => (string)$t['supplier_name'], 'tasks' => 0, 'hours' => 0.0, 'late' => 0, 'no_estimate' => 0];
+            $c['tasks']++;
+            if ($remaining !== null) $c['hours'] += $remaining; else $c['no_estimate']++;
+            if ($t['due_date'] !== null && $t['due_date'] < $today) $c['late']++;
+            unset($c);
+            continue;
+        }
         if ($t['assigned_analyst_id'] === null) {
             // A team's, nobody's yet.
             $out['team_tasks']++;
@@ -227,5 +242,7 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
     usort($rows, fn($a, $b) => ($b['worst_pct'] <=> $a['worst_pct']) ?: strcmp($a['name'], $b['name']));
     $out['rows'] = $rows;
     $out['team_hours'] = round($out['team_hours'], 1);
+    $out['contractors'] = array_values(array_map(fn($c) => ['hours' => round($c['hours'], 1)] + $c, $out['contractors']));
+    usort($out['contractors'], fn($a, $b) => strcmp($a['name'], $b['name']));
     return $out;
 }

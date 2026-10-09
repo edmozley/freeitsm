@@ -4760,6 +4760,8 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     `due_date`            DATE NULL,
     `assigned_analyst_id` INT NULL,
     `assigned_team_id`    INT NULL,
+    `assigned_supplier_id` INT NULL,                        -- 3.3.0: a contractor - a supplier doing the work (includes/task_contractors.php)
+    `assigned_contact_id` INT NULL,                         -- 3.3.0: the person there (contacts, of that supplier)
     `parent_task_id`      INT NULL,
     `ticket_id`           INT NULL,
     `change_id`           INT NULL,
@@ -4787,6 +4789,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `ix_tasks_project` (`project_id`),
+    KEY `ix_tasks_supplier` (`assigned_supplier_id`),
     KEY `ix_tasks_project_stage` (`project_stage_id`),
     KEY `ix_tasks_status_id` (`status_id`),
     KEY `ix_tasks_priority_id` (`priority_id`),
@@ -4801,6 +4804,8 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     -- list was rebuilt and tried to delete them.
     KEY `ix_tasks_recurrence_id` (`recurrence_id`),
     KEY `ix_tasks_recurrence_master` (`recurrence_master_id`),
+    CONSTRAINT `fk_tasks_supplier` FOREIGN KEY (`assigned_supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_tasks_contact` FOREIGN KEY (`assigned_contact_id`) REFERENCES `contacts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_analyst` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_team` FOREIGN KEY (`assigned_team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_parent` FOREIGN KEY (`parent_task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
@@ -8114,6 +8119,8 @@ CREATE TABLE IF NOT EXISTS `project_members` (
     `team_id`               INT NULL,
     `user_id`               INT NULL,
     `role_id`               INT NULL,
+    `supplier_id`           INT NULL,                           -- 3.3.0: a contractor on the team (Contracts -> Suppliers)
+    `contact_id`            INT NULL,                           -- 3.3.0: a person at that supplier
     `notes`                 VARCHAR(255) NULL,
     `power`                 TINYINT NULL,                       -- 3.3.0 stakeholder map: 1-5, how much they can affect it
     `interest`              TINYINT NULL,                       -- 1-5, how much it affects them
@@ -8127,6 +8134,8 @@ CREATE TABLE IF NOT EXISTS `project_members` (
     KEY `idx_project_members_project` (`project_id`, `position`),
     KEY `ix_pmem_analyst` (`analyst_id`),
     CONSTRAINT `fk_pmem_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pmem_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pmem_contact` FOREIGN KEY (`contact_id`) REFERENCES `contacts` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_pmem_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_pmem_team` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_pmem_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,

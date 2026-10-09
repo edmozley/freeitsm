@@ -94,6 +94,13 @@
         html += '<div class="prj-cap-legend"><span><i class="s-green"></i>' + esc(T('capacity.legend_ok')) + '</span><span><i class="s-amber"></i>' + esc(T('capacity.legend_amber', { amber: c.amber }))
             + '</span><span><i class="s-red"></i>' + esc(T('capacity.legend_red')) + '</span>' + (c.can_tickets && c.count_desk ? '<span><i class="desk"></i>' + esc(T('capacity.legend_desk')) + '</span>' : '') + '</div>';
         if (c.team_tasks) html += '<p class="prj-hint">' + esc(T('capacity.team_note', { count: c.team_tasks, hours: hrs(c.team_hours) })) + '</p>';
+        // Contractors (3.3.0): suppliers' open work, kept out of everybody's load above.
+        if ((c.contractors || []).length) {
+            html += '<h3 class="prj-cap-ctr-h">' + esc(T('capacity.contractors')) + '</h3><p class="prj-hint" style="margin-top:0">' + esc(T('capacity.contractors_intro')) + '</p>'
+                + '<div class="prj-table-wrap"><table class="prj-budget-table"><thead><tr><th>' + esc(T('contractors.supplier')) + '</th><th class="num">' + esc(T('capacity.ctr_tasks')) + '</th><th class="num">' + esc(T('capacity.ctr_hours')) + '</th><th class="num">' + esc(T('capacity.ctr_late')) + '</th></tr></thead><tbody>'
+                + c.contractors.map(x => '<tr><td>' + esc(x.name) + '</td><td class="num">' + esc(x.tasks) + '</td><td class="num">' + (x.hours > 0 ? esc(hrs(x.hours)) : '<span class="prj-muted">-</span>') + (x.no_estimate ? ' <small class="prj-muted">' + esc(T('capacity.ctr_noest', { count: x.no_estimate })) + '</small>' : '') + '</td><td class="num' + (x.late ? ' warn' : '') + '">' + esc(x.late) + '</td></tr>').join('')
+                + '</tbody></table></div>';
+        }
         html += '<p class="prj-hint">' + esc(T('capacity.how')) + '</p>';
         body.innerHTML = html;
     }

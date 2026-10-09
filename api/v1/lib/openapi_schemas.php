@@ -9280,6 +9280,40 @@ return array (
             ),
           ),
         ),
+        'contractor' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
+        'contractor_contact' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+            ),
+          ),
+        ),
         'start_date' => 
         array (
           'type' => 'string',
@@ -9710,6 +9744,40 @@ return array (
               ),
             ),
             'assigned_team' => 
+            array (
+              'type' => 'object',
+              'nullable' => true,
+              'properties' => 
+              array (
+                'id' => 
+                array (
+                  'type' => 'integer',
+                ),
+                'name' => 
+                array (
+                  'type' => 'string',
+                  'nullable' => true,
+                ),
+              ),
+            ),
+            'contractor' => 
+            array (
+              'type' => 'object',
+              'nullable' => true,
+              'properties' => 
+              array (
+                'id' => 
+                array (
+                  'type' => 'integer',
+                ),
+                'name' => 
+                array (
+                  'type' => 'string',
+                  'nullable' => true,
+                ),
+              ),
+            ),
+            'contractor_contact' => 
             array (
               'type' => 'object',
               'nullable' => true,

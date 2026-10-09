@@ -82,6 +82,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // one private conversation per person per project, or one the project shares.
             'project_assistant_memory'      => ['person',  'memory',      'general'],
             'project_benefit_notify'        => ['both',    'bnotify',     'general'],
+            // Contractors (3.3.0) - includes/task_contractors.php. Whether a task's
+            // contact at a supplier is emailed when given it, two days before it is
+            // due and once it is missed. Off: contractor work is tracked only.
+            'project_contractor_email'      => ['off',     'onoff',       'general'],
             // Members-only projects (3.3.0) - includes/projects/visibility.php. Who
             // can see a NEW project: everyone with Projects, or its members only.
             // Each project can be changed on its own form.
@@ -253,6 +257,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'onoff') {
+            if (!in_array($v, ['off', 'on'], true)) throw new InvalidArgumentException('Choose on or off.');
             return $v;
         }
         if ($rule === 'memory') {

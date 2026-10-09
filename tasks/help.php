@@ -324,6 +324,7 @@ $translationNamespaces = ['common', 'tasks'];
                         <div><?php echo t('tasks.help.panel_field_title'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_status'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_assignee'); ?></div>
+                        <div><?php echo t('tasks.help.panel_field_contractor'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_dates'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_tags'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_desc'); ?></div>
@@ -335,6 +336,7 @@ $translationNamespaces = ['common', 'tasks'];
                     </div>
                     <p style="margin-top:14px;"><?php echo t('tasks.help.panel_view_note'); ?></p>
                     <p style="margin-top:10px;"><?php echo t('tasks.help.panel_context_note'); ?></p>
+                    <p style="margin-top:10px;"><?php echo t('tasks.help.panel_contractor_note'); ?></p>
                     <p style="margin-top:10px;"><?php echo t('tasks.help.panel_links_note'); ?></p>
                     <p style="margin-top:10px;"><?php echo t('tasks.help.panel_preview_note'); ?></p>
                     <p style="margin-top:10px;"><?php echo t('tasks.help.panel_delete_note'); ?></p>

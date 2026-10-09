@@ -2453,6 +2453,12 @@ body {
     font-size: 11px; font-weight: 650; color: var(--pc, #e11d48);
     margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.task-card-contractor {
+    display: flex; align-items: center; gap: 5px; max-width: 100%;
+    font-size: 11px; font-weight: 600; color: var(--text-secondary, #555);
+    margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.task-card-contractor span { font-weight: 400; color: var(--text-dim, #888); }
 .task-card-project-dot { width: 8px; height: 8px; border-radius: 3px; background: var(--pc, #e11d48); flex-shrink: 0; display: inline-block; }
 .detail-project-open { margin-left: 8px; font-size: 12px; font-weight: 600; color: var(--prj-accent, #e11d48); text-decoration: none; }
 .detail-project-open:hover { text-decoration: underline; }

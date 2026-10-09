@@ -179,7 +179,7 @@
                 const dates = sp[0] === sp[1] ? P.fmtDate(ymd(sp[0])) : P.fmtDate(ymd(sp[0])) + ' - ' + P.fmtDate(ymd(sp[1]));
                 bar = '<div class="prj-tl-bar-task' + (closed ? ' done' : '') + (late ? ' late' : '') + (canChange() ? ' can' : '') + (crit && t.critical ? ' crit' : '') + (crit && !t.critical ? ' dim' : '') + '" data-tl-task="' + t.id + '"'
                     + ' data-s="' + sp[0] + '" data-e="' + sp[1] + '" style="left:' + x(sp[0]) + 'px;width:' + Math.max(dayW, (sp[1] - sp[0] + 1) * dayW) + 'px;--bc:' + esc(t.status_colour || '#94a3b8') + '"'
-                    + ' title="' + esc(T('timeline.task_tip', { title: t.title, dates: dates }) + (t.assignee_name ? ' - ' + t.assignee_name : '')) + '">'
+                    + ' title="' + esc(T('timeline.task_tip', { title: t.title, dates: dates }) + (t.assignee_name ? ' - ' + t.assignee_name : '') + (t.supplier_name ? ' - ' + T('contractors.tip', { name: t.supplier_name }) : '')) + '">'
                     + (canChange() ? '<span class="prj-tl-h l" data-h="l"></span>' : '') + '<span class="prj-tl-bar-text">' + esc(t.title) + '</span>'
                     + (canChange() ? '<span class="prj-tl-h r" data-h="r"></span>' : '') + '</div>';
             }

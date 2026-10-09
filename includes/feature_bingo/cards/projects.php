@@ -326,6 +326,18 @@ return [
         'check'    => ['rows', 'project_ai_messages'],
     ],
     [
+        'id'       => 'projects.contractors',
+        'module'   => 'projects',
+        'tier'     => 'recommended',
+        'category' => 'organisation',
+        'title'    => 'Give work to a contractor',
+        'what'     => 'A task can be given to a supplier from Contracts, and a person there, while the assignee stays the person here who chases them. The firm shows on the Plan, the Timeline and the board, is kept out of Capacity\'s load, and the supplier\'s People page lists its tasks.',
+        'why'      => 'Most projects lean on an outside firm for something. Tracking their tasks alongside yours means late contractor work turns up in the same places as everyone else\'s.',
+        'done'     => 'A task is with a contractor.',
+        'link'     => 'tasks/',
+        'check'    => ['sql', 'SELECT COUNT(*) FROM tasks WHERE assigned_supplier_id IS NOT NULL AND is_demo = 0'],
+    ],
+    [
         'id'       => 'projects.toolbox',
         'module'   => 'projects',
         'tier'     => 'recommended',
