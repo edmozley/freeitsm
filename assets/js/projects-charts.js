@@ -214,7 +214,7 @@
                 // Square at the baseline, a 4px rounded data end.
                 const rad = Math.min(4, w / 2);
                 el('path', { d: 'M' + labelW + ' ' + by + ' h' + (w - rad) + ' a' + rad + ' ' + rad + ' 0 0 1 ' + rad + ' ' + rad + ' v' + (BAR - 2 * rad) + ' a' + rad + ' ' + rad + ' 0 0 1 -' + rad + ' ' + rad + ' h-' + (w - rad) + ' Z', class: 'viz-bar ' + cls }, svg);
-                el('text', { x: labelW + w + 6, y: by + BAR - 2, class: 'viz-end' }, svg).textContent = opts.fmt(v);
+                el('text', { x: labelW + w + 6, y: by + BAR - 2, class: 'viz-end' }, svg).textContent = opts.fmt(v) + (j === 1 && r.note ? '  ' + r.note : '');
                 const hit = el('rect', { x: labelW, y: by - 1, width: Math.max(w + 70, 24), height: BAR + 2, fill: 'transparent', tabindex: '0', class: 'viz-hit' }, svg);
                 const on = () => {
                     tip.textContent = '';
@@ -555,7 +555,65 @@
         });
     }
 
-    window.PrjCharts = { burnup: burnup, burndown: burndown, bars: bars, spend: spend, stack: stack, flow: flow, slot: slot };
+    /**
+     * Milestones across rows (3.3.0) - one row per project, a diamond per
+     * milestone on a shared calendar, with today marked. State is a STATUS, so it
+     * is never colour alone: reached is a filled good diamond, missed a filled
+     * critical one, coming up an outline - and the legend, tooltip and table say it in words.
+     * opts: {rows: [{label, items: [{d, name, state}]}], today, fmtDate, labels: {table, chart, project, milestone, date, state, states: {done, missed, due}, today, aria}}
+     */
+    function milestones(container, opts) {
+        const L = opts.labels, rows = opts.rows;
+        const f = frame(container, L.table, L.chart, () => tableView([L.project, L.milestone, L.date, L.state],
+            [].concat(...rows.map(r => r.items.map(i => [r.label, i.name, opts.fmtDate(i.d), L.states[i.state] || i.state])))));
+        const key = html('div', 'prj-viz-legend');
+        ['done', 'missed', 'due'].forEach(s => { const k = html('span', 'prj-viz-key'); k.appendChild(html('i', 'prj-viz-dia ms-' + s)); k.appendChild(document.createTextNode(L.states[s])); key.appendChild(k); });
+        f.tools.insertBefore(key, f.tools.firstChild);
+        const W = Math.max(280, f.plot.clientWidth || container.clientWidth || 600);
+        const labelW = Math.min(170, W * 0.3), ROW = 30, m = { t: 8, b: 26, r: 14 };
+        const H = rows.length * ROW + m.t + m.b, pw = W - labelW - m.r;
+        const dn = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+        const all = [].concat(...rows.map(r => r.items.map(i => dn(i.d)))).concat([dn(opts.today)]);
+        const x0 = Math.min(...all) - 3, x1 = Math.max(...all) + 3;
+        const X = d => labelW + (dn(d) - x0) / (x1 - x0) * pw;
+        const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', class: 'prj-viz-svg', 'aria-label': L.aria });
+        const ticks = Math.max(1, Math.min(5, Math.floor(pw / 110)));
+        for (let i = 0; i <= ticks; i++) {
+            const iso = new Date(Math.round(x0 + (x1 - x0) * i / ticks) * 86400000).toISOString().slice(0, 10);
+            el('line', { x1: X(iso), x2: X(iso), y1: m.t, y2: H - m.b, class: 'viz-grid' }, svg);
+            el('text', { x: X(iso), y: H - 8, 'text-anchor': i === 0 ? 'start' : (i === ticks ? 'end' : 'middle'), class: 'viz-tick' }, svg).textContent = opts.fmtDate(iso);
+        }
+        const tx = X(opts.today);
+        el('line', { x1: tx, x2: tx, y1: m.t, y2: H - m.b, class: 'viz-ref' }, svg);
+        f.plot.appendChild(svg);
+        const tip = tooltip(f.plot);
+        rows.forEach((r, ri) => {
+            const y = m.t + ri * ROW + ROW / 2;
+            el('line', { x1: labelW, x2: labelW + pw, y1: y, y2: y, class: 'viz-grid' }, svg);
+            el('text', { x: labelW - 10, y: y + 4, 'text-anchor': 'end', class: 'viz-label' }, svg).textContent = r.label;
+            r.items.forEach(i => {
+                const cx = X(i.d), s = 6;
+                const g = el('path', { d: 'M' + cx + ' ' + (y - s) + ' L' + (cx + s) + ' ' + y + ' L' + cx + ' ' + (y + s) + ' L' + (cx - s) + ' ' + y + ' Z', class: 'viz-ms ms-' + i.state, tabindex: '0' }, svg);
+                const on = () => {
+                    tip.textContent = '';
+                    tip.appendChild(html('div', 'prj-viz-tip-head', r.label));
+                    const row = html('div', 'prj-viz-tip-row');
+                    row.appendChild(html('i', 'prj-viz-dia ms-' + i.state));
+                    row.appendChild(html('strong', '', i.name));
+                    row.appendChild(html('span', '', opts.fmtDate(i.d) + ' - ' + (L.states[i.state] || i.state)));
+                    tip.appendChild(row);
+                    tip.hidden = false;
+                    tip.style.left = Math.max(0, Math.min(cx / W * f.plot.clientWidth + 10, f.plot.clientWidth - tip.offsetWidth - 4)) + 'px';
+                    tip.style.top = (y / H * f.plot.clientHeight + 10) + 'px';
+                };
+                g.addEventListener('pointerenter', on); g.addEventListener('focus', on);
+                g.addEventListener('pointerleave', () => { tip.hidden = true; }); g.addEventListener('blur', () => { tip.hidden = true; });
+            });
+        });
+    }
+
+    window.PrjCharts = { burnup: burnup, burndown: burndown, bars: bars, spend: spend, stack: stack, flow: flow, milestones: milestones, slot: slot };
+
 
 
 })();

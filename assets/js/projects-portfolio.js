@@ -210,8 +210,89 @@
         healthStrip();
         grid.hidden = layout !== 'cards';
         document.getElementById('prjRoadmap').hidden = layout !== 'roadmap' || !ordered.length;
+        document.getElementById('prjCharts').hidden = layout !== 'charts' || !ordered.length;
         if (layout === 'roadmap') { grid.innerHTML = ''; if (ordered.length) roadmap(ordered); }
+        else if (layout === 'charts') { grid.innerHTML = ''; if (ordered.length) charts(ordered); }
         else grid.innerHTML = ordered.map(card).join('');
+    }
+
+    // ---- Charts across projects (3.3.0) ---------------------------------------------------
+    // The projects in the view, as four charts: progress, budget against actual,
+    // a risk heat map of every open risk, and every milestone on one calendar.
+    // Their data beyond list.php comes once from portfolio_charts.php.
+    let chartData = null, heatCell = null;
+    const short = s => s.length > 28 ? s.slice(0, 27) + '…' : s;
+
+    async function charts(ordered) {
+        const box = document.getElementById('prjCharts');
+        if (!chartData) {
+            box.innerHTML = '<p class="prj-muted">' + esc(T('portfolio.charts_loading')) + '</p>';
+            try { chartData = await P.api('portfolio_charts.php'); } catch (e) { box.innerHTML = '<p class="prj-muted">' + esc(e.message) + '</p>'; return; }
+        }
+        const L = await P.lookups();
+        const inView = new Set(ordered.map(p => p.id));
+        const name = id => { const p = ordered.find(x => x.id === id); return p ? short(p.name) : '#' + id; };
+        box.innerHTML = '<div class="prj-panel prj-pc"><h3>' + esc(T('portfolio.chart_progress')) + '</h3><div class="prj-pc-progress"></div></div>'
+            + '<div class="prj-panel prj-pc"><h3>' + esc(T('portfolio.chart_budget')) + '</h3><p class="prj-muted sm prj-pc-budgetnote"></p><div class="prj-pc-budget"></div></div>'
+            + '<div class="prj-pc-two"><div class="prj-panel prj-pc"><h3>' + esc(T('portfolio.chart_risks')) + '</h3><p class="prj-muted sm">' + esc(T('portfolio.chart_risks_hint')) + '</p><div class="prj-pc-heat"></div></div>'
+            + '<div class="prj-panel prj-pc"><h3>' + esc(T('portfolio.chart_milestones')) + '</h3><div class="prj-pc-ms"></div></div></div>';
+        const C = window.PrjCharts;
+        // Progress: tasks done against not done, per project.
+        const prog = ordered.filter(p => p.task_total > 0);
+        const pbox = box.querySelector('.prj-pc-progress');
+        if (prog.length) C.stack(pbox, {
+            rows: prog.map(p => ({ label: short(p.name), values: [p.task_done, p.task_total - p.task_done] })),
+            series: [{ name: T('portfolio.done'), slot: 1 }, { name: T('portfolio.not_done'), slot: 'n' }],
+            totalText: (r, total) => (total ? Math.round(r.values[0] * 100 / total) : 0) + '%',
+            labels: { table: T('portfolio.table'), chart: T('portfolio.chart'), group: T('portfolio.project'), total: T('portfolio.tasks'), aria: T('portfolio.chart_progress') },
+        }); else pbox.innerHTML = '<p class="prj-muted">' + esc(T('portfolio.no_tasks')) + '</p>';
+        // Budget against actual, one chart per currency - amounts in different currencies are never on one axis.
+        const bud = Object.entries(chartData.budgets || {}).map(([id, b]) => Object.assign({ id: Number(id) }, b)).filter(b => inView.has(b.id) && (b.planned > 0 || b.actual > 0));
+        const bbox = box.querySelector('.prj-pc-budget');
+        const curs = [...new Set(bud.map(b => b.currency))];
+        box.querySelector('.prj-pc-budgetnote').textContent = bud.length ? T('portfolio.chart_budget_note') : '';
+        if (!bud.length) bbox.innerHTML = '<p class="prj-muted">' + esc(T('portfolio.no_budgets')) + '</p>';
+        curs.forEach(cur => {
+            const money = v => { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(v); } catch (e) { return cur + ' ' + Math.round(v); } };
+            const host = document.createElement('div');
+            if (curs.length > 1) { const h = document.createElement('h4'); h.className = 'prj-pc-cur'; h.textContent = cur; bbox.appendChild(h); }
+            bbox.appendChild(host);
+            const list = bud.filter(b => b.currency === cur).sort((a, b) => (b.actual / (b.planned || 1)) - (a.actual / (a.planned || 1)));
+            C.bars(host, {
+                rows: list.map(b => ({ label: name(b.id), a: b.planned || null, b: b.actual || null,
+                    note: b.planned > 0 && b.actual > b.planned ? T('portfolio.over', { pct: Math.round((b.actual / b.planned - 1) * 100) })
+                        : (b.planned > 0 && b.forecast > b.planned ? T('portfolio.forecast_over', { pct: Math.round((b.forecast / b.planned - 1) * 100) }) : '') })),
+                series: [T('portfolio.planned'), T('portfolio.actual')], fmt: money,
+                labels: { table: T('portfolio.table'), chart: T('portfolio.chart'), category: T('portfolio.project'), aria: T('portfolio.chart_budget') },
+            });
+        });
+        // Risk heat map of every open risk in view; a cell lists its risks.
+        const risks = (chartData.risks || []).filter(r => inView.has(r.project_id));
+        const score = s => s >= 15 ? 'sc-high' : (s >= 8 ? 'sc-mid' : 'sc-low');
+        let h = '<div class="prj-heat-wrap"><div class="prj-heat-y">' + esc(T('raid.probability')) + '</div><div class="prj-heat">';
+        for (let p = 5; p >= 1; p--) {
+            h += '<div class="prj-heat-label y">' + esc((L.probability_labels || [])[p - 1] || p) + '</div>';
+            for (let i = 1; i <= 5; i++) {
+                const n = risks.filter(r => r.probability === p && r.impact === i).length;
+                h += '<button type="button" class="prj-heat-cell ' + score(p * i) + (n ? ' has' : '') + (heatCell === p + ':' + i ? ' sel' : '') + '" data-pheat="' + p + ':' + i + '" title="' + esc(T('raid.score', { score: p * i })) + '">' + (n ? '<b>' + n + '</b>' : '') + '</button>';
+            }
+        }
+        h += '<div></div>' + [1, 2, 3, 4, 5].map(i => '<div class="prj-heat-label x">' + esc((L.impact_labels || [])[i - 1] || i) + '</div>').join('') + '</div></div><div class="prj-heat-x">' + esc(T('raid.impact')) + '</div>';
+        if (heatCell) {
+            const [cp, ci] = heatCell.split(':').map(Number);
+            const sel = risks.filter(r => r.probability === cp && r.impact === ci);
+            h += '<ul class="prj-pc-risks">' + (sel.length ? sel.map(r => '<li><a href="' + esc(window.PRJ_BASE + 'projects/view.php?id=' + r.project_id + '#raid') + '">' + esc(name(r.project_id)) + '</a> ' + esc(r.title) + '</li>').join('') : '<li class="prj-muted">' + esc(T('portfolio.no_risks_cell')) + '</li>') + '</ul>';
+        }
+        box.querySelector('.prj-pc-heat').innerHTML = risks.length ? h : '<p class="prj-muted">' + esc(T('portfolio.no_risks')) + '</p>';
+        // Every milestone, one row per project.
+        const ms = (chartData.milestones || []).filter(m => inView.has(m.project_id));
+        const mrows = ordered.filter(p => ms.some(m => m.project_id === p.id)).map(p => ({ label: short(p.name), items: ms.filter(m => m.project_id === p.id).map(m => ({ d: m.due_date, name: m.name, state: m.state })) }));
+        const mbox = box.querySelector('.prj-pc-ms');
+        if (mrows.length) C.milestones(mbox, {
+            rows: mrows, today: P.todayStr(), fmtDate: P.fmtDate,
+            labels: { table: T('portfolio.table'), chart: T('portfolio.chart'), project: T('portfolio.project'), milestone: T('portfolio.milestone'), date: T('portfolio.date'), state: T('portfolio.state'),
+                states: { done: T('portfolio.ms_done'), missed: T('portfolio.ms_missed'), due: T('portfolio.ms_due') }, today: T('portfolio.today'), aria: T('portfolio.chart_milestones') },
+        }); else mbox.innerHTML = '<p class="prj-muted">' + esc(T('portfolio.no_milestones')) + '</p>';
     }
 
     async function load() {
@@ -260,7 +341,13 @@
             render();
         });
         let rt = null;
-        window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (layout === 'roadmap' && all.length) render(); }, 150); });
+        window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if ((layout === 'roadmap' || layout === 'charts') && all.length) render(); }, 150); });
+        // A heat map cell lists its risks (3.3.0); clicking it again clears.
+        document.getElementById('prjCharts').addEventListener('click', e => {
+            const c = e.target.closest('[data-pheat]'); if (!c) return;
+            heatCell = heatCell === c.dataset.pheat ? null : c.dataset.pheat;
+            render();
+        });
         document.getElementById('prjNew').addEventListener('click', newProject);
         document.getElementById('prjEmptyNew').addEventListener('click', newProject);
         load();

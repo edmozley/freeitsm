@@ -36,7 +36,7 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=33">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=34">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-portfolio">
@@ -87,6 +87,7 @@ $translationNamespaces = ['common', 'projects'];
                     <div class="prj-seg prj-layout-seg" role="tablist" aria-label="<?php echo htmlspecialchars(t('projects.portfolio.layout')); ?>">
                         <button type="button" data-layout="cards" class="active"><?php echo htmlspecialchars(t('projects.portfolio.layout_cards')); ?></button>
                         <button type="button" data-layout="roadmap"><?php echo htmlspecialchars(t('projects.portfolio.layout_roadmap')); ?></button>
+                        <button type="button" data-layout="charts"><?php echo htmlspecialchars(t('projects.portfolio.layout_charts')); ?></button>
                     </div>
                 </div>
             </div>
@@ -96,6 +97,7 @@ $translationNamespaces = ['common', 'projects'];
 
             <div class="prj-grid" id="prjGrid" aria-live="polite"></div>
             <div class="prj-roadmap" id="prjRoadmap" hidden></div>
+            <div class="prj-pcharts" id="prjCharts" hidden></div>
 
             <div class="prj-empty" id="prjEmpty" hidden>
                 <div class="prj-empty-art" aria-hidden="true">
@@ -112,7 +114,8 @@ $translationNamespaces = ['common', 'projects'];
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=8"></script>
-    <script src="../assets/js/projects-portfolio.js?v=10"></script>
+    <script src="../assets/js/projects-charts.js?v=7"></script>
+    <script src="../assets/js/projects-portfolio.js?v=11"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

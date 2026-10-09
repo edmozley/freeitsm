@@ -1277,3 +1277,20 @@ button.prj-tl-label { cursor: pointer; }
 /* ---- Overview status and flow charts (3.3.0) - projects-insights.js ---------- */
 .prj-ins { margin-top: 16px; }
 .prj-ins .prj-ins-note, .prj-ins .prj-ins-flownote { margin: -6px 0 10px; }
+/* ---- The portfolio's Charts view (3.3.0) - projects-portfolio.js charts() ---------- */
+.prj-pcharts { display: flex; flex-direction: column; gap: 16px; }
+.prj-pc-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 1100px) { .prj-pc-two { grid-template-columns: 1fr; } }
+.prj-pc-cur { margin: 10px 0 4px; font-size: 12px; color: var(--text-dim, #888); }
+.prj-pc-risks { margin: 12px 0 0; padding-left: 18px; font-size: 13px; color: var(--text, #222); }
+.prj-pc-risks li { margin: 3px 0; }
+.prj-pc-risks a { font-weight: 600; color: inherit; }
+.prj-viz-svg .viz-ms { stroke-width: 1.5; }
+.prj-viz-svg .viz-ms.ms-done { fill: #0ca30c; stroke: #0ca30c; }
+.prj-viz-svg .viz-ms.ms-missed { fill: #d03b3b; stroke: #d03b3b; }
+.prj-viz-svg .viz-ms.ms-due { fill: var(--surface, #fff); stroke: var(--text, #222); }
+.prj-viz-svg .viz-ms:focus { outline: none; stroke: var(--prj-accent, #e11d48); stroke-width: 2.5; }
+.prj-viz-dia { display: inline-block; width: 9px; height: 9px; transform: rotate(45deg); margin: 0 3px; border: 1.5px solid var(--text, #222); }
+.prj-viz-dia.ms-done { background: #0ca30c; border-color: #0ca30c; }
+.prj-viz-dia.ms-missed { background: #d03b3b; border-color: #d03b3b; }
+.prj-viz-dia.ms-due { background: var(--surface, #fff); }
