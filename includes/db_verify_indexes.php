@@ -492,5 +492,8 @@ return [
     ['project_benefits', 'idx_pben_project', 'key', '(`project_id`,`position`)'],
     ['project_benefits', 'ix_pben_review', 'key', '(`status`,`review_date`)'],
     ['project_benefits', 'ix_pben_owner', 'key', '(`owner_analyst_id`)'],
+    ['project_gate_items', 'idx_pgi_stage', 'key', '(`stage_id`,`position`)'],
+    ['project_gate_items', 'ix_pgi_project', 'key', '(`project_id`)'],
+    ['project_gate_items', 'ix_pgi_analyst', 'key', '(`analyst_id`)'],
     ['project_benefit_measures', 'idx_pbm_benefit', 'key', '(`benefit_id`,`measured_date`)'],
 ];

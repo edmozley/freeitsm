@@ -374,6 +374,7 @@ return [
                 'proposal_submitted' => 'A project proposal is waiting for your approval',
                 'proposal_decided'   => 'A project you proposed was approved or rejected',
                 'benefit_review_due' => 'A project benefit is due for review',
+                'signoff_requested'  => 'Your sign-off is needed at a project gate',
             ],
         ],
         // Labels for the per-type switches on the Preferences page. Same nesting
@@ -423,6 +424,7 @@ return [
                 'proposal_submitted' => 'A project is proposed and I am one of the people who approve proposals',
                 'proposal_decided'   => 'A project I proposed is approved or rejected',
                 'benefit_review_due' => 'A benefit I own, or of a project I manage, is due for review',
+                'signoff_requested'  => 'I am named to sign something off at a project stage gate',
             ],
         ],
     ],

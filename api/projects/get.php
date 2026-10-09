@@ -26,6 +26,13 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
             require_once __DIR__ . '/../../includes/projects/budget.php';
             return projectBudgetReady($conn) ? projectBudgetDetail($conn, $row, $analystId) : null;
         })(),
+        // Gate checklists (3.3.0): items per stage id, and what a document or change item may point at.
+        'gate' => (function () use ($conn, $pid, $analystId) {
+            require_once __DIR__ . '/../../includes/projects/gatecheck.php';
+            $chg = analystCanAccessModule($conn, $analystId, 'changes');
+            return ['items' => (object)projectGateItems($conn, $pid, $chg), 'documents' => projectGateDocuments($conn, $pid),
+                    'changes' => $chg ? projectGateChanges($conn, $pid) : [], 'mode' => projectSetting($conn, 'project_gate_checklist'), 'me' => $analystId];
+        })(),
         // Benefits (3.3.0): each with its measurements, state and progress.
         'benefits' => (function () use ($conn, $pid) {
             require_once __DIR__ . '/../../includes/projects/benefits.php';

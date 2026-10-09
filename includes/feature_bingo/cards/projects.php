@@ -277,4 +277,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'project_benefit_measures'],
     ],
+    [
+        'id'       => 'projects.gate_checklist',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'A checklist before go-live',
+        'what'     => 'A stage gate that will not say go until its checklist is done: the backout plan attached, the change approved, user acceptance testing signed off by the person who has to sign it.',
+        'why'      => 'Go-live happens because everything is ready, not because the date arrived - and the record shows who signed what.',
+        'done'     => 'At least one gate checklist item has been signed off.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_gate_items', "kind = 'signoff' AND done_datetime IS NOT NULL"],
+    ],
 ];

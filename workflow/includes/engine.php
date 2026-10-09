@@ -192,6 +192,7 @@ class WorkflowEngine
             'project.proposal_submitted' => 'A project is proposed and waits for approval',
             'project.proposal_decided'   => 'A project proposal is approved or rejected',
             'project.benefit_review_due' => 'A project benefit is due for review (time-based, also after the project closes)',
+            'project.signoff_requested'  => 'Somebody is named to sign off an item at a project stage gate',
             // ── Issue trackers. NOT time-based: something genuinely happened —
             // a developer moved the issue or wrote a comment. The poll is only
             // how we find out, because a self-hosted install cannot be called.
@@ -470,6 +471,7 @@ class WorkflowEngine
             // 3.3.0 intake. proposal.status: pending | approved | rejected. proposed_by_email is whoever asked on a form.
             'project.proposal_submitted' => array_merge($projectFields, $propFields = ['proposal.status', 'proposal.estimated_cost', 'proposal.estimated_benefit', 'proposal.business_case', 'proposal.proposed_by_name', 'proposal.proposed_by_email', 'proposal.proposed_by_analyst_id', 'proposal.submission_id']),
             'project.proposal_decided'   => array_merge($projectFields, $propFields, ['proposal.notes', 'proposal.decided_by_id']),
+            'project.signoff_requested'  => array_merge($projectFields, ['item.id', 'item.title', 'item.analyst_id', 'stage.id', 'stage.name']),
             'project.benefit_review_due' => array_merge($projectFields, ['benefit.id', 'benefit.title', 'benefit.measure', 'benefit.unit', 'benefit.review_date', 'benefit.baseline_value', 'benefit.target_value', 'benefit.owner_analyst_id']),
         ];
         if (isset($byTrigger[$trigger])) {

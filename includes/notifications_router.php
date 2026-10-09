@@ -306,6 +306,9 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
             case 'project.milestone_reached':
                 $title = $name . ': ' . (string)($payload['milestone']['name'] ?? '') . ' reached';
                 break;
+            case 'project.signoff_requested':
+                $title = $name . ': your sign-off is needed - ' . (string)($payload['item']['title'] ?? '') . ' (' . (string)($payload['stage']['name'] ?? '') . ')';
+                break;
             case 'project.benefit_review_due':
                 $title = $name . ': review the benefit - ' . (string)($payload['benefit']['title'] ?? '');
                 break;

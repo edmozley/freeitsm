@@ -206,6 +206,8 @@ class NotificationsService
             'project.proposal_decided'   => ['default' => true,  'entity' => 'project'],
             // 3.3.0 benefits: a review date has arrived - to the owner and the project manager.
             'project.benefit_review_due' => ['default' => true,  'entity' => 'project'],
+            // 3.3.0 gate checklists: you are named to sign something off.
+            'project.signoff_requested'  => ['default' => true,  'entity' => 'project'],
         ];
     }
 

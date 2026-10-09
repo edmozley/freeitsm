@@ -377,6 +377,27 @@ function analystCanAccessChange(PDO $conn, int $analystId, $changeId): bool {
 }
 
 /**
+ * May this analyst access this *project* (by its company)? The same rules as a
+ * change: single-company -> yes; NULL company = the Default one; unknown id -> no.
+ * Added for documents on projects (3.3.0).
+ */
+function analystCanAccessProject(PDO $conn, int $analystId, $projectId): bool {
+    $projectId = (int) $projectId;
+    if ($projectId <= 0) return false;
+    if (!isMultiTenant($conn)) return true;
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM projects WHERE id = ?");
+        $stmt->execute([$projectId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) return false;
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
+        return analystCanAccessTenant($conn, $analystId, $tid);
+    } catch (Exception $e) {
+        return tenancyDegradeAllowed($e);
+    }
+}
+
+/**
  * May this analyst access this *CMDB configuration item* (by its owning
  * company)? The CMDB twin of analystCanAccessAsset() — same rules
  * (single-company → always true; NULL tenant treated as Default-owned; unknown

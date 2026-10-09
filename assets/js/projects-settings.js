@@ -30,6 +30,7 @@
         if (key === 'project_change_approver') return T('settings.approver_' + value);
         if (key === 'project_change_apply') return T('settings.apply_' + value);
         if (key === 'project_cost_basis') return T('settings.basis_' + value);
+        if (key === 'project_gate_checklist') return T('settings.gatecheck_' + value);
         if (key === 'project_benefit_notify') return T('settings.bnotify_' + value);
         if (key === 'project_proposal_approval') return T('settings.proposal_' + value);
         if (key === 'project_proposal_approver') return T('settings.approver2_' + value);

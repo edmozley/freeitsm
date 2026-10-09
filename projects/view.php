@@ -19,6 +19,7 @@ require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
+require_once '../includes/documents_panel.php';   // 3.3.0: documents on projects
 I18n::initFromSession();
 Tz::init();
 
@@ -42,8 +43,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=29">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=31">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
     <?php include 'includes/header.php'; ?>
@@ -87,6 +88,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             <button type="button" data-tab="budget" data-tool="budget" hidden><?php echo htmlspecialchars(t('projects.tools.budget')); ?></button>
             <button type="button" data-tab="control" data-tool="control" hidden><?php echo htmlspecialchars(t('projects.tools.control')); ?></button>
             <button type="button" data-tab="benefits" data-tool="benefits" hidden><?php echo htmlspecialchars(t('projects.tools.benefits')); ?></button>
+            <button type="button" data-tab="documents"><?php echo htmlspecialchars(t('projects.view.tab_documents')); ?></button>
             <button type="button" data-tab="reports"><?php echo htmlspecialchars(t('projects.reports.tab')); ?></button>
             <button type="button" data-tab="connections"><?php echo htmlspecialchars(t('projects.view.tab_connections')); ?></button>
             <button type="button" data-tab="history"><?php echo htmlspecialchars(t('projects.view.tab_history')); ?></button>
@@ -103,6 +105,7 @@ $projectId = (int)($_GET['id'] ?? 0);
         <section class="prj-tab-panel" data-panel="budget" id="pvBudget" hidden></section>
         <section class="prj-tab-panel" data-panel="control" id="pvControl" hidden></section>
         <section class="prj-tab-panel" data-panel="benefits" id="pvBenefits" hidden></section>
+        <section class="prj-tab-panel" data-panel="documents" id="pvDocuments" hidden><p class="prj-muted" style="margin-top:0"><?php echo htmlspecialchars(t('projects.view.documents_intro')); ?></p><div class="prj-panel"><div id="pvDocumentsPanel"></div></div></section>
         <section class="prj-tab-panel" data-panel="reports" id="pvReports" hidden></section>
         <section class="prj-tab-panel" data-panel="connections" id="pvConnections" hidden></section>
         <section class="prj-tab-panel" data-panel="history" id="pvHistory" hidden></section>
@@ -346,6 +349,27 @@ $projectId = (int)($_GET['id'] ?? 0);
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-prj-close="prjBaselineModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary prj-btn" id="pbsSave"><?php echo htmlspecialchars(t('projects.control.take')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gate checklist item (3.3.0) - projects-gatecheck.js -->
+    <div class="modal" id="prjGateItemModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header" id="pgiTitle"></div>
+            <div class="modal-body">
+                <div class="form-group"><label for="pgiKind"><?php echo htmlspecialchars(t('projects.gatecheck.field_kind')); ?></label>
+                    <select id="pgiKind"><option value="check"><?php echo htmlspecialchars(t('projects.gatecheck.kind_check')); ?></option><option value="document"><?php echo htmlspecialchars(t('projects.gatecheck.kind_document')); ?></option><option value="signoff"><?php echo htmlspecialchars(t('projects.gatecheck.kind_signoff')); ?></option><option value="change"><?php echo htmlspecialchars(t('projects.gatecheck.kind_change')); ?></option></select>
+                    <small class="prj-muted" id="pgiHint"></small></div>
+                <div class="form-group"><label for="pgiName"><?php echo htmlspecialchars(t('projects.gatecheck.field_title')); ?></label><input type="text" id="pgiName" maxlength="200" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.gatecheck.field_title_ph')); ?>"></div>
+                <div class="form-group" id="pgiPersonWrap"><label for="pgiPerson"><?php echo htmlspecialchars(t('projects.gatecheck.field_person')); ?></label><select id="pgiPerson"></select></div>
+                <div class="form-group" id="pgiChangeWrap"><label for="pgiChange"><?php echo htmlspecialchars(t('projects.gatecheck.field_change')); ?></label><select id="pgiChange"></select></div>
+                <div class="form-group"><label for="pgiNotes"><?php echo htmlspecialchars(t('projects.gatecheck.field_notes')); ?></label><input type="text" id="pgiNotes" maxlength="500"></div>
+                <div class="prj-form-error" id="pgiError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjGateItemModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pgiSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -616,17 +640,19 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=8"></script>
-    <script src="../assets/js/projects-tools.js?v=7"></script>
+    <script src="../assets/js/projects-tools.js?v=8"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-budget.js?v=4"></script>
     <script src="../assets/js/projects-control.js?v=1"></script>
     <script src="../assets/js/projects-intake.js?v=1"></script>
     <script src="../assets/js/projects-benefits.js?v=1"></script>
+    <script src="../assets/js/projects-gatecheck.js?v=1"></script>
+    <?php documentsPanelAssets('../'); ?>
     <script src="../assets/js/projects-reports.js?v=2"></script>
     <script src="../assets/js/projects-charts.js?v=4"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=21"></script>
+    <script src="../assets/js/projects-view.js?v=22"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

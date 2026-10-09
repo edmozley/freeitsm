@@ -296,6 +296,18 @@ function documentEntityRegistry(): array {
             'can'    => null,
             'filter' => null,
         ],
+        'project' => [
+            // 3.3.0: plans, designs, sign-off letters, backout plans - and what a
+            // gate checklist's document items point at. Scoped by the project's company.
+            'module' => 'projects',
+            'table'  => 'projects',
+            'label'  => 'Project',
+            'url'    => 'projects/view.php?id=%d',
+            'title'  => 'name',
+            'alive'  => null,
+            'can'    => function (PDO $c, int $a, int $id) { return analystCanAccessProject($c, $a, $id); },
+            'filter' => function (PDO $c, int $a, string $alias) { return activeTenantFilter($c, $a, $alias); },
+        ],
         'cmdb_object' => [
             'module' => 'cmdb',
             'table'  => 'cmdb_objects',

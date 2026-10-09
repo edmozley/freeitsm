@@ -7945,6 +7945,7 @@ CREATE TABLE IF NOT EXISTS `project_stages` (
     `gate_notes`            TEXT NULL,
     `gate_decided_by`       INT NULL,
     `gate_decided_datetime` DATETIME NULL,
+    `gate_kind`         VARCHAR(10) NOT NULL DEFAULT 'standard',   -- 3.3.0: standard | golive (a go-live gate starts with its own checklist)
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
@@ -8388,6 +8389,35 @@ CREATE TABLE IF NOT EXISTS `project_benefits` (
     KEY `ix_pben_owner` (`owner_analyst_id`),
     CONSTRAINT `fk_pben_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_pben_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A stage gate's checklist (3.3.0) - includes/projects/gatecheck.php. What must
+-- be true before a go: a tick (check), a document attached to the project
+-- (document), a named analyst's sign-off (signoff) or a linked change approved
+-- (change - worked out from the change, never stored as done).
+CREATE TABLE IF NOT EXISTS `project_gate_items` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `project_id`       INT NOT NULL,
+    `stage_id`         INT NOT NULL,
+    `kind`             VARCHAR(10) NOT NULL DEFAULT 'check',          -- check | document | signoff | change
+    `title`            VARCHAR(200) NOT NULL,
+    `analyst_id`       INT NULL,                                      -- signoff: who signs
+    `change_id`        INT NULL,                                      -- change: which linked change
+    `document_id`      INT NULL,                                      -- document: the one that satisfies it
+    `done_by_id`       INT NULL,
+    `done_datetime`    DATETIME NULL,
+    `notes`            VARCHAR(500) NULL,
+    `position`         INT NOT NULL DEFAULT 0,
+    `created_by_id`    INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_pgi_stage` (`stage_id`, `position`),
+    KEY `ix_pgi_project` (`project_id`),
+    KEY `ix_pgi_analyst` (`analyst_id`),
+    CONSTRAINT `fk_pgi_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pgi_stage` FOREIGN KEY (`stage_id`) REFERENCES `project_stages` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pgi_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pgi_done_by` FOREIGN KEY (`done_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One measurement of a benefit, on a date. The latest by date is "now".

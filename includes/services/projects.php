@@ -226,7 +226,7 @@ class ProjectsService
             try { $conn->prepare("DELETE m FROM project_benefit_measures m JOIN project_benefits b ON b.id = m.benefit_id WHERE b.project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             // RAID actions first (3.3.0): joined to the entries about to go; the tasks stay.
             try { $conn->prepare("DELETE rt FROM project_raid_tasks rt JOIN project_raid r ON r.id = rt.raid_id WHERE r.project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
-            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones', 'project_change_requests', 'project_baselines', 'project_benefits'] as $t) {
+            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones', 'project_change_requests', 'project_baselines', 'project_benefits', 'project_gate_items'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             }
             foreach (['project_stages', 'project_audit'] as $t) {
@@ -353,6 +353,8 @@ class ProjectsService
             $conn->prepare("UPDATE tasks SET project_stage_id = NULL WHERE project_stage_id = ?")->execute([$stageId]);
             // Its milestones stay, as the whole project's - by hand, for an install whose FK failed to add.
             try { $conn->prepare("UPDATE project_milestones SET stage_id = NULL WHERE stage_id = ?")->execute([$stageId]); } catch (Throwable $e) { /* not created yet */ }
+            // Its gate's checklist goes with the gate (3.3.0) - by hand, for an install whose FK failed to add.
+            try { $conn->prepare("DELETE FROM project_gate_items WHERE stage_id = ?")->execute([$stageId]); } catch (Throwable $e) { /* not created yet */ }
             $conn->prepare("DELETE FROM project_stages WHERE id = ?")->execute([$stageId]);
             $conn->commit();
         } catch (Throwable $e) {
@@ -678,6 +680,28 @@ class ProjectsService
             ]);
         } catch (Throwable $e) {
             error_log('projects raid_escalated: ' . $e->getMessage());
+        }
+    }
+
+    /** project.signoff_requested (3.3.0): somebody is named to sign off an item at a stage gate. */
+    public static function signoffEvent(PDO $conn, int $projectId, int $itemId): void
+    {
+        try {
+            $p = self::eventFor($conn, $projectId);
+            if (!$p) return;
+            $st = $conn->prepare("SELECT i.id, i.title, i.analyst_id, s.id AS stage_id, s.name AS stage_name FROM project_gate_items i JOIN project_stages s ON s.id = i.stage_id WHERE i.id = ?");
+            $st->execute([$itemId]);
+            $i = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$i || !$i['analyst_id']) return;
+            require_once __DIR__ . '/../projects/alerts.php';
+            projectDispatch('project.signoff_requested', [
+                'project' => $p,
+                'item'    => ['id' => (int)$i['id'], 'title' => $i['title'], 'analyst_id' => (int)$i['analyst_id']],
+                'stage'   => ['id' => (int)$i['stage_id'], 'name' => $i['stage_name']],
+                'notify_ids' => [(int)$i['analyst_id']],
+            ]);
+        } catch (Throwable $e) {
+            error_log('projects signoff_requested: ' . $e->getMessage());
         }
     }
 

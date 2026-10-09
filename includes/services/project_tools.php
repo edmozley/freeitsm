@@ -584,6 +584,18 @@ class ProjectToolsService
         if ($stage['status'] === 'planned') throw new ServiceError('validation', 'invalid_field', 'That stage has not started yet.');
         $notes = self::str($notes, 20000);
         if ($decision === 'go_with_conditions' && !$notes) throw new ServiceError('validation', 'missing_field', 'Say what the conditions are.');
+        // The gate's checklist (3.3.0): an open item blocks a go, or is written into the notes (project_gate_checklist).
+        if ($decision !== 'stop') {
+            require_once __DIR__ . '/../projects/gatecheck.php';
+            $open = projectGateOpenItems($conn, $projectId, $stageId);
+            if ($open) {
+                $names = implode('; ', array_column($open, 'title'));
+                if (projectSetting($conn, 'project_gate_checklist') !== 'warn') {
+                    throw new ServiceError('validation', 'checklist_open', count($open) . ' checklist item(s) still open: ' . $names . '.');
+                }
+                $notes = trim(($notes ? $notes . "\n\n" : '') . 'Still open at the gate: ' . $names . '.');
+            }
+        }
         $conn->beginTransaction();
         try {
             $conn->prepare("UPDATE project_stages SET gate_decision = ?, gate_notes = ?, gate_decided_by = ?, gate_decided_datetime = UTC_TIMESTAMP(), updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
@@ -928,6 +940,140 @@ class ProjectToolsService
             foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[(int)$r['item_id']][(int)$r['member_id']] = $r['letter'];
         } catch (Throwable $e) { /* before Verification */ }
         return $out;
+    }
+
+    // ======================================================================
+    //  Gate checklists (3.3.0) - includes/projects/gatecheck.php
+    // ======================================================================
+
+    /** Add (no id) or change a gate item. Returns its id. */
+    public static function saveGateItem(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        require_once __DIR__ . '/../projects/gatecheck.php';
+        self::changeable($conn, $ctx, $projectId);
+        if (!projectGateItemsReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        $id = (int)($in['id'] ?? 0);
+        $cur = $id > 0 ? self::gateItem($conn, $projectId, $id) : null;
+        $stageId = $cur ? (int)$cur['stage_id'] : (int)(self::stageOf($conn, $projectId, $in['stage_id'] ?? null) ?? 0);
+        if ($stageId <= 0) throw new ServiceError('validation', 'missing_field', 'Choose the gate.');
+        $kind = $cur ? $cur['kind'] : (string)($in['kind'] ?? 'check');
+        if (!in_array($kind, PROJECT_GATE_ITEM_KINDS, true)) throw new ServiceError('validation', 'invalid_field', 'Unknown kind of item.');
+        $title = trim((string)($in['title'] ?? ($cur['title'] ?? '')));
+        if ($title === '') throw new ServiceError('validation', 'missing_field', 'Say what has to be done.');
+        if (mb_strlen($title) > 200) throw new ServiceError('validation', 'invalid_field', 'That is too long.');
+        $analyst = $kind === 'signoff' ? (array_key_exists('analyst_id', $in) ? ((int)$in['analyst_id'] ?: null) : ($cur['analyst_id'] ?? null)) : null;
+        if ($analyst) self::mustExist($conn, "SELECT 1 FROM analysts WHERE id = ? AND is_active = 1", (int)$analyst, 'That analyst does not exist or is inactive.');
+        $change = $kind === 'change' ? (array_key_exists('change_id', $in) ? ((int)$in['change_id'] ?: null) : ($cur['change_id'] ?? null)) : null;
+        if ($change && !in_array((int)$change, array_column(projectGateChanges($conn, $projectId), 'id'), true)) {
+            throw new ServiceError('validation', 'invalid_field', 'Link the change to the project on the Connections tab first.');
+        }
+        $notes = array_key_exists('notes', $in) ? self::str($in['notes'], 500) : ($cur['notes'] ?? null);
+        if ($cur) {
+            // A different person to sign: the old sign-off no longer counts.
+            $resign = $kind === 'signoff' && (int)$cur['analyst_id'] !== (int)$analyst;
+            $conn->prepare("UPDATE project_gate_items SET title = ?, analyst_id = ?, change_id = ?, notes = ?" . ($resign ? ", done_by_id = NULL, done_datetime = NULL" : "") . " WHERE id = ?")
+                 ->execute([$title, $analyst, $change, $notes, $id]);
+            if ($resign && $analyst) ProjectsService::signoffEvent($conn, $projectId, $id);
+        } else {
+            $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_gate_items WHERE stage_id = " . $stageId)->fetchColumn();
+            $conn->prepare("INSERT INTO project_gate_items (project_id, stage_id, kind, title, analyst_id, change_id, notes, position, created_by_id, created_datetime)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
+                 ->execute([$projectId, $stageId, $kind, $title, $analyst, $change, $notes, $pos, $ctx->actorId > 0 ? $ctx->actorId : null]);
+            $id = (int)$conn->lastInsertId();
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'gate_item_added', null, $title, self::src($ctx));
+            if ($analyst) ProjectsService::signoffEvent($conn, $projectId, $id);
+        }
+        ProjectsService::touchProject($conn, $projectId);
+        return $id;
+    }
+
+    public static function deleteGateItem(PDO $conn, ActorContext $ctx, int $projectId, int $itemId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $i = self::gateItem($conn, $projectId, $itemId);
+        $conn->prepare("DELETE FROM project_gate_items WHERE id = ?")->execute([$itemId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'gate_item_removed', $i['title'], null, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    /**
+     * Tick or untick an item. A check: anybody who may change the project. A
+     * sign-off: ONLY its named analyst. A document: choose one of the project's
+     * documents (document_id; empty unticks). A change cannot be ticked - it is
+     * done when the change is approved.
+     */
+    public static function tickGateItem(PDO $conn, ActorContext $ctx, int $projectId, int $itemId, array $in): void
+    {
+        require_once __DIR__ . '/../projects/gatecheck.php';
+        $p = ProjectsService::loadForActor($conn, $ctx, $projectId);
+        $i = self::gateItem($conn, $projectId, $itemId);
+        $done = !empty($in['done']);
+        $who = $ctx->actorId > 0 ? $ctx->actorId : null;
+        switch ($i['kind']) {
+            case 'change':
+                throw new ServiceError('validation', 'invalid_field', 'This item is done when the change is approved, in Changes.');
+            case 'signoff':
+                if ((int)$i['analyst_id'] !== $ctx->actorId) throw new ServiceError('forbidden', 'forbidden', $i['analyst_id'] ? 'Only the person named can sign this off.' : 'Choose who signs this off first.');
+                $conn->prepare("UPDATE project_gate_items SET done_by_id = ?, done_datetime = " . ($done ? 'UTC_TIMESTAMP()' : 'NULL') . ", notes = COALESCE(?, notes) WHERE id = ?")
+                     ->execute([$done ? $who : null, self::str($in['notes'] ?? null, 500), $itemId]);
+                break;
+            case 'document':
+                ProjectsService::assertCanChange($conn, $ctx, $p);
+                $doc = !empty($in['document_id']) ? (int)$in['document_id'] : null;
+                if ($doc && !in_array($doc, array_column(projectGateDocuments($conn, $projectId), 'id'), true)) {
+                    throw new ServiceError('validation', 'invalid_field', 'Attach the document to the project on its Documents tab first.');
+                }
+                $conn->prepare("UPDATE project_gate_items SET document_id = ?, done_by_id = ?, done_datetime = " . ($doc ? 'UTC_TIMESTAMP()' : 'NULL') . " WHERE id = ?")
+                     ->execute([$doc, $doc ? $who : null, $itemId]);
+                $done = (bool)$doc;
+                break;
+            default:
+                ProjectsService::assertCanChange($conn, $ctx, $p);
+                $conn->prepare("UPDATE project_gate_items SET done_by_id = ?, done_datetime = " . ($done ? 'UTC_TIMESTAMP()' : 'NULL') . " WHERE id = ?")
+                     ->execute([$done ? $who : null, $itemId]);
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, $i['kind'] === 'signoff' ? ($done ? 'gate_signed' : 'gate_unsigned') : ($done ? 'gate_item_done' : 'gate_item_reopened'), null, $i['title'], self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    /** standard | golive. Making a gate go-live adds the starter items it does not already have. */
+    public static function setGateKind(PDO $conn, ActorContext $ctx, int $projectId, int $stageId, string $kind): int
+    {
+        require_once __DIR__ . '/../projects/gatecheck.php';
+        $p = self::changeable($conn, $ctx, $projectId);
+        if (!in_array($kind, ['standard', 'golive'], true)) throw new ServiceError('validation', 'invalid_field', 'Choose a standard or a go-live gate.');
+        $stageId = (int)self::stageOf($conn, $projectId, $stageId);
+        if (!$stageId) throw new ServiceError('validation', 'missing_field', 'Choose the gate.');
+        $conn->prepare("UPDATE project_stages SET gate_kind = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$kind, $stageId]);
+        $added = 0;
+        if ($kind === 'golive') {
+            $have = $conn->prepare("SELECT LOWER(title) FROM project_gate_items WHERE stage_id = ?");
+            $have->execute([$stageId]);
+            $titles = $have->fetchAll(PDO::FETCH_COLUMN);
+            foreach (projectGoLiveStarter() as [$k, $title]) {
+                // Skipped only when the gate already has it by name: a gate can need several sign-offs.
+                if (in_array(mb_strtolower($title), $titles, true)) continue;
+                self::saveGateItem($conn, $ctx, $projectId, ['stage_id' => $stageId, 'kind' => $k, 'title' => $title,
+                    'analyst_id' => $k === 'signoff' ? ($p['owner_analyst_id'] ?? null) : null]);
+                $added++;
+            }
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'gate_kind', null, $kind, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return $added;
+    }
+
+    private static function gateItem(PDO $conn, int $projectId, int $itemId): array
+    {
+        try {
+            $st = $conn->prepare("SELECT * FROM project_gate_items WHERE id = ? AND project_id = ?");
+            $st->execute([$itemId, $projectId]);
+            $r = $st->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        }
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'That item is not on this project\'s gates.');
+        return $r;
     }
 
     // ======================================================================

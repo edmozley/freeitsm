@@ -70,6 +70,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // reminder goes to: its owner and the project manager, or its owner
             // only (the project manager when it has none).
             'project_benefit_review_months' => ['3',       'int:0:24',    'general'],
+            // Gate checklists (3.3.0) - includes/projects/gatecheck.php. An open
+            // item stops a go (block), or the go is recorded with what was still
+            // open written into its notes (warn).
+            'project_gate_checklist'        => ['block',   'gatecheck',   'general'],
             'project_benefit_notify'        => ['both',    'bnotify',     'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
@@ -231,6 +235,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'gatecheck') {
+            if (!in_array($v, ['block', 'warn'], true)) throw new InvalidArgumentException('Choose block or warn.');
             return $v;
         }
         if ($rule === 'bnotify') {

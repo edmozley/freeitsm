@@ -20,6 +20,7 @@
     let data = null;      // {project, stages, tasks, history}
     let L = null;         // lookups
     let tab = 'overview';
+    let docsMounted = false, docsTouched = false;   // 3.3.0 documents tab
     let openAdd = null;
     let links = null;     // {links: {kind: [...]}, ready} from api/projects/links.php   // the lane (stage id, '' = not in one) whose add-a-task form is open
 
@@ -256,7 +257,9 @@
         // Change control (3.3.0): "CR-2: title" as stored; "Baseline 3" in the viewer's words.
         else if (f === 'change_raised' || f === 'change_approved' || f === 'change_rejected' || f === 'change_withdrawn' || f === 'change_edited') detail = h.new_value || '';
         else if (f === 'proposal_approved' || f === 'proposal_rejected' || f === 'benefit_added' || f === 'benefit_changed' || f === 'benefit_measured') detail = h.new_value || '';
-        else if (f === 'benefit_removed') detail = h.old_value || '';
+        else if (f === 'benefit_removed' || f === 'gate_item_removed') detail = h.old_value || '';
+        else if (f.indexOf('gate_item_') === 0 || f === 'gate_signed' || f === 'gate_unsigned') detail = h.new_value || '';
+        else if (f === 'gate_kind') detail = T('gatecheck.gate_' + (h.new_value === 'golive' ? 'golive' : 'standard'));
         else if (f === 'baseline_taken') detail = String(h.new_value || '').replace(/^Baseline (\d+)/, (m, n) => T('control.baseline_n', { n: n }));
         else if (f === 'priority') detail = T('history.from_to', { from: P.priorityLabel(h.old_value), to: P.priorityLabel(h.new_value) });
         else if (f === 'health') detail = T('history.from_to', { from: T('health.' + h.old_value), to: T('health.' + h.new_value) });
@@ -421,12 +424,20 @@
         if (window.PrjControl) window.PrjControl.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjIntake) window.PrjIntake.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjBenefits) window.PrjBenefits.render({ data: data, projectId: projectId, refresh: refresh });
+        // Documents (3.3.0): the shared panel, mounted once - it loads and checks its own list.
+        if (window.FreeITSMDocuments && !docsMounted) {
+            docsMounted = true;
+            window.FreeITSMDocuments.mount(document.getElementById('pvDocumentsPanel'), { parentType: 'project', parentId: projectId, apiBase: '../api/documents/', canEdit: !!(data.permissions && data.permissions.can_change) });
+        }
         if (window.PrjReports) window.PrjReports.render({ data: data, projectId: projectId, refresh: refresh });
         showTab(tab);
         if (window.PrjTimeline) window.PrjTimeline.render(toolCtx);   // after showTab: it draws only when visible
     }
 
     function showTab(name) {
+        // A document attached since the page loaded is something a gate's document item can now point at.
+        if (name === 'gates' && docsTouched) { docsTouched = false; refresh(); }
+        if (name === 'documents') docsTouched = true;
         tab = name;
         document.querySelectorAll('#prjTabs [data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
         document.querySelectorAll('.prj-tab-panel').forEach(s => { s.hidden = s.dataset.panel !== name; });
@@ -787,7 +798,7 @@
     // ---- Wiring -----------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         const start = (location.hash || '').replace('#', '');
-        if (['overview', 'plan', 'timeline', 'people', 'scope', 'raci', 'raid', 'gates', 'budget', 'control', 'benefits', 'reports', 'connections', 'history'].includes(start)) tab = start;
+        if (['overview', 'plan', 'timeline', 'people', 'scope', 'raci', 'raid', 'gates', 'budget', 'control', 'benefits', 'documents', 'reports', 'connections', 'history'].includes(start)) tab = start;
         if (/[?&]new=1/.test(location.search)) tab = 'plan';
 
         document.getElementById('prjTabs').addEventListener('click', e => {

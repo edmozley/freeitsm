@@ -64,7 +64,7 @@ $after = [
     'tools'    => ['p2'],
     'scope'    => ['p2'],
     'raci'     => ['p2'],
-    'gates'    => ['p4', 'p5'],
+    'gates'    => ['p4', 'p5', 'p6'],
     'health'   => ['p2'],
     'settings' => ['p2', 'p3'],
 ];
@@ -89,9 +89,9 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=29">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=31">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=188">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=189">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
         body {

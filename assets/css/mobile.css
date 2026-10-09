@@ -16229,4 +16229,16 @@
     body[data-mobile-page="projects-portfolio"] .prj-sort select { min-height: 40px; }
     body[data-mobile-page="projects-view"] .prj-burn-controls { width: 100%; }
     body[data-mobile-page="projects-view"] .prj-burn-stage { flex: 1 1 auto; max-width: none; min-height: 40px; }
+
+    /* ---- 44s. Gate checklists (3.3.0) ----------------------------------------
+       A gate's row held Decide beside its text, which now includes the checklist:
+       the checklist was squeezed to ~220px at 390. The text and checklist take the
+       width, and Decide wraps under them - after reading the checklist, which is
+       the order it is used in. Controls are 40px. */
+    body[data-mobile-page="projects-view"] .prj-gate { flex-wrap: wrap; }
+    body[data-mobile-page="projects-view"] .prj-gate-main { flex: 1 1 calc(100% - 30px); min-width: 0; }
+    body[data-mobile-page="projects-view"] .prj-gate > [data-gate] { margin-left: 26px; }
+    body[data-mobile-page="projects-view"] .prj-gc-head select,
+    body[data-mobile-page="projects-view"] .prj-gc-control select { min-height: 40px; }
+    body[data-mobile-page="projects-view"] .prj-gc-control .btn.sm { min-height: 40px; }
 }

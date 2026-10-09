@@ -262,15 +262,17 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 .prj-ghost-btn:hover { background: rgba(255,255,255,.28); }
 .prj-ghost-btn.danger:hover { background: rgba(127, 29, 29, .45); }
 
-.prj-tabs { display: flex; gap: 4px; margin: 18px 0 16px; border-bottom: 1px solid var(--border, #e0e0e0); }
+/* 3.3.0: sixteen tabs with every tool on - one line each, and the bar scrolls sideways
+   when the window is too narrow, rather than wrapping a label or cutting History off. */
+.prj-tabs { display: flex; gap: 2px; margin: 18px 0 16px; border-bottom: 1px solid var(--border, #e0e0e0); overflow-x: auto; scrollbar-width: thin; }
 .prj-tabs button {
-    position: relative; background: none; border: none; padding: 10px 16px; font-size: 14px; font-weight: 600;
-    color: var(--text-muted, #666); cursor: pointer;
+    position: relative; background: none; border: none; padding: 10px 13px; font-size: 14px; font-weight: 600;
+    color: var(--text-muted, #666); cursor: pointer; flex: 0 0 auto; white-space: nowrap;
 }
 .prj-tabs button:hover { color: var(--text, #222); }
 .prj-tabs button.active { color: var(--text, #222); }
 .prj-tabs button.active::after {
-    content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0;
+    content: ''; position: absolute; left: 10px; right: 10px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0;   /* inside the scroller, so not clipped */
     background: var(--prj-gradient, linear-gradient(90deg, #f43f5e, #7c3aed));
 }
 
@@ -1199,3 +1201,31 @@ button.prj-tl-label { cursor: pointer; }
 .prj-ben-meta.due { color: #b45309; font-weight: 600; }
 [data-theme="dark"] .prj-ben-meta.due { color: #fbbf24; }
 .prj-ben-history { margin-top: 10px; }
+/* ---- Gate checklists (3.3.0) - projects-gatecheck.js ----------------------- */
+.prj-gate-check { margin-top: 8px; }
+.prj-gc-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; font-size: 12.5px; }
+.prj-gc-count { font-weight: 600; color: var(--text-muted, #64748b); }
+.prj-gc-count.open { color: #b45309; }
+[data-theme="dark"] .prj-gc-count.open { color: #fbbf24; }
+.prj-gc-golive { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #ede9fe; color: #5b21b6; }
+[data-theme="dark"] .prj-gc-golive { background: #2e1f5e; color: #c4b5fd; }
+.prj-gc-head select { padding: 3px 6px; border: 1px solid var(--border, #e5e7eb); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #222); font-size: 12px; }
+.prj-gc-head .prj-link { margin-left: 0; }
+.prj-gc-list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.prj-gc-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: 8px; background: var(--surface-hover, #f8fafc); font-size: 13px; }
+.prj-gc-mark { flex: 0 0 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border, #cbd5e1); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; margin-top: 1px; }
+.prj-gc-item.done .prj-gc-mark { background: #16a34a; border-color: #16a34a; }
+.prj-gc-text { flex: 1; min-width: 0; color: var(--text, #222); }
+.prj-gc-kind { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--text-muted, #64748b); }
+.prj-gc-title { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--text, #222); cursor: pointer; text-align: left; }
+.prj-gc-title:hover { text-decoration: underline; }
+.prj-gc-control { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.prj-gc-control select { max-width: 220px; padding: 3px 6px; border: 1px solid var(--border, #e5e7eb); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #222); font-size: 12px; }
+.prj-gc-control input[type=checkbox] { width: 18px; height: 18px; }
+.prj-gc-control .prj-task-remove { opacity: 1; }
+.prj-gc-item .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 600px) {
+    .prj-gc-item { flex-wrap: wrap; }
+    .prj-gc-control { width: 100%; padding-left: 26px; }
+    .prj-gc-control select { max-width: none; flex: 1; }
+}

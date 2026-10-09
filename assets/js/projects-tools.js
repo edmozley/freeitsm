@@ -507,12 +507,15 @@
                 + ' <span class="prj-stage-pill sp-' + esc(s.status) + '">' + esc(T('stage_status.' + s.status)) + '</span></div>'
                 + (dec ? '<div class="prj-gate-decision g-' + esc(dec) + '">' + esc(T('gates.' + dec)) + ' <small>' + esc(who) + '</small></div>' : '<div class="prj-muted">' + esc(T('gates.undecided')) + '</div>')
                 + (s.status === 'active' && gateChanges().length ? '<div class="prj-gate-chip-warn">' + esc(T('gates.changes_chip', { count: gateChanges().length })) + '</div>' : '')
-                + (s.gate_notes ? '<p class="prj-gate-notes">' + esc(s.gate_notes) + '</p>' : '') + '</div>'
+                + (s.gate_notes ? '<p class="prj-gate-notes">' + esc(s.gate_notes) + '</p>' : '')
+                // The gate's checklist (3.3.0) - filled by projects-gatecheck.js.
+                + '<div class="prj-gate-check" data-gc="' + s.id + '"></div></div>'
                 + (canChange() && s.status !== 'planned' ? '<button type="button" class="btn btn-secondary sm" data-gate="' + s.id + '">' + esc(T('gates.decide')) + '</button>' : '')
                 + '</li>';
         }).join('') + '</ol>';
         html += '</div>';
         box.innerHTML = html;
+        if (window.PrjGateCheck) window.PrjGateCheck.fill(ctx);
     }
 
     /**
@@ -546,7 +549,7 @@
         document.querySelectorAll('#pgChoices [data-decision]').forEach(b => b.classList.toggle('selected', b.dataset.decision === gateDecision));
         // Only a gate still to close needs the warning; a closed stage's is history.
         const warn = document.getElementById('pgChanges');
-        if (warn) { warn.innerHTML = stage.status !== 'closed' ? gateChangesBox() : ''; warn.hidden = warn.innerHTML === ''; }
+        if (warn) { warn.innerHTML = stage.status !== 'closed' ? gateChangesBox() + (window.PrjGateCheck ? window.PrjGateCheck.openBox(stage.id) : '') : ''; warn.hidden = warn.innerHTML === ''; }
         document.getElementById('pgError').hidden = true;
         P.openModal('prjGateModal');
     }

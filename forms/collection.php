@@ -165,7 +165,7 @@ $translationNamespaces = ['common', 'forms'];
             .coll-card { box-shadow: none; }
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

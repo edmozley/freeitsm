@@ -43,6 +43,10 @@
  *      change_save    {id?, title, description?, reason?, impact_days?, impact_cost?, impact_scope?}
  *      change_decide  {id, decision: approved|rejected, notes?}
  *      change_withdraw {id}
+ *      gate_item_save {id?, stage_id, kind: check|document|signoff|change, title, analyst_id?, change_id?, notes?}   (3.3.0 gate checklists)
+ *      gate_item_delete {id}
+ *      gate_item_tick {id, done?, document_id?, notes?}   a sign-off by its named analyst only; a change item cannot be ticked
+ *      gate_kind      {stage_id, kind: standard|golive}   go-live adds the starter items
  *      benefit_save   {id?, title, measure?, unit?, direction: up|down, baseline_value?, target_value?, target_date?, owner_analyst_id?, review_date?, review_months?, status: open|closed, notes?}   (3.3.0)
  *      benefit_delete {id}
  *      benefit_measure_add {id, value, measured_date?, note?}
@@ -167,6 +171,16 @@ projectApiRun(function () use ($conn, $ctx) {
         case 'task_estimate':
             ProjectToolsService::setTaskEstimate($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), $in['estimate_hours'] ?? null);
             projectApiOk();
+        case 'gate_item_save':
+            projectApiOk(['id' => ProjectToolsService::saveGateItem($conn, $ctx, $pid, $in)]);
+        case 'gate_item_delete':
+            ProjectToolsService::deleteGateItem($conn, $ctx, $pid, (int)($in['id'] ?? 0));
+            projectApiOk();
+        case 'gate_item_tick':
+            ProjectToolsService::tickGateItem($conn, $ctx, $pid, (int)($in['id'] ?? 0), $in);
+            projectApiOk();
+        case 'gate_kind':
+            projectApiOk(['added' => ProjectToolsService::setGateKind($conn, $ctx, $pid, (int)($in['stage_id'] ?? 0), (string)($in['kind'] ?? ''))]);
         case 'benefit_save':
             projectApiOk(['id' => ProjectToolsService::saveBenefit($conn, $ctx, $pid, $in)]);
         case 'benefit_delete':

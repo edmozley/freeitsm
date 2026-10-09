@@ -2908,6 +2908,11 @@ try {
         ['project_change_requests', 'fk_pcr_project', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_change_requests', 'fk_pcr_raised_by', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_raised_by FOREIGN KEY (raised_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['project_change_requests', 'fk_pcr_decided_by', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_decided_by FOREIGN KEY (decided_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        // Gate checklists (3.3.0)
+        ['project_gate_items', 'fk_pgi_project', "ALTER TABLE project_gate_items ADD CONSTRAINT fk_pgi_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_gate_items', 'fk_pgi_stage', "ALTER TABLE project_gate_items ADD CONSTRAINT fk_pgi_stage FOREIGN KEY (stage_id) REFERENCES project_stages (id) ON DELETE CASCADE"],
+        ['project_gate_items', 'fk_pgi_analyst', "ALTER TABLE project_gate_items ADD CONSTRAINT fk_pgi_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_gate_items', 'fk_pgi_done_by', "ALTER TABLE project_gate_items ADD CONSTRAINT fk_pgi_done_by FOREIGN KEY (done_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         // Benefits (3.3.0)
         ['project_benefits', 'fk_pben_project', "ALTER TABLE project_benefits ADD CONSTRAINT fk_pben_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_benefits', 'fk_pben_owner', "ALTER TABLE project_benefits ADD CONSTRAINT fk_pben_owner FOREIGN KEY (owner_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],

@@ -5201,6 +5201,7 @@ return [
         'gate_notes'            => 'TEXT NULL',
         'gate_decided_by'       => 'INT NULL',
         'gate_decided_datetime' => 'DATETIME NULL',
+        'gate_kind'        => "VARCHAR(10) NOT NULL DEFAULT 'standard'",   // 3.3.0 standard | golive
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
@@ -5513,6 +5514,23 @@ return [
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NULL',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    // Gate checklists (3.3.0) - includes/projects/gatecheck.php.
+    'project_gate_items' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'       => 'INT NOT NULL',
+        'stage_id'         => 'INT NOT NULL',
+        'kind'             => "VARCHAR(10) NOT NULL DEFAULT 'check'",
+        'title'            => 'VARCHAR(200) NOT NULL',
+        'analyst_id'       => 'INT NULL',
+        'change_id'        => 'INT NULL',
+        'document_id'      => 'INT NULL',
+        'done_by_id'       => 'INT NULL',
+        'done_datetime'    => 'DATETIME NULL',
+        'notes'            => 'VARCHAR(500) NULL',
+        'position'         => 'INT NOT NULL DEFAULT 0',
+        'created_by_id'    => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
     'project_benefit_measures' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',

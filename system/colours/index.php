@@ -191,7 +191,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .btn-primary:hover { background: #b0bec5; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=188">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="system" data-mobile-page="colours">
     <?php include '../includes/header.php'; ?>
