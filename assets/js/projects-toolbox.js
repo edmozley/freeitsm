@@ -65,7 +65,7 @@
         box.hidden = false;
         box.innerHTML = '<div class="prj-panel prj-toolbox"><div class="prj-toolbox-head"><h3>' + P.icon('wrench', 16) + ' ' + esc(T('title')) + '</h3>'
             + '<button type="button" class="prj-link" data-tb-hide>' + esc(T('hide')) + '</button></div>'
-            + '<p class="prj-muted">' + esc(T('intro', { count: on.length })) + '</p>'
+            + '<p class="prj-muted">' + esc(T('intro', { count: on.length })) + ' <a href="' + esc(window.PRJ_BASE + 'projects/tutorial.php') + '">' + esc(P.T('tutorial.link')) + '</a></p>'
             + '<div class="prj-toolbox-grid">' + rows.map(r =>
                 '<div class="prj-toolbox-card' + (r.why ? ' suggested' : '') + '">'
                 + '<div class="prj-toolbox-name">' + P.icon(ICONS[r.k], 16) + '<strong>' + esc(P.T('tools.' + r.k)) + '</strong>'

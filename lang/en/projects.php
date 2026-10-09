@@ -868,6 +868,14 @@ return [
     ],
 
     // 3.3.0 - "How it fits together", the interactive map on the help page (assets/js/projects-tour.js)
+    // The tutorial page (3.3.0) - projects/tutorial.php.
+    'tutorial' => [
+        'title' => 'How it fits together',
+        'intro' => 'Every part of a project and what feeds what. Choose any box to see what it is and where it lives, or walk through a project step by step - an office move, from its goal to its benefits.',
+        'back'  => 'Help',
+        'link'  => 'New to projects? See how it fits together',
+    ],
+
     'tour' => [
         'explore'     => 'Explore',
         'walk'        => 'Walk through a project',
@@ -1942,7 +1950,9 @@ return [
             'nav'      => 'How it fits together',
             'title'    => 'How it fits together',
             'intro'    => 'Every part of a project, and what feeds what - explore it, or walk through a project from goal to benefits.',
-            'p1'       => 'Choose any box to see what it is, where you find it and which tool switches it on; the lines and the lists show what it feeds and what feeds it. **Walk through a project** follows an office move from its goal to its benefits, twelve steps. **Show what a project starts with** fades the parts a way of running leaves off at first - a Simple project starts with very little, and the Toolbox on its Overview adds the rest when the project needs it.',
+            'open'     => 'Open the map',
+            'open_walk' => 'Walk through a project',
+            'p1'       => 'It has a page of its own, so the map gets the whole screen - also linked from an empty portfolio and from the Toolbox. Choose any box to see what it is, where you find it and which tool switches it on; the lines and the lists show what it feeds and what feeds it. **Walk through a project** follows an office move from its goal to its benefits, twelve steps (the arrow keys step through it too). **Show what a project starts with** fades the parts a way of running leaves off at first - a Simple project starts with very little, and the Toolbox on its Overview adds the rest when the project needs it.',
             'noscript' => 'The interactive map needs JavaScript. Each part is also described in the sections below.',
         ],
         'portfolio' => [

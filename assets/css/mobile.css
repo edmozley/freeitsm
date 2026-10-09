@@ -16204,6 +16204,25 @@
        keeps its columns and scrolls sideways in its own box (§2/§3) with the
        person column sticky; the weeks picker takes the full width. The Plan's
        estimate box is always outlined on a phone (there is no hover to reveal it). */
+    /* The tutorial page (3.3.0, projects/tutorial.php): the Capacity shell; the map
+       drops to two columns and loses its lines at 560px (projects.css), and the
+       walk's Back / Next are full thumb height. */
+    body[data-mobile-page="projects-tutorial"] .prj-page {
+        flex: 1 1 auto;
+        height: auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px 12px 24px;
+    }
+    body[data-mobile-page="projects-tutorial"] .prj-tutorial-head h1 { font-size: 20px; }
+    body[data-mobile-page="projects-tutorial"] .prj-tour.is-walk .prj-tour-panel { order: -1; }
+    body[data-mobile-page="projects-tutorial"] .prj-tour-bar .prj-seg { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+    body[data-mobile-page="projects-tutorial"] .prj-tour-bar .prj-seg button,
+    body[data-mobile-page="projects-tutorial"] .prj-tour-nav .btn { min-height: 40px; }
+    body[data-mobile-page="projects-tutorial"] .prj-tour-method { width: 100%; }
+    body[data-mobile-page="projects-tutorial"] .prj-tour-method select { flex: 1; min-width: 0; }
     body[data-mobile-page="projects-capacity"] .prj-page {
         flex: 1 1 auto;
         height: auto;

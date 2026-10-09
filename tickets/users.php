@@ -443,7 +443,7 @@ $translationNamespaces = ['common', 'tickets'];
             border-bottom: 1px solid var(--border, #e0e0e0);
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
 </head>
 <body data-mobile-page="tickets-users">
     <?php include 'includes/header.php'; ?>

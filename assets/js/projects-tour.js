@@ -3,7 +3,8 @@
  * parts of a project and what feeds what, with a 12-step walk through an office
  * move, and a filter showing what each way of running starts with.
  *
- * Mounted by projects/help.php into #prjTour. The words are projects.tour.*;
+ * Mounted into #prjTour by projects/tutorial.php - its own full-width page since
+ * 3.3.0 (?walk=1 / data-start="walk" opens on the walk; Left / Right step it). The words are projects.tour.*;
  * the tools each method switches on come from the presets
  * (window.PRJ_TOUR = {methods: {simple: [...], ...}, labels: {simple: 'Simple', ...}}),
  * so the map can never disagree with includes/projects/methodologies.php.
@@ -66,6 +67,13 @@
         root.addEventListener('click', onClick);
         root.querySelector('[data-tmethod]').addEventListener('change', e => { method = e.target.value; draw(); });
         window.addEventListener('resize', () => lines());
+        // Arrow keys step the walk (not while typing in the method filter).
+        document.addEventListener('keydown', e => {
+            if (mode !== 'walk' || (e.target.closest && e.target.closest('select, input, textarea'))) return;
+            if (e.key === 'ArrowRight' && step < STEPS.length - 1) { step++; draw(); }
+            else if (e.key === 'ArrowLeft' && step > 0) { step--; draw(); }
+        });
+        if (root.dataset.start === 'walk') { mode = 'walk'; syncMode(); }
         draw();
     }
 
@@ -84,6 +92,7 @@
 
     function draw() {
         const lit = mode === 'walk' ? STEPS[step] : (sel ? [sel] : []);
+        root.classList.toggle('is-walk', mode === 'walk');   // a phone puts the step text above the map
         const rel = sel && mode === 'explore' ? related(sel) : { feeds: [], fed: [] };
         root.querySelectorAll('[data-node]').forEach(b => {
             const id = b.dataset.node, tool = NODES.find(n => n[0] === id)[2];

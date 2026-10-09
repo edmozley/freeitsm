@@ -36,8 +36,8 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=45">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=47">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-portfolio">
     <?php include 'includes/header.php'; ?>
@@ -114,6 +114,7 @@ $translationNamespaces = ['common', 'projects'];
                 <h2><?php echo htmlspecialchars(t('projects.portfolio.empty_title')); ?></h2>
                 <p><?php echo htmlspecialchars(t('projects.portfolio.empty_body')); ?></p>
                 <button type="button" class="btn btn-primary prj-btn" id="prjEmptyNew"><?php echo htmlspecialchars(t('projects.portfolio.empty_cta')); ?></button>
+                <p class="prj-tutorial-link"><a href="tutorial.php"><?php echo htmlspecialchars(t('projects.tutorial.link')); ?></a></p>
             </div>
             <p class="prj-filtered-empty" id="prjFilteredEmpty" hidden><?php echo htmlspecialchars(t('projects.portfolio.empty_filtered')); ?></p>
         </main>

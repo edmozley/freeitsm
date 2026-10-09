@@ -53,6 +53,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2250 | People            | Feature     | A supplier's page and a supplier contact's page list the tasks given to them (Tasks with them), open first, with the project and who here chases each one. |
 | 2251 | System            | Improvement | Demo data: a record can list `_optional_fields` - references left empty, not fatal, when another module's demo data is not there - so demo project tasks can be given to Contracts' demo suppliers whether or not Contracts' demo data is imported. |
 | 2252 | Projects          | Fix         | Ask AI could give tasks to a contractor but not put the firm on the team (propose_member took analysts only), so the People tab stayed empty; propose_member now takes a supplier and a person there, checked against Contracts when proposed and when applied, and the assistant is told to offer it. |
+| 2253 | Projects          | Improvement | How it fits together moved from inside Projects - Help to a full-width page of its own (projects/tutorial.php, ?walk=1 opens on the walk), linked from Help, an empty portfolio and the Toolbox; the walk steps with the arrow keys, and on a phone its text sits above the map. |
 
 
 
