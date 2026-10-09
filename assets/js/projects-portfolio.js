@@ -59,6 +59,9 @@
             +     P.ring(p.progress, p.shown_health, 58)
             +   '</div>'
             +   (p.active_stage_name ? '<div class="prj-card-now"><span class="pulse"></span>' + esc(T('portfolio.now', { stage: p.active_stage_name })) + '</div>' : '')
+            // The next date the project promised (3.3.0).
+            +   (p.next_milestone && !finished ? '<div class="prj-card-ms" title="' + esc(T('milestones.next')) + '"><span class="prj-ms-dia ms-due" style="--s:9px" aria-hidden="true"></span>'
+                    + esc(T('milestones.next_card', { name: p.next_milestone.name, date: P.fmtDate(p.next_milestone.due_date) })) + '</div>' : '')
             +   '<div class="prj-card-meta">'
             +     '<span class="prj-avatar" title="' + esc(p.owner_name ? T('portfolio.led_by', { name: p.owner_name }) : T('portfolio.nobody')) + '">' + esc(p.owner_name ? P.initials(p.owner_name) : '?') + '</span>'
             +     '<span class="prj-target ' + tp.cls + '">' + esc(tp.text) + '</span>'
@@ -69,6 +72,7 @@
             +   '<span>' + esc(done) + '</span>'
             +   (p.exceptions && p.exceptions.length ? '<span class="prj-exc-chip">' + esc(T('gates.exception')) + '</span>' : '')
             +   (p.task_overdue > 0 && !finished ? '<span class="prj-overdue">' + esc(T('portfolio.overdue_count', { count: p.task_overdue })) + '</span>' : '')
+            +   (p.milestones_missed > 0 && !finished ? '<span class="prj-overdue">' + esc(T('view.milestones_missed', { count: p.milestones_missed })) + '</span>' : '')
             +   '<span class="prj-card-bar"><span style="width:' + p.progress + '%;background:' + P.gradient(p.colour) + '"></span></span>'
             + '</div>'
             + '</a>';

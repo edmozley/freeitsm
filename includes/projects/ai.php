@@ -92,6 +92,7 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
             : 'TOLERANCE EXCEEDED: ' . $e['late'] . ' days late' . ($e['kind'] === 'stage_time' ? ' on the current stage' : '') . ', allowed ' . $e['allowed']);
     }
     if (!empty($p['ticket_spike']) && analystCanAccessModule($conn, $analystId, 'tickets')) $why[] = $p['tickets_7d'] . ' tickets linked to the project were raised in the last 7 days';
+    if (!empty($p['milestones_missed'])) $why[] = $p['milestones_missed'] . ' milestone(s) missed';
     $line('Health: ' . ($p['shown_health'] ?? 'none (finished)') . ($why ? ' - ' . implode('; ', $why) : '') . '.');
     $line("Tasks: {$p['task_total']} in all, {$p['task_done']} done ({$p['progress']}%), {$p['task_overdue']} overdue.");
 
@@ -109,6 +110,16 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
             $late = $s['status'] !== 'closed' && $s['end_date'] && $s['end_date'] < $today ? ' (end date passed)' : '';
             $line(sprintf('- %s [%s, %s] %s to %s%s%s', $s['name'], $s['kind'], $s['status'], $s['start_date'] ?: '?', $s['end_date'] ?: '?', $late,
                 $s['gate_decision'] ? '; gate: ' . $s['gate_decision'] . ($s['gate_notes'] ? ' - "' . mb_substr($s['gate_notes'], 0, 300) . '"' : '') . ' on ' . substr((string)$s['gate_decided_datetime'], 0, 10) : ''));
+        }
+    }
+
+    // Milestones (3.3.0): the dates the project promised, and whether it kept them.
+    $ms = projectMilestones($conn, $pid);
+    if ($ms) {
+        $line('Milestones:');
+        foreach ($ms as $m) {
+            $state = $m['state'] === 'done' ? 'reached ' . $m['done_date'] . ($m['met'] ? ' (on time)' : ' (late)') : ($m['state'] === 'missed' ? 'MISSED - not reached' : 'not reached yet');
+            $line(sprintf('- %s, due %s%s: %s', $m['name'], $m['due_date'], $m['stage_name'] ? ' (' . $m['stage_name'] . ')' : '', $state));
         }
     }
 

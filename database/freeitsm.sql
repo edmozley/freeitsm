@@ -8222,6 +8222,32 @@ CREATE TABLE IF NOT EXISTS `project_templates` (
     KEY `idx_project_templates_name` (`name`),
     CONSTRAINT `fk_ptpl_created_by` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Milestones (3.3.0): the dates a project promises ("Move day", "Go-live").
+-- A named date, not work. Done, missed or due is worked out from done_date and
+-- due_date, never stored; a missed one turns automatic health amber.
+CREATE TABLE IF NOT EXISTS `project_milestones` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `stage_id`              INT NULL,                                 -- NULL = the whole project's
+    `name`                  VARCHAR(150) NOT NULL,
+    `due_date`              DATE NOT NULL,
+    `done_date`             DATE NULL,                                -- set = reached
+    `done_by_analyst_id`    INT NULL,
+    `notes`                 VARCHAR(500) NULL,
+    `position`              INT NOT NULL DEFAULT 0,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL,
+    `is_demo`               TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_pms_project` (`project_id`, `due_date`),
+    KEY `ix_pms_stage` (`stage_id`),
+    CONSTRAINT `fk_pms_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pms_stage` FOREIGN KEY (`stage_id`) REFERENCES `project_stages` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pms_done_by` FOREIGN KEY (`done_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pms_created_by` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Seed: the project roles a fresh install starts with (PRINCE2-style, in our

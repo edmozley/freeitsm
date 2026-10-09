@@ -19,6 +19,7 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
         'raid'        => ProjectToolsService::raid($conn, $pid),
         'tolerances'  => ProjectToolsService::tolerances($conn, $pid),
         'targets'     => projectTargetsDetail($conn, $pid),
+        'milestones'  => projectMilestones($conn, $pid),
         'can_assets'  => analystCanAccessModule($conn, $analystId, 'assets'),
         // The budget (3.2.0): lines, labour, totals - null before Database Verification.
         'budget' => (function () use ($conn, $row, $analystId) {

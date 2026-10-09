@@ -842,7 +842,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     // workload it is, the project manager. Mine = the projects I manage, Team =
     // those my teams' analysts manage. Company-scoped and module-gated like
     // Domains; $analystId 0 (the browser extension with no analyst) sees all.
-    $pj = ['live' => 0, 'green' => 0, 'amber' => 0, 'red' => 0, 'breaches' => 0, 'stages_week' => 0, 'off_track' => [], 'show' => false];
+    $pj = ['live' => 0, 'green' => 0, 'amber' => 0, 'red' => 0, 'breaches' => 0, 'stages_week' => 0, 'milestones_week' => 0, 'milestones_missed' => 0, 'off_track' => [], 'show' => false];
     $pjAllowed = $analystId <= 0 || analystCanAccessModule($conn, $analystId, 'projects');
     if ($pjAllowed) {
         try {
@@ -863,6 +863,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
                 $pj['live']++;
                 if (isset($pj[$p['shown_health']])) $pj[$p['shown_health']]++;
                 if ($p['exceptions']) $pj['breaches']++;
+                $pj['milestones_missed'] += $p['milestones_missed'];
                 if ($p['shown_health'] === 'red') $pj['off_track'][] = ['id' => (int)$p['id'], 'name' => $p['name'], 'code' => $p['code']];
             }
             $pj['off_track'] = array_slice($pj['off_track'], 0, 3);
@@ -873,6 +874,14 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
                       WHERE project_id IN $ids AND status <> 'closed'
                         AND end_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 7 DAY)"
                 )->fetchColumn();
+                // Milestones (3.3.0) - its own try: the table may predate Verification.
+                try {
+                    $pj['milestones_week'] = (int)$conn->query(
+                        "SELECT COUNT(*) FROM project_milestones
+                          WHERE project_id IN $ids AND done_date IS NULL
+                            AND due_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 7 DAY)"
+                    )->fetchColumn();
+                } catch (Throwable $e) { /* no milestones yet */ }
             }
             $pj['show'] = true;
         } catch (Throwable $e) {

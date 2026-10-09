@@ -183,6 +183,9 @@ class WorkflowEngine
             'project.tolerance_breached' => 'A project goes beyond a time or risk tolerance',
             'project.stage_closed'       => 'A project stage, phase or sprint closes',
             'project.stage_due'          => 'A project stage ends in 7 days, and again the day before (time-based)',
+            'project.milestone_due'      => 'A project milestone is 7 days away, and again the day before (time-based)',
+            'project.milestone_missed'   => 'A project milestone\'s date passes without it being reached (time-based)',
+            'project.milestone_reached'  => 'A project milestone is marked reached',
             // ── Issue trackers. NOT time-based: something genuinely happened —
             // a developer moved the issue or wrote a comment. The poll is only
             // how we find out, because a self-hosted install cannot be called.
@@ -290,6 +293,7 @@ class WorkflowEngine
         $projectFields = ['project.id', 'project.code', 'project.name', 'project.status', 'project.health', 'project.methodology',
                           'project.owner_analyst_id', 'project.owner_name', 'project.company_id', 'project.target_end_date'];
         $stageFields   = ['stage.id', 'stage.name', 'stage.kind', 'stage.end_date'];
+        $milestoneFields = ['milestone.id', 'milestone.name', 'milestone.due_date', 'milestone.done_date', 'milestone.stage_id', 'milestone.state'];
         $byTrigger = [
             'ticket.created'          => $fullTicket,
             'ticket.status_changed'   => array_merge($fullTicket, ['old_status_id', 'new_status_id']),
@@ -448,6 +452,10 @@ class WorkflowEngine
             // gate_decision is empty when the stage was closed by hand.
             'project.stage_closed'       => array_merge($projectFields, $stageFields, ['gate_decision', 'next_stage', 'unapproved_changes']),
             'project.stage_due'          => array_merge($projectFields, $stageFields, ['days_remaining', 'window_days']),
+            // Milestones (3.3.0). late_days on reached: how long after its date (0 = on time).
+            'project.milestone_due'      => array_merge($projectFields, $milestoneFields, ['days_remaining', 'window_days']),
+            'project.milestone_missed'   => array_merge($projectFields, $milestoneFields, ['days_late']),
+            'project.milestone_reached'  => array_merge($projectFields, $milestoneFields, ['late_days']),
         ];
         if (isset($byTrigger[$trigger])) {
             return $byTrigger[$trigger];

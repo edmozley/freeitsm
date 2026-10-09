@@ -14,6 +14,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2214 | Projects          | Feature     | Milestones (project_milestones): named dates in a stage or the whole project, reached / missed / due worked out on read, a missed one turns automatic health amber; on the Overview, the Plan, the portfolio card, the Calendar (project_milestone), in templates (built-ins gain milestones), Report Packs, Watchtower, the AI facts and MCP project_overview; bell + workflow events project.milestone_due / _missed / _reached. |
+| 2215 | Projects          | Feature     | Timeline tab: the plan as a Gantt chart (stage bands, task bars, milestone diamonds, today and target lines, Days/Weeks/Months zoom); mouse drag moves or resizes tasks (tools.php task_dates through TasksService), stages and milestones; touch scrolls and taps open; phone LAYER 44r. |
 
 
 

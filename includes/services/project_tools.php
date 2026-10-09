@@ -614,6 +614,117 @@ class ProjectToolsService
     }
 
     // ======================================================================
+    //  Milestones (3.3.0) - includes/projects/milestones.php
+    // ======================================================================
+
+    /**
+     * Add or change a milestone: {id?, name, due_date, stage_id?, notes?, done?,
+     * done_date?}. Any field left out keeps its value, so the Timeline can move
+     * just the date. done = true stamps today (or done_date) and who; done =
+     * false clears both. Reaching one fires project.milestone_reached.
+     * Returns its id.
+     */
+    public static function saveMilestone(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        require_once __DIR__ . '/../projects/milestones.php';
+        self::changeable($conn, $ctx, $projectId);
+        if (!projectMilestonesReady($conn)) throw new ServiceError('unavailable', 'not_ready', 'Run Database Verification first.');
+        $id = (int)($in['id'] ?? 0);
+        $cur = $id > 0 ? self::milestone($conn, $projectId, $id) : null;
+
+        $name = array_key_exists('name', $in) ? trim((string)$in['name']) : (string)($cur['name'] ?? '');
+        if ($name === '') throw new ServiceError('validation', 'missing_field', 'Give the milestone a name.');
+        if (mb_strlen($name) > 150) throw new ServiceError('validation', 'invalid_field', 'The name is too long (150 characters at most).');
+        $due = array_key_exists('due_date', $in) ? self::date($in['due_date']) : ($cur['due_date'] ?? null);
+        if ($due === null) throw new ServiceError('validation', 'missing_field', 'Give the milestone a date.');
+        $stage = array_key_exists('stage_id', $in) ? self::stageOf($conn, $projectId, $in['stage_id']) : ($cur ? ($cur['stage_id'] !== null ? (int)$cur['stage_id'] : null) : null);
+        $notes = array_key_exists('notes', $in) ? self::str($in['notes'], 500) : ($cur['notes'] ?? null);
+
+        $doneDate = $cur['done_date'] ?? null;
+        $doneBy = $cur['done_by_analyst_id'] ?? null;
+        if (array_key_exists('done', $in)) {
+            if (!empty($in['done'])) {
+                $doneDate = self::date($in['done_date'] ?? null) ?? ($doneDate ?: gmdate('Y-m-d'));
+                if (empty($cur['done_date'])) $doneBy = $ctx->actorId > 0 ? $ctx->actorId : null;
+            } else {
+                $doneDate = null; $doneBy = null;
+            }
+        }
+        if ($doneDate !== null && $doneDate > gmdate('Y-m-d')) throw new ServiceError('validation', 'invalid_field', 'A milestone cannot be reached in the future.');
+
+        if ($cur) {
+            $conn->prepare("UPDATE project_milestones SET name = ?, due_date = ?, stage_id = ?, notes = ?, done_date = ?, done_by_analyst_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$name, $due, $stage, $notes, $doneDate, $doneBy, $id]);
+            if ($cur['due_date'] !== $due) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'milestone_moved', $name . ': ' . $cur['due_date'], $name . ': ' . $due, self::src($ctx));
+            if (empty($cur['done_date']) && $doneDate !== null) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'milestone_reached', null, $name, self::src($ctx));
+            if (!empty($cur['done_date']) && $doneDate === null) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'milestone_reopened', null, $name, self::src($ctx));
+        } else {
+            $pos = $conn->prepare("SELECT COALESCE(MAX(position), 0) + 1 FROM project_milestones WHERE project_id = ?");
+            $pos->execute([$projectId]);
+            $conn->prepare("INSERT INTO project_milestones (project_id, stage_id, name, due_date, done_date, done_by_analyst_id, notes, position, created_by_analyst_id, created_datetime, updated_datetime)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+                 ->execute([$projectId, $stage, $name, $due, $doneDate, $doneBy, $notes, (int)$pos->fetchColumn(), $ctx->actorId > 0 ? $ctx->actorId : null]);
+            $id = (int)$conn->lastInsertId();
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'milestone_added', null, $name, self::src($ctx));
+        }
+        ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::syncCalendar($conn);
+        if (empty($cur['done_date']) && $doneDate !== null) {
+            ProjectsService::milestoneReached($conn, $projectId, self::milestone($conn, $projectId, $id));
+        }
+        ProjectsService::afterChange($conn, $projectId);   // a missed milestone moves health
+        return $id;
+    }
+
+    public static function deleteMilestone(PDO $conn, ActorContext $ctx, int $projectId, int $milestoneId): void
+    {
+        require_once __DIR__ . '/../projects/milestones.php';
+        self::changeable($conn, $ctx, $projectId);
+        $m = self::milestone($conn, $projectId, $milestoneId);
+        $conn->prepare("DELETE FROM project_milestones WHERE id = ?")->execute([$milestoneId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'milestone_removed', $m['name'], null, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::syncCalendar($conn);
+        ProjectsService::afterChange($conn, $projectId);
+    }
+
+    private static function milestone(PDO $conn, int $projectId, int $milestoneId): array
+    {
+        if (!projectMilestonesReady($conn)) throw new ServiceError('not_found', 'not_found', 'That milestone is not part of this project.');
+        $st = $conn->prepare("SELECT * FROM project_milestones WHERE id = ? AND project_id = ?");
+        $st->execute([$milestoneId, $projectId]);
+        $r = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'That milestone is not part of this project.');
+        return $r;
+    }
+
+    /**
+     * Move a project task's dates from the Timeline: {start_date?, due_date?}.
+     *
+     * 🔑 Through TasksService - the one task write path - so the task's own
+     * history, events and calendar sync happen as if it were moved on the Tasks
+     * board. The Projects side only checks that the task IS in this project and
+     * that the caller may change the project; Tasks access is not required, the
+     * same as adding a task from the Plan.
+     */
+    public static function setTaskDates(PDO $conn, ActorContext $ctx, int $projectId, int $taskId, array $in): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $st = $conn->prepare("SELECT id FROM tasks WHERE id = ? AND project_id = ?");
+        $st->execute([$taskId, $projectId]);
+        if (!$st->fetchColumn()) throw new ServiceError('not_found', 'not_found', 'That task is not part of this project.');
+        $upd = ['id' => $taskId];
+        foreach (['start_date', 'due_date'] as $f) if (array_key_exists($f, $in)) $upd[$f] = self::date($in[$f]);
+        if (count($upd) === 1) return;
+        $s = $upd['start_date'] ?? null; $d = $upd['due_date'] ?? null;
+        if ($s && $d && $d < $s) throw new ServiceError('validation', 'invalid_field', 'The due date is before the start date.');
+        require_once __DIR__ . '/tasks.php';
+        TasksService::saveTask($conn, $ctx, $upd);
+        ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::afterChange($conn, $projectId);   // an overdue task moves health
+    }
+
+    // ======================================================================
     //  Reads for the project page
     // ======================================================================
 

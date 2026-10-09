@@ -13,6 +13,9 @@
  *   project.health_changed   the health a project SHOWS moved (auto or by hand)
  *   project.tolerance_breached  a time or risk tolerance was exceeded
  *   project.stage_due        a stage ends in 7 days, then tomorrow (time-based)
+ *   project.milestone_due    a milestone is 7 days away, then tomorrow (3.3.0, time-based)
+ *   project.milestone_missed a milestone's date passed without it being reached (3.3.0)
+ *   project.milestone_reached somebody marked a milestone reached (3.3.0, the write path)
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * WORKED OUT, NEVER STORED - SO SOMETHING HAS TO LOOK
@@ -125,11 +128,11 @@ function projectAlertRows(PDO $conn, ?int $projectId = null): array
  * Compare each live project with what was seen last, and fire what changed.
  * $projectId = one project (after a change to it); null = all of them.
  *
- * @return array{health:int, breaches:int, stages_due:int}
+ * @return array{health:int, breaches:int, stages_due:int, milestones:int}
  */
 function projectAlertsScan(PDO $conn, ?int $projectId = null): array
 {
-    $out = ['health' => 0, 'breaches' => 0, 'stages_due' => 0];
+    $out = ['health' => 0, 'breaches' => 0, 'stages_due' => 0, 'milestones' => 0];
     try {
         $conn->query("SELECT alert_health FROM projects LIMIT 0");   // before Database Verification: nothing to compare with
     } catch (Throwable $e) {
@@ -175,6 +178,7 @@ function projectAlertsScan(PDO $conn, ?int $projectId = null): array
     }
 
     $out['stages_due'] = projectAlertsStagesDue($conn, $projectId);
+    $out['milestones'] = projectAlertsMilestones($conn, $projectId);
     return $out;
 }
 
@@ -255,4 +259,78 @@ function projectAlertsOpportunistic(PDO $conn): void
     } catch (Throwable $e) {
         error_log('projects alerts: ' . $e->getMessage());
     }
+}
+/**
+ * A milestone as its events carry it (3.3.0). state: due | missed | done.
+ */
+function projectMilestoneEventFields(array $m): array
+{
+    require_once __DIR__ . '/milestones.php';
+    return [
+        'id'        => (int)$m['id'],
+        'name'      => $m['name'],
+        'due_date'  => $m['due_date'],
+        'done_date' => $m['done_date'] ?? null,
+        'stage_id'  => isset($m['stage_id']) && $m['stage_id'] !== null ? (int)$m['stage_id'] : null,
+        'state'     => projectMilestoneState($m),
+    ];
+}
+
+/**
+ * Milestones (3.3.0), on the same ledger as stage ends:
+ *   project.milestone_due     7 days before, then the day before (nearest window only)
+ *   project.milestone_missed  once, the first scan after its date passes without it
+ *                             being reached. Moving the date re-arms both - the
+ *                             fingerprint is the due date.
+ * A milestone that was already past when it was ADDED is not news to anybody,
+ * so "missed" only fires for dates in the last 14 days.
+ */
+function projectAlertsMilestones(PDO $conn, ?int $projectId = null): int
+{
+    require_once __DIR__ . '/milestones.php';
+    if (!projectMilestonesReady($conn)) return 0;
+    $windows = projectStageDueWindows();
+    $today = gmdate('Y-m-d');
+    $sql = "SELECT m.id AS m_id, m.name AS m_name, m.due_date, m.done_date, m.stage_id AS m_stage_id,
+                   p.id, p.tenant_id, p.name, p.methodology, p.status, p.health, p.owner_analyst_id, a.full_name AS owner_name,
+                   p.start_date, p.target_end_date,
+                   DATEDIFF(m.due_date, ?) AS days_remaining
+              FROM project_milestones m
+              JOIN projects p ON p.id = m.project_id
+         LEFT JOIN analysts a ON a.id = p.owner_analyst_id
+             WHERE m.done_date IS NULL
+               AND m.due_date >= DATE_SUB(?, INTERVAL 14 DAY) AND m.due_date <= DATE_ADD(?, INTERVAL ? DAY)
+               AND p.status IN ('proposed', 'active')";
+    $args = [$today, $today, $today, max($windows)];
+    if ($projectId !== null) { $sql .= ' AND p.id = ?'; $args[] = $projectId; }
+    $st = $conn->prepare($sql);
+    $st->execute($args);
+
+    $claim = $conn->prepare("INSERT IGNORE INTO workflow_scheduled_emissions (trigger_event, entity_key, fingerprint, emitted_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())");
+    $fired = 0;
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $days = (int)$r['days_remaining'];
+        $m = ['id' => $r['m_id'], 'name' => $r['m_name'], 'due_date' => $r['due_date'], 'done_date' => null, 'stage_id' => $r['m_stage_id']];
+        if ($days < 0) {
+            $event = 'project.milestone_missed'; $key = 'project_milestone:' . (int)$r['m_id'] . ':missed'; $window = null;
+        } else {
+            $window = null;
+            foreach ($windows as $w) if ($days <= $w) $window = $w;
+            if ($window === null) continue;
+            $event = 'project.milestone_due'; $key = 'project_milestone:' . (int)$r['m_id'] . ':' . $window;
+        }
+        try {
+            $claim->execute([$event, $key, (string)$r['due_date']]);
+        } catch (Throwable $e) {
+            return $fired;   // no ledger yet: firing without one would repeat every run
+        }
+        if ($claim->rowCount() !== 1) continue;
+        $payload = ['project' => projectEventPayload($r), 'milestone' => projectMilestoneEventFields($m)];
+        $payload += $event === 'project.milestone_due'
+            ? ['days_remaining' => $days, 'window_days' => $window]
+            : ['days_late' => -$days];
+        projectDispatch($event, $payload);
+        $fired++;
+    }
+    return $fired;
 }

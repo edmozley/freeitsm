@@ -101,7 +101,7 @@ function mcpTools(): array
             'module' => 'projects', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolListProjects',
         ],
         'project_overview' => [
-            'description' => 'One project in full: goal, health and why, progress, dates, its stages with their gates, open risks and issues, budget against actual, '
+            'description' => 'One project in full: goal, health and why, progress, dates, its stages with their gates, its milestones (reached, missed or due), open risks and issues, budget against actual, '
                            . 'linked changes not yet approved, and recent history. Use it before writing a status report or answering "how is X going".',
             'schema' => ['type' => 'object', 'properties' => ['project' => $project], 'required' => ['project']],
             'module' => 'projects', 'company_safe' => true, 'capability' => null, 'handler' => 'mcpToolProjectOverview',
@@ -337,6 +337,13 @@ function mcpToolProjectOverview(PDO $conn, array $args, int $analystId, array $a
         $out[] = 'Stages:';
         foreach ($stages as $s) $out[] = sprintf('- %s (%s) %s%s%s', $s['name'], $s['kind'], $s['status'],
             $s['end_date'] ? ', ends ' . $s['end_date'] : '', $s['gate_decision'] ? ', gate: ' . $s['gate_decision'] . ($s['gate_notes'] ? ' - ' . $s['gate_notes'] : '') : '');
+    }
+    // Milestones (3.3.0).
+    $ms = projectMilestones($conn, $pid);
+    if ($ms) {
+        $out[] = 'Milestones:';
+        foreach ($ms as $m) $out[] = sprintf('- %s, due %s: %s', $m['name'], $m['due_date'],
+            $m['state'] === 'done' ? 'reached ' . $m['done_date'] . ($m['met'] ? ' (on time)' : ' (late)') : ($m['state'] === 'missed' ? 'MISSED' : 'not reached yet'));
     }
     $raid = array_filter(ProjectToolsService::raid($conn, $pid), fn($r) => $r['status'] === 'open' && in_array($r['type'], ['risk', 'issue'], true));
     if ($raid) {

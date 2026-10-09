@@ -1058,6 +1058,67 @@
                 "dimension": "risk",
                 "value": 15
             }
+        ],
+        "project_milestones": [
+            {
+                "project_id": "@projects.prj_office",
+                "stage_id": "@project_stages.ps_office_design",
+                "name": "Desk plan signed off",
+                "due_date": "__RELATIVE_DATEONLY:-15d__",
+                "done_date": "__RELATIVE_DATEONLY:-15d__",
+                "done_by_analyst_id": "@analysts.admin",
+                "position": 1
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "stage_id": "@project_stages.ps_office_network",
+                "name": "Network live on every floor",
+                "due_date": "__RELATIVE_DATEONLY:+20d__",
+                "position": 2
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "stage_id": "@project_stages.ps_office_move",
+                "name": "Move day",
+                "due_date": "__RELATIVE_DATEONLY:+28d__",
+                "notes": "Removals booked for the Saturday; IT on site from 7am.",
+                "position": 3
+            },
+            {
+                "project_id": "@projects.prj_office",
+                "name": "Old office handed back",
+                "due_date": "__RELATIVE_DATEONLY:+50d__",
+                "position": 4
+            },
+            {
+                "project_id": "@projects.prj_win11",
+                "stage_id": "@project_stages.ps_win11_s1",
+                "name": "Pilot group on Windows 11",
+                "due_date": "__RELATIVE_DATEONLY:-16d__",
+                "done_date": "__RELATIVE_DATEONLY:-14d__",
+                "done_by_analyst_id": "@analysts.admin",
+                "position": 1
+            },
+            {
+                "project_id": "@projects.prj_win11",
+                "stage_id": "@project_stages.ps_win11_s2",
+                "name": "Half the fleet upgraded",
+                "due_date": "__RELATIVE_DATEONLY:-3d__",
+                "notes": "Slipped while the driver problem on the older models is fixed.",
+                "position": 2
+            },
+            {
+                "project_id": "@projects.prj_win11",
+                "name": "Every laptop upgraded",
+                "due_date": "__RELATIVE_DATEONLY:+25d__",
+                "position": 3
+            },
+            {
+                "project_id": "@projects.prj_firewall",
+                "name": "Board approves the spend",
+                "due_date": "__RELATIVE_DATEONLY:+18d__",
+                "position": 1
+            }
         ]
     },
     "tier4": {

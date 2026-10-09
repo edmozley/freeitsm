@@ -19,6 +19,7 @@ require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/methodologies.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/targets.php';
+require_once __DIR__ . '/milestones.php';
 
 /**
  * Per-project task counts in one query: total, done, overdue (top-level tasks
@@ -74,6 +75,13 @@ function projectTaskStats(PDO $conn, array $projectIds): array
     foreach (projectTargetsFor($conn, $projectIds) as $pid => $targets) {
         $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['targets_health' => projectTargetsWorst($targets)];
     }
+    // Milestones (3.3.0): missed ones for the health, the next one for the card.
+    try {
+        foreach (projectMilestoneStats($conn, $projectIds) as $pid => $m) {
+            $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0])
+                + ['milestones_missed' => $m['missed'] ?? 0, 'next_milestone' => $m['next'] ?? null];
+        }
+    } catch (Throwable $e) { /* no milestones yet */ }
     return $out;
 }
 
@@ -81,8 +89,8 @@ function projectTaskStats(PDO $conn, array $projectIds): array
  * The automatic health of a live project, from what is actually happening:
  *   red   - past its target end date with work still open, or a quarter or more
  *           of the open work overdue;
- *   amber - any open work overdue, or the target date within 14 days and less
- *           than three quarters done;
+ *   amber - any open work overdue, a milestone missed (3.3.0), or the target
+ *           date within 14 days and less than three quarters done;
  *   green - otherwise.
  * An asset target that is red makes the project red; an amber one makes a
  * green project amber (projectTargetHealth).
@@ -102,6 +110,8 @@ function projectAutoHealth(array $p, array $stats, ?array $cfg = null): ?string
     if (!empty($p['target_end_date']) && $p['target_end_date'] < $today && $open > 0) return 'red';
     if ($open > 0 && $overdue > 0 && $overdue * 100 >= $open * $cfg['red_overdue_pct']) return 'red';
     if ($overdue > 0) return 'amber';
+    // A date the project promised has gone by (includes/projects/milestones.php).
+    if (($stats['milestones_missed'] ?? 0) > 0) return 'amber';
     // A jump in linked tickets - usually just after go-live - is a warning, never red.
     if (projectTicketSpike($stats, $cfg)) return 'amber';
     if (!empty($p['target_end_date']) && $open > 0) {
@@ -192,6 +202,8 @@ function projectDecorate(array $p, array $stats, ?array $cfg = null): array
     $p['task_overdue'] = $s['overdue'];
     $p['progress']     = $s['total'] > 0 ? (int)round($s['done'] * 100 / $s['total']) : 0;
     $p['tickets_7d']   = (int)($s['tickets_7d'] ?? 0);
+    $p['milestones_missed'] = (int)($s['milestones_missed'] ?? 0);
+    $p['next_milestone']    = $s['next_milestone'] ?? null;
     $p['ticket_spike'] = projectTicketSpike($s, $cfg ?? ['ticket_amber' => 5]);
     $p['auto_health']  = projectAutoHealth($p, $s, $cfg);
     $p['exceptions']   = projectExceptions($p, $s);

@@ -414,7 +414,7 @@ try {
            inline, which reads on both grounds (the tint is the same hue as the
            text), so there is nothing left here to flip for dark mode. */
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=185">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -1033,11 +1033,12 @@ try {
             setBody('wtProjects', '<div class="wt-attention">' + attentionItem('green', T('none')) + '</div>');
             return;
         }
-        setDot('wtPjDot', pj.red > 0 ? 'red' : ((pj.amber + pj.breaches + pj.stages_week) > 0 ? 'amber' : 'green'));
+        const week = pj.stages_week + (pj.milestones_week || 0), missed = pj.milestones_missed || 0;
+        setDot('wtPjDot', pj.red > 0 ? 'red' : ((pj.amber + pj.breaches + week + missed) > 0 ? 'amber' : 'green'));
         let html = '<div class="wt-metrics">';
         html += metric(pj.red, T('metric_red'), pj.red > 0 ? '#ef4444' : '#94a3b8');
         html += metric(pj.amber, T('metric_amber'), pj.amber > 0 ? '#f59e0b' : '#94a3b8');
-        html += metric(pj.stages_week, T('metric_week'), pj.stages_week > 0 ? '#f59e0b' : '#94a3b8');
+        html += metric(week, T('metric_week'), week > 0 ? '#f59e0b' : '#94a3b8');
         html += '</div><div class="wt-attention">';
         (pj.off_track || []).forEach(p => {
             const link = '<a href="../projects/view.php?id=' + encodeURIComponent(p.id) + '" class="wt-attention-bold" style="color:inherit;">' + escapeHtml(p.name) + '</a>';
@@ -1046,8 +1047,10 @@ try {
         const more = pj.red - (pj.off_track || []).length;
         if (more > 0) html += attentionItem('red', T('more_off_track', { count: more }));
         if (pj.breaches > 0) html += attentionItem('amber', T('breaches', { count: pj.breaches }));
+        if (missed > 0) html += attentionItem('amber', T('milestones_missed', { count: missed }));
         if (pj.stages_week > 0) html += attentionItem('amber', T('stages_week', { count: pj.stages_week }));
-        if (pj.red === 0 && pj.amber === 0 && pj.breaches === 0 && pj.stages_week === 0) html += attentionItem('green', T('all_clear', { count: pj.live }));
+        if (pj.milestones_week > 0) html += attentionItem('amber', T('milestones_week', { count: pj.milestones_week }));
+        if (pj.red === 0 && pj.amber === 0 && pj.breaches === 0 && week === 0 && missed === 0) html += attentionItem('green', T('all_clear', { count: pj.live }));
         html += '</div>';
         setBody('wtProjects', html);
     }

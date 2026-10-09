@@ -9,6 +9,7 @@
  *   methodology, colour, icon, goal, summary, duration_days,
  *   stages  [{name, goal, start_day, end_day, tasks: [{title, description?, due_day?}]}]
  *   tasks   [{title, description?, due_day?}]         - not in any stage
+ *   milestones [{name, day, stage?}]                   - stage = index into stages, or null (3.3.0)
  *   items   [{title, description?, moscow?}]          - scope, MoSCoW
  *   raid    [{type, title, description?, probability?, impact?, response?, response_plan?}]
  *   tolerances {time?, risk?}
@@ -76,6 +77,7 @@ function projectBuiltinTemplates(): array
                 ['type' => 'assumption', 'title' => 'The landlord finishes the fit-out on time'],
             ],
             'tolerances' => ['time' => 7, 'risk' => 15],
+            'milestones' => [['name' => 'Network live in the new building', 'day' => 48, 'stage' => 1], ['name' => 'Move day', 'day' => 55, 'stage' => 2], ['name' => 'Old office handed back', 'day' => 84, 'stage' => 3]],
         ],
         'laptop_refresh' => [
             'name' => 'Laptop refresh', 'description' => 'Replace ageing laptops in waves, then wipe and retire the old ones - tracked live from Assets.',
@@ -100,6 +102,7 @@ function projectBuiltinTemplates(): array
                 ['type' => 'risk', 'title' => 'Users lose files that were only on the old laptop', 'probability' => 2, 'impact' => 4, 'response' => 'avoid', 'response_plan' => 'Check every backup before the swap'],
             ],
             'tolerances' => ['time' => 14],
+            'milestones' => [['name' => 'Pilot signed off', 'day' => 41, 'stage' => 1], ['name' => 'Last wave swapped', 'day' => 97, 'stage' => 2]],
             'targets' => [
                 ['name' => 'Old laptops retired', 'scope' => 'linked', 'done_field' => 'status', 'done_op' => 'is', 'done_value' => 'Retired'],
             ],
@@ -127,6 +130,7 @@ function projectBuiltinTemplates(): array
                 ['type' => 'risk', 'title' => 'Mail is lost during the MX switch', 'probability' => 2, 'impact' => 5, 'response' => 'reduce', 'response_plan' => 'Lower the DNS time-to-live two days before'],
             ],
             'tolerances' => ['time' => 7, 'risk' => 12],
+            'milestones' => [['name' => 'Pilot batch moved', 'day' => 27, 'stage' => 1], ['name' => 'Mail records switched', 'day' => 60, 'stage' => 3]],
         ],
         'windows11' => [
             'name' => 'Windows 11 rollout', 'description' => 'Upgrade every Windows machine to Windows 11, counted straight from the inventory.',
@@ -191,11 +195,18 @@ function projectTemplateNormalise(array $c): array
         'summary'       => $str($c['summary'] ?? null, 20000),
         'duration_days' => $day($c['duration_days'] ?? null),
         'stages' => [], 'tasks' => $tasks($c['tasks'] ?? []), 'items' => [], 'raid' => [], 'tolerances' => [], 'targets' => [], 'tailoring' => null,
+        'milestones' => [],
     ];
     foreach (array_slice(is_array($c['stages'] ?? null) ? $c['stages'] : [], 0, 40) as $s) {
         $name = $str($s['name'] ?? null, 150);
         if ($name === null) continue;
         $out['stages'][] = ['name' => $name, 'goal' => $str($s['goal'] ?? null, 500), 'start_day' => $day($s['start_day'] ?? null), 'end_day' => $day($s['end_day'] ?? null), 'tasks' => $tasks($s['tasks'] ?? [])];
+    }
+    foreach (array_slice(is_array($c['milestones'] ?? null) ? $c['milestones'] : [], 0, 100) as $m) {
+        $name = $str($m['name'] ?? null, 150);
+        if ($name === null || $day($m['day'] ?? null) === null) continue;
+        $si = isset($m['stage']) && is_numeric($m['stage']) && (int)$m['stage'] >= 0 && (int)$m['stage'] < count($out['stages']) ? (int)$m['stage'] : null;
+        $out['milestones'][] = ['name' => $name, 'day' => $day($m['day']), 'stage' => $si];
     }
     foreach (array_slice(is_array($c['items'] ?? null) ? $c['items'] : [], 0, 200) as $i) {
         $title = $str($i['title'] ?? null, 255);
@@ -242,7 +253,7 @@ function projectTemplateSummary(string $key, string $name, ?string $desc, array 
         'key' => $key, 'name' => $name, 'description' => $desc, 'builtin' => $builtin, 'active' => $active,
         'methodology' => $c['methodology'], 'colour' => $c['colour'], 'icon' => $c['icon'], 'goal' => $c['goal'],
         'duration_days' => $c['duration_days'],
-        'counts' => ['stages' => count($c['stages']), 'tasks' => $tasks, 'items' => count($c['items']), 'risks' => count($c['raid']), 'targets' => count($c['targets'])],
+        'counts' => ['stages' => count($c['stages']), 'tasks' => $tasks, 'items' => count($c['items']), 'risks' => count($c['raid']), 'targets' => count($c['targets']), 'milestones' => count($c['milestones'])],
     ];
 }
 
@@ -326,8 +337,19 @@ function projectTemplateCapture(PDO $conn, array $project, array $parts): array
             $row = ['title' => $tk['title'], 'description' => $tk['description'], 'due_day' => $day($tk['due_date'])];
             if ($tk['project_stage_id']) $byStage[(int)$tk['project_stage_id']][] = $row; else $c['tasks'][] = $row;
         }
+        $index = [];
         foreach ($stages->fetchAll(PDO::FETCH_ASSOC) as $s) {
+            $index[(int)$s['id']] = count($c['stages']);
             $c['stages'][] = ['name' => $s['name'], 'goal' => $s['goal'], 'start_day' => $day($s['start_date']), 'end_day' => $day($s['end_date']), 'tasks' => $byStage[(int)$s['id']] ?? []];
+        }
+        // Milestones (3.3.0) - their dates as days, their stage as its place in the list.
+        require_once __DIR__ . '/milestones.php';
+        if (projectMilestonesReady($conn)) {
+            $st = $conn->prepare("SELECT name, due_date, stage_id FROM project_milestones WHERE project_id = ? ORDER BY due_date, position, id");
+            $st->execute([$pid]);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $m) {
+                $c['milestones'][] = ['name' => $m['name'], 'day' => $day($m['due_date']), 'stage' => $m['stage_id'] !== null ? ($index[(int)$m['stage_id']] ?? null) : null];
+            }
         }
     }
     if (in_array('scope', $parts, true)) {

@@ -304,7 +304,7 @@ table.analyst-table td.score { font-weight: 600; }
 .csat-pager { display: flex; justify-content: center; align-items: center; gap: 16px; padding-top: 14px; font-size: 13px; color: var(--text-dim, #888); }
 .csat-pager a { color: var(--accent, #0078d4); text-decoration: none; font-weight: 600; }
 </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=185">
 </head>
 <body data-mobile-page="tickets-csat">
 

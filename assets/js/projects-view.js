@@ -1,7 +1,7 @@
 /**
  * Projects - one project's page (3.2.0).
  *
- * Banner + Overview / Plan / History. Everything is drawn from one call to
+ * Banner + Overview / Plan / Timeline / History. Everything is drawn from one call to
  * api/projects/get.php and redrawn after each change, so the ring, the counts
  * and the plan can never disagree with each other.
  *
@@ -88,8 +88,12 @@
         let html = (window.PrjTools && p.exceptions && p.exceptions.length ? window.PrjTools.exceptionsBanner(p.exceptions) : '') + '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + t.cls + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span></div>').join('') + '</div>';
         // A jump in linked tickets (3.2.0) - why the ring may be amber when the tasks look fine.
         if (p.ticket_spike) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('gates.ticket_spike', { count: p.tickets_7d })) + '</strong></div></div>';
+        // A missed milestone (3.3.0) - the other reason the ring may be amber.
+        if (p.milestones_missed > 0 && !finished) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('view.milestones_missed', { count: p.milestones_missed })) + '</strong></div></div>';
         // The AI project manager's briefing (3.2.0) - drawn by projects-reports.js after this.
         html += '<div id="pvBriefing" hidden></div>';
+        // Milestones (3.3.0) - drawn by projects-milestones.js after this.
+        html += '<div id="pvMilestones" hidden></div>';
         // Asset targets (3.2.0) - drawn by projects-targets.js after this.
         html += '<div id="pvTargets" hidden></div>';
         html += '<div class="prj-ov-grid">';
@@ -155,6 +159,7 @@
         else if (f === 'target_saved' || f === 'target_removed') detail = h.new_value || h.old_value || '';
         else if (f.indexOf('raid_') === 0) detail = (h.new_value || h.old_value || '').replace(/^(risk|assumption|issue|decision|lesson): /, (m, k) => T('raid.' + k) + ': ');
         else if (f === 'link_added' || f === 'link_removed') detail = linkHistoryText(h.new_value || h.old_value || '');
+        else if (f === 'milestone_moved') detail = (h.new_value || '').replace(/: (\d{4}-\d{2}-\d{2})$/, (m, d) => ': ' + T('history.from_to', { from: P.fmtDate((h.old_value || '').slice(-10)), to: P.fmtDate(d) }));
         else if (f === 'stage_status') detail = (h.new_value || '').replace(/: (planned|active|closed)$/, (m, s) => ': ' + T('stage_status.' + s));
         else if (f === 'status') detail = T('history.from_to', { from: T('status.' + h.old_value), to: T('status.' + h.new_value) });
         else if (f === 'health') detail = T('history.from_to', { from: T('health.' + h.old_value), to: T('health.' + h.new_value) });
@@ -235,7 +240,8 @@
         return '<section class="prj-lane st-' + esc(stage.status) + '" data-lane="' + stage.id + '">'
             + '<header class="prj-lane-head">'
             +   '<span class="prj-lane-kind">' + esc(T('timebox.' + (stage.kind || kind))) + '</span>'
-            +   '<div class="prj-lane-titles"><h3>' + esc(stage.name) + '</h3>' + (stage.goal ? '<p class="prj-muted">' + esc(stage.goal) + '</p>' : '') + '</div>'
+            +   '<div class="prj-lane-titles"><h3>' + esc(stage.name) + '</h3>' + (stage.goal ? '<p class="prj-muted">' + esc(stage.goal) + '</p>' : '')
+            +     (window.PrjMilestones ? window.PrjMilestones.chips(stage.id) : '') + '</div>'
             +   '<div class="prj-lane-side">' + dates
             +     '<span class="prj-stage-pill sp-' + esc(stage.status) + '">' + esc(T('stage_status.' + stage.status)) + '</span>'
             +     '<span class="prj-lane-count">' + esc(T('plan.stage_done', { done: done, total: total })) + '</span>'
@@ -252,8 +258,12 @@
         const kind = timeboxKind();
         const byStage = {};
         data.tasks.forEach(t => { const k = t.project_stage_id || ''; (byStage[k] = byStage[k] || []).push(t); });
+        const canEdit = !data.permissions || data.permissions.can_change;
         let html = '<div class="prj-plan-head"><p class="prj-muted">' + esc(T('plan.intro', { timeboxes: P.timeboxWord(kind, true) })) + '</p>'
-            + '<button type="button" class="btn btn-primary prj-btn" id="pvAddStage">+ ' + esc(T('timebox.add_' + kind)) + '</button></div>';
+            + '<div class="prj-plan-actions">'
+            + (canEdit ? '<button type="button" class="btn btn-secondary" data-ms-new>+ ' + esc(T('milestones.add')) + '</button>' : '')
+            + '<button type="button" class="btn btn-primary prj-btn" id="pvAddStage">+ ' + esc(T('timebox.add_' + kind)) + '</button></div></div>';
+        if (window.PrjMilestones) html += window.PrjMilestones.projectStrip();
         if (!data.stages.length) html += '<div class="prj-plan-empty">' + esc(T('plan.no_stages', { timeboxes: P.timeboxWord(kind, true) })) + '</div>';
         html += data.stages.map(s => lane(s, byStage[s.id] || [])).join('');
         html += lane(null, byStage[''] || []);
@@ -270,8 +280,10 @@
         document.getElementById('pvEdit').hidden = !perms.can_change;
         document.getElementById('pvDelete').hidden = !perms.can_delete;
         page.querySelectorAll('.prj-task[draggable]').forEach(r => { r.draggable = !!perms.can_change; });
+        const toolCtx = { data: data, L: L, projectId: projectId, refresh: refresh, page: page };
         renderBanner();
         renderOverview();
+        if (window.PrjMilestones) window.PrjMilestones.render(toolCtx);
         renderPlan();
         renderConnections();
         renderHistory();
@@ -281,17 +293,19 @@
         document.querySelectorAll('#prjTabs [data-tool]').forEach(b => { b.hidden = !tools.includes(b.dataset.tool); });
         const cur = document.querySelector('#prjTabs [data-tab="' + tab + '"]');
         if (!cur || cur.hidden) tab = 'overview';
-        if (window.PrjTools) window.PrjTools.render({ data: data, L: L, projectId: projectId, refresh: refresh, page: page });
+        if (window.PrjTools) window.PrjTools.render(toolCtx);
         if (window.PrjTargets) window.PrjTargets.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjBudget) window.PrjBudget.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjReports) window.PrjReports.render({ data: data, projectId: projectId, refresh: refresh });
         showTab(tab);
+        if (window.PrjTimeline) window.PrjTimeline.render(toolCtx);   // after showTab: it draws only when visible
     }
 
     function showTab(name) {
         tab = name;
         document.querySelectorAll('#prjTabs [data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
         document.querySelectorAll('.prj-tab-panel').forEach(s => { s.hidden = s.dataset.panel !== name; });
+        if (name === 'timeline' && window.PrjTimeline) window.PrjTimeline.shown();
         try { history.replaceState(null, '', '#' + name); } catch (e) { /* ignore */ }
     }
 
@@ -645,7 +659,7 @@
     // ---- Wiring -----------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         const start = (location.hash || '').replace('#', '');
-        if (['overview', 'plan', 'people', 'scope', 'raci', 'raid', 'gates', 'budget', 'reports', 'connections', 'history'].includes(start)) tab = start;
+        if (['overview', 'plan', 'timeline', 'people', 'scope', 'raci', 'raid', 'gates', 'budget', 'reports', 'connections', 'history'].includes(start)) tab = start;
         if (/[?&]new=1/.test(location.search)) tab = 'plan';
 
         document.getElementById('prjTabs').addEventListener('click', e => {

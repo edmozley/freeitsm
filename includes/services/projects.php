@@ -197,7 +197,7 @@ class ProjectsService
             // Phase 2's records, by hand too - each on its own, because before
             // Database Verification a table may not exist, and that must never
             // stop a project being deleted.
-            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports'] as $t) {
+            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             }
             foreach (['project_stages', 'project_audit'] as $t) {
@@ -319,6 +319,8 @@ class ProjectsService
         $conn->beginTransaction();
         try {
             $conn->prepare("UPDATE tasks SET project_stage_id = NULL WHERE project_stage_id = ?")->execute([$stageId]);
+            // Its milestones stay, as the whole project's - by hand, for an install whose FK failed to add.
+            try { $conn->prepare("UPDATE project_milestones SET stage_id = NULL WHERE stage_id = ?")->execute([$stageId]); } catch (Throwable $e) { /* not created yet */ }
             $conn->prepare("DELETE FROM project_stages WHERE id = ?")->execute([$stageId]);
             $conn->commit();
         } catch (Throwable $e) {
@@ -620,6 +622,24 @@ class ProjectsService
             ]);
         } catch (Throwable $e) {
             error_log('projects stage_closed: ' . $e->getMessage());
+        }
+    }
+
+    /** project.milestone_reached - somebody marked a milestone done (3.3.0). */
+    public static function milestoneReached(PDO $conn, int $projectId, array $m): void
+    {
+        try {
+            $p = self::eventFor($conn, $projectId);
+            if (!$p) return;
+            require_once __DIR__ . '/../projects/alerts.php';
+            projectDispatch('project.milestone_reached', [
+                'project'   => $p,
+                'milestone' => projectMilestoneEventFields($m),
+                // Reached after its date counts as late, not missed: it happened.
+                'late_days' => max(0, (int)floor((strtotime($m['done_date'] . ' 00:00:00 UTC') - strtotime($m['due_date'] . ' 00:00:00 UTC')) / 86400)),
+            ]);
+        } catch (Throwable $e) {
+            error_log('projects milestone_reached: ' . $e->getMessage());
         }
     }
 

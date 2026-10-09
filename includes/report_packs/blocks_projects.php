@@ -12,8 +12,8 @@
  *       a snapshot of NOW - health has no history to look back on - and the
  *       blocks say so (`snapshot`);
  *   milestones, the summary's "stages ending" tile
- *       stage ends and target finishes INSIDE the range, so last month's pack
- *       lists last month's milestones and whether they were met.
+ *       milestones (3.3.0), stage ends and target finishes INSIDE the range, so
+ *       last month's pack lists last month's milestones and whether they were met.
  *
  * Company: the pack's company, through projects.tenant_id (NULL = Default), the
  * same rpTenantClause() every other area uses. A `projects` option narrows to
@@ -133,6 +133,8 @@ function rpProjectsMilestones(PDO $conn, int $analystId, array $o, array $range,
     [$tSql, $tArgs] = rpTenantClause($conn, $analystId, $tenant, 'p.tenant_id');
     $only = ''; $ids = [];
     if ($o['projects']) { $ids = array_map('intval', $o['projects']); $only = ' AND p.id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')'; }
+    require_once __DIR__ . '/../projects/milestones.php';
+    $ms = projectMilestonesReady($conn);
     $st = $conn->prepare(
         "SELECT * FROM (
             SELECT s.end_date AS on_date, p.id, p.name, s.name AS what, s.kind, s.status, 'stage' AS type
@@ -142,8 +144,14 @@ function rpProjectsMilestones(PDO $conn, int $analystId, array $o, array $range,
             SELECT p.target_end_date, p.id, p.name, NULL, NULL, p.status, 'project'
               FROM projects p
              WHERE p.target_end_date BETWEEN ? AND ? AND p.status <> 'cancelled' $only $tSql
+            " . ($ms ? "UNION ALL
+            SELECT ms.due_date, p.id, p.name, ms.name, NULL, IF(ms.done_date IS NULL, 'open', 'closed'), 'milestone'
+              FROM project_milestones ms JOIN projects p ON p.id = ms.project_id
+             WHERE ms.due_date BETWEEN ? AND ? AND p.status <> 'cancelled' $only $tSql" : '') . "
          ) m ORDER BY on_date, name LIMIT 500");
-    $st->execute(array_merge([$range['from_date'], $range['to_date']], $ids, $tArgs, [$range['from_date'], $range['to_date']], $ids, $tArgs));
+    $args = array_merge([$range['from_date'], $range['to_date']], $ids, $tArgs, [$range['from_date'], $range['to_date']], $ids, $tArgs);
+    if ($ms) $args = array_merge($args, [$range['from_date'], $range['to_date']], $ids, $tArgs);
+    $st->execute($args);
     $today = gmdate('Y-m-d');
     $rows = [];
     foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $m) {
@@ -154,7 +162,7 @@ function rpProjectsMilestones(PDO $conn, int $analystId, array $o, array $range,
             'project'   => $m['name'] . ' (' . projectCode((int)$m['id']) . ')',
             'milestone' => $m['type'] === 'stage'
                 ? t('reporting.packs.projects.stage_ends', ['stage' => $m['what']])
-                : t('reporting.packs.projects.target_end'),
+                : ($m['type'] === 'milestone' ? $m['what'] : t('reporting.packs.projects.target_end')),
             'state'     => ['pill' => t('reporting.packs.projects.state.' . $state[0]), 'colour' => $state[1]],
         ];
     }

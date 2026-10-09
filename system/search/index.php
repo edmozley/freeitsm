@@ -118,7 +118,7 @@ if (!isset($_SESSION['analyst_id'])) {
         .srch-muted { color: var(--text-faint, #9ca3af); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=185">
 </head>
 <body data-mobile-module="system" data-mobile-page="search">
     <?php include '../includes/header.php'; ?>

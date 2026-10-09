@@ -190,6 +190,11 @@ class NotificationsService
             'project.stage_due'          => ['default' => true,  'entity' => 'project'],
             // Off: the project manager usually closed it themselves.
             'project.stage_closed'       => ['default' => false, 'entity' => 'project'],
+            // Milestones (3.3.0). Due and missed are dates arriving; reached is off
+            // by default for the same reason as stage_closed.
+            'project.milestone_due'      => ['default' => true,  'entity' => 'project'],
+            'project.milestone_missed'   => ['default' => true,  'entity' => 'project'],
+            'project.milestone_reached'  => ['default' => false, 'entity' => 'project'],
         ];
     }
 

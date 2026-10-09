@@ -94,7 +94,7 @@ requireModuleAccess('system');
         .pp-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=185">
 </head>
 <body data-mobile-module="system" data-mobile-page="portal-profile">
     <?php include '../includes/header.php'; ?>

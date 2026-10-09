@@ -128,7 +128,7 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
             .pa-stage { min-height: 240px; }
         }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=184">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=185">
 </head>
 <body data-mobile-module="system" data-mobile-page="photo-album">
     <?php include '../includes/header.php'; ?>

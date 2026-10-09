@@ -31,6 +31,9 @@
  *      budget_rate_add {rate, from?}      the project's own hourly rate (labour mode 'rate')
  *      budget_rate_delete {from}
  *      budget_currency {currency}         relabel - only when projects may choose
+ *      milestone_save {id?, name?, due_date?, stage_id?, notes?, done?, done_date?}   (3.3.0)
+ *      milestone_delete {id}
+ *      task_dates     {task_id, start_date?, due_date?}   the Timeline moving a bar (3.3.0)
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -127,6 +130,14 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk();
         case 'budget_currency':
             ProjectToolsService::setCurrency($conn, $ctx, $pid, (string)($in['currency'] ?? ''));
+            projectApiOk();
+        case 'milestone_save':
+            projectApiOk(['id' => ProjectToolsService::saveMilestone($conn, $ctx, $pid, $in)]);
+        case 'milestone_delete':
+            ProjectToolsService::deleteMilestone($conn, $ctx, $pid, (int)($in['id'] ?? 0));
+            projectApiOk();
+        case 'task_dates':
+            ProjectToolsService::setTaskDates($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), $in);
             projectApiOk();
         case 'raci_set':
             projectApiOk(['row' => (object)ProjectToolsService::setRaci($conn, $ctx, $pid, (int)($in['item_id'] ?? 0), (int)($in['member_id'] ?? 0), (string)($in['letter'] ?? ''))]);

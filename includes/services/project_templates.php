@@ -19,6 +19,7 @@
 
 require_once __DIR__ . '/projects.php';
 require_once __DIR__ . '/../projects/templates.php';
+require_once __DIR__ . '/../projects/milestones.php';
 
 class ProjectTemplatesService
 {
@@ -59,12 +60,21 @@ class ProjectTemplatesService
                     'title' => $tk['title'], 'description' => $tk['description'] ?? null, 'due_date' => $at($tk['due_day'] ?? null),
                 ], fn($v) => $v !== null));
             };
+            $stageIds = [];
             foreach ($c['stages'] as $i => $s) {
                 $start = $at($s['start_day']); $end = $at($s['end_day']);
                 if ($start && $end && $end < $start) $end = $start;
                 $ins->execute([$pid, $preset['timebox'], $s['name'], $s['goal'], $start, $end, $i + 1]);
                 $sid = (int)$conn->lastInsertId();
+                $stageIds[$i] = $sid;
                 foreach ($s['tasks'] as $tk) $addTask($tk, $sid);
+            }
+            if ($c['milestones'] && projectMilestonesReady($conn)) {
+                $st = $conn->prepare("INSERT INTO project_milestones (project_id, stage_id, name, due_date, position, created_by_analyst_id, created_datetime, updated_datetime)
+                                      VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())");
+                foreach ($c['milestones'] as $i => $m) {
+                    $st->execute([$pid, $m['stage'] !== null ? ($stageIds[$m['stage']] ?? null) : null, $m['name'], $at($m['day']), $i + 1, $ctx->actorId > 0 ? $ctx->actorId : null]);
+                }
             }
             foreach ($c['tasks'] as $tk) $addTask($tk, null);
 
@@ -116,7 +126,7 @@ class ProjectTemplatesService
                 $in = implode(',', array_map('intval', $taskIds));
                 $conn->exec("DELETE FROM tasks WHERE id IN ($in)");
             }
-            foreach (['project_asset_targets', 'project_tolerances', 'project_raid', 'project_items', 'project_stages', 'project_audit'] as $t) {
+            foreach (['project_milestones', 'project_asset_targets', 'project_tolerances', 'project_raid', 'project_items', 'project_stages', 'project_audit'] as $t) {
                 try { $conn->prepare("DELETE FROM $t WHERE project_id = ?")->execute([$pid]); } catch (Throwable $e) { /* table may predate Verification */ }
             }
             $conn->prepare("DELETE FROM projects WHERE id = ?")->execute([$pid]);

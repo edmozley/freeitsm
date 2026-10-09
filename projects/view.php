@@ -3,10 +3,11 @@
  * Projects - one project (3.2.0).
  *
  * A banner in the project's own colours (icon, name, status, how it is run, the
- * health ring), then three tabs: Overview (the goal, the numbers, what is
- * happening now and coming up, recent activity), Plan (the phases / stages /
- * sprints with their tasks, drag a task between them, add tasks in place) and
- * History. Behaviour is in assets/js/projects-view.js.
+ * health ring), then the tabs: Overview (the goal, the numbers, what is
+ * happening now and coming up, milestones, recent activity), Plan (the phases /
+ * stages / sprints with their tasks, drag a task between them, add tasks in
+ * place), Timeline (the plan as a Gantt chart - projects-timeline.js), a tab per
+ * tool, and History. Behaviour is in assets/js/projects-view.js.
  *
  * The project is loaded by the page's script through api/projects/get.php,
  * which applies the company scope - an id the analyst may not see shows the
@@ -41,8 +42,8 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=18">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=184">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=19">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=185">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
     <?php include 'includes/header.php'; ?>
@@ -76,6 +77,7 @@ $projectId = (int)($_GET['id'] ?? 0);
         <nav class="prj-tabs" id="prjTabs" hidden>
             <button type="button" data-tab="overview" class="active"><?php echo htmlspecialchars(t('projects.view.tab_overview')); ?></button>
             <button type="button" data-tab="plan"><?php echo htmlspecialchars(t('projects.view.tab_plan')); ?></button>
+            <button type="button" data-tab="timeline"><?php echo htmlspecialchars(t('projects.view.tab_timeline')); ?></button>
             <button type="button" data-tab="people" data-tool="people" hidden><?php echo htmlspecialchars(t('projects.tools.people')); ?></button>
             <button type="button" data-tab="scope" data-tool="scope" hidden><?php echo htmlspecialchars(t('projects.tools.scope')); ?></button>
             <button type="button" data-tab="raci" data-tool="raci" hidden><?php echo htmlspecialchars(t('projects.tools.raci')); ?></button>
@@ -89,6 +91,7 @@ $projectId = (int)($_GET['id'] ?? 0);
 
         <section class="prj-tab-panel" data-panel="overview" id="pvOverview"></section>
         <section class="prj-tab-panel" data-panel="plan" id="pvPlan" hidden></section>
+        <section class="prj-tab-panel" data-panel="timeline" id="pvTimeline" hidden></section>
         <section class="prj-tab-panel" data-panel="people" id="pvPeople" hidden></section>
         <section class="prj-tab-panel" data-panel="scope" id="pvScope" hidden></section>
         <section class="prj-tab-panel" data-panel="raci" id="pvRaci" hidden></section>
@@ -348,6 +351,32 @@ $projectId = (int)($_GET['id'] ?? 0);
         </div>
     </div>
 
+    <!-- Add / edit a milestone (3.3.0) - assets/js/projects-milestones.js -->
+    <div class="modal" id="prjMilestoneModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:500px">
+            <div class="modal-header" id="pmsTitle"></div>
+            <div class="modal-body">
+                <input type="hidden" id="pmsId">
+                <div class="form-group"><label for="pmsName"><?php echo htmlspecialchars(t('projects.milestones.name')); ?></label><input type="text" id="pmsName" maxlength="150" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.milestones.name_ph')); ?>"></div>
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="pmsDate"><?php echo htmlspecialchars(t('projects.milestones.date')); ?></label><input type="date" id="pmsDate"></div>
+                    <div class="form-group"><label for="pmsStage"><?php echo htmlspecialchars(t('projects.milestones.stage')); ?></label><select id="pmsStage"></select></div>
+                </div>
+                <div class="form-group"><label for="pmsNotes"><?php echo htmlspecialchars(t('projects.milestones.notes')); ?></label><input type="text" id="pmsNotes" maxlength="500" autocomplete="off"></div>
+                <div class="prj-ms-done-row">
+                    <label class="prj-check"><input type="checkbox" id="pmsDone"> <?php echo htmlspecialchars(t('projects.milestones.done')); ?></label>
+                    <div class="form-group" id="pmsDoneWrap" hidden><label for="pmsDoneDate"><?php echo htmlspecialchars(t('projects.milestones.done_on')); ?></label><input type="date" id="pmsDoneDate"></div>
+                </div>
+                <div class="prj-form-error" id="pmsError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="pmsDelete" style="margin-right:auto"><?php echo htmlspecialchars(t('common.delete')); ?></button>
+                <button type="button" class="btn btn-secondary" data-prj-close="prjMilestoneModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pmsSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add / edit a phase, stage or sprint -->
     <div class="modal" id="prjStageModal" aria-hidden="true">
         <div class="modal-content" style="max-width:520px">
@@ -427,7 +456,9 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-budget.js?v=1"></script>
     <script src="../assets/js/projects-reports.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=13"></script>
+    <script src="../assets/js/projects-milestones.js?v=1"></script>
+    <script src="../assets/js/projects-timeline.js?v=1"></script>
+    <script src="../assets/js/projects-view.js?v=14"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

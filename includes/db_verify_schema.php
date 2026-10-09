@@ -5401,4 +5401,20 @@ return [
         'updated_datetime'      => 'DATETIME NULL',
         'is_demo'               => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
+    // Milestones (3.3.0): the dates a project promises - includes/projects/milestones.php.
+    'project_milestones' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'            => 'INT NOT NULL',
+        'stage_id'              => 'INT NULL',
+        'name'                  => 'VARCHAR(150) NOT NULL',
+        'due_date'              => 'DATE NOT NULL',
+        'done_date'             => 'DATE NULL',
+        'done_by_analyst_id'    => 'INT NULL',
+        'notes'                 => 'VARCHAR(500) NULL',
+        'position'              => 'INT NOT NULL DEFAULT 0',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL',
+        'is_demo'               => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
 ];

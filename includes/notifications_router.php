@@ -290,6 +290,16 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
             case 'project.stage_closed':
                 $title = $name . ': ' . $stage . ' closed';
                 break;
+            case 'project.milestone_due':
+                $d = (int)($payload['days_remaining'] ?? 0);
+                $title = $name . ': ' . (string)($payload['milestone']['name'] ?? '') . ($d === 0 ? ' is today' : ($d === 1 ? ' is tomorrow' : ' is in ' . $d . ' days'));
+                break;
+            case 'project.milestone_missed':
+                $title = $name . ': ' . (string)($payload['milestone']['name'] ?? '') . ' was missed';
+                break;
+            case 'project.milestone_reached':
+                $title = $name . ': ' . (string)($payload['milestone']['name'] ?? '') . ' reached';
+                break;
             default:
                 $title = $name;
         }

@@ -804,3 +804,136 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
     .prj-rep-row { grid-template-columns: 1fr; gap: 4px; }
     .prj-rep-title { white-space: normal; }
 }
+
+/* ---------- milestones (3.3.0) -------------------------------------------- */
+/* A diamond is a rotated square; its colour says its state: due (the module's
+   violet), reached (green) or missed (red) - the same in both themes, like health. */
+.prj-ms-dia {
+    display: inline-block; flex-shrink: 0; width: var(--s, 12px); height: var(--s, 12px);
+    transform: rotate(45deg); border-radius: 2px; background: var(--prj-accent-2, #7c3aed);
+}
+.prj-ms-dia.ms-done, .prj-tl-ms.ms-done .prj-tl-ms-dia { background: #16a34a; }
+.prj-ms-dia.ms-missed, .prj-tl-ms.ms-missed .prj-tl-ms-dia { background: #dc2626; }
+.prj-ms-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.prj-ms-chip {
+    display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 3px 10px 3px 9px;
+    border: 1px solid var(--border-soft, #eee); border-radius: 99px; background: var(--surface, #fff);
+    color: var(--text, #333); font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.prj-ms-chip:hover { border-color: var(--prj-accent, #e11d48); }
+.prj-ms-chip.ms-missed { border-color: rgba(220, 38, 38, .45); }
+.prj-ms-chip.ms-done .prj-ms-chip-name { color: var(--text-dim, #888); }
+.prj-ms-chip-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prj-ms-chip-date { color: var(--text-dim, #888); white-space: nowrap; }
+.prj-ms-strip {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; padding: 10px 14px;
+    background: var(--surface, #fff); border-radius: 12px; box-shadow: 0 0 0 1px var(--border-soft, #eee);
+}
+.prj-ms-strip-label { font-size: 12px; font-weight: 700; color: var(--text-muted, #555); margin-right: 4px; }
+.prj-plan-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.prj-ms-panel h3 { display: flex; align-items: center; gap: 7px; }
+.prj-ms-list { list-style: none; margin: 0; padding: 0; }
+.prj-ms-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+.prj-ms-row:last-child { border-bottom: none; }
+.prj-ms-row-main {
+    display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; background: none; border: none; padding: 0;
+    text-align: left; cursor: pointer; color: var(--text, #333); font-family: inherit;
+}
+.prj-ms-row-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prj-ms-row-main:hover .prj-ms-row-name { color: var(--prj-accent, #e11d48); }
+.prj-ms-row-sub { font-size: 12px; color: var(--text-dim, #888); }
+.prj-ms-row-state { font-size: 12px; color: var(--text-muted, #555); white-space: nowrap; }
+.prj-ms-row.ms-missed .prj-ms-row-state { color: #dc2626; font-weight: 600; }
+.prj-ms-row.ms-done .prj-ms-row-state { color: #16a34a; }
+.prj-card-ms { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted, #555); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.prj-ms-done-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.prj-ms-done-row .form-group { margin: 0; }
+
+/* ---------- the Timeline (3.3.0) - assets/js/projects-timeline.js --------- */
+/* Its own scroll box, both ways: the header sticks to the top and the name
+   column to the left. Lines (today, target) sit under both, so a scrolled
+   label column covers them rather than being crossed by them. */
+.prj-tl-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.prj-tl-bar .prj-muted { margin: 0; }
+.prj-tl-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.prj-tl-zoom { margin: 0; }
+.prj-tl-scroll {
+    overflow: auto; max-height: calc(100vh - 300px); min-height: 320px; overscroll-behavior-x: contain;
+    background: var(--surface, #fff); border-radius: 12px; box-shadow: 0 0 0 1px var(--border-soft, #eee);
+}
+.prj-tl-inner { position: relative; }
+.prj-tl-head { position: sticky; top: 0; z-index: 4; display: flex; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #ddd); }
+.prj-tl-label {
+    position: sticky; left: 0; z-index: 3; flex-shrink: 0; box-sizing: border-box; height: 100%;
+    display: flex; align-items: center; gap: 8px; padding: 0 10px; overflow: hidden;
+    background: var(--surface, #fff); color: var(--text, #333); text-decoration: none; text-align: left;
+    font: inherit; font-size: 13px; border: none; border-right: 1px solid var(--border-soft, #eee);
+}
+a.prj-tl-label:hover .prj-tl-label-text, button.prj-tl-label:hover .prj-tl-label-text { color: var(--prj-accent, #e11d48); }
+button.prj-tl-label { cursor: pointer; }
+.prj-tl-label.head { z-index: 5; font-size: 11px; font-weight: 700; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: .4px; }
+.prj-tl-label.stage { font-weight: 700; background: var(--surface-hover, #f6f7f9); }
+.prj-tl-label.stage.none { color: var(--text-muted, #555); }
+.prj-tl-label.task { padding-left: 22px; }
+.prj-tl-label-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.prj-tl-label-text.done { color: var(--text-dim, #888); text-decoration: line-through; }
+.prj-tl-label .prj-lane-kind { flex-shrink: 0; }
+.prj-tl-head-track { position: relative; flex-shrink: 0; }
+.prj-tl-months { position: relative; height: 26px; }
+.z-months .prj-tl-months { height: 50px; }
+.prj-tl-month {
+    position: absolute; top: 0; height: 100%; box-sizing: border-box; padding: 5px 7px; overflow: clip; white-space: nowrap;
+    border-left: 1px solid var(--border-soft, #eee); font-size: 12px; font-weight: 700; color: var(--text, #333);
+}
+/* TRAP: overflow:hidden on the month would make IT the span's scroll container
+   and the sticky would never move; clip cuts the text without being one. */
+.prj-tl-month span { position: sticky; left: calc(var(--lw, 230px) + 7px); }
+.z-months .prj-tl-month { display: flex; align-items: center; }
+.prj-tl-ticks { position: relative; height: 24px; border-top: 1px solid var(--border-soft, #eee); }
+.prj-tl-tick {
+    position: absolute; top: 0; height: 100%; box-sizing: border-box; padding: 4px 4px; overflow: hidden;
+    border-left: 1px solid var(--border-soft, #eee); font-size: 11px; color: var(--text-dim, #888);
+}
+.z-days .prj-tl-tick { text-align: center; padding: 4px 0; }
+.prj-tl-tick.we { background: var(--surface-hover, #f6f7f9); }
+.prj-tl-tick.today { color: var(--prj-accent, #e11d48); font-weight: 700; }
+.prj-tl-body { position: relative; }
+.prj-tl-grid { position: absolute; top: 0; bottom: 0; pointer-events: none; }
+.prj-tl-we { position: absolute; top: 0; bottom: 0; background: var(--surface-hover, #f6f7f9); opacity: .7; }
+.prj-tl-gl { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border-soft, #eee); }
+.prj-tl-row { display: flex; position: relative; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+.prj-tl-track { position: relative; flex-shrink: 0; }
+.prj-tl-band, .prj-tl-bar-task {
+    position: absolute; box-sizing: border-box; display: flex; align-items: center; color: #fff; cursor: pointer;
+    user-select: none; -webkit-user-select: none; touch-action: pan-x pan-y;
+}
+.prj-tl-band { top: 7px; height: 22px; border-radius: 6px; font-size: 12px; font-weight: 700; opacity: .9; }
+.prj-tl-band.st-planned { opacity: .55; }
+.prj-tl-band.st-closed { opacity: .4; }
+.prj-tl-bar-task { top: 7px; height: 18px; border-radius: 5px; background: var(--bc, #94a3b8); font-size: 11.5px; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.prj-tl-bar-task.done { opacity: .5; }
+.prj-tl-bar-task.late { box-shadow: 0 0 0 2px #dc2626; }
+.prj-tl-bar-text { padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 1px rgba(0,0,0,.25); }
+.prj-tl-band.can, .prj-tl-bar-task.can, .prj-tl-ms.can { cursor: grab; }
+.prj-tl-band.dragging, .prj-tl-bar-task.dragging, .prj-tl-ms.dragging { cursor: grabbing; z-index: 2; opacity: 1; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+.prj-tl-h { position: absolute; top: 0; bottom: 0; width: 8px; z-index: 1; cursor: ew-resize; }
+.prj-tl-h.l { left: 0; border-radius: 5px 0 0 5px; }
+.prj-tl-h.r { right: 0; border-radius: 0 5px 5px 0; }
+.prj-tl-band:hover .prj-tl-h, .prj-tl-bar-task:hover .prj-tl-h { background: rgba(255,255,255,.35); }
+.prj-tl-ms { position: absolute; top: 50%; z-index: 2; display: flex; align-items: center; transform: translate(-50%, -50%); cursor: pointer; touch-action: pan-x pan-y; }
+.prj-tl-ms.dragging { box-shadow: none; }
+.prj-tl-ms-dia {
+    width: 14px; height: 14px; transform: rotate(45deg); border-radius: 2px;
+    background: var(--prj-accent-2, #7c3aed); box-shadow: 0 0 0 2px var(--surface, #fff);
+}
+/* The name shows on the project row only; in a band it would sit on the band's
+   own text, so there the tooltip carries it. */
+.prj-tl-ms-name { display: none; position: absolute; left: 16px; font-size: 11.5px; font-weight: 600; color: var(--text, #333); white-space: nowrap; pointer-events: none; }
+.ms-row .prj-tl-ms-name { display: block; }
+.prj-tl-line { position: absolute; top: 50px; bottom: 0; width: 0; z-index: 1; pointer-events: none; border-left: 2px solid var(--prj-accent, #e11d48); }
+.prj-tl-line.target { border-left: 2px dashed var(--text-dim, #888); }
+.prj-tl-line span {
+    position: absolute; top: 3px; left: 3px; padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+    font-size: 10px; font-weight: 700; color: #fff; background: var(--prj-accent, #e11d48);
+}
+.prj-tl-line.target span { background: var(--text-dim, #888); }

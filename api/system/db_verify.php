@@ -2892,6 +2892,10 @@ try {
         ['project_asset_targets', 'fk_patg_created_by', "ALTER TABLE project_asset_targets ADD CONSTRAINT fk_patg_created_by FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['project_asset_target_snapshots', 'fk_patgs_target', "ALTER TABLE project_asset_target_snapshots ADD CONSTRAINT fk_patgs_target FOREIGN KEY (target_id) REFERENCES project_asset_targets (id) ON DELETE CASCADE"],
         ['project_templates', 'fk_ptpl_created_by', "ALTER TABLE project_templates ADD CONSTRAINT fk_ptpl_created_by FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_milestones', 'fk_pms_project', "ALTER TABLE project_milestones ADD CONSTRAINT fk_pms_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_milestones', 'fk_pms_stage', "ALTER TABLE project_milestones ADD CONSTRAINT fk_pms_stage FOREIGN KEY (stage_id) REFERENCES project_stages (id) ON DELETE SET NULL"],
+        ['project_milestones', 'fk_pms_done_by', "ALTER TABLE project_milestones ADD CONSTRAINT fk_pms_done_by FOREIGN KEY (done_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_milestones', 'fk_pms_created_by', "ALTER TABLE project_milestones ADD CONSTRAINT fk_pms_created_by FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         // Connections - every link goes with either side.
         ['project_assets', 'fk_pas_project', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_assets', 'fk_pas_target', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_target FOREIGN KEY (asset_id) REFERENCES assets (id) ON DELETE CASCADE"],

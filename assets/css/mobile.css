@@ -16161,4 +16161,28 @@
     body[data-mobile-module="projects"] .prj-tg-table td::before { content: attr(data-label); flex: 0 0 38%; color: var(--text-dim, #888); font-size: 12px; }
     body[data-mobile-module="projects"] .prj-tg-table td:first-child { font-size: 15px; }
     body[data-mobile-module="projects"] .prj-tg-table td:first-child::before { display: none; }
+
+    /* ---- 44r. Timeline and milestones (3.3.0) -------------------------------
+       A Gantt keeps its columns and scrolls, as the Tasks timeline does
+       (Mobile-Friendly-Tasks): it scrolls inside its own box (§2/§3), so the
+       page never widens. projects-timeline.js already narrows the name column
+       to 124px under 768px; here the STAGE pill leaves that column (the name is
+       what the reader needs), task names lose their indent, and the box is
+       allowed most of the screen's height rather than 100vh - 300px, which on
+       a phone left about four rows. Dragging is mouse-only (§22); a tap opens
+       the task, the stage or the milestone, so the drag hint is hidden. The
+       Overview's milestone rows wrap their state and Done under the name. */
+    body[data-mobile-page="projects-view"] .prj-tl-label .prj-lane-kind { display: none; }
+    body[data-mobile-page="projects-view"] .prj-tl-label.task { padding-left: 10px; }
+    /* 44g pins the Plan row's status dot absolutely; the Timeline's name column reuses the class. */
+    body[data-mobile-page="projects-view"] .prj-tl-label .prj-task-status { position: static; }
+    body[data-mobile-page="projects-view"] .prj-tl-label { font-size: 12.5px; padding: 0 8px; }
+    body[data-mobile-page="projects-view"] .prj-tl-scroll { max-height: 65vh; min-height: 280px; }
+    body[data-mobile-page="projects-view"] .prj-tl-drag-hint { display: none; }
+    body[data-mobile-page="projects-view"] .prj-tl-tools .btn { min-height: 40px; }
+    body[data-mobile-page="projects-view"] .prj-ms-row { flex-wrap: wrap; }
+    body[data-mobile-page="projects-view"] .prj-ms-row-main { flex-basis: calc(100% - 30px); }
+    body[data-mobile-page="projects-view"] .prj-ms-row-state { margin-left: 23px; }
+    body[data-mobile-page="projects-view"] .prj-ms-row .btn { margin-left: auto; min-height: 36px; }
+    body[data-mobile-page="projects-view"] .prj-ms-chip { min-height: 32px; }
 }

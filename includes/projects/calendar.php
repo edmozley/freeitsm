@@ -1,9 +1,10 @@
 <?php
 /**
- * Projects - the dates that matter, as all-day Calendar entries (3.2.0). Two kinds:
+ * Projects - the dates that matter, as all-day Calendar entries (3.2.0). Three kinds:
  *
- *   project_end    a project's target end date    "Project due: NAME (PRJ-0042)"
- *   project_stage  each open stage's end date     "Stage ends: STAGE - NAME"
+ *   project_end        a project's target end date    "Project due: NAME (PRJ-0042)"
+ *   project_stage      each open stage's end date     "Stage ends: STAGE - NAME"
+ *   project_milestone  each milestone not yet reached "Milestone: MILESTONE - NAME" (3.3.0)
  *
  * The same machinery as warranties, software renewals and Domains, reused rather
  * than copied (Warranty-and-Lease-Alerts-Developer-Guide on the wiki):
@@ -69,7 +70,20 @@ function projectSyncCalendar(PDO $conn): array
             fn($r) => 'Auto-generated from Projects (' . projectCode((int)$r['id']) . '). Change the end date on the project\'s plan to move this; closing the '
                      . strtolower($kinds[$r['kind']] ?? 'stage') . ' removes it.');
 
-        return ['success' => true, 'synced' => $ends, 'synced_stages' => $stages];
+        // Milestones (3.3.0) - with stage ends, under "all". Drawn until reached.
+        $milestones = 0;
+        require_once __DIR__ . '/milestones.php';
+        if (projectMilestonesReady($conn)) {
+            $milestones = projectSyncCalendarKind($conn, 'project_milestone', $mode === 'all',
+                "SELECT p.id, p.name, m.name AS milestone_name, m.due_date AS on_date
+                   FROM project_milestones m
+                   JOIN projects p ON p.id = m.project_id
+                  WHERE m.done_date IS NULL AND $live",
+                fn($r) => 'Milestone: ' . $r['milestone_name'] . ' - ' . $r['name'],
+                fn($r) => 'Auto-generated from Projects (' . projectCode((int)$r['id']) . '). Move the milestone on the project\'s Timeline to move this; marking it reached removes it.');
+        }
+
+        return ['success' => true, 'synced' => $ends, 'synced_stages' => $stages, 'synced_milestones' => $milestones];
     } catch (Throwable $e) {
         error_log('projects calendar sync: ' . $e->getMessage());
         return ['success' => false, 'error' => $e->getMessage()];
