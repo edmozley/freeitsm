@@ -27,7 +27,7 @@ const RP_HEALTH_COLOURS = ['green' => '#16a34a', 'amber' => '#f59e0b', 'red' => 
 /** Projects in the pack's company, decorated with health and progress. */
 function rpProjectRows(PDO $conn, int $analystId, $tenant, array $ids, bool $liveOnly): array
 {
-    [$tSql, $tArgs] = rpTenantClause($conn, $analystId, $tenant, 'p.tenant_id');
+    [$tSql, $tArgs] = rpProjectClause($conn, $analystId, $tenant);
     $where = $liveOnly ? "p.status IN ('proposed', 'active')" : "p.status <> 'cancelled'";
     $args = [];
     if ($ids) {
@@ -52,6 +52,18 @@ function rpProjectRows(PDO $conn, int $analystId, $tenant, array $ids, bool $liv
     return $rows;
 }
 
+/**
+ * The company clause plus members-only (3.3.0): a pack carries a members-only
+ * project only when the person it is built for may see it - never for nobody.
+ */
+function rpProjectClause(PDO $conn, int $analystId, $tenant): array
+{
+    require_once __DIR__ . '/../projects/visibility.php';
+    [$tSql, $tArgs] = rpTenantClause($conn, $analystId, $tenant, 'p.tenant_id');
+    [$vSql, $vArgs] = projectVisibleSql($conn, $analystId, 'p', false);
+    return [$tSql . $vSql, array_merge($tArgs, $vArgs)];
+}
+
 /** A health pill: the words the Projects module uses, in its colours. */
 function rpProjectHealthPill(?string $h): array
 {
@@ -65,7 +77,7 @@ function rpProjectsKpis(PDO $conn, int $analystId, array $o, array $range, $tena
     $count = ['green' => 0, 'amber' => 0, 'red' => 0];
     foreach ($rows as $r) if (isset($count[$r['shown_health']])) $count[$r['shown_health']]++;
 
-    [$tSql, $tArgs] = rpTenantClause($conn, $analystId, $tenant, 'p.tenant_id');
+    [$tSql, $tArgs] = rpProjectClause($conn, $analystId, $tenant);
     $st = $conn->prepare("SELECT COUNT(*) FROM project_stages s JOIN projects p ON p.id = s.project_id
                            WHERE s.end_date BETWEEN ? AND ? AND p.status <> 'cancelled' $tSql");
     $st->execute(array_merge([$range['from_date'], $range['to_date']], $tArgs));
@@ -130,7 +142,7 @@ function rpProjectsStatus(PDO $conn, int $analystId, array $o, array $range, $te
 /** Stage ends and target finishes inside the range, and whether each was met. */
 function rpProjectsMilestones(PDO $conn, int $analystId, array $o, array $range, $tenant): array
 {
-    [$tSql, $tArgs] = rpTenantClause($conn, $analystId, $tenant, 'p.tenant_id');
+    [$tSql, $tArgs] = rpProjectClause($conn, $analystId, $tenant);
     $only = ''; $ids = [];
     if ($o['projects']) { $ids = array_map('intval', $o['projects']); $only = ' AND p.id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')'; }
     require_once __DIR__ . '/../projects/milestones.php';
@@ -177,7 +189,7 @@ function rpProjectsMilestones(PDO $conn, int $analystId, array $o, array $range,
 /** The open risks that matter most, across the chosen projects. */
 function rpProjectsRisks(PDO $conn, int $analystId, array $o, array $range, $tenant): array
 {
-    [$tSql, $tArgs] = rpTenantClause($conn, $analystId, $tenant, 'p.tenant_id');
+    [$tSql, $tArgs] = rpProjectClause($conn, $analystId, $tenant);
     $only = ''; $ids = [];
     if ($o['projects']) { $ids = array_map('intval', $o['projects']); $only = ' AND p.id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')'; }
     $st = $conn->prepare(
@@ -221,6 +233,9 @@ function rpProjectsRisks(PDO $conn, int $analystId, array $o, array $range, $ten
 function rpProjectChoices(PDO $conn, int $analystId): array
 {
     [$tSql, $tArgs] = isMultiTenant($conn) ? allAccessibleTenantsFilter($conn, $analystId, 'p.tenant_id') : ['', []];
+    require_once __DIR__ . '/../projects/visibility.php';   // members-only (3.3.0)
+    [$vSql, $vArgs] = projectVisibleSql($conn, $analystId, 'p', false);
+    $tSql .= $vSql; $tArgs = array_merge($tArgs, $vArgs);
     $st = $conn->prepare("SELECT p.id, p.name FROM projects p WHERE p.status <> 'cancelled' $tSql
                           ORDER BY FIELD(p.status, 'active', 'proposed', 'on_hold', 'closed'), p.name LIMIT 300");
     $st->execute($tArgs);

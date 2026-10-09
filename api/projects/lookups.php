@@ -41,6 +41,8 @@ projectApiRun(function () use ($conn, $analystId) {
         // 3.3.0: the four priority words, the portfolio's default order, what the burn-up counts.
         'priorities'         => projectPriorities(),
         'priority_labels'    => projectScaleLabels($conn, 'priority'),
+        // Members-only (3.3.0): what a new project starts as; null before Verification hides the field.
+        'default_visibility' => (function () use ($conn) { require_once __DIR__ . '/../../includes/projects/visibility.php'; return projectVisibilityReady($conn) ? projectSetting($conn, 'project_default_visibility') : null; })(),
         'portfolio_sort'     => projectSetting($conn, 'project_portfolio_sort'),
         'burnup_measure'     => projectSetting($conn, 'project_burnup_measure'),
         'templates'          => projectTemplateList($conn),

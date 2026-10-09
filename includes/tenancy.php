@@ -384,6 +384,9 @@ function analystCanAccessChange(PDO $conn, int $analystId, $changeId): bool {
 function analystCanAccessProject(PDO $conn, int $analystId, $projectId): bool {
     $projectId = (int) $projectId;
     if ($projectId <= 0) return false;
+    // Members-only projects (3.3.0) - checked before the company, on every install.
+    require_once __DIR__ . '/projects/visibility.php';
+    try { if (!projectIdVisibleTo($conn, $analystId, $projectId)) return false; } catch (Throwable $e) { /* table not ready */ }
     if (!isMultiTenant($conn)) return true;
     try {
         $stmt = $conn->prepare("SELECT tenant_id FROM projects WHERE id = ?");

@@ -43,6 +43,11 @@
         document.getElementById('pvCode').textContent = p.code;
         document.getElementById('pvStatus').outerHTML = P.statusPill(p.status).replace('<span ', '<span id="pvStatus" ');
         document.getElementById('pvMethod').textContent = T('view.method_chip', { method: methodLabel() });
+        // Members-only (3.3.0).
+        const pv = document.getElementById('pvPrivate');
+        pv.hidden = p.visibility !== 'members';
+        pv.textContent = T('visibility.badge');
+        pv.title = T('visibility.members_hint');
         // Priority (3.3.0), only when it is not the ordinary Medium.
         const pc = document.getElementById('pvPriority');
         pc.innerHTML = P.priorityChip(p.priority);
@@ -281,6 +286,7 @@
         else if (f.indexOf('gate_item_') === 0 || f === 'gate_signed' || f === 'gate_unsigned') detail = h.new_value || '';
         else if (f === 'gate_kind') detail = T('gatecheck.gate_' + (h.new_value === 'golive' ? 'golive' : 'standard'));
         else if (f === 'baseline_taken') detail = String(h.new_value || '').replace(/^Baseline (\d+)/, (m, n) => T('control.baseline_n', { n: n }));
+        else if (f === 'visibility') detail = T('history.from_to', { from: T('visibility.' + h.old_value), to: T('visibility.' + h.new_value) });
         else if (f === 'priority') detail = T('history.from_to', { from: P.priorityLabel(h.old_value), to: P.priorityLabel(h.new_value) });
         else if (f === 'health') detail = T('history.from_to', { from: T('health.' + h.old_value), to: T('health.' + h.new_value) });
         else if (f === 'methodology') detail = T('history.from_to', { from: T('method.' + h.old_value), to: T('method.' + h.new_value) });

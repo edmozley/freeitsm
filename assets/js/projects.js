@@ -234,6 +234,9 @@
         $('pfTarget').value = isEdit ? (project.target_end_date || '') : '';
         $('pfPriority').innerHTML = (L.priorities || []).map((k, i) => '<option value="' + k + '">' + esc((L.priority_labels || [])[i] || k) + '</option>').join('');
         $('pfPriority').value = isEdit ? (project.priority || 'medium') : 'medium';
+        // Who can see it (3.3.0) - hidden until Database Verification has added it.
+        $('pfVisibilityWrap').hidden = !L.default_visibility;
+        $('pfVisibility').value = isEdit ? (project.visibility || 'everyone') : (L.default_visibility || 'everyone');
         $('pfActual').value = isEdit ? (project.actual_end_date || '') : '';
         $('pfHealthNote').value = isEdit ? (project.health_note || '') : '';
         $('pfError').hidden = true;
@@ -368,6 +371,7 @@
                 colour: formState.colour,
                 icon: formState.icon,
             };
+            if (!$('pfVisibilityWrap').hidden) body.visibility = $('pfVisibility').value;
             if (!body.name) { showFormError(T('form.name_required')); $('pfName').focus(); return; }
             if (id) {
                 body.id = parseInt(id, 10);

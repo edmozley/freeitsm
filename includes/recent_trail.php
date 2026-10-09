@@ -477,7 +477,9 @@ function recentTrailLabelsForType(PDO $conn, int $analystId, string $type, array
                 $st->execute([(int)$id]);
                 $t = $st->fetchColumn();
                 if ($t === false) return false;
-                return !isMultiTenant($conn) || analystCanAccessTenant($conn, $analystId, $t === null ? (int)getDefaultTenantId($conn) : (int)$t);
+                if (isMultiTenant($conn) && !analystCanAccessTenant($conn, $analystId, $t === null ? (int)getDefaultTenantId($conn) : (int)$t)) return false;
+                require_once __DIR__ . '/projects/visibility.php';   // members-only (3.3.0)
+                return projectIdVisibleTo($conn, $analystId, (int)$id);
             };
             break;
 

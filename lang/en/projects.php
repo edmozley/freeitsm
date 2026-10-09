@@ -774,6 +774,16 @@ return [
         'need_both'    => 'RACI needs people (the People tab) and deliverables (the Scope tab).',
         'demoted'      => 'Only one person can be accountable - the previous one is now Responsible.',
     ],
+    // 3.3.0 - members-only projects (includes/projects/visibility.php)
+    'visibility' => [
+        'label'        => 'Who can see it',
+        'everyone'     => 'Everyone with Projects',
+        'members'      => 'Members only',
+        'badge'        => 'Members only',
+        'members_hint' => 'Only its project manager, its members and people who manage Projects can see this project.',
+        'hidden_name'  => 'A members-only project',
+    ],
+
     // 3.3.0 - spreadsheet downloads (api/projects/export.php): the headings
     'export' => [
         'button'        => 'Export',
@@ -1059,6 +1069,7 @@ return [
 
     'history' => [
         'priority'        => 'changed the priority',
+        'visibility'      => 'changed who can see it',
         'project_created' => 'created the project',
         'target_saved'    => 'saved an asset target',
         'target_removed'  => 'removed an asset target',
@@ -1445,6 +1456,8 @@ return [
         'change_apply_desc'    => 'What happens to the plan when a change request is approved. A new baseline is always taken.',
         'apply_baseline'       => 'Takes a new baseline only - the plan is changed by hand',
         'apply_plan'           => 'Also moves the target finish and adds the cost to the budget',
+        'default_visibility'     => 'Who can see a new project',
+        'default_visibility_desc'=> 'Members only: just its project manager, whoever created it, its members (directly or through a team) and people who manage Projects - for HR, security or confidential work. Each project can be changed on its own form.',
         'gate_checklist'         => 'An open gate checklist item',
         'gate_checklist_desc'    => 'What happens when somebody records a go at a gate whose checklist is not finished. A stop is always allowed.',
         'gatecheck_block'        => 'Stops the go until it is done',
@@ -1661,6 +1674,7 @@ return [
             'p1'    => 'On the People tab, **Add someone** puts an analyst, a team or a person from People on the project, each with a role. A person from People suits a business sponsor or a key user who has no analyst account; on an install with more than one company they must belong to the project\'s company. Nobody can be added twice.',
             'p2'    => 'The roles come from **Projects - Settings - Roles**, which starts with the PRINCE2-style roles (Executive, Senior User, Senior Supplier, Project Manager, Team Manager, Project Assurance and Project Support) plus Team member and Stakeholder.',
             'p3'    => 'The people on a project are the columns of its RACI matrix, so taking someone off removes their RACI letters too; tasks assigned to them are not changed. Being on a project also counts for permissions: an analyst who is a member, or who is in a team that is a member, is part of the project\'s team (see Settings and permissions). A person added from People sees the project on their People page, with their role and what they are Responsible, Accountable, Consulted or Informed for.',
+            'p4'    => '**Who can see it** (on the project\'s form): **Everyone with Projects**, or **Members only** - just its project manager, whoever created it, its members (directly or through a team) and people who manage Projects. For HR, security or confidential work. To everybody else a members-only project does not exist: not in the portfolio, search, People, Watchtower, Warbot or the API, and its dates stay off the shared Calendar. Capacity still counts its tasks, as "A members-only project". Somebody you ask to approve or sign off must be a member to open it. New projects start as Projects -> Settings -> General says.',
         ],
         'scope' => [
             'nav'   => 'Scope',

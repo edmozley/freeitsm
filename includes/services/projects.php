@@ -63,6 +63,8 @@ class ProjectsService
             // Intake (3.3.0): a proposal's own figures - includes/projects/intake.php.
             'estimated_cost'   => ['type' => 'money'],
             'estimated_benefit'=> ['type' => 'text',   'max' => 5000],
+            // Members-only (3.3.0): includes/projects/visibility.php.
+            'visibility'       => ['type' => 'enum',   'values' => ['everyone', 'members']],
         ];
     }
 
@@ -96,6 +98,9 @@ class ProjectsService
         }
         // A new project starts the way Projects -> Settings says, unless told otherwise.
         if (!array_key_exists('methodology', $in)) $in['methodology'] = projectSetting($conn, 'project_default_method');
+        // Who can see it (3.3.0): the setting's default unless told otherwise.
+        require_once __DIR__ . '/../projects/visibility.php';
+        if (!array_key_exists('visibility', $in) && projectVisibilityReady($conn)) $in['visibility'] = projectSetting($conn, 'project_default_visibility');
         // A new project is led by whoever created it unless told otherwise.
         if (!array_key_exists('owner_analyst_id', $in) && $ctx->actorId > 0) $in['owner_analyst_id'] = $ctx->actorId;
 
@@ -111,6 +116,7 @@ class ProjectsService
         foreach (self::fieldMap() as $field => $def) {
             if (!array_key_exists($field, $in)) continue;
             if (str_starts_with($field, 'estimated_') && !projectIntakeReady($conn)) continue;   // before Verification
+            if ($field === 'visibility' && !projectVisibilityReady($conn)) continue;
             $cols[] = $field;
             $vals[] = self::validateField($conn, $field, $in[$field], $def);
         }
@@ -150,6 +156,12 @@ class ProjectsService
             $changes[$field] = [$cur[$field], $v];
         }
         if (!$sets) return $id;
+        // Members-only (3.3.0): only the team or Manage Projects say who can see it -
+        // under "anyone may change", an outsider must not be able to shut the door.
+        if (isset($changes['visibility']) && $ctx->actorId > 0
+            && !projectIsTeam($conn, $ctx->actorId, $cur) && !projectIsManager($conn, $ctx->actorId)) {
+            throw new ServiceError('forbidden', 'forbidden', 'Only this project\'s team, or someone who manages Projects, can change who can see it.');
+        }
         // Intake (3.3.0): a proposal waiting for approval may stay proposed or be withdrawn, nothing else.
         require_once __DIR__ . '/../projects/intake.php';
         if (isset($changes['status']) && projectProposalBlocksStatus($cur, $changes['status'][1])) {
@@ -475,6 +487,9 @@ class ProjectsService
     {
         $row = self::loadRow($conn, $id);
         self::assertScope($conn, $ctx, $row, 'Project not found.');
+        // Members-only (3.3.0): not found, never "hidden".
+        require_once __DIR__ . '/../projects/visibility.php';
+        if (!projectVisibleTo($conn, $ctx->actorId, $row)) throw new ServiceError('not_found', 'not_found', 'Project not found.');
         return $row;
     }
 

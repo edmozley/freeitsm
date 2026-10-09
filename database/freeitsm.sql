@@ -7799,6 +7799,7 @@ CREATE TABLE IF NOT EXISTS `projects` (
     `health`            VARCHAR(10) NOT NULL DEFAULT 'auto',     -- auto | green | amber | red
     `health_note`       VARCHAR(500) NULL,
     `priority`          VARCHAR(10) NOT NULL DEFAULT 'medium',  -- 3.3.0: low | medium | high | critical (the words are a setting)
+    `visibility`        VARCHAR(10) NOT NULL DEFAULT 'everyone', -- 3.3.0: everyone | members (includes/projects/visibility.php)
     `owner_analyst_id`  INT NULL,                         -- the project manager
     `start_date`        DATE NULL,
     `target_end_date`   DATE NULL,

@@ -41,6 +41,7 @@
 require_once __DIR__ . '/read.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/../tenancy.php';
+require_once __DIR__ . '/../i18n.php';                // t() - a members-only project's neutral name
 
 /** The working days from $from to $to inclusive, as Y-m-d. $days: ISO weekdays (1 = Monday), Monday to Friday by default. */
 function projectCapacityWorkdays(string $from, string $to, array $days = [1, 2, 3, 4, 5]): array
@@ -96,7 +97,17 @@ function projectCapacity(PDO $conn, int $viewerId, int $weeks = 4): array
     $st = $conn->prepare("SELECT p.id, p.name FROM projects p WHERE p.status IN ('proposed', 'active') $tSql");
     $st->execute($tArgs);
     $projects = [];
-    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $p) $projects[(int)$p['id']] = $p['name'];
+    // Members-only (3.3.0): the work still counts - people's load is real - but the
+    // project is named only to those who may see it.
+    require_once __DIR__ . '/visibility.php';
+    [$vSql, $vArgs] = projectVisibleSql($conn, $viewerId, 'p');
+    $seen = [];
+    if ($vSql !== '') {
+        $vs = $conn->prepare("SELECT p.id FROM projects p WHERE p.status IN ('proposed', 'active') $tSql $vSql");
+        $vs->execute(array_merge($tArgs, $vArgs));
+        $seen = array_flip(array_map('intval', $vs->fetchAll(PDO::FETCH_COLUMN)));
+    }
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $p) $projects[(int)$p['id']] = ($vSql === '' || isset($seen[(int)$p['id']])) ? $p['name'] : t('projects.visibility.hidden_name');
     if (!$projects) return $out;
     $pin = implode(',', array_keys($projects));
 

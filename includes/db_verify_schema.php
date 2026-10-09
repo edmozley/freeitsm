@@ -5184,6 +5184,8 @@ return [
         'form_submission_id' => 'INT NULL',
         'proposed_by_name'   => 'VARCHAR(200) NULL',
         'proposed_by_email'  => 'VARCHAR(255) NULL',
+        // Members-only projects (3.3.0) - includes/projects/visibility.php.
+        'visibility'         => "VARCHAR(10) NOT NULL DEFAULT 'everyone'",
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Phases, stages and sprints in ONE table - the same thing through different methods.

@@ -893,7 +893,10 @@ function warbotProjectScope(PDO $conn, int $analystId): array
 {
     require_once __DIR__ . '/../tenancy.php';
     require_once __DIR__ . '/../projects/assistant.php';
-    return activeTenantReadFilter($conn, $analystId, 'p');
+    require_once __DIR__ . '/../projects/visibility.php';
+    [$sql, $args] = activeTenantReadFilter($conn, $analystId, 'p');
+    [$vSql, $vArgs] = projectVisibleSql($conn, $analystId, 'p');   // members-only (3.3.0)
+    return [$sql . $vSql, array_merge($args, $vArgs)];
 }
 
 /** A ServiceError (no such project, several match) is an answer to give the room, not a failure. */

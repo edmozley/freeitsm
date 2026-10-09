@@ -58,6 +58,14 @@
                     <label for="pfPriority"><?php echo htmlspecialchars(t('projects.form.priority')); ?></label>
                     <select id="pfPriority"></select>
                 </div>
+                <!-- 3.3.0: members-only - includes/projects/visibility.php -->
+                <div class="form-group" id="pfVisibilityWrap" hidden>
+                    <label for="pfVisibility"><?php echo htmlspecialchars(t('projects.visibility.label')); ?></label>
+                    <select id="pfVisibility">
+                        <option value="everyone"><?php echo htmlspecialchars(t('projects.visibility.everyone')); ?></option>
+                        <option value="members"><?php echo htmlspecialchars(t('projects.visibility.members')); ?></option>
+                    </select>
+                </div>
                 <div class="form-group prj-edit-only">
                     <label for="pfStatus"><?php echo htmlspecialchars(t('projects.form.status')); ?></label>
                     <select id="pfStatus"></select>

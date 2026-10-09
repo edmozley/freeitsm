@@ -423,6 +423,10 @@ try {
     if ($can('projects')) {
         try {
             [$tSql, $tArgs] = activeTenantFilter($conn, $analystId, 'p');
+            // Members-only projects (3.3.0).
+            require_once __DIR__ . '/../../includes/projects/visibility.php';
+            [$vSql, $vArgs] = projectVisibleSql($conn, $analystId, 'p');
+            $tSql .= $vSql; $tArgs = array_merge($tArgs, $vArgs);
             $num = preg_match('/^(?:prj-?)?0*(\d+)$/i', trim($q), $m) ? (int)$m[1] : 0;
             $sql = "SELECT p.id, p.name, p.status, p.target_end_date
                       FROM projects p

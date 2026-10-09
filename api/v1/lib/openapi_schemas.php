@@ -11372,7 +11372,17 @@ return array (
           ),
           'description' => 'How much the project matters next to the others (3.3.0). The words shown for each are a setting.',
         ),
-        'approval' => 
+        'visibility' =>
+        array (
+          'type' => 'string',
+          'enum' =>
+          array (
+            0 => 'everyone',
+            1 => 'members',
+          ),
+          'description' => 'Who can see it (3.3.0): everyone with Projects, or its team and people who manage Projects. A members-only project the key\'s analyst may not see is not found.',
+        ),
+        'approval' =>
         array (
           'type' => 'string',
           'nullable' => true,

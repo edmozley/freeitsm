@@ -52,6 +52,9 @@ function projectSyncCalendar(PDO $conn): array
         // off | ends | all - Projects -> Settings -> General.
         $mode = projectSettings($conn, true)['project_calendar'] ?? 'all';
         $live = "p.status IN ('proposed', 'active')";
+        // The Calendar is shared: a members-only project's dates never go on it (3.3.0).
+        require_once __DIR__ . '/visibility.php';
+        if (projectVisibilityReady($conn)) $live .= " AND p.visibility <> 'members'";
 
         $ends = projectSyncCalendarKind($conn, 'project_end', in_array($mode, ['ends', 'all'], true),
             "SELECT p.id, p.name, p.target_end_date AS on_date

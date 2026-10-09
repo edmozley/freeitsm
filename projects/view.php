@@ -43,7 +43,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=36">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=37">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -60,6 +60,7 @@ $projectId = (int)($_GET['id'] ?? 0);
                         <span class="prj-code" id="pvCode"></span>
                         <span class="prj-pill" id="pvStatus"></span>
                         <span class="prj-chip" id="pvMethod"></span>
+                        <span class="prj-chip" id="pvPrivate" hidden></span>
                         <span id="pvPriority" hidden></span>
                         <span class="prj-chip" id="pvCompany" hidden></span>
                     </div>
@@ -648,7 +649,7 @@ $projectId = (int)($_GET['id'] ?? 0);
 
     <?php include 'includes/project_form.php'; ?>
 
-    <script src="../assets/js/projects.js?v=9"></script>
+    <script src="../assets/js/projects.js?v=10"></script>
     <script src="../assets/js/projects-tools.js?v=9"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-budget.js?v=6"></script>
@@ -662,7 +663,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=2"></script>
-    <script src="../assets/js/projects-view.js?v=25"></script>
+    <script src="../assets/js/projects-view.js?v=26"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

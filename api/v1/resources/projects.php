@@ -68,6 +68,7 @@ function apiSerializeProject(PDO $conn, array $p): array {
         'health_mode'     => $p['health'] === 'auto' ? 'auto' : 'manual',
         'health_note'     => $p['health_note'],
         'priority'        => $p['priority'] ?? 'medium',
+        'visibility'      => $p['visibility'] ?? 'everyone',
         // 3.3.0 intake: null = needed no approval; pending | approved | rejected. Decided in the app.
         'approval'        => $p['approval_status'] ?? null,
         'project_manager' => $rel($p['owner_analyst_id'], $p['owner_name'] ?? null),
@@ -108,7 +109,8 @@ function apiLoadProject(PDO $conn, array $apiKey, int $id): array {
     $st = $conn->prepare(apiProjectSelect($conn) . " WHERE p.id = ?");
     $st->execute([$id]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
-    if (!$row || !apiKeyCanAccessTenantRow($conn, $apiKey, 'projects', $id)) {
+    require_once dirname(__DIR__, 3) . '/includes/projects/visibility.php';
+    if (!$row || !apiKeyCanAccessTenantRow($conn, $apiKey, 'projects', $id) || !projectVisibleTo($conn, (int)($apiKey['analyst_id'] ?? 0), $row)) {
         apiError(404, 'not_found', 'Project not found.');
     }
     return apiProjectDecorate($conn, [$row])[0];
@@ -176,6 +178,10 @@ function apiProjectsList(PDO $conn, array $apiKey, array $params, array $body): 
     $orderSql = $sortable[$sortKey] . ' IS NULL, ' . $sortable[$sortKey] . ($desc ? ' DESC' : ' ASC') . ', p.id';
 
     [$scopeSql, $scopeArgs] = apiKeyTenantFilter($conn, $apiKey, 'p');
+    // Members-only projects (3.3.0), as the key's analyst.
+    require_once dirname(__DIR__, 3) . '/includes/projects/visibility.php';
+    [$vSql, $vArgs] = projectVisibleSql($conn, (int)($apiKey['analyst_id'] ?? 0), 'p');
+    $scopeSql .= $vSql; $scopeArgs = array_merge($scopeArgs, $vArgs);
     $whereSql = implode(' AND ', $where) . $scopeSql;
     $args = array_merge($args, $scopeArgs);
     [$page, $perPage, $offset] = apiPagination();

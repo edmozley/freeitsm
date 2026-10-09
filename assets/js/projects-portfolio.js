@@ -148,6 +148,7 @@
             + '<div class="prj-card-band" style="background:' + P.gradient(p.colour) + '">'
             +   '<span class="prj-card-icon">' + P.icon(p.icon, 22) + '</span>'
             +   '<span class="prj-card-code">' + esc(p.code) + '</span>'
+            +   (p.visibility === 'members' ? '<span class="prj-private" title="' + esc(T('visibility.members_hint')) + '">' + esc(T('visibility.badge')) + '</span>' : '')
             +   P.priorityChip(p.priority) + P.statusPill(p.status)
             + '</div>'
             + '<div class="prj-card-body">'

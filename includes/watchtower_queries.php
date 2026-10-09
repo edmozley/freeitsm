@@ -849,6 +849,9 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
             require_once __DIR__ . '/projects/read.php';
             [$pjT, $pjTA] = $analystId > 0 ? activeTenantFilter($conn, $analystId, 'p') : ['', []];
             [$pjS, $pjSA] = wtScopeClause($conn, $analystId, $scope, 'p.owner_analyst_id');
+            require_once __DIR__ . '/projects/visibility.php';   // members-only (3.3.0)
+            [$pjV, $pjVA] = projectVisibleSql($conn, $analystId, 'p');
+            $pjS .= $pjV; $pjSA = array_merge($pjSA, $pjVA);
             $st = $conn->prepare(
                 "SELECT p.id, p.tenant_id, p.name, p.methodology, p.status, p.health, p.owner_analyst_id, p.target_end_date, p.tailoring,
                         " . projectExceptionColumns($conn) . "

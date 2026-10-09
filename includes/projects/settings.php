@@ -75,6 +75,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // open written into its notes (warn).
             'project_gate_checklist'        => ['block',   'gatecheck',   'general'],
             'project_benefit_notify'        => ['both',    'bnotify',     'general'],
+            // Members-only projects (3.3.0) - includes/projects/visibility.php. Who
+            // can see a NEW project: everyone with Projects, or its members only.
+            // Each project can be changed on its own form.
+            'project_default_visibility'    => ['everyone', 'visibility', 'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
             'project_amber_days'       => ['14',       'int:1:120',   'health'],
@@ -235,6 +239,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'visibility') {
+            if (!in_array($v, ['everyone', 'members'], true)) throw new InvalidArgumentException('Choose everyone or members only.');
             return $v;
         }
         if ($rule === 'gatecheck') {

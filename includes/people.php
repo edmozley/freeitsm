@@ -445,6 +445,10 @@ function peopleProjects(PDO $conn, int $analystId, array $who): array
     if (!projectsSchemaReady($conn)) return ['total' => 0, 'rows' => []];
     require_once __DIR__ . '/projects/read.php';
     [$scope, $args] = peopleScope($conn, $analystId, 'p.tenant_id');
+    // Members-only projects (3.3.0).
+    require_once __DIR__ . '/projects/visibility.php';
+    [$vSql, $vArgs] = projectVisibleSql($conn, $analystId, 'p');
+    $scope .= $vSql; $args = array_merge($args, $vArgs);
     if (isset($who['user'])) {
         if (!projectsPhase2Ready($conn)) return ['total' => 0, 'rows' => []];
         $sql = "SELECT p.*, a.full_name AS owner_name, GROUP_CONCAT(DISTINCT r.name ORDER BY r.display_order SEPARATOR ', ') AS role_names

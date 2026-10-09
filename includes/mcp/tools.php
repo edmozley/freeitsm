@@ -214,6 +214,15 @@ function mcpRunTool(PDO $conn, array $apiKey, string $name, array $args): ?array
 /** " AND p.tenant_id ..." for the key's companies (NULL company = the Default one). */
 function mcpProjectScopeSql(PDO $conn, array $apiKey): array
 {
+    // Members-only projects (3.3.0): as the key's analyst.
+    require_once __DIR__ . '/../projects/visibility.php';
+    [$vSql, $vArgs] = projectVisibleSql($conn, (int)($apiKey['analyst_id'] ?? 0), 'p');
+    [$sql, $args] = mcpProjectCompanySql($conn, $apiKey);
+    return [$sql . $vSql, array_merge($args, $vArgs)];
+}
+
+function mcpProjectCompanySql(PDO $conn, array $apiKey): array
+{
     if (!isMultiTenant($conn) || $apiKey['company_scope'] === null) return ['', []];
     $ids = array_map('intval', $apiKey['company_scope']);
     if (!$ids) return [' AND 1 = 0', []];

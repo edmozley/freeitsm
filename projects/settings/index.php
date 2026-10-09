@@ -49,7 +49,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=36">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=37">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -79,6 +79,8 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('baseline_auto'), $tt('baseline_auto_desc'), '<select data-k="project_baseline_auto"><option value="stage">' . $tt('baseline_auto_stage') . '</option><option value="start">' . $tt('baseline_auto_start') . '</option><option value="off">' . $tt('baseline_auto_off') . '</option></select><div class="dflt" data-d="project_baseline_auto"></div>');
             $row($tt('change_approver'), $tt('change_approver_desc'), '<select data-k="project_change_approver"><option value="owner">' . $tt('approver_owner') . '</option><option value="team">' . $tt('approver_team') . '</option><option value="managers">' . $tt('approver_managers') . '</option></select><div class="dflt" data-d="project_change_approver"></div>');
             $row($tt('change_self'), $tt('change_self_desc'), '<select data-k="project_change_self"><option value="1">' . htmlspecialchars(t('common.yes')) . '</option><option value="0">' . htmlspecialchars(t('common.no')) . '</option></select><div class="dflt" data-d="project_change_self"></div>');
+            // 3.3.0 members-only projects.
+            $row($tt('default_visibility'), $tt('default_visibility_desc'), '<select data-k="project_default_visibility"><option value="everyone">' . htmlspecialchars(t('projects.visibility.everyone')) . '</option><option value="members">' . htmlspecialchars(t('projects.visibility.members')) . '</option></select><div class="dflt" data-d="project_default_visibility"></div>');
             // 3.3.0 gate checklists.
             $row($tt('gate_checklist'), $tt('gate_checklist_desc'), '<select data-k="project_gate_checklist"><option value="block">' . $tt('gatecheck_block') . '</option><option value="warn">' . $tt('gatecheck_warn') . '</option></select><div class="dflt" data-d="project_gate_checklist"></div>');
             // 3.3.0 benefits.
@@ -242,8 +244,8 @@ $row = function (string $label, string $desc, string $control) {
         </div>
     </div>
 
-    <script src="../../assets/js/projects.js?v=9"></script>
-    <script src="../../assets/js/projects-settings.js?v=12"></script>
+    <script src="../../assets/js/projects.js?v=10"></script>
+    <script src="../../assets/js/projects-settings.js?v=13"></script>
     <script src="../../assets/js/ai-settings.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>

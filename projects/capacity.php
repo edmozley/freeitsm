@@ -32,7 +32,7 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=36">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=37">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-capacity">
@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'projects'];
         <div id="capBody"><div class="prj-plan-empty"><?php echo htmlspecialchars(t('projects.capacity.loading')); ?></div></div>
     </div>
 
-    <script src="../assets/js/projects.js?v=9"></script>
+    <script src="../assets/js/projects.js?v=10"></script>
     <script src="../assets/js/projects-capacity.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

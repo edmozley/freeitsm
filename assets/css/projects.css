@@ -1124,6 +1124,8 @@ button.prj-tl-label { cursor: pointer; }
 
 /* ---------- portfolio: order, health strip, roadmap (3.3.0) ----------------- */
 .prj-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* 3.3.0: members-only - a word on the card's coloured header */
+.prj-private { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.28); color: #fff; }
 /* 3.3.0: Export - a small menu (portfolio toolbar, RAID filters) */
 .prj-export { position: relative; }
 .prj-export summary { list-style: none; cursor: pointer; padding: 6px 12px; border: 1px solid var(--border, #ddd); border-radius: 7px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; user-select: none; }

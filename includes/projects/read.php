@@ -278,6 +278,10 @@ function projectCode(int $id): string
 function projectListRows(PDO $conn, int $analystId, array $f = []): array
 {
     [$tSql, $tArgs] = activeTenantReadFilter($conn, $analystId, 'p');
+    // Members-only projects (3.3.0) are left out for those who may not see them.
+    require_once __DIR__ . '/visibility.php';
+    [$vSql, $vArgs] = projectVisibleSql($conn, $analystId, 'p');
+    $tSql .= $vSql; $tArgs = array_merge($tArgs, $vArgs);
     $where = ['1=1']; $args = [];
     if (!empty($f['q'])) {
         $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim((string)$f['q'])) . '%';
@@ -291,7 +295,7 @@ function projectListRows(PDO $conn, int $analystId, array $f = []): array
         $where[] = 'p.owner_analyst_id = ?'; $args[] = $analystId;
     }
     $sql = "SELECT p.id, p.tenant_id, tn.name AS company_name, p.name, p.summary, p.goal, p.methodology,
-                   p.status, p.health, p.health_note, " . projectPriorityColumn($conn) . ", p.owner_analyst_id, a.full_name AS owner_name,
+                   p.status, p.health, p.health_note, " . projectPriorityColumn($conn) . ", " . projectVisibilityColumn($conn) . ", p.owner_analyst_id, a.full_name AS owner_name,
                    p.start_date, p.target_end_date, p.actual_end_date, p.colour, p.icon, p.tailoring, p.created_by_id,
                    " . (function () use ($conn) { require_once __DIR__ . '/intake.php'; return projectProposalApprovalColumn($conn); })() . ",
                    p.created_datetime, p.updated_datetime, p.closed_datetime,
