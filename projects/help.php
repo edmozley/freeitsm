@@ -30,6 +30,7 @@ $multi = isMultiTenant(connectToDatabase());
 // listed in $after.
 $sections = [
     'overview'  => 1,
+    'map'       => 1,   // 3.3.0: How it fits together - the interactive map (projects-tour.js)
     'portfolio' => 5,
     'project'   => 3,
     'plan'      => 4,
@@ -85,13 +86,16 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <title><?php echo htmlspecialchars(systemName() . ' - ' . t('projects.help.title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs(['common', 'projects']), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
+    <?php // The map's method filter reads the presets, so it can never disagree with them (3.3.0). ?>
+    <script>window.PRJ_TOUR = <?php echo json_encode(['methods' => array_map(fn($m) => $m['tools'], projectMethodologies()), 'labels' => array_map(fn($k) => t('projects.method.' . $k), array_combine(array_keys(projectMethodologies()), array_keys(projectMethodologies())))], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=41">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=42">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=189">
+    <script src="<?php echo BASE_URL; ?>assets/js/projects-tour.js?v=1"></script>
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
         body {
@@ -161,6 +165,9 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
                     </div>
                     <?php endif; ?>
 
+                    <?php if ($id === 'map'): ?>
+                    <div class="prj-tour" id="prjTour"><noscript><p><?php echo $h('map.noscript'); ?></p></noscript></div>
+                    <?php endif; ?>
                     <?php if ($id === 'methods'): ?>
                     <div class="help-defs">
                         <?php foreach (['simple', 'staged', 'agile'] as $m): ?>

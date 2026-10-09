@@ -1127,6 +1127,40 @@ button.prj-tl-label { cursor: pointer; }
 
 /* ---------- portfolio: order, health strip, roadmap (3.3.0) ----------------- */
 .prj-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* 3.3.0: help - How it fits together (assets/js/projects-tour.js) */
+.prj-tour { margin-top: 14px; }
+.prj-tour-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-bottom: 12px; }
+.prj-tour-method { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.prj-tour-method select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 7px; background: var(--surface, #fff); color: var(--text, #333); }
+.prj-tour-body { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.prj-tour-map { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; padding: 12px; border: 1px solid var(--border, #ddd); border-radius: 12px; background: var(--surface-2, #fafafa); }
+.prj-tour-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.prj-tour-line { fill: none; stroke: var(--prj-accent, #e11d48); stroke-width: 1.6; opacity: .75; }
+.prj-tour-arrowhead { fill: var(--prj-accent, #e11d48); }
+.prj-tour-col { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1; }
+.prj-tour-gh { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim, #888); margin-bottom: 2px; }
+.prj-tour-node { text-align: left; font-size: 12.5px; line-height: 1.25; padding: 8px 9px; border-radius: 8px; border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text, #333); cursor: pointer; transition: opacity .15s, border-color .15s; }
+.prj-tour-node:hover, .prj-tour-node:focus-visible { border-color: var(--prj-accent, #e11d48); }
+.prj-tour-node.lit { border-color: var(--prj-accent, #e11d48); background: var(--prj-accent-soft, #fff1f2); font-weight: 600; box-shadow: 0 0 0 2px var(--prj-accent-soft, #fff1f2); }
+.prj-tour-node.rel { border-color: var(--prj-accent, #e11d48); }
+.prj-tour-node.dim { opacity: .45; }
+.prj-tour-node.off { border-style: dashed; color: var(--text-dim, #888); }
+.prj-tour-panel { border: 1px solid var(--border, #ddd); border-radius: 12px; padding: 14px 16px; background: var(--surface, #fff); position: sticky; top: 80px; }
+.prj-tour-panel h4 { margin: 0 0 8px; font-size: 16px; }
+.prj-tour-panel p { margin: 0 0 10px; font-size: 13.5px; }
+.prj-tour-off { color: var(--prj-accent, #e11d48); font-size: 13px; }
+.prj-tour-rel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.prj-tour-rel > span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); width: 100%; }
+.prj-tour-chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border, #ddd); background: var(--surface-2, #fafafa); color: var(--text, #333); cursor: pointer; }
+.prj-tour-chip:hover { border-color: var(--prj-accent, #e11d48); }
+.prj-tour-step { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-dim, #888); }
+.prj-tour-dots { display: flex; gap: 4px; margin: 6px 0 10px; }
+.prj-tour-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--border, #ddd); }
+.prj-tour-dots span.past { background: var(--prj-accent-soft, #fecdd3); }
+.prj-tour-dots span.on { background: var(--prj-accent, #e11d48); }
+.prj-tour-nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+@media (max-width: 1100px) { .prj-tour-body { grid-template-columns: 1fr; } .prj-tour-panel { position: static; } .prj-tour-map { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .prj-tour-map { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .prj-tour-lines { display: none; } }
 /* 3.3.0: the Toolbox on the Overview - tools not in use yet */
 .prj-toolbox-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .prj-toolbox-head h3 { display: flex; align-items: center; gap: 6px; margin: 0; }
