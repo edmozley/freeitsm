@@ -347,6 +347,7 @@ function pmRenderDetail(data) {
                 <h3>${pmEsc(pmT('detail.fix', 'Fix (linked change)'))}</h3>
                 ${changes}
             </div>
+            ${window.PM_SHOW_PROJECTS ? '<div class="pm-section"><h3>' + pmEsc(pmT('detail.projects', 'Projects')) + '</h3><div id="pmProjects"></div></div>' : ''}
             <div class="pm-section">
                 <h3>${pmEsc(pmT('detail.notes', 'Notes'))}</h3>
                 <div class="pm-note-add">
@@ -364,6 +365,9 @@ function pmRenderDetail(data) {
                 <div id="pmDocuments"></div>
             </div>
         </div>`;
+
+    // The projects this problem is part of (3.3.0) - the same panel changes show.
+    if (window.PM_SHOW_PROJECTS && window.ProjectLinks) ProjectLinks.mount(document.getElementById('pmProjects'), { kind: 'problem', id: p.id, base: window.PM_BASE, bare: true });
 
     // Attached documents (discussion #76). Mounted, not re-pointed: this view is
     // rebuilt for every problem, so the previous element is already gone.

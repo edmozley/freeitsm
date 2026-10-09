@@ -8057,6 +8057,21 @@ CREATE TABLE IF NOT EXISTS `project_knowledge_articles` (
     CONSTRAINT `fk_pka_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Projects 3.3.0: the problems a project exists to fix (or that it caused).
+CREATE TABLE IF NOT EXISTS `project_problems` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `project_id`            INT NOT NULL,
+    `problem_id`            INT NOT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ppr_pair` (`project_id`, `problem_id`),
+    KEY `ix_ppr_target` (`problem_id`),
+    CONSTRAINT `fk_ppr_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ppr_target` FOREIGN KEY (`problem_id`) REFERENCES `problems` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ppr_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---- Projects phase 2 (3.2.0): roles, members, scope, RACI, RAID, tolerances ----
 
 -- The project roles offered on a project's People tab. Seeded with the

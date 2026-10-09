@@ -2945,6 +2945,9 @@ try {
         ['project_knowledge_articles', 'fk_pka_project', "ALTER TABLE project_knowledge_articles ADD CONSTRAINT fk_pka_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_knowledge_articles', 'fk_pka_target', "ALTER TABLE project_knowledge_articles ADD CONSTRAINT fk_pka_target FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE CASCADE"],
         ['project_knowledge_articles', 'fk_pka_analyst', "ALTER TABLE project_knowledge_articles ADD CONSTRAINT fk_pka_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_problems', 'fk_ppr_project', "ALTER TABLE project_problems ADD CONSTRAINT fk_ppr_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_problems', 'fk_ppr_target', "ALTER TABLE project_problems ADD CONSTRAINT fk_ppr_target FOREIGN KEY (problem_id) REFERENCES problems (id) ON DELETE CASCADE"],
+        ['project_problems', 'fk_ppr_analyst', "ALTER TABLE project_problems ADD CONSTRAINT fk_ppr_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
     ];
     foreach ($projectFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;

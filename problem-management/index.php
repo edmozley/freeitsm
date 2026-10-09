@@ -128,6 +128,7 @@ $translationNamespaces = ['common', 'problem-management'];
         .search-btn { width: 100%; box-sizing: border-box; padding: 8px 12px; background: var(--surface, #fff); color: var(--text-muted, #374151); border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; transition: border-color .15s, color .15s; }
         .search-btn:hover { border-color: var(--pm-accent, #dc2626); color: var(--pm-accent, #dc2626); }
     </style>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/project-links.css?v=1">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=189">
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
@@ -256,7 +257,9 @@ $translationNamespaces = ['common', 'problem-management'];
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=22"></script>
+    <script>window.PM_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.PM_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
+    <script src="<?php echo BASE_URL; ?>assets/js/project-links.js?v=1"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=23"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=78"></script>
 </body>
 </html>

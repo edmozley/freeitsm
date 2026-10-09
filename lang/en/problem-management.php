@@ -54,6 +54,7 @@ return [
     // ── The detail view ─────────────────────────────────────────────────
     'detail' => [
         'back'            => '← Back',
+        'projects'        => 'Projects',
         'not_found'       => 'Not found',
         'open_failed'     => 'Failed to open problem',
         'edit'            => 'Edit',

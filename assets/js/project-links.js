@@ -1,11 +1,12 @@
 /**
  * The Projects panel other modules show (3.2.0): the projects a record - an
- * asset, a change, a ticket, a contract, a CMDB item or a knowledge article -
+ * asset, a change, a ticket, a contract, a CMDB item, a knowledge article or
+ * (3.3.0) a problem -
  * is part of, each in its own colour with its health and progress, plus
  * "Add to a project" and unlink.
  *
  *   ProjectLinks.mount(hostEl, {
- *       kind:  'asset' | 'change' | 'ticket' | 'contract' | 'cmdb' | 'article',
+ *       kind:  'asset' | 'change' | 'ticket' | 'contract' | 'cmdb' | 'article' | 'problem',
  *       id:    the record's id,
  *       base:  BASE_URL,
  *       cardClass / headClass / titleClass: the host page's own card classes,

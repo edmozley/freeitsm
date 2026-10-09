@@ -12295,7 +12295,7 @@ return array (
     'ProjectLinks' => 
     array (
       'type' => 'object',
-      'description' => 'By kind - asset, change, ticket, contract, cmdb, article - only those the key\'s analyst may open.',
+      'description' => 'By kind - asset, change, ticket, contract, cmdb, article, problem - only those the key\'s analyst may open.',
       'additionalProperties' => 
       array (
         'type' => 'array',

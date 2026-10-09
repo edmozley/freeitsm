@@ -3,7 +3,7 @@
  * Projects, joined to the rest of FreeITSM (3.2.0) - the ONE place that decides
  * who may see a link and who may make one. Modelled on includes/domains/links.php.
  *
- * Six kinds of link, each a plain join table:
+ * Seven kinds of link, each a plain join table:
  *
  *   asset    project_assets              the equipment the project works on
  *   change   project_changes             changes the project raises
@@ -11,6 +11,7 @@
  *   contract project_contracts           supplier contracts it relies on
  *   cmdb     project_cmdb_objects        configuration items it touches
  *   article  project_knowledge_articles  runbooks and write-ups
+ *   problem  project_problems            problems it exists to fix (3.3.0)
  *
  * 🔑 THE RULE, for every kind: a link is only shown, made or removed between two
  * records the analyst can already open - Projects plus the other module, and the
@@ -19,7 +20,7 @@
  * out, never shown as "hidden".
  *
  * 🔑 And a link never crosses companies. An asset, change, ticket or CI must be
- * in the project's own company. Contracts and knowledge articles are not
+ * in the project's own company (and so must a problem). Contracts and knowledge articles are not
  * company records (contracts are install-wide; articles have their own audience
  * model), so they are judged by their own permissions only.
  */
@@ -41,6 +42,7 @@ if (!defined('PROJECT_LINKS_LOADED')) {
             'contract' => ['table' => 'project_contracts',          'col' => 'contract_id',    'module' => 'contracts', 'scoped' => null],
             'cmdb'     => ['table' => 'project_cmdb_objects',       'col' => 'cmdb_object_id', 'module' => 'cmdb',      'scoped' => 'cmdb_objects'],
             'article'  => ['table' => 'project_knowledge_articles', 'col' => 'article_id',     'module' => 'knowledge', 'scoped' => null],
+            'problem'  => ['table' => 'project_problems',           'col' => 'problem_id',     'module' => 'problems',  'scoped' => 'problems'],
         ];
     }
 
@@ -119,6 +121,9 @@ if (!defined('PROJECT_LINKS_LOADED')) {
             case 'cmdb':
                 if (!analystCanAccessCmdbObject($conn, $analystId, $targetId)) return false;
                 break;
+            case 'problem':
+                if (!analystCanAccessProblem($conn, $analystId, $targetId)) return false;
+                break;
             case 'contract':
                 $st = $conn->prepare("SELECT 1 FROM contracts WHERE id = ?");
                 $st->execute([$targetId]);
@@ -190,6 +195,15 @@ if (!defined('PROJECT_LINKS_LOADED')) {
                 $st->execute($ids);
                 return array_map(fn($r) => ['id' => (int)$r['id'], 'label' => $r['name'], 'sub' => $r['class_name'],
                     'url' => entityLink('cmdb_object', (int)$r['id'])], $st->fetchAll(PDO::FETCH_ASSOC));
+            case 'problem':
+                $st = $conn->prepare(
+                    "SELECT p.id, p.problem_number, p.title, p.is_known_error, s.name AS status, s.colour AS status_colour, COALESCE(s.is_closed, 0) AS is_closed
+                       FROM problems p LEFT JOIN problem_statuses s ON s.id = p.status_id
+                      WHERE p.id IN ($in) ORDER BY COALESCE(s.is_closed, 0), p.id DESC");
+                $st->execute($ids);
+                return array_map(fn($r) => ['id' => (int)$r['id'], 'label' => $r['problem_number'] ?: 'PRB-' . str_pad((string)$r['id'], 4, '0', STR_PAD_LEFT), 'sub' => $r['title'],
+                    'status' => $r['status'], 'status_colour' => $r['status_colour'], 'closed' => (int)$r['is_closed'] === 1, 'known_error' => (int)$r['is_known_error'] === 1,
+                    'url' => entityLink('problem', (int)$r['id'])], $st->fetchAll(PDO::FETCH_ASSOC));
             case 'article':
                 $st = $conn->prepare("SELECT id, title, modified_datetime FROM knowledge_articles WHERE id IN ($in) ORDER BY title");
                 $st->execute($ids);
@@ -288,6 +302,10 @@ if (!defined('PROJECT_LINKS_LOADED')) {
             case 'cmdb':
                 $sql = "SELECT x.id FROM cmdb_objects x WHERE x.name LIKE ? AND $taken$company ORDER BY x.name LIMIT 40";
                 $args = array_merge([$like, $projectId], $cArgs);
+                break;
+            case 'problem':
+                $sql = "SELECT x.id FROM problems x WHERE (x.title LIKE ? OR x.problem_number LIKE ? OR x.id = ?) AND $taken$company ORDER BY x.id DESC LIMIT 40";
+                $args = array_merge([$like, $like, (int)preg_replace('/\D/', '', $q), $projectId], $cArgs);
                 break;
             case 'contract':
                 $sql = "SELECT x.id FROM contracts x WHERE (x.title LIKE ? OR x.contract_number LIKE ?) AND $taken ORDER BY x.title LIMIT 40";

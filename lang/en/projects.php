@@ -1001,6 +1001,7 @@ return [
             'contract' => 'Contracts',
             'cmdb'     => 'Configuration items',
             'article'  => 'Knowledge',
+            'problem'  => 'Problems',
         ],
         'hint' => [
             'asset'    => 'The laptops, servers and kit this project works on.',
@@ -1009,6 +1010,7 @@ return [
             'contract' => 'Supplier contracts the project relies on.',
             'cmdb'     => 'The services and systems it touches.',
             'article'  => 'Runbooks, plans and write-ups.',
+            'problem'  => 'Problems the project exists to fix - or that it caused.',
         ],
     ],
 

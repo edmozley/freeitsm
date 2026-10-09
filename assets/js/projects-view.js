@@ -499,7 +499,7 @@
 
     // ---- Connections ------------------------------------------------------------------
     const LINK_ICONS = {
-        asset: 'laptop', change: 'wrench', ticket: 'mail', contract: 'box', cmdb: 'network', article: 'star',
+        asset: 'laptop', change: 'wrench', ticket: 'mail', contract: 'box', cmdb: 'network', article: 'star', problem: 'shield',
     };
 
     function linkHistoryText(v) {

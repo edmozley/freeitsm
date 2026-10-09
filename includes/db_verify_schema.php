@@ -5259,6 +5259,14 @@ return [
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
+    // Projects 3.3.0: problems a project fixes.
+    'project_problems' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'            => 'INT NOT NULL',
+        'problem_id'            => 'INT NOT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
     // Projects phase 2 (3.2.0): roles, members, scope, RACI, RAID, tolerances.
     'project_roles' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
