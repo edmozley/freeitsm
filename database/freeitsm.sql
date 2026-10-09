@@ -7929,6 +7929,7 @@ CREATE TABLE IF NOT EXISTS `project_labour_rates` (
     `effective_from`   DATE NOT NULL,
     `created_by_id`    INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     KEY `ix_plr_scope` (`scope`, `ref_id`, `effective_from`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -7971,6 +7972,7 @@ CREATE TABLE IF NOT EXISTS `project_audit` (
     `new_value`        VARCHAR(1000) NULL,
     `source`           VARCHAR(20) NOT NULL DEFAULT 'app',   -- app | api | demo
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     KEY `idx_project_audit_project` (`project_id`, `created_datetime`),
     CONSTRAINT `fk_project_audit_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
@@ -7985,6 +7987,7 @@ CREATE TABLE IF NOT EXISTS `project_assets` (
     `asset_id`              INT NOT NULL,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_pas_pair` (`project_id`, `asset_id`),
     KEY `ix_pas_target` (`asset_id`),
@@ -7999,6 +8002,7 @@ CREATE TABLE IF NOT EXISTS `project_changes` (
     `change_id`             INT NOT NULL,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_pch_pair` (`project_id`, `change_id`),
     KEY `ix_pch_target` (`change_id`),
@@ -8013,6 +8017,7 @@ CREATE TABLE IF NOT EXISTS `project_tickets` (
     `ticket_id`             INT NOT NULL,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_ptk_pair` (`project_id`, `ticket_id`),
     KEY `ix_ptk_target` (`ticket_id`),
@@ -8027,6 +8032,7 @@ CREATE TABLE IF NOT EXISTS `project_contracts` (
     `contract_id`           INT NOT NULL,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_pco_pair` (`project_id`, `contract_id`),
     KEY `ix_pco_target` (`contract_id`),
@@ -8041,6 +8047,7 @@ CREATE TABLE IF NOT EXISTS `project_cmdb_objects` (
     `cmdb_object_id`        INT NOT NULL,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_pcm_pair` (`project_id`, `cmdb_object_id`),
     KEY `ix_pcm_target` (`cmdb_object_id`),
@@ -8055,6 +8062,7 @@ CREATE TABLE IF NOT EXISTS `project_knowledge_articles` (
     `article_id`            INT NOT NULL,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_pka_pair` (`project_id`, `article_id`),
     KEY `ix_pka_target` (`article_id`),
@@ -8070,6 +8078,7 @@ CREATE TABLE IF NOT EXISTS `project_problems` (
     `problem_id`            INT NOT NULL,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_ppr_pair` (`project_id`, `problem_id`),
     KEY `ix_ppr_target` (`problem_id`),
@@ -8343,6 +8352,7 @@ CREATE TABLE IF NOT EXISTS `project_baselines` (
     `snapshot`          MEDIUMTEXT NULL,                              -- JSON: stages, milestones, must, lines
     `created_by_id`     INT NULL,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     KEY `idx_pbase_project` (`project_id`, `number`),
     KEY `ix_pbase_stage` (`stage_id`),
@@ -8374,6 +8384,7 @@ CREATE TABLE IF NOT EXISTS `project_change_requests` (
     `applied`          TEXT NULL,
     `baseline_id`      INT NULL,
     `updated_datetime` DATETIME NULL,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     KEY `idx_pcr_project` (`project_id`, `status`),
     KEY `ix_pcr_baseline` (`baseline_id`),
@@ -8425,6 +8436,7 @@ CREATE TABLE IF NOT EXISTS `project_task_flow` (
     `day`         DATE NOT NULL,
     `status_id`   INT NOT NULL,
     `task_count`  INT NOT NULL DEFAULT 0,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`project_id`, `day`, `status_id`),
     CONSTRAINT `fk_ptf_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -8439,6 +8451,7 @@ CREATE TABLE IF NOT EXISTS `task_dependencies` (
     `lag_days`         INT NOT NULL DEFAULT 0,
     `created_by_id`    INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_tdep_pair` (`task_id`, `depends_on_id`),
     KEY `ix_tdep_on` (`depends_on_id`),
@@ -8465,6 +8478,7 @@ CREATE TABLE IF NOT EXISTS `project_gate_items` (
     `position`         INT NOT NULL DEFAULT 0,
     `created_by_id`    INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     KEY `idx_pgi_stage` (`stage_id`, `position`),
     KEY `ix_pgi_project` (`project_id`),
@@ -8484,6 +8498,7 @@ CREATE TABLE IF NOT EXISTS `project_benefit_measures` (
     `note`             VARCHAR(500) NULL,
     `recorded_by_id`   INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- 3.3.0: System -> Demo data
     PRIMARY KEY (`id`),
     KEY `idx_pbm_benefit` (`benefit_id`, `measured_date`),
     CONSTRAINT `fk_pbm_benefit` FOREIGN KEY (`benefit_id`) REFERENCES `project_benefits` (`id`) ON DELETE CASCADE,

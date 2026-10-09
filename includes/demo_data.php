@@ -23,6 +23,40 @@ const DEMO_MODULES = [
     'network-mapper',
 ];
 
+/**
+ * After a module's rows are in, inside the import's transaction (3.3.0).
+ *
+ * tasks: a demo project baseline is a snapshot of the plan (includes/projects/
+ * control.php) holding stage and milestone IDS, which only exist once inserted,
+ * so the JSON gives each baseline a recipe instead -
+ *   snapshot: {"_demo": {"target_shift": -14, "budget_delta": -4500, "stage_shift": -10}}
+ * - and this takes the project's plan as imported and moves it by that much:
+ * the plan as it stood before the change request that moved it.
+ */
+function demoAfterImport(PDO $conn, string $module): void {
+    if ($module !== 'tasks') return;
+    try { $rows = $conn->query("SELECT id, project_id, snapshot FROM project_baselines WHERE is_demo = 1")->fetchAll(PDO::FETCH_ASSOC); }
+    catch (Throwable $e) { return; }   // before Database Verification
+    if (!$rows) return;
+    require_once __DIR__ . '/projects/control.php';
+    $shift = fn(?string $d, int $days) => $d ? gmdate('Y-m-d', strtotime($d . ' 00:00:00 UTC') + $days * 86400) : null;
+    $up = $conn->prepare("UPDATE project_baselines SET snapshot = ?, start_date = ?, target_end_date = ?, budget_planned = ?, task_count = ?, estimate_hours = ?, must_count = ? WHERE id = ?");
+    foreach ($rows as $b) {
+        $recipe = json_decode((string)$b['snapshot'], true)['_demo'] ?? null;
+        if (!is_array($recipe)) continue;
+        $s = projectPlanSnapshot($conn, (int)$b['project_id']);
+        $t = (int)($recipe['target_shift'] ?? 0); $st = (int)($recipe['stage_shift'] ?? 0);
+        $s['target_end_date'] = $shift($s['target_end_date'], $t);
+        foreach ($s['stages'] as &$x) { if ($x['end_date'] && $x['end_date'] >= gmdate('Y-m-d', time() - 30 * 86400)) { $x['end_date'] = $shift($x['end_date'], $st); } }
+        unset($x);
+        foreach ($s['milestones'] as &$x) { if ($x['due_date'] >= gmdate('Y-m-d')) $x['due_date'] = $shift($x['due_date'], $st); }
+        unset($x);
+        if ($s['budget_planned'] !== null) $s['budget_planned'] = round($s['budget_planned'] + (float)($recipe['budget_delta'] ?? 0), 2);
+        if (isset($recipe['task_delta'])) $s['task_count'] = max(0, (int)$s['task_count'] + (int)$recipe['task_delta']);
+        $up->execute([json_encode($s), $s['start_date'], $s['target_end_date'], $s['budget_planned'], $s['task_count'] ?? null, $s['estimate_hours'] ?? null, isset($s['must']) ? count($s['must']) : null, (int)$b['id']]);
+    }
+}
+
 function demoDataPath(string $module): string {
     return __DIR__ . "/../database/demo-data/{$module}.json";
 }

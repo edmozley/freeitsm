@@ -297,7 +297,15 @@ try {
                     continue;
                 }
 
-                // Resolve references and tokens
+                // Resolve references and tokens. An "_optional" record (3.3.0) points at
+                // another module's demo rows - a project linked to a demo change, say -
+                // and is simply left out when that module's demo data is not there,
+                // instead of failing the whole import.
+                if (!empty($record['_optional'])) {
+                    try { $record = resolveReferences($record, $idMap); }
+                    catch (Exception $e) { continue; }
+                    unset($record['_optional']);
+                }
                 $record = resolveReferences($record, $idMap);
                 $record = resolveTokens($record, $conn);
 
@@ -322,6 +330,10 @@ try {
                     'tasks' => [
                         ['status',      'status_id',      'task_statuses'],
                         ['priority',    'priority_id',    'task_priorities'],
+                    ],
+                    // Projects (3.3.0): the cumulative flow history, by status name.
+                    'project_task_flow' => [
+                        ['status',      'status_id',      'task_statuses'],
                     ],
                     'status_incidents' => [
                         ['status',      'status_id',      'service_incident_statuses'],
@@ -406,6 +418,10 @@ try {
             }
         }
     }
+
+    // Anything a module's rows need that cannot be written in JSON - ids only
+    // known once inserted (includes/demo_data.php).
+    demoAfterImport($conn, $module);
 
     $conn->commit();
 

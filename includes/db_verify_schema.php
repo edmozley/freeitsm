@@ -5220,6 +5220,7 @@ return [
         'new_value'        => 'VARCHAR(1000) NULL',
         'source'           => "VARCHAR(20) NOT NULL DEFAULT 'app'",
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Projects joined to the rest of FreeITSM (3.2.0) - one join table per kind.
     'project_assets' => [
@@ -5228,6 +5229,7 @@ return [
         'asset_id'              => 'INT NOT NULL',
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_changes' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
@@ -5235,6 +5237,7 @@ return [
         'change_id'             => 'INT NOT NULL',
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_tickets' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
@@ -5242,6 +5245,7 @@ return [
         'ticket_id'             => 'INT NOT NULL',
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_contracts' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
@@ -5249,6 +5253,7 @@ return [
         'contract_id'           => 'INT NOT NULL',
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_cmdb_objects' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
@@ -5256,6 +5261,7 @@ return [
         'cmdb_object_id'        => 'INT NOT NULL',
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_knowledge_articles' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
@@ -5263,6 +5269,7 @@ return [
         'article_id'            => 'INT NOT NULL',
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Projects 3.3.0: problems a project fixes.
     'project_problems' => [
@@ -5271,6 +5278,7 @@ return [
         'problem_id'            => 'INT NOT NULL',
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Projects phase 2 (3.2.0): roles, members, scope, RACI, RAID, tolerances.
     'project_roles' => [
@@ -5419,6 +5427,7 @@ return [
         'effective_from'   => 'DATE NOT NULL',
         'created_by_id'    => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Asset targets (3.2.0): live progress measured from Assets.
     'project_asset_targets' => [
@@ -5494,6 +5503,7 @@ return [
         'snapshot'          => 'MEDIUMTEXT NULL',
         'created_by_id'     => 'INT NULL',
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_change_requests' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
@@ -5514,6 +5524,7 @@ return [
         'applied'          => 'TEXT NULL',
         'baseline_id'      => 'INT NULL',
         'updated_datetime' => 'DATETIME NULL',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Benefits realisation (3.3.0) - includes/projects/benefits.php.
     'project_benefits' => [
@@ -5544,6 +5555,7 @@ return [
         'status_id'  => 'INT NOT NULL',
         'task_count' => 'INT NOT NULL DEFAULT 0',
         // ⚠️ No id: the PK (project_id, day, status_id) is in db_verify.php's $primaryKeys.
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Task dependencies (3.3.0) - includes/projects/dependencies.php.
     'task_dependencies' => [
@@ -5553,6 +5565,7 @@ return [
         'lag_days'         => 'INT NOT NULL DEFAULT 0',
         'created_by_id'    => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Gate checklists (3.3.0) - includes/projects/gatecheck.php.
     'project_gate_items' => [
@@ -5570,6 +5583,7 @@ return [
         'position'         => 'INT NOT NULL DEFAULT 0',
         'created_by_id'    => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_benefit_measures' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
@@ -5579,5 +5593,6 @@ return [
         'note'             => 'VARCHAR(500) NULL',
         'recorded_by_id'   => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 ];

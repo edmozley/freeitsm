@@ -496,9 +496,9 @@ if (!isset($_SESSION['analyst_id'])) {
 
             <div class="module-card" data-module="tasks">
                 <h4>Tasks and Projects</h4>
-                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments - plus 3 projects (Staged, Agile and Simple) with their phases and 14 tasks of their own; the office move also has a team with roles, a MoSCoW scope, a RACI matrix, a RAID log, tolerances, a business case and a recorded gate.</p>
+                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments - plus 9 projects covering every way of running one and every status: a staged office move (team, stakeholder map, scope, RACI, RAID, gates with checklists, budget, change control, benefits, reports), an Agile laptop refresh with sprints and an asset target, a mail migration in trouble, a closed project with its closure report and measured benefits, a proposal waiting for approval, a members-only project, one on hold and one cancelled - 72 project tasks with dependencies, estimates and 40 days of status history for the charts. Import Assets, Changes, Tickets, Contracts, Knowledge and CMDB first and the projects link to their records too.</p>
                 <div class="module-footer">
-                    <span class="record-count">~42 records</span>
+                    <span class="record-count">~875 records</span>
                     <button class="import-btn" id="btn-tasks" onclick="importModule('tasks', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-tasks" style="display:none"></div>
