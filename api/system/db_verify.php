@@ -2951,7 +2951,8 @@ try {
         ['project_budget_lines', 'fk_pbl_project', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_budget_lines', 'fk_pbl_contract', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_contract FOREIGN KEY (contract_id) REFERENCES contracts (id) ON DELETE SET NULL"],
         ['project_budget_lines', 'fk_pbl_cost_centre', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_cost_centre FOREIGN KEY (cost_centre_id) REFERENCES cost_centres (id) ON DELETE SET NULL"],
-        ['project_reports', 'fk_prep_project', "ALTER TABLE project_reports ADD CONSTRAINT fk_prep_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['status_planned', 'fk_sp_project', "ALTER TABLE status_planned ADD CONSTRAINT fk_sp_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE SET NULL"],
+        ['project_reports', 'fk_prep_project',"ALTER TABLE project_reports ADD CONSTRAINT fk_prep_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_problems', 'fk_ppr_analyst', "ALTER TABLE project_problems ADD CONSTRAINT fk_ppr_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
     ];
     foreach ($projectFks as [$tbl, $name, $sql]) {
