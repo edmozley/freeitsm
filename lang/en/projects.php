@@ -184,6 +184,13 @@ return [
     // Effort (3.3.0): task estimates against time logged.
     // The burn-up on the Overview (3.3.0).
     'burnup' => [
+        'view'          => 'Show',
+        'view_up'       => 'Burn-up',
+        'view_down'     => 'Burndown',
+        'remaining'     => 'Left to do',
+        'ideal'         => 'Ideal',
+        'intro_down'    => '{left} left to do. The dashed line is the ideal - from where the work stood on the first day to nothing at the end; above it is behind.',
+        'aria_down'     => 'Burndown: {left} left to do.',
         'title'        => 'Progress over time',
         'stage'        => 'Stage',
         'whole'        => 'Whole project',
@@ -356,6 +363,34 @@ return [
         'benefits'      => 'Benefits',
         'benefits_desc' => 'What the project is meant to improve, measured from a baseline towards a target and reviewed - after it closes too.',
         'control_desc' => 'Baselines of the agreed plan, how far it has drifted since, and change requests approved or rejected before the plan moves.',
+    ],
+
+    // The Overview's status and flow charts (3.3.0) - assets/js/projects-insights.js.
+    'insights' => [
+        'status_title'  => 'Task status',
+        'status_note'   => '{total} task(s) by status, for the whole project and each stage. {overdue} overdue in all.',
+        'status_aria'   => '{total} tasks by status, per stage.',
+        'progress_title'=> 'Progress by stage',
+        'progress_aria' => 'Tasks done against not done, per stage.',
+        'flow_title'    => 'Flow over time',
+        'flow_note'     => 'How many tasks sat in each status, day by day, since {date}. A band that keeps widening is work piling up there.',
+        'flow_note_pre' => 'How many tasks sat in each status, day by day. Statuses have been recorded since {date}; before that only when tasks were created and finished is known, shown in grey.',
+        'flow_soon'     => 'Statuses are recorded once a day from now on - the flow builds up from here.',
+        'flow_aria'     => 'Cumulative flow: tasks in each status over time.',
+        'history_from'  => 'Statuses recorded from here',
+        'pre_done'      => 'Finished (before statuses were recorded)',
+        'pre_open'      => 'Open (before statuses were recorded)',
+        'whole'         => 'Whole project',
+        'no_stage'      => 'Not in a stage',
+        'overdue'       => '{count} overdue',
+        'waiting'       => '{count} waiting',
+        'done'          => 'Done',
+        'not_done'      => 'Not done',
+        'col_stage'     => 'Stage',
+        'col_total'     => 'Total',
+        'col_date'      => 'Date',
+        'table'         => 'Table',
+        'chart'         => 'Chart',
     ],
 
     // Task dependencies (3.3.0) - assets/js/projects-timeline.js, includes/projects/dependencies.php.

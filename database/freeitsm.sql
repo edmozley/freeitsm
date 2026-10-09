@@ -8391,6 +8391,19 @@ CREATE TABLE IF NOT EXISTS `project_benefits` (
     CONSTRAINT `fk_pben_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Task flow (3.3.0) - includes/projects/flow.php. How many of a project's tasks
+-- sat in each status at the end of each day - the cumulative flow diagram. The
+-- day's row is rewritten until the day is over; nothing earlier is touched.
+-- Before the first row, only when tasks were created and finished is known.
+CREATE TABLE IF NOT EXISTS `project_task_flow` (
+    `project_id`  INT NOT NULL,
+    `day`         DATE NOT NULL,
+    `status_id`   INT NOT NULL,
+    `task_count`  INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`project_id`, `day`, `status_id`),
+    CONSTRAINT `fk_ptf_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Task dependencies (3.3.0) - includes/projects/dependencies.php. Finish-to-
 -- start: task_id cannot start until depends_on_id has finished (plus lag_days).
 -- "Waiting on", clashes and the critical path are worked out on read.

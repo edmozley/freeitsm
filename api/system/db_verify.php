@@ -93,6 +93,8 @@ $primaryKeys = [
     // silently — the table simply fell through to PRIMARY KEY (`id`).
     'knowledge_article_tags'    => ['article_id', 'tag_id'],
     'task_tag_map'              => ['task_id', 'tag_id'],
+    // 3.3.0: one row per project, day and status - the cumulative flow diagram.
+    'project_task_flow'         => ['project_id', 'day', 'status_id'],
     // 🔴 GH #123. Both of these were missed, and the warning above is the one
     // they were missed in spite of. A table is only safe to leave out of this
     // map if its PK is literally `id`; neither of these has an `id` column at
@@ -2908,6 +2910,8 @@ try {
         ['project_change_requests', 'fk_pcr_project', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_change_requests', 'fk_pcr_raised_by', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_raised_by FOREIGN KEY (raised_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['project_change_requests', 'fk_pcr_decided_by', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_decided_by FOREIGN KEY (decided_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        // Task flow (3.3.0)
+        ['project_task_flow', 'fk_ptf_project', "ALTER TABLE project_task_flow ADD CONSTRAINT fk_ptf_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         // Task dependencies (3.3.0)
         ['task_dependencies', 'fk_tdep_task', "ALTER TABLE task_dependencies ADD CONSTRAINT fk_tdep_task FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE"],
         ['task_dependencies', 'fk_tdep_on', "ALTER TABLE task_dependencies ADD CONSTRAINT fk_tdep_on FOREIGN KEY (depends_on_id) REFERENCES tasks (id) ON DELETE CASCADE"],

@@ -180,6 +180,11 @@ function projectAlertsScan(PDO $conn, ?int $projectId = null): array
 
     $out['stages_due'] = projectAlertsStagesDue($conn, $projectId);
     $out['milestones'] = projectAlertsMilestones($conn, $projectId);
+    // Task flow (3.3.0): today's counts by status for every live project - the cumulative flow diagram's history.
+    require_once __DIR__ . '/flow.php';
+    $live = $projectId !== null ? [$projectId]
+        : $conn->query("SELECT id FROM projects WHERE status IN ('proposed', 'active', 'on_hold')")->fetchAll(PDO::FETCH_COLUMN);
+    projectFlowSnapshot($conn, $live);
     // Benefit reviews (3.3.0) - every project that is not cancelled, closed ones included.
     require_once __DIR__ . '/benefits.php';
     $out['benefits'] = projectAlertsBenefits($conn, $projectId);

@@ -5515,6 +5515,14 @@ return [
         'updated_datetime' => 'DATETIME NULL',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
+    // Task flow (3.3.0) - includes/projects/flow.php.
+    'project_task_flow' => [
+        'project_id' => 'INT NOT NULL',
+        'day'        => 'DATE NOT NULL',
+        'status_id'  => 'INT NOT NULL',
+        'task_count' => 'INT NOT NULL DEFAULT 0',
+        // ⚠️ No id: the PK (project_id, day, status_id) is in db_verify.php's $primaryKeys.
+    ],
     // Task dependencies (3.3.0) - includes/projects/dependencies.php.
     'task_dependencies' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',

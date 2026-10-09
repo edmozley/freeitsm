@@ -347,5 +347,215 @@
         });
     }
 
-    window.PrjCharts = { burnup: burnup, bars: bars, spend: spend };
+    /** A series class for categorical slot n (1-6), or a neutral ('n', 'n2'). */
+    const slot = n => (n >= 1 && n <= 6) ? 'viz-s' + n : (n === 'n2' ? 'viz-n2' : 'viz-n');
+
+    /**
+     * Horizontal stacked bars (3.3.0) - one row per group (a stage, a project),
+     * segments per series (task statuses). Segments keep a 2px surface gap; the
+     * row's total and an optional note sit at its end in text colour.
+     * opts: {rows: [{label, values: [n...], note?}], series: [{name, slot}], labels: {table, chart, group, total, aria}, fmt?, max?}
+     */
+    function stack(container, opts) {
+        const L = opts.labels, S = opts.series;
+        const fmt = opts.fmt || (v => num(v));
+        const f = frame(container, L.table, L.chart, () => tableView([L.group].concat(S.map(s => s.name), [L.total]),
+            opts.rows.map(r => [r.label].concat(r.values.map(v => fmt(v)), [fmt(r.values.reduce((a, b) => a + b, 0))]))));
+        f.tools.insertBefore(legend(S.map(s => ({ name: s.name, cls: slot(s.slot) }))), f.tools.firstChild);
+        const W = Math.max(280, f.plot.clientWidth || container.clientWidth || 600);
+        const labelW = Math.min(170, W * 0.3), endW = Math.min(150, W * 0.28), BAR = 18, ROW = 34;
+        const H = opts.rows.length * ROW + 6, pw = W - labelW - endW;
+        const max = opts.max || Math.max(1, ...opts.rows.map(r => r.values.reduce((a, b) => a + b, 0)));
+        const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', class: 'prj-viz-svg', 'aria-label': L.aria });
+        f.plot.appendChild(svg);
+        const tip = tooltip(f.plot);
+        opts.rows.forEach((r, i) => {
+            const y = i * ROW + 8;
+            el('text', { x: labelW - 10, y: y + BAR - 4, 'text-anchor': 'end', class: 'viz-label' }, svg).textContent = r.label;
+            let x = labelW;
+            const total = r.values.reduce((a, b) => a + b, 0);
+            r.values.forEach((v, j) => {
+                if (!v) return;
+                const w = v / max * pw;
+                const x0 = x;
+                const seg = el('rect', { x: x, y: y, width: Math.max(1, w - 2), height: BAR, rx: 2, class: 'viz-bar ' + slot(S[j].slot), tabindex: '0' }, svg);
+                const on = () => {
+                    tip.textContent = '';
+                    tip.appendChild(html('div', 'prj-viz-tip-head', r.label));
+                    tipRow(tip, fmt(v), S[j].name, slot(S[j].slot));
+                    tip.hidden = false;
+                    tip.style.left = Math.max(0, Math.min((x0 + w / 2) / W * f.plot.clientWidth, f.plot.clientWidth - tip.offsetWidth - 4)) + 'px';
+                    tip.style.top = (y / H * f.plot.clientHeight + 22) + 'px';
+                };
+                seg.addEventListener('pointerenter', on); seg.addEventListener('focus', on);
+                seg.addEventListener('pointerleave', () => { tip.hidden = true; }); seg.addEventListener('blur', () => { tip.hidden = true; });
+                x += w;
+            });
+            el('text', { x: x + 8, y: y + BAR - 4, class: 'viz-end' }, svg).textContent = (opts.totalText ? opts.totalText(r, total) : fmt(total)) + (r.note ? '  ' + r.note : '');
+        });
+    }
+
+    /**
+     * Stacked area over time (3.3.0) - the cumulative flow diagram. Series are
+     * stacked bottom-up in the order given; a vertical marker can say where real
+     * history starts. Crosshair + one tooltip for every band, as the burn-up.
+     * opts: {points: [{d, values: [n...]}], series: [{name, slot}], marker?: {d, label}, fmtDate, labels: {table, chart, date, aria}}
+     */
+    function flow(container, opts) {
+        const pts = opts.points, S = opts.series, L = opts.labels;
+        const f = frame(container, L.table, L.chart, () => tableView([L.date].concat(S.map(s => s.name)),
+            pts.map(p => [opts.fmtDate(p.d)].concat(p.values.map(v => num(v || 0))))));
+        f.tools.insertBefore(legend(S.slice().reverse().map(s => ({ name: s.name, cls: slot(s.slot) }))), f.tools.firstChild);
+        const W = Math.max(280, f.plot.clientWidth || container.clientWidth || 600), H = 240;
+        const m = { l: 40, r: 14, t: 14, b: 28 };
+        const pw = W - m.l - m.r, ph = H - m.t - m.b;
+        const dn = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+        const x0 = dn(pts[0].d), x1 = Math.max(dn(pts[pts.length - 1].d), x0 + 1);
+        const tot = pts.map(p => p.values.reduce((a, b) => a + (b || 0), 0));
+        const ny = nice(Math.max(1, ...tot));
+        const X = d => m.l + (dn(d) - x0) / (x1 - x0) * pw;
+        const Y = v => m.t + ph - v / ny.max * ph;
+        const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', class: 'prj-viz-svg', tabindex: '0', 'aria-label': L.aria });
+        for (let v = 0; v <= ny.max + 1e-9; v += ny.step) {
+            el('line', { x1: m.l, x2: m.l + pw, y1: Y(v), y2: Y(v), class: v === 0 ? 'viz-axis' : 'viz-grid' }, svg);
+            el('text', { x: m.l - 8, y: Y(v) + 4, 'text-anchor': 'end', class: 'viz-tick' }, svg).textContent = num(v);
+        }
+        const ticks = Math.max(1, Math.min(5, Math.floor(pw / 110)));
+        for (let i = 0; i <= ticks; i++) {
+            const iso = new Date(Math.round(x0 + (x1 - x0) * i / ticks) * 86400000).toISOString().slice(0, 10);
+            el('text', { x: X(iso), y: H - 8, 'text-anchor': i === 0 ? 'start' : (i === ticks ? 'end' : 'middle'), class: 'viz-tick' }, svg).textContent = opts.fmtDate(iso);
+        }
+        // Bands bottom-up: each the area between the running total below it and above it.
+        const below = pts.map(() => 0);
+        S.forEach((s, j) => {
+            const top = pts.map((p, i) => below[i] + (p.values[j] || 0));
+            if (top.every((v, i) => v === below[i])) return;
+            const up = pts.map((p, i) => (i ? 'L' : 'M') + X(p.d).toFixed(1) + ' ' + Y(top[i]).toFixed(1)).join(' ');
+            const down = pts.slice().reverse().map((p, k) => 'L' + X(p.d).toFixed(1) + ' ' + Y(below[pts.length - 1 - k]).toFixed(1)).join(' ');
+            el('path', { d: up + ' ' + down + ' Z', class: 'viz-band ' + slot(s.slot) }, svg);
+            top.forEach((v, i) => { below[i] = v; });
+        });
+        if (opts.marker) {
+            const mx = X(opts.marker.d);
+            el('line', { x1: mx, x2: mx, y1: m.t, y2: m.t + ph, class: 'viz-ref viz-refline' }, svg);
+            // Past two thirds of the way across, the label sits to the left of its line, so it is never cut off.
+            const leftSide = mx > m.l + pw * 0.66;
+            el('text', { x: leftSide ? mx - 4 : mx + 4, y: m.t + 10, 'text-anchor': leftSide ? 'end' : 'start', class: 'viz-reflabel' }, svg).textContent = opts.marker.label;
+        }
+        const cross = el('line', { y1: m.t, y2: m.t + ph, class: 'viz-cross', visibility: 'hidden' }, svg);
+        const hit = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' }, svg);
+        f.plot.appendChild(svg);
+        const tip = tooltip(f.plot);
+        let at = pts.length - 1;
+        function show(i) {
+            at = Math.max(0, Math.min(pts.length - 1, i));
+            const p = pts[at], cx = X(p.d);
+            cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible');
+            tip.textContent = '';
+            tip.appendChild(html('div', 'prj-viz-tip-head', opts.fmtDate(p.d)));
+            for (let j = S.length - 1; j >= 0; j--) if (p.values[j]) tipRow(tip, num(p.values[j]), S[j].name, slot(S[j].slot));
+            tip.hidden = false;
+            const left = cx / W * f.plot.clientWidth;
+            tip.style.left = Math.min(Math.max(0, left + 12), f.plot.clientWidth - tip.offsetWidth - 4) + 'px';
+            tip.style.top = '8px';
+        }
+        const hide = () => { cross.setAttribute('visibility', 'hidden'); tip.hidden = true; };
+        hit.addEventListener('pointermove', e => {
+            const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+            let best = 0, dist = Infinity;
+            pts.forEach((p, i) => { const dd = Math.abs(X(p.d) - px); if (dd < dist) { dist = dd; best = i; } });
+            show(best);
+        });
+        hit.addEventListener('pointerleave', hide);
+        svg.addEventListener('focus', () => show(at));
+        svg.addEventListener('blur', hide);
+        svg.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') { e.preventDefault(); show(at - 1); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); show(at + 1); }
+        });
+    }
+
+    /**
+     * Burndown (3.3.0): the work still to do over time, against an IDEAL line
+     * from where it stood on the first day to nothing at the target - above the
+     * line is behind. One series (slot 1); the ideal is a dashed reference in ink.
+     * opts: {points: [{d, remaining}], target, unit, fmtDate, labels: {table, chart, date, remaining, ideal, target, aria}}
+     */
+    function burndown(container, opts) {
+        const pts = opts.points, L = opts.labels;
+        const dn = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+        const x0 = dn(pts[0].d), xLast = dn(pts[pts.length - 1].d);
+        const x1 = Math.max(xLast, opts.target ? dn(opts.target) : xLast, x0 + 1);
+        const r0 = pts[0].remaining;
+        // The ideal at day n: straight from r0 on the first day to 0 at the target (or the last day).
+        const xEnd = opts.target ? dn(opts.target) : xLast;
+        const ideal = d => xEnd <= x0 ? 0 : Math.max(0, r0 * (1 - (dn(d) - x0) / (xEnd - x0)));
+        const f = frame(container, L.table, L.chart, () => tableView([L.date, L.remaining, L.ideal],
+            pts.map(p => [opts.fmtDate(p.d), num(p.remaining) + opts.unit, num(ideal(p.d)) + opts.unit])));
+        f.tools.insertBefore(legend([{ name: L.remaining, cls: 'viz-s1', line: true }, { name: L.ideal, cls: 'viz-n2 dash', line: true }]), f.tools.firstChild);
+        const W = Math.max(280, f.plot.clientWidth || container.clientWidth || 600), H = 230;
+        const m = { l: 44, r: 64, t: 14, b: 28 };
+        const pw = W - m.l - m.r, ph = H - m.t - m.b;
+        const ny = nice(Math.max(1, ...pts.map(p => p.remaining), r0));
+        const X = d => m.l + (dn(d) - x0) / (x1 - x0) * pw;
+        const Xn = n => m.l + (n - x0) / (x1 - x0) * pw;
+        const Y = v => m.t + ph - (v / ny.max) * ph;
+        const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', class: 'prj-viz-svg', tabindex: '0', 'aria-label': L.aria });
+        for (let v = 0; v <= ny.max + 1e-9; v += ny.step) {
+            el('line', { x1: m.l, x2: m.l + pw, y1: Y(v), y2: Y(v), class: v === 0 ? 'viz-axis' : 'viz-grid' }, svg);
+            el('text', { x: m.l - 8, y: Y(v) + 4, 'text-anchor': 'end', class: 'viz-tick' }, svg).textContent = num(v);
+        }
+        const ticks = Math.max(1, Math.min(5, Math.floor(pw / 110)));
+        for (let i = 0; i <= ticks; i++) {
+            const iso = new Date(Math.round(x0 + (x1 - x0) * i / ticks) * 86400000).toISOString().slice(0, 10);
+            el('text', { x: X(iso), y: H - 8, 'text-anchor': i === 0 ? 'start' : (i === ticks ? 'end' : 'middle'), class: 'viz-tick' }, svg).textContent = opts.fmtDate(iso);
+        }
+        if (opts.target) {
+            const tx = X(opts.target);
+            el('line', { x1: tx, x2: tx, y1: m.t, y2: m.t + ph, class: 'viz-ref' }, svg);
+            el('text', { x: tx - 4, y: m.t + 10, 'text-anchor': 'end', class: 'viz-tick' }, svg).textContent = L.target;
+        }
+        el('path', { d: 'M' + Xn(x0).toFixed(1) + ' ' + Y(r0).toFixed(1) + ' L' + Xn(xEnd).toFixed(1) + ' ' + Y(0).toFixed(1), class: 'viz-line viz-ideal' }, svg);
+        const path = pts.map((p, i) => (i ? 'L' : 'M') + X(p.d).toFixed(1) + ' ' + Y(p.remaining).toFixed(1)).join(' ');
+        el('path', { d: path, class: 'viz-line viz-s1' }, svg);
+        const last = pts[pts.length - 1];
+        el('circle', { cx: X(last.d), cy: Y(last.remaining), r: 4, class: 'viz-dot viz-s1' }, svg);
+        el('text', { x: X(last.d) + 8, y: Y(last.remaining) + 4, class: 'viz-end halo' }, svg).textContent = num(last.remaining) + opts.unit;
+        const cross = el('line', { y1: m.t, y2: m.t + ph, class: 'viz-cross', visibility: 'hidden' }, svg);
+        const hit = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' }, svg);
+        f.plot.appendChild(svg);
+        const tip = tooltip(f.plot);
+        let at = pts.length - 1;
+        function show(i) {
+            at = Math.max(0, Math.min(pts.length - 1, i));
+            const p = pts[at], cx = X(p.d);
+            cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible');
+            tip.textContent = '';
+            tip.appendChild(html('div', 'prj-viz-tip-head', opts.fmtDate(p.d)));
+            tipRow(tip, num(p.remaining) + opts.unit, L.remaining, 'viz-s1');
+            tipRow(tip, num(Math.round(ideal(p.d) * 10) / 10) + opts.unit, L.ideal, 'viz-n2');
+            tip.hidden = false;
+            const left = cx / W * f.plot.clientWidth;
+            tip.style.left = Math.min(Math.max(0, left + 12), f.plot.clientWidth - tip.offsetWidth - 4) + 'px';
+            tip.style.top = '8px';
+        }
+        const hide = () => { cross.setAttribute('visibility', 'hidden'); tip.hidden = true; };
+        hit.addEventListener('pointermove', e => {
+            const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+            let best = 0, dist = Infinity;
+            pts.forEach((p, i) => { const dd = Math.abs(X(p.d) - px); if (dd < dist) { dist = dd; best = i; } });
+            show(best);
+        });
+        hit.addEventListener('pointerleave', hide);
+        svg.addEventListener('focus', () => show(at));
+        svg.addEventListener('blur', hide);
+        svg.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') { e.preventDefault(); show(at - 1); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); show(at + 1); }
+        });
+    }
+
+    window.PrjCharts = { burnup: burnup, burndown: burndown, bars: bars, spend: spend, stack: stack, flow: flow, slot: slot };
+
+
 })();

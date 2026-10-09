@@ -1047,17 +1047,30 @@ button.prj-tl-label { cursor: pointer; }
 /* Series slots 1 and 2 of the dataviz palette, validated (CVD and contrast) on
    this app's own surfaces. Dark mode has its OWN steps, chosen for the dark
    surface (#1e2228) - not an automatic flip. */
-:root { --prj-viz-1: #2a78d6; --prj-viz-2: #eb6834; }
-[data-theme="dark"] { --prj-viz-1: #3987e5; --prj-viz-2: #d95926; }
+:root { --prj-viz-1: #2a78d6; --prj-viz-2: #eb6834; --prj-viz-3: #1baf7a; --prj-viz-4: #eda100; --prj-viz-5: #e87ba4; --prj-viz-6: #008300; --prj-viz-n: #b8b6ae; --prj-viz-n2: #898781; }
+[data-theme="dark"] { --prj-viz-1: #3987e5; --prj-viz-2: #d95926; --prj-viz-3: #199e70; --prj-viz-4: #c98500; --prj-viz-5: #d55181; --prj-viz-6: #008300; --prj-viz-n: #4a4a47; --prj-viz-n2: #6e6d68; }
+/* 3.3.0: slots 1-6 validated for ADJACENT pairs (stacks) on this app's surfaces (#fff, #1e2228) - light needs
+   relief (table views, labels) for 3-5. viz-n / viz-n2 are neutrals for "not recorded" bands, never a series. */
 .prj-viz-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
 .prj-viz-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--text-muted, #555); }
 .prj-viz-key { display: inline-flex; align-items: center; gap: 6px; }
 .prj-viz-swatch { display: inline-block; width: 12px; height: 10px; border-radius: 3px; }
 .prj-viz-swatch.line { width: 14px; height: 2px; border-radius: 2px; }
 .prj-viz-swatch.viz-s1 { background: var(--prj-viz-1); } .prj-viz-swatch.viz-s2 { background: var(--prj-viz-2); }
+.prj-viz-swatch.viz-s3 { background: var(--prj-viz-3); } .prj-viz-swatch.viz-s4 { background: var(--prj-viz-4); } .prj-viz-swatch.viz-s5 { background: var(--prj-viz-5); } .prj-viz-swatch.viz-s6 { background: var(--prj-viz-6); }
+.prj-viz-swatch.viz-n { background: var(--prj-viz-n); } .prj-viz-swatch.viz-n2 { background: var(--prj-viz-n2); }
+.prj-viz-svg .viz-bar.viz-s3 { fill: var(--prj-viz-3); } .prj-viz-svg .viz-bar.viz-s4 { fill: var(--prj-viz-4); } .prj-viz-svg .viz-bar.viz-s5 { fill: var(--prj-viz-5); } .prj-viz-svg .viz-bar.viz-s6 { fill: var(--prj-viz-6); }
+.prj-viz-svg .viz-bar.viz-n { fill: var(--prj-viz-n); } .prj-viz-svg .viz-bar.viz-n2 { fill: var(--prj-viz-n2); }
+.prj-viz-svg .viz-band { stroke: var(--surface, #fff); stroke-width: 1; }
+.prj-viz-svg .viz-band.viz-s1 { fill: var(--prj-viz-1); } .prj-viz-svg .viz-band.viz-s2 { fill: var(--prj-viz-2); } .prj-viz-svg .viz-band.viz-s3 { fill: var(--prj-viz-3); }
+.prj-viz-svg .viz-band.viz-s4 { fill: var(--prj-viz-4); } .prj-viz-svg .viz-band.viz-s5 { fill: var(--prj-viz-5); } .prj-viz-svg .viz-band.viz-s6 { fill: var(--prj-viz-6); }
+.prj-viz-svg .viz-band.viz-n { fill: var(--prj-viz-n); } .prj-viz-svg .viz-band.viz-n2 { fill: var(--prj-viz-n2); }
+.prj-viz-svg rect.viz-bar:focus { outline: none; stroke: var(--prj-accent, #e11d48); stroke-width: 1.5; }
 /* 3.3.0 spend over time: the forecast is actual's own colour, dashed; reference lines are ink, not series. */
 .prj-viz-swatch.dash { background: repeating-linear-gradient(90deg, var(--prj-viz-1) 0 4px, transparent 4px 7px); }
 .prj-viz-svg .viz-dash { stroke-dasharray: 6 4; }
+.prj-viz-svg .viz-line.viz-ideal { stroke: var(--prj-viz-n2); stroke-dasharray: 5 4; stroke-width: 1.5; }
+.prj-viz-swatch.viz-n2.dash { background: repeating-linear-gradient(90deg, var(--prj-viz-n2) 0 4px, transparent 4px 7px); }
 .prj-viz-svg .viz-refline { stroke-dasharray: 2 3; }
 .prj-viz-svg .viz-end.halo { paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 3px; }
 .prj-viz-svg .viz-reflabel { fill: var(--text-muted, #555); font-size: 11px; font-weight: 600; paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 3px; }
@@ -1260,3 +1273,7 @@ button.prj-tl-label { cursor: pointer; }
 .prj-task-clash { background: #fee2e2; color: #991b1b; }
 [data-theme="dark"] .prj-task-wait { background: #3a2a0c; color: #fcd34d; }
 [data-theme="dark"] .prj-task-clash { background: #3b1219; color: #fca5a5; }
+
+/* ---- Overview status and flow charts (3.3.0) - projects-insights.js ---------- */
+.prj-ins { margin-top: 16px; }
+.prj-ins .prj-ins-note, .prj-ins .prj-ins-flownote { margin: -6px 0 10px; }

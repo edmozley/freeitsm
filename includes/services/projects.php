@@ -226,7 +226,7 @@ class ProjectsService
             try { $conn->prepare("DELETE m FROM project_benefit_measures m JOIN project_benefits b ON b.id = m.benefit_id WHERE b.project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             // RAID actions first (3.3.0): joined to the entries about to go; the tasks stay.
             try { $conn->prepare("DELETE rt FROM project_raid_tasks rt JOIN project_raid r ON r.id = rt.raid_id WHERE r.project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
-            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones', 'project_change_requests', 'project_baselines', 'project_benefits', 'project_gate_items'] as $t) {
+            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones', 'project_change_requests', 'project_baselines', 'project_benefits', 'project_gate_items', 'project_task_flow'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             }
             foreach (['project_stages', 'project_audit'] as $t) {

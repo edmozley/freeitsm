@@ -20,6 +20,12 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
     unset($tk);
     projectApiOk($detail + [
         'dependencies' => $deps,
+        // Task flow (3.3.0): today's counts recorded on the way past, then the flow for the chart.
+        'flow' => (function () use ($conn, $row, $pid) {
+            require_once __DIR__ . '/../../includes/projects/flow.php';
+            projectFlowSnapshot($conn, [$pid]);
+            return projectFlow($conn, $row);
+        })(),
         'permissions' => $perms,
         'members'     => ProjectToolsService::members($conn, $pid),
         'items'       => ProjectToolsService::items($conn, $pid),

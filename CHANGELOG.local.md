@@ -28,6 +28,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2225 | Projects          | Feature     | Gates done properly: a checklist per stage gate (project_gate_items: check, document - one of the project's documents, sign-off by a named analyst only with a bell, linked change that must be approved); gate kind standard / go-live (project_stages.gate_kind) with a go-live starter list; an open item blocks a go or, as a setting, is written into the gate's notes; open items shown in the decide box. |
 | 2226 | Projects          | Feature     | Documents on projects: a 'project' parent in the Documents registry (analystCanAccessProject) and a Documents tab on every project; the project tab bar now scrolls instead of wrapping with every tool on. |
 | 2227 | Projects          | Feature     | Task dependencies (task_dependencies: finish-to-start with a gap in days, loops refused): arrows on the Timeline (red where the plan clashes), a Critical path toggle (forward/backward pass, slack), a dependencies dialog per task, Waiting on / Clash chips on the Plan. |
+| 2228 | Projects          | Feature     | Task status history and the cumulative flow diagram: project_task_flow (daily counts by status, recorded by the project page and the alert scan; days before reconstructed from created/finished as grey bands with a marker); a Task status chart (stacked by stage, with overdue and waiting counts) on the Overview; palette slots 3-6 validated for stacked charts. |
+| 2229 | Projects          | Feature     | A Burndown view beside the burn-up (left to do against an ideal line to the target or stage end) and a Progress by stage chart on the Overview. |
 
 
 

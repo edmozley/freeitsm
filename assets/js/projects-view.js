@@ -122,6 +122,8 @@
         html += '<div id="pvBriefing" hidden></div>';
         // Progress over time (3.3.0) - drawn by renderBurnup() once it is on the page.
         html += '<div id="pvBurnup"></div>';
+        // Task status, progress by stage, flow over time (3.3.0) - projects-insights.js.
+        html += '<div id="pvInsights"></div>';
         // Milestones (3.3.0) - drawn by projects-milestones.js after this.
         html += '<div id="pvMilestones" hidden></div>';
         // Asset targets (3.2.0) - drawn by projects-targets.js after this.
@@ -169,6 +171,8 @@
     // ---- Progress over time: the burn-up (3.3.0) ------------------------------------------
     let burnStage = '';        // '' = the whole project
     let burnMeasure = null;    // tasks | hours; null until lookups give the install's default
+    let burnView = 'up';   // 3.3.0: up (burn-up) | down (burndown), remembered per browser
+    try { burnView = localStorage.getItem('freeitsm.projects.burnview') === 'down' ? 'down' : 'up'; } catch (e) { /* private window */ }
     /**
      * Scope and done over time, worked out here from the tasks the page already
      * has: each top-level task counts from the day it was created (scope) and the
@@ -207,7 +211,10 @@
             + data.stages.map(s => '<option value="' + s.id + '"' + (String(s.id) === burnStage ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '</select>' : '';
         box.innerHTML = '<div class="prj-panel prj-burn"><div class="prj-panel-head"><h3>' + esc(T('burnup.title')) + '</h3><div class="prj-burn-controls">' + stageSel
             + '<div class="prj-seg" role="tablist" aria-label="' + esc(T('burnup.measure')) + '"><button type="button" data-burn-measure="tasks"' + (burnMeasure === 'tasks' ? ' class="active"' : '') + '>' + esc(T('burnup.tasks')) + '</button>'
-            + '<button type="button" data-burn-measure="hours"' + (burnMeasure === 'hours' ? ' class="active"' : '') + '>' + esc(T('burnup.hours')) + '</button></div></div></div>'
+            + '<button type="button" data-burn-measure="hours"' + (burnMeasure === 'hours' ? ' class="active"' : '') + '>' + esc(T('burnup.hours')) + '</button></div>'
+            // 3.3.0: the same work, as what is left - against an ideal line to the end.
+            + '<div class="prj-seg" role="tablist" aria-label="' + esc(T('burnup.view')) + '"><button type="button" data-burn-view="up"' + (burnView === 'up' ? ' class="active"' : '') + '>' + esc(T('burnup.view_up')) + '</button>'
+            + '<button type="button" data-burn-view="down"' + (burnView === 'down' ? ' class="active"' : '') + '>' + esc(T('burnup.view_down')) + '</button></div></div></div>'
             + '<p class="prj-muted prj-burn-intro"></p><div class="prj-burn-chart"></div></div>';
         const pts = burnupPoints();
         const intro = box.querySelector('.prj-burn-intro');
@@ -219,6 +226,19 @@
         const last = pts[pts.length - 1];
         intro.textContent = T(burnMeasure === 'hours' ? 'burnup.intro_hours' : 'burnup.intro_tasks', { done: (Math.round(last.done * 10) / 10), scope: (Math.round(last.scope * 10) / 10) });
         const stage = burnStage ? data.stages.find(s => String(s.id) === burnStage) : null;
+        if (burnView === 'down') {
+            const unit = burnMeasure === 'hours' ? 'h' : '';
+            const left = Math.round((last.scope - last.done) * 10) / 10;
+            intro.textContent = T('burnup.intro_down', { left: left + unit });
+            window.PrjCharts.burndown(chart, {
+                // From the first day there was any work: before it, nothing was left to do and the ideal line would start at zero.
+                points: pts.slice(Math.max(0, pts.findIndex(p => p.scope > 0))).map(p => ({ d: p.d, remaining: Math.round((p.scope - p.done) * 10) / 10 })), target: stage ? stage.end_date : data.project.target_end_date,
+                unit: unit, fmtDate: P.fmtDate,
+                labels: { table: T('burnup.show_table'), chart: T('burnup.show_chart'), date: T('burnup.date'), remaining: T('burnup.remaining'), ideal: T('burnup.ideal'),
+                    target: stage ? T('burnup.stage_end') : T('timeline.target'), aria: T('burnup.aria_down', { left: left + unit }) },
+            });
+            return;
+        }
         window.PrjCharts.burnup(chart, {
             points: pts, target: stage ? stage.end_date : data.project.target_end_date,
             series: [T('burnup.scope'), T('burnup.done')], unit: burnMeasure === 'hours' ? 'h' : '', fmtDate: P.fmtDate,
@@ -427,6 +447,7 @@
         if (window.PrjControl) window.PrjControl.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjIntake) window.PrjIntake.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjBenefits) window.PrjBenefits.render({ data: data, projectId: projectId, refresh: refresh });
+        if (window.PrjInsights) window.PrjInsights.render({ data: data, L: L, projectId: projectId });
         // Documents (3.3.0): the shared panel, mounted once - it loads and checks its own list.
         if (window.FreeITSMDocuments && !docsMounted) {
             docsMounted = true;
@@ -445,7 +466,7 @@
         document.querySelectorAll('#prjTabs [data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
         document.querySelectorAll('.prj-tab-panel').forEach(s => { s.hidden = s.dataset.panel !== name; });
         if (name === 'timeline' && window.PrjTimeline) window.PrjTimeline.shown();
-        if (name === 'overview') renderBurnup();   // it measures its width, so draw it where it can be seen
+        if (name === 'overview') { renderBurnup(); if (window.PrjInsights) window.PrjInsights.draw(); }   // they measure their width, so draw them where they can be seen
         if (name === 'budget' && window.PrjBudget && window.PrjBudget.shown) window.PrjBudget.shown();
         try { history.replaceState(null, '', '#' + name); } catch (e) { /* ignore */ }
     }
@@ -855,6 +876,8 @@
         });
         page.addEventListener('click', e => {
             const m = e.target.closest('[data-burn-measure]'); if (m) { burnMeasure = m.dataset.burnMeasure; renderBurnup(); }
+            const bv = e.target.closest('[data-burn-view]');
+            if (bv) { burnView = bv.dataset.burnView; try { localStorage.setItem('freeitsm.projects.burnview', burnView); } catch (er) { /* private window */ } renderBurnup(); }
         });
         page.addEventListener('input', e => {
             const s = e.target.closest('[data-link-search]'); if (s) searchLinks(s);
