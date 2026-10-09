@@ -38,13 +38,18 @@
         const tiles = [
             { n: money(b.planned, cur), l: T('planned') },
             { n: money(b.actual, cur), l: T('actual') },
+            // 3.3.0: what it is now expected to cost in the end.
+            { n: money(b.forecast, cur), l: T('forecast'), cls: b.planned > 0 && b.forecast > b.planned ? 'bad' : '',
+              sub: b.planned > 0 && b.forecast !== b.planned ? T(b.forecast > b.planned ? 'forecast_over' : 'forecast_under', { amount: money(Math.abs(b.forecast - b.planned), cur) }) : '' },
             { n: money(b.remaining, cur), l: T('remaining'), cls: b.remaining < 0 ? 'bad' : '' },
             { n: used === null ? '-' : used + '%', l: T('used'), cls: cls },
         ];
         let html = '<p class="prj-muted" style="margin-top:0">' + esc(T('intro')) + '</p>';
-        html += '<div class="prj-ov-tiles">' + tiles.map(t => '<div class="prj-tile ' + (t.cls || '') + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span></div>').join('') + '</div>';
+        html += '<div class="prj-ov-tiles prj-budget-tiles">' + tiles.map(t => '<div class="prj-tile ' + (t.cls || '') + '"><span class="prj-tile-num">' + esc(t.n) + '</span><span class="prj-tile-label">' + esc(t.l) + '</span>' + (t.sub ? '<span class="prj-tile-sub">' + esc(t.sub) + '</span>' : '') + '</div>').join('') + '</div>';
+        if (b.cost_basis === 'forecast') html += '<p class="prj-muted sm" style="margin:-6px 0 10px">' + esc(T('basis_forecast')) + '</p>';
         if (used !== null) html += '<div class="prj-budget-bar ' + cls + '"><span style="width:' + Math.min(100, used) + '%"></span></div>';
         // Where the money goes (3.3.0): planned against actual, by category - drawn below once on the page.
+        html += '<div class="prj-panel prj-budget-chart" id="pbSpend" hidden><h3>' + esc(T('spend_title')) + '</h3><p class="prj-muted sm prj-spend-note"></p><div class="prj-budget-chart-body"></div></div>';
         html += '<div class="prj-panel prj-budget-chart" id="pbChart" hidden><h3>' + esc(T('chart_title')) + '</h3><div class="prj-budget-chart-body"></div></div>';
 
         // Currency
@@ -57,22 +62,27 @@
         if (!b.lines.length) html += '<p class="prj-muted">' + esc(T('no_lines')) + '</p>';
         else {
             html += '<div class="prj-table-wrap"><table class="prj-budget-table"><thead><tr><th>' + esc(T('col_line')) + '</th><th>' + esc(T('col_category')) + '</th>'
-                + '<th class="num">' + esc(T('planned')) + '</th><th class="num">' + esc(T('actual')) + '</th><th class="num">' + esc(T('col_variance')) + '</th></tr></thead><tbody>';
+                + '<th class="num">' + esc(T('planned')) + '</th><th class="num">' + esc(T('actual')) + '</th><th class="num">' + esc(T('forecast')) + '</th><th class="num" title="' + esc(T('variance_hint')) + '">' + esc(T('col_variance')) + '</th></tr></thead><tbody>';
             html += b.lines.map(l => {
                 const sub = [];
                 if (l.contract) sub.push(T('from_contract', { name: (l.contract.number ? l.contract.number + ' ' : '') + l.contract.title }));
                 if (l.cost_centre) sub.push(l.cost_centre.code + ' ' + l.cost_centre.name);
                 if (l.notes) sub.push(l.notes);
-                const variance = (l.planned !== null && l.actual !== null) ? l.planned - l.actual : null;
+                // 3.3.0: when, and what it is now expected to cost (planned less forecast: negative = dearer than planned).
+                if (l.planned_date) sub.push(T('planned_for', { date: P.fmtDate(l.planned_date) }));
+                if (l.spent_date) sub.push(T('spent_on', { date: P.fmtDate(l.spent_date) }));
+                const variance = (l.planned !== null && l.forecast !== null) ? l.planned - l.forecast : null;
                 const act = l.currency_mismatch
                     ? '<span class="prj-budget-warn" title="' + esc(T('mismatch_hint', { currency: l.contract.currency })) + '">' + esc(money(l.contract.value, l.contract.currency)) + ' *</span>'
                     : esc(money(l.actual, cur)) + (l.actual_source === 'contract' ? ' <small class="prj-muted">' + esc(T('contract_value')) + '</small>' : '');
                 return '<tr' + (canChange() ? ' class="click" data-budget-line="' + l.id + '"' : '') + '><td><strong>' + esc(l.title) + '</strong>' + (sub.length ? '<div class="prj-muted sm">' + esc(sub.join(' - ')) + '</div>' : '') + '</td>'
                     + '<td>' + esc(T('cat_' + l.category)) + '</td><td class="num">' + esc(money(l.planned, cur)) + '</td><td class="num">' + act + '</td>'
+                    + '<td class="num">' + esc(money(l.forecast, cur)) + (l.forecast_typed !== null ? '' : ' <small class="prj-muted" title="' + esc(T(l.covers_labour ? 'forecast_labour_hint' : 'forecast_auto_hint')) + '">*</small>') + '</td>'
                     + '<td class="num' + (variance !== null && variance < 0 ? ' bad' : '') + '">' + esc(variance === null ? '-' : money(variance, cur)) + '</td></tr>';
             }).join('');
             html += '</tbody></table></div>';
             if (b.lines.some(l => l.currency_mismatch)) html += '<p class="prj-muted sm">* ' + esc(T('mismatch_note')) + '</p>';
+            if (b.lines.some(l => l.forecast_typed === null && l.forecast !== null)) html += '<p class="prj-muted sm">* ' + esc(T('forecast_note')) + '</p>';
         }
         html += '</div>';
 
@@ -82,6 +92,14 @@
         html += '<p>' + esc(T('labour_logged', { hours: hours(lab.minutes) })) + (lab.cost !== null ? ' - <strong>' + esc(money(lab.cost, cur)) + '</strong>' : '') + '</p>';
         html += '<p class="prj-muted">' + esc(T('labour_mode_' + b.labour_mode)) + '</p>';
         if (lab.unpriced_minutes > 0 && b.labour_mode !== 'hours') html += '<p class="prj-budget-warn">' + esc(T('unpriced', { hours: hours(lab.unpriced_minutes), currency: cur })) + '</p>';
+        // 3.3.0: what the open tasks' estimates say is still to come.
+        const tc = b.labour_to_come;
+        if (tc && (tc.hours > 0 || tc.open_unestimated > 0)) {
+            html += '<p>' + esc(T('to_come', { hours: hours(tc.hours * 60) })) + (tc.cost !== null && tc.cost > 0 ? ' - <strong>' + esc(money(tc.cost, cur)) + '</strong>' : '')
+                + (tc.counted ? '' : ' <span class="prj-muted">(' + esc(T('to_come_not_counted')) + ')</span>') + '</p>';
+            if (tc.open_unestimated > 0) html += '<p class="prj-muted sm">' + esc(T('to_come_unestimated', { count: tc.open_unestimated })) + '</p>';
+            if (tc.unpriced_hours > 0 && b.labour_mode !== 'hours') html += '<p class="prj-budget-warn">' + esc(T('to_come_unpriced', { hours: hours(tc.unpriced_hours * 60) })) + '</p>';
+        }
         if (b.labour_mode === 'rate') {
             html += '<h4>' + esc(T('project_rate')) + '</h4><p class="prj-muted sm">' + esc(T('project_rate_hint', { currency: cur })) + '</p>';
             if (b.project_rates.length) html += '<ul class="prj-budget-rates">' + b.project_rates.map(r => '<li>' + esc(T('rate_from', { rate: money(r.rate, cur), date: P.fmtDate(r.from) }))
@@ -93,6 +111,37 @@
         html += '</div>';
         box.innerHTML = html;
         drawChart(b, cur);
+        drawSpend(b, cur);
+    }
+
+    /** Spend over time (3.3.0): cumulative planned and actual, the forecast, and what to measure them against. */
+    function drawSpend(b, cur) {
+        const wrap = document.getElementById('pbSpend');
+        const tabPanel = document.getElementById('pvBudget');
+        if (!wrap || !window.PrjCharts || !tabPanel || tabPanel.hidden || !b.timeline) return;
+        const tl = b.timeline;
+        const any = tl.points.some(p => p.planned > 0 || (p.actual || 0) > 0);
+        wrap.hidden = !any;
+        if (!any) return;
+        const refs = [];
+        if (b.planned > 0) refs.push({ v: b.planned, label: T('ref_budget') });
+        // The latest baseline's budget, when change control is on and it differs from the budget now.
+        const bl = ctx.data.control && ctx.data.control.baselines && ctx.data.control.baselines[0];
+        if (bl && bl.plan.budget_planned !== null && Math.abs(bl.plan.budget_planned - b.planned) >= 0.01) refs.push({ v: bl.plan.budget_planned, label: T('ref_baseline', { n: bl.number }) });
+        const tol = ctx.data.tolerances && ctx.data.tolerances.cost;
+        if (tol !== null && tol !== undefined && b.planned > 0) refs.push({ v: Math.round(b.planned * (1 + tol / 100) * 100) / 100, label: T('ref_tolerance', { pct: tol }) });
+        let tick;
+        try { const nf = new Intl.NumberFormat(undefined, { style: 'currency', currency: cur, notation: 'compact', maximumFractionDigits: 1 }); tick = v => nf.format(v); }
+        catch (e) { tick = v => Math.round(v).toLocaleString(); }
+        const note = wrap.querySelector('.prj-spend-note');
+        note.textContent = T('spend_intro') + (tl.undated ? ' ' + T('spend_undated', { count: tl.undated }) : '');
+        window.PrjCharts.spend(wrap.querySelector('.prj-budget-chart-body'), {
+            points: tl.points, forecast: tl.forecast, refs: refs, today: tl.today, target: tl.target,
+            fmt: v => money(v, cur), fmtTick: tick, fmtDate: P.fmtDate,
+            series: { actual: T('actual'), planned: T('planned'), forecast: T('forecast') },
+            labels: { table: T('chart_table'), chart: T('chart_chart'), date: T('col_date'), today: T('today'), target: T('target'), at_finish: T('at_finish'),
+                aria: T('spend_aria', { planned: money(b.planned, cur), actual: money(b.actual, cur), forecast: money(b.forecast, cur) }) },
+        });
     }
 
     /** Planned against actual per category; labour's actual is the costed time (3.3.0). */
@@ -127,6 +176,9 @@
         document.getElementById('pbCategory').innerHTML = b.categories.map(c => '<option value="' + c + '"' + (line && line.category === c ? ' selected' : '') + '>' + esc(T('cat_' + c)) + '</option>').join('');
         document.getElementById('pbPlanned').value = line && line.planned !== null ? line.planned : '';
         document.getElementById('pbActual').value = line && line.actual_typed !== null ? line.actual_typed : '';
+        document.getElementById('pbPlannedDate').value = line && line.planned_date ? line.planned_date : '';
+        document.getElementById('pbSpentDate').value = line && line.spent_date ? line.spent_date : '';
+        document.getElementById('pbForecast').value = line && line.forecast_typed !== null ? line.forecast_typed : '';
         const cwrap = document.getElementById('pbContractWrap');
         cwrap.hidden = b.contracts === null;
         if (b.contracts !== null) document.getElementById('pbContract').innerHTML = '<option value="">' + esc(T('none')) + '</option>'
@@ -146,6 +198,7 @@
         const body = { action: 'budget_line_save', id: document.getElementById('pbId').value || undefined,
             title: document.getElementById('pbName').value.trim(), category: document.getElementById('pbCategory').value,
             planned: document.getElementById('pbPlanned').value, actual: document.getElementById('pbActual').value,
+            planned_date: document.getElementById('pbPlannedDate').value, spent_date: document.getElementById('pbSpentDate').value, forecast: document.getElementById('pbForecast').value,
             cost_centre_id: document.getElementById('pbCostCentre').value || null, notes: document.getElementById('pbNotes').value.trim() };
         if (!document.getElementById('pbContractWrap').hidden) body.contract_id = document.getElementById('pbContract').value || null;
         try { await call(body); P.closeModal('prjBudgetModal'); P.toast(T('saved')); await ctx.refresh(); }
@@ -197,7 +250,7 @@
         },
         /** The tab was shown: the chart measures its width, so it draws now (3.3.0). */
         shown() {
-            if (ctx && ctx.data.budget) drawChart(ctx.data.budget, ctx.data.budget.currency);
+            if (ctx && ctx.data.budget) { drawChart(ctx.data.budget, ctx.data.budget.currency); drawSpend(ctx.data.budget, ctx.data.budget.currency); }
         },
     };
 })();

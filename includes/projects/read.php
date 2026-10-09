@@ -219,10 +219,12 @@ function projectExceptions(array $p, array $stats): array
     if (isset($p['tol_risk']) && $p['tol_risk'] !== null && !empty($p['max_risk']) && (int)$p['max_risk'] > (int)$p['tol_risk']) {
         $out[] = ['kind' => 'risk', 'score' => (int)$p['max_risk'], 'allowed' => (int)$p['tol_risk']];
     }
-    // Cost (3.2.0): actual spend more than the allowed share over the planned budget.
+    // Cost (3.2.0): spend more than the allowed share over the planned budget.
+    // 3.3.0: "spend" is actual or forecast - project_cost_basis, read into 'measured'.
     $b = $stats['budget'] ?? null;
-    if (isset($p['tol_cost']) && $p['tol_cost'] !== null && $b && $b['planned'] > 0 && $b['actual'] > $b['planned'] * (1 + (int)$p['tol_cost'] / 100)) {
-        $out[] = ['kind' => 'cost', 'over_pct' => (int)floor(($b['actual'] / $b['planned'] - 1) * 100), 'allowed' => (int)$p['tol_cost']];
+    $spent = $b ? (float)($b['measured'] ?? $b['actual']) : 0.0;
+    if (isset($p['tol_cost']) && $p['tol_cost'] !== null && $b && $b['planned'] > 0 && $spent > $b['planned'] * (1 + (int)$p['tol_cost'] / 100)) {
+        $out[] = ['kind' => 'cost', 'over_pct' => (int)floor(($spent / $b['planned'] - 1) * 100), 'allowed' => (int)$p['tol_cost'], 'basis' => $b['basis'] ?? 'actual'];
     }
     return $out;
 }

@@ -60,6 +60,7 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 
 /* ---------- summary tiles ---------------------------------------------- */
 .prj-tiles, .prj-ov-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.prj-ov-tiles.prj-budget-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }   /* 3.3.0: Forecast makes five */
 .prj-tile {
     position: relative; overflow: hidden; background: var(--surface, #fff); border-radius: 12px;
     padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.06); display: flex; flex-direction: column; gap: 2px;
@@ -655,6 +656,7 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 @media (max-width: 600px) {
     .prj-budget-table { font-size: 13px; }
     .prj-budget-table th:nth-child(2), .prj-budget-table td:nth-child(2) { display: none; }   /* the category: the line's name says enough on a phone */
+    .prj-budget-table:not(.prj-ctl-table) th:nth-child(6), .prj-budget-table:not(.prj-ctl-table) td:nth-child(6) { display: none; }   /* 3.3.0: variance - planned and forecast sit side by side */
     /* Change control borrows the table: its column 2 is the BASELINE, which is the point (3.3.0). */
     .prj-ctl-table th:nth-child(2), .prj-ctl-table td:nth-child(2) { display: table-cell; }
     .prj-ctl-table th, .prj-ctl-table td { padding-left: 4px; padding-right: 4px; }
@@ -707,7 +709,8 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 
 /* ---------- responsiveness and motion ----------------------------------- */
 @media (max-width: 1100px) {
-    .prj-tiles, .prj-ov-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .prj-tiles, .prj-ov-tiles, .prj-ov-tiles.prj-budget-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .prj-budget-tiles .prj-tile:last-child:nth-child(odd) { grid-column: span 2; }   /* five tiles: the last takes the row */
     .prj-ov-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1050,6 +1053,12 @@ button.prj-tl-label { cursor: pointer; }
 .prj-viz-swatch { display: inline-block; width: 12px; height: 10px; border-radius: 3px; }
 .prj-viz-swatch.line { width: 14px; height: 2px; border-radius: 2px; }
 .prj-viz-swatch.viz-s1 { background: var(--prj-viz-1); } .prj-viz-swatch.viz-s2 { background: var(--prj-viz-2); }
+/* 3.3.0 spend over time: the forecast is actual's own colour, dashed; reference lines are ink, not series. */
+.prj-viz-swatch.dash { background: repeating-linear-gradient(90deg, var(--prj-viz-1) 0 4px, transparent 4px 7px); }
+.prj-viz-svg .viz-dash { stroke-dasharray: 6 4; }
+.prj-viz-svg .viz-refline { stroke-dasharray: 2 3; }
+.prj-viz-svg .viz-end.halo { paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 3px; }
+.prj-viz-svg .viz-reflabel { fill: var(--text-muted, #555); font-size: 11px; font-weight: 600; paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 3px; }
 .prj-viz-toggle { margin-left: auto; }
 .prj-viz-plot { position: relative; }
 .prj-viz-svg { display: block; width: 100%; height: auto; overflow: visible; }

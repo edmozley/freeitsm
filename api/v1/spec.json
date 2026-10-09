@@ -7642,7 +7642,7 @@
                     "p": "\/projects\/{id}\/budget",
                     "perm": "projects.read",
                     "s": "Get a project's budget",
-                    "d": "Planned against actual in the project's currency, with labour (the time logged on its tasks, priced as Projects - Settings - Budget says, at the rate in force on each day) and every budget line. A line naming a contract uses the contract's value as its actual unless one was entered - only in the same currency: a contract in another currency is shown with currency_mismatch and NOT counted. Amounts in different currencies are never added. Never shows one person's rate.",
+                    "d": "Planned against actual in the project's currency, with labour (the time logged on its tasks, priced as Projects - Settings - Budget says, at the rate in force on each day) and every budget line. A line naming a contract uses the contract's value as its actual unless one was entered - only in the same currency: a contract in another currency is shown with currency_mismatch and NOT counted. Amounts in different currencies are never added. Never shows one person's rate. forecast (3.3.0) is what the project is now expected to cost: each line's forecast (the one entered, otherwise the larger of planned and actual) plus labour - logged, and still to come on open tasks' estimates (labour.to_come_hours / to_come_cost) unless Projects - Settings - Budget leaves estimates out; a labour line with no actual is the plan for labour, so labour is counted once. cost_basis says whether the overspend tolerance measures actual or forecast. Each line carries planned_date, spent_date, forecast and forecast_entered.",
                     "params": [
                         {
                             "name": "id",
@@ -7716,6 +7716,18 @@
                             "name": "notes",
                             "in": "body",
                             "desc": "Up to 500 characters",
+                            "req": false
+                        },
+                        {
+                            "name": "planned_date \/ spent_date",
+                            "in": "body",
+                            "desc": "3.3.0. YYYY-MM-DD: when the money is expected to go out, and when it went (not in the future). Undated planned money counts from the project's start on the spend-over-time chart",
+                            "req": false
+                        },
+                        {
+                            "name": "forecast",
+                            "in": "body",
+                            "desc": "3.3.0. What the line is now expected to cost in the end; empty = the larger of planned and actual",
                             "req": false
                         }
                     ],

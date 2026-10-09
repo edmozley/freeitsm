@@ -241,4 +241,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'project_change_requests', "status IN ('approved', 'rejected')"],
     ],
+    [
+        'id'       => 'projects.budget_forecast',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Spend over time and a forecast',
+        'what'     => 'Budget lines with the dates the money goes out, a chart of planned and actual spend adding up over time, and a forecast of what the project will cost in the end - including the hours still estimated on its tasks.',
+        'why'      => 'You see the project heading over budget while there is still time to do something about it, not on the day the last invoice lands.',
+        'done'     => 'At least one budget line has a date or a forecast.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_budget_lines', 'planned_date IS NOT NULL OR spent_date IS NOT NULL OR forecast_amount IS NOT NULL'],
+    ],
 ];

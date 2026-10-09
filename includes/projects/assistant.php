@@ -79,7 +79,7 @@ function projectAssistWhy(array $p): string
     if ($p['health'] !== 'auto') $why[] = 'set by hand' . ($p['health_note'] ? ': ' . $p['health_note'] : '');
     foreach ($p['exceptions'] as $e) {
         if ($e['kind'] === 'risk') $why[] = 'a risk scores ' . $e['score'] . ' (tolerance ' . $e['allowed'] . ')';
-        elseif ($e['kind'] === 'cost') $why[] = $e['over_pct'] . '% over budget (tolerance ' . $e['allowed'] . '%)';
+        elseif ($e['kind'] === 'cost') $why[] = (($e['basis'] ?? '') === 'forecast' ? 'forecast ' : '') . $e['over_pct'] . '% over budget (tolerance ' . $e['allowed'] . '%)';
         else $why[] = $e['late'] . ' days late' . ($e['kind'] === 'stage_time' ? ' on the current stage' : '') . ' (tolerance ' . $e['allowed'] . ')';
     }
     if ($p['task_overdue'] > 0) $why[] = $p['task_overdue'] . ' overdue task(s)';
@@ -167,7 +167,8 @@ function projectAssistOverview(PDO $conn, array $scope, int $analystId, array $a
     $b = $p['_budget'] ?? null;
     if ($withBudget && $b && ($b['planned'] > 0 || $b['actual'] > 0)) {
         $cur = projectCurrencyOf($conn, $p);
-        $out[] = 'Budget: ' . projectAssistMoney($b['planned'], $cur) . ' planned, ' . projectAssistMoney($b['actual'], $cur) . ' spent.';
+        $out[] = 'Budget: ' . projectAssistMoney($b['planned'], $cur) . ' planned, ' . projectAssistMoney($b['actual'], $cur) . ' spent'
+            . (isset($b['forecast']) ? ', ' . projectAssistMoney($b['forecast'], $cur) . ' forecast' : '') . '.';
     }
     if (analystCanAccessModule($conn, $analystId, 'changes')) {
         $unapproved = projectUnapprovedChanges($conn, $pid);

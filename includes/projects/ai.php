@@ -88,7 +88,7 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
     if ($p['health'] !== 'auto') $why[] = 'set by hand' . ($p['health_note'] ? ' ("' . $p['health_note'] . '")' : '');
     foreach ($p['exceptions'] as $e) {
         $why[] = $e['kind'] === 'risk' ? 'TOLERANCE EXCEEDED: a risk scores ' . $e['score'] . ', allowed ' . $e['allowed']
-            : ($e['kind'] === 'cost' ? 'TOLERANCE EXCEEDED: spend ' . $e['over_pct'] . '% over budget, allowed ' . $e['allowed'] . '%'
+            : ($e['kind'] === 'cost' ? 'TOLERANCE EXCEEDED: ' . (($e['basis'] ?? '') === 'forecast' ? 'forecast' : 'spend') . ' ' . $e['over_pct'] . '% over budget, allowed ' . $e['allowed'] . '%'
             : 'TOLERANCE EXCEEDED: ' . $e['late'] . ' days late' . ($e['kind'] === 'stage_time' ? ' on the current stage' : '') . ', allowed ' . $e['allowed']);
     }
     if (!empty($p['ticket_spike']) && analystCanAccessModule($conn, $analystId, 'tickets')) $why[] = $p['tickets_7d'] . ' tickets linked to the project were raised in the last 7 days';
@@ -178,11 +178,13 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
             . count($musts) . ' must-haves not yet accepted' . ($musts ? ' (' . implode('; ', array_map(fn($i) => $i['title'], array_slice($musts, 0, 8))) . ')' : '') . '.');
     }
 
-    // Budget
-    $b = $p['_budget'] ?? null;
+    // Budget. TRAP: projectAlertRows() rows carry no '_budget' (only the assistant's rows do),
+    // so reading it from $p meant the budget never reached the model - worked out here instead.
+    require_once __DIR__ . '/budget.php';
+    $b = projectBudgetTotals($conn, [$pid => $project])[$pid] ?? null;
     if ($b && ($b['planned'] > 0 || $b['actual'] > 0)) {
         $cur = projectCurrencyOf($conn, $p);
-        $line(sprintf('Budget (%s): %s planned, %s spent, %s remaining.', $cur, number_format($b['planned'], 2), number_format($b['actual'], 2), number_format($b['planned'] - $b['actual'], 2)));
+        $line(sprintf('Budget (%s): %s planned, %s spent, %s remaining; forecast to cost %s in the end.', $cur, number_format($b['planned'], 2), number_format($b['actual'], 2), number_format($b['planned'] - $b['actual'], 2), number_format((float)($b['forecast'] ?? $b['actual']), 2)));
     }
 
     // Change control (3.3.0): drift from the latest baseline, and requests waiting or decided.

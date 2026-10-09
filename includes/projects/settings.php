@@ -93,6 +93,12 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             'project_currency'             => ['GBP',   'currency', 'budget'],
             'project_currency_per_project' => ['0',     'bool',     'budget'],
             'project_labour_mode'          => ['hours', 'labour',   'budget'],
+            // 3.3.0 - the forecast. Whether the cost tolerance measures what HAS been
+            // spent (the 3.2.0 behaviour) or what the project is now expected to
+            // cost; and whether the hours still estimated on open tasks count in the
+            // forecast (priced at today's rate).
+            'project_cost_basis'           => ['actual', 'basis',   'budget'],
+            'project_forecast_labour'      => ['1',     'bool',     'budget'],
             // ---- Templates --------------------------------------------------
             // Built-in template keys not offered for new projects. Written only by
             // ProjectTemplatesService::setBuiltinHidden(), never by the settings save.
@@ -210,6 +216,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'basis') {
+            if (!in_array($v, ['actual', 'forecast'], true)) throw new InvalidArgumentException('Choose actual or forecast spend.');
             return $v;
         }
         if ($rule === 'baseline') {

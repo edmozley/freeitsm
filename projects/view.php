@@ -42,7 +42,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=25">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=27">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -199,6 +199,12 @@ $projectId = (int)($_GET['id'] ?? 0);
                     <div class="form-group"><label for="pbPlanned"><?php echo htmlspecialchars(t('projects.budget.planned')); ?></label><input type="text" inputmode="decimal" id="pbPlanned"></div>
                     <div class="form-group"><label for="pbActual"><?php echo htmlspecialchars(t('projects.budget.actual')); ?></label><input type="text" inputmode="decimal" id="pbActual"><small class="prj-muted"><?php echo htmlspecialchars(t('projects.budget.actual_hint')); ?></small></div>
                 </div>
+                <!-- 3.3.0: when, and what it is now expected to cost -->
+                <div class="prj-ann-when">
+                    <div class="form-group"><label for="pbPlannedDate"><?php echo htmlspecialchars(t('projects.budget.planned_date')); ?></label><input type="date" id="pbPlannedDate"></div>
+                    <div class="form-group"><label for="pbSpentDate"><?php echo htmlspecialchars(t('projects.budget.spent_date')); ?></label><input type="date" id="pbSpentDate"></div>
+                </div>
+                <div class="form-group"><label for="pbForecast"><?php echo htmlspecialchars(t('projects.budget.forecast')); ?></label><input type="text" inputmode="decimal" id="pbForecast"><small class="prj-muted"><?php echo htmlspecialchars(t('projects.budget.forecast_field_hint')); ?></small></div>
                 <div class="form-group" id="pbContractWrap"><label for="pbContract"><?php echo htmlspecialchars(t('projects.budget.contract')); ?></label><select id="pbContract"></select><small class="prj-muted"><?php echo htmlspecialchars(t('projects.budget.contract_hint')); ?></small></div>
                 <div class="form-group"><label for="pbCostCentre"><?php echo htmlspecialchars(t('projects.budget.cost_centre')); ?></label><select id="pbCostCentre"></select></div>
                 <div class="form-group"><label for="pbNotes"><?php echo htmlspecialchars(t('projects.budget.notes')); ?></label><input type="text" id="pbNotes" maxlength="500"></div>
@@ -523,10 +529,10 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects.js?v=8"></script>
     <script src="../assets/js/projects-tools.js?v=7"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
-    <script src="../assets/js/projects-budget.js?v=3"></script>
+    <script src="../assets/js/projects-budget.js?v=4"></script>
     <script src="../assets/js/projects-control.js?v=1"></script>
     <script src="../assets/js/projects-reports.js?v=1"></script>
-    <script src="../assets/js/projects-charts.js?v=2"></script>
+    <script src="../assets/js/projects-charts.js?v=4"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=1"></script>
     <script src="../assets/js/projects-view.js?v=19"></script>

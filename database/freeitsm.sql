@@ -7851,6 +7851,9 @@ CREATE TABLE IF NOT EXISTS `project_budget_lines` (
     `contract_id`      INT NULL,
     `cost_centre_id`   INT NULL,
     `notes`            VARCHAR(500) NULL,
+    `planned_date`     DATE NULL,                              -- 3.3.0: when the money is expected to go out
+    `spent_date`       DATE NULL,                              -- 3.3.0: when it went out
+    `forecast_amount`  DECIMAL(18,2) NULL,                     -- 3.3.0: expected final cost; NULL = the larger of planned and actual
     `position`         INT NOT NULL DEFAULT 0,
     `created_by_id`    INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

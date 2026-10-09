@@ -451,7 +451,7 @@ class WorkflowEngine
             // Projects (3.2.0). from / to are green | amber | red; manual = set by hand.
             'project.health_changed'     => array_merge($projectFields, ['from', 'to', 'manual']),
             // kind: time (the target finish), stage_time (the active stage's end) or risk.
-            'project.tolerance_breached' => array_merge($projectFields, ['kind', 'late_days', 'score', 'over_pct', 'allowed']),
+            'project.tolerance_breached' => array_merge($projectFields, ['kind', 'late_days', 'score', 'over_pct', 'basis', 'allowed']),
             // gate_decision is empty when the stage was closed by hand.
             'project.stage_closed'       => array_merge($projectFields, $stageFields, ['gate_decision', 'next_stage', 'unapproved_changes']),
             'project.stage_due'          => array_merge($projectFields, $stageFields, ['days_remaining', 'window_days']),

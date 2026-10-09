@@ -11524,6 +11524,11 @@ return array (
             array (
               'type' => 'number',
             ),
+            'forecast' => 
+            array (
+              'type' => 'number',
+              'description' => '3.3.0. What it is now expected to cost.',
+            ),
           ),
         ),
         'created_at' => 
@@ -12106,6 +12111,32 @@ return array (
           'type' => 'string',
           'nullable' => true,
         ),
+        'planned_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+          'description' => '3.3.0. When the money is expected to go out.',
+        ),
+        'spent_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+          'description' => '3.3.0. When it went out.',
+        ),
+        'forecast' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+          'description' => '3.3.0. What the line is now expected to cost: forecast_entered, otherwise the larger of planned and actual. null when it has neither.',
+        ),
+        'forecast_entered' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+          'description' => '3.3.0. The forecast somebody typed, or null.',
+        ),
       ),
     ),
     'ProjectBudget' => 
@@ -12129,6 +12160,21 @@ return array (
         'remaining' => 
         array (
           'type' => 'number',
+        ),
+        'forecast' => 
+        array (
+          'type' => 'number',
+          'description' => '3.3.0. What the project is now expected to cost (estimate at completion).',
+        ),
+        'cost_basis' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'actual',
+            1 => 'forecast',
+          ),
+          'description' => '3.3.0. What the overspend tolerance measures.',
         ),
         'labour' => 
         array (
@@ -12158,6 +12204,17 @@ return array (
             'unpriced_minutes' => 
             array (
               'type' => 'integer',
+            ),
+            'to_come_hours' => 
+            array (
+              'type' => 'number',
+              'description' => '3.3.0. Hours left on open tasks\' estimates.',
+            ),
+            'to_come_cost' => 
+            array (
+              'type' => 'number',
+              'nullable' => true,
+              'description' => '3.3.0. Those hours priced at today\'s rate; null in hours mode, with no rate, or when estimates are left out of the forecast.',
             ),
           ),
         ),

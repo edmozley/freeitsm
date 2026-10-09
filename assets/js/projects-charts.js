@@ -1,6 +1,6 @@
 /**
- * Projects - charts (3.3.0): the burn-up on a project's Overview and "where the
- * money goes" on its Budget tab. Plain SVG, no library.
+ * Projects - charts (3.3.0): the burn-up on a project's Overview, and "where the
+ * money goes" and spend over time on its Budget tab. Plain SVG, no library.
  *
  * The rules they follow (the dataviz method, checked 2026-10-09):
  *  - Two categorical series, slots 1 and 2 (blue, orange) - validated for
@@ -230,5 +230,122 @@
         });
     }
 
-    window.PrjCharts = { burnup: burnup, bars: bars };
+    /**
+     * Spend over time (3.3.0): cumulative planned and actual spend as steps, the
+     * forecast as a dashed continuation of actual from today to the finish, and
+     * the amounts to measure against (the budget, the baseline's budget, the
+     * tolerance) as plain reference lines labelled in text colour - they are
+     * thresholds, not series, so they take no series colour.
+     * opts: {points: [{d, planned, actual|null}], forecast: {from, to, start, end}|null,
+     *        refs: [{v, label}], today, target, fmt, fmtTick, fmtDate,
+     *        series: {actual, planned, forecast}, labels: {table, chart, date, today, target, at_finish, aria}}
+     */
+    function spend(container, opts) {
+        const pts = opts.points;
+        const L = opts.labels, S = opts.series, fc = opts.forecast;
+        const f = frame(container, L.table, L.chart, () => {
+            const rows = pts.map(p => [opts.fmtDate(p.d), opts.fmt(p.planned), p.actual === null ? '-' : opts.fmt(p.actual)]);
+            if (fc) rows.push([L.at_finish + ' (' + opts.fmtDate(fc.to) + ')', '', S.forecast + ': ' + opts.fmt(fc.end)]);
+            (opts.refs || []).forEach(r => rows.push([r.label, opts.fmt(r.v), '']));
+            return tableView([L.date, S.planned, S.actual], rows);
+        });
+        const keys = [{ name: S.actual, cls: 'viz-s1', line: true }, { name: S.planned, cls: 'viz-s2', line: true }];
+        if (fc) keys.push({ name: S.forecast, cls: 'viz-s1 dash', line: true });
+        f.tools.insertBefore(legend(keys), f.tools.firstChild);
+
+        const W = Math.max(280, f.plot.clientWidth || container.clientWidth || 600), H = 250;
+        const m = { l: 62, r: 16, t: 16, b: 28 };
+        const pw = W - m.l - m.r, ph = H - m.t - m.b;
+        const dn = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+        const x0 = dn(pts[0].d);
+        const x1 = Math.max(dn(pts[pts.length - 1].d), fc ? dn(fc.to) : 0, opts.target ? dn(opts.target) : 0, x0 + 1);
+        const top = Math.max(...pts.map(p => Math.max(p.planned, p.actual || 0)), fc ? fc.end : 0, ...(opts.refs || []).map(r => r.v), 1);
+        const ny = nice(top);
+        const X = d => m.l + (dn(d) - x0) / (x1 - x0) * pw;
+        const Y = v => m.t + ph - (v / ny.max) * ph;
+
+        const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'img', class: 'prj-viz-svg', tabindex: '0', 'aria-label': L.aria });
+        for (let v = 0; v <= ny.max + 1e-9; v += ny.step) {
+            el('line', { x1: m.l, x2: m.l + pw, y1: Y(v), y2: Y(v), class: v === 0 ? 'viz-axis' : 'viz-grid' }, svg);
+            el('text', { x: m.l - 8, y: Y(v) + 4, 'text-anchor': 'end', class: 'viz-tick' }, svg).textContent = opts.fmtTick(v);
+        }
+        const ticks = Math.max(1, Math.min(5, Math.floor(pw / 110)));
+        for (let i = 0; i <= ticks; i++) {
+            const d = x0 + (x1 - x0) * i / ticks;
+            const iso = new Date(Math.round(d) * 86400000).toISOString().slice(0, 10);
+            el('text', { x: X(iso), y: H - 8, 'text-anchor': i === 0 ? 'start' : (i === ticks ? 'end' : 'middle'), class: 'viz-tick' }, svg).textContent = opts.fmtDate(iso);
+        }
+        // The amounts to measure against: dotted hairlines, labelled on the left so they never meet the
+        // forecast's end. Lines closer than a label's height share one stack ABOVE the topmost of them,
+        // in the same top-to-bottom order as the lines, so no label sits on another line.
+        const refs = (opts.refs || []).slice().sort((a, b) => b.v - a.v).map(r => ({ r: r, y: Y(r.v) }));
+        refs.forEach(x => el('line', { x1: m.l, x2: m.l + pw, y1: x.y, y2: x.y, class: 'viz-ref viz-refline' }, svg));
+        const groups = [];
+        refs.forEach(x => { const g = groups[groups.length - 1]; if (g && x.y - g[g.length - 1].y < 13) g.push(x); else groups.push([x]); });
+        groups.forEach(g => g.forEach((x, i) => {
+            el('text', { x: m.l + 6, y: g[0].y - 4 - (g.length - 1 - i) * 13, class: 'viz-reflabel' }, svg).textContent = x.r.label + ' ' + opts.fmt(x.r.v);
+        }));
+        if (opts.today && dn(opts.today) > x0 && dn(opts.today) < x1) {
+            const tx = X(opts.today);
+            el('line', { x1: tx, x2: tx, y1: m.t, y2: m.t + ph, class: 'viz-ref' }, svg);
+            el('text', { x: tx + 4, y: m.t + ph - 6, class: 'viz-tick' }, svg).textContent = L.today;
+        }
+        // Steps: the money moves on the day, not in a slope between days.
+        const step = (list, key) => list.map((p, i) => i ? 'H' + X(p.d).toFixed(1) + ' V' + Y(p[key]).toFixed(1) : 'M' + X(p.d).toFixed(1) + ' ' + Y(p[key]).toFixed(1)).join(' ');
+        const act = pts.filter(p => p.actual !== null);
+        // Planned carries on flat to the end of the axis: nothing more is planned after its last date.
+        el('path', { d: step(pts, 'planned') + ' H' + (m.l + pw).toFixed(1), class: 'viz-line viz-s2' }, svg);
+        if (act.length) {
+            el('path', { d: step(act, 'actual') + ' V' + Y(0) + ' H' + X(act[0].d).toFixed(1) + ' Z', class: 'viz-area viz-s1' }, svg);
+            el('path', { d: step(act, 'actual'), class: 'viz-line viz-s1' }, svg);
+        }
+        if (fc) {
+            el('path', { d: 'M' + X(fc.from).toFixed(1) + ' ' + Y(fc.start).toFixed(1) + ' L' + X(fc.to).toFixed(1) + ' ' + Y(fc.end).toFixed(1), class: 'viz-line viz-s1 viz-dash' }, svg);
+            el('circle', { cx: X(fc.to), cy: Y(fc.end), r: 4, class: 'viz-dot viz-s1' }, svg);
+            el('text', { x: X(fc.to) - 6, y: Y(fc.end) - 8, 'text-anchor': 'end', class: 'viz-end halo' }, svg).textContent = opts.fmt(fc.end);
+        }
+        if (act.length) el('circle', { cx: X(act[act.length - 1].d), cy: Y(act[act.length - 1].actual), r: 4, class: 'viz-dot viz-s1' }, svg);
+        const cross = el('line', { y1: m.t, y2: m.t + ph, class: 'viz-cross', visibility: 'hidden' }, svg);
+        const hit = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' }, svg);
+        f.plot.appendChild(svg);
+        const tip = tooltip(f.plot);
+
+        // What the crosshair can stop on: every day the money moved, and the forecast's end.
+        const stops = pts.map(p => ({ d: p.d, p: p }));
+        if (fc && !stops.some(s => s.d === fc.to)) stops.push({ d: fc.to, fc: true });
+        stops.sort((a, b) => a.d.localeCompare(b.d));
+        const valueAt = d => { let v = pts[0]; pts.forEach(p => { if (p.d <= d) v = p; }); return v; };
+        let at = stops.length - 1;
+        function show(i) {
+            at = Math.max(0, Math.min(stops.length - 1, i));
+            const s = stops[at], cx = X(s.d), p = s.p || valueAt(s.d);
+            cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('visibility', 'visible');
+            tip.textContent = '';
+            tip.appendChild(html('div', 'prj-viz-tip-head', opts.fmtDate(s.d)));
+            if (p.actual !== null && !s.fc) tipRow(tip, opts.fmt(p.actual), S.actual, 'viz-s1');
+            if (s.fc || (fc && s.d === fc.to)) tipRow(tip, opts.fmt(fc.end), S.forecast, 'viz-s1 dash');
+            tipRow(tip, opts.fmt(p.planned), S.planned, 'viz-s2');
+            tip.hidden = false;
+            const left = cx / W * f.plot.clientWidth;
+            tip.style.left = Math.min(Math.max(0, left + 12), f.plot.clientWidth - tip.offsetWidth - 4) + 'px';
+            tip.style.top = '8px';
+        }
+        function hide() { cross.setAttribute('visibility', 'hidden'); tip.hidden = true; }
+        hit.addEventListener('pointermove', e => {
+            const r = svg.getBoundingClientRect();
+            const px = (e.clientX - r.left) * W / r.width;
+            let best = 0, dist = Infinity;
+            stops.forEach((s, i) => { const dd = Math.abs(X(s.d) - px); if (dd < dist) { dist = dd; best = i; } });
+            show(best);
+        });
+        hit.addEventListener('pointerleave', hide);
+        svg.addEventListener('focus', () => show(at));
+        svg.addEventListener('blur', hide);
+        svg.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') { e.preventDefault(); show(at - 1); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); show(at + 1); }
+        });
+    }
+
+    window.PrjCharts = { burnup: burnup, bars: bars, spend: spend };
 })();

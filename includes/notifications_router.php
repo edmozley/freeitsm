@@ -278,7 +278,7 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
                 break;
             case 'project.tolerance_breached':
                 $title = $payload['kind'] === 'cost'
-                    ? $name . ': ' . (int)$payload['over_pct'] . '% over budget (allowed ' . (int)$payload['allowed'] . '%)'
+                    ? $name . ': ' . (($payload['basis'] ?? '') === 'forecast' ? 'forecast ' : '') . (int)$payload['over_pct'] . '% over budget (allowed ' . (int)$payload['allowed'] . '%)'
                     : ($payload['kind'] === 'risk'
                     ? $name . ': a risk scores ' . (int)$payload['score'] . ' (allowed ' . (int)$payload['allowed'] . ')'
                     : $name . ': ' . (int)$payload['late_days'] . ' day(s) late' . ($payload['kind'] === 'stage_time' ? ' on the current stage' : '') . ' (allowed ' . (int)$payload['allowed'] . ')');

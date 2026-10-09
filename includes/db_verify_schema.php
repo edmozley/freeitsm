@@ -5349,6 +5349,10 @@ return [
         'contract_id'      => 'INT NULL',
         'cost_centre_id'   => 'INT NULL',
         'notes'            => 'VARCHAR(500) NULL',
+        // 3.3.0: budget over time and the forecast.
+        'planned_date'     => 'DATE NULL',
+        'spent_date'       => 'DATE NULL',
+        'forecast_amount'  => 'DECIMAL(18,2) NULL',
         'position'         => 'INT NOT NULL DEFAULT 0',
         'created_by_id'    => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',

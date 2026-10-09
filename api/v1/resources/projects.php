@@ -93,6 +93,7 @@ function apiSerializeProject(PDO $conn, array $p): array {
             'currency' => projectCurrencyOf($conn, $p),
             'planned'  => $b ? round((float)$b['planned'], 2) : 0.0,
             'actual'   => $b ? round((float)$b['actual'], 2) : 0.0,
+            'forecast' => $b ? round((float)($b['forecast'] ?? $b['actual']), 2) : 0.0,   // 3.3.0
         ],
         'created_at'      => apiIsoDate($p['created_datetime']),
         'updated_at'      => apiIsoDate($p['updated_datetime']),
@@ -478,6 +479,11 @@ function apiSerializeBudgetLine(array $l): array {
                                                'value' => $l['contract']['value'], 'currency' => $l['contract']['currency']] : null,
         'cost_centre'     => $l['cost_centre'],
         'notes'           => $l['notes'],
+        // 3.3.0
+        'planned_date'    => $l['planned_date'],
+        'spent_date'      => $l['spent_date'],
+        'forecast'        => $l['forecast'],
+        'forecast_entered'=> $l['forecast_typed'],
     ];
 }
 
@@ -491,11 +497,15 @@ function apiProjectBudget(PDO $conn, array $apiKey, array $params, array $body):
         'planned'     => $d['planned'],
         'actual'      => $d['actual'],
         'remaining'   => $d['remaining'],
+        'forecast'    => $d['forecast'],       // 3.3.0: what it is now expected to cost
+        'cost_basis'  => $d['cost_basis'],     // what the cost tolerance measures: actual | forecast
         'labour'      => [
             'mode'             => $d['labour_mode'],
             'minutes'          => $d['labour']['minutes'],
             'cost'             => $d['labour']['cost'],
             'unpriced_minutes' => $d['labour']['unpriced_minutes'],
+            'to_come_hours'    => $d['labour_to_come']['hours'],
+            'to_come_cost'     => $d['labour_to_come']['counted'] ? $d['labour_to_come']['cost'] : null,
         ],
         'lines'       => array_map('apiSerializeBudgetLine', $d['lines']),
     ]);
@@ -510,7 +520,7 @@ function apiProjectBudgetLine(PDO $conn, array $p, int $lineId, int $analystId):
 function apiProjectBudgetLinesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
     $pid = (int)$params[0];
     $p = apiLoadProject($conn, $apiKey, $pid);
-    $in = array_intersect_key($body, array_flip(['title', 'category', 'planned', 'actual', 'contract_id', 'cost_centre_id', 'notes']));
+    $in = array_intersect_key($body, array_flip(['title', 'category', 'planned', 'actual', 'contract_id', 'cost_centre_id', 'notes', 'planned_date', 'spent_date', 'forecast']));
     $id = apiProjectTry(fn() => ProjectToolsService::saveBudgetLine($conn, apiProjectCtx($apiKey), $pid, $in));
     apiRespond(apiSerializeBudgetLine(apiProjectBudgetLine($conn, $p, (int)$id, (int)$apiKey['analyst_id'])), 201);
 }
@@ -519,12 +529,13 @@ function apiProjectBudgetLinesUpdate(PDO $conn, array $apiKey, array $params, ar
     [$pid, $lid] = [(int)$params[0], (int)$params[1]];
     $p = apiLoadProject($conn, $apiKey, $pid);
     $cur = apiProjectBudgetLine($conn, $p, $lid, (int)$apiKey['analyst_id']);
-    $in = array_intersect_key($body, array_flip(['title', 'category', 'planned', 'actual', 'contract_id', 'cost_centre_id', 'notes']));
+    $in = array_intersect_key($body, array_flip(['title', 'category', 'planned', 'actual', 'contract_id', 'cost_centre_id', 'notes', 'planned_date', 'spent_date', 'forecast']));
     if (!$in) apiError(422, 'missing_field', 'No fields to update.');
     // PATCH: what the body leaves out keeps its stored value.
     $merged = $in + [
         'title' => $cur['title'], 'category' => $cur['category'], 'planned' => $cur['planned'], 'actual' => $cur['actual_typed'],
         'contract_id' => $cur['contract']['id'] ?? null, 'cost_centre_id' => $cur['cost_centre']['id'] ?? null, 'notes' => $cur['notes'],
+        'planned_date' => $cur['planned_date'], 'spent_date' => $cur['spent_date'], 'forecast' => $cur['forecast_typed'],
     ];
     apiProjectTry(fn() => ProjectToolsService::saveBudgetLine($conn, apiProjectCtx($apiKey), $pid, $merged + ['id' => $lid]));
     apiRespond(apiSerializeBudgetLine(apiProjectBudgetLine($conn, $p, $lid, (int)$apiKey['analyst_id'])));

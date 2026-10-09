@@ -1204,6 +1204,11 @@ class ProjectToolsService
         $actual  = projectMoney($in['actual'] ?? null);
         $notes = trim((string)($in['notes'] ?? '')) ?: null;
         if ($notes !== null && mb_strlen($notes) > 500) throw new ServiceError('validation', 'invalid_field', 'The notes are too long.');
+        // 3.3.0: when the money goes out, when it went, and what the line is now expected to cost.
+        $plannedDate = self::date($in['planned_date'] ?? null);
+        $spentDate   = self::date($in['spent_date'] ?? null);
+        if ($spentDate !== null && $spentDate > gmdate('Y-m-d')) throw new ServiceError('validation', 'invalid_field', 'The date it was spent cannot be in the future.');
+        $forecast    = projectMoney($in['forecast'] ?? null);
 
         // A contract: one linked to the project on Connections, by somebody who can open Contracts.
         $contractId = !empty($in['contract_id']) ? (int)$in['contract_id'] : null;
@@ -1229,6 +1234,7 @@ class ProjectToolsService
             if ($st->fetchColumn() === false) throw new ServiceError('not_found', 'not_found', 'That line is not part of this project.');
             $conn->prepare("UPDATE project_budget_lines SET title = ?, category = ?, planned_amount = ?, actual_amount = ?, contract_id = ?, cost_centre_id = ?, notes = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
                  ->execute([$title, $cat, $planned, $actual, $contractId, $ccId, $notes, $id]);
+            self::budgetLineWhen($conn, $id, $plannedDate, $spentDate, $forecast);
             ProjectsService::audit($conn, $projectId, $ctx->actorId, 'budget_line_changed', null, $title, self::src($ctx));
         } else {
             $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_budget_lines WHERE project_id = " . $projectId)->fetchColumn();
@@ -1236,11 +1242,22 @@ class ProjectToolsService
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
                  ->execute([$projectId, $title, $cat, $planned, $actual, $contractId, $ccId, $notes, $pos, $ctx->actorId > 0 ? $ctx->actorId : null]);
             $id = (int)$conn->lastInsertId();
+            self::budgetLineWhen($conn, $id, $plannedDate, $spentDate, $forecast);
             ProjectsService::audit($conn, $projectId, $ctx->actorId, 'budget_line_added', null, $title, self::src($ctx));
         }
         ProjectsService::touchProject($conn, $projectId);
         ProjectsService::afterChange($conn, $projectId);   // spend can breach the cost tolerance
         return $id;
+    }
+
+    /** The 3.3.0 columns, on their own: before Database Verification adds them the rest of the line still saves. */
+    private static function budgetLineWhen(PDO $conn, int $lineId, ?string $plannedDate, ?string $spentDate, ?float $forecast): void
+    {
+        try {
+            $conn->prepare("UPDATE project_budget_lines SET planned_date = ?, spent_date = ?, forecast_amount = ? WHERE id = ?")->execute([$plannedDate, $spentDate, $forecast, $lineId]);
+        } catch (Throwable $e) {
+            if ($plannedDate !== null || $spentDate !== null || $forecast !== null) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification to add dates and forecasts to budget lines.');
+        }
     }
 
     public static function deleteBudgetLine(PDO $conn, ActorContext $ctx, int $projectId, int $lineId): void
