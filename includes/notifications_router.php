@@ -136,7 +136,7 @@ function notificationsAudienceFor(PDO $conn, string $event, array $payload): arr
 {
     // Project proposals (3.3.0): the dispatcher works out who - the approvers, or
     // whoever proposed it - because "who approves" is a Projects setting.
-    if (strpos($event, 'project.proposal_') === 0) {
+    if (strpos($event, 'project.') === 0 && array_key_exists('notify_ids', $payload)) {
         return array_values(array_unique(array_filter(array_map('intval', (array)($payload['notify_ids'] ?? [])))));
     }
 
@@ -305,6 +305,9 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
                 break;
             case 'project.milestone_reached':
                 $title = $name . ': ' . (string)($payload['milestone']['name'] ?? '') . ' reached';
+                break;
+            case 'project.benefit_review_due':
+                $title = $name . ': review the benefit - ' . (string)($payload['benefit']['title'] ?? '');
                 break;
             case 'project.proposal_submitted':
                 $title = $name . ': proposed, waiting for approval';

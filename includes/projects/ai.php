@@ -42,6 +42,11 @@ function projectAiReportKinds(): array
             . 'Sections, as "## " headings: Situation (which tolerance, by how much, since when); Cause (only what the data shows - say so where it is not known); '
             . 'Consequences if nothing changes; Options (two or three, each with what it costs in time, money or risk); Recommendation. '
             . 'State plainly that the options are suggestions for the board to decide. If the data shows no tolerance exceeded or close to it, say that first.',
+        // 3.3.0: the end of the project.
+        'closure' => 'A CLOSURE (END PROJECT) REPORT for the board. Sections, as "## " headings: Summary (what the project set out to do and whether it did); '
+            . 'What was delivered (against the scope and its Must items); Against the plan (finish and budget against the baseline and the forecast, where the data has them); '
+            . 'Benefits (each benefit with its baseline, latest measurement, target and next review - say plainly which are achieved, which are still to come after closure and who owns them); '
+            . 'Lessons (from the lessons logged; say "None logged" if there are none); Handover and follow-on actions (open work, open risks and issues, who now owns them). Plain and specific.',
         'checkpoint' => 'A CHECKPOINT REPORT for the team, covering the last {days} days. Sections, as "## " headings: Done; In progress; Next; '
             . 'Problems and blockers (with who owns them). Short bullets. Name tasks as they are named in the data.',
     ];
@@ -191,6 +196,19 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
         $line(sprintf('Budget (%s): %s planned, %s spent, %s remaining; forecast to cost %s in the end.', $cur, number_format($b['planned'], 2), number_format($b['actual'], 2), number_format($b['planned'] - $b['actual'], 2), number_format((float)($b['forecast'] ?? $b['actual']), 2)));
     }
 
+    // Benefits (3.3.0): each with where it started, where it is and where it should get to.
+    require_once __DIR__ . '/benefits.php';
+    if ($bens = projectBenefits($conn, $pid)) {
+        $line('Benefits:');
+        foreach ($bens as $b) {
+            $u = $b['unit'] ? ' ' . $b['unit'] : '';
+            $line(sprintf('- %s%s: baseline %s, now %s, target %s%s (%s, %s is better)%s%s', $b['title'], $b['measure'] ? ' (' . $b['measure'] . ')' : '',
+                $b['baseline_value'] !== null ? $b['baseline_value'] . $u : '?', $b['current'] !== null ? $b['current'] . $u : 'not measured yet',
+                $b['target_value'] !== null ? $b['target_value'] . $u : '?', $b['target_date'] ? ' by ' . $b['target_date'] : '',
+                str_replace('_', ' ', $b['state']), $b['direction'] === 'down' ? 'lower' : 'higher',
+                $b['owner_name'] ? '; owner ' . $b['owner_name'] : '', $b['review_date'] ? '; next review ' . $b['review_date'] . ($b['review_due'] ? ' (DUE)' : '') : ''));
+        }
+    }
     // Change control (3.3.0): drift from the latest baseline, and requests waiting or decided.
     require_once __DIR__ . '/control.php';
     if (in_array('control', $p['tools'] ?? projectEnabledTools($project), true) && ($ctl = projectControlDetail($conn, $project, $analystId))) {

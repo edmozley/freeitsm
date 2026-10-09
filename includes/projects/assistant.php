@@ -87,6 +87,7 @@ function projectAssistWhy(array $p): string
     if (!empty($p['raid_overdue'])) $why[] = $p['raid_overdue'] . ' dependency or decision late';
     if (!empty($p['raid_escalated'])) $why[] = $p['raid_escalated'] . ' escalated';
     if (!empty($p['changes_pending'])) $why[] = $p['changes_pending'] . ' change request(s) waiting for a decision';
+    if (!empty($p['benefits_due'])) $why[] = $p['benefits_due'] . ' benefit review(s) due';
     if (!empty($p['ticket_spike'])) $why[] = $p['tickets_7d'] . ' linked tickets raised in the last 7 days';
     return implode('; ', $why);
 }

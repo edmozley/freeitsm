@@ -489,4 +489,8 @@ return [
     ['project_baselines', 'ix_pbase_change', 'key', '(`change_request_id`)'],
     ['project_change_requests', 'idx_pcr_project', 'key', '(`project_id`,`status`)'],
     ['project_change_requests', 'ix_pcr_baseline', 'key', '(`baseline_id`)'],
+    ['project_benefits', 'idx_pben_project', 'key', '(`project_id`,`position`)'],
+    ['project_benefits', 'ix_pben_review', 'key', '(`status`,`review_date`)'],
+    ['project_benefits', 'ix_pben_owner', 'key', '(`owner_analyst_id`)'],
+    ['project_benefit_measures', 'idx_pbm_benefit', 'key', '(`benefit_id`,`measured_date`)'],
 ];

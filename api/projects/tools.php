@@ -43,6 +43,10 @@
  *      change_save    {id?, title, description?, reason?, impact_days?, impact_cost?, impact_scope?}
  *      change_decide  {id, decision: approved|rejected, notes?}
  *      change_withdraw {id}
+ *      benefit_save   {id?, title, measure?, unit?, direction: up|down, baseline_value?, target_value?, target_date?, owner_analyst_id?, review_date?, review_months?, status: open|closed, notes?}   (3.3.0)
+ *      benefit_delete {id}
+ *      benefit_measure_add {id, value, measured_date?, note?}
+ *      benefit_measure_delete {id, measure_id}
  *      proposal_decide {decision: approved|rejected, notes?}   (3.3.0 intake - includes/projects/intake.php; notes required to reject)
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
@@ -162,6 +166,16 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk();
         case 'task_estimate':
             ProjectToolsService::setTaskEstimate($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), $in['estimate_hours'] ?? null);
+            projectApiOk();
+        case 'benefit_save':
+            projectApiOk(['id' => ProjectToolsService::saveBenefit($conn, $ctx, $pid, $in)]);
+        case 'benefit_delete':
+            ProjectToolsService::deleteBenefit($conn, $ctx, $pid, (int)($in['id'] ?? 0));
+            projectApiOk();
+        case 'benefit_measure_add':
+            projectApiOk(['id' => ProjectToolsService::addBenefitMeasure($conn, $ctx, $pid, (int)($in['id'] ?? 0), $in)]);
+        case 'benefit_measure_delete':
+            ProjectToolsService::deleteBenefitMeasure($conn, $ctx, $pid, (int)($in['id'] ?? 0), (int)($in['measure_id'] ?? 0));
             projectApiOk();
         case 'proposal_decide':
             projectApiOk(ProjectsService::decideProposal($conn, $ctx, $pid, (string)($in['decision'] ?? ''), $in['notes'] ?? null));

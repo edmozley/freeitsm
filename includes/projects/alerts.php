@@ -180,6 +180,9 @@ function projectAlertsScan(PDO $conn, ?int $projectId = null): array
 
     $out['stages_due'] = projectAlertsStagesDue($conn, $projectId);
     $out['milestones'] = projectAlertsMilestones($conn, $projectId);
+    // Benefit reviews (3.3.0) - every project that is not cancelled, closed ones included.
+    require_once __DIR__ . '/benefits.php';
+    $out['benefits'] = projectAlertsBenefits($conn, $projectId);
     return $out;
 }
 

@@ -204,6 +204,8 @@ class NotificationsService
             // 3.3.0 intake: approvers hear about a proposal, the analyst who proposed one about the decision.
             'project.proposal_submitted' => ['default' => true,  'entity' => 'project'],
             'project.proposal_decided'   => ['default' => true,  'entity' => 'project'],
+            // 3.3.0 benefits: a review date has arrived - to the owner and the project manager.
+            'project.benefit_review_due' => ['default' => true,  'entity' => 'project'],
         ];
     }
 

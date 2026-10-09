@@ -26,6 +26,11 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
             require_once __DIR__ . '/../../includes/projects/budget.php';
             return projectBudgetReady($conn) ? projectBudgetDetail($conn, $row, $analystId) : null;
         })(),
+        // Benefits (3.3.0): each with its measurements, state and progress.
+        'benefits' => (function () use ($conn, $pid) {
+            require_once __DIR__ . '/../../includes/projects/benefits.php';
+            return projectBenefits($conn, $pid);
+        })(),
         // Intake (3.3.0): the proposal and its approval - null when it never needed one.
         'proposal' => (function () use ($conn, $row, $analystId) {
             require_once __DIR__ . '/../../includes/projects/intake.php';

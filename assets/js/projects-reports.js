@@ -13,7 +13,7 @@
     const P = window.Prj;
     const T = (k, p) => P.T('reports.' + k, p);
     const esc = P.esc;
-    const KINDS = ['highlight', 'exception', 'checkpoint'];
+    const KINDS = ['highlight', 'exception', 'checkpoint', 'closure'];   // closure: 3.3.0
     let ctx = null;
     let state = null;          // the GET from reports.php, fetched once per project
     let loading = false;

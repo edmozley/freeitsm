@@ -65,6 +65,12 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             'project_proposal_approver'    => ['managers', 'approver2',   'general'],
             'project_proposal_approver_id' => ['0',        'analyst',     'general'],
             'project_proposal_on_approve'  => ['proposed', 'onapprove',   'general'],
+            // Benefits (3.3.0) - includes/projects/benefits.php. How often a new
+            // benefit is reviewed (months; 0 = once, no repeat), and who the review
+            // reminder goes to: its owner and the project manager, or its owner
+            // only (the project manager when it has none).
+            'project_benefit_review_months' => ['3',       'int:0:24',    'general'],
+            'project_benefit_notify'        => ['both',    'bnotify',     'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
             'project_amber_days'       => ['14',       'int:1:120',   'health'],
@@ -225,6 +231,10 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'bnotify') {
+            if (!in_array($v, ['both', 'owner'], true)) throw new InvalidArgumentException('Choose who is reminded.');
             return $v;
         }
         if ($rule === 'proposal') {

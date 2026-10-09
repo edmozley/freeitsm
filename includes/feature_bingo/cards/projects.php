@@ -265,4 +265,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'projects', "approval_status IN ('approved', 'rejected')"],
     ],
+    [
+        'id'       => 'projects.benefits',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Did the project pay off? (Benefits)',
+        'what'     => 'The benefits a project is meant to bring - fewer tickets, cheaper printing, a contract ended - measured from where they started towards a target, with review reminders that carry on after the project closes.',
+        'why'      => 'A year later you can show the board the printer tickets really did halve, instead of assuming it.',
+        'done'     => 'At least one benefit has a measurement.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_benefit_measures'],
+    ],
 ];

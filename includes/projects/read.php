@@ -96,6 +96,13 @@ function projectTaskStats(PDO $conn, array $projectIds): array
                 + ['milestones_missed' => $m['missed'] ?? 0, 'next_milestone' => $m['next'] ?? null];
         }
     } catch (Throwable $e) { /* no milestones yet */ }
+    // Benefits (3.3.0): how many, and reviews due - shown even on a finished project.
+    try {
+        require_once __DIR__ . '/benefits.php';
+        foreach (projectBenefitStats($conn, $projectIds) as $pid => $b) {
+            $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + $b;
+        }
+    } catch (Throwable $e) { /* before Database Verification */ }
     // Change requests waiting for a decision (3.3.0 change control).
     try {
         require_once __DIR__ . '/control.php';
@@ -243,6 +250,8 @@ function projectDecorate(array $p, array $stats, ?array $cfg = null): array
     $p['raid_overdue']      = (int)($s['raid_overdue'] ?? 0);
     $p['raid_escalated']    = (int)($s['raid_escalated'] ?? 0);
     $p['changes_pending']   = (int)($s['changes_pending'] ?? 0);
+    $p['benefits']          = (int)($s['benefits'] ?? 0);
+    $p['benefits_due']      = (int)($s['benefits_due'] ?? 0);
     $p['ticket_spike'] = projectTicketSpike($s, $cfg ?? ['ticket_amber' => 5]);
     $p['auto_health']  = projectAutoHealth($p, $s, $cfg);
     $p['exceptions']   = projectExceptions($p, $s);

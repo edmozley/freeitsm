@@ -25,7 +25,7 @@ require_once __DIR__ . '/../projects/ai.php';
 
 class ProjectReportsService
 {
-    const KINDS = ['highlight', 'exception', 'checkpoint'];
+    const KINDS = ['highlight', 'exception', 'checkpoint', 'closure'];
     const BRIEFING_COOLDOWN_MINUTES = 10;
 
     public static function ready(PDO $conn): bool
@@ -94,7 +94,7 @@ class ProjectReportsService
     {
         $project = ProjectsService::loadForActor($conn, $ctx, $projectId);
         ProjectsService::assertCanChange($conn, $ctx, $project);
-        if (!in_array($kind, self::KINDS, true)) throw new ServiceError('validation', 'invalid_field', 'Choose a highlight, exception or checkpoint report.');
+        if (!in_array($kind, self::KINDS, true)) throw new ServiceError('validation', 'invalid_field', 'Choose a highlight, exception, checkpoint or closure report.');
         $days = max(1, min(90, $days));
         $task = str_replace('{days}', (string)$days, projectAiReportKinds()[$kind]);
         $ai = projectAiAsk($conn, 'Write ' . $task, projectAiFacts($conn, $project, $ctx->actorId, $days), 1800);
@@ -127,7 +127,7 @@ class ProjectReportsService
             return $id;
         }
         $kind = (string)($in['kind'] ?? 'highlight');
-        if (!in_array($kind, self::KINDS, true)) throw new ServiceError('validation', 'invalid_field', 'Choose a highlight, exception or checkpoint report.');
+        if (!in_array($kind, self::KINDS, true)) throw new ServiceError('validation', 'invalid_field', 'Choose a highlight, exception, checkpoint or closure report.');
         $conn->prepare("INSERT INTO project_reports (project_id, kind, title, body, status, ai_drafted, created_by_id, created_datetime, updated_datetime)
                         VALUES (?, ?, ?, ?, 'draft', 0, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
              ->execute([$projectId, $kind, $title, $body, $ctx->actorId > 0 ? $ctx->actorId : null]);

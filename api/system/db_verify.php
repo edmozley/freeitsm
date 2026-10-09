@@ -2908,6 +2908,11 @@ try {
         ['project_change_requests', 'fk_pcr_project', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_change_requests', 'fk_pcr_raised_by', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_raised_by FOREIGN KEY (raised_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['project_change_requests', 'fk_pcr_decided_by', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_decided_by FOREIGN KEY (decided_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        // Benefits (3.3.0)
+        ['project_benefits', 'fk_pben_project', "ALTER TABLE project_benefits ADD CONSTRAINT fk_pben_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_benefits', 'fk_pben_owner', "ALTER TABLE project_benefits ADD CONSTRAINT fk_pben_owner FOREIGN KEY (owner_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_benefit_measures', 'fk_pbm_benefit', "ALTER TABLE project_benefit_measures ADD CONSTRAINT fk_pbm_benefit FOREIGN KEY (benefit_id) REFERENCES project_benefits (id) ON DELETE CASCADE"],
+        ['project_benefit_measures', 'fk_pbm_recorded_by', "ALTER TABLE project_benefit_measures ADD CONSTRAINT fk_pbm_recorded_by FOREIGN KEY (recorded_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['project_change_requests', 'fk_pcr_baseline', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_baseline FOREIGN KEY (baseline_id) REFERENCES project_baselines (id) ON DELETE SET NULL"],
         // Connections - every link goes with either side.
         ['project_assets', 'fk_pas_project', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],

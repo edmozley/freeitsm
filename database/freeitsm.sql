@@ -8356,6 +8356,54 @@ CREATE TABLE IF NOT EXISTS `project_change_requests` (
     CONSTRAINT `fk_pcr_decided_by` FOREIGN KEY (`decided_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_pcr_baseline` FOREIGN KEY (`baseline_id`) REFERENCES `project_baselines` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Benefits realisation (3.3.0) - includes/projects/benefits.php. What the
+-- project is meant to improve, measured from a baseline towards a target, and
+-- reviewed on a date - including AFTER the project has closed, which is when
+-- most benefits arrive. status: open (still reviewed) | closed (stop reviewing).
+-- Achieved / missed are worked out from the measurements, never stored.
+CREATE TABLE IF NOT EXISTS `project_benefits` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `project_id`       INT NOT NULL,
+    `title`            VARCHAR(200) NOT NULL,
+    `measure`          VARCHAR(255) NULL,                             -- how it is measured
+    `unit`             VARCHAR(30) NULL,
+    `direction`        VARCHAR(4) NOT NULL DEFAULT 'up',              -- up = higher is better, down = lower is better
+    `baseline_value`   DECIMAL(18,2) NULL,
+    `target_value`     DECIMAL(18,2) NULL,
+    `target_date`      DATE NULL,
+    `owner_analyst_id` INT NULL,
+    `review_date`      DATE NULL,
+    `review_months`    INT NULL,                                      -- NULL / 0 = no repeat
+    `status`           VARCHAR(10) NOT NULL DEFAULT 'open',
+    `notes`            TEXT NULL,
+    `position`         INT NOT NULL DEFAULT 0,
+    `created_by_id`    INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime` DATETIME NULL,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_pben_project` (`project_id`, `position`),
+    KEY `ix_pben_review` (`status`, `review_date`),
+    KEY `ix_pben_owner` (`owner_analyst_id`),
+    CONSTRAINT `fk_pben_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pben_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One measurement of a benefit, on a date. The latest by date is "now".
+CREATE TABLE IF NOT EXISTS `project_benefit_measures` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `benefit_id`       INT NOT NULL,
+    `value`            DECIMAL(18,2) NOT NULL,
+    `measured_date`    DATE NOT NULL,
+    `note`             VARCHAR(500) NULL,
+    `recorded_by_id`   INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_pbm_benefit` (`benefit_id`, `measured_date`),
+    CONSTRAINT `fk_pbm_benefit` FOREIGN KEY (`benefit_id`) REFERENCES `project_benefits` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pbm_recorded_by` FOREIGN KEY (`recorded_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Seed: the project roles a fresh install starts with (PRINCE2-style, in our

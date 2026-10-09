@@ -42,7 +42,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=28">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=29">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -86,6 +86,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             <button type="button" data-tab="gates" data-tool="gates" hidden><?php echo htmlspecialchars(t('projects.tools.gates')); ?></button>
             <button type="button" data-tab="budget" data-tool="budget" hidden><?php echo htmlspecialchars(t('projects.tools.budget')); ?></button>
             <button type="button" data-tab="control" data-tool="control" hidden><?php echo htmlspecialchars(t('projects.tools.control')); ?></button>
+            <button type="button" data-tab="benefits" data-tool="benefits" hidden><?php echo htmlspecialchars(t('projects.tools.benefits')); ?></button>
             <button type="button" data-tab="reports"><?php echo htmlspecialchars(t('projects.reports.tab')); ?></button>
             <button type="button" data-tab="connections"><?php echo htmlspecialchars(t('projects.view.tab_connections')); ?></button>
             <button type="button" data-tab="history"><?php echo htmlspecialchars(t('projects.view.tab_history')); ?></button>
@@ -101,6 +102,7 @@ $projectId = (int)($_GET['id'] ?? 0);
         <section class="prj-tab-panel" data-panel="gates" id="pvGates" hidden></section>
         <section class="prj-tab-panel" data-panel="budget" id="pvBudget" hidden></section>
         <section class="prj-tab-panel" data-panel="control" id="pvControl" hidden></section>
+        <section class="prj-tab-panel" data-panel="benefits" id="pvBenefits" hidden></section>
         <section class="prj-tab-panel" data-panel="reports" id="pvReports" hidden></section>
         <section class="prj-tab-panel" data-panel="connections" id="pvConnections" hidden></section>
         <section class="prj-tab-panel" data-panel="history" id="pvHistory" hidden></section>
@@ -348,6 +350,60 @@ $projectId = (int)($_GET['id'] ?? 0);
         </div>
     </div>
 
+    <!-- Benefits (3.3.0) - projects-benefits.js -->
+    <div class="modal" id="prjBenefitModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:620px">
+            <div class="modal-header" id="pbnTitle"></div>
+            <div class="modal-body">
+                <input type="hidden" id="pbnId">
+                <div class="form-group"><label for="pbnName"><?php echo htmlspecialchars(t('projects.benefits.field_title')); ?></label><input type="text" id="pbnName" maxlength="200" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.benefits.field_title_ph')); ?>"></div>
+                <div class="form-group"><label for="pbnMeasure"><?php echo htmlspecialchars(t('projects.benefits.field_measure')); ?></label><input type="text" id="pbnMeasure" maxlength="255" placeholder="<?php echo htmlspecialchars(t('projects.benefits.field_measure_ph')); ?>"></div>
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="pbnUnit"><?php echo htmlspecialchars(t('projects.benefits.field_unit')); ?></label><input type="text" id="pbnUnit" maxlength="30" placeholder="<?php echo htmlspecialchars(t('projects.benefits.field_unit_ph')); ?>"></div>
+                    <div class="form-group"><label for="pbnDirection"><?php echo htmlspecialchars(t('projects.benefits.field_direction')); ?></label><select id="pbnDirection"><option value="up"><?php echo htmlspecialchars(t('projects.benefits.higher_better')); ?></option><option value="down"><?php echo htmlspecialchars(t('projects.benefits.lower_better')); ?></option></select></div>
+                </div>
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="pbnBaseline"><?php echo htmlspecialchars(t('projects.benefits.baseline')); ?></label><input type="text" inputmode="decimal" id="pbnBaseline"></div>
+                    <div class="form-group"><label for="pbnTarget"><?php echo htmlspecialchars(t('projects.benefits.target')); ?></label><input type="text" inputmode="decimal" id="pbnTarget"></div>
+                </div>
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="pbnTargetDate"><?php echo htmlspecialchars(t('projects.benefits.field_target_date')); ?></label><input type="date" id="pbnTargetDate"></div>
+                    <div class="form-group"><label for="pbnOwner"><?php echo htmlspecialchars(t('projects.benefits.field_owner')); ?></label><select id="pbnOwner"></select></div>
+                </div>
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="pbnReview"><?php echo htmlspecialchars(t('projects.benefits.field_review')); ?></label><input type="date" id="pbnReview"></div>
+                    <div class="form-group"><label for="pbnEvery"><?php echo htmlspecialchars(t('projects.benefits.field_every')); ?></label><input type="number" id="pbnEvery" min="0" max="24" placeholder="<?php echo htmlspecialchars(t('projects.benefits.field_every_ph')); ?>"></div>
+                </div>
+                <div class="form-group"><label for="pbnNotes"><?php echo htmlspecialchars(t('projects.benefits.field_notes')); ?></label><textarea id="pbnNotes" rows="2"></textarea></div>
+                <label class="prj-check" id="pbnClosedWrap"><input type="checkbox" id="pbnClosed"> <?php echo htmlspecialchars(t('projects.benefits.field_closed')); ?></label>
+                <div class="prj-form-error" id="pbnError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="pbnDelete" style="margin-right:auto" hidden><?php echo htmlspecialchars(t('common.delete')); ?></button>
+                <button type="button" class="btn btn-secondary" data-prj-close="prjBenefitModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pbnSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="prjBenefitMeasureModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:460px">
+            <div class="modal-header" id="pbmTitle"></div>
+            <div class="modal-body">
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="pbmValue" id="pbmValueLabel"></label><input type="text" inputmode="decimal" id="pbmValue"></div>
+                    <div class="form-group"><label for="pbmDate"><?php echo htmlspecialchars(t('projects.benefits.col_date')); ?></label><input type="date" id="pbmDate"></div>
+                </div>
+                <div class="form-group"><label for="pbmNote"><?php echo htmlspecialchars(t('projects.benefits.col_note')); ?></label><input type="text" id="pbmNote" maxlength="500"></div>
+                <p class="prj-muted sm" id="pbmHint" style="margin:0"></p>
+                <div class="prj-form-error" id="pbmError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjBenefitMeasureModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pbmSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Intake (3.3.0): approve or reject a proposal - projects-intake.js -->
     <div class="modal" id="prjProposalModal" aria-hidden="true">
         <div class="modal-content" style="max-width:520px">
@@ -565,11 +621,12 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-budget.js?v=4"></script>
     <script src="../assets/js/projects-control.js?v=1"></script>
     <script src="../assets/js/projects-intake.js?v=1"></script>
-    <script src="../assets/js/projects-reports.js?v=1"></script>
+    <script src="../assets/js/projects-benefits.js?v=1"></script>
+    <script src="../assets/js/projects-reports.js?v=2"></script>
     <script src="../assets/js/projects-charts.js?v=4"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=20"></script>
+    <script src="../assets/js/projects-view.js?v=21"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>

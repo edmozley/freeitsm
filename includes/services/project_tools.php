@@ -931,6 +931,119 @@ class ProjectToolsService
     }
 
     // ======================================================================
+    //  Benefits (3.3.0) - includes/projects/benefits.php
+    // ======================================================================
+
+    /** Create (no id) or update a benefit. Returns its id. */
+    public static function saveBenefit(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        require_once __DIR__ . '/../projects/benefits.php';
+        self::changeable($conn, $ctx, $projectId);
+        if (!projectBenefitsReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        $title = trim((string)($in['title'] ?? ''));
+        if ($title === '') throw new ServiceError('validation', 'missing_field', 'Say what the benefit is.');
+        if (mb_strlen($title) > 200) throw new ServiceError('validation', 'invalid_field', 'The benefit is too long.');
+        $num = function ($v, string $what) {
+            if ($v === null || trim((string)$v) === '') return null;
+            $s = str_replace([',', ' '], '', trim((string)$v));
+            if (!preg_match('/^-?\d{1,15}(\.\d{1,2})?$/', $s)) throw new ServiceError('validation', 'invalid_field', "The $what must be a number, like 12 or 12.5.");
+            return $s;
+        };
+        $direction = ($in['direction'] ?? 'up') === 'down' ? 'down' : 'up';
+        $months = $in['review_months'] ?? null;
+        if ($months === null || $months === '') $months = (int)projectSetting($conn, 'project_benefit_review_months');
+        elseif (!preg_match('/^\d+$/', (string)$months) || (int)$months > 24) throw new ServiceError('validation', 'invalid_field', 'Review every 0 to 24 months.');
+        $status = ($in['status'] ?? 'open') === 'closed' ? 'closed' : 'open';
+        $owner = !empty($in['owner_analyst_id']) ? (int)$in['owner_analyst_id'] : null;
+        if ($owner) self::mustExist($conn, "SELECT 1 FROM analysts WHERE id = ? AND is_active = 1", $owner, 'That analyst does not exist or is inactive.');
+        $vals = [
+            $title, self::str($in['measure'] ?? null, 255), self::str($in['unit'] ?? null, 30), $direction,
+            $num($in['baseline_value'] ?? null, 'baseline'), $num($in['target_value'] ?? null, 'target'), self::date($in['target_date'] ?? null),
+            $owner, self::date($in['review_date'] ?? null), (int)$months, $status, self::str($in['notes'] ?? null, 5000),
+        ];
+        $id = (int)($in['id'] ?? 0);
+        if ($id > 0) {
+            $b = self::benefit($conn, $projectId, $id);
+            $conn->prepare("UPDATE project_benefits SET title = ?, measure = ?, unit = ?, direction = ?, baseline_value = ?, target_value = ?, target_date = ?,
+                                   owner_analyst_id = ?, review_date = ?, review_months = ?, status = ?, notes = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute(array_merge($vals, [$id]));
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'benefit_changed', null, $title, self::src($ctx));
+        } else {
+            // A first review the setting's months from today, unless one was given.
+            if ($vals[8] === null && (int)$months > 0) $vals[8] = projectBenefitNextReview(gmdate('Y-m-d'), (int)$months);
+            $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_benefits WHERE project_id = " . $projectId)->fetchColumn();
+            $conn->prepare("INSERT INTO project_benefits (title, measure, unit, direction, baseline_value, target_value, target_date, owner_analyst_id, review_date, review_months, status, notes,
+                                                          project_id, position, created_by_id, created_datetime, updated_datetime)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+                 ->execute(array_merge($vals, [$projectId, $pos, $ctx->actorId > 0 ? $ctx->actorId : null]));
+            $id = (int)$conn->lastInsertId();
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'benefit_added', null, $title, self::src($ctx));
+        }
+        ProjectsService::touchProject($conn, $projectId);
+        return $id;
+    }
+
+    public static function deleteBenefit(PDO $conn, ActorContext $ctx, int $projectId, int $benefitId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $b = self::benefit($conn, $projectId, $benefitId);
+        $conn->prepare("DELETE FROM project_benefit_measures WHERE benefit_id = ?")->execute([$benefitId]);   // by hand: an install whose FK failed
+        $conn->prepare("DELETE FROM project_benefits WHERE id = ?")->execute([$benefitId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'benefit_removed', $b['title'], null, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    /**
+     * Record a measurement. One on or after (review date - 14 days) is the
+     * review: the next one moves on by the benefit's review_months (none when 0).
+     * Returns the measurement's id.
+     */
+    public static function addBenefitMeasure(PDO $conn, ActorContext $ctx, int $projectId, int $benefitId, array $in): int
+    {
+        require_once __DIR__ . '/../projects/benefits.php';
+        self::changeable($conn, $ctx, $projectId);
+        $b = self::benefit($conn, $projectId, $benefitId);
+        $v = str_replace([',', ' '], '', trim((string)($in['value'] ?? '')));
+        if (!preg_match('/^-?\d{1,15}(\.\d{1,2})?$/', $v)) throw new ServiceError('validation', 'invalid_field', 'Enter the value measured, like 12 or 12.5.');
+        $date = self::date($in['measured_date'] ?? null) ?? gmdate('Y-m-d');
+        if ($date > gmdate('Y-m-d')) throw new ServiceError('validation', 'invalid_field', 'A measurement cannot be in the future.');
+        $conn->prepare("INSERT INTO project_benefit_measures (benefit_id, value, measured_date, note, recorded_by_id, created_datetime) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$benefitId, $v, $date, self::str($in['note'] ?? null, 500), $ctx->actorId > 0 ? $ctx->actorId : null]);
+        $id = (int)$conn->lastInsertId();
+        $early = gmdate('Y-m-d', strtotime(($b['review_date'] ?: '9999-12-31') . ' 00:00:00 UTC') - PROJECT_BENEFIT_EARLY_DAYS * 86400);
+        if ($b['status'] === 'open' && (!$b['review_date'] || $date >= $early)) {
+            $next = projectBenefitNextReview(max($date, (string)$b['review_date']), $b['review_months'] !== null ? (int)$b['review_months'] : 0);
+            $conn->prepare("UPDATE project_benefits SET review_date = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$next, $benefitId]);
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'benefit_measured', null, $b['title'] . ': ' . $v . ($b['unit'] ? ' ' . $b['unit'] : ''), self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return $id;
+    }
+
+    public static function deleteBenefitMeasure(PDO $conn, ActorContext $ctx, int $projectId, int $benefitId, int $measureId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        self::benefit($conn, $projectId, $benefitId);
+        $st = $conn->prepare("DELETE FROM project_benefit_measures WHERE id = ? AND benefit_id = ?");
+        $st->execute([$measureId, $benefitId]);
+        if ($st->rowCount() !== 1) throw new ServiceError('not_found', 'not_found', 'That measurement is not part of this benefit.');
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    private static function benefit(PDO $conn, int $projectId, int $benefitId): array
+    {
+        try {
+            $st = $conn->prepare("SELECT * FROM project_benefits WHERE id = ? AND project_id = ?");
+            $st->execute([$benefitId, $projectId]);
+            $r = $st->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        }
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'That benefit is not part of this project.');
+        return $r;
+    }
+
+    // ======================================================================
     //  Change control (3.3.0) - includes/projects/control.php
     // ======================================================================
 
