@@ -112,10 +112,20 @@
                 + (!state.ai_ready ? '<p class="prj-muted" style="margin:10px 0 0">' + esc(T('briefing_off')) + '</p>' : '')
                 + '</div>';
         }
+        // Scheduled drafts (3.3.0): one each week / fortnight / month while the project is active.
+        if (state.schedule && state.can_write) {
+            const s = state.schedule;
+            html += '<div class="prj-panel prj-rep-sched"><label>' + esc(T('schedule_label')) + ' <select data-rep-sched>'
+                + ['off', 'weekly', 'fortnightly', 'monthly'].map(v => '<option value="' + v + '"' + (s.schedule === v ? ' selected' : '') + '>' + esc(T('schedule_' + v)) + '</option>').join('') + '</select></label>'
+                + '<label' + (s.schedule === 'off' ? ' hidden' : '') + '>' + esc(T('schedule_kind')) + ' <select data-rep-sched-kind>'
+                + ['highlight', 'checkpoint', 'exception'].map(k => '<option value="' + k + '"' + (s.kind === k ? ' selected' : '') + '>' + esc(T('kind_' + k)) + '</option>').join('') + '</select></label>'
+                + '<small class="prj-muted">' + esc(T(s.schedule === 'off' ? 'schedule_hint_off' : (state.ai_ready ? 'schedule_hint_ai' : 'schedule_hint_facts'))) + '</small></div>';
+        }
         if (!state.reports.length) html += '<div class="prj-plan-empty">' + esc(T('none')) + '</div>';
         else html += '<div class="prj-rep-list">' + state.reports.map(r => '<button type="button" class="prj-rep-row" data-rep-open="' + r.id + '">'
             + '<span class="prj-rep-badges">' + badges(r) + '</span><span class="prj-rep-title">' + esc(r.title) + '</span>'
-            + '<span class="prj-rep-meta">' + esc(r.status === 'approved' ? T('approved_by', { name: r.approved_by || '-', when: when(r.approved_at) }) : T('by', { name: r.updated_by || r.created_by || '-', when: when(r.updated_at) })) + '</span>'
+            + '<span class="prj-rep-meta">' + esc(r.status === 'approved' ? T('approved_by', { name: r.approved_by || '-', when: when(r.approved_at) }) : T('by', { name: r.updated_by || r.created_by || T('scheduled_by'), when: when(r.updated_at) }))
+            + (r.sent_at ? ' · ' + esc(T('sent_meta', { count: r.sent_count, when: when(r.sent_at) })) : '') + '</span>'
             + '</button>').join('') + '</div>';
         box.innerHTML = html;
     }
@@ -162,6 +172,7 @@
         document.getElementById('rpSave').hidden = !mayEdit;
         document.getElementById('rpApprove').hidden = final || !state.can_approve;
         document.getElementById('rpCopy').hidden = !r;
+        document.getElementById('rpSend').hidden = !(final && state.can_approve && state.schedule);
         document.getElementById('rpDelete').hidden = !r || (final ? !state.can_approve : !state.can_write);
         document.getElementById('rpError').hidden = true;
         setMode(mayEdit && !(r && r.body) ? 'edit' : 'preview');
@@ -200,6 +211,51 @@
         catch (e) { fail(e); }
     }
 
+    // ---- Send an approved report (3.3.0) ------------------------------------------------
+    function openSend() {
+        const list = state.recipients || [];
+        document.getElementById('rsWhat').textContent = T('send_what', { title: editing.title });
+        document.getElementById('rsList').innerHTML = list.length
+            ? list.map((p, i) => '<label class="prj-check prj-send-row"><input type="checkbox" data-rs-email="' + esc(p.email) + '"> <span><strong>' + esc(p.name) + '</strong> <small class="prj-muted">'
+                + esc(p.email) + (p.why === 'owner' ? ' · ' + esc(T('send_owner')) : (p.why ? ' · ' + esc(p.why) : '')) + '</small></span></label>').join('')
+            : '<p class="prj-muted">' + esc(T('send_nobody')) + '</p>';
+        document.getElementById('rsOther').value = '';
+        document.getElementById('rsNote').value = '';
+        document.getElementById('rsError').hidden = true;
+        P.openModal('prjSendModal');
+    }
+
+    async function send() {
+        const emails = [...document.querySelectorAll('#rsList [data-rs-email]:checked')].map(c => c.dataset.rsEmail);
+        const other = document.getElementById('rsOther').value.trim();
+        if (other) emails.push(other);
+        const err = document.getElementById('rsError');
+        if (!emails.length) { err.textContent = T('send_choose'); err.hidden = false; return; }
+        const btn = document.getElementById('rsSend');
+        btn.disabled = true;
+        try {
+            const r = await call({ action: 'send', id: editing.id, emails: emails, note: document.getElementById('rsNote').value });
+            state.reports = r.reports;
+            if (r.failed && r.failed.length) { err.textContent = T('send_failed', { list: r.failed.join(', ') }); err.hidden = false; }
+            else { P.closeModal('prjSendModal'); P.closeModal('prjReportModal'); }
+            if (r.sent && r.sent.length) P.toast(T('send_done', { count: r.sent.length }));
+            drawReports();
+            if (ctx.refresh) ctx.refresh();
+        } catch (e) { err.textContent = e.message; err.hidden = false; }
+        btn.disabled = false;
+    }
+
+    async function setSchedule() {
+        const sel = document.querySelector('#pvReports [data-rep-sched]');
+        const kind = document.querySelector('#pvReports [data-rep-sched-kind]');
+        try {
+            const r = await call({ action: 'schedule', schedule: sel.value, kind: kind ? kind.value : 'highlight' });
+            state.schedule = r.schedule;
+            P.toast(T('schedule_saved'));
+            drawReports();
+        } catch (e) { P.toast(e.message, 'error'); drawReports(); }
+    }
+
     async function copy() {
         const text = document.getElementById('rpTitle').value + '\n\n' + document.getElementById('rpBody').value;
         const ok = window.copyToClipboard ? await window.copyToClipboard(text) : false;
@@ -222,6 +278,9 @@
         document.getElementById('rpApprove').addEventListener('click', approve);
         document.getElementById('rpDelete').addEventListener('click', remove);
         document.getElementById('rpCopy').addEventListener('click', copy);
+        document.getElementById('rpSend').addEventListener('click', openSend);
+        document.getElementById('rsSend').addEventListener('click', send);
+        document.addEventListener('change', e => { if (e.target.closest('#pvReports [data-rep-sched], #pvReports [data-rep-sched-kind]')) setSchedule(); });
     }
 
     window.PrjReports = {

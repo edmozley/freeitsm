@@ -7800,6 +7800,8 @@ CREATE TABLE IF NOT EXISTS `projects` (
     `health_note`       VARCHAR(500) NULL,
     `priority`          VARCHAR(10) NOT NULL DEFAULT 'medium',  -- 3.3.0: low | medium | high | critical (the words are a setting)
     `visibility`        VARCHAR(10) NOT NULL DEFAULT 'everyone', -- 3.3.0: everyone | members (includes/projects/visibility.php)
+    `report_schedule`   VARCHAR(12) NOT NULL DEFAULT 'off',      -- 3.3.0: off | weekly | fortnightly | monthly - a draft report each period
+    `report_schedule_kind` VARCHAR(20) NOT NULL DEFAULT 'highlight', -- highlight | checkpoint | exception
     `owner_analyst_id`  INT NULL,                         -- the project manager
     `start_date`        DATE NULL,
     `target_end_date`   DATE NULL,
@@ -7905,6 +7907,9 @@ CREATE TABLE IF NOT EXISTS `project_reports` (
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `approved_by_id`    INT NULL,
     `approved_datetime` DATETIME NULL,
+    `sent_datetime`     DATETIME NULL,                         -- 3.3.0: last emailed
+    `sent_by_id`        INT NULL,
+    `sent_to`           TEXT NULL,                             -- every address it has gone to, comma-separated
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `ix_prep_project` (`project_id`, `kind`),

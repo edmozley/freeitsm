@@ -10,6 +10,8 @@
  *      draft     {kind, days?}    the AI drafts a highlight / exception / checkpoint report
  *      save      {id?, kind?, title, body}   write one, or edit a draft
  *      approve   {id}
+ *      schedule  {schedule, kind}  a draft each week / fortnight / month (3.3.0)
+ *      send      {id, emails[], note?}  email an approved report (3.3.0)
  *      delete    {id}
  *
  * The AI only PROPOSES: a draft is a draft until a person approves it.
@@ -42,6 +44,9 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
             'can_approve' => projectCanDelete($conn, $analystId, $project),
             'briefing'    => ProjectReportsService::latestBriefing($conn, $pid),
             'reports'     => ProjectReportsService::listFor($conn, $pid),
+            // 3.3.0
+            'schedule'    => ProjectReportsService::schedule($conn, $pid),
+            'recipients'  => projectCanDelete($conn, $analystId, $project) ? ProjectReportsService::recipients($conn, $pid) : [],
         ]);
     }
     $in = projectApiBody();
@@ -62,6 +67,12 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
             ProjectReportsService::approve($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk(['reports' => ProjectReportsService::listFor($conn, $pid)]);
             break;
+        case 'schedule':
+            ProjectReportsService::setSchedule($conn, $ctx, $pid, (string)($in['schedule'] ?? ''), (string)($in['kind'] ?? 'highlight'));
+            projectApiOk(['schedule' => ProjectReportsService::schedule($conn, $pid)]);
+        case 'send':
+            $r = ProjectReportsService::send($conn, $ctx, $pid, (int)($in['id'] ?? 0), (array)($in['emails'] ?? []), (string)($in['note'] ?? ''));
+            projectApiOk($r + ['reports' => ProjectReportsService::listFor($conn, $pid)]);
         case 'delete':
             ProjectReportsService::delete($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk(['reports' => ProjectReportsService::listFor($conn, $pid)]);

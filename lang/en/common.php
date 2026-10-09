@@ -377,6 +377,7 @@ return [
                 'signoff_requested'  => 'Your sign-off is needed at a project gate',
                 'tasks_overdue'      => 'Overdue tasks on a project you manage',
                 'approval_stalled'   => 'Something on a project is still waiting for your decision',
+                'report_drafted'     => 'A scheduled report on a project you manage is drafted',
             ],
         ],
         // Labels for the per-type switches on the Preferences page. Same nesting
@@ -429,6 +430,7 @@ return [
                 'signoff_requested'  => 'I am named to sign something off at a project stage gate',
                 'tasks_overdue'      => 'A project I manage has overdue tasks (weekly or daily, as Projects - Settings says)',
                 'approval_stalled'   => 'A proposal, change request, sign-off or report I decide has been waiting for days',
+                'report_drafted'     => 'A project I manage has a scheduled report drafted for me to check',
             ],
         ],
     ],

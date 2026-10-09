@@ -195,6 +195,7 @@ class WorkflowEngine
             'project.signoff_requested'  => 'Somebody is named to sign off an item at a project stage gate',
             'project.tasks_overdue'      => 'A project has overdue tasks - the digest (time-based: weekly or daily)',
             'project.approval_stalled'   => 'Something on a project has waited days for a decision (time-based)',
+            'project.report_drafted'     => 'A scheduled project report is drafted (time-based)',
             // ── Issue trackers. NOT time-based: something genuinely happened —
             // a developer moved the issue or wrote a comment. The poll is only
             // how we find out, because a self-hosted install cannot be called.
@@ -476,6 +477,7 @@ class WorkflowEngine
             'project.signoff_requested'  => array_merge($projectFields, ['item.id', 'item.title', 'item.analyst_id', 'stage.id', 'stage.name']),
             'project.tasks_overdue'      => array_merge($projectFields, ['count', 'period']),
             'project.approval_stalled'   => array_merge($projectFields, ['kind', 'item.id', 'item.title', 'waiting_days', 'since']),
+            'project.report_drafted'     => array_merge($projectFields, ['report.id', 'report.kind', 'report.title', 'report.ai_drafted', 'report.schedule']),
             'project.benefit_review_due' => array_merge($projectFields, ['benefit.id', 'benefit.title', 'benefit.measure', 'benefit.unit', 'benefit.review_date', 'benefit.baseline_value', 'benefit.target_value', 'benefit.owner_analyst_id']),
         ];
         if (isset($byTrigger[$trigger])) {

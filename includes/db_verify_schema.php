@@ -5186,6 +5186,9 @@ return [
         'proposed_by_email'  => 'VARCHAR(255) NULL',
         // Members-only projects (3.3.0) - includes/projects/visibility.php.
         'visibility'         => "VARCHAR(10) NOT NULL DEFAULT 'everyone'",
+        // Scheduled report drafts (3.3.0) - ProjectReportsService::runSchedules().
+        'report_schedule'      => "VARCHAR(12) NOT NULL DEFAULT 'off'",
+        'report_schedule_kind' => "VARCHAR(20) NOT NULL DEFAULT 'highlight'",
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     // Phases, stages and sprints in ONE table - the same thing through different methods.
@@ -5397,6 +5400,10 @@ return [
         'updated_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'approved_by_id'    => 'INT NULL',
         'approved_datetime' => 'DATETIME NULL',
+        // 3.3.0: sending an approved report.
+        'sent_datetime'     => 'DATETIME NULL',
+        'sent_by_id'        => 'INT NULL',
+        'sent_to'           => 'TEXT NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'project_labour_rates' => [

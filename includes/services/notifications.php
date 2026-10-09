@@ -212,6 +212,8 @@ class NotificationsService
             // project manager; a nudge to whoever has left something waiting.
             'project.tasks_overdue'      => ['default' => true,  'entity' => 'project'],
             'project.approval_stalled'   => ['default' => true,  'entity' => 'project'],
+            // 3.3.0: a scheduled report draft is waiting for the project manager.
+            'project.report_drafted'     => ['default' => true,  'entity' => 'project'],
         ];
     }
 

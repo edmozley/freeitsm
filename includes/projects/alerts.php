@@ -18,6 +18,7 @@
  *   project.milestone_reached somebody marked a milestone reached (3.3.0, the write path)
  *   project.tasks_overdue    a digest of overdue tasks to the project manager (3.3.0, nudges.php)
  *   project.approval_stalled something waited too long for a decision (3.3.0, nudges.php)
+ *   project.report_drafted   a scheduled report draft is ready to check (3.3.0, project_reports.php)
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * WORKED OUT, NEVER STORED - SO SOMETHING HAS TO LOOK
@@ -194,6 +195,9 @@ function projectAlertsScan(PDO $conn, ?int $projectId = null): array
     require_once __DIR__ . '/nudges.php';
     $out['overdue_digests'] = projectAlertsOverdueDigest($conn, $projectId);
     $out['nudges'] = projectAlertsStalled($conn, $projectId);
+    // Scheduled report drafts (3.3.0).
+    require_once __DIR__ . '/../services/project_reports.php';
+    $out['reports'] = ProjectReportsService::runSchedules($conn, $projectId);
     return $out;
 }
 

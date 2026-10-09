@@ -50,6 +50,8 @@ const EMAIL_LOG_ROUTES = [
     'domain_alert'   => 'Domain alert',
     // A task assigned to an analyst who asked to be emailed about it (2.10.0).
     'task'           => 'Task assigned',
+    // An approved project report emailed from its Reports tab (3.3.0).
+    'project_report' => 'Project report',
 ];
 
 /**

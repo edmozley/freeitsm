@@ -43,7 +43,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=37">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=39">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -243,9 +243,28 @@ $projectId = (int)($_GET['id'] ?? 0);
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" id="rpDelete" style="margin-right:auto"><?php echo htmlspecialchars(t('common.delete')); ?></button>
                 <button type="button" class="btn btn-secondary" id="rpCopy"><?php echo htmlspecialchars(t('projects.reports.copy')); ?></button>
+                <button type="button" class="btn btn-secondary" id="rpSend" hidden><?php echo htmlspecialchars(t('projects.reports.send')); ?></button>
                 <button type="button" class="btn btn-secondary" data-prj-close="prjReportModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-secondary" id="rpSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 <button type="button" class="btn btn-primary prj-btn" id="rpApprove"><?php echo htmlspecialchars(t('projects.reports.approve')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send an approved report (3.3.0) - projects-reports.js -->
+    <div class="modal" id="prjSendModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:560px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('projects.reports.send_title')); ?></div>
+            <div class="modal-body">
+                <p class="prj-muted" id="rsWhat" style="margin-top:0"></p>
+                <div class="prj-send-list" id="rsList"></div>
+                <div class="form-group"><label for="rsOther"><?php echo htmlspecialchars(t('projects.reports.send_other')); ?></label><input type="text" id="rsOther" placeholder="<?php echo htmlspecialchars(t('projects.reports.send_other_ph')); ?>"></div>
+                <div class="form-group"><label for="rsNote"><?php echo htmlspecialchars(t('projects.reports.send_note')); ?></label><textarea id="rsNote" rows="3" maxlength="2000"></textarea></div>
+                <div class="prj-form-error" id="rsError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjSendModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="rsSend"><?php echo htmlspecialchars(t('projects.reports.send')); ?></button>
             </div>
         </div>
     </div>
@@ -659,7 +678,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-gatecheck.js?v=1"></script>
     <script src="../assets/js/projects-insights.js?v=1"></script>
     <?php documentsPanelAssets('../'); ?>
-    <script src="../assets/js/projects-reports.js?v=2"></script>
+    <script src="../assets/js/projects-reports.js?v=3"></script>
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=2"></script>

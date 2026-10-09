@@ -15,8 +15,11 @@
  */
 
 /* TRAP: a class that sets display (inline-flex, grid...) beats the UA [hidden]
-   rule, so a hidden chip still showed. Re-assert it for everything in the module. */
-.prj-layout [hidden], .prj-page [hidden], .prj-form-modal [hidden], #prjTargetModal [hidden], #prjTargetListModal [hidden] { display: none !important; }
+   rule, so a hidden chip still showed. Re-assert it for everything in the module.
+   3.3.0: every dialog too (.modal) - listing them one by one missed the report
+   dialog, where Approve, the AI note and the Edit / Preview tabs showed on an
+   APPROVED report. projects.css is only loaded on Projects pages. */
+.prj-layout [hidden], .prj-page [hidden], .modal [hidden] { display: none !important; }
 
 body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-hover, #be123c); --on-accent: var(--prj-on-accent, #fff); }
 
@@ -1124,6 +1127,15 @@ button.prj-tl-label { cursor: pointer; }
 
 /* ---------- portfolio: order, health strip, roadmap (3.3.0) ----------------- */
 .prj-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* 3.3.0: scheduled report drafts, and sending an approved report */
+.prj-rep-sched { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 16px; }
+.prj-rep-sched label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.prj-rep-sched label[hidden] { display: none; }
+.prj-rep-sched select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 7px; background: var(--surface, #fff); color: var(--text, #333); }
+.prj-rep-sched small { flex-basis: 100%; }
+.prj-send-list { max-height: 260px; overflow: auto; border: 1px solid var(--border, #ddd); border-radius: 8px; padding: 6px 10px; margin-bottom: 14px; }
+.prj-send-row { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; }
+.prj-send-row + .prj-send-row { border-top: 1px solid var(--border, #eee); }
 /* 3.3.0: members-only - a word on the card's coloured header */
 .prj-private { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.28); color: #fff; }
 /* 3.3.0: Export - a small menu (portfolio toolbar, RAID filters) */
