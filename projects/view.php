@@ -43,7 +43,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=39">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=40">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -542,6 +542,26 @@ $projectId = (int)($_GET['id'] ?? 0);
     </div>
 
     <!-- Add someone to the project (People) -->
+    <!-- Stakeholder map (3.3.0) - projects-tools.js -->
+    <div class="modal" id="prjStakeModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('projects.stake.dialog')); ?>&nbsp;<span id="psName"></span></div>
+            <div class="modal-body">
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="psPower"><?php echo htmlspecialchars(t('projects.stake.power_q')); ?></label><select id="psPower"></select></div>
+                    <div class="form-group"><label for="psInterest"><?php echo htmlspecialchars(t('projects.stake.interest_q')); ?></label><select id="psInterest"></select></div>
+                </div>
+                <div class="form-group"><label for="psStance"><?php echo htmlspecialchars(t('projects.stake.stance')); ?></label><select id="psStance"></select></div>
+                <div class="form-group"><label for="psKeep"><?php echo htmlspecialchars(t('projects.stake.keep_informed')); ?></label><input type="text" id="psKeep" maxlength="255" placeholder="<?php echo htmlspecialchars(t('projects.stake.keep_ph')); ?>"></div>
+                <div class="prj-form-error" id="psError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjStakeModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="psSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal" id="prjMemberModal" aria-hidden="true">
         <div class="modal-content" style="max-width:520px">
             <div class="modal-header"><?php echo htmlspecialchars(t('projects.people.add_title')); ?></div>
@@ -669,7 +689,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <?php include 'includes/project_form.php'; ?>
 
     <script src="../assets/js/projects.js?v=10"></script>
-    <script src="../assets/js/projects-tools.js?v=9"></script>
+    <script src="../assets/js/projects-tools.js?v=10"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-budget.js?v=6"></script>
     <script src="../assets/js/projects-control.js?v=1"></script>

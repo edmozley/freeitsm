@@ -5290,6 +5290,11 @@ return [
         'user_id'               => 'INT NULL',
         'role_id'               => 'INT NULL',
         'notes'                 => 'VARCHAR(255) NULL',
+        // Stakeholder map (3.3.0).
+        'power'                 => 'TINYINT NULL',
+        'interest'              => 'TINYINT NULL',
+        'stance'                => 'VARCHAR(10) NULL',
+        'keep_informed'         => 'VARCHAR(255) NULL',
         'position'              => 'INT NOT NULL DEFAULT 0',
         'created_by_analyst_id' => 'INT NULL',
         'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',

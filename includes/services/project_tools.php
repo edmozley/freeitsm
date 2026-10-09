@@ -72,12 +72,47 @@ class ProjectToolsService
         $sets = []; $args = [];
         if (array_key_exists('role_id', $in)) { $sets[] = 'role_id = ?'; $args[] = self::roleId($conn, $in['role_id']); }
         if (array_key_exists('notes', $in))   { $sets[] = 'notes = ?';   $args[] = self::str($in['notes'], 255); }
+        // Stakeholder map (3.3.0): power and interest 1-5 (empty = not placed), stance, and how they are kept informed.
+        $stake = false;
+        if (self::stakeReady($conn)) {
+            foreach (['power', 'interest'] as $k) {
+                if (!array_key_exists($k, $in)) continue;
+                $v = $in[$k] === null || $in[$k] === '' ? null : (int)$in[$k];
+                if ($v !== null && ($v < 1 || $v > 5)) throw new ServiceError('validation', 'invalid_field', 'Power and interest are 1 to 5.');
+                $sets[] = "$k = ?"; $args[] = $v; $stake = true;
+            }
+            if (array_key_exists('stance', $in)) {
+                $v = (string)($in['stance'] ?? '') === '' ? null : (string)$in['stance'];
+                if ($v !== null && !in_array($v, self::STANCES, true)) throw new ServiceError('validation', 'invalid_field', 'Choose a stance.');
+                $sets[] = 'stance = ?'; $args[] = $v; $stake = true;
+            }
+            if (array_key_exists('keep_informed', $in)) { $sets[] = 'keep_informed = ?'; $args[] = self::str($in['keep_informed'], 255); $stake = true; }
+        }
         if (!$sets) return;
         $args[] = $memberId;
         $conn->prepare("UPDATE project_members SET " . implode(', ', $sets) . " WHERE id = ?")->execute($args);
         if (array_key_exists('role_id', $in) && (string)$m['role_id'] !== (string)self::roleId($conn, $in['role_id'])) {
             ProjectsService::audit($conn, $projectId, $ctx->actorId, 'member_role', self::memberName($conn, $memberId), self::roleName($conn, self::roleId($conn, $in['role_id'])), self::src($ctx));
         }
+        if ($stake) ProjectsService::audit($conn, $projectId, $ctx->actorId, 'stakeholder_saved', null, self::memberName($conn, $memberId), self::src($ctx));
+    }
+
+    const STANCES = ['champion', 'supporter', 'neutral', 'sceptic', 'blocker'];
+
+    /** Has Database Verification added the stakeholder columns (3.3.0)? */
+    public static function stakeReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $conn->query("SELECT power, interest, stance, keep_informed FROM project_members LIMIT 0"); $ready = true; }
+            catch (Throwable $e) { $ready = false; }
+        }
+        return $ready;
+    }
+
+    private static function stakeColumns(PDO $conn): string
+    {
+        return self::stakeReady($conn) ? 'm.power, m.interest, m.stance, m.keep_informed' : 'NULL AS power, NULL AS interest, NULL AS stance, NULL AS keep_informed';
     }
 
     /** Remove a member. Their RACI letters go with them (FK cascade, and by hand). */
@@ -901,7 +936,7 @@ class ProjectToolsService
     {
         try {
             $st = $conn->prepare(
-                "SELECT m.id, m.analyst_id, m.team_id, m.user_id, m.role_id, r.name AS role_name, m.notes, m.position,
+                "SELECT m.id, m.analyst_id, m.team_id, m.user_id, m.role_id, r.name AS role_name, m.notes, m.position, " . self::stakeColumns($conn) . ",
                         COALESCE(a.full_name, tm.name, COALESCE(NULLIF(u.display_name, ''), u.email)) AS name,
                         CASE WHEN m.analyst_id IS NOT NULL THEN 'analyst' WHEN m.team_id IS NOT NULL THEN 'team' ELSE 'person' END AS kind,
                         COALESCE(a.email, u.email) AS email, u.job_title

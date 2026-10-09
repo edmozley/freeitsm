@@ -8106,6 +8106,10 @@ CREATE TABLE IF NOT EXISTS `project_members` (
     `user_id`               INT NULL,
     `role_id`               INT NULL,
     `notes`                 VARCHAR(255) NULL,
+    `power`                 TINYINT NULL,                       -- 3.3.0 stakeholder map: 1-5, how much they can affect it
+    `interest`              TINYINT NULL,                       -- 1-5, how much it affects them
+    `stance`                VARCHAR(10) NULL,                   -- champion | supporter | neutral | sceptic | blocker
+    `keep_informed`         VARCHAR(255) NULL,                  -- the communications plan: how, and how often
     `position`              INT NOT NULL DEFAULT 0,
     `created_by_analyst_id` INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -1127,6 +1127,26 @@ button.prj-tl-label { cursor: pointer; }
 
 /* ---------- portfolio: order, health strip, roadmap (3.3.0) ----------------- */
 .prj-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* 3.3.0: stakeholder map - stance chips carry words; tints are status-free neutrals */
+.prj-person-stake { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; font-size: 12px; }
+.prj-person-stake .prj-link { margin-left: 0; }
+.prj-stance { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border, #ddd); color: var(--text, #333); background: var(--surface-2, #fafafa); }
+.prj-stance.st-champion, .prj-stance.st-supporter { border-color: #16a34a; color: #15803d; }
+.prj-stance.st-sceptic { border-color: #d97706; color: #b45309; }
+.prj-stance.st-blocker { border-color: #dc2626; color: #b91c1c; }
+.prj-stake-wrap { display: grid; grid-template-columns: 22px 1fr; grid-template-rows: auto auto; gap: 6px; }
+.prj-stake-axis-y { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-dim, #888); }
+.prj-stake-axis-x { grid-column: 2; text-align: center; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-dim, #888); }
+.prj-stake-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.prj-stake-q { border: 1px solid var(--border, #ddd); border-radius: 10px; padding: 10px 12px; min-height: 110px; background: var(--surface-2, #fafafa); }
+.prj-stake-q.q-hh { border-color: var(--prj-accent, #e11d48); }
+.prj-stake-qh { display: flex; flex-direction: column; margin-bottom: 8px; }
+.prj-stake-qh small { color: var(--text-dim, #888); font-size: 11px; }
+.prj-stake-names { display: flex; flex-wrap: wrap; gap: 6px; }
+.prj-stake-name { font-size: 13px; padding: 3px 9px; border-radius: 7px; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); }
+.prj-stake-plan-h { margin: 18px 0 8px; font-size: 13px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .prj-stance.st-champion, :root:not([data-theme="light"]) .prj-stance.st-supporter { color: #4ade80; } :root:not([data-theme="light"]) .prj-stance.st-sceptic { color: #fbbf24; } :root:not([data-theme="light"]) .prj-stance.st-blocker { color: #f87171; } }
+:root[data-theme="dark"] .prj-stance.st-champion, :root[data-theme="dark"] .prj-stance.st-supporter { color: #4ade80; } :root[data-theme="dark"] .prj-stance.st-sceptic { color: #fbbf24; } :root[data-theme="dark"] .prj-stance.st-blocker { color: #f87171; }
 /* 3.3.0: scheduled report drafts, and sending an approved report */
 .prj-rep-sched { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 16px; }
 .prj-rep-sched label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }

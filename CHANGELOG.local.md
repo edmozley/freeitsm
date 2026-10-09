@@ -38,6 +38,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2235 | Projects          | Feature     | Reminders: a weekly (or daily, or no) digest of a project's overdue tasks to its project manager, and nudges after N days (default 3, repeating) when a proposal, change request, gate sign-off or report draft waits for a decision - new bells and Workflow triggers project.tasks_overdue / project.approval_stalled (includes/projects/nudges.php). |
 | 2236 | Projects          | Feature     | Scheduled report drafts (per project: weekly / fortnightly / monthly, highlight / checkpoint / exception - by the AI, or a facts sheet without one, never self-approved, project.report_drafted bell) and Send on an approved report: email it to ticked members and other addresses with a note, recorded on the report and in the history (route "Project report" in the send log). |
 | 2237 | Projects          | Fix         | Dialogs on Projects pages ignored the hidden attribute when a class set display, so an APPROVED report still showed Approve, the AI note and the Edit / Preview tabs - the module's [hidden] rule now covers every dialog. |
+| 2238 | Projects          | Feature     | Stakeholder map on the People tab: members get power, interest (1-5), stance and how they are kept informed; a power / interest grid in four quadrants and a communications plan table (project_members.power, interest, stance, keep_informed). |
 
 
 

@@ -42,11 +42,60 @@
                 +   (canChange()
                         ? '<select class="prj-role-select" data-member-role="' + m.id + '" aria-label="' + esc(T('people.role')) + '">' + roleOpts(m.role_id) + '</select>'
                         : '<div class="prj-person-role">' + esc(m.role_name || T('people.no_role')) + '</div>')
+                // Stakeholder map (3.3.0): where they sit, and the button to place them.
+                +   (ctx.L.stake_ready ? '<div class="prj-person-stake">' + (m.stance ? stanceChip(m.stance) : '')
+                        + (m.power && m.interest ? '<span class="prj-muted">' + esc(T('stake.q_' + quadrant(m))) + '</span>' : '')
+                        + (canChange() ? '<button type="button" class="prj-link" data-stake="' + m.id + '">' + esc(T(m.power && m.interest ? 'stake.edit' : 'stake.place')) + '</button>' : '') + '</div>' : '')
                 + '</div>'
                 + (canChange() ? '<button type="button" class="prj-task-remove" data-member-remove="' + m.id + '" title="' + esc(T('people.remove')) + '" aria-label="' + esc(T('people.remove')) + '">&times;</button>' : '')
                 + '</div>').join('') + '</div>';
+            if (ctx.L.stake_ready) html += stakeMap(d.members);
         }
         box.innerHTML = html;
+    }
+
+    // ---- Stakeholder map (3.3.0) ---------------------------------------------------------
+    // Power (can they affect it?) against interest (does it affect them?), 1-5 each.
+    // 3 and up is "high": the four classic quadrants. Stance always in words.
+    const STANCES = ['champion', 'supporter', 'neutral', 'sceptic', 'blocker'];
+    function quadrant(m) { return (m.power >= 3 ? 'h' : 'l') + (m.interest >= 3 ? 'h' : 'l'); }
+    function stanceChip(s) { return '<span class="prj-stance st-' + esc(s) + '">' + esc(T('stake.stance_' + s)) + '</span>'; }
+    function stakeMap(members) {
+        const placed = members.filter(m => m.power && m.interest);
+        let html = '<div class="prj-panel prj-stake-panel"><h3>' + esc(T('stake.title')) + ' <small class="prj-muted">' + esc(T('stake.subtitle')) + '</small></h3>'
+            + '<p class="prj-muted" style="margin:-6px 0 12px">' + esc(T('stake.intro')) + '</p>';
+        if (!placed.length) return html + '<div class="prj-plan-empty">' + esc(T('stake.empty')) + '</div></div>';
+        // Rows: high power first. Columns: low interest, then high.
+        const cell = q => '<div class="prj-stake-q q-' + q + '"><div class="prj-stake-qh"><strong>' + esc(T('stake.q_' + q)) + '</strong><small>' + esc(T('stake.q_' + q + '_d')) + '</small></div>'
+            + '<div class="prj-stake-names">' + placed.filter(m => quadrant(m) === q).sort((a, b) => (b.power + b.interest) - (a.power + a.interest))
+                .map(m => '<span class="prj-stake-name" title="' + esc(T('stake.scores', { power: m.power, interest: m.interest })) + '">' + esc(m.name) + (m.stance ? ' ' + stanceChip(m.stance) : '') + '</span>').join('') + '</div></div>';
+        html += '<div class="prj-stake-wrap"><div class="prj-stake-axis-y">' + esc(T('stake.power')) + ' &uarr;</div><div class="prj-stake-grid">' + cell('hl') + cell('hh') + cell('ll') + cell('lh') + '</div>'
+            + '<div class="prj-stake-axis-x">' + esc(T('stake.interest')) + ' &rarr;</div></div>';
+        // The communications plan: everybody placed, most important first.
+        const rows = placed.slice().sort((a, b) => (b.power * b.interest) - (a.power * a.interest));
+        html += '<h4 class="prj-stake-plan-h">' + esc(T('stake.plan_title')) + '</h4><div class="prj-table-wrap"><table class="prj-budget-table"><thead><tr><th>' + esc(T('stake.who')) + '</th><th>' + esc(T('stake.where')) + '</th><th>' + esc(T('stake.stance')) + '</th><th>' + esc(T('stake.keep_informed')) + '</th></tr></thead><tbody>'
+            + rows.map(m => '<tr><td>' + esc(m.name) + '</td><td>' + esc(T('stake.q_' + quadrant(m))) + ' <small class="prj-muted">' + esc(T('stake.scores', { power: m.power, interest: m.interest })) + '</small></td><td>' + (m.stance ? stanceChip(m.stance) : '-') + '</td><td>' + esc(m.keep_informed || T('stake.not_planned')) + '</td></tr>').join('')
+            + '</tbody></table></div>';
+        return html + '</div>';
+    }
+    let stakeMember = null;
+    function openStake(id) {
+        stakeMember = ctx.data.members.find(m => String(m.id) === String(id));
+        if (!stakeMember) return;
+        const lv = (sel, v) => { document.getElementById(sel).innerHTML = '<option value="">' + esc(T('stake.not_set')) + '</option>' + [1, 2, 3, 4, 5].map(n => '<option value="' + n + '"' + (String(v) === String(n) ? ' selected' : '') + '>' + n + ' - ' + esc(T('stake.level_' + n)) + '</option>').join(''); };
+        document.getElementById('psName').textContent = stakeMember.name;
+        lv('psPower', stakeMember.power); lv('psInterest', stakeMember.interest);
+        document.getElementById('psStance').innerHTML = '<option value="">' + esc(T('stake.not_set')) + '</option>' + STANCES.map(s => '<option value="' + s + '"' + (stakeMember.stance === s ? ' selected' : '') + '>' + esc(T('stake.stance_' + s)) + '</option>').join('');
+        document.getElementById('psKeep').value = stakeMember.keep_informed || '';
+        document.getElementById('psError').hidden = true;
+        P.openModal('prjStakeModal');
+    }
+    async function saveStake() {
+        try {
+            await call({ action: 'member_update', member_id: stakeMember.id, power: document.getElementById('psPower').value, interest: document.getElementById('psInterest').value,
+                stance: document.getElementById('psStance').value, keep_informed: document.getElementById('psKeep').value });
+            P.closeModal('prjStakeModal'); P.toast(T('stake.saved')); await ctx.refresh();
+        } catch (err) { const el = document.getElementById('psError'); el.textContent = err.message; el.hidden = false; }
     }
 
     let memberKind = 'analyst';
@@ -579,6 +628,8 @@
         const page = ctx.page;
         page.addEventListener('click', async e => {
             if (e.target.closest('[data-pm-add]')) { openMember(); return; }
+            const sk = e.target.closest('[data-stake]');
+            if (sk) { openStake(sk.dataset.stake); return; }
             const rm = e.target.closest('[data-member-remove]');
             if (rm) {
                 const ok = await window.showConfirm({ title: T('people.remove_title'), message: T('people.remove_body'), okLabel: T('people.remove'), okClass: 'danger' });
@@ -679,6 +730,7 @@
             document.getElementById('pmPersonResults').hidden = true;
         });
         document.getElementById('pmSave').addEventListener('click', saveMember);
+        document.getElementById('psSave').addEventListener('click', saveStake);
         document.getElementById('prType').addEventListener('click', e => { const b = e.target.closest('[data-rtype]'); if (b) setRaidType(b.dataset.rtype); });
         document.getElementById('prSave').addEventListener('click', saveRaid);
         document.getElementById('prjRaidModal').addEventListener('click', e => {
