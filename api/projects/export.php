@@ -50,7 +50,7 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
             $nm = $p['next_milestone'] ?? null;
             $out[] = array_merge([$p['code'], $p['name']], $multi ? [$p['company_name'] ?? ''] : [], [
                 $T('status.' . $p['status']),
-                ($p['priority'] ?? null) !== null && isset($prio[(int)$p['priority'] - 1]) ? $prio[(int)$p['priority'] - 1] : '',
+                $prio[array_search($p['priority'] ?? '', projectPriorities(), true)] ?? '',   // a key (low ... critical) -> its label
                 $p['shown_health'] ? $T('health.' . $p['shown_health']) : '',
                 (int)$p['progress'] . '%', $p['owner_name'] ?? '', $p['active_stage_name'] ?? '',
                 $date($p['start_date']), $date($p['target_end_date']), $date($p['actual_end_date']),
