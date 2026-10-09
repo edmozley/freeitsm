@@ -285,7 +285,12 @@
             + '<button type="button" data-rfilter=""' + (raidFilter.type === '' ? ' class="active"' : '') + '>' + esc(T('raid.all')) + '</button>'
             + RAID_TYPES.map(t => '<button type="button" data-rfilter="' + t + '"' + (raidFilter.type === t ? ' class="active"' : '') + '>' + esc(raidPlural(t))
                 + (counts[t] ? ' <small>' + counts[t] + '</small>' : '') + '</button>').join('')
-            + '</div><label class="prj-check"><input type="checkbox" data-rclosed' + (raidFilter.closed ? ' checked' : '') + '> ' + esc(T('raid.show_closed')) + '</label></div>';
+            + '</div><label class="prj-check"><input type="checkbox" data-rclosed' + (raidFilter.closed ? ' checked' : '') + '> ' + esc(T('raid.show_closed')) + '</label>'
+            // 3.3.0: the whole log as a spreadsheet.
+            + (all.length ? '<details class="prj-export" data-raid-export><summary title="' + esc(T('export.raid_hint')) + '">' + esc(T('export.button')) + '</summary><div class="prj-export-menu">'
+                + '<a href="' + esc(window.PRJ_BASE + 'api/projects/export.php?what=raid&format=xlsx&project_id=' + ctx.data.project.id) + '">' + esc(T('export.xlsx')) + '</a>'
+                + '<a href="' + esc(window.PRJ_BASE + 'api/projects/export.php?what=raid&format=csv&project_id=' + ctx.data.project.id) + '">' + esc(T('export.csv')) + '</a></div></details>' : '')
+            + '</div>';
         if (raidFilter.type === 'decision') html += '<p class="prj-hint prj-raid-log-hint">' + esc(T('raid.log_hint')) + '</p>';
         html += rows.length ? '<ul class="prj-raid-list' + (raidFilter.type === 'decision' ? ' log' : '') + '">' + rows.map(raidRow).join('') + '</ul>'
             : '<div class="prj-plan-empty">' + esc(all.length ? T('raid.empty_filtered') : T('raid.empty')) + '</div>';

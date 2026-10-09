@@ -36,7 +36,7 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=35">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=36">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=189">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-portfolio">
@@ -89,6 +89,14 @@ $translationNamespaces = ['common', 'projects'];
                         <button type="button" data-layout="roadmap"><?php echo htmlspecialchars(t('projects.portfolio.layout_roadmap')); ?></button>
                         <button type="button" data-layout="charts"><?php echo htmlspecialchars(t('projects.portfolio.layout_charts')); ?></button>
                     </div>
+                    <!-- 3.3.0: the projects in the view as a spreadsheet - api/projects/export.php -->
+                    <details class="prj-export" id="prjExport">
+                        <summary title="<?php echo htmlspecialchars(t('projects.portfolio.export_hint')); ?>"><?php echo htmlspecialchars(t('projects.portfolio.export')); ?></summary>
+                        <div class="prj-export-menu">
+                            <button type="button" data-export="xlsx"><?php echo htmlspecialchars(t('projects.export.xlsx')); ?></button>
+                            <button type="button" data-export="csv"><?php echo htmlspecialchars(t('projects.export.csv')); ?></button>
+                        </div>
+                    </details>
                 </div>
             </div>
 
@@ -113,9 +121,9 @@ $translationNamespaces = ['common', 'projects'];
 
     <?php include 'includes/project_form.php'; ?>
 
-    <script src="../assets/js/projects.js?v=8"></script>
+    <script src="../assets/js/projects.js?v=9"></script>
     <script src="../assets/js/projects-charts.js?v=9"></script>
-    <script src="../assets/js/projects-portfolio.js?v=11"></script>
+    <script src="../assets/js/projects-portfolio.js?v=12"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>
 </html>

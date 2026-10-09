@@ -1124,6 +1124,16 @@ button.prj-tl-label { cursor: pointer; }
 
 /* ---------- portfolio: order, health strip, roadmap (3.3.0) ----------------- */
 .prj-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* 3.3.0: Export - a small menu (portfolio toolbar, RAID filters) */
+.prj-export { position: relative; }
+.prj-export summary { list-style: none; cursor: pointer; padding: 6px 12px; border: 1px solid var(--border, #ddd); border-radius: 7px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; user-select: none; }
+.prj-export summary::-webkit-details-marker { display: none; }
+.prj-export summary::after { content: ''; display: inline-block; margin-left: 6px; border: 4px solid transparent; border-top-color: currentColor; vertical-align: -1px; }
+.prj-export[open] summary { border-color: var(--prj-accent, #f43f5e); }
+.prj-export-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; min-width: 150px; padding: 4px; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.14); display: flex; flex-direction: column; }
+.prj-export-menu button, .prj-export-menu a { all: unset; cursor: pointer; padding: 8px 10px; border-radius: 6px; font-size: 13px; color: var(--text, #333); }
+.prj-export-menu button:hover, .prj-export-menu a:hover, .prj-export-menu button:focus-visible, .prj-export-menu a:focus-visible { background: var(--prj-accent-soft, #fff1f2); color: var(--prj-accent, #e11d48); }
+.prj-raid-filters .prj-export { margin-left: auto; }
 .prj-sort { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim, #888); }
 .prj-sort select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 7px; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; }
 .prj-layout-seg { margin: 0; }

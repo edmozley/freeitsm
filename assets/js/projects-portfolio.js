@@ -317,7 +317,18 @@
         P.openProjectForm(null, id => { window.location.href = window.PRJ_BASE + 'projects/view.php?id=' + id + '&new=1'; });
     }
 
+    /** The projects in the view, in the view's order, as a spreadsheet (3.3.0). */
+    function exportView(format) {
+        const ids = sorted(all.filter(p => inView(p, view) && matches(p))).map(p => p.id);
+        window.location.href = window.PRJ_BASE + 'api/projects/export.php?what=portfolio&format=' + format + '&ids=' + ids.join(',');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('prjExport').addEventListener('click', e => {
+            const b = e.target.closest('[data-export]'); if (!b) return;
+            e.currentTarget.open = false;
+            exportView(b.dataset.export);
+        });
         document.getElementById('prjViews').addEventListener('click', e => {
             const li = e.target.closest('li[data-view]'); if (!li) return;
             view = li.dataset.view;

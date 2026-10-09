@@ -434,6 +434,11 @@
 
     document.addEventListener('DOMContentLoaded', wireForm);
 
+    // Export menus (3.3.0, portfolio and RAID): a click anywhere else closes an open one.
+    document.addEventListener('click', e => {
+        document.querySelectorAll('details.prj-export[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; });
+    });
+
     window.Prj = {
         T, TC, esc, api, lookups, icon, gradient, setPalette, ring, statusPill, healthBadge, priorityLabel, priorityChip, setPriorityLabels,
         fmtDate, daysTo, todayStr, targetPhrase, initials, timeboxWord, toast,
