@@ -8274,6 +8274,68 @@ CREATE TABLE IF NOT EXISTS `project_milestones` (
     CONSTRAINT `fk_pms_done_by` FOREIGN KEY (`done_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_pms_created_by` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Change control (3.3.0) - includes/projects/control.php. A baseline is the
+-- plan as it stood when it was agreed: dates, budget, work and Must scope, with
+-- the detail (stages, milestones, Must items, budget lines) as JSON so later
+-- drift can be shown item by item. Never edited; a new one is taken instead.
+CREATE TABLE IF NOT EXISTS `project_baselines` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `project_id`        INT NOT NULL,
+    `number`            INT NOT NULL,                                 -- 1, 2, 3 within the project
+    `label`             VARCHAR(150) NULL,
+    `reason`            VARCHAR(12) NOT NULL DEFAULT 'manual',       -- manual | start | stage | change
+    `stage_id`          INT NULL,                                     -- the stage whose start took it
+    `change_request_id` INT NULL,                                     -- the change whose approval took it
+    `start_date`        DATE NULL,
+    `target_end_date`   DATE NULL,
+    `budget_planned`    DECIMAL(14,2) NULL,
+    `currency`          CHAR(3) NULL,
+    `task_count`        INT NOT NULL DEFAULT 0,
+    `estimate_hours`    DECIMAL(9,2) NULL,
+    `must_count`        INT NOT NULL DEFAULT 0,
+    `snapshot`          MEDIUMTEXT NULL,                              -- JSON: stages, milestones, must, lines
+    `created_by_id`     INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_pbase_project` (`project_id`, `number`),
+    KEY `ix_pbase_stage` (`stage_id`),
+    KEY `ix_pbase_change` (`change_request_id`),
+    CONSTRAINT `fk_pbase_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pbase_stage` FOREIGN KEY (`stage_id`) REFERENCES `project_stages` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pbase_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A request to change the agreed plan, with what it does to time, cost and
+-- scope. Approved, rejected or withdrawn - never deleted, it is the audit trail.
+-- `applied` records what approving did (JSON: the target moved, the budget line added).
+CREATE TABLE IF NOT EXISTS `project_change_requests` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `project_id`       INT NOT NULL,
+    `number`           INT NOT NULL,                                  -- CR-1, CR-2 within the project
+    `title`            VARCHAR(200) NOT NULL,
+    `description`      TEXT NULL,
+    `reason`           TEXT NULL,
+    `impact_days`      INT NULL,                                      -- + later, - sooner
+    `impact_cost`      DECIMAL(14,2) NULL,                            -- + more, - a saving
+    `impact_scope`     VARCHAR(1000) NULL,
+    `status`           VARCHAR(12) NOT NULL DEFAULT 'proposed',       -- proposed | approved | rejected | withdrawn
+    `raised_by_id`     INT NULL,
+    `raised_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `decided_by_id`    INT NULL,
+    `decided_datetime` DATETIME NULL,
+    `decision_notes`   TEXT NULL,
+    `applied`          TEXT NULL,
+    `baseline_id`      INT NULL,
+    `updated_datetime` DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_pcr_project` (`project_id`, `status`),
+    KEY `ix_pcr_baseline` (`baseline_id`),
+    CONSTRAINT `fk_pcr_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pcr_raised_by` FOREIGN KEY (`raised_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pcr_decided_by` FOREIGN KEY (`decided_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pcr_baseline` FOREIGN KEY (`baseline_id`) REFERENCES `project_baselines` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Seed: the project roles a fresh install starts with (PRINCE2-style, in our

@@ -187,6 +187,8 @@ class WorkflowEngine
             'project.milestone_missed'   => 'A project milestone\'s date passes without it being reached (time-based)',
             'project.milestone_reached'  => 'A project milestone is marked reached',
             'project.raid_escalated'     => 'A project RAID entry is escalated - it needs somebody above the project manager',
+            'project.change_raised'      => 'A change request is raised on a project',
+            'project.change_decided'     => 'A change request on a project is approved or rejected',
             // ── Issue trackers. NOT time-based: something genuinely happened —
             // a developer moved the issue or wrote a comment. The poll is only
             // how we find out, because a self-hosted install cannot be called.
@@ -459,6 +461,9 @@ class WorkflowEngine
             'project.milestone_reached'  => array_merge($projectFields, $milestoneFields, ['late_days']),
             // 3.3.0. raid.type: risk | assumption | issue | dependency | decision | lesson; note = what is needed.
             'project.raid_escalated'     => array_merge($projectFields, ['raid.id', 'raid.type', 'raid.title', 'raid.due_date', 'raid.owner_analyst_id', 'note']),
+            // 3.3.0 change control. status: proposed (raised) | approved | rejected; impact_days + later, impact_cost + more.
+            'project.change_raised'      => array_merge($projectFields, $crFields = ['change_request.id', 'change_request.reference', 'change_request.title', 'change_request.status', 'change_request.impact_days', 'change_request.impact_cost', 'change_request.impact_scope', 'change_request.raised_by_id']),
+            'project.change_decided'     => array_merge($projectFields, $crFields, ['change_request.decided_by_id', 'change_request.decision_notes']),
         ];
         if (isset($byTrigger[$trigger])) {
             return $byTrigger[$trigger];

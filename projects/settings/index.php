@@ -49,7 +49,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=23">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=25">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -75,6 +75,11 @@ $row = function (string $label, string $desc, string $control) {
             $row($tt('priority_labels'), $tt('priority_labels_desc'), $pr . '</div><div class="dflt" data-d="project_priority_labels"></div>');
             $row($tt('portfolio_sort'), $tt('portfolio_sort_desc'), '<select data-k="project_portfolio_sort"><option value="target">' . htmlspecialchars(t('projects.portfolio.sort_target')) . '</option><option value="priority">' . htmlspecialchars(t('projects.portfolio.sort_priority')) . '</option><option value="health">' . htmlspecialchars(t('projects.portfolio.sort_health')) . '</option><option value="name">' . htmlspecialchars(t('projects.portfolio.sort_name')) . '</option></select><div class="dflt" data-d="project_portfolio_sort"></div>');
             $row($tt('burnup_measure'), $tt('burnup_measure_desc'), '<select data-k="project_burnup_measure"><option value="tasks">' . $tt('measure_tasks') . '</option><option value="hours">' . $tt('measure_hours') . '</option></select><div class="dflt" data-d="project_burnup_measure"></div>');
+            // 3.3.0 change control.
+            $row($tt('baseline_auto'), $tt('baseline_auto_desc'), '<select data-k="project_baseline_auto"><option value="stage">' . $tt('baseline_auto_stage') . '</option><option value="start">' . $tt('baseline_auto_start') . '</option><option value="off">' . $tt('baseline_auto_off') . '</option></select><div class="dflt" data-d="project_baseline_auto"></div>');
+            $row($tt('change_approver'), $tt('change_approver_desc'), '<select data-k="project_change_approver"><option value="owner">' . $tt('approver_owner') . '</option><option value="team">' . $tt('approver_team') . '</option><option value="managers">' . $tt('approver_managers') . '</option></select><div class="dflt" data-d="project_change_approver"></div>');
+            $row($tt('change_self'), $tt('change_self_desc'), '<select data-k="project_change_self"><option value="1">' . htmlspecialchars(t('common.yes')) . '</option><option value="0">' . htmlspecialchars(t('common.no')) . '</option></select><div class="dflt" data-d="project_change_self"></div>');
+            $row($tt('change_apply'), $tt('change_apply_desc'), '<select data-k="project_change_apply"><option value="plan">' . $tt('apply_plan') . '</option><option value="baseline">' . $tt('apply_baseline') . '</option></select><div class="dflt" data-d="project_change_apply"></div>');
             ?>
             <div class="prj-set-note"><?php echo $tt('delete_note'); ?></div>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="general"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
@@ -223,7 +228,7 @@ $row = function (string $label, string $desc, string $control) {
     </div>
 
     <script src="../../assets/js/projects.js?v=8"></script>
-    <script src="../../assets/js/projects-settings.js?v=7"></script>
+    <script src="../../assets/js/projects-settings.js?v=8"></script>
     <script src="../../assets/js/ai-settings.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=78"></script>
 </body>

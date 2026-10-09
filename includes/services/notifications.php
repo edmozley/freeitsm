@@ -197,6 +197,10 @@ class NotificationsService
             'project.milestone_reached'  => ['default' => false, 'entity' => 'project'],
             // 3.3.0: somebody escalated a RAID entry - never your own (rule 1).
             'project.raid_escalated'     => ['default' => true,  'entity' => 'project'],
+            // 3.3.0 change control: a request raised is something to decide; one
+            // decided is news to the project manager only when somebody else decided it.
+            'project.change_raised'      => ['default' => true,  'entity' => 'project'],
+            'project.change_decided'     => ['default' => true,  'entity' => 'project'],
         ];
     }
 

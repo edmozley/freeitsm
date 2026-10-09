@@ -51,6 +51,7 @@ $sections = [
     'alerts'    => 3,
     'announce'  => 2,
     'budget'    => 4,
+    'control'   => 3,
     'reports'   => 3,
     'companies' => 1,
     'settings'  => 1,
@@ -86,7 +87,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=26">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=23">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=25">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=188">
     <style>

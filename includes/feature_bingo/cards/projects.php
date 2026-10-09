@@ -229,4 +229,16 @@ return [
         'link'     => 'projects/capacity.php',
         'check'    => ['rows', 'tasks', 'project_id IS NOT NULL AND estimate_hours IS NOT NULL'],
     ],
+    [
+        'id'       => 'projects.change_control',
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Change control with baselines',
+        'what'     => 'A baseline of each project\'s agreed plan - dates, budget, work and Must scope - with how far it has drifted since, and change requests approved or rejected before the plan moves.',
+        'why'      => 'When the board asks why go-live slipped three weeks and the budget grew by a fifth, the answer is on one tab: who asked, why, and who agreed.',
+        'done'     => 'At least one change request has been decided.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_change_requests', "status IN ('approved', 'rejected')"],
+    ],
 ];

@@ -483,4 +483,9 @@ return [
     ['project_templates', 'idx_project_templates_name', 'key', '(`name`)'],
     ['project_milestones', 'idx_pms_project', 'key', '(`project_id`,`due_date`)'],
     ['project_milestones', 'ix_pms_stage', 'key', '(`stage_id`)'],
+    ['project_baselines', 'idx_pbase_project', 'key', '(`project_id`,`number`)'],
+    ['project_baselines', 'ix_pbase_stage', 'key', '(`stage_id`)'],
+    ['project_baselines', 'ix_pbase_change', 'key', '(`change_request_id`)'],
+    ['project_change_requests', 'idx_pcr_project', 'key', '(`project_id`,`status`)'],
+    ['project_change_requests', 'ix_pcr_baseline', 'key', '(`baseline_id`)'],
 ];

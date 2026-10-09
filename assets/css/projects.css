@@ -655,6 +655,9 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 @media (max-width: 600px) {
     .prj-budget-table { font-size: 13px; }
     .prj-budget-table th:nth-child(2), .prj-budget-table td:nth-child(2) { display: none; }   /* the category: the line's name says enough on a phone */
+    /* Change control borrows the table: its column 2 is the BASELINE, which is the point (3.3.0). */
+    .prj-ctl-table th:nth-child(2), .prj-ctl-table td:nth-child(2) { display: table-cell; }
+    .prj-ctl-table th, .prj-ctl-table td { padding-left: 4px; padding-right: 4px; }
 }
 /* Going live safely (3.2.0): disruption announced on Service Status. */
 .prj-announce { margin-bottom: 16px; }
@@ -1130,3 +1133,36 @@ button.prj-tl-label { cursor: pointer; }
 .prj-rm-nodates { position: absolute; left: 10px; top: 11px; font-size: 12px; color: var(--text-dim, #888); }
 .prj-days { display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .prj-rm-scroll { min-height: 0; }
+/* ---- Change control (3.3.0) - projects-control.js ---------------------------- */
+.prj-ctl-pick { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 0 0 10px; }
+.prj-ctl-pick select { padding: 6px 8px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; background: var(--surface, #fff); color: var(--text, #222); }
+.prj-ctl-table td:first-child { font-weight: 600; }
+.prj-ctl-sub { margin: 16px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); }
+.prj-ctl-moved { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--text, #222); }
+.prj-ctl-moved li { margin: 3px 0; }
+.prj-ctl-moved li.late { color: #b45309; }
+.prj-ctl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.prj-ctl-cr { border: 1px solid var(--border, #e5e7eb); border-radius: 12px; padding: 12px 14px; background: var(--surface, #fff); }
+.prj-ctl-cr.st-rejected, .prj-ctl-cr.st-withdrawn { opacity: .75; }
+.prj-ctl-cr-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.prj-ctl-cr-head strong { color: var(--text, #222); }
+.prj-ctl-ref { font-size: 12px; font-weight: 700; color: var(--text-muted, #64748b); font-variant-numeric: tabular-nums; }
+.prj-ctl-pill { margin-left: auto; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+.prj-ctl-pill.cp-proposed { background: #fef3c7; color: #92400e; }
+.prj-ctl-pill.cp-approved { background: #dcfce7; color: #166534; }
+.prj-ctl-pill.cp-rejected { background: #fee2e2; color: #991b1b; }
+.prj-ctl-pill.cp-withdrawn { background: var(--surface-hover, #f1f5f9); color: var(--text-muted, #64748b); }
+.prj-ctl-impacts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.prj-ctl-impact { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: var(--surface-hover, #f1f5f9); color: var(--text, #222); font-variant-numeric: tabular-nums; }
+.prj-ctl-impact.up { background: #fff7ed; color: #9a3412; }
+.prj-ctl-scope, .prj-ctl-desc { margin: 6px 0; font-size: 13.5px; color: var(--text, #222); }
+.prj-ctl-did { margin: 8px 0 0; font-size: 13px; color: #166534; }
+.prj-ctl-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.prj-ctl-count { font-size: 12px; font-weight: 600; color: #b45309; margin-left: 6px; }
+.prj-ctl-chip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #fef3c7; color: #92400e; white-space: nowrap; }
+[data-theme="dark"] .prj-ctl-pill.cp-proposed, [data-theme="dark"] .prj-ctl-chip { background: #3a2a0c; color: #fcd34d; }
+[data-theme="dark"] .prj-ctl-pill.cp-approved { background: #12351f; color: #86efac; }
+[data-theme="dark"] .prj-ctl-pill.cp-rejected { background: #3b1219; color: #fca5a5; }
+[data-theme="dark"] .prj-ctl-impact.up { background: #3a1d0c; color: #fdba74; }
+[data-theme="dark"] .prj-ctl-did { color: #86efac; }
+[data-theme="dark"] .prj-ctl-moved li.late, [data-theme="dark"] .prj-ctl-count { color: #fbbf24; }

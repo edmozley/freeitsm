@@ -2899,6 +2899,14 @@ try {
         ['project_milestones', 'fk_pms_stage', "ALTER TABLE project_milestones ADD CONSTRAINT fk_pms_stage FOREIGN KEY (stage_id) REFERENCES project_stages (id) ON DELETE SET NULL"],
         ['project_milestones', 'fk_pms_done_by', "ALTER TABLE project_milestones ADD CONSTRAINT fk_pms_done_by FOREIGN KEY (done_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['project_milestones', 'fk_pms_created_by', "ALTER TABLE project_milestones ADD CONSTRAINT fk_pms_created_by FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        // Change control (3.3.0)
+        ['project_baselines', 'fk_pbase_project', "ALTER TABLE project_baselines ADD CONSTRAINT fk_pbase_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_baselines', 'fk_pbase_stage', "ALTER TABLE project_baselines ADD CONSTRAINT fk_pbase_stage FOREIGN KEY (stage_id) REFERENCES project_stages (id) ON DELETE SET NULL"],
+        ['project_baselines', 'fk_pbase_created_by', "ALTER TABLE project_baselines ADD CONSTRAINT fk_pbase_created_by FOREIGN KEY (created_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_change_requests', 'fk_pcr_project', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_change_requests', 'fk_pcr_raised_by', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_raised_by FOREIGN KEY (raised_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_change_requests', 'fk_pcr_decided_by', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_decided_by FOREIGN KEY (decided_by_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['project_change_requests', 'fk_pcr_baseline', "ALTER TABLE project_change_requests ADD CONSTRAINT fk_pcr_baseline FOREIGN KEY (baseline_id) REFERENCES project_baselines (id) ON DELETE SET NULL"],
         // Connections - every link goes with either side.
         ['project_assets', 'fk_pas_project', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_assets', 'fk_pas_target', "ALTER TABLE project_assets ADD CONSTRAINT fk_pas_target FOREIGN KEY (asset_id) REFERENCES assets (id) ON DELETE CASCADE"],

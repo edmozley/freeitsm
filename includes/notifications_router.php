@@ -300,6 +300,12 @@ function notificationsEntityFor(string $event, array $payload, string $entityTyp
             case 'project.milestone_reached':
                 $title = $name . ': ' . (string)($payload['milestone']['name'] ?? '') . ' reached';
                 break;
+            case 'project.change_raised':
+                $title = $name . ': ' . (string)($payload['change_request']['reference'] ?? '') . ' raised - ' . (string)($payload['change_request']['title'] ?? '');
+                break;
+            case 'project.change_decided':
+                $title = $name . ': ' . (string)($payload['change_request']['reference'] ?? '') . ' ' . (string)($payload['change_request']['status'] ?? '') . ' - ' . (string)($payload['change_request']['title'] ?? '');
+                break;
             case 'project.raid_escalated':
                 $title = $name . ': ' . (string)($payload['raid']['type'] ?? '') . ' escalated - ' . (string)($payload['raid']['title'] ?? '');
                 break;

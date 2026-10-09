@@ -172,6 +172,11 @@ class ProjectsService
         foreach ($changes as $f => [$o, $nv]) {
             self::audit($conn, $id, $ctx->actorId, $f, self::auditDisplay($conn, $f, $o), self::auditDisplay($conn, $f, $nv), self::source($ctx));
         }
+        // Going active is when the plan is agreed: change control (3.3.0) baselines it, if the setting says so.
+        if (isset($changes['status']) && $changes['status'][1] === 'active') {
+            require_once __DIR__ . '/../projects/control.php';
+            projectBaselineAuto($conn, $id, $ctx->actorId, 'start');
+        }
         // A name, a status, a date or a method (which renames its stages) can all move an entry.
         self::syncCalendar($conn);
         self::dispatch($conn, 'project.updated', $id, ['changed' => implode(',', array_keys($changes))]);
@@ -200,7 +205,7 @@ class ProjectsService
             // stop a project being deleted.
             // RAID actions first (3.3.0): joined to the entries about to go; the tasks stay.
             try { $conn->prepare("DELETE rt FROM project_raid_tasks rt JOIN project_raid r ON r.id = rt.raid_id WHERE r.project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
-            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones'] as $t) {
+            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones', 'project_change_requests', 'project_baselines'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable $e) { /* not created yet */ }
             }
             foreach (['project_stages', 'project_audit'] as $t) {
@@ -295,6 +300,8 @@ class ProjectsService
             if ($cur['status'] !== $status) {
                 self::audit($conn, $projectId, $ctx->actorId, 'stage_status', $cur['name'] . ': ' . $cur['status'], $name . ': ' . $status, self::source($ctx));
                 if ($status === 'closed') self::stageClosed($conn, $projectId, $stageId, null, null);
+                // A stage starting baselines the plan (change control, 3.3.0), if the setting says so.
+                if ($status === 'active') { require_once __DIR__ . '/../projects/control.php'; projectBaselineAuto($conn, $projectId, $ctx->actorId, 'stage', $stageId); }
             }
             self::syncCalendar($conn);
             self::afterChange($conn, $projectId);
@@ -307,6 +314,7 @@ class ProjectsService
              ->execute([$projectId, $preset['timebox'], $name, $goal, $start, $end, $pos, $status]);
         $newId = (int)$conn->lastInsertId();
         self::audit($conn, $projectId, $ctx->actorId, 'stage_added', null, $name, self::source($ctx));
+        if ($status === 'active') { require_once __DIR__ . '/../projects/control.php'; projectBaselineAuto($conn, $projectId, $ctx->actorId, 'stage', $newId); }
         self::touch($conn, $projectId);
         self::syncCalendar($conn);
         self::afterChange($conn, $projectId);
@@ -643,6 +651,31 @@ class ProjectsService
             ]);
         } catch (Throwable $e) {
             error_log('projects raid_escalated: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * project.change_raised / project.change_decided (3.3.0) - a change request
+     * was raised, or approved or rejected. includes/projects/control.php.
+     */
+    public static function changeEvent(PDO $conn, int $projectId, string $event, array $cr): void
+    {
+        try {
+            $p = self::eventFor($conn, $projectId);
+            if (!$p) return;
+            require_once __DIR__ . '/../projects/alerts.php';
+            projectDispatch($event, [
+                'project' => $p,
+                'change_request' => [
+                    'id' => (int)$cr['id'], 'number' => (int)$cr['number'], 'reference' => 'CR-' . (int)$cr['number'], 'title' => $cr['title'],
+                    'status' => $cr['status'], 'impact_days' => $cr['impact_days'] !== null ? (int)$cr['impact_days'] : null,
+                    'impact_cost' => $cr['impact_cost'] !== null ? (float)$cr['impact_cost'] : null, 'impact_scope' => $cr['impact_scope'],
+                    'raised_by_id' => $cr['raised_by_id'] !== null ? (int)$cr['raised_by_id'] : null,
+                    'decided_by_id' => $cr['decided_by_id'] !== null ? (int)$cr['decided_by_id'] : null, 'decision_notes' => $cr['decision_notes'],
+                ],
+            ]);
+        } catch (Throwable $e) {
+            error_log('projects ' . $event . ': ' . $e->getMessage());
         }
     }
 

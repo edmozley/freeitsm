@@ -588,7 +588,7 @@ class ProjectToolsService
         try {
             $conn->prepare("UPDATE project_stages SET gate_decision = ?, gate_notes = ?, gate_decided_by = ?, gate_decided_datetime = UTC_TIMESTAMP(), updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
                  ->execute([$decision, $notes, $ctx->actorId > 0 ? $ctx->actorId : null, $stageId]);
-            $closed = false; $next = null;
+            $closed = false; $next = null; $nextId = null;
             // Only a decision that CLOSES the stage hands over to the next one: a go
             // recorded afterwards on a stage that is already finished must not start
             // another stage while a later one is in progress.
@@ -600,6 +600,7 @@ class ProjectToolsService
                 if ($row = $n->fetch(PDO::FETCH_ASSOC)) {
                     $conn->prepare("UPDATE project_stages SET status = 'active', updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([(int)$row['id']]);
                     $next = $row['name'];
+                    $nextId = (int)$row['id'];
                 }
             }
             $conn->commit();
@@ -614,6 +615,8 @@ class ProjectToolsService
             ProjectsService::syncCalendar($conn);
             ProjectsService::stageClosed($conn, $projectId, $stageId, $decision, $next);
         }
+        // The gate started the next stage: change control (3.3.0) baselines the plan, if the setting says so.
+        if ($nextId) { require_once __DIR__ . '/../projects/control.php'; projectBaselineAuto($conn, $projectId, $ctx->actorId, 'stage', $nextId); }
         ProjectsService::afterChange($conn, $projectId);
         return ['closed' => $closed, 'next' => $next];
     }
@@ -925,6 +928,170 @@ class ProjectToolsService
             foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[(int)$r['item_id']][(int)$r['member_id']] = $r['letter'];
         } catch (Throwable $e) { /* before Verification */ }
         return $out;
+    }
+
+    // ======================================================================
+    //  Change control (3.3.0) - includes/projects/control.php
+    // ======================================================================
+
+    const CR_DECISIONS = ['approved', 'rejected'];
+
+    /** Take a baseline of the plan as it is now, by hand. Returns its id. */
+    public static function takeBaseline(PDO $conn, ActorContext $ctx, int $projectId, $label): int
+    {
+        require_once __DIR__ . '/../projects/control.php';
+        self::changeable($conn, $ctx, $projectId);
+        if (!projectControlReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        $label = self::str($label, 150);
+        $id = projectTakeBaseline($conn, $projectId, $ctx->actorId, 'manual', $label);
+        $n = (int)$conn->query("SELECT number FROM project_baselines WHERE id = " . $id)->fetchColumn();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'baseline_taken', null, 'Baseline ' . $n . ($label ? ': ' . $label : ''), self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return $id;
+    }
+
+    /**
+     * Raise a change request (no id), or edit one still waiting for a decision -
+     * by whoever raised it, or anybody who may change the project. Returns its id.
+     */
+    public static function saveChangeRequest(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        require_once __DIR__ . '/../projects/control.php';
+        require_once __DIR__ . '/../projects/budget.php';
+        $id = (int)($in['id'] ?? 0);
+        $cur = null;
+        if ($id > 0) {
+            $p = ProjectsService::loadForActor($conn, $ctx, $projectId);
+            $cur = self::changeRequest($conn, $projectId, $id);
+            if ($cur['status'] !== 'proposed') throw new ServiceError('validation', 'invalid_field', 'Only a request waiting for a decision can be changed.');
+            if ((int)$cur['raised_by_id'] !== $ctx->actorId) ProjectsService::assertCanChange($conn, $ctx, $p);
+        } else {
+            self::changeable($conn, $ctx, $projectId);
+        }
+        if (!projectControlReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        $title = trim((string)($in['title'] ?? ''));
+        if ($title === '') throw new ServiceError('validation', 'missing_field', 'Say what the change is.');
+        if (mb_strlen($title) > 200) throw new ServiceError('validation', 'invalid_field', 'The title is too long.');
+        $days = $in['impact_days'] ?? null;
+        if ($days === '' || $days === null) $days = null;
+        elseif (!preg_match('/^[+-]?\d{1,4}$/', trim((string)$days)) || abs((int)$days) > 3650) throw new ServiceError('validation', 'invalid_field', 'The time impact is a number of days, up to 3650 either way.');
+        else $days = (int)$days;
+        $cost = projectMoney($in['impact_cost'] ?? null);
+        $scope = self::str($in['impact_scope'] ?? null, 1000);
+        $desc = self::str($in['description'] ?? null, 20000);
+        $reason = self::str($in['reason'] ?? null, 20000);
+
+        if ($cur) {
+            $conn->prepare("UPDATE project_change_requests SET title = ?, description = ?, reason = ?, impact_days = ?, impact_cost = ?, impact_scope = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$title, $desc, $reason, $days, $cost, $scope, $id]);
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'change_edited', null, 'CR-' . $cur['number'] . ': ' . $title, self::src($ctx));
+            ProjectsService::touchProject($conn, $projectId);
+            return $id;
+        }
+        $n = (int)$conn->query("SELECT COALESCE(MAX(number), 0) + 1 FROM project_change_requests WHERE project_id = " . $projectId)->fetchColumn();
+        $conn->prepare("INSERT INTO project_change_requests (project_id, number, title, description, reason, impact_days, impact_cost, impact_scope, status, raised_by_id, raised_datetime, updated_datetime)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'proposed', ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+             ->execute([$projectId, $n, $title, $desc, $reason, $days, $cost, $scope, $ctx->actorId > 0 ? $ctx->actorId : null]);
+        $id = (int)$conn->lastInsertId();
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'change_raised', null, 'CR-' . $n . ': ' . $title, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        ProjectsService::changeEvent($conn, $projectId, 'project.change_raised', self::changeRequest($conn, $projectId, $id));
+        return $id;
+    }
+
+    /**
+     * Approve or reject a change request. Approving takes a new baseline - the
+     * changed plan becomes the agreed one - and, when project_change_apply is
+     * "plan", first moves the target finish by the days and adds the cost as a
+     * budget line, recording both in `applied`. Rejecting changes nothing.
+     *
+     * @return array{baseline_id:?int, applied:?array}
+     */
+    public static function decideChangeRequest(PDO $conn, ActorContext $ctx, int $projectId, int $crId, string $decision, $notes): array
+    {
+        require_once __DIR__ . '/../projects/control.php';
+        $p = ProjectsService::loadForActor($conn, $ctx, $projectId);
+        if (!in_array($decision, self::CR_DECISIONS, true)) throw new ServiceError('validation', 'invalid_field', 'Approve or reject.');
+        $cr = self::changeRequest($conn, $projectId, $crId);
+        if ($cr['status'] !== 'proposed') throw new ServiceError('validation', 'invalid_field', 'That request has already been decided.');
+        if (!projectCanDecideChange($conn, $ctx->actorId, $p, $cr['raised_by_id'] !== null ? (int)$cr['raised_by_id'] : null)) {
+            throw new ServiceError('forbidden', 'forbidden', (int)$cr['raised_by_id'] === $ctx->actorId && projectSetting($conn, 'project_change_self') !== '1'
+                ? 'Somebody else has to decide a request you raised.' : 'You may not decide change requests on this project.');
+        }
+        $notes = self::str($notes, 20000);
+        $label = 'CR-' . $cr['number'] . ': ' . $cr['title'];
+        $baselineId = null; $applied = null; $moved = false;
+        $conn->beginTransaction();
+        try {
+            // Compare-and-set: two people pressing Approve at once decide it once.
+            $u = $conn->prepare("UPDATE project_change_requests SET status = ?, decided_by_id = ?, decided_datetime = UTC_TIMESTAMP(), decision_notes = ?, updated_datetime = UTC_TIMESTAMP()
+                                  WHERE id = ? AND status = 'proposed'");
+            $u->execute([$decision, $ctx->actorId > 0 ? $ctx->actorId : null, $notes, $crId]);
+            if ($u->rowCount() !== 1) throw new ServiceError('validation', 'invalid_field', 'That request has already been decided.');
+            if ($decision === 'approved') {
+                if (projectSetting($conn, 'project_change_apply') === 'plan') {
+                    $applied = [];
+                    $days = $cr['impact_days'] !== null ? (int)$cr['impact_days'] : 0;
+                    if ($days !== 0 && !empty($p['target_end_date'])) {
+                        $to = gmdate('Y-m-d', strtotime($p['target_end_date'] . ' 00:00:00 UTC') + $days * 86400);
+                        $conn->prepare("UPDATE projects SET target_end_date = ? WHERE id = ?")->execute([$to, $projectId]);
+                        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'target_end_date', $p['target_end_date'], $to, self::src($ctx));
+                        $applied['target_from'] = $p['target_end_date']; $applied['target_to'] = $to;
+                        $moved = true;
+                    }
+                    $cost = $cr['impact_cost'] !== null ? (float)$cr['impact_cost'] : 0.0;
+                    require_once __DIR__ . '/../projects/budget.php';
+                    if ($cost != 0 && projectBudgetReady($conn)) {
+                        projectStampCurrency($conn, $projectId);
+                        $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_budget_lines WHERE project_id = " . $projectId)->fetchColumn();
+                        $conn->prepare("INSERT INTO project_budget_lines (project_id, title, category, planned_amount, notes, position, created_by_id, created_datetime, updated_datetime)
+                                        VALUES (?, ?, 'other', ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+                             ->execute([$projectId, mb_substr($label, 0, 200), $cost, mb_substr('Approved change request CR-' . $cr['number'], 0, 500), $pos, $ctx->actorId > 0 ? $ctx->actorId : null]);
+                        $applied['budget_line_id'] = (int)$conn->lastInsertId(); $applied['budget_amount'] = $cost;
+                        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'budget_line_added', null, mb_substr($label, 0, 200), self::src($ctx));
+                    }
+                    if (!$applied) $applied = null;
+                }
+                $baselineId = projectTakeBaseline($conn, $projectId, $ctx->actorId, 'change', null, null, $crId);
+                $conn->prepare("UPDATE project_change_requests SET baseline_id = ?, applied = ? WHERE id = ?")
+                     ->execute([$baselineId, $applied ? json_encode($applied) : null, $crId]);
+            }
+            $conn->commit();
+        } catch (Throwable $e) {
+            if ($conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, $decision === 'approved' ? 'change_approved' : 'change_rejected', null, $label, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        if ($moved) ProjectsService::syncCalendar($conn);
+        ProjectsService::changeEvent($conn, $projectId, 'project.change_decided', self::changeRequest($conn, $projectId, $crId));
+        ProjectsService::afterChange($conn, $projectId);   // a moved target or a new budget line can move health
+        return ['baseline_id' => $baselineId, 'applied' => $applied];
+    }
+
+    /** Withdraw a request still waiting for a decision: whoever raised it, or the project's team. */
+    public static function withdrawChangeRequest(PDO $conn, ActorContext $ctx, int $projectId, int $crId): void
+    {
+        $p = ProjectsService::loadForActor($conn, $ctx, $projectId);
+        $cr = self::changeRequest($conn, $projectId, $crId);
+        if ($cr['status'] !== 'proposed') throw new ServiceError('validation', 'invalid_field', 'That request has already been decided.');
+        if ((int)$cr['raised_by_id'] !== $ctx->actorId) ProjectsService::assertCanChange($conn, $ctx, $p);
+        $conn->prepare("UPDATE project_change_requests SET status = 'withdrawn', updated_datetime = UTC_TIMESTAMP() WHERE id = ? AND status = 'proposed'")->execute([$crId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'change_withdrawn', null, 'CR-' . $cr['number'] . ': ' . $cr['title'], self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    private static function changeRequest(PDO $conn, int $projectId, int $crId): array
+    {
+        try {
+            $st = $conn->prepare("SELECT * FROM project_change_requests WHERE id = ? AND project_id = ?");
+            $st->execute([$crId, $projectId]);
+            $r = $st->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification first.');
+        }
+        if (!$r) throw new ServiceError('not_found', 'not_found', 'That change request is not part of this project.');
+        return $r;
     }
 
     // ======================================================================

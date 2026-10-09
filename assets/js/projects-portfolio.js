@@ -173,6 +173,7 @@
             +   (p.task_overdue > 0 && !finished ? '<span class="prj-overdue">' + esc(T('portfolio.overdue_count', { count: p.task_overdue })) + '</span>' : '')
             +   (p.milestones_missed > 0 && !finished ? '<span class="prj-overdue">' + esc(T('view.milestones_missed', { count: p.milestones_missed })) + '</span>' : '')
             +   (p.raid_escalated > 0 && !finished ? '<span class="prj-exc-chip">' + esc(T('view.escalated', { count: p.raid_escalated })) + '</span>' : '')
+            +   (p.changes_pending > 0 && !finished && (p.tools || []).includes('control') ? '<span class="prj-ctl-chip">' + esc(T('control.waiting', { count: p.changes_pending })) + '</span>' : '')
             +   '<span class="prj-card-bar"><span style="width:' + p.progress + '%;background:' + P.gradient(p.colour) + '"></span></span>'
             + '</div>'
             + '</a>';

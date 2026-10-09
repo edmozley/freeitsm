@@ -46,6 +46,16 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             'project_priority_labels'  => ['',         'labels4',     'general'],
             'project_portfolio_sort'   => ['target',   'sort',        'general'],
             'project_burnup_measure'   => ['tasks',    'measure',     'general'],
+            // Change control (3.3.0) - includes/projects/control.php. When a baseline
+            // is taken by itself (never / the project going active / that and each
+            // stage starting), who decides change requests (the team / the project
+            // manager / Manage Projects only), whether the person who raised one may
+            // decide it, and what approving does (a new baseline only, or also move
+            // the target finish and add the cost to the budget).
+            'project_baseline_auto'    => ['stage',    'baseline',    'general'],
+            'project_change_approver'  => ['owner',    'approver',    'general'],
+            'project_change_self'      => ['1',        'bool',        'general'],
+            'project_change_apply'     => ['plan',     'apply',       'general'],
             // ---- Health -----------------------------------------------------
             // Amber when the target is this close and less than this share is done.
             'project_amber_days'       => ['14',       'int:1:120',   'health'],
@@ -200,6 +210,18 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'effect') {
             if (!in_array($v, ['off', 'amber', 'red'], true)) throw new InvalidArgumentException('Choose nothing, amber or red.');
+            return $v;
+        }
+        if ($rule === 'baseline') {
+            if (!in_array($v, ['off', 'start', 'stage'], true)) throw new InvalidArgumentException('Choose when a baseline is taken.');
+            return $v;
+        }
+        if ($rule === 'approver') {
+            if (!in_array($v, ['team', 'owner', 'managers'], true)) throw new InvalidArgumentException('Choose who decides change requests.');
+            return $v;
+        }
+        if ($rule === 'apply') {
+            if (!in_array($v, ['baseline', 'plan'], true)) throw new InvalidArgumentException('Choose what approving a change does.');
             return $v;
         }
         if ($rule === 'weekdays') {

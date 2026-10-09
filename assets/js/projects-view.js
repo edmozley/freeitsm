@@ -101,6 +101,9 @@
         // RAID (3.3.0): a dependency or decision late (amber), and anything escalated - named, with what is needed.
         if (p.raid_overdue > 0 && !finished) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('view.raid_late', { count: p.raid_overdue })) + '</strong>'
             + ' <button type="button" class="prj-link" data-goto="raid">' + esc(T('view.see_all')) + '</button></div></div>';
+        // Change requests waiting for a decision (3.3.0).
+        if (p.changes_pending > 0 && !finished && (p.tools || []).includes('control')) html += '<div class="prj-gate-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('control.waiting_overview', { count: p.changes_pending })) + '</strong>'
+            + ' <button type="button" class="prj-link" data-goto="control">' + esc(T('view.see_all')) + '</button></div></div>';
         const escalated = (data.raid || []).filter(r => r.status === 'open' && r.escalated_datetime);
         if (escalated.length && !finished) {
             html += '<div class="prj-gate-warn prj-esc-warn"><div class="prj-gate-warn-head">' + P.icon('flag', 16) + '<strong>' + esc(T('view.escalated', { count: escalated.length })) + '</strong>'
@@ -245,6 +248,9 @@
         else if (f === 'milestone_moved') detail = (h.new_value || '').replace(/: (\d{4}-\d{2}-\d{2})$/, (m, d) => ': ' + T('history.from_to', { from: P.fmtDate((h.old_value || '').slice(-10)), to: P.fmtDate(d) }));
         else if (f === 'stage_status') detail = (h.new_value || '').replace(/: (planned|active|closed)$/, (m, s) => ': ' + T('stage_status.' + s));
         else if (f === 'status') detail = T('history.from_to', { from: T('status.' + h.old_value), to: T('status.' + h.new_value) });
+        // Change control (3.3.0): "CR-2: title" as stored; "Baseline 3" in the viewer's words.
+        else if (f === 'change_raised' || f === 'change_approved' || f === 'change_rejected' || f === 'change_withdrawn' || f === 'change_edited') detail = h.new_value || '';
+        else if (f === 'baseline_taken') detail = String(h.new_value || '').replace(/^Baseline (\d+)/, (m, n) => T('control.baseline_n', { n: n }));
         else if (f === 'priority') detail = T('history.from_to', { from: P.priorityLabel(h.old_value), to: P.priorityLabel(h.new_value) });
         else if (f === 'health') detail = T('history.from_to', { from: T('health.' + h.old_value), to: T('health.' + h.new_value) });
         else if (f === 'methodology') detail = T('history.from_to', { from: T('method.' + h.old_value), to: T('method.' + h.new_value) });
@@ -405,6 +411,7 @@
         if (window.PrjTools) window.PrjTools.render(toolCtx);
         if (window.PrjTargets) window.PrjTargets.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjBudget) window.PrjBudget.render({ data: data, projectId: projectId, refresh: refresh });
+        if (window.PrjControl) window.PrjControl.render({ data: data, projectId: projectId, refresh: refresh });
         if (window.PrjReports) window.PrjReports.render({ data: data, projectId: projectId, refresh: refresh });
         showTab(tab);
         if (window.PrjTimeline) window.PrjTimeline.render(toolCtx);   // after showTab: it draws only when visible
@@ -771,7 +778,7 @@
     // ---- Wiring -----------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         const start = (location.hash || '').replace('#', '');
-        if (['overview', 'plan', 'timeline', 'people', 'scope', 'raci', 'raid', 'gates', 'budget', 'reports', 'connections', 'history'].includes(start)) tab = start;
+        if (['overview', 'plan', 'timeline', 'people', 'scope', 'raci', 'raid', 'gates', 'budget', 'control', 'reports', 'connections', 'history'].includes(start)) tab = start;
         if (/[?&]new=1/.test(location.search)) tab = 'plan';
 
         document.getElementById('prjTabs').addEventListener('click', e => {

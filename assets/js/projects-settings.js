@@ -26,7 +26,10 @@
         if (key === 'project_calendar') return T('settings.calendar_' + value);
         if (key === 'project_disruption') return T('settings.disruption_' + value);
         if (key === 'project_labour_mode') return T('settings.labour_' + value);
-        if (key === 'project_currency_per_project' || key === 'project_capacity_desk') return value === '1' ? P.TC('yes') : P.TC('no');
+        if (key === 'project_baseline_auto') return T('settings.baseline_auto_' + value);
+        if (key === 'project_change_approver') return T('settings.approver_' + value);
+        if (key === 'project_change_apply') return T('settings.apply_' + value);
+        if (key === 'project_currency_per_project' || key === 'project_capacity_desk' || key === 'project_change_self') return value === '1' ? P.TC('yes') : P.TC('no');
         // 3.3.0
         if (key === 'project_health_milestones' || key === 'project_health_raid_late') return T('settings.effect_' + value);
         if (key === 'project_portfolio_sort') return T('portfolio.sort_' + value);

@@ -39,6 +39,10 @@
  *      milestone_delete {id}
  *      task_dates     {task_id, start_date?, due_date?}   the Timeline moving a bar (3.3.0)
  *      task_estimate  {task_id, estimate_hours}   the Plan's estimate box (3.3.0)
+ *      baseline_take  {label?}   (3.3.0 change control - includes/projects/control.php)
+ *      change_save    {id?, title, description?, reason?, impact_days?, impact_cost?, impact_scope?}
+ *      change_decide  {id, decision: approved|rejected, notes?}
+ *      change_withdraw {id}
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/project_tools.php';
@@ -157,6 +161,15 @@ projectApiRun(function () use ($conn, $ctx) {
             projectApiOk();
         case 'task_estimate':
             ProjectToolsService::setTaskEstimate($conn, $ctx, $pid, (int)($in['task_id'] ?? 0), $in['estimate_hours'] ?? null);
+            projectApiOk();
+        case 'baseline_take':
+            projectApiOk(['id' => ProjectToolsService::takeBaseline($conn, $ctx, $pid, $in['label'] ?? null)]);
+        case 'change_save':
+            projectApiOk(['id' => ProjectToolsService::saveChangeRequest($conn, $ctx, $pid, $in)]);
+        case 'change_decide':
+            projectApiOk(ProjectToolsService::decideChangeRequest($conn, $ctx, $pid, (int)($in['id'] ?? 0), (string)($in['decision'] ?? ''), $in['notes'] ?? null));
+        case 'change_withdraw':
+            ProjectToolsService::withdrawChangeRequest($conn, $ctx, $pid, (int)($in['id'] ?? 0));
             projectApiOk();
         case 'raci_set':
             projectApiOk(['row' => (object)ProjectToolsService::setRaci($conn, $ctx, $pid, (int)($in['item_id'] ?? 0), (int)($in['member_id'] ?? 0), (string)($in['letter'] ?? ''))]);

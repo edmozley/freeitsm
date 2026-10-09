@@ -96,6 +96,13 @@ function projectTaskStats(PDO $conn, array $projectIds): array
                 + ['milestones_missed' => $m['missed'] ?? 0, 'next_milestone' => $m['next'] ?? null];
         }
     } catch (Throwable $e) { /* no milestones yet */ }
+    // Change requests waiting for a decision (3.3.0 change control).
+    try {
+        require_once __DIR__ . '/control.php';
+        foreach (projectChangeStats($conn, $projectIds) as $pid => $n) {
+            $out[$pid] = ($out[$pid] ?? ['total' => 0, 'done' => 0, 'overdue' => 0]) + ['changes_pending' => $n];
+        }
+    } catch (Throwable $e) { /* before Database Verification */ }
     return $out;
 }
 
@@ -233,6 +240,7 @@ function projectDecorate(array $p, array $stats, ?array $cfg = null): array
     $p['next_milestone']    = $s['next_milestone'] ?? null;
     $p['raid_overdue']      = (int)($s['raid_overdue'] ?? 0);
     $p['raid_escalated']    = (int)($s['raid_escalated'] ?? 0);
+    $p['changes_pending']   = (int)($s['changes_pending'] ?? 0);
     $p['ticket_spike'] = projectTicketSpike($s, $cfg ?? ['ticket_amber' => 5]);
     $p['auto_health']  = projectAutoHealth($p, $s, $cfg);
     $p['exceptions']   = projectExceptions($p, $s);

@@ -185,6 +185,22 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
         $line(sprintf('Budget (%s): %s planned, %s spent, %s remaining.', $cur, number_format($b['planned'], 2), number_format($b['actual'], 2), number_format($b['planned'] - $b['actual'], 2)));
     }
 
+    // Change control (3.3.0): drift from the latest baseline, and requests waiting or decided.
+    require_once __DIR__ . '/control.php';
+    if (in_array('control', $p['tools'] ?? projectEnabledTools($project), true) && ($ctl = projectControlDetail($conn, $project, $analystId))) {
+        if ($bl = $ctl['baselines'][0] ?? null) {
+            $v = $bl['variance'];
+            $line(sprintf('Against baseline %d (taken %s): target finish %s, planned budget %s, %+d task(s), %+d Must item(s); %d milestone(s) moved.', $bl['number'], substr($bl['created_datetime'], 0, 10),
+                $v['finish_days'] ? sprintf('%+d days', $v['finish_days']) : 'unchanged', $v['budget'] ? sprintf('%+.2f', $v['budget']) . ($v['budget_pct'] !== null ? sprintf(' (%+d%%)', $v['budget_pct']) : '') : 'unchanged',
+                $v['tasks'], $v['must'], count(array_filter($v['milestones'], fn($m) => $m['kind'] === 'moved'))));
+        }
+        foreach ($ctl['requests'] as $r) {
+            if ($r['status'] !== 'proposed' && substr((string)$r['decided_datetime'], 0, 10) < $since) continue;
+            $line(sprintf('Change request CR-%d %s: %s%s%s', $r['number'], $r['status'] === 'proposed' ? 'WAITING FOR A DECISION' : $r['status'], $r['title'],
+                $r['impact_days'] ? sprintf('; time %+d days', $r['impact_days']) : '', $r['impact_cost'] ? sprintf('; cost %+.2f', $r['impact_cost']) : ''));
+        }
+    }
+
     // Other modules - only what this analyst may open
     if (analystCanAccessModule($conn, $analystId, 'changes')) {
         $ch = projectUnapprovedChanges($conn, $pid);

@@ -42,7 +42,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=26">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=23">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=25">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=188">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
@@ -85,6 +85,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             <button type="button" data-tab="raid" data-tool="raid" hidden><?php echo htmlspecialchars(t('projects.tools.raid')); ?></button>
             <button type="button" data-tab="gates" data-tool="gates" hidden><?php echo htmlspecialchars(t('projects.tools.gates')); ?></button>
             <button type="button" data-tab="budget" data-tool="budget" hidden><?php echo htmlspecialchars(t('projects.tools.budget')); ?></button>
+            <button type="button" data-tab="control" data-tool="control" hidden><?php echo htmlspecialchars(t('projects.tools.control')); ?></button>
             <button type="button" data-tab="reports"><?php echo htmlspecialchars(t('projects.reports.tab')); ?></button>
             <button type="button" data-tab="connections"><?php echo htmlspecialchars(t('projects.view.tab_connections')); ?></button>
             <button type="button" data-tab="history"><?php echo htmlspecialchars(t('projects.view.tab_history')); ?></button>
@@ -99,6 +100,7 @@ $projectId = (int)($_GET['id'] ?? 0);
         <section class="prj-tab-panel" data-panel="raid" id="pvRaid" hidden></section>
         <section class="prj-tab-panel" data-panel="gates" id="pvGates" hidden></section>
         <section class="prj-tab-panel" data-panel="budget" id="pvBudget" hidden></section>
+        <section class="prj-tab-panel" data-panel="control" id="pvControl" hidden></section>
         <section class="prj-tab-panel" data-panel="reports" id="pvReports" hidden></section>
         <section class="prj-tab-panel" data-panel="connections" id="pvConnections" hidden></section>
         <section class="prj-tab-panel" data-panel="history" id="pvHistory" hidden></section>
@@ -280,6 +282,62 @@ $projectId = (int)($_GET['id'] ?? 0);
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-prj-close="prjGateModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary prj-btn" id="pgSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change control (3.3.0): raise or edit a change request -->
+    <div class="modal" id="prjChangeModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:600px">
+            <div class="modal-header" id="pcTitle"></div>
+            <div class="modal-body">
+                <input type="hidden" id="pcId">
+                <div class="form-group"><label for="pcName"><?php echo htmlspecialchars(t('projects.control.field_title')); ?></label><input type="text" id="pcName" maxlength="200" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.control.field_title_ph')); ?>"></div>
+                <div class="form-group"><label for="pcDesc"><?php echo htmlspecialchars(t('projects.control.field_desc')); ?></label><textarea id="pcDesc" rows="3"></textarea></div>
+                <div class="form-group"><label for="pcReason"><?php echo htmlspecialchars(t('projects.control.field_reason')); ?></label><textarea id="pcReason" rows="2"></textarea></div>
+                <p class="prj-muted sm" style="margin:4px 0 8px"><?php echo htmlspecialchars(t('projects.control.impact_intro')); ?></p>
+                <div class="prj-form-grid">
+                    <div class="form-group"><label for="pcDays"><?php echo htmlspecialchars(t('projects.control.field_days')); ?></label><input type="number" id="pcDays" step="1" min="-3650" max="3650" placeholder="0"></div>
+                    <div class="form-group"><label for="pcCost" id="pcCostLabel"></label><input type="number" id="pcCost" step="0.01" placeholder="0"></div>
+                </div>
+                <div class="form-group"><label for="pcScope"><?php echo htmlspecialchars(t('projects.control.field_scope')); ?></label><textarea id="pcScope" rows="2" maxlength="1000" placeholder="<?php echo htmlspecialchars(t('projects.control.field_scope_ph')); ?>"></textarea></div>
+                <div class="prj-form-error" id="pcError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjChangeModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pcSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change control (3.3.0): approve or reject -->
+    <div class="modal" id="prjDecideModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header" id="pdTitle"></div>
+            <div class="modal-body">
+                <p id="pdIntro" style="margin:0 0 14px"></p>
+                <div class="form-group"><label for="pdNotes"><?php echo htmlspecialchars(t('projects.control.notes')); ?></label><textarea id="pdNotes" rows="3"></textarea></div>
+                <div class="prj-form-error" id="pdError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjDecideModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pdSave"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change control (3.3.0): take a baseline by hand -->
+    <div class="modal" id="prjBaselineModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:480px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('projects.control.take_title')); ?></div>
+            <div class="modal-body">
+                <p class="prj-muted" style="margin-top:0"><?php echo htmlspecialchars(t('projects.control.take_intro')); ?></p>
+                <div class="form-group"><label for="pbsLabel"><?php echo htmlspecialchars(t('projects.control.take_label')); ?></label><input type="text" id="pbsLabel" maxlength="150" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('projects.control.take_label_ph')); ?>"></div>
+                <div class="prj-form-error" id="pbsError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjBaselineModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pbsSave"><?php echo htmlspecialchars(t('projects.control.take')); ?></button>
             </div>
         </div>
     </div>
@@ -466,11 +524,12 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-tools.js?v=7"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-budget.js?v=3"></script>
+    <script src="../assets/js/projects-control.js?v=1"></script>
     <script src="../assets/js/projects-reports.js?v=1"></script>
     <script src="../assets/js/projects-charts.js?v=2"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=1"></script>
-    <script src="../assets/js/projects-view.js?v=17"></script>
+    <script src="../assets/js/projects-view.js?v=19"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=78"></script>
 </body>
