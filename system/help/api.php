@@ -66,10 +66,11 @@ require __DIR__ . '/_top.php';
     <div class="help-section-header"><?php echo helpSectionNum('companies'); ?>
         <div>
             <h3>Company scope (multi-company installs)</h3>
-            <p>On a multi-company (MSP) install each key is either scoped to <strong>all companies</strong> or to a <strong>specific list</strong>. A scoped key only ever sees, creates or touches tickets belonging to its companies — the same isolation analysts get.</p>
+            <p>On a multi-company (MSP) install each key is either scoped to <strong>all companies</strong> or to a <strong>specific list</strong>. A scoped key only ever sees, creates or touches records belonging to its companies — the same isolation analysts get.</p>
         </div>
     </div>
     <p>Tickets created through a scoped key default to your Default company if it's in scope, otherwise the key's first scoped company; pass <code>company_id</code> to file under a specific one. Moving a ticket between companies requires the key to be scoped to <em>both</em> sides.</p>
+    <div class="help-note"><strong>A key never reaches further than its analyst.</strong> Every key acts as an analyst, and only ever covers companies that analyst can see: <em>all companies</em> means all of that analyst's companies, and a list is cut down to them. You cannot save a key for a company its analyst cannot see.</div>
     <p>On a single-company install this section doesn't appear — there's nothing to scope.</p>
 </div>
 
@@ -104,7 +105,19 @@ require __DIR__ . '/_top.php';
     <p>Paste a key at the top of the page (it stays in your browser only), hit <strong>Test</strong> to confirm what the key can do, then expand any endpoint and send. Each request also shows the equivalent <code>curl</code> command ready to paste into a script.</p>
 </div>
 
-<!-- 7. Safety -->
+<!-- 7. MCP -->
+<div class="help-section" id="mcp">
+    <div class="help-section-header"><?php echo helpSectionNum('mcp'); ?>
+        <div>
+            <h3>Connecting an AI assistant (MCP)</h3>
+            <p>FreeITSM speaks the <strong>Model Context Protocol</strong>, so an AI assistant such as Claude Code or Claude Desktop can read it: <em>"Which projects are off track, and why?"</em>, <em>"Is the VPN down?"</em></p>
+        </div>
+    </div>
+    <p>Create a key with the <strong>MCP server</strong> permission and give the assistant the address shown in the <strong>Connect an AI assistant</strong> card on the API page, with the key as a bearer token. The card shows the command for Claude Code. It is <strong>read-only</strong>: the assistant sees exactly what the key's analyst may see - their modules and their companies - and can change nothing.</p>
+    <div class="help-note"><strong>Pick the analyst with care.</strong> The assistant reads with that analyst's eyes. A key for an analyst who can see everything gives the assistant everything.</div>
+</div>
+
+<!-- 8. Safety -->
 <div class="help-section" id="safety">
     <div class="help-section-header"><?php echo helpSectionNum('safety'); ?>
         <div>

@@ -198,6 +198,7 @@ return [
         'categories_heading' => 'Event categories',
         'categories_intro'   => 'Categories are the backbone of calendar organisation. Each category has a name and a colour, so events are instantly recognisable at a glance. The sidebar shows all available categories with checkboxes &mdash; untick a category to hide those events from the calendar.',
         'categories_certificates' => '<strong>Certificates</strong> &mdash; track SSL/TLS certificate expiry dates, code signing certificates, and other credentials that need periodic renewal',
+        'categories_projects'     => '<strong>Projects</strong> &mdash; filled by the Projects module: each live project\'s target end date and the end of each open stage, phase or sprint, kept in step with the plan',
         'categories_contracts'    => '<strong>Contracts</strong> &mdash; log vendor contract renewal dates, licence expiry, and SLA review milestones so nothing lapses unexpectedly',
         'categories_maintenance'  => '<strong>Maintenance</strong> &mdash; schedule planned maintenance windows for servers, network equipment, and infrastructure. Your team and stakeholders can see exactly when downtime is expected',
         'categories_meetings'     => '<strong>Meetings</strong> &mdash; record team stand-ups, CAB meetings, vendor calls, and other recurring appointments relevant to IT operations',

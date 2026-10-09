@@ -226,6 +226,7 @@ function getHelpTopics() {
                 ['id' => 'companies',   'label' => 'Company scope'],
                 ['id' => 'using',       'label' => 'Using the API'],
                 ['id' => 'docs',        'label' => 'Docs & testing'],
+                ['id' => 'mcp',         'label' => 'AI assistants (MCP)'],
                 ['id' => 'safety',      'label' => 'Good practice'],
             ],
             'terms' => 'rest json integration token bearer key endpoint curl script automation',

@@ -248,6 +248,7 @@ $translationNamespaces = ['common', 'calendar'];
                     <div class="help-list">
                         <div><?php echo t('calendar.help.categories_certificates'); ?></div>
                         <div><?php echo t('calendar.help.categories_contracts'); ?></div>
+                        <div><?php echo t('calendar.help.categories_projects'); ?></div>
                         <div><?php echo t('calendar.help.categories_maintenance'); ?></div>
                         <div><?php echo t('calendar.help.categories_meetings'); ?></div>
                         <div><?php echo t('calendar.help.categories_custom'); ?></div>
