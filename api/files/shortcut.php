@@ -10,6 +10,9 @@
  *   POST {action: rename, id, name}   folder shortcut: Modify on its folder;
  *                                     desktop shortcut: its owner.
  *   POST {action: delete, id}         the same. The target is never touched.
+ *   POST {action: place, id, to: <folder id>|desktop, copy?}  drag and drop:
+ *        move it (or copy it, Ctrl) into a folder (Upload there) or onto the
+ *        caller's own desktop.
  *   GET  ?desktop=1                   the caller's desktop shortcuts, each with
  *                                     whether its target can still be opened.
  *
@@ -87,9 +90,52 @@ filesApiRun(function () use ($conn, $analystId) {
         if (!isset(FilesAcl::tree($conn)[(int)$s['folder_id']]) || !filesShortcutTarget($conn, $analystId, $s['target_type'], (int)$s['target_id'])) {
             filesApiFail('Shortcut not found.');
         }
-        filesNeed($conn, $analystId, (int)$s['folder_id'], FilesAcl::MODIFY, 'shortcut');
+        // Copying (Ctrl-drag) only reads it; everything else changes it.
+        $readOnly = $action === 'place' && !empty($in['copy']);
+        filesNeed($conn, $analystId, (int)$s['folder_id'], $readOnly ? FilesAcl::VIEW : FilesAcl::MODIFY, 'shortcut');
     }
     $where = $s['folder_id'] === null ? ['path' => '(Desktop) / ' . $s['name']] : ['folder_id' => (int)$s['folder_id'], 'item_name' => $s['name']];
+
+    if ($action === 'place') {
+        // Drag and drop: move (or with copy, duplicate) this shortcut to a folder
+        // or to the caller's desktop. Moving needs what deleting needs (checked
+        // above for a folder shortcut; a desktop one is the caller's own); the
+        // destination needs Upload, or is the caller's own desktop.
+        $copy = !empty($in['copy']);
+        $to   = $in['to'] ?? '';
+        $t = filesShortcutTarget($conn, $analystId, $s['target_type'], (int)$s['target_id']);
+        if (!$t) filesApiFail('What this shortcut points to is no longer available.');
+        if ($to === 'desktop') {
+            if (!$copy && $s['folder_id'] === null) filesApiOk(['id' => $id]);   // already there
+            $name = $s['name'];
+            if ($copy) {
+                $conn->prepare("INSERT INTO files_shortcuts (folder_id, analyst_id, target_type, target_id, name, created_by, created_datetime)
+                                VALUES (NULL, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")->execute([$analystId, $s['target_type'], (int)$s['target_id'], $name, $analystId]);
+                $newId = (int)$conn->lastInsertId();
+            } else {
+                $conn->prepare("UPDATE files_shortcuts SET folder_id = NULL, analyst_id = ? WHERE id = ?")->execute([$analystId, $id]);
+                $newId = $id;
+            }
+            filesAudit($conn, $analystId, 'shortcut', $where, [$copy ? 'copied_to' : 'moved_to' => 'desktop', 'name' => $name]);
+            filesApiOk(['id' => $newId]);
+        }
+        $dest = (int)$to;
+        if ($dest <= 0) filesApiFail('Shortcuts go inside a folder or on the desktop.');
+        if (!$copy && (int)$s['folder_id'] === $dest) filesApiOk(['id' => $id]);
+        filesNeed($conn, $analystId, $dest, FilesAcl::UPLOAD, 'shortcut');
+        $name = filesFreeName($conn, $dest, $s['name']);
+        if ($copy) {
+            $conn->prepare("INSERT INTO files_shortcuts (folder_id, analyst_id, target_type, target_id, name, created_by, created_datetime)
+                            VALUES (?, NULL, ?, ?, ?, ?, UTC_TIMESTAMP())")->execute([$dest, $s['target_type'], (int)$s['target_id'], $name, $analystId]);
+            $newId = (int)$conn->lastInsertId();
+        } else {
+            $conn->prepare("UPDATE files_shortcuts SET folder_id = ?, analyst_id = NULL, name = ? WHERE id = ?")->execute([$dest, $name, $id]);
+            $newId = $id;
+        }
+        filesAudit($conn, $analystId, 'shortcut', ['folder_id' => $dest, 'item_name' => $name],
+                   [$copy ? 'copied_from' : 'moved_from' => $s['folder_id'] === null ? 'desktop' : FilesAcl::path($conn, (int)$s['folder_id'])]);
+        filesApiOk(['id' => $newId, 'folder_id' => $dest]);
+    }
 
     if ($action === 'rename') {
         $name = filesCleanName((string)($in['name'] ?? ''));

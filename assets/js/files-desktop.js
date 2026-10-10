@@ -408,7 +408,7 @@
             var icon = e.type === 'shortcut' ? shortcutIcon(e.target_type, e.target_name, px)
                      : e.type === 'folder' ? FI.folder(px) : FI.file(e.name, px);
             var tip = e.type === 'shortcut' ? L('sc.tip', 'Shortcut to {path}', { path: e.path }) : (e.path ? e.path : e.name);
-            var drag = e.type === 'shortcut' ? 'false' : 'true';
+            var drag = 'true';
             if (self.view === 'icons') {
                 html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="' + drag + '" title="' + esc(tip) + '">' +
                     '<div class="fx-ic">' + icon + '</div><div class="fx-name">' + esc(e.name) + '</div></div>';
@@ -783,8 +783,9 @@
             var k = n.dataset.key;
             if (!self.sel[k]) { self.sel = {}; self.sel[k] = true; self.paint(); }
             var sel = self.selected();
-            if (sel.some(function (x) { return x.type === 'shortcut'; })) { ev.preventDefault(); return; }
-            ev.dataTransfer.effectAllowed = 'copyMove';
+            // 'all': copy and move between folders, and 'link' for the desktop,
+            // where a dropped file or folder becomes a shortcut.
+            ev.dataTransfer.effectAllowed = 'all';
             ev.dataTransfer.setData('application/x-freeitsm-files', JSON.stringify({ from: self.folderId, entries: sel.map(toRef) }));
             dragging = { from: self.folderId, entries: sel };
         });
@@ -830,9 +831,53 @@
             var payload;
             try { payload = JSON.parse(ev.dataTransfer.getData('application/x-freeitsm-files')); } catch (e) { return; }
             if (!payload || (payload.from === target && !ev.ctrlKey)) return;
-            transfer(ev.ctrlKey ? 'copy' : 'move', payload.entries.map(function (e) { return { type: e.type, id: e.id }; }), payload.from, target);
+            dropEntries(payload, target, ev.ctrlKey);
         });
     };
+
+    /**
+     * Entries dropped on a folder (target; 0 = the top level). Files and folders
+     * move or copy through transfer.php; shortcuts - from a folder or from the
+     * desktop - through shortcut.php 'place'. The server checks every one.
+     */
+    function dropEntries(payload, target, copy) {
+        var sc = payload.entries.filter(function (e) { return e.type === 'shortcut'; });
+        var rest = payload.entries.filter(function (e) { return e.type !== 'shortcut'; });
+        var jobs = [];
+        if (rest.length) jobs.push(transfer(copy ? 'copy' : 'move', rest.map(function (e) { return { type: e.type, id: e.id }; }), payload.from, target));
+        if (sc.length && !target) {
+            WM.notify(L('sc.not_top', 'Shortcuts go inside a folder or on the desktop.'), 'error');
+        } else {
+            sc.forEach(function (s) { jobs.push(api('shortcut.php', { action: 'place', id: s.id, to: target, copy: !!copy }).catch(fail)); });
+        }
+        return Promise.all(jobs).then(function () {
+            if (sc.length) {
+                changed([target, payload.from === 'desktop' ? -1 : payload.from]);
+                if (payload.from === 'desktop') loadDesktopShortcuts();
+            }
+        });
+    }
+
+    /**
+     * Entries dropped on the desktop. Nothing is STORED on the desktop, so a
+     * file or folder dropped there becomes a desktop shortcut to it (Windows'
+     * "Create shortcuts here"); a shortcut dragged from a folder moves to the
+     * desktop - or, with Ctrl, is copied there and stays in the folder too.
+     */
+    function dropOnDesktop(payload, copy) {
+        var jobs = [];
+        payload.entries.forEach(function (e) {
+            if (e.type === 'shortcut') {
+                jobs.push(api('shortcut.php', { action: 'place', id: e.id, to: 'desktop', copy: !!copy }).catch(fail));
+            } else {
+                jobs.push(api('shortcut.php', { action: 'create', target_type: e.type === 'folder' ? 'folder' : 'item', target_id: e.id, where: 'desktop' }).catch(fail));
+            }
+        });
+        return Promise.all(jobs).then(function () {
+            loadDesktopShortcuts();
+            if (payload.entries.some(function (e) { return e.type === 'shortcut'; }) && !copy) changed([payload.from]);
+        });
+    }
 
     Explorer.prototype.moveCursor = function (key, extend) {
         if (!this.order.length) return;
@@ -1557,6 +1602,14 @@
                 b.classList.add('fd-sel');
             });
             b.addEventListener('dblclick', openIt);
+            b.draggable = true;
+            b.addEventListener('dragstart', function (ev) {
+                var p = { from: 'desktop', entries: [{ type: 'shortcut', id: s.id, name: s.name }] };
+                ev.dataTransfer.effectAllowed = 'copyMove';
+                ev.dataTransfer.setData('application/x-freeitsm-files', JSON.stringify(p));
+                dragging = p;
+            });
+            b.addEventListener('dragend', function () { dragging = null; });
             b.addEventListener('keydown', function (ev) {
                 if (ev.key === 'Enter') { ev.preventDefault(); openIt(); }
                 if (ev.key === 'Delete') { ev.preventDefault(); removeIt(); }
@@ -1590,6 +1643,41 @@
             if (a) a.blur();
         }
     });
+    function dragKind(ev) {
+        var t = ev.dataTransfer && ev.dataTransfer.types ? Array.prototype.slice.call(ev.dataTransfer.types) : [];
+        if (t.indexOf('application/x-freeitsm-files') >= 0) return 'entries';
+        if (t.indexOf('Files') >= 0) return 'files';
+        return null;
+    }
+    desktopEl.addEventListener('dragover', function (ev) {
+        if (ev.target.closest('.fd-win')) return;   // a window under the pointer decides for itself
+        var k = dragKind(ev);
+        if (!k) return;
+        ev.preventDefault();
+        if (k === 'files' || (dragging && dragging.from === 'desktop')) { ev.dataTransfer.dropEffect = 'none'; return; }
+        var allShortcuts = dragging && dragging.entries.every(function (e) { return e.type === 'shortcut'; });
+        ev.dataTransfer.dropEffect = allShortcuts ? (ev.ctrlKey ? 'copy' : 'move') : 'link';
+        desktopEl.classList.add('fd-drop');
+    });
+    desktopEl.addEventListener('dragleave', function (ev) { if (!desktopEl.contains(ev.relatedTarget)) desktopEl.classList.remove('fd-drop'); });
+    desktopEl.addEventListener('drop', function (ev) {
+        desktopEl.classList.remove('fd-drop');
+        if (ev.target.closest('.fd-win')) return;
+        var k = dragKind(ev);
+        if (!k) return;
+        ev.preventDefault();
+        if (k === 'files') { WM.notify(L('up.drop_in_folder', 'Drop files into a folder window to upload them - the desktop is not a folder.')); return; }
+        var p;
+        try { p = JSON.parse(ev.dataTransfer.getData('application/x-freeitsm-files')); } catch (e) { return; }
+        if (!p || p.from === 'desktop') return;
+        dropOnDesktop(p, ev.ctrlKey);
+    });
+    // TRAP: a file from the computer dropped where nothing accepts it (a
+    // window's title bar, the taskbar) makes the BROWSER open it - leaving Files.
+    // Swallow any drop nobody handled.
+    document.addEventListener('dragover', function (ev) { if (dragKind(ev) === 'files') ev.preventDefault(); });
+    document.addEventListener('drop', function (ev) { if (dragKind(ev) === 'files') ev.preventDefault(); });
+
     desktopEl.addEventListener('contextmenu', function (ev) {
         if (ev.target !== desktopEl && ev.target.id !== 'fdIcons') return;
         ev.preventDefault();

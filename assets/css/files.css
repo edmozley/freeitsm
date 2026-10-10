@@ -635,3 +635,5 @@ audio.fdv-media { width: 80%; }
 .fi-sc-arrow { position: absolute; left: 0; bottom: 0; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
 .fd-dicon .fi-sc { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .35)); }
 .fd-dicon-gone { opacity: .45; }
+/* The desktop while something is dragged over it (becomes a shortcut there). */
+.fd-desktop.fd-drop { box-shadow: inset 0 0 0 3px rgba(96, 165, 250, .7); }
