@@ -192,7 +192,6 @@
         if (viewOnly) host.classList.add('fdv-viewonly');
         host.innerHTML =
             '<div class="fdv-bar">' +
-                '<span class="fdv-name"></span>' +
                 (info.is_current ? '' : '<span class="fdv-badge">' + esc(L('viewer.version', 'Version {n}', { n: info.version_no })) + '</span>') +
                 (viewOnly ? '<span class="fdv-badge fdv-badge-vo" title="' + esc(L('viewer.view_only_tip', 'You can view this file but not download it.')) + '">' + IC.eye + esc(L('viewer.view_only', 'View only')) + '</span>' : '') +
                 '<span class="fdv-grow"></span>' +
@@ -204,7 +203,8 @@
                 (info.watermark ? '<div class="fdv-wm" aria-hidden="true"></div>' : '') +
             '</div>' +
             '<div class="fdv-foot" hidden></div>';
-        host.querySelector('.fdv-name').textContent = info.name;
+        // No file name in this bar: the window title (desktop), the phone viewer's own
+        // bar, and a zip entry's Back bar already say what is open (Ed, 2026-10-10).
         var stage = host.querySelector('.fdv-stage');
         var tools = host.querySelector('.fdv-tools');
         var foot = host.querySelector('.fdv-foot');
@@ -487,7 +487,7 @@
                     var p = cfb.FullPaths[i].split('/').slice(1).filter(Boolean);
                     // TRAP: SheetJS's reader adds a marker entry "\u0001Sh33tJ5"; no real
                     // name starts with a control character, so anything that does is skipped.
-                    if (!p.length || p.some(function (s) { return s === '..' || /[ -]/.test(s); })) return;
+                    if (!p.length || p.some(function (s) { return s === '..' || /[\x00-\x1f]/.test(s); })) return;
                     files.push({ parts: p, size: fi.size || (fi.content ? fi.content.length : 0), content: fi.content });
                 });
                 var path = [];
