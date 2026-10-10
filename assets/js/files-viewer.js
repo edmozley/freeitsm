@@ -277,11 +277,30 @@
 
         // ── PDF ────────────────────────────────────────────────────────────
         function renderPdf() {
-            var pdf = null, scale = 1, fitScale = 1, base = null, pages = [], observer = null, destroyed = false;
+            var pdf = null, scale = 1, base = null, pages = [], observer = null, destroyed = false;
+            // TRAP: "fit" must be MEASURED when it is asked for. It was worked out once
+            // at open, so after maximising the window it fitted the old, smaller window
+            // and the button looked dead (Ed, 2026-10-10). While fitting, the page also
+            // follows the window as it is resized; zooming by hand stops that.
+            var fitting = true;
+            function fitScale() { return base ? Math.max(0.25, Math.min(3, (stage.clientWidth - 48) / base.width)) : 1; }
             var showZoom = zoomTools(function (z) {
-                if (z === 'fit') scale = fitScale; else scale = Math.max(0.25, Math.min(5, scale * (z === 'in' ? 1.2 : 1 / 1.2)));
+                fitting = z === 'fit';
+                scale = fitting ? fitScale() : Math.max(0.25, Math.min(5, scale * (z === 'in' ? 1.2 : 1 / 1.2)));
                 layout();
             });
+            var refit = null;
+            if (window.ResizeObserver) {
+                var ro = new ResizeObserver(function () {
+                    if (!fitting || !base) return;
+                    clearTimeout(refit);
+                    refit = setTimeout(function () {
+                        var s = fitScale();
+                        if (Math.abs(s - scale) > 0.01) { scale = s; layout(); }
+                    }, 120);
+                });
+                ro.observe(stage);
+            }
             var pageLabel = h('span', 'fdv-page');
             tools.insertBefore(pageLabel, tools.firstChild);
             loadPdfjs().then(function (lib) {
@@ -293,7 +312,7 @@
                     wasmUrl: V + 'pdfjs/wasm/', iccUrl: V + 'pdfjs/iccs/',
                     enableXfa: false, enableScripting: false
                 });
-                ctl.destroy = function () { destroyed = true; if (observer) observer.disconnect(); task.destroy(); };
+                ctl.destroy = function () { destroyed = true; if (observer) observer.disconnect(); if (ro) ro.disconnect(); task.destroy(); };
                 return task.promise;
             }).then(function (doc) {
                 pdf = doc;
@@ -301,8 +320,7 @@
             }).then(function (p1) {
                 if (destroyed) return;
                 base = p1.getViewport({ scale: 1 });
-                fitScale = Math.max(0.25, Math.min(3, (stage.clientWidth - 48) / base.width));
-                scale = fitScale;
+                scale = fitScale();
                 stage.innerHTML = '';
                 stage.classList.add('fdv-pdf');
                 for (var i = 1; i <= pdf.numPages; i++) {
@@ -377,8 +395,11 @@
                 var paper = h('div', 'fdv-paper');
                 paper.innerHTML = sanitise(res.value) || '<p class="fdv-muted">' + esc(L('viewer.empty_doc', 'This document has no text.')) + '</p>';
                 stage.appendChild(paper);
+                // Fit = the 816px page (Word's A4/Letter width) as wide as the window,
+                // measured now, not when the document opened.
                 var zoom = 1, showZoom = zoomTools(function (z) {
-                    zoom = z === 'fit' ? 1 : Math.max(0.5, Math.min(3, zoom * (z === 'in' ? 1.15 : 1 / 1.15)));
+                    zoom = z === 'fit' ? Math.max(0.5, Math.min(3, (stage.clientWidth - 48) / 816))
+                                       : Math.max(0.5, Math.min(3, zoom * (z === 'in' ? 1.15 : 1 / 1.15)));
                     paper.style.zoom = zoom;
                     showZoom(zoom * 100);
                 });
