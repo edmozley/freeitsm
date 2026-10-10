@@ -600,7 +600,8 @@ audio.fdv-media { width: 80%; }
 /* View only: nothing to select or drag out, and nothing to print. */
 .fdv-viewonly .fdv-stage { user-select: none; -webkit-user-select: none; }
 .fdv-viewonly .fdv-stage img, .fdv-viewonly .fdv-stage canvas { -webkit-user-drag: none; }
-@media print { .fdv-viewonly, .fdm-viewer { visibility: hidden !important; } }
+/* View only prints blank - on a phone too, where .fdv-viewonly is inside the full-screen viewer. */
+@media print { .fdv-viewonly { visibility: hidden !important; } }
 .fd-nowrap { white-space: nowrap; }
 
 /* Permissions window: the watermark choice. */
@@ -628,3 +629,12 @@ audio.fdv-media { width: 80%; }
 .fdv-zentry { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .fdv-grid td.fdv-num { text-align: right; }
 .fdv-in-entry > .fdv-bar [data-act="download"] { display: none; }
+
+/* Shortcuts: the target's icon with the arrow badge in its corner. */
+.fi-sc { position: relative; display: inline-flex; flex: 0 0 auto; }
+.fi-sc > .fi { display: block; }
+.fi-sc-arrow { position: absolute; left: 0; bottom: 0; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
+.fd-dicon .fi-sc { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .35)); }
+.fd-dicon-gone { opacity: .45; }
+/* The desktop while something is dragged over it (becomes a shortcut there). */
+.fd-desktop.fd-drop { box-shadow: inset 0 0 0 3px rgba(96, 165, 250, .7); }

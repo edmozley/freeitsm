@@ -89,6 +89,7 @@
         icons: svgIcon('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>'),
         details: svgIcon('<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>'),
         open: svgIcon('<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>'),
+        shortcut: svgIcon('<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 16c0-4.5 2.5-7 7-7M12 6l3 3-3 3"/>'),
         location: svgIcon('<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>'),
         chevron: '<svg viewBox="0 0 10 10" width="10" height="10"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'
     };
@@ -126,6 +127,39 @@
         return api('transfer.php', { mode: mode, target: target, entries: entries })
             .then(function (r) { (r.failed || []).forEach(function (f) { WM.notify(f.error, 'error'); }); changed([target, from]); })
             .catch(fail);
+    }
+
+    // ── Shortcuts ──────────────────────────────────────────────────────────
+    /** A target's icon with the shortcut arrow over its corner. */
+    function shortcutIcon(targetType, targetName, px) {
+        var base = targetType === 'folder' ? FI.folder(px) : FI.file(targetName || '', px);
+        var a = Math.max(10, Math.round(px * 0.42));
+        return '<span class="fi-sc" style="width:' + px + 'px;height:' + px + 'px">' + base +
+            '<svg class="fi-sc-arrow" width="' + a + '" height="' + a + '" viewBox="0 0 16 16" aria-hidden="true">' +
+            '<rect x=".5" y=".5" width="15" height="15" rx="2" fill="#fff" stroke="#9aa5b1"/>' +
+            '<path d="M5 11.5c0-3.5 2-5.5 5.5-5.5M8.5 3.5l2.5 2.5-2.5 2.5" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+    }
+    /** "Create shortcut >" for a file or folder: beside it, or on my desktop. */
+    function shortcutMenu(type, id, canHere, disabled) {
+        return { label: L('sc.create', 'Create shortcut'), icon: IC.shortcut, disabled: disabled, sub: [
+            { label: L('sc.here', 'In this folder'), action: function () { createShortcut(type, id, 'folder'); }, disabled: !canHere },
+            { label: L('sc.desktop', 'On desktop'), action: function () { createShortcut(type, id, 'desktop'); } }
+        ] };
+    }
+    function createShortcut(type, id, where) {
+        return api('shortcut.php', { action: 'create', target_type: type, target_id: id, where: where }).then(function (r) {
+            if (r.where === 'desktop') {
+                WM.notify(L('sc.made_desktop', 'Shortcut "{name}" put on your desktop.', { name: r.name }));
+                loadDesktopShortcuts();
+            } else {
+                changed([r.folder_id]);
+            }
+        }).catch(fail);
+    }
+    /** Open the folder holding a shortcut's target, with the target selected. */
+    function shortcutLocation(s) {
+        if (s.target_type === 'folder') new Explorer(s.target_id);
+        else openLocation(s.target_folder_id, 'i:' + s.target_id);
     }
 
     /** Open a file in the viewer (files-viewer.js). Every open is a 'view' in the audit trail. */
@@ -321,6 +355,13 @@
         var lvl = d.folder ? d.folder.level : 0;
         d.folders.forEach(function (f) { out.push({ key: 'f:' + f.id, type: 'folder', id: f.id, name: f.name, modified: f.modified, level: f.level, path: f.path }); });
         d.items.forEach(function (i) { out.push({ key: 'i:' + i.id, type: 'item', id: i.id, name: i.name, modified: i.modified, size: i.size, level: lvl, by: i.modified_by, versions: i.versions }); });
+        // Shortcuts: `level` is THIS folder's (it decides rename/delete); the
+        // target's own permissions decide what opening it does.
+        (d.shortcuts || []).forEach(function (s) {
+            out.push({ key: 's:' + s.id, type: 'shortcut', id: s.id, name: s.name, modified: s.modified, level: lvl,
+                       target_type: s.target_type, target_id: s.target_id, target_name: s.target_name,
+                       target_folder_id: s.target_folder_id, target_level: s.target_level, path: s.path });
+        });
         return out;
     };
     Explorer.prototype.findEntry = function (key) {
@@ -363,17 +404,20 @@
         }
         shown.forEach(function (e) {
             var cls = 'fx-item' + (self.sel[e.key] ? ' fx-sel' : '') + (self.isCut(e) ? ' fx-cut' : '');
-            var icon = e.type === 'folder' ? FI.folder(self.view === 'icons' ? 48 : 18) : FI.file(e.name, self.view === 'icons' ? 48 : 18);
-            var tip = e.path ? e.path : e.name;
+            var px = self.view === 'icons' ? 48 : 18;
+            var icon = e.type === 'shortcut' ? shortcutIcon(e.target_type, e.target_name, px)
+                     : e.type === 'folder' ? FI.folder(px) : FI.file(e.name, px);
+            var tip = e.type === 'shortcut' ? L('sc.tip', 'Shortcut to {path}', { path: e.path }) : (e.path ? e.path : e.name);
+            var drag = 'true';
             if (self.view === 'icons') {
-                html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="true" title="' + esc(tip) + '">' +
+                html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="' + drag + '" title="' + esc(tip) + '">' +
                     '<div class="fx-ic">' + icon + '</div><div class="fx-name">' + esc(e.name) + '</div></div>';
             } else {
-                html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="true" title="' + esc(tip) + '">' +
+                html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="' + drag + '" title="' + esc(tip) + '">' +
                     '<div class="fx-c fx-c-name"><span class="fx-ic">' + icon + '</span><span class="fx-name">' + esc(e.name) + '</span></div>' +
                     '<div class="fx-c">' + esc(fmtWhen(e.modified)) + '</div>' +
-                    '<div class="fx-c">' + esc(e.type === 'folder' ? L('type.folder', 'File folder') : typeName(e.name)) + '</div>' +
-                    '<div class="fx-c fx-c-size">' + esc(e.type === 'folder' ? '' : fmtSize(e.size)) + '</div></div>';
+                    '<div class="fx-c">' + esc(e.type === 'folder' ? L('type.folder', 'File folder') : e.type === 'shortcut' ? L('type.shortcut', 'Shortcut') : typeName(e.name)) + '</div>' +
+                    '<div class="fx-c fx-c-size">' + esc(e.type === 'item' ? fmtSize(e.size) : '') + '</div></div>';
             }
         });
         L_.innerHTML = html;
@@ -421,12 +465,14 @@
             newFolder: !!(d.can.upload),
             uploadFiles: !!(d.folder && d.can.upload),
             paste: !!(clip && d.can.upload),
-            cut: min(LV.MODIFY),
-            copy: min(LV.DOWNLOAD),
+            // Shortcuts are not cut or copied - make a new one where you want it.
+            cut: min(LV.MODIFY) && sel.every(function (e) { return e.type !== 'shortcut'; }),
+            copy: min(LV.DOWNLOAD) && sel.every(function (e) { return e.type !== 'shortcut'; }),
             rename: sel.length === 1 && sel[0].level >= LV.MODIFY,
             del: min(LV.MODIFY),
             download: sel.length > 0 && sel.every(function (e) { return e.type === 'item' && e.level >= LV.DOWNLOAD; }),
             perms: sel.length === 1 ? sel[0].type === 'folder' : (sel.length === 0 && !!d.folder),
+            shortcutHere: !!(d.folder && d.can.upload),
             props: sel.length === 1 || (sel.length === 0 && !!d.folder)
         };
     };
@@ -476,7 +522,8 @@
                 else if (d.folder) openPermissions(d.folder.id);
                 return;
             case 'props':
-                if (sel[0]) openProperties(sel[0].type, sel[0].id);
+                if (sel[0] && sel[0].type === 'shortcut') openProperties(sel[0].target_type, sel[0].target_id);
+                else if (sel[0]) openProperties(sel[0].type, sel[0].id);
                 else if (d.folder) openProperties('folder', d.folder.id);
                 return;
             case 'view-icons': return this.setView('icons');
@@ -486,6 +533,11 @@
     function toRef(e) { return { type: e.type, id: e.id, name: e.name }; }
 
     Explorer.prototype.open = function (e, newWindow) {
+        if (e.type === 'shortcut') {
+            if (e.target_type === 'folder') { newWindow ? new Explorer(e.target_id) : this.load(e.target_id); }
+            else viewFile(e.target_id);
+            return;
+        }
         if (e.type === 'folder') {
             if (newWindow) new Explorer(e.id);
             else this.load(e.id);
@@ -528,7 +580,7 @@
             done = true;
             var v = input.value.replace(/[\r\n]+/g, ' ').trim();
             if (!commit || !v || v === e.name) { self.render(); self.pane.focus(); return; }
-            api(e.type === 'folder' ? 'folder.php' : 'item.php', { action: 'rename', id: e.id, name: v })
+            api(e.type === 'folder' ? 'folder.php' : e.type === 'shortcut' ? 'shortcut.php' : 'item.php', { action: 'rename', id: e.id, name: v })
                 .then(function () { self.reload(); if (e.type === 'folder') changed([]); self.pane.focus(); })
                 .catch(function (err) { fail(err); self.render(); });
         }
@@ -545,12 +597,14 @@
         var self = this;
         if (!sel.length) return;
         var msg = sel.length === 1
-            ? (sel[0].type === 'folder'
+            ? (sel[0].type === 'shortcut'
+                ? L('sc.del_q', 'Delete the shortcut "{name}"? What it points to is not affected.', { name: sel[0].name })
+                : sel[0].type === 'folder'
                 ? L('ex.del_folder_q', 'Delete the folder "{name}" and everything in it?', { name: sel[0].name })
                 : L('ex.del_file_q', 'Delete "{name}"?', { name: sel[0].name }))
             : L('ex.del_many_q', 'Delete these {n} items?', { n: sel.length });
         WM.dialog({
-            title: L('ex.delete', 'Delete'), message: msg + '\n\n' + L('ex.del_note', 'They go to the recycle bin, and the deletion is recorded in the audit trail.'),
+            title: L('ex.delete', 'Delete'), message: msg + '\n\n' + L('ex.del_note', 'The deletion is recorded in the audit trail. There is no recycle bin to restore from yet.'),
             buttons: [{ label: L('btn.delete', 'Delete'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }]
         }).then(function (ok) {
             if (!ok) return;
@@ -558,7 +612,7 @@
             sel.forEach(function (e) {
                 if (e.type === 'folder') anyFolder = true;
                 chain = chain.then(function () {
-                    return api(e.type === 'folder' ? 'folder.php' : 'item.php', { action: 'delete', id: e.id }).catch(fail);
+                    return api(e.type === 'folder' ? 'folder.php' : e.type === 'shortcut' ? 'shortcut.php' : 'item.php', { action: 'delete', id: e.id }).catch(fail);
                 });
             });
             chain.then(function () { self.reload(); if (anyFolder) changed([]); });
@@ -568,6 +622,18 @@
     // Context menus: on an entry, or on empty space.
     Explorer.prototype.entryMenu = function (ev, e) {
         var self = this, c = this.can(), many = this.selected().length > 1;
+        if (e.type === 'shortcut') {
+            WM.menu(ev.clientX, ev.clientY, [
+                { label: L('ex.open', 'Open'), icon: IC.open, action: function () { self.open(e); }, disabled: many },
+                { label: L('ex.open_location', 'Open file location'), icon: IC.location, action: function () { shortcutLocation(e); }, disabled: many },
+                { sep: true },
+                { label: L('ex.rename', 'Rename'), icon: IC.rename, shortcut: 'F2', action: function () { self.command('rename'); }, disabled: !c.rename },
+                { label: L('ex.delete', 'Delete'), icon: IC.del, shortcut: 'Del', action: function () { self.command('delete'); }, disabled: !c.del },
+                { sep: true },
+                { label: L('ex.properties', 'Properties'), icon: IC.props, action: function () { openProperties(e.target_type, e.target_id); }, disabled: many }
+            ]);
+            return;
+        }
         var items = [
             { label: L('ex.open', 'Open'), icon: IC.open, action: function () { self.open(e); }, disabled: many },
             e.type === 'folder' ? { label: L('ex.open_new', 'Open in new window'), action: function () { self.open(e, true); }, disabled: many } : null,
@@ -576,6 +642,7 @@
             { label: L('ex.cut', 'Cut'), icon: IC.cut, shortcut: 'Ctrl+X', action: function () { self.command('cut'); }, disabled: !c.cut },
             { label: L('ex.copy', 'Copy'), icon: IC.copy, shortcut: 'Ctrl+C', action: function () { self.command('copy'); }, disabled: !c.copy },
             e.type === 'folder' && clip ? { label: L('ex.paste_into', 'Paste into folder'), icon: IC.paste, action: function () { paste(e.id); }, disabled: e.level < LV.UPLOAD || many } : null,
+            shortcutMenu(e.type, e.id, c.shortcutHere, many),
             { sep: true },
             { label: L('ex.rename', 'Rename'), icon: IC.rename, shortcut: 'F2', action: function () { self.command('rename'); }, disabled: !c.rename },
             { label: L('ex.delete', 'Delete'), icon: IC.del, shortcut: 'Del', action: function () { self.command('delete'); }, disabled: !c.del },
@@ -716,7 +783,9 @@
             var k = n.dataset.key;
             if (!self.sel[k]) { self.sel = {}; self.sel[k] = true; self.paint(); }
             var sel = self.selected();
-            ev.dataTransfer.effectAllowed = 'copyMove';
+            // 'all': copy and move between folders, and 'link' for the desktop,
+            // where a dropped file or folder becomes a shortcut.
+            ev.dataTransfer.effectAllowed = 'all';
             ev.dataTransfer.setData('application/x-freeitsm-files', JSON.stringify({ from: self.folderId, entries: sel.map(toRef) }));
             dragging = { from: self.folderId, entries: sel };
         });
@@ -762,9 +831,53 @@
             var payload;
             try { payload = JSON.parse(ev.dataTransfer.getData('application/x-freeitsm-files')); } catch (e) { return; }
             if (!payload || (payload.from === target && !ev.ctrlKey)) return;
-            transfer(ev.ctrlKey ? 'copy' : 'move', payload.entries.map(function (e) { return { type: e.type, id: e.id }; }), payload.from, target);
+            dropEntries(payload, target, ev.ctrlKey);
         });
     };
+
+    /**
+     * Entries dropped on a folder (target; 0 = the top level). Files and folders
+     * move or copy through transfer.php; shortcuts - from a folder or from the
+     * desktop - through shortcut.php 'place'. The server checks every one.
+     */
+    function dropEntries(payload, target, copy) {
+        var sc = payload.entries.filter(function (e) { return e.type === 'shortcut'; });
+        var rest = payload.entries.filter(function (e) { return e.type !== 'shortcut'; });
+        var jobs = [];
+        if (rest.length) jobs.push(transfer(copy ? 'copy' : 'move', rest.map(function (e) { return { type: e.type, id: e.id }; }), payload.from, target));
+        if (sc.length && !target) {
+            WM.notify(L('sc.not_top', 'Shortcuts go inside a folder or on the desktop.'), 'error');
+        } else {
+            sc.forEach(function (s) { jobs.push(api('shortcut.php', { action: 'place', id: s.id, to: target, copy: !!copy }).catch(fail)); });
+        }
+        return Promise.all(jobs).then(function () {
+            if (sc.length) {
+                changed([target, payload.from === 'desktop' ? -1 : payload.from]);
+                if (payload.from === 'desktop') loadDesktopShortcuts();
+            }
+        });
+    }
+
+    /**
+     * Entries dropped on the desktop. Nothing is STORED on the desktop, so a
+     * file or folder dropped there becomes a desktop shortcut to it (Windows'
+     * "Create shortcuts here"); a shortcut dragged from a folder moves to the
+     * desktop - or, with Ctrl, is copied there and stays in the folder too.
+     */
+    function dropOnDesktop(payload, copy) {
+        var jobs = [];
+        payload.entries.forEach(function (e) {
+            if (e.type === 'shortcut') {
+                jobs.push(api('shortcut.php', { action: 'place', id: e.id, to: 'desktop', copy: !!copy }).catch(fail));
+            } else {
+                jobs.push(api('shortcut.php', { action: 'create', target_type: e.type === 'folder' ? 'folder' : 'item', target_id: e.id, where: 'desktop' }).catch(fail));
+            }
+        });
+        return Promise.all(jobs).then(function () {
+            loadDesktopShortcuts();
+            if (payload.entries.some(function (e) { return e.type === 'shortcut'; }) && !copy) changed([payload.from]);
+        });
+    }
 
     Explorer.prototype.moveCursor = function (key, extend) {
         if (!this.order.length) return;
@@ -849,6 +962,7 @@
                 { label: L('ex.open_new', 'Open in new window'), action: function () { new Explorer(f.id); } },
                 { sep: true },
                 clip ? { label: L('ex.paste_into', 'Paste into folder'), icon: IC.paste, action: function () { paste(f.id); }, disabled: (f.level || 0) < LV.UPLOAD } : null,
+                shortcutMenu('folder', f.id, true, false),
                 { label: L('ex.permissions', 'Permissions'), icon: IC.perms, action: function () { openPermissions(f.id); } },
                 { label: L('ex.properties', 'Properties'), icon: IC.props, action: function () { openProperties('folder', f.id); } }
             ]);
@@ -1335,6 +1449,7 @@
                     r.type !== 'folder' ? { label: L('ex.open', 'Open'), icon: IC.open, action: function () { viewFile(r.id); } } : null,
                     { label: L('ex.open_location', 'Open file location'), icon: IC.location, action: go },
                     r.type !== 'folder' ? { label: L('ex.download', 'Download'), icon: IC.download, action: function () { download(r.id); }, disabled: (r.level || LV.DOWNLOAD) < LV.DOWNLOAD } : null,
+                    { label: L('sc.desktop_full', 'Create shortcut on desktop'), icon: IC.shortcut, action: function () { createShortcut(r.type === 'folder' ? 'folder' : 'item', r.id, 'desktop'); } },
                     { label: L('ex.properties', 'Properties'), icon: IC.props, action: function () { openProperties(r.type === 'folder' ? 'folder' : 'item', r.id); } }
                 ]);
             });
@@ -1458,6 +1573,66 @@
             }
             box.appendChild(b);
         });
+        renderDesktopShortcuts(box);
+    }
+
+    var desktopShortcuts = [];
+    function loadDesktopShortcuts() {
+        return api('shortcut.php?desktop=1').then(function (r) { desktopShortcuts = r.shortcuts; renderDesktopIcons(); }).catch(function () {});
+    }
+    function renderDesktopShortcuts(box) {
+        desktopShortcuts.forEach(function (s) {
+            var b = h('button', 'fd-dicon fd-dicon-sc' + (s.ok ? '' : ' fd-dicon-gone'));
+            b.type = 'button';
+            b.setAttribute('role', 'listitem');
+            b.title = s.ok ? L('sc.tip', 'Shortcut to {path}', { path: s.path }) : L('sc.gone', 'What this shortcut pointed to has been deleted, or is no longer shared with you.');
+            b.innerHTML = shortcutIcon(s.target_type, s.target_name || s.name, 44) + '<span></span>';
+            b.querySelector('span:last-child').textContent = s.name;
+            var openIt = function () {
+                if (!s.ok) { WM.notify(L('sc.gone', 'What this shortcut pointed to has been deleted, or is no longer shared with you.'), 'error'); return; }
+                if (s.target_type === 'folder') new Explorer(s.target_id); else viewFile(s.target_id);
+            };
+            var removeIt = function () {
+                WM.dialog({ title: L('ex.delete', 'Delete'), message: L('sc.del_q', 'Delete the shortcut "{name}"? What it points to is not affected.', { name: s.name }),
+                    buttons: [{ label: L('btn.delete', 'Delete'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
+                    .then(function (ok) { if (ok) api('shortcut.php', { action: 'delete', id: s.id }).then(loadDesktopShortcuts).catch(fail); });
+            };
+            b.addEventListener('click', function () {
+                box.querySelectorAll('.fd-dicon').forEach(function (x) { x.classList.remove('fd-sel'); });
+                b.classList.add('fd-sel');
+            });
+            b.addEventListener('dblclick', openIt);
+            b.draggable = true;
+            b.addEventListener('dragstart', function (ev) {
+                var p = { from: 'desktop', entries: [{ type: 'shortcut', id: s.id, name: s.name }] };
+                ev.dataTransfer.effectAllowed = 'copyMove';
+                ev.dataTransfer.setData('application/x-freeitsm-files', JSON.stringify(p));
+                dragging = p;
+            });
+            b.addEventListener('dragend', function () { dragging = null; });
+            b.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter') { ev.preventDefault(); openIt(); }
+                if (ev.key === 'Delete') { ev.preventDefault(); removeIt(); }
+            });
+            b.addEventListener('contextmenu', function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                WM.menu(ev.clientX, ev.clientY, [
+                    { label: L('ex.open', 'Open'), icon: IC.open, action: openIt, disabled: !s.ok },
+                    { label: L('ex.open_location', 'Open file location'), icon: IC.location, action: function () { shortcutLocation(s); }, disabled: !s.ok },
+                    { sep: true },
+                    { label: L('ex.rename', 'Rename'), icon: IC.rename, action: function () {
+                        WM.dialog({ title: L('ex.rename', 'Rename'), input: { value: s.name },
+                            buttons: [{ label: L('btn.save', 'Save'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
+                            .then(function (r) { if (r.button && r.value.trim()) api('shortcut.php', { action: 'rename', id: s.id, name: r.value }).then(loadDesktopShortcuts).catch(fail); });
+                    } },
+                    { label: L('ex.delete', 'Delete'), icon: IC.del, action: removeIt },
+                    { sep: true },
+                    { label: L('ex.properties', 'Properties'), icon: IC.props, action: function () { openProperties(s.target_type, s.target_id); }, disabled: !s.ok }
+                ]);
+            });
+            box.appendChild(b);
+        });
     }
 
     var desktopEl = document.getElementById('fdDesktop');
@@ -1468,6 +1643,41 @@
             if (a) a.blur();
         }
     });
+    function dragKind(ev) {
+        var t = ev.dataTransfer && ev.dataTransfer.types ? Array.prototype.slice.call(ev.dataTransfer.types) : [];
+        if (t.indexOf('application/x-freeitsm-files') >= 0) return 'entries';
+        if (t.indexOf('Files') >= 0) return 'files';
+        return null;
+    }
+    desktopEl.addEventListener('dragover', function (ev) {
+        if (ev.target.closest('.fd-win')) return;   // a window under the pointer decides for itself
+        var k = dragKind(ev);
+        if (!k) return;
+        ev.preventDefault();
+        if (k === 'files' || (dragging && dragging.from === 'desktop')) { ev.dataTransfer.dropEffect = 'none'; return; }
+        var allShortcuts = dragging && dragging.entries.every(function (e) { return e.type === 'shortcut'; });
+        ev.dataTransfer.dropEffect = allShortcuts ? (ev.ctrlKey ? 'copy' : 'move') : 'link';
+        desktopEl.classList.add('fd-drop');
+    });
+    desktopEl.addEventListener('dragleave', function (ev) { if (!desktopEl.contains(ev.relatedTarget)) desktopEl.classList.remove('fd-drop'); });
+    desktopEl.addEventListener('drop', function (ev) {
+        desktopEl.classList.remove('fd-drop');
+        if (ev.target.closest('.fd-win')) return;
+        var k = dragKind(ev);
+        if (!k) return;
+        ev.preventDefault();
+        if (k === 'files') { WM.notify(L('up.drop_in_folder', 'Drop files into a folder window to upload them - the desktop is not a folder.')); return; }
+        var p;
+        try { p = JSON.parse(ev.dataTransfer.getData('application/x-freeitsm-files')); } catch (e) { return; }
+        if (!p || p.from === 'desktop') return;
+        dropOnDesktop(p, ev.ctrlKey);
+    });
+    // TRAP: a file from the computer dropped where nothing accepts it (a
+    // window's title bar, the taskbar) makes the BROWSER open it - leaving Files.
+    // Swallow any drop nobody handled.
+    document.addEventListener('dragover', function (ev) { if (dragKind(ev) === 'files') ev.preventDefault(); });
+    document.addEventListener('drop', function (ev) { if (dragKind(ev) === 'files') ev.preventDefault(); });
+
     desktopEl.addEventListener('contextmenu', function (ev) {
         if (ev.target !== desktopEl && ev.target.id !== 'fdIcons') return;
         ev.preventDefault();
@@ -1591,7 +1801,11 @@
                 html += '<button type="button" class="fdm-row" data-i="' + i.id + '">' + FI.file(i.name, 28) + '<span class="fdm-name">' + esc(i.name) +
                     '<span class="fdm-meta">' + esc(fmtSize(i.size) + ' - ' + fmtWhen(i.modified)) + '</span></span></button>';
             });
-            if (!d.folders.length && !d.items.length) {
+            (d.shortcuts || []).forEach(function (s) {
+                html += '<button type="button" class="fdm-row" data-s="' + s.id + '">' + shortcutIcon(s.target_type, s.target_name, 28) + '<span class="fdm-name">' + esc(s.name) +
+                    '<span class="fdm-meta">' + esc(L('sc.tip', 'Shortcut to {path}', { path: s.path })) + '</span></span></button>';
+            });
+            if (!d.folders.length && !d.items.length && !(d.shortcuts || []).length) {
                 html += '<div class="fd-pad fd-muted">' + esc(d.folder ? L('ex.empty_folder', 'This folder is empty.') : L('ex.empty_root', 'Nothing has been shared with you yet.')) + '</div>';
             }
             box.innerHTML = html + '</div>';
@@ -1611,6 +1825,12 @@
             }
             var f = ev.target.closest('[data-f]');
             if (f) { load(+f.dataset.f); return; }
+            var sc = ev.target.closest('[data-s]');
+            if (sc) {
+                var s = (data.shortcuts || []).filter(function (x) { return x.id === +sc.dataset.s; })[0];
+                if (s) { if (s.target_type === 'folder') load(s.target_id); else viewFile(s.target_id); }
+                return;
+            }
             var i = ev.target.closest('[data-i]');
             if (i) {
                 var lvl = data.folder ? data.folder.level : 0;
@@ -1622,6 +1842,7 @@
 
     // ── Start ──────────────────────────────────────────────────────────────
     renderDesktopIcons();
+    loadDesktopShortcuts();
     var phone = window.matchMedia('(max-width: 768px)');
     if (phone.matches) Mobile.load(0);
     else new Explorer(0);

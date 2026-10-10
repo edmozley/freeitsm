@@ -154,9 +154,10 @@ function getHelpTopics() {
                 ['id' => 'slots',    'label' => 'Header & footer text'],
                 ['id' => 'tokens',   'label' => 'Tokens'],
                 ['id' => 'screens',  'label' => 'The three sign-in screens'],
+                ['id' => 'files',    'label' => 'Files desktop logo'],
                 ['id' => 'save',     'label' => 'Saving & resetting'],
             ],
-            'terms' => 'logo brand company name letterhead export pdf watermark login screen background image portal home wallpaper sign-in',
+            'terms' => 'logo brand company name letterhead export pdf watermark login screen background image portal home wallpaper sign-in files desktop corner',
         ],
         'security' => [
             'hero' => 'Security',
@@ -294,11 +295,12 @@ function getHelpTopics() {
             'sections' => [
                 ['id' => 'overview', 'label' => 'Overview'],
                 ['id' => 'adding',   'label' => 'Adding companies'],
+                ['id' => 'logo',     'label' => 'Company logo'],
                 ['id' => 'email',    'label' => 'Routing inbound email'],
                 ['id' => 'senders',  'label' => 'Personal & free email'],
                 ['id' => 'summary',  'label' => 'How email reaches a company'],
             ],
-            'terms' => 'tenant msp client customer multi-tenancy separate organisation domain',
+            'terms' => 'tenant msp client customer multi-tenancy separate organisation domain logo files desktop',
         ],
         // Cost centres (GH #160).
         'cost-centres' => [

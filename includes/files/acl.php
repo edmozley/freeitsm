@@ -13,7 +13,7 @@
  *     2 Download      take a copy away
  *     3 Upload        add files and subfolders, upload a new version
  *     4 Modify        rename, move, delete
- *     5 Full control  change permissions, inheritance, share links
+ *     5 Full control  change permissions, inheritance and the watermark
  *
  *   A folder with inherit_permissions = 1 also carries every entry of its
  *   parent (and so on up). Turning inheritance off stops that at this folder.

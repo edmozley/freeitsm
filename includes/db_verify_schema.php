@@ -5700,6 +5700,18 @@ return [
         'user_agent'          => 'VARCHAR(255) NULL',
         'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
+    // A shortcut lives in a folder (folder_id) OR on one person's desktop
+    // (analyst_id). It grants nothing - the target's permissions decide.
+    'files_shortcuts' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'folder_id'           => 'INT NULL',
+        'analyst_id'          => 'INT NULL',
+        'target_type'         => 'VARCHAR(10) NOT NULL',
+        'target_id'           => 'INT NOT NULL',
+        'name'                => 'VARCHAR(255) NOT NULL',
+        'created_by'          => 'INT NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
     'files_uploads' => [
         'id'                  => 'INT NOT NULL AUTO_INCREMENT',
         'token'               => 'CHAR(32) NOT NULL',

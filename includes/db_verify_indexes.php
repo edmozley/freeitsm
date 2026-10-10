@@ -514,5 +514,8 @@ return [
     ['files_audit', 'ix_files_audit_item', 'key', '(`item_id`,`id`)'],
     ['files_audit', 'ix_files_audit_folder', 'key', '(`folder_id`,`id`)'],
     ['files_audit', 'ix_files_audit_analyst', 'key', '(`analyst_id`,`id`)'],
+    ['files_shortcuts', 'ix_files_shortcuts_folder', 'key', '(`folder_id`)'],
+    ['files_shortcuts', 'ix_files_shortcuts_analyst', 'key', '(`analyst_id`)'],
+    ['files_shortcuts', 'ix_files_shortcuts_target', 'key', '(`target_type`,`target_id`)'],
     ['files_uploads', 'uq_files_uploads_token', 'unique', '(`token`)'],
 ];

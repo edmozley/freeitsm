@@ -46,6 +46,16 @@ require __DIR__ . '/_top.php';
     <div class="help-note">Editing email routing is only available once a company has been saved, so add the company first, then re-open it to attach its domains and senders.</div>
 </div>
 
+<div class="help-section" id="logo">
+    <div class="help-section-header"><?php echo helpSectionNum('logo'); ?>
+        <div>
+            <h3>Company logo</h3>
+            <p>Each company can have its own logo. It is shown in the corner of the Files desktop for people working in that company, when <strong>System &rarr; Branding &rarr; Files desktop</strong> is set to show the company logo.</p>
+        </div>
+    </div>
+    <p>Edit a company that has already been saved and use <strong>Choose</strong> under <strong>Logo</strong>. PNG, JPG, GIF or WebP, up to 2 MB. It is saved straight away - there is no need to press Save - and <strong>Remove</strong> takes it off again. A company without a logo shows the organisation logo from Branding.</p>
+</div>
+
 <!-- 3. Routing inbound email -->
 <div class="help-section" id="email">
     <div class="help-section-header"><?php echo helpSectionNum('email'); ?>

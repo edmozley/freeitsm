@@ -22,7 +22,7 @@ require_once __DIR__ . '/acl.php';
 const FILES_AUDIT_ACTIONS = [
     'browse', 'search', 'view', 'download', 'upload', 'new_version',
     'create_folder', 'rename', 'move', 'copy', 'delete',
-    'permissions', 'inheritance', 'watermark', 'take_ownership', 'denied', 'settings',
+    'permissions', 'inheritance', 'watermark', 'shortcut', 'take_ownership', 'denied', 'settings',
 ];
 
 /**

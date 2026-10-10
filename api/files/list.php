@@ -82,6 +82,24 @@ filesApiRun(function () use ($conn, $analystId) {
         usort($items, fn($a, $b) => strnatcasecmp($a['name'], $b['name']));
     }
 
+    // Shortcuts in this folder - ONLY those whose target this person can see
+    // (shortcut.php explains why: a shortcut's name must not reveal a hidden target).
+    $shortcuts = [];
+    if ($folderId > 0) {
+        $st = $conn->prepare("SELECT id, target_type, target_id, name, created_datetime FROM files_shortcuts WHERE folder_id = ?");
+        $st->execute([$folderId]);
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $s) {
+            $t = filesShortcutTarget($conn, $analystId, $s['target_type'], (int)$s['target_id']);
+            if (!$t) continue;
+            $shortcuts[] = [
+                'id' => (int)$s['id'], 'name' => $s['name'], 'modified' => $s['created_datetime'],
+                'target_type' => $s['target_type'], 'target_id' => (int)$s['target_id'],
+                'target_name' => $t['name'], 'target_folder_id' => $t['folder_id'], 'path' => $t['path'], 'target_level' => $t['level'],
+            ];
+        }
+        usort($shortcuts, fn($a, $b) => strnatcasecmp($a['name'], $b['name']));
+    }
+
     // Breadcrumbs: up through the ancestors the caller can see, and no further.
     $crumbs = [];
     $f = $folderId > 0 ? $tree[$folderId] : null;
@@ -104,6 +122,7 @@ filesApiRun(function () use ($conn, $analystId) {
         'crumbs'  => $crumbs,
         'folders' => $folders,
         'items'   => $items,
+        'shortcuts' => $shortcuts,
         'can'     => [
             'upload' => $folderId > 0 ? $level >= FilesAcl::UPLOAD : filesHasCap($conn, $analystId, Cap::FILES_FOLDERS),
             'modify' => $level >= FilesAcl::MODIFY,
