@@ -42,8 +42,8 @@ if (!isset($_SESSION['analyst_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('system.search.heading')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         /* System module accent — same pinning as the other System screens, and
            for the same reason: System's dark accent is a LIGHT colour, so
@@ -118,7 +118,7 @@ if (!isset($_SESSION['analyst_id'])) {
         .srch-muted { color: var(--text-faint, #9ca3af); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="search">
     <?php include '../includes/header.php'; ?>

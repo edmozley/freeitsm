@@ -29,8 +29,8 @@ $translationNamespaces = ['common', 'knowledge'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('knowledge.browser_title.help')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -82,7 +82,7 @@ $translationNamespaces = ['common', 'knowledge'];
         .kb-help-ai-bubble.ai { background: var(--surface-2, #fafafa); }
     </style>
     <!-- Mobile: the guide body is already responsive (help-page house style); LAYER 16h adds the app shell and the scroll container. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

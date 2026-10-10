@@ -30,11 +30,11 @@ $dtSearchPlaceholder = t('domains.table.search');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName() . ' - ' . t('domains.title') . ' - ' . t('domains.nav.table')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=25">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../../assets/css/data-table.css?v=4">
     <link rel="stylesheet" href="../../assets/css/domains.css?v=7">
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>

@@ -79,8 +79,26 @@ try {
         }
     }
 
+    // Files desktop logo (Files module). Both are fixed lists; anything else is
+    // refused before anything is written, like landing_page above. Only sent by
+    // a form that has the card, so an older client leaves them alone.
+    $filesLogo = [];
+    if (array_key_exists('files_logo_mode', $_POST)) {
+        $m = (string)$_POST['files_logo_mode'];
+        if (!in_array($m, ['company', 'none'], true)) throw new Exception("'files_logo_mode' must be company or none");
+        $filesLogo['files_logo_mode'] = $m;
+    }
+    if (array_key_exists('files_logo_position', $_POST)) {
+        $p = (string)$_POST['files_logo_position'];
+        if (!in_array($p, ['top-right', 'bottom-right'], true)) throw new Exception("'files_logo_position' must be top-right or bottom-right");
+        $filesLogo['files_logo_position'] = $p;
+    }
+
     foreach ($values as $k => $v) {
         $upsert($conn, 'branding_' . $k, $v);
+    }
+    foreach ($filesLogo as $k => $v) {
+        $upsert($conn, $k, $v);
     }
     if ($landing !== null) {
         $upsert($conn, LANDING_SETTING_KEY, $landing);

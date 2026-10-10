@@ -217,6 +217,17 @@ final class Cap
     // Service Status page, which customers read - sensitive for that reason.
     const DOMAINS_SERVICE_STATUS = 'domains.service_status';
 
+    // ---- Files -------------------------------------------------------------
+    // ⚠️ None of these lets anybody READ a file. Files is pessimistic: content is
+    // reached only through a grant on the folder (files_permissions). FOLDERS is
+    // the break-glass: it creates top-level folders and can TAKE OWNERSHIP of any
+    // folder - give itself Full control, loudly audited - which is how an orphaned
+    // folder is recovered. That makes it the most sensitive grant in the module.
+    // STORAGE moves where the bytes live on disk and caps upload size.
+    const FILES_MANAGE  = 'files.manage';    // umbrella
+    const FILES_FOLDERS = 'files.folders';
+    const FILES_STORAGE = 'files.storage';
+
     // ---- Projects (3.2.0) --------------------------------------------------
     // GENERAL decides who may create and change projects - the module's own
     // permission rules - so it is sensitive. HEALTH tunes the traffic light;

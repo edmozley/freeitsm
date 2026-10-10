@@ -28,8 +28,8 @@ $translationNamespaces = ['common', 'calendar'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('calendar.help.page_title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../assets/css/help.css?v=3">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
@@ -43,7 +43,7 @@ $translationNamespaces = ['common', 'calendar'];
     <!-- Mobile: help.css already reflows the guide's body at 900px, but the
          page had no app shell — the header's view links spilled off the right
          instead of becoming a drawer. LAYER 16h covers the rest. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>

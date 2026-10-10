@@ -40,8 +40,8 @@ $translationNamespaces = ['common', 'forms'];
          implementation of what a record looks like, so the two pages cannot
          disagree the first time a field type changes. -->
     <script src="../assets/js/form-pdf.js?v=2"></script>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <!-- The detail panel draws a table QUESTION as a real table, and .form-table
          lives in the shared sheet. Without this the markup is right and the
          table renders unstyled - borderless rows running into each other. -->
@@ -451,7 +451,7 @@ $translationNamespaces = ['common', 'forms'];
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
          mobile rules must win on equal specificity, and a link placed above it
          would silently lose to the desktop block below (the load-order trap). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

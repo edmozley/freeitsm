@@ -103,6 +103,7 @@ $DB_VERIFY_MODULE_PREFIXES = [
     'supplier'         => 'contracts',
     'domain_'          => 'domains',    // domains, domain_statuses, domain_audit… (tenant_domains is caught by 'tenant' first)
     'domains'          => 'domains',
+    'files_'           => 'files',      // files_folders, files_items, files_audit…
     // --- Automation ---
     'workflow'         => 'workflow',
     'webhook_'         => 'workflow',
@@ -132,6 +133,7 @@ function dbVerifyModuleLabels(): array {
         'forms'          => 'Forms',
         'contracts'      => 'Contracts',
         'domains'        => 'Domains',
+        'files'          => 'Files',
         'wiki'           => 'Wiki',
         'lms'            => 'Learning',
         'process-mapper' => 'Process mapper',

@@ -50,8 +50,8 @@ $translationNamespaces = ['common', 'forms'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/ai-settings.js?v=2"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         /* Module accent (teal) — tabs, toggles, focus rings, shared buttons. */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
@@ -374,7 +374,7 @@ $translationNamespaces = ['common', 'forms'];
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
          mobile rules must win on equal specificity, and a link placed above it
          would silently lose to the desktop block below (the load-order trap). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>

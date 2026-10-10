@@ -25,8 +25,8 @@ $path_prefix = '../../';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - Problem Management Settings</title>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=78">
     <style>
         /* Pin the shared accent to the module red so the tabs, Add buttons,
            toggles, modal primary button and focus rings read on-brand. */
@@ -43,7 +43,7 @@ $path_prefix = '../../';
         .pms-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
         .tab-content .table-action-btn svg { width: 15px; height: 15px; }
     </style>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=192">
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
 </head>

@@ -66,8 +66,8 @@ foreach ($templates as $t) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('checklists.list.page_title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <style>
         body { margin: 0; padding: 0; background: var(--app-bg, #f8fafc); }
         .chk-layout { display: flex; height: calc(100vh - 48px); width: 100%; overflow: hidden; }
@@ -87,7 +87,7 @@ foreach ($templates as $t) {
         .chk-pill-task { background: #dcfce7; color: #16a34a; }
         .chk-pill-both { background: #f3e8ff; color: #9333ea; }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-page="checklists" data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include 'includes/header.php'; ?>

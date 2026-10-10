@@ -56,6 +56,7 @@ RUN sed -i 's#^\(\s*\)DocumentRoot .*#&\n\1IncludeOptional /etc/apache2/freeitsm
 # Create directories for uploads, attachments, encryption keys and certificates
 RUN mkdir -p /var/www/html/tickets/attachments \
     /var/www/html/change-management/attachments \
+    /var/www/html/uploads/files \
     /var/www/encryption_keys \
     /var/www/tls \
     && chown -R www-data:www-data /var/www/html /var/www/encryption_keys /var/www/tls \

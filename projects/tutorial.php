@@ -35,10 +35,10 @@ $tourStart = !empty($_GET['walk']) ? 'walk' : 'explore';
     <script>window.PRJ_TOUR = <?php echo json_encode(['methods' => array_map(fn($m) => $m['tools'], projectMethodologies()), 'labels' => array_map(fn($k) => t('projects.method.' . $k), array_combine(array_keys(projectMethodologies()), array_keys(projectMethodologies())))], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=26">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=77">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../assets/css/projects.css?v=47">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-tutorial">
     <?php include 'includes/header.php'; ?>

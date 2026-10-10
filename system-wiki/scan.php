@@ -29,8 +29,8 @@ $translationNamespaces = ['common', 'system-wiki'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <style>
         /* Pin the generic accent to the System Wiki red for this page */
         body { --accent: var(--wiki-accent, #c62828); }
@@ -143,7 +143,7 @@ $translationNamespaces = ['common', 'system-wiki'];
          equal specificity loses on document order (Techniques §9).
          WARNING: includes/header.php emits a <style> INSIDE the BODY, which is
          later still (§24) - the hover-rail rules there need !important. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="wiki" data-mobile-page="wiki-scan">
     <?php include 'includes/header.php'; ?>

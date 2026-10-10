@@ -35,8 +35,8 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
 
@@ -82,7 +82,7 @@ $translationNamespaces = ['common', 'contracts'];
         [data-theme-mode="dark"] .tab-content .action-btn.delete:hover { background: #3a1e1e; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>

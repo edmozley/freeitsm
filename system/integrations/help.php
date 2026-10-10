@@ -101,8 +101,8 @@ $sections = $isSlack ? [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars($name); ?> setup</title>
-    <link rel="stylesheet" href="<?php echo $assetBase; ?>assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="<?php echo $assetBase; ?>assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="<?php echo $assetBase; ?>assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="<?php echo $assetBase; ?>assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
@@ -114,7 +114,7 @@ $sections = $isSlack ? [
         }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="integrations-help">
     <?php include __DIR__ . '/../includes/header.php'; ?>

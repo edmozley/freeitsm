@@ -45,12 +45,12 @@ function ctHead(string $title): void
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars($title); ?></title>
-    <link rel="stylesheet" href="<?php echo $b; ?>assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="<?php echo $b; ?>assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="<?php echo $b; ?>assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="<?php echo $b; ?>assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="<?php echo $b; ?>assets/css/lms.css?v=10">
     <link rel="stylesheet" href="<?php echo $b; ?>assets/css/lms-tests.css?v=2">
     <?php /* mobile.css LAST, after every module sheet: its @media rules win ties on load order (wiki Mobile-Friendly-Techniques §9). */ ?>
-    <link rel="stylesheet" href="<?php echo $b; ?>assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="<?php echo $b; ?>assets/css/mobile.css?v=192">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
             window.CT_BASE = <?php echo json_encode($b); ?>;</script>
     <?php echo Tz::scriptTag(); ?>

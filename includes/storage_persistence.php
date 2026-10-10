@@ -157,7 +157,7 @@ function storagePersistenceDirectories(): array
     $dirs = [
         ['rel' => 'tickets/attachments',              'label' => 'Attachments that arrived on inbound email'],
         ['rel' => 'change-management/attachments',    'label' => 'Files attached to a change record'],
-        ['rel' => 'uploads',                          'label' => 'Documents attached to tickets, notes, assets and articles, and asset import files'],
+        ['rel' => 'uploads',                          'label' => 'Documents attached to tickets, notes, assets and articles, asset import files, and everything shared in Files'],
         ['rel' => 'recordings',                       'label' => 'Screen recordings made from the self-service portal'],
         ['rel' => 'lms/content',                      'label' => 'Uploaded course content and SCORM packages'],
         ['rel' => 'contracts/rfp-builder/uploads',    'label' => 'Files uploaded to an RFP'],

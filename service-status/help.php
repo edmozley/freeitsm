@@ -32,8 +32,8 @@ $translationNamespaces = ['common', 'service-status'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../assets/css/help.css?v=3">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
@@ -54,7 +54,7 @@ $translationNamespaces = ['common', 'service-status'];
         .help-dot.major-outage { background: var(--danger-accent, #ef4444); }
     </style>
     <!-- Mobile: LAYER 16h — the guide body is already responsive; this adds the app shell. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

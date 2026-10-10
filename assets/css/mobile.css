@@ -16261,3 +16261,72 @@
     body[data-mobile-page="projects-view"] .prj-gc-control select { min-height: 40px; }
     body[data-mobile-page="projects-view"] .prj-gc-control .btn.sm { min-height: 40px; }
 }
+
+@media (max-width: 768px) {
+    /* ====================================================================
+       LAYER 45 - Files
+       --------------------------------------------------------------------
+       Files is a fake Windows desktop: fixed-position windows, a taskbar,
+       a start menu, drag-to-resize. None of that is a phone control, so on
+       a phone there is no desktop at all (§11): files-desktop.js renders .fd-mobile,
+       a plain list of the same folders (tap a folder to go in, Back to come
+       out, tap a file to download it), and this layer hides the desktop and
+       gives the list the house shell.
+
+         desktop    files.css has body.fd-body {height:100vh;overflow:hidden}
+                    and the navbar's on/auto-hide/off modes. Here: back to
+                    LAYER 2's 100dvh column, the header always shown (the
+                    person's auto-hide/off is a mouse setting), and the list
+                    the one scroller (§28: flex 1, min-height 0).
+         list bar   sticky, first child of the scroller (§5), one line (§13).
+         fields     every field 16px (§3) - the new-folder name dialog.
+         help/settings  the shared help layer and the settings shell already
+                    answer them.
+
+       45a desktop hidden, shell   45b list   45c fields
+       ==================================================================== */
+
+    /* 45a - no desktop on a phone; the house shell instead (§2, §28). */
+    body[data-mobile-page="files-desktop"].fd-body { height: 100dvh; overflow: hidden; background: var(--app-bg); }
+    body[data-mobile-page="files-desktop"] .fd-navwrap { position: static !important; transform: none !important; display: block !important; flex-shrink: 0; box-shadow: none; }
+    body[data-mobile-page="files-desktop"] .fd-desktop,
+    body[data-mobile-page="files-desktop"] .fd-taskbar,
+    body[data-mobile-page="files-desktop"] .fd-startmenu,
+    body[data-mobile-page="files-desktop"] .fd-preview,
+    body[data-mobile-page="files-desktop"] .fd-navsensor { display: none !important; }
+    body[data-mobile-page="files-desktop"] .fd-mobile {
+        display: block; flex: 1 1 auto; min-height: 0; overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 45b - the list: a sticky bar, then one row per folder or file. */
+    body[data-mobile-page="files-desktop"] .fdm-bar {
+        position: sticky; top: 0; z-index: 2;
+        display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    body[data-mobile-page="files-desktop"] .fdm-title { flex: 1; min-width: 0; font-weight: 600; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    body[data-mobile-page="files-desktop"] .fdm-back,
+    body[data-mobile-page="files-desktop"] .fdm-btn {
+        flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 8px;
+        background: transparent; color: var(--text); display: flex; align-items: center; justify-content: center;
+    }
+    body[data-mobile-page="files-desktop"] .fdm-back svg,
+    body[data-mobile-page="files-desktop"] .fdm-btn svg { width: 20px; height: 20px; }
+    body[data-mobile-page="files-desktop"] .fdm-list { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+    body[data-mobile-page="files-desktop"] .fdm-row {
+        display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px;
+        padding: 8px 16px; border: 0; border-bottom: 1px solid var(--border-soft);
+        background: var(--surface); color: var(--text); font: inherit; font-size: 15px; text-align: left;
+    }
+    body[data-mobile-page="files-desktop"] .fdm-row > svg { flex: 0 0 auto; }
+    body[data-mobile-page="files-desktop"] .fdm-name { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    body[data-mobile-page="files-desktop"] .fdm-meta { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* 45c - fields at 16px so iOS does not zoom (§3); dialogs fit the screen. */
+    body[data-mobile-module="files"] input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),
+    body[data-mobile-module="files"] select,
+    body[data-mobile-module="files"] textarea { font-size: 16px; }
+    body[data-mobile-page="files-desktop"] .fd-dialog { width: calc(100vw - 24px); }
+    body[data-mobile-page="files-desktop"] .fd-btn { min-height: 44px; }
+}

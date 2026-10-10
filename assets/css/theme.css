@@ -120,6 +120,10 @@
     --dom-accent:      #4d7c0f;  --dom-accent-hover: #3f6212;
     --dom-accent-soft: #ecfccb;  --dom-on-accent:    #ffffff;
 
+    /* Files module (navy) accents - menus, selection, buttons on the desktop. */
+    --fil-accent:      #1e3a8a;  --fil-accent-hover: #172554;
+    --fil-accent-soft: #dbeafe;  --fil-on-accent:    #ffffff;
+
     /* War room module (amber) accents. Declared here rather than left to the
        inline fallbacks the module was using: a var() fallback works, but it is
        the same value in both palettes, so dark mode never adapted the accent. */
@@ -265,6 +269,10 @@
        Bright lime cannot carry white text, so on-accent flips to near-black. */
     --dom-accent:      #84cc16;  --dom-accent-hover: #a3e635;
     --dom-accent-soft: #1f2a12;  --dom-on-accent:    #111111;
+
+    /* Files module (navy) - lifted to a mid blue so it reads on dark. */
+    --fil-accent:      #60a5fa;  --fil-accent-hover: #93c5fd;
+    --fil-accent-soft: #172554;  --fil-on-accent:    #0b1220;
 
     /* Service Status module (emerald) — accent nudged lighter to read on dark */
     /* War room, dark: lifted so the amber reads against a dark surface. */

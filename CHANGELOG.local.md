@@ -14,6 +14,17 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2254 | Files             | Feature     | New module: a Windows-like desktop (icons, taskbar with live hover previews of each window, start menu, clock) whose windows drag, resize from any edge, snap to the top or sides, minimise and maximise, and remember their size per person. |
+| 2255 | Files             | Feature     | Explorer windows: folder tree and contents panes, icons and details views with sortable columns, a filter box per window, right-click menus, cut/copy/paste, drag and drop (Ctrl to copy), in-place rename, rubber-band selection and keyboard shortcuts. |
+| 2256 | Files             | Feature     | Chunked uploads (4 MB pieces, past PHP's upload limits) with a Transfers window, replace-as-new-version or keep-both on a name clash, SHA-256 per version, range-resumable downloads, and storage as <root>/yyyy/mm/dd/<random>.bin never served by the web server. |
+| 2257 | Files             | Feature     | Pessimistic folder permissions: nothing visible until granted, five cumulative levels for analysts and teams, inheritance per folder with Copy/Remove when stopping it, no admin bypass, and hidden folders answering "not found" everywhere including name clashes and search. |
+| 2258 | Files             | Feature     | Every action audited in files_audit (browse, search, view details, download, upload, new version, create, rename, move, copy, delete, permissions, inheritance, take ownership, refusals) with name, path, IP and user agent copied in. |
+| 2259 | Files             | Feature     | Files -> Settings: a Folders tab listing every folder with Take ownership (Cap::FILES_FOLDERS, which also allows top-level folders) and a Storage tab for the storage root and largest upload (Cap::FILES_STORAGE). |
+| 2260 | Files             | Feature     | Personalise (desktop colour; top bar on / auto-hide / off with the module switcher in the start menu), Recent and Search apps, a help page (also in a desktop window), and a plain list view on phones (mobile.css LAYER 45). |
+| 2261 | System            | Feature     | System -> Branding has a Files desktop card: show the signed-in person's company logo (falling back to the organisation logo) or none, top right or bottom right. |
+| 2262 | System            | Feature     | Companies can have their own logo (System -> Companies, tenants.logo_path), stored under a random name in system/uploads/branding/companies/. |
+| 2263 | Tests             | Fix         | tests/module-access-coverage.php recognises the Projects and Files API bootstraps, so the 17 guarded Projects endpoints no longer report as unguarded. |
+| 2264 | Feature Bingo     | Improvement | Six Files cards: first folder, first upload, a team grant, a private subfolder, a chosen storage folder, and a company logo. |
 
 
 

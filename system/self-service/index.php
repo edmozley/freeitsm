@@ -34,8 +34,8 @@ requireModuleAccess('system');
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('system.self_service.heading')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../../assets/css/self-service-patterns.css?v=2">
     <style>
         body {
@@ -106,7 +106,7 @@ requireModuleAccess('system');
            Remove showed with no logo to remove. */
         .ssp-logo-row [hidden] { display: none !important; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="self-service">
     <?php include '../includes/header.php'; ?>

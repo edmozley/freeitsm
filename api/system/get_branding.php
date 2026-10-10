@@ -87,6 +87,15 @@ try {
         ],
         // Which front door "/" sends an unauthenticated visitor to (#63).
         'landing_page' => landingInstallDefault($conn),
+        // The Files desktop's corner logo (Files module).
+        'files_desktop' => (function () use ($conn) {
+            $st = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('files_logo_mode', 'files_logo_position')");
+            $v = $st->fetchAll(PDO::FETCH_KEY_PAIR);
+            return [
+                'logo_mode'     => ($v['files_logo_mode'] ?? '') === 'none' ? 'none' : 'company',
+                'logo_position' => ($v['files_logo_position'] ?? '') === 'bottom-right' ? 'bottom-right' : 'top-right',
+            ];
+        })(),
     ]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

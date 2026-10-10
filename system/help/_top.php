@@ -18,8 +18,8 @@ $helpNav   = $helpNav  ?? ($helpTopic['sections'] ?? []);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Help — <?php echo htmlspecialchars($helpHero); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../../assets/css/help.css?v=3">
     <style>
         /* The only thing a help page should say for itself: its colour.
@@ -41,7 +41,7 @@ $helpNav   = $helpNav  ?? ($helpTopic['sections'] ?? []);
         }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
 </head>

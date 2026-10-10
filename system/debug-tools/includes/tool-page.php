@@ -55,8 +55,8 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars($tool['id'] . ' · ' . $tool['title']); ?></title>
-    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=78">
     <style>
         body {
             /* System is the FIRST module whose DARK accent is a LIGHT colour (#90a4ae).
@@ -115,7 +115,7 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
         [data-theme-mode="dark"] .spinner-inline { border-color: rgba(0,0,0,0.25); border-top-color: var(--sys-on-accent, #263238); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="debug-tool">
     <?php include __DIR__ . '/../../includes/header.php'; ?>

@@ -41,8 +41,8 @@ $translationNamespaces = ['common', 'service-status'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         /* Override the shared .container max-width so this page uses the full screen */
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
@@ -88,7 +88,7 @@ $translationNamespaces = ['common', 'service-status'];
         [data-theme-mode="dark"] .tab-content .action-btn.delete:hover { background: #3a1a1a; }
     </style>
     <!-- Mobile: LAYER 15e (container + tab bar + the .tab-content > table scroller). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>

@@ -43,8 +43,8 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=25">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../../assets/css/domains.css?v=7">
     <style>
         /* Full-width settings page. ⚠️ max-width alone is not enough: inbox.css's
@@ -70,7 +70,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         .st-list .action-btn svg { width: 16px; height: 16px; }
         @media (max-width: 900px) { .set-row { grid-template-columns: 1fr; gap: 8px; } }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="domains" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>

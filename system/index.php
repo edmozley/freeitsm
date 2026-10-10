@@ -54,8 +54,8 @@ $translationNamespaces = ['common', 'system'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('system.title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <style>
         /* System module accent (blue-grey) — shared primitives pick this up. */
         body {
@@ -283,7 +283,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .storage-alert__link { background: #c0392b; color: #fff; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
     <?php echo Tz::scriptTag(); ?>
     <!-- $translationNamespaces was being prepared above and then never shipped, so
          window.t did not exist on this page and the notification bell threw on its

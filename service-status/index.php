@@ -28,8 +28,8 @@ $translationNamespaces = ['common', 'service-status'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <style>
         /* Pin the shared --accent to the module's emerald so modals, focus
            rings and the secondary button read on-brand. */
@@ -459,7 +459,7 @@ $translationNamespaces = ['common', 'service-status'];
         [data-theme-mode="dark"] .affected-row .remove-svc:hover { background: #3a1a1a; }
     </style>
     <!-- Mobile: LAYER 18 — board grid two-up, incidents as a card feed. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

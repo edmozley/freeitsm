@@ -28,8 +28,8 @@ $translationNamespaces = ['common', 'system'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('system.branding.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         body {
             /* System is the FIRST module whose DARK accent is a LIGHT colour (#90a4ae).
@@ -326,7 +326,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .btn-link { color: #ef5350; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="branding">
     <?php include '../includes/header.php'; ?>
@@ -369,6 +369,31 @@ $translationNamespaces = ['common', 'system'];
                 </select>
                 <div class="info-note" style="margin-top:12px;">
                     <?php echo htmlspecialchars(t('system.branding.landing_note')); ?>
+                </div>
+            </div>
+
+            <!-- Files desktop: the logo in the desktop's corner. Saved with the
+                 rest of the page; validated in api/system/save_branding.php.
+                 Each person may only choose their own desktop COLOUR - the logo
+                 and its corner are decided here, for everyone. -->
+            <div class="settings-card">
+                <h3><?php echo htmlspecialchars(t('system.branding.files_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.branding.files_desc')); ?></p>
+                <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                    <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+                        <?php echo htmlspecialchars(t('system.branding.files_logo')); ?>
+                        <select id="filesLogoMode" class="slot-input" style="max-width:420px;">
+                            <option value="company"><?php echo htmlspecialchars(t('system.branding.files_logo_company')); ?></option>
+                            <option value="none"><?php echo htmlspecialchars(t('system.branding.files_logo_none')); ?></option>
+                        </select>
+                    </label>
+                    <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+                        <?php echo htmlspecialchars(t('system.branding.files_position')); ?>
+                        <select id="filesLogoPosition" class="slot-input" style="max-width:220px;">
+                            <option value="top-right"><?php echo htmlspecialchars(t('system.branding.files_top_right')); ?></option>
+                            <option value="bottom-right"><?php echo htmlspecialchars(t('system.branding.files_bottom_right')); ?></option>
+                        </select>
+                    </label>
                 </div>
             </div>
 
@@ -660,6 +685,9 @@ $translationNamespaces = ['common', 'system'];
             document.getElementById('footerRight').value = b.footer_right || '';
             // Sits outside `branding` — it is an install behaviour, not a slot (#63).
             document.getElementById('landingPage').value = data.landing_page || 'analyst';
+            const fdk = data.files_desktop || {};
+            document.getElementById('filesLogoMode').value = fdk.logo_mode || 'company';
+            document.getElementById('filesLogoPosition').value = fdk.logo_position || 'top-right';
 
             currentLogoPath = b.logo_path || null;
             renderLogoPreview();
@@ -971,6 +999,8 @@ $translationNamespaces = ['common', 'system'];
         fd.append('footer_center', document.getElementById('footerCenter').value);
         fd.append('footer_right',  document.getElementById('footerRight').value);
         fd.append('landing_page',  document.getElementById('landingPage').value);
+        fd.append('files_logo_mode',     document.getElementById('filesLogoMode').value);
+        fd.append('files_logo_position', document.getElementById('filesLogoPosition').value);
 
         const logoInput = document.getElementById('logoFile');
         if (logoInput.files && logoInput.files[0]) {

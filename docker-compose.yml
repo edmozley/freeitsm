@@ -41,6 +41,8 @@ services:
     volumes:
       - attachments:/var/www/html/tickets/attachments
       - cm-attachments:/var/www/html/change-management/attachments
+      # Files module storage (uploads/files). Everything shared in Files lives here.
+      - files:/var/www/html/uploads/files
       - encryption-keys:/var/www/encryption_keys
       # The HTTPS certificate and the authority that signed it. Losing this
       # means installing a new authority certificate on every PC.
@@ -68,5 +70,6 @@ volumes:
   db-data:
   attachments:
   cm-attachments:
+  files:
   encryption-keys:
   tls:

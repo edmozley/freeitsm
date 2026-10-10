@@ -41,8 +41,8 @@ $translationNamespaces = ['common', 'checklists'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../assets/css/help.css?v=3">
     <style>
         body {
@@ -53,7 +53,7 @@ $translationNamespaces = ['common', 'checklists'];
         }
         [data-theme-mode="dark"] body { --accent-soft: #123b36; }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-page="checklists-help">
     <?php include 'includes/header.php'; ?>

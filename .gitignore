@@ -109,6 +109,12 @@ uploads/documents/*
 uploads/asset-imports/*
 !uploads/asset-imports/.htaccess
 !uploads/asset-imports/web.config
+# Files module: the default storage root. Every file is a random .bin reached only
+# through api/files/download.php, which checks folder permissions first.
+!uploads/files/
+uploads/files/*
+!uploads/files/.htaccess
+!uploads/files/web.config
 
 # Module-specific runtime content (attachments, uploaded LMS courses, etc.)
 # These are populated by the running app and are tenant-specific — never commit.

@@ -33,8 +33,8 @@ $translationNamespaces = ['common', 'network-mapper'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('network-mapper.index.browser_title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <style>
         body { --accent: var(--nm-accent, #06b6d4); background: var(--app-bg, #f5f5f5); height: 100vh; overflow: hidden; }
 
@@ -238,7 +238,7 @@ $translationNamespaces = ['common', 'network-mapper'];
     </style>
     <!-- Mobile layer LAST, so its @media rules win the ties against the block
          above rather than losing on document order (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="network-mapper" data-mobile-page="nm-list">
     <?php include 'includes/header.php'; ?>

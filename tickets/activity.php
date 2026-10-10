@@ -28,7 +28,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.activity.page_title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <style>
         .activity-container {
             display: flex;
@@ -299,7 +299,7 @@ $translationNamespaces = ['common', 'tickets'];
             stroke: #ccc;
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-page="tickets-activity">
     <?php include 'includes/header.php'; ?>

@@ -24,7 +24,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('tickets.triage.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         /* 🔴 flex:1 only gives the container a height inside a flex column.
            inbox.css makes body 100vh + overflow:hidden but leaves it a block, so
@@ -80,7 +80,7 @@ $translationNamespaces = ['common', 'tickets'];
         .triage-email-summary { font-size: 12px; color: #777; background: #f7f8f9; border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; }
         .freemail-note { font-size: 12px; color: #ef6c00; margin-bottom: 12px; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-page="tickets-triage">
     <?php include '../includes/header.php'; ?>

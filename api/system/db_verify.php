@@ -2978,6 +2978,19 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // Files. Names + rules match freeitsm.sql. files_audit has none on purpose:
+    // the trail must outlive the folders, files and people it names.
+    $filesFks = [
+        ['files_folders', 'fk_files_folders_parent', "ALTER TABLE files_folders ADD CONSTRAINT fk_files_folders_parent FOREIGN KEY (parent_id) REFERENCES files_folders (id) ON DELETE CASCADE"],
+        ['files_items', 'fk_files_items_folder', "ALTER TABLE files_items ADD CONSTRAINT fk_files_items_folder FOREIGN KEY (folder_id) REFERENCES files_folders (id) ON DELETE CASCADE"],
+        ['files_versions', 'fk_files_versions_item', "ALTER TABLE files_versions ADD CONSTRAINT fk_files_versions_item FOREIGN KEY (item_id) REFERENCES files_items (id) ON DELETE CASCADE"],
+        ['files_permissions', 'fk_files_permissions_folder', "ALTER TABLE files_permissions ADD CONSTRAINT fk_files_permissions_folder FOREIGN KEY (folder_id) REFERENCES files_folders (id) ON DELETE CASCADE"],
+    ];
+    foreach ($filesFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // Cost centres (GH #160). Names + rules match freeitsm.sql: a company takes
     // its cost centres with it; a parent going leaves its children at the top
     // level (CostCentresService refuses to delete a parent first anyway).

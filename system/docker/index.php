@@ -62,8 +62,8 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('system.docker.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         body { --accent: var(--sys-accent, #546e7a); --accent-hover: var(--sys-accent-hover, #37474f); --on-accent: var(--sys-on-accent, #fff); }
 
@@ -170,7 +170,7 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         [data-theme-mode="dark"] .steps a:not(.btn) { color: var(--sys-accent, #90a4ae); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="docker">
     <?php include '../includes/header.php'; ?>

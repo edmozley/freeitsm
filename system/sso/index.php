@@ -49,8 +49,8 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('system.sso.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         /* System module accent (blue-grey) — pin the generic --accent to it. */
         body {
@@ -244,7 +244,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         [data-theme-mode="dark"] .test-result.err { background: #3a1a1d; color: #fca5a5; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="sso">
     <?php include '../includes/header.php'; ?>

@@ -1485,6 +1485,9 @@ CREATE TABLE IF NOT EXISTS `tenants` (
     -- Short code standing in for this company in a ticket number ({COMPANY}).
     -- NULL means one is derived from the name.
     `ticket_code`       VARCHAR(12) NULL,
+    -- The company's own logo (System -> Companies). Shown on the Files desktop for
+    -- people working in this company; NULL falls back to the organisation logo.
+    `logo_path`         VARCHAR(255) NULL,
     `is_default`        TINYINT(1) NOT NULL DEFAULT 0,
     `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -8552,6 +8555,120 @@ CREATE TABLE IF NOT EXISTS `project_ai_messages` (
     KEY `idx_paim_thread` (`thread_id`, `id`),
     CONSTRAINT `fk_paim_thread` FOREIGN KEY (`thread_id`) REFERENCES `project_ai_threads` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_paim_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
+-- Files: secure file and folder sharing on a desktop (files/).
+-- PESSIMISTIC: nothing is visible to anybody until a files_permissions row
+-- grants it. The bytes live on disk as <storage root>/yyyy/mm/dd/<random>.bin;
+-- the real name, type, size and SHA-256 live here only. See includes/files/.
+-- ----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `files_folders` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `parent_id`             INT NULL,                               -- NULL = a top-level folder
+    `name`                  VARCHAR(255) NOT NULL,
+    `inherit_permissions`   TINYINT(1) NOT NULL DEFAULT 1,          -- 1 = parent's entries apply here too
+    `created_by`            INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_by`            INT NULL,
+    `updated_datetime`      DATETIME NULL,
+    `deleted_by`            INT NULL,
+    `deleted_datetime`      DATETIME NULL,                          -- set = in the recycle bin
+    PRIMARY KEY (`id`),
+    KEY `ix_files_folders_parent` (`parent_id`, `deleted_datetime`),
+    CONSTRAINT `fk_files_folders_parent` FOREIGN KEY (`parent_id`) REFERENCES `files_folders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `files_items` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `folder_id`             INT NOT NULL,
+    `name`                  VARCHAR(255) NOT NULL,
+    `current_version_id`    INT NULL,
+    `size_bytes`            BIGINT NOT NULL DEFAULT 0,              -- of the current version
+    `mime_type`             VARCHAR(150) NULL,
+    `created_by`            INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_by`            INT NULL,
+    `updated_datetime`      DATETIME NULL,
+    `deleted_by`            INT NULL,
+    `deleted_datetime`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_files_items_folder` (`folder_id`, `deleted_datetime`),
+    CONSTRAINT `fk_files_items_folder` FOREIGN KEY (`folder_id`) REFERENCES `files_folders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One row per uploaded version. A copied file SHARES its source's storage_path
+-- rather than duplicating the bytes, so a purge must check nothing else points
+-- at a .bin before deleting it.
+CREATE TABLE IF NOT EXISTS `files_versions` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `item_id`               INT NOT NULL,
+    `version_no`            INT NOT NULL DEFAULT 1,
+    `storage_path`          VARCHAR(255) NOT NULL,                  -- relative to the storage root: yyyy/mm/dd/<hex>.bin
+    `size_bytes`            BIGINT NOT NULL DEFAULT 0,
+    `mime_type`             VARCHAR(150) NULL,
+    `sha256`                CHAR(64) NULL,
+    `uploaded_by`           INT NULL,
+    `uploaded_datetime`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_files_versions_item` (`item_id`, `version_no`),
+    KEY `ix_files_versions_path` (`storage_path`),
+    CONSTRAINT `fk_files_versions_item` FOREIGN KEY (`item_id`) REFERENCES `files_items` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Grants only - there are no Deny entries. level: 1 View, 2 Download, 3 Upload,
+-- 4 Modify, 5 Full control; each includes the ones below it.
+CREATE TABLE IF NOT EXISTS `files_permissions` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `folder_id`             INT NOT NULL,
+    `principal_type`        VARCHAR(10) NOT NULL,                   -- analyst | team
+    `principal_id`          INT NOT NULL,
+    `level`                 TINYINT NOT NULL DEFAULT 1,
+    `granted_by`            INT NULL,
+    `granted_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_files_permission` (`folder_id`, `principal_type`, `principal_id`),
+    KEY `ix_files_permissions_principal` (`principal_type`, `principal_id`),
+    CONSTRAINT `fk_files_permissions_folder` FOREIGN KEY (`folder_id`) REFERENCES `files_folders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- EVERY action, including reads and refusals. No foreign keys on purpose: the
+-- trail must outlive the folders, files and people it mentions, so the name and
+-- path are copied in at the time.
+CREATE TABLE IF NOT EXISTS `files_audit` (
+    `id`                    BIGINT NOT NULL AUTO_INCREMENT,
+    `analyst_id`            INT NULL,
+    `analyst_name`          VARCHAR(150) NULL,
+    `action`                VARCHAR(40) NOT NULL,
+    `folder_id`             INT NULL,
+    `item_id`               INT NULL,
+    `version_id`            INT NULL,
+    `target_path`           VARCHAR(1000) NULL,
+    `detail`                TEXT NULL,                              -- JSON
+    `ip_address`            VARCHAR(45) NULL,
+    `user_agent`            VARCHAR(255) NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_files_audit_created` (`created_datetime`),
+    KEY `ix_files_audit_item` (`item_id`, `id`),
+    KEY `ix_files_audit_folder` (`folder_id`, `id`),
+    KEY `ix_files_audit_analyst` (`analyst_id`, `id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A chunked upload in progress. The pieces collect in <storage root>/_incoming/<token>.part.
+CREATE TABLE IF NOT EXISTS `files_uploads` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `token`                 CHAR(32) NOT NULL,
+    `analyst_id`            INT NOT NULL,
+    `folder_id`             INT NOT NULL,
+    `item_id`               INT NULL,                               -- set = a new version of this file
+    `file_name`             VARCHAR(255) NOT NULL,
+    `size_bytes`            BIGINT NOT NULL DEFAULT 0,
+    `received_bytes`        BIGINT NOT NULL DEFAULT 0,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_files_uploads_token` (`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 

@@ -34,8 +34,8 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <script src="../../assets/js/chart.min.js"></script>
     <style>
         body { --accent: var(--con-accent, #f59e0b); }
@@ -173,7 +173,7 @@ $translationNamespaces = ['common', 'contracts'];
         [data-theme-mode="dark"] .section-card-header h2 { color: #38bdf8; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="contracts">
     <?php include '../includes/header.php'; ?>

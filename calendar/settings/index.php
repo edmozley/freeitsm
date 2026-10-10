@@ -37,8 +37,8 @@ $translationNamespaces = ['common', 'calendar'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('calendar.settings.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         /* Module accent — drives toggle, focus rings, button colours.
            Modal form CSS lives entirely in inbox.css. */
@@ -188,7 +188,7 @@ $translationNamespaces = ['common', 'calendar'];
          is why <body> below carries the marker attribute. LAYER 16i adds what
          15e doesn't reach — the .lookup-table, which sits straight inside a
          .tab-content and becomes a card feed rather than a sideways scroll. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
 </head>

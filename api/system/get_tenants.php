@@ -45,6 +45,18 @@ try {
         $codes = [];
     }
 
+    // Each company's own logo (System -> Companies, shown on the Files desktop).
+    // Read on its own for the same reason as the codes: a missing column on an
+    // install that has not run Database Verify just means "no logos yet".
+    $logos = [];
+    try {
+        foreach ($conn->query("SELECT id, logo_path FROM tenants WHERE logo_path IS NOT NULL") as $row) {
+            $logos[(int)$row['id']] = BASE_URL . $row['logo_path'];
+        }
+    } catch (Exception $e) {
+        $logos = [];
+    }
+
     // ?accessible=1 → only the companies this analyst may access (for "move ticket to
     // company" pickers). Default returns every company (unchanged behaviour).
     $accessibleOnly = !empty($_GET['accessible']);
@@ -72,6 +84,7 @@ try {
             // can say what {COMPANY} would actually produce.
             'ticket_code'           => $codes[$id] ?? null,
             'effective_ticket_code' => TicketNumbering::codeFor($t + ['ticket_code' => $codes[$id] ?? null]),
+            'logo_url'              => $logos[$id] ?? null,
         ];
     }
 

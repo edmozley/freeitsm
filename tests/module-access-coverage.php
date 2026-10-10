@@ -28,7 +28,7 @@ $root = dirname(__DIR__);
 // and the two includes that guard at the top of every file that loads them.
 $GUARD = '/requireModuleAccessJson|requireAnyModuleAccessJson|requireAdminJson|analystIsAdmin|analystCanAccessModule'
        . '|requireCapability|requireAiNamespaceJson|requireLmsCourseAccessJson'
-       . '|admin_api_guard\.php|domains\/api_bootstrap\.php/';
+       . '|admin_api_guard\.php|domains\/api_bootstrap\.php|projects\/api_bootstrap\.php|files\/api_bootstrap\.php/';
 
 // Whole folders with their own audience.
 $EXEMPT_DIRS = [

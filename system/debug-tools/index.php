@@ -34,8 +34,8 @@ $debugTools = getDebugTools();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('system.debug.heading')); ?></title>
-    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=78">
     <style>
         body {
             /* System is the FIRST module whose DARK accent is a LIGHT colour (#90a4ae).
@@ -87,7 +87,7 @@ $debugTools = getDebugTools();
         [data-theme-mode="dark"] .intro-card .intro-text strong { color: #e6eefb; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo $path_prefix; ?>assets/js/tz.js?v=5"></script>
 </head>

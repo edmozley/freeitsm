@@ -64,8 +64,8 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars($meta['name']); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../../assets/css/integrations.css?v=1">
     <style>
         /* Only what this page alone draws. The container, cards, table, fields,
@@ -106,7 +106,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
         .map-group:first-child { margin-top: 0; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="integrations-provider">
     <?php include '../includes/header.php'; ?>

@@ -90,6 +90,7 @@ function featureBingoModules(): array
         'calendar'       => 'Calendar',
         'contracts'      => 'Contracts',
         'domains'        => 'Domains',
+        'files'          => 'Files',
         'software'       => 'Software',
         'forms'          => 'Forms',
         'lms'            => 'LMS',

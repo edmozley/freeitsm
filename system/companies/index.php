@@ -24,8 +24,8 @@ $translationNamespaces = ['common', 'system'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars(t('system.companies.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         /* System module accent (blue-grey) — pin the generic --accent so shared
            components (inbox.css, header) pick up the module colour. */
@@ -155,7 +155,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .sso-banner { filter: brightness(0.82); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="companies">
     <?php include '../includes/header.php'; ?>
@@ -231,6 +231,19 @@ $translationNamespaces = ['common', 'system'];
                            style="text-transform: uppercase; max-width: 200px;"
                            placeholder="<?php echo htmlspecialchars(t('system.companies.field_code_placeholder')); ?>">
                     <div class="hint" id="codeDerivedHint" style="margin-top:6px;"></div>
+                </div>
+                <?php /* The company's own logo - shown on the Files desktop for people
+                         working in this company. Existing companies only: it saves
+                         straight away through api/system/tenant_logo.php. */ ?>
+                <div class="form-field" id="logoSection" style="display: none;">
+                    <label><?php echo htmlspecialchars(t('system.companies.logo_label')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.companies.logo_hint')); ?></div>
+                    <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+                        <div id="coLogoPreview" style="width:120px;height:48px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);overflow:hidden;"></div>
+                        <input type="file" id="coLogoFile" accept=".png,.jpg,.jpeg,.gif,.webp,image/png,image/jpeg,image/gif,image/webp" style="display:none;">
+                        <button type="button" class="btn btn-secondary" id="coLogoPick"><?php echo htmlspecialchars(t('system.companies.logo_choose')); ?></button>
+                        <button type="button" class="btn btn-secondary" id="coLogoRemove" style="display:none;"><?php echo htmlspecialchars(t('system.companies.logo_remove')); ?></button>
+                    </div>
                 </div>
                 <div class="checkbox-field">
                     <input type="checkbox" id="fActive" checked>
@@ -387,6 +400,43 @@ $translationNamespaces = ['common', 'system'];
 
     // ---------- Modal ----------
     const modal = document.getElementById('companyModal');
+    function renderCoLogo(url) {
+        const box = document.getElementById('coLogoPreview');
+        box.innerHTML = '';
+        if (url) {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = '';
+            img.style.cssText = 'max-width:100%;max-height:100%;';
+            box.appendChild(img);
+        } else {
+            box.textContent = window.t('system.companies.logo_none');
+        }
+        document.getElementById('coLogoRemove').style.display = url ? '' : 'none';
+    }
+    async function sendCoLogo(fd) {
+        fd.append('tenant_id', document.getElementById('companyId').value);
+        const r = await fetch(API + 'system/tenant_logo.php', { method: 'POST', body: fd });
+        const j = await r.json();
+        if (!j.success) { showToast(j.error, 'error'); return; }
+        renderCoLogo(j.logo_url);
+        const co = companies.find(x => String(x.id) === document.getElementById('companyId').value);
+        if (co) co.logo_url = j.logo_url;
+    }
+    document.getElementById('coLogoPick').addEventListener('click', () => document.getElementById('coLogoFile').click());
+    document.getElementById('coLogoFile').addEventListener('change', function () {
+        if (!this.files[0]) return;
+        const fd = new FormData();
+        fd.append('logo', this.files[0]);
+        this.value = '';
+        sendCoLogo(fd);
+    });
+    document.getElementById('coLogoRemove').addEventListener('click', () => {
+        const fd = new FormData();
+        fd.append('remove', '1');
+        sendCoLogo(fd);
+    });
+
     function openModal(c) {
         document.getElementById('modalTitle').textContent = c ? window.t('system.companies.modal_edit_title') : window.t('system.companies.modal_add_title');
         document.getElementById('companyId').value = c ? c.id : '';
@@ -405,6 +455,11 @@ $translationNamespaces = ['common', 'system'];
         updateDerivedHint(c || null);
         codeInput.oninput = function () { updateDerivedHint(c || null); };
         document.getElementById('fName').oninput = function () { updateDerivedHint(c || null); };
+
+        // Company logo (Files desktop): existing companies only.
+        const logoSection = document.getElementById('logoSection');
+        logoSection.style.display = (c && c.id) ? '' : 'none';
+        renderCoLogo(c ? c.logo_url : null);
 
         // Email domains: only when editing an existing company on a multi-company
         // install (shared-intake routing is meaningless with a single company).

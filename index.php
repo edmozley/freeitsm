@@ -58,8 +58,8 @@ $translationNamespaces = ['common'];
     <title><?php echo htmlspecialchars(t('common.home.browser_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="assets/css/inbox.css?v=78">
     <style>
         body {
             background: var(--login-bg, linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%));
@@ -483,6 +483,15 @@ $translationNamespaces = ['common'];
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 </div>
                 <div class="module-name"><?php echo htmlspecialchars(t('common.modules.people.name')); ?></div>
+            </a>
+            <?php endif; ?>
+
+            <?php if ($allowed_modules === null || in_array('files', $allowed_modules)): ?>
+            <a href="files/" class="module-card files" title="<?php echo htmlspecialchars(t('common.modules.files.description')); ?>">
+                <div class="module-icon files">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="9 14 12 11 15 14"></polyline><line x1="12" y1="11" x2="12" y2="17"></line></svg>
+                </div>
+                <div class="module-name"><?php echo htmlspecialchars(t('common.modules.files.name')); ?></div>
             </a>
             <?php endif; ?>
 

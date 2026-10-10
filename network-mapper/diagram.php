@@ -40,8 +40,8 @@ $translationNamespaces = ['common', 'network-mapper'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('network-mapper.editor.browser_title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <style>
         /* Pin --accent to the module cyan so shared components (focus rings,
            inbox.css modal primitives) read on-brand. The diagram canvas + nodes
@@ -1387,7 +1387,7 @@ $translationNamespaces = ['common', 'network-mapper'];
     <!-- Mobile layer LAST, after this page's own <style>, or every rule that
          targets the same selector at the same specificity loses on document
          order (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="network-mapper" data-mobile-page="nm-diagram">
     <?php include 'includes/header.php'; ?>

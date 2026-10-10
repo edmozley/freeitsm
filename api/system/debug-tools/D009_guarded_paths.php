@@ -169,6 +169,9 @@ $guarded = [
     // the document is attached to. The stored filename is random, but a random
     // name is not a permission.
     'uploads/documents'            => ['_d009probe.txt', 'Attached documents',        'deny'],
+    // The Files module's default storage root. Every file is a random .bin read
+    // only through api/files/download.php, which checks folder permissions first.
+    'uploads/files'                => ['_d009probe.txt', 'Files module storage',      'deny'],
     'lms/content'                  => ['_d009probe.php', 'Course content (no-exec)',  'noexec'],
     'system/uploads/branding'      => ['_d009probe.php', 'Branding uploads (no-exec)','noexec'],
 ];

@@ -33,8 +33,8 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
     <title><?php echo htmlspecialchars(systemName()); ?> - <?php echo htmlspecialchars($ccT('title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=78">
     <style>
         body {
             --accent: var(--sys-accent, #546e7a);
@@ -146,7 +146,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
             .cc-toolbar input[type=search] { width: 100%; }
         }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=192">
 </head>
 <body data-mobile-module="system" data-mobile-page="cost-centres">
     <?php include '../includes/header.php'; ?>

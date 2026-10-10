@@ -861,6 +861,9 @@ return [
         // ({COMPANY}). NULL means "derive one from the name" — see
         // TicketNumbering::companyCode().
         'ticket_code'      => 'VARCHAR(12) NULL',
+        // The company's own logo (System -> Companies), shown on the Files
+        // desktop. NULL falls back to the organisation logo.
+        'logo_path'        => 'VARCHAR(255) NULL',
         'is_default'       => 'TINYINT(1) NOT NULL DEFAULT 0',
         'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
@@ -5626,5 +5629,85 @@ return [
         'tokens_out'       => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+
+    // ---- Files: secure file and folder sharing (files/) --------------------
+    // PESSIMISTIC: nothing is visible until files_permissions grants it. Bytes
+    // live on disk as <storage root>/yyyy/mm/dd/<random>.bin. See includes/files/.
+    'files_folders' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'parent_id'           => 'INT NULL',
+        'name'                => 'VARCHAR(255) NOT NULL',
+        'inherit_permissions' => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by'          => 'INT NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_by'          => 'INT NULL',
+        'updated_datetime'    => 'DATETIME NULL',
+        'deleted_by'          => 'INT NULL',
+        'deleted_datetime'    => 'DATETIME NULL',
+    ],
+    'files_items' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'folder_id'           => 'INT NOT NULL',
+        'name'                => 'VARCHAR(255) NOT NULL',
+        'current_version_id'  => 'INT NULL',
+        'size_bytes'          => 'BIGINT NOT NULL DEFAULT 0',
+        'mime_type'           => 'VARCHAR(150) NULL',
+        'created_by'          => 'INT NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_by'          => 'INT NULL',
+        'updated_datetime'    => 'DATETIME NULL',
+        'deleted_by'          => 'INT NULL',
+        'deleted_datetime'    => 'DATETIME NULL',
+    ],
+    // A copied file SHARES its source's storage_path - a purge must check
+    // nothing else points at a .bin before deleting it.
+    'files_versions' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'item_id'             => 'INT NOT NULL',
+        'version_no'          => 'INT NOT NULL DEFAULT 1',
+        'storage_path'        => 'VARCHAR(255) NOT NULL',
+        'size_bytes'          => 'BIGINT NOT NULL DEFAULT 0',
+        'mime_type'           => 'VARCHAR(150) NULL',
+        'sha256'              => 'CHAR(64) NULL',
+        'uploaded_by'         => 'INT NULL',
+        'uploaded_datetime'   => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    // Grants only, no Deny. level 1 View .. 5 Full control (FilesAcl::LEVEL_*).
+    'files_permissions' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'folder_id'           => 'INT NOT NULL',
+        'principal_type'      => 'VARCHAR(10) NOT NULL',
+        'principal_id'        => 'INT NOT NULL',
+        'level'               => 'TINYINT NOT NULL DEFAULT 1',
+        'granted_by'          => 'INT NULL',
+        'granted_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    // Every action, reads and refusals included. No FKs: it outlives what it names.
+    'files_audit' => [
+        'id'                  => 'BIGINT NOT NULL AUTO_INCREMENT',
+        'analyst_id'          => 'INT NULL',
+        'analyst_name'        => 'VARCHAR(150) NULL',
+        'action'              => 'VARCHAR(40) NOT NULL',
+        'folder_id'           => 'INT NULL',
+        'item_id'             => 'INT NULL',
+        'version_id'          => 'INT NULL',
+        'target_path'         => 'VARCHAR(1000) NULL',
+        'detail'              => 'TEXT NULL',
+        'ip_address'          => 'VARCHAR(45) NULL',
+        'user_agent'          => 'VARCHAR(255) NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'files_uploads' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'token'               => 'CHAR(32) NOT NULL',
+        'analyst_id'          => 'INT NOT NULL',
+        'folder_id'           => 'INT NOT NULL',
+        'item_id'             => 'INT NULL',
+        'file_name'           => 'VARCHAR(255) NOT NULL',
+        'size_bytes'          => 'BIGINT NOT NULL DEFAULT 0',
+        'received_bytes'      => 'BIGINT NOT NULL DEFAULT 0',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'    => 'DATETIME NULL',
     ],
 ];

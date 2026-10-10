@@ -238,6 +238,7 @@ return [
         'forms'          => ['name' => 'Forms',       'description' => 'Design custom forms and view submissions'],
         'contracts'      => ['name' => 'Contracts',   'description' => 'Manage suppliers, contacts and contracts'],
         'domains'        => ['name' => 'Domains',     'description' => 'Track domain names, renewals, DNS, email security and certificates'],
+        'files'          => ['name' => 'Files',       'description' => 'Share files and folders securely, with a record of who opened what and when'],
         'people'         => ['name' => 'People',      'description' => 'Everything about a person or a company, from every module, on one page'],
         'service-status' => ['name' => 'Status',      'description' => 'Monitor service health and track incidents'],
         'war-room'       => ['name' => 'War room',    'description' => 'Fallback chat for when Teams or Slack is unavailable'],

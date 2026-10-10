@@ -71,8 +71,8 @@ foreach ($formActionDefs as $def) {
          preview now shares the walk with the filler and the portal. -->
     <script src="<?php echo BASE_URL; ?>assets/js/form-logic.js?v=9"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/form-render.js?v=3"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=24">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=76">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <!-- Blocks (notes) - shared with the filler and the portal. -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/form-shared.css?v=6">
@@ -454,7 +454,7 @@ foreach ($formActionDefs as $def) {
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
          mobile rules must win on equal specificity, and a link placed above it
          would silently lose to the desktop block below (the load-order trap). -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=191">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=192">
 </head>
 <body>
     <?php include '../includes/header.php'; ?>

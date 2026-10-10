@@ -119,6 +119,12 @@ $modules = [
         'path' => 'people/',
         'icon' => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>'
     ],
+    'files' => [
+        'name' => t('common.modules.files.name'),
+        'path' => 'files/',
+        // A folder with an upward arrow: files going OUT to someone.
+        'icon' => '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="9 14 12 11 15 14"></polyline><line x1="12" y1="11" x2="12" y2="17"></line>'
+    ],
     'service-status' => [
         'name' => t('common.modules.service-status.name'),
         'path' => 'service-status/',
