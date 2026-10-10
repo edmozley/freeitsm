@@ -93,6 +93,20 @@ require __DIR__ . '/_top.php';
     <p>Press <strong>Save</strong> before switching tabs. Each tab has its own file picker, so a picture chosen on one and left unsaved is not carried over to another.</p>
 </div>
 
+<div class="help-section" id="files">
+    <div class="help-section-header"><?php echo helpSectionNum('files'); ?>
+        <div>
+            <h3>Files desktop logo</h3>
+            <p>The <strong>Files desktop</strong> card decides the logo shown in the corner of the Files module's desktop - for everybody. People can change their own desktop colour in Files, but not this.</p>
+        </div>
+    </div>
+    <ul class="help-list">
+        <li><strong>Logo</strong> - either the logo of the company the person is working in (set per company in <strong>System &rarr; Companies</strong>), falling back to the organisation logo above when that company has none; or <strong>No logo</strong>.</li>
+        <li><strong>Position</strong> - top right or bottom right of the desktop.</li>
+    </ul>
+    <p>It is saved with the rest of the page by <strong>Save</strong>.</p>
+</div>
+
 <div class="help-section" id="save">
     <div class="help-section-header"><?php echo helpSectionNum('save'); ?>
         <div>

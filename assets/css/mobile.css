@@ -16270,7 +16270,7 @@
        a start menu, drag-to-resize. None of that is a phone control, so on
        a phone there is no desktop at all (§11): files-desktop.js renders .fd-mobile,
        a plain list of the same folders (tap a folder to go in, Back to come
-       out, tap a file to download it), and this layer hides the desktop and
+       out, tap a file to open it in the viewer), and this layer hides the desktop and
        gives the list the house shell.
 
          desktop    files.css has body.fd-body {height:100vh;overflow:hidden}
@@ -16283,7 +16283,7 @@
          help/settings  the shared help layer and the settings shell already
                     answer them.
 
-       45a desktop hidden, shell   45b list   45c fields
+       45a desktop hidden, shell   45b list   45c fields   45d the viewer
        ==================================================================== */
 
     /* 45a - no desktop on a phone; the house shell instead (§2, §28). */

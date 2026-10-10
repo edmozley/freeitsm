@@ -600,7 +600,8 @@ audio.fdv-media { width: 80%; }
 /* View only: nothing to select or drag out, and nothing to print. */
 .fdv-viewonly .fdv-stage { user-select: none; -webkit-user-select: none; }
 .fdv-viewonly .fdv-stage img, .fdv-viewonly .fdv-stage canvas { -webkit-user-drag: none; }
-@media print { .fdv-viewonly, .fdm-viewer { visibility: hidden !important; } }
+/* View only prints blank - on a phone too, where .fdv-viewonly is inside the full-screen viewer. */
+@media print { .fdv-viewonly { visibility: hidden !important; } }
 .fd-nowrap { white-space: nowrap; }
 
 /* Permissions window: the watermark choice. */

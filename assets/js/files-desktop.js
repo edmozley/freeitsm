@@ -604,7 +604,7 @@
                 : L('ex.del_file_q', 'Delete "{name}"?', { name: sel[0].name }))
             : L('ex.del_many_q', 'Delete these {n} items?', { n: sel.length });
         WM.dialog({
-            title: L('ex.delete', 'Delete'), message: msg + '\n\n' + L('ex.del_note', 'They go to the recycle bin, and the deletion is recorded in the audit trail.'),
+            title: L('ex.delete', 'Delete'), message: msg + '\n\n' + L('ex.del_note', 'The deletion is recorded in the audit trail. There is no recycle bin to restore from yet.'),
             buttons: [{ label: L('btn.delete', 'Delete'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }]
         }).then(function (ok) {
             if (!ok) return;

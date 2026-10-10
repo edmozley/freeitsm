@@ -38,7 +38,7 @@ return [
         'del_file_q' => 'Delete "{name}"?',
         'del_folder_q' => 'Delete the folder "{name}" and everything in it?',
         'del_many_q' => 'Delete these {n} items?',
-        'del_note' => 'They go to the recycle bin, and the deletion is recorded in the audit trail.',
+        'del_note' => 'The deletion is recorded in the audit trail. There is no recycle bin to restore from yet.',
         'delete' => 'Delete',
         'download' => 'Download',
         'empty_folder' => 'This folder is empty.',
