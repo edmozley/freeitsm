@@ -8568,6 +8568,7 @@ CREATE TABLE IF NOT EXISTS `files_folders` (
     `parent_id`             INT NULL,                               -- NULL = a top-level folder
     `name`                  VARCHAR(255) NOT NULL,
     `inherit_permissions`   TINYINT(1) NOT NULL DEFAULT 1,          -- 1 = parent's entries apply here too
+    `watermark`             TINYINT(1) NULL,                        -- viewer watermark: NULL = as the parent, 0 off, 1 on
     `created_by`            INT NULL,
     `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_by`            INT NULL,

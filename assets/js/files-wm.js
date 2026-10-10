@@ -277,6 +277,11 @@
         tb.setPointerCapture(ev.pointerId);
 
         function move(e) {
+            // TRAP: a button released where we never hear about it (over the Help
+            // window's frame, outside the browser) left the drag running - and the
+            // snap outline then appeared, and stayed, whenever the mouse merely
+            // passed the left edge (Ed, 2026-10-10). No button held = the drag is over.
+            if (e.buttons === 0) { up(e); return; }
             var dx = e.clientX - startX, dy = e.clientY - startY;
             if (!moved && Math.abs(dx) + Math.abs(dy) < 4) return;
             if (!moved) {
@@ -303,8 +308,12 @@
             tb.removeEventListener('pointermove', move);
             tb.removeEventListener('pointerup', up);
             tb.removeEventListener('pointercancel', up);
+            tb.removeEventListener('lostpointercapture', up);
+            window.removeEventListener('blur', up);
             document.body.classList.remove('fd-dragging');
             ghost.hidden = true;
+            if (ended) return;
+            ended = true;
             if (!moved) return;
             if (zone === 'max') { w.maximize(); return; }
             if (zone === 'left' || zone === 'right') {
@@ -316,10 +325,15 @@
             }
             saveGeo(w);
         }
+        var ended = false;
         tb.addEventListener('pointermove', move);
         tb.addEventListener('pointerup', up);
         tb.addEventListener('pointercancel', up);
+        tb.addEventListener('lostpointercapture', up);
+        window.addEventListener('blur', up);
     }
+    // Belt and braces: whatever happened, a click anywhere puts the outline away.
+    document.addEventListener('pointerdown', function () { if (!document.body.classList.contains('fd-dragging')) ghost.hidden = true; }, true);
 
     function startResize(w, ev, dir) {
         if (ev.button !== 0 || w.maximized) return;
@@ -332,6 +346,7 @@
         var a = area();
         document.body.classList.add('fd-dragging');
         function move(e) {
+            if (e.buttons === 0) { up(); return; }
             var dx = e.clientX - sx, dy = e.clientY - sy, g = { x: g0.x, y: g0.y, w: g0.w, h: g0.h };
             if (dir.indexOf('e') >= 0) g.w = clamp(g0.w + dx, MIN_W, a.width - g0.x);
             if (dir.indexOf('s') >= 0) g.h = clamp(g0.h + dy, MIN_H, a.height - g0.y);
@@ -342,16 +357,21 @@
             w.apply();
             if (w.onResize) w.onResize(w);
         }
+        var done = false;
         function up() {
             h.removeEventListener('pointermove', move);
             h.removeEventListener('pointerup', up);
             h.removeEventListener('pointercancel', up);
+            h.removeEventListener('lostpointercapture', up);
             document.body.classList.remove('fd-dragging');
+            if (done) return;
+            done = true;
             saveGeo(w);
         }
         h.addEventListener('pointermove', move);
         h.addEventListener('pointerup', up);
         h.addEventListener('pointercancel', up);
+        h.addEventListener('lostpointercapture', up);
     }
 
     // Keep windows reachable when the browser window shrinks.

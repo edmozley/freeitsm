@@ -56,6 +56,18 @@ return [
         'check'    => ['rows', 'files_folders', 'parent_id IS NOT NULL AND inherit_permissions = 0 AND deleted_datetime IS NULL'],
     ],
     [
+        'id'       => 'files.watermark',
+        'module'   => 'files',
+        'tier'     => 'extra',
+        'category' => 'security',
+        'title'    => 'A watermarked folder',
+        'what'     => 'Permissions -> Watermark set to On for a folder, so every file opened from it shows the viewer\'s name, the time and their IP address across the page.',
+        'why'      => 'Nothing a browser shows can be stopped from being photographed. A watermark means a leaked screenshot names whoever took it.',
+        'done'     => 'At least one folder has the watermark switched on.',
+        'link'     => 'files/',
+        'check'    => ['rows', 'files_folders', 'watermark = 1 AND deleted_datetime IS NULL'],
+    ],
+    [
         'id'       => 'files.storage_root',
         'module'   => 'files',
         'tier'     => 'extra',

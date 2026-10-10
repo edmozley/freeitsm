@@ -5639,6 +5639,8 @@ return [
         'parent_id'           => 'INT NULL',
         'name'                => 'VARCHAR(255) NOT NULL',
         'inherit_permissions' => 'TINYINT(1) NOT NULL DEFAULT 1',
+        // Viewer watermark: NULL = as the parent folder, 0 off, 1 on.
+        'watermark'           => 'TINYINT(1) NULL',
         'created_by'          => 'INT NULL',
         'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_by'          => 'INT NULL',

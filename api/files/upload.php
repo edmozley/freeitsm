@@ -54,6 +54,17 @@ filesApiRun(function () use ($conn, $analystId) {
             $name = filesFreeName($conn, $folderId, $name);   // a folder already has the name
         }
 
+        // Housekeeping: an upload abandoned more than a day ago (tab closed, network
+        // gone) leaves a row and a .part behind. Sweep them as the next one starts.
+        $stale = $conn->query("SELECT id, token FROM files_uploads WHERE COALESCE(updated_datetime, created_datetime) < UTC_TIMESTAMP() - INTERVAL 1 DAY LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($stale as $s) {
+            @unlink(filesIncomingPath($conn, $s['token']));
+            $conn->prepare("DELETE FROM files_uploads WHERE id = ?")->execute([$s['id']]);
+        }
+        foreach (glob(filesStorageRoot($conn) . '/_incoming/*.part') ?: [] as $p) {
+            if (filemtime($p) < time() - 86400) @unlink($p);
+        }
+
         $token = bin2hex(random_bytes(16));
         $path  = filesIncomingPath($conn, $token);
         if (@file_put_contents($path, '') === false) filesApiFail('The server could not start writing the file.');

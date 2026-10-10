@@ -25,6 +25,14 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2262 | System            | Feature     | Companies can have their own logo (System -> Companies, tenants.logo_path), stored under a random name in system/uploads/branding/companies/. |
 | 2263 | Tests             | Fix         | tests/module-access-coverage.php recognises the Projects and Files API bootstraps, so the 17 guarded Projects endpoints no longer report as unguarded. |
 | 2264 | Feature Bingo     | Improvement | Six Files cards: first folder, first upload, a team grant, a private subfolder, a chosen storage folder, and a company logo. |
+| 2265 | Files             | Feature     | A viewer window: PDFs with Mozilla pdf.js (pages drawn as they scroll, range-fetched), Word .docx via mammoth.js (sanitised to an allowlist), spreadsheets via SheetJS with sheet tabs, images, seekable video and audio, and text; full screen on a phone. |
+| 2266 | Files             | Feature     | Zip files browse like folders in the viewer (SheetJS's zip reader), including zips inside zips; entries open from memory and every entry opened or saved is audited by name. |
+| 2267 | Files             | Feature     | View-only in practice: bytes come through short-lived tokens held in the viewer's own session and re-checked against permissions on every request (nosniff, sandbox CSP, no filename); no download, selection, right-click or printing for View-only. |
+| 2268 | Files             | Feature     | Per-folder viewer watermark (as the parent / on / off, in the Permissions window) stamping the viewer's name, time and IP across every file opened from that folder down. |
+| 2269 | Files             | Fix         | The snap outline could stay on the desktop after a window drag whose button release was missed (e.g. over the Help frame); drags now end on any release, lost pointer or blur. |
+| 2270 | Files             | Improvement | Uploads abandoned for more than a day are swept (row and .part) when the next upload starts. |
+| 2271 | Vendor            | Improvement | Bundled pdf.js 6.3.289, mammoth.js 1.13.0 and SheetJS CE 0.20.3 for the Files viewer (VENDOR.md updated). |
+| 2272 | Feature Bingo     | Improvement | Files card for a watermarked folder. |
 
 
 

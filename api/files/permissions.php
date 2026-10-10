@@ -28,6 +28,10 @@ filesApiRun(function () use ($conn, $analystId) {
             'entries'     => FilesAcl::entries($conn, $folderId),
             'my_level'    => $lvl,
             'can_edit'    => $lvl >= FilesAcl::FULL,
+            // The viewer watermark: this folder's own setting (null = as the parent), and what that comes to.
+            'watermark'   => $tree[$folderId]['watermark'],
+            'watermark_effective' => FilesAcl::watermark($conn, $folderId),
+            'watermark_parent'    => $parent !== null ? FilesAcl::watermark($conn, $parent) : false,
         ]);
     }
 

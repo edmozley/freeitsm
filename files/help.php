@@ -34,6 +34,7 @@ $sections = [
     'desktop'     => 5,
     'explorer'    => 6,
     'uploading'   => 4,
+    'viewing'     => 6,
     'permissions' => 6,
     'inheritance' => 4,
     'audit'       => 3,
@@ -72,7 +73,7 @@ $para = fn(string $k) => preg_replace(['/\*\*([^*]+)\*\*/', '/`([^`]+)`/'], ['<s
         .help-container { height: 100vh !important; }
         <?php endif; ?>
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=193">
 </head>
 <body data-mobile-module="files" data-mobile-page="files-help">
     <?php include 'includes/header.php'; ?>

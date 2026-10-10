@@ -26,6 +26,9 @@ before assuming what you have.
 | Chart.js | **4.4.7** | `assets/js/chart.min.js` | https://www.chartjs.org · npm `chart.js` | MIT |
 | jsPDF | **2.5.2** | `assets/js/vendor/jspdf.umd.min.js` | https://github.com/parallax/jsPDF | MIT |
 | html2canvas | **1.4.1** | `assets/js/vendor/html2canvas.min.js` | https://html2canvas.hertzen.com | MIT |
+| pdf.js (Mozilla) | **6.3.289** | `assets/js/vendor/pdfjs/` - `build/pdf.min.mjs` and `pdf.worker.min.mjs` renamed to `.js` (IIS and older nginx do not serve `.mjs` as JavaScript), plus `cmaps/`, `standard_fonts/`, `wasm/`, `iccs/`; the QuickJS scripting sandbox (`wasm/quickjs-eval.*`) deliberately removed - the Files viewer never runs PDF JavaScript | https://mozilla.github.io/pdf.js · npm `pdfjs-dist` | Apache-2.0 (`assets/js/vendor/pdfjs/LICENSE`) |
+| mammoth.js | **1.13.0** | `assets/js/vendor/mammoth.browser.min.js` | https://github.com/mwilliamson/mammoth.js · npm `mammoth` | BSD-2-Clause (`assets/js/vendor/mammoth.LICENSE`) |
+| SheetJS Community Edition | **0.20.3** | `assets/js/vendor/xlsx.full.min.js` | https://cdn.sheetjs.com (NOT npm - the npm `xlsx` package stopped at 0.18.5) | Apache-2.0 (`assets/js/vendor/xlsx.LICENSE`) |
 | jsQR | *not embedded* — vendored 2026-07-29 | `assets/js/vendor/jsQR.js` | https://github.com/cozmo/jsQR | Apache-2.0 (`assets/js/vendor/jsQR.LICENSE`) |
 | qrcode-generator | *not embedded* — vendored 2026-02-08 | `assets/js/qrcode.min.js` | https://github.com/kazuhikoarase/qrcode-generator | MIT |
 | firebase/php-jwt | 6.x — *not embedded* — vendored 2026-05-30 | `includes/vendor/firebase-jwt/` | https://github.com/firebase/php-jwt | BSD-3-Clause (`includes/vendor/firebase-jwt/LICENSE`) |

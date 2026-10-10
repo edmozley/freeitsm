@@ -41,7 +41,7 @@ $translationNamespaces = ['common', 'tickets'];
             --on-accent:    var(--accent-on-accent);
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=193">
 </head>
 <body data-mobile-page="tickets-help-mailbox">
 <?php include 'includes/header.php'; ?>

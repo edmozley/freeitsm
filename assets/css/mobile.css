@@ -16330,3 +16330,24 @@
     body[data-mobile-page="files-desktop"] .fd-dialog { width: calc(100vw - 24px); }
     body[data-mobile-page="files-desktop"] .fd-btn { min-height: 44px; }
 }
+
+@media (max-width: 768px) {
+    /* 45d - the viewer on a phone: full screen over the list, its own bar
+       with Back (files-viewer.js openPhone). Only ever created on a phone. */
+    body[data-mobile-page="files-desktop"] .fdm-viewer {
+        /* Above the header too (LAYER 1 lifts it): the viewer is full screen and
+           carries its own Back, so nothing may sit on top of that bar. */
+        position: fixed; inset: 0; z-index: 300000; display: flex; flex-direction: column; background: var(--surface);
+    }
+    body[data-mobile-page="files-desktop"] .fdm-viewer-bar {
+        display: flex; align-items: center; gap: 6px; padding: 6px 10px; flex-shrink: 0;
+        padding-top: calc(6px + env(safe-area-inset-top)); border-bottom: 1px solid var(--border);
+    }
+    body[data-mobile-page="files-desktop"] .fdm-viewer-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-bar { flex-wrap: wrap; }
+    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-name { display: none; }
+    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-btn { min-height: 40px; min-width: 40px; }
+    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-paper { padding: 20px 16px; min-height: 0; }
+    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-paperstage { padding: 8px; }
+    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-pdf { padding: 8px; }
+}

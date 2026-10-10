@@ -23,6 +23,7 @@ filesApiRun(function () use ($conn, $analystId) {
             'id' => (int)$it['id'], 'name' => $it['name'], 'folder_id' => (int)$it['folder_id'],
             'size' => (int)$it['size_bytes'], 'at' => $r['at'],
             'path' => FilesAcl::path($conn, (int)$it['folder_id']),
+            'level' => $levels[(int)$it['folder_id']],
         ];
         if (count($out) >= 12) break;
     }

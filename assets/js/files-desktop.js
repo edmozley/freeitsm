@@ -128,6 +128,15 @@
             .catch(fail);
     }
 
+    /** Open a file in the viewer (files-viewer.js). Every open is a 'view' in the audit trail. */
+    function viewFile(itemId, versionId) {
+        return window.FilesViewer.open(itemId, versionId || 0, {
+            geometry: geoFor('viewer'),
+            phone: window.matchMedia('(max-width: 768px)').matches,
+            onProperties: function (id) { openProperties('item', id); }
+        }).catch(fail);
+    }
+
     function download(itemId, versionId) {
         var a = document.createElement('a');
         a.href = B.api + 'download.php?id=' + itemId + (versionId ? '&version=' + versionId : '');
@@ -482,10 +491,7 @@
             else this.load(e.id);
             return;
         }
-        // Phase 1 has no viewer yet: opening a file you may download downloads
-        // it; with View only, it shows its Properties.
-        if (e.level >= LV.DOWNLOAD) download(e.id);
-        else openProperties('item', e.id);
+        viewFile(e.id);
     };
 
     Explorer.prototype.newFolder = function () {
@@ -563,7 +569,7 @@
     Explorer.prototype.entryMenu = function (ev, e) {
         var self = this, c = this.can(), many = this.selected().length > 1;
         var items = [
-            { label: e.type === 'folder' ? L('ex.open', 'Open') : (e.level >= LV.DOWNLOAD ? L('ex.open', 'Open') : L('ex.properties', 'Properties')), icon: IC.open, action: function () { self.open(e); }, disabled: many },
+            { label: L('ex.open', 'Open'), icon: IC.open, action: function () { self.open(e); }, disabled: many },
             e.type === 'folder' ? { label: L('ex.open_new', 'Open in new window'), action: function () { self.open(e, true); }, disabled: many } : null,
             e.type === 'item' ? { label: L('ex.download', 'Download'), icon: IC.download, action: function () { self.command('download'); }, disabled: !c.download } : null,
             { sep: true },
@@ -1098,6 +1104,13 @@
                     : '<div class="fd-perm-inherit fd-muted">' + esc(L('perm.top_level', 'A top-level folder: only the entries below apply.')) + '</div>') +
                 '<div class="fd-perm-tablewrap"><table class="fd-table"><thead><tr><th>' + esc(L('perm.who', 'Person or team')) + '</th><th>' + esc(L('perm.access', 'Access')) + '</th><th></th></tr></thead><tbody></tbody></table></div>' +
                 (ro ? '' : '<div class="fd-perm-add"><input type="search" class="fd-input" placeholder="' + esc(L('perm.add_ph', 'Add a person or team...')) + '"><div class="fd-perm-results" hidden></div></div>') +
+                '<div class="fd-perm-wm"><label>' + esc(L('perm.watermark', 'Watermark')) + ' <select class="fd-select"' + (ro ? ' disabled' : '') + '>' +
+                    '<option value="">' + esc(state.has_parent
+                        ? L('perm.wm_inherit', 'As the parent folder (currently {state})', { state: state.watermark_parent ? L('perm.wm_on_word', 'on') : L('perm.wm_off_word', 'off') })
+                        : L('perm.wm_default', 'Off (the default)')) + '</option>' +
+                    '<option value="1"' + (state.watermark === 1 ? ' selected' : '') + '>' + esc(L('perm.wm_on', 'On')) + '</option>' +
+                    '<option value="0"' + (state.watermark === 0 ? ' selected' : '') + '>' + esc(L('perm.wm_off', 'Off')) + '</option>' +
+                '</select></label><div class="fd-muted">' + esc(L('perm.wm_desc', 'Stamps the viewer\'s name, the time and their IP address across every file opened from this folder and the folders inside it, so a screenshot shows who took it.')) + '</div></div>' +
                 '<div class="fd-perm-legend">' + esc(L('perm.legend', 'View: see and open. Download: also take a copy. Upload: also add files and folders. Modify: also rename, move and delete. Full control: also change these permissions.')) + '</div>' +
                 '<div class="fd-dialog-btns">' + (ro ? '<button type="button" class="fd-btn fd-btn-primary" data-act="close">' + esc(L('btn.close', 'Close')) + '</button>'
                     : '<button type="button" class="fd-btn fd-btn-primary" data-act="save">' + esc(L('btn.save', 'Save')) + '</button><button type="button" class="fd-btn" data-act="close">' + esc(L('btn.cancel', 'Cancel')) + '</button>') + '</div>';
@@ -1127,6 +1140,14 @@
                 tb.innerHTML = '<tr><td colspan="3" class="fd-muted">' + esc(L('perm.nobody', 'Nobody has access to this folder.')) + '</td></tr>';
             }
 
+            var wmSel = b.querySelector('.fd-perm-wm select');
+            wmSel.addEventListener('change', function () {
+                api('folder.php', { action: 'watermark', id: folderId, value: wmSel.value === '' ? null : +wmSel.value })
+                    .then(function (r) {
+                        WM.notify(r.effective ? L('perm.wm_now_on', 'Files opened from here will be watermarked.') : L('perm.wm_now_off', 'Files opened from here will not be watermarked.'));
+                        return load();
+                    }).catch(function (e) { fail(e); load(); });
+            });
             var inheritBox = b.querySelector('.fd-perm-inherit input');
             if (inheritBox) inheritBox.addEventListener('change', function () {
                 var cb = this;
@@ -1259,20 +1280,25 @@
                             '<td>' + esc(fmtWhen(v.uploaded)) + '<div class="fd-muted">' + esc(v.uploaded_by || '') + '</div>' +
                             '<div class="fd-sha" title="SHA-256">' + esc(v.sha256 || '') + '</div></td>' +
                             '<td>' + esc(fmtSize(v.size)) + '</td>' +
-                            '<td>' + (p.level >= LV.DOWNLOAD ? '<button type="button" class="fd-iconbtn" data-v="' + v.id + '" title="' + esc(L('ex.download', 'Download')) + '">' + IC.download + '</button>' : '') + '</td></tr>';
+                            '<td class="fd-nowrap"><button type="button" class="fd-iconbtn" data-view="' + v.id + '" title="' + esc(L('ex.open', 'Open')) + '">' + IC.open + '</button>' +
+                            (p.level >= LV.DOWNLOAD ? '<button type="button" class="fd-iconbtn" data-v="' + v.id + '" title="' + esc(L('ex.download', 'Download')) + '">' + IC.download + '</button>' : '') + '</td></tr>';
                     }).join('') + '</tbody></table></div>';
             }
             w.body.innerHTML = head + '<table class="fd-kv">' + general + '</table>' + versions +
-                '<div class="fd-dialog-btns">' + (p.type === 'folder' ? '<button type="button" class="fd-btn" data-act="perms">' + esc(L('ex.permissions', 'Permissions')) + '</button>' : '') +
+                '<div class="fd-dialog-btns">' + (p.type === 'folder' ? '<button type="button" class="fd-btn" data-act="perms">' + esc(L('ex.permissions', 'Permissions')) + '</button>'
+                    : '<button type="button" class="fd-btn" data-act="view">' + esc(L('ex.open', 'Open')) + '</button>') +
                 '<button type="button" class="fd-btn fd-btn-primary" data-act="close">' + esc(L('btn.close', 'Close')) + '</button></div>';
             w.body.querySelector('.fd-props-name').textContent = p.name;
             w.body.addEventListener('click', function (ev) {
                 var v = ev.target.closest('[data-v]');
                 if (v) { download(id, +v.dataset.v); return; }
+                var vw = ev.target.closest('[data-view]');
+                if (vw) { viewFile(id, +vw.dataset.view); return; }
                 var a = ev.target.closest('[data-act]');
                 if (!a) return;
                 if (a.dataset.act === 'close') w.close();
                 if (a.dataset.act === 'perms') openPermissions(id);
+                if (a.dataset.act === 'view') viewFile(id);
             });
         }).catch(function (e) { fail(e); w.close(); });
     }
@@ -1298,7 +1324,7 @@
         container.querySelectorAll('.fx-item').forEach(function (n) {
             var r = rows[+n.dataset.i];
             var go = function () { r.type === 'folder' ? new Explorer(r.id) : openLocation(r.folder_id, 'i:' + r.id); };
-            n.addEventListener('dblclick', go);
+            n.addEventListener('dblclick', function () { r.type === 'folder' ? new Explorer(r.id) : viewFile(r.id); });
             n.addEventListener('click', function () {
                 container.querySelectorAll('.fx-sel').forEach(function (x) { x.classList.remove('fx-sel'); });
                 n.classList.add('fx-sel');
@@ -1306,6 +1332,7 @@
             n.addEventListener('contextmenu', function (ev) {
                 ev.preventDefault();
                 WM.menu(ev.clientX, ev.clientY, [
+                    r.type !== 'folder' ? { label: L('ex.open', 'Open'), icon: IC.open, action: function () { viewFile(r.id); } } : null,
                     { label: L('ex.open_location', 'Open file location'), icon: IC.location, action: go },
                     r.type !== 'folder' ? { label: L('ex.download', 'Download'), icon: IC.download, action: function () { download(r.id); }, disabled: (r.level || LV.DOWNLOAD) < LV.DOWNLOAD } : null,
                     { label: L('ex.properties', 'Properties'), icon: IC.props, action: function () { openProperties(r.type === 'folder' ? 'folder' : 'item', r.id); } }
@@ -1522,7 +1549,7 @@
                 b.innerHTML = FI.file(it.name, 22) + '<span><span class="fd-sm-fname"></span><span class="fd-sm-fpath"></span></span>';
                 b.querySelector('.fd-sm-fname').textContent = it.name;
                 b.querySelector('.fd-sm-fpath').textContent = it.path;
-                b.addEventListener('click', function () { closeStart(); openLocation(it.folder_id, 'i:' + it.id); });
+                b.addEventListener('click', function () { closeStart(); viewFile(it.id); });
                 box.appendChild(b);
             });
         }).catch(function () {});
@@ -1587,8 +1614,7 @@
             var i = ev.target.closest('[data-i]');
             if (i) {
                 var lvl = data.folder ? data.folder.level : 0;
-                if (lvl >= LV.DOWNLOAD) download(+i.dataset.i);
-                else WM.notify(L('mob.view_only', 'You can view this file but not download it.'));
+                viewFile(+i.dataset.i);
             }
         });
         return { load: load, current: function () { return cur; } };

@@ -41,7 +41,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=78">
     <link rel="stylesheet" href="../assets/css/help.css?v=3">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=192">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=193">
 </head>
 <body data-mobile-page="tickets-help-calsync">
 <?php include 'includes/header.php'; ?>

@@ -520,3 +520,105 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 /* ── Phones: no desktop - the list view lives in LAYER 45 of mobile.css. ──
    Hidden here, outside any media query, so the desktop never shows it (§25). */
 .fd-mobile { display: none; }
+
+/* ── The viewer (files-viewer.js) ─────────────────────────────────────────
+   One layout for every kind: a bar, a scrolling stage, an optional footer
+   note, and - when the folder says so - the watermark laid OVER the stage
+   (not inside it) so it stays put while the document scrolls beneath it. */
+.fdv { background: var(--surface-2); }
+.fdv-bar {
+    display: flex; align-items: center; gap: 6px; padding: 6px 10px;
+    border-bottom: 1px solid var(--border-soft); background: var(--surface);
+    min-height: 40px;
+}
+.fdv-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fdv-grow { flex: 1; }
+.fdv-tools { display: flex; align-items: center; gap: 2px; }
+.fdv-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 11.5px; background: var(--surface-2); color: var(--text-muted); white-space: nowrap; }
+.fdv-badge-vo { background: var(--warning-bg); color: var(--warning-text); }
+.fdv-btn {
+    display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px;
+    border: 0; border-radius: 5px; background: transparent; color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer;
+}
+.fdv-btn:hover { background: var(--surface-hover); }
+.fdv-btn-primary { background: var(--fil-accent); color: var(--fil-on-accent); padding: 0 14px; }
+.fdv-btn-primary:hover { background: var(--fil-accent-hover); }
+.fdv-zoom, .fdv-page { min-width: 48px; text-align: center; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.fdv-page { min-width: 70px; margin-right: 6px; }
+.fdv-stagewrap { flex: 1; min-height: 0; position: relative; }
+.fdv-stage { position: absolute; inset: 0; overflow: auto; outline: none; }
+.fdv-loading, .fdv-msg { padding: 40px; text-align: center; color: var(--text-dim); }
+.fdv-wm { position: absolute; inset: 0; pointer-events: none; z-index: 2; background-repeat: repeat; }
+.fdv-foot { padding: 6px 12px; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--border-soft); background: var(--surface); }
+.fdv-muted { color: var(--text-dim); }
+
+.fdv-pdf { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px; background: #525659; }
+.fdv-page-box { background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .45); flex: 0 0 auto; }
+.fdv-page-box canvas { display: block; }
+
+.fdv-paperstage { padding: 24px; background: #e7e9ec; }
+[data-theme="dark"] .fdv-paperstage { background: #2b2f36; }
+.fdv-paper {
+    max-width: 816px; margin: 0 auto; padding: 72px 80px; min-height: 900px;
+    background: #fff; color: #1f2328; box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+    font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.5;
+}
+.fdv-paper img { max-width: 100%; height: auto; }
+.fdv-paper table { border-collapse: collapse; margin: 10px 0; }
+.fdv-paper td, .fdv-paper th { border: 1px solid #c8ccd1; padding: 4px 8px; vertical-align: top; }
+.fdv-paper a { color: #0b57d0; }
+
+.fdv-sheetstage { background: var(--surface); }
+.fdv-grid { border-collapse: collapse; font-size: 12.5px; font-family: Calibri, 'Segoe UI', Arial, sans-serif; }
+.fdv-grid th, .fdv-grid td { border: 1px solid var(--border-soft); padding: 3px 8px; white-space: nowrap; max-width: 420px; overflow: hidden; text-overflow: ellipsis; }
+.fdv-grid thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-2); color: var(--text-muted); font-weight: 400; text-align: center; }
+.fdv-grid tbody th { position: sticky; left: 0; background: var(--surface-2); color: var(--text-muted); font-weight: 400; text-align: right; min-width: 36px; }
+.fdv-grid .fdv-corner { left: 0; z-index: 2; }
+.fdv-sheettabs { display: flex; gap: 2px; padding: 0 8px; background: var(--surface-2); border-top: 1px solid var(--border-soft); overflow-x: auto; }
+.fdv-sheettab {
+    padding: 6px 14px; border: 0; border-bottom: 3px solid transparent; background: transparent;
+    color: var(--text-muted); font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap;
+}
+.fdv-sheettab.fdv-on { color: #217346; border-bottom-color: #217346; background: var(--surface); font-weight: 600; }
+
+.fdv-imgstage { display: flex; align-items: flex-start; justify-content: center; padding: 16px; background: repeating-conic-gradient(#e9e9e9 0 25%, #fff 0 50%) 0 0 / 20px 20px; }
+[data-theme="dark"] .fdv-imgstage { background: repeating-conic-gradient(#2a2d33 0 25%, #1f2227 0 50%) 0 0 / 20px 20px; }
+.fdv-img { display: block; max-width: none; box-shadow: 0 2px 10px rgba(0, 0, 0, .25); }
+.fdv-mediastage { display: flex; align-items: center; justify-content: center; background: #000; }
+.fdv-media { max-width: 100%; max-height: 100%; }
+audio.fdv-media { width: 80%; }
+.fdv-text { margin: 0; padding: 14px 18px; font: 12.5px/1.5 Consolas, 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; color: var(--text); background: var(--surface); min-height: 100%; box-sizing: border-box; }
+.fdv-none { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 50px 20px; text-align: center; }
+.fdv-none-name { font-weight: 600; font-size: 15px; word-break: break-word; }
+
+/* View only: nothing to select or drag out, and nothing to print. */
+.fdv-viewonly .fdv-stage { user-select: none; -webkit-user-select: none; }
+.fdv-viewonly .fdv-stage img, .fdv-viewonly .fdv-stage canvas { -webkit-user-drag: none; }
+@media print { .fdv-viewonly, .fdm-viewer { visibility: hidden !important; } }
+.fd-nowrap { white-space: nowrap; }
+
+/* Permissions window: the watermark choice. */
+.fd-perm-wm { padding: 12px 16px 0; }
+.fd-perm-wm label { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.fd-perm-wm .fd-muted { font-size: 12px; margin-top: 4px; }
+
+/* Zip archives: a folder-like list, and an entry's own viewer laid over it. */
+.fdv-zipstage { background: var(--surface); }
+.fdv-zip { padding: 8px 10px 20px; }
+.fdv-zcrumbs { padding: 6px 4px; font-size: 13px; color: var(--text-dim); }
+.fdv-zcrumb { border: 0; background: transparent; color: var(--fil-accent); font: inherit; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
+.fdv-zcrumb:hover { background: var(--surface-hover); }
+.fdv-zhint { padding: 0 8px 8px; font-size: 12px; }
+.fdv-zrow {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px;
+    border: 0; border-radius: 4px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer;
+}
+.fdv-zrow:hover { background: var(--surface-hover); }
+.fdv-zrow .fi { flex: 0 0 auto; }
+.fdv-zname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fdv-zip-entry { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--surface-2); z-index: 1; }
+.fdv-zback { display: flex; align-items: center; gap: 10px; padding: 4px 8px; border-bottom: 1px solid var(--border-soft); background: var(--surface); font-size: 12px; }
+.fdv-zback .fdv-muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fdv-zentry { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.fdv-grid td.fdv-num { text-align: right; }
+.fdv-in-entry > .fdv-bar [data-act="download"] { display: none; }

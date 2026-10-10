@@ -9,6 +9,9 @@
  *   rename   {id, name}                          Modify
  *   delete   {id}                                Modify. Soft: the folder and
  *            everything under it go to the recycle bin (deleted_datetime).
+ *   watermark {id, value: null|0|1}             Full control. Whether the viewer
+ *            stamps the viewer's name, time and IP across files from here.
+ *            null = as the parent folder (the default).
  *   inherit  {id, inherit: bool, copy: bool}     Full control. Turning it OFF
  *            asks, like Windows, whether to copy the inherited entries in as the
  *            folder's own (copy=true) or start from just its own (copy=false).
@@ -73,6 +76,20 @@ filesApiRun(function () use ($conn, $analystId) {
         FilesAcl::reset();
         filesAudit($conn, $analystId, 'delete', ['folder_id' => $id, 'path' => $path], ['type' => 'folder']);
         filesApiOk();
+    }
+
+    if ($action === 'watermark') {
+        filesNeed($conn, $analystId, $id, FilesAcl::FULL, 'watermark');
+        $v = $in['value'] ?? null;
+        $v = ($v === null || $v === '') ? null : (int)(bool)$v;
+        $before = $tree[$id]['watermark'];
+        $conn->prepare("UPDATE files_folders SET watermark = ?, updated_by = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+             ->execute([$v, $analystId, $id]);
+        FilesAcl::reset();
+        filesAudit($conn, $analystId, 'watermark', ['folder_id' => $id],
+                   ['from' => $before === null ? 'inherit' : ($before ? 'on' : 'off'), 'to' => $v === null ? 'inherit' : ($v ? 'on' : 'off'),
+                    'effective' => FilesAcl::watermark($conn, $id)]);
+        filesApiOk(['effective' => FilesAcl::watermark($conn, $id)]);
     }
 
     if ($action === 'inherit') {

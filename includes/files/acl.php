@@ -74,7 +74,7 @@ final class FilesAcl
     {
         if (self::$tree === null) {
             $all = [];
-            $rows = $conn->query("SELECT id, parent_id, name, inherit_permissions, deleted_datetime
+            $rows = $conn->query("SELECT id, parent_id, name, inherit_permissions, watermark, deleted_datetime
                                     FROM files_folders")->fetchAll(PDO::FETCH_ASSOC);
             foreach ($rows as $r) {
                 $all[(int)$r['id']] = [
@@ -82,6 +82,7 @@ final class FilesAcl
                     'parent_id' => $r['parent_id'] !== null ? (int)$r['parent_id'] : null,
                     'name'      => $r['name'],
                     'inherit'   => (int)$r['inherit_permissions'],
+                    'watermark' => $r['watermark'] !== null ? (int)$r['watermark'] : null,
                     'deleted'   => $r['deleted_datetime'] !== null,
                 ];
             }
@@ -221,6 +222,24 @@ final class FilesAcl
             }
         }
         return $out;
+    }
+
+    /**
+     * Is the viewer watermark on for files in this folder? The nearest folder
+     * that says on or off decides; NULL means "as the parent", and nothing set
+     * anywhere means off. Follows the folder tree, NOT permission inheritance -
+     * a folder that stops inheriting permissions still sits inside its parent.
+     */
+    public static function watermark(PDO $conn, int $folderId): bool
+    {
+        $tree = self::tree($conn);
+        $f = $tree[$folderId] ?? null;
+        $guard = 0;
+        while ($f && $guard++ < 200) {
+            if ($f['watermark'] !== null) return $f['watermark'] === 1;
+            $f = $f['parent_id'] !== null ? ($tree[$f['parent_id']] ?? null) : null;
+        }
+        return false;
     }
 
     /** "Finance / Invoices / 2026" - for audit rows, tooltips and the address bar. */
