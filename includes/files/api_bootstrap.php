@@ -123,8 +123,36 @@ function filesNameTaken(PDO $conn, ?int $parentId, string $name, string $exceptT
         foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $id) {
             if (!($exceptType === 'item' && (int)$id === $exceptId)) return true;
         }
+        // Shortcuts share the folder's names too - but only ones the caller can see.
+        $st = $conn->prepare("SELECT id, target_type, target_id FROM files_shortcuts WHERE folder_id = ? AND LOWER(name) = LOWER(?)");
+        $st->execute([$parentId, $name]);
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $s) {
+            if ($exceptType === 'shortcut' && (int)$s['id'] === $exceptId) continue;
+            if (filesShortcutTarget($conn, (int)($GLOBALS['analystId'] ?? 0), $s['target_type'], (int)$s['target_id'])) return true;
+        }
     }
     return false;
+}
+
+/**
+ * What a shortcut points at, IF the caller can see it - else null. The one
+ * place shortcuts meet permissions: a shortcut never widens access.
+ * Returns [name, folder_id (the target folder, or the file's folder), path, level].
+ */
+function filesShortcutTarget(PDO $conn, int $analystId, string $type, int $id): ?array
+{
+    if ($type === 'folder') {
+        $tree = FilesAcl::tree($conn);
+        $lvl = FilesAcl::level($conn, $analystId, $id);
+        if (!isset($tree[$id]) || $lvl < FilesAcl::VIEW) return null;
+        return ['name' => $tree[$id]['name'], 'folder_id' => $id, 'path' => FilesAcl::path($conn, $id), 'level' => $lvl];
+    }
+    $it = filesItem($conn, $id);
+    if (!$it) return null;
+    $lvl = FilesAcl::level($conn, $analystId, (int)$it['folder_id']);
+    if ($lvl < FilesAcl::VIEW) return null;
+    return ['name' => $it['name'], 'folder_id' => (int)$it['folder_id'],
+            'path' => FilesAcl::path($conn, (int)$it['folder_id']) . ' / ' . $it['name'], 'level' => $lvl];
 }
 
 /** "Report.pdf" -> "Report (2).pdf", the first free one. */

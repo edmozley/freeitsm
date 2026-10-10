@@ -135,6 +135,16 @@ return [
         'versions' => 'Versions',
         'your_access' => 'Your access',
     ],
+    'sc' => [
+        'create' => 'Create shortcut',
+        'del_q' => 'Delete the shortcut "{name}"? What it points to is not affected.',
+        'desktop' => 'On desktop',
+        'desktop_full' => 'Create shortcut on desktop',
+        'gone' => 'What this shortcut pointed to has been deleted, or is no longer shared with you.',
+        'here' => 'In this folder',
+        'made_desktop' => 'Shortcut "{name}" put on your desktop.',
+        'tip' => 'Shortcut to {path}',
+    ],
     'search' => [
         'hint' => 'Type at least two letters.',
         'ph' => 'Search names of files and folders you can see',
@@ -198,6 +208,7 @@ return [
         'other' => '{ext} file',
         'pdf' => 'PDF document',
         'ppt' => 'Presentation',
+        'shortcut' => 'Shortcut',
         'text' => 'Text document',
         'video' => 'Video',
         'word' => 'Word document',
@@ -288,6 +299,7 @@ return [
             'p4' => 'Cut, Copy and Paste work as they do in Windows (Ctrl+X, Ctrl+C, Ctrl+V), and so does dragging: drag onto a folder to move, hold Ctrl to copy. F2 renames, Delete deletes. Deleted items are kept rather than destroyed - a recycle bin to restore them is coming in a later release.',
             'p5' => '"Documents" at the top shows every folder that has been shared with you. If you were given a folder deep inside someone else\'s, it appears here on its own with its full path as a hint - you do not see the folders above it.',
             'p6' => 'Double-click a file to open it in the viewer (see Viewing files). Right-click it for Download, Properties and the rest.',
+            'p7' => 'Right-click a file or folder and choose **Create shortcut** to put a shortcut to it **in this folder** (beside it, for everyone who can open the folder) or **on desktop** (on your own desktop only). A shortcut opens what it points to, but gives nobody access: someone who cannot see the target never sees the shortcut either. Deleting a shortcut leaves the original alone.',
         ],
         'uploading' => [
             'nav' => 'Uploading',

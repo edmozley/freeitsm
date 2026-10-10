@@ -628,3 +628,10 @@ audio.fdv-media { width: 80%; }
 .fdv-zentry { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .fdv-grid td.fdv-num { text-align: right; }
 .fdv-in-entry > .fdv-bar [data-act="download"] { display: none; }
+
+/* Shortcuts: the target's icon with the arrow badge in its corner. */
+.fi-sc { position: relative; display: inline-flex; flex: 0 0 auto; }
+.fi-sc > .fi { display: block; }
+.fi-sc-arrow { position: absolute; left: 0; bottom: 0; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
+.fd-dicon .fi-sc { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .35)); }
+.fd-dicon-gone { opacity: .45; }

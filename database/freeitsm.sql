@@ -8656,6 +8656,26 @@ CREATE TABLE IF NOT EXISTS `files_audit` (
     KEY `ix_files_audit_analyst` (`analyst_id`, `id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Shortcuts. EITHER in a folder (folder_id set: everyone who can see the folder
+-- sees it - but only if they can also see the target) OR on one person's desktop
+-- (analyst_id set, folder_id NULL). A shortcut grants nothing: opening it goes
+-- through the target's own permissions.
+CREATE TABLE IF NOT EXISTS `files_shortcuts` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `folder_id`             INT NULL,                               -- in this folder
+    `analyst_id`            INT NULL,                               -- on this person's desktop
+    `target_type`           VARCHAR(10) NOT NULL,                   -- folder | item
+    `target_id`             INT NOT NULL,
+    `name`                  VARCHAR(255) NOT NULL,
+    `created_by`            INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_files_shortcuts_folder` (`folder_id`),
+    KEY `ix_files_shortcuts_analyst` (`analyst_id`),
+    KEY `ix_files_shortcuts_target` (`target_type`, `target_id`),
+    CONSTRAINT `fk_files_shortcuts_folder` FOREIGN KEY (`folder_id`) REFERENCES `files_folders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- A chunked upload in progress. The pieces collect in <storage root>/_incoming/<token>.part.
 CREATE TABLE IF NOT EXISTS `files_uploads` (
     `id`                    INT NOT NULL AUTO_INCREMENT,

@@ -2984,6 +2984,7 @@ try {
         ['files_folders', 'fk_files_folders_parent', "ALTER TABLE files_folders ADD CONSTRAINT fk_files_folders_parent FOREIGN KEY (parent_id) REFERENCES files_folders (id) ON DELETE CASCADE"],
         ['files_items', 'fk_files_items_folder', "ALTER TABLE files_items ADD CONSTRAINT fk_files_items_folder FOREIGN KEY (folder_id) REFERENCES files_folders (id) ON DELETE CASCADE"],
         ['files_versions', 'fk_files_versions_item', "ALTER TABLE files_versions ADD CONSTRAINT fk_files_versions_item FOREIGN KEY (item_id) REFERENCES files_items (id) ON DELETE CASCADE"],
+        ['files_shortcuts', 'fk_files_shortcuts_folder', "ALTER TABLE files_shortcuts ADD CONSTRAINT fk_files_shortcuts_folder FOREIGN KEY (folder_id) REFERENCES files_folders (id) ON DELETE CASCADE"],
         ['files_permissions', 'fk_files_permissions_folder', "ALTER TABLE files_permissions ADD CONSTRAINT fk_files_permissions_folder FOREIGN KEY (folder_id) REFERENCES files_folders (id) ON DELETE CASCADE"],
     ];
     foreach ($filesFks as [$tbl, $name, $sql]) {
