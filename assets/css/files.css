@@ -390,18 +390,20 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 }
 .fd-submenu { position: absolute; left: calc(100% - 4px); top: -5px; display: none; z-index: 1; }
 .fd-mi { position: relative; }
-.fd-mi.fd-has-sub:hover > .fd-submenu, .fd-mi.fd-has-sub:focus-within > .fd-submenu { display: block; }
+.fd-mi.fd-has-sub:hover > .fd-submenu, .fd-mi.fd-has-sub:focus-visible > .fd-submenu, .fd-mi.fd-has-sub:has(:focus-visible) > .fd-submenu { display: block; }
 .fd-mi {
     display: flex; align-items: center; gap: 10px; width: 100%;
     height: 30px; padding: 0 10px; border: 0; border-radius: 4px;
     background: transparent; color: var(--text); font: inherit; font-size: 12.5px; text-align: left; cursor: default;
 }
-.fd-mi:hover:not(:disabled), .fd-mi:focus { background: var(--surface-hover); outline: none; }
+.fd-mi:hover:not(:disabled), .fd-mi:focus-visible { background: var(--surface-hover); outline: none; }
+.fd-ctx:focus { outline: none; }
 .fd-mi:disabled { color: var(--text-faint); }
 .fd-mi-icon { width: 16px; display: flex; justify-content: center; color: var(--text-muted); }
 .fd-mi-label { flex: 1; }
 .fd-mi-key { font-size: 11px; color: var(--text-dim); }
-.fd-mi.fd-has-sub .fd-mi-key::after { content: '\203A'; font-size: 14px; }
+/* Child combinator: without it the submenu's own items (Icons, Details) got the arrow too. */
+.fd-mi.fd-has-sub > .fd-mi-key::after { content: '\203A'; font-size: 14px; }
 .fd-mi.fd-checked .fd-mi-icon::before { content: '\2022'; font-size: 20px; color: var(--fil-accent); line-height: 1; }
 .fd-msep { height: 1px; background: var(--border-soft); margin: 4px 6px; }
 

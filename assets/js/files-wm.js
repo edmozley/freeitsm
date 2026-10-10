@@ -477,8 +477,12 @@
         var top = (opts && opts.above) ? y - r.height : Math.min(y, window.innerHeight - r.height - 4);
         ctxEl.style.left = Math.max(4, left) + 'px';
         ctxEl.style.top = Math.max(4, top) + 'px';
-        var first = ctxEl.querySelector('.fd-mi:not([disabled])');
-        if (first) first.focus({ preventScroll: true });
+        // The MENU takes focus, not its first item: focusing an item looked like
+        // hovering it, and on an item with a submenu (View) opened the submenu
+        // before the mouse had moved (Ed, 2026-10-10). Arrow keys still start at
+        // the top - see the keydown handler below.
+        ctxEl.tabIndex = -1;
+        ctxEl.focus({ preventScroll: true });
     }
     function build(container, items) {
         container.innerHTML = '';
