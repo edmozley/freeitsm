@@ -33,6 +33,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2270 | Files             | Improvement | Uploads abandoned for more than a day are swept (row and .part) when the next upload starts. |
 | 2271 | Vendor            | Improvement | Bundled pdf.js 6.3.289, mammoth.js 1.13.0 and SheetJS CE 0.20.3 for the Files viewer (VENDOR.md updated). |
 | 2272 | Feature Bingo     | Improvement | Files card for a watermarked folder. |
+| 2275 | Files             | Fix         | A PDF page or image zoomed wider than the viewer had its left side cut off and unreachable by scrolling (centred flex overflow); wide content now scrolls fully. |
 | 2274 | Files             | Fix         | Fit to width in the viewer did nothing after the window was resized or maximised (the fit was measured once, at open); it is now measured on every click, the page keeps fitting as the window resizes until you zoom by hand, and for Word it fits the page to the window instead of resetting to 100%. |
 | 2273 | Files             | Improvement | The viewer's toolbar no longer repeats the file name (the window title already shows it), and the zip filter's regex no longer contains raw control characters that made git and grep treat files-viewer.js as binary. |
 
