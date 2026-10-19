@@ -107,11 +107,12 @@ class AssetsService
      * api/assets/create_asset.php, added in #1132 because a television cannot
      * run the inventory agent).
      *
-     * @param array $in  the new asset's fields: hostname (required), any fieldMap() key, and asset_tag
+     * @param array $in  hostname (required), fieldMap() keys, asset_tag and optional fields:{field_key:value}
      * @param string $creationNote  the new_value of the 'asset_created' history row, e.g. who or what created it
      */
     public static function createAsset(PDO $conn, ActorContext $ctx, array $in, string $creationNote, ?int $tenantId = null): int
     {
+        $customValues = self::customValues($in);
         $hostname = trim((string)($in['hostname'] ?? ''));
         if ($hostname === '') {
             throw new ServiceError('validation', 'missing_field', "'hostname' is required.");
@@ -169,7 +170,7 @@ class AssetsService
             $conn,
             $storeTenant,
             array_key_exists('asset_tag', $in) ? (string)$in['asset_tag'] : null,
-            function (?string $tag) use ($conn, $ctx, $columns, $values, $creationNote): int {
+            function (?string $tag) use ($conn, $ctx, $columns, $values, $creationNote, $customValues): int {
                 if ($tag !== null) {
                     $columns[] = 'asset_tag';
                     $values[]  = $tag;
@@ -192,6 +193,13 @@ class AssetsService
                                 VALUES ($placeholders, UTC_TIMESTAMP())")->execute($values);
                 $assetId = (int)$conn->lastInsertId();
                 self::auditWrite($conn, $assetId, $ctx->actorId, 'asset_created', null, $creationNote);
+                // GH #194: use the UI's type/applicability checks and field history.
+                // Inside the tag transaction so invalid custom values leave no asset
+                // (and consume no generated tag number).
+                if ($customValues) {
+                    require_once __DIR__ . '/asset_fields.php';
+                    AssetFieldsService::saveValues($conn, $ctx, $assetId, $customValues);
+                }
                 return $assetId;
             }
         );
@@ -209,12 +217,13 @@ class AssetsService
      * changed field (no-ops are skipped) and re-syncs the warranty calendar when
      * warranty_expiry moves. Returns void; the adapter reloads for its response.
      *
-     * @param array $in  [fieldMap() key => new value]; unknown keys are ignored, '' or null clears a field
+     * @param array $in  fieldMap() keys and optional fields:{field_key:value}; omitted values are kept
      */
     public static function updateFields(PDO $conn, ActorContext $ctx, int $assetId, array $in): void
     {
         $current = self::loadRow($conn, $assetId);   // 404 if gone
         self::assertScope($conn, $ctx, $current);    // 404 if in another company
+        $customValues = self::customValues($in);
         if (!$in) {
             throw new ServiceError('validation', 'missing_field', 'No fields to update.');
         }
@@ -277,27 +286,48 @@ class AssetsService
             }
         }
 
-        if (!$updates) {
+        if (!$updates && !$customValues) {
             return; // idempotent — nothing to write
         }
         self::assertLeaseOrder($in, $current);
 
-        $args[] = $assetId;
-        $conn->prepare('UPDATE assets SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
+        // Core edits, custom values and their audit must succeed together. Resolve
+        // custom applicability AFTER a type change, inside this same transaction.
+        $owns = !$conn->inTransaction();
+        if ($owns) { $conn->beginTransaction(); }
+        try {
+            if ($updates) {
+                $args[] = $assetId;
+                $conn->prepare('UPDATE assets SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
+            }
+            if ($customValues) {
+                require_once __DIR__ . '/asset_fields.php';
+                AssetFieldsService::saveValues($conn, $ctx, $assetId, $customValues);
+            }
+            foreach ($audits as [$fieldKey, $old, $new]) {
+                self::auditWrite($conn, $assetId, $ctx->actorId, $fieldKey, $old, $new);
+            }
+            if ($warrantyChanged) { self::syncWarranty($conn); }
+            // Leases (3.5.0): propagate edited dates to the lease schedule.
+            if (array_key_exists('lease_start', $in) || array_key_exists('lease_expiry', $in)) {
+                require_once __DIR__ . '/../leases.php';
+                leaseAssetDatesEdited($conn, $assetId);
+            }
+            if ($owns) { $conn->commit(); }
+        } catch (Throwable $e) {
+            if ($owns && $conn->inTransaction()) { $conn->rollBack(); }
+            throw $e;
+        }
+    }
 
-        foreach ($audits as [$fieldKey, $old, $new]) {
-            self::auditWrite($conn, $assetId, $ctx->actorId, $fieldKey, $old, $new);
+    /** Validate the optional custom-field map; absent/empty maps change nothing. */
+    private static function customValues(array $in): array
+    {
+        if (!array_key_exists('fields', $in)) { return []; }
+        if (!is_array($in['fields'])) {
+            throw new ServiceError('validation', 'invalid_field', "'fields' must be an object keyed by custom field key.");
         }
-
-        if ($warrantyChanged) {
-            self::syncWarranty($conn);
-        }
-        // Leases (3.5.0): on an asset out on lease, dates typed here become its
-        // own dates on the schedule. Never writes the asset back, so no loop.
-        if (array_key_exists('lease_start', $in) || array_key_exists('lease_expiry', $in)) {
-            require_once __DIR__ . '/../leases.php';
-            leaseAssetDatesEdited($conn, $assetId);
-        }
+        return $in['fields'];
     }
 
     /**

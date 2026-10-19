@@ -992,7 +992,7 @@
                     "p": "\/assets",
                     "perm": "assets.create",
                     "s": "Create an asset",
-                    "d": "Creates an asset record. hostname is the identity the inventory agent and Intune sync upsert on, so a duplicate hostname is refused (409) — PATCH the existing asset instead. All other fields are optional and match PATCH below.",
+                    "d": "Creates an asset record. hostname is the identity the inventory agent and Intune sync upsert on, so a duplicate hostname is refused (409) — PATCH the existing asset instead. All other fields are optional and match PATCH below. The optional fields object accepts values keyed by applicable custom field_key. Omitted keys remain unchanged; null or an empty string clears a non-required value. An empty object is a no-op. Unknown\/inapplicable keys or invalid values return 422. Core and custom changes are atomic.",
                     "params": [
                         {
                             "name": "hostname",
@@ -1016,6 +1016,12 @@
                             "name": "manufacturer \/ model \/ service_tag \/ memory \/ operating_system \/ cpu_name \/ …",
                             "in": "body",
                             "desc": "Hardware & OS fields",
+                            "req": false
+                        },
+                        {
+                            "name": "fields",
+                            "in": "body",
+                            "desc": "Optional object keyed by applicable custom field_key. See examples and field catalogue.",
                             "req": false
                         }
                     ],
@@ -1067,6 +1073,18 @@
                                     "domain": "corp.example.com",
                                     "warranty_expiry": "2028-06-30"
                                 }
+                            },
+                            {
+                                "title": "Write custom asset fields",
+                                "note": "Field keys must belong to a field set attached to this asset type or asset.",
+                                "body": {
+                                    "fields": {
+                                        "external_device_reference": "device-1042",
+                                        "management_url": "https:\/\/inventory.example.invalid\/devices\/1042"
+                                    },
+                                    "hostname": "LT-1053",
+                                    "asset_type_id": 1
+                                }
                             }
                         ],
                         "errors": [
@@ -1084,6 +1102,11 @@
                                 "code": 422,
                                 "slug": "invalid_field",
                                 "when": "a lookup field (asset_type_id, asset_status_id, location_id, supplier_id) is an id that does not exist."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A custom key is unknown or inapplicable, a value has the wrong type, or a required value is cleared. No core or custom edits are persisted."
                             }
                         ]
                     }
@@ -1121,7 +1144,7 @@
                     "p": "\/assets\/{id}",
                     "perm": "assets.update",
                     "s": "Update an asset",
-                    "d": "Updates any combination of fields. Every change is written to the asset history with the same field keys the UI uses; changing warranty_expiry re-syncs the calendar's warranty events. Send only what changes; null clears a field. Unknown lookup ids are a 422.",
+                    "d": "Updates any combination of fields. Every change is written to the asset history with the same field keys the UI uses; changing warranty_expiry re-syncs the calendar's warranty events. Send only what changes; null clears a field. Unknown lookup ids are a 422. The optional fields object accepts values keyed by applicable custom field_key. Omitted keys remain unchanged; null or an empty string clears a non-required value. An empty object is a no-op. Unknown\/inapplicable keys or invalid values return 422. Core and custom changes are atomic.",
                     "params": [
                         {
                             "name": "id",
@@ -1151,6 +1174,12 @@
                             "name": "manufacturer \/ model \/ service_tag \/ memory \/ operating_system \/ …",
                             "in": "body",
                             "desc": "Hardware & OS fields",
+                            "req": false
+                        },
+                        {
+                            "name": "fields",
+                            "in": "body",
+                            "desc": "Optional object keyed by applicable custom field_key. See examples and field catalogue.",
                             "req": false
                         }
                     ],
@@ -1200,6 +1229,30 @@
                                     "memory": 16,
                                     "cpu_name": "Intel Core i7-1355U"
                                 }
+                            },
+                            {
+                                "title": "Write custom asset fields",
+                                "note": "Field keys must belong to a field set attached to this asset type or asset.",
+                                "body": {
+                                    "fields": {
+                                        "external_device_reference": "device-1042",
+                                        "management_url": "https:\/\/inventory.example.invalid\/devices\/1042"
+                                    }
+                                },
+                                "path": {
+                                    "id": "42"
+                                }
+                            },
+                            {
+                                "title": "Clear one optional custom value",
+                                "path": {
+                                    "id": "42"
+                                },
+                                "body": {
+                                    "fields": {
+                                        "management_url": null
+                                    }
+                                }
                             }
                         ],
                         "errors": [
@@ -1212,6 +1265,11 @@
                                 "code": 422,
                                 "slug": "invalid_field",
                                 "when": "'hostname' is set to blank (it cannot be cleared), or a lookup field is an id that does not exist."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A custom key is unknown or inapplicable, a value has the wrong type, or a required value is cleared. No core or custom edits are persisted."
                             }
                         ]
                     }
@@ -14320,6 +14378,18 @@
                         "domain": "corp.example.com",
                         "warranty_expiry": "2028-06-30"
                     }
+                },
+                {
+                    "title": "Write custom asset fields",
+                    "note": "Field keys must belong to a field set attached to this asset type or asset.",
+                    "body": {
+                        "fields": {
+                            "external_device_reference": "device-1042",
+                            "management_url": "https:\/\/inventory.example.invalid\/devices\/1042"
+                        },
+                        "hostname": "LT-1053",
+                        "asset_type_id": 1
+                    }
                 }
             ],
             "errors": [
@@ -14337,6 +14407,11 @@
                     "code": 422,
                     "slug": "invalid_field",
                     "when": "a lookup field (asset_type_id, asset_status_id, location_id, supplier_id) is an id that does not exist."
+                },
+                {
+                    "code": 422,
+                    "slug": "invalid_field",
+                    "when": "A custom key is unknown or inapplicable, a value has the wrong type, or a required value is cleared. No core or custom edits are persisted."
                 }
             ]
         },
@@ -14390,6 +14465,30 @@
                         "memory": 16,
                         "cpu_name": "Intel Core i7-1355U"
                     }
+                },
+                {
+                    "title": "Write custom asset fields",
+                    "note": "Field keys must belong to a field set attached to this asset type or asset.",
+                    "body": {
+                        "fields": {
+                            "external_device_reference": "device-1042",
+                            "management_url": "https:\/\/inventory.example.invalid\/devices\/1042"
+                        }
+                    },
+                    "path": {
+                        "id": "42"
+                    }
+                },
+                {
+                    "title": "Clear one optional custom value",
+                    "path": {
+                        "id": "42"
+                    },
+                    "body": {
+                        "fields": {
+                            "management_url": null
+                        }
+                    }
                 }
             ],
             "errors": [
@@ -14402,6 +14501,11 @@
                     "code": 422,
                     "slug": "invalid_field",
                     "when": "'hostname' is set to blank (it cannot be cleared), or a lookup field is an id that does not exist."
+                },
+                {
+                    "code": 422,
+                    "slug": "invalid_field",
+                    "when": "A custom key is unknown or inapplicable, a value has the wrong type, or a required value is cleared. No core or custom edits are persisted."
                 }
             ]
         },

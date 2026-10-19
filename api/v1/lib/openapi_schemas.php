@@ -15289,5 +15289,35 @@ return array (
   ),
   'requestBodies' => 
   array (
+    // Custom fields are dynamic, so their keys/types come from the asset's
+    // field catalogue. Other existing core input properties remain accepted.
+    'POST /assets' => [
+      'type' => 'object',
+      'required' => ['hostname'],
+      'properties' => [
+        'hostname' => ['type' => 'string', 'maxLength' => 50],
+        'fields' => [
+          'type' => 'object',
+          'description' => 'Custom values keyed by applicable field_key. Omitted keys are kept; null or an empty string clears a non-required value. An empty object changes nothing. Unknown/inapplicable keys and invalid values are 422. Core and custom edits are atomic.',
+          'additionalProperties' => ['oneOf' => [
+            ['type' => 'string', 'nullable' => true], ['type' => 'number'], ['type' => 'boolean'],
+          ]],
+        ],
+      ],
+      'additionalProperties' => true,
+    ],
+    'PATCH /assets/{id}' => [
+      'type' => 'object',
+      'properties' => [
+        'fields' => [
+          'type' => 'object',
+          'description' => 'Partial custom-field map, with the same validation and clear semantics as POST /assets. Values not supplied remain unchanged. An empty object changes nothing. Invalid custom values roll back core edits too.',
+          'additionalProperties' => ['oneOf' => [
+            ['type' => 'string', 'nullable' => true], ['type' => 'number'], ['type' => 'boolean'],
+          ]],
+        ],
+      ],
+      'additionalProperties' => true,
+    ],
   ),
 );
