@@ -280,11 +280,11 @@ function reportHas($value): bool {
 
 try {
     // The agent has authoritative per-drive data, so it owns asset_disks for
-    // any host it reports for — but only when it actually reported some.
+    // its own source on any host it reports for — but only when it actually reported some.
     if (!reportHas($data['disks']['logical'] ?? null)) {
         $leftUnchanged[] = 'disks';
     } else {
-        $conn->prepare("DELETE FROM asset_disks WHERE asset_id = ?")->execute([$hostId]);
+        $conn->prepare("DELETE FROM asset_disks WHERE asset_id = ? AND source = 'agent'")->execute([$hostId]);
         $stmt = $conn->prepare("
             INSERT INTO asset_disks (asset_id, drive, label, file_system, size_bytes, free_bytes, used_percent, source)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'agent')
@@ -377,7 +377,7 @@ try {
     if (!reportHas($data['network_adapters'] ?? null)) {
         $leftUnchanged[] = 'network_adapters';
     } else {
-        $conn->prepare("DELETE FROM asset_network_adapters WHERE asset_id = ?")->execute([$hostId]);
+        $conn->prepare("DELETE FROM asset_network_adapters WHERE asset_id = ? AND source = 'agent'")->execute([$hostId]);
         $stmt = $conn->prepare("
             INSERT INTO asset_network_adapters (asset_id, name, mac_address, ip_address, subnet_mask, gateway, dhcp_enabled)
             VALUES (?, ?, ?, ?, ?, ?, ?)

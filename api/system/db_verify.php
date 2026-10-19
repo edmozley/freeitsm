@@ -4207,6 +4207,14 @@ try {
         ];
     }
 
+    // #194: preserve existing observations while allowing per-source coexistence.
+    require_once '../../includes/db_verify_inventory.php';
+    try {
+        $inventoryChanges=dbVerifyInventoryUpgrade($conn);
+        if ($inventoryChanges) $results[]=['table'=>'software_inventory_detail','status'=>'updated','details'=>$inventoryChanges];
+    } catch (Throwable $e) {
+        $results[]=['table'=>'software_inventory_detail','status'=>'error','details'=>['Inventory schema upgrade failed: ' . $e->getMessage()]];
+    }
     $allNamedIndexes = require '../../includes/db_verify_indexes.php';
     $resultPosByTable = [];
     foreach ($results as $ri => $rr) {

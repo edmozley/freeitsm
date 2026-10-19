@@ -4,6 +4,7 @@
  * Falls back per-key to lang/en/common.php for anything missing here.
  */
 return [
+    'inventory_source' => 'स्रोत',
     // Left-panel visibility preference — shared labels (mirrors lang/en/common.php).
     'left_panel' => [
         'tab'        => 'डावा पॅनेल',

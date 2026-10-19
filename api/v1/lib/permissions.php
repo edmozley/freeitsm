@@ -83,6 +83,7 @@ function apiV1PermissionCatalog(): array {
             'label'   => 'Asset inventory',
             'actions' => [
                 'read' => 'Read agent-collected inventory: volumes, physical drives, network adapters, devices, software',
+                'create' => 'Submit source-owned inventory observations (no core asset edits or heartbeat)',
             ],
         ],
         'problems' => [

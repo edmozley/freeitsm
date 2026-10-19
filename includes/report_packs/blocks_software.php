@@ -83,7 +83,7 @@ function rpSoftwareTopApps(PDO $conn, int $analystId, array $o, array $range, $t
 function rpSoftwareKpis(PDO $conn, int $analystId, array $o, array $range, $tenant): array
 {
     [$join, $where, $params] = rpSoftwareScope($conn, $analystId, $tenant, false);
-    $s = $conn->prepare("SELECT COUNT(DISTINCT d.app_id) AS apps, COUNT(DISTINCT d.host_id) AS hosts, COUNT(*) AS installs
+    $s = $conn->prepare("SELECT COUNT(DISTINCT d.app_id) AS apps, COUNT(DISTINCT d.host_id) AS hosts, COUNT(DISTINCT d.host_id,d.app_id) AS installs
                            FROM software_inventory_detail d $join $where");
     $s->execute($params);
     $r = $s->fetch(PDO::FETCH_ASSOC) ?: ['apps' => 0, 'hosts' => 0, 'installs' => 0];

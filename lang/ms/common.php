@@ -11,6 +11,7 @@
  */
 
 return [
+    'inventory_source' => 'Sumber',
     'currency' => [
         'favourites' => 'Kegemaran',
         'all' => 'Semua mata wang',

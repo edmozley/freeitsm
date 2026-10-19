@@ -165,7 +165,7 @@ try {
 $existingAppIds = [];
 
 try {
-    $stmt = $conn->prepare("SELECT app_id FROM software_inventory_detail WHERE host_id = ?");
+    $stmt = $conn->prepare("SELECT app_id FROM software_inventory_detail WHERE host_id = ? AND source = 'agent'");
     $stmt->execute([$hostId]);
 
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -349,7 +349,7 @@ foreach ($softwareList as $item) {
     // 3b. Upsert detail row (host/app)
     // --------------------------
     try {
-        $stmt = $conn->prepare("SELECT id FROM software_inventory_detail WHERE host_id = ? AND app_id = ?");
+        $stmt = $conn->prepare("SELECT id FROM software_inventory_detail WHERE host_id = ? AND app_id = ? AND source = 'agent'");
         $stmt->execute([$hostId, $appId]);
         $detailRow = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -365,7 +365,7 @@ foreach ($softwareList as $item) {
                     estimated_size   = ?,
                     system_component = ?,
                     last_seen        = UTC_TIMESTAMP()
-                WHERE host_id = ? AND app_id = ?
+                WHERE host_id = ? AND app_id = ? AND source = 'agent'
             ");
             $stmt->execute([
                 $displayVersion,
@@ -429,7 +429,7 @@ $deletedDetails = 0;
 
 if (!empty($toDeleteAppIds)) {
     try {
-        $stmt = $conn->prepare("DELETE FROM software_inventory_detail WHERE host_id = ? AND app_id = ?");
+        $stmt = $conn->prepare("DELETE FROM software_inventory_detail WHERE host_id = ? AND app_id = ? AND source = 'agent'");
 
         foreach ($toDeleteAppIds as $appId => $_) {
             $stmt->execute([$hostId, $appId]);

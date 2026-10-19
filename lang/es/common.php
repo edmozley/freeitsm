@@ -11,6 +11,7 @@
  */
 
 return [
+    'inventory_source' => 'Origen',
     'currency' => [
         'favourites' => 'Favoritas',
         'all' => 'Todas las monedas',

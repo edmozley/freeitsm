@@ -6,6 +6,7 @@
  * Other locales mirror this file structure under lang/<locale>/common.php.
  */
 return [
+    'inventory_source' => 'Source',
     // Every currency dropdown and every amount (includes/money.php +
     // assets/js/money.js, GH #189). Published to the browser by
     // Money::scriptTag(), so a page needs no namespace for them.

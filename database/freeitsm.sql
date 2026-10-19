@@ -2961,6 +2961,34 @@ CREATE TABLE IF NOT EXISTS `asset_history` (
     CONSTRAINT `fk_asset_history_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- REST observation provenance; the native inventory rows remain the inventory.
+CREATE TABLE IF NOT EXISTS `asset_inventory_sources` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `asset_id` INT NOT NULL,
+    `tenant_id` INT NOT NULL,
+    `source_id` VARCHAR(48) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    `external_device_id` VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
+    `owner_analyst_id` INT NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_inventory_external_device` (`tenant_id`, `source_id`, `external_device_id`),
+    UNIQUE KEY `uq_inventory_asset_source` (`asset_id`, `source_id`),
+    CONSTRAINT `fk_inventory_source_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `asset_inventory_sections` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `inventory_source_id` INT NOT NULL,
+    `section_name` VARCHAR(32) NOT NULL,
+    `observed_at` DATETIME NOT NULL,
+    `imported_at` DATETIME NOT NULL,
+    `imported_by_id` INT NOT NULL,
+    `fingerprint` CHAR(64) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_inventory_source_section` (`inventory_source_id`, `section_name`),
+    CONSTRAINT `fk_inventory_section_source` FOREIGN KEY (`inventory_source_id`) REFERENCES `asset_inventory_sources` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `asset_disks` (
     `id`            INT NOT NULL AUTO_INCREMENT,
     `asset_id`      INT NOT NULL,
@@ -2970,8 +2998,12 @@ CREATE TABLE IF NOT EXISTS `asset_disks` (
     `size_bytes`    BIGINT NULL,
     `free_bytes`    BIGINT NULL,
     `used_percent`  DECIMAL(5,1) NULL,
-    `source`        VARCHAR(20) NOT NULL DEFAULT 'agent',
+    `source`        VARCHAR(64) NOT NULL DEFAULT 'agent',
+    `observed_at` DATETIME NULL,
+    `imported_at` DATETIME NULL,
+    `external_id` VARCHAR(128) COLLATE utf8mb4_bin NULL,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_disks_source_item` (`asset_id`, `source`, `external_id`),
     CONSTRAINT `fk_asset_disks_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -3024,7 +3056,12 @@ CREATE TABLE IF NOT EXISTS `asset_network_adapters` (
     `subnet_mask`   VARCHAR(45) NULL,
     `gateway`       VARCHAR(45) NULL,
     `dhcp_enabled`  TINYINT(1) NULL,
+    `source` VARCHAR(64) NOT NULL DEFAULT 'agent',
+    `observed_at` DATETIME NULL,
+    `imported_at` DATETIME NULL,
+    `external_id` VARCHAR(128) COLLATE utf8mb4_bin NULL,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_network_adapters_source_item` (`asset_id`, `source`, `external_id`),
     CONSTRAINT `fk_asset_network_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -4850,10 +4887,12 @@ CREATE TABLE IF NOT EXISTS `software_inventory_detail` (
     `system_component`  TINYINT(1) NOT NULL DEFAULT 0,
     `created_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `last_seen`         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `source`            VARCHAR(20) NOT NULL DEFAULT 'agent',
+    `source`            VARCHAR(64) NOT NULL DEFAULT 'agent',
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
+    `observed_at` DATETIME NULL,
+    `imported_at` DATETIME NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `ux_software_detail_host_app` (`host_id`, `app_id`),
+    UNIQUE KEY `ux_software_detail_host_app_source` (`host_id`, `app_id`, `source`),
     CONSTRAINT `fk_software_detail_app` FOREIGN KEY (`app_id`) REFERENCES `software_inventory_apps` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

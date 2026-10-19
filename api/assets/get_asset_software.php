@@ -32,6 +32,7 @@ try {
     }
 
     $sql = "SELECT
+                a.id AS app_id, d.source,
                 a.display_name,
                 a.publisher,
                 d.display_version,

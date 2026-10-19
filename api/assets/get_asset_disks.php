@@ -39,7 +39,7 @@ try {
         exit;
     }
 
-    $sql = "SELECT drive, label, file_system, size_bytes, free_bytes, used_percent
+    $sql = "SELECT drive, label, file_system, size_bytes, free_bytes, used_percent, source
             FROM asset_disks
             WHERE asset_id = ?
             ORDER BY drive ASC";

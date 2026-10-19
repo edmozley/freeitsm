@@ -112,6 +112,7 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'DELETE /assets/{id}/assignments/{user_id}', 'GET /assets/{id}/history',
             'GET /assets/{id}/custody', 'GET /assets/{id}/disks', 'GET /assets/{id}/network-adapters',
             'GET /assets/{id}/devices', 'GET /assets/{id}/software',
+            'GET /assets/{id}/inventory', 'POST /assets/{id}/inventory',
             'GET /problems', 'POST /problems', 'GET /problems/{id}', 'PATCH /problems/{id}',
             'DELETE /problems/{id}', 'GET /problems/{id}/notes', 'POST /problems/{id}/notes',
             'GET /problems/{id}/audit', 'POST /problems/{id}/tickets',

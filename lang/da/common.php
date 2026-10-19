@@ -11,6 +11,7 @@
  */
 
 return [
+    'inventory_source' => 'Kilde',
     'currency' => [
         'favourites' => 'Favoritter',
         'all' => 'Alle valutaer',

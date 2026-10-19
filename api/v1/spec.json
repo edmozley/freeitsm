@@ -1442,6 +1442,132 @@
                     }
                 },
                 {
+                    "m": "POST",
+                    "p": "\/assets\/{id}\/inventory",
+                    "perm": "asset_inventory.create",
+                    "s": "Submit source-owned inventory observations",
+                    "d": "Atomic, versioned observations in native software, logical-volume and network-adapter tables. The asset must exist. No core identity, manually maintained metadata or last_seen heartbeat is changed. A company\/source\/external-device link cannot silently move and belongs to the acting analyst, allowing key rotation. REST sources have an internal rest: namespace. Omitted sections are untouched; complete=false updates only listed items; complete=true replaces only this source, including an explicitly empty list. A listed item replaces its optional attributes. Every section has its own observation watermark: older sections are skipped; identical same-time repeats are no-ops; changed same-time content conflicts and rolls back the entire request. Reordered lists are equivalent. Software reuses the native catalogue; hardware items require stable external_id. Read current rows through the existing inventory endpoints and observation\/import provenance through GET on this path.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "req": true,
+                            "desc": "Existing asset id"
+                        },
+                        {
+                            "name": "schema_version \/ source_id \/ external_device_id \/ observed_at \/ sections",
+                            "in": "body",
+                            "req": true,
+                            "desc": "Versioned input. See OpenAPI for typed properties; at least one section is required."
+                        }
+                    ],
+                    "body": {
+                        "schema_version": 1,
+                        "source_id": "inventory-service",
+                        "external_device_id": "device-1042",
+                        "observed_at": "2026-10-01T08:30:00Z",
+                        "sections": {
+                            "software": {
+                                "complete": true,
+                                "items": [
+                                    {
+                                        "display_name": "Example application",
+                                        "publisher": "Example vendor",
+                                        "display_version": "2.0"
+                                    }
+                                ]
+                            },
+                            "disks": {
+                                "complete": false,
+                                "items": [
+                                    {
+                                        "external_id": "volume-c",
+                                        "drive": "C:",
+                                        "size_bytes": 100000000000,
+                                        "free_bytes": 40000000000
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Import an observation without manufacturing a heartbeat",
+                                "body": {
+                                    "schema_version": 1,
+                                    "source_id": "inventory-service",
+                                    "external_device_id": "device-1042",
+                                    "observed_at": "2026-10-01T08:30:00Z",
+                                    "sections": {
+                                        "software": {
+                                            "complete": true,
+                                            "items": [
+                                                {
+                                                    "display_name": "Example application",
+                                                    "publisher": "Example vendor",
+                                                    "display_version": "2.0"
+                                                }
+                                            ]
+                                        },
+                                        "disks": {
+                                            "complete": false,
+                                            "items": [
+                                                {
+                                                    "external_id": "volume-c",
+                                                    "drive": "C:",
+                                                    "size_bytes": 100000000000,
+                                                    "free_bytes": 40000000000
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "identity_conflict",
+                                "when": "The company\/source\/device link conflicts with an existing link."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "observation_conflict",
+                                "when": "Different section content at the same observation time. No sections are committed."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "Unknown version\/fields, invalid values\/timestamp, duplicate item ids, missing completeness flag, or over 10000 items in one section."
+                            }
+                        ]
+                    },
+                    "section": "Assets",
+                    "slug": "post-assets-id-inventory"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/assets\/{id}\/inventory",
+                    "perm": "asset_inventory.read",
+                    "s": "Read inventory observation provenance",
+                    "d": "Lists source links and per-section original observation time, import time and actor within the asset company scope. Actual rows stay in native disks, network-adapters and software endpoints; these also expose source and per-row observation\/import timestamps.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "req": true,
+                            "desc": "Existing asset id"
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": []
+                    },
+                    "section": "Assets",
+                    "slug": "get-assets-id-inventory"
+                },
+                {
                     "m": "GET",
                     "p": "\/assets\/{id}\/disks",
                     "perm": "asset_inventory.read",
@@ -13440,6 +13566,63 @@
         }
     ],
     "extras": {
+        "POST \/assets\/{id}\/inventory": {
+            "examples": [
+                {
+                    "title": "Import an observation without manufacturing a heartbeat",
+                    "body": {
+                        "schema_version": 1,
+                        "source_id": "inventory-service",
+                        "external_device_id": "device-1042",
+                        "observed_at": "2026-10-01T08:30:00Z",
+                        "sections": {
+                            "software": {
+                                "complete": true,
+                                "items": [
+                                    {
+                                        "display_name": "Example application",
+                                        "publisher": "Example vendor",
+                                        "display_version": "2.0"
+                                    }
+                                ]
+                            },
+                            "disks": {
+                                "complete": false,
+                                "items": [
+                                    {
+                                        "external_id": "volume-c",
+                                        "drive": "C:",
+                                        "size_bytes": 100000000000,
+                                        "free_bytes": 40000000000
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ],
+            "errors": [
+                {
+                    "code": 409,
+                    "slug": "identity_conflict",
+                    "when": "The company\/source\/device link conflicts with an existing link."
+                },
+                {
+                    "code": 409,
+                    "slug": "observation_conflict",
+                    "when": "Different section content at the same observation time. No sections are committed."
+                },
+                {
+                    "code": 422,
+                    "slug": "invalid_field",
+                    "when": "Unknown version\/fields, invalid values\/timestamp, duplicate item ids, missing completeness flag, or over 10000 items in one section."
+                }
+            ]
+        },
+        "GET \/assets\/{id}\/inventory": {
+            "examples": [],
+            "errors": []
+        },
         "GET \/ping": {
             "examples": [
                 {

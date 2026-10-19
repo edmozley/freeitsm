@@ -1917,6 +1917,17 @@ return [
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    'asset_inventory_sources' => [
+        'id'=>'INT NOT NULL AUTO_INCREMENT', 'asset_id'=>'INT NOT NULL', 'tenant_id'=>'INT NOT NULL',
+        'source_id'=>'VARCHAR(48) CHARACTER SET ascii COLLATE ascii_bin NOT NULL',
+        'external_device_id'=>'VARCHAR(128) COLLATE utf8mb4_bin NOT NULL', 'owner_analyst_id'=>'INT NOT NULL',
+    ],
+    'asset_inventory_sections' => [
+        'id'=>'INT NOT NULL AUTO_INCREMENT', 'inventory_source_id'=>'INT NOT NULL',
+        'section_name'=>'VARCHAR(32) NOT NULL', 'observed_at'=>'DATETIME NOT NULL', 'imported_at'=>'DATETIME NOT NULL',
+        'imported_by_id'=>'INT NOT NULL', 'fingerprint'=>'CHAR(64) NOT NULL',
+    ],
+
     'asset_disks' => [
         'id'            => 'INT NOT NULL AUTO_INCREMENT',
         'asset_id'      => 'INT NOT NULL',
@@ -1926,7 +1937,10 @@ return [
         'size_bytes'    => 'BIGINT NULL',
         'free_bytes'    => 'BIGINT NULL',
         'used_percent'  => 'DECIMAL(5,1) NULL',
-        'source'        => "VARCHAR(20) NOT NULL DEFAULT 'agent'",
+        'source'        => "VARCHAR(64) NOT NULL DEFAULT 'agent'",
+        'observed_at'=>'DATETIME NULL',
+        'imported_at'=>'DATETIME NULL',
+        'external_id'=>'VARCHAR(128) COLLATE utf8mb4_bin NULL',
     ],
 
     // The physical drives themselves, as opposed to the lettered volumes above.
@@ -1990,6 +2004,10 @@ return [
         'subnet_mask'   => 'VARCHAR(45) NULL',
         'gateway'       => 'VARCHAR(45) NULL',
         'dhcp_enabled'  => 'TINYINT(1) NULL',
+        'observed_at'=>'DATETIME NULL',
+        'imported_at'=>'DATETIME NULL',
+        'external_id'=>'VARCHAR(128) COLLATE utf8mb4_bin NULL',
+        'source'=>"VARCHAR(64) NOT NULL DEFAULT 'agent'",
     ],
 
     'asset_devices' => [
@@ -3710,8 +3728,10 @@ return [
         'system_component'  => 'TINYINT(1) NOT NULL DEFAULT 0',
         'created_at'        => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'last_seen'         => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
-        'source'            => "VARCHAR(20) NOT NULL DEFAULT 'agent'",
+        'source'            => "VARCHAR(64) NOT NULL DEFAULT 'agent'",
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+        'observed_at'=>'DATETIME NULL',
+        'imported_at'=>'DATETIME NULL',
     ],
 
     'software_licences' => [

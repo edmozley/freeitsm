@@ -3659,10 +3659,10 @@ $translationNamespaces = ['common', 'asset-management'];
 
                 if (data.success && data.disks.length > 0) {
                     container.innerHTML = data.disks.map(disk => {
-                        const pct = parseFloat(disk.used_percent) || 0;
-                        const sizeGB = (disk.size_bytes / 1073741824).toFixed(1);
-                        const freeGB = (disk.free_bytes / 1073741824).toFixed(1);
-                        const usedGB = (sizeGB - freeGB).toFixed(1);
+                        const pct = disk.used_percent == null ? null : parseFloat(disk.used_percent);
+                        const sizeGB = disk.size_bytes == null ? '\u2014' : (disk.size_bytes / 1073741824).toFixed(1);
+                        const freeGB = disk.free_bytes == null ? '\u2014' : (disk.free_bytes / 1073741824).toFixed(1);
+                        const usedGB = disk.size_bytes == null || disk.free_bytes == null ? '\u2014' : ((disk.size_bytes-disk.free_bytes)/1073741824).toFixed(1);
                         const level = pct >= 90 ? 'high' : pct >= 75 ? 'medium' : 'low';
 
                         return `<div class="disk-card">
@@ -3670,16 +3670,20 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <span class="disk-drive">${escapeHtml(disk.drive)}</span>
                                 <span class="disk-label">${escapeHtml(disk.label || '')}</span>
                             </div>
-                            <div class="disk-bar-container">
-                                <div class="disk-bar-fill usage-${level}" data-pct="${pct}"></div>
+                            <div class="disk-bar-container" ${pct == null ? 'hidden' : ''}>
+                                <div class="disk-bar-fill usage-${level}" data-pct="${pct == null ? 0 : pct}"></div>
                             </div>
                             <div class="disk-details">
                                 <span>${window.t('asset-management.disk.used_of', { used: usedGB, total: sizeGB })}</span>
-                                <span class="disk-percent usage-${level}">${pct}%</span>
+                                <span class="disk-percent usage-${level}">${pct == null ? '\u2014' : pct + '%'}</span>
                             </div>
                             <div class="disk-details" style="margin-top: 4px;">
                                 <span>${window.t('asset-management.disk.free', { free: freeGB })}</span>
                                 <span>${escapeHtml(disk.file_system || '')}</span>
+                            </div>
+                            <div class="disk-details" style="margin-top: 4px;">
+                                <span>${window.t('common.inventory_source')}</span>
+                                <span>${escapeHtml(disk.source || '')}</span>
                             </div>
                         </div>`;
                     }).join('');
@@ -4086,12 +4090,16 @@ $translationNamespaces = ['common', 'asset-management'];
             }
         }
 
+        function softwareIdentityCount(items) {
+            return new Set(items.map(s => s.app_id || JSON.stringify([s.display_name,s.publisher]))).size;
+        }
+
         function updateSwTabCounts() {
             const apps = allAssetSoftware.filter(s => !parseInt(s.system_component));
             const components = allAssetSoftware.filter(s => parseInt(s.system_component));
-            document.getElementById('swCountApps').textContent = apps.length;
-            document.getElementById('swCountComponents').textContent = components.length;
-            document.getElementById('swCountAll').textContent = allAssetSoftware.length;
+            document.getElementById('swCountApps').textContent = softwareIdentityCount(apps);
+            document.getElementById('swCountComponents').textContent = softwareIdentityCount(components);
+            document.getElementById('swCountAll').textContent = softwareIdentityCount(allAssetSoftware);
         }
 
         function switchSwTab(filter) {
@@ -4113,7 +4121,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 software = software.filter(s => parseInt(s.system_component));
             }
 
-            badge.textContent = software.length;
+            badge.textContent = softwareIdentityCount(software);
 
             if (software.length === 0) {
                 container.innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.software.no_data')}</div>`;
@@ -4127,6 +4135,7 @@ $translationNamespaces = ['common', 'asset-management'];
                             <th>${window.t('asset-management.software.col_application')}</th>
                             <th>${window.t('asset-management.software.col_publisher')}</th>
                             <th>${window.t('asset-management.software.col_version')}</th>
+                            <th>${window.t('common.inventory_source')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4135,6 +4144,7 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <td>${escapeHtml(sw.display_name)}</td>
                                 <td>${escapeHtml(sw.publisher || '\u2014')}</td>
                                 <td>${escapeHtml(sw.display_version || '\u2014')}</td>
+                                <td>${escapeHtml(sw.source || '\u2014')}</td>
                             </tr>
                         `).join('')}
                     </tbody>

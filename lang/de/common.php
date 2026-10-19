@@ -11,6 +11,7 @@
  */
 
 return [
+    'inventory_source' => 'Quelle',
     'currency' => [
         'favourites' => 'Favoriten',
         'all' => 'Alle Währungen',

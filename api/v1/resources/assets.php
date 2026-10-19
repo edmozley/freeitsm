@@ -1,4 +1,19 @@
 <?php
+function apiAssetInventorySubmit(PDO $conn,array $apiKey,array $params,array $body): void {
+    apiLoadAsset($conn,$apiKey,$params[0]);
+    require_once dirname(__DIR__,3) . '/includes/services/asset_inventory.php';
+    try { $result=AssetInventoryService::submit($conn,ActorContext::fromApiKey($apiKey),$params[0],$body); }
+    catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond($result);
+}
+function apiAssetInventoryProvenance(PDO $conn,array $apiKey,array $params,array $body): void {
+    apiLoadAsset($conn,$apiKey,$params[0]);
+    require_once dirname(__DIR__,3) . '/includes/services/asset_inventory.php';
+    try { $result=AssetInventoryService::provenance($conn,ActorContext::fromApiKey($apiKey),$params[0]); }
+    catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond($result);
+}
+
 /**
  * FreeITSM REST API v1 — assets resource.
  *
@@ -507,7 +522,7 @@ function apiAssetCustodyList(PDO $conn, array $apiKey, array $params, array $bod
 function apiAssetDisksList(PDO $conn, array $apiKey, array $params, array $body): void {
     apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
-        "SELECT id, drive, label, file_system, size_bytes, free_bytes, used_percent
+        "SELECT id, drive, label, file_system, size_bytes, free_bytes, used_percent, source, external_id, observed_at, imported_at
          FROM asset_disks WHERE asset_id = ? ORDER BY drive"
     );
     $stmt->execute([$params[0]]);
@@ -520,6 +535,8 @@ function apiAssetDisksList(PDO $conn, array $apiKey, array $params, array $body)
             'size_bytes'   => $d['size_bytes'] !== null ? (int)$d['size_bytes'] : null,
             'free_bytes'   => $d['free_bytes'] !== null ? (int)$d['free_bytes'] : null,
             'used_percent' => $d['used_percent'] !== null ? (float)$d['used_percent'] : null,
+            'source'=>$d['source'], 'external_id'=>$d['external_id'],
+            'observed_at'=>apiIsoDate($d['observed_at']), 'imported_at'=>apiIsoDate($d['imported_at']),
         ];
     }, $stmt->fetchAll(PDO::FETCH_ASSOC)));
 }
@@ -568,7 +585,7 @@ function apiAssetPhysicalDisksList(PDO $conn, array $apiKey, array $params, arra
 function apiAssetNetworkAdaptersList(PDO $conn, array $apiKey, array $params, array $body): void {
     apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
-        "SELECT id, name, mac_address, ip_address, subnet_mask, gateway, dhcp_enabled
+        "SELECT id, name, mac_address, ip_address, subnet_mask, gateway, dhcp_enabled, source, external_id, observed_at, imported_at
          FROM asset_network_adapters WHERE asset_id = ? ORDER BY name"
     );
     $stmt->execute([$params[0]]);
@@ -581,6 +598,8 @@ function apiAssetNetworkAdaptersList(PDO $conn, array $apiKey, array $params, ar
             'subnet_mask'  => $n['subnet_mask'],
             'gateway'      => $n['gateway'],
             'dhcp_enabled' => $n['dhcp_enabled'] === null ? null : (bool)$n['dhcp_enabled'],
+            'source'=>$n['source'], 'external_id'=>$n['external_id'],
+            'observed_at'=>apiIsoDate($n['observed_at']), 'imported_at'=>apiIsoDate($n['imported_at']),
         ];
     }, $stmt->fetchAll(PDO::FETCH_ASSOC)));
 }
@@ -617,7 +636,7 @@ function apiAssetSoftwareList(PDO $conn, array $apiKey, array $params, array $bo
     apiLoadAsset($conn, $apiKey, $params[0]);
     // software_inventory_detail keys the asset as host_id.
     $sql = "SELECT d.id, a.display_name, a.publisher, d.display_version, d.install_date,
-                   d.system_component, d.last_seen
+                   d.system_component, d.last_seen, d.source, d.observed_at, d.imported_at
             FROM software_inventory_detail d
             INNER JOIN software_inventory_apps a ON a.id = d.app_id
             WHERE d.host_id = ?";
@@ -637,6 +656,7 @@ function apiAssetSoftwareList(PDO $conn, array $apiKey, array $params, array $bo
             'install_date'     => $s['install_date'],
             'system_component' => (bool)$s['system_component'],
             'last_seen'        => apiIsoDate($s['last_seen']),
+            'source'=>$s['source'], 'observed_at'=>apiIsoDate($s['observed_at']), 'imported_at'=>apiIsoDate($s['imported_at']),
         ];
     }, $stmt->fetchAll(PDO::FETCH_ASSOC)));
 }

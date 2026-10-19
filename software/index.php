@@ -813,8 +813,9 @@ $translationNamespaces = ['common', 'software'];
 
                 if (data.success && data.machines.length > 0) {
                     currentMachines = data.machines;
+                    const machineCount = new Set(data.machines.map(m => m.asset_id)).size;
                     document.getElementById('modalCount').textContent =
-                        window.t(data.machines.length !== 1 ? 'software.inventory.installed_on_many' : 'software.inventory.installed_on_one', { count: data.machines.length });
+                        window.t(machineCount !== 1 ? 'software.inventory.installed_on_many' : 'software.inventory.installed_on_one', { count: machineCount });
                     document.getElementById('modalToolbar').style.display = 'flex';
                     document.getElementById('modalBody').innerHTML = `
                         <table class="machine-table">
@@ -824,6 +825,7 @@ $translationNamespaces = ['common', 'software'];
                                     <th>${window.t('software.inventory.machine_version')}</th>
                                     <th>${window.t('software.inventory.machine_install_date')}</th>
                                     <th>${window.t('software.inventory.machine_last_seen')}</th>
+                                    <th>${window.t('common.inventory_source')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -833,6 +835,7 @@ $translationNamespaces = ['common', 'software'];
                                         <td>${escapeHtml(m.display_version || '\u2014')}</td>
                                         <td>${escapeHtml(m.install_date || '\u2014')}</td>
                                         <td>${escapeHtml(m.last_seen || '\u2014')}</td>
+                                        <td>${escapeHtml(m.source || '\u2014')}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -875,7 +878,8 @@ $translationNamespaces = ['common', 'software'];
                 window.t('software.inventory.machine_hostname'),
                 window.t('software.inventory.machine_version'),
                 window.t('software.inventory.machine_install_date'),
-                window.t('software.inventory.machine_last_seen')
+                window.t('software.inventory.machine_last_seen'),
+                window.t('common.inventory_source')
             ].map(h => csvCell(h)).join(',')];
 
             currentMachines.forEach(m => {
@@ -883,7 +887,8 @@ $translationNamespaces = ['common', 'software'];
                     csvCell(m.hostname || ''),
                     csvCell(m.display_version || ''),
                     csvCell(m.install_date || ''),
-                    csvCell(m.last_seen || '')
+                    csvCell(m.last_seen || ''),
+                    csvCell(m.source || '')
                 ].join(','));
             });
 

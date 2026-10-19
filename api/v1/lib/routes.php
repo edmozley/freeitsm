@@ -24,6 +24,8 @@ return [
     ['POST',   '#^/tickets/(\d+)/time-entries$#',          ['ticket_time_entries', 'create'], 'apiTicketTimeEntriesCreate'],
     ['DELETE', '#^/tickets/(\d+)/time-entries/(\d+)$#',    ['ticket_time_entries', 'delete'], 'apiTicketTimeEntriesDelete'],
 
+    ['GET', '#^/assets/(\\d+)/inventory$#', ['asset_inventory','read'], 'apiAssetInventoryProvenance'],
+    ['POST', '#^/assets/(\\d+)/inventory$#', ['asset_inventory','create'], 'apiAssetInventorySubmit'],
     ['GET',    '#^/assets$#',                              ['assets', 'read'],                'apiAssetsList'],
     ['POST',   '#^/assets$#',                              ['assets', 'create'],              'apiAssetsCreate'],
     ['GET',    '#^/assets/(\d+)$#',                        ['assets', 'read'],                'apiAssetsGet'],

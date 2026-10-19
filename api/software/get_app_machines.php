@@ -26,6 +26,7 @@ try {
     $conn = connectToDatabase();
 
     $sql = "SELECT
+                h.id AS asset_id, d.source,
                 h.hostname,
                 d.display_version,
                 d.install_date,

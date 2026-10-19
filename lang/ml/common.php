@@ -11,6 +11,7 @@
  */
 
 return [
+    'inventory_source' => 'ഉറവിടം',
     'currency' => [
         'favourites' => 'പ്രിയപ്പെട്ടവ',
         'all' => 'എല്ലാ കറൻസികളും',

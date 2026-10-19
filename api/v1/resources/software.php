@@ -199,7 +199,7 @@ function apiSoftwareAppMachinesList(PDO $conn, array $apiKey, array $params, arr
     // hostnames to a key limited to one. Scope the asset side.
     [$scopeSql, $scopeArgs] = apiKeyTenantFilter($conn, $apiKey, 'h');
     $stmt = $conn->prepare(
-        "SELECT h.id AS asset_id, h.hostname, d.display_version, d.install_date, d.system_component, d.last_seen
+        "SELECT h.id AS asset_id, h.hostname, d.display_version, d.install_date, d.system_component, d.last_seen, d.source, d.observed_at, d.imported_at
          FROM software_inventory_detail d
          INNER JOIN assets h ON h.id = d.host_id
          WHERE d.app_id = ?" . $scopeSql . " ORDER BY h.hostname"
@@ -213,6 +213,7 @@ function apiSoftwareAppMachinesList(PDO $conn, array $apiKey, array $params, arr
             'install_date'     => $m['install_date'],
             'system_component' => (bool)$m['system_component'],
             'last_seen'        => apiIsoDate($m['last_seen']),
+            'source'=>$m['source'], 'observed_at'=>apiIsoDate($m['observed_at']), 'imported_at'=>apiIsoDate($m['imported_at']),
         ];
     }, $stmt->fetchAll(PDO::FETCH_ASSOC)));
 }

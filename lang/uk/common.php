@@ -11,6 +11,7 @@
  */
 
 return [
+    'inventory_source' => 'Джерело',
     'currency' => [
         'favourites' => 'Обрані',
         'all' => 'Усі валюти',
