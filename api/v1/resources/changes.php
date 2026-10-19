@@ -1,4 +1,58 @@
 <?php
+/** Native evidence metadata, without exposing protected storage paths. */
+function apiSerializeChangeAttachment(array $row): array {
+    return [
+        'id'=>(int)$row['id'], 'change_id'=>(int)$row['change_id'],
+        'file_name'=>$row['file_name'], 'file_size'=>$row['file_size']===null ? null : (int)$row['file_size'],
+        'file_type'=>$row['file_type'], 'sha256'=>$row['sha256'],
+        'uploaded_by_id'=>$row['uploaded_by_id']===null ? null : (int)$row['uploaded_by_id'],
+        'uploaded_at'=>apiIsoDate($row['uploaded_datetime']), 'external_reference'=>$row['external_reference'],
+        'content_url'=>'/api/v1/changes/' . (int)$row['change_id'] . '/attachments/' . (int)$row['id'] . '/content',
+    ];
+}
+
+function apiChangeAttachmentsList(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadChange($conn, $apiKey, $params[0]);
+    $stmt=$conn->prepare('SELECT * FROM change_attachments WHERE change_id=? ORDER BY id');
+    $stmt->execute([$params[0]]);
+    apiRespond(array_map('apiSerializeChangeAttachment', $stmt->fetchAll(PDO::FETCH_ASSOC)));
+}
+
+function apiChangeAttachmentsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
+    // Route permission is deliberately independent of changes.update/CAB powers.
+    apiLoadChange($conn, $apiKey, $params[0]);
+    if (!isset($_FILES['file'])) { apiError(422, 'missing_file', 'Send a multipart/form-data file part named file.'); }
+    if (isset($_POST['external_reference']) && !is_string($_POST['external_reference'])) {
+        apiError(422,'invalid_field','external_reference must be a string.');
+    }
+    try {
+        $result=ChangesService::uploadAttachment($conn,ActorContext::fromApiKey($apiKey),$params[0],
+            $_FILES['file'],$_POST['external_reference'] ?? null);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    $stmt=$conn->prepare('SELECT * FROM change_attachments WHERE id=?'); $stmt->execute([$result['id']]);
+    $attachment=apiSerializeChangeAttachment($stmt->fetch(PDO::FETCH_ASSOC));
+    if ($result['replayed']) { apiRespond($attachment, 200); }
+    apiRespond($attachment, 201);
+}
+
+function apiChangeAttachmentContent(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadChange($conn,$apiKey,$params[0]);
+    $stmt=$conn->prepare('SELECT file_path,file_name FROM change_attachments WHERE id=? AND change_id=?');
+    $stmt->execute([$params[1],$params[0]]); $row=$stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) { apiError(404,'not_found','Attachment not found.'); }
+    $root=realpath(dirname(__DIR__,3) . '/change-management/attachments');
+    $path=$root ? realpath($root . '/' . $row['file_path']) : false;
+    if (!$path || !str_starts_with($path,$root . DIRECTORY_SEPARATOR) || !is_file($path)) {
+        apiError(404,'not_found','Attachment file not found.');
+    }
+    $name=str_replace(['"',"\r","\n"],'',$row['file_name']) ?: 'attachment';
+    header('Content-Type: application/octet-stream');
+    header('X-Content-Type-Options: nosniff');
+    header('Content-Disposition: attachment; filename="' . $name . '"; filename*=UTF-8\'\'' . rawurlencode($name));
+    header('Content-Length: ' . filesize($path)); header('Cache-Control: private, no-store');
+    readfile($path); exit;
+}
+
 /**
  * FreeITSM REST API v1 — changes resource (Change Management).
  *

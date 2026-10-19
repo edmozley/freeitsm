@@ -3778,7 +3778,9 @@ CREATE TABLE IF NOT EXISTS `change_attachments` (
     `uploaded_by_id`    INT NULL,
     `uploaded_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `sha256`            CHAR(64) NULL,
+    `external_reference` VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_change_attachment_reference` (`change_id`, `uploaded_by_id`, `external_reference`),
     CONSTRAINT `fk_change_attachments_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_change_attachments_uploaded_by` FOREIGN KEY (`uploaded_by_id`) REFERENCES `analysts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

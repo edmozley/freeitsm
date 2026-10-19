@@ -2510,6 +2510,7 @@ return [
         // sha256 of the file as uploaded, so the evidence export can show that the
         // file in the change is the file that was attached. NULL = uploaded before #180.
         'sha256'                => 'CHAR(64) NULL',
+        'external_reference'    => 'VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL',
     ],
 
     // One row per approval round (#180 Part 1). A round opens when a change is

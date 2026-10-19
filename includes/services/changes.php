@@ -1230,8 +1230,65 @@ class ChangesService
     }
 
     // ======================================================================
-    //  Attachments - the audit rows (the upload itself stays in its endpoint)
+    //  Attachments
     // ======================================================================
+
+    /**
+     * Store native evidence from either adapter, authorising before disk writes.
+     * Reference uniqueness is per change and acting analyst (survives key rotation).
+     * Reusing one requires the same filename and bytes. Owns its transaction:
+     * a later caller rollback could not undo a file move. Never edits change content.
+     * @return array{id:int,replayed:bool}
+     */
+    public static function uploadAttachment(PDO $conn, ActorContext $ctx, int $changeId, array $file, ?string $reference = null): array
+    {
+        self::assertCanWrite($conn, $ctx);
+        if ($reference !== null && !preg_match('/\A[A-Za-z0-9._:-]{1,128}\z/D', $reference)) {
+            throw new ServiceError('validation', 'invalid_field', 'external_reference must be 1-128 ASCII letters, digits, dots, underscores, colons or hyphens.');
+        }
+        if ($conn->inTransaction()) { throw new LogicException('Attachment uploads must own their transaction.'); }
+        require_once __DIR__ . '/../uploads.php';
+        $stored = null;
+        $conn->beginTransaction();
+        try {
+            self::lockRow($conn, $changeId);
+            self::loadJoined($conn, $ctx, $changeId);
+            try {
+                $stored = uploadStoreFile($file, dirname(__DIR__, 2) . '/change-management/attachments/' . $changeId);
+            } catch (Exception $e) {
+                throw new ServiceError('validation', 'invalid_file', $e->getMessage());
+            }
+            $sha256 = hash_file('sha256', $stored['path']);
+            if ($sha256 === false) { throw new RuntimeException('Could not hash stored evidence.'); }
+            if ($reference !== null) {
+                $find = $conn->prepare('SELECT id, file_name, sha256 FROM change_attachments
+                    WHERE change_id=? AND uploaded_by_id=? AND external_reference=?');
+                $find->execute([$changeId, $ctx->actorId, $reference]);
+                if ($existing = $find->fetch(PDO::FETCH_ASSOC)) {
+                    if ($existing['file_name'] !== $stored['original_name'] || $existing['sha256'] !== $sha256) {
+                        throw new ServiceError('conflict', 'reference_conflict', 'This external_reference already names different evidence.');
+                    }
+                    unlink($stored['path']); $stored = null;
+                    $conn->commit();
+                    return ['id'=>(int)$existing['id'], 'replayed'=>true];
+                }
+            }
+            $conn->prepare('INSERT INTO change_attachments
+                (change_id,file_name,file_path,file_size,file_type,uploaded_by_id,uploaded_datetime,sha256,external_reference)
+                VALUES (?,?,?,?,?,?,UTC_TIMESTAMP(),?,?)')->execute([
+                $changeId,$stored['original_name'],$changeId . '/' . $stored['stored_name'],$stored['size'],
+                $stored['mime'],$ctx->actorId,$sha256,$reference,
+            ]);
+            $id = (int)$conn->lastInsertId();
+            self::auditAttachment($conn, $ctx, $changeId, true, $stored['original_name'], $sha256);
+            $conn->commit();
+            return ['id'=>$id, 'replayed'=>false];
+        } catch (Throwable $e) {
+            if ($conn->inTransaction()) { $conn->rollBack(); }
+            if ($stored !== null) { @unlink($stored['path']); }
+            throw $e;
+        }
+    }
 
     /**
      * Record that a file was attached to, or removed from, a change. Attachments are

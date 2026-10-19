@@ -122,6 +122,8 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'DELETE /changes/{id}', 'GET /changes/{id}/comments', 'POST /changes/{id}/comments',
             'DELETE /changes/{id}/comments/{comment_id}', 'GET /changes/{id}/audit',
             'GET /changes/{id}/cab', 'POST /changes/{id}/cab', 'POST /changes/{id}/cab/vote',
+            'GET /changes/{id}/attachments', 'POST /changes/{id}/attachments',
+            'GET /changes/{id}/attachments/{attachment_id}/content',
             'GET /change-statuses', 'GET /change-types', 'GET /change-priorities',
             'GET /change-impacts', 'GET /change-categories',
             'GET /knowledge/articles', 'POST /knowledge/articles', 'GET /knowledge/articles/{id}',

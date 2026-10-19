@@ -58,6 +58,9 @@ return [
     ['GET',    '#^/problem-statuses$#',                    ['reference', 'read'],             'apiProblemStatusesList'],
     ['GET',    '#^/problem-priorities$#',                  ['reference', 'read'],             'apiProblemPrioritiesList'],
 
+    ['GET', '#^/changes/(\\d+)/attachments$#', ['change_attachments','read'], 'apiChangeAttachmentsList'],
+    ['POST', '#^/changes/(\\d+)/attachments$#', ['change_attachments','create'], 'apiChangeAttachmentsCreate'],
+    ['GET', '#^/changes/(\\d+)/attachments/(\\d+)/content$#', ['change_attachments','read'], 'apiChangeAttachmentContent'],
     ['GET',    '#^/changes$#',                             ['changes', 'read'],               'apiChangesList'],
     ['POST',   '#^/changes$#',                             ['changes', 'create'],             'apiChangesCreate'],
     ['GET',    '#^/changes/(\d+)$#',                       ['changes', 'read'],               'apiChangesGet'],

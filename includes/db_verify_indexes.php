@@ -221,6 +221,7 @@ return [
     ['changes', 'ix_changes_change_type_id', 'key', '(`change_type_id`)'],
     ['changes', 'ix_changes_impact_id', 'key', '(`impact_id`)'],
     ['changes', 'ix_changes_tenant_id', 'key', '(`tenant_id`)'],
+    ['change_attachments', 'uq_change_attachment_reference', 'unique', '(`change_id`,`uploaded_by_id`,`external_reference`)'],
     ['change_audit', 'idx_change_audit_change', 'key', '(`change_id`)'],
     ['change_approvals', 'uq_change_approvals_round', 'unique', '(`change_id`,`round_no`)'],
     ['change_approval_votes', 'idx_cav_approval', 'key', '(`approval_id`)'],

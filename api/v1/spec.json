@@ -2703,6 +2703,93 @@
             "items": [
                 {
                     "m": "GET",
+                    "p": "\/changes\/{id}\/attachments",
+                    "perm": "change_attachments.read",
+                    "s": "List Change evidence attachments",
+                    "d": "Lists native Change attachments with digest, actor, external reference and authenticated content URL. Company scope is enforced.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "req": true,
+                            "desc": "Change id"
+                        }
+                    ],
+                    "section": "Changes",
+                    "slug": "get-changes-id-attachments",
+                    "extras": {
+                        "examples": [],
+                        "errors": []
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/changes\/{id}\/attachments",
+                    "perm": "change_attachments.create",
+                    "s": "Upload Change evidence",
+                    "d": "Send multipart\/form-data with file and optional external_reference. Uses native file extension, MIME, configured size limit, protected storage and attachment audit. Returns 201 for new evidence or 200 for a retry with identical filename and bytes. Reference uniqueness is per Change and acting analyst and survives API key rotation. Conflicting reuse is 409. Does not change status, approval or planning, and grants no deletion rights. For uploads use a multipart client rather than the JSON request editor.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "req": true,
+                            "desc": "Change id"
+                        },
+                        {
+                            "name": "file",
+                            "in": "body",
+                            "req": true,
+                            "desc": "Multipart file part; native attachment policy applies"
+                        },
+                        {
+                            "name": "external_reference",
+                            "in": "body",
+                            "req": false,
+                            "desc": "Case-sensitive retry reference, 1-128 ASCII letters, digits, dots, underscores, colons or hyphens"
+                        }
+                    ],
+                    "section": "Changes",
+                    "slug": "post-changes-id-attachments",
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "reference_conflict",
+                                "when": "external_reference already identifies different evidence."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/changes\/{id}\/attachments\/{attachment_id}\/content",
+                    "perm": "change_attachments.read",
+                    "s": "Download Change evidence",
+                    "d": "Downloads original bytes as application\/octet-stream with attachment disposition and nosniff. Requires attachment read permission and access to the owning Change. Never exposes protected storage paths.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "req": true,
+                            "desc": "Change id"
+                        },
+                        {
+                            "name": "attachment_id",
+                            "in": "path",
+                            "req": true,
+                            "desc": "Attachment id on this Change"
+                        }
+                    ],
+                    "section": "Changes",
+                    "slug": "get-changes-id-attachments-attachment-id-content",
+                    "extras": {
+                        "examples": [],
+                        "errors": []
+                    }
+                },
+                {
+                    "m": "GET",
                     "p": "\/changes\/{id}\/comments",
                     "perm": "change_comments.read",
                     "s": "List comments",
@@ -13440,6 +13527,24 @@
         }
     ],
     "extras": {
+        "GET \/changes\/{id}\/attachments": {
+            "examples": [],
+            "errors": []
+        },
+        "POST \/changes\/{id}\/attachments": {
+            "examples": [],
+            "errors": [
+                {
+                    "code": 409,
+                    "slug": "reference_conflict",
+                    "when": "external_reference already identifies different evidence."
+                }
+            ]
+        },
+        "GET \/changes\/{id}\/attachments\/{attachment_id}\/content": {
+            "examples": [],
+            "errors": []
+        },
         "GET \/ping": {
             "examples": [
                 {

@@ -7,6 +7,16 @@
 return array (
   'schemas' => 
   array (
+    'ChangeEvidenceAttachment' => [
+      'type'=>'object',
+      'properties'=>[
+        'id'=>['type'=>'integer'], 'change_id'=>['type'=>'integer'],
+        'file_name'=>['type'=>'string'], 'file_size'=>['type'=>'integer','nullable'=>true],
+        'file_type'=>['type'=>'string','nullable'=>true], 'sha256'=>['type'=>'string','nullable'=>true],
+        'uploaded_by_id'=>['type'=>'integer','nullable'=>true], 'uploaded_at'=>['type'=>'string','format'=>'date-time'],
+        'external_reference'=>['type'=>'string','nullable'=>true], 'content_url'=>['type'=>'string'],
+      ],
+    ],
     'Analyst' => 
     array (
       'type' => 'object',
@@ -13288,6 +13298,8 @@ return array (
   ),
   'responses' => 
   array (
+    'GET /changes/{id}/attachments' => ['type'=>'array','items'=>['$ref'=>'#/components/schemas/ChangeEvidenceAttachment']],
+    'POST /changes/{id}/attachments' => ['$ref'=>'#/components/schemas/ChangeEvidenceAttachment'],
     'DELETE /domains/{id}' => 
     array (
       '$ref' => '#/components/schemas/DeleteAck',
@@ -15289,5 +15301,19 @@ return array (
   ),
   'requestBodies' => 
   array (
+    'POST /changes/{id}/attachments' => [
+      'type'=>'object', 'required'=>['file'],
+      'properties'=>[
+        'file'=>['type'=>'string','format'=>'binary'],
+        'external_reference'=>['type'=>'string','maxLength'=>128,'pattern'=>'^[A-Za-z0-9._:-]{1,128}$',
+          'description'=>'Optional retry key, unique per change and acting analyst. Same filename/bytes returns the original (200); conflicting reuse is 409.'],
+      ],
+    ],
   ),
+  'requestContentTypes' => ['POST /changes/{id}/attachments'=>'multipart/form-data'],
+  'responseContents' => [
+    'GET /changes/{id}/attachments/{attachment_id}/content'=>[
+      'application/octet-stream'=>['schema'=>['type'=>'string','format'=>'binary']],
+    ],
+  ],
 );

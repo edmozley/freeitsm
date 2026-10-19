@@ -123,6 +123,13 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Permanently delete a change and its attachments/comments/history',
             ],
         ],
+        'change_attachments' => [
+            'label' => 'Change evidence attachments',
+            'actions' => [
+                'read' => 'List and download Change evidence attachments',
+                'create' => 'Upload evidence only (no change edits, approval or deletion)',
+            ],
+        ],
         'change_comments' => [
             'label'   => 'Change comments',
             'actions' => [

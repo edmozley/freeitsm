@@ -211,7 +211,7 @@ function apiV1BuildOperation(array $ep, string $section, array $extras, array $e
         }
         $op['requestBody'] = [
             'required' => $ep['m'] === 'POST',
-            'content'  => ['application/json' => $content],
+            'content'  => [($schemas['requestContentTypes'][$key] ?? 'application/json') => $content],
         ];
     }
 
@@ -244,7 +244,7 @@ function apiV1BuildResponses(array $ep, array $extras, array $endpointToHandler,
         $envelope = apiV1SuccessEnvelope($dataSchema);
         $responses[(string)$code] = [
             'description' => $code === 201 ? 'Created.' : 'Success.',
-            'content' => ['application/json' => ['schema' => $envelope]],
+            'content' => $schemas['responseContents'][$key] ?? ['application/json' => ['schema' => $envelope]],
         ];
     }
 
