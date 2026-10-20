@@ -2761,7 +2761,13 @@ window.addEventListener('message', e => {
     }
     if (e.data.type !== 'tf-height') return;
     const frame = document.getElementById('tfFrame' + e.data.task_form_id);
-    if (frame) frame.style.height = Math.max(200, Number(e.data.height) || 0) + 'px';
+    if (frame) {
+        // The message describes the content viewport, not the iframe's border.
+        const style = getComputedStyle(frame);
+        const border = style.boxSizing === 'border-box'
+            ? parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth) : 0;
+        frame.style.height = (Math.max(200, Number(e.data.height) || 0) + border) + 'px';
+    }
 });
 
 // ── The Work view (GH #190 phase 2) ──────────────────────────────────────────

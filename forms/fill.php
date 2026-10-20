@@ -359,8 +359,9 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
          mobile rules must win on equal specificity, and a link placed above it
          would silently lose to the desktop block below (the load-order trap). -->
     <style>
-        /* Inside a task's Work view (GH #190): no page chrome, no outer scroll. */
-        body.fill-embed { background: transparent; overflow: hidden; }
+        /* Inside a task's Work view (GH #190): no page chrome. Keep native
+           scrolling available if the parent cannot resize the frame. */
+        body.fill-embed { background: transparent; height: auto; overflow: visible; }
         body.fill-embed .fill-container { padding: 0; margin: 0; max-width: none; height: auto; }
         body.fill-embed .fill-content { padding: 0; max-width: none; }
         body.fill-embed .fill-card { box-shadow: none; margin: 0; border: 0; padding: 4px 2px; }
@@ -412,11 +413,14 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
 
         // Embedded: say how tall the form is, whenever it changes, so the Work view sizes the frame to fit.
         if (window.parent !== window && TASK_FORM_ID) {
+            // TRAP: body inherits the iframe's viewport height. Observing it misses
+            // async/conditional fields; scrollHeight on html also prevents shrinking.
+            const content = document.querySelector('.fill-content');
             const sendHeight = () => {
-                try { window.parent.postMessage({ type: 'tf-height', task_form_id: Number(TASK_FORM_ID), height: document.documentElement.scrollHeight }, location.origin); } catch (e) {}
+                try { window.parent.postMessage({ type: 'tf-height', task_form_id: Number(TASK_FORM_ID), height: Math.ceil(content.getBoundingClientRect().height) }, location.origin); } catch (e) {}
             };
             window.addEventListener('load', sendHeight);
-            try { new ResizeObserver(sendHeight).observe(document.body); } catch (e) { setInterval(sendHeight, 1000); }
+            try { new ResizeObserver(sendHeight).observe(content); } catch (e) { setInterval(sendHeight, 1000); }
         }
 
         /** Posts a task form action. */
