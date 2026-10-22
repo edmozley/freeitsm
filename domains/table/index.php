@@ -33,7 +33,7 @@ $dtSearchPlaceholder = t('domains.table.search');
     <title><?php echo htmlspecialchars(pageTitle('domains', t('domains.nav.table'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/data-table.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/data-table.css?v=5">
     <link rel="stylesheet" href="../../assets/css/domains.css?v=7">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=195">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
@@ -52,7 +52,7 @@ $dtSearchPlaceholder = t('domains.table.search');
         <?php include '../../includes/data-table-skeleton.php'; ?>
     </div>
     <script src="../../assets/js/domains.js?v=2"></script>
-    <script src="../../assets/js/data-table.js?v=6"></script>
+    <script src="../../assets/js/data-table.js?v=7"></script>
     <script src="../../assets/js/domains-table.js?v=3"></script>
     <script src="../../assets/js/mobile.js?v=82"></script>
 </body>

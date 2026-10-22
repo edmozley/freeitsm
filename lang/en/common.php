@@ -695,4 +695,9 @@ return [
         'aria'               => 'Preview this record',
     ],
 
+    'table_server' => [
+        'retry' => 'Retry', 'failed' => 'Could not refresh this list. The previous rows are unavailable for actions.',
+        'previous' => 'Previous', 'next' => 'Next', 'page_size' => 'Rows per page',
+        'cancel_export' => 'Cancel export', 'export_failed' => 'The export could not be completed.',
+    ],
 ];

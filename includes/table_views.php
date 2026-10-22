@@ -19,7 +19,7 @@
  * table, not a leak.
  */
 
-const TABLE_VIEW_KEYS = ['assets', 'tasks', 'calendar', 'changes', 'domains'];
+const TABLE_VIEW_KEYS = ['assets', 'tasks', 'calendar', 'changes', 'domains', 'tickets'];
 const TABLE_VIEW_VISIBILITIES = ['private', 'team', 'public'];
 
 /** The teams this analyst belongs to. Empty array is a valid answer. */

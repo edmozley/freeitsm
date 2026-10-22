@@ -69,15 +69,23 @@
         let allRows = [];
         let columnState = [];
         let sort = { key: defaultSort.key, dir: defaultSort.dir };
-        let filters = {};
+        // A module may enter the table from an already selected queue/folder.
+        // Include that scope in the first request; a saved default view can
+        // still replace it through the usual preference-loading path.
+        let filters = Object.fromEntries(Object.entries(config.initialFilters || {}).map(([key, values]) => [key, new Set(values)]));
         let searchTerm = '';
         let openPopover = null;
+        const server = config.server || null;
+        let page = 1, pageSize = 50, total = 0, facets = {}, generation = 0, signature = '', started = null, booting = false;
+        let exportController = null;
+        const T = key => window.t('common.table_server.' + key);
 
         // Inject the accent so shared CSS + body-appended popovers pick it up.
         if (config.accent) document.documentElement.style.setProperty('--dt-accent', config.accent);
 
         // --- Boot -----------------------------------------------------
-        document.addEventListener('DOMContentLoaded', boot);
+        if (!config.manual) document.addEventListener('DOMContentLoaded', start);
+        function start() { return started || (started = boot()); }
 
         /**
          * Starts the table on DOMContentLoaded: columns, saved preferences, default view, rows, toolbar.
@@ -85,6 +93,7 @@
          * The order matters - a default view is applied after preferences so it wins over them.
          */
         async function boot() {
+            booting = true;
             columnState = columns.slice()
                 .sort((a, b) => a.defaultOrder - b.defaultOrder)
                 .map(c => ({ key: c.key, visible: c.defaultVisible }));
@@ -94,6 +103,7 @@
 
             await loadPreferences();
             await applyDefaultView();
+            booting = false;
             await reload();
             wireToolbar();
         }
@@ -127,6 +137,7 @@
         // --- Data -----------------------------------------------------
         /** Fetches the rows again through the module's load() and redraws; a failed load shows an empty table. */
         async function reload() {
+            if (server) return reloadPage();
             try {
                 allRows = (await config.load()) || [];
             } catch (e) {
@@ -134,6 +145,65 @@
                 allRows = [];
             }
             render();
+        }
+
+        function query() {
+            return {page, pageSize, sort:{...sort}, search:searchTerm,
+                filters:Object.fromEntries(Object.entries(filters).map(([key, values]) => [key, [...values]])),
+                context:config.getContext ? config.getContext() : config.context};
+        }
+
+        function querySignature() { const q=query(); delete q.page; return JSON.stringify(q); }
+
+        function serverNotice(message) {
+            let node = byId(els.table).parentElement.querySelector('.dt-server-error');
+            if (!message) { node?.remove(); return; }
+            if (!node) { node=document.createElement('div'); node.className='dt-server-error'; node.setAttribute('role','alert'); byId(els.table).before(node); }
+            node.replaceChildren(document.createTextNode(message + ' '));
+            const retry=document.createElement('button'); retry.type='button'; retry.textContent=T('retry'); retry.addEventListener('click',reload); node.append(retry);
+        }
+
+        async function reloadPage() {
+            const current = ++generation;
+            signature = querySignature();
+            const table=byId(els.table);
+            table.inert=true; table.setAttribute('aria-busy','true');
+            config.onLoading?.();
+            try {
+                const result=await server.load(query());
+                if (current !== generation) return;
+                if (!result || !Array.isArray(result.rows) || !Number.isInteger(result.total) || result.total < 0) throw Error('Invalid table page');
+                allRows=result.rows; total=result.total; page=result.page; pageSize=result.pageSize; facets=result.facets || {};
+                table.inert=false; table.classList.remove('dt-stale'); serverNotice(null);
+                renderHead(); renderBody(); renderPager();
+            } catch (error) {
+                if (current !== generation) return;
+                table.classList.add('dt-stale'); serverNotice(T('failed'));
+                config.onLoadError?.();
+            } finally { if(current===generation) table.removeAttribute('aria-busy'); }
+        }
+
+        function renderPager() {
+            let pager=byId(els.table).parentElement.querySelector('.dt-pagination');
+            if(!pager){pager=document.createElement('div');pager.className='dt-pagination';byId(els.table).after(pager);}
+            pager.replaceChildren();
+            for(const [label, next, disabled] of [[T('previous'),page-1,page<=1],[T('next'),page+1,page*pageSize>=total]]) {
+                const button=document.createElement('button');button.type='button';button.textContent=label;button.disabled=disabled;
+                button.addEventListener('click',()=>{page=next;void reloadPage();});pager.append(button);
+            }
+            const status=document.createElement('span');status.textContent=page+' / '+Math.max(1,Math.ceil(total/pageSize));pager.append(status);
+            const size=document.createElement('select');size.setAttribute('aria-label',T('page_size'));
+            [25,50,100].forEach(n=>{const option=new Option(String(n),String(n));option.selected=n===pageSize;size.add(option);});
+            size.addEventListener('change',()=>{pageSize=Number(size.value);page=1;void reloadPage();});pager.append(size);
+        }
+
+        async function setQuery(next) {
+            if(next.sort) sort={...next.sort};
+            if(next.search!==undefined) searchTerm=next.search;
+            if(next.filters) filters=Object.fromEntries(Object.entries(next.filters).map(([k,v])=>[k,new Set(v)]));
+            page=next.page || 1;
+            if([25,50,100].includes(next.pageSize)) pageSize=next.pageSize;
+            return reload();
         }
 
         // --- Preferences ----------------------------------------------
@@ -260,6 +330,7 @@
             });
             return {
                 cols: columnState.map(c => ({ k: c.key, v: c.visible ? 1 : 0 })),
+                ...(server ? {context:query().context} : {}),
                 sort: { k: sort.key, d: sort.dir },
                 filters: f,
             };
@@ -274,6 +345,7 @@
          */
         function applyViewConfig(cfg) {
             if (!cfg) return;
+            if (server && cfg.context && config.applyContext) config.applyContext(cfg.context);
             applyColumnConfig(cfg.cols);
             applySortConfig(cfg.sort);
             filters = {};
@@ -651,7 +723,7 @@
             const s = byId(els.search);
             if (s) s.addEventListener('input', e => {
                 searchTerm = e.target.value.trim().toLowerCase();
-                renderBody();
+                if (server) render(); else renderBody();
             });
             const cb = byId(els.columnsBtn);
             if (cb) cb.addEventListener('click', e => { e.stopPropagation(); openColumnsDrawer(e.currentTarget); });
@@ -712,7 +784,10 @@
         }
 
         /** Redraws the header and the body. */
-        function render() { renderHead(); renderBody(); }
+        function render() {
+            if (server && !booting && signature !== querySignature()) { page=1; void reloadPage(); return; }
+            renderHead(); renderBody();
+        }
 
         /**
          * Draws the header row and wires click-to-sort, the filter buttons and drag-to-reorder on each column heading.
@@ -730,7 +805,7 @@
                     <th data-col-key="${esc(col.key)}" draggable="true">
                         <div class="dt-th-content${sortedClass}">
                             <span class="dt-th-label">${esc(col.label)}</span>
-                            <span class="dt-sort-arrow">${arrow}</span>
+                            <span class="dt-sort-arrow">${col.sortable === false ? '' : arrow}</span>
                             <button type="button" class="dt-filter-btn${filterClass}" title="Filter ${esc(col.label)}" data-filter-key="${esc(col.key)}">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -742,9 +817,10 @@
 
             head.querySelectorAll('th').forEach(th => {
                 const key = th.dataset.colKey;
+                if (colByKey[key].filterable === false) th.querySelector('.dt-filter-btn').hidden=true;
                 th.querySelector('.dt-th-content').addEventListener('click', e => {
                     if (e.target.closest('.dt-filter-btn')) return;
-                    toggleSort(key);
+                    if(colByKey[key].sortable !== false) toggleSort(key);
                 });
                 th.querySelector('.dt-filter-btn').addEventListener('click', e => {
                     e.stopPropagation();
@@ -786,13 +862,14 @@
             // the toolbar's right slot) with config.hideCount.
             const countEl = byId(els.count);
             if (countEl && !config.hideCount) {
-                countEl.textContent = rows.length === allRows.length
+                countEl.textContent = server ? `${rows.length} / ${total}` : rows.length === allRows.length
                     ? `${rows.length} ${noun}${rows.length === 1 ? '' : 's'}`
                     : `${rows.length} of ${allRows.length}`;
             }
 
             if (rows.length === 0) {
                 body.innerHTML = `<tr><td colspan="${cols.length || 1}" class="dt-empty">No ${noun}s match the current filters.</td></tr>`;
+                config.onRowsRendered?.(rows);
                 return;
             }
 
@@ -804,6 +881,7 @@
 
             if (editable) wireEditControls(body);
             if (clickable) wireRowClicks(body, rows);
+            config.onRowsRendered?.(rows);
         }
 
         /** Returns one cell's HTML - plain text, or an input or select for an editable column. */
@@ -929,7 +1007,11 @@
                 tr.addEventListener('click', e => {
                     if (e.target.closest('input, select, button, option, label, .dt-swatch')) return;
                     const row = allRows.find(r => String(rowId(r)) === String(tr.dataset.id));
-                    if (row) config.onRowClick(row);
+                    if (row) config.onRowClick(row, e);
+                });
+                if(config.onRowContextMenu) tr.addEventListener('contextmenu',e=>{
+                    const row=allRows.find(r=>String(rowId(r))===String(tr.dataset.id));
+                    if(row) config.onRowContextMenu(row,e);
                 });
             });
         }
@@ -942,6 +1024,7 @@
          * always sort last, whichever the direction. Also exposed as getViewRows and used by the exports.
          */
         function applyFiltersAndSort() {
+            if(server) return allRows;
             const cols = visibleColumns();
             let rows = allRows.filter(row => {
                 for (const colKey in filters) {
@@ -1047,6 +1130,12 @@
                 const key = display === '' ? '(empty)' : display;
                 distinct.set(key, (distinct.get(key) || 0) + 1);
             });
+            const labels=new Map();
+            if(server) {
+                distinct.clear();
+                (facets[colKey] || []).forEach(item=>{distinct.set(String(item.value),item.count);labels.set(String(item.value),item.label);});
+                (filters[colKey] || []).forEach(value=>{if(!distinct.has(value)) distinct.set(value,0);});
+            }
             const sorted = [...distinct.keys()].sort((a, b) =>
                 a === '(empty)' ? -1 : b === '(empty)' ? 1
                 : String(a).localeCompare(String(b), undefined, { sensitivity: 'base' })
@@ -1067,7 +1156,7 @@
                     ${sorted.map(v => `
                         <label class="dt-pop-item">
                             <input type="checkbox" value="${esc(v)}" ${selected.has(v) ? 'checked' : ''}>
-                            <span class="dt-pop-value">${esc(v)}</span>
+                            <span class="dt-pop-value">${esc(labels.get(v) ?? v)}</span>
                             <span style="color:#999;font-size:11px;">${distinct.get(v)}</span>
                         </label>`).join('')}
                 </div>
@@ -1192,7 +1281,17 @@
 
         // --- Exports --------------------------------------------------
         /** Downloads the filtered, sorted rows (visible columns only) as a CSV, with a BOM so Excel reads UTF-8. */
-        function exportCSV() {
+        async function exportCSV() {
+            if(server) {
+                if(exportController){exportController.abort();return;}
+                exportController=new AbortController();
+                const button=byId(els.csvBtn),label=button?.textContent;
+                if(button)button.textContent=T('cancel_export');
+                try {await server.exportCsv({...query(),columns:visibleColumns().map(c=>c.key)},exportController.signal);}
+                catch(error){if(error.name!=='AbortError')serverNotice(T('export_failed'));}
+                finally{exportController=null;if(button)button.textContent=label;}
+                return;
+            }
             const cols = visibleColumns();
             const rows = applyFiltersAndSort();
             const header = cols.map(c => csvCell(c.label)).join(',');
@@ -1307,6 +1406,7 @@
 
         // Public surface
         return {
+            start, setQuery,
             reload,
             render,
             findRow: id => allRows.find(r => String(rowId(r)) === String(id)),

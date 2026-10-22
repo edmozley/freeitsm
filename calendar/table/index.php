@@ -37,7 +37,7 @@ $translationNamespaces = ['common', 'calendar'];
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../../assets/css/calendar-grid.css?v=1">
     <link rel="stylesheet" href="../../assets/css/itsm_calendar.css?v=8">
-    <link rel="stylesheet" href="../../assets/css/data-table.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/data-table.css?v=5">
     <style>body { --accent: var(--cal-accent, #ef6c00); --accent-hover: var(--cal-accent-hover, #e65100); }</style>
     <!-- Mobile: the shared shell plus LAYER 15c, which already contains a
          .dt-page table view (columns are user-chosen, so it scrolls). -->
@@ -57,7 +57,7 @@ $translationNamespaces = ['common', 'calendar'];
         <?php include '../../includes/data-table-skeleton.php'; ?>
     </div>
 
-    <script src="../../assets/js/data-table.js?v=6"></script>
+    <script src="../../assets/js/data-table.js?v=7"></script>
     <script src="../../assets/js/calendar-table.js?v=3"></script>
     <script src="../../assets/js/mobile.js?v=82"></script>
 </body>

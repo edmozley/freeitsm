@@ -17,6 +17,41 @@
  *  - Settings/dashboard/calendar/rota/users/help pages
  */
 return [
+    'queue' => [
+        'layout'=>'Ticket list', 'messages'=>'Messages', 'table'=>'Table', 'ticket'=>'ticket',
+        'search'=>'Search ticket number, subject or address…', 'search_content'=>'Search message bodies, notes and documents',
+        'save_failed'=>'The list preference could not be saved.',
+        'columns'=>[
+            'ticket_number'=>'Ticket', 'subject'=>'Subject', 'created_datetime'=>'Created', 'priority_id'=>'Priority',
+            'status_id'=>'Status', 'assignee_id'=>'Assigned analyst', 'department_id'=>'Department', 'team_id'=>'Team',
+            'ticket_type_id'=>'Ticket type', 'work_start_datetime'=>'Work begins', 'work_end_datetime'=>'Work ends',
+            'snoozed_until'=>'Snoozed until', 'company_name'=>'Company',
+        ],
+    ],
+    'workspace' => [
+        'properties' => 'Properties',
+        'sections' => 'Ticket sections',
+        'conversation' => 'Conversation',
+        'work' => 'Work',
+        'links' => 'Links',
+        'time' => 'Time and SLA',
+        'history' => 'History',
+        'classification' => 'Request and classification',
+        'responsibility' => 'Responsibility',
+        'other' => 'Other properties',
+        'unavailable' => 'This section could not be loaded. Please try again.',
+        'sla_unavailable' => 'SLA unavailable',
+        'loading' => 'Loading…',
+        'layout' => 'Ticket layout',
+        'inbox' => 'Inbox',
+        'workspace' => 'Workspace',
+        'discard' => 'Discard unsaved changes and leave this ticket?',
+        'discard_button' => 'Discard',
+        'save_failed' => 'The layout could not be saved. Please try again.',
+        'task' => 'Linked task',
+        'open_task' => 'Open separately',
+        'close_task' => 'Close',
+    ],
     // The AI reading aids (#104, ideas 7 and 12).
     'ai' => [
         'badge' => 'AI summary',

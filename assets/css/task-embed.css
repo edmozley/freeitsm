@@ -1,0 +1,15 @@
+/* The native detail editor in normal document flow; outer ticket owns scrolling. */
+body.task-embed { display: block; height: auto; min-height: 0; overflow: auto; margin: 0; background: var(--surface); }
+.task-embed .detail-overlay { display: none; }
+.task-embed .detail-panel, .task-embed .detail-panel.as-modal { position: relative; inset: auto; transform: none; width: 100%; max-width: none; height: auto; max-height: none; display: block; border: 0; border-radius: 0; box-shadow: none; }
+.task-embed .detail-panel-header { position: static; padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+.task-embed .detail-panel-actions { margin-left: auto; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.task-embed .task-embed-open { min-height: 28px; box-sizing: border-box; align-items: center; padding: 4px 8px; font-size: 12px; line-height: 18px; text-decoration: none; color: var(--text-muted); }
+.task-embed .task-embed-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.task-embed .detail-panel-body { overflow: visible; max-height: none; height: auto; }
+.task-embed #detailViewToggle { display: none; }
+.task-embed .detail-panel.as-modal .tdm-layout { min-height: 0; }
+.task-embed .task-embed-error { padding: 16px; border: 1px solid var(--border); color: var(--text); }
+@media (max-width: 768px) {
+    .task-embed .detail-panel, .task-embed .detail-panel.as-modal { position: relative !important; inset: auto !important; width: 100% !important; height: auto !important; max-height: none !important; transform: none !important; }
+}

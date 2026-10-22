@@ -2,7 +2,8 @@
 /**
  * Tasks Module — Kanban Board & List View
  */
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+$taskEmbedded = isset($taskEmbedContext);
 require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
@@ -125,8 +126,10 @@ $translationNamespaces = ['common', 'tasks'];
     <script src="../assets/js/record-preview.js?v=1"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
     <link rel="stylesheet" href="../assets/css/mobile.css?v=195">
+    <?php if ($taskEmbedded): ?><link rel="stylesheet" href="../assets/css/task-embed.css?v=2"><?php endif; ?>
 </head>
-<body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>"<?php echo $tasksReadOnly ? ' class="module-read-only"' : ''; ?>>
+<body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>" class="<?php echo ($tasksReadOnly ? 'module-read-only ' : '').($taskEmbedded ? 'task-embed' : ''); ?>">
+    <?php if (!$taskEmbedded): ?>
     <?php include 'includes/header.php'; ?>
     <?php /* The action row (#185). Tasks had no general New - only the + at the
              top of each board column, which stays as a shortcut that already
@@ -286,48 +289,17 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
     </div>
 
-    <!-- Detail panel overlay -->
-    <div class="detail-overlay" id="detailOverlay" onclick="closeDetailPanel()"></div>
+    <?php else:
+        require_once '../includes/documents_panel.php';
+        documentsPanelAssets(BASE_URL);
+    ?>
+    <script src="../assets/js/toast.js"></script>
+    <script src="../assets/js/confirm.js?v=6"></script>
+    <?php endif; ?>
 
-    <!-- Detail panel -->
-    <div class="detail-panel" id="detailPanel">
-        <div class="detail-panel-header">
-            <h3><?php echo htmlspecialchars(t('tasks.detail.heading')); ?></h3>
-            <div class="detail-panel-actions">
-                <!-- Switches between the side panel and the large window, and
-                     remembers the choice. The setting also lives in System →
-                     Preferences, but nobody finds a setting they do not know
-                     exists — this is the same choice, offered at the moment you
-                     are wishing for it. Icon and tooltip are set per state by
-                     paintViewToggle(). -->
-                <button class="btn-icon" id="detailViewToggle" onclick="toggleTaskView()" title="">
-                    <svg id="detailViewToggleIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
-                </button>
-                <!-- Columns or tabs, WITHIN the large window. Hidden entirely in
-                     the side panel, because there is nothing there it could
-                     apply to — a control that is present but does nothing is
-                     worse than one that is absent. Same reasoning as the button
-                     above: the choice is offered where you are wishing for it. -->
-                <button class="btn-icon" id="detailLayoutToggle" onclick="toggleModalLayout()" title="" style="display:none;">
-                    <svg id="detailLayoutToggleIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
-                </button>
-                <!-- GH #204: this task and its subtasks as a printable case report. -->
-                <button class="btn-icon" onclick="openTaskCaseReport()" title="<?php echo htmlspecialchars(t('tasks.detail.export_tip')); ?>">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
-                </button>
-                <button class="btn-icon" onclick="deleteCurrentTask()" title="<?php echo htmlspecialchars(t('tasks.detail.delete')); ?>">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>
-                <button class="btn-icon" onclick="closeDetailPanel()" title="<?php echo htmlspecialchars(t('tasks.detail.close')); ?>">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-        </div>
-        <div class="detail-panel-body" id="detailPanelBody">
-            <!-- Populated by JS -->
-        </div>
-    </div>
+    <?php require_once __DIR__.'/includes/detail-shell.php'; renderTaskDetailShell(); ?>
 
+    <?php if (!$taskEmbedded): ?>
     <!-- Card right-click context menu -->
     <div class="ctx-menu" id="ctxMenu">
         <div class="ctx-item" data-action="open">
@@ -399,10 +371,13 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
     </div>
 
+    <?php endif; ?>
     <!-- Toast -->
     <script>window.CASE_REPORT_URL = <?php echo json_encode(BASE_URL . 'tasks/case-report.php'); ?>; window.API_BASE = '../api/tasks/';
     window.APP_BASE = '<?php echo defined('BASE_URL') ? BASE_URL : '/'; ?>';
-    window.TASK_DETAIL_VIEW = <?php echo json_encode($taskDetailView); ?>;
+    window.TASK_HOST = <?php echo json_encode($taskEmbedded ? 'ticket' : 'module'); ?>;
+    <?php if ($taskEmbedded): ?>window.TASK_EMBED_CONTEXT = <?php echo json_encode($taskEmbedContext); ?>;<?php endif; ?>
+    window.TASK_DETAIL_VIEW = <?php echo json_encode($taskEmbedded ? 'modal' : $taskDetailView); ?>;
     window.TASK_MODAL_LAYOUT = <?php echo json_encode($taskModalLayout); ?>;
     window.TASK_WORK_OPEN = <?php echo json_encode($taskWorkOpen); ?>;
     window.TASK_VIEW = <?php echo json_encode($taskView); ?>;
@@ -417,7 +392,8 @@ $translationNamespaces = ['common', 'tasks'];
     <script src="../assets/js/tasks-ctx-menu.js?v=5"></script>
     <!-- The one cleaner for HTML from elsewhere: Knowledge procedure bodies and task instructions in the Work view (GH #190). -->
     <script src="../assets/js/safe-html.js?v=2"></script>
-    <script src="../assets/js/tasks.js?v=68"></script>
-    <script src="../assets/js/mobile.js?v=82"></script>
+    <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=2"></script><?php endif; ?>
+    <script src="../assets/js/tasks.js?v=69"></script>
+    <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=82"></script><?php endif; ?>
 </body>
 </html>

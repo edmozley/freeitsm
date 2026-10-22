@@ -81,21 +81,27 @@ function formatStepDatetime(dtStr) {
 // 1. Fetch & Render Checklists for a Ticket
 async function loadTicketChecklists(ticketId) {
     if (!ticketId) return;
+    const isCurrent = typeof ticketReadGuard === 'function' ? ticketReadGuard(ticketId) : () => currentViewingTicketId === ticketId;
     currentViewingTicketId = ticketId;
     try {
         const res = await fetch(CHK_API + '?action=get_ticket_checklists&ticket_id=' + ticketId);
         const data = await res.json();
+        if (!isCurrent()) return;
         if (!data.success) {
             console.error('Error fetching ticket checklists:', data.error);
+            window.TicketWorkspace?.setSectionState(ticketId, 'work', 'error', null, 'checklists');
             return;
         }
 
         ticketChecklistsData = data.checklists || [];
+        window.TicketWorkspace?.setSectionState(ticketId, 'work', 'ready', null, 'checklists');
         window.ticketChecklistEmptyClosureMode = data.empty_closure_mode || 'off';
         renderChecklistToolbarButton(ticketId);
         renderTicketChecklistsInline(ticketId);
     } catch (e) {
+        if (!isCurrent()) return;
         console.error('Failed to load checklists:', e);
+        window.TicketWorkspace?.setSectionState(ticketId, 'work', 'error', null, 'checklists');
     }
 }
 

@@ -464,3 +464,9 @@ table.dt-table {
     .dt-views-cards { grid-template-columns: 1fr; }
     .dt-modal { max-height: 92vh; }
 }
+
+/* Optional server source: stale rows remain visible, with actions disabled. */
+.dt-stale { opacity:.55; }
+.dt-server-error, .dt-pagination { padding:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.dt-server-error { border:1px solid var(--border); color:var(--text); }
+.dt-pagination button, .dt-pagination select { font:inherit; padding:4px 8px; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:4px; }

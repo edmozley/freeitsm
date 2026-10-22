@@ -94,6 +94,8 @@ $prefDefaults = [
     // once. Read by assets/js/inbox.js. 'summary' is the default because it puts
     // what you are about to act on, and the actions themselves, on screen.
     'tickets_multiselect_pane'   => 'summary',
+    'tickets_detail_layout'      => 'inbox',
+    'tickets_list_layout'        => 'messages',
     // Which front door "/" sends you to (discussion #63). Empty string means
     // "whatever the administrator chose" — the only value that is NOT a landing
     // key, because "follow the install default" is a real third choice here.
@@ -590,6 +592,26 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     <option value="modal" <?php echo $prefs['tasks_detail_view'] === 'modal' ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.preferences.task_view_modal')); ?></option>
                 </select>
                 <span class="pref-saving-hint" id="taskViewSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+            </div>
+
+            <div class="pref-section">
+                <h3 id="ticket-layout"><?php echo htmlspecialchars(t('system.preferences.ticket_layout_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.ticket_layout_desc')); ?></p>
+                <select id="ticketLayoutSelect" class="pref-language-select">
+                    <?php foreach (['inbox', 'workspace'] as $layout): ?>
+                    <option value="<?php echo $layout; ?>" <?php echo $prefs['tickets_detail_layout'] === $layout ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.preferences.ticket_layout_' . $layout)); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="pref-section">
+                <h3 id="ticket-list"><?php echo htmlspecialchars(t('system.preferences.ticket_list_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.ticket_list_desc')); ?></p>
+                <select id="ticketListSelect" class="pref-language-select">
+                <?php foreach (['messages','table'] as $layout): ?>
+                    <option value="<?php echo $layout; ?>" <?php echo $prefs['tickets_list_layout']===$layout?'selected':''; ?>><?php echo htmlspecialchars(t('system.preferences.ticket_list_'.$layout)); ?></option>
+                <?php endforeach; ?>
+                </select>
             </div>
 
             <!-- Closing the search panel (#144). Sits beside "Opening a task"
@@ -1259,6 +1281,26 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 setTimeout(() => soundHint.classList.remove('show'), 1200);
             });
             soundPreview.addEventListener('click', playSelectedSound);
+        }
+
+        const ticketListSelect = document.getElementById('ticketListSelect');
+        let savedTicketList = ticketListSelect.value;
+        ticketListSelect.addEventListener('change', async () => {
+            ticketListSelect.disabled=true;
+            if(await savePref('tickets_list_layout',ticketListSelect.value)) savedTicketList=ticketListSelect.value;
+            else ticketListSelect.value=savedTicketList;
+            ticketListSelect.disabled=false;
+        });
+        const ticketLayoutSelect = document.getElementById('ticketLayoutSelect');
+        if (ticketLayoutSelect) {
+            let saved = ticketLayoutSelect.value;
+            ticketLayoutSelect.addEventListener('change', async function () {
+                ticketLayoutSelect.disabled = true;
+                const value = ticketLayoutSelect.value;
+                if (await savePref('tickets_detail_layout', value)) saved = value;
+                else ticketLayoutSelect.value = saved;
+                ticketLayoutSelect.disabled = false;
+            });
         }
 
         // ===== How a task opens (tasks_detail_view) =====

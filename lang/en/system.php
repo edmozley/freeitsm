@@ -1021,6 +1021,13 @@ return [
         'feed_note'    => 'Analysts may always choose to publish less than this, never more. Switching this off immediately stops links that have already been handed out.',
     ],
     'preferences' => [
+        'ticket_list_heading' => 'Ticket list',
+        'ticket_list_desc' => 'Open tickets as a message list or as a paginated work queue.',
+        'ticket_list_messages' => 'Messages', 'ticket_list_table' => 'Table',
+        'ticket_layout_heading' => 'Ticket layout',
+        'ticket_layout_desc' => 'Use the inbox reading pane or a workspace with properties, conversation and work in separate sections.',
+        'ticket_layout_inbox' => 'Inbox',
+        'ticket_layout_workspace' => 'Workspace',
         'title'    => 'Preferences',
         'subtitle' => 'Personal settings saved to your account — they follow you across browsers.',
 

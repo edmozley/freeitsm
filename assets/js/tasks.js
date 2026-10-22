@@ -19,6 +19,7 @@ let tasks = [];
 let analysts = [];
 let teams = [];
 let selectedTaskId = null;
+let taskDetailGeneration = 0;
 let sortField = 'board_position';
 let sortDir = 'asc';
 let tinyEditor = null;
@@ -65,6 +66,11 @@ const ANALYST_ID = document.body.dataset.analystId;
 document.addEventListener('DOMContentLoaded', async () => {
     await loadCardSettings();
     await loadLookups();          // statuses drive the board columns
+    if (window.TASK_HOST === 'ticket') {
+        await loadDropdowns();
+        await openDetailPanel(window.TASK_EMBED_CONTEXT.taskId);
+        return;
+    }
     buildBoardColumns();
     applyTagSettings();
     // Open a task straight away if linked from the calendar/timeline (?task=N)
@@ -167,13 +173,13 @@ async function loadDropdowns() {
         if (aRes.success) {
             analysts = aRes.analysts;
             const sel = document.getElementById('analystFilter');
-            sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_analysts')) + '</option>' +
+            if (sel) sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_analysts')) + '</option>' +
                 analysts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
         }
         if (tRes.success) {
             teams = tRes.teams;
             const sel = document.getElementById('teamFilter');
-            sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_teams')) + '</option>' +
+            if (sel) sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_teams')) + '</option>' +
                 teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
         }
     } catch (e) { console.error('Failed to load dropdowns:', e); }
@@ -184,6 +190,10 @@ async function loadDropdowns() {
  * text, refreshes the Project and Contractor filters and redraws the board or list.
  */
 async function loadTasks() {
+    if (window.TASK_HOST === 'ticket') {
+        window.TaskEmbedBridge?.changed();
+        return;
+    }
     let url = API_BASE + 'list.php?filter=' + currentFilter;
     if (currentFilter === 'team' && currentFilterTeamId) url += '&team_id=' + currentFilterTeamId;
     if (currentFilter === 'analyst' && currentFilterAnalystId) url += '&analyst_id=' + currentFilterAnalystId;
@@ -1769,14 +1779,19 @@ async function openDetailPanel(taskId) {
     // Prevent opening from drag
     if (dragState) return;
 
+    if (window.TASK_HOST === 'ticket' && selectedTaskId && selectedTaskId !== taskId && !await TaskEmbedBridge.canLeave()) return;
     selectedTaskId = taskId;
+    const generation = ++taskDetailGeneration;
+    const embedQuery = window.TASK_HOST === 'ticket'
+        ? '&embed_root_id=' + window.TASK_EMBED_CONTEXT.taskId + '&ticket_id=' + window.TASK_EMBED_CONTEXT.ticketId : '';
     try {
         const [data] = await Promise.all([
-            fetch(API_BASE + 'get.php?id=' + taskId).then(r => r.json()),
+            fetch(API_BASE + 'get.php?id=' + taskId + embedQuery).then(r => r.json()),
             loadProjectChoices(),   // once per page, for the Project field (3.2.0)
             loadContractorChoices(),   // and the Contractor field (3.3.0)
         ]);
-        if (!data.success) return;
+        if (!data.success) { window.TaskEmbedBridge?.unavailable(); return; }
+        if (selectedTaskId !== taskId || generation !== taskDetailGeneration) return;
         // The recent trail (#124).
         if (window.trailVisit) window.trailVisit('task', taskId);
         const panel = document.getElementById('detailPanel');
@@ -1808,16 +1823,19 @@ async function openDetailPanel(taskId) {
         panel.scrollTop = 0;
         panel.classList.add('open');
         document.getElementById('detailOverlay').classList.add('open');
-    } catch (e) { console.error(e); }
+        window.TaskEmbedBridge?.ready();
+    } catch (e) { console.error(e); window.TaskEmbedBridge?.unavailable(); }
 }
 
 /** Closes the task panel, destroys the description editor and reloads the board. */
-function closeDetailPanel() {
+async function closeDetailPanel() {
+    if (window.TASK_HOST === 'ticket' && !await TaskEmbedBridge.canLeave()) return;
     document.getElementById('detailPanel').classList.remove('open');
     document.getElementById('detailOverlay').classList.remove('open');
     if (tinyEditor) { tinyEditor.destroy(); tinyEditor = null; }
     selectedTaskId = null;
     loadTasks();
+    window.TaskEmbedBridge?.closed();
 }
 
 /**
@@ -1860,19 +1878,19 @@ function renderDetailPanel(task) {
         </button>` : ''}
 
         <div class="detail-field">
-            <input class="detail-title-input" id="detailTitle" value="${esc(task.title)}" onchange="saveField('title', this.value)">
+            <input class="detail-title-input" id="detailTitle" value="${esc(task.title)}" data-task-field="title" onchange="saveField('title', this.value)">
         </div>
 
         <div class="detail-row">
             <div class="detail-field">
                 <label>${esc(window.t('tasks.detail.status'))}</label>
-                <select class="detail-select" onchange="saveField('status', this.value)">
+                <select class="detail-select" data-task-field="status" onchange="saveField('status', this.value)">
                     ${lookupOptions(statusList, task.status)}
                 </select>
             </div>
             <div class="detail-field">
                 <label>${esc(window.t('tasks.detail.priority'))}</label>
-                <select class="detail-select" onchange="saveField('priority', this.value)">
+                <select class="detail-select" data-task-field="priority" onchange="saveField('priority', this.value)">
                     ${lookupOptions(priorityList, task.priority)}
                 </select>
             </div>
@@ -1881,14 +1899,14 @@ function renderDetailPanel(task) {
         <div class="detail-row">
             <div class="detail-field">
                 <label>${esc(window.t('tasks.detail.assignee'))}</label>
-                <select class="detail-select" onchange="saveField('assigned_analyst_id', this.value || null)">
+                <select class="detail-select" data-task-field="assigned_analyst_id" onchange="saveField('assigned_analyst_id', this.value || null)">
                     <option value="">${esc(window.t('tasks.detail.unassigned'))}</option>
                     ${analystOptions}
                 </select>
             </div>
             <div class="detail-field">
                 <label>${esc(window.t('tasks.detail.team'))}</label>
-                <select class="detail-select" onchange="saveField('assigned_team_id', this.value || null)">
+                <select class="detail-select" data-task-field="assigned_team_id" onchange="saveField('assigned_team_id', this.value || null)">
                     <option value="">${esc(window.t('tasks.detail.no_team'))}</option>
                     ${teamOptions}
                 </select>
@@ -1922,11 +1940,11 @@ function renderDetailPanel(task) {
         <div class="detail-row">
             <div class="detail-field">
                 <label>${esc(window.t('tasks.detail.start_date'))}</label>
-                <input type="date" class="detail-input" value="${task.start_date || ''}" onchange="saveField('start_date', this.value || null)">
+                <input type="date" class="detail-input" value="${task.start_date || ''}" data-task-field="start_date" onchange="saveField('start_date', this.value || null)">
             </div>
             <div class="detail-field">
                 <label>${esc(window.t('tasks.detail.due_date'))}</label>
-                <input type="date" class="detail-input" value="${task.due_date || ''}" onchange="saveField('due_date', this.value || null)">
+                <input type="date" class="detail-input" value="${task.due_date || ''}" data-task-field="due_date" onchange="saveField('due_date', this.value || null)">
             </div>
         </div>
 
@@ -1935,7 +1953,7 @@ function renderDetailPanel(task) {
             <label>${esc(window.t('tasks.detail.estimate'))}</label>
             <input type="number" class="detail-input" min="0" max="9999" step="0.25" inputmode="decimal" style="max-width:140px"
                    value="${task.estimate_hours !== null && task.estimate_hours !== undefined ? Number(task.estimate_hours) : ''}"
-                   placeholder="${esc(window.t('tasks.detail.estimate_ph'))}" onchange="saveField('estimate_hours', this.value === '' ? null : this.value)">
+                   placeholder="${esc(window.t('tasks.detail.estimate_ph'))}" data-task-field="estimate_hours" onchange="saveField('estimate_hours', this.value === '' ? null : this.value)">
         </div>
 
         ${timeAllowedFor(task) ? `
@@ -1959,7 +1977,7 @@ function renderDetailPanel(task) {
         <div class="detail-field">
             <label class="detail-checkbox">
                 <input type="checkbox" id="detailWorkAllDay" ${task.work_all_day == 1 ? 'checked' : ''}
-                       onchange="saveField('work_all_day', this.checked ? 1 : 0); openDetailPanel(${task.id});">
+                       data-task-field="work_all_day" onchange="saveField('work_all_day', this.checked ? 1 : 0); openDetailPanel(${task.id});">
                 ${esc(window.t('tasks.detail.work_all_day'))}
             </label>
         </div>
@@ -2140,9 +2158,11 @@ function renderDetailPanel(task) {
         content_style: 'body { font-family: Segoe UI, sans-serif; font-size: 13px; color: ' + (tinyDark ? '#e6e8eb' : '#333') + '; } @media (pointer: coarse) { body { font-size: 16px; } }',
         setup: editor => {
             tinyEditor = editor;
+            editor.on('init', () => window.TaskEmbedBridge?.editorReady(editor));
             editor.on('change keyup', () => {
                 clearTimeout(descSaveTimer);
                 descSaveTimer = setTimeout(() => {
+                    descSaveTimer = null;
                     saveField('description', editor.getContent());
                 }, 1000);
             });
@@ -2291,7 +2311,7 @@ async function postTaskChange(payload, failedKey) {
         showToast(window.t(failedKey), 'error');
         return false;
     }
-    if (data && data.success) return true;
+    if (data && data.success) { window.TaskEmbedBridge?.saved(payload); return true; }
     if (data && data.error === 'Not authenticated') {
         showToast(window.t('tasks.toast.session_expired'), 'error');
         return false;

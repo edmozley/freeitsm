@@ -409,6 +409,31 @@ function assignableAnalysts(tickets, keepId) {
         || companies.every(c => a.accessible_tenant_ids.includes(c)));
 }
 let currentEmail = null;
+let ticketRenderGeneration = 0;
+let ticketSelectionGeneration = 0;
+let ticketPendingWrites = 0;
+
+/** A delayed response belongs to one rendering, not merely a reusable ticket ID. */
+function ticketReadGuard(ticketId) {
+    const generation = ticketRenderGeneration;
+    return () => generation === ticketRenderGeneration && currentEmail && Number(currentEmail.ticket_id) === Number(ticketId);
+}
+
+function ticketHasUnsavedInput() {
+    if (document.querySelector('#emailModal.active')) return true;
+    if (document.querySelector('#noteModal.active')) return true;
+    return !!document.getElementById('channelComposerText')?.value.trim()
+        || !!document.getElementById('channelAttachFile')?.files.length;
+}
+
+function discardTicketDraft() {
+    if (document.querySelector('#emailModal.active')) closeEmailModal();
+    if (document.querySelector('#noteModal.active')) closeNoteModal();
+    const channel = document.getElementById('channelComposerText');
+    if (channel) channel.value = '';
+    const attachment = document.getElementById('channelAttachFile');
+    if (attachment) attachment.value = '';
+}
 let currentRecordings = [];
 let folderCounts = {};
 // Messaging channels (WhatsApp etc.): set when a ticket's thread loads, so the
@@ -1541,7 +1566,7 @@ let dragHoverFolderId = null;
  * Dragging several rows shows a stacked-sheets drag image with the count; dragend clears all drag state.
  */
 function attachEmailDragHandlers() {
-    document.querySelectorAll('#emailList .email-item').forEach(el => {
+    document.querySelectorAll(ticketRowSelector('')).forEach(el => {
         el.addEventListener('dragstart', (e) => {
             if (ticketMenuIsSheet()) { e.preventDefault(); return; }
             const mailId = Number(el.dataset.emailId);
@@ -1568,7 +1593,7 @@ function attachEmailDragHandlers() {
             // whichever rows happen to be painted `.selected`, so the dimming can
             // never disagree with what is actually being dragged.
             selectedEmailIds.forEach(id => {
-                const r = document.querySelector(`#emailList .email-item[data-email-id="${id}"]`);
+                const r = document.querySelector(ticketRowSelector(`[data-email-id="${id}"]`));
                 if (r) r.classList.add('dragging');
             });
 
@@ -1603,7 +1628,7 @@ function attachEmailDragHandlers() {
             }
         });
         el.addEventListener('dragend', () => {
-            document.querySelectorAll('#emailList .email-item.dragging').forEach(r => r.classList.remove('dragging'));
+            document.querySelectorAll(ticketRowSelector('.dragging')).forEach(r => r.classList.remove('dragging'));
             draggedTicketId = null;
             draggedTicketNumber = null;
             draggedTicketIds = [];
@@ -1899,6 +1924,7 @@ async function handleTicketDrop(targetEl, ticketId, ticketNumber) {
 
 // Load emails based on current filter
 async function loadEmails() {
+    if (window.TicketTable?.isActive()) return TicketTable.reload();
     try {
         let url = API_BASE + 'get_emails.php?';
 
@@ -1990,6 +2016,7 @@ function companyChip(email) {
 
 // Render email list
 function renderEmailList() {
+    if (window.TicketTable?.isActive()) { renderSelectionUi(); return; }
     const emailListEl = document.getElementById('emailList');
 
     if (emails.length === 0) {
@@ -2054,7 +2081,7 @@ function renderEmailList() {
  * stays empty. Re-rendering the list (e.g. on filter change) re-runs this.
  */
 async function loadInboxSlaIndicators() {
-    const slots = document.querySelectorAll('#emailList [data-sla-slot]');
+    const slots = document.querySelectorAll((window.TicketTable?.isActive() ? '#ticketTableContainer' : '#emailList') + ' [data-sla-slot]');
     if (!slots.length) return;
     const ids = Array.from(slots).map(el => el.getAttribute('data-sla-slot')).filter(Boolean);
     if (!ids.length) return;
@@ -2129,9 +2156,9 @@ function setSelectedEmailRow(emailId) {
     // function would otherwise strip `.selected` off the other rows and leave the
     // list looking like one ticket is selected while an action hits several.
     if (selectedEmailIds && selectedEmailIds.size > 1) { renderSelectionUi(); return; }
-    document.querySelectorAll('#emailList .email-item.selected')
+    document.querySelectorAll(ticketRowSelector('.selected'))
         .forEach(el => el.classList.remove('selected'));
-    const row = document.querySelector(`#emailList .email-item[data-email-id="${emailId}"]`);
+    const row = document.querySelector(ticketRowSelector(`[data-email-id="${emailId}"]`));
     if (row) row.classList.add('selected');
 }
 
@@ -2166,14 +2193,19 @@ let selectionAnchorId  = null;        // where a Shift range measures from
 let selectionFocusId   = null;        // the keyboard cursor
 
 /** Email ids in the order they are on screen — range selection follows what you SEE. */
+/** Selection always belongs to the displayed list, never hidden previous rows. */
+function ticketRowSelector(suffix = '') {
+    return (window.TicketTable?.isActive() ? '#ticketTableContainer' : '#emailList') + ' .email-item' + suffix;
+}
+
 function visibleEmailIds() {
-    return Array.from(document.querySelectorAll('#emailList .email-item'))
+    return Array.from(document.querySelectorAll(ticketRowSelector('')))
         .map(el => Number(el.dataset.emailId));
 }
 
 /** The ticket id behind a row (actions work on tickets; rows are keyed by email). */
 function ticketIdForEmail(emailId) {
-    const row = document.querySelector(`#emailList .email-item[data-email-id="${emailId}"]`);
+    const row = document.querySelector(ticketRowSelector(`[data-email-id="${emailId}"]`));
     if (row && row.dataset.ticketId) return Number(row.dataset.ticketId);
     const rec = emails.find(e => e.id == emailId);
     return rec ? Number(rec.ticket_id) : null;
@@ -2191,7 +2223,7 @@ function selectionCount() {
 
 /** Paint the list: `.selected` on every chosen row, `.kb-focus` on the cursor. */
 function renderSelectionUi() {
-    document.querySelectorAll('#emailList .email-item').forEach(el => {
+    document.querySelectorAll(ticketRowSelector('')).forEach(el => {
         const id = Number(el.dataset.emailId);
         el.classList.toggle('selected', selectedEmailIds.has(id));
         el.classList.toggle('kb-focus', selectionFocusId === id);
@@ -2202,7 +2234,7 @@ function renderSelectionUi() {
     // the browser starts selecting on mousedown and this runs on click. The
     // mousedown handler further down is what actually prevents it; this stays for
     // the drag case.
-    const list = document.getElementById('emailList');
+    const list = document.getElementById(window.TicketTable?.isActive() ? 'ticketTableContainer' : 'emailList');
     if (list) list.classList.toggle('multi-selecting', selectedEmailIds.size > 1);
     // If a selection did start anyway, clear it rather than leave it smeared.
     const sel = window.getSelection && window.getSelection();
@@ -2223,48 +2255,39 @@ function clearMultiSelection({ repaint = true } = {}) {
  * The one entry point for a click on a row. Every modifier combination lands here
  * so the rules live in one readable place rather than spread across handlers.
  */
-function handleEmailRowClick(event, emailId) {
-    const ctrl  = event.ctrlKey || event.metaKey;   // ⌘ on a Mac does the same job
+async function handleEmailRowClick(event, emailId) {
+    const ctrl = event.ctrlKey || event.metaKey;
     const shift = event.shiftKey;
+    let next = new Set(selectedEmailIds);
 
     if (shift) {
-        // Shift, with or without Ctrl: take the block from the anchor to here.
-        // Plain Shift replaces the selection; Ctrl+Shift adds the block to it.
-        const ids   = visibleEmailIds();
-        const from  = ids.indexOf(selectionAnchorId !== null ? selectionAnchorId : emailId);
-        const to    = ids.indexOf(emailId);
+        const ids = visibleEmailIds();
+        const from = ids.indexOf(selectionAnchorId !== null ? selectionAnchorId : emailId);
+        const to = ids.indexOf(emailId);
         if (from === -1 || to === -1) return;
-
-        const block = ids.slice(Math.min(from, to), Math.max(from, to) + 1);
-        if (!ctrl) selectedEmailIds.clear();
-        block.forEach(id => selectedEmailIds.add(id));
-
-        // The anchor deliberately STAYS PUT so a second Shift+click re-measures
-        // from the same origin and can shrink the block as well as grow it.
-        selectionFocusId = emailId;
-        renderSelectionUi();
-        onSelectionChanged({ clickedId: emailId });
-        return;
+        if (!ctrl) next.clear();
+        ids.slice(Math.min(from, to), Math.max(from, to) + 1).forEach(id => next.add(id));
+    } else if (ctrl) {
+        if (next.has(emailId)) next.delete(emailId);
+        else next.add(emailId);
+    } else {
+        next = new Set([emailId]);
     }
 
-    if (ctrl) {
-        // Toggle this one. Ctrl+clicking the only selected row leaves nothing
-        // selected, which is legitimate — the reading pane empties.
-        if (selectedEmailIds.has(emailId)) selectedEmailIds.delete(emailId);
-        else                               selectedEmailIds.add(emailId);
-        selectionAnchorId = emailId;
-        selectionFocusId  = emailId;
-        renderSelectionUi();
-        onSelectionChanged({ clickedId: emailId });
-        return;
-    }
+    // Keep/bar selection does not leave the open editor. A summary, an empty
+    // selection or another single ticket does, and must protect its drafts.
+    const retainsEditor = (next.size === 1 && next.has(selectedEmailId))
+        || (next.size > 1 && multiSelectPaneMode !== 'summary' && currentEmail);
+    if (!retainsEditor && window.TicketWorkspace?.isActive() && !await TicketWorkspace.canLeave()) return;
 
-    // Plain click — collapse to this one and open it, exactly as before.
-    selectedEmailIds = new Set([emailId]);
-    selectionAnchorId = emailId;
-    selectionFocusId  = emailId;
+    selectedEmailIds = next;
+    // Shift keeps the original anchor, so another Shift click can shrink the
+    // range. Plain/Ctrl clicks establish a new anchor as in the native list.
+    if (!shift) selectionAnchorId = emailId;
+    selectionFocusId = emailId;
     renderSelectionUi();
-    selectEmail(emailId);
+    if (shift || ctrl) onSelectionChanged({clickedId: emailId});
+    else return selectEmail(emailId);
 }
 
 // ---------------------------------------------------------------------------
@@ -2300,10 +2323,20 @@ async function loadMultiSelectPanePreference() {
 }
 
 /** Called whenever the selection changes. Routes to whichever surface is chosen. */
-function onSelectionChanged({ clickedId = null } = {}) {
+async function onSelectionChanged({ clickedId = null } = {}) {
     const n = selectionCount();
+    // Keyboard/select-all callers also arrive here. Protect the live editor
+    // before the native empty/summary pane replaces it, just as row clicks do.
+    const replacesEditor = n === 0 || (n > 1 && multiSelectPaneMode === 'summary');
+    if (replacesEditor && window.TicketWorkspace?.isActive() && !await TicketWorkspace.canLeave()) {
+        selectedEmailIds = new Set(selectedEmailId === null ? [] : [selectedEmailId]);
+        selectionAnchorId = selectionFocusId = selectedEmailId;
+        renderSelectionUi();
+        return;
+    }
 
     if (n === 0) {
+        window.TicketWorkspace?.dispose();
         hideSelectionBar();
         hideKeepModeWarning();
         selectedEmailId = null;
@@ -2326,7 +2359,7 @@ function onSelectionChanged({ clickedId = null } = {}) {
     if (multiSelectPaneMode === 'summary') {
         hideSelectionBar();
         hideKeepModeWarning();
-        renderSelectionSummaryPane();
+        return renderSelectionSummaryPane();
     } else if (multiSelectPaneMode === 'bar') {
         hideKeepModeWarning();
         renderSelectionBar();
@@ -2371,12 +2404,14 @@ function selectionActionsHtml(compact) {
 }
 
 /** Replaces the reading pane with a "N tickets selected" summary listing them with the bulk actions. */
-function renderSelectionSummaryPane() {
+async function renderSelectionSummaryPane() {
     const pane = document.getElementById('readingPane');
     if (!pane) return;
+    if (window.TicketWorkspace?.isActive() && !await TicketWorkspace.canLeave()) return;
+    window.TicketWorkspace?.dispose();
     const ids  = visibleEmailIds().filter(id => selectedEmailIds.has(id));   // keep list order
     const rows = ids.map(id => {
-        const row = document.querySelector(`#emailList .email-item[data-email-id="${id}"]`);
+        const row = document.querySelector(ticketRowSelector(`[data-email-id="${id}"]`));
         const ref = row ? (row.dataset.ticketNumber || '') : '';
         const rec = emails.find(e => e.id == id);
         return `<div class="sel-summary-row">
@@ -2449,7 +2484,9 @@ function hideKeepModeWarning() {
 }
 
 /** Clear right down to nothing selected (the ✕ / Escape route). */
-function clearSelectionToNone() {
+async function clearSelectionToNone() {
+    if (window.TicketWorkspace?.isActive() && !await TicketWorkspace.canLeave()) return;
+    window.TicketWorkspace?.dispose();
     selectedEmailIds.clear();
     selectionAnchorId = null;
     selectionFocusId  = null;
@@ -2529,7 +2566,7 @@ function moveSelectionCursor(delta, { extend = false, keepSelection = false }) {
 
 /** Scrolls the list's own scroll container so the row is visible, never the page itself. */
 function scrollRowIntoView(emailId) {
-    const row = document.querySelector(`#emailList .email-item[data-email-id="${emailId}"]`);
+    const row = document.querySelector(ticketRowSelector(`[data-email-id="${emailId}"]`));
     if (!row) return;
 
     // Scroll ONLY the list's own scroll container, never the page. Element.scrollIntoView()
@@ -2809,6 +2846,7 @@ function bulkProgressHtml() {
 
 // Select and display email by email ID
 async function selectEmail(emailId) {
+    if (window.TicketWorkspace?.isActive() && selectedEmailId !== emailId && !await TicketWorkspace.canLeave()) return;
     // 🔑 A NEGATIVE ID IS A TICKET WITH NO EMAIL. get_emails.php sends
     // COALESCE(le.id, -t.id), so the sign says which kind of thing the row is.
     // Selection, drag and the highlight all work off this id unchanged; only
@@ -2821,6 +2859,7 @@ async function selectEmail(emailId) {
         return loadTicketById(-emailId);
     }
     selectedEmailId = emailId;
+    const selectionGeneration = ++ticketSelectionGeneration;
     // Opening a single ticket collapses the selection to it, so the highlight,
     // the reading pane and what an action would hit can never disagree. Callers
     // that want a multi-selection never route through here.
@@ -2844,6 +2883,7 @@ async function selectEmail(emailId) {
         readingPane.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
     } else {
         spinnerTimer = setTimeout(() => {
+            if (selectionGeneration !== ticketSelectionGeneration || (window.TicketWorkspace?.isActive() && Number(currentEmail?.id) === Number(emailId))) return;
             readingPane.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
         }, 250);
     }
@@ -2852,6 +2892,7 @@ async function selectEmail(emailId) {
         const response = await fetch(`${API_BASE}get_email_detail.php?id=${emailId}`);
         const data = await response.json();
         if (spinnerTimer) clearTimeout(spinnerTimer);
+        if (selectionGeneration !== ticketSelectionGeneration) return;
 
         if (data.success) {
             displayEmail(data.email, data.recordings || []);
@@ -2861,6 +2902,7 @@ async function selectEmail(emailId) {
         }
     } catch (error) {
         if (spinnerTimer) clearTimeout(spinnerTimer);
+        if (selectionGeneration !== ticketSelectionGeneration) return;
         console.error('Error:', error);
         readingPane.innerHTML = '<div class="reading-pane-empty">Failed to load email</div>';
         syncPopoutToTicketState(false);
@@ -2869,13 +2911,16 @@ async function selectEmail(emailId) {
 
 // Load and display ticket by ticket ID (from URL parameter)
 async function loadTicketById(ticketId) {
+    if (window.TicketWorkspace?.isActive() && Number(currentEmail?.ticket_id) !== Number(ticketId) && !await TicketWorkspace.canLeave()) return;
+    const selectionGeneration = ++ticketSelectionGeneration;
     const readingPane = document.getElementById('readingPane');
+    if (!(window.TicketWorkspace?.isActive() && Number(currentEmail?.ticket_id) === Number(ticketId)))
     readingPane.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
     try {
         const response = await fetch(`${API_BASE}get_email_detail.php?ticket_id=${ticketId}`);
         const data = await response.json();
-
+        if (selectionGeneration !== ticketSelectionGeneration) return;
         if (data.success) {
             // For a ticket with no email the row id is the negative ticket id,
             // so keep using that or the highlight would clear itself.
@@ -2887,6 +2932,7 @@ async function loadTicketById(ticketId) {
             syncPopoutToTicketState(false);
         }
     } catch (error) {
+        if (selectionGeneration !== ticketSelectionGeneration) return;
         console.error('Error:', error);
         readingPane.innerHTML = '<div class="reading-pane-empty">Failed to load ticket</div>';
         syncPopoutToTicketState(false);
@@ -2895,6 +2941,8 @@ async function loadTicketById(ticketId) {
 
 // Display email in reading pane
 function displayEmail(email, recordings) {
+    if (window.TicketWorkspace?.holdRender(email, recordings)) return;
+    ticketRenderGeneration++;
     currentEmail = email;
     currentRecordings = recordings || [];
 
@@ -3256,6 +3304,10 @@ ${classificationFields}
         </div>
     ` + (isTrashed ? '</div>' : '');
 
+    // Arrange the native controls before initializing shadow bodies or editors.
+    if (window.TicketWorkspace) TicketWorkspace.prepare(readingPane, {
+        ticketId: email.ticket_id, mode: window.TICKETS_DETAIL_LAYOUT || 'inbox'
+    });
     // Isolate the just-rendered email body in a shadow root (see emailBodyHost).
     hydrateEmailBodies(readingPane);
     watchPaneCompact(readingPane);
@@ -3610,7 +3662,7 @@ async function undoMerge(mergeId) {
 
 /** Jump to a ticket by its reference — used by the merge banner's button. */
 async function openTicketByNumber(ticketNumber) {
-    const row = Array.from(document.querySelectorAll('#emailList .email-item'))
+    const row = Array.from(document.querySelectorAll(ticketRowSelector('')))
         .find(el => (el.dataset.ticketNumber || '') === ticketNumber);
     if (row) { handleEmailRowClick({ ctrlKey: false, shiftKey: false, metaKey: false }, Number(row.dataset.emailId)); return; }
     // Not in the current folder's list — search for it so the jump works from
@@ -3768,6 +3820,7 @@ function syncLinksStripEmpty() {
  * full-width basis on this child.
  */
 function openStripPicker(placeholder) {
+    if (window.TicketWorkspace?.isActive()) TicketWorkspace.activate('links');
     const host = document.getElementById('stripPickerHost');
     if (!host) return null;
     host.hidden = false;
@@ -3835,6 +3888,7 @@ let tasksForTicket = [];
  * behind for the close warning in assignStatus() to count.
  */
 async function loadTicketTasks(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     const host = document.getElementById('stripTaskPills');
     if (!host) return;
     // Clear FIRST. Otherwise a failed fetch leaves the previous ticket's tasks in
@@ -3844,10 +3898,16 @@ async function loadTicketTasks(ticketId) {
     try {
         const res = await fetch('../api/tickets/get_ticket_tasks.php?ticket_id=' + ticketId);
         const data = await res.json();
-        if (!data.success) return;
+        if (!isCurrent()) return;
+        if (!data.success) throw new Error('Task lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'work', 'ready', null, 'tasks');
         tasksForTicket = data.tasks || [];
+        window.TicketWorkspace?.tasksLoaded(ticketId, tasksForTicket);
         renderTicketTasks(ticketId);
-    } catch (e) { /* silent — the strip simply shows no task pills */ }
+    } catch (e) {
+        if (!isCurrent()) return;
+        window.TicketWorkspace?.setSectionState(ticketId, 'work', 'error', null, 'tasks');
+    }
 }
 
 /**
@@ -3872,13 +3932,17 @@ function renderTicketTasks(ticketId) {
         // nothing — a link that looks like it worked. Same trap the notification
         // deep-links document for `?ticket_id=`.
         return `<a class="${cls}" href="../tasks/index.php?task=${tk.id}" target="_blank"
-                   title="${escapeHtml(bits.join(' · '))}">
+                   title="${escapeHtml(bits.join(' · '))}"
+                   onclick="if(window.TicketWorkspace?.isActive() && !event.ctrlKey && !event.metaKey && !event.shiftKey){event.preventDefault();TicketWorkspace.openTask(${ticketId},${tk.id});}">
             ${box} ${escapeHtml(tk.title)}${prog}
             ${rpBadge('task', tk.id)}
             <span class="pm-ticket-unlink" title="${escapeHtml(t('tickets.tasks.unlink_title'))}"
                   onclick="event.preventDefault();event.stopPropagation();unlinkTicketTask(event, ${tk.id}, ${ticketId});">&#10005;</span>
         </a>`;
     }).join('');
+
+    const workList = document.getElementById('twTaskList');
+    if (workList) workList.innerHTML = host.innerHTML;
 
     // The strip's "nothing yet" note is drawn before these arrive, so it has to
     // get out of the way once there is something to show.
@@ -4388,12 +4452,16 @@ function formatRecordingDuration(seconds) {
 // Load and display all correspondence for a ticket. isAuto=true marks a 15s
 // background refresh (channel tickets) so we don't disturb the analyst's draft.
 async function loadCorrespondenceThread(ticketId, isAuto = false) {
+    const isCurrent = ticketReadGuard(ticketId);
     const container = document.getElementById('threadContainer');
     if (!container) { if (isAuto) stopChannelAutoRefresh(); return; }
 
     try {
         const response = await fetch(`${API_BASE}get_ticket_thread.php?ticket_id=${ticketId}`);
         const data = await response.json();
+        if (!isCurrent()) return;
+        if (!data.success) throw new Error('Ticket section lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'conversation', 'ready', null, 'thread');
 
         // Remember the channel so Reply composes over WhatsApp etc. rather than email.
         currentTicketChannel = data.channel || 'email';
@@ -4445,6 +4513,11 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
             tgGroupOlder(container);
         }
     } catch (error) {
+        if (!isCurrent()) return;
+        if (window.TicketWorkspace?.isActive()) {
+            TicketWorkspace.setSectionState(ticketId, 'conversation', 'error', null, 'thread');
+            return;
+        }
         console.error('Error loading thread:', error);
     }
 
@@ -4650,6 +4723,8 @@ async function sendChannelTemplate(ticketId) {
 
 // Send the analyst's reply out over the ticket's channel.
 async function sendChannelMessage(ticketId) {
+    ticketPendingWrites++;
+    try {
     const ta = document.getElementById('channelComposerText');
     const btn = document.getElementById('channelSendBtn');
     if (!ta) return;
@@ -4678,6 +4753,8 @@ async function sendChannelMessage(ticketId) {
     } finally {
         if (btn) { btn.disabled = false; btn.innerHTML = original; }
     }
+    } finally { ticketPendingWrites--;
+        window.TicketWorkspace?.flushRender(); }
 }
 
 // Send a file (image, document, …) picked via the composer's Attach button.
@@ -4689,6 +4766,7 @@ async function sendChannelAttachment(ticketId) {
     const attachBtn = document.getElementById('channelAttachBtn');
     const ta = document.getElementById('channelComposerText');
     if (!input || !input.files || !input.files[0]) return;
+    ticketPendingWrites++;
     const file = input.files[0];
     const caption = ta ? ta.value.trim() : '';
 
@@ -4716,6 +4794,8 @@ async function sendChannelAttachment(ticketId) {
         showToast(Tc('attachment_send_failed'), 'error');
     } finally {
         if (attachBtn) { attachBtn.disabled = false; attachBtn.innerHTML = original; }
+        ticketPendingWrites--;
+        window.TicketWorkspace?.flushRender();
         input.value = ''; // let the same file be picked again if the send failed
     }
 }
@@ -5259,6 +5339,7 @@ async function confirmCloseWithMandatoryFields(ticketIds) {
                 message: t('tickets.mandatory_close.block_message') + '\n\n' + fieldList,
                 okLabel: t('tickets.mandatory_close.block_ok'), okClass: 'primary'
             });
+            window.TicketWorkspace?.revealMissing(tk.ticket_id, tk.missing);
             return false;
         }
         const after = [];
@@ -5582,6 +5663,7 @@ async function restoreTicketFromTrash(ticketId) {
 // Clear the reading pane if it's showing the given ticket (it just left the trash).
 function clearReadingPaneIfTicket(ticketId) {
     if (currentEmail && currentEmail.ticket_id == ticketId) {
+        window.TicketWorkspace?.dispose();
         currentEmail = null;
         selectedEmailId = null;
         document.getElementById('readingPane').innerHTML = '<div class="reading-pane-empty">Select an email to read</div>';
@@ -5630,15 +5712,18 @@ function auditAuthor(entry) {
 }
 
 // Show audit history modal
-async function showAuditHistory() {
+async function showAuditHistory(inline = false) {
     if (!currentEmail || !currentEmail.ticket_id) {
         showToast('No ticket selected', 'error');
         return;
     }
 
+    const ticketId = currentEmail.ticket_id;
+    const isCurrent = ticketReadGuard(ticketId);
     try {
-        const response = await fetch(`${API_BASE}get_ticket_audit.php?ticket_id=${currentEmail.ticket_id}`);
+        const response = await fetch(`${API_BASE}get_ticket_audit.php?ticket_id=${ticketId}`);
         const data = await response.json();
+        if (!isCurrent()) return;
 
         if (data.success) {
             const auditHtml = data.audit.length === 0
@@ -5666,6 +5751,12 @@ async function showAuditHistory() {
                     </tbody>
                 </table>`;
 
+            if (inline) {
+                const body = document.getElementById('twAuditBody');
+                if (body) body.innerHTML = auditHtml;
+                window.TicketWorkspace?.setSectionState(ticketId, 'history', 'ready');
+                return;
+            }
             // Create modal
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
@@ -5684,9 +5775,12 @@ async function showAuditHistory() {
 
             document.body.appendChild(modal);
         } else {
+            if (inline) window.TicketWorkspace?.setSectionState(ticketId, 'history', 'error');
             showToast('Error loading audit history: ' + data.error, 'error');
         }
     } catch (error) {
+        if (!isCurrent()) return;
+        if (inline) window.TicketWorkspace?.setSectionState(ticketId, 'history', 'error');
         console.error('Error:', error);
         showToast('Failed to load audit history', 'error');
     }
@@ -5889,15 +5983,24 @@ let cmdbAcHighlightedIdx = -1;
 
 /** Fetches the CMDB objects linked to a ticket and draws them as pills in the Links strip. */
 async function loadCmdbObjects(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     const host = document.getElementById('stripCmdbPills');
     if (!host) return;
     try {
         const res = await fetch('../api/tickets/get_ticket_cmdb_objects.php?ticket_id=' + ticketId);
         const data = await res.json();
+        if (!isCurrent()) return;
+        if (!data.success) throw new Error('Ticket section lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'links', 'ready', null, 'cmdb');
         if (!data.success) return;
         cmdbObjectsForTicket = data.links || [];
         renderCmdbObjects(ticketId);
-    } catch (e) { /* silent — the strip simply shows no CI pills */ }
+    } catch (e) {
+        if (!isCurrent()) return;
+        if (window.TicketWorkspace?.isActive()) {
+            TicketWorkspace.setSectionState(ticketId, 'links', 'error', null, 'cmdb');
+            return;
+        } /* silent — the strip simply shows no CI pills */ }
 }
 
 /** Draws cmdbObjectsForTicket as CMDB pills, with class and parent in the tooltip and an unlink cross. */
@@ -6007,14 +6110,23 @@ let domainAcTimer = null;
 
 /** Fetches the domains linked to a ticket and draws them as pills, when the analyst may see Domains. */
 async function loadTicketDomains(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     const host = document.getElementById('stripDomainPills');
     if (!host || !window.TICKETS_SHOW_DOMAINS) return;
     domainsForTicket = [];
     try {
         const res = await fetch('../api/domains/links.php?for=ticket&id=' + ticketId);
         const data = await res.json();
+        if (!isCurrent()) return;
+        if (!data.success) throw new Error('Ticket section lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'links', 'ready', null, 'domains');
         if (data.success) domainsForTicket = data.domains || [];
-    } catch (e) { /* silent - the strip simply shows no domain pills */ }
+    } catch (e) {
+        if (!isCurrent()) return;
+        if (window.TicketWorkspace?.isActive()) {
+            TicketWorkspace.setSectionState(ticketId, 'links', 'error', null, 'domains');
+            return;
+        } /* silent - the strip simply shows no domain pills */ }
     renderTicketDomains(ticketId);
 }
 
@@ -6125,14 +6237,23 @@ let projectAcTimer = null;
 
 /** Fetches the projects a ticket is part of and draws them as coloured pills, when the analyst may see Projects. */
 async function loadTicketProjects(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     const host = document.getElementById('stripProjectPills');
     if (!host || !window.TICKETS_SHOW_PROJECTS) return;
     projectsForTicket = [];
     try {
         const res = await fetch('../api/projects/links.php?for=ticket&id=' + ticketId);
         const data = await res.json();
+        if (!isCurrent()) return;
+        if (!data.success) throw new Error('Ticket section lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'links', 'ready', null, 'projects');
         if (data.success) projectsForTicket = data.projects || [];
-    } catch (e) { /* silent - the strip simply shows no project pills */ }
+    } catch (e) {
+        if (!isCurrent()) return;
+        if (window.TicketWorkspace?.isActive()) {
+            TicketWorkspace.setSectionState(ticketId, 'links', 'error', null, 'projects');
+            return;
+        } /* silent - the strip simply shows no project pills */ }
     host.innerHTML = projectsForTicket.map(p => `<a class="pm-ticket-badge" href="../${escapeHtml(p.url)}" title="${escapeHtml(p.code + ' - ' + (p.status || ''))}">
             <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${escapeHtml(p.colour)};margin-right:5px"></span>${escapeHtml(p.name)}
             <span class="pm-ticket-unlink" title="${escapeHtml(t('tickets.projects.unlink_title'))}" onclick="event.preventDefault();event.stopPropagation();removeTicketProject(event, ${p.id}, ${ticketId});">&#10005;</span>
@@ -6248,15 +6369,24 @@ let assetAcHighlightedIdx = -1;
 
 /** Fetches the equipment linked to a ticket and draws it as pills in the Links strip. */
 async function loadTicketAssets(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     const host = document.getElementById('stripAssetPills');
     if (!host) return;
     try {
         const res = await fetch('../api/tickets/get_ticket_assets.php?ticket_id=' + ticketId);
         const data = await res.json();
+        if (!isCurrent()) return;
+        if (!data.success) throw new Error('Ticket section lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'links', 'ready', null, 'assets');
         if (!data.success) return;
         assetsForTicket = data.links || [];
         renderTicketAssets(ticketId);
-    } catch (e) { /* silent — the strip simply shows no equipment pills */ }
+    } catch (e) {
+        if (!isCurrent()) return;
+        if (window.TicketWorkspace?.isActive()) {
+            TicketWorkspace.setSectionState(ticketId, 'links', 'error', null, 'assets');
+            return;
+        } /* silent — the strip simply shows no equipment pills */ }
 }
 
 /** The one-line name for an asset: hostname if it has one, else the tag. */
@@ -6423,30 +6553,45 @@ async function removeTicketAsset(ev, linkId, ticketId) {
 
 // Load notes for a ticket
 async function loadNotes(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     try {
         const response = await fetch(`${API_BASE}get_notes.php?ticket_id=${ticketId}`);
         const data = await response.json();
+        if (!isCurrent()) return;
 
+        if (!data.success) throw new Error('Note lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'conversation', 'ready', null, 'notes');
         if (data.success) {
             currentNotes = data.notes;
             renderNotes();
         }
     } catch (error) {
+        if (!isCurrent()) return;
         console.error('Error loading notes:', error);
+        window.TicketWorkspace?.setSectionState(ticketId, 'conversation', 'error', null, 'notes');
     }
 }
 
 // Load attachments for a ticket
 async function loadTicketAttachments(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     try {
         const response = await fetch(`${API_BASE}get_ticket_attachments.php?ticket_id=${ticketId}`);
         const data = await response.json();
+        if (!isCurrent()) return;
+        if (!data.success) throw new Error('Ticket section lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'conversation', 'ready', null, 'attachments');
 
         if (data.success) {
             ticketAttachments = data.attachments;
             renderAttachmentInfoBar();
         }
     } catch (error) {
+        if (!isCurrent()) return;
+        if (window.TicketWorkspace?.isActive()) {
+            TicketWorkspace.setSectionState(ticketId, 'conversation', 'error', null, 'attachments');
+            return;
+        }
         console.error('Error loading attachments:', error);
     }
 }
@@ -6893,6 +7038,8 @@ function closeNoteModal() {
 
 // Save note
 async function saveNote() {
+    ticketPendingWrites++;
+    try {
     const noteText = document.getElementById('noteText').value.trim();
 
     if (!noteText) {
@@ -6969,6 +7116,8 @@ async function saveNote() {
         console.error('Error:', error);
         showToast('Failed to save note', 'error');
     }
+    } finally { ticketPendingWrites--;
+        window.TicketWorkspace?.flushRender(); }
 }
 
 // Open reply modal
@@ -7018,6 +7167,7 @@ function correspondentAddress(email) {
 function openReplyModal() {
     // Channel tickets (WhatsApp etc.) reply via the inline composer, not email.
     if (currentTicketChannel && currentTicketChannel !== 'email') {
+        window.TicketWorkspace?.activate('conversation');
         // Channel ticket: jump to the inline composer (free-text box if the window is
         // open, otherwise the template picker).
         const composer = document.getElementById('channelComposer');
@@ -7493,7 +7643,7 @@ async function openMergeModal() {
     const s = await loadMergeSettings();
 
     mergeCandidateList = ids.map(id => {
-        const row = document.querySelector(`#emailList .email-item[data-email-id="${id}"]`);
+        const row = document.querySelector(ticketRowSelector(`[data-email-id="${id}"]`));
         const rec = emails.find(e => e.id == id);
         return {
             emailId:  id,
@@ -7757,7 +7907,7 @@ function discardMergeSummary() {
 
 /** Open whichever list row belongs to a ticket id (after a merge, the survivor). */
 function selectEmailByTicketId(ticketId) {
-    const row = document.querySelector(`#emailList .email-item[data-ticket-id="${ticketId}"]`);
+    const row = document.querySelector(ticketRowSelector(`[data-ticket-id="${ticketId}"]`));
     if (row) handleEmailRowClick({ ctrlKey: false, shiftKey: false, metaKey: false }, Number(row.dataset.emailId));
 }
 
@@ -8209,6 +8359,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Send email via Microsoft Graph API
 async function sendEmail() {
+    ticketPendingWrites++;
+    try {
     // Get values from form
     const to = document.getElementById('emailTo').value.trim();
     const cc = document.getElementById('emailCc').value.trim();
@@ -8279,6 +8431,8 @@ async function sendEmail() {
         sendBtn.disabled = false;
         sendBtn.textContent = originalText;
     }
+    } finally { ticketPendingWrites--;
+        window.TicketWorkspace?.flushRender(); }
 }
 
 // Prepare attachments by converting to base64
@@ -8329,17 +8483,21 @@ function logout() {
  * history row is written by the server, not here.
  */
 async function loadTicketCustomFields(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     const box = document.getElementById('ticketCustomFields');
     if (!box || !window.TicketFields) return;
     try {
         const r = await fetch(API_BASE + 'get_ticket_custom_fields.php?ticket_id=' + encodeURIComponent(ticketId));
         const d = await r.json();
+        if (!isCurrent()) return;
         if (!d.success) throw new Error(d.error);
         // Drawn only if the ticket is still the one on screen.
         if (!currentEmail || String(currentEmail.ticket_id) !== String(ticketId)) return;
         box.innerHTML = TicketFields.render(d.fields || [], { variant: 'toolbar', onchange: 'saveTicketCustomField(this)' });
     } catch (e) {
-        box.innerHTML = '';
+        if (!isCurrent()) return;
+        box.innerHTML = window.TicketWorkspace?.isActive()
+            ? '<div role="alert">' + escapeHtml(t('tickets.workspace.unavailable')) + '</div>' : '';
     }
 }
 
@@ -8370,6 +8528,7 @@ async function saveTicketCustomField(el) {
  * Desktop only: the phone has its own collapsed header.
  */
 function watchPaneCompact(pane) {
+    if (pane?.classList.contains('ticket-workspace')) return;
     const body = pane && pane.querySelector('.email-body');
     pane && pane.classList.remove('pane-compact');
     if (!body || !window.matchMedia('(min-width: 769px)').matches) return;
@@ -9727,9 +9886,13 @@ let currentTimeEntries = [];
  * When time tracking is switched off for the ticket's company the server says so and the section is left empty - nothing is deleted.
  */
 async function loadTimeEntries(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     try {
         const response = await fetch(`${API_BASE}get_time_entries.php?ticket_id=${ticketId}`);
         const data = await response.json();
+        if (!isCurrent()) return;
+        if (!data.success) throw new Error('Ticket section lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'time', 'ready', null, 'entries');
 
         // Time tracking switched off for this ticket's company (discussion #72).
         // The SERVER decides, per ticket, because the answer is per company and a
@@ -9746,6 +9909,11 @@ async function loadTimeEntries(ticketId) {
         currentTimeEntries = data.success ? data.entries : [];
         renderTimeEntries(data.success ? data.total_minutes : 0);
     } catch (e) {
+        if (!isCurrent()) return;
+        if (window.TicketWorkspace?.isActive()) {
+            TicketWorkspace.setSectionState(ticketId, 'time', 'error', null, 'entries');
+            return;
+        }
         console.error('Time entries load failed:', e);
         currentTimeEntries = [];
         renderTimeEntries(0);
@@ -10636,7 +10804,7 @@ function openTicketMenuLevel(menu, label, sub) {
     document.addEventListener('touchstart', function (e) {
         fired = false;
         if (!ticketMenuIsSheet() || e.touches.length !== 1) return;
-        const row = e.target.closest && e.target.closest('#emailList .email-item');
+        const row = e.target.closest && e.target.closest(ticketRowSelector(''));
         if (!row) return;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
@@ -11369,7 +11537,7 @@ async function emptyTrash() {
  */
 document.addEventListener('mousedown', function (e) {
     if (!e.shiftKey) return;
-    if (e.target.closest && e.target.closest('#emailList')) e.preventDefault();
+    if (e.target.closest && e.target.closest('#emailList, #ticketTableContainer')) e.preventDefault();
 });
 
 // Outside click + Escape close the menus
@@ -11693,16 +11861,24 @@ async function saveContextTimeEntry() {
  * doesn't bother the analyst with "SLA disabled for this ticket" noise.
  */
 async function loadSlaState(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     const container = document.getElementById('slaContainer');
     if (!container) return;
     container.innerHTML = '';
     try {
         const res = await fetch(API_BASE + 'get_ticket_sla.php?ticket_id=' + ticketId);
         const data = await res.json();
-        if (!data.success || !data.sla || !data.sla.enabled) return; // silent hide
+        if (!isCurrent()) return;
+        if (!data.success || !data.sla) throw new Error('SLA lookup failed');
+        window.TicketWorkspace?.setSectionState(ticketId, 'time', 'ready', null, 'sla');
+        window.TicketWorkspace?.updateSla(ticketId, data.sla);
+        if (!data.sla.enabled) return;
         renderSlaPanel(data.sla);
     } catch (e) {
+        if (!isCurrent()) return;
         console.error('SLA load failed:', e);
+        window.TicketWorkspace?.updateSla(ticketId, null);
+        window.TicketWorkspace?.setSectionState(ticketId, 'time', 'error', null, 'sla');
     }
 }
 
@@ -12249,12 +12425,14 @@ function buildReadForMeButton() {
  * Asks for an automatic refresh when the server says one is due.
  */
 async function loadAiSummary(ticketId) {
+    const isCurrent = ticketReadGuard(ticketId);
     if (!aiSummaryOn() || !ticketId) return;
     _aiSummaryTicketId = ticketId;
     _aiSummaryState = null;
     try {
         const r = await fetch(`../api/tickets/ai_summary.php?ticket_id=${encodeURIComponent(ticketId)}`);
         const d = await r.json();
+        if (!isCurrent()) return;
         // The ticket may have changed underneath a slow request. Landing an old
         // ticket's summary on a new ticket would be a quiet, confident lie.
         // Confidential and not sent to AI (#62): say so where the summary would
@@ -12273,6 +12451,7 @@ async function loadAiSummary(ticketId) {
            asks, and asking twice cannot bill twice. */
         if (d.auto_due && d.configured) refreshAiSummary(true);
     } catch (e) {
+        if (!isCurrent()) return;
         // A summary that cannot load leaves the ticket exactly as it was.
     }
 }

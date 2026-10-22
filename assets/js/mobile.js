@@ -1553,6 +1553,7 @@
     function relocateSections() {
         if (!mq.matches) return;
         var rp = document.getElementById('readingPane');
+        if (rp && rp.classList.contains('ticket-workspace')) return;
         if (!rp) return;
         var toolbar = rp.querySelector('.action-toolbar');
         if (!toolbar) return;
@@ -1664,6 +1665,7 @@
     function buildToolbarOverflow() {
         if (!mq.matches) return;
         var rp = document.getElementById('readingPane');
+        if (rp && rp.classList.contains('ticket-workspace')) return;
         if (!rp) return;
         var toolbar = rp.querySelector('.action-toolbar');
         if (!toolbar || toolbar.querySelector('.mobile-more-btn')) return;
