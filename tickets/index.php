@@ -63,13 +63,22 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=80">
+    <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=3">
     <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=3">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=197">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=5">
     <link rel="stylesheet" href="../assets/css/tickets-table.css?v=2">
-    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+<?php
+// Note images open in the Files viewer (GH #226), so it needs its own strings -
+// the window buttons, the zoom tools and Download - but not the rest of Files'.
+$jsTranslations = I18n::exportForJs($translationNamespaces);
+$filesStrings = I18n::exportForJs(['files'])['files'] ?? [];
+$jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 'viewer', 'loading']))
+    + ['ex' => ['download' => $filesStrings['ex']['download'] ?? 'Download']];
+?>
+    <script>window.translations = <?php echo json_encode($jsTranslations, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <?php
     /* The install's snooze wake hour, so the flyout can label "Tomorrow" with the
@@ -1105,7 +1114,11 @@ $translationNamespaces = ['common', 'tickets'];
     <script src="../assets/js/ticket-fields.js?v=2"></script>
     <script src="../assets/js/ticket-workspace.js?v=4"></script>
     <script src="../assets/js/data-table.js?v=7"></script>
-    <script src="../assets/js/inbox.js?v=168"></script>
+    <!-- Note images open in the Files viewer, in a floating window (GH #226). -->
+    <script src="../assets/js/float-window.js?v=1"></script>
+    <script src="../assets/js/files-icons.js?v=2"></script>
+    <script src="../assets/js/files-viewer.js?v=6"></script>
+    <script src="../assets/js/inbox.js?v=169"></script>
     <script src="../assets/js/tickets-table.js?v=1"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>

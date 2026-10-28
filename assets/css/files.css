@@ -25,7 +25,6 @@ body.fd-body {
     font-size: 13px;
     color: var(--text);
 }
-body.fd-dragging, body.fd-dragging * { user-select: none !important; }
 /* TRAP: any display: rule beats the [hidden] attribute - the start menu (flex)
    and the transfers pill showed while "hidden". One rule for the whole page. */
 body.fd-body [hidden] { display: none !important; }
@@ -80,16 +79,6 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 }
 .fd-logo-top-right { top: 18px; }
 .fd-logo-bottom-right { bottom: 18px; }
-
-.fd-snap-ghost {
-    position: absolute;
-    background: rgba(255, 255, 255, .16);
-    border: 2px solid rgba(255, 255, 255, .55);
-    border-radius: 8px;
-    backdrop-filter: blur(6px);
-    pointer-events: none;
-    transition: all .12s ease;
-}
 
 /* ── The taskbar ──────────────────────────────────────────────────────── */
 .fd-taskbar {
@@ -202,56 +191,6 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fd-sm-me { font-weight: 600; }
 .fd-sm-out { display: flex; align-items: center; gap: 6px; color: var(--text); text-decoration: none; padding: 4px 8px; border-radius: 5px; }
 .fd-sm-out:hover { background: var(--surface-hover); }
-
-/* ── Windows ──────────────────────────────────────────────────────────── */
-.fd-win {
-    position: absolute;
-    display: flex; flex-direction: column;
-    min-width: 280px; min-height: 180px;
-    background: var(--surface);
-    border: 1px solid rgba(0, 0, 0, .28);
-    border-radius: 8px;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, .28), 0 2px 6px rgba(0, 0, 0, .18);
-    overflow: hidden;
-}
-[data-theme="dark"] .fd-win { border-color: rgba(255, 255, 255, .14); }
-.fd-win.fd-active { box-shadow: 0 16px 48px rgba(0, 0, 0, .42), 0 3px 10px rgba(0, 0, 0, .22); }
-.fd-win.fd-max {
-    left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important;
-    border-radius: 0; border: 0;
-}
-.fd-titlebar {
-    flex: 0 0 34px;
-    display: flex; align-items: center; gap: 8px;
-    padding-left: 10px;
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border-soft);
-    user-select: none; cursor: default;
-    touch-action: none;
-}
-.fd-win:not(.fd-active) .fd-titlebar { color: var(--text-dim); }
-.fd-win-icon { display: flex; }
-.fd-win-title { flex: 1; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fd-win-btns { display: flex; align-self: stretch; }
-.fd-wb {
-    width: 46px; border: 0; background: transparent; color: var(--text); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-}
-.fd-wb svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.1; }
-.fd-wb:hover { background: var(--surface-hover); }
-.fd-wb-close:hover { background: #c42b1c; color: #fff; }
-.fd-win.fd-max .fd-wb-max svg rect { transform: translate(1px, -1px) scale(.85); transform-origin: center; }
-.fd-win-body { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
-.fd-rs { position: absolute; z-index: 2; touch-action: none; }
-.fd-rs-n { top: -3px; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }
-.fd-rs-s { bottom: -3px; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }
-.fd-rs-e { right: -3px; top: 8px; bottom: 8px; width: 6px; cursor: ew-resize; }
-.fd-rs-w { left: -3px; top: 8px; bottom: 8px; width: 6px; cursor: ew-resize; }
-.fd-rs-ne { right: -3px; top: -3px; width: 12px; height: 12px; cursor: nesw-resize; }
-.fd-rs-sw { left: -3px; bottom: -3px; width: 12px; height: 12px; cursor: nesw-resize; }
-.fd-rs-nw { left: -3px; top: -3px; width: 12px; height: 12px; cursor: nwse-resize; }
-.fd-rs-se { right: -3px; bottom: -3px; width: 12px; height: 12px; cursor: nwse-resize; }
-.fd-win.fd-max .fd-rs { display: none; }
 
 /* ── Explorer ─────────────────────────────────────────────────────────── */
 .fx { background: var(--surface); }
@@ -535,85 +474,6 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
    Hidden here, outside any media query, so the desktop never shows it (§25). */
 .fd-mobile { display: none; }
 
-/* ── The viewer (files-viewer.js) ─────────────────────────────────────────
-   One layout for every kind: a bar, a scrolling stage, an optional footer
-   note, and - when the folder says so - the watermark laid OVER the stage
-   (not inside it) so it stays put while the document scrolls beneath it. */
-.fdv { background: var(--surface-2); }
-.fdv-bar {
-    display: flex; align-items: center; gap: 6px; padding: 6px 10px;
-    border-bottom: 1px solid var(--border-soft); background: var(--surface);
-    min-height: 40px;
-}
-.fdv-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.fdv-grow { flex: 1; }
-.fdv-tools { display: flex; align-items: center; gap: 2px; }
-.fdv-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 11.5px; background: var(--surface-2); color: var(--text-muted); white-space: nowrap; }
-.fdv-badge-vo { background: var(--warning-bg); color: var(--warning-text); }
-.fdv-btn {
-    display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px;
-    border: 0; border-radius: 5px; background: transparent; color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer;
-}
-.fdv-btn:hover { background: var(--surface-hover); }
-.fdv-btn-primary { background: var(--fil-accent); color: var(--fil-on-accent); padding: 0 14px; }
-.fdv-btn-primary:hover { background: var(--fil-accent-hover); }
-.fdv-zoom, .fdv-page { min-width: 48px; text-align: center; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.fdv-page { min-width: 70px; margin-right: 6px; }
-.fdv-stagewrap { flex: 1; min-height: 0; position: relative; }
-.fdv-stage { position: absolute; inset: 0; overflow: auto; outline: none; }
-.fdv-loading, .fdv-msg { padding: 40px; text-align: center; color: var(--text-dim); }
-.fdv-wm { position: absolute; inset: 0; pointer-events: none; z-index: 2; background-repeat: repeat; }
-.fdv-foot { padding: 6px 12px; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--border-soft); background: var(--surface); }
-.fdv-muted { color: var(--text-dim); }
-
-/* TRAP: never centre zoomable content with align-items/justify-content: center.
-   When the page is wider than the window it overflows BOTH sides, and the left
-   part can never be scrolled to (Ed, 2026-10-10). Auto margins centre when there
-   is room and collapse to 0 when there is not. */
-.fdv-pdf { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px; background: #525659; }
-.fdv-page-box { background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .45); flex: 0 0 auto; margin: 0 auto; }
-.fdv-page-box canvas { display: block; }
-
-.fdv-paperstage { padding: 24px; background: #e7e9ec; }
-[data-theme="dark"] .fdv-paperstage { background: #2b2f36; }
-.fdv-paper {
-    max-width: 816px; margin: 0 auto; padding: 72px 80px; min-height: 900px;
-    background: #fff; color: #1f2328; box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
-    font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.5;
-}
-.fdv-paper img { max-width: 100%; height: auto; }
-.fdv-paper table { border-collapse: collapse; margin: 10px 0; }
-.fdv-paper td, .fdv-paper th { border: 1px solid #c8ccd1; padding: 4px 8px; vertical-align: top; }
-.fdv-paper a { color: #0b57d0; }
-
-.fdv-sheetstage { background: var(--surface); }
-.fdv-grid { border-collapse: collapse; font-size: 12.5px; font-family: Calibri, 'Segoe UI', Arial, sans-serif; }
-.fdv-grid th, .fdv-grid td { border: 1px solid var(--border-soft); padding: 3px 8px; white-space: nowrap; max-width: 420px; overflow: hidden; text-overflow: ellipsis; }
-.fdv-grid thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-2); color: var(--text-muted); font-weight: 400; text-align: center; }
-.fdv-grid tbody th { position: sticky; left: 0; background: var(--surface-2); color: var(--text-muted); font-weight: 400; text-align: right; min-width: 36px; }
-.fdv-grid .fdv-corner { left: 0; z-index: 2; }
-.fdv-sheettabs { display: flex; gap: 2px; padding: 0 8px; background: var(--surface-2); border-top: 1px solid var(--border-soft); overflow-x: auto; }
-.fdv-sheettab {
-    padding: 6px 14px; border: 0; border-bottom: 3px solid transparent; background: transparent;
-    color: var(--text-muted); font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap;
-}
-.fdv-sheettab.fdv-on { color: #217346; border-bottom-color: #217346; background: var(--surface); font-weight: 600; }
-
-.fdv-imgstage { display: flex; align-items: flex-start; justify-content: flex-start; padding: 16px; background: repeating-conic-gradient(#e9e9e9 0 25%, #fff 0 50%) 0 0 / 20px 20px; }
-[data-theme="dark"] .fdv-imgstage { background: repeating-conic-gradient(#2a2d33 0 25%, #1f2227 0 50%) 0 0 / 20px 20px; }
-.fdv-img { display: block; max-width: none; margin: 0 auto; flex: 0 0 auto; box-shadow: 0 2px 10px rgba(0, 0, 0, .25); }
-.fdv-mediastage { display: flex; align-items: center; justify-content: center; background: #000; }
-.fdv-media { max-width: 100%; max-height: 100%; }
-audio.fdv-media { width: 80%; }
-.fdv-text { margin: 0; padding: 14px 18px; font: 12.5px/1.5 Consolas, 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; color: var(--text); background: var(--surface); min-height: 100%; box-sizing: border-box; }
-.fdv-none { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 50px 20px; text-align: center; }
-.fdv-none-name { font-weight: 600; font-size: 15px; word-break: break-word; }
-
-/* View only: nothing to select or drag out, and nothing to print. */
-.fdv-viewonly .fdv-stage { user-select: none; -webkit-user-select: none; }
-.fdv-viewonly .fdv-stage img, .fdv-viewonly .fdv-stage canvas { -webkit-user-drag: none; }
-/* View only prints blank - on a phone too, where .fdv-viewonly is inside the full-screen viewer. */
-@media print { .fdv-viewonly { visibility: hidden !important; } }
 .fd-nowrap { white-space: nowrap; }
 
 /* Permissions window: the watermark choice. */
@@ -621,26 +481,6 @@ audio.fdv-media { width: 80%; }
 .fd-perm-wm label { display: flex; align-items: center; gap: 10px; font-weight: 600; }
 .fd-perm-wm .fd-muted { font-size: 12px; margin-top: 4px; }
 
-/* Zip archives: a folder-like list, and an entry's own viewer laid over it. */
-.fdv-zipstage { background: var(--surface); }
-.fdv-zip { padding: 8px 10px 20px; }
-.fdv-zcrumbs { padding: 6px 4px; font-size: 13px; color: var(--text-dim); }
-.fdv-zcrumb { border: 0; background: transparent; color: var(--fil-accent); font: inherit; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
-.fdv-zcrumb:hover { background: var(--surface-hover); }
-.fdv-zhint { padding: 0 8px 8px; font-size: 12px; }
-.fdv-zrow {
-    display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px;
-    border: 0; border-radius: 4px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer;
-}
-.fdv-zrow:hover { background: var(--surface-hover); }
-.fdv-zrow .fi { flex: 0 0 auto; }
-.fdv-zname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fdv-zip-entry { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--surface-2); z-index: 1; }
-.fdv-zback { display: flex; align-items: center; gap: 10px; padding: 4px 8px; border-bottom: 1px solid var(--border-soft); background: var(--surface); font-size: 12px; }
-.fdv-zback .fdv-muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fdv-zentry { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.fdv-grid td.fdv-num { text-align: right; }
-.fdv-in-entry > .fdv-bar [data-act="download"] { display: none; }
 
 /* Shortcuts: the target's icon with the arrow badge in its corner. */
 .fi-sc { position: relative; display: inline-flex; flex: 0 0 auto; }

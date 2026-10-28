@@ -16352,24 +16352,33 @@
 }
 
 @media (max-width: 768px) {
-    /* 45d - the viewer on a phone: full screen over the list, its own bar
-       with Back (files-viewer.js openPhone). Only ever created on a phone. */
-    body[data-mobile-page="files-desktop"] .fdm-viewer {
+    /* 45d - the viewer on a phone: full screen over the page, its own bar
+       with Back (files-viewer.js openPhone). Only ever created on a phone.
+       Not scoped to the Files page: a ticket note's image opens in the same
+       viewer (FilesViewer.openUrl, GH #226), so its Back and title are styled
+       here too rather than relying on 45b's Files-only list rules. */
+    .fdm-viewer {
         /* Above the header too (LAYER 1 lifts it): the viewer is full screen and
            carries its own Back, so nothing may sit on top of that bar. */
         position: fixed; inset: 0; z-index: 300000; display: flex; flex-direction: column; background: var(--surface);
     }
-    body[data-mobile-page="files-desktop"] .fdm-viewer-bar {
+    .fdm-viewer-bar {
         display: flex; align-items: center; gap: 6px; padding: 6px 10px; flex-shrink: 0;
         padding-top: calc(6px + env(safe-area-inset-top)); border-bottom: 1px solid var(--border);
     }
-    body[data-mobile-page="files-desktop"] .fdm-viewer-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-bar { flex-wrap: wrap; }
-    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-name { display: none; }
-    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-btn { min-height: 40px; min-width: 40px; }
-    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-paper { padding: 20px 16px; min-height: 0; }
-    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-paperstage { padding: 8px; }
-    body[data-mobile-page="files-desktop"] .fdm-viewer .fdv-pdf { padding: 8px; }
+    .fdm-viewer .fdm-title { flex: 1; min-width: 0; font-weight: 600; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fdm-viewer .fdm-back {
+        flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 8px;
+        background: transparent; color: var(--text); display: flex; align-items: center; justify-content: center;
+    }
+    .fdm-viewer .fdm-back svg { width: 20px; height: 20px; }
+    .fdm-viewer-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    .fdm-viewer .fdv-bar { flex-wrap: wrap; }
+    .fdm-viewer .fdv-name { display: none; }
+    .fdm-viewer .fdv-btn { min-height: 40px; min-width: 40px; }
+    .fdm-viewer .fdv-paper { padding: 20px 16px; min-height: 0; }
+    .fdm-viewer .fdv-paperstage { padding: 8px; }
+    .fdm-viewer .fdv-pdf { padding: 8px; }
 }
 
 @media (max-width: 768px) {

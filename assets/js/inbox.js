@@ -7013,8 +7013,13 @@ function renderNotes() {
                 if (!href) return '';
                 const name = d.original_name || d.title || '';
                 const size = d.kind === 'link' ? '' : noteFileSize(d.size_bytes);
+                // GH #226: an image opens in a floating window over the ticket (the
+                // Files viewer) - followed as a plain link it REPLACED the Tickets page,
+                // with no way back but the Back button, which left the ticket too.
+                const isImage = d.kind !== 'link' && NOTE_IMAGE_RE.test(name);
                 return `<a class="note-file" href="${escapeHtml(href)}"
                            ${d.kind === 'link' ? 'target="_blank" rel="noopener noreferrer"' : ''}
+                           ${isImage ? `data-view-image="${escapeHtml(name)}" data-size="${Number(d.size_bytes) || 0}"` : ''}
                            title="${escapeHtml(name)}">
                             <span class="note-file-name">${escapeHtml(name)}</span>
                             <span class="note-file-size">${escapeHtml(size)}</span>
@@ -7055,7 +7060,29 @@ function renderNotes() {
 
     html += '</div>';
     container.innerHTML = html;
+    if (!container.dataset.imageViewer) {
+        container.dataset.imageViewer = '1';
+        container.addEventListener('click', openNoteImage);
+    }
     if (typeof styleSopResponsesInNotes === 'function') styleSopResponsesInNotes();
+}
+
+// The kinds the Files viewer shows as a picture. SVG is deliberately absent - it can carry script.
+const NOTE_IMAGE_RE = /\.(png|jpe?g|gif|webp|bmp)$/i;
+
+// A click on a note's image (GH #226): open it in a floating window - drag it,
+// resize it, close it with Close or Escape - instead of following the link. The
+// link stays a real link, so Ctrl/middle-click still opens it in a new tab, and
+// the address is the same download.php, so the permission check is unchanged.
+function openNoteImage(ev) {
+    const a = ev.target.closest('a.note-file[data-view-image]');
+    if (!a || ev.button !== 0 || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
+    if (!window.FilesViewer || !window.FilesViewer.openUrl) return;
+    const href = a.getAttribute('href');
+    const w = window.FilesViewer.openUrl({
+        name: a.dataset.viewImage, src: href, downloadUrl: href, size: Number(a.dataset.size) || 0
+    });
+    if (w) ev.preventDefault();
 }
 
 // ===== Files chosen for the note being written (discussion #69) =============
