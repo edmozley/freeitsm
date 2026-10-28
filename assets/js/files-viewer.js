@@ -511,13 +511,14 @@
 
         // ── Images ─────────────────────────────────────────────────────────
         function renderImage() {
-            var img = new Image(), zoom = 0;
+            var img = new Image(), zoom = 0, fitting = true;
             img.className = 'fdv-img';
             img.alt = info.name;
             img.draggable = false;
             var showZoom = zoomTools(function (z) {
                 var fit = fitZoom();
-                zoom = z === 'fit' ? fit : Math.max(0.05, Math.min(8, (zoom || fit) * (z === 'in' ? 1.25 : 0.8)));
+                fitting = z === 'fit';
+                zoom = fitting ? fit : Math.max(0.05, Math.min(8, (zoom || fit) * (z === 'in' ? 1.25 : 0.8)));
                 apply();
             });
             /** Returns the zoom that fits the whole image in the stage, never above 100%. */
@@ -528,6 +529,27 @@
             img.onload = function () { stage.innerHTML = ''; stage.classList.add('fdv-imgstage'); stage.appendChild(img); zoom = fitZoom(); apply(); };
             /** Shows "The file could not be shown" when the image fails to load. */
             img.onerror = function () { error(new Error(L('viewer.load_failed', 'The file could not be shown.'))); };
+            // Resizing or maximising the window refits the picture, as a PDF does - until
+            // the person zooms in or out themselves; Fit hands it back (GH #226 follow-up).
+            // TRAP: refit just after, never inside the observer. Resizing the picture
+            // there adds or removes the stage's scrollbars, which resizes the stage again
+            // inside the same callback - "ResizeObserver loop completed with undelivered
+            // notifications", and the dropped notifications were whole window resizes
+            // that never refitted.
+            if (window.ResizeObserver) {
+                var frame = 0;
+                var ro = new ResizeObserver(function () {
+                    if (frame) return;
+                    frame = setTimeout(function () {
+                        frame = 0;
+                        if (!fitting || !img.naturalWidth || !stage.contains(img)) return;
+                        var z = fitZoom();
+                        if (Math.abs(z - zoom) > 0.001) { zoom = z; apply(); }
+                    }, 16);
+                });
+                ro.observe(stage);
+                ctl.destroy = function () { ro.disconnect(); clearTimeout(frame); };
+            }
             img.src = mediaUrl();
         }
 

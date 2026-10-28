@@ -16,6 +16,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 |------|-------------------|-------------|-------------|
 | 2654 | Assets            | Fix         | The Assets page never loaded in 4.3.0 (spinner only, "missing ) after argument list"): the #217 comment on the CiAssetLink.mount line had no line break after it, so the comment swallowed the mount call's first argument and killed the page's whole inline script (GH #222). |
 | 2655 | Tickets / Files   | Fix         | A picture on a ticket note opened as a plain link that replaced the whole Tickets page (no close, Escape dead, Back left the ticket); it now opens in the Files viewer in a floating window over the ticket - the window core moved out of files-wm.js into a shared float-window.js (+ float-window.css), files-viewer.js gained openUrl(), and Files builds on the shared core through hooks (GH #226). |
+| 2656 | Tickets / Files   | Improvement | Pictures attached to a ticket's emails (Attachments list thumbnails, rows and phone cards) open in the same floating viewer window as note pictures, and a picture in the viewer now refits as its window is resized or maximised until the person zooms - deferred out of the ResizeObserver callback to avoid the observer loop that dropped resizes (GH #226 follow-up). |
 
 
 

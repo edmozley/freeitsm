@@ -6833,7 +6833,7 @@ function showAttachmentList() {
                 const ct = (att.content_type || '').toLowerCase();
                 let media;
                 if (ct.startsWith('image/')) {
-                    media = `<img src="${url}" alt="${escapeHtml(att.filename)}" class="att-preview-media" loading="lazy" onclick="window.open('${url}','_blank')" title="${escapeHtml(t('tickets.reading_pane.attach_click_fullsize'))}">`;
+                    media = `<img src="${url}" alt="${escapeHtml(att.filename)}" class="att-preview-media" loading="lazy" onclick="openAttachment(${att.id})" title="${escapeHtml(t('tickets.reading_pane.attach_click_fullsize'))}">`;
                 } else if (ct.startsWith('audio/')) {
                     media = `<audio controls preload="none" src="${url}" class="att-preview-audio"></audio>`;
                 } else {
@@ -6880,7 +6880,7 @@ function attachmentCardsHtml(trackerLink) {
         const ct = (att.content_type || '').toLowerCase();
         let media = '';
         if (ct.startsWith('image/')) {
-            media = `<img src="${url}" alt="${escapeHtml(att.filename)}" class="att-card-media" loading="lazy" onclick="window.open('${url}','_blank')" title="${escapeHtml(t('tickets.reading_pane.attach_click_fullsize'))}">`;
+            media = `<img src="${url}" alt="${escapeHtml(att.filename)}" class="att-card-media" loading="lazy" onclick="openAttachment(${att.id})" title="${escapeHtml(t('tickets.reading_pane.attach_click_fullsize'))}">`;
         } else if (ct.startsWith('audio/')) {
             media = `<audio controls preload="none" src="${url}" class="att-card-audio"></audio>`;
         } else if (ct.startsWith('video/')) {
@@ -6970,9 +6970,17 @@ async function sendAttachmentToTracker(btn) {
     }
 }
 
-// Open/download an attachment
+// Open an attachment. A picture opens in the Files viewer, in a floating window
+// over the ticket (GH #226 follow-up, as a note's picture does); anything else
+// opens in a new tab, which downloads it or lets the browser show it.
 function openAttachment(attachmentId) {
-    window.open(`${API_BASE}get_attachment.php?id=${attachmentId}`, '_blank');
+    const url = `${API_BASE}get_attachment.php?id=${attachmentId}`;
+    const att = (ticketAttachments || []).find(a => Number(a.id) === Number(attachmentId));
+    if (att && /^image\//i.test(att.content_type || '') && window.FilesViewer && window.FilesViewer.openUrl) {
+        // openUrl decides by the file NAME (and never shows SVG); null = not a kind it shows.
+        if (window.FilesViewer.openUrl({ name: att.filename, src: url, downloadUrl: url, size: att.file_size || 0 })) return;
+    }
+    window.open(url, '_blank');
 }
 
 // Render notes
