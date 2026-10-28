@@ -2648,7 +2648,8 @@ $translationNamespaces = ['common', 'asset-management'];
             // Projects (3.2.0): the projects this asset is part of.
             if (window.ASSET_SHOW_PROJECTS && window.ProjectLinks) ProjectLinks.mount(document.getElementById('assetProjects'), { kind: 'asset', id: assetId, base: window.APP_BASE || '../', bare: true });
             loadCustomFields(assetId);
-            if (window.CiAssetLink && window.ASSET_MODULE_ON.cmdb) CiAssetLink.mount(   // GH #217: an empty section while CMDB is offdocument.getElementById('ciLinkSection'), {
+            // GH #217: an empty section while CMDB is off
+            if (window.CiAssetLink && window.ASSET_MODULE_ON.cmdb) CiAssetLink.mount(document.getElementById('ciLinkSection'), {
                 side: 'asset', id: assetId, base: window.APP_BASE || '../',
                 cardClass: 'ci-link-block', headClass: 'section-header', titleClass: 'section-title',
                 onState: s => { if (Number(selectedAssetId) === Number(assetId)) atlSaw('cmdb', s.linked ? 1 : 0); }

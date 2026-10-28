@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2654 | Assets            | Fix         | The Assets page never loaded in 4.3.0 (spinner only, "missing ) after argument list"): the #217 comment on the CiAssetLink.mount line had no line break after it, so the comment swallowed the mount call's first argument and killed the page's whole inline script (GH #222). |
 
 
 
