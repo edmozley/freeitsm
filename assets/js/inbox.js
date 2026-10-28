@@ -6970,13 +6970,13 @@ async function sendAttachmentToTracker(btn) {
     }
 }
 
-// Open an attachment. A picture opens in the Files viewer, in a floating window
-// over the ticket (GH #226 follow-up, as a note's picture does); anything else
+// Open an attachment. A picture or a PDF opens in the Files viewer, in a floating
+// window over the ticket (GH #226 follow-up, as a note's file does); anything else
 // opens in a new tab, which downloads it or lets the browser show it.
 function openAttachment(attachmentId) {
     const url = `${API_BASE}get_attachment.php?id=${attachmentId}`;
     const att = (ticketAttachments || []).find(a => Number(a.id) === Number(attachmentId));
-    if (att && /^image\//i.test(att.content_type || '') && window.FilesViewer && window.FilesViewer.openUrl) {
+    if (att && VIEWER_FILE_RE.test(att.filename || '') && window.FilesViewer && window.FilesViewer.openUrl) {
         // openUrl decides by the file NAME (and never shows SVG); null = not a kind it shows.
         if (window.FilesViewer.openUrl({ name: att.filename, src: url, downloadUrl: url, size: att.file_size || 0 })) return;
     }
@@ -7021,13 +7021,13 @@ function renderNotes() {
                 if (!href) return '';
                 const name = d.original_name || d.title || '';
                 const size = d.kind === 'link' ? '' : noteFileSize(d.size_bytes);
-                // GH #226: an image opens in a floating window over the ticket (the
-                // Files viewer) - followed as a plain link it REPLACED the Tickets page,
-                // with no way back but the Back button, which left the ticket too.
-                const isImage = d.kind !== 'link' && NOTE_IMAGE_RE.test(name);
+                // GH #226: a picture or PDF opens in a floating window over the ticket
+                // (the Files viewer) - followed as a plain link a picture REPLACED the
+                // Tickets page, with no way back but Back, which left the ticket too.
+                const inViewer = d.kind !== 'link' && VIEWER_FILE_RE.test(name);
                 return `<a class="note-file" href="${escapeHtml(href)}"
                            ${d.kind === 'link' ? 'target="_blank" rel="noopener noreferrer"' : ''}
-                           ${isImage ? `data-view-image="${escapeHtml(name)}" data-size="${Number(d.size_bytes) || 0}"` : ''}
+                           ${inViewer ? `data-view-file="${escapeHtml(name)}" data-size="${Number(d.size_bytes) || 0}"` : ''}
                            title="${escapeHtml(name)}">
                             <span class="note-file-name">${escapeHtml(name)}</span>
                             <span class="note-file-size">${escapeHtml(size)}</span>
@@ -7070,25 +7070,27 @@ function renderNotes() {
     container.innerHTML = html;
     if (!container.dataset.imageViewer) {
         container.dataset.imageViewer = '1';
-        container.addEventListener('click', openNoteImage);
+        container.addEventListener('click', openNoteFile);
     }
     if (typeof styleSopResponsesInNotes === 'function') styleSopResponsesInNotes();
 }
 
-// The kinds the Files viewer shows as a picture. SVG is deliberately absent - it can carry script.
-const NOTE_IMAGE_RE = /\.(png|jpe?g|gif|webp|bmp)$/i;
+// The files Tickets opens in the Files viewer: pictures and PDFs. The viewer can show
+// more (Word, spreadsheets, zips...) - Ed chose these two. SVG is deliberately absent:
+// it can carry script.
+const VIEWER_FILE_RE = /\.(png|jpe?g|gif|webp|bmp|pdf)$/i;
 
-// A click on a note's image (GH #226): open it in a floating window - drag it,
-// resize it, close it with Close or Escape - instead of following the link. The
+// A click on a note's picture or PDF (GH #226): open it in a floating window - drag
+// it, resize it, close it with Close or Escape - instead of following the link. The
 // link stays a real link, so Ctrl/middle-click still opens it in a new tab, and
 // the address is the same download.php, so the permission check is unchanged.
-function openNoteImage(ev) {
-    const a = ev.target.closest('a.note-file[data-view-image]');
+function openNoteFile(ev) {
+    const a = ev.target.closest('a.note-file[data-view-file]');
     if (!a || ev.button !== 0 || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
     if (!window.FilesViewer || !window.FilesViewer.openUrl) return;
     const href = a.getAttribute('href');
     const w = window.FilesViewer.openUrl({
-        name: a.dataset.viewImage, src: href, downloadUrl: href, size: Number(a.dataset.size) || 0
+        name: a.dataset.viewFile, src: href, downloadUrl: href, size: Number(a.dataset.size) || 0
     });
     if (w) ev.preventDefault();
 }

@@ -37,7 +37,12 @@
     // ticket note's image, GH #226) neither exists: the window is FloatWin.page()'s
     // and the caller hands over the file's own address, so this file never needs
     // Files' token API there.
-    var B   = window.FILES_BOOT || { base: '../', api: '../api/files/' };
+    // TRAP: the base must be ABSOLUTE. pdf.js loads with import(), which resolves a
+    // relative path against THIS SCRIPT's address, not the page's - '../' from
+    // assets/js/ pointed at assets/assets/js/vendor/. So outside Files it is worked
+    // out from this file's own URL.
+    var selfBase = (document.currentScript && document.currentScript.src || '').replace(/assets\/js\/files-viewer\.js.*$/, '');
+    var B   = window.FILES_BOOT || { base: selfBase, api: selfBase + 'api/files/' };
     var WM  = window.FilesWM || null;
     var FI  = window.FilesIcons;
     var L   = WM ? WM.L : function (key, english, params) { return window.tf ? window.tf('files.' + key, english, params) : english; };
