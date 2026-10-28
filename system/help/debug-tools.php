@@ -40,7 +40,7 @@ require __DIR__ . '/_top.php';
     <div class="help-section-header"><?php echo helpSectionNum('tools'); ?>
         <div>
             <h3>The diagnostics on this page</h3>
-            <p>Two diagnostics ship today. The list grows as new failure points are added.</p>
+            <p>The Debug Tools page lists every diagnostic, and each one's card says when to run it, what it checks and whether it changes anything. Three are described here; the list grows as new failure points are added.</p>
         </div>
     </div>
 
@@ -70,6 +70,19 @@ require __DIR__ . '/_top.php';
     </ul>
     <p><strong>Runtime:</strong> about 1 second.</p>
     <div class="help-note warn"><strong>D002 is destructive.</strong> On success the ticket and all of its data are permanently deleted. On any error the transaction is rolled back and nothing changes — but only run it on a ticket you actually intend to delete.</div>
+
+    <h4>D019 — Page health</h4>
+    <p>Run this <strong>after every upgrade</strong>, next to Database Verification, and whenever a page shows its loading spinner forever, a blank area, or buttons that do nothing. If one of a page's scripts contains a single mistake the browser cannot read, the browser runs <em>none</em> of that script: the page looks loaded and nothing on it works. The server cannot see this — it sends the page perfectly well — so this tool runs in <strong>your browser</strong>, not on the server.</p>
+    <ul>
+        <li>It finds every page by looking at the files, so a page added in an update is checked the day it arrives.</li>
+        <li>Press <strong>Run</strong> and it opens each page as you, four at a time, with a progress bar and a row per module that turns green or red as it goes.</li>
+        <li>Every script on each page — written into the page or loaded from a file — is read by your browser <strong>without being run</strong>.</li>
+        <li>A problem names the page, the line, the browser's own message and the code around that line. A script file the page asks for that is not there, and a page that answers with a server error, count as problems too.</li>
+        <li>Pages of modules switched off in <strong>System → Modules</strong> are skipped, as are pages that need a record to show and send you elsewhere when opened on their own. Each says why.</li>
+        <li>Modules with a problem move to the top. <strong>Problems only</strong> hides the rest; <strong>Copy</strong> and <strong>Download</strong> give you the report to paste into a bug report.</li>
+    </ul>
+    <p><strong>Runtime:</strong> about a minute. <strong>Side effects:</strong> only the result — the date, who ran it and the counts — is kept, so Database Verification can show when the pages were last checked. Opening each page does on the server whatever opening it normally does, exactly as if you had clicked to it.</p>
+    <div class="help-note"><strong>Why it exists.</strong> In 4.3.0 the Assets page never finished loading: one comment had swallowed the code after it. Every check that ran on the server passed. This tool, and the same check run on every change to FreeITSM before release, would have caught it.</div>
 </div>
 
 <!-- 4. When to use them -->

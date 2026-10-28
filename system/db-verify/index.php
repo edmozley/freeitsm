@@ -21,6 +21,28 @@ if (!isset($_SESSION['analyst_id'])) {
     header('Location: ' . $path_prefix . 'auth/login.php');
     exit;
 }
+
+// Page health (Debug Tools D019, GH #222): the last time every page's scripts were
+// checked. A perfect database says nothing about whether a page's script can be
+// read, so after an upgrade this page points at that check too. Read defensively:
+// this page must work on a database that is missing tables - it is the page that
+// creates them.
+require_once '../../includes/version.php';
+$phLast = null;
+try {
+    require_once '../../includes/functions.php';
+    $phStmt = connectToDatabase()->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'page_health_last'");
+    $phStmt->execute();
+    $phRaw = $phStmt->fetchColumn();
+    if ($phRaw !== false) $phLast = json_decode((string) $phRaw, true);
+} catch (Throwable $e) { $phLast = null; }
+$phWhen = '';
+if ($phLast && !empty($phLast['ran_at'])) {
+    try {
+        $phWhen = (new DateTime($phLast['ran_at'], new DateTimeZone('UTC')))->setTimezone(new DateTimeZone(Tz::current()))->format('j M Y H:i');
+    } catch (Throwable $e) { $phWhen = $phLast['ran_at']; }
+}
+$phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion() ? 'stale' : (!empty($phLast['problems']) ? 'problems' : 'clear'));
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -122,6 +144,23 @@ if (!isset($_SESSION['analyst_id'])) {
             line-height: 1.5;
         }
         .backup-notice svg { flex: 0 0 auto; margin-top: 1px; }
+
+        /* Page health pointer (D019). Green when the last check is clear and current,
+           red when it found problems, neutral when never run or run before an upgrade. */
+        .ph-note {
+            display: flex; align-items: center; gap: 10px;
+            margin: -8px 0 20px; padding: 10px 16px; border-radius: 6px;
+            background: var(--surface-2, #f7f8fa); border: 1px solid var(--border-soft, #e6e9ed);
+            font-size: 13px; color: var(--text-muted, #555);
+        }
+        .ph-note__dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; background: var(--sys-accent, #546e7a); }
+        .ph-note--clear .ph-note__dot { background: #2e7d32; }
+        .ph-note--problems { border-color: #f5c6cb; }
+        .ph-note--problems .ph-note__dot { background: #c62828; }
+        .ph-note__text { flex: 1; }
+        .ph-note__link { white-space: nowrap; font-weight: 600; color: var(--sys-accent, #546e7a); text-decoration: none; }
+        .ph-note__link:hover { text-decoration: underline; }
+        [data-theme-mode="dark"] .ph-note--problems { border-color: #6b2b30; }
 
         .preview-panel {
             border: 1px solid var(--border, #d5dbe1);
@@ -550,6 +589,18 @@ if (!isset($_SESSION['analyst_id'])) {
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
             <span><?php echo htmlspecialchars(t('system.db_verify.backup_notice')); ?></span>
+        </div>
+
+        <?php /* GH #222: the other half of "is this upgrade healthy?" - Debug Tools D019. */ ?>
+        <div class="ph-note ph-note--<?php echo $phState; ?>">
+            <span class="ph-note__dot" aria-hidden="true"></span>
+            <span class="ph-note__text"><?php
+                // The strings carry <strong> and nothing typed by anyone: {when}, {n} and
+                // {version} are escaped before they go in.
+                $phParams = ['when' => htmlspecialchars($phWhen), 'n' => (int) ($phLast['problems'] ?? 0), 'version' => htmlspecialchars((string) ($phLast['version'] ?? ''))];
+                echo t('system.db_verify.ph_' . $phState, $phParams);
+            ?></span>
+            <a class="ph-note__link" href="../debug-tools/d019/"><?php echo htmlspecialchars(t('system.db_verify.ph_link')); ?> &rarr;</a>
         </div>
 
         <div id="summaryArea"></div>

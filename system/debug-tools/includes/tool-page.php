@@ -47,6 +47,11 @@ if (!$tool) {
 // sets 'method' => 'POST' so values never land in the URL / server logs.
 $toolFields = !empty($tool['inputs']) ? $tool['inputs'] : (!empty($tool['input']) ? [$tool['input']] : []);
 $toolMethod = strtoupper($tool['method'] ?? 'GET');
+// A tool that has to run in the BROWSER (D019 page health - a server cannot run
+// JavaScript) names a runner: system/debug-tools/runners/<runner>.php draws its own
+// panel inside the card ($RUNNER_PART = 'html') and its own script after i18n.js
+// ($RUNNER_PART = 'script'), in place of the plain-text Run / output panel.
+$toolRunner = !empty($tool['runner']) ? preg_replace('/[^a-z0-9-]/', '', (string) $tool['runner']) : '';
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -176,12 +181,16 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
                     </div>
                 <?php endif; ?>
 
+                <?php if ($toolRunner): ?>
+                    <?php $RUNNER_PART = 'html'; include __DIR__ . '/../runners/' . $toolRunner . '.php'; ?>
+                <?php else: ?>
                 <div class="diag-actions">
                     <button class="copy-btn"><?php echo htmlspecialchars(t('system.debug.copy')); ?></button>
                     <button class="run-btn"><?php echo htmlspecialchars(t('system.debug.run')); ?></button>
                 </div>
 
                 <div class="output-panel"></div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -190,6 +199,9 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo $path_prefix; ?>assets/js/tz.js?v=5"></script>
     <script src="<?php echo $path_prefix; ?>assets/js/i18n.js?v=3"></script>
+    <?php if ($toolRunner): ?>
+    <?php $RUNNER_PART = 'script'; include __DIR__ . '/../runners/' . $toolRunner . '.php'; ?>
+    <?php else: ?>
     <script>
     (function () {
         var card    = document.querySelector('.diag-card');
@@ -269,6 +281,7 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
         });
     })();
     </script>
+    <?php endif; ?>
     <script src="../../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

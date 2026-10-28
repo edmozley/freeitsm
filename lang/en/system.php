@@ -860,6 +860,14 @@ return [
         // Shown above the Run button, always. Verification is not a read-only
         // action and the page should not imply that it is.
         'backup_notice' => 'Verification changes your database and can permanently remove outdated columns. Take a backup first, or use Preview to see what would change.',
+        // The pointer to Debug Tools D019 (GH #222): the database can be perfect while a
+        // page's script cannot even be read - 4.3.0's Assets page - so after an upgrade
+        // both checks are run.
+        'ph_never'    => 'After an upgrade, also check every page: <strong>Page health</strong> opens each one and checks its scripts can be read by the browser - the fault that left a page stuck on its spinner after an upgrade.',
+        'ph_clear'    => '<strong>Page health:</strong> every page checked {when} - all clear.',
+        'ph_problems' => '<strong>Page health:</strong> the check on {when} found {n} problem(s).',
+        'ph_stale'    => '<strong>Page health:</strong> last checked {when}, on FreeITSM {version} - before this upgrade. Check the pages again.',
+        'ph_link'     => 'Page health',
 
         'count_ok'      => 'OK',
         'count_created' => 'Created',
@@ -900,6 +908,41 @@ return [
         'input_required' => 'Please enter a value before running this tool.',
         'search_placeholder' => 'Search debug tools…',
         'no_results'         => 'No debug tools match your search.',
+
+        // D019 Page health - the browser runner (system/debug-tools/runners/page-health.php)
+        'ph' => [
+            'download'       => 'Download',
+            'problems_only'  => 'Problems only',
+            'loading'        => 'Finding the pages…',
+            'load_failed'    => 'Could not get the list of pages: {message}',
+            'ready'          => '{pages} pages to check. Nothing is checked until you press Run.',
+            'checking'       => 'Checking {n} of {total}',
+            'all_clear'      => 'All {pages} pages are healthy',
+            'problems'       => '{problems} problem(s) on {pages} page(s)',
+            'stats'          => '{pages} pages checked · {scripts} scripts read · {skipped} skipped',
+            'last_never'     => 'Page health has not been checked on this installation yet.',
+            'last_clear'     => 'Last checked {when} by {by} (FreeITSM {version}): all clear.',
+            'last_problems'  => 'Last checked {when} by {by} (FreeITSM {version}): {problems} problem(s) found.',
+            'open_page'      => 'Open',
+            'count_pages'    => '{n} page(s)',
+            'group_home'     => 'Home',
+            'group_auth'     => 'Sign-in pages',
+            'group_portal'   => 'Self-service portal',
+            'st_problem'     => 'Problem',
+            'st_skipped'     => 'Skipped',
+            'skip_redirect'  => 'Sends you elsewhere when opened on its own - it needs a record to show, or another kind of sign-in (the portal, the sign-in pages)',
+            'skip_not_html'  => 'Not a page (the server sent {type})',
+            'skip_module'    => 'The module is switched off in System -> Modules',
+            'skip_never'     => 'Never opened by this check: {why}',
+            'skip_status'    => 'The page answered HTTP {status} when opened on its own - usually it needs a record to show, or is not for this account',
+            'err_http'       => 'The server answered HTTP {status}',
+            'err_php'        => 'The page contains a PHP error: {message}',
+            'err_fetch'      => 'The page could not be fetched: {message}',
+            'err_script'     => 'Script {n} in the page, line {line} of the page source: {message}',
+            'err_file'       => '{file}, line {line}: {message}',
+            'err_file_http'  => 'The page loads {file}, which the server answered with HTTP {status}',
+            'err_unclosed'   => 'something opened is never closed - the line shown is the end of the script',
+        ],
     ],
 
     // Demo data page (system/demo-data/index.php)

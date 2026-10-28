@@ -949,4 +949,17 @@ return [
         'link'     => 'system/preferences/',
         'check'    => ['rows', 'user_preferences', "preference_key = 'desktop_notifications' AND preference_value = 'on'"],
     ],
+    [
+        // GH #222: the Assets page shipped stuck on its spinner in 4.3.0.
+        'id'       => 'system.page_health',
+        'module'   => 'system',
+        'tier'     => 'recommended',
+        'category' => 'governance',
+        'title'    => 'Every page checked after an upgrade',
+        'what'     => 'System -> Debug Tools -> D019 Page health opens every page in FreeITSM and checks, in your browser, that each one\'s scripts can be read. Database Verification shows when it last ran.',
+        'why'      => 'One unreadable line in a page\'s script stops the whole script, so the page looks loaded and nothing on it works - and the server cannot tell. Checking straight after an upgrade finds it before your team does.',
+        'done'     => 'Page health has been run, and its last check found no problems.',
+        'link'     => 'system/debug-tools/d019/',
+        'check'    => ['sql', "SELECT COUNT(*) FROM system_settings WHERE setting_key = 'page_health_last' AND JSON_EXTRACT(setting_value, '$.problems') = 0"],
+    ],
 ];

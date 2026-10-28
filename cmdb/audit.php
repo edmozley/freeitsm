@@ -110,7 +110,6 @@ $translationNamespaces = ['common', 'cmdb'];
         <div id="auditBody" class="audit-loading"><?php echo htmlspecialchars(t('cmdb.audit.loading')); ?></div>
     </div>
 
-    <script src="../assets/js/theme.js?v=3"></script>
     <script src="audit.js?v=1"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

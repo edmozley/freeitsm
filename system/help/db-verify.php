@@ -63,6 +63,7 @@ require __DIR__ . '/_top.php';
         <div class="help-step"><div class="help-step-num">3</div><div>Read the summary cards and results table that appear. If anything shows <strong>Pending</strong>, see the next section.</div></div>
     </div>
     <div class="help-note"><strong>Who can run it:</strong> you must be signed in to reach the page. It is an admin-level maintenance tool, so run it deliberately rather than as a routine.</div>
+    <div class="help-note"><strong>After an upgrade, check the pages too.</strong> A perfect database says nothing about whether each page's script can be read by the browser — the fault that left a page stuck on its spinner after an upgrade. Under the backup notice, this page shows when <strong>Page health</strong> (Debug Tools D019) last checked every page and what it found: green when all clear on this version, red when it found problems, and a reminder when it has never been run or was last run before this upgrade. <strong>Page health &rarr;</strong> opens it.</div>
 </div>
 
 <!-- 4. Reading the results -->

@@ -1,0 +1,39 @@
+# Every page's JavaScript must parse.
+#
+# GH #222: 4.3.0 shipped with the Assets page stuck on its spinner. One comment
+# swallowed the code after it, so the page's whole inline script failed to parse
+# and the browser ran none of it. `php -l` passed (the PHP was fine), the page
+# returned HTTP 200, and nothing that ran here opened it - so it was found by
+# somebody who had just upgraded.
+#
+# scripts/page_health_ci.php takes the page list from includes/page_health.php
+# (the same list System -> Debug Tools -> D019 checks in a browser), reads every
+# inline <script> with PHP's tokenizer - each PHP block stood in for by a value or
+# a comment of the same height, so line numbers are the file's own - plus every
+# JavaScript file the app ships, and has Node parse each one without running it.
+# Run against 4.3.0's asset-management/index.php it fails at line 2652 with
+# "missing ) after argument list" - the reporter's own error.
+#
+# Files only: no database, no web server, no browser.
+
+name: Page health
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  scripts-parse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: every page's JavaScript parses
+        run: php scripts/page_health_ci.php
