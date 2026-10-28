@@ -344,6 +344,7 @@ return [
             'p4' => 'Each folder can turn on a **watermark** (Permissions -> Watermark). Every file opened from that folder, and the folders inside it, then shows the viewer\'s name, the time and their IP address across the page - so a screenshot shows who took it. Folders follow their parent unless set otherwise.',
             'p5' => 'None of this stops a determined person: anything a browser can show can be photographed or captured. View-only and the watermark make leaking deliberate and traceable, not impossible.',
             'p6' => 'Every file opened is recorded in the audit trail, including which version and, for a zip, which file inside it.',
+            'p7' => 'A picture or PDF refits as you resize or maximise its window, until you zoom in or out yourself; **Fit** hands it back. The same viewer opens pictures and PDFs attached to tickets, in a window over the ticket.',
         ],
         'permissions' => [
             'nav' => 'Permissions',

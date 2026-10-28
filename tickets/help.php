@@ -304,6 +304,15 @@ try {
                         <div><?php echo t('tickets.help.working.fullscreen_sticks'); ?></div>
                     </div>
 
+                    <?php /* GH #226: pictures and PDFs open in the Files viewer, in a window over the ticket. */ ?>
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.working.viewer_heading'); ?></p>
+                    <p><?php echo t('tickets.help.working.viewer_body'); ?></p>
+                    <div class="help-list">
+                        <div><?php echo t('tickets.help.working.viewer_window'); ?></div>
+                        <div><?php echo t('tickets.help.working.viewer_close'); ?></div>
+                        <div><?php echo t('tickets.help.working.viewer_other'); ?></div>
+                    </div>
+
                     <p style="margin-top: 20px;"><?php echo t('tickets.help.working.rightclick_heading'); ?></p>
                     <p><?php echo t('tickets.help.working.rightclick_body'); ?></p>
                     <div class="help-list">
