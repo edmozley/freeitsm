@@ -747,6 +747,8 @@ return [
         'previous' => 'Zurück',
         'next' => 'Weiter',
         'page_size' => 'Zeilen pro Seite',
+        'range' => '{from}-{to} von {total}',
+        'page' => 'Seite {page} von {pages}',
         'cancel_export' => 'Export abbrechen',
         'export_failed' => 'Der Export konnte nicht abgeschlossen werden.',
     ],

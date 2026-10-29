@@ -69,7 +69,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=4">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=7">
-    <link rel="stylesheet" href="../assets/css/tickets-table.css?v=3">
+    <link rel="stylesheet" href="../assets/css/tickets-table.css?v=4">
 <?php
 // Note images open in the Files viewer (GH #226), so it needs its own strings -
 // the window buttons, the zoom tools and Download - but not the rest of Files'.
@@ -1139,8 +1139,8 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=178"></script>
-    <script src="../assets/js/tickets-table.js?v=2"></script>
+    <script src="../assets/js/inbox.js?v=179"></script>
+    <script src="../assets/js/tickets-table.js?v=3"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>
     // Auto-check mailboxes every 60 seconds - and refresh the inbox whenever

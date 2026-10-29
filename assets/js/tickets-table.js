@@ -34,11 +34,23 @@ window.TicketTable = (() => {
     let folderKey = '';        // the folder the table was last filtered for
     let contextKey = '';       // the view filter it last used
     let switching = false;     // a Messages/Table change is being saved
-    let detailOpen = false;
-    let splitRatio = .44;      // page-session layout only; no new saved preference
-    let drag = null;
+    let detailOpen = false;    // a ticket (or the selection summary) is beside the table
+    let drag = null;           // the divider drag in progress: pointer id, start x, start width
     const minList = 440, minDetail = 600, divider = 8;
 
+    // The divider's position, as a share of the width: remembered in this browser,
+    // because a screen's width belongs to the device rather than the person.
+    // layout() clamps it, so a share saved on a big monitor cannot squeeze a laptop.
+    // TRAP: localStorage can throw (a private window, blocked site data) - it is
+    // a convenience, so a failure just means the default.
+    const SPLIT_KEY = 'tickets_table_split';
+    let splitRatio = .44;
+    try {
+        const saved = parseFloat(localStorage.getItem(SPLIT_KEY));
+        if (saved > 0 && saved < 1) splitRatio = saved;
+    } catch (e) { /* the default */ }
+
+    /** Ends a divider drag and releases the pointer. */
     function stopResize() {
         if (!drag) return;
         const splitter = document.getElementById('ticketTableSplitter');
@@ -47,6 +59,7 @@ window.TicketTable = (() => {
         document.body.classList.remove('ticket-table-resizing');
     }
 
+    /** The width the table and the ticket share: the page less the folder pane. */
     function availableWidth() {
         // Computed width survives display:none in the narrow detail view.
         // Measuring its hidden rectangle here would oscillate between layouts.
@@ -54,6 +67,7 @@ window.TicketTable = (() => {
         return document.querySelector('.main-container').clientWidth - parseFloat(getComputedStyle(folder).width);
     }
 
+    /** Sizes the table and the ticket for the screen: side by side, the ticket alone (narrow), or the table alone. */
     function layout() {
         const desktop = matchMedia('(min-width: 769px)').matches;
         const open = isActive() && detailOpen;
@@ -75,23 +89,36 @@ window.TicketTable = (() => {
 
     // Called by the native selection/loading paths, including failed loads and
     // the bulk summary. Visibility must not depend on a successful API response.
-    function showDetail(open = true) { detailOpen = open; layout(); }
+    function showDetail(open = true) {
+        detailOpen = open;
+        layout();
+    }
 
+    /**
+     * Closes the ticket beside the table and gives the table the width back.
+     * Escape does the same (inbox.js), after full screen has had its turn.
+     */
     async function backToList() {
         if (!isActive() || !detailOpen) return;
         if (window.TicketWorkspace && !await TicketWorkspace.canLeave()) return;
-        document.body.classList.remove('ticket-popout');
+        // TRAP: leave full screen through its own exit, never by removing the
+        // class - toggleTicketPopout() also clears the saved preference and puts
+        // the action row back. Taking the class alone left "full screen" saved,
+        // so the next ticket opened full screen again.
+        if (document.body.classList.contains('ticket-popout')) toggleTicketPopout();
         showDetail(false);
         // Keep both DOMs: returning to the queue must not reset its page,
         // filters or scroll, nor replace a live task editor or ticket thread.
         (document.querySelector('#dtBody .selected') || document.getElementById('dtSearch')).focus({preventScroll: true});
     }
 
+    /** Wires the divider: drag, arrow keys, Home and End. The share is saved as it changes. */
     function bindLayout() {
         const splitter = document.getElementById('ticketTableSplitter');
         const setWidth = width => {
             const available = availableWidth();
             splitRatio = Math.max(minList, Math.min(available - minDetail - divider, width)) / available;
+            try { localStorage.setItem(SPLIT_KEY, splitRatio.toFixed(4)); } catch (e) { /* kept for this page only */ }
             layout();
         };
         splitter.addEventListener('keydown', event => {
@@ -99,7 +126,8 @@ window.TicketTable = (() => {
             const widths = {ArrowLeft: current - 24, ArrowRight: current + 24,
                 Home: minList, End: availableWidth() - minDetail - divider};
             if (!(event.key in widths)) return;
-            event.preventDefault(); setWidth(widths[event.key]);
+            event.preventDefault();
+            setWidth(widths[event.key]);
         });
         splitter.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;

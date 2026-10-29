@@ -12,6 +12,9 @@
 
 return [
     'queue' => [
+        'back' => 'Zurück',
+        'back_title' => 'Zurück zur Ticketliste',
+        'resize' => 'Breite von Ticketliste und Details ändern',
         'layout' => 'Ticketliste',
         'messages' => 'Nachrichten',
         'table' => 'Tabelle',

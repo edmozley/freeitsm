@@ -2666,7 +2666,7 @@ document.addEventListener('keydown', function (e) {
         if ((!el || el === document.body) && /^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| )$/.test(e.key)) focusTicketScroller();
         return;
     }
-    if (el && el.closest && el.closest('.fw-layer, .reading-pane')) return;
+    if (el && el.closest && el.closest('.fw-layer, .reading-pane, .ticket-table-splitter')) return;
 
     const ctrl = e.ctrlKey || e.metaKey;
 
@@ -10297,12 +10297,16 @@ document.addEventListener('pointerdown', function (e) {
     }
 }, true);
 
-/* Escape leaves full screen - after anything nearer has had it: a dialog, a
- * floating window (FloatWin closes the focused one first), the AI panel, a
- * field or the reply editor. */
+/* Escape steps back one level - full screen to the ticket beside the table (or
+ * the three panes), then, in the table, the ticket closed and the table full
+ * width (PR #223) - after anything nearer has had it: a dialog, a floating
+ * window (FloatWin closes the focused one first), the AI panel, a field or the
+ * reply editor. */
 document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape' || e.defaultPrevented) return;
-    if (!document.body.classList.contains('ticket-popout')) return;
+    const popout = document.body.classList.contains('ticket-popout');
+    const tableDetail = window.TicketTable?.isActive() && document.body.classList.contains('ticket-table-detail');
+    if (!popout && !tableDetail) return;
     const el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
     if (el && el.closest && el.closest('.fw-layer')) return;
@@ -10312,7 +10316,8 @@ document.addEventListener('keydown', function (e) {
     if (window.FloatWin && document.querySelector('.fw-layer') && FloatWin.page().active()) return;
     if (typeof tinymce !== 'undefined' && tinymce.activeEditor && tinymce.activeEditor.hasFocus && tinymce.activeEditor.hasFocus()) return;
     e.preventDefault();
-    toggleTicketPopout();
+    if (popout) toggleTicketPopout();
+    else TicketTable.backToList();
 });
 
 /* Double-click on an email row: open it AND pop out. Sets the popout pref
