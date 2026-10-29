@@ -302,6 +302,8 @@ try {
                         <div><?php echo t('tickets.help.working.fullscreen_max'); ?></div>
                         <div><?php echo t('tickets.help.working.fullscreen_dbl'); ?></div>
                         <div><?php echo t('tickets.help.working.fullscreen_sticks'); ?></div>
+                        <div><?php echo t('tickets.help.working.fullscreen_back'); ?></div>
+                        <div><?php echo t('tickets.help.working.fullscreen_keys'); ?></div>
                     </div>
 
                     <?php /* GH #226: pictures and PDFs open in the Files viewer, in a window over the ticket. */ ?>

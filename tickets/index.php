@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=83">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=84">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=3">
@@ -98,8 +98,12 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
 <body class="inbox-page<?php echo $workspaceConfig['mode'] === 'selected' ? ' workspace-choice-available' : ''; ?>">
     <?php include 'includes/header.php'; ?>
     <?php require_once __DIR__ . '/../includes/action_row.php';
-          renderActionRow(t('tickets.nav.inbox'), [actionRowNew('openNewTicketModal()', t('tickets.list.new_ticket_btn'))],
-              ['extra' => ticketListSelector($ticketListLayout)]); ?>
+          // GH #225: Back shows only in full screen (inbox.js applyPopoutChrome).
+          renderActionRow(t('tickets.nav.inbox'), [
+                  ['label' => t('tickets.reading_pane.popout_back'), 'title' => t('tickets.reading_pane.popout_back_title'),
+                   'onclick' => 'toggleTicketPopout()', 'id' => 'popoutBackBtn', 'hidden' => true],
+                  actionRowNew('openNewTicketModal()', t('tickets.list.new_ticket_btn'))],
+              ['extra' => ticketListSelector($ticketListLayout), 'title_id' => 'inboxActionTitle']); ?>
 
     <div class="main-container">
         <!-- Folder Navigation -->
@@ -1131,7 +1135,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=173"></script>
+    <script src="../assets/js/inbox.js?v=174"></script>
     <script src="../assets/js/tickets-table.js?v=1"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>

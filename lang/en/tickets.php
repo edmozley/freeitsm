@@ -218,6 +218,8 @@ return [
         'opt_yes'             => 'Yes',
         'opt_no'              => 'No',
         'toggle_fullscreen'   => 'Toggle full-screen view',
+        'popout_back'         => 'Back',
+        'popout_back_title'   => 'Back to the ticket list (Esc)',
 
         // Email header meta + subject prefix
         'ticket_label'        => 'Ticket',
@@ -3176,6 +3178,8 @@ return [
             'fullscreen_max'     => '<strong>Maximize icon</strong> &mdash; small icon at the right end of the ticket subject line. Click to enter full-screen; click again to return to the 3-pane layout.',
             'fullscreen_dbl'     => '<strong>Double-click a row</strong> &mdash; double-click any ticket in the list to open it directly in full-screen, Outlook-style "really open this one" gesture.',
             'fullscreen_sticks'  => '<strong>Sticks across selections</strong> &mdash; once you\'re in full-screen, switching to the next ticket keeps you there. A fresh page reload (F5) with no ticket selected returns to the default 3-column layout, so you can\'t end up trapped with the folder list hidden.',
+            'fullscreen_back'    => '<strong>Back</strong> &mdash; the bar above the ticket shows its reference and a <strong>Back</strong> button, which returns you to the list exactly as you left it. <strong>Escape</strong> does the same, once any window or menu open over the ticket has closed.',
+            'fullscreen_keys'    => '<strong>The keys scroll the ticket</strong> &mdash; in full screen the arrow keys, Page Up / Page Down and Space scroll the conversation, not the hidden ticket list. In a picture or PDF window they scroll that window.',
             // GH #226: pictures and PDFs open in the Files viewer, in a window over the ticket.
             'viewer_heading'     => '<strong>Pictures and PDFs open over the ticket</strong>',
             'viewer_body'        => 'Click a picture or a PDF attached to a note, or one in the ticket\'s <strong>Attachments</strong> list (its thumbnail or its row), and it opens in a window on top of the ticket &mdash; the same viewer as the Files module. The ticket stays exactly where it was underneath.',

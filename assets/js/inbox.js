@@ -2646,6 +2646,19 @@ document.addEventListener('keydown', function (e) {
     if (document.querySelector('.modal.active')) return;
     if (typeof tinymce !== 'undefined' && tinymce.activeEditor && tinymce.activeEditor.hasFocus && tinymce.activeEditor.hasFocus()) return;
 
+    // TRAP: these are the LIST's keys, and the list is not always what the person
+    // is looking at. In full screen it is hidden (CSS only - #emailList still
+    // exists), and a floating window (the file viewer) has focus of its own. Taking
+    // the arrows there moved between tickets nobody could see, and stopped a PDF
+    // or the ticket itself from scrolling. Whatever has focus owns the keys.
+    if (document.body.classList.contains('ticket-popout')) {
+        // Nothing focused (a window over it has just closed, say): hand the key to
+        // the ticket, so it scrolls rather than nothing at all.
+        if ((!el || el === document.body) && /^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| )$/.test(e.key)) focusTicketScroller();
+        return;
+    }
+    if (el && el.closest && el.closest('.fw-layer')) return;
+
     const ctrl = e.ctrlKey || e.metaKey;
 
     if (ctrl && (e.key === 'a' || e.key === 'A')) {
@@ -10170,6 +10183,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const panel = document.getElementById('ticketAiPanel');
         if (panel && panel.classList.contains('active')) {
+            e.preventDefault();   // that Escape was the panel's - full screen must not take it too
             closeTicketAiChat();
         }
     }
@@ -10184,7 +10198,65 @@ document.addEventListener('keydown', function(e) {
 function toggleTicketPopout() {
     const on = document.body.classList.toggle('ticket-popout');
     try { localStorage.setItem('tickets_popout', on ? '1' : '0'); } catch (e) {}
+    applyPopoutChrome(on);
 }
+
+/* GH #225. The action row above a full-screen ticket names the ticket and offers
+ * Back, and the Messages / Table choice is hidden by CSS - it switches a list
+ * that is not on screen. Going in also puts focus on the ticket's scrolling
+ * area, so the arrow keys and Page Up/Down scroll it straight away. */
+let inboxActionTitle = null;
+function applyPopoutChrome(entered) {
+    const on = document.body.classList.contains('ticket-popout');
+    const title = document.getElementById('inboxActionTitle');
+    if (title) {
+        if (inboxActionTitle === null) inboxActionTitle = title.textContent;
+        title.textContent = on && currentEmail && currentEmail.ticket_number ? currentEmail.ticket_number : inboxActionTitle;
+    }
+    const back = document.getElementById('popoutBackBtn');
+    if (back) back.hidden = !on;
+    if (!on) return;
+    const idle = () => { const f = document.activeElement; return !f || f === document.body; };
+    if (entered || idle()) focusTicketScroller();
+    // The conversation may still be filling in, with nothing to scroll yet - try
+    // once more when it has, unless the person has clicked somewhere meanwhile.
+    if (entered) setTimeout(() => { if (idle() && document.body.classList.contains('ticket-popout')) focusTicketScroller(); }, 400);
+}
+
+/** Focuses the biggest scrolling area in the reading pane - the conversation in
+ *  the classic layout, the open panel in the workspace - without moving it. */
+function focusTicketScroller() {
+    const pane = document.querySelector('.reading-pane');
+    if (!pane) return;
+    let best = null, bestH = 0;
+    for (const n of [pane, ...pane.querySelectorAll('*')]) {
+        const oy = getComputedStyle(n).overflowY;
+        if ((oy !== 'auto' && oy !== 'scroll') || n.scrollHeight <= n.clientHeight) continue;
+        if (n.closest('.ticket-properties-container')) continue;
+        if (n.clientHeight > bestH) { best = n; bestH = n.clientHeight; }
+    }
+    if (!best) return;
+    if (!best.hasAttribute('tabindex')) { best.setAttribute('tabindex', '-1'); best.classList.add('popout-scroller'); }
+    best.focus({ preventScroll: true });
+}
+
+/* Escape leaves full screen - after anything nearer has had it: a dialog, a
+ * floating window (FloatWin closes the focused one first), the AI panel, a
+ * field or the reply editor. */
+document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || e.defaultPrevented) return;
+    if (!document.body.classList.contains('ticket-popout')) return;
+    const el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+    if (el && el.closest && el.closest('.fw-layer')) return;
+    if (document.querySelector('.modal.active, #ticketContextMenu.active, #trashContextMenu.active')) return;
+    // A window still open over the page takes this Escape (FloatWin closes it). Asked
+    // of the manager, not the DOM: a closing window keeps its element while it fades.
+    if (window.FloatWin && document.querySelector('.fw-layer') && FloatWin.page().active()) return;
+    if (typeof tinymce !== 'undefined' && tinymce.activeEditor && tinymce.activeEditor.hasFocus && tinymce.activeEditor.hasFocus()) return;
+    e.preventDefault();
+    toggleTicketPopout();
+});
 
 /* Double-click on an email row: open it AND pop out. Sets the popout pref
  * so the syncPopoutToTicketState call inside displayEmail applies the class
@@ -10368,13 +10440,16 @@ async function deleteTimeEntry(id) {
 // trap where an F5 with the pref saved leaves the user with folder + list
 // hidden and the empty "select a ticket" message in the reading pane.
 function syncPopoutToTicketState(hasTicket) {
+    const was = document.body.classList.contains('ticket-popout');
     if (!hasTicket) {
         document.body.classList.remove('ticket-popout');
+        if (was) applyPopoutChrome(false);
         return;
     }
     let prefersPopout = false;
     try { prefersPopout = localStorage.getItem('tickets_popout') === '1'; } catch (e) {}
     if (prefersPopout) document.body.classList.add('ticket-popout');
+    if (was || prefersPopout) applyPopoutChrome(!was && prefersPopout);
 }
 
 /* --- Right-click context menu for email rows -------------------------------
