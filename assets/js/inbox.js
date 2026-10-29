@@ -7181,6 +7181,9 @@ function openNoteModal() {
 
 
     document.getElementById('noteModal').classList.add('active');
+    // Ready to type (or paste) straight away (Ed). A frame later, so the modal
+    // is displayed - focus on an element still display:none does nothing.
+    requestAnimationFrame(() => noteEditor().focus());
     // A note counts as writing too — a colleague should know before they type
     // the same thing (#934).
     setPresenceComposing(true);

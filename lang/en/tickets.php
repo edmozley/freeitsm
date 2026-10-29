@@ -512,7 +512,7 @@ return [
         'share_label'           => 'Share this with the requester',
         // Says WHERE it goes, because "share" on its own reads as "send". A shared
         // note appears in the portal; it is not emailed. Reply is what emails.
-        'share_hint'            => 'They will see it, and any files you attach, in the self-service portal. It is not emailed — use Reply for that. Leave unticked to keep it internal.',
+        'share_hint'            => 'They will see it, and any files you attach, in the self-service portal. It is not emailed — use Reply for that. Leave it off to keep it internal.',
         'share_hint_no_mailbox' => 'This person has no email address, so a shared note is the only way to reach them. They will see it in the portal.',
         // Attachments (discussion #69). Internal notes only — the portal cannot
         // show a file, so a shared note carrying one would promise the requester

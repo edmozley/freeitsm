@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=82">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=83">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=3">
@@ -1131,7 +1131,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=172"></script>
+    <script src="../assets/js/inbox.js?v=173"></script>
     <script src="../assets/js/tickets-table.js?v=1"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>

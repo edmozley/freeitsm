@@ -396,7 +396,7 @@ return [
         'placeholder' => 'Geben Sie hier Ihre Notiz ein…',
         'save_btn' => 'Notiz speichern',
         'share_label' => 'Dies mit dem Anfragenden teilen',
-        'share_hint' => 'Er sieht sie im Self-Service-Portal. Nicht ankreuzen, um sie intern zu halten.',
+        'share_hint' => 'Der Anfragende sieht sie, und alle angehängten Dateien, im Self-Service-Portal. Sie wird nicht per E-Mail gesendet — verwenden Sie dafür Antworten. Lassen Sie den Schalter aus, um sie intern zu halten.',
         'share_hint_no_mailbox' => 'Diese Person hat keine E-Mail-Adresse, eine geteilte Notiz ist also der einzige Weg, sie zu erreichen. Sie sieht sie im Portal.',
         'files_label' => 'Dateien',
         'attach_btn' => 'Anhängen',
