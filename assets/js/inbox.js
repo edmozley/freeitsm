@@ -2360,8 +2360,26 @@ async function loadMultiSelectPanePreference() {
 }
 
 /** Called whenever the selection changes. Routes to whichever surface is chosen. */
-async function onSelectionChanged({ clickedId = null } = {}) {
+/**
+ * Is the ticket table showing on its own, with no ticket beside it? Then keys
+ * only move the highlight: opening a ticket there shrinks the table to make room,
+ * so doing it on every arrow made the layout jump and loaded a ticket per row
+ * passed. A click or Enter opens it. Once one is open, the keys follow again,
+ * so the ticket shown is always the one highlighted.
+ */
+function tableShownAlone() {
+    return !!window.TicketTable?.isActive() && !document.body.classList.contains('ticket-table-detail');
+}
+
+async function onSelectionChanged({ clickedId = null, fromKeys = false } = {}) {
     const n = selectionCount();
+    // Keys on the table shown alone change the selection, not the screen.
+    if (fromKeys && n > 0 && tableShownAlone()) {
+        hideSelectionBar();
+        hideKeepModeWarning();
+        if (n > 1 && multiSelectPaneMode === 'bar') renderSelectionBar();
+        return;
+    }
     // Keyboard/select-all callers also arrive here. Protect the live editor
     // before the native empty/summary pane replaces it, just as row clicks do.
     const replacesEditor = n === 0 || (n > 1 && multiSelectPaneMode === 'summary');
@@ -2425,7 +2443,9 @@ async function onSelectionChanged({ clickedId = null } = {}) {
 function updateSelectionSurfaces() {
     const n = selectionCount();
     if (n <= 1) { hideSelectionBar(); hideKeepModeWarning(); return; }
-    if (multiSelectPaneMode === 'summary')    renderSelectionSummaryPane();
+    // The summary IS a pane: on the table shown alone it waits for a click (the
+    // mouse path calls renderSelectionSummaryPane() itself), as a ticket does.
+    if (multiSelectPaneMode === 'summary')    { if (!tableShownAlone()) renderSelectionSummaryPane(); }
     else if (multiSelectPaneMode === 'bar')   renderSelectionBar();
     else                                      renderKeepModeWarning();
 }
@@ -2543,7 +2563,7 @@ function selectAllVisible() {
     if (selectionAnchorId === null) selectionAnchorId = ids[0];
     selectionFocusId = ids[ids.length - 1];
     renderSelectionUi();
-    onSelectionChanged({});
+    onSelectionChanged({ fromKeys: true });
 }
 
 // ---------------------------------------------------------------------------
@@ -2591,7 +2611,7 @@ function moveSelectionCursor(delta, { extend = false, keepSelection = false }) {
         selectionFocusId = nextId;
         renderSelectionUi();
         scrollRowIntoView(nextId);
-        onSelectionChanged({ clickedId: nextId });
+        onSelectionChanged({ clickedId: nextId, fromKeys: true });
         return;
     }
 
@@ -2601,6 +2621,7 @@ function moveSelectionCursor(delta, { extend = false, keepSelection = false }) {
     selectionFocusId  = nextId;
     renderSelectionUi();
     scrollRowIntoView(nextId);
+    if (tableShownAlone()) return;   // the highlight moves; Enter or a click opens it
     selectEmail(nextId);
 }
 
@@ -2644,7 +2665,7 @@ function toggleFocusedRow() {
     else                                        selectedEmailIds.add(selectionFocusId);
     selectionAnchorId = selectionFocusId;
     renderSelectionUi();
-    onSelectionChanged({ clickedId: selectionFocusId });
+    onSelectionChanged({ clickedId: selectionFocusId, fromKeys: true });
 }
 
 document.addEventListener('keydown', function (e) {
@@ -2695,7 +2716,7 @@ document.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.defaultPrevented && !ctrl && !e.shiftKey && !e.altKey
         && selectionFocusId !== null && selectionCount() <= 1 && document.getElementById('emailList')) {
         e.preventDefault();
-        openRowFullScreen(selectionFocusId);
+        enterRow(selectionFocusId);
     }
 });
 
@@ -10330,7 +10351,24 @@ function selectEmailFullScreen(emailId) {
     selectEmail(emailId);
 }
 
-/** Enter on the list: the highlighted ticket, full screen. One already open just
+/**
+ * Enter on the list steps IN one level, as Escape steps out one: the ticket
+ * opens (beside the table, or in the reading pane), and Enter on the ticket
+ * already showing makes it full screen. A ticket the table's Back closed is
+ * shown again as it was - its draft is still in the pane.
+ */
+function enterRow(emailId) {
+    const showing = currentEmail && currentEmail.id === emailId;
+    if (tableShownAlone()) {
+        if (showing) window.TicketTable.showDetail();
+        else selectEmail(emailId);
+        return;
+    }
+    if (showing) openRowFullScreen(emailId);
+    else selectEmail(emailId);
+}
+
+/** Double-click: the ticket, straight to full screen. One already open just
  *  goes full screen - reopening it would throw away a half-written reply. */
 function openRowFullScreen(emailId) {
     if (currentEmail && currentEmail.id === emailId) {
