@@ -73,7 +73,7 @@ $missing = 'zz-int-' . bin2hex(random_bytes(4)) . '.invalid';
 $t = $trace(fn() => $GLOBALS['res'] = domainRunInternalChecks($row($missing, 'internal') + ['ssl_hosts' => '']));
 $res = $GLOBALS['res'];
 $keys = array_column($res['findings'], 'key');
-ok('a name with no address is a confirmed problem', in_array('int_no_address', $keys, true) && $res['problem'], implode(',', $keys));
+ok('a name with no address is a confirmed problem', (bool)array_intersect(['int_no_address', 'int_no_ipv4'], $keys) && $res['problem'], implode(',', $keys));
 ok('...which is a COMPLETED check - a fresh observation, not "unknown"', $res['completed']);
 ok('...no www is assumed (only the name itself was asked)', !preg_grep('#www\.#', $t), json_encode($t));
 ok('...and no TLS, WHOIS or HTTP call was made', !$outside($t), json_encode($outside($t)));

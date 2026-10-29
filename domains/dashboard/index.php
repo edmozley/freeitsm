@@ -37,7 +37,7 @@ $translationNamespaces = ['common', 'domains'];
     <script src="../../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/domains.css?v=7">
+    <link rel="stylesheet" href="../../assets/css/domains.css?v=8">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
     <script src="../../assets/js/vendor/chart.umd.min.js"></script>
 </head>
@@ -65,11 +65,11 @@ $translationNamespaces = ['common', 'domains'];
         </div>
     </div>
 
-    <script src="../../assets/js/domains.js?v=2"></script>
+    <script src="../../assets/js/domains.js?v=3"></script>
     <script>
     (function () {
         'use strict';
-        const { T, esc, api, grade, daysPill, money, purpose } = window.Dom;
+        const { T, esc, api, grade, health, daysPill, money, purpose } = window.Dom;
         const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
         function bars(list, total, fmt) {
@@ -92,6 +92,9 @@ $translationNamespaces = ['common', 'domains'];
                 + card(s.unlocked, T('stat.unlocked'), s.unlocked ? 'red' : 'green', '../?view=unlocked')
                 + card(s.ssl_expiring, T('dash.ssl_expiring'), s.ssl_expiring ? 'amber' : 'green', '../?view=certificate')
                 + card(s.lookalikes + s.new_certificates, T('dash.watch_hits'), (s.lookalikes + s.new_certificates) ? 'amber' : 'green', '../?view=lookalikes')
+                // GH #203: internal domains, by health - never in the grade chart or the email posture.
+                + (s.internal ? card(s.internal, T('dash.internal') + ' - ' + T('dash.internal_desc', { healthy: s.internal_healthy, problem: s.internal_problem, other: s.internal_not_checked + s.internal_stale }),
+                       s.internal_problem ? 'red' : (s.internal_not_checked + s.internal_stale ? 'amber' : 'green'), '../?view=attention') : '')
                 + (s.annual_cost ? card(M(s.annual_cost), T('stat.annual_cost'), 'accent', '#') : '');
             if (d.mixed_currency) document.getElementById('dCostNote').textContent = T('dash.mixed_currency');
 
@@ -118,7 +121,7 @@ $translationNamespaces = ['common', 'domains'];
             });
 
             document.getElementById('dAttention').innerHTML = d.attention.length ? d.attention.map(a =>
-                '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-soft,#eee)">' + grade(a.security_grade)
+                '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-soft,#eee)">' + (a.health ? health({ state: a.health }) : grade(a.security_grade))
                 + '<div style="flex:1;min-width:0"><a href="../view.php?id=' + a.id + '" style="font-weight:600;text-decoration:none;color:var(--text,#222)">' + esc(a.domain_name) + '</a>'
                 + (a.company_name && d.multi_company ? ' <span class="dom-sub">' + esc(a.company_name) + '</span>' : '')
                 + '<div class="dom-sub">' + a.reasons.map(r => esc(T('reason.' + r))).join(' · ') + '</div></div>'

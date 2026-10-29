@@ -28,6 +28,7 @@ return [
 
     // ---- the register ----------------------------------------------------------
     'list' => [
+        'any_scope'        => 'Any scope',
         'search'             => 'Search',
         'search_placeholder' => 'Name, registrar, tag…',
         'views'              => 'Views',
@@ -55,6 +56,7 @@ return [
         'any_company'        => 'Any company',
     ],
     'view' => [
+        'internal_note'  => 'Internal - registration and email checks do not apply. Checked through this server\'s DNS only; nothing is sent outside the network.',
         'all'         => 'All domains',
         'attention'   => 'Needs attention',
         'expiring30'  => 'Expiring in 30 days',
@@ -80,7 +82,7 @@ return [
         'expires'     => 'Expires',
         'renewal'     => 'Renewal',
         'registrar'   => 'Registrar',
-        'grade'       => 'Grade',
+        'grade'       => 'Grade / health',   // GH #203: an internal domain shows its health here
         'protection'  => 'Locks',
         'certificate' => 'Certificate',
         'owner'       => 'Owner',
@@ -102,9 +104,31 @@ return [
         'none'  => 'Not checked yet',
         'title' => 'Security grade {grade}',
     ],
+    'scope' => [
+        'public'   => 'Public',
+        'internal' => 'Internal',
+    ],
+    // GH #203: an internal domain's health, instead of a grade.
+    'health' => [
+        'healthy'        => 'Healthy',
+        'problem'        => 'Problem',
+        'not_checked'    => 'Not checked',
+        'stale'          => 'Stale',
+        'label'          => 'Health',
+        'last_completed' => 'Last completed check',
+        'last_healthy'   => 'Last healthy',
+        'next_due'       => 'Next check due',
+        'never'          => 'Never',
+        'known_after'    => '{state}, last confirmed {date} - the checks since have not completed.',
+        'stale_note'     => 'No check has completed for over twice the interval ({minutes} minutes), so this is not current. Is the scheduled job running?',
+        'not_checked_note' => 'No check has completed yet. Click Check now, or wait for the scheduled run.',
+        'title'          => 'Health: {state}',
+    ],
     'status' => ['none' => 'No status'],
 
     'field' => [
+        'scope'              => 'Scope',
+        'scope_hint'         => 'Internal: a name used only inside your network - an intranet or an internal application. It is never sent outside: no public DNS, registry lookup, Certificate Transparency or look-alike scan. It gets a health status from this server\'s DNS instead of a security grade.',
         'domain_name'        => 'Domain name',
         'display_name'       => 'Shown as',
         'company'            => 'Company',
@@ -274,6 +298,12 @@ return [
 
     // ---- check findings: title + advice, per key -----------------------------------
     'check' => [
+        // GH #203: an internal domain's DNS-only health check.
+        'int_resolves'    => ['title' => '{host} resolves ({addresses})', 'advice' => ''],
+        'int_no_address'  => ['title' => '{host} does not resolve', 'advice' => 'This server\'s DNS resolver has no address for {host}. If the name should exist, check the record on your internal DNS server - or whether this server asks the right DNS server.'],
+        'int_no_ipv4'     => ['title' => '{host} has no IPv4 address', 'advice' => 'This server\'s DNS resolver answered with no IPv4 address for {host}, and its IPv6 lookup could not be completed (on Windows this is how a name that does not exist is answered). If the name should exist, check the record on your internal DNS server.'],
+        'int_not_checked' => ['title' => '{host}: not checked', 'advice' => 'This server could not ask its DNS resolver about {host} ({error}). That says nothing about the name itself - the last known health is kept until a check completes.'],
+        'int_scope_note'  => ['title' => 'Internal: checked through this server\'s DNS only', 'advice' => 'Nothing about this domain is sent outside the network. Registration, email security, name servers and DNSSEC do not apply, and certificates on internal hosts are not checked yet - that comes with the protections in a later release.'],
         'sub_registration' => [
             'title'  => 'A subdomain of {parent} - its registration is the parent\'s',
             'advice' => 'Expiry, renewal and the registrar are checked and reminded on {parent}.',
@@ -451,6 +481,7 @@ return [
         'sub_refresh'     => 'A subdomain has no registration of its own to refresh.',
     ],
     'tab' => [
+        'health'       => 'Health',
         'overview'     => 'Overview',
         'security'     => 'Security and email',
         'certificates' => 'Certificates',
@@ -528,6 +559,7 @@ return [
         'add_domain'    => 'Link a domain',
     ],
     'area' => [
+        'health'       => 'Health',
         'registration' => 'Registration',
         'dns'          => 'DNS',
         'email'        => 'Email',
@@ -629,6 +661,8 @@ return [
         'viewed_code' => 'Auth code viewed',
         'blank'       => '(blank)',
         'f' => [
+            'scope'                 => 'Scope',
+            'health_status'         => 'Health',
             'domain_created'        => 'Added',
             'parent_domain_id'      => 'Subdomain of',
             'certificate_added'     => 'Certificate recorded',
@@ -683,6 +717,13 @@ return [
 
     // ---- settings ----------------------------------------------------------------------
     'settings' => [
+        'internal_interval'      => 'Check internal domains every',
+        'internal_interval_desc' => 'How often internal domains are checked (DNS only, through this server). The scheduled job has to run at least this often for a short interval to happen: for every 15 minutes, run cron/domains.php every 15 minutes.',
+        'ii_15'   => '15 minutes',
+        'ii_30'   => '30 minutes',
+        'ii_60'   => 'Hour',
+        'ii_240'  => '4 hours',
+        'ii_1440' => 'Day',
         'tab_statuses'   => 'Statuses',
         'tab_cert_types' => 'Certificate types',
         'tab_alerts'     => 'Alerts',
@@ -824,6 +865,8 @@ return [
 
     // ---- dashboard ---------------------------------------------------------------------
     'dash' => [
+        'internal'           => 'Internal',
+        'internal_desc'      => '{healthy} healthy, {problem} with a problem, {other} not checked or stale',
         'forecast'       => 'Renewals in the next 12 months',
         'grades'         => 'Security grades',
         'attention'      => 'Needs attention',
@@ -849,6 +892,8 @@ return [
         'email_note'     => 'From each domain\'s last check. Parked, defensive and redirect domains are counted as locked down or not, rather than as missing records.',
     ],
     'reason' => [
+        'health'              => 'Internal name not healthy',
+        'stale'               => 'Health check out of date',
         'expired'             => 'Expired',
         'expiring'            => 'Expiring soon',
         'certificate'         => 'Certificate expiring',
@@ -922,6 +967,16 @@ return [
             'p3'    => 'Everything else is checked for the subdomain itself: its mail servers, SPF, DKIM and certificates. (Look-alikes are not scanned for it - only a name somebody could register has those.) What DNS keeps at the parent is read there - a subdomain with no name servers of its own is answered by the parent\'s, its CAA can be the parent\'s, and its DNSSEC is the parent zone\'s.',
             'p4'    => 'DMARC: a subdomain with no DMARC record of its own is covered by its parent\'s - with the parent\'s subdomain policy (sp=) when it sets one, otherwise its main policy. The checks say which applies. A parent with p=reject but sp=none protects itself and not its subdomains.',
             'p5'    => 'To change or remove the link, choose **Subdomain of** in the Edit dialog. A subdomain cannot have subdomains of its own: every one is linked to the domain that is actually registered.',
+        ],
+        'internal' => [
+            'nav'   => 'Internal domains',
+            'title' => 'Internal domains',
+            'intro' => 'Names that only exist inside your network - an intranet, an internal application - kept inside it.',
+            'p1'    => 'Set a domain\'s **Scope** to **Internal** (when adding it, or under Edit) and it is never sent outside the network: no public DNS, no registry lookup, no Certificate Transparency watch and no look-alike scan - not even as a fallback when something fails. Registration, renewal, purpose and email security do not apply, so they are not shown as failures.',
+            'p2'    => 'Instead of a security grade it gets a **health**: does each name - the domain and its extra hosts - resolve, asked of this server\'s DNS resolver only. **Healthy**, **Problem** (a name does not resolve), **Not checked** (the check could not run - which says nothing about the name) or **Stale** (no check has completed for twice the interval). Nothing that did not run is ever shown as a pass.',
+            'p3'    => 'Two dates are kept: the **last completed check** and when it was **last healthy**. A check that finds a problem is still a current result, and if later checks cannot complete, the last known problem stays on screen with a note rather than turning into "unknown".',
+            'p4'    => 'Internal domains are checked every hour by default - change it under **Settings → Monitoring → Check internal domains every**. The scheduled job has to run at least that often for a short interval to happen. They are left out of the security grades, the email posture and registration alerts; a problem appears under **Needs attention** and on the dashboard.',
+            'p5'    => 'Certificates on internal hosts are not checked yet: connecting to internal addresses needs the protections that come with the next part (administrator-only targets, permitted networks and ports). Also note that *This server only* keeps FreeITSM\'s questions on this server - if this server\'s DNS resolver forwards questions it cannot answer to a public service, a name can still leave the network from there.',
         ],
         'grade' => [
             'nav'   => 'The security grade',

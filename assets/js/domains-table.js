@@ -33,7 +33,7 @@
         { key: 'registrar_supplier_id', label: T('col.registrar'), type: 'string', defaultVisible: true, defaultOrder: 7, display: r => r.supplier_name || r.registrar_name || '',
           editable: { kind: 'lookup', listKey: 'suppliers', valueKey: 'id', labelKey: 'name', allowNull: true, nullLabel: '—' } },
         { key: 'account_name', label: T('field.registrar_account'), type: 'string', defaultVisible: false, defaultOrder: 8, display: r => r.account_name || '' },
-        { key: 'security_grade', label: T('col.grade'), type: 'string', defaultVisible: true, defaultOrder: 9, value: r => r.security_score === null ? -1 : r.security_score, display: r => r.security_grade || '' },
+        { key: 'security_grade', label: T('col.grade'), type: 'string', defaultVisible: true, defaultOrder: 9, value: r => r.security_score === null ? -1 : r.security_score, display: r => r.scope === 'internal' ? T('health.' + ((r.health || {}).state || 'not_checked')) : (r.security_grade || '') },   // GH #203: health for an internal domain
         { key: 'transfer_lock', label: T('field.transfer_lock'), type: 'string', defaultVisible: true, defaultOrder: 10, display: r => yn(r.transfer_lock) },
         { key: 'registry_lock', label: T('field.registry_lock'), type: 'string', defaultVisible: false, defaultOrder: 11, display: r => r.registry_lock ? T('lock.on') : '' },
         { key: 'dnssec', label: T('field.dnssec'), type: 'string', defaultVisible: false, defaultOrder: 12, display: r => yn(r.dnssec) },
@@ -50,6 +50,8 @@
         { key: 'cost_centre', label: T('field.cost_centre'), type: 'string', defaultVisible: false, defaultOrder: 22, display: r => r.cost_centre_label || r.cost_centre || '' },   // GH #188: a real cost centre; changed on the domain
         { key: 'lookalike_count', label: T('tab.lookalikes'), type: 'number', defaultVisible: false, defaultOrder: 23, display: r => r.lookalike_count ? String(r.lookalike_count) : '' },
         { key: 'last_check_datetime', label: T('field.last_check'), type: 'date', defaultVisible: false, defaultOrder: 24, value: r => r.last_check_datetime || '', display: r => r.last_check_datetime ? fmtDate(r.last_check_datetime) : '' },
+        // GH #203: public or internal. Read-only here - changing it is a decision for the Edit dialog, which explains it.
+        { key: 'scope', label: T('field.scope'), type: 'string', defaultVisible: false, defaultOrder: 25, display: r => T('scope.' + (r.scope || 'public')) },
     ];
 
     createDataTable({

@@ -269,6 +269,18 @@ return [
         'check'    => ['rows', 'domains', 'parent_domain_id IS NOT NULL'],
     ],
     [
+        'id'       => 'domains.internal',
+        'module'   => 'domains',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'An internal name watched from inside',
+        'what'     => 'A domain marked Internal - an intranet or an internal application. It is checked through this server\'s DNS only and gets a health instead of a security grade.',
+        'why'      => 'Internal names matter as much as public ones, and none of them should be sent to public DNS, a registry or a certificate log just to be watched.',
+        'done'     => 'At least one internal domain is in the register.',
+        'link'     => 'domains/',
+        'check'    => ['rows', 'domains', "scope = 'internal' AND $real"],   // GH #203
+    ],
+    [
         'id'       => 'domains.recorded_certificates',
         'module'   => 'domains',
         'tier'     => 'extra',

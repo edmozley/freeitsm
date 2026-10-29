@@ -32,6 +32,7 @@ $sections = [
     'overview'   => 4,
     'adding'     => 5,
     'subdomains' => 5,
+    'internal'   => 5,   // GH #203
     'grade'      => 5,
     'email'      => 5,
     'certs'      => 7,

@@ -54,6 +54,28 @@
         return '<span class="dom-grade ' + cls + (big ? ' big' : '') + '" title="' + esc(T('grade.title', { grade: g })) + '">' + esc(g) + '</span>';
     }
 
+    /**
+     * An internal domain's health badge (GH #203), in the grade's place: Healthy,
+     * Problem, Not checked or Stale. When the state is not the last known result -
+     * stale, or checks since have not completed - the tooltip says what was last
+     * known and when, so a known problem never hides behind "Not checked".
+     *
+     * @param {object} h     the row's health: state, known, last_completed, last_healthy
+     * @param {boolean} big  the domain page's hero size
+     */
+    function health(h, big) {
+        h = h || { state: 'not_checked' };
+        const cls = { healthy: 'green', problem: 'red', not_checked: 'grey', stale: 'amber' }[h.state] || 'grey';
+        let tip = T('health.title', { state: T('health.' + h.state) });
+        if (h.known && h.known !== h.state) tip += ' - ' + T('health.known_after', { state: T('health.' + h.known), date: fmtDate(h.last_completed) });
+        return '<span class="dom-pill dom-health ' + cls + (big ? ' big' : '') + '" title="' + esc(tip) + '">' + esc(T('health.' + h.state)) + '</span>';
+    }
+
+    /** The grade for a public domain, the health badge for an internal one (GH #203). */
+    function gradeOrHealth(r, big) {
+        return r && r.scope === 'internal' ? health(r.health, big) : grade(r ? r.security_grade : null, big);
+    }
+
     /** "in 12 days" / "expired 3 days ago", coloured by urgency. */
     function daysPill(days, warnAt) {
         if (days === null || days === undefined) return '<span class="dom-pill grey">' + esc(T('days.unknown')) + '</span>';
@@ -167,5 +189,5 @@
         if (keep !== '' && [...el.options].some(o => o.value === keep)) el.value = keep;
     }
 
-    window.Dom = { T, esc, api, fmtDate, grade, daysPill, status, locks, purpose, renewal, tags, finding, money, tick, openModal, closeModal, fillSelect };
+    window.Dom = { T, esc, api, fmtDate, grade, health, gradeOrHealth, daysPill, status, locks, purpose, renewal, tags, finding, money, tick, openModal, closeModal, fillSelect };
 })();

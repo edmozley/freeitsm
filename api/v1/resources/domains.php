@@ -32,6 +32,8 @@ require_once dirname(__DIR__, 3) . '/includes/services/domains.php';
  * company names and, once Database Verification has added them, the customer columns.
  */
 function apiDomainSelect(?PDO $conn = null): string {
+    // GH #203: the interval health is worked out with, for apiSerializeDomain().
+    if ($conn !== null) domainShapeInterval(domainInternalInterval(domainSettings($conn)));
     require_once dirname(__DIR__, 3) . '/includes/domains/customer.php';
     $cust = $conn !== null && domainCustomerReady($conn);   // #153, once Database Verification has run
     $custCols = $cust ? ", COALESCE(NULLIF(cu.display_name, ''), cu.email) AS customer_user_name, cu.email AS customer_user_email" : '';
@@ -68,6 +70,18 @@ function apiDomainSelect(?PDO $conn = null): string {
  *
  * @param array $r  the domains row as apiDomainSelect() loads it, with the lookup, contact and company names
  */
+/** An internal domain's health for the API: the state, what was last known, and the two dates (GH #203). */
+function apiDomainHealth(array $h): array {
+    return [
+        'state'             => $h['state'],
+        'known'             => $h['known'],
+        'last_completed_at' => apiIsoDate($h['last_completed']),
+        'last_healthy_at'   => apiIsoDate($h['last_healthy']),
+        'since_incomplete'  => $h['since_incomplete'],
+        'interval_minutes'  => $h['interval_minutes'],
+    ];
+}
+
 function apiSerializeDomain(array $r): array {
     $rel = function ($id, $name) { return $id === null ? null : ['id' => (int)$id, 'name' => $name]; };
     $tri = function ($v) { return $v === null ? null : (bool)(int)$v; };
@@ -86,6 +100,9 @@ function apiSerializeDomain(array $r): array {
         'company'           => $rel($r['tenant_id'] ?? null, $r['company_name'] ?? null),
         'status'            => $rel($r['status_id'], $r['status_name']),
         'purpose'           => $r['purpose'],
+        // GH #203: public | internal. An internal domain has a health instead of a grade.
+        'scope'             => ($r['scope'] ?? 'public') === 'internal' ? 'internal' : 'public',
+        'health'            => ($r['scope'] ?? '') === 'internal' ? apiDomainHealth(domainHealth($r, domainShapeInterval())) : null,
         'registrar'         => $rel($r['registrar_supplier_id'], $r['supplier_name']),
         'registrar_name'    => $r['registrar_name'],
         'registrar_account' => $rel($r['registrar_account_id'], $r['account_name']),
@@ -186,6 +203,13 @@ function apiDomainsList(PDO $conn, array $apiKey, array $params, array $body): v
             apiError(400, 'invalid_parameter', "Unknown purpose. One of: " . implode(', ', domainPurposes()));
         }
         $where[] = 'd.purpose = ?'; $args[] = $_GET['purpose'];
+    }
+    if (isset($_GET['scope']) && $_GET['scope'] !== '') {   // GH #203
+        if (!in_array($_GET['scope'], array_column(DomainScope::cases(), 'value'), true)) {
+            apiError(400, 'invalid_parameter', 'Unknown scope. One of: public, internal');
+        }
+        if (domainScopeReady($conn)) { $where[] = 'd.scope = ?'; $args[] = $_GET['scope']; }
+        elseif ($_GET['scope'] === 'internal') { $where[] = '1=0'; }
     }
     if (isset($_GET['domain_name']) && $_GET['domain_name'] !== '') {
         $n = domainNormalise((string)$_GET['domain_name']);
@@ -322,6 +346,8 @@ function apiDomainsLookup(PDO $conn, array $apiKey, array $params, array $body):
     apiLoadDomain($conn, $apiKey, $id);
     try {
         $r = DomainsService::refreshLookup($conn, ActorContext::fromApiKey($apiKey), $id);
+        // GH #203: an internal domain is never sent to a registry - a refusal, not a failure.
+        if (!empty($r['internal'])) apiError(409, 'internal_domain', (string)$r['error']);
         if (!$r['ok']) apiError(502, 'lookup_failed', (string)$r['error']);
         $out = apiSerializeDomain(apiLoadDomain($conn, $apiKey, $id));
         $out['changes'] = array_map(fn($c) => ['field' => $c['field'], 'old' => $c['old'], 'new' => $c['new']], $r['changes']);

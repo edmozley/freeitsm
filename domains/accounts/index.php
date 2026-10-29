@@ -35,7 +35,7 @@ $translationNamespaces = ['common', 'domains'];
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/domains.css?v=7">
+    <link rel="stylesheet" href="../../assets/css/domains.css?v=8">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="domains" data-mobile-page="domains-accounts">
@@ -86,7 +86,7 @@ $translationNamespaces = ['common', 'domains'];
         </div>
     </div>
 
-    <script src="../../assets/js/domains.js?v=2"></script>
+    <script src="../../assets/js/domains.js?v=3"></script>
     <script>
     (function () {
         'use strict';

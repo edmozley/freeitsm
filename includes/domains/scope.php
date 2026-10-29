@@ -147,7 +147,7 @@ function domainRunInternalChecks(array $d): array
             // A answer is a real answer: no IPv4 address. Where AAAA could not be
             // asked, the finding says so rather than hiding it.
             $problem = true;
-            $add('int_no_address', 'fail', ['host' => $h, 'ipv6_unknown' => !$aa['ok']]);
+            $add($aa['ok'] ? 'int_no_address' : 'int_no_ipv4', 'fail', ['host' => $h]);
         }
     }
     // Said once: what slice 1 deliberately does not do, so an empty certificate
@@ -155,6 +155,20 @@ function domainRunInternalChecks(array $d): array
     $add('int_scope_note', 'info', []);
 
     return ['findings' => $f, 'completed' => $problem || !$failed, 'problem' => $problem];
+}
+
+/**
+ * The internal-check interval health is worked out with (GH #203) - by
+ * domainShapeRow() and the REST serializer. Set by the readers, which have the
+ * connection; array_map('domainShapeRow') gives the shaper no way to ask for it.
+ *
+ * @param ?int $set  the interval in minutes, to remember; null to read it
+ */
+function domainShapeInterval(?int $set = null): int
+{
+    static $minutes = 60;
+    if ($set !== null) $minutes = $set;
+    return $minutes;
 }
 
 /**

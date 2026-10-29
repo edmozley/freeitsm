@@ -39,7 +39,7 @@ $translationNamespaces = ['common', 'domains'];
     <script src="../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/domains.css?v=7">
+    <link rel="stylesheet" href="../assets/css/domains.css?v=8">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="domains" data-mobile-page="domains-register">
@@ -65,6 +65,7 @@ $translationNamespaces = ['common', 'domains'];
             <h3><?php echo htmlspecialchars(t('domains.list.filters')); ?></h3>
             <select id="fCompany" style="display:none"></select>
             <select id="fStatus"></select>
+            <select id="fScope"></select>
             <select id="fPurpose"></select>
             <select id="fOwner"></select>
             <select id="fRegistrar"></select>
@@ -110,7 +111,9 @@ $translationNamespaces = ['common', 'domains'];
                         <label for="aCompany"><?php echo htmlspecialchars(t('domains.field.company')); ?></label>
                         <select id="aCompany"></select>
                     </div>
-                    <div class="form-group"><label for="aPurpose"><?php echo htmlspecialchars(t('domains.field.purpose')); ?></label><select id="aPurpose"></select></div>
+                    <div class="form-group"><label for="aScope"><?php echo htmlspecialchars(t('domains.field.scope')); ?></label><select id="aScope"></select></div>
+                    <div class="form-group" id="aPurposeWrap"><label for="aPurpose"><?php echo htmlspecialchars(t('domains.field.purpose')); ?></label><select id="aPurpose"></select></div>
+                    <div class="form-group full dom-sub" id="aScopeHint" style="display:none"><?php echo htmlspecialchars(t('domains.field.scope_hint')); ?></div>
                     <div class="form-group"><label for="aStatus"><?php echo htmlspecialchars(t('domains.field.status')); ?></label><select id="aStatus"></select></div>
                     <div class="form-group"><label for="aOwner"><?php echo htmlspecialchars(t('domains.field.owner')); ?></label><select id="aOwner"></select></div>
                     <div class="form-group"><label for="aRenewal"><?php echo htmlspecialchars(t('domains.field.renewal_mode')); ?></label><select id="aRenewal"></select></div>
@@ -139,7 +142,8 @@ $translationNamespaces = ['common', 'domains'];
                     <div class="dom-form-grid">
                         <div class="dom-section-title"><?php echo htmlspecialchars(t('domains.many.defaults')); ?></div>
                         <div class="form-group full" id="mCompanyWrap" style="display:none"><label for="mCompany"><?php echo htmlspecialchars(t('domains.field.company')); ?></label><select id="mCompany"></select></div>
-                        <div class="form-group"><label for="mPurpose"><?php echo htmlspecialchars(t('domains.field.purpose')); ?></label><select id="mPurpose"></select></div>
+                        <div class="form-group"><label for="mScope"><?php echo htmlspecialchars(t('domains.field.scope')); ?></label><select id="mScope"></select></div>
+                        <div class="form-group" id="mPurposeWrap"><label for="mPurpose"><?php echo htmlspecialchars(t('domains.field.purpose')); ?></label><select id="mPurpose"></select></div>
                         <div class="form-group"><label for="mStatus"><?php echo htmlspecialchars(t('domains.field.status')); ?></label><select id="mStatus"></select></div>
                         <div class="form-group"><label for="mOwner"><?php echo htmlspecialchars(t('domains.field.owner')); ?></label><select id="mOwner"></select></div>
                         <div class="form-group"><label for="mTags"><?php echo htmlspecialchars(t('domains.field.tags')); ?></label><input type="text" id="mTags"></div>
@@ -186,6 +190,7 @@ $translationNamespaces = ['common', 'domains'];
                 <p class="dom-hint" style="font-size:13px"><?php echo htmlspecialchars(t('domains.bulk.intro')); ?></p>
                 <div class="dom-form-grid">
                     <div class="form-group"><label for="bStatus"><?php echo htmlspecialchars(t('domains.field.status')); ?></label><select id="bStatus"></select></div>
+                    <div class="form-group"><label for="bScope"><?php echo htmlspecialchars(t('domains.field.scope')); ?></label><select id="bScope"></select></div>
                     <div class="form-group"><label for="bPurpose"><?php echo htmlspecialchars(t('domains.field.purpose')); ?></label><select id="bPurpose"></select></div>
                     <div class="form-group"><label for="bOwner"><?php echo htmlspecialchars(t('domains.field.owner')); ?></label><select id="bOwner"></select></div>
                     <div class="form-group"><label for="bRenewal"><?php echo htmlspecialchars(t('domains.field.renewal_mode')); ?></label><select id="bRenewal"></select></div>
@@ -202,8 +207,8 @@ $translationNamespaces = ['common', 'domains'];
         </div>
     </div>
 
-    <script src="../assets/js/domains.js?v=2"></script>
-    <script src="../assets/js/domains-register.js?v=3"></script>
+    <script src="../assets/js/domains.js?v=3"></script>
+    <script src="../assets/js/domains-register.js?v=4"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

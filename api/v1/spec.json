@@ -6624,6 +6624,12 @@
                             "req": false
                         },
                         {
+                            "name": "scope",
+                            "in": "query",
+                            "desc": "public or internal (GH #203)",
+                            "req": false
+                        },
+                        {
                             "name": "tag",
                             "in": "query",
                             "desc": "Domains carrying this tag",

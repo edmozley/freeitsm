@@ -118,6 +118,9 @@ body { --accent: var(--dom-accent, #4d7c0f); --accent-hover: var(--dom-accent-ho
 .dom-grade.g-D { background: #ea580c; }
 .dom-grade.g-F { background: #dc2626; }
 .dom-grade.big { min-width: 64px; height: 64px; font-size: 30px; border-radius: 14px; }
+/* GH #203: an internal domain's health badge, in the grade's place on the domain page. */
+.dom-pill.dom-health.big { font-size: 16px; padding: 12px 18px; border-radius: 14px; }
+.dom-internal-note { padding: 10px 14px; border-radius: 8px; background: var(--surface-2, #f1f5f9); color: var(--text, #333); font-size: 13px; margin-bottom: 12px; }
 
 .dom-locks { display: inline-flex; gap: 4px; }
 .dom-lock { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; }

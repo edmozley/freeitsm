@@ -26,6 +26,7 @@ return [
         'generic' => 'Etwas ist schiefgelaufen.',
     ],
     'list' => [
+        'any_scope' => 'Jeder Bereich',
         'search' => 'Suchen',
         'search_placeholder' => 'Name, Registrar, Schlagwort…',
         'views' => 'Ansichten',
@@ -53,6 +54,7 @@ return [
         'any_company' => 'Beliebiges Unternehmen',
     ],
     'view' => [
+        'internal_note' => 'Intern - Registrierungs- und E-Mail-Prüfungen entfallen. Nur über das DNS dieses Servers geprüft; nichts wird nach außen gesendet.',
         'all' => 'Alle Domains',
         'attention' => 'Braucht Aufmerksamkeit',
         'expiring30' => 'Läuft in 30 Tagen ab',
@@ -78,7 +80,7 @@ return [
         'expires' => 'Läuft ab',
         'renewal' => 'Verlängerung',
         'registrar' => 'Registrar',
-        'grade' => 'Note',
+        'grade' => 'Note / Zustand',
         'protection' => 'Sperren',
         'certificate' => 'Zertifikat',
         'owner' => 'Eigentümer',
@@ -100,10 +102,31 @@ return [
         'none' => 'Noch nicht geprüft',
         'title' => 'Sicherheitsnote {grade}',
     ],
+    'scope' => [
+        'public'   => 'Öffentlich',
+        'internal' => 'Intern',
+    ],
+    'health' => [
+        'healthy'        => 'In Ordnung',
+        'problem'        => 'Problem',
+        'not_checked'    => 'Nicht geprüft',
+        'stale'          => 'Veraltet',
+        'label'          => 'Zustand',
+        'last_completed' => 'Letzte abgeschlossene Prüfung',
+        'last_healthy'   => 'Zuletzt in Ordnung',
+        'next_due'       => 'Nächste Prüfung fällig',
+        'never'          => 'Nie',
+        'known_after'    => '{state}, zuletzt bestätigt {date} - die Prüfungen seitdem wurden nicht abgeschlossen.',
+        'stale_note'     => 'Seit mehr als dem doppelten Intervall ({minutes} Minuten) wurde keine Prüfung abgeschlossen, daher ist dies nicht aktuell. Läuft der geplante Job?',
+        'not_checked_note' => 'Es wurde noch keine Prüfung abgeschlossen. Klicken Sie auf Jetzt prüfen oder warten Sie auf den geplanten Lauf.',
+        'title'          => 'Zustand: {state}',
+    ],
     'status' => [
         'none' => 'Kein Status',
     ],
     'field' => [
+        'scope' => 'Bereich',
+        'scope_hint' => 'Intern: ein Name, der nur in Ihrem Netzwerk verwendet wird - ein Intranet oder eine interne Anwendung. Er wird nie nach außen gesendet: kein öffentliches DNS, keine Registry-Abfrage, keine Certificate Transparency und keine Suche nach ähnlichen Domains. Statt einer Sicherheitsnote erhält er einen Zustand aus dem DNS dieses Servers.',
         'domain_name' => 'Domainname',
         'display_name' => 'Angezeigt als',
         'company' => 'Unternehmen',
@@ -268,6 +291,11 @@ return [
         'done' => 'Fertig. Alles, was nicht erreichbar war, versucht der geplante Lauf erneut.',
     ],
     'check' => [
+        'int_resolves' => ['title' => '{host} wird aufgelöst ({addresses})', 'advice' => ''],
+        'int_no_address' => ['title' => '{host} wird nicht aufgelöst', 'advice' => 'Der DNS-Resolver dieses Servers hat keine Adresse für {host}. Wenn der Name existieren sollte, prüfen Sie den Eintrag auf Ihrem internen DNS-Server - oder ob dieser Server den richtigen DNS-Server fragt.'],
+        'int_no_ipv4' => ['title' => '{host} hat keine IPv4-Adresse', 'advice' => 'Der DNS-Resolver dieses Servers hat keine IPv4-Adresse für {host} geliefert, und die IPv6-Abfrage konnte nicht abgeschlossen werden (so beantwortet Windows einen Namen, der nicht existiert). Wenn der Name existieren sollte, prüfen Sie den Eintrag auf Ihrem internen DNS-Server.'],
+        'int_not_checked' => ['title' => '{host}: nicht geprüft', 'advice' => 'Dieser Server konnte seinen DNS-Resolver nicht zu {host} befragen ({error}). Das sagt nichts über den Namen selbst aus - der zuletzt bekannte Zustand bleibt erhalten, bis eine Prüfung abgeschlossen ist.'],
+        'int_scope_note' => ['title' => 'Intern: nur über das DNS dieses Servers geprüft', 'advice' => 'Nichts über diese Domain wird nach außen gesendet. Registrierung, E-Mail-Sicherheit, Nameserver und DNSSEC entfallen, und Zertifikate auf internen Hosts werden noch nicht geprüft - das kommt mit den Schutzmaßnahmen in einer späteren Version.'],
         'sub_registration' => [
             'title' => 'Eine Subdomain von {parent} - ihre Registrierung ist die der übergeordneten Domain',
             'advice' => 'Ablauf, Verlängerung und Registrar werden bei {parent} geprüft und erinnert.',
@@ -574,6 +602,7 @@ return [
         'sub_refresh' => 'Eine Subdomain hat keine eigene Registrierung, die aktualisiert werden könnte.',
     ],
     'tab' => [
+        'health' => 'Zustand',
         'overview' => 'Überblick',
         'security' => 'Sicherheit und E-Mail',
         'certificates' => 'Zertifikate',
@@ -648,6 +677,7 @@ return [
         'add_domain' => 'Domain verknüpfen',
     ],
     'area' => [
+        'health' => 'Zustand',
         'registration' => 'Registrierung',
         'dns' => 'DNS',
         'email' => 'E-Mail',
@@ -749,6 +779,8 @@ return [
         'viewed_code' => 'Auth-Code angezeigt',
         'blank' => '(leer)',
         'f' => [
+            'scope' => 'Bereich',
+            'health_status' => 'Zustand',
             'domain_created' => 'Hinzugefügt',
             'parent_domain_id' => 'Subdomain von',
             'certificate_added' => 'Zertifikat erfasst',
@@ -801,6 +833,13 @@ return [
         ],
     ],
     'settings' => [
+        'internal_interval' => 'Interne Domains prüfen alle',
+        'internal_interval_desc' => 'Wie oft interne Domains geprüft werden (nur DNS, über diesen Server). Der geplante Job muss mindestens so oft laufen, damit ein kurzes Intervall eingehalten wird: für alle 15 Minuten führen Sie cron/domains.php alle 15 Minuten aus.',
+        'ii_15' => '15 Minuten',
+        'ii_30' => '30 Minuten',
+        'ii_60' => 'Stunde',
+        'ii_240' => '4 Stunden',
+        'ii_1440' => 'Tag',
         'tab_statuses' => 'Status',
         'tab_cert_types' => 'Zertifikattypen',
         'tab_alerts' => 'Warnungen',
@@ -934,6 +973,8 @@ return [
         'code_audit_desc' => 'Jedes Mal, wenn jemand den Auth-Code einer Domain anzeigt, eine Zeile im Verlauf der Domain schreiben. Nachdem eine Domain gestohlen wurde, ist „Wer hat den Code angesehen?“ die erste Frage.',
     ],
     'dash' => [
+        'internal' => 'Intern',
+        'internal_desc' => '{healthy} in Ordnung, {problem} mit Problem, {other} nicht geprüft oder veraltet',
         'forecast' => 'Verlängerungen in den nächsten 12 Monaten',
         'grades' => 'Sicherheitsnoten',
         'attention' => 'Erfordert Aufmerksamkeit',
@@ -959,6 +1000,8 @@ return [
         'email_note' => 'Aus der letzten Prüfung jeder Domain. Geparkte, defensive und Weiterleitungsdomains werden als abgesichert oder nicht gezählt, nicht als fehlende Einträge.',
     ],
     'reason' => [
+        'health' => 'Interner Name nicht in Ordnung',
+        'stale' => 'Zustandsprüfung veraltet',
         'expired' => 'Abgelaufen',
         'expiring' => 'Läuft bald ab',
         'certificate' => 'Zertifikat läuft ab',
@@ -1025,6 +1068,16 @@ return [
             'p3' => 'Alles andere wird für die Subdomain selbst geprüft: ihre Mailserver, SPF, DKIM und Zertifikate. (Ähnlich aussehende Namen werden für sie nicht gesucht - nur ein Name, den jemand registrieren könnte, hat solche.) Was DNS bei der übergeordneten Domain führt, wird dort gelesen - eine Subdomain ohne eigene Nameserver wird von denen der übergeordneten Domain beantwortet, ihr CAA kann das der übergeordneten Domain sein, und ihr DNSSEC ist das der übergeordneten Zone.',
             'p4' => 'DMARC: Eine Subdomain ohne eigenen DMARC-Eintrag wird von dem der übergeordneten Domain abgedeckt - mit deren Subdomain-Richtlinie (sp=), falls sie eine setzt, sonst mit ihrer Hauptrichtlinie. Die Prüfungen sagen, was gilt. Eine übergeordnete Domain mit p=reject, aber sp=none schützt sich selbst und nicht ihre Subdomains.',
             'p5' => 'Um die Verknüpfung zu ändern oder zu entfernen, wählen Sie im Dialog Bearbeiten **Subdomain von**. Eine Subdomain kann keine eigenen Subdomains haben: Jede ist mit der Domain verknüpft, die tatsächlich registriert ist.',
+        ],
+        'internal' => [
+            'nav' => 'Interne Domains',
+            'title' => 'Interne Domains',
+            'intro' => 'Namen, die nur in Ihrem Netzwerk existieren - ein Intranet, eine interne Anwendung - bleiben im Netzwerk.',
+            'p1' => 'Setzen Sie den **Bereich** einer Domain auf **Intern** (beim Hinzufügen oder unter Bearbeiten), und sie wird nie nach außen gesendet: kein öffentliches DNS, keine Registry-Abfrage, keine Certificate-Transparency-Überwachung und keine Suche nach ähnlichen Domains - auch nicht als Ausweichlösung, wenn etwas fehlschlägt. Registrierung, Verlängerung, Zweck und E-Mail-Sicherheit entfallen und werden daher nicht als Fehler angezeigt.',
+            'p2' => 'Statt einer Sicherheitsnote erhält sie einen **Zustand**: Wird jeder Name - die Domain und ihre zusätzlichen Hosts - aufgelöst, gefragt wird nur der DNS-Resolver dieses Servers. **In Ordnung**, **Problem** (ein Name wird nicht aufgelöst), **Nicht geprüft** (die Prüfung konnte nicht laufen - das sagt nichts über den Namen) oder **Veraltet** (seit dem doppelten Intervall wurde keine Prüfung abgeschlossen). Was nicht gelaufen ist, wird nie als bestanden angezeigt.',
+            'p3' => 'Zwei Zeitpunkte werden festgehalten: die **letzte abgeschlossene Prüfung** und wann sie **zuletzt in Ordnung** war. Eine Prüfung, die ein Problem findet, ist trotzdem ein aktuelles Ergebnis, und wenn spätere Prüfungen nicht abgeschlossen werden können, bleibt das zuletzt bekannte Problem mit einem Hinweis sichtbar, statt zu "unbekannt" zu werden.',
+            'p4' => 'Interne Domains werden standardmäßig stündlich geprüft - ändern Sie das unter **Einstellungen → Überwachung → Interne Domains prüfen alle**. Der geplante Job muss mindestens so oft laufen, damit ein kurzes Intervall eingehalten wird. Sie fließen nicht in die Sicherheitsnoten, die E-Mail-Übersicht und die Registrierungswarnungen ein; ein Problem erscheint unter **Braucht Aufmerksamkeit** und auf dem Dashboard.',
+            'p5' => 'Zertifikate auf internen Hosts werden noch nicht geprüft: Verbindungen zu internen Adressen brauchen die Schutzmaßnahmen, die mit dem nächsten Teil kommen (nur von Administratoren festgelegte Ziele, erlaubte Netzwerke und Ports). Beachten Sie auch: *Nur dieser Server* hält die Anfragen von FreeITSM auf diesem Server - wenn der DNS-Resolver dieses Servers Anfragen, die er nicht selbst beantworten kann, an einen öffentlichen Dienst weiterleitet, kann ein Name von dort aus trotzdem das Netzwerk verlassen.',
         ],
         'grade' => [
             'nav' => 'Die Sicherheitsnote',

@@ -5,7 +5,11 @@
  */
 (function () {
     'use strict';
-    const { T, esc, api, fmtDate, grade, daysPill, status, purpose, renewal, tags, finding, money } = window.Dom;
+    const { T, esc, api, fmtDate, grade, health, daysPill, status, purpose, renewal, tags, finding, money } = window.Dom;
+    /** GH #203: is this domain internal - health instead of a grade, nothing sent outside? */
+    const internal = () => D && D.scope === 'internal';
+    /** A stored UTC date-time in the analyst's format. */
+    const when = v => v ? (window.fmtDateTime ? fmtDateTime(String(v).replace(' ', 'T') + 'Z') : v) : '';
     const ID = window.DOMAIN_ID;
     let D = null, data = null, L = null;
 
@@ -48,18 +52,29 @@
         else if (dl < 0) { cls = 'red'; n = -dl; l = T('page.days_since'); }
         else if (dl <= 30) cls = dl <= 7 ? 'red' : 'amber';
         document.getElementById('hero').innerHTML =
-            '<div>' + grade(D.security_grade, true) + (D.security_score !== null ? '<div class="dom-sub" style="text-align:center">' + esc(D.security_score) + '/100</div>' : '') + '</div>'
+            (internal()
+                ? '<div>' + health(D.health, true) + '</div>'
+                : '<div>' + grade(D.security_grade, true) + (D.security_score !== null ? '<div class="dom-sub" style="text-align:center">' + esc(D.security_score) + '/100</div>' : '') + '</div>')
             + '<div style="min-width:0"><h1>' + esc(D.display_name || D.domain_name) + '</h1>'
             + (D.display_name ? '<div class="dom-sub">' + esc(D.domain_name) + '</div>' : '')
             + (P ? '<div class="dom-sub">' + withLink('page.subdomain_of', '<a href="view.php?id=' + P.id + '">' + esc(P.display_name || P.domain_name) + '</a>') + '</div>' : '')
             + '<div class="meta">' + status(D.status_name, D.status_colour)
-            + '<span>' + esc(purpose(D.purpose)) + '</span>'
+            + '<span>' + esc(internal() ? T('scope.internal') : purpose(D.purpose)) + '</span>'
             + (data.multi_company && D.company_name ? '<span>· ' + esc(D.company_name) + '</span>' : '')
             + (D.owner_name ? '<span>· ' + esc(T('page.owned_by', { name: D.owner_name })) + '</span>' : '<span class="dom-pill amber">' + esc(T('page.no_owner')) + '</span>')
             + (D.monitoring_enabled ? '' : '<span class="dom-pill grey">' + esc(T('page.monitoring_off')) + '</span>')
             + '</div>' + (D.tags ? '<div style="margin-top:6px">' + tags(D.tags) + '</div>' : '') + '</div>'
-            + '<div class="count-down"><div class="n ' + cls + '">' + esc(n) + '</div><div class="l">' + esc(l) + '</div>'
-            + (expiry ? '<div class="dom-sub">' + esc(fmtDate(expiry)) + ' · ' + esc(renewal(mode)) + '</div>' : '') + '</div>';
+            // An internal domain has no registration to count down to (GH #203).
+            + (internal() ? '' : '<div class="count-down"><div class="n ' + cls + '">' + esc(n) + '</div><div class="l">' + esc(l) + '</div>'
+            + (expiry ? '<div class="dom-sub">' + esc(fmtDate(expiry)) + ' · ' + esc(renewal(mode)) + '</div>' : '') + '</div>');
+        // The Security and email tab is Health for an internal domain - same tab, same
+        // id (Check now and ?tab=security links land on it) - and an internal domain
+        // has no registry to refresh from and no look-alikes to watch.
+        const secTab = document.querySelector('#domTabs [data-tab="security"]');
+        secTab.firstChild.textContent = T(internal() ? 'tab.health' : 'tab.security') + ' ';
+        document.querySelector('#domTabs [data-tab="lookalikes"]').hidden = internal();
+        // TRAP: not .hidden - .dom-btn sets display, which beats the hidden attribute.
+        document.getElementById('btnRefresh').style.display = internal() ? 'none' : '';
         document.title = (document.titleBase = document.titleBase || document.title) + ' - ' + (D.display_name || D.domain_name);   // GH #173: appended to the server's pageTitle()
 
         const f = D.findings || [];
@@ -106,7 +121,7 @@
             + '<div class="dom-card-b"><p class="dom-hint" style="margin:0 0 12px">' + esc(T('page.subdomains_hint')) + '</p>'
             + '<table class="dom-table"><tbody>' + subs.map(s => '<tr style="cursor:default"><td><a href="view.php?id=' + s.id + '">' + esc(s.display_name || s.domain_name) + '</a></td>'
                 + '<td>' + grade(s.security_grade) + '</td><td class="dom-sub">' + esc(purpose(s.purpose)) + '</td></tr>').join('') + '</tbody></table></div></div>' : '';
-        const reg = P ? parentReg : '<div class="dom-card"><div class="dom-card-h"><h3>' + esc(T('page.registration')) + '</h3>'
+        const reg = internal() ? healthCard() : P ? parentReg : '<div class="dom-card"><div class="dom-card-h"><h3>' + esc(T('page.registration')) + '</h3>'
             + '<span class="dom-sub">' + esc(D.lookup_source ? T('source.' + D.lookup_source) : T('source.manual'))
             + (D.last_lookup_datetime ? ' · ' + esc(window.fmtDateTime ? fmtDateTime(D.last_lookup_datetime.replace(' ', 'T') + 'Z') : D.last_lookup_datetime) : '') + '</span></div>'
             + '<div class="dom-card-b">'
@@ -127,12 +142,13 @@
             + '</div></div></div>';
 
         const dns = '<div class="dom-card"><div class="dom-card-h"><h3>' + esc(T('page.dns_web')) + '</h3></div><div class="dom-card-b"><div class="dom-fields">'
-            + row('field.nameservers', esc(D.nameservers || ''), true)
+            // An internal domain has no delegation, checked certificates or DKIM (GH #203).
+            + (internal() ? '' : row('field.nameservers', esc(D.nameservers || ''), true))
             + row('field.dns_provider', esc(D.dns_provider || ''))
             + row('field.hosting_provider', esc(D.hosting_provider || ''))
-            + row('field.ssl_expiry', D.ssl_expiry_date ? esc(fmtDate(D.ssl_expiry_date)) + ' ' + daysPill(D.ssl_days_left, 21) + (D.ssl_issuer ? '<div class="dom-sub">' + esc(D.ssl_issuer) + '</div>' : '') : '')
+            + (internal() ? '' : row('field.ssl_expiry', D.ssl_expiry_date ? esc(fmtDate(D.ssl_expiry_date)) + ' ' + daysPill(D.ssl_days_left, 21) + (D.ssl_issuer ? '<div class="dom-sub">' + esc(D.ssl_issuer) + '</div>' : '') : ''))
             + row('field.ssl_hosts', esc(D.ssl_hosts || ''))
-            + row('field.dkim_selectors', esc(D.dkim_selectors || ''))
+            + (internal() ? '' : row('field.dkim_selectors', esc(D.dkim_selectors || '')))
             + row('field.last_check', D.last_check_datetime ? esc(window.fmtDateTime ? fmtDateTime(D.last_check_datetime.replace(' ', 'T') + 'Z') : D.last_check_datetime) : '')
             + '</div></div></div>';
 
@@ -158,6 +174,30 @@
     }
 
     /**
+     * An internal domain's health card (GH #203): the state, the two dates the review
+     * asked for - the last completed check and the last healthy result - and when the
+     * next check is due, with a plain note when the state is not current.
+     */
+    function healthCard() {
+        const h = D.health || { state: 'not_checked' };
+        const due = D.last_check_datetime && h.interval_minutes
+            ? new Date(new Date(D.last_check_datetime.replace(' ', 'T') + 'Z').getTime() + h.interval_minutes * 60000) : null;
+        let note = '';
+        if (h.state === 'stale') note = T('health.stale_note', { minutes: h.interval_minutes * 2 });
+        else if (h.state === 'not_checked' && !h.known) note = T('health.not_checked_note');
+        if (h.known && h.known !== h.state) note = T('health.known_after', { state: T('health.' + h.known), date: when(h.last_completed) }) + (note ? ' ' + note : '');
+        return '<div class="dom-card"><div class="dom-card-h"><h3>' + esc(T('health.label')) + '</h3></div><div class="dom-card-b">'
+            + '<div class="dom-internal-note">' + esc(T('view.internal_note')) + '</div>'
+            + (note ? '<p class="dom-hint" style="margin:0 0 12px">' + esc(note) + '</p>' : '')
+            + '<div class="dom-fields">'
+            + row('health.label', health(h))
+            + row('health.last_completed', h.last_completed ? esc(when(h.last_completed)) : esc(T('health.never')))
+            + row('health.last_healthy', h.last_healthy ? esc(when(h.last_healthy)) : esc(T('health.never')))
+            + row('health.next_due', due ? esc(window.fmtDateTime ? fmtDateTime(due.toISOString()) : due.toISOString()) : '')
+            + '</div></div></div>';
+    }
+
+    /**
      * Draws the auth code field: hidden with Reveal and Change links for analysts allowed auth codes,
      * otherwise just whether one is set.
      */
@@ -168,7 +208,7 @@
     }
 
     // ---------------------------------------------------------------- security
-    const AREAS = ['registration', 'dns', 'email', 'web'];
+    const AREAS = ['health', 'registration', 'dns', 'email', 'web'];   // 'health': an internal domain's checks (GH #203)
     /** Draws the Security tab - the grade and score, then the findings grouped by area, worst first. */
     function renderSecurity() {
         const f = D.findings || [];
@@ -177,7 +217,10 @@
             return;
         }
         const order = { fail: 0, warn: 1, info: 2, pass: 3 };
-        const intro = '<div style="display:flex;gap:16px;align-items:center;margin-bottom:18px">' + grade(D.security_grade, true)
+        const intro = internal()
+            ? '<div style="display:flex;gap:16px;align-items:center;margin-bottom:18px">' + health(D.health, true)
+              + '<div class="dom-sub">' + esc(T('view.internal_note')) + (D.checked_at ? ' ' + esc(T('page.checked_at', { when: fmtDate(D.checked_at) })) : '') + '</div></div>'
+            : '<div style="display:flex;gap:16px;align-items:center;margin-bottom:18px">' + grade(D.security_grade, true)
             + '<div><div style="font-weight:600">' + esc(T('page.grade_line', { score: D.security_score })) + '</div>'
             + '<div class="dom-sub">' + esc(T('page.grade_explain')) + (D.checked_at ? ' ' + esc(T('page.checked_at', { when: fmtDate(D.checked_at) })) : '') + '</div></div></div>';
         document.getElementById('security').innerHTML = intro + AREAS.map(a => {
@@ -573,6 +616,7 @@
         document.getElementById('mcSave').addEventListener('click', saveCert);
         document.getElementById('mcSupplier').addEventListener('change', mcProviderToggle);
         document.getElementById('eParent').addEventListener('change', regOnlyToggle);
+        document.getElementById('eScope').addEventListener('change', regOnlyToggle);
         document.getElementById('cSave').addEventListener('click', async () => {
             try { await api('auth_code.php', { id: ID, action: 'set', code: document.getElementById('cCode').value }); window.Dom.closeModal('mCode'); showToast(T('code.saved'), 'success'); await load(); }
             catch (e) { showToast(e.message, 'error'); }
@@ -657,6 +701,7 @@
         if (!L) { showToast(T('err.generic'), 'error'); return; }
         const F = window.Dom.fillSelect;
         F('ePurpose', L.purposes.map(p => ({ id: p, name: purpose(p) })));
+        F('eScope', ['public', 'internal'].map(s => ({ id: s, name: T('scope.' + s) })));
         F('eStatus', L.statuses, { blank: T('status.none') });
         F('eOwner', L.analysts, { blank: T('field.no_owner') });
         F('eRegistrar', L.suppliers, { blank: '—' });
@@ -703,7 +748,11 @@
     /** A subdomain's registration is its parent's: its own registration fields are hidden while one is chosen. */
     function regOnlyToggle() {
         const sub = document.getElementById('eParent').value !== '';
-        document.querySelectorAll('#editForm .reg-only').forEach(g => { g.hidden = sub; });
+        // GH #203: an internal domain has no registration and no purpose either.
+        const inside = document.getElementById('eScope').value === 'internal';
+        document.querySelectorAll('#editForm .reg-only').forEach(g => { g.hidden = sub || inside; });
+        document.getElementById('ePurposeGroup').hidden = inside;
+        document.getElementById('eScopeHint').hidden = !inside;
     }
 
     // --------------------------------- customer: person (#153) or supplier (#162)

@@ -11,7 +11,7 @@
  */
 (function () {
     'use strict';
-    const { T, esc, api, fmtDate, grade, daysPill, status, locks, purpose, renewal, tags, money } = window.Dom;
+    const { T, esc, api, fmtDate, grade, gradeOrHealth, daysPill, status, locks, purpose, renewal, tags, money } = window.Dom;
 
     let rows = [];
     let L = {};                    // lookups
@@ -30,27 +30,29 @@
         ['expired',    r => r.days_left !== null && r.days_left < 0],
         ['unlocked',   r => r.transfer_lock === false],
         ['certificate',r => r.ssl_days_left !== null && r.ssl_days_left <= 21],
-        ['weak',       r => ['C', 'D', 'F'].includes(r.security_grade)],
+        ['weak',       r => r.scope !== 'internal' && ['C', 'D', 'F'].includes(r.security_grade)],
         ['lookalikes', r => r.lookalike_count > 0 || r.new_certificate_count > 0],
         ['unchecked',  r => !r.last_check_datetime],
     ];
     const ALERT_VIEWS = ['attention', 'expired', 'unlocked', 'certificate'];
 
     // ---- columns ---------------------------------------------------------------
+    // GH #203: what an internal domain does not have - registration, renewal, locks.
+    const NA = '<span class="dom-sub">—</span>';
     const COLS = [
         { key: 'cb', nosort: true, head: () => '<input type="checkbox" id="cbAll">', cell: r => '<input type="checkbox" class="cbRow" data-id="' + r.id + '"' + (selected.has(r.id) ? ' checked' : '') + '>' },
         { key: 'name', head: () => T('col.domain'), val: r => (r.display_name || r.domain_name),
           cell: r => '<div class="dom-name">' + esc(r.display_name || r.domain_name) + '</div>'
-                   + '<div class="dom-sub">' + (multi && r.company_name ? esc(r.company_name) + ' · ' : '') + esc(purpose(r.purpose))
+                   + '<div class="dom-sub">' + (multi && r.company_name ? esc(r.company_name) + ' · ' : '') + esc(r.scope === 'internal' ? T('scope.internal') : purpose(r.purpose))
                    + (r.display_name ? ' · ' + esc(r.domain_name) : '') + '</div>' + (r.tags ? '<div>' + tags(r.tags) + '</div>' : '') },
         { key: 'status', head: () => T('col.status'), val: r => r.status_name || '', cell: r => status(r.status_name, r.status_colour) },
         { key: 'expiry', head: () => T('col.expires'), val: r => r.days_left === null ? 1e9 : r.days_left,
-          cell: r => daysPill(r.days_left) + (r.expiry_date ? '<div class="dom-sub">' + esc(fmtDate(r.expiry_date)) + '</div>' : '') },
-        { key: 'renewal', head: () => T('col.renewal'), val: r => r.renewal_mode, cell: r => esc(renewal(r.renewal_mode)) },
+          cell: r => r.scope === 'internal' ? NA : daysPill(r.days_left) + (r.expiry_date ? '<div class="dom-sub">' + esc(fmtDate(r.expiry_date)) + '</div>' : '') },
+        { key: 'renewal', head: () => T('col.renewal'), val: r => r.renewal_mode, cell: r => r.scope === 'internal' ? NA : esc(renewal(r.renewal_mode)) },
         { key: 'registrar', head: () => T('col.registrar'), val: r => (r.supplier_name || r.registrar_name || ''),
           cell: r => esc(r.supplier_name || r.registrar_name || '—') + (r.account_name ? '<div class="dom-sub">' + esc(r.account_name) + '</div>' : '') },
-        { key: 'grade', head: () => T('col.grade'), val: r => r.security_score === null ? -1 : r.security_score, cell: r => grade(r.security_grade) },
-        { key: 'locks', head: () => T('col.protection'), val: r => (r.transfer_lock ? 2 : 0) + (r.registry_lock ? 1 : 0), cell: r => locks(r) },
+        { key: 'grade', head: () => T('col.grade'), val: r => r.scope === 'internal' ? -2 : (r.security_score === null ? -1 : r.security_score), cell: r => gradeOrHealth(r) },
+        { key: 'locks', head: () => T('col.protection'), val: r => (r.transfer_lock ? 2 : 0) + (r.registry_lock ? 1 : 0), cell: r => r.scope === 'internal' ? NA : locks(r) },
         { key: 'ssl', head: () => T('col.certificate'), val: r => r.ssl_days_left === null ? 1e9 : r.ssl_days_left,
           cell: r => r.ssl_days_left === null ? '<span class="dom-sub">—</span>' : daysPill(r.ssl_days_left, 21) },
         { key: 'owner', head: () => T('col.owner'), val: r => r.owner_name || '', cell: r => esc(r.owner_name || '—') },
@@ -100,6 +102,10 @@
         const purposes = (L.purposes || []).map(p => ({ id: p, name: purpose(p) }));
         const modes = (L.renewal_modes || []).map(m => ({ id: m, name: renewal(m) }));
         F('fStatus', L.statuses, { blank: T('list.any_status') });
+        // GH #203: Scope, offered only once the server knows it (Database Verification).
+        const scopes = ['public', 'internal'].map(s => ({ id: s, name: T('scope.' + s) }));
+        F('fScope', scopes, { blank: T('list.any_scope') });
+        F('aScope', scopes); F('mScope', scopes); F('bScope', scopes, { blank: T('bulk.no_change') });
         F('fPurpose', purposes, { blank: T('list.any_purpose') });
         F('fOwner', [{ id: '0', name: T('list.no_owner') }].concat(L.analysts || []), { blank: T('list.any_owner') });
         F('fRegistrar', L.suppliers, { blank: T('list.any_registrar') });
@@ -138,6 +144,7 @@
             if (q && ![r.domain_name, r.display_name, r.registrar_name, r.supplier_name, r.tags, r.company_name, r.owner_name, r.status_name]
                 .some(x => x && String(x).toLowerCase().includes(q))) return false;
             if (v('fStatus') && String(r.status_id) !== v('fStatus')) return false;
+            if (v('fScope') && r.scope !== v('fScope')) return false;
             if (v('fPurpose') && r.purpose !== v('fPurpose')) return false;
             if (v('fOwner') === '0' && r.owner_analyst_id) return false;
             if (v('fOwner') && v('fOwner') !== '0' && String(r.owner_analyst_id) !== v('fOwner')) return false;
@@ -230,9 +237,16 @@
      */
     function wire() {
         document.getElementById('domSearch').addEventListener('input', render);
-        ['fStatus', 'fPurpose', 'fOwner', 'fRegistrar', 'fTag', 'fCompany'].forEach(id => document.getElementById(id).addEventListener('change', render));
+        ['fStatus', 'fScope', 'fPurpose', 'fOwner', 'fRegistrar', 'fTag', 'fCompany'].forEach(id => document.getElementById(id).addEventListener('change', render));
+        // Purpose does not apply to an internal domain (GH #203): hidden while Internal is chosen.
+        const scopeToggle = (sel, wrap, hint) => document.getElementById(sel).addEventListener('change', () => {
+            const internal = document.getElementById(sel).value === 'internal';
+            document.getElementById(wrap).style.display = internal ? 'none' : '';
+            if (hint) document.getElementById(hint).style.display = internal ? '' : 'none';
+        });
+        scopeToggle('aScope', 'aPurposeWrap', 'aScopeHint'); scopeToggle('mScope', 'mPurposeWrap', null);
         document.getElementById('domClearFilters').addEventListener('click', () => {
-            ['fStatus', 'fPurpose', 'fOwner', 'fRegistrar', 'fTag', 'fCompany'].forEach(id => { document.getElementById(id).value = ''; });
+            ['fStatus', 'fScope', 'fPurpose', 'fOwner', 'fRegistrar', 'fTag', 'fCompany'].forEach(id => { document.getElementById(id).value = ''; });
             document.getElementById('domSearch').value = ''; view = 'all'; accountFilter = null; render();
         });
         document.getElementById('domViews').addEventListener('click', e => {
@@ -301,6 +315,7 @@
         try {
             const body = {
                 domain_name: name,
+                scope: document.getElementById('aScope').value,
                 purpose: document.getElementById('aPurpose').value,
                 status_id: document.getElementById('aStatus').value || null,
                 owner_analyst_id: document.getElementById('aOwner').value || null,
@@ -339,7 +354,7 @@
         const btn = document.getElementById('mSave');
         btn.disabled = true;
         try {
-            const defaults = { purpose: document.getElementById('mPurpose').value };
+            const defaults = { scope: document.getElementById('mScope').value, purpose: document.getElementById('mPurpose').value };
             if (document.getElementById('mStatus').value) defaults.status_id = document.getElementById('mStatus').value;
             if (document.getElementById('mOwner').value) defaults.owner_analyst_id = document.getElementById('mOwner').value;
             if (document.getElementById('mTags').value.trim()) defaults.tags = document.getElementById('mTags').value;
@@ -413,6 +428,7 @@
         ['registrar', ['registrar', 'provider']],
         ['status', ['status']],
         ['owner', ['owner', 'responsible', 'contact', 'tech', 'technical contact']],
+        ['scope', ['scope']],   // GH #203: public | internal
         ['purpose', ['purpose', 'use', 'type']],
         ['renewal_mode', ['renewal', 'renewal mode', 'auto renew', 'auto-renew', 'autorenew']],
         ['tags', ['tags', 'tag', 'group', 'category', 'client', 'brand']],
@@ -533,7 +549,7 @@
         const fields = {};
         /** Adds a field to the update when its control is not blank. */
         const put = (id, key) => { const v = document.getElementById(id).value; if (v !== '') fields[key] = v; };
-        put('bStatus', 'status_id'); put('bPurpose', 'purpose'); put('bRenewal', 'renewal_mode'); put('bRegistrar', 'registrar_supplier_id'); put('bMonitoring', 'monitoring_enabled');
+        put('bStatus', 'status_id'); put('bScope', 'scope'); put('bPurpose', 'purpose'); put('bRenewal', 'renewal_mode'); put('bRegistrar', 'registrar_supplier_id'); put('bMonitoring', 'monitoring_enabled');
         const o = document.getElementById('bOwner').value;
         if (o === '0') fields.owner_analyst_id = null; else if (o !== '') fields.owner_analyst_id = o;
         if (document.getElementById('bTags').value.trim()) fields.tags = document.getElementById('bTags').value;

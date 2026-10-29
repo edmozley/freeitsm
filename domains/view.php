@@ -52,7 +52,7 @@ $translationNamespaces = ['common', 'domains'];
     <script src="../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/domains.css?v=7">
+    <link rel="stylesheet" href="../assets/css/domains.css?v=8">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="domains" data-mobile-page="domains-view">
@@ -113,7 +113,8 @@ $translationNamespaces = ['common', 'domains'];
                 <div class="dom-form-grid" id="editForm">
                     <div class="dom-section-title"><?php echo htmlspecialchars(t('domains.edit.s_basics')); ?></div>
                     <div class="form-group"><label for="eName"><?php echo htmlspecialchars(t('domains.field.domain_name')); ?></label><input type="text" id="eName" data-f="domain_name"></div>
-                    <div class="form-group"><label for="ePurpose"><?php echo htmlspecialchars(t('domains.field.purpose')); ?></label><select id="ePurpose" data-f="purpose"></select><div class="dom-hint" id="ePurposeHint"></div></div>
+                    <div class="form-group"><label for="eScope"><?php echo htmlspecialchars(t('domains.field.scope')); ?></label><select id="eScope" data-f="scope"></select><div class="dom-hint" id="eScopeHint" hidden><?php echo htmlspecialchars(t('domains.field.scope_hint')); ?></div></div>
+                    <div class="form-group" id="ePurposeGroup"><label for="ePurpose"><?php echo htmlspecialchars(t('domains.field.purpose')); ?></label><select id="ePurpose" data-f="purpose"></select><div class="dom-hint" id="ePurposeHint"></div></div>
                     <div class="form-group"><label for="eStatus"><?php echo htmlspecialchars(t('domains.field.status')); ?></label><select id="eStatus" data-f="status_id"></select></div>
                     <div class="form-group"><label for="eOwner"><?php echo htmlspecialchars(t('domains.field.owner')); ?></label><select id="eOwner" data-f="owner_analyst_id"></select></div>
                     <div class="form-group full"><label for="eTags"><?php echo htmlspecialchars(t('domains.field.tags')); ?></label><input type="text" id="eTags" data-f="tags" placeholder="<?php echo htmlspecialchars(t('domains.field.tags_hint')); ?>"></div>
@@ -212,8 +213,8 @@ $translationNamespaces = ['common', 'domains'];
     window.DOM_PEOPLE = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') ? BASE_URL . 'people/' : null); ?>;
     // Supplier and contact pages in People (#162) also need Contracts, which owns those records.
     window.DOM_PEOPLE_SUPPLIERS = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') && analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'contracts')); ?>;</script>
-    <script src="../assets/js/domains.js?v=2"></script>
-    <script src="../assets/js/domains-view.js?v=10"></script>
+    <script src="../assets/js/domains.js?v=3"></script>
+    <script src="../assets/js/domains-view.js?v=11"></script>
     <?php endif; ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

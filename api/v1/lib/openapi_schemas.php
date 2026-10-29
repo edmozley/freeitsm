@@ -4077,6 +4077,66 @@ return array (
             6 => 'campaign',
           ),
         ),
+        'scope' => 
+        array (
+          'type' => 'string',
+          'description' => 'public, or internal: never sent outside the network, and given a health instead of a grade (GH #203)',
+          'enum' => 
+          array (
+            0 => 'public',
+            1 => 'internal',
+          ),
+        ),
+        'health' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'An internal domain\'s health; null for a public domain. state is worked out when read: stale when no check has completed for twice the interval. known is the last completed result, kept when later checks cannot complete.',
+          'properties' => 
+          array (
+            'state' => 
+            array (
+              'type' => 'string',
+              'enum' => 
+              array (
+                0 => 'healthy',
+                1 => 'problem',
+                2 => 'not_checked',
+                3 => 'stale',
+              ),
+            ),
+            'known' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+              'enum' => 
+              array (
+                0 => 'healthy',
+                1 => 'problem',
+              ),
+            ),
+            'last_completed_at' => 
+            array (
+              'type' => 'string',
+              'format' => 'date-time',
+              'nullable' => true,
+            ),
+            'last_healthy_at' => 
+            array (
+              'type' => 'string',
+              'format' => 'date-time',
+              'nullable' => true,
+            ),
+            'since_incomplete' => 
+            array (
+              'type' => 'boolean',
+            ),
+            'interval_minutes' => 
+            array (
+              'type' => 'integer',
+            ),
+          ),
+        ),
         'registrar' => 
         array (
           'type' => 'object',
@@ -4521,6 +4581,66 @@ return array (
             4 => 'defensive',
             5 => 'parked',
             6 => 'campaign',
+          ),
+        ),
+        'scope' => 
+        array (
+          'type' => 'string',
+          'description' => 'public, or internal: never sent outside the network, and given a health instead of a grade (GH #203)',
+          'enum' => 
+          array (
+            0 => 'public',
+            1 => 'internal',
+          ),
+        ),
+        'health' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'An internal domain\'s health; null for a public domain. state is worked out when read: stale when no check has completed for twice the interval. known is the last completed result, kept when later checks cannot complete.',
+          'properties' => 
+          array (
+            'state' => 
+            array (
+              'type' => 'string',
+              'enum' => 
+              array (
+                0 => 'healthy',
+                1 => 'problem',
+                2 => 'not_checked',
+                3 => 'stale',
+              ),
+            ),
+            'known' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+              'enum' => 
+              array (
+                0 => 'healthy',
+                1 => 'problem',
+              ),
+            ),
+            'last_completed_at' => 
+            array (
+              'type' => 'string',
+              'format' => 'date-time',
+              'nullable' => true,
+            ),
+            'last_healthy_at' => 
+            array (
+              'type' => 'string',
+              'format' => 'date-time',
+              'nullable' => true,
+            ),
+            'since_incomplete' => 
+            array (
+              'type' => 'boolean',
+            ),
+            'interval_minutes' => 
+            array (
+              'type' => 'integer',
+            ),
           ),
         ),
         'registrar' => 
@@ -4975,6 +5095,66 @@ return array (
             4 => 'defensive',
             5 => 'parked',
             6 => 'campaign',
+          ),
+        ),
+        'scope' => 
+        array (
+          'type' => 'string',
+          'description' => 'public, or internal: never sent outside the network, and given a health instead of a grade (GH #203)',
+          'enum' => 
+          array (
+            0 => 'public',
+            1 => 'internal',
+          ),
+        ),
+        'health' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'An internal domain\'s health; null for a public domain. state is worked out when read: stale when no check has completed for twice the interval. known is the last completed result, kept when later checks cannot complete.',
+          'properties' => 
+          array (
+            'state' => 
+            array (
+              'type' => 'string',
+              'enum' => 
+              array (
+                0 => 'healthy',
+                1 => 'problem',
+                2 => 'not_checked',
+                3 => 'stale',
+              ),
+            ),
+            'known' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+              'enum' => 
+              array (
+                0 => 'healthy',
+                1 => 'problem',
+              ),
+            ),
+            'last_completed_at' => 
+            array (
+              'type' => 'string',
+              'format' => 'date-time',
+              'nullable' => true,
+            ),
+            'last_healthy_at' => 
+            array (
+              'type' => 'string',
+              'format' => 'date-time',
+              'nullable' => true,
+            ),
+            'since_incomplete' => 
+            array (
+              'type' => 'boolean',
+            ),
+            'interval_minutes' => 
+            array (
+              'type' => 'integer',
+            ),
           ),
         ),
         'registrar' => 

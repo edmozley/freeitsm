@@ -113,20 +113,6 @@ function domainListRows(PDO $conn, int $analystId, array $f = []): array
 }
 
 /**
- * The internal-check interval domainShapeRow() works staleness out with (GH #203).
- * Set by the readers, which have the connection; array_map('domainShapeRow')
- * gives the shaper no way to ask for it.
- *
- * @param ?int $set  the interval in minutes, to remember; null to read it
- */
-function domainShapeInterval(?int $set = null): int
-{
-    static $minutes = 60;
-    if ($set !== null) $minutes = $set;
-    return $minutes;
-}
-
-/**
  * Types, and the derived numbers every screen wants (days left, attention).
  *
  * @param array $r  one row from domainListSelect(), straight from PDO (strings)

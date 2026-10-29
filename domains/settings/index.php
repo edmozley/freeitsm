@@ -18,6 +18,7 @@ I18n::initFromSession();
 Tz::init();
 
 require_once '../../includes/settings_manifest.php';
+require_once '../../includes/domains/scope.php';   // GH #203: DOMAIN_INTERNAL_INTERVALS
 requireModuleAccess('domains');
 
 $settingsManifest = settingsManifestFor('domains');
@@ -45,7 +46,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/domains.css?v=7">
+    <link rel="stylesheet" href="../../assets/css/domains.css?v=8">
     <style>
         /* Full-width settings page. ⚠️ max-width alone is not enough: inbox.css's
            `.container { margin: 30px auto }` would keep the gutters. */
@@ -176,6 +177,10 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
                     <option value="system_only"><?php echo $tt('rs_system_only'); ?></option>
                     <option value="google"><?php echo $tt('rs_google'); ?></option>
                     <option value="cloudflare"><?php echo $tt('rs_cloudflare'); ?></option></select><div class="dflt" data-d="domain_dns_resolver"></div></div></div>
+            <?php /* GH #203: internal domains are checked on their own interval (DNS only, through this server). */ ?>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('internal_interval'); ?></div><div class="desc"><?php echo $tt('internal_interval_desc'); ?></div></div>
+                <div><select data-k="domain_internal_interval">
+                    <?php foreach (DOMAIN_INTERNAL_INTERVALS as $m): ?><option value="<?php echo $m; ?>"><?php echo $tt('ii_' . $m); ?></option><?php endforeach; ?></select><div class="dflt" data-d="domain_internal_interval"></div></div></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('ct'); ?></div><div class="desc"><?php echo $tt('ct_desc'); ?></div></div>
                 <div><label class="toggle-label"><span class="toggle-switch"><input type="checkbox" data-k="domain_ct_watch"><span class="toggle-slider"></span></span></label><div class="dflt" data-d="domain_ct_watch"></div></div></div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('lookalike'); ?></div><div class="desc"><?php echo $tt('lookalike_desc'); ?></div></div>
@@ -265,7 +270,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         </div>
     </div>
 
-    <script src="../../assets/js/domains.js?v=2"></script>
+    <script src="../../assets/js/domains.js?v=3"></script>
     <script>
     (function () {
         'use strict';
