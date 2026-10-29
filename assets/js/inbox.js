@@ -2606,6 +2606,12 @@ function scrollRowIntoView(emailId) {
     const row = document.querySelector(ticketRowSelector(`[data-email-id="${emailId}"]`));
     if (!row) return;
 
+    // The table's rows take focus (tabIndex 0). If one has it, it must follow the
+    // arrows - otherwise focus stays on the row first clicked, and keys aimed at
+    // the highlighted row (Enter) land on that one instead.
+    const f = document.activeElement;
+    if (f && f !== row && f.classList && f.classList.contains('email-item') && row.tabIndex >= 0) row.focus({ preventScroll: true });
+
     // Scroll ONLY the list's own scroll container, never the page. Element.scrollIntoView()
     // can't be scoped — it scrolls every scrollable ancestor up to the document, so at the
     // end of the list it scrolls the whole window and drags the fixed header off the top
@@ -2681,6 +2687,12 @@ document.addEventListener('keydown', function (e) {
     if (e.key === ' ' && selectionFocusId !== null) {
         e.preventDefault();
         toggleFocusedRow();
+        return;
+    }
+    if (e.key === 'Enter' && !e.defaultPrevented && !ctrl && !e.shiftKey && !e.altKey
+        && selectionFocusId !== null && selectionCount() <= 1 && document.getElementById('emailList')) {
+        e.preventDefault();
+        openRowFullScreen(selectionFocusId);
     }
 });
 
@@ -10286,6 +10298,16 @@ document.addEventListener('keydown', function (e) {
 function selectEmailFullScreen(emailId) {
     try { localStorage.setItem('tickets_popout', '1'); } catch (e) {}
     selectEmail(emailId);
+}
+
+/** Enter on the list: the highlighted ticket, full screen. One already open just
+ *  goes full screen - reopening it would throw away a half-written reply. */
+function openRowFullScreen(emailId) {
+    if (currentEmail && currentEmail.id === emailId) {
+        if (!document.body.classList.contains('ticket-popout')) toggleTicketPopout();
+        return;
+    }
+    selectEmailFullScreen(emailId);
 }
 
 /* --- Time entries ----------------------------------------------------------

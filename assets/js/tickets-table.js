@@ -186,8 +186,13 @@ window.TicketTable = (() => {
                     node.dataset.ticketNumber = row.ticket_number;
                     node.draggable = true;
                     node.tabIndex = 0;
+                    // Enter and double-click open this row full screen, as a double-click
+                    // on the message list always has (GH #225 follow-up).
+                    node.addEventListener('dblclick', () => openRowFullScreen(Number(row.inbox_id)));
                     node.addEventListener('keydown', event => {
-                        if (event.key === 'Enter') { event.preventDefault(); node.click(); }
+                        if (event.key !== 'Enter' || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                        event.preventDefault();
+                        openRowFullScreen(Number(row.inbox_id));
                     });
                     // Where loadInboxSlaIndicators() draws the SLA dot.
                     const slot = document.createElement('span');
