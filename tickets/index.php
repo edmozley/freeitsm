@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=81">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=82">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=3">
@@ -213,7 +213,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
         <div class="modal-content">
             <div class="modal-header"><?php echo htmlspecialchars(t('tickets.note_modal.title')); ?></div>
             <div class="modal-body">
-                <div class="form-group">
+                <div class="form-group note-editor-group">
                     <label class="form-label"><?php echo htmlspecialchars(t('tickets.note_modal.note_label')); ?></label>
                     <?php /* Not a textarea since GH #224: a screenshot pasted here lands at the
                              cursor. Still plain text - assets/js/note-images.js. Keeps the
@@ -231,11 +231,16 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                          mailbox: for them a shared note is the ONLY way to reach them,
                          and the reply screen tells analysts to use one. */ ?>
                 <div class="form-group">
-                    <label class="form-label" style="display:flex;align-items:center;gap:8px;font-weight:500;cursor:pointer;">
-                        <input type="checkbox" id="noteShared" style="width:auto;margin:0;">
+                    <?php /* Caption, then the switch beneath it, then the hint (Ed) - the shared
+                             .toggle-label layout the settings modals use. */ ?>
+                    <label class="toggle-label">
                         <span><?php echo htmlspecialchars(t('tickets.note_modal.share_label')); ?></span>
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="noteShared">
+                            <span class="toggle-slider"></span>
+                        </span>
                     </label>
-                    <div class="form-hint" id="noteSharedHint" style="font-size:12px;color:#666;margin-top:4px;">
+                    <div class="form-hint" id="noteSharedHint" style="font-size:12px;color:#666;margin-top:6px;">
                         <?php echo htmlspecialchars(t('tickets.note_modal.share_hint')); ?>
                     </div>
                 </div>

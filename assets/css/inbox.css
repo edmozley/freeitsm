@@ -1607,10 +1607,25 @@ body.ticket-popout .ticket-toolbar {
     border-radius: 4px;
 }
 /* A fixed height, not one that grows: a box that jumps in size as you type is
-   off-putting (Ed). The text and pictures scroll inside it. */
+   off-putting (Ed). The text and pictures scroll inside it.
+   On a desktop the dialog is a fixed 90vh and the box takes whatever the
+   share toggle, Files and the buttons leave, so nothing below it is ever
+   scrolled out of sight (Ed) - however the hint wraps. A number would have
+   to be re-measured every time a line is added. Desktop only: the phone sheet
+   (mobile.css, max-width 768px) has its own fill-the-screen rules. */
+@media (min-width: 769px) {
+    #noteModal .modal-content { height: 90vh; }
+    #noteModal .modal-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    #noteModal .note-editor-group { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    #noteModal .note-editor { flex: 1 1 auto; min-height: 120px; }
+}
+.note-editor,
+.form-textarea.note-editor {   /* beats .form-textarea's resize: vertical, defined later */
+    resize: none;
+}
 .note-editor {
     overflow-y: auto;
-    height: 60vh;
+    height: 300px;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     line-height: 1.5;
