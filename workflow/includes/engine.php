@@ -219,6 +219,9 @@ class WorkflowEngine
             'project.tasks_overdue'      => 'A project has overdue tasks - the digest (time-based: weekly or daily)',
             'project.approval_stalled'   => 'Something on a project has waited days for a decision (time-based)',
             'project.report_drafted'     => 'A scheduled project report is drafted (time-based)',
+            // ── Starters & leavers (4.6.0) - includes/starters/service.php.
+            'jml.case_created'           => 'A starter, mover or leaver case is opened',
+            'jml.case_completed'         => 'A starter, mover or leaver case is marked done',
             // ── Issue trackers. NOT time-based: something genuinely happened —
             // a developer moved the issue or wrote a comment. The poll is only
             // how we find out, because a self-hosted install cannot be called.
@@ -268,6 +271,7 @@ class WorkflowEngine
         'supplier_status' => 'contracts', 'supplier_type' => 'contracts',
         'domain' => 'domains', 'domain_status' => 'domains',
         'project' => 'projects',
+        'jml' => 'starters',   // jml.* - Starters & leavers
         'calendar_event' => 'calendar', 'calendar_category' => 'calendar',
         'network_diagram' => 'network-mapper',
         // A Tickets feature with its own switch (slice 2): sla.warning / sla.breached.
@@ -406,6 +410,8 @@ class WorkflowEngine
             'ticket.owner_id', 'ticket.origin_id', 'ticket.created_by',
             'ticket.requester_email',
         ];
+        $jmlFields     = ['jml_case.id', 'jml_case.kind', 'jml_case.person_name', 'jml_case.person_email', 'jml_case.user_id',
+                          'jml_case.effective_date', 'jml_case.status', 'jml_case.template_name', 'jml_case.parent_task_id'];
         $projectFields = ['project.id', 'project.code', 'project.name', 'project.status', 'project.health', 'project.methodology',
                           'project.owner_analyst_id', 'project.owner_name', 'project.company_id', 'project.target_end_date'];
         $stageFields   = ['stage.id', 'stage.name', 'stage.kind', 'stage.end_date'];
@@ -594,6 +600,9 @@ class WorkflowEngine
             'project.approval_stalled'   => array_merge($projectFields, ['kind', 'item.id', 'item.title', 'waiting_days', 'since']),
             'project.report_drafted'     => array_merge($projectFields, ['report.id', 'report.kind', 'report.title', 'report.ai_drafted', 'report.schedule']),
             'project.benefit_review_due' => array_merge($projectFields, ['benefit.id', 'benefit.title', 'benefit.measure', 'benefit.unit', 'benefit.review_date', 'benefit.baseline_value', 'benefit.target_value', 'benefit.owner_analyst_id']),
+            // Starters & leavers: StartersService::eventPayload().
+            'jml.case_created'           => $jmlFields,
+            'jml.case_completed'         => $jmlFields,
         ];
         if (isset($byTrigger[$trigger])) {
             return self::withCompanyField($byTrigger[$trigger]);

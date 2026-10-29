@@ -265,6 +265,12 @@ function personDetail(PDO $conn, int $analystId, int $userId): ?array
     if ($can('lms'))       $sections['courses']   = peopleCoursesForPerson($conn, $userId);
     if ($can('forms'))     $sections['forms']     = peopleForms($conn, $analystId, $who);
     if ($can('projects'))  $sections['projects']  = peopleProjects($conn, $analystId, $who);
+    // 4.6.0: joining, moving, leaving - the Starters & leavers service answers for itself.
+    if ($can('starters')) {
+        require_once __DIR__ . '/starters/service.php';
+        $rows = StartersService::casesForPerson($conn, $analystId, $userId);
+        $sections['starters'] = ['rows' => $rows, 'total' => count($rows)];
+    }
     return ['person' => $person, 'sections' => $sections];
 }
 

@@ -175,6 +175,18 @@ function documentEntityRegistry(): array {
             'can'    => function (PDO $c, int $a, int $id) { return analystCanAccessDomain($c, $a, $id); },
             'filter' => function (PDO $c, int $a, string $alias) { return activeTenantFilter($c, $a, $alias); },
         ],
+        'jml_case' => [
+            // Starters & leavers (4.6.0): a signed returns form, an equipment
+            // request. Scoped data, like a domain's: the case's company decides.
+            'module' => 'starters',
+            'table'  => 'jml_cases',
+            'label'  => 'Starter or leaver',
+            'url'    => 'starters/view.php?id=%d',
+            'title'  => 'person_name',
+            'alive'  => null,
+            'can'    => function (PDO $c, int $a, int $id) { [$sql, $args] = activeTenantFilter($c, $a, 'x'); $st = $c->prepare('SELECT 1 FROM jml_cases x WHERE x.id = ?' . $sql); $st->execute(array_merge([$id], $args)); return (bool)$st->fetchColumn(); },
+            'filter' => function (PDO $c, int $a, string $alias) { return activeTenantFilter($c, $a, $alias); },
+        ],
         'knowledge_article' => [
             // ⚠️ Knowledge is the module that does NOT follow the others:
             // NULL means SHARED here, the opposite of tickets and assets. Its own

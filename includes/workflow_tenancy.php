@@ -65,6 +65,7 @@ function workflowEventRecordTables(): array
         'asset'          => ['assets',             'default'],
         'object'         => ['cmdb_objects',       'default'],   // cmdb.object.*
         'project'        => ['projects',           'default'],
+        'jml_case'       => ['jml_cases',          'default'],   // jml.* - Starters & leavers
         'domain'         => ['domains',            'default'],
         'contract'       => ['contracts',          'default'],
         'submission'     => ['form_submissions',   'default'],   // form.submitted, catalogue_request.*

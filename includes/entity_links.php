@@ -58,6 +58,10 @@ function entityLink(string $type, int $id): ?string {
         case 'task':
             return 'tasks/?task=' . $id;
 
+        // Starters & leavers (4.6.0).
+        case 'jml_case':
+            return 'starters/view.php?id=' . $id;
+
         // `problem_id` is canonical; `id` is kept as a legacy fallback by the
         // module itself, so old links elsewhere keep working.
         case 'problem':
@@ -117,6 +121,6 @@ function entityLinkTypes(): array {
     return [
         'ticket', 'task', 'problem', 'change',
         'asset', 'cmdb_object', 'knowledge_article', 'contract', 'domain', 'project',
-        'person', 'company', 'supplier', 'supplier_contact',
+        'person', 'company', 'supplier', 'supplier_contact', 'jml_case',
     ];
 }

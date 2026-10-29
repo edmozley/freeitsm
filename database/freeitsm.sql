@@ -10128,6 +10128,103 @@ SELECT * FROM (
     SELECT 'Other', 10
 ) t
 WHERE NOT EXISTS (SELECT 1 FROM `domain_certificate_types` LIMIT 1);
+-- ===========================================================================
+-- Starters & leavers (4.6.0). A case is someone joining, moving or leaving.
+-- The module owns only what nothing else holds - who, which kind, which date,
+-- which template - and drives the rest through other modules' services: the
+-- steps are TASKS (a parent task, a subtask per step), kit moves through ASSET
+-- custody, checklists come from CHECKLISTS, automation from WORKFLOWS.
+-- See includes/starters/service.php.
+-- ===========================================================================
+
+-- What happens for a kind of change: a named list of steps.
+CREATE TABLE IF NOT EXISTS `jml_templates` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`         INT NULL,                       -- NULL = shared by every company
+    `kind`              VARCHAR(10) NOT NULL,           -- starter | mover | leaver (JmlKind)
+    `name`              VARCHAR(150) NOT NULL,
+    `description`       VARCHAR(500) NULL,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_jml_templates_kind` (`kind`, `is_active`),
+    CONSTRAINT `fk_jml_templates_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One step of a template. Becomes a subtask of the case's task, due
+-- due_offset_days from the case's date (negative = before it), for the team or
+-- analyst named, with the checklist template attached if one is chosen.
+CREATE TABLE IF NOT EXISTS `jml_template_steps` (
+    `id`                     INT NOT NULL AUTO_INCREMENT,
+    `template_id`            INT NOT NULL,
+    `title`                  VARCHAR(255) NOT NULL,
+    `description`            TEXT NULL,
+    `assigned_team_id`       INT NULL,
+    `assigned_analyst_id`    INT NULL,
+    `due_offset_days`        INT NOT NULL DEFAULT 0,
+    `checklist_template_id`  INT NULL,
+    `display_order`          INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_jml_template_steps_template` (`template_id`, `display_order`),
+    CONSTRAINT `fk_jml_steps_template` FOREIGN KEY (`template_id`) REFERENCES `jml_templates` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_jml_steps_team` FOREIGN KEY (`assigned_team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_steps_analyst` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_steps_checklist` FOREIGN KEY (`checklist_template_id`) REFERENCES `checklist_templates` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A case: one person joining, moving or leaving on a date. The work is the
+-- task parent_task_id and its subtasks - progress is read from them, never
+-- stored here twice.
+CREATE TABLE IF NOT EXISTS `jml_cases` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`           INT NULL,                     -- NULL = the Default company
+    `kind`                VARCHAR(10) NOT NULL,         -- starter | mover | leaver
+    -- The person: a user already in FreeITSM, or - for a starter not yet in
+    -- Users - just a name and an email until they are added.
+    `user_id`             INT NULL,
+    `person_name`         VARCHAR(255) NOT NULL,
+    `person_email`        VARCHAR(255) NULL,
+    `job_title`           VARCHAR(150) NULL,
+    `manager_user_id`     INT NULL,
+    `effective_date`      DATE NOT NULL,                -- first day, move date or last day
+    `status`              VARCHAR(12) NOT NULL DEFAULT 'open',   -- open | done | cancelled
+    `template_id`         INT NULL,
+    `parent_task_id`      INT NULL,
+    `notes`               TEXT NULL,
+    `owner_analyst_id`    INT NULL,
+    `created_by`          INT NULL,
+    `created_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `completed_datetime`  DATETIME NULL,
+    `is_demo`             TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_jml_cases_status_date` (`status`, `effective_date`),
+    KEY `idx_jml_cases_tenant` (`tenant_id`),
+    KEY `idx_jml_cases_user` (`user_id`),
+    CONSTRAINT `fk_jml_cases_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_cases_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_cases_manager` FOREIGN KEY (`manager_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_cases_template` FOREIGN KEY (`template_id`) REFERENCES `jml_templates` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_cases_task` FOREIGN KEY (`parent_task_id`) REFERENCES `tasks` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_cases_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_cases_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A case's history, the same shape as project_audit.
+CREATE TABLE IF NOT EXISTS `jml_audit` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `case_id`          INT NOT NULL,
+    `analyst_id`       INT NULL,
+    `field_name`       VARCHAR(100) NOT NULL,
+    `old_value`        VARCHAR(1000) NULL,
+    `new_value`        VARCHAR(1000) NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_jml_audit_case` (`case_id`, `created_datetime`),
+    CONSTRAINT `fk_jml_audit_case` FOREIGN KEY (`case_id`) REFERENCES `jml_cases` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ----------------------------------------------------------
 -- Seed: Default admin account

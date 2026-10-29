@@ -1,0 +1,253 @@
+/*
+ * Starters & leavers (4.6.0) - styles shared by every page in the module.
+ *
+ * Colours come from theme.css tokens (--jml-accent, --surface, --text ...) with
+ * light-mode fallbacks, so dark mode works without a second copy of anything.
+ * Shapes follow the Domains and Projects pages: a sidebar of views, a main pane,
+ * cards. The dialog is the shared .modal from inbox.css.
+ */
+
+body { --accent: var(--jml-accent, #a16207); --accent-hover: var(--jml-accent-hover, #854d0e); --on-accent: var(--jml-on-accent, #fff); }
+
+/* ---------- shell ---------------------------------------------------------- */
+.jml-layout { display: flex; height: calc(100vh - 62px); background: var(--app-bg, #f5f5f5); }
+.jml-sidebar {
+    width: 240px; flex-shrink: 0; overflow-y: auto; padding: 18px;
+    background: var(--surface, #fff); border-right: 1px solid var(--border, #ddd);
+}
+.jml-sidebar h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); margin: 18px 0 8px; }
+.jml-sidebar h3:first-child { margin-top: 0; }
+.jml-sidebar input[type="text"] {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px;
+    font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box;
+}
+.jml-views { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.jml-views li {
+    display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 6px;
+    cursor: pointer; font-size: 13px; color: var(--text, #333);
+}
+.jml-views li:hover { background: var(--surface-hover, #f3f4f6); }
+.jml-views li.active { background: var(--jml-accent-soft, #fef9c3); color: var(--jml-accent, #a16207); font-weight: 600; }
+.jml-views li b { font-size: 12px; font-weight: 600; color: var(--text-dim, #888); }
+.jml-views li.active b { color: inherit; }
+.jml-main { flex: 1; overflow-y: auto; padding: 22px 26px 40px; min-width: 0; }
+.jml-shell { height: calc(100vh - 62px); overflow-y: auto; background: var(--app-bg, #f5f5f5); }
+.jml-shell-pad { padding: 20px 26px 40px; max-width: 1180px; margin: 0 auto; }
+
+/* ---------- the register ---------------------------------------------------- */
+.jml-card { background: var(--surface, #fff); border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden; }
+.jml-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.jml-table th {
+    text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px;
+    color: var(--text-dim, #888); padding: 10px 14px; border-bottom: 1px solid var(--border, #e5e7eb); white-space: nowrap;
+}
+.jml-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-soft, #f0f0f0); color: var(--text, #333); vertical-align: middle; }
+.jml-table tbody tr { cursor: pointer; transition: background-color .12s ease; }
+.jml-table tbody tr:hover { background: var(--surface-hover, #f9fafb); }
+.jml-table tbody tr:focus-visible { outline: 2px solid var(--jml-accent, #a16207); outline-offset: -2px; }
+.jml-table tr:last-child td { border-bottom: none; }
+.jml-name { font-weight: 600; }
+.jml-dim { color: var(--text-dim, #888); font-size: 12px; margin-top: 2px; }
+.jml-when { color: var(--text-dim, #888); font-size: 12px; }
+.jml-when.soon { color: var(--warning-text, #b45309); font-weight: 600; }
+
+/* The three kinds: one colour each, the same everywhere they appear. */
+.jml-kind {
+    display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; white-space: nowrap; background: var(--surface-hover, #f3f4f6); color: var(--text, #333);
+}
+.jml-kind::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.jml-kind.starter { background: var(--success-bg, #ecfdf5); color: var(--success-text, #047857); }
+.jml-kind.mover   { background: var(--info-bg, #eff6ff);    color: var(--info-text, #1d4ed8); }
+.jml-kind.leaver  { background: var(--warning-bg, #fffbeb); color: var(--warning-text, #b45309); }
+
+.jml-status { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.jml-status.open      { background: var(--jml-accent-soft, #fef9c3); color: var(--jml-accent, #a16207); }
+.jml-status.done      { background: var(--success-bg, #ecfdf5); color: var(--success-text, #047857); }
+.jml-status.cancelled { background: var(--surface-hover, #f3f4f6); color: var(--text-dim, #888); }
+
+.jml-bar { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.jml-bar-track { flex: 1; height: 6px; border-radius: 3px; background: var(--border-soft, #eee); overflow: hidden; }
+.jml-bar-fill { height: 100%; border-radius: 3px; background: var(--jml-accent, #a16207); transition: width .3s cubic-bezier(.23, 1, .32, 1); }
+.jml-bar-fill.full { background: var(--success-accent, #16a34a); }
+.jml-bar-text { font-size: 12px; color: var(--text-dim, #888); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.jml-empty { text-align: center; padding: 60px 24px; color: var(--text-muted, #666); }
+.jml-empty h2 { font-size: 20px; color: var(--text, #222); margin: 0 0 8px; }
+.jml-empty p { max-width: 520px; margin: 0 auto 18px; line-height: 1.55; }
+.jml-filtered-empty { padding: 30px; text-align: center; color: var(--text-dim, #888); }
+
+/* ---------- buttons -------------------------------------------------------- */
+.jml-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border, #d1d5db); background: var(--surface, #fff); color: var(--text, #333); cursor: pointer;
+    text-decoration: none; transition: background-color .15s ease, border-color .15s ease, transform .1s ease;
+}
+.jml-btn:hover { background: var(--surface-hover, #f3f4f6); }
+.jml-btn:active { transform: scale(.97); }
+.jml-btn:disabled { opacity: .55; cursor: default; transform: none; }
+.jml-btn.primary { background: var(--jml-accent, #a16207); border-color: var(--jml-accent, #a16207); color: var(--jml-on-accent, #fff); }
+.jml-btn.primary:hover { background: var(--jml-accent-hover, #854d0e); }
+.jml-btn.danger { color: var(--danger-text, #b91c1c); border-color: var(--danger-border, #fecaca); }
+.jml-btn.danger:hover { background: var(--danger-bg, #fef2f2); }
+.jml-btn.small { padding: 4px 10px; font-size: 12px; }
+.jml-link { background: none; border: none; padding: 0; color: var(--jml-accent, #a16207); font-weight: 600; cursor: pointer; font-size: 13px; text-decoration: none; }
+.jml-link:hover { text-decoration: underline; }
+
+/* ---------- the case page -------------------------------------------------- */
+.jml-back { display: inline-flex; align-items: center; gap: 4px; color: var(--text-dim, #888); text-decoration: none; font-size: 13px; margin-bottom: 12px; }
+.jml-back:hover { color: var(--jml-accent, #a16207); }
+.jml-hero {
+    background: var(--surface, #fff); border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    padding: 20px 22px; margin-bottom: 16px; border-top: 4px solid var(--jml-accent, #a16207);
+}
+.jml-hero.starter { border-top-color: var(--success-accent, #16a34a); }
+.jml-hero.mover   { border-top-color: var(--info-accent, #2563eb); }
+.jml-hero.leaver  { border-top-color: var(--warning-text, #d97706); }
+.jml-hero-top { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.jml-hero-who { flex: 1; min-width: 240px; }
+.jml-hero h1 { font-size: 24px; margin: 8px 0 4px; color: var(--text, #222); }
+.jml-hero-sub { color: var(--text-muted, #666); font-size: 13px; }
+.jml-hero-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.jml-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-top: 18px; }
+.jml-fact .l { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #888); }
+.jml-fact .v { font-size: 14px; color: var(--text, #222); margin-top: 3px; }
+.jml-hero .jml-bar { margin-top: 18px; }
+.jml-hero .jml-bar-track { height: 8px; border-radius: 4px; }
+.jml-notes { margin-top: 14px; padding: 10px 12px; background: var(--app-bg, #f8f8f8); border-radius: 8px; font-size: 13px; white-space: pre-wrap; color: var(--text, #333); }
+
+.jml-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.jml-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.jml-panel { background: var(--surface, #fff); border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); padding: 16px 18px; }
+.jml-panel-h { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.jml-panel-h h2 { font-size: 15px; margin: 0; color: var(--text, #222); }
+.jml-panel-h .grow { flex: 1; }
+.jml-panel-intro { font-size: 12px; color: var(--text-dim, #888); margin: 0 0 12px; line-height: 1.5; }
+.jml-muted { color: var(--text-muted, #666); font-size: 13px; line-height: 1.5; }
+.jml-note { font-size: 13px; padding: 10px 12px; border-radius: 8px; background: var(--info-bg, #eff6ff); color: var(--info-text, #1d4ed8); line-height: 1.5; }
+
+/* Steps: each one a task in Tasks. */
+.jml-steps { list-style: none; margin: 0; padding: 0; }
+.jml-step { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+.jml-step:last-child { border-bottom: none; }
+.jml-tick {
+    width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border, #cbd5e1); flex-shrink: 0; margin-top: 1px;
+    display: grid; place-items: center; color: #fff;
+}
+.jml-step.closed .jml-tick { background: var(--success-accent, #16a34a); border-color: var(--success-accent, #16a34a); }
+.jml-step-body { flex: 1; min-width: 0; }
+.jml-step-title { font-weight: 600; font-size: 13px; color: var(--text, #222); text-decoration: none; }
+a.jml-step-title:hover { color: var(--jml-accent, #a16207); text-decoration: underline; }
+.jml-step.closed .jml-step-title { color: var(--text-dim, #888); text-decoration: line-through; }
+.jml-step-meta { font-size: 12px; color: var(--text-dim, #888); margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.jml-step-meta .late { color: var(--danger-text, #b91c1c); font-weight: 600; }
+.jml-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--surface-hover, #f3f4f6); color: var(--text, #333); }
+
+/* Kit, from Assets. */
+.jml-kit { list-style: none; margin: 0 0 12px; padding: 0; }
+.jml-kit li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: 13px; }
+.jml-kit li:last-child { border-bottom: none; }
+.jml-kit .grow { flex: 1; min-width: 0; }
+.jml-kit a { color: var(--text, #222); font-weight: 600; text-decoration: none; }
+.jml-kit a:hover { color: var(--jml-accent, #a16207); text-decoration: underline; }
+.jml-search { position: relative; }
+.jml-search input {
+    width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px;
+    font-size: 13px; background: var(--surface, #fff); color: var(--text, #333);
+}
+.jml-results {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 50; max-height: 260px; overflow-y: auto;
+    background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+.jml-results button {
+    display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer;
+    font-size: 13px; color: var(--text, #333);
+}
+.jml-results button:hover, .jml-results button.active { background: var(--surface-hover, #f3f4f6); }
+.jml-results .none { padding: 10px 12px; font-size: 13px; color: var(--text-dim, #888); }
+
+/* History. */
+.jml-history { list-style: none; margin: 0; padding: 0; font-size: 12px; }
+.jml-history li { padding: 7px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); color: var(--text, #333); line-height: 1.45; }
+.jml-history li:last-child { border-bottom: none; }
+.jml-history .who { font-weight: 600; }
+.jml-history .at { color: var(--text-dim, #888); display: block; }
+
+/* ---------- the New case dialog --------------------------------------------- */
+.jml-modal .modal-content { max-width: 620px; }
+.jml-field { margin-bottom: 16px; }
+.jml-field > label, .jml-field > .lbl { display: block; font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 6px; }
+.jml-field input[type="text"], .jml-field input[type="email"], .jml-field input[type="date"], .jml-field input[type="number"],
+.jml-field select, .jml-field textarea {
+    width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px;
+    font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); font-family: inherit;
+}
+.jml-field textarea { min-height: 70px; resize: vertical; }
+.jml-hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 5px; line-height: 1.45; }
+.jml-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.jml-kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.jml-kind-card {
+    border: 2px solid var(--border, #e5e7eb); border-radius: 10px; padding: 12px; cursor: pointer; background: var(--surface, #fff);
+    text-align: left; color: var(--text, #333); transition: border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+}
+.jml-kind-card:hover { border-color: var(--jml-accent, #a16207); }
+.jml-kind-card:active { transform: scale(.98); }
+.jml-kind-card.selected { border-color: var(--jml-accent, #a16207); box-shadow: 0 0 0 3px var(--jml-accent-soft, #fef9c3); }
+.jml-kind-card b { display: block; font-size: 14px; margin-bottom: 3px; }
+.jml-kind-card span { font-size: 12px; color: var(--text-dim, #888); }
+.jml-seg { display: inline-flex; border: 1px solid var(--border, #ddd); border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+.jml-seg button { border: none; background: var(--surface, #fff); padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-muted, #666); }
+.jml-seg button + button { border-left: 1px solid var(--border, #ddd); }
+.jml-seg button.active { background: var(--jml-accent-soft, #fef9c3); color: var(--jml-accent, #a16207); }
+.jml-chosen { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; background: var(--app-bg, #f8f8f8); font-size: 13px; }
+.jml-chosen .grow { flex: 1; }
+.jml-error { color: var(--danger-text, #b91c1c); font-size: 13px; margin-top: 8px; }
+
+/* ---------- settings: templates ------------------------------------------- */
+/* Settings use the whole width, like every other settings page. */
+.jml-settings { max-width: none; margin: 24px 0; padding: 0 28px; }
+.jml-tpl-group h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); margin: 20px 0 8px; }
+.jml-tpl { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s ease; }
+.jml-tpl:hover { border-color: var(--jml-accent, #a16207); }
+.jml-tpl .grow { flex: 1; min-width: 0; }
+.jml-tpl.off { opacity: .6; }
+.jml-tpl-modal .modal-content { max-width: 980px; }
+.jml-steps-edit { width: 100%; border-collapse: collapse; font-size: 13px; }
+.jml-steps-edit th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-dim, #888); padding: 6px 4px; }
+.jml-steps-edit td { padding: 4px; vertical-align: middle; }
+.jml-steps-edit input, .jml-steps-edit select {
+    width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 6px;
+    font-size: 13px; background: var(--surface, #fff); color: var(--text, #333);
+}
+.jml-steps-edit input[type="number"] { width: 70px; }
+.jml-steps-edit .ops { white-space: nowrap; }
+.jml-icon-btn { border: none; background: none; cursor: pointer; color: var(--text-dim, #888); padding: 4px; border-radius: 4px; line-height: 0; }
+.jml-icon-btn:hover { background: var(--surface-hover, #f3f4f6); color: var(--text, #333); }
+.jml-icon-btn.danger:hover { color: var(--danger-text, #b91c1c); }
+.jml-switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+
+@media (max-width: 900px) {
+    .jml-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+    .jml-layout { flex-direction: column; height: auto; }
+    .jml-sidebar { width: auto; border-right: none; border-bottom: 1px solid var(--border, #ddd); }
+    .jml-main, .jml-shell-pad { padding: 14px 16px 30px; }
+    .jml-shell, .jml-layout { height: auto; min-height: calc(100vh - 62px); }
+    .jml-kinds, .jml-row { grid-template-columns: 1fr; }
+    .jml-table thead { display: none; }
+    .jml-table tr { display: block; padding: 10px 14px; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+    .jml-table td { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border: none; }
+    .jml-table td::before { content: attr(data-label); color: var(--text-dim, #888); font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .jml-bar-fill, .jml-btn, .jml-kind-card { transition: none; }
+    .jml-btn:active, .jml-kind-card:active { transform: none; }
+}
+
+/* Below the action row the panes take whatever height is left - the same
+   column body action-row.css gives the other register pages. */
+@media (min-width: 769px) {
+    body:has(> .action-row) > .jml-layout,
+    body:has(> .action-row) > .jml-shell { height: auto; flex: 1 1 auto; min-height: 0; }
+}

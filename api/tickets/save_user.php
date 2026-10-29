@@ -289,9 +289,8 @@ try {
         // Active/inactive. Stamps deactivated_datetime in the same statement so
         // "who left this month" is answerable without a second write to miss.
         if (array_key_exists('is_active', $data)) {
-            $active = !empty($data['is_active']) ? 1 : 0;
-            $sets[] = 'is_active = ?';            $args[] = $active;
-            $sets[] = 'deactivated_datetime = ' . ($active ? 'NULL' : 'UTC_TIMESTAMP()');
+            // Shared with Starters & leavers' "Mark as left" (includes/users.php).
+            array_push($sets, ...userActiveSets(!empty($data['is_active'])));
         }
 
         if ($sets) {

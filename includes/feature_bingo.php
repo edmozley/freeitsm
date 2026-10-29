@@ -79,6 +79,7 @@ function featureBingoModules(): array
         'self-service'   => 'Self-service portal',
         'assets'         => 'Asset Management',
         'people'         => 'People',
+        'starters'       => 'Starters & leavers',
         'knowledge'      => 'Knowledge',
         'changes'        => 'Change Management',
         'problems'       => 'Problem Management',

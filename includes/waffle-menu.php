@@ -126,6 +126,12 @@ $modules = [
         'path' => 'people/',
         'icon' => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>'
     ],
+    'starters' => [
+        'name' => t('common.modules.starters.name'),
+        'path' => 'starters/',
+        // A person and an arrow: someone joining, moving or leaving.
+        'icon' => '<circle cx="8" cy="7" r="4"></circle><path d="M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path><path d="M16 11h6"></path><path d="M19 8l3 3-3 3"></path>'
+    ],
     'files' => [
         'name' => t('common.modules.files.name'),
         'path' => 'files/',

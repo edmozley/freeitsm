@@ -3268,6 +3268,27 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // Starters & leavers (4.6.0). Names and rules match freeitsm.sql.
+    $jmlFks = [
+        ['jml_templates',      'fk_jml_templates_tenant',  "ALTER TABLE jml_templates ADD CONSTRAINT fk_jml_templates_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"],
+        ['jml_template_steps', 'fk_jml_steps_template',    "ALTER TABLE jml_template_steps ADD CONSTRAINT fk_jml_steps_template FOREIGN KEY (template_id) REFERENCES jml_templates (id) ON DELETE CASCADE"],
+        ['jml_template_steps', 'fk_jml_steps_team',        "ALTER TABLE jml_template_steps ADD CONSTRAINT fk_jml_steps_team FOREIGN KEY (assigned_team_id) REFERENCES teams (id) ON DELETE SET NULL"],
+        ['jml_template_steps', 'fk_jml_steps_analyst',     "ALTER TABLE jml_template_steps ADD CONSTRAINT fk_jml_steps_analyst FOREIGN KEY (assigned_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['jml_template_steps', 'fk_jml_steps_checklist',   "ALTER TABLE jml_template_steps ADD CONSTRAINT fk_jml_steps_checklist FOREIGN KEY (checklist_template_id) REFERENCES checklist_templates (id) ON DELETE SET NULL"],
+        ['jml_cases',          'fk_jml_cases_tenant',      "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"],
+        ['jml_cases',          'fk_jml_cases_user',        "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL"],
+        ['jml_cases',          'fk_jml_cases_manager',     "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_manager FOREIGN KEY (manager_user_id) REFERENCES users (id) ON DELETE SET NULL"],
+        ['jml_cases',          'fk_jml_cases_template',    "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_template FOREIGN KEY (template_id) REFERENCES jml_templates (id) ON DELETE SET NULL"],
+        ['jml_cases',          'fk_jml_cases_task',        "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_task FOREIGN KEY (parent_task_id) REFERENCES tasks (id) ON DELETE SET NULL"],
+        ['jml_cases',          'fk_jml_cases_owner',       "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_owner FOREIGN KEY (owner_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['jml_cases',          'fk_jml_cases_created_by',  "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_created_by FOREIGN KEY (created_by) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['jml_audit',          'fk_jml_audit_case',        "ALTER TABLE jml_audit ADD CONSTRAINT fk_jml_audit_case FOREIGN KEY (case_id) REFERENCES jml_cases (id) ON DELETE CASCADE"],
+    ];
+    foreach ($jmlFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // Files. Names + rules match freeitsm.sql. files_audit has none on purpose:
     // the trail must outlive the folders, files and people it names.
     $filesFks = [

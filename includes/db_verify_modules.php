@@ -96,6 +96,8 @@ $DB_VERIFY_MODULE_PREFIXES = [
     'wiki_'            => 'wiki',
     // --- Projects (3.2.0) - before 'process', which it does not overlap but sits beside ---
     'project'          => 'projects',
+    // --- Starters & leavers (4.6.0) ---
+    'jml_'             => 'starters',
     // --- Mappers ---
     'process'          => 'process-mapper',
     'network_'         => 'network-mapper',
@@ -144,6 +146,7 @@ function dbVerifyModuleLabels(): array {
         'process-mapper' => 'Process mapper',
         'tasks'          => 'Tasks',
         'projects'       => 'Projects',
+        'starters'       => 'Starters & leavers',
         'cmdb'           => 'CMDB',
         'network-mapper' => 'Network mapper',
         'workflow'       => 'Workflows',

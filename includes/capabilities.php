@@ -288,6 +288,13 @@ enum Cap: string
     // key is a secret that spends the organisation's money.
     case PROJECTS_AI        = 'projects.ai';
 
+    // ---- Starters & leavers (4.6.0) -----------------------------------------
+    // TEMPLATES decides what happens for a starter, mover or leaver - the steps,
+    // who does each and when - so it shapes everybody's work. MANAGE also lets
+    // the holder cancel or reopen any case.
+    case STARTERS_MANAGE    = 'starters.manage';
+    case STARTERS_TEMPLATES = 'starters.templates';
+
     // ---- Tickets -----------------------------------------------------------
     // The module the whole per-tab design was argued FOR. Fourteen tabs, and they are
     // emphatically not the same kind of thing: MAILBOXES holds the OAuth credentials and

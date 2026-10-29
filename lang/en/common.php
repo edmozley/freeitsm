@@ -317,6 +317,7 @@ return [
         'domains'        => ['name' => 'Domains',     'description' => 'Track domain names, renewals, DNS, email security and certificates'],
         'files'          => ['name' => 'Files',       'description' => 'Share files and folders securely, with a record of who opened what and when'],
         'people'         => ['name' => 'People',      'description' => 'Everything about a person or a company, from every module, on one page'],
+        'starters'       => ['name' => 'Starters & leavers', 'description' => 'Everything that has to happen when someone joins, moves or leaves - tasks, kit and accounts, from one checklist'],
         'service-status' => ['name' => 'Status',      'description' => 'Monitor service health and track incidents'],
         'war-room'       => ['name' => 'War room',    'description' => 'Fallback chat for when Teams or Slack is unavailable'],
         'wiki'           => ['name' => 'Wiki',        'description' => 'Browse auto-generated codebase documentation'],

@@ -110,6 +110,10 @@
     --prj-accent-soft: #fff1f2;  --prj-on-accent:    #ffffff;
     --prj-gradient:    linear-gradient(135deg, #f43f5e, #7c3aed);
 
+    /* Starters & leavers (golden brown) */
+    --jml-accent:      #a16207;  --jml-accent-hover: #854d0e;
+    --jml-accent-soft: #fef9c3;  --jml-on-accent:    #ffffff;
+
     /* Contracts module (amber) accents — contracts, suppliers, RFP builder.
        Amber is the module's registered brand colour (module-colors.php). */
     --con-accent:      #f59e0b;  --con-accent-hover: #d97706;
@@ -260,6 +264,10 @@
     --prj-accent-2:    #a78bfa;
     --prj-accent-soft: #3a1622;  --prj-on-accent:    #ffffff;
     --prj-gradient:    linear-gradient(135deg, #e11d48, #6d28d9);
+
+    /* Starters & leavers (golden brown) - lifted to read on dark */
+    --jml-accent:      #ca8a04;  --jml-accent-hover: #eab308;
+    --jml-accent-soft: #3a2a06;  --jml-on-accent:    #ffffff;
 
     /* Contracts module (amber) — accent nudged lighter to read on dark */
     --con-accent:      #fbbf24;  --con-accent-hover: #fcd34d;

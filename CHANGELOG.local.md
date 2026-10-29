@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2675 | Starters & leavers | Feature | New module: a case for each person joining, moving or leaving, whose template steps become tasks in Tasks, whose kit is issued and recovered through Assets, which switches leavers off in Users and fires two Workflow triggers - built from existing services, with a People section, documents, Feature Bingo cards and the analyst-leaving map. |
 
 
 

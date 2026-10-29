@@ -147,6 +147,11 @@ return [
         'projects'       => 'Projects',
         'projects_person' => 'Projects they are part of',
         'col_project'    => 'Project',
+        // Starters & leavers (4.6.0): joining, moving and leaving cases.
+        'starters'       => 'Joining, moving and leaving',
+        'col_case'       => 'Case',
+        'col_date'       => 'Date',
+        'steps_of'       => '{done} of {total} steps done',
         // Contractors (3.3.0): tasks given to a supplier or a person there.
         'contractor_tasks' => 'Tasks with them',
         'col_task'       => 'Task',

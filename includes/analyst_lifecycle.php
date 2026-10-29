@@ -119,6 +119,7 @@ function analystReferenceRegistry(): array {
         ['contracts', 'contract_owner_id', 'live', "COALESCE(is_active, 1) = 1"],
         ['domains', 'owner_analyst_id', 'live'],
         ['domains', 'tech_analyst_id', 'live'],
+        ['jml_cases', 'owner_analyst_id', 'live', "status = 'open'"],   // Starters & leavers (4.6.0)
         // ...and the same columns once the item is closed: who had it is history.
         ['tickets', 'assigned_analyst_id', 'history', "NOT ($openTicket)"],
         ['tickets', 'owner_id', 'history', "NOT ($openTicket)"],
@@ -128,6 +129,7 @@ function analystReferenceRegistry(): array {
         ['knowledge_articles', 'owner_id', 'history', "is_archived = 1"],
         ['projects', 'owner_analyst_id', 'history', "NOT (closed_datetime IS NULL AND COALESCE(status, '') NOT IN ('closed', 'cancelled'))"],
         ['contracts', 'contract_owner_id', 'history', "COALESCE(is_active, 1) = 0"],
+        ['jml_cases', 'owner_analyst_id', 'history', "status <> 'open'"],
 
         // ── setup: routed to them; a person must decide ─────────────────────
         ['forms', 'approver_id', 'setup'],
@@ -146,6 +148,8 @@ function analystReferenceRegistry(): array {
         // name has to be handed to whoever runs that integration now.
         ['asset_inventory_source_owners', 'owner_analyst_id', 'setup'],
         ['project_gate_items', 'analyst_id', 'setup'],
+        // A template step routed to them: every future case would give them that step.
+        ['jml_template_steps', 'assigned_analyst_id', 'setup'],
 
         // ── history: who did what; kept and credited ────────────────────────
         ['form_submissions', 'approver_id', 'history', "approval_status <> 'pending'"],
@@ -154,6 +158,8 @@ function analystReferenceRegistry(): array {
         ['ticket_rota_entries', 'analyst_id', 'history', "rota_date < CURDATE()"],
         ['project_raid', 'owner_analyst_id', 'history', "closed_datetime IS NOT NULL"],
         ['ticket_audit', 'analyst_id', 'history'],
+        ['jml_cases', 'created_by', 'history'],
+        ['jml_audit', 'analyst_id', 'history'],
         ['ticket_notes', 'analyst_id', 'history'],
         ['ticket_time_entries', 'analyst_id', 'history'],
         ['tickets', 'deleted_by', 'history'],
@@ -396,6 +402,7 @@ function analystLiveGroups(PDO $conn, int $analystId): array {
         'projects'  => ['Projects they manage', [['projects', 'owner_analyst_id']]],
         'contracts' => ['Contracts they own', [['contracts', 'contract_owner_id']]],
         'domains'   => ['Domains they own or look after', [['domains', 'owner_analyst_id'], ['domains', 'tech_analyst_id']]],
+        'starters'  => ['Starters & leavers cases they own', [['jml_cases', 'owner_analyst_id']]],
     ];
     $out = [];
     foreach ($groups as $key => [$label, $cols]) {
@@ -568,6 +575,10 @@ function analystReassignLive(PDO $conn, ActorContext $ctx, int $fromId, ?int $to
                         if ((int) ($row['owner_analyst_id'] ?? 0) === $fromId) $in['owner_analyst_id'] = $toId;
                         if ((int) ($row['tech_analyst_id'] ?? 0) === $fromId)  $in['tech_analyst_id']  = $toId;
                         if ($in) DomainsService::updateDomain($conn, $ctx, $id, $in);
+                        break;
+                    case 'starters':
+                        require_once dirname(__DIR__) . '/includes/starters/service.php';
+                        StartersService::setOwner($conn, $ctx, $id, $toId);
                         break;
                 }
                 $moved[$key] = ($moved[$key] ?? 0) + 1;

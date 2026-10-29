@@ -620,4 +620,10 @@ return [
     ['files_shortcuts', 'ix_files_shortcuts_analyst', 'key', '(`analyst_id`)'],
     ['files_shortcuts', 'ix_files_shortcuts_target', 'key', '(`target_type`,`target_id`)'],
     ['files_uploads', 'uq_files_uploads_token', 'unique', '(`token`)'],
+    ['jml_templates', 'idx_jml_templates_kind', 'key', '(`kind`,`is_active`)'],
+    ['jml_template_steps', 'idx_jml_template_steps_template', 'key', '(`template_id`,`display_order`)'],
+    ['jml_cases', 'idx_jml_cases_status_date', 'key', '(`status`,`effective_date`)'],
+    ['jml_cases', 'idx_jml_cases_tenant', 'key', '(`tenant_id`)'],
+    ['jml_cases', 'idx_jml_cases_user', 'key', '(`user_id`)'],
+    ['jml_audit', 'idx_jml_audit_case', 'key', '(`case_id`,`created_datetime`)'],
 ];
