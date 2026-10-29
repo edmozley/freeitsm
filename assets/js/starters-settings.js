@@ -36,7 +36,7 @@
     function stepRow(s) {
         const icon = d => '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
         return '<tr>'
-            + '<td><input type="text" data-f="title" maxlength="255" value="' + esc(s.title || '') + '" placeholder="' + esc(T('settings.step_title_ph')) + '"></td>'
+            + '<td><input type="text" data-f="title" maxlength="255" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore value="' + esc(s.title || '') + '" placeholder="' + esc(T('settings.step_title_ph')) + '"></td>'
             + '<td><select data-f="assigned_team_id">' + opts(look.teams, s.assigned_team_id, T('settings.step_none')) + '</select></td>'
             + '<td><select data-f="assigned_analyst_id">' + opts(look.analysts, s.assigned_analyst_id, T('settings.step_none')) + '</select></td>'
             + '<td><input type="number" data-f="due_offset_days" min="-365" max="365" value="' + (s.due_offset_days || 0) + '" title="' + esc(T('settings.step_days_tip')) + '"></td>'

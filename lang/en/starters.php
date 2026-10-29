@@ -194,7 +194,7 @@ return [
         'active_desc'     => 'Offered when a case is opened',
         'steps'           => 'Steps',
         'step_title'      => 'Step',
-        'step_title_ph'   => 'e.g. Create the email account',
+        'step_title_ph'   => 'e.g. Order a laptop',
         'step_team'       => 'Team',
         'step_analyst'    => 'Analyst',
         'step_days'       => 'Days',

@@ -65,11 +65,11 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
             <div class="modal-header" id="jmlTplTitle"><?php echo $tt('edit_title'); ?></div>
             <div class="modal-body">
                 <div class="jml-row">
-                    <div class="jml-field"><label for="jmlTplName"><?php echo $tt('name'); ?></label><input type="text" id="jmlTplName" maxlength="150" placeholder="<?php echo $tt('name_ph'); ?>"></div>
+                    <div class="jml-field"><label for="jmlTplName"><?php echo $tt('name'); ?></label><input type="text" id="jmlTplName" maxlength="150" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore placeholder="<?php echo $tt('name_ph'); ?>"></div>
                     <div class="jml-field"><label for="jmlTplKind"><?php echo $tt('kind'); ?></label>
                         <select id="jmlTplKind"><?php foreach (['starter', 'mover', 'leaver'] as $k): ?><option value="<?php echo $k; ?>"><?php echo htmlspecialchars(t('starters.kinds.' . $k)); ?></option><?php endforeach; ?></select></div>
                 </div>
-                <div class="jml-field"><label for="jmlTplDesc"><?php echo $tt('description'); ?></label><input type="text" id="jmlTplDesc" maxlength="1000"></div>
+                <div class="jml-field"><label for="jmlTplDesc"><?php echo $tt('description'); ?></label><input type="text" id="jmlTplDesc" maxlength="1000" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore></div>
                 <div class="jml-field"><label class="jml-switch"><input type="checkbox" id="jmlTplActive"> <?php echo $tt('active'); ?> - <span class="jml-dim"><?php echo $tt('active_desc'); ?></span></label></div>
 
                 <div class="jml-field">
@@ -99,7 +99,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
     </div>
 
     <script src="../../assets/js/starters.js?v=1"></script>
-    <script src="../../assets/js/starters-settings.js?v=1"></script>
+    <script src="../../assets/js/starters-settings.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>
