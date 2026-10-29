@@ -350,6 +350,7 @@ return [
             'p4' => 'Cada carpeta puede activar una **marca de agua** (Permisos -> Marca de agua). Todo archivo abierto desde esa carpeta, y desde las carpetas que contiene, muestra entonces el nombre del usuario, la hora y su dirección IP por toda la página - así una captura de pantalla muestra quién la hizo. Las carpetas siguen a su carpeta superior salvo que se indique otra cosa.',
             'p5' => 'Nada de esto detiene a una persona decidida: todo lo que un navegador puede mostrar puede fotografiarse o capturarse. Solo ver y la marca de agua hacen que filtrar sea deliberado y rastreable, no imposible.',
             'p6' => 'Cada archivo abierto queda en el registro de auditoría, con la versión y, en un zip, el archivo concreto de su interior.',
+            'p7' => 'Una imagen o un PDF se reajusta al cambiar el tamaño de su ventana o al maximizarla, hasta que se acerca o se aleja manualmente; **Ajustar** lo devuelve al ajuste automático. El mismo visor abre las imágenes y los PDF adjuntos a los tickets, en una ventana sobre el ticket.',
         ],
         'permissions' => [
             'nav' => 'Permisos',

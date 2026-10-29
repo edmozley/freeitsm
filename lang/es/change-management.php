@@ -33,6 +33,7 @@ return [
         'status' => 'Estado',
         'all' => 'Todos',
         'new_change' => '+ Nuevo cambio',
+        'new_change_tip' => 'Nuevo cambio',
     ],
     'list' => [
         'heading' => 'Cambios',

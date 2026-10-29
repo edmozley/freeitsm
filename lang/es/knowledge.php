@@ -38,6 +38,7 @@ return [
         'tags_heading' => 'Filtrar por etiquetas',
         'folders_heading' => 'Carpetas',
         'new_article' => '+ Nuevo artículo',
+        'new_article_tip' => 'Nuevo artículo',
         'recycle_bin' => 'Papelera de reciclaje',
         'no_tags' => 'Aún no hay etiquetas',
     ],

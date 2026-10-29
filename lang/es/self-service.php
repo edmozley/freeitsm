@@ -302,6 +302,7 @@ return [
         'load_failed' => 'No se ha podido cargar el ticket',
         'load_detail_failed' => 'No se han podido cargar los detalles del ticket',
         'created' => 'Creado el {date}',
+        'details_heading' => 'Sus datos',
         'screen_recordings' => 'Grabaciones de pantalla',
         'screen_recording' => 'Grabación de pantalla',
         'recording' => 'grabación',

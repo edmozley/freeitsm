@@ -47,6 +47,7 @@ return [
         'heading' => 'Cursos',
         'upload' => 'Subir',
         'create' => 'Crear',
+        'new_tip' => 'Nuevo curso',
         'col_title' => 'Título',
         'col_version' => 'Versión SCORM',
         'col_uploaded' => 'Subido',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'Grupos de aprendizaje',
         'new' => 'Nuevo',
+        'new_tip' => 'Nuevo grupo',
         'col_name' => 'Nombre',
         'col_description' => 'Descripción',
         'col_members' => 'Miembros',

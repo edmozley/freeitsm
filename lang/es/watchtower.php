@@ -113,12 +113,6 @@ return [
         'not_started' => 'Comprobaciones no iniciadas hoy',
         'pending' => '{count} comprobaciones aún pendientes',
         'all_completed' => 'Todas las comprobaciones completadas',
-        'metric_ok' => 'OK',
-        'metric_warn' => 'Aviso',
-        'metric_fail' => 'Fallo',
-        'failed' => '{count} comprobación(es) fallida(s)',
-        'warnings' => '{count} comprobación(es) con avisos',
-        'all_passing' => 'Todas las comprobaciones completadas y superadas',
     ],
     'tickets' => [
         'metric_open' => 'Abiertos',
@@ -127,9 +121,6 @@ return [
         'paused_one' => '<span class="wt-attention-bold">{count}</span> ticket pausado más de {hours}h (reloj de SLA detenido)',
         'paused_many' => '<span class="wt-attention-bold">{count}</span> tickets pausados más de {hours}h (reloj de SLA detenido)',
         'all_clear' => 'No hay elementos urgentes',
-        'metric_new' => 'Nuevos',
-        'metric_active' => 'Activos',
-        'metric_hold' => 'En espera',
     ],
     'changes' => [
         'metric_open' => 'Abiertos',
@@ -139,9 +130,6 @@ return [
         'overrunning' => '<span class="wt-attention-bold">{count}</span> cambio(s) fuera de su ventana programada y aún abierto(s)',
         'scheduled' => '{count} cambio(s) programado(s) esta semana',
         'all_clear' => 'No hay cambios próximos',
-        'metric_next_7d' => 'Próximos 7d',
-        'metric_active' => 'Activos',
-        'metric_pending' => 'Pendientes',
     ],
     'calendar' => [
         'metric_today' => 'Hoy',
@@ -215,8 +203,6 @@ return [
         'overdue' => '<span class="wt-attention-bold">{count}</span> tarea(s) vencida(s)',
         'due_today' => '<span class="wt-attention-bold">{count}</span> vence(n) hoy',
         'all_clear' => 'No hay tareas vencidas',
-        'metric_todo' => 'Por hacer',
-        'metric_active' => 'Activas',
     ],
     'help' => [
         'page_title' => 'Guía de Watchtower',
