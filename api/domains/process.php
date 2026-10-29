@@ -19,8 +19,13 @@ domainApiRun(function () use ($conn, $ctx) {
         if ($id <= 0) continue;
         $r = ['id' => $id];
         try {
-            if ($doLookup) {
-                $row = DomainsService::loadForActor($conn, $ctx, $id);
+            $row = DomainsService::loadForActor($conn, $ctx, $id);
+            // GH #203: asked BEFORE the pace - pacing can fetch IANA's bootstrap
+            // file, which is itself a trip outside for this name's registry.
+            if ($doLookup && !domainMayLeaveNetwork($row)) {
+                $r['lookup_ok'] = false;
+                $r['lookup_skipped'] = 'internal';
+            } elseif ($doLookup) {
                 domainLookupPace($conn, $row['domain_name']);
                 $lk = DomainsService::refreshLookup($conn, $ctx, $id);
                 $r['lookup_ok'] = $lk['ok'];
@@ -29,6 +34,7 @@ domainApiRun(function () use ($conn, $ctx) {
             if ($doCheck) {
                 $c = DomainsService::runChecks($conn, $ctx, $id);
                 $r['grade'] = $c['grade'];
+                if (isset($c['health'])) $r['health'] = $c['health'];   // an internal domain (GH #203)
             }
         } catch (ServiceError $e) {
             $r['error'] = $e->getMessage();

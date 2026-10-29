@@ -95,6 +95,9 @@ if (in_array('dns_lookup_failed', $k, true)) {
 echo "\nTHIS SERVER ONLY (GH #203) - nothing is sent to Google or Cloudflare\n";
 $public = fn(array $urls) => array_values(array_filter($urls, fn($u) => preg_match('#dns\.google|cloudflare-dns|1\.1\.1\.1|8\.8\.8\.8#', $u)));
 $internal = 'zz-internal-' . bin2hex(random_bytes(4)) . '.corp.invalid';   // cannot exist anywhere
+// The trace also lists questions to this server's own resolver (dns-system://) - the one
+// route "this server only" allows. Anything else is a trip outside.
+$offServer = fn(array $t) => array_values(array_filter($t, fn($u) => !str_starts_with($u, 'dns-system://')));
 
 // The control: with 'the server's own resolver', a DS question goes to Google every
 // time - the leak #203 reported, and proof this trace can see one. (Its other route out,
@@ -107,12 +110,12 @@ ok("CONTROL: 'the server's own resolver' sends a DS question to Google - the lea
 
 $GLOBALS['DOMAIN_HTTP_TRACE'] = [];
 $r = domainDns($internal . '.', 'A', 'system_only');
-ok("'this server only': the same failed lookup is NOT sent anywhere", $GLOBALS['DOMAIN_HTTP_TRACE'] === [], json_encode($GLOBALS['DOMAIN_HTTP_TRACE']));
+ok("'this server only': the same failed lookup is NOT sent anywhere", $offServer($GLOBALS['DOMAIN_HTTP_TRACE']) === [], json_encode($GLOBALS['DOMAIN_HTTP_TRACE']));
 ok('...and it stays an honest failure or a no-such-name, never an invented answer', !$r['ok'] || $r['nxdomain'] || $r['records'] === [], json_encode($r));
 
 $GLOBALS['DOMAIN_HTTP_TRACE'] = [];
 $ds = domainDns('google.com', 'DS', 'system_only');
-ok("DS (always DNS-over-HTTPS before) is not asked: unsupported, not failed", !$ds['ok'] && !empty($ds['unsupported']) && $GLOBALS['DOMAIN_HTTP_TRACE'] === [], json_encode($ds));
+ok("DS (always DNS-over-HTTPS before) is not asked: unsupported, not failed", !$ds['ok'] && !empty($ds['unsupported']) && $offServer($GLOBALS['DOMAIN_HTTP_TRACE']) === [], json_encode($ds));
 
 $GLOBALS['DOMAIN_HTTP_TRACE'] = [];
 $res = domainRunChecks($row('google.com'), ['domain_dns_resolver' => 'system_only', 'domain_ssl_warn_days' => 21]);

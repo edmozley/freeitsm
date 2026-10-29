@@ -25,7 +25,14 @@ domainApiRun(function () use ($conn, $ctx, $analystId) {
     $res = DomainsService::saveDomain($conn, $ctx, $in, $tenant);
 
     $lookup = null;
-    if ($res['created']) {
+    if ($res['created'] && !domainMayLeaveNetwork(DomainsService::loadForActor($conn, $ctx, $res['id']))) {
+        // GH #203: an internal domain is never looked up at a registry, but its
+        // DNS-only check never leaves the network either - so it runs whatever
+        // the lookup mode, and the person sees its health straight away.
+        if (domainSetting($conn, 'domain_checks_enabled') === '1') {
+            try { DomainsService::runChecks($conn, $ctx, $res['id']); } catch (Throwable $e) { error_log('domains first check: ' . $e->getMessage()); }
+        }
+    } elseif ($res['created']) {
         $mode = domainSetting($conn, 'domain_lookup_mode');
         if ($mode !== 'off') {
             $lookup = DomainsService::refreshLookup($conn, $ctx, $res['id']);

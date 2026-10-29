@@ -41,6 +41,13 @@ function domainScheduledRun(PDO $conn, float $budgetSeconds = 240, bool $include
     $left = fn() => $budgetSeconds - (microtime(true) - $t0);
     $out = ['lookups' => 0, 'lookup_errors' => 0, 'checks' => 0, 'ct' => 0, 'lookalikes' => 0, 'alerts' => null, 'calendar' => null, 'out_of_time' => false];
 
+    // GH #203: an internal domain is never looked up at a registry, never watched,
+    // and is checked on its own interval. The gate (domainMayLeaveNetwork) is
+    // applied here in the SQL, so an internal domain is never even picked up for
+    // a trip outside; the scan functions ask it again themselves.
+    $scoped     = domainScopeReady($conn);
+    $notInternal = $scoped ? " AND scope <> 'internal'" : '';
+
     // ---- 1. registry lookups ---------------------------------------------------
     if ($s['domain_lookup_mode'] === 'scheduled') {
         $days = max(1, (int)$s['domain_lookup_refresh_days']);
@@ -51,7 +58,7 @@ function domainScheduledRun(PDO $conn, float $budgetSeconds = 240, bool $include
         $notSub = domainSubdomainsReady($conn) ? ' AND parent_domain_id IS NULL' : '';
         $ids = $conn->query(
             "SELECT id, domain_name FROM domains
-              WHERE monitoring_enabled = 1$notSub
+              WHERE monitoring_enabled = 1$notSub$notInternal
                 AND (last_lookup_datetime IS NULL
                      OR last_lookup_datetime < DATE_SUB(UTC_TIMESTAMP(), INTERVAL $days DAY)
                      OR (expiry_date IS NOT NULL AND expiry_date <= DATE_ADD(UTC_DATE(), INTERVAL 45 DAY)
@@ -70,10 +77,18 @@ function domainScheduledRun(PDO $conn, float $budgetSeconds = 240, bool $include
 
     // ---- 2. health / security checks (daily) ---------------------------------
     if ($s['domain_checks_enabled'] === '1' && !$out['out_of_time']) {
+        // Public: daily. Internal: every domain_internal_interval minutes (default hourly).
+        $publicDue = 'last_check_datetime IS NULL OR last_check_datetime < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 20 HOUR)';
+        $checkDue  = $publicDue;
+        if ($scoped) {
+            $mins = domainInternalInterval($s);
+            $checkDue = "(scope <> 'internal' AND ($publicDue))"
+                      . " OR (scope = 'internal' AND (last_check_datetime IS NULL OR last_check_datetime < DATE_SUB(UTC_TIMESTAMP(), INTERVAL $mins MINUTE)))";
+        }
         $ids = $conn->query(
             "SELECT id FROM domains
               WHERE monitoring_enabled = 1
-                AND (last_check_datetime IS NULL OR last_check_datetime < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 20 HOUR))
+                AND ($checkDue)
            ORDER BY last_check_datetime IS NOT NULL, last_check_datetime
               LIMIT 500"
         )->fetchAll(PDO::FETCH_COLUMN);
@@ -87,7 +102,7 @@ function domainScheduledRun(PDO $conn, float $budgetSeconds = 240, bool $include
     // ---- 3. the outside-world watches (weekly per domain) ---------------------
     if ($includeWatches && !$out['out_of_time']) {
         if ($s['domain_ct_watch'] === '1') {
-            $rows = domainWatchDue($conn, 'ct_scanned', 7, "purpose NOT IN ('parked')");
+            $rows = domainWatchDue($conn, 'ct_scanned', 7, "purpose NOT IN ('parked')" . $notInternal);
             foreach ($rows as $r) {
                 if ($left() < 50) { $out['out_of_time'] = true; break; }   // crt.sh can take 40s
                 $res = domainCtScan($conn, (int)$r['id'], $r['domain_name']);
@@ -98,7 +113,7 @@ function domainScheduledRun(PDO $conn, float $budgetSeconds = 240, bool $include
         }
         if ($s['domain_lookalike_scan'] === '1' && !$out['out_of_time']) {
             // Look-alikes are of names somebody could register - never a subdomain.
-            $rows = domainWatchDue($conn, 'lookalikes_scanned', 7, "purpose IN ('primary', 'secondary')" . (domainSubdomainsReady($conn) ? ' AND parent_domain_id IS NULL' : ''));
+            $rows = domainWatchDue($conn, 'lookalikes_scanned', 7, "purpose IN ('primary', 'secondary')" . (domainSubdomainsReady($conn) ? ' AND parent_domain_id IS NULL' : '') . $notInternal);
             foreach ($rows as $r) {
                 if ($left() < 70) { $out['out_of_time'] = true; break; }
                 domainLookalikeScan($conn, (int)$r['id'], $r['domain_name'], $s['domain_dns_resolver'], 60);

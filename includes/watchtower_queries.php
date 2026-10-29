@@ -625,6 +625,11 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
             // A status with alerts off ("Letting lapse") and "Do not renew" are
             // somebody's deliberate decision, not something to shout about.
             $live = "(s.id IS NULL OR s.alerts_enabled = 1) AND d.renewal_mode <> 'do_not_renew'";
+            // GH #203: an internal domain has no registration and no grade - a date
+            // or grade left from when it was public is not counted.
+            $pub = '1=1';
+            try { require_once __DIR__ . '/domains/settings.php'; if (domainScopeReady($conn)) $pub = "d.scope <> 'internal'"; } catch (Throwable) {}
+            $liveReg = "$live AND $pub";   // registration only: a certificate recorded by hand on an internal domain still counts
             $sslDays = max(1, (int)$dmS['domain_ssl_warn_days']);
             // A certificate recorded by hand counts too (Domains: recorded certificates).
             require_once __DIR__ . '/domains/subdomains.php';
@@ -633,12 +638,12 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
                 : '';
             $st = $conn->prepare(
                 "SELECT COUNT(*) AS total,
-                        SUM($live AND d.expiry_date < {$todaySql}) AS expired,
-                        SUM($live AND d.expiry_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 30 DAY)) AS exp30,
-                        SUM($live AND d.expiry_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 90 DAY)) AS exp90,
+                        SUM($liveReg AND d.expiry_date < {$todaySql}) AS expired,
+                        SUM($liveReg AND d.expiry_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 30 DAY)) AS exp30,
+                        SUM($liveReg AND d.expiry_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 90 DAY)) AS exp90,
                         SUM($live AND ((d.ssl_expiry_date IS NOT NULL AND d.ssl_expiry_date <= DATE_ADD({$todaySql}, INTERVAL {$sslDays} DAY)){$dmManual})) AS ssl_expiring,
-                        SUM(d.transfer_lock = 0) AS unlocked,
-                        SUM(d.security_grade IN ('D', 'F')) AS weak
+                        SUM($pub AND d.transfer_lock = 0) AS unlocked,
+                        SUM($pub AND d.security_grade IN ('D', 'F')) AS weak
                    FROM domains d LEFT JOIN domain_statuses s ON s.id = d.status_id
                   WHERE 1=1{$dmT}"
             );

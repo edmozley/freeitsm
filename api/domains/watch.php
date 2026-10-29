@@ -20,6 +20,10 @@ domainApiRun(function () use ($conn, $ctx) {
     $in = domainApiBody();
     $row = DomainsService::loadForActor($conn, $ctx, (int)($in['id'] ?? 0));
     $id = (int)$row['id'];
+    // GH #203: both scans send the name (or names made from it) outside.
+    if (in_array($in['action'] ?? '', ['scan_ct', 'scan_lookalikes'], true) && !domainMayLeaveNetwork($row)) {
+        domainApiFail('This is an internal domain: it is never sent outside the network, so it has no watches.');
+    }
     switch ($in['action'] ?? '') {
         case 'scan_ct':
             set_time_limit(90);

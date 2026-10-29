@@ -398,6 +398,8 @@ function domainWhoisServer(PDO $conn, string $tld): ?string
  */
 function domainWhoisQuery(string $server, string $query): ?string
 {
+    // The same trace as domainHttpGet() (GH #203): WHOIS is port 43, not HTTP, so it needs its own line.
+    if (isset($GLOBALS['DOMAIN_HTTP_TRACE']) && is_array($GLOBALS['DOMAIN_HTTP_TRACE'])) $GLOBALS['DOMAIN_HTTP_TRACE'][] = "whois://$server/$query";
     $f = @fsockopen($server, 43, $errno, $errstr, 8);
     if (!$f) return null;
     stream_set_timeout($f, 10);

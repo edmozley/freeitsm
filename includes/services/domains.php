@@ -54,6 +54,7 @@ class DomainsService
         return [
             'status_id'             => ['type' => 'lookup', 'table' => 'domain_statuses'],
             'purpose'               => ['type' => 'enum',   'values' => domainPurposes()],
+            'scope'                 => ['type' => 'enum',   'values' => array_column(DomainScope::cases(), 'value')],   // GH #203
             'registrar_supplier_id' => ['type' => 'lookup', 'table' => 'suppliers'],
             'registrar_account_id'  => ['type' => 'account'],
             'registrar_name'        => ['type' => 'string', 'max' => 255],
@@ -93,7 +94,7 @@ class DomainsService
     /** Fields the bulk editor may set on many domains at once. */
     public static function bulkFields(): array
     {
-        return ['status_id', 'purpose', 'owner_analyst_id', 'renewal_mode', 'registrar_supplier_id',
+        return ['status_id', 'purpose', 'scope', 'owner_analyst_id', 'renewal_mode', 'registrar_supplier_id',
                 'registrar_account_id', 'monitoring_enabled', 'cost_centre', 'cost_centre_id', 'tags'];
     }
 
@@ -118,6 +119,21 @@ class DomainsService
     }
 
     /**
+     * GH #203. TRAP: a field Database Verification has not added yet is normally
+     * skipped quietly (fieldReady). Scope must not be: an "internal" that is
+     * dropped leaves a PUBLIC domain, which the next step looks up at a registry -
+     * the exact leak internal scope exists to stop. So asking for internal before
+     * the column exists is refused, loudly.
+     */
+    private static function assertScopeStorable(PDO $conn, array $in): void
+    {
+        if (($in['scope'] ?? null) === DomainScope::Internal->value && !domainScopeReady($conn)) {
+            throw new ServiceError('validation', 'invalid_field',
+                'Internal domains need Database Verification to be run first (System -> Database Verification).');
+        }
+    }
+
+    /**
      * Adds a domain to the register for a company and returns its id.
      *
      * Validates every field, starts it in the first active status, encrypts any auth code,
@@ -128,6 +144,7 @@ class DomainsService
      */
     public static function createDomain(PDO $conn, ActorContext $ctx, array $in, ?int $tenantId, string $source = 'app'): int
     {
+        self::assertScopeStorable($conn, $in);
         $n = domainNormalise((string)($in['domain_name'] ?? ''));
         if (!$n['ok']) {
             throw new ServiceError('validation', empty($in['domain_name']) ? 'missing_field' : 'invalid_field', $n['error']);
@@ -205,6 +222,7 @@ class DomainsService
      */
     public static function updateDomain(PDO $conn, ActorContext $ctx, int $id, array $in, string $source = ''): int
     {
+        self::assertScopeStorable($conn, $in);
         $cur = self::loadForActor($conn, $ctx, $id);
         $source = $source ?: ($ctx->source === 'api' ? 'api' : 'app');
         $fields = array_diff_key($in, ['id' => true]);
@@ -359,6 +377,7 @@ class DomainsService
     public static function bulkUpdate(PDO $conn, ActorContext $ctx, array $ids, array $fields): array
     {
         $allowed = array_intersect_key($fields, array_flip(self::bulkFields()));
+        self::assertScopeStorable($conn, $allowed);
         if (!$allowed) throw new ServiceError('validation', 'missing_field', 'Choose at least one field to change.');
         $done = 0; $failed = [];
         foreach (array_unique(array_map('intval', $ids)) as $id) {
@@ -381,6 +400,12 @@ class DomainsService
     public static function refreshLookup(PDO $conn, ActorContext $ctx, int $id): array
     {
         $row = self::loadForActor($conn, $ctx, $id);
+        // GH #203: an internal domain is never sent to a registry - its name
+        // would leave the network. Not a failure: registration does not apply.
+        if (!domainMayLeaveNetwork($row)) {
+            return ['ok' => false, 'internal' => true, 'changes' => [],
+                    'error' => 'This is an internal domain: it is never looked up at a registry.'];
+        }
         // A subdomain has no registration of its own: the registry would only
         // answer "not found". Nothing is recorded as a failure.
         if (!empty($row['parent_domain_id'])) {
@@ -503,6 +528,10 @@ class DomainsService
     public static function runChecks(PDO $conn, ?ActorContext $ctx, int $id): array
     {
         $row = $ctx ? self::loadForActor($conn, $ctx, $id) : self::loadRow($conn, $id);
+        // GH #203: an internal domain gets the DNS-only health check, through this
+        // server's resolver - never the public checks, which ask public DNS for
+        // DS and connect to its hosts for certificates.
+        if (!domainMayLeaveNetwork($row)) return self::runInternalChecks($conn, $row, $id);
         // A subdomain's checks need its parent: its name (DMARC and CAA are
         // inherited from it) and its DNSSEC (signed at the parent's zone).
         $checkRow = $row;
@@ -567,6 +596,64 @@ class DomainsService
         }
         $res['changes'] = $changes;
         return $res;
+    }
+
+    /**
+     * The check run for an internal domain (GH #203): DNS only, health instead of
+     * a grade. See includes/domains/scope.php.
+     *
+     * A run that completes - every name answered, or a problem confirmed - is a
+     * fresh observation: it moves the completed date, and the healthy date when
+     * it was healthy. A run that cannot complete (a resolver error) changes
+     * neither and only marks the latest attempt incomplete, so the last known
+     * state - a problem included - stays on screen beside the "not checked".
+     *
+     * The public results are cleared: no grade, no certificate, no expiry from
+     * when the domain was public, so nothing alerts or counts on them.
+     *
+     * @param array $row  the domains row, already loaded for the actor
+     * @param int   $id   the domain
+     */
+    private static function runInternalChecks(PDO $conn, array $row, int $id): array
+    {
+        $res = domainRunInternalChecks($row);
+        $status = $res['problem'] ? 'problem' : 'healthy';
+
+        if ($res['completed']) {
+            $conn->prepare(
+                "UPDATE domains SET check_results = ?, security_score = NULL, security_grade = NULL,
+                        ssl_expiry_date = NULL, ssl_issuer = NULL,
+                        health_status = ?, health_completed_datetime = UTC_TIMESTAMP(),
+                        health_healthy_datetime = IF(? = 'healthy', UTC_TIMESTAMP(), health_healthy_datetime),
+                        health_incomplete = 0, last_check_datetime = UTC_TIMESTAMP() WHERE id = ?"
+            )->execute([
+                json_encode(['findings' => $res['findings'], 'certificates' => [], 'at' => gmdate('Y-m-d H:i:s'), 'scope' => 'internal']),
+                $status, $status, $id,
+            ]);
+            if (($row['health_status'] ?? null) !== $status) {
+                self::audit($conn, $id, null, 'health_status', $row['health_status'] ?? null, $status, 'check');
+            }
+        } else {
+            $conn->prepare(
+                "UPDATE domains SET check_results = ?, security_score = NULL, security_grade = NULL,
+                        ssl_expiry_date = NULL, ssl_issuer = NULL,
+                        health_incomplete = 1, last_check_datetime = UTC_TIMESTAMP() WHERE id = ?"
+            )->execute([
+                json_encode(['findings' => $res['findings'], 'certificates' => [], 'at' => gmdate('Y-m-d H:i:s'), 'scope' => 'internal']),
+                $id,
+            ]);
+        }
+        $fresh = self::loadRow($conn, $id);
+        return [
+            'findings'        => $res['findings'],
+            'score'           => null,
+            'grade'           => null,
+            'ssl_expiry_date' => null,
+            'ssl_issuer'      => null,
+            'certificates'    => [],
+            'health'          => domainHealth($fresh, domainInternalInterval(domainSettings($conn))),
+            'changes'         => [],
+        ];
     }
 
     // ======================================================================
@@ -1076,6 +1163,7 @@ class DomainsService
         if (in_array($field, ['customer_supplier_id', 'customer_contact_id', 'tech_analyst_id'], true)) return domainPartiesReady($conn);
         if ($field === 'cost_centre_id') return costCentreReady($conn, 'domains');
         if ($field === 'parent_domain_id') return domainSubdomainsReady($conn);
+        if ($field === 'scope') return domainScopeReady($conn);
         return true;
     }
 

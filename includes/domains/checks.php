@@ -34,6 +34,7 @@
 require_once __DIR__ . '/names.php';
 require_once __DIR__ . '/dns.php';
 require_once __DIR__ . '/tls.php';
+require_once __DIR__ . '/scope.php';   // GH #203: the gate domainRunChecks() asks
 
 /**
  * Run every check for one domain row.
@@ -45,6 +46,11 @@ require_once __DIR__ . '/tls.php';
  */
 function domainRunChecks(array $d, array $settings): array
 {
+    // GH #203: these are the PUBLIC checks - DS over public DNS, connections to the
+    // domain's hosts. An internal domain must never get here; DomainsService::runChecks
+    // sends it to domainRunInternalChecks(). Refused rather than trusted, so a new
+    // caller that forgets cannot leak an internal name.
+    if (!domainMayLeaveNetwork($d)) throw new LogicException('domainRunChecks() is for public domains; internal ones use domainRunInternalChecks().');
     $name     = (string)$d['domain_name'];
     $purpose  = (string)($d['purpose'] ?? 'primary');
     $resolver = (string)($settings['domain_dns_resolver'] ?? 'auto');

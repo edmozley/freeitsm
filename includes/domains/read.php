@@ -15,6 +15,7 @@ require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/customer.php';
 require_once __DIR__ . '/subdomains.php';
 require_once __DIR__ . '/../cost_centre_assign.php';   // GH #188
+require_once __DIR__ . '/settings.php';   // GH #203: scope, health and the interval
 
 /** The columns + joins every register read uses. */
 function domainListSelect(?PDO $conn = null): string
@@ -62,6 +63,9 @@ function domainListSelect(?PDO $conn = null): string
                    d.tags, d.cost, d.currency, d.billing_years, d.cost_centre" . ($conn !== null ? costCentreSelectSql($conn, 'domains', 'd') : ', NULL AS cost_centre_id, NULL AS cost_centre_label') . ",
                    d.contract_id, d.monitoring_enabled, $custCols
                    d.ssl_expiry_date, d.ssl_issuer, d.security_score, d.security_grade,
+                   " . ($conn !== null && domainScopeReady($conn)
+                        ? 'd.scope, d.health_status, d.health_completed_datetime, d.health_healthy_datetime, d.health_incomplete,'
+                        : "'public' AS scope, NULL AS health_status, NULL AS health_completed_datetime, NULL AS health_healthy_datetime, 0 AS health_incomplete,") . "
                    d.lookup_source, d.last_lookup_datetime, d.last_lookup_error, d.last_check_datetime,
                    d.created_datetime, d.updated_datetime,
                    (SELECT COUNT(*) FROM domain_lookalikes l WHERE l.domain_id = d.id AND l.dismissed = 0) AS lookalike_count,
@@ -99,11 +103,27 @@ function domainListRows(PDO $conn, int $analystId, array $f = []): array
         $where[] = 'd.expiry_date IS NOT NULL AND d.expiry_date <= DATE_ADD(UTC_DATE(), INTERVAL ? DAY)';
         $args[] = (int)$f['expiring_days'];
     }
+    if (!empty($f['scope']) && domainScopeReady($conn)) { $where[] = 'd.scope = ?'; $args[] = (string)$f['scope']; }   // GH #203
+    domainShapeInterval(domainInternalInterval(domainSettings($conn)));
     $sql = domainListSelect($conn) . ' WHERE ' . implode(' AND ', $where) . $tSql . ' ORDER BY d.expiry_date IS NULL, d.expiry_date, d.domain_name';
     $st = $conn->prepare($sql);
     $st->execute(array_merge($args, $tArgs));
     $rows = $st->fetchAll(PDO::FETCH_ASSOC);
     return array_map('domainShapeRow', $rows);
+}
+
+/**
+ * The internal-check interval domainShapeRow() works staleness out with (GH #203).
+ * Set by the readers, which have the connection; array_map('domainShapeRow')
+ * gives the shaper no way to ask for it.
+ *
+ * @param ?int $set  the interval in minutes, to remember; null to read it
+ */
+function domainShapeInterval(?int $set = null): int
+{
+    static $minutes = 60;
+    if ($set !== null) $minutes = $set;
+    return $minutes;
 }
 
 /**
@@ -131,6 +151,10 @@ function domainShapeRow(array $r): array
     $r['ssl_days_left'] = $days($r['ssl_expiry_date'] ?? null);
     $r['manual_cert_days_left'] = $days($r['manual_cert_expiry'] ?? null);
     $r['annual_cost']   = ($r['cost'] ?? null) !== null ? round((float)$r['cost'] / max(1, (int)($r['billing_years'] ?? 1)), 2) : null;
+    // GH #203: an internal domain has a health status instead of a grade.
+    $r['scope']  = ($r['scope'] ?? '') === 'internal' ? 'internal' : 'public';
+    $r['health'] = $r['scope'] === 'internal' ? domainHealth($r, domainShapeInterval()) : null;
+    unset($r['health_status'], $r['health_completed_datetime'], $r['health_healthy_datetime'], $r['health_incomplete']);
     $r['attention']     = domainNeedsAttention($r);
     return $r;
 }
@@ -144,6 +168,15 @@ function domainShapeRow(array $r): array
 function domainNeedsAttention(array $r): array
 {
     $why = [];
+    // GH #203: an internal domain has no registration, lock, grade or watches - a
+    // value left from when it was public is not something to act on. Its health is.
+    if (($r['scope'] ?? '') === 'internal') {
+        $state = $r['health']['state'] ?? null;
+        if ($state === 'problem' || ($r['health']['known'] ?? null) === 'problem') $why[] = 'health';
+        if ($state === 'stale') $why[] = 'stale';
+        if ((($r['manual_cert_days_left'] ?? null) !== null && $r['manual_cert_days_left'] <= 14)) $why[] = 'certificate';
+        return $why;
+    }
     $alerting = !array_key_exists('alerts_enabled', $r) || $r['alerts_enabled'] === null || $r['alerts_enabled'];
     if ($alerting && $r['days_left'] !== null && $r['days_left'] < 0 && ($r['renewal_mode'] ?? '') !== 'do_not_renew') $why[] = 'expired';
     elseif ($alerting && $r['days_left'] !== null && $r['days_left'] <= 30 && ($r['renewal_mode'] ?? '') !== 'do_not_renew') $why[] = 'expiring';
@@ -167,6 +200,7 @@ function domainDetail(PDO $conn, int $id, ?int $analystId = null): ?array
     $st->execute([$id]);
     $r = $st->fetch(PDO::FETCH_ASSOC);
     if (!$r) return null;
+    domainShapeInterval(domainInternalInterval(domainSettings($conn)));
     $r = domainShapeRow($r);
 
     // A linked CUSTOMER contract the viewer cannot see shows no label (#153).

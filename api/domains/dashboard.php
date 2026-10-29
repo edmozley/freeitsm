@@ -14,7 +14,10 @@ domainApiRun(function () use ($conn, $analystId) {
 
     $stats = ['total' => count($rows), 'expired' => 0, 'expiring_30' => 0, 'expiring_90' => 0, 'unlocked' => 0,
               'no_dnssec' => 0, 'ssl_expiring' => 0, 'auto_renew' => 0, 'lookalikes' => 0, 'new_certificates' => 0,
-              'never_checked' => 0, 'annual_cost' => 0.0];
+              'never_checked' => 0, 'annual_cost' => 0.0,
+              // GH #203: internal domains, by health. They are in none of the public
+              // counts below - no grade, no email posture, no registration.
+              'internal' => 0, 'internal_healthy' => 0, 'internal_problem' => 0, 'internal_not_checked' => 0, 'internal_stale' => 0];
     $grades = ['A+' => 0, 'A' => 0, 'B' => 0, 'C' => 0, 'D' => 0, 'F' => 0, 'none' => 0];
     $months = [];
     for ($i = 0; $i < 12; $i++) {
@@ -26,6 +29,17 @@ domainApiRun(function () use ($conn, $analystId) {
 
     $findingsSt = $conn->prepare("SELECT check_results FROM domains WHERE id = ?");
     foreach ($rows as $r) {
+        if ($r['scope'] === 'internal') {
+            $stats['internal']++;
+            $stats['internal_' . $r['health']['state']]++;
+            if ($r['annual_cost'] !== null) $stats['annual_cost'] += $r['annual_cost'];
+            if ($r['attention']) {
+                $attention[] = ['id' => $r['id'], 'domain_name' => $r['display_name'] ?: $r['domain_name'], 'company_name' => $r['company_name'],
+                                'reasons' => $r['attention'], 'days_left' => null, 'ssl_days_left' => null,
+                                'security_grade' => null, 'health' => $r['health']['state']];
+            }
+            continue;
+        }
         $live = !in_array($r['renewal_mode'], ['do_not_renew'], true) && ($r['alerts_enabled'] ?? true) !== false;
         if ($live && $r['days_left'] !== null) {
             if ($r['days_left'] < 0) $stats['expired']++;

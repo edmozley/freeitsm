@@ -8758,6 +8758,18 @@ CREATE TABLE IF NOT EXISTS `domains` (
     -- it is never looked up at a registry and has no expiry alerts of its own.
     -- One level only: a parent is never itself a subdomain.
     `parent_domain_id`       INT NULL,
+    -- GH #203. public | internal (DomainScope, includes/domains/scope.php). An
+    -- internal domain never leaves the network: DNS through this server only, no
+    -- registry, CT, look-alike scan or HTTPS connection. It gets a health status
+    -- instead of a grade.
+    `scope`                  VARCHAR(10) NOT NULL DEFAULT 'public',
+    -- Internal health: the last COMPLETED result (healthy | problem), when that
+    -- was, when it was last healthy, and whether the latest attempt failed to
+    -- complete. Stale is worked out when read (domainHealth), never stored.
+    `health_status`              VARCHAR(10) NULL,
+    `health_completed_datetime`  DATETIME NULL,
+    `health_healthy_datetime`    DATETIME NULL,
+    `health_incomplete`          TINYINT(1) NOT NULL DEFAULT 0,
     `created_by`             INT NULL,
     `created_datetime`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`       DATETIME NULL,

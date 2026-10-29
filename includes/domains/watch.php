@@ -55,6 +55,10 @@ require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
  */
 function domainCtScan(PDO $conn, int $domainId, string $name): array
 {
+    // GH #203: the gate, asked here as well as by the callers - crt.sh is a public service.
+    if (!domainIdMayLeaveNetwork($conn, $domainId)) {
+        return ['ok' => false, 'new' => 0, 'total' => 0, 'first_scan' => false, 'error' => 'This is an internal domain: it is never sent to Certificate Transparency.'];
+    }
     [$code, $body, $err] = domainHttpGet('https://crt.sh/?q=' . rawurlencode($name) . '&output=json&exclude=expired', 'application/json', 45);
     if ($code !== 200) {
         return ['ok' => false, 'new' => 0, 'total' => 0, 'first_scan' => false, 'error' => 'crt.sh did not answer' . ($code ? " (HTTP $code)" : '') . ($err ? ": $err" : '')];
@@ -197,6 +201,8 @@ function domainLookalikeCandidates(string $name): array
  */
 function domainLookalikeScan(PDO $conn, int $domainId, string $name, string $resolver = 'auto', float $budgetSeconds = 60): array
 {
+    // GH #203: look-alikes of an internal name are public DNS questions about it.
+    if (!domainIdMayLeaveNetwork($conn, $domainId)) return ['checked' => 0, 'found' => 0, 'new' => 0, 'with_mx' => 0, 'internal' => true];
     $cands = domainLookalikeCandidates($name);
     $start = microtime(true);
     $out = ['checked' => 0, 'found' => 0, 'new' => 0, 'with_mx' => 0];

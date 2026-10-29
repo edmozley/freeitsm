@@ -105,6 +105,7 @@ function domainAlertsDue(PDO $conn, array $s): array
     $rows = $conn->query(
         "SELECT d.id, d.domain_name, d.display_name, d.expiry_date, d.ssl_expiry_date, d.ssl_issuer, d.renewal_mode,
                 " . ($subReady ? 'd.parent_domain_id' : 'NULL AS parent_domain_id') . ",
+                " . (domainScopeReady($conn) ? 'd.scope' : "'public' AS scope") . ",
                 d.owner_analyst_id, d.tenant_id, d.purpose, d.status_id, d.registrar_name, d.security_grade,
                 a.full_name AS owner_name, a.email AS owner_email, t.name AS company_name
            FROM domains d
@@ -119,7 +120,9 @@ function domainAlertsDue(PDO $conn, array $s): array
     $due = [];
     foreach ($rows as $r) {
         // A subdomain's registration is its parent's: the parent is the one reminded.
-        if (!empty($r['expiry_date']) && empty($r['parent_domain_id']) && ($autoToo || $r['renewal_mode'] !== 'auto')) {
+        // An internal domain has no registration (GH #203) - a date left from when it
+        // was public is not a renewal anybody needs reminding of.
+        if (!empty($r['expiry_date']) && empty($r['parent_domain_id']) && $r['scope'] !== 'internal' && ($autoToo || $r['renewal_mode'] !== 'auto')) {
             $left = (int)$today->diff(new DateTimeImmutable($r['expiry_date']))->format('%r%a');
             if ($left >= 0 && in_array($left, $days, true)) {
                 $due[] = $r + ['kind' => 'expiry', 'days' => $left, 'date' => $r['expiry_date'], 'fingerprint' => $r['expiry_date'] . ':' . $left];

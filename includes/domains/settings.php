@@ -18,6 +18,10 @@
  * server cannot disagree about what "not set yet" means.
  */
 
+// GH #203: DomainScope, the gate and DOMAIN_INTERNAL_INTERVALS - every Domains
+// entry point loads this file, so the gate is always there to ask.
+require_once __DIR__ . '/scope.php';
+
 if (!defined('DOMAIN_SETTINGS_LOADED')) {
     define('DOMAIN_SETTINGS_LOADED', true);
 
@@ -77,6 +81,10 @@ if (!defined('DOMAIN_SETTINGS_LOADED')) {
             // with 22 TXT records never answered, where DoH took 0.3s), and it
             // cannot ask for CAA or DS at all.
             'domain_dns_resolver'          => ['auto',      'resolver', 'monitoring'],
+            // GH #203: how often INTERNAL domains are checked (DNS only, through this
+            // server), in minutes. The scheduled job must run at least this often for
+            // a short interval to happen - the settings screen says so beside it.
+            'domain_internal_interval'     => ['60',        'interval', 'monitoring'],
             // Certificate Transparency watch via crt.sh — OFF: external, slow, and
             // rate-limited, so it is something to choose.
             'domain_ct_watch'              => ['0',         'bool',     'monitoring'],
@@ -221,6 +229,9 @@ if (!defined('DOMAIN_SETTINGS_LOADED')) {
             case $rule === 'overwrite':
                 if (!in_array($v, ['always', 'blanks'], true)) throw new InvalidArgumentException('Choose how a lookup treats typed values.');
                 return $v;
+            case $rule === 'interval':
+                if (!in_array((int)$v, DOMAIN_INTERNAL_INTERVALS, true) || (string)(int)$v !== trim($v)) throw new InvalidArgumentException('Choose how often internal domains are checked.');
+                return (string)(int)$v;
             case $rule === 'resolver':
                 if (!in_array($v, ['auto', 'system', 'system_only', 'google', 'cloudflare'], true)) throw new InvalidArgumentException('Choose a DNS resolver.');
                 return $v;

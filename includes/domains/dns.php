@@ -98,6 +98,9 @@ function domainDnsSystem(string $name, string $type): array
     if (defined('DNS_CAA')) $map['CAA'] = constant('DNS_CAA');
     if (!isset($map[$type])) return ['ok' => false, 'nxdomain' => false, 'records' => [], 'error' => "Type $type not supported"];
 
+    // The same trace as domainHttpGet() (GH #203): this server's resolver is the one
+    // route an internal domain may use, and the tests check it is the only one.
+    if (isset($GLOBALS['DOMAIN_HTTP_TRACE']) && is_array($GLOBALS['DOMAIN_HTTP_TRACE'])) $GLOBALS['DOMAIN_HTTP_TRACE'][] = "dns-system://$name/$type";
     $raw = @dns_get_record($name, $map[$type]);
     if ($raw === false) return ['ok' => false, 'nxdomain' => false, 'records' => [], 'error' => 'DNS query failed'];
 
