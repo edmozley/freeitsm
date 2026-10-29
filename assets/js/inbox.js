@@ -10227,7 +10227,7 @@ function applyPopoutChrome(entered) {
     }
     const back = document.getElementById('popoutBackBtn');
     if (back) back.hidden = !on;
-    if (!on) return;
+    if (!on) { focusTicketList(); return; }
     const idle = () => { const f = document.activeElement; return !f || f === document.body; };
     if (entered || idle()) focusTicketScroller();
     // The conversation may still be filling in, with nothing to scroll yet - try
@@ -10250,6 +10250,18 @@ function focusTicketScroller() {
     if (!best) return;
     makePaneScrollerFocusable(best);
     best.focus({ preventScroll: true });
+}
+
+/** Leaving full screen goes back to the LIST - Escape, Back or the shrink icon -
+ *  so the next arrow moves between tickets and Enter opens one, without a click
+ *  first. The table's rows take focus, so the highlighted one gets it; the
+ *  message list's rows do not, and there the list's keys work with focus on
+ *  nothing, so focus just leaves the ticket. */
+function focusTicketList() {
+    const row = selectionFocusId !== null ? document.querySelector(ticketRowSelector(`[data-email-id="${selectionFocusId}"]`)) : null;
+    if (row && row.tabIndex >= 0) { row.focus({ preventScroll: true }); scrollRowIntoView(selectionFocusId); return; }
+    const f = document.activeElement;
+    if (f && f !== document.body && f.closest && f.closest('.reading-pane')) f.blur();
 }
 
 /** Lets a scrolling area take focus (by script or by a click) without joining the Tab order. */
