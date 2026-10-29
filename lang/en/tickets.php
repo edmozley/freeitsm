@@ -521,6 +521,9 @@ return [
         'attach_btn'            => 'Attach',
         'remove_file'           => 'Remove',
         'files_failed'          => '{n} of {total} file(s) could not be attached: {names}. The note itself was saved.',
+        // Pictures in the note box (GH #224) - assets/js/note-images.js.
+        'paste_hint'            => 'Paste a screenshot (Ctrl+V) to put it in the note where the cursor is. Backspace removes it.',
+        'save_failed'           => 'The note was not saved, and your text is still here: {error}',
     ],
 
     // Splitting a ticket (#914). Note "newer", never "after": the thread is shown
@@ -3179,6 +3182,12 @@ return [
             'viewer_window'      => '<strong>Move it and size it</strong> &mdash; drag the title bar to move the window and any edge or corner to resize it; double-click the title bar, or drag it to the top of the screen, to fill the screen. The picture or PDF refits as the window changes size, until you zoom in or out yourself &mdash; <strong>Fit</strong> hands it back. Open several and they sit side by side.',
             'viewer_close'       => '<strong>Close it</strong> &mdash; the &times; in its title bar, or <strong>Escape</strong> (which closes the window in front). <strong>Download</strong> saves the file. On a phone the file opens full screen with a Back button.',
             'viewer_other'       => '<strong>Other files</strong> &mdash; Word documents, spreadsheets and everything else still download or open in a new tab, as before. To open a note\'s picture or PDF in a new tab instead, Ctrl-click it.',
+            // GH #224: screenshots pasted into a note, in place.
+            'paste_heading'      => '<strong>Paste a screenshot into a note</strong>',
+            'paste_body'         => 'Copy a screenshot, click into the <strong>Add note</strong> box and press <strong>Ctrl+V</strong>. The picture goes in where the cursor is, with your text before and after it, and stays in that place once the note is saved. Click it to open it in the viewer. <strong>Backspace</strong> removes it before you save.',
+            'paste_shared'       => '<strong>Shared notes share their pictures</strong> &mdash; the requester sees them in the portal, in place. On an internal note they are as private as the note.',
+            'paste_save'         => '<strong>Nothing is kept until you press Save</strong> &mdash; close the box and the pictures go with it. If a picture is refused, the note is not saved either, the reason is shown, and your text is still in the box.',
+            'paste_text'         => '<strong>Text stays text</strong> &mdash; pasting from Word, a web page or Excel puts in the words without their formatting. The <strong>Attach</strong> button still works for any other file.',
             'rightclick_heading' => '<strong>Right-click for quick actions</strong>',
             'rightclick_body'    => 'Right-click any ticket in the list to open a context menu. The menu shows the ticket reference at the top so you know what you\'re acting on, and every action operates on the right-clicked ticket <em>without</em> changing what\'s currently open in the reading pane &mdash; useful when you\'re reading ticket A and need to triage ticket B without losing your place.',
             'rightclick_status'  => '<strong>Set status &rarr;</strong> &mdash; flyout submenu listing every active status with its colour swatch. A tick appears next to the current value if you\'re right-clicking the ticket you\'ve got open. Picks immediately update the ticket, write an audit-trail entry, refresh the folder counts, and sync the reading pane\'s Status dropdown if applicable.',

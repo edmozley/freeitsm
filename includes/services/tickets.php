@@ -1017,8 +1017,11 @@ class TicketsService
         if (!$isInternal) {
             try {
                 require_once __DIR__ . '/../template_email.php';
+                require_once __DIR__ . '/../note_images.php';
+                // A pasted picture's marker means nothing in an inbox (GH #224);
+                // the picture itself is in the portal with the rest of the note.
                 sendTemplateEmail($conn, $ticketId, 'note_shared', [
-                    'note_text' => $text,
+                    'note_text' => noteImagesPlainText($text),
                 ]);
             } catch (Exception $mailEx) {
                 // Non-fatal, like the dispatch above: the note is saved whether

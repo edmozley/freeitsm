@@ -313,6 +313,15 @@ try {
                         <div><?php echo t('tickets.help.working.viewer_other'); ?></div>
                     </div>
 
+                    <?php /* GH #224: screenshots pasted into a note, in place. */ ?>
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.working.paste_heading'); ?></p>
+                    <p><?php echo t('tickets.help.working.paste_body'); ?></p>
+                    <div class="help-list">
+                        <div><?php echo t('tickets.help.working.paste_shared'); ?></div>
+                        <div><?php echo t('tickets.help.working.paste_save'); ?></div>
+                        <div><?php echo t('tickets.help.working.paste_text'); ?></div>
+                    </div>
+
                     <p style="margin-top: 20px;"><?php echo t('tickets.help.working.rightclick_heading'); ?></p>
                     <p><?php echo t('tickets.help.working.rightclick_body'); ?></p>
                     <div class="help-list">

@@ -22,7 +22,9 @@ $bodyClass    = 'portal-app';
 $needsRecorder = true;
 // The read-only answers (discussion #193) use the shared field renderer.
 $pageHead = '<link rel="stylesheet" href="../assets/css/ticket-fields.css?v=2">'
-          . '<script src="../assets/js/ticket-fields.js?v=2"></script>';
+          . '<script src="../assets/js/ticket-fields.js?v=2"></script>'
+          // Pictures pasted into a shared note sit in its text (GH #224).
+          . '<script src="../assets/js/note-images.js?v=1"></script>';
 
 // Which list: the person's own tickets, or - for a manager - their team's
 // (discussion #62). Whether they really manage anybody is the endpoint's answer
@@ -240,6 +242,9 @@ $pageStyles = <<<'CSS'
 .tk-msg-card img { max-width: 100%; height: auto; }
 .tk-msg-card table { max-width: 100%; }
 
+/* A picture pasted into a shared note, where it sits in the text (GH #224). */
+.note-inline-image { display: inline-block; max-width: 100%; margin: 4px 0; vertical-align: top; }
+.note-inline-image img { display: block; max-width: 100%; max-height: 360px; height: auto; border-radius: 6px; border: 1px solid var(--border, #e5e7eb); }
 .tk-att { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .tk-att a {
     display: inline-flex; align-items: center; gap: 6px;
@@ -664,11 +669,19 @@ let ssTickets = [];
             const msgs = items.map(item => {
                 if (item.kind === 'note') {
                     const n = item.data;
+                    // A picture pasted into the note is drawn where it sits, and
+                    // left out of the file list below it (GH #224). Served by the
+                    // same route as the note's other files, which re-checks that
+                    // the note is shared.
+                    const body = window.NoteImages.render(n.note_text || '', n.documents || [], {
+                        url: dd => '../api/self-service/get_document.php?id=' + encodeURIComponent(dd.id),
+                        attrs: () => 'target="_blank" rel="noopener noreferrer"'
+                    });
                     return messageHtml({
                         who: n.analyst_name || window.t('self-service.ticket.support'),
                         when: n.created_datetime,
-                        html: esc(n.note_text || '').replace(/\n/g, '<br>'),
-                        docs: n.documents || [],
+                        html: body.html.replace(/\n/g, '<br>'),
+                        docs: (n.documents || []).filter(dd => !body.used[String(dd.id)]),
                         cls: 'is-note',
                         badge: window.t('self-service.ticket.note')
                     });

@@ -240,6 +240,9 @@
        max-width:768px rules stop matching → the big centred desktop modal).
        Set at ID specificity so nothing overrides it. */
     #noteModal .form-textarea { flex: 1; min-height: 0; resize: none; font-size: 16px; }
+    /* The note box is a contenteditable div since GH #224; its fixed desktop
+       height would stop it filling the sheet. */
+    #noteModal .note-editor { height: auto; }
 
     /* Same anti-zoom for every other modal field on mobile. */
     .modal-content .form-input,

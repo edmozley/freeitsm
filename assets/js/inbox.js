@@ -7012,9 +7012,17 @@ function renderNotes() {
         // link; a DMS entry is a link out. Both go through the documents block's
         // own endpoints, so the permission check happens server-side on every
         // click rather than being implied by the row being on screen.
+        // A picture pasted into the note is drawn where it sits (GH #224), opens
+        // in the same viewer window as the note's files, and is left out of the
+        // file list below so it is not shown twice.
+        const body = window.NoteImages.render(note.note_text, note.documents || [], {
+            url: d => '../api/documents/download.php?id=' + encodeURIComponent(d.id),
+            attrs: (d, name) => `data-view-file="${escapeHtml(name)}" data-size="${Number(d.size_bytes) || 0}"`
+        });
+        const listed = (note.documents || []).filter(d => !body.used[String(d.id)]);
         let files = '';
-        if (note.documents && note.documents.length) {
-            files = '<div class="note-file-list">' + note.documents.map(d => {
+        if (listed.length) {
+            files = '<div class="note-file-list">' + listed.map(d => {
                 const href = d.kind === 'link'
                     ? safeExternalUrl(d.external_url)
                     : '../api/documents/download.php?id=' + encodeURIComponent(d.id);
@@ -7060,7 +7068,7 @@ function renderNotes() {
                     <span class="note-author">${escapeHtml(author)}${visBadge}</span>
                     <span>${formatDateTime(note.created_datetime)}</span>
                 </div>
-                <div class="note-text">${escapeHtml(note.note_text)}</div>
+                <div class="note-text">${body.html}</div>
                 ${files}
             </div>
         `;
@@ -7085,7 +7093,7 @@ const VIEWER_FILE_RE = /\.(png|jpe?g|gif|webp|bmp|pdf)$/i;
 // link stays a real link, so Ctrl/middle-click still opens it in a new tab, and
 // the address is the same download.php, so the permission check is unchanged.
 function openNoteFile(ev) {
-    const a = ev.target.closest('a.note-file[data-view-file]');
+    const a = ev.target.closest('a.note-file[data-view-file], a.note-inline-image[data-view-file]');
     if (!a || ev.button !== 0 || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
     if (!window.FilesViewer || !window.FilesViewer.openUrl) return;
     const href = a.getAttribute('href');
@@ -7146,7 +7154,7 @@ function renderPendingNoteFiles() {
 
 // Open note modal
 function openNoteModal() {
-    document.getElementById('noteText').value = '';
+    noteEditor().clear();
     pendingNoteFiles = [];
     renderPendingNoteFiles();
     const fileInput = document.getElementById('noteFileInput');
@@ -7176,6 +7184,17 @@ function openNoteModal() {
     // A note counts as writing too — a colleague should know before they type
     // the same thing (#934).
     setPresenceComposing(true);
+}
+
+// The note box (GH #224): a screenshot pasted into it lands at the cursor, and
+// travels with the note when it is saved. Built once, on first use.
+let noteEditorInstance = null;
+/** The note box's editor (assets/js/note-images.js), created the first time it is needed. */
+function noteEditor() {
+    if (!noteEditorInstance) {
+        noteEditorInstance = window.NoteImages.attachEditor(document.getElementById('noteText'));
+    }
+    return noteEditorInstance;
 }
 
 // Wire the modal's file controls once, on the elements themselves rather than
@@ -7218,7 +7237,8 @@ async function saveNote() {
 
 /** Save the note in the note modal. The body of saveNote(), counted as one write by trackTicketWrite(). */
 async function saveNoteNow() {
-    const noteText = document.getElementById('noteText').value.trim();
+    const box = noteEditor().serialize();
+    const noteText = box.text.trim();
 
     if (!noteText) {
         showToast('Please enter a note', 'error');
@@ -7233,20 +7253,35 @@ async function saveNoteNow() {
     // like any other.
     const filesToAttach = pendingNoteFiles;
 
-    try {
-        const response = await fetch(API_BASE + 'save_note.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ticket_id: currentEmail.ticket_id,
-                note_text: noteText,
-                // Ticked = the requester reads this in the self-service portal.
-                // Defaults to unticked, so a note is internal unless someone
-                // deliberately says otherwise — the behaviour this replaced,
-                // and the safe direction.
-                is_internal: !isShared
-            })
+    // Pasted pictures go up WITH the note, in one request (GH #224): the server
+    // stores them first, so a refused picture refuses the whole save and the
+    // text stays in the box. Without any, the long-standing JSON request.
+    let body;
+    let headers = {};
+    if (box.images.length) {
+        body = new FormData();
+        body.append('ticket_id', currentEmail.ticket_id);
+        body.append('note_text', noteText);
+        body.append('is_internal', isShared ? '0' : '1');
+        box.images.forEach(im => {
+            body.append('images[]', im.file, im.file.name);
+            body.append('image_keys[]', im.key);
         });
+    } else {
+        headers = { 'Content-Type': 'application/json' };
+        body = JSON.stringify({
+            ticket_id: currentEmail.ticket_id,
+            note_text: noteText,
+            // Ticked = the requester reads this in the self-service portal.
+            // Defaults to unticked, so a note is internal unless someone
+            // deliberately says otherwise — the behaviour this replaced,
+            // and the safe direction.
+            is_internal: !isShared
+        });
+    }
+
+    try {
+        const response = await fetch(API_BASE + 'save_note.php', { method: 'POST', headers, body });
         const data = await response.json();
 
         if (data.success) {
@@ -7285,10 +7320,11 @@ async function saveNoteNow() {
                 }
             }
             pendingNoteFiles = [];
+            noteEditor().clear();
             closeNoteModal();
             loadNotes(currentEmail.ticket_id);
         } else {
-            showToast('Error saving note: ' + data.error, 'error');
+            showToast(t('tickets.note_modal.save_failed', { error: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error:', error);

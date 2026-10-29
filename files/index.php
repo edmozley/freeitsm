@@ -54,7 +54,7 @@ $capStorage = $hasCap(Cap::FILES_STORAGE);
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/files.css?v=12">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=197">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
 </head>
 <body class="fd-body" data-navbar="<?php echo htmlspecialchars($prefs['navbar']); ?>" data-mobile-module="files" data-mobile-page="files-desktop">
     <div class="fd-navwrap" id="fdNavwrap">

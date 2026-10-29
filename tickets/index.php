@@ -62,12 +62,12 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=80">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=81">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=3">
     <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=3">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=197">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=5">
     <link rel="stylesheet" href="../assets/css/tickets-table.css?v=2">
 <?php
@@ -215,7 +215,14 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
             <div class="modal-body">
                 <div class="form-group">
                     <label class="form-label"><?php echo htmlspecialchars(t('tickets.note_modal.note_label')); ?></label>
-                    <textarea class="form-textarea" id="noteText" placeholder="<?php echo htmlspecialchars(t('tickets.note_modal.placeholder')); ?>"></textarea>
+                    <?php /* Not a textarea since GH #224: a screenshot pasted here lands at the
+                             cursor. Still plain text - assets/js/note-images.js. Keeps the
+                             form-textarea class so the phone sheet (mobile.css) still fills
+                             the screen with it. */ ?>
+                    <div class="form-textarea note-editor" id="noteText" contenteditable="true" role="textbox" aria-multiline="true"
+                         aria-label="<?php echo htmlspecialchars(t('tickets.note_modal.note_label')); ?>"
+                         data-placeholder="<?php echo htmlspecialchars(t('tickets.note_modal.placeholder')); ?>"></div>
+                    <div class="form-hint note-editor-hint"><?php echo htmlspecialchars(t('tickets.note_modal.paste_hint')); ?></div>
                 </div>
                 <?php /* Notes have ALWAYS supported being shared with the requester — the
                          column, the API and the portal all handle it — but the inbox
@@ -1118,7 +1125,8 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/float-window.js?v=1"></script>
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
-    <script src="../assets/js/inbox.js?v=171"></script>
+    <script src="../assets/js/note-images.js?v=1"></script>
+    <script src="../assets/js/inbox.js?v=172"></script>
     <script src="../assets/js/tickets-table.js?v=1"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>
