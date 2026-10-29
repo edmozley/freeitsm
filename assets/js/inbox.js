@@ -2657,7 +2657,7 @@ document.addEventListener('keydown', function (e) {
         if ((!el || el === document.body) && /^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| )$/.test(e.key)) focusTicketScroller();
         return;
     }
-    if (el && el.closest && el.closest('.fw-layer')) return;
+    if (el && el.closest && el.closest('.fw-layer, .reading-pane')) return;
 
     const ctrl = e.ctrlKey || e.metaKey;
 
@@ -10236,9 +10236,29 @@ function focusTicketScroller() {
         if (n.clientHeight > bestH) { best = n; bestH = n.clientHeight; }
     }
     if (!best) return;
-    if (!best.hasAttribute('tabindex')) { best.setAttribute('tabindex', '-1'); best.classList.add('popout-scroller'); }
+    makePaneScrollerFocusable(best);
     best.focus({ preventScroll: true });
 }
+
+/** Lets a scrolling area take focus (by script or by a click) without joining the Tab order. */
+function makePaneScrollerFocusable(n) {
+    if (!n.hasAttribute('tabindex')) { n.setAttribute('tabindex', '-1'); n.classList.add('pane-scroller'); }
+}
+
+/* A click in the ticket hands it the keys, in the three-pane view too: the
+ * scrolling area under the pointer is made focusable before the click's own
+ * focusing runs, so the click focuses it and the list's keys stand aside (the
+ * keydown handler above). Clicking a list row focuses nothing in the pane, so
+ * the arrows go back to moving between tickets. */
+document.addEventListener('pointerdown', function (e) {
+    const pane = e.target.closest && e.target.closest('.reading-pane');
+    if (!pane) return;
+    for (let n = e.target; n && n !== pane.parentElement; n = n.parentElement) {
+        if (n.nodeType !== 1) continue;
+        const oy = getComputedStyle(n).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight) { makePaneScrollerFocusable(n); return; }
+    }
+}, true);
 
 /* Escape leaves full screen - after anything nearer has had it: a dialog, a
  * floating window (FloatWin closes the focused one first), the AI panel, a

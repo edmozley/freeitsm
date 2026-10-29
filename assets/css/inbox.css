@@ -849,9 +849,9 @@ body.ticket-popout .email-list-container { display: none; }
 
 /* GH #225: Messages / Table switches the list, which full screen hides - so it
  * goes too. The action row shows the ticket and a Back button instead (inbox.js
- * applyPopoutChrome). The scroller is focused for the keyboard, not to be seen. */
+ * applyPopoutChrome). A pane scroller is focused for the keyboard, not to be seen. */
 body.ticket-popout .ticket-list-choice { display: none; }
-.popout-scroller:focus { outline: none; }
+.pane-scroller:focus { outline: none; }
 
 body.ticket-popout .reading-pane {
     position: relative;
