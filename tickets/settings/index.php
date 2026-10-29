@@ -2919,6 +2919,26 @@ function renderOversizeFields(string $px, bool $withLimits): void
         </div>
     </div>
 
+    <!-- Delete mailbox (GH #227): says what is still attached and where its emails go. -->
+    <div class="modal" id="mailboxDeleteModal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header" id="mailboxDeleteTitle"></div>
+            <div class="modal-body">
+                <div id="mailboxDeleteBody"></div>
+                <div class="form-group" id="mailboxDeleteMoveGroup" style="display: none; margin-top: 12px;">
+                    <label for="mailboxDeleteMoveTo"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox_delete.move_label')); ?></label>
+                    <select id="mailboxDeleteMoveTo" onchange="renderMailboxDeleteWarnings()"></select>
+                    <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox_delete.move_help')); ?></small>
+                </div>
+                <div id="mailboxDeleteWarnings"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeMailboxDeleteModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-danger" id="mailboxDeleteConfirm" onclick="confirmMailboxDelete()" disabled style="background: var(--danger-accent, #d13438); border-color: var(--danger-accent, #d13438); color: #fff;"><?php echo htmlspecialchars(t('common.delete')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Messaging Channel Modal (WhatsApp etc.) -->
     <div class="modal" id="channelModal">
         <div class="modal-content" style="max-width: 640px;">
@@ -6084,32 +6104,110 @@ function renderOversizeFields(string $px, bool $withLimits): void
             }
         }
 
+        // The delete dialog (GH #227). It asks the server what still uses the
+        // mailbox first, because a mailbox that ever received mail has emails
+        // pointing at it, and they must be moved or cleared before it can go.
+        let mailboxDeleteState = null;
+
         async function deleteMailbox(id, name) {
-            const ok = await showConfirm({
-                title: 'Delete mailbox',
-                message: `Are you sure you want to delete the mailbox "${name}"?`,
-                okLabel: 'Delete',
-                okClass: 'danger'
-            });
-            if (!ok) return;
+            const md = k => 'tickets.settings.modals.mailbox_delete.' + k;
+            mailboxDeleteState = null;
+            document.getElementById('mailboxDeleteTitle').textContent = t(md('title'), { name: name });
+            document.getElementById('mailboxDeleteBody').textContent = t(md('checking'));
+            document.getElementById('mailboxDeleteMoveGroup').style.display = 'none';
+            document.getElementById('mailboxDeleteWarnings').innerHTML = '';
+            document.getElementById('mailboxDeleteConfirm').disabled = true;
+            document.getElementById('mailboxDeleteModal').classList.add('active');
 
             try {
                 const response = await fetch(API_BASE + 'delete_mailbox.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
+                    body: JSON.stringify({ id: id, preview: true })
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    closeMailboxDeleteModal();
+                    showToast(t(md('error'), { error: data.error }), 'error');
+                    return;
+                }
+                mailboxDeleteState = { id: id, ...data };
+
+                const total = data.emails_on_tickets + data.emails_loose;
+                const body = document.getElementById('mailboxDeleteBody');
+                if (total === 0) {
+                    body.innerHTML = `<p>${escapeHtml(t(md('nothing')))}</p>`;
+                } else {
+                    const items = [];
+                    if (data.emails_on_tickets) items.push(t(md('on_tickets'), { count: data.emails_on_tickets }));
+                    if (data.emails_loose) items.push(t(md('loose'), { count: data.emails_loose }));
+                    body.innerHTML = `<p style="margin: 0;">${escapeHtml(t(md('intro')))}</p><ul style="margin: 6px 0 0 20px; padding: 0;">`
+                        + items.map(s => `<li>${escapeHtml(s)}</li>`).join('') + '</ul>';
+
+                    const sel = document.getElementById('mailboxDeleteMoveTo');
+                    sel.innerHTML = data.move_targets.map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('')
+                        + `<option value="">${escapeHtml(t(md('move_none')))}</option>`;
+                    document.getElementById('mailboxDeleteMoveGroup').style.display = '';
+                }
+                renderMailboxDeleteWarnings();
+                document.getElementById('mailboxDeleteConfirm').disabled = false;
+            } catch (error) {
+                console.error('Error:', error);
+                closeMailboxDeleteModal();
+                showToast(t(md('failed')), 'error');
+            }
+        }
+
+        // What the chosen option will cost, re-drawn when the dropdown changes.
+        function renderMailboxDeleteWarnings() {
+            const s = mailboxDeleteState;
+            if (!s) return;
+            const md = k => 'tickets.settings.modals.mailbox_delete.' + k;
+            const moving = (s.emails_on_tickets + s.emails_loose) > 0
+                && document.getElementById('mailboxDeleteMoveTo').value !== '';
+            const lines = [];
+            if (!moving && s.emails_on_tickets) lines.push(t(md('none_tickets')));
+            if (!moving && s.emails_loose) lines.push(t(md('none_loose'), { count: s.emails_loose }));
+            if (s.used_for_knowledge) lines.push(t(md('knowledge')));
+            const warn = lines.map(l => `<p style="color: var(--danger-text, #991b1b); background: var(--danger-bg, #fee2e2); padding: 8px 10px; border-radius: 4px; margin: 10px 0 0;">${escapeHtml(l)}</p>`).join('');
+            document.getElementById('mailboxDeleteWarnings').innerHTML = warn
+                + `<p style="color: var(--text-muted, #666); margin: 12px 0 0; font-size: 13px;">${escapeHtml(t(md('deactivate')))}</p>`;
+        }
+
+        function closeMailboxDeleteModal() {
+            document.getElementById('mailboxDeleteModal').classList.remove('active');
+            mailboxDeleteState = null;
+        }
+
+        async function confirmMailboxDelete() {
+            const s = mailboxDeleteState;
+            if (!s) return;
+            const md = k => 'tickets.settings.modals.mailbox_delete.' + k;
+            const moveTo = (s.emails_on_tickets + s.emails_loose) > 0
+                ? (parseInt(document.getElementById('mailboxDeleteMoveTo').value, 10) || null)
+                : null;
+            document.getElementById('mailboxDeleteConfirm').disabled = true;
+
+            try {
+                const response = await fetch(API_BASE + 'delete_mailbox.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: s.id, move_to: moveTo })
                 });
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast('Mailbox deleted', 'success');
+                    closeMailboxDeleteModal();
+                    showToast(t(md('deleted')), 'success');
                     loadMailboxes();
                 } else {
-                    showToast('Error deleting mailbox: ' + data.error, 'error');
+                    document.getElementById('mailboxDeleteConfirm').disabled = false;
+                    showToast(t(md('error'), { error: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Failed to delete mailbox', 'error');
+                document.getElementById('mailboxDeleteConfirm').disabled = false;
+                showToast(t(md('failed')), 'error');
             }
         }
 

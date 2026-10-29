@@ -1339,6 +1339,25 @@ return [
                 'whitelist_email'             => 'Email',
                 'whitelist_value_placeholder' => 'e.g. company.com or user@example.com',
             ],
+            // The delete dialog (GH #227) - see api/tickets/delete_mailbox.php.
+            'mailbox_delete' => [
+                'title'          => 'Delete mailbox "{name}"',
+                'checking'       => 'Checking what uses this mailbox...',
+                'nothing'        => 'Nothing uses this mailbox. It can be deleted.',
+                'intro'          => 'This mailbox still has:',
+                'on_tickets'     => '{count} email(s) on tickets',
+                'loose'          => '{count} email(s) not on any ticket',
+                'move_label'     => 'Move its emails to',
+                'move_none'      => 'No mailbox',
+                'move_help'      => 'Tickets keep their emails either way. Replies on those tickets go out from the mailbox chosen here.',
+                'none_tickets'   => 'With no mailbox, replies on those tickets can no longer be sent by email.',
+                'none_loose'     => 'The {count} email(s) not on any ticket are deleted, with their attachments.',
+                'knowledge'      => 'Knowledge article sharing sends from this mailbox. Choose another in Knowledge settings afterwards.',
+                'deactivate'     => 'Only want it to stop collecting mail? Edit the mailbox and untick Active instead - nothing is lost.',
+                'deleted'        => 'Mailbox deleted',
+                'error'          => 'Error deleting mailbox: {error}',
+                'failed'         => 'Failed to delete mailbox',
+            ],
 
             // Activity log modal
             'activity' => [

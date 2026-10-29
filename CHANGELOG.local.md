@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2663 | Tickets           | Fix         | Deleting a mailbox that had ever received mail failed with "1451 ... fk_emails_mailbox"; Delete now opens a dialog that counts the emails still on it, moves them to another mailbox of the same company (or clears them from ticket emails and deletes those on no ticket), removes its whitelist and activity log, blanks Knowledge sharing if it used it, and runs as one transaction (GH #227). |
 
 
 
