@@ -17,6 +17,7 @@ startersApiRun(function () use ($conn, $ctx, $analystId) {
         'assets' => analystCanAccessModule($conn, $analystId, 'assets'),
         'people' => analystCanAccessModule($conn, $analystId, 'people'),
         'manage' => analystHasCapability($conn, $analystId, Cap::STARTERS_MANAGE),
+        'templates' => analystHasCapability($conn, $analystId, Cap::STARTERS_TEMPLATES),
     ];
     foreach ($case['steps'] as &$s) $s['url'] = $can['tasks'] ? entityLink('task', $s['id']) : null;
     unset($s);

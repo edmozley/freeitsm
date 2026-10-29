@@ -38,7 +38,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.' . $k));
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=28">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=85">
-    <link rel="stylesheet" href="../assets/css/starters.css?v=2">
+    <link rel="stylesheet" href="../assets/css/starters.css?v=4">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="starters" data-mobile-page="starters-case">
@@ -70,8 +70,8 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.' . $k));
     </div>
 
     <script>window.JML_CASE_ID = <?php echo $caseId; ?>;</script>
-    <script src="../assets/js/starters.js?v=1"></script>
-    <script src="../assets/js/starters-view.js?v=1"></script>
+    <script src="../assets/js/starters.js?v=2"></script>
+    <script src="../assets/js/starters-view.js?v=3"></script>
     <?php documentsPanelAssets('../'); ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

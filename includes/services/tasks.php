@@ -145,7 +145,7 @@ class TasksService
             $title, $description, $status[0], $priority[0], $startDate, $dueDate,
             $analystId, $teamId, $links['parent_task_id'],
             $links['ticket_id'], $links['change_id'], $links['contract_id'], $tenantId,
-            $boardPosition, $ctx->actorId,
+            $boardPosition, $ctx->actorId > 0 ? $ctx->actorId : self::systemCreatorId($conn),
             !empty($status[2]) ? gmdate('Y-m-d H:i:s') : null,
         ]);
         $taskId = (int)$conn->lastInsertId();
@@ -1886,6 +1886,18 @@ class TasksService
      * Change Management and Forms enforce. In the service, so the board, the task window, the
      * REST API and anything added later all refuse alike; the endpoints check it as well.
      */
+    /**
+     * Who a task made by nobody (a system or workflow caller, actor 0) is
+     * credited to. tasks.created_by_id is NOT NULL, so - as the workflow
+     * "Create a task" action does - the first active administrator.
+     */
+    private static function systemCreatorId(PDO $conn): int
+    {
+        $id = $conn->query('SELECT id FROM analysts WHERE is_admin = 1 AND COALESCE(is_active, 1) = 1 ORDER BY id LIMIT 1')->fetchColumn();
+        if (!$id) throw new ServiceError('validation', 'no_admin', 'There is no active administrator to credit the task to.');
+        return (int)$id;
+    }
+
     public static function assertCanWrite(PDO $conn, ActorContext $ctx): void
     {
         if ($ctx->actorId > 0 && function_exists('analystModuleLevel') && analystModuleLevel($conn, $ctx->actorId, 'tasks') === 'read') {

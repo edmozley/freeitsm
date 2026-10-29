@@ -32,6 +32,7 @@ $sections = [
     'overview'    => 2,
     'cases'       => 4,
     'templates'   => 3,
+    'questions'   => 4,   // questions from Forms
     'kit'         => 3,
     'leaving'     => 2,
     'workflows'   => 2,

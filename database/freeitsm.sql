@@ -10146,11 +10146,19 @@ CREATE TABLE IF NOT EXISTS `jml_templates` (
     `description`       VARCHAR(500) NULL,
     `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
     `display_order`     INT NOT NULL DEFAULT 0,
+    -- The questions (a Forms form, any version of it) - asked on the case's task,
+    -- or answered in the portal before the case opens. NULL = no questions.
+    `form_id`           INT NULL,
+    -- When a form opens a case, which template it gets: JSON {match, rules:[{question,
+    -- op, value}]} against the answers, by question LABEL so a new form version
+    -- keeps working. NULL = the template to use when no other one matches.
+    `match_rule`        TEXT NULL,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_jml_templates_kind` (`kind`, `is_active`),
-    CONSTRAINT `fk_jml_templates_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+    CONSTRAINT `fk_jml_templates_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_jml_templates_form` FOREIGN KEY (`form_id`) REFERENCES `forms` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One step of a template. Becomes a subtask of the case's task, due
@@ -10165,6 +10173,9 @@ CREATE TABLE IF NOT EXISTS `jml_template_steps` (
     `assigned_analyst_id`    INT NULL,
     `due_offset_days`        INT NOT NULL DEFAULT 0,
     `checklist_template_id`  INT NULL,
+    -- Only if: JSON {match, rules:[{question, op, value}]} against the case's
+    -- answers (same operators as a form's show/hide rules). NULL = always.
+    `condition_rule`         TEXT NULL,
     `display_order`          INT NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_jml_template_steps_template` (`template_id`, `display_order`),
@@ -10192,6 +10203,10 @@ CREATE TABLE IF NOT EXISTS `jml_cases` (
     `status`              VARCHAR(12) NOT NULL DEFAULT 'open',   -- open | done | cancelled
     `template_id`         INT NULL,
     `parent_task_id`      INT NULL,
+    -- The answers: a Forms submission - from the portal, or filled in on the task.
+    `form_submission_id`  INT NULL,
+    -- 1 while the template's steps wait for the answers they depend on.
+    `steps_pending`       TINYINT(1) NOT NULL DEFAULT 0,
     `notes`               TEXT NULL,
     `owner_analyst_id`    INT NULL,
     `created_by`          INT NULL,
@@ -10208,7 +10223,8 @@ CREATE TABLE IF NOT EXISTS `jml_cases` (
     CONSTRAINT `fk_jml_cases_template` FOREIGN KEY (`template_id`) REFERENCES `jml_templates` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_jml_cases_task` FOREIGN KEY (`parent_task_id`) REFERENCES `tasks` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_jml_cases_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_jml_cases_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_jml_cases_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_cases_submission` FOREIGN KEY (`form_submission_id`) REFERENCES `form_submissions` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- A case's history, the same shape as project_audit.

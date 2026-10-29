@@ -3282,6 +3282,8 @@ try {
         ['jml_cases',          'fk_jml_cases_task',        "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_task FOREIGN KEY (parent_task_id) REFERENCES tasks (id) ON DELETE SET NULL"],
         ['jml_cases',          'fk_jml_cases_owner',       "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_owner FOREIGN KEY (owner_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['jml_cases',          'fk_jml_cases_created_by',  "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_created_by FOREIGN KEY (created_by) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['jml_templates',      'fk_jml_templates_form',    "ALTER TABLE jml_templates ADD CONSTRAINT fk_jml_templates_form FOREIGN KEY (form_id) REFERENCES forms (id) ON DELETE SET NULL"],
+        ['jml_cases',          'fk_jml_cases_submission',  "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_submission FOREIGN KEY (form_submission_id) REFERENCES form_submissions (id) ON DELETE SET NULL"],
         ['jml_audit',          'fk_jml_audit_case',        "ALTER TABLE jml_audit ADD CONSTRAINT fk_jml_audit_case FOREIGN KEY (case_id) REFERENCES jml_cases (id) ON DELETE CASCADE"],
     ];
     foreach ($jmlFks as [$tbl, $name, $sql]) {

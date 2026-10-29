@@ -286,6 +286,7 @@ class WorkflowEngine
         'create_task'      => 'tasks',
         'create_project'   => 'projects',
         'attach_checklist' => 'checklists',
+        'open_jml_case'    => 'starters',
     ];
 
     /**
@@ -1601,6 +1602,22 @@ class WorkflowEngine
                     'owner_analyst_id'  => ['type' => 'lookup', 'label' => 'Project manager (blank = decided later)', 'lookup' => 'analyst'],
                 ],
             ],
+            // Starters & leavers (4.6.0) - StartersService::openFromSubmission(). Put on a
+            // form's "on submit" or "on approval" list: the manager's request opens the case.
+            'open_jml_case' => [
+                'label'       => 'Open a Starters & leavers case',
+                'description' => 'Open a starter, mover or leaver case from a form - a manager\'s "new starter" request. Anything left blank is read from the answers: the name from a question called "Name", the email from the first email question, the date from the first date question, the job title from "Job title" or "Role". The template is the one chosen here, or the first template using this form whose rule the answers meet. Its steps become tasks, and only the steps whose "only if" the answers meet.',
+                'args'        => [
+                    'kind'             => ['type' => 'select', 'label' => 'What is happening', 'required' => true, 'options' => [
+                        ['value' => 'starter', 'label' => 'Someone joining (starter)'], ['value' => 'mover', 'label' => 'A move (mover)'], ['value' => 'leaver', 'label' => 'Someone leaving (leaver)']], 'default' => 'starter'],
+                    'template_id'      => ['type' => 'select', 'label' => 'Template', 'options' => self::jmlTemplateOptions()],
+                    'person_name'      => ['type' => 'text', 'label' => 'Name (blank = from the answers)', 'supports_vars' => true],
+                    'person_email'     => ['type' => 'text', 'label' => 'Email (blank = from the answers)', 'supports_vars' => true],
+                    'effective_date'   => ['type' => 'text', 'label' => 'Date, YYYY-MM-DD (blank = from the answers)', 'supports_vars' => true],
+                    'job_title'        => ['type' => 'text', 'label' => 'Job title (blank = from the answers)', 'supports_vars' => true],
+                    'owner_analyst_id' => ['type' => 'lookup', 'label' => 'Owner (blank = nobody yet)', 'lookup' => 'analyst'],
+                ],
+            ],
             'send_webhook' => [
                 'label'       => 'Send a webhook',
                 'description' => 'POST a message to an external URL when this rule fires — the universal way to push events into Slack, Teams, Discord, PagerDuty, Zapier/Make, or any system that accepts an incoming webhook. Pick a preset for the common chat tools, choose "Full record" to send the entire object (the same JSON as the REST API), or choose "Custom (raw JSON)" and write the exact payload the target expects. Delivery is queued and sent by a background worker with automatic retries, so a slow or dead endpoint never delays anything — track every send under System > Webhooks queue.',
@@ -2242,6 +2259,7 @@ class WorkflowEngine
             case 'create_task':         return self::action_create_task($args, $payload);
             case 'create_ticket':       return self::action_create_ticket($args, $payload);
             case 'create_project':      return self::action_create_project($args, $payload);
+            case 'open_jml_case':       return self::action_open_jml_case($args, $payload);
             case 'send_webhook':        return self::action_send_webhook($args, $payload);
             case 'escalate_to_tracker':  return self::action_escalate_to_tracker($args, $payload);
             case 'send_note_to_tracker': return self::action_send_note_to_tracker($args, $payload);
@@ -3222,6 +3240,38 @@ class WorkflowEngine
      *     target_end_date, methodology, priority, owner_analyst_id
      * @param array $payload  the run's payload, for the {{merge codes}} and passed on to projectCreateFromAction()
      */
+    /**
+     * The Template choices for open_jml_case: "chosen by the answers", then every
+     * active template. Empty-handed (just the first) before Database Verification.
+     */
+    private static function jmlTemplateOptions(): array
+    {
+        $opts = [['value' => '', 'label' => 'Chosen by the answers (the templates\' rules)']];
+        try {
+            $rows = connectToDatabase()->query("SELECT id, kind, name FROM jml_templates WHERE is_active = 1 ORDER BY kind, display_order, name")->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($rows as $r) $opts[] = ['value' => (string)$r['id'], 'label' => ucfirst($r['kind']) . ': ' . $r['name']];
+        } catch (Throwable $e) { /* not set up yet */ }
+        return $opts;
+    }
+
+    /**
+     * open_jml_case: opens a Starters & leavers case from the run's form
+     * submission - StartersService does the work (template choice, steps, answers).
+     *
+     * @param array $args  kind, template_id, person_name, person_email, effective_date, job_title, owner_analyst_id
+     * @param array $payload  the run's payload; submission.id is the answers
+     */
+    private static function action_open_jml_case(array $args, array $payload): array
+    {
+        $a = ['kind' => (string)($args['kind'] ?? 'starter'), 'template_id' => (int)($args['template_id'] ?? 0) ?: null];
+        foreach (['person_name', 'person_email', 'effective_date', 'job_title'] as $k) $a[$k] = self::argString($args, $k, $payload);
+        $a['owner_analyst_id'] = self::argInt($args, 'owner_analyst_id', $payload);
+        require_once __DIR__ . '/../../includes/starters/service.php';
+        $conn = connectToDatabase();
+        if (!empty($a['owner_analyst_id'])) self::assertAnalystReachesRunCompany($conn, (int)$a['owner_analyst_id']);
+        return StartersService::openFromSubmission($conn, $a, $payload, self::companyGuardOn($conn) ? self::$ctxWorkflowTenant : null);
+    }
+
     private static function action_create_project(array $args, array $payload): array
     {
         $a = [];

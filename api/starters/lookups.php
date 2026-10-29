@@ -26,6 +26,8 @@ startersApiRun(function () use ($conn, $ctx, $analystId) {
         'teams'      => $teams,
         'analysts'   => $analysts,
         'checklists' => ChecklistsService::tasksEnabled($conn) ? ChecklistsService::templatesForTask($conn, 0) : [],
+        // The forms a template can ask (Forms switched on): its newest version of each.
+        'forms'      => StartersService::formChoices($conn),
         'asset_statuses' => $statuses,
     ]);
 });

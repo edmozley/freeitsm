@@ -39,7 +39,7 @@
         const sub = [c.person_email, c.job_title].filter(Boolean).map(esc).join(' &middot; ');
         const facts = [
             [T('date_label.' + c.kind), esc(date(c.effective_date)) + (c.status === 'open' ? ' <span class="jml-dim">(' + esc(when(c.effective_date)) + ')</span>' : '')],
-            [T('view.template'), esc(c.template_name || '-')],
+            [T('view.template'), c.template_id && can.templates ? link('starters/settings/?template=' + c.template_id, esc(c.template_name || '-'), 'jml-link') : esc(c.template_name || '-')],
             [T('view.owner'), esc(c.owner_name || '-')],
         ];
         if (data.multi && c.company_name) facts.push([T('view.company'), esc(c.company_name)]);
@@ -67,8 +67,29 @@
                  + (s.status_name ? '<span class="jml-pill"' + (s.status_colour ? ' style="background:' + esc(s.status_colour) + '22;color:' + esc(s.status_colour) + '"' : '') + '>' + esc(s.status_name) + '</span>' : '')
                  + '</div></div></li>';
         });
-        return panel(T('view.steps'), T('view.steps_intro'),
-            items.length ? '<ul class="jml-steps">' + items.join('') + '</ul>' : '<p class="jml-muted">' + esc(T('view.steps_none')) + '</p>');
+        let body;
+        if (c.steps_pending) {
+            // The template asks questions first; its steps arrive with the answers.
+            body = '<div class="jml-wait">' + esc(T('view.pending', { form: c.form_title || '' }))
+                 + (data.links.task && c.task_forms_on ? ' ' + link(data.links.task, esc(T('view.pending_go')), 'jml-link') : '')
+                 + (c.task_forms_on ? '' : '<div class="jml-dim" style="margin-top:6px">' + esc(T('view.pending_off')) + '</div>') + '</div>';
+        } else if (!c.template_id && c.status === 'open') {
+            // Opened without one, or by a form no template matched: choose one now.
+            body = '<p class="jml-muted" style="margin-top:0">' + esc(T('view.no_template')) + '</p>'
+                 + '<div class="jml-use"><select id="jmlUseTpl"></select><button type="button" class="jml-btn primary" id="jmlUseTplGo">' + esc(T('view.use')) + '</button></div>';
+        } else {
+            body = items.length ? '<ul class="jml-steps">' + items.join('') + '</ul>' : '<p class="jml-muted">' + esc(T('view.steps_none')) + '</p>';
+        }
+        return panel(T('view.steps'), T('view.steps_intro'), body);
+    }
+
+    // ---- the answers (Forms) ----------------------------------------------------
+    function answers(c) {
+        const rows = c.answers.filter(a => String(a.value || '').trim() !== '');
+        if (!rows.length) return '';
+        const copy = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+        return panel(T('view.answers'), T('view.answers_intro'), '<dl class="jml-answers">' + rows.map((a, i) =>
+            '<dt>' + esc(a.label) + '</dt><dd><span>' + esc(a.value) + '</span><button type="button" class="jml-copy" data-copy="' + i + '" title="' + esc(T('view.copy')) + '" aria-label="' + esc(T('view.copy') + ': ' + a.label) + '">' + copy + '</button></dd>').join('') + '</dl>');
     }
 
     // ---- person, kit, account -------------------------------------------------
@@ -133,7 +154,7 @@
         document.title = c.person_name + ' - ' + T('title');
         root().innerHTML = hero(c, can, links)
             + '<div class="jml-grid"><div class="jml-col">' + steps(c) + history(c) + '</div>'
-            + '<div class="jml-col">' + person(c) + kit(c, can, links) + account(c)
+            + '<div class="jml-col">' + answers(c) + person(c) + kit(c, can, links) + account(c)
             + '<section class="jml-panel"><div class="jml-panel-h"><h2>' + esc(T('view.documents')) + '</h2></div><div id="jmlDocs"></div></section>'
             + '</div></div>';
         wire(c);
@@ -142,6 +163,32 @@
     function wire(c) {
         root().querySelectorAll('[data-act]').forEach(b => { b.onclick = () => onAct(b.dataset.act, c); });
         root().querySelectorAll('[data-recover]').forEach(b => { b.onclick = () => recover(c, +b.dataset.recover, b.dataset.name); });
+
+        // Copy an answer - the shared clipboard helper, which also works over plain HTTP.
+        const shown = c.answers.filter(a => String(a.value || '').trim() !== '');
+        root().querySelectorAll('[data-copy]').forEach(b => {
+            b.onclick = async () => {
+                const text = String(shown[+b.dataset.copy].value);
+                const ok = window.copyToClipboard ? await window.copyToClipboard(text) : false;
+                if (!ok) { toast(T('view.copy_failed'), 'error'); return; }
+                b.classList.add('done');
+                setTimeout(() => b.classList.remove('done'), 1200);
+            };
+        });
+
+        // A case with no template: choose one (only this kind's, switched on).
+        const useSel = document.getElementById('jmlUseTpl');
+        if (useSel) {
+            lookups().then(l => {
+                const list = (l.templates || []).filter(t => t.kind === c.kind && t.is_active);
+                useSel.innerHTML = list.length ? list.map(t => '<option value="' + t.id + '">' + esc(t.name) + '</option>').join('') : '<option value="">' + esc(T('new.template_none')) + '</option>';
+                document.getElementById('jmlUseTplGo').disabled = !list.length;
+            }).catch(() => {});
+            document.getElementById('jmlUseTplGo').onclick = () => act(async () => {
+                const r = await api('use_template.php', { id, template_id: +useSel.value });
+                (r.warnings || []).forEach(w => toast(w, 'error'));
+            }, T('view.used'));
+        }
 
         const linkHost = document.getElementById('jmlLinkPerson');
         if (linkHost) searchBox(linkHost, {

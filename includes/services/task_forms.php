@@ -378,6 +378,11 @@ class TaskForms
             $previous ? (string)$previous : null, (string)$r['title'],
             ['task_form_id' => $taskFormId, 'form_id' => (int)$r['form_id'], 'submission_id' => $submissionId,
              'replaced_submission_id' => $previous]);
+        // Starters & leavers (4.6.0): a case's questions are answered on its task -
+        // the case keeps the answers and adds the steps that waited for them.
+        require_once __DIR__ . '/../starters/service.php';
+        try { StartersService::taskFormSubmitted($conn, $ctx, $taskId, $submissionId); }
+        catch (Throwable $e) { error_log('starters: answers arrived for task ' . $taskId . ': ' . $e->getMessage()); }
         return ['submission_id' => $submissionId, 'revision' => $revision + 1, 'replayed' => false];
     }
 

@@ -251,3 +251,38 @@ a.jml-step-title:hover { color: var(--jml-accent, #a16207); text-decoration: und
     body:has(> .action-row) > .jml-layout,
     body:has(> .action-row) > .jml-shell { height: auto; flex: 1 1 auto; min-height: 0; }
 }
+
+/* ---------- questions from Forms (template editor) ---------------------------- */
+/* A rule: [question] [is] [answer], on one line. */
+.jml-rule { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.jml-rule select, .jml-rule input {
+    padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px;
+    background: var(--surface, #fff); color: var(--text, #333); max-width: 260px;
+}
+.jml-steps-edit .jml-step-group + .jml-step-group tr:first-child td { border-top: 1px solid var(--border-soft, #f0f0f0); padding-top: 8px; }
+.jml-cond td { padding: 0 4px 8px !important; }
+.jml-cond .jml-rule { padding-left: 4px; font-size: 12px; }
+.jml-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; font-size: 12px; }
+.jml-chips:empty { display: none; }
+.jml-chip {
+    border: 1px dashed var(--jml-accent, #a16207); background: var(--jml-accent-soft, #fef9c3); color: var(--jml-accent, #a16207);
+    border-radius: 999px; padding: 2px 9px; font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.jml-chip:hover { border-style: solid; }
+
+/* ---------- answers on the case page ------------------------------------------ */
+.jml-answers { margin: 0; display: grid; grid-template-columns: minmax(120px, 38%) 1fr; gap: 0; font-size: 13px; }
+.jml-answers dt { color: var(--text-dim, #888); padding: 7px 10px 7px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+.jml-answers dd { margin: 0; padding: 7px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); display: flex; align-items: flex-start; gap: 8px; color: var(--text, #222); }
+.jml-answers dd span { flex: 1; white-space: pre-wrap; word-break: break-word; }
+.jml-copy { border: none; background: none; cursor: pointer; color: var(--text-dim, #888); padding: 2px; border-radius: 4px; line-height: 0; opacity: .6; transition: opacity .15s ease, color .15s ease; }
+.jml-answers dd:hover .jml-copy, .jml-copy:focus-visible { opacity: 1; }
+.jml-copy:hover { color: var(--jml-accent, #a16207); }
+.jml-copy.done { color: var(--success-accent, #16a34a); opacity: 1; }
+.jml-wait { font-size: 13px; padding: 12px 14px; border-radius: 8px; background: var(--jml-accent-soft, #fef9c3); color: var(--text, #333); line-height: 1.5; }
+.jml-wait b { color: var(--jml-accent, #a16207); }
+.jml-use { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.jml-use select { padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+/* Inside the steps table the rule's boxes size to their words, not the column. */
+.jml-steps-edit .jml-rule select, .jml-steps-edit .jml-rule input { width: auto; min-width: 110px; max-width: 240px; }
+.jml-rule [hidden] { display: none !important; }

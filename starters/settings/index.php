@@ -40,7 +40,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
     <script src="../../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=28">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=85">
-    <link rel="stylesheet" href="../../assets/css/starters.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/starters.css?v=4">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="starters" data-mobile-page="settings">
@@ -72,9 +72,25 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
                 <div class="jml-field"><label for="jmlTplDesc"><?php echo $tt('description'); ?></label><input type="text" id="jmlTplDesc" maxlength="1000" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore></div>
                 <div class="jml-field"><label class="jml-switch"><input type="checkbox" id="jmlTplActive"> <?php echo $tt('active'); ?> - <span class="jml-dim"><?php echo $tt('active_desc'); ?></span></label></div>
 
+                <?php /* The questions (optional): a form from Forms. Its answers pick the
+                         template, decide which steps apply and fill in their words. */ ?>
+                <div class="jml-field" id="jmlTplFormField">
+                    <label for="jmlTplForm"><?php echo $tt('form'); ?></label>
+                    <select id="jmlTplForm"></select>
+                    <div class="jml-hint"><?php echo $tt('form_hint'); ?></div>
+                </div>
+                <div id="jmlTplFormBits" hidden>
+                    <div class="jml-field">
+                        <div class="lbl"><?php echo $tt('match'); ?></div>
+                        <div class="jml-rule" id="jmlTplMatch"></div>
+                        <div class="jml-hint"><?php echo $tt('match_hint'); ?></div>
+                    </div>
+                </div>
+
                 <div class="jml-field">
                     <div class="lbl"><?php echo $tt('steps'); ?></div>
-                    <table class="jml-steps-edit">
+                    <div class="jml-chips" id="jmlTplChips"></div>
+                    <table class="jml-steps-edit" id="jmlTplStepsTable">
                         <thead><tr>
                             <th><?php echo $tt('step_title'); ?></th>
                             <th><?php echo $tt('step_team'); ?></th>
@@ -83,7 +99,6 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
                             <th><?php echo $tt('step_checklist'); ?></th>
                             <th></th>
                         </tr></thead>
-                        <tbody id="jmlTplSteps"></tbody>
                     </table>
                     <button type="button" class="jml-btn small" id="jmlTplAddStep" style="margin-top:8px"><?php echo $tt('step_add'); ?></button>
                     <div class="jml-hint"><?php echo $tt('step_days_tip'); ?></div>
@@ -98,8 +113,8 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
         </div>
     </div>
 
-    <script src="../../assets/js/starters.js?v=1"></script>
-    <script src="../../assets/js/starters-settings.js?v=2"></script>
+    <script src="../../assets/js/starters.js?v=2"></script>
+    <script src="../../assets/js/starters-settings.js?v=5"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

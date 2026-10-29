@@ -52,7 +52,7 @@ echo "\nStarters & leavers\n" . str_repeat('=', 72) . "\n";
 $admin = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 ORDER BY id LIMIT 1")->fetchColumn();
 $ctx = new ActorContext(actorId: $admin, companyScope: null, source: 'ui', actorName: 'test');
 $tag = bin2hex(random_bytes(3));
-$made = ['templates' => [], 'cases' => [], 'users' => [], 'assets' => [], 'statuses' => []];
+$made = ['templates' => [], 'cases' => [], 'users' => [], 'assets' => [], 'statuses' => [], 'forms' => [], 'submissions' => []];
 $sid = 'zzjml' . bin2hex(random_bytes(4));
 $csrf = bin2hex(random_bytes(32));
 $sessFile = rtrim(ini_get('session.save_path') ?: 'c:/wamp64/tmp', "/\\") . '/sess_' . $sid;
@@ -168,6 +168,76 @@ try {
     $kinds = array_column($rows, 'kind'); sort($kinds);
     ok('the person\'s People page lists both cases', $kinds === ['leaver', 'starter'], json_encode($rows));
 
+    // ---- questions from Forms ---------------------------------------------------
+    require_once __DIR__ . '/../includes/services/forms.php';
+    $form = FormsService::saveForm($conn, $ctx, ['title' => "ZZ-JML request $tag", 'fields' => [
+        ['label' => 'Full name', 'field_type' => 'text', 'is_required' => true],
+        ['label' => 'Email', 'field_type' => 'email'],
+        ['label' => 'Start date', 'field_type' => 'datetime', 'config' => ['date_mode' => 'date']],
+        ['label' => 'Department', 'field_type' => 'dropdown', 'options' => ['Dispute Resolution', 'Finance', 'Property']],
+        ['label' => 'Job title', 'field_type' => 'text'],
+        ['label' => 'DMS access?', 'field_type' => 'radio', 'options' => ['Yes', 'No']],
+        ['label' => 'Private mailbox?', 'field_type' => 'radio', 'options' => ['Yes', 'No']],
+    ]]);
+    $formId = (int)$form['id']; $made['forms'][] = $formId;
+    $fid = [];
+    foreach ($conn->query("SELECT id, label FROM form_fields WHERE form_id = $formId")->fetchAll(PDO::FETCH_ASSOC) as $r) $fid[$r['label']] = (int)$r['id'];
+    $answer = function (array $byLabel) use ($conn, $ctx, $formId, $fid, &$made): int {
+        $data = [];
+        foreach ($byLabel as $l => $v) $data[$fid[$l]] = $v;
+        return $made['submissions'][] = FormsService::submitForm($conn, $ctx, $formId, $data);
+    };
+    $legal = StartersService::saveTemplate($conn, $ctx, ['kind' => 'starter', 'name' => "ZZ-JML legal $tag", 'form_id' => $formId,
+        'match_rule' => ['rules' => [['question' => 'department', 'op' => 'equals', 'value' => 'Dispute Resolution']]],
+        'steps' => [
+            ['title' => 'Create account for {Full name} - {Job title}, {Department}', 'due_offset_days' => -3],
+            ['title' => 'ZZ-JML set up DMS', 'condition_rule' => ['rules' => [['question' => 'DMS access?', 'op' => 'equals', 'value' => 'Yes']]]],
+            ['title' => 'ZZ-JML private mailbox', 'condition_rule' => ['rules' => [['question' => 'Private mailbox?', 'op' => 'equals', 'value' => 'Yes']]]],
+        ]]);
+    $general = StartersService::saveTemplate($conn, $ctx, ['kind' => 'starter', 'name' => "ZZ-JML general $tag", 'form_id' => $formId,
+        'steps' => [['title' => 'ZZ-JML general step for {name}']]]);
+    $made['templates'][] = $legal; $made['templates'][] = $general;
+    ok('a template keeps its form, its rule and each step\'s "only if"',
+       ($t = array_values(array_filter(StartersService::templates($conn), fn($x) => $x['id'] === $legal))[0] ?? null)
+       && $t['form_id'] === $formId && $t['match_rule']['rules'][0]['question'] === 'department' && $t['steps'][1]['condition_rule']['rules'][0]['value'] === 'Yes');
+
+    // A manager's request: the form opens the case (what the workflow action does).
+    $sub = $answer(['Full name' => "Sarah ZZ $tag", 'Email' => "zzjml-sarah-$tag@example.test", 'Start date' => $date,
+                    'Department' => 'Dispute Resolution', 'Job title' => 'Lawyer', 'DMS access?' => 'Yes', 'Private mailbox?' => 'No']);
+    $r = StartersService::openFromSubmission($conn, ['kind' => 'starter'], ['submission' => ['id' => $sub]]);
+    $made['cases'][] = $r['case_id'];
+    $fc = StartersService::getCase($conn, $ctx, $r['case_id']);
+    ok('the answers choose the template by its rule (Dispute Resolution -> legal)', $r['template_id'] === $legal, (string)$r['template_id']);
+    ok('the name, email and date come from the answers', $fc['person_name'] === "Sarah ZZ $tag" && $fc['person_email'] === "zzjml-sarah-$tag@example.test" && $fc['effective_date'] === $date && $fc['job_title'] === 'Lawyer', json_encode([$fc['person_name'], $fc['person_email'], $fc['effective_date'], $fc['job_title']]));
+    $titles = array_column($fc['steps'], 'title');
+    ok('only the steps whose "only if" the answers meet are added', count($titles) === 2 && in_array('ZZ-JML set up DMS', $titles, true) && !in_array('ZZ-JML private mailbox', $titles, true), json_encode($titles));
+    ok('{Question} is filled from the answers', in_array("Create account for Sarah ZZ $tag - Lawyer, Dispute Resolution", $titles, true), json_encode($titles));
+    ok('the case keeps the answers', count($fc['answers']) >= 7 && $fc['form_submission_id'] === $sub);
+    $desc = (string)$conn->query("SELECT description FROM tasks WHERE id = " . (int)$fc['parent_task_id'])->fetchColumn();
+    ok('...and they are on the case\'s task, where the work is done', str_contains($desc, 'Dispute Resolution') && str_contains($desc, 'Lawyer'));
+
+    $sub2 = $answer(['Full name' => "Finn ZZ $tag", 'Start date' => $date, 'Department' => 'Finance', 'DMS access?' => 'No', 'Private mailbox?' => 'No']);
+    $r2 = StartersService::openFromSubmission($conn, ['kind' => 'starter'], ['submission' => ['id' => $sub2]]);
+    $made['cases'][] = $r2['case_id'];
+    ok('no rule met: the template with no rule is used', $r2['template_id'] === $general, (string)$r2['template_id']);
+    ok('...and {name} is filled from the case', in_array("ZZ-JML general step for Finn ZZ $tag", array_column(StartersService::getCase($conn, $ctx, $r2['case_id'])['steps'], 'title'), true));
+
+    // An analyst opens one by hand: the questions come first, the steps wait.
+    $manual = StartersService::createCase($conn, $ctx, ['kind' => 'starter', 'person_name' => "Mo ZZ $tag", 'effective_date' => $date, 'template_id' => $legal]);
+    $made['cases'][] = $manual;
+    $mc = StartersService::getCase($conn, $ctx, $manual);
+    ok('a template with a form waits for the answers before adding steps', $mc['steps_pending'] && !$mc['steps'], json_encode([$mc['steps_pending'], count($mc['steps'])]));
+    $sub3 = $answer(['Full name' => "Mo ZZ $tag", 'Start date' => $date, 'Department' => 'Dispute Resolution', 'DMS access?' => 'No', 'Private mailbox?' => 'Yes']);
+    StartersService::taskFormSubmitted($conn, $ctx, (int)$mc['parent_task_id'], $sub3);
+    $mc = StartersService::getCase($conn, $ctx, $manual);
+    $titles = array_column($mc['steps'], 'title');
+    ok('answered on the task: the steps that apply arrive', !$mc['steps_pending'] && count($titles) === 2 && in_array('ZZ-JML private mailbox', $titles, true) && !in_array('ZZ-JML set up DMS', $titles, true), json_encode($titles));
+
+    ok('"any of" matches one of several answers', StartersService::ruleMet(['rules' => [['question' => 'Department', 'op' => 'any_of', 'value' => 'Property, Finance']]], ['department' => ['raw' => 'Finance']])
+       && !StartersService::ruleMet(['rules' => [['question' => 'Department', 'op' => 'any_of', 'value' => 'Property, Finance']]], ['department' => ['raw' => 'Dispute Resolution']]));
+    require_once __DIR__ . '/../workflow/includes/engine.php';
+    ok('"Open a Starters & leavers case" is a workflow action', isset(WorkflowEngine::availableActions()['open_jml_case']));
+
     // ---- the endpoints ---------------------------------------------------------
     $r = jml($base, $sid, $csrf, 'get.php?id=' . $case);
     ok('get.php returns the case with links from entityLink()', ($r['success'] ?? false) && str_starts_with((string)$r['links']['task'], 'tasks/') && str_starts_with((string)$r['links']['person'], 'people/'), json_encode($r));
@@ -192,7 +262,7 @@ try {
         if ($p) {
             $ids = array_merge($conn->query("SELECT id FROM tasks WHERE parent_task_id = " . (int)$p)->fetchAll(PDO::FETCH_COLUMN), [(int)$p]);
             foreach ($ids as $t) {
-                foreach (['task_checklists', 'task_audit', 'task_notes'] as $tbl) {
+                foreach (['task_checklists', 'task_audit', 'task_notes', 'task_forms', 'task_history'] as $tbl) {
                     try { $conn->exec("DELETE FROM $tbl WHERE task_id = " . (int)$t); } catch (Throwable $e) { /* not on this install */ }
                 }
                 $conn->exec("DELETE FROM tasks WHERE id = " . (int)$t);
@@ -201,6 +271,16 @@ try {
         $conn->exec("DELETE FROM jml_cases WHERE id = $id");
     }
     foreach ($made['templates'] as $id) $conn->exec("DELETE FROM jml_templates WHERE id = $id");
+    // The submissions (their answers cascade), then the form and its questions.
+    foreach ($made['submissions'] as $id) {
+        try { $conn->exec("DELETE FROM workflow_executions WHERE trigger_payload LIKE '%\"submission\":{\"id\":$id,%'"); } catch (Throwable $e) {}
+        $conn->exec("DELETE FROM form_submissions WHERE id = $id");
+    }
+    foreach ($made['forms'] as $id) {
+        try { $conn->exec("DELETE FROM form_drafts WHERE form_id = $id"); } catch (Throwable $e) {}
+        $conn->exec("DELETE FROM form_fields WHERE form_id = $id");
+        $conn->exec("DELETE FROM forms WHERE id = $id");
+    }
     foreach ($made['assets'] as $id) {
         foreach (['users_assets', 'asset_history'] as $tbl) { try { $conn->exec("DELETE FROM $tbl WHERE asset_id = $id"); } catch (Throwable $e) {} }
         $conn->exec("DELETE FROM assets WHERE id = $id");

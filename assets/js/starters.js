@@ -177,7 +177,7 @@
         function fillTemplates() {
             const sel = $('jmlNewTemplate');
             const list = (data ? data.templates : []).filter(t => t.kind === kind && t.is_active);
-            sel.innerHTML = list.map(t => '<option value="' + t.id + '">' + esc(t.name) + ' (' + esc(stepsLabel(t.steps.length)) + ')</option>').join('')
+            sel.innerHTML = list.map(t => '<option value="' + t.id + '">' + esc(t.name) + ' (' + esc(stepsLabel(t.steps.length)) + (t.form_id ? ', ' + esc(T('new.asks')) : '') + ')</option>').join('')
                           + '<option value="">' + esc(T('new.template_none')) + '</option>';
             $('jmlNewTemplateHint').textContent = list.length ? T('new.template_hint') : T('new.no_templates');
         }

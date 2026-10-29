@@ -78,19 +78,22 @@ final class StartersService
         $where = ['1=1']; $args = [];
         if ($kind !== null) { $where[] = 't.kind = ?'; $args[] = $kind; }
         if ($activeOnly) $where[] = 't.is_active = 1';
-        $st = $conn->prepare("SELECT t.* FROM jml_templates t WHERE " . implode(' AND ', $where) . " ORDER BY t.kind, t.display_order, t.name");
+        $st = $conn->prepare("SELECT t.*, f.title AS form_title FROM jml_templates t LEFT JOIN forms f ON f.id = t.form_id
+                               WHERE " . implode(' AND ', $where) . " ORDER BY t.kind, t.display_order, t.name");
         $st->execute($args);
         $out = [];
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $t) {
             $t['id'] = (int)$t['id'];
             $t['is_active'] = (bool)(int)$t['is_active'];
+            $t['form_id'] = $t['form_id'] !== null ? (int)$t['form_id'] : null;
+            $t['match_rule'] = $t['match_rule'] ? json_decode($t['match_rule'], true) : null;
             $t['steps'] = self::steps($conn, $t['id']);
             $out[] = $t;
         }
         return $out;
     }
 
-    /** A template's steps, in order, with the team, analyst and checklist names. */
+    /** A template's steps, in order, with the team, analyst and checklist names and the "only if" rule decoded. */
     public static function steps(PDO $conn, int $templateId): array
     {
         $st = $conn->prepare(
@@ -106,17 +109,42 @@ final class StartersService
             foreach (['id', 'template_id', 'assigned_team_id', 'assigned_analyst_id', 'due_offset_days', 'checklist_template_id', 'display_order'] as $k) {
                 $s[$k] = $s[$k] === null ? null : (int)$s[$k];
             }
+            $s['condition_rule'] = !empty($s['condition_rule']) ? json_decode($s['condition_rule'], true) : null;
             return $s;
         }, $st->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /** The operators a rule may use - the Forms show/hide ones, plus "any of". */
+    const RULE_OPS = ['equals', 'not_equals', 'any_of', 'contains', 'is_not_empty', 'is_empty'];
+
+    /**
+     * A rule as stored: {match, rules:[{question, op, value}]} with blank rows
+     * dropped, or null for "always". Questions are labels (see rawAnswers()).
+     *
+     * @param mixed $rule  as sent by the editor: array or JSON
+     */
+    public static function cleanRule($rule): ?string
+    {
+        if (is_string($rule)) $rule = json_decode($rule, true);
+        if (!is_array($rule)) return null;
+        $rows = [];
+        foreach ((array)($rule['rules'] ?? []) as $r) {
+            $q = trim((string)($r['question'] ?? ''));
+            if ($q === '') continue;
+            $op = in_array($r['op'] ?? '', self::RULE_OPS, true) ? $r['op'] : 'equals';
+            $rows[] = ['question' => mb_substr($q, 0, 255), 'op' => $op, 'value' => mb_substr(trim((string)($r['value'] ?? '')), 0, 500)];
+        }
+        if (!$rows) return null;
+        return json_encode(['match' => ($rule['match'] ?? '') === 'any' ? 'any' : 'all', 'rules' => $rows]);
     }
 
     /**
      * Create or update a template and replace its steps. Changing a template
      * never touches cases already made from it - their tasks are already set.
      *
-     * @param array $in  id?, kind, name, description, is_active, steps:[{title,
-     *                   description, assigned_team_id, assigned_analyst_id,
-     *                   due_offset_days, checklist_template_id}]
+     * @param array $in  id?, kind, name, description, is_active, form_id?, match_rule?,
+     *                   steps:[{title, description, assigned_team_id, assigned_analyst_id,
+     *                   due_offset_days, checklist_template_id, condition_rule?}]
      * @return int  the template's id
      */
     public static function saveTemplate(PDO $conn, ActorContext $ctx, array $in): int
@@ -125,9 +153,17 @@ final class StartersService
         if (!$kind) throw new ServiceError('validation', 'invalid_field', 'Choose whether this template is for starters, movers or leavers.');
         $name = trim((string)($in['name'] ?? ''));
         if ($name === '') throw new ServiceError('validation', 'missing_field', 'Give the template a name.');
+        $formId = !empty($in['form_id']) ? (int)$in['form_id'] : null;
+        if ($formId) {
+            $f = $conn->prepare("SELECT 1 FROM forms WHERE id = ?");
+            $f->execute([$formId]);
+            if (!$f->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'That form no longer exists.');
+        }
+        // Rules and "only if" need answers to test - without a form they are dropped.
+        $match = $formId ? self::cleanRule($in['match_rule'] ?? null) : null;
         $steps = is_array($in['steps'] ?? null) ? $in['steps'] : [];
         $clean = [];
-        foreach ($steps as $i => $s) {
+        foreach ($steps as $s) {
             $title = trim((string)($s['title'] ?? ''));
             if ($title === '') continue;
             $clean[] = [
@@ -137,6 +173,7 @@ final class StartersService
                 'analyst' => !empty($s['assigned_analyst_id']) ? (int)$s['assigned_analyst_id'] : null,
                 'offset'  => max(-365, min(365, (int)($s['due_offset_days'] ?? 0))),
                 'list'    => !empty($s['checklist_template_id']) ? (int)$s['checklist_template_id'] : null,
+                'rule'    => $formId ? self::cleanRule($s['condition_rule'] ?? null) : null,
             ];
         }
 
@@ -144,19 +181,20 @@ final class StartersService
         if ($own) $conn->beginTransaction();
         try {
             $id = !empty($in['id']) ? (int)$in['id'] : 0;
+            $desc = trim((string)($in['description'] ?? '')) ?: null;
             if ($id) {
-                $conn->prepare("UPDATE jml_templates SET kind = ?, name = ?, description = ?, is_active = ? WHERE id = ?")
-                     ->execute([$kind->value, mb_substr($name, 0, 150), trim((string)($in['description'] ?? '')) ?: null, !empty($in['is_active']) ? 1 : 0, $id]);
+                $conn->prepare("UPDATE jml_templates SET kind = ?, name = ?, description = ?, is_active = ?, form_id = ?, match_rule = ? WHERE id = ?")
+                     ->execute([$kind->value, mb_substr($name, 0, 150), $desc, !empty($in['is_active']) ? 1 : 0, $formId, $match, $id]);
                 $conn->prepare("DELETE FROM jml_template_steps WHERE template_id = ?")->execute([$id]);
             } else {
-                $conn->prepare("INSERT INTO jml_templates (kind, name, description, is_active) VALUES (?, ?, ?, ?)")
-                     ->execute([$kind->value, mb_substr($name, 0, 150), trim((string)($in['description'] ?? '')) ?: null, array_key_exists('is_active', $in) && empty($in['is_active']) ? 0 : 1]);
+                $conn->prepare("INSERT INTO jml_templates (kind, name, description, is_active, form_id, match_rule) VALUES (?, ?, ?, ?, ?, ?)")
+                     ->execute([$kind->value, mb_substr($name, 0, 150), $desc, array_key_exists('is_active', $in) && empty($in['is_active']) ? 0 : 1, $formId, $match]);
                 $id = (int)$conn->lastInsertId();
             }
-            $ins = $conn->prepare("INSERT INTO jml_template_steps (template_id, title, description, assigned_team_id, assigned_analyst_id, due_offset_days, checklist_template_id, display_order)
-                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $ins = $conn->prepare("INSERT INTO jml_template_steps (template_id, title, description, assigned_team_id, assigned_analyst_id, due_offset_days, checklist_template_id, condition_rule, display_order)
+                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($clean as $i => $s) {
-                $ins->execute([$id, $s['title'], $s['desc'], $s['team'], $s['analyst'], $s['offset'], $s['list'], $i]);
+                $ins->execute([$id, $s['title'], $s['desc'], $s['team'], $s['analyst'], $s['offset'], $s['list'], $s['rule'], $i]);
             }
             if ($own) $conn->commit();
             return $id;
@@ -216,15 +254,20 @@ final class StartersService
             $st->execute([$userId]);
             $user = $st->fetch(PDO::FETCH_ASSOC);
             if (!$user) throw new ServiceError('not_found', 'not_found', 'Person not found.');
-        } elseif ($kind !== JmlKind::Starter) {
+        } elseif ($kind !== JmlKind::Starter && empty($in['_from_form'])) {
+            // From a form the person may not be found by their email yet: the
+            // case opens with the name typed, and Link joins it up later.
             throw new ServiceError('validation', 'missing_field', 'Choose the person - a mover or a leaver is someone already in Users.');
         }
         $name = $user ? trim((string)($user['display_name'] ?: $user['email'])) : trim((string)($in['person_name'] ?? ''));
-        if ($name === '') throw new ServiceError('validation', 'missing_field', 'Give the starter\'s name.');
+        if ($name === '') throw new ServiceError('validation', 'missing_field', 'Give the person\'s name.');
 
-        // The company: the person's own, or the one the analyst is working in.
+        // The company: the person's own, the one the analyst is working in, or -
+        // from a form - the requester's (passed in by openFromSubmission()).
         $tenantId = $user ? ($user['tenant_id'] !== null ? (int)$user['tenant_id'] : null)
-                          : ($ctx->actorId > 0 ? getActiveTenantId($conn, $ctx->actorId) : null);
+                          : ($ctx->actorId > 0 ? getActiveTenantId($conn, $ctx->actorId)
+                                               : (isset($in['_tenant_id']) ? (int)$in['_tenant_id'] : null));
+        $submissionId = !empty($in['form_submission_id']) ? (int)$in['form_submission_id'] : null;
 
         $template = null;
         if (!empty($in['template_id'])) {
@@ -236,9 +279,9 @@ final class StartersService
 
         $conn->prepare(
             "INSERT INTO jml_cases (tenant_id, kind, user_id, person_name, person_email, job_title, manager_user_id,
-                                    effective_date, status, template_id, notes, owner_analyst_id, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?)"
-        )->execute([
+                                    effective_date, status, template_id, notes, owner_analyst_id, created_by" . ($submissionId ? ', form_submission_id' : '') . ")
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?" . ($submissionId ? ', ?' : '') . ")"
+        )->execute(array_merge([
             $tenantId, $kind->value, $userId, mb_substr($name, 0, 255),
             $user ? ($user['email'] ?: null) : (trim((string)($in['person_email'] ?? '')) ?: null),
             mb_substr(trim((string)($in['job_title'] ?? ($user['job_title'] ?? ''))), 0, 150) ?: null,
@@ -247,7 +290,7 @@ final class StartersService
             trim((string)($in['notes'] ?? '')) ?: null,
             !empty($in['owner_analyst_id']) ? (int)$in['owner_analyst_id'] : ($ctx->actorId > 0 ? $ctx->actorId : null),
             $ctx->actorId > 0 ? $ctx->actorId : null,
-        ]);
+        ], $submissionId ? [$submissionId] : []));
         $caseId = (int)$conn->lastInsertId();
         self::audit($conn, $caseId, $ctx, 'case_created', null, $kind->value . ' ' . $date);
 
@@ -263,30 +306,321 @@ final class StartersService
         $parentId = (int)$parent['id'];
         $conn->prepare("UPDATE jml_cases SET parent_task_id = ? WHERE id = ?")->execute([$parentId, $caseId]);
 
-        if ($template) {
-            foreach (self::steps($conn, (int)$template['id']) as $step) {
-                try {
-                    $due = (new DateTimeImmutable($date))->modify(sprintf('%+d days', $step['due_offset_days']))->format('Y-m-d');
-                    $sub = TasksService::saveTask($conn, $ctx, array_filter([
-                        'title'               => $step['title'],
-                        'description'         => $step['description'],
-                        'parent_task_id'      => $parentId,
-                        'due_date'            => $due,
-                        'assigned_team_id'    => $step['assigned_team_id'],
-                        'assigned_analyst_id' => $step['assigned_analyst_id'],
-                    ], fn($v) => $v !== null));
-                    if ($step['checklist_template_id']) {
-                        ChecklistsService::attachTemplateToTask($conn, $ctx, (int)$sub['id'], $step['checklist_template_id']);
-                    }
-                } catch (ServiceError $e) {
-                    self::audit($conn, $caseId, $ctx, 'step_failed', $step['title'], $e->getMessage());
-                    $warnings[] = 'The step "' . $step['title'] . '" could not be added: ' . $e->getMessage();
-                }
-            }
-        }
+        if ($template) self::applyTemplate($conn, $ctx, $caseId, $warnings);
 
         WorkflowEngine::dispatch('jml.case_created', ['jml_case' => self::eventPayload($conn, $caseId)]);
         return $caseId;
+    }
+
+    /**
+     * Add the case's template steps as subtasks - or, when the template asks
+     * questions that have not been answered yet, put its form on the case's task
+     * and wait (steps_pending) until they are; taskFormSubmitted() comes back here.
+     *
+     * Each step: skipped when its "only if" is not met by the answers; its title
+     * and description have {Question} filled from them; due its offset from the
+     * date; its checklist attached. The parent task's description gains the
+     * answers, so whoever works in Tasks has them to hand.
+     *
+     * @param array $warnings  filled with one line per step that could not be added
+     */
+    public static function applyTemplate(PDO $conn, ActorContext $ctx, int $caseId, array &$warnings = []): void
+    {
+        $c = self::loadForActor($conn, $ctx, $caseId);
+        if (!$c['template_id'] || !$c['parent_task_id']) return;
+        $st = $conn->prepare("SELECT * FROM jml_templates WHERE id = ?");
+        $st->execute([$c['template_id']]);
+        $template = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$template) return;
+
+        $submissionId = $c['form_submission_id'] ? (int)$c['form_submission_id'] : null;
+        if (!empty($template['form_id']) && !$submissionId) {
+            // The questions come first. Forms on tasks (Tasks -> Settings) lets the
+            // analyst answer them on the case's own task; without it the case page
+            // says how to switch it on.
+            require_once __DIR__ . '/../services/task_forms.php';
+            $conn->prepare("UPDATE jml_cases SET steps_pending = 1 WHERE id = ?")->execute([$caseId]);
+            if (TaskForms::enabled($conn) && TaskForms::columnsReady($conn)) {
+                try {
+                    TaskForms::add($conn, $ctx, (int)$c['parent_task_id'], (int)$template['form_id'], true, 'block');
+                } catch (ServiceError $e) {
+                    if ($e->kind !== 'conflict') $warnings[] = 'The questions could not be put on the task: ' . $e->getMessage();
+                }
+            }
+            self::audit($conn, $caseId, $ctx, 'steps_pending', null, null);
+            return;
+        }
+
+        $answers = $submissionId ? self::answers($conn, $submissionId) : [];
+        $raw = $submissionId ? self::rawAnswers($conn, $submissionId) : [];
+        $fill = fn(?string $text) => $text === null ? null : self::fillAnswers($text, $answers, $c);
+        $added = 0; $skipped = 0;
+        foreach (self::steps($conn, (int)$template['id']) as $step) {
+            if (!self::ruleMet($step['condition_rule'], $raw)) { $skipped++; continue; }
+            try {
+                $due = (new DateTimeImmutable($c['effective_date']))->modify(sprintf('%+d days', $step['due_offset_days']))->format('Y-m-d');
+                $sub = TasksService::saveTask($conn, $ctx, array_filter([
+                    'title'               => mb_substr((string)$fill($step['title']), 0, 255),
+                    'description'         => $fill($step['description']),
+                    'parent_task_id'      => (int)$c['parent_task_id'],
+                    'due_date'            => $due,
+                    'assigned_team_id'    => $step['assigned_team_id'],
+                    'assigned_analyst_id' => $step['assigned_analyst_id'],
+                ], fn($v) => $v !== null));
+                if ($step['checklist_template_id']) {
+                    ChecklistsService::attachTemplateToTask($conn, $ctx, (int)$sub['id'], $step['checklist_template_id']);
+                }
+                $added++;
+            } catch (ServiceError $e) {
+                self::audit($conn, $caseId, $ctx, 'step_failed', $step['title'], $e->getMessage());
+                $warnings[] = 'The step "' . $step['title'] . '" could not be added: ' . $e->getMessage();
+            }
+        }
+        $conn->prepare("UPDATE jml_cases SET steps_pending = 0 WHERE id = ?")->execute([$caseId]);
+        if ($answers) {
+            TasksService::saveTask($conn, $ctx, ['id' => (int)$c['parent_task_id'], 'description' => self::taskDescription($caseId, $answers)]);
+        }
+        self::audit($conn, $caseId, $ctx, 'steps_added', $skipped ? (string)$skipped : null, (string)$added);
+    }
+
+    /**
+     * Use a template on a case that has none yet (opened without one, or from a
+     * form no template matched) - then add its steps.
+     */
+    public static function useTemplate(PDO $conn, ActorContext $ctx, int $caseId, int $templateId, array &$warnings = []): void
+    {
+        $c = self::loadForActor($conn, $ctx, $caseId);
+        if ($c['template_id']) throw new ServiceError('conflict', 'conflict', 'This case already has a template.');
+        $st = $conn->prepare("SELECT id FROM jml_templates WHERE id = ? AND kind = ?");
+        $st->execute([$templateId, $c['kind']]);
+        if (!$st->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'That template is not for this kind of case.');
+        $conn->prepare("UPDATE jml_cases SET template_id = ? WHERE id = ?")->execute([$templateId, $caseId]);
+        self::audit($conn, $caseId, $ctx, 'template_id', null, (string)$templateId);
+        self::applyTemplate($conn, $ctx, $caseId, $warnings);
+    }
+
+    // ======================================================================
+    //  Answers - from Forms
+    // ======================================================================
+
+    /** A submission's answers as label + readable text, in the form's order (the Forms module's own reader). */
+    public static function answers(PDO $conn, int $submissionId): array
+    {
+        require_once __DIR__ . '/../catalogue_approvals.php';
+        return catalogueSubmissionAnswers($conn, $submissionId);
+    }
+
+    /**
+     * The stored answers keyed by lower-cased question label, with each field's
+     * type and lookup source - what rules are tested against. By LABEL, not field
+     * id: every form version has new field ids, and a rule written against
+     * "DMS access?" must still work after somebody edits the form.
+     *
+     * @return array<string,array{raw:string,type:string,config:mixed}>
+     */
+    public static function rawAnswers(PDO $conn, int $submissionId): array
+    {
+        $st = $conn->prepare("SELECT ff.label, ff.field_type, ff.config, d.field_value
+                                FROM form_submission_data d JOIN form_fields ff ON ff.id = d.field_id
+                               WHERE d.submission_id = ? ORDER BY ff.sort_order, ff.id");
+        $st->execute([$submissionId]);
+        $out = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $k = mb_strtolower(trim((string)$r['label']));
+            if (!isset($out[$k])) $out[$k] = ['raw' => (string)$r['field_value'], 'type' => (string)$r['field_type'], 'config' => $r['config']];
+        }
+        return $out;
+    }
+
+    /**
+     * Is a rule met by the answers? NULL / no rules = always. Uses the Forms
+     * module's own operator code (formLogicTestRule), so "is", "is not",
+     * "contains", "is filled in" mean exactly what they mean on a form; "any of"
+     * is "is" for each comma-separated value.
+     *
+     * @param mixed $rule  {match: all|any, rules: [{question, op, value}]} as array or JSON
+     * @param array $raw  rawAnswers()
+     */
+    public static function ruleMet($rule, array $raw): bool
+    {
+        if (is_string($rule)) $rule = json_decode($rule, true);
+        if (!is_array($rule) || empty($rule['rules'])) return true;
+        require_once __DIR__ . '/../form_logic.php';
+        $results = [];
+        foreach ($rule['rules'] as $r) {
+            $answer = $raw[mb_strtolower(trim((string)($r['question'] ?? '')))]['raw'] ?? '';
+            $op = (string)($r['op'] ?? 'equals');
+            if ($op === 'any_of') {
+                $hit = false;
+                foreach (array_map('trim', explode(',', (string)($r['value'] ?? ''))) as $v) {
+                    if ($v !== '' && formLogicTestRule(['field' => 1, 'op' => 'equals', 'value' => $v], [1 => $answer])) { $hit = true; break; }
+                }
+                $results[] = $hit;
+            } else {
+                $results[] = formLogicTestRule(['field' => 1, 'op' => $op, 'value' => (string)($r['value'] ?? '')], [1 => $answer]);
+            }
+        }
+        return ($rule['match'] ?? 'all') === 'any' ? in_array(true, $results, true) : !in_array(false, $results, true);
+    }
+
+    /**
+     * Fill {Question} in a step's words from the answers (case-insensitive), then
+     * {name}, {email}, {job title} and {date} from the case. An unknown name is
+     * left as written, so a typo shows rather than vanishing.
+     */
+    public static function fillAnswers(string $text, array $answers, array $case): string
+    {
+        if (!str_contains($text, '{')) return $text;
+        $map = [];
+        foreach ($answers as $a) $map[mb_strtolower(trim((string)$a['label']))] = (string)$a['value'];
+        $map += ['name' => (string)$case['person_name'], 'email' => (string)($case['person_email'] ?? ''),
+                 'job title' => (string)($case['job_title'] ?? ''), 'date' => date('j M Y', strtotime((string)$case['effective_date']))];
+        return preg_replace_callback('/\{([^{}]{1,120})\}/u', function ($m) use ($map) {
+            $k = mb_strtolower(trim($m[1]));
+            return array_key_exists($k, $map) ? $map[$k] : $m[0];
+        }, $text);
+    }
+
+    /**
+     * The forms a template can ask - the newest version of each active form -
+     * or none while the Forms module is switched off.
+     *
+     * @return list<array{id:int,name:string}>
+     */
+    public static function formChoices(PDO $conn): array
+    {
+        if (!moduleIsEnabled($conn, 'forms')) return [];
+        require_once __DIR__ . '/../services/forms.php';
+        $out = [];
+        foreach (FormsService::formsForPicker($conn) as $f) {
+            if ((int)$f['is_active'] === 1) $out[] = ['id' => (int)$f['id'], 'name' => (string)$f['title']];
+        }
+        return $out;
+    }
+
+    /** The first form in a chain of versions - what "the same form" means across versions. */
+    public static function formRoot(PDO $conn, int $formId): int
+    {
+        $q = $conn->prepare("SELECT parent_form_id FROM forms WHERE id = ?");
+        for ($hops = 0; $hops < 500; $hops++) {
+            $q->execute([$formId]);
+            $p = $q->fetchColumn();
+            if (!$p) break;
+            $formId = (int)$p;
+        }
+        return $formId;
+    }
+
+    /**
+     * Which template a form's answers ask for: the active templates of this kind
+     * that use this form (any version), in order - the first whose rule the
+     * answers meet; failing that, the first with no rule. Null when none fits.
+     */
+    public static function chooseTemplate(PDO $conn, string $kind, int $submissionId): ?int
+    {
+        $st = $conn->prepare("SELECT form_id FROM form_submissions WHERE id = ?");
+        $st->execute([$submissionId]);
+        $formId = (int)$st->fetchColumn();
+        if (!$formId) return null;
+        $root = self::formRoot($conn, $formId);
+        $raw = self::rawAnswers($conn, $submissionId);
+        $fallback = null;
+        foreach (self::templates($conn, $kind, true) as $t) {
+            if (!$t['form_id'] || self::formRoot($conn, (int)$t['form_id']) !== $root) continue;
+            if (empty($t['match_rule'])) { $fallback ??= $t['id']; continue; }
+            if (self::ruleMet($t['match_rule'], $raw)) return $t['id'];
+        }
+        return $fallback;
+    }
+
+    /**
+     * The workflow action "Open a Starters & leavers case" - from a form's own
+     * action list (on submit or on approval) or any workflow with a submission.
+     * Whatever $a leaves blank is read from the answers: the name from a question
+     * called something like "Name", the email from the first email question, the
+     * date from the first date question, the job title from "Job title" / "Role".
+     * The template is $a['template_id'], else chooseTemplate().
+     *
+     * @param array $a  kind, template_id?, person_name?, person_email?, effective_date?, job_title?, owner_analyst_id?
+     * @param ?int $forTenant  a company's own workflow acts only for that company
+     * @return array{case_id:int, template_id:?int, warnings:array}
+     */
+    public static function openFromSubmission(PDO $conn, array $a, array $payload, ?int $forTenant = null): array
+    {
+        if (!self::ready($conn)) throw new Exception('Starters & leavers is not set up - run Database Verification.');
+        $kind = JmlKind::tryFrom((string)($a['kind'] ?? '')) ?? JmlKind::Starter;
+        $submissionId = isset($payload['submission']['id']) ? (int)$payload['submission']['id'] : 0;
+        $raw = $submissionId ? self::rawAnswers($conn, $submissionId) : [];
+        $answers = $submissionId ? self::answers($conn, $submissionId) : [];
+        $text = [];
+        foreach ($answers as $x) $text[mb_strtolower(trim((string)$x['label']))] = trim((string)$x['value']);
+
+        $pick = function (callable $test) use ($raw, $text): string {
+            foreach ($raw as $label => $f) if ($test($label, $f) && ($text[$label] ?? '') !== '') return $text[$label];
+            return '';
+        };
+        $name  = trim((string)($a['person_name'] ?? '')) ?: $pick(fn($l, $f) => preg_match('/\bname\b/u', $l) && !preg_match('/manager|requester|your name|company|department/u', $l));
+        $email = trim((string)($a['person_email'] ?? '')) ?: $pick(fn($l, $f) => $f['type'] === 'email' && !preg_match('/manager|your|requester/u', $l));
+        // A date question is a Forms 'datetime' in date mode: the one that sounds
+        // like the day ("Start date", "Last day"), else the first.
+        $date  = trim((string)($a['effective_date'] ?? ''))
+              ?: ($pick(fn($l, $f) => $f['type'] === 'datetime' && preg_match('/start|first|last|leav|move|date|day/u', $l))
+              ?: $pick(fn($l, $f) => $f['type'] === 'datetime'));
+        $job   = trim((string)($a['job_title'] ?? '')) ?: $pick(fn($l, $f) => (bool)preg_match('/job|role|position/u', $l));
+        $date = substr($date, 0, 10);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            throw new Exception('The date was not found in the answers - add a date question, or fill in the action\'s date (for example {{submission.fields.Start date}}).');
+        }
+
+        // Who asked decides the company; a mover or leaver is matched by email.
+        $tenantId = null;
+        if ($submissionId) {
+            $s = $conn->prepare("SELECT u.tenant_id FROM form_submissions s JOIN users u ON u.id = s.submitted_by_user_id WHERE s.id = ?");
+            $s->execute([$submissionId]);
+            $v = $s->fetchColumn();
+            if ($v !== false && $v !== null) $tenantId = (int)$v;
+        }
+        if ($forTenant !== null) {
+            if ($tenantId !== null && $tenantId !== $forTenant) throw new Exception('The requester belongs to another company. This workflow only acts for its own company.');
+            $tenantId = $forTenant;
+        }
+        $userId = null;
+        if ($kind !== JmlKind::Starter && $email !== '') {
+            $u = $conn->prepare("SELECT id FROM users WHERE email = ?" . ($tenantId !== null ? " AND (tenant_id = ? OR tenant_id IS NULL)" : '') . " ORDER BY is_active DESC, id LIMIT 1");
+            $u->execute($tenantId !== null ? [$email, $tenantId] : [$email]);
+            $userId = ($id = $u->fetchColumn()) ? (int)$id : null;
+        }
+        $templateId = !empty($a['template_id']) ? (int)$a['template_id'] : ($submissionId ? self::chooseTemplate($conn, $kind->value, $submissionId) : null);
+
+        $ctx = new ActorContext(0, null, 'ui', 'en', 'Workflow');
+        $warnings = [];
+        $id = self::createCase($conn, $ctx, [
+            'kind' => $kind->value, 'effective_date' => $date, 'template_id' => $templateId,
+            'user_id' => $userId, 'person_name' => $name ?: ($email ?: 'Not given'), 'person_email' => $email ?: null,
+            'job_title' => $job ?: null, 'owner_analyst_id' => !empty($a['owner_analyst_id']) ? (int)$a['owner_analyst_id'] : null,
+            'form_submission_id' => $submissionId ?: null, '_from_form' => true, '_tenant_id' => $tenantId,
+        ], $warnings);
+        if (!$templateId) self::audit($conn, $id, $ctx, 'no_template', null, null);
+        return ['case_id' => $id, 'template_id' => $templateId, 'warnings' => $warnings];
+    }
+
+    /**
+     * Tasks tells us a form on a task was answered (TaskForms::submit). If that
+     * task is a case's and the case was waiting for its answers, keep them and
+     * add the steps now. A later re-answer only replaces the answers kept.
+     */
+    public static function taskFormSubmitted(PDO $conn, ActorContext $ctx, int $taskId, int $submissionId): void
+    {
+        if (!self::ready($conn)) return;
+        $st = $conn->prepare("SELECT id, steps_pending FROM jml_cases WHERE parent_task_id = ?");
+        $st->execute([$taskId]);
+        $c = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$c) return;
+        $conn->prepare("UPDATE jml_cases SET form_submission_id = ? WHERE id = ?")->execute([$submissionId, (int)$c['id']]);
+        if ((int)$c['steps_pending']) {
+            $sys = $ctx->actorId > 0 ? $ctx : new ActorContext(0, null, 'ui', 'en', 'Workflow');
+            self::applyTemplate($conn, $sys, (int)$c['id']);
+        }
     }
 
     /** The task title a case's work is filed under - "Leaver: Jane Smith (31 Oct 2026)". */
@@ -297,12 +631,20 @@ final class StartersService
     }
 
     /** The parent task's description - a way back to the case. */
-    private static function taskDescription(int $caseId): string
+    private static function taskDescription(int $caseId, array $answers = []): string
     {
         require_once __DIR__ . '/../entity_links.php';
         $url = (defined('BASE_URL') ? BASE_URL : '') . entityLink('jml_case', $caseId);
-        return '<p>This task holds the work for a Starters &amp; leavers case. Each step is a subtask.</p>'
-             . '<p><a href="' . htmlspecialchars($url) . '">Open the case</a></p>';
+        $h = '<p>This task holds the work for a Starters &amp; leavers case. Each step is a subtask.</p>'
+           . '<p><a href="' . htmlspecialchars($url) . '">Open the case</a></p>';
+        // The answers, where the work is done - so nobody goes looking for the form.
+        $rows = array_filter($answers, fn($a) => trim((string)$a['value']) !== '');
+        if ($rows) {
+            $h .= '<table>';
+            foreach ($rows as $a) $h .= '<tr><td><strong>' . htmlspecialchars((string)$a['label']) . '</strong></td><td>' . nl2br(htmlspecialchars((string)$a['value'])) . '</td></tr>';
+            $h .= '</table>';
+        }
+        return $h;
     }
 
     /**
@@ -328,6 +670,20 @@ final class StartersService
             if (analystCanAccessModule($conn, $ctx->actorId, 'assets')) {
                 $held = AssetsService::assetsForUser($conn, $ctx, (int)$c['user_id']);
                 $c['kit'] = $held['assets'] ?? [];
+            }
+        }
+        // The answers (Forms) and, while the steps wait for them, where to give them.
+        $c['answers'] = $c['form_submission_id'] ? self::answers($conn, (int)$c['form_submission_id']) : [];
+        $c['steps_pending'] = (bool)(int)($c['steps_pending'] ?? 0);
+        $c['form_title'] = null;
+        $c['task_forms_on'] = true;
+        if ($c['template_id']) {
+            $f = $conn->prepare("SELECT f.title FROM jml_templates t JOIN forms f ON f.id = t.form_id WHERE t.id = ?");
+            $f->execute([$c['template_id']]);
+            $c['form_title'] = $f->fetchColumn() ?: null;
+            if ($c['steps_pending']) {
+                require_once __DIR__ . '/../services/task_forms.php';
+                $c['task_forms_on'] = TaskForms::enabled($conn);
             }
         }
         $h = $conn->prepare("SELECT a.*, an.full_name AS analyst_name FROM jml_audit a LEFT JOIN analysts an ON an.id = a.analyst_id WHERE a.case_id = ? ORDER BY a.created_datetime DESC, a.id DESC");
@@ -585,8 +941,8 @@ final class StartersService
                 if (!$chk->fetchColumn()) throw new ServiceError('not_found', 'not_found', 'Case not found.');
             }
         }
-        foreach (['id', 'tenant_id', 'user_id', 'manager_user_id', 'template_id', 'parent_task_id', 'owner_analyst_id', 'created_by'] as $k) {
-            $c[$k] = $c[$k] === null ? null : (int)$c[$k];
+        foreach (['id', 'tenant_id', 'user_id', 'manager_user_id', 'template_id', 'parent_task_id', 'owner_analyst_id', 'created_by', 'form_submission_id'] as $k) {
+            $c[$k] = ($c[$k] ?? null) === null ? null : (int)$c[$k];
         }
         return $c;
     }
