@@ -33,8 +33,17 @@ return [
     ],
     'sidebar' => [
         'new_process' => '+ Neuer Prozess',
+        'new_process_tip' => 'Neuer Prozess',
         'search_placeholder' => 'Prozesse suchen…',
         'no_processes_yet' => 'Noch keine Prozesse',
+        'search_key_tip' => 'Drücken Sie / oder Alt+Umschalt+O an beliebiger Stelle der Seite, um Prozesse zu suchen',
+    ],
+    'preview' => [
+        'steps' => 'Schritte',
+        'lanes' => 'Bahnen',
+        'created_by' => 'Erstellt von',
+        'created' => 'Erstellt',
+        'updated' => 'Zuletzt aktualisiert',
     ],
     'new_modal' => [
         'title' => 'Neuer Prozess',

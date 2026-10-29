@@ -38,6 +38,7 @@ return [
         'tags_heading' => 'Nach Tags filtern',
         'folders_heading' => 'Ordner',
         'new_article' => '+ Neuer Artikel',
+        'new_article_tip' => 'Neuer Artikel',
         'recycle_bin' => 'Papierkorb',
         'no_tags' => 'Noch keine Tags',
     ],

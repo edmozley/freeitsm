@@ -350,6 +350,7 @@ return [
             'p4' => 'Jeder Ordner kann ein **Wasserzeichen** aktivieren (Berechtigungen -> Wasserzeichen). Jede aus diesem Ordner und seinen Unterordnern geöffnete Datei zeigt dann den Namen des Betrachters, die Uhrzeit und die IP-Adresse quer über die Seite - ein Screenshot verrät also, wer ihn gemacht hat. Ordner folgen ihrem übergeordneten Ordner, sofern nichts anderes festgelegt ist.',
             'p5' => 'Nichts davon hält einen entschlossenen Menschen auf: Alles, was ein Browser anzeigen kann, lässt sich fotografieren oder aufzeichnen. Nur Ansehen und das Wasserzeichen machen Weitergabe absichtlich und nachvollziehbar, nicht unmöglich.',
             'p6' => 'Jede geöffnete Datei wird im Audit-Trail festgehalten, einschließlich der Version und bei einer Zip-Datei der darin geöffneten Datei.',
+            'p7' => 'Ein Bild oder PDF passt sich an, wenn Sie die Größe seines Fensters ändern oder es maximieren, bis Sie selbst vergrößern oder verkleinern; **Einpassen** stellt es wieder her. Derselbe Betrachter öffnet an Tickets angehängte Bilder und PDFs in einem Fenster über dem Ticket.',
         ],
         'permissions' => [
             'nav' => 'Berechtigungen',

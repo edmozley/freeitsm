@@ -302,6 +302,7 @@ return [
         'load_failed' => 'Ticket konnte nicht geladen werden',
         'load_detail_failed' => 'Ticketdetails konnten nicht geladen werden',
         'created' => 'Erstellt am {date}',
+        'details_heading' => 'Ihre Angaben',
         'screen_recordings' => 'Bildschirmaufzeichnungen',
         'screen_recording' => 'Bildschirmaufzeichnung',
         'recording' => 'Aufzeichnung',

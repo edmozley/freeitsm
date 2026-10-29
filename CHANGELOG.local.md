@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2664 | i18n              | Improvement | German (de) back to 100% (21,454 strings): 1,882 added across 20 modules, including the whole Case report and the new Delete mailbox dialog; 3 stale keys removed; Tasks' "follow-up" unified to Folgemaßnahme, as Change management and Tickets already say. |
 | 2663 | Tickets           | Fix         | Deleting a mailbox that had ever received mail failed with "1451 ... fk_emails_mailbox"; Delete now opens a dialog that counts the emails still on it, moves them to another mailbox of the same company (or clears them from ticket emails and deletes those on no ticket), removes its whitelist and activity log, blanks Knowledge sharing if it used it, and runs as one transaction (GH #227). |
 
 
