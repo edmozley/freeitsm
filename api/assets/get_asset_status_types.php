@@ -31,14 +31,19 @@ try {
     $defaultId    = getDefaultTenantId($conn);
     $isDefaultCtx = (!$multi || $activeId === $defaultId);
 
+    // Retired statuses (assets that have left the estate), once Database Verification has run.
+    require_once '../../includes/asset_retirement.php';
+    $retCol = assetRetirementReady($conn) ? ', is_retired' : '';
+
     // ?for_tenant= (2.6.0) — see get_asset_types.php.
     $rows = getTenantConfigRows(
         $conn, 'asset_status_types', 'asset_status_type', $manage ? $activeId : requestedTenantId($conn, $analystId),
-        'id, name, description, is_active, display_order, tenant_id, created_datetime',
+        'id, name, description, is_active, display_order, tenant_id, created_datetime' . $retCol,
         '', 'display_order, name'
     );
     foreach ($rows as &$r) {
         $r['is_active'] = (bool)$r['is_active'];
+        $r['is_retired'] = !empty($r['is_retired']);
         $r['scope']     = ($r['tenant_id'] === null) ? 'global' : 'company';
     }
     unset($r);
@@ -54,18 +59,19 @@ try {
         foreach ($hs->fetchAll(PDO::FETCH_COLUMN) as $eid) { $hiddenIds[(int)$eid] = true; }
 
         $globals = [];
-        foreach ($conn->query("SELECT id, name, description, is_active, display_order FROM asset_status_types WHERE tenant_id IS NULL ORDER BY display_order, name") as $g) {
+        foreach ($conn->query("SELECT id, name, description, is_active, display_order$retCol FROM asset_status_types WHERE tenant_id IS NULL ORDER BY display_order, name") as $g) {
             $globals[] = [
                 'id'            => (int)$g['id'],
                 'name'          => $g['name'],
                 'description'   => $g['description'],
                 'is_active'     => (bool)$g['is_active'],
+                'is_retired'    => !empty($g['is_retired']),
                 'display_order' => (int)$g['display_order'],
                 'hidden'        => isset($hiddenIds[(int)$g['id']]),
             ];
         }
 
-        $ownStmt = $conn->prepare("SELECT id, name, description, is_active, display_order FROM asset_status_types WHERE tenant_id = ? ORDER BY display_order, name");
+        $ownStmt = $conn->prepare("SELECT id, name, description, is_active, display_order$retCol FROM asset_status_types WHERE tenant_id = ? ORDER BY display_order, name");
         $ownStmt->execute([$activeId]);
         $own = [];
         foreach ($ownStmt->fetchAll(PDO::FETCH_ASSOC) as $o) {
@@ -74,6 +80,7 @@ try {
                 'name'          => $o['name'],
                 'description'   => $o['description'],
                 'is_active'     => (bool)$o['is_active'],
+                'is_retired'    => !empty($o['is_retired']),
                 'display_order' => (int)$o['display_order'],
             ];
         }

@@ -529,6 +529,7 @@ return [
                 'refresh' => 'Zahlen',
             ],
             'area' => [
+                'changes' => 'Change Management',
                 'layout' => 'Layout',
                 'tickets' => 'Tickets',
                 'status' => 'Servicestatus',
@@ -646,6 +647,11 @@ return [
         ],
         'other' => 'Sonstige',
         'unassigned' => 'Nicht zugewiesen',
+        'not_assessed' => 'Nicht bewertet',
+        'change_basis' => [
+            'created' => 'Im Zeitraum erfasst',
+            'scheduled' => 'Im Zeitraum geplant',
+        ],
         'ongoing' => '(laufend)',
         'uptime_label' => 'Verfügbarkeit',
         'down_label' => 'Ausfall',
@@ -684,6 +690,7 @@ return [
             'pie' => 'Kreis',
         ],
         'opt' => [
+            'change_basis' => 'Changes',
             'by' => 'Gruppieren nach',
             'basis' => 'Tickets',
             'chart' => 'Diagrammtyp',
@@ -735,6 +742,7 @@ return [
             'month' => 'Monat',
         ],
         'series' => [
+            'changes' => 'Changes',
             'both' => 'Erstellt und geschlossen',
             'created' => 'Erstellt',
             'closed' => 'Geschlossen',
@@ -750,6 +758,11 @@ return [
             'both' => 'Garantie oder Leasing',
         ],
         'dim' => [
+            'change_status' => 'Status',
+            'change_type' => 'Typ',
+            'change_priority' => 'Priorität',
+            'change_impact' => 'Auswirkung',
+            'change_risk' => 'Risiko',
             'status' => 'Status',
             'priority' => 'Priorität',
             'category' => 'Kategorie',
@@ -770,6 +783,12 @@ return [
             'encryption' => 'Verschlüsselung',
         ],
         'col' => [
+            'ref' => 'Nr.',
+            'assignee' => 'Zugewiesen an',
+            'scheduled' => 'Geplant',
+            'serial' => 'Seriennummer',
+            'retired' => 'Ausgemustert',
+            'reason' => 'Grund',
             'ticket' => 'Ticket',
             'subject' => 'Betreff',
             'status' => 'Status',
@@ -840,6 +859,8 @@ return [
             'stages_ending' => 'Endende Phasen',
         ],
         'empty' => [
+            'retired' => 'In diesem Zeitraum wurden keine Assets ausgemustert.',
+            'changes' => 'Keine Changes in diesem Zeitraum.',
             'tickets' => 'Keine Tickets in diesem Zeitraum.',
             'services' => 'Keine Services anzuzeigen.',
             'incidents' => 'Keine Vorfälle in diesem Zeitraum.',
@@ -863,6 +884,11 @@ return [
             'no_module' => 'Sie haben keinen Zugriff auf {module}, daher kann Ihnen dieser Block nicht angezeigt werden.',
         ],
         'tool' => [
+            'assets_retired' => ['title' => 'Ausgemusterte Assets', 'desc' => 'Assets, die im Zeitraum in einen ausgemusterten Status verschoben wurden - was den Bestand verlassen hat, die Seriennummer, wann und warum. Die Liste für eine Übergabe von Geräten.'],
+            'changes_by_status' => ['title' => 'Changes nach Status', 'desc' => 'Die Changes des Zeitraums nach ihrem aktuellen Status. Ein Change speichert kein Abschlussdatum, daher ist dies der aktuelle Status der im Zeitraum erfassten (oder geplanten) Changes.'],
+            'changes_by_type' => ['title' => 'Changes nach Typ', 'desc' => 'Die Changes des Zeitraums nach Typ - Standard, Normal, Notfall oder Ihre eigenen.'],
+            'changes_by_risk' => ['title' => 'Changes nach Risiko', 'desc' => 'Die Changes des Zeitraums nach ihrem bewerteten Risiko, von Niedrig bis Kritisch, und die noch nicht bewerteten.'],
+            'changes_list' => ['title' => 'Change-Liste', 'desc' => 'Die Changes des Zeitraums: Nummer, Titel, Typ, Status, Risiko, wer ihn bearbeitet und wann er geplant ist.'],
             'heading' => [
                 'title' => 'Überschrift',
                 'desc' => 'Ein Abschnittstitel mit einer Linie darunter. Kann eine neue Seite beginnen und erscheint im Inhaltsverzeichnis.',

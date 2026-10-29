@@ -179,6 +179,16 @@ try {
         'inventory agent'
     );
 
+    if ($reconcileRes['asset_id'] !== null && $reconcileRes['retired']) {
+        // A retired asset still reporting: it has left the estate, so its record is
+        // kept as it was when it left. Only "last seen" moves - a retired machine
+        // that is still on the network is worth noticing - and nothing else is
+        // written, nor a duplicate created.
+        $conn->prepare("UPDATE assets SET last_seen = UTC_TIMESTAMP() WHERE id = ?")->execute([(int)$reconcileRes['asset_id']]);
+        echo json_encode(['success' => true, 'asset_id' => (int)$reconcileRes['asset_id'], 'retired' => true,
+                          'message' => 'This asset is retired in FreeITSM: the report was not applied.']);
+        exit;
+    }
     if ($reconcileRes['asset_id'] !== null) {
         $hostId = (int)$reconcileRes['asset_id'];
 

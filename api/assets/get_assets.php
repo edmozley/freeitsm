@@ -19,6 +19,11 @@ requireModuleAccessJson('assets');
 
 // Get search parameter
 $search = $_GET['search'] ?? '';
+// Retired assets have left the estate: out of the list unless asked for (the
+// "Show retired" switch), or unless this is the ONE asset a deep link opens.
+require_once '../../includes/asset_retirement.php';
+$includeRetired = !empty($_GET['include_retired']);
+$alsoId = isset($_GET['also_id']) ? (int)$_GET['also_id'] : 0;
 
 try {
     $conn = connectToDatabase();
@@ -83,6 +88,8 @@ try {
     $locationTableExists       = $tableCheckFor('asset_locations');
     $contractAssetsTableExists = $tableCheckFor('contract_assets') && $tableCheckFor('contracts');
 
+    $retiredReady = assetRetirementReady($conn);
+    $retiredCol = $retiredReady ? 'a.retired_datetime, a.retired_reason,' : 'NULL AS retired_datetime, NULL AS retired_reason,';
     // Build query with optional search
     if ($tableExists) {
         $sql = "SELECT
@@ -111,7 +118,8 @@ try {
                        nowhere but the phone scan page. */
                     a.first_seen,
                     a.last_seen,
-                    $tagCol";
+                    $tagCol
+                    $retiredCol";
 
         if ($typeTableExists) {
             $sql .= "
@@ -245,9 +253,13 @@ try {
     }
     $sql .= $tenantSql;
     $params = array_merge($params, $tenantParams);
+    if ($retiredReady && !$includeRetired) {
+        $sql .= $alsoId > 0 ? ' AND (a.retired_datetime IS NULL OR a.id = ?)' : ' AND a.retired_datetime IS NULL';
+        if ($alsoId > 0) $params[] = $alsoId;
+    }
 
     if ($tableExists) {
-        $groupBy = " GROUP BY a.id, a.hostname, a.manufacturer, a.model, a.memory, a.service_tag, a.operating_system, a.feature_release, a.build_number, a.cpu_name, a.speed, a.bios_version, a.location_id, a.purchase_date, a.purchase_cost, a.supplier_id" . ($leaseReady ? ', a.lease_expiry' : '') . ($leaseStartReady ? ', a.lease_start' : '') . ($ccReady ? ', a.cost_centre_id' : '') . ", a.order_number, a.warranty_expiry, a.first_seen, a.last_seen";
+        $groupBy = " GROUP BY a.id, a.hostname, a.manufacturer, a.model, a.memory, a.service_tag, a.operating_system, a.feature_release, a.build_number, a.cpu_name, a.speed, a.bios_version, a.location_id, a.purchase_date, a.purchase_cost, a.supplier_id" . ($leaseReady ? ', a.lease_expiry' : '') . ($leaseStartReady ? ', a.lease_start' : '') . ($ccReady ? ', a.cost_centre_id' : '') . ", a.order_number, a.warranty_expiry, a.first_seen, a.last_seen" . ($retiredReady ? ', a.retired_datetime, a.retired_reason' : '');
         if ($typeTableExists) {
             $groupBy .= ", a.asset_type_id, aty.name";
         }

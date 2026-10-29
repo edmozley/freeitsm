@@ -23,6 +23,7 @@
 require_once __DIR__ . '/../workflow/includes/engine.php';
 require_once __DIR__ . '/contract_party.php';   // who a contract is with (#153)
 require_once __DIR__ . '/timezone.php';   // naive_today_sql() — expiry dates are bare dates (GH #126)
+require_once __DIR__ . '/asset_retirement.php';   // retired assets get no warranty reminder
 
 /**
  * Dispatch a time-based event — but only the FIRST time this exact situation is
@@ -200,6 +201,7 @@ function workflowEmitWarrantyExpiries(PDO $conn): int
           WHERE a.warranty_expiry IS NOT NULL
             AND a.warranty_expiry >= $today
             AND a.warranty_expiry <= DATE_ADD($today, INTERVAL ? DAY)"
+          . assetNotRetiredSql($conn, 'a')   // a retired asset's warranty is nobody's business now
     );
     $rows->execute([$maxWindow]);
 

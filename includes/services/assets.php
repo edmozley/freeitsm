@@ -33,6 +33,7 @@
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../users.php';            // userDirectoryOwnedFields()
+require_once __DIR__ . '/../asset_retirement.php';   // retired statuses and dates
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class AssetsService
@@ -93,6 +94,9 @@ class AssetsService
             'bitlocker_status' => ['audit' => 'bitlocker_status', 'kind' => 'string', 'max' => 20],
             'domain'           => ['audit' => 'domain',           'kind' => 'string', 'max' => 100],
             'logged_in_user'   => ['audit' => 'logged_in_user',   'kind' => 'string', 'max' => 100],
+            // Why the asset left the estate - "Transferred to ...". The date is never
+            // typed: it is stamped with the status (includes/asset_retirement.php).
+            'retired_reason'   => ['audit' => 'retired_reason',   'kind' => 'string', 'max' => 255],
         ];
     }
 
@@ -188,6 +192,13 @@ class AssetsService
                 // truthful answer rather than a convenient one.
                 //
                 // first_seen stays: when the record was made is a real fact about it.
+                // Created straight into a retired status (an import of disposed kit):
+                // retired from now, like any other move into one.
+                $sIdx = array_search('asset_status_id', $columns, true);
+                if ($sIdx !== false && assetStatusIsRetired($conn, $values[$sIdx] !== null ? (int)$values[$sIdx] : null)) {
+                    $columns[] = 'retired_datetime';
+                    $values[]  = gmdate('Y-m-d H:i:s');
+                }
                 $placeholders = implode(', ', array_fill(0, count($columns), '?'));
                 $conn->prepare("INSERT INTO assets (" . implode(', ', $columns) . ", first_seen)
                                 VALUES ($placeholders, UTC_TIMESTAMP())")->execute($values);
@@ -234,10 +245,12 @@ class AssetsService
         $audits  = [];   // [fieldKey, oldDisplay, newDisplay]
         $warrantyChanged = false;
 
+        $statusChange = null;   // [from, to] when the status changes - retirement follows it
         foreach ($in as $field => $rawValue) {
             if (!isset($map[$field])) {
                 continue; // unknown fields ignored, like the internal endpoints
             }
+            if ($field === 'retired_reason' && !assetRetirementReady($conn)) continue;   // before Database Verification
             $def = $map[$field];
             if ($def['kind'] === 'cost_centre') {
                 require_once __DIR__ . '/../cost_centre_assign.php';
@@ -284,6 +297,17 @@ class AssetsService
             if ($field === 'warranty_expiry' || $field === 'lease_expiry') {
                 $warrantyChanged = true;
             }
+            if ($field === 'asset_status_id') $statusChange = [$oldValue, $newValue];
+        }
+
+        // Retired assets: moving into a retired status stamps the date, moving out
+        // clears date and reason. Here, in the one writer, so the panel, the scanner,
+        // bulk stocktake, imports and the REST API all get it. A retirement also
+        // changes what the warranty calendar should show.
+        if ($statusChange) {
+            $ret = assetRetirementOnStatusChange($conn, $statusChange[0], $statusChange[1]);
+            foreach ($ret['sql'] as $frag) $updates[] = $frag;
+            if ($ret['retired'] !== null) $warrantyChanged = true;
         }
 
         if (!$updates && !$customValues) {
@@ -759,6 +783,9 @@ class AssetsService
             $sets = ['tenant_id = ?'];
             $args = [$storeTenant];
             foreach (array_keys($clear) as $col) { $sets[] = "$col = NULL"; }
+            // A status the new company does not have is cleared - and with it any
+            // retirement it carried, so "retired" never outlives its status.
+            if (isset($clear['asset_status_id']) && assetRetirementReady($conn)) { $sets[] = 'retired_datetime = NULL'; $sets[] = 'retired_reason = NULL'; }
             $args[] = $assetId;
             $conn->prepare("UPDATE assets SET " . implode(', ', $sets) . " WHERE id = ?")->execute($args);
 
@@ -967,7 +994,7 @@ class AssetsService
      * used). One pass writes BOTH warranty and lease entries, which is why
      * there is no lease equivalent of this method.
      */
-    private static function syncWarranty(PDO $conn): void
+    public static function syncWarranty(PDO $conn): void   // public: a status ticked retired re-syncs too
     {
         require_once __DIR__ . '/../asset_warranty_calendar.php';
         try { syncAssetWarrantyCalendar($conn); } catch (Exception) { /* non-critical */ }
@@ -1500,8 +1527,13 @@ class AssetsService
         $r = self::resolveAssetIdentity($conn, $ids, $tenantId, $isExplicitLink, $ignoredTags, $anyCompany);
         $r['hostname_updated'] = false;
         $r['hostname_conflict'] = false;
+        // Retired assets (they have left the estate) are still MATCHED - otherwise a
+        // machine still reporting would come back as a duplicate - but the caller is
+        // told, and nothing here renames one. Each ingest path then leaves it alone
+        // apart from noting it was seen.
+        $r['retired'] = $r['asset_id'] !== null && assetIsRetired($conn, (int)$r['asset_id']);
         $newName = trim((string)($ids['hostname'] ?? ''));
-        if ($r['asset_id'] !== null && in_array($r['matched_by'], ['explicit_link', 'service_tag'], true) && $newName !== '') {
+        if ($r['asset_id'] !== null && !$r['retired'] && in_array($r['matched_by'], ['explicit_link', 'service_tag'], true) && $newName !== '') {
             $m = self::updateAssetHostname($conn, $ctx, $r['asset_id'], $newName, $source);
             $r['hostname_updated'] = $m['updated'];
             $r['hostname_conflict'] = $m['conflict'];

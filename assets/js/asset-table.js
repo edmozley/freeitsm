@@ -60,6 +60,12 @@
           display: r => r.last_seen ? fmtDateTime(parseUTCDate(r.last_seen)) : tt('field.never_seen') },
         { key: 'first_seen',        label: tt('field.first_seen'),          type: 'date',   defaultVisible: false, defaultOrder: 20,
           display: r => r.first_seen ? fmtDateTime(parseUTCDate(r.first_seen)) : tt('field.never_seen') },
+        // Retired assets (they have left the estate): when and why. Filled only with
+        // "Show retired" on - the list a transfer to another organisation is made from.
+        { key: 'retired_datetime',  label: tt('retired.col_date'),          type: 'date',   defaultVisible: false, defaultOrder: 21,
+          display: r => r.retired_datetime ? fmtDateTime(parseUTCDate(r.retired_datetime)) : '' },
+        { key: 'retired_reason',    label: tt('retired.reason'),            type: 'string', defaultVisible: false, defaultOrder: 22,
+          display: r => r.retired_reason || '' },
     ];
 
     /**
@@ -164,7 +170,11 @@
         pdf: { title: tt('nav.assets'), headFill: [0, 120, 212], logo: '../assets/images/CompanyLogo.png' },
 
         load: async () => {
-            const d = await fetch('../api/assets/get_assets.php').then(r => r.json());
+            // Retired assets only with the switch on - the same choice as the Assets list,
+            // remembered in this browser (asset-management/index.php).
+            let showRetired = false;
+            try { showRetired = localStorage.getItem('assets_show_retired') === '1'; } catch (e) {}
+            const d = await fetch('../api/assets/get_assets.php' + (showRetired ? '?include_retired=1' : '')).then(r => r.json());
             if (!d.success) { console.error('get_assets:', d.error); return []; }
             // GH #200 part D: the table shows and filters the mapped names ("HP"), never the
             // spellings that came in ("HP Inc.", "Hewlett-Packard").

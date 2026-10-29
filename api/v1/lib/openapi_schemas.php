@@ -612,6 +612,18 @@ return array (
           'format' => 'date-time',
           'nullable' => true,
         ),
+        'retired_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+          'description' => 'When the asset moved into a status ticked Retired - it has left the estate. Null when it has not.',
+        ),
+        'retired_reason' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
         // Custom asset fields. Keyed by the field's stable key; the value's type
         // follows the field's own type (string / number / boolean / date, or an
         // integer id for a link field). A field the asset does not carry is

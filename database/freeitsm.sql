@@ -3172,6 +3172,11 @@ CREATE TABLE IF NOT EXISTS `asset_status_types` (
     `name`              VARCHAR(100) NOT NULL,
     `description`       VARCHAR(255) NULL,
     `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    -- 1 = an asset in this status has left the estate (retired, disposed,
+    -- transferred): it leaves the default lists, counts and alerts, and the
+    -- asset is stamped with retired_datetime. Off by default - nothing changes
+    -- until somebody ticks it (includes/asset_retirement.php).
+    `is_retired`        TINYINT(1) NOT NULL DEFAULT 0,
     `display_order`     INT NOT NULL DEFAULT 0,
     -- Multi-tenancy: NULL = global default status; set = a company's own. See
     -- asset_types above for the tenant_id config convention.
@@ -3251,6 +3256,11 @@ CREATE TABLE IF NOT EXISTS `assets` (
     -- that shape of question on the dashboard and in the calendar.
     `lease_start`       DATE NULL,   -- when a leased asset's lease began (3.5.0)
     `lease_expiry`      DATE NULL,
+    -- When the asset moved into a retired status (asset_status_types.is_retired)
+    -- and why - "Transferred to the Ministry of Education". Set and cleared by
+    -- AssetsService with the status, never typed on its own.
+    `retired_datetime`  DATETIME NULL,
+    `retired_reason`    VARCHAR(255) NULL,
     -- Multi-tenancy (SCOPED DATA, not config): the company this asset belongs to.
     -- NULL = the Default company (existing installs stay NULL, so a single-company
     -- install is unaffected). Agent ingest derives it from the API key's tenant_id;

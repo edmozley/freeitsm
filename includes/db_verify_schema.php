@@ -1898,6 +1898,8 @@ return [
         'warranty_expiry'   => 'DATE NULL',
         'lease_start'       => 'DATE NULL',   // when a leased asset's lease began (3.5.0)
         'lease_expiry'      => 'DATE NULL',
+        'retired_datetime'  => 'DATETIME NULL',      // when it moved into a retired status - see freeitsm.sql
+        'retired_reason'    => 'VARCHAR(255) NULL',
         // Multi-tenancy: the company this asset belongs to (NULL = Default).
         'tenant_id'         => 'INT NULL',
         // QR labels (#935). asset_tag is the printed human number, unique per
@@ -1927,6 +1929,7 @@ return [
         'name'              => 'VARCHAR(100) NOT NULL',
         'description'       => 'VARCHAR(255) NULL',
         'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'is_retired'        => 'TINYINT(1) NOT NULL DEFAULT 0',   // assets in it have left the estate - see freeitsm.sql
         'display_order'     => 'INT NOT NULL DEFAULT 0',
         // Multi-tenancy config: NULL = global default status, set = a company's own.
         'tenant_id'         => 'INT NULL',

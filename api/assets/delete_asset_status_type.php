@@ -12,6 +12,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/asset_retirement.php';
 require_once '../../includes/tenancy.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
@@ -53,6 +54,8 @@ try {
         if ($owner !== null) {
             throw new Exception("That's a company's own status — switch to that company to delete it.");
         }
+        // A deleted retired status takes its retirement with it - "retired" never outlives its status.
+        if (assetRetirementReady($conn) && assetStatusIsRetired($conn, (int)$id)) assetRetirementRestamp($conn, (int)$id, false);
         $conn->prepare("UPDATE assets SET asset_status_id = NULL WHERE asset_status_id = ?")->execute([$id]);
     } else {
         if ($owner === null) {

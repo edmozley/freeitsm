@@ -7,6 +7,7 @@
  * CLI worker so syncs don't block the web request.
  */
 
+require_once __DIR__ . '/asset_retirement.php';   // retired assets are not renamed
 require_once __DIR__ . '/encryption.php';
 
 /**
@@ -317,6 +318,7 @@ function intuneLinkDevicesToAssets(PDO $conn, ?int $companyId = null): array {
            JOIN assets a ON a.id = d.asset_id
           WHERE d.device_name IS NOT NULL AND d.device_name <> ''
             AND LOWER(LEFT(d.device_name, 50)) <> LOWER(COALESCE(a.hostname, ''))"
+          . assetNotRetiredSql($conn, 'a')   // a retired asset keeps the name it left with
     )->fetchAll(PDO::FETCH_ASSOC);
     foreach ($renamed as $row) {
         AssetsService::updateAssetHostname($conn, $ctx, (int)$row['asset_id'], (string)$row['device_name'], 'Intune');

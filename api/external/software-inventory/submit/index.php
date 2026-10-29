@@ -154,6 +154,13 @@ try {
 
         $stmt = $conn->prepare("UPDATE assets SET last_seen = UTC_TIMESTAMP() WHERE id = ?");
         $stmt->execute([$hostId]);
+        // A retired asset (it has left the estate) keeps the software it left with:
+        // seen, but not reshaped.
+        if ($reconcileRes['retired']) {
+            echo json_encode(['success' => true, 'asset_id' => $hostId, 'retired' => true,
+                              'message' => 'This asset is retired in FreeITSM: the software list was not applied.']);
+            exit;
+        }
     } else {
         // Host does not exist -> create it (stamped with this key's company)
         $hostId = AssetsService::createDiscoveredAsset($conn, $agentCtx, ['hostname' => mb_substr($hostname, 0, 50)], $keyTenant, 'the software inventory agent');

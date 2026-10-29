@@ -132,8 +132,12 @@ $translationNamespaces = ['common', 'asset-management'];
             <a href="#hyperv" class="help-nav-link" data-section="hyperv">
                 <span class="help-nav-num">21</span> Hyper-V
             </a>
-            <a href="#tips" class="help-nav-link" data-section="tips">
+            <a href="#retired" class="help-nav-link" data-section="retired">
                 <span class="help-nav-num">22</span>
+                <?php echo htmlspecialchars(t('asset-management.help.retired.nav')); ?>
+            </a>
+            <a href="#tips" class="help-nav-link" data-section="tips">
+                <span class="help-nav-num">23</span>
                 <?php echo htmlspecialchars(t('asset-management.help.nav_tips')); ?>
             </a>
         </div>
@@ -869,9 +873,23 @@ $translationNamespaces = ['common', 'asset-management'];
                     </div>
                 </div>
 
-<div class="help-section" id="tips">
+<div class="help-section" id="retired">
                     <div class="help-section-header">
                         <span class="help-section-num">22</span>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.retired.heading')); ?></h3>
+                    </div>
+                    <p><?php echo t('asset-management.help.retired.intro'); ?></p>
+                    <div class="help-list">
+                        <div><?php echo t('asset-management.help.retired.p1'); ?></div>
+                        <div><?php echo t('asset-management.help.retired.p2'); ?></div>
+                        <div><?php echo t('asset-management.help.retired.p3'); ?></div>
+                        <div><?php echo t('asset-management.help.retired.p4'); ?></div>
+                    </div>
+                </div>
+
+<div class="help-section" id="tips">
+                    <div class="help-section-header">
+                        <span class="help-section-num">23</span>
                         <h3><?php echo htmlspecialchars(t('asset-management.help.nav_tips')); ?></h3>
                     </div>
                     <div class="help-cards">

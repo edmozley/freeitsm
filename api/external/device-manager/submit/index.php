@@ -117,6 +117,13 @@ try {
     }
 
     $assetId = (int)$asset['id'];
+    // A retired asset (it has left the estate) keeps the devices it left with.
+    require_once __DIR__ . '/../../../../includes/asset_retirement.php';
+    if (assetIsRetired($conn, $assetId)) {
+        echo json_encode(['success' => true, 'asset_id' => $assetId, 'retired' => true,
+                          'message' => 'This asset is retired in FreeITSM: the device list was not applied.']);
+        exit;
+    }
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to look up asset']);

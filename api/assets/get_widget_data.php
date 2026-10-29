@@ -50,6 +50,13 @@ try {
         $params[] = $widget['default_status_id'];
     }
 
+    // Retired assets have left the estate, so a chart leaves them out - unless the
+    // status it is filtered to is itself a retired one ("what have we disposed of?").
+    require_once '../../includes/asset_retirement.php';
+    $filterStatus = (!empty($status_id) && $widget['is_status_filterable']) ? (int)$status_id
+                  : ((!$widget['is_status_filterable'] && $widget['default_status_id']) ? (int)$widget['default_status_id'] : null);
+    if (!assetStatusIsRetired($conn, $filterStatus)) $where .= assetNotRetiredSql($conn, 'a');
+
     // Multi-tenancy: the dashboard aggregates only the active company's assets
     // (the Default company also counts NULL-tenant assets). No-op at N=1.
     [$tenantSql, $tenantParams] = activeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'a');

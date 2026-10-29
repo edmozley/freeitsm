@@ -1930,6 +1930,14 @@ $translationNamespaces = ['common', 'asset-management'];
                     <label for="itemDescription"><?php echo htmlspecialchars(t('asset-management.settings.col_description')); ?></label>
                     <textarea id="itemDescription"></textarea>
                 </div>
+                <?php /* Asset statuses only: an asset in a retired status has left the estate. */ ?>
+                <div class="form-group" id="itemRetiredRow" style="display:none;">
+                    <label class="toggle-label">
+                        <span class="toggle-switch"><input type="checkbox" id="itemRetired"><span class="toggle-slider"></span></span>
+                        <?php echo htmlspecialchars(t('asset-management.retired.status_tick')); ?>
+                    </label>
+                    <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.retired.status_tick_hint')); ?></div>
+                </div>
                 <?php /* Lease outcomes only (3.5.0). */ ?>
                 <div class="form-group" id="itemKindRow" style="display:none;">
                     <label for="itemKind"><?php echo htmlspecialchars(t('asset-management.leases.col_counts_as')); ?></label>
@@ -2759,7 +2767,7 @@ $translationNamespaces = ['common', 'asset-management'];
         function assetItemRow(type, item) {
             return `
                 <tr>
-                    <td><strong>${escapeHtml(item.name)}</strong></td>
+                    <td><strong>${escapeHtml(item.name)}</strong>${item.is_retired ? ' <span class="status-badge status-inactive">' + escapeHtml(window.t('asset-management.retired.badge')) + '</span>' : ''}</td>
                     <td>${item.kind ? escapeHtml(window.t('asset-management.leases.kind_' + item.kind)) + (item.is_default ? ' <span class="status-badge status-active">' + escapeHtml(window.t('asset-management.leases.default_badge')) + '</span>' : '') : escapeHtml(item.description || '-')}</td>
                     <td>${item.display_order}</td>
                     <td><span class="status-badge status-${item.is_active ? 'active' : 'inactive'}">${item.is_active ? window.t('asset-management.status.active') : window.t('asset-management.status.inactive')}</span></td>
@@ -2824,7 +2832,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     : `<button class="action-btn" onclick="toggleHidden('${type}', ${g.id}, true)" title="Visible to this company — click to hide">${ASSET_EYE_SVG}</button>`;
                 return `
                     <tr style="${dim}">
-                        <td><strong>${escapeHtml(g.name)}</strong></td>
+                        <td><strong>${escapeHtml(g.name)}</strong>${g.is_retired ? ' <span class="status-badge status-inactive">' + escapeHtml(window.t('asset-management.retired.badge')) + '</span>' : ''}</td>
                         <td>${escapeHtml(g.description || '-')}</td>
                         <td>${g.display_order}</td>
                         <td>${statusCell}</td>
@@ -2886,6 +2894,7 @@ $translationNamespaces = ['common', 'asset-management'];
             atlSetup(type, null);
             cmdbClassSetup(type, null);
             leaseKindSetup(type, null);
+            retiredTickSetup(type, null);
             document.getElementById('editModal').classList.add('active');
         }
 
@@ -2905,6 +2914,7 @@ $translationNamespaces = ['common', 'asset-management'];
             atlSetup(type, item.layout || null);
             cmdbClassSetup(type, item.cmdb_class_id || null);
             leaseKindSetup(type, item);
+            retiredTickSetup(type, item);
             document.getElementById('editModal').classList.add('active');
         }
 
@@ -2953,6 +2963,9 @@ $translationNamespaces = ['common', 'asset-management'];
             if (type === 'asset-type') {
                 payload.layout = atlCollect();
                 payload.cmdb_class_id = document.getElementById('itemCmdbClass').value || null;
+            }
+            if (type === 'asset-status') {
+                payload.is_retired = document.getElementById('itemRetired').checked ? 1 : 0;
             }
             if (type === 'lease-outcome') {
                 payload.kind = document.getElementById('itemKind').value;
@@ -3893,6 +3906,13 @@ $translationNamespaces = ['common', 'asset-management'];
         /** Show the picker for asset types; hide it for anything else. */
         // Lease outcomes (3.5.0) use the shared modal with a "counts as" row in
         // place of the description.
+        /** Asset statuses only: the Retired tick (assets in it have left the estate). */
+        function retiredTickSetup(type, item) {
+            const isStatus = (type === 'asset-status');
+            document.getElementById('itemRetiredRow').style.display = isStatus ? '' : 'none';
+            document.getElementById('itemRetired').checked = !!(isStatus && item && item.is_retired);
+        }
+
         function leaseKindSetup(type, item) {
             const isOutcome = (type === 'lease-outcome');
             document.getElementById('itemKindRow').style.display = isOutcome ? '' : 'none';

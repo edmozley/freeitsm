@@ -199,6 +199,9 @@ function apiSerializeAsset(PDO $conn, array $r): array {
         'first_seen'   => apiIsoDate($r['first_seen']),
         'last_seen'    => apiIsoDate($r['last_seen']),
         'last_boot_at' => apiIsoDate($r['last_boot_utc']),
+        // Retired assets have left the estate (a status ticked Retired): when, and why.
+        'retired_at'     => apiIsoDate($r['retired_datetime'] ?? null),
+        'retired_reason' => $r['retired_reason'] ?? null,
         // Custom fields (docs/design/flexible-asset-fields.md §8).
         //
         // ⚠️ ADDITIVE ONLY. Everything above is a published contract, so this
@@ -328,6 +331,18 @@ function apiAssetsList(PDO $conn, array $apiKey, array $params, array $body): vo
     }
     if (($_GET['warranty_expired'] ?? '') === 'true') {
         $where[] = 'a.warranty_expiry IS NOT NULL AND a.warranty_expiry < ' . naive_today_sql();
+    }
+    // Retired assets: left out unless asked for, as on the screens.
+    //   ?retired=include  every asset    ?retired=only  just the retired ones
+    $retired = (string)($_GET['retired'] ?? 'exclude');
+    if (!in_array($retired, ['exclude', 'include', 'only'], true)) {
+        apiError(400, 'invalid_parameter', 'retired must be one of: exclude, include, only');
+    }
+    if (assetRetirementReady($conn)) {
+        if ($retired === 'exclude') $where[] = 'a.retired_datetime IS NULL';
+        if ($retired === 'only')    $where[] = 'a.retired_datetime IS NOT NULL';
+    } elseif ($retired === 'only') {
+        $where[] = '1 = 0';
     }
     if (isset($_GET['not_seen_days']) && $_GET['not_seen_days'] !== '') {
         $where[] = '(a.last_seen IS NULL OR a.last_seen < DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? DAY))';

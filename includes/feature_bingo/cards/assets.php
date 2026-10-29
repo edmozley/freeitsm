@@ -593,4 +593,16 @@ return [
         'link'     => 'asset-management/help.php#inventory-freshness',
         'check'    => ['rows', 'asset_inventory_sections', 'last_outcome IS NOT NULL'],
     ],
+    [
+        'id'       => 'assets.retired',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Retire what has left the estate',
+        'what'     => 'A status ticked Retired: kit that has been disposed of or handed on keeps its record, with the date and why, but leaves the lists, counts and warranty alerts.',
+        'why'      => 'An asset register that still counts the laptops given away last year is wrong in every report - and deleting them loses the record of where they went.',
+        'done'     => 'At least one asset has been retired.',
+        'link'     => 'asset-management/help.php#retired',
+        'check'    => ['rows', 'assets', 'retired_datetime IS NOT NULL AND is_demo = 0'],
+    ],
 ];

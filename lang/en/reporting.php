@@ -590,6 +590,7 @@ return [
                 'refresh'       => 'Figures',
             ],
             'area' => [
+                'changes'  => 'Change Management',
                 'layout'   => 'Layout',
                 'tickets'  => 'Tickets',
                 'status'   => 'Service Status',
@@ -715,6 +716,11 @@ return [
 
         'other'      => 'Other',
         'unassigned' => 'Unassigned',
+        'not_assessed' => 'Not assessed',
+        'change_basis' => [
+            'created'   => 'Raised in the period',
+            'scheduled' => 'Scheduled in the period',
+        ],
         'ongoing'    => '(ongoing)',
         'uptime_label' => 'uptime',
         'down_label'   => 'down',
@@ -757,6 +763,7 @@ return [
         ],
 
         'opt' => [
+            'change_basis'  => 'Changes',
             'by'                => 'Group by',
             'basis'             => 'Tickets',
             'chart'             => 'Chart type',
@@ -810,6 +817,7 @@ return [
             'month' => 'Month',
         ],
         'series' => [
+            'changes'       => 'Changes',
             'both'     => 'Created and closed',
             'created'  => 'Created',
             'closed'   => 'Closed',
@@ -826,6 +834,11 @@ return [
         ],
 
         'dim' => [
+            'change_status'   => 'Status',
+            'change_type'     => 'Type',
+            'change_priority' => 'Priority',
+            'change_impact'   => 'Impact',
+            'change_risk'     => 'Risk',
             'status'         => 'Status',
             'priority'       => 'Priority',
             'category'       => 'Category',
@@ -847,6 +860,12 @@ return [
         ],
 
         'col' => [
+            'ref'           => 'Ref',
+            'assignee'      => 'Assigned to',
+            'scheduled'     => 'Scheduled',
+            'serial'        => 'Serial number',
+            'retired'       => 'Retired',
+            'reason'        => 'Reason',
             'ticket'        => 'Ticket',
             'subject'       => 'Subject',
             'status'        => 'Status',
@@ -919,6 +938,8 @@ return [
         ],
 
         'empty' => [
+            'retired'   => 'No assets were retired in this period.',
+            'changes'   => 'No changes in this period.',
             'tickets'   => 'No tickets in this period.',
             'services'  => 'No services to show.',
             'incidents' => 'No incidents in this period.',
@@ -945,6 +966,11 @@ return [
 
         // The toolbox: one title and description per item the designer offers.
         'tool' => [
+            'assets_retired'    => ['title' => 'Retired assets',    'desc' => 'Assets moved into a retired status in the period - what left the estate, its serial number, when and why. The list for a transfer of equipment.'],
+            'changes_by_status' => ['title' => 'Changes by status', 'desc' => 'The period\'s changes by their status now. A change records no completion date, so this is the current status of the changes raised (or scheduled) in the period.'],
+            'changes_by_type'   => ['title' => 'Changes by type',   'desc' => 'The period\'s changes by type - standard, normal, emergency or your own.'],
+            'changes_by_risk'   => ['title' => 'Changes by risk',   'desc' => 'The period\'s changes by their assessed risk, from Low to Critical, and those not yet assessed.'],
+            'changes_list'      => ['title' => 'Change list',       'desc' => 'The period\'s changes: reference, title, type, status, risk, who has it and when it is scheduled.'],
             'heading'   => ['title' => 'Heading',     'desc' => 'A section title with a line under it. Can start a new page and appears in the contents.'],
             'text'      => ['title' => 'Text box',    'desc' => 'Your own words, with bold, underline, colours, lists and alignment.'],
             'pagebreak' => ['title' => 'Page break',  'desc' => 'Everything after it starts on a new page.'],

@@ -12,6 +12,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/services/assets.php';   // retired statuses: re-stamp and re-sync the warranty calendar
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -33,6 +34,8 @@ try {
     $description   = $data['description'] ?? '';
     $display_order = (int)($data['display_order'] ?? 0);
     $is_active     = !empty($data['is_active']) ? 1 : 0;
+    // Retired assets: an asset in a status ticked retired has left the estate.
+    $is_retired    = !empty($data['is_retired']) ? 1 : 0;
 
     if ($name === '') {
         throw new Exception('Name is required');
@@ -89,9 +92,22 @@ try {
 
         $stmt = $conn->prepare("UPDATE asset_status_types SET name = ?, description = ?, display_order = ?, is_active = ? WHERE id = ?");
         $stmt->execute([$name, $description, $display_order, $is_active, $id]);
+        // Ticking or unticking Retired re-stamps the assets already in the status,
+        // so "is it retired?" keeps one answer (assets.retired_datetime).
+        if (assetRetirementReady($conn)) {
+            $was = assetStatusIsRetired($conn, $id);
+            $conn->prepare("UPDATE asset_status_types SET is_retired = ? WHERE id = ?")->execute([$is_retired, $id]);
+            if ($was !== (bool)$is_retired) {
+                assetRetirementRestamp($conn, $id, (bool)$is_retired);
+                AssetsService::syncWarranty($conn);   // retired assets leave the warranty calendar, and come back
+            }
+        }
     } else {
         $stmt = $conn->prepare("INSERT INTO asset_status_types (name, description, display_order, is_active, tenant_id) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$name, $description, $display_order, $is_active, $scopeTenant]);
+        if ($is_retired && assetRetirementReady($conn)) {
+            $conn->prepare("UPDATE asset_status_types SET is_retired = 1 WHERE id = ?")->execute([(int)$conn->lastInsertId()]);
+        }
     }
 
     wf_emit('asset_status', $id ? 'updated' : 'created', $id ? (int)$id : (int)$conn->lastInsertId(), $name);

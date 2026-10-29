@@ -435,6 +435,17 @@ return [
         'seen_days_ago'    => '{count} days ago',
     ],
 
+    // Retired assets: they have left the estate (disposed, decommissioned, transferred).
+    'retired' => [
+        'status_tick'        => 'Retired - assets in this status have left the estate',
+        'status_tick_hint'   => 'An asset moved into this status is stamped with the date, leaves the asset list, counts, dashboards and warranty alerts, and is kept as a record. Moving it out again brings it back.',
+        'badge'              => 'Retired',
+        'show'               => 'Show retired',
+        'since'              => 'Retired {date}',
+        'reason'             => 'Reason',
+        'reason_placeholder' => 'Why it left - e.g. transferred to another organisation',
+        'col_date'           => 'Retired on',
+    ],
     'status' => [
         'assigned'   => 'Assigned',
         'unassigned' => 'Unassigned',
@@ -1772,6 +1783,15 @@ return [
     ],
 
     'help' => [
+        'retired' => [
+            'nav'     => 'Retired assets',
+            'heading' => 'Retired assets',
+            'intro'   => 'Kit that has left the estate - disposed of, decommissioned, or transferred to another organisation - kept as a record, but no longer counted as an active asset.',
+            'p1'      => '<strong>Choose what "retired" is called.</strong> Under <strong>Settings &rarr; Asset statuses</strong>, edit a status ("Retired", "Disposed", "Transferred") and tick <strong>Retired</strong>. Nothing is retired until you do.',
+            'p2'      => '<strong>Retire an asset</strong> by giving it that status. It is stamped with the date, you can add a reason ("Transferred to the Ministry of Education"), and it leaves the asset list, the Table, the dashboard, Watchtower, warranty and lease alerts and the calendar. Give it an ordinary status again and it comes back.',
+            'p3'      => '<strong>Show retired</strong> above the list (and on the Table) brings retired assets back into view. The Table can show the <strong>Retired on</strong> and <strong>Reason</strong> columns and export them to CSV or PDF - the list to send with a transfer. The <strong>Retired assets</strong> block in Report Packs lists those retired in a period.',
+            'p4'      => 'A retired machine that still reports in (the inventory agent, Intune) is recognised - no duplicate is made - but its record is not changed: only its <em>last seen</em> moves, so a retired machine still on the network shows up.',
+        ],
         // Asset type layouts (GH #200)
         'review_heading'    => 'When two records might be the same thing',
         'review_body'       => 'FreeITSM never guesses. When two assets share a serial number, when the agent finds a new machine still wearing an old one&rsquo;s name, or when a tool reports a device whose serial matches no asset (or several), the case waits in <strong>Settings &rarr; Review</strong> for a person to decide. An asset in the list says so on its Key info. For two assets: <strong>Merge</strong> them, mark them <strong>Different</strong> (they really are two), or <strong>Ignore</strong>. For an unknown device: <strong>Create</strong> it as an asset (and connect it where the tool saw it), or Ignore. Decisions can be reopened under <em>Decided</em>, and a case that sorts itself out closes on its own.',

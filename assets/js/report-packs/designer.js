@@ -608,7 +608,7 @@
     document.addEventListener('selectionchange', () => { if (S.editing) refreshRibbonState(); });
 
     // ── The toolbox ──────────────────────────────────────────────────────
-    const AREAS = [['layout', 'designer.area.layout'], ['tickets', 'designer.area.tickets'], ['status', 'designer.area.status'], ['software', 'designer.area.software'], ['assets', 'designer.area.assets'], ['projects', 'designer.area.projects']];
+    const AREAS = [['layout', 'designer.area.layout'], ['tickets', 'designer.area.tickets'], ['status', 'designer.area.status'], ['software', 'designer.area.software'], ['assets', 'designer.area.assets'], ['projects', 'designer.area.projects'], ['changes', 'designer.area.changes']];   // changes: Change Management blocks
     /**
      * Picks the toolbox icon for a tool from its block type, or for a data block from its handler's
      * kind (chart, table, KPI, uptime).

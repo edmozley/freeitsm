@@ -839,6 +839,10 @@ class AssetImportService
                 $status = self::inactiveStatusId($conn, $tenantId);
                 if ($status !== null) {
                     $conn->prepare("UPDATE assets SET asset_status_id = ? WHERE id = ?")->execute([$status, $assetId]);
+                    // A status ticked Retired retires the asset, as any other move into it does.
+                    if (assetStatusIsRetired($conn, $status)) {
+                        $conn->prepare("UPDATE assets SET retired_datetime = COALESCE(retired_datetime, UTC_TIMESTAMP()) WHERE id = ?")->execute([$assetId]);
+                    }
                     $detail .= ' Marked inactive.';
                 } else {
                     // ⚠️ Say so. "Deactivated 12" when nothing was deactivated,
@@ -855,16 +859,17 @@ class AssetImportService
     }
 
     /**
-     * The asset status to give an asset that has dropped out of the source - the first
-     * active status whose name contains retired, disposed or inactive.
+     * The asset status to give an asset that has dropped out of the source - a status
+     * ticked Retired first (it is the one somebody chose to mean "gone"), then, as
+     * before, the first active status whose name contains retired, disposed or inactive.
      */
     private static function inactiveStatusId(PDO $conn, ?int $tenantId): ?int
     {
         $stmt = $conn->prepare(
             "SELECT id FROM asset_status_types
               WHERE is_active = 1 AND (tenant_id IS NULL OR tenant_id = ?)
-                AND (LOWER(name) LIKE '%retired%' OR LOWER(name) LIKE '%disposed%' OR LOWER(name) LIKE '%inactive%')
-              ORDER BY tenant_id IS NULL, display_order LIMIT 1"
+                AND (" . (assetRetirementReady($conn) ? 'is_retired = 1 OR ' : '') . "LOWER(name) LIKE '%retired%' OR LOWER(name) LIKE '%disposed%' OR LOWER(name) LIKE '%inactive%')
+              ORDER BY " . (assetRetirementReady($conn) ? 'is_retired DESC, ' : '') . "tenant_id IS NULL, display_order LIMIT 1"
         );
         $stmt->execute([$tenantId]);
         $v = $stmt->fetchColumn();

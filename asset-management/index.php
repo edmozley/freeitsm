@@ -176,6 +176,49 @@ $translationNamespaces = ['common', 'asset-management'];
             font-weight: 600;
             letter-spacing: 0.3px;
         }
+        /* Retired assets (they have left the estate): a plain marker on the row, a
+           banner with the date and reason in the panel, and the switch that shows them. */
+        .asset-retired-chip {
+            display: inline-block;
+            margin-right: 6px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border, #ddd);
+            color: var(--text-muted, #556);
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .asset-retired-banner {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px dashed var(--border, #ccc);
+            color: var(--text, #333);
+            font-size: 13px;
+        }
+        .asset-retired-reason {
+            flex: 1 1 220px;
+            min-width: 0;
+            padding: 4px 8px;
+            border: 1px solid var(--border, #ccc);
+            border-radius: 4px;
+            background: var(--surface, #fff);
+            color: var(--text, #333);
+            font: inherit;
+        }
+        .asset-show-retired {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-muted, #556);
+            cursor: pointer;
+            white-space: nowrap;
+        }
 
         .asset-select-bar {
             display: flex;
@@ -1599,6 +1642,8 @@ $translationNamespaces = ['common', 'asset-management'];
                              still do not outrank the search. */ ?>
                     <a class="btn btn-outline btn-sm" href="scanner.php"><?php echo htmlspecialchars(t('asset-management.list.scan')); ?></a>
                     <a class="btn btn-outline btn-sm" href="assign-tags.php"><?php echo htmlspecialchars(t('asset-management.list.assign_tags')); ?></a>
+                    <?php /* Retired assets have left the estate: hidden until asked for. */ ?>
+                    <label class="asset-show-retired"><input type="checkbox" id="assetShowRetired" onchange="toggleShowRetired(this.checked)"> <?php echo htmlspecialchars(t('asset-management.retired.show')); ?></label>
                 </div>
                 <?php /* Appears only once more than one asset is picked with
                          Ctrl/Shift — see handleAssetRowClick(). Hidden by default
@@ -2071,6 +2116,12 @@ $translationNamespaces = ['common', 'asset-management'];
                         selectedAsset[field] = value || null;
                     }
                     refreshExpiryFlag(field, value);
+                    // A status may retire the asset (or bring it back): reload, so the
+                    // date the server stamped shows, and the panel redraws with it.
+                    if (field === 'asset_status_id') {
+                        const keep = selectedAssetId;
+                        loadAssets(document.getElementById('assetSearch').value || '').then(() => selectAsset(keep));
+                    }
                     // A new type brings its own layout (GH #200). Values are untouched.
                     if (field === 'asset_type_id' || atlFinancialFields.includes(field)) applyAssetLayout();
                 } else {
@@ -2121,10 +2172,30 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         // Load assets from API
+        // Retired assets (they have left the estate) are left out unless the switch
+        // is on - remembered in this browser. The asset open in the panel, or named
+        // in the address bar, is always included, so a link to a retired asset from
+        // a ticket or a search still opens it.
+        let showRetired = false;
+        try { showRetired = localStorage.getItem('assets_show_retired') === '1'; } catch (e) {}
+        function assetListUrl(search) {
+            const p = new URLSearchParams();
+            if (search) p.set('search', search);
+            if (showRetired) p.set('include_retired', '1');
+            const also = selectedAssetId || new URLSearchParams(window.location.search).get('asset_id');
+            if (also) p.set('also_id', String(also));
+            return API_BASE + 'get_assets.php?' + p.toString();
+        }
+        function toggleShowRetired(on) {
+            showRetired = !!on;
+            try { localStorage.setItem('assets_show_retired', showRetired ? '1' : '0'); } catch (e) {}
+            loadAssets(document.getElementById('assetSearch').value || '');
+        }
+        document.addEventListener('DOMContentLoaded', () => { const c = document.getElementById('assetShowRetired'); if (c) c.checked = showRetired; });
+
         async function loadAssets(search = '') {
             try {
-                const url = search ? `${API_BASE}get_assets.php?search=${encodeURIComponent(search)}` : API_BASE + 'get_assets.php';
-                const response = await fetch(url);
+                const response = await fetch(assetListUrl(search));
                 const data = await response.json();
 
                 if (data.success) {
@@ -2178,6 +2249,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     <div class="asset-hostname">${assetTypeIcon(asset.asset_type_id)}${escapeHtml(asset.hostname)}</div>
                     <div class="asset-meta">
                         ${asset.asset_tag ? `<span class="asset-tag-chip">${escapeHtml(asset.asset_tag)}</span>` : ''}
+                        ${asset.retired_datetime ? `<span class="asset-retired-chip">${escapeHtml(window.t('asset-management.retired.badge'))}</span>` : ''}
                         <span class="${asset.user_count > 0 ? 'asset-assigned' : 'asset-unassigned'}">
                             ${asset.user_count > 0 ? window.t('asset-management.status.assigned') : window.t('asset-management.status.unassigned')}
                         </span>
@@ -2294,6 +2366,18 @@ $translationNamespaces = ['common', 'asset-management'];
         }
 
         // Select an asset and show details
+        /**
+         * A retired asset's banner: when it left (stamped with its status) and why,
+         * the reason editable in place - "Transferred to the Ministry of Education".
+         */
+        function retiredBanner(a) {
+            const when = window.fmtDateTime ? fmtDateTime(String(a.retired_datetime).replace(' ', 'T') + 'Z') : a.retired_datetime;
+            return `<div class="asset-retired-banner"><strong>${escapeHtml(window.t('asset-management.retired.since', { date: when }))}</strong>`
+                + `<input type="text" class="asset-retired-reason" maxlength="255" value="${escapeHtml(a.retired_reason || '')}"`
+                + ` placeholder="${escapeHtml(window.t('asset-management.retired.reason_placeholder'))}" aria-label="${escapeHtml(window.t('asset-management.retired.reason'))}"`
+                + ` onchange="updateAssetField('retired_reason', this.value.trim())"></div>`;
+        }
+
         async function selectAsset(assetId) {
             selectedAssetId = assetId;
             selectedAsset = assets.find(a => a.id == assetId);
@@ -2338,6 +2422,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 <div class="asset-detail-sticky">
                     <div class="asset-detail-header">
                         <h2 class="asset-detail-hostname">${assetTypeIcon(selectedAsset.asset_type_id, 20)}${escapeHtml(selectedAsset.hostname)}</h2>
+                        ${selectedAsset.retired_datetime ? retiredBanner(selectedAsset) : ''}
                         <div class="asset-detail-subtitle">${window.t('asset-management.detail.service_tag')}: ${escapeHtml(selectedAsset.service_tag) || '-'}</div>
                         <?php /* The three asset actions. On a phone mobile.css (LAYER 14b)
                                  lifts this row out of the header and pins it along the bottom

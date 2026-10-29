@@ -739,6 +739,10 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     // -- Assets --
 
     [$asCo, $asCoArgs] = wtCompanyClause($conn, (int)$analystId, '');   // the company, on every asset count
+    // Retired assets have left the estate: in no asset count. Appended to the
+    // company clause so every count below gets it without being touched.
+    require_once __DIR__ . '/asset_retirement.php';
+    $asCo .= assetNotRetiredSql($conn, '');
     $__q = $conn->prepare("SELECT COUNT(*) FROM assets WHERE 1 = 1" . $asCo);
     $__q->execute($asCoArgs);
     $asTotal = (int)$__q->fetchColumn();
@@ -795,6 +799,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
             require_once __DIR__ . '/leases.php';
             $goneBack = leaseReady($conn) ? ' AND NOT ' . leaseGoneBackSql('a') : '';
             [$aCo, $aCoArgs] = wtCompanyClause($conn, (int)$analystId, 'a');
+            $aCo .= assetNotRetiredSql($conn, 'a');   // retired assets are not given back on a lease reminder
             $l = $conn->prepare("SELECT COUNT(*) FROM assets a WHERE a.lease_expiry IS NOT NULL AND a.lease_expiry <= DATE_ADD({$todaySql}, INTERVAL ? DAY){$goneBack}" . $aCo);
             $l->execute(array_merge([$ltDays], $aCoArgs));
             $asLease = (int)$l->fetchColumn();

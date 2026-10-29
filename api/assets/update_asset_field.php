@@ -54,7 +54,8 @@ try {
     $allowedFields = ['asset_type_id', 'asset_status_id', 'location_id',
                       'purchase_date', 'purchase_cost', 'supplier_id', 'order_number', 'warranty_expiry',
                       'lease_start', 'lease_expiry', 'cost_centre_id',   // GH #160
-                      'hostname', 'service_tag', 'manufacturer', 'model'];
+                      'hostname', 'service_tag', 'manufacturer', 'model',
+                      'retired_reason'];   // why a retired asset left - the date comes with its status
     if (!in_array($field, $allowedFields, true)) {
         throw new Exception('Invalid field');
     }

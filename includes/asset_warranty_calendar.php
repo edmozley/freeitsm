@@ -150,6 +150,9 @@ if (!function_exists('syncAssetWarrantyCalendar')) {
             require_once __DIR__ . '/leases.php';
             if (leaseReady($conn)) $goneBack = ' AND NOT ' . leaseGoneBackSql('a');
         }
+        // A retired asset has left the estate: no warranty or lease entry for it.
+        require_once __DIR__ . '/asset_retirement.php';
+        $goneBack .= assetNotRetiredSql($conn, 'a');
         $rows = $conn->query(
             "SELECT a.id, a.hostname, a.`{$column}` AS expiry_date
              FROM assets a

@@ -40,6 +40,7 @@ function rpAssetsBreakdown(PDO $conn, int $analystId, array $o, array $range, $t
 {
     [$label, $join] = RP_ASSET_DIMENSIONS[$o['by']];
     [$tSql, $tParams] = rpTenantClause($conn, $analystId, $tenant, 'x.tenant_id');
+    $tSql .= assetNotRetiredSql($conn, 'x');   // retired assets have left the estate
     $s = $conn->prepare("SELECT $label AS label, COUNT(*) AS value FROM assets x $join
                           WHERE 1=1$tSql GROUP BY label ORDER BY value DESC");
     $s->execute($tParams);
@@ -63,7 +64,7 @@ function rpAssetsKpis(PDO $conn, int $analystId, array $o, array $range, $tenant
                                 SUM(x.first_seen >= ? AND x.first_seen < ?) AS added,
                                 SUM(x.warranty_expiry >= ? AND x.warranty_expiry <= ?) AS warranty,
                                 SUM(x.warranty_expiry IS NOT NULL AND x.warranty_expiry < ?) AS out_of_warranty
-                           FROM assets x WHERE 1=1$tSql");
+                           FROM assets x WHERE 1=1$tSql" . assetNotRetiredSql($conn, 'x'));
     $s->execute(array_merge([$range['from_utc'], $range['to_utc'], $range['from_date'], $range['to_date'], $range['to_date']], $tParams));
     $r = $s->fetch(PDO::FETCH_ASSOC) ?: [];
     return ['kind' => 'kpi', 'tiles' => [
@@ -89,7 +90,7 @@ function rpAssetsExpiring(PDO $conn, int $analystId, array $o, array $range, $te
     if ($o['what'] !== 'warranty') { $conds[] = '(x.lease_expiry >= ? AND x.lease_expiry <= ?)';       array_push($params, $range['from_date'], $range['to_date']); }
     $s = $conn->prepare("SELECT x.hostname, x.asset_tag, x.manufacturer, x.model, x.warranty_expiry, x.lease_expiry, x.logged_in_user
                            FROM assets x
-                          WHERE (" . implode(' OR ', $conds) . ")$tSql
+                          WHERE (" . implode(' OR ', $conds) . ")$tSql" . assetNotRetiredSql($conn, 'x') . "
                           ORDER BY LEAST(COALESCE(x.warranty_expiry, '9999-12-31'), COALESCE(x.lease_expiry, '9999-12-31'))
                           LIMIT 2000");
     $s->execute(array_merge($params, $tParams));
@@ -153,4 +154,52 @@ function rpIntuneKpis(PDO $conn, int $analystId, array $o, array $range, $tenant
         ['label' => t('reporting.packs.kpi.encrypted'), 'value' => $pct($r['encrypted'] ?? 0)],
         ['label' => t('reporting.packs.kpi.stale'),     'value' => number_format((int)($r['stale'] ?? 0)), 'hint' => t('reporting.packs.kpi.stale_hint')],
     ]];
+}
+/**
+ * Assets that left the estate in the period - moved into a retired status
+ * (includes/asset_retirement.php) between the pack's dates. The list a transfer
+ * of equipment to another organisation is made from: what went, its serial, when
+ * and why.
+ *
+ * @param array $o  the block's cleaned options: limit (rows)
+ * @param array $range  the pack's range from rpResolveRange() - from_utc and to_utc
+ * @param mixed $tenant  the pack's company: 'active', 'all' or a company id
+ */
+function rpAssetsRetired(PDO $conn, int $analystId, array $o, array $range, $tenant): array
+{
+    $cols = [
+        ['key' => 'asset',   'label' => t('reporting.packs.col.asset'),   'w' => 22],
+        ['key' => 'type',    'label' => t('reporting.packs.col.type'),    'w' => 12],
+        ['key' => 'model',   'label' => t('reporting.packs.col.model'),   'w' => 20],
+        ['key' => 'serial',  'label' => t('reporting.packs.col.serial'),  'w' => 14],
+        ['key' => 'retired', 'label' => t('reporting.packs.col.retired'), 'w' => 14],
+        ['key' => 'reason',  'label' => t('reporting.packs.col.reason'),  'w' => 18],
+    ];
+    if (!assetRetirementReady($conn)) return ['kind' => 'table', 'rows' => [], 'columns' => $cols, 'empty' => t('reporting.packs.empty.retired')];
+    [$tSql, $tParams] = rpTenantClause($conn, $analystId, $tenant, 'x.tenant_id');
+    $s = $conn->prepare("SELECT x.hostname, x.asset_tag, x.manufacturer, x.model, x.service_tag, x.retired_datetime, x.retired_reason,
+                                aty.name AS type_name
+                           FROM assets x
+                      LEFT JOIN asset_types aty ON aty.id = x.asset_type_id
+                          WHERE x.retired_datetime >= ? AND x.retired_datetime < ?$tSql
+                          ORDER BY x.retired_datetime ASC, x.id ASC
+                          LIMIT " . ((int)$o['limit'] + 1));
+    $s->execute(array_merge([$range['from_utc'], $range['to_utc']], $tParams));
+    $rows = $s->fetchAll(PDO::FETCH_ASSOC);
+    $more = count($rows) > $o['limit'];
+    if ($more) array_pop($rows);
+    $out = [];
+    foreach ($rows as $r) {
+        $out[] = [
+            'asset'   => trim($r['hostname'] . ($r['asset_tag'] ? ' (' . $r['asset_tag'] . ')' : '')),
+            'type'    => (string)$r['type_name'],
+            'model'   => trim($r['manufacturer'] . ' ' . $r['model']),
+            'serial'  => (string)$r['service_tag'],
+            'retired' => rpFmtDateTime($r['retired_datetime']),
+            'reason'  => (string)$r['retired_reason'],
+        ];
+    }
+    return ['kind' => 'table', 'rows' => $out, 'columns' => $cols,
+            'note'  => $more ? t('reporting.packs.truncated', ['n' => $o['limit']]) : null,
+            'empty' => t('reporting.packs.empty.retired')];
 }

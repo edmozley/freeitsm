@@ -127,12 +127,18 @@ try {
                  ?stale=N from the Watchtower "not seen" count (#97). Empty and
                  hidden otherwise — the table is unfiltered in every other case. */ ?>
         <div id="assetStaleNotice" class="asset-stale-notice" hidden></div>
+        <?php /* Retired assets: the same switch as the Assets list. Reloads the page,
+                 which reloads the table with or without them. */ ?>
+        <label class="asset-show-retired" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;margin:0 0 6px;cursor:pointer">
+            <input type="checkbox" id="assetShowRetired" onchange="try{localStorage.setItem('assets_show_retired',this.checked?'1':'0')}catch(e){};location.reload()">
+            <?php echo htmlspecialchars(t('asset-management.retired.show')); ?></label>
+        <script>try{document.getElementById('assetShowRetired').checked=localStorage.getItem('assets_show_retired')==='1'}catch(e){}</script>
         <?php include '../includes/data-table-skeleton.php'; ?>
     </div>
 
     <script>window.assetCustomColumns = <?php echo json_encode($assetCustomColumns, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/data-table.js?v=9"></script>
-    <script src="../assets/js/asset-table.js?v=11"></script>
+    <script src="../assets/js/asset-table.js?v=12"></script>
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

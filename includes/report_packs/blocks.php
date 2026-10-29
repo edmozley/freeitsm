@@ -35,6 +35,8 @@ require_once __DIR__ . '/blocks_status.php';
 require_once __DIR__ . '/blocks_software.php';
 require_once __DIR__ . '/blocks_assets.php';
 require_once __DIR__ . '/blocks_projects.php';
+require_once __DIR__ . '/blocks_changes.php';   // Change Management
+require_once __DIR__ . '/../asset_retirement.php';   // retired assets leave the estate figures
 
 const RP_CHART_TYPES = ['bar', 'hbar', 'line', 'doughnut', 'pie'];
 
@@ -102,6 +104,12 @@ function rpHandlers(): array
     static $h = null;
     if ($h !== null) return $h;
 
+    $changeBy = [];
+    foreach (RP_CHANGE_DIMENSIONS as $k => $_) $changeBy[$k] = t('reporting.packs.dim.change_' . $k);
+    $changeBasis = [
+        'created'   => t('reporting.packs.change_basis.created'),
+        'scheduled' => t('reporting.packs.change_basis.scheduled'),
+    ];
     $ticketBy = [];
     foreach (RP_TICKET_DIMENSIONS as $k => $_) $ticketBy[$k] = t('reporting.packs.dim.' . $k);
     $basis = [
@@ -239,6 +247,29 @@ function rpHandlers(): array
                 ], 'both'),
             ],
         ],
+        'assets.retired' => [
+            'module' => 'assets', 'kind' => 'table', 'fn' => 'rpAssetsRetired',
+            'opts' => ['limit' => rpOptInt(t('reporting.packs.opt.rows'), 10, 2000, 500)],
+        ],
+
+        // ── Change Management ───────────────────────────────────────────
+        'changes.breakdown' => [
+            'module' => 'changes', 'kind' => 'chart', 'fn' => 'rpChangesBreakdown',
+            'opts' => [
+                'by'    => rpOptSelect(t('reporting.packs.opt.by'), $changeBy, 'status'),
+                'basis' => rpOptSelect(t('reporting.packs.opt.change_basis'), $changeBasis, 'created'),
+                'chart' => rpChartOpt('doughnut'),
+                'limit' => rpOptInt(t('reporting.packs.opt.limit'), 3, 50, 12),
+            ],
+        ],
+        'changes.list' => [
+            'module' => 'changes', 'kind' => 'table', 'fn' => 'rpChangesList',
+            'opts' => [
+                'basis' => rpOptSelect(t('reporting.packs.opt.change_basis'), $changeBasis, 'scheduled'),
+                'limit' => rpOptInt(t('reporting.packs.opt.rows'), 10, 2000, 200),
+            ],
+        ],
+
         'intune.breakdown' => [
             'module' => 'reporting', 'kind' => 'chart', 'fn' => 'rpIntuneBreakdown',
             'opts' => [
@@ -336,6 +367,13 @@ function rpToolboxItems(): array
         'assets_by_os'       => ['handler' => 'assets.breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'os',     'chart' => 'bar'], 'kw' => 'operating system windows'],
         'assets_by_status'   => ['handler' => 'assets.breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'status', 'chart' => 'pie'], 'kw' => 'status in use stock'],
         'assets_expiring'    => ['handler' => 'assets.expiring',  'area' => 'assets', 'span' => 12, 'opts' => [], 'kw' => 'warranty lease expiring expiry renewals'],
+        'assets_retired'     => ['handler' => 'assets.retired',   'area' => 'assets', 'span' => 12, 'opts' => [], 'kw' => 'retired disposed decommissioned transferred removed serial'],
+
+        // Change Management
+        'changes_by_status'  => ['handler' => 'changes.breakdown', 'area' => 'changes', 'span' => 6,  'opts' => ['by' => 'status', 'chart' => 'doughnut'], 'kw' => 'change status cab'],
+        'changes_by_type'    => ['handler' => 'changes.breakdown', 'area' => 'changes', 'span' => 6,  'opts' => ['by' => 'type',   'chart' => 'doughnut'], 'kw' => 'change type standard normal emergency'],
+        'changes_by_risk'    => ['handler' => 'changes.breakdown', 'area' => 'changes', 'span' => 6,  'opts' => ['by' => 'risk',   'chart' => 'bar'], 'kw' => 'change risk high low'],
+        'changes_list'       => ['handler' => 'changes.list',      'area' => 'changes', 'span' => 12, 'opts' => [], 'kw' => 'changes list schedule cab'],
         'intune_kpis'        => ['handler' => 'intune.kpis',      'area' => 'assets', 'span' => 12, 'opts' => [], 'kw' => 'intune devices compliance encrypted stale'],
         'intune_compliance'  => ['handler' => 'intune.breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'compliance', 'chart' => 'doughnut'], 'kw' => 'intune compliance compliant'],
         'intune_os'          => ['handler' => 'intune.breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'os', 'chart' => 'bar'], 'kw' => 'intune operating system'],

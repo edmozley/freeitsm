@@ -947,6 +947,12 @@
                             "req": false
                         },
                         {
+                            "name": "retired",
+                            "in": "query",
+                            "desc": "exclude (default) leaves out assets that have left the estate; include returns every asset; only returns just the retired ones",
+                            "req": false
+                        },
+                        {
                             "name": "sort",
                             "in": "query",
                             "desc": "hostname, id, first_seen, last_seen, warranty_expiry, purchase_date, model — prefix \"-\" for descending (default hostname)",
