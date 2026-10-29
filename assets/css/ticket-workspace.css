@@ -66,8 +66,9 @@
 .ticket-workspace .tw-field-group:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: 0; }
 .ticket-workspace .tw-field-group legend { padding: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--text); }
 .ticket-workspace .toolbar-field { width: 100%; min-width: 0; margin: 0 0 8px; }
-.ticket-workspace .toolbar-label { font-size: 12px; font-weight: 500; text-transform: none; letter-spacing: normal; color: var(--text-muted); }
-.ticket-workspace .toolbar-select { width: 100%; min-height: 32px; font-size: 14px; background: var(--surface); color: var(--text); border-color: var(--border); }
+/* The same controls as the reading pane: only their arrangement changes.
+   In particular, do not override the native confidential-field colours. */
+.ticket-workspace .toolbar-select { width: 100%; }
 
 /* ---- Tabs and their panels ------------------------------------------- */
 

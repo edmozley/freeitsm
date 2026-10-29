@@ -57,9 +57,19 @@ try {
     const ids=[...pane.querySelectorAll('[id]')].map(n=>n.id);
     const actions=[...pane.querySelectorAll('[onclick],[onchange]')].map(n=>n.getAttribute('onclick')||n.getAttribute('onchange'));
     check('legacy layout remains the default structure',!pane.classList.contains('ticket-workspace'));
+    const fieldStyle = selector => {
+        const css=getComputedStyle(pane.querySelector(selector));
+        return ['fontFamily','fontSize','fontWeight','textTransform','letterSpacing','padding','backgroundColor','color','borderColor']
+            .map(key=>css[key]).join('|');
+    };
+    const propertyStyles=['.toolbar-label','#ownerSelect','#sensitivitySelect'].map(fieldStyle);
+
     window.TICKET_WORKSPACE={mode:'all',personal:true,ready:true,can_write:true};
     displayEmail(ticket,[]);
     check('workspace arranges the real renderer',pane.classList.contains('ticket-workspace')&&pane.querySelector('[role=tablist]'));
+    check('property typography and field colours match both layouts',
+        ['.toolbar-label','#ownerSelect','#sensitivitySelect'].every((selector,i)=>fieldStyle(selector)===propertyStyles[i]));
+
     check('every native control survives the layout',ids.every(id=>id==='stripTaskPills'||document.getElementById(id)),ids.length);
     const after=[...pane.querySelectorAll('[onclick],[onchange]')].map(n=>n.getAttribute('onclick')||n.getAttribute('onchange'));
     check('every native action retains its handler',actions.every(a=>readingPaneOnly(a)||after.includes(a)),actions.length);

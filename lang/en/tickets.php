@@ -21,6 +21,9 @@ return [
     // export it. See includes/ticket_list.php and assets/js/tickets-table.js.
     'queue' => [
         'layout'         => 'Ticket list',
+        'back'           => 'Back',
+        'back_title'     => 'Back to ticket list',
+        'resize'         => 'Resize ticket list and details',
         'messages'       => 'Messages',
         'table'          => 'Table',
         'ticket'         => 'ticket',

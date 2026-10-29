@@ -4,9 +4,9 @@
  * module's table has.
  *
  * An analyst picks Messages or Table from the action row, or in System ->
- * Preferences (tickets_list_layout). The folder pane, the reading pane, the
- * workspace and every action stay exactly as they are - only the middle column
- * changes.
+ * Preferences (tickets_list_layout). Table mode uses the available queue width
+ * and opens the existing reading pane beside it, or on its own in a narrower
+ * window. The native ticket/workspace renderer and all actions are reused.
  *
  * HOW IT FITS
  * -----------
@@ -34,6 +34,87 @@ window.TicketTable = (() => {
     let folderKey = '';        // the folder the table was last filtered for
     let contextKey = '';       // the view filter it last used
     let switching = false;     // a Messages/Table change is being saved
+    let detailOpen = false;
+    let splitRatio = .44;      // page-session layout only; no new saved preference
+    let drag = null;
+    const minList = 440, minDetail = 600, divider = 8;
+
+    function stopResize() {
+        if (!drag) return;
+        const splitter = document.getElementById('ticketTableSplitter');
+        if (splitter.hasPointerCapture(drag.id)) splitter.releasePointerCapture(drag.id);
+        drag = null;
+        document.body.classList.remove('ticket-table-resizing');
+    }
+
+    function availableWidth() {
+        // Computed width survives display:none in the narrow detail view.
+        // Measuring its hidden rectangle here would oscillate between layouts.
+        const folder = document.querySelector('.folder-container');
+        return document.querySelector('.main-container').clientWidth - parseFloat(getComputedStyle(folder).width);
+    }
+
+    function layout() {
+        const desktop = matchMedia('(min-width: 769px)').matches;
+        const open = isActive() && detailOpen;
+        const available = availableWidth();
+        const narrow = desktop && open && available < minList + minDetail + divider;
+        document.body.classList.toggle('ticket-table-detail', open);
+        document.body.classList.toggle('ticket-table-narrow', narrow);
+        document.getElementById('ticketTableBack').hidden = !open;
+        const splitter = document.getElementById('ticketTableSplitter');
+        splitter.hidden = !desktop || !open || narrow;
+        if (splitter.hidden) { stopResize(); return; }
+        const max = available - minDetail - divider;
+        const width = Math.round(Math.max(minList, Math.min(max, available * splitRatio)));
+        document.body.style.setProperty('--ticket-table-width', width + 'px');
+        splitter.setAttribute('aria-valuemin', minList);
+        splitter.setAttribute('aria-valuemax', Math.floor(max));
+        splitter.setAttribute('aria-valuenow', width);
+    }
+
+    // Called by the native selection/loading paths, including failed loads and
+    // the bulk summary. Visibility must not depend on a successful API response.
+    function showDetail(open = true) { detailOpen = open; layout(); }
+
+    async function backToList() {
+        if (!isActive() || !detailOpen) return;
+        if (window.TicketWorkspace && !await TicketWorkspace.canLeave()) return;
+        document.body.classList.remove('ticket-popout');
+        showDetail(false);
+        // Keep both DOMs: returning to the queue must not reset its page,
+        // filters or scroll, nor replace a live task editor or ticket thread.
+        (document.querySelector('#dtBody .selected') || document.getElementById('dtSearch')).focus({preventScroll: true});
+    }
+
+    function bindLayout() {
+        const splitter = document.getElementById('ticketTableSplitter');
+        const setWidth = width => {
+            const available = availableWidth();
+            splitRatio = Math.max(minList, Math.min(available - minDetail - divider, width)) / available;
+            layout();
+        };
+        splitter.addEventListener('keydown', event => {
+            const current = Number(splitter.getAttribute('aria-valuenow'));
+            const widths = {ArrowLeft: current - 24, ArrowRight: current + 24,
+                Home: minList, End: availableWidth() - minDetail - divider};
+            if (!(event.key in widths)) return;
+            event.preventDefault(); setWidth(widths[event.key]);
+        });
+        splitter.addEventListener('pointerdown', event => {
+            if (event.button !== 0) return;
+            drag = {id: event.pointerId, x: event.clientX, width: Number(splitter.getAttribute('aria-valuenow'))};
+            splitter.setPointerCapture(event.pointerId);
+            document.body.classList.add('ticket-table-resizing');
+            event.preventDefault();
+        });
+        splitter.addEventListener('pointermove', event => {
+            if (drag && event.pointerId === drag.id) setWidth(drag.width + event.clientX - drag.x);
+        });
+        ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(type => splitter.addEventListener(type, stopResize));
+        new ResizeObserver(layout).observe(document.querySelector('.main-container'));
+        new ResizeObserver(layout).observe(document.querySelector('.folder-container'));
+    }
 
     const text = key => t('tickets.queue.' + key);
     const isActive = () => window.TICKETS_LIST_LAYOUT === 'table';
@@ -314,8 +395,10 @@ window.TicketTable = (() => {
         document.body.classList.toggle('ticket-table-mode', isActive());
         document.getElementById('emailList').hidden = isActive();
         document.getElementById('ticketTableContainer').hidden = !isActive();
+        detailOpen = !!currentEmail || !!document.querySelector('#readingPane .sel-summary');
+        layout();
     }
-    document.addEventListener('DOMContentLoaded', paint);
+    document.addEventListener('DOMContentLoaded', () => { bindLayout(); paint(); });
 
-    return {reload, requestMode, isActive, getSelectedTicketIds: () => selectedTicketIds()};
+    return {reload, requestMode, isActive, showDetail, backToList, getSelectedTicketIds: () => selectedTicketIds()};
 })();

@@ -792,6 +792,8 @@ return [
         'previous'      => 'Previous',
         'next'          => 'Next',
         'page_size'     => 'Rows per page',
+        'range'         => '{from}-{to} of {total}',
+        'page'          => 'Page {page} of {pages}',
         'cancel_export' => 'Cancel export',
         'export_failed' => 'The export could not be completed.',
     ],

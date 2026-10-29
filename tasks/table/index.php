@@ -35,7 +35,7 @@ $translationNamespaces = ['common', 'tasks'];
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../../assets/css/tasks.css?v=56">
-    <link rel="stylesheet" href="../../assets/css/data-table.css?v=6">
+    <link rel="stylesheet" href="../../assets/css/data-table.css?v=7">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
@@ -121,7 +121,7 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
     </div>
 
-    <script src="../../assets/js/data-table.js?v=8"></script>
+    <script src="../../assets/js/data-table.js?v=9"></script>
     <script src="../../assets/js/tasks-ctx-menu.js?v=5"></script>
     <?php /* The panel renders a description through the shared cleaner - without it
              the HTML showed as text (GH #219). Calendar and Timeline load it too. */ ?>

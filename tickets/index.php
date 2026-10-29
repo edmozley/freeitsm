@@ -66,10 +66,10 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=4">
-    <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=3">
+    <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=4">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
-    <link rel="stylesheet" href="../assets/css/data-table.css?v=5">
-    <link rel="stylesheet" href="../assets/css/tickets-table.css?v=2">
+    <link rel="stylesheet" href="../assets/css/data-table.css?v=7">
+    <link rel="stylesheet" href="../assets/css/tickets-table.css?v=3">
 <?php
 // Note images open in the Files viewer (GH #226), so it needs its own strings -
 // the window buttons, the zoom tools and Download - but not the rest of Files'.
@@ -103,7 +103,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                   ['label' => t('tickets.reading_pane.popout_back'), 'title' => t('tickets.reading_pane.popout_back_title'),
                    'onclick' => 'toggleTicketPopout()', 'id' => 'popoutBackBtn', 'hidden' => true],
                   actionRowNew('openNewTicketModal()', t('tickets.list.new_ticket_btn'))],
-              ['extra' => ticketListSelector($ticketListLayout), 'title_id' => 'inboxActionTitle']); ?>
+              ['extra' => '<button type="button" id="ticketTableBack" class="action-row-btn" hidden onclick="TicketTable.backToList()" title="' . htmlspecialchars(t('tickets.queue.back_title')) . '">' . htmlspecialchars(t('tickets.queue.back')) . '</button>' . ticketListSelector($ticketListLayout), 'title_id' => 'inboxActionTitle']); ?>
 
     <div class="main-container">
         <!-- Folder Navigation -->
@@ -203,6 +203,10 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                 <div class="reading-pane-empty"><?php echo htmlspecialchars(t('tickets.list.select_folder')); ?></div>
             </div>
         </div>
+
+        <div id="ticketTableSplitter" class="ticket-table-splitter" role="separator" tabindex="0" hidden
+             aria-orientation="vertical" aria-controls="ticketTableContainer readingPane"
+             aria-label="<?php echo htmlspecialchars(t('tickets.queue.resize')); ?>"></div>
 
         <!-- Reading Pane -->
         <div class="reading-pane" id="readingPane">
@@ -1129,7 +1133,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../checklists/ticket_view.js?v=13"></script>
     <script src="../assets/js/ticket-fields.js?v=2"></script>
     <script src="../assets/js/ticket-workspace.js?v=4"></script>
-    <script src="../assets/js/data-table.js?v=7"></script>
+    <script src="../assets/js/data-table.js?v=9"></script>
     <!-- Note images open in the Files viewer, in a floating window (GH #226). -->
     <script src="../assets/js/float-window.js?v=1"></script>
     <script src="../assets/js/files-icons.js?v=2"></script>

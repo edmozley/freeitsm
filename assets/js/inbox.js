@@ -2380,6 +2380,7 @@ async function onSelectionChanged({ clickedId = null } = {}) {
         currentEmail = null;
         const pane = document.getElementById('readingPane');
         if (pane) pane.innerHTML = `<div class="reading-pane-empty">${escapeHtml(t('tickets.reading_pane.select_ticket'))}</div>`;
+        window.TicketTable?.showDetail(false);
         return;
     }
 
@@ -2389,6 +2390,7 @@ async function onSelectionChanged({ clickedId = null } = {}) {
         hideKeepModeWarning();
         const only = Array.from(selectedEmailIds)[0];
         if (only !== selectedEmailId) selectEmail(only);
+        else window.TicketTable?.showDetail();
         return;
     }
 
@@ -2457,6 +2459,7 @@ async function renderSelectionSummaryPane() {
                 </div>`;
     }).join('');
 
+    window.TicketTable?.showDetail();
     pane.innerHTML = `
         <div class="sel-summary">
             <div class="sel-summary-count">${escapeHtml(t('tickets.bulk.n_selected').replace('%d', ids.length))}</div>
@@ -2909,6 +2912,7 @@ function bulkProgressHtml() {
 // Select and display email by email ID
 async function selectEmail(emailId) {
     if (window.TicketWorkspace?.isActive() && selectedEmailId !== emailId && !await TicketWorkspace.canLeave()) return;
+    window.TicketTable?.showDetail();
     // 🔑 A NEGATIVE ID IS A TICKET WITH NO EMAIL. get_emails.php sends
     // COALESCE(le.id, -t.id), so the sign says which kind of thing the row is.
     // Selection, drag and the highlight all work off this id unchanged; only
@@ -2974,6 +2978,7 @@ async function selectEmail(emailId) {
 // Load and display ticket by ticket ID (from URL parameter)
 async function loadTicketById(ticketId) {
     if (window.TicketWorkspace?.isActive() && Number(currentEmail?.ticket_id) !== Number(ticketId) && !await TicketWorkspace.canLeave()) return;
+    window.TicketTable?.showDetail();
     const selectionGeneration = ++ticketSelectionGeneration;
     const readingPane = document.getElementById('readingPane');
     if (!(window.TicketWorkspace?.isActive() && Number(currentEmail?.ticket_id) === Number(ticketId)))

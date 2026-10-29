@@ -265,13 +265,21 @@
 
         /** Previous / Next, "page / pages", and the rows-per-page choice, under the table. */
         function renderPager() {
-            let pager = byId(els.table).parentElement.querySelector('.dt-pagination');
+            // The footer belongs to the layout, outside the table's horizontal
+            // scroller. Keep the plain-table fallback used by embedded callers.
+            const anchor = byId(els.table).closest('.dt-wrap') || byId(els.table);
+            let pager = anchor.parentElement.querySelector('.dt-pagination');
             if (!pager) {
                 pager = document.createElement('div');
                 pager.className = 'dt-pagination';
-                byId(els.table).after(pager);
+                anchor.after(pager);
             }
             pager.replaceChildren();
+            const range = document.createElement('span');
+            range.className = 'dt-page-range';
+            range.textContent = T('range').replace('{from}', total ? (page - 1) * pageSize + 1 : 0)
+                .replace('{to}', Math.min(page * pageSize, total)).replace('{total}', total);
+            pager.append(range);
             const buttons = [
                 [T('previous'), page - 1, page <= 1],
                 [T('next'),     page + 1, page * pageSize >= total],
@@ -285,7 +293,7 @@
                 pager.append(button);
             }
             const status = document.createElement('span');
-            status.textContent = page + ' / ' + Math.max(1, Math.ceil(total / pageSize));
+            status.textContent = T('page').replace('{page}', page).replace('{pages}', Math.max(1, Math.ceil(total / pageSize)));
             pager.append(status);
             const size = document.createElement('select');
             size.setAttribute('aria-label', T('page_size'));
@@ -295,7 +303,10 @@
                 size.add(option);
             });
             size.addEventListener('change', () => { pageSize = Number(size.value); page = 1; void reloadPage(); });
-            pager.append(size);
+            const label = document.createElement('label');
+            label.className = 'dt-page-size';
+            label.append(T('page_size'), size);
+            pager.append(label);
         }
 
         /**
