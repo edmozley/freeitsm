@@ -8774,9 +8774,17 @@ function watchPaneCompact(pane) {
     const body = pane && pane.querySelector('.email-body');
     pane && pane.classList.remove('pane-compact');
     if (!body || !window.matchMedia('(min-width: 769px)').matches) return;
+    // TRAP: folding the header gives the thread its height. On a thread only a
+    // little taller than the pane, that leaves nothing to scroll, the browser
+    // snaps scrollTop to 0, the header unfolds and the thread scrolls again - a
+    // loop, and an animated one since the fold is animated. So only fold when the
+    // thread would still scroll past the lower threshold afterwards.
+    const folds = () => ['.email-meta', '.pane-strips']
+        .reduce((h, sel) => h + (pane.querySelector(sel)?.offsetHeight || 0), 0) + 30;
     body.addEventListener('scroll', () => {
-        if (body.scrollTop > 60) pane.classList.add('pane-compact');
-        else if (body.scrollTop < 10) pane.classList.remove('pane-compact');
+        const compact = pane.classList.contains('pane-compact');
+        if (!compact && body.scrollTop > 60 && body.scrollHeight - body.clientHeight - folds() > 10) pane.classList.add('pane-compact');
+        else if (compact && body.scrollTop < 10) pane.classList.remove('pane-compact');
     }, { passive: true });
 }
 

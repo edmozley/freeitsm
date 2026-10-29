@@ -55,11 +55,26 @@
 
     /* Scrolled down the thread: the header shrinks to the subject alone, on one
        line, and comes back in full at the top. Toolbar and properties stay. */
+       Animated, not switched: display:none cannot transition, so the meta lines
+       and the strips fold to height 0 and fade. height:auto -> 0 needs
+       interpolate-size (Chromium); elsewhere they still fade, and the height
+       snaps as it always did. visibility follows at the END of the fold, so
+       nothing hidden can take a Tab, and returns at the START of the unfold. */
+    .reading-pane .email-header { transition: padding .22s ease; }
+    .reading-pane .email-subject-line { transition: font-size .22s ease, margin-bottom .22s ease; }
+    .reading-pane .email-meta,
+    .reading-pane .pane-strips {
+        interpolate-size: allow-keywords;
+        transition: height .22s ease, opacity .18s ease, border-bottom-width .22s ease, visibility 0s;
+    }
     .reading-pane.pane-compact .email-header { padding-top: 8px; padding-bottom: 8px; }
     .reading-pane.pane-compact .email-subject-line { font-size: 15px; margin-bottom: 0; }
     .reading-pane.pane-compact .email-subject-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .reading-pane.pane-compact .email-meta,
-    .reading-pane.pane-compact .pane-strips { display: none; }
+    .reading-pane.pane-compact .pane-strips {
+        height: 0; opacity: 0; overflow: hidden; border-bottom-width: 0; visibility: hidden;
+        transition: height .22s ease, opacity .18s ease, border-bottom-width .22s ease, visibility 0s linear .22s;
+    }
 }
 
 @media (max-width: 768px) {
@@ -81,3 +96,13 @@
 }
 .pane-more-menu button:hover { background: var(--surface-hover, #f0f0f0); }
 .pane-more-menu button.is-danger { color: var(--danger, #c62828); }
+
+/* The header's fold is decoration: without motion it simply switches. */
+@media (prefers-reduced-motion: reduce) {
+    .reading-pane .email-header,
+    .reading-pane .email-subject-line,
+    .reading-pane .email-meta,
+    .reading-pane .pane-strips,
+    .reading-pane.pane-compact .email-meta,
+    .reading-pane.pane-compact .pane-strips { transition: none; }
+}
