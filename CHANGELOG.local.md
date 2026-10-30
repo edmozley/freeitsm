@@ -18,6 +18,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2676 | Starters & leavers | Feature | Questions from Forms: a template can ask a form whose answers pick the template by a rule, add only the steps whose "only if" they meet and fill {Question} in step wording; a manager's portal request opens the case through a new "Open a Starters & leavers case" workflow action, or the analyst answers on the case's task; answers shown with Copy buttons and on the task. |
 | 2677 | Tasks | Fix | A task created through TasksService by nobody (a system or workflow caller) failed on tasks.created_by_id; it is now credited to the first active administrator, as the workflow "Create a task" action already did. |
 | 2678 | Tasks | Improvement | On a phone the board's whole sidebar (search, view, columns, My/All, hide done, card order, subtasks, team, analyst, project, contractor, tag) moves into a full-screen sheet opened from a sticky Filters bar showing the current view and how many filters are on, built on a new shared helper (mobile.js LAYER 47) instead of a fourth copy of Domains' sheet. |
+| 2679 | i18n | Improvement | German and Spanish to 100% again: Starters & leavers (261 strings), its module name and the People section (6), translated through the i18n pipeline. |
 
 
 

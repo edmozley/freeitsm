@@ -299,6 +299,10 @@ return [
             'name' => 'Personen',
             'description' => 'Alles über eine Person oder ein Unternehmen, aus jedem Modul, auf einer Seite',
         ],
+        'starters' => [
+            'name' => 'Ein- und Austritte',
+            'description' => 'Alles, was zu tun ist, wenn jemand eintritt, wechselt oder ausscheidet - Aufgaben, Ausstattung und Konten, aus einer einzigen Checkliste',
+        ],
         'service-status' => [
             'name' => 'Status',
             'description' => 'Servicezustand überwachen und Vorfälle verfolgen',

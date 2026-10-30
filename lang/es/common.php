@@ -299,6 +299,10 @@ return [
             'name' => 'Personas',
             'description' => 'Todo sobre una persona o una empresa, de todos los módulos, en una sola página',
         ],
+        'starters' => [
+            'name' => 'Incorporaciones y bajas',
+            'description' => 'Todo lo que debe ocurrir cuando alguien se incorpora, cambia de puesto o se marcha: tareas, equipamiento y cuentas, desde una sola lista de comprobación',
+        ],
         'service-status' => [
             'name' => 'Estado',
             'description' => 'Supervise la salud de los servicios y registre incidentes',
