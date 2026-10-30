@@ -14,12 +14,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
-| 2675 | Starters & leavers | Feature | New module: a case for each person joining, moving or leaving, whose template steps become tasks in Tasks, whose kit is issued and recovered through Assets, which switches leavers off in Users and fires two Workflow triggers - built from existing services, with a People section, documents, Feature Bingo cards and the analyst-leaving map. |
-| 2676 | Starters & leavers | Feature | Questions from Forms: a template can ask a form whose answers pick the template by a rule, add only the steps whose "only if" they meet and fill {Question} in step wording; a manager's portal request opens the case through a new "Open a Starters & leavers case" workflow action, or the analyst answers on the case's task; answers shown with Copy buttons and on the task. |
-| 2677 | Tasks | Fix | A task created through TasksService by nobody (a system or workflow caller) failed on tasks.created_by_id; it is now credited to the first active administrator, as the workflow "Create a task" action already did. |
-| 2678 | Tasks | Improvement | On a phone the board's whole sidebar (search, view, columns, My/All, hide done, card order, subtasks, team, analyst, project, contractor, tag) moves into a full-screen sheet opened from a sticky Filters bar showing the current view and how many filters are on, built on a new shared helper (mobile.js LAYER 47) instead of a fourth copy of Domains' sheet. |
-| 2679 | i18n | Improvement | German and Spanish to 100% again: Starters & leavers (261 strings), its module name and the People section (6), translated through the i18n pipeline. |
-| 2680 | Starters & leavers | Improvement | The parent task's title and description, the custody note on issued kit and the step-failed warning are written in the case's language (the owner's saved language, else the opener's, else English) with a localised date, instead of always English; new starters.written.* strings in en/de/es. |
 
 
 
@@ -1173,6 +1167,17 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 317 | Tasks             | Fix         | **Drag-reorder drop indicator invisible in scrolling board columns.** The purple line that shows where a dragged card will land vanished whenever its column had enough cards to scroll. Cause: `.board-cards` is a `flex-direction:column` container and the `.drop-indicator` is an empty `<div>` &mdash; so its min-content height is 0, and when the column overflowed, flexbox's `flex-shrink` compressed the indicator to 0px (the cards resist because their text gives them a min-content height; the empty indicator does not). Fixed by adding `flex-shrink:0` to `.drop-indicator` (and to `.task-card` for good measure, so cards can never be squished either). `tasks.css` bumped to `?v=6`. |
 
 ## Published
+
+### 4.6.0 - 30 October 2026
+
+| ID   | Module            | Type        | Description |
+|------|-------------------|-------------|-------------|
+| 2680 | Starters & leavers | Improvement | The parent task's title and description, the custody note on issued kit and the step-failed warning are written in the case's language (the owner's saved language, else the opener's, else English) with a localised date, instead of always English; new starters.written.* strings in en/de/es. |
+| 2679 | i18n | Improvement | German and Spanish to 100% again: Starters & leavers (261 strings), its module name and the People section (6), translated through the i18n pipeline. |
+| 2678 | Tasks | Improvement | On a phone the board's whole sidebar (search, view, columns, My/All, hide done, card order, subtasks, team, analyst, project, contractor, tag) moves into a full-screen sheet opened from a sticky Filters bar showing the current view and how many filters are on, built on a new shared helper (mobile.js LAYER 47) instead of a fourth copy of Domains' sheet. |
+| 2677 | Tasks | Fix | A task created through TasksService by nobody (a system or workflow caller) failed on tasks.created_by_id; it is now credited to the first active administrator, as the workflow "Create a task" action already did. |
+| 2676 | Starters & leavers | Feature | Questions from Forms: a template can ask a form whose answers pick the template by a rule, add only the steps whose "only if" they meet and fill {Question} in step wording; a manager's portal request opens the case through a new "Open a Starters & leavers case" workflow action, or the analyst answers on the case's task; answers shown with Copy buttons and on the task. |
+| 2675 | Starters & leavers | Feature | New module: a case for each person joining, moving or leaving, whose template steps become tasks in Tasks, whose kit is issued and recovered through Assets, which switches leavers off in Users and fires two Workflow triggers - built from existing services, with a People section, documents, Feature Bingo cards and the analyst-leaving map. |
 
 ### 4.5.0 - 29 October 2026
 
