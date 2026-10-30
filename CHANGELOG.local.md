@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2686 | Authentication | Feature | **Import people, groups and group membership from Microsoft Entra ID.** An OpenID Connect provider whose issuer is Entra gets a **Directory sync (users and groups)** page (`system/sso/entra.php`: Connection, Importing people, Groups, History), read through Microsoft Graph with the sign-in app registration or a separate one (application permissions `User.Read.All` and `GroupMember.Read.All`, admin consent). Third transport after LDAP and CardDAV, on the same policy layer: nobody is deleted, the sanity brake, missed-run threshold, preview, run history and manager pass. People scope is everybody or transitive members of chosen groups, guests optional; groups land in new `directory_groups` / `directory_group_members` tables and their names replace object ids in the sign-in group mappings. &#128273; Entra's OIDC `sub` is pairwise, so the object id is kept in `user_sso_identities.source_ref` under a placeholder subject that `oidc_callback.php` swaps for the real `sub` on first sign-in. Requires Database Verification. |
 
 
 
