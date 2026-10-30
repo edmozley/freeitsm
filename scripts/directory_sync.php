@@ -41,9 +41,13 @@ if (isset($opts['all'])) {
     // nobody having ticked the wrong box.
     $providers = $conn->query(
         "SELECT * FROM auth_providers
-          WHERE enabled = 1 AND sync_enabled = 1 AND protocol IN ('ldap', 'carddav')
+          WHERE enabled = 1 AND sync_enabled = 1 AND protocol IN ('ldap', 'carddav', 'oidc')
        ORDER BY id"
     )->fetchAll(PDO::FETCH_ASSOC);
+    // An OIDC row is only a people source when it is Entra (entra_sync.php).
+    require_once __DIR__ . '/../includes/entra_sync.php';
+    $providers = array_values(array_filter($providers,
+        fn($p) => $p['protocol'] !== 'oidc' || entraIsEntraIssuer((string)$p['issuer_url'])));
 } elseif (!empty($opts['provider'])) {
     $s = $conn->prepare("SELECT * FROM auth_providers WHERE id = ?");
     $s->execute([(int)$opts['provider']]);
@@ -90,8 +94,13 @@ foreach ($providers as $p) {
         $run = cardDavSyncRun($conn, $p, $mode, null);
     } elseif ($p['protocol'] === 'ldap') {
         $run = directorySyncRun($conn, $p, $mode, null);
+    } elseif ($p['protocol'] === 'oidc' && (int)$p['sync_enabled'] === 1
+              && entraIsEntraIssuer((string)$p['issuer_url'])) {
+        // Microsoft Entra ID through Graph. Secrets are decrypted inside.
+        require_once __DIR__ . '/../includes/entra_sync.php';
+        $run = entraSyncRun($conn, $p, $mode, null);
     } else {
-        if (!$quiet) echo "Skipped: an OIDC provider has no people to import.\n\n";
+        if (!$quiet) echo "Skipped: this OIDC provider is not an Entra ID provider with directory sync switched on.\n\n";
         continue;
     }
 
