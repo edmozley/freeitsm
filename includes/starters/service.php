@@ -34,6 +34,7 @@ require_once __DIR__ . '/../users.php';
 require_once __DIR__ . '/../services/tasks.php';
 require_once __DIR__ . '/../services/assets.php';
 require_once __DIR__ . '/../services/checklists.php';
+require_once __DIR__ . '/../i18n.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 /** The three kinds of case. */
@@ -297,8 +298,8 @@ final class StartersService
         // The work, in Tasks. The parent is due on the case's date; each step is
         // due its offset from it (negative = before).
         $parent = TasksService::saveTask($conn, $ctx, [
-            'title'       => self::taskTitle($kind, $name, $date),
-            'description' => self::taskDescription($caseId),
+            'title'       => self::taskTitle($kind, $name, $date, $loc = self::writeLocale($conn, $ctx, !empty($in['owner_analyst_id']) ? (int)$in['owner_analyst_id'] : null)),
+            'description' => self::taskDescription($caseId, [], $loc),
             'due_date'    => $date,
             'tenant_id'   => $tenantId,
             'assigned_analyst_id' => !empty($in['owner_analyst_id']) ? (int)$in['owner_analyst_id'] : ($ctx->actorId > 0 ? $ctx->actorId : null),
@@ -373,12 +374,12 @@ final class StartersService
                 $added++;
             } catch (ServiceError $e) {
                 self::audit($conn, $caseId, $ctx, 'step_failed', $step['title'], $e->getMessage());
-                $warnings[] = 'The step "' . $step['title'] . '" could not be added: ' . $e->getMessage();
+                $warnings[] = I18n::tFor($ctx->locale, 'starters.written.step_failed', ['step' => $step['title'], 'error' => $e->getMessage()]);
             }
         }
         $conn->prepare("UPDATE jml_cases SET steps_pending = 0 WHERE id = ?")->execute([$caseId]);
         if ($answers) {
-            TasksService::saveTask($conn, $ctx, ['id' => (int)$c['parent_task_id'], 'description' => self::taskDescription($caseId, $answers)]);
+            TasksService::saveTask($conn, $ctx, ['id' => (int)$c['parent_task_id'], 'description' => self::taskDescription($caseId, $answers, self::writeLocale($conn, $ctx, $c['owner_analyst_id'] ? (int)$c['owner_analyst_id'] : null))]);
         }
         self::audit($conn, $caseId, $ctx, 'steps_added', $skipped ? (string)$skipped : null, (string)$added);
     }
@@ -623,20 +624,44 @@ final class StartersService
         }
     }
 
-    /** The task title a case's work is filed under - "Leaver: Jane Smith (31 Oct 2026)". */
-    private static function taskTitle(JmlKind $kind, string $name, string $date): string
+    /**
+     * The language for text this module WRITES into other modules - the case's task, a
+     * custody note. It is saved once and read by everybody, so it follows the case, not
+     * the request: the owner's chosen language, else the acting analyst's, else English.
+     * A workflow or portal opening (actor 0) has no language of its own.
+     */
+    private static function writeLocale(PDO $conn, ActorContext $ctx, ?int $ownerId): string
     {
-        $label = ['starter' => 'Starter', 'mover' => 'Mover', 'leaver' => 'Leaver'][$kind->value];
-        return mb_substr("$label: $name (" . date('j M Y', strtotime($date)) . ')', 0, 255);
+        $ownerId = $ownerId ?: ($ctx->actorId > 0 ? $ctx->actorId : null);
+        if ($ownerId) {
+            $st = $conn->prepare("SELECT preference_value FROM user_preferences WHERE analyst_id = ? AND preference_key = 'interface_language' LIMIT 1");
+            $st->execute([$ownerId]);
+            if ($v = $st->fetchColumn()) return (string)$v;
+        }
+        return $ctx->actorId > 0 ? $ctx->locale : I18n::DEFAULT_LOCALE;
+    }
+
+    /** The task title a case's work is filed under - "Leaver: Jane Smith (31 Oct 2026)", in the case's language. */
+    private static function taskTitle(JmlKind $kind, string $name, string $date, string $locale): string
+    {
+        $ts = strtotime($date);
+        // TRAP: intl is not on every install (slim Docker builds) - an ISO date reads the same in every language.
+        $shown = class_exists('IntlDateFormatter')
+            ? (string)(new IntlDateFormatter($locale === 'en' ? 'en_GB' : str_replace('-', '_', $locale), IntlDateFormatter::MEDIUM, IntlDateFormatter::NONE, date_default_timezone_get()))->format($ts)
+            : date('Y-m-d', $ts);
+        $title = I18n::tFor($locale, 'starters.written.task_title', [
+            'kind' => I18n::tFor($locale, 'starters.kind.' . $kind->value), 'name' => $name, 'date' => $shown ?: date('Y-m-d', $ts),
+        ]);
+        return mb_substr($title, 0, 255);
     }
 
     /** The parent task's description - a way back to the case. */
-    private static function taskDescription(int $caseId, array $answers = []): string
+    private static function taskDescription(int $caseId, array $answers, string $locale): string
     {
         require_once __DIR__ . '/../entity_links.php';
         $url = (defined('BASE_URL') ? BASE_URL : '') . entityLink('jml_case', $caseId);
-        $h = '<p>This task holds the work for a Starters &amp; leavers case. Each step is a subtask.</p>'
-           . '<p><a href="' . htmlspecialchars($url) . '">Open the case</a></p>';
+        $h = '<p>' . htmlspecialchars(I18n::tFor($locale, 'starters.written.task_intro')) . '</p>'
+           . '<p><a href="' . htmlspecialchars($url) . '">' . htmlspecialchars(I18n::tFor($locale, 'starters.written.task_open')) . '</a></p>';
         // The answers, where the work is done - so nobody goes looking for the form.
         $rows = array_filter($answers, fn($a) => trim((string)$a['value']) !== '');
         if ($rows) {
@@ -810,7 +835,7 @@ final class StartersService
         $c = self::loadForActor($conn, $ctx, $caseId);
         if (!$c['user_id']) throw new ServiceError('validation', 'invalid_field', 'Link this case to the person in Users first.');
         self::assertAsset($conn, $ctx, $assetId);
-        AssetsService::assignUser($conn, $ctx, $assetId, ['user_id' => (int)$c['user_id'], 'notes' => 'Starters & leavers case #' . $caseId]);
+        AssetsService::assignUser($conn, $ctx, $assetId, ['user_id' => (int)$c['user_id'], 'notes' => I18n::tFor(self::writeLocale($conn, $ctx, $c['owner_analyst_id'] ? (int)$c['owner_analyst_id'] : null), 'starters.written.kit_note', ['id' => $caseId])]);
         self::audit($conn, $caseId, $ctx, 'kit_issued', null, (string)$assetId);
     }
 

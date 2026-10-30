@@ -238,6 +238,15 @@ return [
         'deleted' => 'Plantilla eliminada.',
         'cancel' => 'Cancelar',
     ],
+    // Text the module WRITES into other modules (the case's task, Assets history) -
+    // saved once, in the language of whoever opened the case.
+    'written' => [
+        'task_title' => '{kind}: {name} ({date})',
+        'task_intro' => 'Esta tarea contiene el trabajo de un caso de Incorporaciones y bajas. Cada paso es una subtarea.',
+        'task_open' => 'Abrir el caso',
+        'kit_note' => 'Caso de Incorporaciones y bajas n.º {id}',
+        'step_failed' => 'No se pudo añadir el paso «{step}»: {error}',
+    ],
     'help' => [
         'guide' => 'Guía',
         'hero_heading' => 'Incorporaciones y bajas',

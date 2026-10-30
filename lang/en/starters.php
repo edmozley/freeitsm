@@ -251,6 +251,15 @@ return [
         'cancel'          => 'Cancel',
     ],
 
+    // Text the module WRITES into other modules (the case's task, Assets history) -
+    // saved once, in the language of whoever opened the case.
+    'written' => [
+        'task_title' => '{kind}: {name} ({date})',
+        'task_intro' => 'This task holds the work for a Starters & leavers case. Each step is a subtask.',
+        'task_open' => 'Open the case',
+        'kit_note' => 'Starters & leavers case #{id}',
+        'step_failed' => 'The step "{step}" could not be added: {error}',
+    ],
     'help' => [
         'guide'      => 'Guide',
         'hero_heading' => 'Starters & leavers',

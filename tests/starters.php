@@ -120,6 +120,15 @@ try {
     ok('a template of another kind is refused', refused(fn() => StartersService::createCase($conn, $ctx, ['kind' => 'mover', 'person_name' => 'x', 'user_id' => null, 'effective_date' => $date, 'template_id' => $tpl])) !== '');
     ok('a date is required', refused(fn() => StartersService::createCase($conn, $ctx, ['kind' => 'starter', 'person_name' => 'x', 'effective_date' => 'soon'])) !== '');
 
+    // The task is written in the case's language: the owner's saved choice, else the opener's.
+    $deCtx = new ActorContext(actorId: $admin, companyScope: null, source: 'ui', locale: 'de', actorName: 'test');
+    $deCase = StartersService::createCase($conn, $deCtx, ['kind' => 'starter', 'person_name' => "ZZ-JML De $tag", 'effective_date' => $date]);
+    $made['cases'][] = $deCase;
+    $pref = $conn->query("SELECT preference_value FROM user_preferences WHERE analyst_id = $admin AND preference_key = 'interface_language'")->fetchColumn() ?: 'de';
+    $deTask = $conn->query("SELECT t.title, t.description FROM tasks t JOIN jml_cases c ON c.parent_task_id = t.id WHERE c.id = $deCase")->fetch(PDO::FETCH_ASSOC);
+    ok("the case's task is written in its language ($pref)", str_starts_with($deTask['title'], I18n::tFor($pref, 'starters.kind.starter') . ': ZZ-JML De')
+       && str_contains($deTask['description'], htmlspecialchars(I18n::tFor($pref, 'starters.written.task_open'))), $deTask['title']);
+
     // ---- they arrive in Users: link, then kit through Assets ---------------------
     $conn->prepare("INSERT INTO users (email, display_name, is_active) VALUES (?, ?, 1)")->execute(["zzjml-$tag@example.test", "ZZ-JML Jo $tag"]);
     $user = (int)$conn->lastInsertId(); $made['users'][] = $user;

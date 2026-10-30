@@ -238,6 +238,15 @@ return [
         'deleted' => 'Vorlage gelöscht.',
         'cancel' => 'Abbrechen',
     ],
+    // Text the module WRITES into other modules (the case's task, Assets history) -
+    // saved once, in the language of whoever opened the case.
+    'written' => [
+        'task_title' => '{kind}: {name} ({date})',
+        'task_intro' => 'Diese Aufgabe enthält die Arbeit für einen Fall unter Ein- und Austritte. Jeder Schritt ist eine Unteraufgabe.',
+        'task_open' => 'Fall öffnen',
+        'kit_note' => 'Ein- und Austritte, Fall #{id}',
+        'step_failed' => 'Der Schritt „{step}“ konnte nicht hinzugefügt werden: {error}',
+    ],
     'help' => [
         'guide' => 'Leitfaden',
         'hero_heading' => 'Ein- und Austritte',
