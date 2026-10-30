@@ -243,8 +243,9 @@ if ($protocol === 'carddav') {
     if ($scopes === '') $scopes = 'openid email profile';
 
     $secretInput = $data['client_secret'] ?? '';
-    // Directory sync is not an OIDC thing; this provider stores the column
-    // defaults. Shared with the CardDAV branch so the two cannot drift.
+    // LDAP-style directory sync is not an OIDC thing; this provider stores the
+    // column defaults. Shared with the CardDAV branch so the two cannot drift.
+    // (Entra sync's sync_* policy values are kept on update - see $readable.)
     $ldap = $LDAP_EMPTY;
     $ldapSecretInput = '';
 
@@ -402,7 +403,11 @@ try {
             if ($protocol === 'oidc') {
                 $readable = array_merge($readable, ['auto_create_users', 'auto_create_analysts', 'analyst_fallback_mode', 'require_verified_email', 'profile_sync_mode', 'issuer_url', 'client_id', 'scopes',
                                                     'portal_email_domains', 'portal_show_button',
-                                                    'oidc_group_claim', 'oidc_analyst_group', 'oidc_admin_group']);
+                                                    'oidc_group_claim', 'oidc_analyst_group', 'oidc_admin_group',
+                                                    // Entra directory sync (entra.php / save_entra_sync.php) uses
+                                                    // these on an OIDC row; the dialog never sends them, so an
+                                                    // edit there must not switch the import off.
+                                                    'sync_enabled', 'sync_on_conflict', 'sync_deactivate_after', 'sync_brake_percent']);
             } elseif ($protocol === 'ldap') {
                 $readable = array_merge($readable, ['auto_create_users', 'auto_create_analysts', 'analyst_fallback_mode', 'require_verified_email', 'profile_sync_mode'],
                     array_values(array_filter($cols, fn($c) => str_starts_with($c, 'ldap_') || str_starts_with($c, 'sync_'))));

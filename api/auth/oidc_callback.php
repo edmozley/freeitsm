@@ -489,6 +489,24 @@ function completeSelfServiceSso(PDO $conn, array $provider, int $providerId, str
         $userId = false;
     }
 
+    // --- 1b) Somebody Entra directory sync imported (includes/entra_sync.php) ---
+    // Graph knows a person by object id, Entra sign-in by a PAIRWISE `sub`, so
+    // the import records the object id in source_ref under a placeholder
+    // subject. The `oid` claim finds that row, and the real `sub` replaces the
+    // placeholder so step 1 finds them directly from now on.
+    $oid = strtolower(trim((string)($claims['oid'] ?? '')));
+    if (!$userId && $oid !== '') {
+        $stmt = $conn->prepare("SELECT id, user_id FROM user_sso_identities WHERE provider_id = ? AND source_ref = ? LIMIT 1");
+        $stmt->execute([$providerId, $oid]);
+        $link = $stmt->fetch(PDO::FETCH_ASSOC);
+        $linked = $link ? ssLoadUser($conn, (int)$link['user_id']) : null;
+        if ($linked) {
+            $conn->prepare("UPDATE user_sso_identities SET subject = ? WHERE id = ?")->execute([$sub, (int)$link['id']]);
+            $userId = (int)$link['user_id'];
+            $user   = $linked;
+        }
+    }
+
     if ($userId) {
         $userId = (int)$userId;
         // Strict isolation: must still be assigned to this provider.
@@ -553,9 +571,13 @@ function completeSelfServiceSso(PDO $conn, array $provider, int $providerId, str
         }
 
         // Link this IdP identity to the requester for next time.
+        // ⚠️ Upsert: directory sync may already hold a row for this person and
+        // provider (placeholder subject, no `oid` claim to find it by), and a
+        // plain INSERT would hit uq_user_sso_provider_user and fail the sign-in.
         $conn->prepare(
             "INSERT INTO user_sso_identities (user_id, provider_id, subject, email, linked_datetime, last_login_datetime)
-             VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+             VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+             ON DUPLICATE KEY UPDATE subject = VALUES(subject), email = VALUES(email), last_login_datetime = UTC_TIMESTAMP()"
         )->execute([$userId, $providerId, $sub, $email ?: null]);
     }
 
