@@ -40,11 +40,28 @@ try {
     // for provider N" is one action and the caller should not have to know
     // which transport it is. The protocol chooses the engine; everything above
     // this point — the admin guard, the mode, the response shape — is shared.
-    $s = $conn->prepare("SELECT * FROM auth_providers WHERE id = ? AND protocol IN ('ldap', 'carddav')");
+    $s = $conn->prepare("SELECT * FROM auth_providers WHERE id = ? AND protocol IN ('ldap', 'carddav', 'oidc')");
     $s->execute([$pid]);
     $provider = $s->fetch(PDO::FETCH_ASSOC);
     if (!$provider) {
         echo json_encode(['success' => false, 'error' => 'No such people source']);
+        exit;
+    }
+
+    // An OIDC provider is a people source only when it is Microsoft Entra ID,
+    // read through Graph (includes/entra_sync.php). Secrets are decrypted there.
+    if ($provider['protocol'] === 'oidc') {
+        require_once '../../includes/entra_sync.php';
+        if (!entraIsEntraIssuer((string)$provider['issuer_url'])) {
+            echo json_encode(['success' => false, 'error' => 'Only a Microsoft Entra ID provider can import people.']);
+            exit;
+        }
+        if ((int)$provider['sync_enabled'] !== 1) {
+            echo json_encode(['success' => false, 'error' => 'Directory sync is switched off for this provider. Turn it on and save first.']);
+            exit;
+        }
+        $run = directorySyncRecorded($conn, $provider, $mode, fn() => entraSyncRun($conn, $provider, $mode, (int)$_SESSION['analyst_id']));
+        echo json_encode(['success' => true, 'run' => $run]);
         exit;
     }
 
