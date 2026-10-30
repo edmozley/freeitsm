@@ -133,10 +133,10 @@ $translationNamespaces = ['common', 'tasks'];
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
     <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=199">
     <?php if ($taskEmbedded): ?><link rel="stylesheet" href="../assets/css/task-embed.css?v=1"><?php endif; ?>
 </head>
-<body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>" class="<?php echo trim(($tasksReadOnly ? 'module-read-only' : '') . ($taskEmbedded ? ' task-embed' : '')); ?>">
+<body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>"<?php echo $taskEmbedded ? '' : ' data-mobile-page="tasks-board"'; ?> class="<?php echo trim(($tasksReadOnly ? 'module-read-only' : '') . ($taskEmbedded ? ' task-embed' : '')); ?>">
     <?php if (!$taskEmbedded): ?>
     <?php include 'includes/header.php'; ?>
     <?php /* The action row (#185). Tasks had no general New - only the + at the
@@ -402,7 +402,7 @@ $translationNamespaces = ['common', 'tasks'];
     <script src="../assets/js/safe-html.js?v=4"></script>
     <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=2"></script><?php endif; ?>
     <script src="../assets/js/tasks.js?v=71"></script>
-    <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=84"></script><?php endif; ?>
+    <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=86"></script><?php endif; ?>
 
 </body>
 </html>

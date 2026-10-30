@@ -16423,3 +16423,154 @@
     body[data-mobile-page="settings"] .av-field select { font-size: 16px; min-height: 42px; }
     body[data-mobile-page="settings"] .av-menu { min-width: 0; width: calc(100vw - 48px); }
 }
+
+/* ==========================================================================
+   LAYER 47 - A sidebar as a sheet: ONE helper (mobile.js LAYER 47)
+   Domains 41d's bar and sheet, as generic classes: .m-fbar (the Filters bar
+   pinned to the bottom) and .m-fsheet (the full-screen sheet it opens). The
+   page keeps its last row clear of the bar with --m-bar-h-<key>.
+   ========================================================================== */
+@media (max-width: 768px) {
+    .m-fbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1200;
+        display: flex;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+        background: var(--surface, #fff);
+        border-top: 1px solid var(--border, #ddd);
+    }
+    .m-fbar-btn {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--border, #ddd);
+        border-radius: 8px;
+        background: var(--surface, #fff);
+        color: var(--text, #1e293b);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .m-fbar-btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    .m-fbar-view {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 500;
+        color: var(--accent, #0078d4);
+    }
+    .m-fbar-badge {
+        flex: 0 0 auto;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        background: var(--accent, #0078d4);
+        color: var(--on-accent, #fff);
+        font-size: 12px;
+        line-height: 20px;
+        text-align: center;
+    }
+    .m-fbar-badge[hidden] { display: none; }
+    .m-fsheet {
+        position: fixed;
+        inset: 0;
+        z-index: 1300;          /* over the bar that opens it */
+        display: none;
+        flex-direction: column;
+        background: var(--surface, #fff);
+    }
+    .m-fsheet.is-open { display: flex; }
+    .m-fsheet-head {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px;
+        padding-top: calc(12px + env(safe-area-inset-top));
+        border-bottom: 1px solid var(--border-soft, #e2e8f0);
+    }
+    .m-fsheet-title { font-size: 16px; font-weight: 600; color: var(--text, #1e293b); }
+    .m-fsheet-close {
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text, #1e293b);
+        cursor: pointer;
+    }
+    .m-fsheet-close svg { width: 22px; height: 22px; }
+    .m-fsheet-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .m-fsheet-foot {
+        flex: 0 0 auto;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border-soft, #e2e8f0);
+    }
+    .m-fsheet-done {
+        width: 100%;
+        min-height: 46px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--accent, #0078d4);
+        color: var(--on-accent, #fff);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    /* ---- 25h. Tasks: the sidebar lives in the sheet ----------------------
+       tasks.css hides .tasks-sidebar below 600px; in the sheet it is the
+       whole content, at full width. Sections the page hides itself (group,
+       sort and subtasks in the list; project, contractor and tag when unused)
+       keep their own inline display:none. */
+    body[data-mobile-page="tasks-board"] .m-fsheet .tasks-sidebar {
+        display: block;
+        width: auto;
+        min-width: 0;
+        border: 0;
+        padding: 14px 16px 8px;
+        overflow: visible;
+        height: auto;
+        background: transparent;
+    }
+    body[data-mobile-page="tasks-board"] .m-fsheet .sidebar-section { margin-bottom: 18px; }
+    body[data-mobile-page="tasks-board"] .m-fsheet .sidebar-label { display: block; font-size: 12px; margin-bottom: 8px; }
+    body[data-mobile-page="tasks-board"] .m-fsheet .view-toggle { display: flex; width: 100%; }
+    body[data-mobile-page="tasks-board"] .m-fsheet .view-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 44px;
+        font-size: 14px;
+        justify-content: center;
+    }
+    body[data-mobile-page="tasks-board"] .m-fsheet .filter-btn { min-height: 44px; font-size: 15px; }
+    body[data-mobile-page="tasks-board"] .m-fsheet .search-input,
+    body[data-mobile-page="tasks-board"] .m-fsheet .sidebar-select {
+        font-size: 16px;        /* under 16px iOS zooms the page on focus (25f) */
+        min-height: 44px;
+    }
+    body[data-mobile-page="tasks-board"] .m-fsheet .sidebar-check { font-size: 15px; min-height: 36px; display: flex; align-items: center; gap: 10px; }
+    body[data-mobile-page="tasks-board"] .tasks-container--views > .tasks-main {
+        padding-bottom: var(--m-bar-h-tasks, 64px);
+    }
+}

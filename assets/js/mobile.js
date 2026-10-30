@@ -6388,3 +6388,228 @@
     if (mq.addEventListener) { mq.addEventListener('change', apply); }
     else if (mq.addListener) { mq.addListener(apply); }
 })();
+
+/* ==========================================================================
+   LAYER 47 - A sidebar as a sheet: ONE helper (Techniques §4)
+
+   Domains (41), Checklists (40) and Projects (44a) each built the same thing
+   by hand: the page's REAL sidebar node moves into a full-screen sheet opened
+   from a Filters bar pinned to the bottom, and moves home again when the
+   viewport leaves mobile - so every listener the page attached keeps working
+   and desktop never sees the sheet or the bar. This is that, once, as
+   window.MobileSidebarSheet(opts). Tasks (25h, below) is its first user; the
+   three older copies still work as they are and can move onto it when next
+   touched.
+
+   opts:
+     page        body[data-mobile-page] it runs on
+     sidebar     the sidebar element (moved, never cloned)
+     key         a short name - body[data-m-sheet-<key>] = open | closed and
+                 the --m-bar-h-<key> custom property
+     closeOn     optional selector: a tap on it inside the sheet closes it
+                 (an ARRIVAL, like a Domains view). Choices you set several of
+                 at once should NOT close it - System Wiki's lesson.
+     summary     optional function -> text shown beside "Filters" on the bar
+     badge       optional function -> a number of narrowing filters in force
+     watch       optional element whose changes refresh the bar's text
+   ========================================================================== */
+(function () {
+    'use strict';
+
+    /** Translates a common key, falling back to the given English when missing. */
+    function tr(key, fallback) {
+        if (typeof window.t !== 'function') return fallback;
+        var v = window.t(key);
+        return (!v || v === key) ? fallback : v;
+    }
+
+    var ICONS = {
+        filter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 5h18M7 12h10M10 19h4"/></svg>',
+        close:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>'
+    };
+
+    /**
+     * Puts a page's sidebar in a full-screen sheet behind a sticky Filters bar at phone width, and back in
+     * the page at desktop width.
+     */
+    window.MobileSidebarSheet = function (opts) {
+        if (!document.body || document.body.getAttribute('data-mobile-page') !== opts.page || !opts.sidebar) return;
+        var mq = window.matchMedia('(max-width: 768px)');
+        var sidebar = opts.sidebar;
+        var home = { parent: sidebar.parentNode, next: sidebar.nextSibling };
+        var attr = 'data-m-sheet-' + opts.key;
+        var sheet = null, body = null, bar = null, btn = null, label = null, badge = null;
+
+        function build() {
+            if (sheet) return;
+            sheet = document.createElement('div');
+            sheet.className = 'm-fsheet';
+            sheet.setAttribute('role', 'dialog');
+            sheet.setAttribute('aria-modal', 'true');
+            sheet.setAttribute('data-m-sheet', opts.key);
+            var head = document.createElement('div');
+            head.className = 'm-fsheet-head';
+            var title = document.createElement('span');
+            title.className = 'm-fsheet-title';
+            title.textContent = tr('common.filter', 'Filters');
+            var close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'm-fsheet-close';
+            close.innerHTML = ICONS.close;
+            close.setAttribute('aria-label', tr('common.close', 'Close'));
+            close.addEventListener('click', function () { setOpen(false); });
+            head.appendChild(title);
+            head.appendChild(close);
+            body = document.createElement('div');
+            body.className = 'm-fsheet-body';
+            /* A big Close at the foot of the sheet too: after setting several
+               filters the thumb is at the bottom, not at the top corner. */
+            var foot = document.createElement('div');
+            foot.className = 'm-fsheet-foot';
+            var done = document.createElement('button');
+            done.type = 'button';
+            done.className = 'm-fsheet-done';
+            done.textContent = tr('common.close', 'Close');
+            done.addEventListener('click', function () { setOpen(false); });
+            foot.appendChild(done);
+            sheet.appendChild(head);
+            sheet.appendChild(body);
+            sheet.appendChild(foot);
+            document.body.appendChild(sheet);
+
+            bar = document.createElement('div');
+            bar.className = 'm-fbar';
+            bar.setAttribute('data-m-sheet', opts.key);
+            btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'm-fbar-btn';
+            btn.innerHTML = ICONS.filter + '<span>' + tr('common.filter', 'Filters') + '</span>';
+            label = document.createElement('span');
+            label.className = 'm-fbar-view';
+            badge = document.createElement('span');
+            badge.className = 'm-fbar-badge';
+            btn.appendChild(label);
+            btn.appendChild(badge);
+            btn.addEventListener('click', function () { setOpen(true); });
+            bar.appendChild(btn);
+            document.body.appendChild(bar);
+
+            if (opts.closeOn) {
+                /* CAPTURE: a page that re-renders on click replaces the tapped
+                   node before a bubbling listener could find it (Domains 41). */
+                body.addEventListener('click', function (e) {
+                    if (e.target.closest && e.target.closest(opts.closeOn)) setOpen(false);
+                }, true);
+            }
+            /* The bar follows the page's own changes - clicks, typing, selects. */
+            ['click', 'input', 'change'].forEach(function (ev) { body.addEventListener(ev, function () { setTimeout(refresh, 0); }); });
+            if (opts.watch && window.MutationObserver) {
+                new MutationObserver(refresh).observe(opts.watch, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+            }
+            refresh();
+            // Remembered filters (team, analyst...) are restored after the page loads.
+            setTimeout(refresh, 1500);
+        }
+
+        /** Shows the current state beside Filters, and how many narrowing filters are on. */
+        function refresh() {
+            if (!label) return;
+            var text = opts.summary ? String(opts.summary() || '').replace(/\s+/g, ' ').trim() : '';
+            var n = opts.badge ? (+opts.badge() || 0) : 0;
+            label.textContent = text ? '· ' + text : '';
+            badge.textContent = n ? String(n) : '';
+            badge.hidden = !n;
+            btn.setAttribute('aria-label', tr('common.filter', 'Filters') + (text ? ' - ' + text : '') + (n ? ' (' + n + ')' : ''));
+        }
+
+        function setOpen(open) {
+            document.body.setAttribute(attr, open ? 'open' : 'closed');
+            if (sheet) sheet.classList.toggle('is-open', open);
+            if (open && body) body.scrollTop = 0;
+            if (!open) refresh();
+        }
+
+        function place(intoSheet) {
+            if (intoSheet) {
+                if (body && sidebar.parentNode !== body) body.appendChild(sidebar);
+            } else if (sidebar.parentNode !== home.parent) {
+                home.parent.insertBefore(sidebar, home.next);
+            }
+        }
+
+        /** Records the bar's height so the page can keep its last row clear of it. */
+        function reserve() {
+            if (bar) document.body.style.setProperty('--m-bar-h-' + opts.key, Math.ceil(bar.getBoundingClientRect().height) + 'px');
+        }
+
+        function sync() {
+            if (mq.matches) {
+                build();
+                place(true);
+                bar.style.display = '';
+                sheet.style.display = '';
+                if (!document.body.getAttribute(attr)) setOpen(false);
+                reserve();
+            } else {
+                place(false);
+                if (bar) bar.style.display = 'none';
+                if (sheet) sheet.style.display = 'none';
+                document.body.removeAttribute(attr);
+                document.body.style.removeProperty('--m-bar-h-' + opts.key);
+            }
+        }
+        sync();
+        if (mq.addEventListener) { mq.addEventListener('change', sync); }
+        else if (mq.addListener) { mq.addListener(sync); }
+        return { refresh: refresh, open: function () { setOpen(true); } };
+    };
+})();
+
+/* ==========================================================================
+   LAYER 25h - Tasks: the sidebar as a sheet (Ed, 2026-10-30)
+
+   25g brought back only the Board / List, Status / Analyst, Manual / Due and
+   All / Open / None switches, as a strip above the board - three segmented
+   controls squeezed into one line, unreadable (Ed's screenshot) - and left
+   search, My / All, Hide done, team, analyst, project, contractor and tag
+   unreachable on a phone. Now the whole sidebar is in a sheet behind a
+   Filters bar (LAYER 47), every control at full width.
+
+   The bar says what the board is showing - "Board · My tasks" - harvested
+   from the active buttons, so no string is invented, and counts the
+   narrowing filters in force (search, team, analyst, project, contractor,
+   tag). Nothing closes the sheet but Close: these are choices you set
+   several of at once.
+   ========================================================================== */
+(function () {
+    'use strict';
+    if (!window.MobileSidebarSheet) return;
+    var sidebar = document.querySelector('.tasks-container--views > .tasks-sidebar');
+    if (!sidebar) return;
+
+    /** The visible text of the active button in a section, without its icon. */
+    function activeText(sel) {
+        var b = sidebar.querySelector(sel);
+        return b ? b.textContent.replace(/\s+/g, ' ').trim() : '';
+    }
+
+    window.MobileSidebarSheet({
+        page: 'tasks-board',
+        key: 'tasks',
+        sidebar: sidebar,
+        watch: sidebar,
+        summary: function () {
+            return [activeText('.view-btn.active[data-view]'), activeText('.filter-btn.active')].filter(Boolean).join(' · ');
+        },
+        badge: function () {
+            var n = 0;
+            var search = document.getElementById('taskSearch');
+            if (search && search.value.trim() !== '') n++;
+            ['teamFilter', 'analystFilter', 'projectFilter', 'contractorFilter', 'tagFilter'].forEach(function (id) {
+                var s = document.getElementById(id);
+                if (s && s.value) n++;
+            });
+            return n;
+        }
+    });
+})();
