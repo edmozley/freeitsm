@@ -890,7 +890,13 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
                            list of groups to tick. The dialog had already needed sticky
                            chrome to stay usable, which was the same warning sign. */
                         ? `<a class="table-action-btn" href="${isCardDav ? 'carddav' : 'provider'}.php?id=${p.id}" title="${esc(window.t('system.sso.configure'))}" aria-label="${esc(window.t('system.sso.configure'))}">${ICON_CONFIGURE}</a>`
-                        : `<button class="table-action-btn" data-edit="${p.id}" title="${esc(window.t('system.sso.edit'))}" aria-label="${esc(window.t('system.sso.edit'))}">${ICON_EDIT}</button>`}
+                        : `<button class="table-action-btn" data-edit="${p.id}" title="${esc(window.t('system.sso.edit'))}" aria-label="${esc(window.t('system.sso.edit'))}">${ICON_EDIT}</button>`
+                          /* Microsoft Entra ID can also be a people source, read through
+                             Graph with the same app registration: entra.php. Mirrors
+                             entraIsEntraIssuer() in includes/entra_sync.php. */
+                          + (/^https:\/\/(login\.microsoftonline\.(com|us)|login\.chinacloudapi\.cn|sts\.windows\.net)\//i.test(p.issuer_url || '')
+                              ? `<a class="table-action-btn" href="entra.php?id=${p.id}" title="${esc(window.t('system.sso.entra_configure_sync'))}" aria-label="${esc(window.t('system.sso.entra_configure_sync'))}">${ICON_CONFIGURE}</a>`
+                              : '')}
                     <button class="table-action-btn danger" data-del="${p.id}" title="${esc(window.t('system.sso.delete'))}" aria-label="${esc(window.t('system.sso.delete'))}">${ICON_DELETE}</button>
                 </td>
             </tr>`;
