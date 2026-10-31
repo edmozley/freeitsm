@@ -14,6 +14,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2691 | People | Feature | **Find people by directory group.** The People list has a **Group** filter (with a find box once there are more than ten) that lists the members of one imported group, nested groups included, combined with Show and Company and remembered like them; `?group=` opens the list filtered. A person's page lists the groups they are in. &#128273; A group is seen through its provider's company: a provider owned by a client company shows its groups only to analysts who can access that company, and a group they cannot see filters to nobody, never everybody. Inactive groups are not offered. Hidden until a group has been imported. Test: `tests/people-groups-scope.php`. |
+| 2692 | People | Feature | **A Groups tab, a page per group, and groups on a company page.** `people/groups.php` lists every group the analyst can see (type, source, people, *In Entra*; inactive behind Show) and `people/group.php` its details and members, limited to the companies the analyst can access, with a note on why that can be fewer than Entra counts. A company's page has a **Groups** card: the groups with at least one of its current people, and how many - by membership rather than by the provider's company, because with one global Entra shared by several companies the provider rule would leave every company page empty. The tab appears only when there is a group to show. Test: `tests/people-groups-scope.php`. |
 
 
 

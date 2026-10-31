@@ -93,6 +93,7 @@ $sections = $data['sections'] ?? [];
                 </table></div>
                 <?php endif; ?>
             </section>
+            <?php if (isset($sections['groups'])) echo pplSectionCompanyGroups($sections['groups']); ?>
             <?php echo pplSections($sections, false); ?>
         </div>
     <?php endif; ?>

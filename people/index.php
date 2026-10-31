@@ -20,6 +20,7 @@ $conn = connectToDatabase();
 $analystId = (int)$_SESSION['analyst_id'];
 $multi = isMultiTenant($conn);
 $companies = $multi ? peopleCompanies($conn, $analystId) : [];
+$groups = peopleGroups($conn, $analystId);   // empty until a directory import brings groups in
 $current_page = 'people';
 $path_prefix = '../';
 ?>
@@ -47,6 +48,18 @@ $path_prefix = '../';
                 <option value=""><?php echo pplE(t('people.list.all_companies')); ?></option>
                 <?php foreach ($companies as $co): ?>
                 <option value="<?php echo $co['id']; ?>"><?php echo pplE($co['name']); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <?php endif; ?>
+            <?php if ($groups): ?>
+            <h3><?php echo pplE(t('people.list.group')); ?></h3>
+            <?php if (count($groups) > 10): ?>
+            <input type="search" id="pplGroupFind" placeholder="<?php echo pplE(t('people.list.group_find_ph')); ?>" autocomplete="off" aria-label="<?php echo pplE(t('people.list.group_find_ph')); ?>">
+            <?php endif; ?>
+            <select id="pplGroup" aria-label="<?php echo pplE(t('people.list.group')); ?>">
+                <option value=""><?php echo pplE(t('people.list.all_groups')); ?></option>
+                <?php foreach ($groups as $g): ?>
+                <option value="<?php echo $g['id']; ?>"><?php echo pplE($g['name']); ?> (<?php echo $g['people']; ?>)</option>
                 <?php endforeach; ?>
             </select>
             <?php endif; ?>
@@ -78,6 +91,8 @@ $path_prefix = '../';
         var search = document.getElementById('pplSearch');
         var status = document.getElementById('pplStatus');
         var company = document.getElementById('pplCompany');
+        var group = document.getElementById('pplGroup');
+        var groupFind = document.getElementById('pplGroupFind');
         var rows = document.getElementById('pplRows');
         var more = document.getElementById('pplMore');
         var cols = MULTI ? 4 : 3, seq = 0, timer = null;
@@ -87,12 +102,20 @@ $path_prefix = '../';
             var saved = JSON.parse(localStorage.getItem('people.filters') || '{}');
             if (saved.status) status.value = saved.status;
             if (company && saved.company) company.value = saved.company;
+            if (group && saved.group) group.value = saved.group;
         } catch (e) {}
+        // A group link from a person's page (?group=) wins over what was remembered.
+        var urlGroup = new URLSearchParams(location.search).get('group');
+        if (group && urlGroup) group.value = urlGroup;
+        // A remembered group that is no longer offered leaves the filter on "All groups".
+        if (group && group.selectedIndex < 0) group.value = '';
 
         function load() {
             var my = ++seq;
-            var qs = 'q=' + encodeURIComponent(search.value.trim()) + '&status=' + encodeURIComponent(status.value) + (company && company.value ? '&company=' + encodeURIComponent(company.value) : '');
-            try { localStorage.setItem('people.filters', JSON.stringify({ status: status.value, company: company ? company.value : '' })); } catch (e) {}
+            var qs = 'q=' + encodeURIComponent(search.value.trim()) + '&status=' + encodeURIComponent(status.value)
+                + (company && company.value ? '&company=' + encodeURIComponent(company.value) : '')
+                + (group && group.value ? '&group=' + encodeURIComponent(group.value) : '');
+            try { localStorage.setItem('people.filters', JSON.stringify({ status: status.value, company: company ? company.value : '', group: group ? group.value : '' })); } catch (e) {}
             fetch(API + '?' + qs, { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (d) {
                 if (my !== seq) return;
                 if (!d.success) { rows.innerHTML = '<tr><td colspan="' + cols + '" class="ppl-empty">' + esc(d.error) + '</td></tr>'; return; }
@@ -115,6 +138,14 @@ $path_prefix = '../';
         search.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(load, 200); });
         status.addEventListener('change', load);
         if (company) company.addEventListener('change', load);
+        if (group) group.addEventListener('change', load);
+        // Narrows the group list as you type; the chosen group always stays visible.
+        if (groupFind) groupFind.addEventListener('input', function () {
+            var q = groupFind.value.trim().toLowerCase();
+            Array.prototype.forEach.call(group.options, function (o) {
+                o.hidden = o.value !== '' && o.value !== group.value && q !== '' && o.text.toLowerCase().indexOf(q) === -1;
+            });
+        });
         load();
     })();
     </script>

@@ -42,6 +42,7 @@ function pplStats(array $sections, bool $person, array $labels = []): string
     };
     if (isset($sections['people']))    $add('people', t('people.company.people'), (string)count($sections['people']));
     if (isset($sections['contacts']))  $add('contacts', t('people.supplier.contacts'), (string)count($sections['contacts']));
+    if (isset($sections['groups']))    $add('groups', t('people.groups.title'), (string)count($sections['groups']));
     if (isset($sections['tickets']))   $add('tickets', t('people.section.tickets'), t('people.section.tickets_open', ['open' => $sections['tickets']['open'], 'total' => $sections['tickets']['total']]), $sections['tickets']['open'] > 0 ? 'accent' : '');
     if (isset($sections['assets']))    $add('assets', t($person ? 'people.section.assets_person' : 'people.section.assets'), (string)$sections['assets']['total']);
     if (isset($sections['contracts'])) $add('contracts', t('people.section.contracts'), (string)$sections['contracts']['total']);
@@ -323,6 +324,33 @@ function pplSectionContractorTasks(array $s, bool $byContact): string
 }
 
 /**
+ * A directory group's type in the words the Entra portal uses, or '' when unknown.
+ *
+ * @param ?string $kind  directory_groups.group_kind: security | mail-security | microsoft365 | distribution
+ */
+function pplGroupKind(?string $kind): string
+{
+    $known = ['security', 'mail-security', 'microsoft365', 'distribution'];
+    return in_array($kind, $known, true) ? t('people.groups.kind_' . str_replace('-', '_', $kind)) : '';
+}
+
+/**
+ * The company page's Groups card: each group with members here, and how many.
+ *
+ * @param array $rows  from peopleCompanyGroups(): id, name, kind, here
+ */
+function pplSectionCompanyGroups(array $rows): string
+{
+    $head = [t('people.groups.col_name'), t('people.groups.col_kind'), t('people.groups.col_here')];
+    $cells = array_map(fn($g) => [
+        '<a href="group.php?id=' . (int)$g['id'] . '">' . pplE($g['name']) . '</a>',
+        pplE(pplGroupKind($g['kind'])),
+        (string)(int)$g['here'],
+    ], $rows);
+    return pplCard('groups', t('people.groups.title'), count($rows), $head, $cells);
+}
+
+/**
  * Every section present, in a fixed order.
  *
  * @param array $sections  the page's sections from includes/people.php, keyed by section
@@ -382,7 +410,7 @@ function pplHead(string $title, array $namespaces = ['common', 'people'], array 
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/people.css?v=27">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/people.css?v=28">
     <?php foreach ($extraCss as $css): ?><link rel="stylesheet" href="<?php echo BASE_URL . pplE($css); ?>">
     <?php endforeach; ?>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
