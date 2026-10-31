@@ -92,6 +92,15 @@ function peopleListRows(PDO $conn, int $analystId, array $f = [], int $limit = 2
         [$m, $mArgs] = peopleCompanyMatch($conn, $co, 'u.tenant_id');
         $where .= $m; $args = array_merge($args, $mArgs);
     }
+    if (!empty($f['group'])) {
+        // A group the analyst may not see filters to nobody, never to everybody.
+        [$gs, $gArgs] = peopleGroupScope($conn, $analystId, 'p');
+        $where .= " AND EXISTS (SELECT 1 FROM directory_group_members m
+                                  JOIN directory_groups g ON g.id = m.group_id
+                                  JOIN auth_providers p ON p.id = g.provider_id
+                                 WHERE m.user_id = u.id AND g.id = ? $gs)";
+        $args = array_merge($args, [(int)$f['group']], $gArgs);
+    }
     $status = $f['status'] ?? 'active';
     if ($status === 'active')  $where .= ' AND u.is_active = 1';
     if ($status === 'leavers') $where .= ' AND u.is_active = 0';
@@ -118,6 +127,225 @@ function peopleListRows(PDO $conn, int $analystId, array $f = [], int $limit = 2
         'id' => (int)$r['id'], 'name' => peopleName($r), 'email' => $r['email'],
         'job_title' => $r['job_title'], 'department' => $r['department'],
         'company' => $r['company_name'] ?? $defaultName, 'is_active' => (int)$r['is_active'] === 1,
+    ], $st->fetchAll(PDO::FETCH_ASSOC));
+}
+
+// ---------------------------------------------------------------------------
+//  Directory groups
+// ---------------------------------------------------------------------------
+
+/*
+ * Groups imported from a directory - Microsoft Entra ID today (entra_sync.php)
+ * - live in directory_groups / directory_group_members, one set per provider.
+ *
+ * 🔑 A GROUP IS SEEN THROUGH ITS PROVIDER'S COMPANY. A provider with no company
+ * is the install's own (global) and its groups are everybody's; a provider that
+ * belongs to a client company shows its groups only to analysts who can access
+ * that company. A group's NAME can say a lot about a client ("Redundancies
+ * 2026"), so it is scoped like the people in it, not merely filtered by them.
+ *
+ * Inactive groups (left the import scope) are not offered: their members are
+ * frozen at the last import, and filtering by them would answer a stale question.
+ */
+
+/**
+ * " AND (<alias>.tenant_id IS NULL OR <alias>.tenant_id IN (accessible))", or '' on a single-company install.
+ *
+ * @param string $alias  the auth_providers table's alias in the query
+ */
+function peopleGroupScope(PDO $conn, int $analystId, string $alias): array
+{
+    if (!isMultiTenant($conn)) return ['', []];
+    $ids = array_map('intval', getAccessibleTenantIds($conn, $analystId));
+    if (!$ids) return [" AND $alias.tenant_id IS NULL", []];
+    return [" AND ($alias.tenant_id IS NULL OR $alias.tenant_id IN (" . implode(',', array_fill(0, count($ids), '?')) . '))', $ids];
+}
+
+/** Is this "the group tables do not exist yet" (Database Verification not run) rather than a real failure? */
+function peopleGroupTablesMissing(PDOException $e): bool
+{
+    return ($e->errorInfo[0] ?? $e->getCode()) === '42S02';
+}
+
+/**
+ * The active directory groups this analyst can see, for the People filter: id,
+ * name, kind, and how many of the people the analyst can see are in it. Empty
+ * when no group has been imported, which hides the filter.
+ */
+function peopleGroups(PDO $conn, int $analystId): array
+{
+    [$gs, $gArgs] = peopleGroupScope($conn, $analystId, 'p');
+    [$us, $uArgs] = peopleScope($conn, $analystId, 'u.tenant_id');
+    try {
+        $st = $conn->prepare(
+            "SELECT g.id, g.display_name, g.group_kind,
+                    (SELECT COUNT(*) FROM directory_group_members m JOIN users u ON u.id = m.user_id
+                      WHERE m.group_id = g.id AND u.is_active = 1 $us) AS people
+               FROM directory_groups g
+               JOIN auth_providers p ON p.id = g.provider_id
+              WHERE g.is_active = 1 $gs
+           ORDER BY g.display_name"
+        );
+        $st->execute(array_merge($uArgs, $gArgs));
+    } catch (PDOException $e) {
+        if (peopleGroupTablesMissing($e)) return [];
+        throw $e;
+    }
+    return array_map(fn($r) => [
+        'id' => (int)$r['id'], 'name' => $r['display_name'], 'kind' => $r['group_kind'], 'people' => (int)$r['people'],
+    ], $st->fetchAll(PDO::FETCH_ASSOC));
+}
+
+/**
+ * The active directory groups one person is in, that this analyst can see.
+ *
+ * @param int $userId  the users id of the person
+ */
+function peoplePersonGroups(PDO $conn, int $analystId, int $userId): array
+{
+    [$gs, $gArgs] = peopleGroupScope($conn, $analystId, 'p');
+    try {
+        $st = $conn->prepare(
+            "SELECT g.id, g.display_name
+               FROM directory_group_members m
+               JOIN directory_groups g ON g.id = m.group_id
+               JOIN auth_providers p ON p.id = g.provider_id
+              WHERE m.user_id = ? AND g.is_active = 1 $gs
+           ORDER BY g.display_name"
+        );
+        $st->execute(array_merge([$userId], $gArgs));
+    } catch (PDOException $e) {
+        if (peopleGroupTablesMissing($e)) return [];
+        throw $e;
+    }
+    return array_map(fn($r) => ['id' => (int)$r['id'], 'name' => $r['display_name']], $st->fetchAll(PDO::FETCH_ASSOC));
+}
+
+/**
+ * Every directory group this analyst can see, for the Groups page - inactive ones
+ * included, flagged, so the page can offer them behind "Show".
+ *
+ * `people` counts the current members the analyst can see; `in_source` is how
+ * many the directory itself says the group has, which is higher whenever some
+ * members are not imported (outside the import scope, or guests).
+ */
+function peopleGroupRows(PDO $conn, int $analystId): array
+{
+    [$gs, $gArgs] = peopleGroupScope($conn, $analystId, 'p');
+    [$us, $uArgs] = peopleScope($conn, $analystId, 'u.tenant_id');
+    try {
+        $st = $conn->prepare(
+            "SELECT g.id, g.display_name, g.description, g.group_kind, g.member_count, g.is_active,
+                    p.display_name AS source_name, tn.name AS source_company,
+                    (SELECT COUNT(*) FROM directory_group_members m JOIN users u ON u.id = m.user_id
+                      WHERE m.group_id = g.id AND u.is_active = 1 $us) AS people
+               FROM directory_groups g
+               JOIN auth_providers p ON p.id = g.provider_id
+          LEFT JOIN tenants tn ON tn.id = p.tenant_id
+              WHERE 1=1 $gs
+           ORDER BY g.display_name"
+        );
+        $st->execute(array_merge($uArgs, $gArgs));
+    } catch (PDOException $e) {
+        if (peopleGroupTablesMissing($e)) return [];
+        throw $e;
+    }
+    return array_map(fn($r) => [
+        'id' => (int)$r['id'], 'name' => $r['display_name'], 'description' => $r['description'],
+        'kind' => $r['group_kind'], 'in_source' => (int)$r['member_count'], 'people' => (int)$r['people'],
+        'is_active' => (int)$r['is_active'] === 1,
+        'source' => $r['source_name'], 'source_company' => $r['source_company'],
+    ], $st->fetchAll(PDO::FETCH_ASSOC));
+}
+
+/**
+ * One directory group and the members this analyst can see, or null (unknown or out of reach).
+ *
+ * Members are limited to the companies the analyst can access, like every other
+ * list of people here: a global group's page shows each analyst their own slice.
+ *
+ * @param int $groupId  the directory_groups id
+ */
+function peopleGroupDetail(PDO $conn, int $analystId, int $groupId): ?array
+{
+    if ($groupId <= 0) return null;
+    [$gs, $gArgs] = peopleGroupScope($conn, $analystId, 'p');
+    try {
+        $st = $conn->prepare(
+            "SELECT g.id, g.display_name, g.description, g.mail, g.group_kind, g.member_count, g.is_active,
+                    g.last_seen_in_source, p.display_name AS source_name, tn.name AS source_company
+               FROM directory_groups g
+               JOIN auth_providers p ON p.id = g.provider_id
+          LEFT JOIN tenants tn ON tn.id = p.tenant_id
+              WHERE g.id = ? $gs"
+        );
+        $st->execute(array_merge([$groupId], $gArgs));
+    } catch (PDOException $e) {
+        if (peopleGroupTablesMissing($e)) return null;
+        throw $e;
+    }
+    $g = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$g) return null;
+
+    [$us, $uArgs] = peopleScope($conn, $analystId, 'u.tenant_id');
+    $m = $conn->prepare(
+        "SELECT u.id, u.display_name, u.preferred_name, u.email, u.username, u.job_title, u.department,
+                u.is_active, tn.name AS company_name
+           FROM directory_group_members m
+           JOIN users u ON u.id = m.user_id
+      LEFT JOIN tenants tn ON tn.id = u.tenant_id
+          WHERE m.group_id = ? $us
+          ORDER BY u.is_active DESC, COALESCE(NULLIF(u.preferred_name, ''), NULLIF(u.display_name, ''), u.email)
+          LIMIT 1000"
+    );
+    $m->execute(array_merge([$groupId], $uArgs));
+    $defaultName = isMultiTenant($conn) ? (getTenantById($conn, getDefaultTenantId($conn))['name'] ?? null) : null;
+    $members = array_map(fn($r) => [
+        'id' => (int)$r['id'], 'name' => peopleName($r), 'email' => $r['email'],
+        'job_title' => $r['job_title'], 'department' => $r['department'],
+        'company' => $r['company_name'] ?? $defaultName, 'is_active' => (int)$r['is_active'] === 1,
+    ], $m->fetchAll(PDO::FETCH_ASSOC));
+
+    return [
+        'id' => (int)$g['id'], 'name' => $g['display_name'], 'description' => $g['description'],
+        'mail' => $g['mail'], 'kind' => $g['group_kind'], 'in_source' => (int)$g['member_count'],
+        'is_active' => (int)$g['is_active'] === 1, 'last_seen' => $g['last_seen_in_source'],
+        'source' => $g['source_name'], 'source_company' => $g['source_company'],
+        'members' => $members,
+    ];
+}
+
+/**
+ * The groups with at least one member in this company, and how many of the
+ * company's current people are in each - null when this analyst can see no
+ * groups at all, so the company page leaves the card out rather than showing
+ * "Nothing yet" on an install that has never imported a group.
+ *
+ * "Has members here" rather than "belongs to this company's provider": with one
+ * global Entra shared by several companies, every group belongs to the global
+ * provider, and the provider rule would leave every company page empty. For a
+ * client with its own Entra the two rules give the same answer.
+ *
+ * @param int $tenantId  the company's tenants id
+ */
+function peopleCompanyGroups(PDO $conn, int $analystId, int $tenantId): ?array
+{
+    if (!peopleGroups($conn, $analystId)) return null;
+    [$gs, $gArgs] = peopleGroupScope($conn, $analystId, 'p');
+    [$cm, $cArgs] = peopleCompanyMatch($conn, $tenantId, 'u.tenant_id');
+    $st = $conn->prepare(
+        "SELECT g.id, g.display_name, g.group_kind, COUNT(*) AS here
+           FROM directory_groups g
+           JOIN auth_providers p ON p.id = g.provider_id
+           JOIN directory_group_members m ON m.group_id = g.id
+           JOIN users u ON u.id = m.user_id AND u.is_active = 1
+          WHERE g.is_active = 1 $gs $cm
+       GROUP BY g.id, g.display_name, g.group_kind
+       ORDER BY here DESC, g.display_name"
+    );
+    $st->execute(array_merge($gArgs, $cArgs));
+    return array_map(fn($r) => [
+        'id' => (int)$r['id'], 'name' => $r['display_name'], 'kind' => $r['group_kind'], 'here' => (int)$r['here'],
     ], $st->fetchAll(PDO::FETCH_ASSOC));
 }
 
@@ -238,6 +466,7 @@ function personDetail(PDO $conn, int $analystId, int $userId): ?array
         'company' => $u['company_name'] ?? (getTenantById($conn, getDefaultTenantId($conn))['name'] ?? null),
         'source' => $u['source_name'],
         'manager' => null, 'reports' => [],
+        'groups' => peoplePersonGroups($conn, $analystId, $userId),
     ];
     // The manager and the reports are people too: each is shown only if the
     // reader could open THEIR page (a manager can sit in another company).
@@ -308,6 +537,8 @@ function companyDetail(PDO $conn, int $analystId, int $tenantId): ?array
     ];
 
     $sections = ['people' => peopleListRows($conn, $analystId, ['company' => $multi ? $tenantId : null, 'status' => 'all'], 500)];
+    $groups = peopleCompanyGroups($conn, $analystId, $tenantId);
+    if ($groups !== null) $sections['groups'] = $groups;
     $can = fn(string $mod) => analystCanAccessModule($conn, $analystId, $mod);
     $who = ['company' => $tenantId];
     if ($can('tickets'))   $sections['tickets']   = peopleTickets($conn, $analystId, $who);

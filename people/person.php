@@ -96,6 +96,9 @@ $multi = isMultiTenant($conn);
                         if ($p['reports']) {
                             $f('reports', implode('', array_map(fn($r) => '<div><a href="person.php?id=' . $r['id'] . '">' . pplE($r['name']) . '</a>' . ($r['is_active'] ? '' : ' <span class="ppl-dim">(' . pplE(t('people.person.leaver')) . ')</span>') . '</div>', $p['reports'])), true);
                         }
+                        if ($p['groups']) {
+                            $f('groups', implode('', array_map(fn($g) => '<div><a href="group.php?id=' . $g['id'] . '">' . pplE($g['name']) . '</a></div>', $p['groups'])), true);
+                        }
                         $f('source', $p['source']);
                         $f('first_seen', fmt_date($p['created_at']));
                         if (!$p['is_active']) $f('left', fmt_date($p['deactivated_datetime']));
