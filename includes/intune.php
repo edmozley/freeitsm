@@ -17,7 +17,7 @@ require_once __DIR__ . '/encryption.php';
 function intuneGetSettings(PDO $conn): ?array {
     $stmt = $conn->prepare(
         "SELECT setting_key, setting_value FROM system_settings
-          WHERE setting_key IN ('intune_tenant_id','intune_client_id','intune_client_secret','intune_verify_ssl','intune_php_exe','intune_company_id','intune_sync_hostnames')"
+          WHERE setting_key IN ('intune_tenant_id','intune_client_id','intune_client_secret','intune_verify_ssl','intune_php_exe','intune_company_id','intune_sync_hostnames','intune_assign_primary_user')"
     );
     $stmt->execute();
 
@@ -42,6 +42,7 @@ function intuneGetSettings(PDO $conn): ?array {
         'php_exe'       => $values['intune_php_exe'] ?? null,
         'company_id'    => (!empty($values['intune_company_id']) && is_numeric($values['intune_company_id'])) ? (int)$values['intune_company_id'] : null,
         'sync_hostnames' => ($values['intune_sync_hostnames'] ?? '0') === '1',
+        'assign_primary_user' => ($values['intune_assign_primary_user'] ?? '0') === '1',
     ];
 }
 
@@ -363,6 +364,78 @@ function intuneLinkDevicesToAssets(PDO $conn, ?int $companyId = null): array {
     return ['linked' => $linked, 'stubs_created' => $stubsCreated];
 }
 
+/**
+ * Give each linked asset nobody holds to its device's primary user in Intune.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * 🔑 MATCHED BY OBJECT ID, NEVER BY NAME
+ *
+ * A managed device's `userId` is the Entra object id of its primary user. The
+ * Entra directory import (includes/entra_sync.php) stores that same object id
+ * against each person it imports, in user_sso_identities.source_ref. Joining
+ * the two is exact: no display name, UPN or email is compared, so a rename, a
+ * changed mail address or two people called Alex Smith cannot pick the wrong
+ * holder. Without an Entra import nobody has an object id, and this assigns
+ * nothing.
+ *
+ * It only ever FILLS a gap. An asset that already has a holder - a requester
+ * or an analyst, put there by a person or by an earlier sync - is left alone,
+ * even when Intune now names somebody else: who has a laptop is a fact a person
+ * may have corrected, and Intune's primary user is often whoever enrolled it.
+ * Nothing is ever unassigned.
+ *
+ * Also skipped: retired assets, people marked as having left, a holder in a
+ * different company from the asset (the same rule a company move enforces), and
+ * an asset two linked devices name two different people for.
+ *
+ * Behind intune_assign_primary_user, OFF after an upgrade and on a new install:
+ * it writes assignments, custody rows and history, and fires asset.assigned
+ * workflows, so it is the administrator's to switch on.
+ *
+ * @return array  ['assigned' => assets given a holder, 'failed' => assets that could not be, each logged]
+ */
+function intuneAssignPrimaryUsers(PDO $conn): array {
+    require_once __DIR__ . '/services/assets.php';
+    require_once __DIR__ . '/tenancy.php';
+
+    $defaultId = getDefaultTenantId($conn);
+    // COUNT(DISTINCT) rather than MIN alone: an asset whose devices disagree
+    // about who uses it is a question for a person, not a coin toss.
+    $stmt = $conn->prepare(
+        "SELECT d.asset_id, MIN(u.id) AS user_id
+           FROM intune_devices d
+           JOIN assets a               ON a.id = d.asset_id
+           JOIN user_sso_identities i  ON i.source_ref = d.user_id
+           JOIN auth_providers p       ON p.id = i.provider_id AND p.protocol = 'oidc'
+           JOIN users u                ON u.id = i.user_id AND u.is_active = 1
+          WHERE d.user_id IS NOT NULL AND d.user_id <> ''
+            AND COALESCE(u.tenant_id, :def1) = COALESCE(a.tenant_id, :def2)
+            AND NOT EXISTS (SELECT 1 FROM users_assets ua WHERE ua.asset_id = d.asset_id)"
+          . assetNotRetiredSql($conn, 'a') . "
+       GROUP BY d.asset_id
+         HAVING COUNT(DISTINCT u.id) = 1"
+    );
+    $stmt->execute([':def1' => $defaultId, ':def2' => $defaultId]);
+
+    $ctx = ActorContext::system('Intune');
+    $assigned = 0; $failed = 0;
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        try {
+            AssetsService::assignUser($conn, $ctx, (int)$row['asset_id'], [
+                'user_id' => (int)$row['user_id'],
+                'notes'   => 'Primary user of the device in Intune',
+            ]);
+            $assigned++;
+        } catch (Throwable $e) {
+            // One asset that cannot be assigned must not stop the rest, or the
+            // sync - but it is counted, and the sync's message says how many.
+            $failed++;
+            error_log('[intune] assign primary user to asset ' . $row['asset_id'] . ': ' . $e->getMessage());
+        }
+    }
+    return ['assigned' => $assigned, 'failed' => $failed];
+}
+
 
 /**
  * Map an Intune operating_system string to a sensible "drive" label for
@@ -520,11 +593,22 @@ function intuneRunSync(PDO $conn, int $jobId): void {
         $linkResult = intuneLinkDevicesToAssets($conn);
         $log("linking done: linked={$linkResult['linked']}, stubs_created={$linkResult['stubs_created']}");
 
+        $holders = ['assigned' => 0, 'failed' => 0];
+        if (!empty($settings['assign_primary_user'])) {
+            $setProgress($processed, $processed, 'running', 'Assigning assets to their primary users...', false);
+            $holders = intuneAssignPrimaryUsers($conn);
+            $log("primary users done: assigned={$holders['assigned']}, failed={$holders['failed']}");
+        }
+
         $setProgress($processed, $processed, 'running', 'Updating disk usage...', false);
         $disksWritten = intuneSyncDisks($conn);
         $log("disk sync done: rows_written=$disksWritten (only for assets with no agent disk data)");
 
         $msg = "Synced $processed devices. {$linkResult['linked']} linked to assets ({$linkResult['stubs_created']} new asset stubs created). $disksWritten disk rows populated from Intune.";
+        if (!empty($settings['assign_primary_user'])) {
+            $msg .= " {$holders['assigned']} asset(s) assigned to their primary user.";
+            if ($holders['failed'] > 0) $msg .= " {$holders['failed']} could not be assigned — see the PHP error log.";
+        }
         if ($failed > 0) $msg .= " ($failed failed — see logs/intune_sync.log)";
         $setProgress($processed, $processed, 'done', $msg, true);
         $log("done, processed=$processed, failed=$failed");
