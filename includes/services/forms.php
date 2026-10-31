@@ -484,6 +484,41 @@ class FormsService
         }
     }
 
+    /**
+     * The companies a portal user may pick lookup records from: their own, and only
+     * that. Shared by the search and the submit so the two cannot disagree.
+     *
+     * ⚠️ Never null, which would mean everything. A portal user with no company
+     * falls back to the Default company rather than to unrestricted.
+     *
+     * @param int $userId  the requester's users.id
+     * @return int[]  always exactly one company
+     */
+    public static function lookupPortalScope(PDO $conn, int $userId): array
+    {
+        $stmt = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $tenant = $stmt->fetchColumn();
+        return [$tenant !== false && $tenant !== null ? (int)$tenant : (int)getDefaultTenantId($conn)];
+    }
+
+    /**
+     * A record's own name, so a stored answer says what the record is called rather
+     * than what the post claimed. Null when it has none, which is also why the
+     * search would never have offered it.
+     *
+     * @param string $source  a LOOKUP_SOURCES key
+     * @param int $id  a record already checked with lookupValueAllowed()
+     */
+    private static function lookupRecordLabel(PDO $conn, string $source, int $id): ?string
+    {
+        $s = self::LOOKUP_SOURCES[$source];
+        $stmt = $conn->prepare("SELECT `{$s['label_col']}` FROM `{$s['table']}` WHERE `{$s['id_col']}` = ?");
+        $stmt->execute([$id]);
+        $label = trim((string)$stmt->fetchColumn());
+        return $label !== '' ? $label : null;
+    }
+
     /** Operators a conditional-visibility rule may use. Mirrors assets/js/form-logic.js. */
     const CONDITION_OPS = [
         'equals', 'not_equals', 'contains', 'is_empty', 'is_not_empty',
@@ -1711,14 +1746,25 @@ class FormsService
                     // it, a crafted request could name another company's asset
                     // and it would appear — resolved and labelled — on a
                     // submission an analyst reads and believes.
-                    // The scope is the ACTOR's, taken from the context rather
-                    // than re-derived here — whoever built the context already
-                    // knows whether this is an analyst, an API key or a portal
-                    // user, and `null` there already means "every company".
-                    if (!self::lookupValueAllowed($conn, $source, $lid, $ctx->companyScope)) {
+                    // TRAP: a portal context's companyScope is null, which means
+                    // "every company", so a requester's scope has to come from
+                    // the requester. The search's two portal gates are repeated
+                    // here because a crafted post never goes through the search.
+                    if ($portalUserId !== null && !self::lookupPortalAllowed($field)) {
                         throw new ServiceError('validation', 'invalid_field',
                             '"' . $field['label'] . '" is not something you can choose.');
                     }
+                    $scope = $portalUserId !== null ? self::lookupPortalScope($conn, $portalUserId) : $ctx->companyScope;
+                    $recordLabel = self::lookupValueAllowed($conn, $source, $lid, $scope)
+                        ? self::lookupRecordLabel($conn, $source, $lid)
+                        : null;
+                    if ($recordLabel === null) {
+                        throw new ServiceError('validation', 'invalid_field',
+                            '"' . $field['label'] . '" is not something you can choose.');
+                    }
+                    // The label is what an approver reads, so it is the record's
+                    // own and never the one that was posted.
+                    $normalised[$fid] = json_encode(['id' => $lid, 'label' => $recordLabel], JSON_UNESCAPED_UNICODE);
                 }
 
                 // A choice field must be answered with one of ITS OWN choices.

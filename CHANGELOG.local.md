@@ -18,6 +18,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2682 | Starters & leavers | Improvement | The case page uses the full width of the screen instead of stopping at 1,180 pixels. |
 | 2683 | Starters & leavers | Fix | A date answer on the case page showed as "2026-11-07" (and copied that way) instead of reading like the page's other dates, and the answer box of a template's "Use this template when" rule cut off an "is any of" list after about 25 characters. |
 | 2684 | Starters & leavers | Improvement | The case list says "Waiting for answers" instead of "No steps" for a case whose template asks a form's questions first (en, de, es). |
+| 2685 | Forms | Fix | A lookup answer submitted through the request catalogue is now checked on the server against the requester's own company and the field's portal settings, and the record's own name is stored. |
 
 
 

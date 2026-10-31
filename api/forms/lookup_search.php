@@ -79,13 +79,8 @@ if ($analystId) {
         echo json_encode(['success' => false, 'error' => 'Not available here.']);
         exit;
     }
-    $uq = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
-    $uq->execute([$portalUid]);
-    $t = $uq->fetchColumn();
-    // ⚠️ Their own company ONLY — never null, which would mean everything.
-    // A portal user with no company falls back to the Default company rather
-    // than to unrestricted.
-    $tenantIds = [$t !== false && $t !== null ? (int)$t : (int)getDefaultTenantId($conn)];
+    // ⚠️ Their own company ONLY. The same call the submit makes.
+    $tenantIds = FormsService::lookupPortalScope($conn, $portalUid);
 }
 
 echo json_encode([
