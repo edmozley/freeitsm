@@ -29,6 +29,10 @@ window.NotificationBell = {
         const COUNT  = cfg.list + (cfg.list.indexOf('?') === -1 ? '?' : '&') + 'count_only=1';
         const MARK   = cfg.markRead;
         const CLEAR  = cfg.clear;
+        // Optional: a POST that lets the server start background work that is due
+        // when no scheduled task does it. Its own request, because the poll is a
+        // GET and a GET must never write (includes/csrf.php).
+        const TICK   = cfg.tick || null;
         const PREFIX = cfg.linkPrefix || '';
         const btn   = document.getElementById('nbBtn');
         const panel = document.getElementById('nbPanel');
@@ -202,6 +206,10 @@ window.NotificationBell = {
                 const d = await (await fetch(COUNT, { credentials: 'same-origin' })).json();
                 if (d.success) { paintBadge(d.unread); chimeIfNew(d.unread); }
             } catch (e) { /* a failed poll is not worth telling anyone about */ }
+            if (TICK) {
+                fetch(TICK, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+                    .catch(function () { /* nor is a failed tick */ });
+            }
         }
 
         /** Opens the panel and loads the full list, re-baselining the chime because the viewer is now looking at it. */

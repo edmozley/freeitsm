@@ -638,10 +638,12 @@ require __DIR__ . '/_top.php';
     </ul>
     <div class="help-note ok"><strong>Preview first, every time.</strong> It runs the real import with the writing switched off and shows, person by person, what would be created, updated, linked or marked as left.</div>
 
-    <h4>Running it on a schedule</h4>
-    <p>Nothing imports on its own. <strong>Import now</strong> runs it once by hand; to keep people current, schedule the same command that runs LDAP and address-book imports:</p>
+    <h4>Importing automatically</h4>
+    <p><strong>Import automatically</strong>, on the Importing people tab, sets how often this source is imported without anybody pressing <strong>Import now</strong>: every hour, every 4 or 12 hours, or once a day. Pressing Import now restarts that clock, and one source is never imported twice at the same time, whatever starts it.</p>
+    <p>The reliable way is a scheduled task running the same command that runs LDAP and address-book imports. It can run every 15 minutes; each source is still imported only at its own pace:</p>
     <p><code>php scripts/directory_sync.php --all</code></p>
-    <p>It imports every enabled source with importing switched on, Entra included, and exits with <code>1</code> when a run failed and <code>2</code> when one was stopped by a safety check, so a monitored task tells you. Once or twice a day is plenty for most organisations. The step-by-step setup for cron, Windows Task Scheduler and Docker is on the wiki: <a href="https://github.com/edmozley/freeitsm/wiki/Directory-Sync-Scheduling" target="_blank" rel="noopener">Directory Sync Scheduling</a>.</p>
+    <div class="help-note warn"><strong>Without a scheduled task</strong>, FreeITSM starts a due import itself, in the background, while somebody has FreeITSM open. It is a fallback, not a schedule: if nobody opens FreeITSM over a weekend, nothing imports that weekend, and some hosts do not allow PHP to start a background process at all. <em>Only when the scheduled task runs</em> never imports on its own. <strong>Reporting &rarr; System logs &rarr; Background jobs</strong> keeps saying there is no scheduled task until there is one.</div>
+    <p>It imports every enabled source that is due, Entra included, and exits with <code>1</code> when a run failed and <code>2</code> when one was stopped by a safety check, so a monitored task tells you. The step-by-step setup for cron, Windows Task Scheduler and Docker is on the wiki: <a href="https://github.com/edmozley/freeitsm/wiki/Directory-Sync-Scheduling" target="_blank" rel="noopener">Directory Sync Scheduling</a>.</p>
     <p>Every run, by hand or scheduled, is listed on the <strong>History</strong> tab with what it did. Click one to see each person and what happened to them.</p>
 </div>
 

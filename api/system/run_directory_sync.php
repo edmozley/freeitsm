@@ -125,6 +125,14 @@ function directorySyncRecorded(PDO $conn, array $provider, string $mode, callabl
         JobRun::skipped($conn, 'directory_sync', 'manual', 'Dry run (Preview): nothing written.', $who);
         return $work();
     }
+    // One import of a source at a time, whoever starts it: the scheduled task or
+    // FreeITSM's own background start may be importing it right now. A live run
+    // here also postpones the next automatic one (includes/directory_sync_auto.php).
+    require_once __DIR__ . '/../../includes/directory_sync_auto.php';
+    if (!dsyncLock($conn, (int)$provider['id'])) {
+        throw new RuntimeException('An import of this source is already running. Wait for it to finish, then look at the History tab.');
+    }
+    dsyncMarkAttempt($conn, (int)$provider['id']);
     $runId = JobRun::start($conn, 'directory_sync', 'manual', $who);
     try {
         $run = $work();

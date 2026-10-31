@@ -211,6 +211,14 @@ return [
 
         'sync_last_run_datetime' => 'DATETIME NULL',
         'sync_last_count'        => 'INT NULL',
+        // 0 = import every time the scheduled task runs (what every source did
+        // before this column); > 0 = import at most this often, from the
+        // scheduled task OR, with no scheduled task, in the background while an
+        // analyst has FreeITSM open (dsyncClaimDue() / dsyncKickDue()).
+        'sync_interval_minutes'      => 'INT NOT NULL DEFAULT 0',
+        // When an automatic import of this source last STARTED, whatever its
+        // outcome. Claimed atomically, so two triggers never start the same run.
+        'sync_last_attempt_datetime' => 'DATETIME NULL',
         'enabled'                => 'TINYINT(1) NOT NULL DEFAULT 1',
         'auto_create_users'      => 'TINYINT(1) NOT NULL DEFAULT 0',
         'auto_create_analysts'   => 'TINYINT(1) NOT NULL DEFAULT 0',

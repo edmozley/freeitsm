@@ -221,6 +221,11 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     `graph_groups`           TEXT NULL,
 
     `sync_last_run_datetime` DATETIME NULL,
+    -- 0 = every time the scheduled task runs; > 0 = at most this often, from the
+    -- scheduled task or, without one, in the background while FreeITSM is open.
+    `sync_interval_minutes`  INT NOT NULL DEFAULT 0,
+    -- When an automatic import last started, whatever its outcome (claimed atomically).
+    `sync_last_attempt_datetime` DATETIME NULL,
     -- People found by the last SUCCESSFUL run. The number the brake compares
     -- against; NULL means "no baseline yet", so a first run is never braked.
     `sync_last_count`        INT NULL,

@@ -89,6 +89,14 @@ try {
         // ⚠️ 0 turns THE SAFETY BRAKE OFF; clamped, never defaulted to it.
         'sync_brake_percent'    => max(0, min(100, (int)($data['sync_brake_percent'] ?? 20))),
     ];
+    // "Import automatically": one of the offered intervals, never a free number -
+    // health expects the job at least daily, so nothing longer is offered. Only
+    // written when Database Verification has added the column.
+    require_once '../../includes/directory_sync_auto.php';
+    if (array_key_exists('sync_interval_minutes', $row)) {
+        $iv = (int)($data['sync_interval_minutes'] ?? 0);
+        $cols['sync_interval_minutes'] = in_array($iv, DSYNC_AUTO_INTERVALS, true) ? $iv : 0;
+    }
     if (!$ownApp) {
         $cols['graph_client_secret'] = null;
     } elseif (!isMaskedNoChangeValue($secretIn)) {

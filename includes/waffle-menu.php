@@ -1270,6 +1270,8 @@ function renderNotificationBell($path_prefix) {
         'list'       => $url . 'api/notifications/get_notifications.php',
         'markRead'   => $url . 'api/notifications/mark_read.php',
         'clear'      => $url . 'api/notifications/clear.php',
+        // Background work that is due with no scheduled task (api/system/background_tick.php).
+        'tick'       => $url . 'api/system/background_tick.php',
         'linkPrefix' => $url,
         'seenKey'    => 'nbSeenUnread',
     ]);
