@@ -643,6 +643,7 @@ require __DIR__ . '/_top.php';
     <p><code>php scripts/directory_sync.php --all</code></p>
     <p>It imports every enabled source with importing switched on, Entra included, and exits with <code>1</code> when a run failed and <code>2</code> when one was stopped by a safety check, so a monitored task tells you. Once or twice a day is plenty for most organisations. The step-by-step setup for cron, Windows Task Scheduler and Docker is on the wiki: <a href="https://github.com/edmozley/freeitsm/wiki/Directory-Sync-Scheduling" target="_blank" rel="noopener">Directory Sync Scheduling</a>.</p>
     <p>Every run, by hand or scheduled, is listed on the <strong>History</strong> tab with what it did. Click one to see each person and what happened to them.</p>
+    <p>Membership follows Entra at every import: somebody added to a group in Entra joins it here, somebody removed leaves it. Each change is recorded in the run's detail on the <strong>History</strong> tab as <em>Joined a group</em> or <em>Left a group</em>, against the person, so you can find out when somebody left Finance. A group's first import is the exception: its members are summarised in one line rather than listed one by one.</p>
 </div>
 
 <!-- 4q. Entra troubleshooting -->
@@ -664,6 +665,7 @@ require __DIR__ . '/_top.php';
         <li><strong>The import stopped and changed nothing.</strong> That is a safety check. Read the run's message, preview, and if the numbers are genuinely right, run it again or adjust the percentage.</li>
         <li><strong>"Groups were not imported: run Database Verification".</strong> People were imported correctly; the group tables do not exist yet. Run Database Verification and import again.</li>
         <li><strong>Nothing has imported for days.</strong> Check the scheduled task is still running. The History tab shows when the last run happened and whether somebody started it by hand.</li>
+        <li><strong>Delete is greyed out on an imported person.</strong> On purpose. Deleting them here would also remove their link to Entra, so the next import would create them again as a new person with none of their history. Remove or disable them in Entra instead: they are then marked as left here, and their tickets and equipment stay where they are. The same applies to people imported from LDAP or an address book.</li>
         <li><strong>Somebody left a group in Entra and still shows in it.</strong> Membership is brought across at the next import, not the moment it changes. If they are still there after an import, check the group is still being imported (an <em>Inactive</em> group keeps its last members).</li>
     </ul>
 </div>

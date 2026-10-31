@@ -765,7 +765,10 @@ $translationNamespaces = ['common', 'tickets'];
                             ${PERSON_PAGE ? `<a class="btn btn-secondary" href="${PERSON_PAGE}${user.id}">${escapeHtml(t('common.modules.people.name'))}</a>` : ''}
                             <button class="btn btn-secondary" onclick="openUserModal(${user.id})">${escapeHtml(t('common.edit'))}</button>
                             <a class="btn btn-secondary" href="manager-access.php?user_id=${user.id}">${escapeHtml(t('tickets.manager_access.button'))}</a>
-                            <button class="btn btn-secondary" onclick="deleteUser(${user.id})">${escapeHtml(t('common.delete'))}</button>
+                            ${Number(user.is_managed) === 1
+                                /* A directory owns this person: delete_user.php refuses, because the next import would create them again. */
+                                ? `<button class="btn btn-secondary" disabled title="${escapeHtml(t('tickets.users.info.delete_managed'))}">${escapeHtml(t('common.delete'))}</button>`
+                                : `<button class="btn btn-secondary" onclick="deleteUser(${user.id})">${escapeHtml(t('common.delete'))}</button>`}
                         </div>
                     </div>
                 </div>
