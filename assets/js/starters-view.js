@@ -84,12 +84,15 @@
     }
 
     // ---- the answers (Forms) ----------------------------------------------------
+    /** An answer as shown - and copied: a date question's "2026-11-07" reads like every other date on the page. */
+    const answerText = a => { const v = String(a.value); return /^\d{4}-\d{2}-\d{2}$/.test(v) ? date(v) : v; };
+
     function answers(c) {
         const rows = c.answers.filter(a => String(a.value || '').trim() !== '');
         if (!rows.length) return '';
         const copy = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
         return panel(T('view.answers'), T('view.answers_intro'), '<dl class="jml-answers">' + rows.map((a, i) =>
-            '<dt>' + esc(a.label) + '</dt><dd><span>' + esc(a.value) + '</span><button type="button" class="jml-copy" data-copy="' + i + '" title="' + esc(T('view.copy')) + '" aria-label="' + esc(T('view.copy') + ': ' + a.label) + '">' + copy + '</button></dd>').join('') + '</dl>');
+            '<dt>' + esc(a.label) + '</dt><dd><span>' + esc(answerText(a)) + '</span><button type="button" class="jml-copy" data-copy="' + i + '" title="' + esc(T('view.copy')) + '" aria-label="' + esc(T('view.copy') + ': ' + a.label) + '">' + copy + '</button></dd>').join('') + '</dl>');
     }
 
     // ---- person, kit, account -------------------------------------------------
@@ -168,7 +171,7 @@
         const shown = c.answers.filter(a => String(a.value || '').trim() !== '');
         root().querySelectorAll('[data-copy]').forEach(b => {
             b.onclick = async () => {
-                const text = String(shown[+b.dataset.copy].value);
+                const text = answerText(shown[+b.dataset.copy]);
                 const ok = window.copyToClipboard ? await window.copyToClipboard(text) : false;
                 if (!ok) { toast(T('view.copy_failed'), 'error'); return; }
                 b.classList.add('done');

@@ -259,6 +259,9 @@ a.jml-step-title:hover { color: var(--jml-accent, #a16207); text-decoration: und
     padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px;
     background: var(--surface, #fff); color: var(--text, #333); max-width: 260px;
 }
+/* The answer box grows: "is any of" takes a list (Dispute Resolution, Corporate, ...). */
+#jmlTplMatch [data-r-value-host] { flex: 1 1 260px; max-width: 480px; display: flex; }
+#jmlTplMatch [data-r-value-host] > input { flex: 1; max-width: none; }
 .jml-steps-edit .jml-step-group + .jml-step-group tr:first-child td { border-top: 1px solid var(--border-soft, #f0f0f0); padding-top: 8px; }
 .jml-cond td { padding: 0 4px 8px !important; }
 .jml-cond .jml-rule { padding-left: 4px; font-size: 12px; }
