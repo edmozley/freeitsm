@@ -26,6 +26,13 @@ try {
 
     $unread = NotificationsService::unreadCount($conn, $analystId);
 
+    // Every open analyst tab polls here once a minute, which makes it the one
+    // place FreeITSM can notice a directory import is due when no scheduled task
+    // runs it. One small query when nothing is due; a due import is started as
+    // a separate process, never in this request (includes/directory_sync_auto.php).
+    require_once '../../includes/directory_sync_auto.php';
+    dsyncKickDue($conn);
+
     // The badge poll is the common case and runs on every open tab. Skipping the
     // list keeps it to a single indexed COUNT.
     if (!empty($_GET['count_only'])) {

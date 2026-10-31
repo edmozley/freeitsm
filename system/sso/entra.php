@@ -23,6 +23,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/theme.php';
 require_once '../../includes/settings_manifest.php';   // renderSettingsTabBar()
 require_once '../../includes/entra_sync.php';
+require_once '../../includes/directory_sync_auto.php';   // DSYNC_AUTO_INTERVALS
 
 $current_page = 'sso';
 require_once __DIR__ . '/../includes/page_gate.php';
@@ -289,6 +290,16 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
                 <div class="hint" style="margin-top:10px;"><?php echo et('sync_brake_hint'); ?></div>
                 <input type="number" id="fSyncBrakePercent" min="0" max="100" style="max-width:130px;" value="<?php echo (int)$p['sync_brake_percent']; ?>">
             </div>
+            <div class="fld">
+                <label for="fSyncInterval"><?php echo et('sync_auto_heading'); ?></label>
+                <div class="hint"><?php echo et('sync_auto_hint'); ?></div>
+                <select id="fSyncInterval" style="max-width:320px;">
+                    <?php foreach (DSYNC_AUTO_INTERVALS as $iv): ?>
+                    <option value="<?php echo $iv; ?>"<?php echo (int)($p['sync_interval_minutes'] ?? 0) === $iv ? ' selected' : ''; ?>><?php echo et('sync_auto_' . $iv); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="hint" style="margin-top:8px;"><?php echo et('sync_auto_fallback'); ?></div>
+            </div>
             <div class="fld wide">
                 <label><?php echo et('sync_run_heading'); ?></label>
                 <div class="hint"><?php echo et('sync_run_hint'); ?></div>
@@ -462,7 +473,8 @@ function payload() {
         graph_groups: groupsPicker.ids(),
         sync_on_conflict: $('fSyncOnConflict').value,
         sync_deactivate_after: parseInt($('fSyncDeactivateAfter').value, 10) || 0,
-        sync_brake_percent: parseInt($('fSyncBrakePercent').value, 10) || 0
+        sync_brake_percent: parseInt($('fSyncBrakePercent').value, 10) || 0,
+        sync_interval_minutes: parseInt($('fSyncInterval').value, 10) || 0
     });
 }
 
