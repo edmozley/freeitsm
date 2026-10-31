@@ -1917,6 +1917,16 @@ $translationNamespaces = ['common', 'asset-management'];
                             <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_sync_hostnames_hint')); ?></div>
                         </div>
                         <div class="form-group">
+                            <label class="form-label" style="display:flex; align-items:center; gap:10px;">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="intuneAssignPrimaryUser">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span><?php echo htmlspecialchars(t('asset-management.settings.intune_assign_primary_user_label')); ?></span>
+                            </label>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_assign_primary_user_hint')); ?></div>
+                        </div>
+                        <div class="form-group">
                             <label class="form-label" for="intuneAppBatchSize"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_label')); ?></label>
                             <input type="number" class="form-input" id="intuneAppBatchSize" min="1" max="500" value="30" style="max-width: 140px;">
                             <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_hint')); ?></div>
@@ -3176,6 +3186,7 @@ $translationNamespaces = ['common', 'asset-management'];
                         document.getElementById('intuneCompanyId').value = data.settings.intune_company_id || '';
                     }
                     document.getElementById('intuneSyncHostnames').checked = data.settings.intune_sync_hostnames === '1';
+                    document.getElementById('intuneAssignPrimaryUser').checked = data.settings.intune_assign_primary_user === '1';
                     if (document.getElementById('reconIgnoredSerials')) {
                         document.getElementById('reconIgnoredSerials').value = data.settings.asset_reconciliation_ignored_serials || '';
                     }
@@ -3343,7 +3354,8 @@ $translationNamespaces = ['common', 'asset-management'];
                             intune_client_secret: document.getElementById('intuneClientSecret').value,
                             intune_app_batch_size: String(Math.max(1, Math.min(500, parseInt(document.getElementById('intuneAppBatchSize').value, 10) || 30))),
                             intune_company_id: document.getElementById('intuneCompanyId') ? document.getElementById('intuneCompanyId').value.trim() : '',
-                            intune_sync_hostnames: document.getElementById('intuneSyncHostnames').checked ? '1' : '0'
+                            intune_sync_hostnames: document.getElementById('intuneSyncHostnames').checked ? '1' : '0',
+                            intune_assign_primary_user: document.getElementById('intuneAssignPrimaryUser').checked ? '1' : '0'
                         }
                     })
                 });

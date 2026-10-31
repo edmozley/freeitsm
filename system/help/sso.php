@@ -624,6 +624,8 @@ require __DIR__ . '/_top.php';
     <p>The <strong>Groups</strong> tab lists every imported group with its type (Security, Mail-enabled security, Microsoft 365, Distribution), how many members it has in Entra, and how many of them FreeITSM holds. Click a group to see who is in it. A group that leaves the import scope is marked <strong>Inactive</strong> and keeps its last known members; it is never deleted.</p>
 
     <div class="help-note ok"><strong>Group names in the sign-in mappings.</strong> Entra sends groups at sign-in as object IDs, so the mapping dropdowns under <a href="#sso-groups">Groups from the identity provider</a> used to show strings like <code>4f1c2a…</code>. Every imported group now appears there by name. A label you typed yourself is never overwritten.</div>
+    <h4>Laptops from Intune</h4>
+    <p>Every person imported from Entra carries their Entra object ID, and so does every device Intune reports. Switch on <strong>Assign assets to their primary user in Intune</strong> under <strong>Assets &rarr; Settings &rarr; Intune</strong> and each asset nobody holds is given to its device's primary user at the next Intune sync &mdash; matched exactly by that ID, never by name. An asset that already has a holder is never changed.</p>
 </div>
 
 <!-- 4p. Entra safety and scheduling -->

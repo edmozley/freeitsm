@@ -29,6 +29,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2704 | Docker            | Feature     | Built-in scheduler, slice 3 (#233): the image runs cron/run.php every minute as www-data with tini as process 1, FREEITSM_SCHEDULER=0 turns it off, and the Background jobs tab warns in a container when the scheduler is silent or TZ is unset. |
 | 2703 | Background jobs   | Feature     | Built-in scheduler, slice 2 (#233): Edit on a job sets every so many minutes, once a day at a set time (install timezone shown) or off, and saves the schedule and what health expects in one transaction so the two never disagree. |
 | 2702 | Background jobs   | Feature     | Built-in scheduler, slice 1 (#233, vsc55's design): cron/run.php run every minute starts each due job as its own process from the new job_schedules table, and the Background jobs tab shows whether it is running and each job's schedule. |
+| 2690 | Assets            | Fix         | AssetsService::assignUser() wrote the system actor id 0 into users_assets and the custody log, which the analyst foreign key refuses, so every automatic assignment failed; it now stores NULL, as auditWrite() does (PR #236, vsc55). |
+| 2689 | Assets            | Feature     | Assets -> Settings -> Intune can give each linked asset nobody holds to its device's Intune primary user at every sync, matched only by Entra object id, never changing an existing holder (off by default; PR #236, vsc55). |
 
 
 

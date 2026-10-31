@@ -7567,6 +7567,8 @@ INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`) VALUES
 INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`) VALUES
     ('intune_company_id', NULL),
     ('intune_sync_hostnames', '1'),
+    -- OFF everywhere: assigning assets to people is the administrator's to switch on.
+    ('intune_assign_primary_user', '0'),
     -- PR #166: a new install asks chat customers in their chat (an upgrade gets '0').
     ('csat_in_channel', '1'),
     ('asset_reconciliation_ignored_serials', 'TO BE FILLED BY O.E.M.\nDEFAULT STRING\nNONE\nSYSTEM SERIAL NUMBER\nNOT SPECIFIED\n123456789');
