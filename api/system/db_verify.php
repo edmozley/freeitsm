@@ -2159,6 +2159,9 @@ try {
             // INSERT IGNORE keeps it): turning it on renames every asset whose
             // device has been renamed in Intune since it was linked (PR #164).
             'intune_sync_hostnames'             => '0',
+            // OFF on upgrade and on a new install: it assigns assets to people,
+            // with custody rows and asset.assigned workflows (intuneAssignPrimaryUsers()).
+            'intune_assign_primary_user'        => '0',
             'asset_reconciliation_ignored_serials' => "TO BE FILLED BY O.E.M.\nDEFAULT STRING\nNONE\nSYSTEM SERIAL NUMBER\nNOT SPECIFIED\n123456789",
             // Asset tags (PR #164): off until somebody switches them on.
             'asset_tag_autogen_enabled'          => '0',

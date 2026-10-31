@@ -490,6 +490,7 @@ $translationNamespaces = ['common', 'asset-management'];
                         <div><strong><?php echo htmlspecialchars(t('asset-management.help.reconciliation.ignored_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.reconciliation.ignored_text'); ?></div>
                         <div><strong><?php echo htmlspecialchars(t('asset-management.help.reconciliation.refresh_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.reconciliation.refresh_text'); ?></div>
                         <div><strong><?php echo htmlspecialchars(t('asset-management.help.reconciliation.intune_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.reconciliation.intune_text'); ?></div>
+                        <div><strong><?php echo htmlspecialchars(t('asset-management.help.reconciliation.intune_holder_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.reconciliation.intune_holder_text'); ?></div>
                         <div><strong><?php echo htmlspecialchars(t('asset-management.help.reconciliation.companies_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.reconciliation.companies_text'); ?></div>
                     </div>
                 </div>

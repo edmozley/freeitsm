@@ -230,6 +230,18 @@ return [
         'check'    => ['setting', 'intune_sync_hostnames', 'eq', '1'],
     ],
     [
+        'id'       => 'assets.intune_primary_user',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'integrations',
+        'title'    => 'Assets assigned from Intune',
+        'what'     => 'An asset nobody holds is given to the primary user of its device in Intune, matched exactly by Entra object id against people imported from Microsoft Entra ID.',
+        'why'      => 'Hundreds of laptops arrive from Intune with nobody holding them; this fills in who has each one without anybody typing it, and never overrides a holder a person set.',
+        'done'     => 'Assigning assets to their Intune primary user is switched on.',
+        'link'     => 'asset-management/settings/?tab=intune',
+        'check'    => ['setting', 'intune_assign_primary_user', 'eq', '1'],
+    ],
+    [
         'id'       => 'assets.intune_batch_size',
         'module'   => 'assets',
         'tier'     => 'extra',

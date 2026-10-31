@@ -497,17 +497,20 @@ class AssetsService
             throw new ServiceError('conflict', 'conflict', 'This user is already assigned to this asset.');
         }
 
+        // No analyst (0): Intune assigned it. NULL, not 0, as auditWrite() does -
+        // 0 would point fk_users_assets_analyst at an analyst who does not exist.
+        $byAnalyst = $actorId > 0 ? $actorId : null;
         $conn->prepare(
             "INSERT INTO users_assets (asset_id, user_id, assigned_by_analyst_id, notes, expected_return_date, assigned_datetime)
              VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([$assetId, $userId, $actorId, $notes, $expectedReturn]);
+        )->execute([$assetId, $userId, $byAnalyst, $notes, $expectedReturn]);
 
         // Custody trail (best-effort, like the UI).
         try {
             $conn->prepare(
                 "INSERT INTO asset_checkout_log (asset_id, user_id, user_name, action, expected_return_date, analyst_id, notes, action_datetime)
                  VALUES (?, ?, ?, 'checkout', ?, ?, ?, UTC_TIMESTAMP())"
-            )->execute([$assetId, $userId, $userName, $expectedReturn, $actorId, $notes]);
+            )->execute([$assetId, $userId, $userName, $expectedReturn, $byAnalyst, $notes]);
         } catch (Exception) { /* custody log not critical */ }
 
         // On a UI re-assign the outgoing holder is the audit's old_value.
