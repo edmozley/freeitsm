@@ -478,7 +478,7 @@ require __DIR__ . '/_top.php';
 
     <h4>Running it on a schedule</h4>
     <p>Nothing imports on its own. You run it from the <strong>Run</strong> button here, or you set up a scheduled task — the same one that runs an LDAP import:</p>
-    <p><code>php scripts/directory_sync.php --all</code></p>
+    <p><code>php cron/directory_sync.php --all</code></p>
     <p>That picks up every enabled source with importing switched on, address books and directories alike, and sends each through the right engine. Nightly is a sensible starting point. It reports a proper exit code, so a monitored task tells you when an import failed instead of quietly doing nothing for months.</p>
 
     <h4>History</h4>

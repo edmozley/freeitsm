@@ -5,12 +5,12 @@
  * A source (LDAP, CardDAV, Microsoft Entra ID) with `sync_interval_minutes` > 0
  * is imported at most that often. Two things can start it:
  *
- *   1. The scheduled task - `php scripts/directory_sync.php --all` from cron or
+ *   1. The scheduled task - `php cron/directory_sync.php --all` from cron or
  *      Task Scheduler. Reliable, and what an install should have.
  *   2. With no scheduled task, FreeITSM itself: the notification bell polls
  *      every minute from every open analyst tab, and that poll calls
  *      dsyncKickDue(), which starts a due import as a SEPARATE background
- *      process (scripts/directory_sync.php --auto), never inside the request.
+ *      process (cron/directory_sync.php --auto), never inside the request.
  *
  * ⚠️ (2) IS A FALLBACK, NOT A SCHEDULER. PHP under Apache has no process that is
  * awake waiting for a time; something has to wake the app. If nobody has
@@ -136,7 +136,7 @@ function dsyncKickDue(PDO $conn): void
 }
 
 /**
- * Start `scripts/directory_sync.php --provider=N --auto` detached from this request.
+ * Start `cron/directory_sync.php --provider=N --auto` detached from this request.
  *
  * Uses the same PHP the Intune worker does (Assets → Settings → Intune can name
  * one), because finding a CLI PHP from inside Apache is the same problem there.
@@ -145,7 +145,7 @@ function dsyncKickDue(PDO $conn): void
  */
 function dsyncSpawn(PDO $conn, int $providerId): bool
 {
-    $script = realpath(__DIR__ . '/../scripts/directory_sync.php');
+    $script = realpath(__DIR__ . '/../cron/directory_sync.php');
     if (!$script) return false;
     require_once __DIR__ . '/intune.php';   // intuneFindPhpExe()
     $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'intune_php_exe'");
