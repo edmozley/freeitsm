@@ -38,7 +38,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.' . $k));
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=28">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=85">
-    <link rel="stylesheet" href="../assets/css/starters.css?v=4">
+    <link rel="stylesheet" href="../assets/css/starters.css?v=5">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="starters" data-mobile-page="starters-case">
