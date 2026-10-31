@@ -155,6 +155,7 @@ return [
         'sso_title'         => 'Authentication',
         'sso_desc'          => 'Choose how people sign in — single sign-on through an identity provider (OpenID Connect), or against your LDAP / Active Directory — and bring contacts in from a CardDAV address book.',
         'sso_keywords'      => 'authentication auth sso single sign-on single sign on oidc openid connect saml identity provider idp keycloak entra azure ad okta google oauth federation login ldap active directory ad domain directory bind samba openldap carddav card dav addressbook vcard vcf sabredav sabre baikal nextcloud owncloud thunderbird contact sync import people two-way two way write back writeback sync back update contacts push changes refused conflict drift compare not writing read-only permission add to address book new contact add people jit just-in-time auto-create auto create analyst portal fallback requester profile sync job title department claims email domain domains route redirect microsoft 365 hide button email only',
+        'sso_keywords_directory' => 'microsoft graph directory sync import users import groups group membership guests tenant client secret user.read.all groupmember.read.all scheduled import cron import automatically',
         'api_title'         => 'API',
         'api_desc'          => 'Create API keys with granular permissions, and explore the REST API with interactive documentation.',
         'api_keywords'      => 'api rest keys tokens integration webhook endpoints documentation swagger developer external',
