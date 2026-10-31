@@ -2084,6 +2084,10 @@ return [
         'act_did_skip'         => 'Skipped',
         'act_did_unchanged'    => 'No change',
         'act_did_error'        => 'Problem',
+        'act_will_group_join'  => 'Will join a group',
+        'act_will_group_leave' => 'Will leave a group',
+        'act_did_group_join'   => 'Joined a group',
+        'act_did_group_leave'  => 'Left a group',
 
         // --- field mapping (its own tab) ---
         'map_desc'             => 'Which detail in the directory becomes which detail in FreeITSM. Leave a box blank to use the standard name for your directory type, or clear it to stop importing that detail altogether.',
