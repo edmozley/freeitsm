@@ -516,6 +516,165 @@ require __DIR__ . '/_top.php';
     </ul>
 </div>
 
+<!-- 4l. Microsoft Entra ID directory sync -->
+<div class="help-section" id="entra">
+    <div class="help-section-header"><?php echo helpSectionNum('entra'); ?>
+        <div>
+            <h3>Importing people and groups from Microsoft Entra ID</h3>
+            <p>If you already sign people in with Microsoft Entra ID, the same provider can also bring them into FreeITSM ahead of time &mdash; with their job title, department, office, phones and manager &mdash; along with the groups they belong to.</p>
+        </div>
+    </div>
+    <p>Without this, a person only exists here once they have signed in for the first time. That is too late for most service desks: you cannot assign a laptop to a new starter, raise a ticket on somebody's behalf, or route an approval to "everyone in Finance" until each of them has happened to log in.</p>
+    <div class="help-note"><strong>It is not a separate provider.</strong> There is nothing new to add. Any OpenID Connect provider whose issuer is Microsoft Entra ID (<code>login.microsoftonline.com</code>, including the US Government and China clouds) gets an extra <strong>Directory sync (users and groups)</strong> button beside Edit on <strong>System &rarr; Authentication</strong>. That opens a page with four tabs: Connection, Importing people, Groups and History.</div>
+    <h4>Who it imports</h4>
+    <p>People become <strong>self-service users</strong> &mdash; the people who raise tickets. An import never creates an analyst; analysts still come from sign-in, through the <a href="#jit-rules">auto-create rules</a> and the <a href="#sso-groups">analyst group</a>.</p>
+    <div class="help-note ok"><strong>It reads. It never writes.</strong> FreeITSM only reads your directory through Microsoft Graph. Nothing in Entra is created, changed or deleted, and the permissions it asks for are read-only.</div>
+    <p>It follows exactly the same safety rules as an LDAP or address-book import: nobody is deleted, a run that looks wrong changes nothing, and somebody has to be missing several runs in a row before they are marked as left. See <a href="#entra-schedule">Safety and scheduling</a>.</p>
+</div>
+
+<!-- 4m. Entra setup -->
+<div class="help-section" id="entra-setup">
+    <div class="help-section-header"><?php echo helpSectionNum('entra-setup'); ?>
+        <div>
+            <h3>Connecting to Microsoft Graph</h3>
+        </div>
+    </div>
+    <p>Signing a person in and reading the whole directory are different jobs. Sign-in acts <em>on behalf of</em> the person; an import has nobody signed in, so the app registration has to authenticate as itself. That is why it needs two things sign-in does not: <strong>application permissions</strong> and a <strong>client secret</strong>.</p>
+
+    <div class="help-steps">
+        <div class="help-step"><div class="help-step-num">1</div><div><strong>Give the app registration permission to read the directory.</strong> In the Microsoft Entra admin centre open <em>App registrations &rarr; your app &rarr; API permissions &rarr; Add a permission &rarr; Microsoft Graph &rarr; <strong>Application</strong> permissions</em> and add:
+            <ul>
+                <li><code>User.Read.All</code> &mdash; people, their details and their manager</li>
+                <li><code>GroupMember.Read.All</code> &mdash; groups and who is in them</li>
+            </ul>
+            Then press <strong>Grant admin consent</strong>. Until consent is granted the permissions are listed but do nothing. <em>Delegated</em> permissions of the same name are not enough &mdash; they only work while somebody is signed in.</div></div>
+        <div class="help-step"><div class="help-step-num">2</div><div><strong>Make sure there is a client secret.</strong> Under <em>Certificates &amp; secrets</em>. Copy the <strong>Value</strong>, not the <em>Secret ID</em> &mdash; Entra shows the value only once, straight after you create it. If your sign-in already uses a secret, that one is used.</div></div>
+        <div class="help-step"><div class="help-step-num">3</div><div><strong>Open Directory sync</strong> from the provider's row on <strong>System &rarr; Authentication</strong>. On the <strong>Connection</strong> tab, the <strong>Tenant ID</strong> is normally taken from the issuer URL and can be left blank. Only an issuer using <code>common</code> or <code>organizations</code> needs it typed in: use the <em>Directory (tenant) ID</em> from the app registration's Overview page.</div></div>
+        <div class="help-step"><div class="help-step-num">4</div><div><strong>Choose which app registration reads the directory.</strong> <em>The one used for sign-in</em> is simplest. <em>A separate app registration</em>, with its own client ID and secret, keeps directory-wide permissions off the app every user signs in through &mdash; worth it if your security team prefers least privilege.</div></div>
+        <div class="help-step"><div class="help-step-num">5</div><div><strong>Press Test connection.</strong> It checks the three things that fail for different reasons, one line each: that Microsoft accepted the app's credentials, that it may read users, and that it may read groups &mdash; with how many of each the directory holds.</div></div>
+    </div>
+
+    <div class="help-note warn"><strong>Run Database Verification first.</strong> The settings and the group tables this page uses are created by <strong>System &rarr; Database Verification</strong>. On an install that has not run it since upgrading, the page says so instead of showing the form.</div>
+    <div class="help-note"><strong>Client secrets expire.</strong> Entra gives every secret an end date, at most two years away. When it passes, scheduled imports start failing with <code>AADSTS7000222</code>. Put the date in your calendar when you create it, or create the new secret before the old one runs out and paste it in here.</div>
+</div>
+
+<!-- 4n. Entra scope -->
+<div class="help-section" id="entra-scope">
+    <div class="help-section-header"><?php echo helpSectionNum('entra-scope'); ?>
+        <div>
+            <h3>Choosing which people and groups</h3>
+        </div>
+    </div>
+    <p>On the <strong>Importing people</strong> tab, tick <strong>Import people from this directory</strong>, then answer two separate questions: who comes in as a person, and which groups come in as groups.</p>
+    <h4>Which people</h4>
+    <div class="help-table"><table>
+        <thead><tr><th>Option</th><th>What you get</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Everybody in the directory</strong></td><td>Every user account. Right for a small tenant that holds people and nothing else.</td></tr>
+            <tr><td><strong>Only members of these groups</strong></td><td>People in the groups you choose. Membership is <em>transitive</em>: somebody in a group nested inside a chosen group counts too. This is the usual choice, because most tenants also hold service accounts, shared mailboxes, meeting rooms and test users.</td></tr>
+        </tbody>
+    </table></div>
+    <p><strong>Guests</strong> &mdash; external people invited into your tenant &mdash; are left out unless you tick <strong>Also import guests</strong>.</p>
+    <h4>Which groups</h4>
+    <div class="help-table"><table>
+        <thead><tr><th>Option</th><th>What you get</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Do not import groups</strong></td><td>People only. The default.</td></tr>
+            <tr><td><strong>Only these groups</strong></td><td>The groups you choose, with their members.</td></tr>
+            <tr><td><strong>Every group in the directory</strong></td><td>All of them, up to 5,000. Fine for a small tenant; in a large one you will mostly be importing Teams and distribution lists nobody here needs.</td></tr>
+        </tbody>
+    </table></div>
+    <p>Both pickers search Entra as you type a group's name, or accept a pasted <strong>object ID</strong>. A chosen group that has since been deleted in Entra stays on the list marked <em>No longer exists</em>, so you notice rather than silently importing fewer people.</p>
+    <div class="help-note"><strong>The two questions are independent on purpose.</strong> A group only links the people who are already being imported. If a group you import has members outside your people scope, they are counted in the run summary but not created &mdash; otherwise ticking a big group would quietly widen who comes in.</div>
+</div>
+
+<!-- 4o. Entra fields, sign-in and groups -->
+<div class="help-section" id="entra-fields">
+    <div class="help-section-header"><?php echo helpSectionNum('entra-fields'); ?>
+        <div>
+            <h3>What gets imported from Entra</h3>
+        </div>
+    </div>
+    <div class="help-table"><table>
+        <thead><tr><th>In FreeITSM</th><th>Comes from</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Name</strong></td><td>Display name; failing that, first name and surname.</td></tr>
+            <tr><td><strong>Email</strong></td><td>The <code>mail</code> attribute. Tenants without Exchange licences often leave it empty for everybody, so the user principal name is used instead when it is a real address.</td></tr>
+            <tr><td><strong>Username</strong></td><td>The user principal name &mdash; what the person types to sign in to Microsoft.</td></tr>
+            <tr><td><strong>Job title</strong>, <strong>Department</strong>, <strong>Office</strong></td><td><code>jobTitle</code>, <code>department</code> and <code>officeLocation</code>.</td></tr>
+            <tr><td><strong>Phone</strong> and <strong>Mobile</strong></td><td>The first business phone, and the mobile phone.</td></tr>
+            <tr><td><strong>Employee number</strong></td><td><code>employeeId</code>.</td></tr>
+            <tr><td><strong>Manager</strong></td><td>Their manager in Entra, if that manager is also imported.</td></tr>
+        </tbody>
+    </table></div>
+    <p>An account <strong>disabled</strong> in Entra is marked as having left here, and re-enabling it brings the person back.</p>
+
+    <h4>Matching people who are already here</h4>
+    <p>A person is recognised first by their Entra <strong>object ID</strong>, which survives renames and changes of email address, then by username, then by email. A match by email on somebody who is not yet linked to this provider is decided by <strong>When somebody is already here</strong>: link them, or leave them alone and flag it in the run.</p>
+    <div class="help-note warn"><strong>Linking someone changes how they sign in.</strong> Once a person is linked to Entra they sign in with Microsoft, and any portal password they had stops working. If some of your requesters deliberately use local passwords, choose <em>Leave them alone</em>, preview, and decide case by case.</div>
+
+    <h4>Signing in after an import</h4>
+    <p>Imported people can sign in with the provider straight away, and land on the record the import made rather than getting a second copy. You do not need to do anything for this to work.</p>
+
+    <h4>Groups</h4>
+    <p>The <strong>Groups</strong> tab lists every imported group with its type (Security, Mail-enabled security, Microsoft 365, Distribution), how many members it has in Entra, and how many of them FreeITSM holds. Click a group to see who is in it. A group that leaves the import scope is marked <strong>Inactive</strong> and keeps its last known members; it is never deleted.</p>
+    <p>Membership follows Entra at every import: somebody added to a group in Entra joins it here, somebody removed leaves it. Each change is recorded in the run's detail on the <strong>History</strong> tab as <em>Joined a group</em> or <em>Left a group</em>, against the person, so you can find out when somebody left Finance. A group's first import is the exception: its members are summarised in one line rather than listed one by one.</p>
+    <p>Imported groups also appear in <strong>People</strong>: a <strong>Groups</strong> tab lists them, each with a page of its members; the People list can be filtered by group; a person's page shows the groups they are in; and a company's page shows the groups its people are in, with how many of them. On a multi-company install, the groups of a provider that belongs to a client company are only offered to analysts who can access that company; inactive groups are not offered.</p>
+    <h4>Laptops from Intune</h4>
+    <p>Every person imported from Entra carries their Entra object ID, and so does every device Intune reports. Switch on <strong>Assign assets to their primary user in Intune</strong> under <strong>Assets &rarr; Settings &rarr; Intune</strong> and each asset nobody holds is given to its device's primary user at the next Intune sync &mdash; matched exactly by that ID, never by name. An asset that already has a holder is never changed.</p>
+
+    <div class="help-note ok"><strong>Group names in the sign-in mappings.</strong> Entra sends groups at sign-in as object IDs, so the mapping dropdowns under <a href="#sso-groups">Groups from the identity provider</a> used to show strings like <code>4f1c2a…</code>. Every imported group now appears there by name. A label you typed yourself is never overwritten.</div>
+</div>
+
+<!-- 4p. Entra safety and scheduling -->
+<div class="help-section" id="entra-schedule">
+    <div class="help-section-header"><?php echo helpSectionNum('entra-schedule'); ?>
+        <div>
+            <h3>Safety and scheduling for Entra</h3>
+        </div>
+    </div>
+    <p>The rules are the same as for <a href="#carddav-safety">an address-book or LDAP import</a>, and you set them on the Importing people tab:</p>
+    <ul>
+        <li><strong>Nobody is ever deleted.</strong> The worst an import does is mark somebody as having left.</li>
+        <li><strong>Missing once is noise.</strong> Somebody has to be absent for the number of runs you set before they are marked as left. 0 means never automatically.</li>
+        <li><strong>A run that looks wrong changes nothing.</strong> If an import finds far fewer people than last time (the percentage you set), it stops before touching anyone. With Entra the usual causes are a group taken out of the scope, or the app losing its Graph permissions &mdash; both look exactly like everybody leaving at once.</li>
+        <li><strong>An empty or deleted scope group stops the run.</strong> If the groups you import people from have no members, or one of them no longer exists, nothing is changed.</li>
+    </ul>
+    <div class="help-note ok"><strong>Preview first, every time.</strong> It runs the real import with the writing switched off and shows, person by person, what would be created, updated, linked or marked as left.</div>
+
+    <h4>Importing automatically</h4>
+    <p><strong>Import automatically</strong>, on the Importing people tab, sets how often this source is imported without anybody pressing <strong>Import now</strong>: every hour, every 4 or 12 hours, or once a day. Pressing Import now restarts that clock, and one source is never imported twice at the same time, whatever starts it.</p>
+    <p>The reliable way is a scheduled task running the same command that runs LDAP and address-book imports. It can run every 15 minutes; each source is still imported only at its own pace:</p>
+    <p><code>php cron/directory_sync.php --all</code></p>
+    <div class="help-note warn"><strong>Without a scheduled task</strong>, FreeITSM starts a due import itself, in the background, while somebody has FreeITSM open. It is a fallback, not a schedule: if nobody opens FreeITSM over a weekend, nothing imports that weekend, and some hosts do not allow PHP to start a background process at all. <em>Only when the scheduled task runs</em> never imports on its own. <strong>Reporting &rarr; System logs &rarr; Background jobs</strong> keeps saying there is no scheduled task until there is one.</div>
+    <p>It imports every enabled source that is due, Entra included, and exits with <code>1</code> when a run failed and <code>2</code> when one was stopped by a safety check, so a monitored task tells you. The step-by-step setup for cron and Windows Task Scheduler is in <code>docs/directory-sync-cron-setup.md</code>, in the FreeITSM folder.</p>
+    <p>Every run, by hand or scheduled, is listed on the <strong>History</strong> tab with what it did. Click one to see each person and what happened to them.</p>
+</div>
+
+<!-- 4q. Entra troubleshooting -->
+<div class="help-section" id="entra-faq">
+    <div class="help-section-header"><?php echo helpSectionNum('entra-faq'); ?>
+        <div>
+            <h3>Entra troubleshooting</h3>
+        </div>
+    </div>
+    <ul>
+        <li><strong>There is no Directory sync button on my provider.</strong> The issuer URL is not a Microsoft Entra one. It must start with <code>https://login.microsoftonline.com/</code> (or the US Government or China equivalent).</li>
+        <li><strong>"No Entra tenant id".</strong> The issuer uses <code>common</code> or <code>organizations</code>, which names no particular directory. Type the Directory (tenant) ID on the Connection tab.</li>
+        <li><strong>"The client secret is wrong" (AADSTS7000215).</strong> Almost always the <em>Secret ID</em> was pasted instead of the secret's <em>Value</em>. Create a new secret and copy the value straight away.</li>
+        <li><strong>"The client secret has expired" (AADSTS7000222).</strong> Create a new secret in the app registration and paste it in. Scheduled imports fail until you do.</li>
+        <li><strong>"No application with this client id" (AADSTS700016)</strong> or <strong>"tenant id was not found" (AADSTS90002).</strong> The client ID and tenant ID belong to different tenants, or one of them was mistyped.</li>
+        <li><strong>Test connection signs in but cannot read users or groups (403).</strong> The Graph permissions are missing, were added as <em>Delegated</em> rather than <em>Application</em>, or admin consent was never granted. After granting it, wait a minute or two and test again.</li>
+        <li><strong>Fewer people imported than the directory holds.</strong> Guests are left out unless you include them, and with <em>Only members of these groups</em> anybody outside those groups is too. The run's detail names everyone it brought in.</li>
+        <li><strong>A group's "Linked" count is lower than "In Entra".</strong> Expected: only people who are imported are linked. Members outside your people scope, guests, and nested groups themselves are counted in Entra but not held here.</li>
+        <li><strong>The import stopped and changed nothing.</strong> That is a safety check. Read the run's message, preview, and if the numbers are genuinely right, run it again or adjust the percentage.</li>
+        <li><strong>"Groups were not imported: run Database Verification".</strong> People were imported correctly; the group tables do not exist yet. Run Database Verification and import again.</li>
+        <li><strong>Nothing has imported for days.</strong> Check the scheduled task is still running. The History tab shows when the last run happened and whether somebody started it by hand.</li>
+        <li><strong>Delete is greyed out on an imported person.</strong> On purpose. Deleting them here would also remove their link to Entra, so the next import would create them again as a new person with none of their history. Remove or disable them in Entra instead: they are then marked as left here, and their tickets and equipment stay where they are. The same applies to people imported from LDAP or an address book.</li>
+        <li><strong>Somebody left a group in Entra and still shows in it.</strong> Membership is brought across at the next import, not the moment it changes. If they are still there after an import, check the group is still being imported (an <em>Inactive</em> group keeps its last members).</li>
+    </ul>
+</div>
+
 <!-- 5. Experience -->
 <div class="help-section" id="experience">
     <div class="help-section-header"><?php echo helpSectionNum('experience'); ?>

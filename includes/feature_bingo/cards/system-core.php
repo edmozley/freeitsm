@@ -565,6 +565,46 @@ return [
         'check'    => ['rows', 'auth_providers', "protocol = 'carddav' AND carddav_allow_create = 1"],
     ],
 
+    // ───────────────────────── Microsoft Entra ID directory sync ─────────────────────────
+    // An OIDC provider whose issuer is Entra - the same issuer test as
+    // entraIsEntraIssuer() in includes/entra_sync.php.
+    [
+        'id'       => 'system.entra_directory_import',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'integrations',
+        'title'    => 'Import people from Entra ID',
+        'what'     => 'Reads your Microsoft Entra ID tenant through Microsoft Graph and brings people in ahead of time, with job title, department, office, phones and manager, using the app registration you already sign in with.',
+        'why'      => 'People exist before they ever sign in, so you can assign them equipment and raise tickets for them - and leavers disabled in Entra are marked as left here.',
+        'done'     => 'At least one enabled Microsoft Entra ID sign-in provider has importing switched on.',
+        'link'     => 'system/sso/',
+        'check'    => ['rows', 'auth_providers', "protocol = 'oidc' AND enabled = 1 AND sync_enabled = 1 AND (issuer_url LIKE 'https://login.microsoftonline.%' OR issuer_url LIKE 'https://login.chinacloudapi.cn/%' OR issuer_url LIKE 'https://sts.windows.net/%')"],
+    ],
+    [
+        'id'       => 'system.entra_user_scope_groups',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Entra import scoped to groups',
+        'what'     => 'Imports only the members of chosen Entra groups, including members of groups nested inside them, rather than every account in the tenant.',
+        'why'      => 'Service accounts, shared mailboxes, meeting rooms and test users stay out of your people list.',
+        'done'     => 'At least one Entra ID provider imports people from chosen groups.',
+        'link'     => 'system/sso/',
+        'check'    => ['rows', 'auth_providers', "protocol = 'oidc' AND graph_user_scope = 'groups' AND graph_user_groups IS NOT NULL AND graph_user_groups <> ''"],
+    ],
+    [
+        'id'       => 'system.entra_groups',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Groups from Entra ID',
+        'what'     => 'Imports Entra groups and who is in them, and gives each group its name in the sign-in group mappings instead of an object id.',
+        'why'      => 'You can see who is in Finance without opening the Entra admin centre, and mapping a group to a team no longer means guessing which "4f1c..." it is.',
+        'done'     => 'At least one group has been imported from Entra ID.',
+        'link'     => 'system/sso/',
+        'check'    => ['rows', 'directory_groups', 'is_active = 1'],
+    ],
+
     // ───────────────────────── Companies (multi-company) ─────────────────────────
     [
         'id'       => 'system.multi_company',
