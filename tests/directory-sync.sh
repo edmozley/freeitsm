@@ -21,7 +21,7 @@ fi
 pass=0; fail=0
 chk() { if [ "$2" = "$3" ]; then printf "  ok    %-54s %s\n" "$1" "$3"; pass=$((pass+1));
         else printf "  FAIL  %-54s got [%s] want [%s]\n" "$1" "$3" "$2"; fail=$((fail+1)); fi; }
-run() { (cd "$APP" && $PHP scripts/directory_sync.php --provider=$PROVIDER "$@" --quiet >/dev/null 2>&1); }
+run() { (cd "$APP" && $PHP cron/directory_sync.php --provider=$PROVIDER "$@" --quiet >/dev/null 2>&1); }
 
 echo; echo "Directory sync — provider $PROVIDER"; printf '%.0s=' {1..80}; echo
 

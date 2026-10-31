@@ -179,11 +179,11 @@ function jobRegistry(): array
             'sources' => fn(PDO $c) => ['part:extract', 'part:tidy'],
         ],
         'directory_sync' => [
-            'command' => 'php scripts/directory_sync.php --all --quiet', 'web' => false,
+            'command' => 'php cron/directory_sync.php --all --quiet', 'web' => false,
             'affects_key' => 'reporting.jobs.affects_directory_sync_entra',
             'interval' => 1440, 'grace' => 720, 'max_runtime' => 60,
             // An OIDC row is a source only when its issuer is Entra - the same
-            // test as entraIsEntraIssuer() and scripts/directory_sync.php --all.
+            // test as entraIsEntraIssuer() and cron/directory_sync.php --all.
             'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM auth_providers WHERE enabled = 1 AND sync_enabled = 1 AND " . JOB_DSYNC_PROTOCOLS . " LIMIT 1"),
             'sources' => fn(PDO $c) => jobSourceKeys($c, 'provider:', "SELECT id FROM auth_providers WHERE enabled = 1 AND sync_enabled = 1 AND " . JOB_DSYNC_PROTOCOLS),
         ],

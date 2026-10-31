@@ -93,9 +93,9 @@ check('started by the fallback, it is a page run', JobRun::scheduledTrigger() ==
 putenv('FREEITSM_JOB_TRIGGER');
 
 echo "What may be run\n";
-$cmd = jobSchedulerCommand('php scripts/directory_sync.php --all --quiet');
+$cmd = jobSchedulerCommand('php cron/directory_sync.php --all --quiet');
 check('control: a registry command resolves to its script and flags',
-    $cmd !== null && str_ends_with(str_replace('\\', '/', $cmd[0]), 'scripts/directory_sync.php') && $cmd[1] === ['--all', '--quiet']);
+    $cmd !== null && str_ends_with(str_replace('\\', '/', $cmd[0]), 'cron/directory_sync.php') && $cmd[1] === ['--all', '--quiet']);
 foreach (['php cron/x.php; rm -rf /', 'php ../config.php', 'bash cron/domains.php', 'php cron/domains.php --a=$(id)', 'php cron/no_such_job.php'] as $bad) {
     check("refused: {$bad}", jobSchedulerCommand($bad) === null);
 }

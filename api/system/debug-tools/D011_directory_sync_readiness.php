@@ -187,12 +187,12 @@ function tableExists(PDO $c, $table) {
 
 $ldapExt        = extension_loaded('ldap');
 $hasSyncInclude = is_file(dirname(__DIR__, 3) . '/includes/directory_sync.php');
-$hasCliScript   = is_file(dirname(__DIR__, 3) . '/scripts/directory_sync.php');
+$hasCliScript   = is_file(dirname(__DIR__, 3) . '/cron/directory_sync.php');
 
 $pre = [
     'PHP ldap extension            : ' . ($ldapExt ? 'LOADED' : 'MISSING  <-- nothing can import without it'),
     'includes/directory_sync.php   : ' . ($hasSyncInclude ? 'present' : 'MISSING  <-- this build predates directory sync'),
-    'scripts/directory_sync.php    : ' . ($hasCliScript ? 'present' : 'MISSING  <-- no scheduled/CLI import available'),
+    'cron/directory_sync.php       : ' . ($hasCliScript ? 'present' : 'MISSING  <-- no scheduled/CLI import available'),
 ];
 addSection($sections, 'INSTALL-WIDE PREREQUISITES', $pre);
 
@@ -335,7 +335,7 @@ $trig = [
     '            This path checks sync_enabled ONLY. It does NOT check the provider\'s',
     '            Enabled flag. (api/system/run_directory_sync.php)',
     '',
-    'Scheduled : php scripts/directory_sync.php --all   [--preview]',
+    'Scheduled : php cron/directory_sync.php --all   [--preview]',
     '            This path requires enabled = 1 AND sync_enabled = 1.',
     '',
     '>> THE TRAP: a provider with Enabled OFF and directory sync ON imports',

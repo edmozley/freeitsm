@@ -478,7 +478,7 @@ require __DIR__ . '/_top.php';
 
     <h4>Running it on a schedule</h4>
     <p>The built-in scheduler imports it, once a day unless you change it, together with every other enabled source with importing switched on - address books and directories alike, each through the right engine. The line under the <strong>Run</strong> button says when the next import is, and warns when nothing will run it: the scheduler needs its one scheduled task on the server, or the fallback switched on. Both, and how often the import runs, are in <strong>Reporting &rarr; Logs &rarr; Background jobs</strong>.</p>
-    <p>An older scheduled task that runs <code>php scripts/directory_sync.php --all</code> itself still works: an import started twice runs once.</p>
+    <p>A scheduled task of your own that runs <code>php cron/directory_sync.php --all</code> works too, and so does an older one that still says <code>scripts/directory_sync.php</code>: an import started twice runs once.</p>
 
     <h4>History</h4>
     <p>The <strong>History</strong> tab lists every import and what it did — by hand or scheduled, how many contacts were read, created, updated and skipped. A run shown as <strong>stopped</strong> was halted by the safety check, which means nothing was changed and it is waiting on you rather than broken.</p>
@@ -648,7 +648,7 @@ require __DIR__ . '/_top.php';
 
     <h4>Running it on a schedule</h4>
     <p><strong>Import now</strong> runs it once by hand. To keep people current, the built-in scheduler imports every enabled source with importing switched on, Entra included - once a day unless you change it in <strong>Reporting &rarr; Logs &rarr; Background jobs</strong>. The line under <strong>Import now</strong> says when the next import is, and warns when nothing will run it.</p>
-    <p>The command it runs is <code>php scripts/directory_sync.php --all</code>, which also works from a scheduled task of its own. It exits with <code>1</code> when a run failed and <code>2</code> when one was stopped by a safety check, so a monitored task tells you. Once or twice a day is plenty for most organisations. The step-by-step setup for cron, Windows Task Scheduler and Docker is on the wiki: <a href="https://github.com/edmozley/freeitsm/wiki/Directory-Sync-Scheduling" target="_blank" rel="noopener">Directory Sync Scheduling</a>.</p>
+    <p>The command it runs is <code>php cron/directory_sync.php --all</code>, which also works from a scheduled task of its own (as does the old path, <code>scripts/directory_sync.php</code>). It exits with <code>1</code> when a run failed and <code>2</code> when one was stopped by a safety check, so a monitored task tells you. Once or twice a day is plenty for most organisations. The step-by-step setup for cron, Windows Task Scheduler and Docker is on the wiki: <a href="https://github.com/edmozley/freeitsm/wiki/Directory-Sync-Scheduling" target="_blank" rel="noopener">Directory Sync Scheduling</a>.</p>
     <p>Every run, by hand or scheduled, is listed on the <strong>History</strong> tab with what it did. Click one to see each person and what happened to them.</p>
     <p>Membership follows Entra at every import: somebody added to a group in Entra joins it here, somebody removed leaves it. Each change is recorded in the run's detail on the <strong>History</strong> tab as <em>Joined a group</em> or <em>Left a group</em>, against the person, so you can find out when somebody left Finance. A group's first import is the exception: its members are summarised in one line rather than listed one by one.</p>
 </div>

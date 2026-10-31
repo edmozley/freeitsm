@@ -171,7 +171,7 @@ function jobSchedulerClaim(PDO $conn, string $job, string $nextDue): bool
  * The script and arguments a registry command runs - or null for anything that is not
  * plainly "php cron/x.php --flag".
  *
- * @param string $command  a registry 'command', e.g. 'php scripts/directory_sync.php --all --quiet'
+ * @param string $command  a registry 'command', e.g. 'php cron/directory_sync.php --all --quiet'
  * @return ?array{0:string,1:array<int,string>}  the script's full path and its arguments
  */
 function jobSchedulerCommand(string $command): ?array
