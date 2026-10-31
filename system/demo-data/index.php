@@ -491,7 +491,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
             <div class="module-card" data-module="forms">
                 <h4>Forms</h4>
-                <p class="module-desc">2 forms (New Starter, Equipment Return) with fields and 3 completed submissions.</p>
+                <p class="module-desc">2 forms with fields: a New starter request on the portal (who is joining, mailbox, private mailbox, DMS and PMS access, equipment) that opens a Starters &amp; leavers case, and an Equipment Return form - with 6 completed submissions.</p>
                 <div class="module-footer">
                     <span class="record-count">~22 records</span>
                     <button class="import-btn" id="btn-forms" onclick="importModule('forms', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
@@ -501,12 +501,22 @@ if (!isset($_SESSION['analyst_id'])) {
 
             <div class="module-card" data-module="tasks">
                 <h4>Tasks and Projects</h4>
-                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments - plus 9 projects covering every way of running one and every status: a staged office move (team, stakeholder map, scope, RACI, RAID, gates with checklists, budget, change control, benefits, reports), an Agile laptop refresh with sprints and an asset target, a mail migration in trouble, a closed project with its closure report and measured benefits, a proposal waiting for approval, a members-only project, one on hold and one cancelled - 72 project tasks with dependencies, estimates and 40 days of status history for the charts. Import Assets, Changes, Tickets, Contracts, Knowledge and CMDB first and the projects link to their records too.</p>
+                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments, and the tasks behind the Starters &amp; leavers demo cases - plus 9 projects covering every way of running one and every status: a staged office move (team, stakeholder map, scope, RACI, RAID, gates with checklists, budget, change control, benefits, reports), an Agile laptop refresh with sprints and an asset target, a mail migration in trouble, a closed project with its closure report and measured benefits, a proposal waiting for approval, a members-only project, one on hold and one cancelled - 72 project tasks with dependencies, estimates and 40 days of status history for the charts. Import Assets, Changes, Tickets, Contracts, Knowledge and CMDB first and the projects link to their records too.</p>
                 <div class="module-footer">
                     <span class="record-count">~875 records</span>
                     <button class="import-btn" id="btn-tasks" onclick="importModule('tasks', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-tasks" style="display:none"></div>
+            </div>
+
+            <div class="module-card" data-module="starters">
+                <h4>Starters &amp; leavers</h4>
+                <p class="module-desc">4 templates (Legal starter, chosen by department; Standard starter; Role change; Leaver) whose steps only appear when the New starter request's answers call for them, and 9 cases at every stage: a starter next week with half the work done, one waiting for answers, one who started three days ago with a step overdue, a finished one, a cancelled one, a leaver whose last day was yesterday with a laptop still to recover, and a mover. Import Core, Assets, Checklists, Forms and Tasks first - the cases' steps live in Tasks and their answers in Forms. Re-import this after re-importing Tasks or Forms.</p>
+                <div class="module-footer">
+                    <span class="record-count">~60 records</span>
+                    <button class="import-btn" id="btn-starters" onclick="importModule('starters', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
+                </div>
+                <div class="error-text" id="err-starters" style="display:none"></div>
             </div>
 
             <div class="module-card" data-module="process-mapper">
@@ -670,7 +680,7 @@ if (!isset($_SESSION['analyst_id'])) {
         }
 
         function enableModuleButtons() {
-            const modules = ['tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'checklists', 'contracts', 'domains', 'cost-centres', 'services', 'software', 'forms', 'tasks', 'process-mapper', 'cmdb', 'lms', 'workflow', 'network-mapper'];
+            const modules = ['tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'checklists', 'contracts', 'domains', 'cost-centres', 'services', 'software', 'forms', 'tasks', 'starters', 'process-mapper', 'cmdb', 'lms', 'workflow', 'network-mapper'];
             modules.forEach(function(m) {
                 const btn = document.getElementById('btn-' + m);
                 if (btn && !btn.classList.contains('success')) {

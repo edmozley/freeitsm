@@ -641,6 +641,28 @@ final class StartersService
         return $ctx->actorId > 0 ? $ctx->locale : I18n::DEFAULT_LOCALE;
     }
 
+    /**
+     * Rewrites a case's parent task title and description from the case as it stands -
+     * kind, name, date, answers - exactly as opening it would have written them. The demo
+     * import uses it (includes/demo_data.php): demo tasks are inserted as plain rows, so
+     * their titles cannot carry a date relative to the day of the import.
+     */
+    public static function refreshTaskText(PDO $conn, int $caseId): void
+    {
+        $st = $conn->prepare("SELECT kind, person_name, effective_date, parent_task_id, form_submission_id, owner_analyst_id FROM jml_cases WHERE id = ?");
+        $st->execute([$caseId]);
+        $c = $st->fetch(PDO::FETCH_ASSOC);
+        $kind = $c ? JmlKind::tryFrom((string)$c['kind']) : null;
+        if (!$kind || !$c['parent_task_id']) return;
+        $loc = self::writeLocale($conn, new ActorContext(0, null, 'ui', 'en', 'Workflow'), $c['owner_analyst_id'] ? (int)$c['owner_analyst_id'] : null);
+        $answers = $c['form_submission_id'] ? self::answers($conn, (int)$c['form_submission_id']) : [];
+        $conn->prepare("UPDATE tasks SET title = ?, description = ? WHERE id = ?")->execute([
+            self::taskTitle($kind, (string)$c['person_name'], (string)$c['effective_date'], $loc),
+            self::taskDescription($caseId, $answers, $loc),
+            (int)$c['parent_task_id'],
+        ]);
+    }
+
     /** The task title a case's work is filed under - "Leaver: Jane Smith (31 Oct 2026)", in the case's language. */
     private static function taskTitle(JmlKind $kind, string $name, string $date, string $locale): string
     {

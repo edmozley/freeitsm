@@ -10177,6 +10177,7 @@ CREATE TABLE IF NOT EXISTS `jml_template_steps` (
     -- answers (same operators as a form's show/hide rules). NULL = always.
     `condition_rule`         TEXT NULL,
     `display_order`          INT NOT NULL DEFAULT 0,
+    `is_demo`                TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_jml_template_steps_template` (`template_id`, `display_order`),
     CONSTRAINT `fk_jml_steps_template` FOREIGN KEY (`template_id`) REFERENCES `jml_templates` (`id`) ON DELETE CASCADE,
@@ -10236,6 +10237,7 @@ CREATE TABLE IF NOT EXISTS `jml_audit` (
     `old_value`        VARCHAR(1000) NULL,
     `new_value`        VARCHAR(1000) NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_jml_audit_case` (`case_id`, `created_datetime`),
     CONSTRAINT `fk_jml_audit_case` FOREIGN KEY (`case_id`) REFERENCES `jml_cases` (`id`) ON DELETE CASCADE

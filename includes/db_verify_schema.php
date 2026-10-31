@@ -6682,6 +6682,7 @@ return [
         'checklist_template_id'  => 'INT NULL',
         'condition_rule'         => 'TEXT NULL',
         'display_order'          => 'INT NOT NULL DEFAULT 0',
+        'is_demo'                => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
     'jml_cases' => [
         'id'                  => 'INT NOT NULL AUTO_INCREMENT',
@@ -6713,5 +6714,6 @@ return [
         'old_value'        => 'VARCHAR(1000) NULL',
         'new_value'        => 'VARCHAR(1000) NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 ];

@@ -19,7 +19,7 @@ const DEMO_MODULES = [
     'core', 'tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks',
     'checklists',
     'contracts', 'domains', 'cost-centres', 'services', 'software', 'forms', 'software-assets',
-    'dashboards', 'tasks', 'process-mapper', 'cmdb', 'lms', 'workflow',
+    'dashboards', 'tasks', 'starters', 'process-mapper', 'cmdb', 'lms', 'workflow',
     'network-mapper',
 ];
 
@@ -36,6 +36,7 @@ const DEMO_MODULES = [
  * @param string $module  the DEMO_MODULES key just imported, e.g. 'tasks'; only 'tasks' does anything
  */
 function demoAfterImport(PDO $conn, string $module): void {
+    if ($module === 'starters') { demoAfterStarters($conn); return; }
     if ($module !== 'tasks') return;
     try { $rows = $conn->query("SELECT id, project_id, snapshot FROM project_baselines WHERE is_demo = 1")->fetchAll(PDO::FETCH_ASSOC); }
     catch (Throwable) { return; }   // before Database Verification
@@ -56,6 +57,47 @@ function demoAfterImport(PDO $conn, string $module): void {
         if ($s['budget_planned'] !== null) $s['budget_planned'] = round($s['budget_planned'] + (float)($recipe['budget_delta'] ?? 0), 2);
         if (isset($recipe['task_delta'])) $s['task_count'] = max(0, (int)$s['task_count'] + (int)$recipe['task_delta']);
         $up->execute([json_encode($s), $s['start_date'], $s['target_end_date'], $s['budget_planned'], $s['task_count'] ?? null, $s['estimate_hours'] ?? null, isset($s['must']) ? count($s['must']) : null, (int)$b['id']]);
+    }
+}
+
+/**
+ * starters (4.6.0): a case's work and answers live in two OTHER demo modules - the
+ * case tasks in Tasks, the "New starter request" answers in Forms - because a demo
+ * import clears every is_demo row of each table it writes, so two modules must
+ * never write the same table. The JSON cannot point across with an @ref (another
+ * file's refs are not in this import), and a _skip_insert match on the task title
+ * would stop matching once the title carries its date. So each case finds its own:
+ *   - its parent task: the demo top-level task titled "<kind>: <name>..." - matched on
+ *     ": <name>" alone, because a re-import finds the title already rewritten in the
+ *     case's language ("Eintritt: ...");
+ *   - its answers: the demo submission whose "Full name" is the case's person;
+ * then the task is given the title and description opening the case would have
+ * written (StartersService::refreshTaskText) - with the date of THIS import.
+ * The starter templates are pointed at the demo form here too, not by a title match in
+ * the JSON: an install whose demo data predates is_demo has an untagged "New Starter
+ * Request" of its own, and MySQL compares titles without regard to case.
+ * Missing Tasks or Forms demo data leaves the link empty, as a real case can be.
+ */
+function demoAfterStarters(PDO $conn): void {
+    require_once __DIR__ . '/starters/service.php';
+    $form = $conn->query("SELECT id FROM forms WHERE is_demo = 1 AND title = 'New starter request' ORDER BY id DESC LIMIT 1")->fetchColumn() ?: null;
+    $conn->prepare("UPDATE jml_templates SET form_id = ? WHERE is_demo = 1 AND kind = 'starter'")->execute([$form]);
+    $cases = $conn->query("SELECT c.id, c.kind, c.person_name, t.form_id FROM jml_cases c
+                             LEFT JOIN jml_templates t ON t.id = c.template_id WHERE c.is_demo = 1")->fetchAll(PDO::FETCH_ASSOC);
+    $task = $conn->prepare("SELECT id FROM tasks WHERE is_demo = 1 AND parent_task_id IS NULL AND title LIKE ? ORDER BY id LIMIT 1");
+    $sub = $conn->prepare("SELECT d.submission_id FROM form_submission_data d
+                             JOIN form_fields f ON f.id = d.field_id JOIN form_submissions s ON s.id = d.submission_id
+                            WHERE s.is_demo = 1 AND LOWER(f.label) = 'full name' AND d.field_value = ? ORDER BY s.id DESC LIMIT 1");
+    $link = $conn->prepare("UPDATE jml_cases SET parent_task_id = ?, form_submission_id = ? WHERE id = ?");
+    foreach ($cases as $c) {
+        $task->execute(['%: ' . addcslashes((string)$c['person_name'], '%_') . '%']);
+        $submission = null;
+        if ($c['form_id']) {
+            $sub->execute([$c['person_name']]);
+            $submission = $sub->fetchColumn() ?: null;
+        }
+        $link->execute([$task->fetchColumn() ?: null, $submission, (int)$c['id']]);
+        StartersService::refreshTaskText($conn, (int)$c['id']);
     }
 }
 

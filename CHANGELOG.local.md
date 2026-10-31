@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2681 | Starters & leavers | Improvement | Demo data: System -> Demo data -> Starters & leavers adds 4 templates (Legal starter chosen by department, Standard, Role change, Leaver) and 9 cases at every stage, built on a reworked New starter request form (mailbox, private mailbox, DMS, PMS, equipment) whose answers decide each case's steps; the case tasks live in the Tasks demo and the answers in the Forms demo so no two demo modules write one table (new tests/demo-data-ownership.php guards that), jml_template_steps and jml_audit gain is_demo, and demoAfterStarters() links each case to its task and answers and writes the task title with the import's dates. |
 
 
 

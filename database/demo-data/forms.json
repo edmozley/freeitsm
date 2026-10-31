@@ -19,18 +19,28 @@
                 "_match_by": "username",
                 "_match_value": "swilliams"
             }
+        ],
+        "users": [
+            {
+                "_ref": "hr",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "karen.hall@example.com"
+            }
         ]
     },
     "tier2": {
         "forms": [
             {
                 "_ref": "form1",
-                "title": "New Starter Request",
-                "description": "Request IT equipment and access for a new employee joining the organisation.",
+                "title": "New starter request",
+                "description": "Tell IT about somebody joining: who they are, what they need access to and what kit they should have. Submitting it opens a Starters & leavers case.",
                 "is_active": 1,
                 "created_by": "@analysts.admin",
                 "created_date": "__RELATIVE_DATE:-30d__",
-                "modified_date": "__RELATIVE_DATE:-5d__"
+                "modified_date": "__RELATIVE_DATE:-5d__",
+                "is_portal_visible": 1,
+                "submission_actions": "{\"submitted\":[{\"type\":\"open_jml_case\",\"args\":{\"kind\":\"starter\"}}]}"
             },
             {
                 "_ref": "form2",
@@ -46,62 +56,123 @@
     "tier3": {
         "form_fields": [
             {
-                "_ref": "f1_field1",
+                "_ref": "f1_s1",
                 "form_id": "@forms.form1",
-                "field_type": "text",
-                "label": "Employee Full Name",
-                "is_required": 1,
+                "field_type": "section",
+                "label": "About the person",
+                "is_required": 0,
                 "sort_order": 1
             },
             {
-                "_ref": "f1_field2",
+                "_ref": "f1_name",
                 "form_id": "@forms.form1",
                 "field_type": "text",
-                "label": "Job Title",
+                "label": "Full name",
                 "is_required": 1,
                 "sort_order": 2
             },
             {
-                "_ref": "f1_field3",
+                "_ref": "f1_job",
                 "form_id": "@forms.form1",
-                "field_type": "dropdown",
-                "label": "Department",
-                "options": "[\"IT Support\",\"Infrastructure\",\"Development\",\"Information Security\",\"Projects\",\"Finance\",\"HR\",\"Marketing\"]",
+                "field_type": "text",
+                "label": "Job title",
                 "is_required": 1,
                 "sort_order": 3
             },
             {
-                "_ref": "f1_field4",
+                "_ref": "f1_dept",
                 "form_id": "@forms.form1",
-                "field_type": "text",
-                "label": "Start Date",
+                "field_type": "dropdown",
+                "label": "Department",
+                "options": "[\"Dispute Resolution\",\"Corporate\",\"Real Estate\",\"Private Client\",\"Finance\",\"HR\",\"IT\",\"Marketing\"]",
                 "is_required": 1,
                 "sort_order": 4
             },
             {
-                "_ref": "f1_field5",
+                "_ref": "f1_manager",
                 "form_id": "@forms.form1",
-                "field_type": "dropdown",
-                "label": "Equipment Required",
-                "options": "[\"Laptop\",\"Desktop\",\"Laptop + Monitor\",\"Desktop + Monitor\"]",
+                "field_type": "text",
+                "label": "Line manager",
                 "is_required": 1,
                 "sort_order": 5
             },
             {
-                "_ref": "f1_field6",
+                "_ref": "f1_start",
                 "form_id": "@forms.form1",
-                "field_type": "checkbox",
-                "label": "VPN Access Required",
-                "is_required": 0,
-                "sort_order": 6
+                "field_type": "datetime",
+                "label": "Start date",
+                "is_required": 1,
+                "sort_order": 6,
+                "config": "{\"date_mode\":\"date\"}"
             },
             {
-                "_ref": "f1_field7",
+                "_ref": "f1_s2",
                 "form_id": "@forms.form1",
-                "field_type": "textarea",
-                "label": "Additional Requirements",
+                "field_type": "section",
+                "label": "Systems",
                 "is_required": 0,
                 "sort_order": 7
+            },
+            {
+                "_ref": "f1_mail",
+                "form_id": "@forms.form1",
+                "field_type": "radio",
+                "label": "Mailbox",
+                "options": "[\"Yes\",\"No\"]",
+                "is_required": 1,
+                "sort_order": 8
+            },
+            {
+                "_ref": "f1_pmail",
+                "form_id": "@forms.form1",
+                "field_type": "radio",
+                "label": "Private mailbox",
+                "options": "[\"Yes\",\"No\"]",
+                "is_required": 1,
+                "sort_order": 9
+            },
+            {
+                "_ref": "f1_dms",
+                "form_id": "@forms.form1",
+                "field_type": "radio",
+                "label": "DMS access",
+                "options": "[\"Yes\",\"No\"]",
+                "is_required": 1,
+                "sort_order": 10
+            },
+            {
+                "_ref": "f1_pms",
+                "form_id": "@forms.form1",
+                "field_type": "radio",
+                "label": "PMS access",
+                "options": "[\"Yes\",\"No\"]",
+                "is_required": 1,
+                "sort_order": 11
+            },
+            {
+                "_ref": "f1_s3",
+                "form_id": "@forms.form1",
+                "field_type": "section",
+                "label": "Equipment",
+                "is_required": 0,
+                "sort_order": 12
+            },
+            {
+                "_ref": "f1_kit",
+                "form_id": "@forms.form1",
+                "field_type": "checkboxes",
+                "label": "Equipment",
+                "options": "[\"Laptop\",\"Phone\",\"Monitor\"]",
+                "is_required": 0,
+                "sort_order": 13
+            },
+            {
+                "_ref": "f1_notes",
+                "form_id": "@forms.form1",
+                "field_type": "textarea",
+                "label": "Anything else IT should know",
+                "is_required": 0,
+                "sort_order": 14
             },
             {
                 "_ref": "f2_field1",
@@ -115,7 +186,7 @@
                 "_ref": "f2_field2",
                 "form_id": "@forms.form2",
                 "field_type": "text",
-                "label": "Asset Tag / Hostname",
+                "label": "Asset Tag \/ Hostname",
                 "is_required": 1,
                 "sort_order": 2
             },
@@ -149,16 +220,49 @@
     "tier4": {
         "form_submissions": [
             {
-                "_ref": "sub1",
+                "_ref": "jml_s_priya",
                 "form_id": "@forms.form1",
-                "submitted_by": "@analysts.jsmith",
-                "submitted_date": "__RELATIVE_DATE:-10d__"
+                "submitted_by_user_id": "@users.hr",
+                "submitted_date": "__RELATIVE_DATE:-6d-1h__",
+                "_optional_fields": [
+                    "submitted_by_user_id"
+                ]
             },
             {
-                "_ref": "sub2",
+                "_ref": "jml_s_tom",
                 "form_id": "@forms.form1",
-                "submitted_by": "@analysts.swilliams",
-                "submitted_date": "__RELATIVE_DATE:-7d__"
+                "submitted_by_user_id": "@users.hr",
+                "submitted_date": "__RELATIVE_DATE:-2d-1h__",
+                "_optional_fields": [
+                    "submitted_by_user_id"
+                ]
+            },
+            {
+                "_ref": "jml_s_daniel",
+                "form_id": "@forms.form1",
+                "submitted_by_user_id": "@users.hr",
+                "submitted_date": "__RELATIVE_DATE:-12d-1h__",
+                "_optional_fields": [
+                    "submitted_by_user_id"
+                ]
+            },
+            {
+                "_ref": "jml_s_sophie",
+                "form_id": "@forms.form1",
+                "submitted_by_user_id": "@users.hr",
+                "submitted_date": "__RELATIVE_DATE:-40d-1h__",
+                "_optional_fields": [
+                    "submitted_by_user_id"
+                ]
+            },
+            {
+                "_ref": "jml_s_james",
+                "form_id": "@forms.form1",
+                "submitted_by_user_id": "@users.hr",
+                "submitted_date": "__RELATIVE_DATE:-15d-1h__",
+                "_optional_fields": [
+                    "submitted_by_user_id"
+                ]
             },
             {
                 "_ref": "sub3",
@@ -171,74 +275,264 @@
     "tier5": {
         "form_submission_data": [
             {
-                "submission_id": "@form_submissions.sub1",
-                "field_id": "@form_fields.f1_field1",
-                "field_value": "Emily Richardson"
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_name",
+                "field_value": "Priya Shah"
             },
             {
-                "submission_id": "@form_submissions.sub1",
-                "field_id": "@form_fields.f1_field2",
-                "field_value": "Marketing Coordinator"
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_job",
+                "field_value": "Associate"
             },
             {
-                "submission_id": "@form_submissions.sub1",
-                "field_id": "@form_fields.f1_field3",
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_dept",
+                "field_value": "Dispute Resolution"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_manager",
+                "field_value": "Laura Bennett"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_start",
+                "field_value": "__RELATIVE_DATEONLY:+7d__"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_mail",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_pmail",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_dms",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_pms",
+                "field_value": "No"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_kit",
+                "field_value": "[\"Laptop\",\"Phone\"]"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_priya",
+                "field_id": "@form_fields.f1_notes",
+                "field_value": "Will split her week between the London and Leeds offices."
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_name",
+                "field_value": "Tom Okafor"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_job",
+                "field_value": "Marketing Executive"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_dept",
                 "field_value": "Marketing"
             },
             {
-                "submission_id": "@form_submissions.sub1",
-                "field_id": "@form_fields.f1_field4",
-                "field_value": "2026-03-03"
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_manager",
+                "field_value": "Emma Thomas"
             },
             {
-                "submission_id": "@form_submissions.sub1",
-                "field_id": "@form_fields.f1_field5",
-                "field_value": "Laptop + Monitor"
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_start",
+                "field_value": "__RELATIVE_DATEONLY:+14d__"
             },
             {
-                "submission_id": "@form_submissions.sub1",
-                "field_id": "@form_fields.f1_field6",
-                "field_value": "true"
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_mail",
+                "field_value": "Yes"
             },
             {
-                "submission_id": "@form_submissions.sub1",
-                "field_id": "@form_fields.f1_field7",
-                "field_value": "Will need access to Adobe Creative Cloud and the marketing shared drive."
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_pmail",
+                "field_value": "No"
             },
             {
-                "submission_id": "@form_submissions.sub2",
-                "field_id": "@form_fields.f1_field1",
-                "field_value": "Raj Patel"
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_dms",
+                "field_value": "No"
             },
             {
-                "submission_id": "@form_submissions.sub2",
-                "field_id": "@form_fields.f1_field2",
-                "field_value": "Junior Developer"
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_pms",
+                "field_value": "No"
             },
             {
-                "submission_id": "@form_submissions.sub2",
-                "field_id": "@form_fields.f1_field3",
-                "field_value": "Development"
+                "submission_id": "@form_submissions.jml_s_tom",
+                "field_id": "@form_fields.f1_kit",
+                "field_value": "[\"Laptop\",\"Monitor\"]"
             },
             {
-                "submission_id": "@form_submissions.sub2",
-                "field_id": "@form_fields.f1_field4",
-                "field_value": "2026-03-10"
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_name",
+                "field_value": "Daniel Reyes"
             },
             {
-                "submission_id": "@form_submissions.sub2",
-                "field_id": "@form_fields.f1_field5",
-                "field_value": "Laptop + Monitor"
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_job",
+                "field_value": "Paralegal"
             },
             {
-                "submission_id": "@form_submissions.sub2",
-                "field_id": "@form_fields.f1_field6",
-                "field_value": "true"
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_dept",
+                "field_value": "Corporate"
             },
             {
-                "submission_id": "@form_submissions.sub2",
-                "field_id": "@form_fields.f1_field7",
-                "field_value": "Needs Visual Studio, Git, and access to the development servers."
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_manager",
+                "field_value": "Laura Bennett"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_start",
+                "field_value": "__RELATIVE_DATEONLY:-3d__"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_mail",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_pmail",
+                "field_value": "No"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_dms",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_pms",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_daniel",
+                "field_id": "@form_fields.f1_kit",
+                "field_value": "[\"Laptop\"]"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_name",
+                "field_value": "Sophie Turner"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_job",
+                "field_value": "Senior Associate"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_dept",
+                "field_value": "Real Estate"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_manager",
+                "field_value": "Mark Ellis"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_start",
+                "field_value": "__RELATIVE_DATEONLY:-25d__"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_mail",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_pmail",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_dms",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_pms",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_kit",
+                "field_value": "[\"Laptop\",\"Phone\",\"Monitor\"]"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_sophie",
+                "field_id": "@form_fields.f1_notes",
+                "field_value": "Joining from another firm - bring her DMS workspaces across."
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_name",
+                "field_value": "James Patel"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_job",
+                "field_value": "Finance Assistant"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_dept",
+                "field_value": "Finance"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_manager",
+                "field_value": "Karen Hall"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_start",
+                "field_value": "__RELATIVE_DATEONLY:+30d__"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_mail",
+                "field_value": "Yes"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_pmail",
+                "field_value": "No"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_dms",
+                "field_value": "No"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_pms",
+                "field_value": "No"
+            },
+            {
+                "submission_id": "@form_submissions.jml_s_james",
+                "field_id": "@form_fields.f1_kit",
+                "field_value": "[\"Laptop\"]"
             },
             {
                 "submission_id": "@form_submissions.sub3",

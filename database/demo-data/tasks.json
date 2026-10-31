@@ -311,6 +311,20 @@
                 "_match_by": "email",
                 "_match_value": "rachel.green@techdirect.example.com"
             }
+        ],
+        "checklist_templates": [
+            {
+                "_ref": "tpl_onboard",
+                "_skip_insert": true,
+                "_match_by": "title",
+                "_match_value": "Employee onboarding provisioning"
+            },
+            {
+                "_ref": "tpl_offboard",
+                "_skip_insert": true,
+                "_match_by": "title",
+                "_match_value": "Employee offboarding"
+            }
         ]
     },
     "tier2": {
@@ -379,12 +393,12 @@
                 "visibility": "everyone",
                 "report_schedule": "off",
                 "report_schedule_kind": "highlight",
-                "business_case": "The firewall pair at both sites goes end of support in eight months - no more security updates.\n\nOptions: replace like for like (£38k), move to a cloud firewall service (£22k a year), or do nothing (not acceptable).\nRecommendation: like-for-like replacement, which the network team already knows.",
+                "business_case": "The firewall pair at both sites goes end of support in eight months - no more security updates.\n\nOptions: replace like for like (\u00a338k), move to a cloud firewall service (\u00a322k a year), or do nothing (not acceptable).\nRecommendation: like-for-like replacement, which the network team already knows.",
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:+9d__",
                 "updated_datetime": "__RELATIVE_DATE:-1d__",
                 "estimated_cost": 38000,
-                "estimated_benefit": "Removes an unsupported security device from both sites and cuts the support contract by £4,000 a year.",
+                "estimated_benefit": "Removes an unsupported security device from both sites and cuts the support contract by \u00a34,000 a year.",
                 "approval_status": "pending",
                 "proposed_by_name": "Emma Thomas",
                 "proposed_by_email": "emma.thomas@example.com"
@@ -926,7 +940,7 @@
             {
                 "_ref": "t_access_review",
                 "title": "Quarterly access review for privileged accounts",
-                "description": "<p>Review all members of Domain Admins, Enterprise Admins, and the Tier 0 PIM group. Confirm with line managers that elevated rights are still required, and remove anyone who has changed role.</p><p>Output: signed-off spreadsheet stored in IT Compliance SharePoint.</p>",
+                "description": "<p>Review all members of Domain Admins, Enterprise Admins, and the Tier 0 PIM group. Confirm with line managers that elevated rights are still required, and remove anyone who has changed role.<\/p><p>Output: signed-off spreadsheet stored in IT Compliance SharePoint.<\/p>",
                 "status": "To Do",
                 "priority": "Medium",
                 "due_date": "__RELATIVE_DATEONLY:+10d__",
@@ -940,7 +954,7 @@
             {
                 "_ref": "t_ups_battery",
                 "title": "Replace failed UPS battery in main server room",
-                "description": "<p>UPS-A2 reported battery failure on Sunday. Replacement battery pack arrived Monday. Schedule a 30-minute window to swap and run a self-test.</p>",
+                "description": "<p>UPS-A2 reported battery failure on Sunday. Replacement battery pack arrived Monday. Schedule a 30-minute window to swap and run a self-test.<\/p>",
                 "status": "To Do",
                 "priority": "High",
                 "due_date": "__RELATIVE_DATEONLY:+2d__",
@@ -954,7 +968,7 @@
             {
                 "_ref": "t_vpn_rollout",
                 "title": "Roll out new GlobalProtect VPN client (v6.3)",
-                "description": "<p>Phased rollout of the new VPN client to all staff laptops. Old client to be retired by end of month.</p>",
+                "description": "<p>Phased rollout of the new VPN client to all staff laptops. Old client to be retired by end of month.<\/p>",
                 "status": "To Do",
                 "priority": "Medium",
                 "due_date": "__RELATIVE_DATEONLY:+18d__",
@@ -968,7 +982,7 @@
             {
                 "_ref": "t_ssl_renew",
                 "title": "Renew SSL certificate for portal.example.com",
-                "description": "<p>Wildcard cert *.example.com expires in 9 days. Generate CSR, request renewal from DigiCert, install on the load balancer and verify chain.</p>",
+                "description": "<p>Wildcard cert *.example.com expires in 9 days. Generate CSR, request renewal from DigiCert, install on the load balancer and verify chain.<\/p>",
                 "status": "To Do",
                 "priority": "Urgent",
                 "due_date": "__RELATIVE_DATEONLY:+5d__",
@@ -981,7 +995,7 @@
             {
                 "_ref": "t_doc_printer",
                 "title": "Document the new MFP install process",
-                "description": "<p>Write up the deployment process for the Konica C300i fleet - driver source, IP reservation, follow-me print queue setup. Publish to KB.</p>",
+                "description": "<p>Write up the deployment process for the Konica C300i fleet - driver source, IP reservation, follow-me print queue setup. Publish to KB.<\/p>",
                 "status": "To Do",
                 "priority": "Low",
                 "assigned_analyst_id": "@analysts.jsmith",
@@ -994,7 +1008,7 @@
             {
                 "_ref": "t_onboarding",
                 "title": "Onboarding - Karen Hall (Marketing, starts Monday)",
-                "description": "<p>New starter Karen Hall joins the Marketing team next Monday. Standard onboarding: account, mailbox, laptop, security groups, induction.</p>",
+                "description": "<p>New starter Karen Hall joins the Marketing team next Monday. Standard onboarding: account, mailbox, laptop, security groups, induction.<\/p>",
                 "status": "In Progress",
                 "priority": "Medium",
                 "due_date": "__RELATIVE_DATEONLY:+4d__",
@@ -1008,7 +1022,7 @@
             {
                 "_ref": "t_fileshares",
                 "title": "Migrate file shares to SharePoint (Phase 2 - Finance & HR)",
-                "description": "<p>Phase 2 of the file share retirement project. Finance (480 GB) and HR (210 GB) shares to be migrated to dedicated SharePoint sites with the same NTFS-equivalent permissions.</p><p>Phase 1 (IT and Marketing) completed last month.</p>",
+                "description": "<p>Phase 2 of the file share retirement project. Finance (480 GB) and HR (210 GB) shares to be migrated to dedicated SharePoint sites with the same NTFS-equivalent permissions.<\/p><p>Phase 1 (IT and Marketing) completed last month.<\/p>",
                 "status": "In Progress",
                 "priority": "High",
                 "due_date": "__RELATIVE_DATEONLY:+14d__",
@@ -1022,7 +1036,7 @@
             {
                 "_ref": "t_image_refresh",
                 "title": "Refresh laptop SOE image - Windows 11 24H2",
-                "description": "<p>Build the next-gen Standard Operating Environment image based on Windows 11 24H2. Includes corporate apps, security baseline, and updated branding.</p>",
+                "description": "<p>Build the next-gen Standard Operating Environment image based on Windows 11 24H2. Includes corporate apps, security baseline, and updated branding.<\/p>",
                 "status": "In Progress",
                 "priority": "Medium",
                 "due_date": "__RELATIVE_DATEONLY:+21d__",
@@ -1036,7 +1050,7 @@
             {
                 "_ref": "t_citrix_decom",
                 "title": "Decommission legacy Citrix farm",
-                "description": "<p>Now that Azure Virtual Desktop is the strategic remote-access platform, the legacy Citrix XenApp 7.15 farm can be retired. Power down session hosts, reclaim VLAN/IPs, and notify Finance to cancel licences.</p>",
+                "description": "<p>Now that Azure Virtual Desktop is the strategic remote-access platform, the legacy Citrix XenApp 7.15 farm can be retired. Power down session hosts, reclaim VLAN\/IPs, and notify Finance to cancel licences.<\/p>",
                 "status": "In Progress",
                 "priority": "High",
                 "due_date": "__RELATIVE_DATEONLY:+30d__",
@@ -1050,7 +1064,7 @@
             {
                 "_ref": "t_audit_mailboxes",
                 "title": "Audit shared mailboxes for stale accounts",
-                "description": "<p>Identify shared mailboxes with no logins in the last 90 days. Confirm with owning department, then archive and remove.</p>",
+                "description": "<p>Identify shared mailboxes with no logins in the last 90 days. Confirm with owning department, then archive and remove.<\/p>",
                 "status": "Done",
                 "priority": "Low",
                 "assigned_analyst_id": "@analysts.lbrown",
@@ -1064,7 +1078,7 @@
             {
                 "_ref": "t_phishing_sim",
                 "title": "Run quarterly phishing simulation campaign",
-                "description": "<p>Q1 phishing simulation via KnowBe4. Three templates targeted at Finance, Sales, and All Staff. Compile results and feed into the security awareness report.</p>",
+                "description": "<p>Q1 phishing simulation via KnowBe4. Three templates targeted at Finance, Sales, and All Staff. Compile results and feed into the security awareness report.<\/p>",
                 "status": "Done",
                 "priority": "Medium",
                 "assigned_analyst_id": "@analysts.swilliams",
@@ -1078,7 +1092,7 @@
             {
                 "_ref": "t_boardroom_display",
                 "title": "Replace boardroom 2 conference display",
-                "description": "<p>Old Samsung 65\" panel had repeated HDMI handshake failures. Replaced with a Logitech Rally Bar Mini and a new 75\" LG display. Tested with Teams Rooms.</p>",
+                "description": "<p>Old Samsung 65\" panel had repeated HDMI handshake failures. Replaced with a Logitech Rally Bar Mini and a new 75\" LG display. Tested with Teams Rooms.<\/p>",
                 "status": "Done",
                 "priority": "Low",
                 "assigned_analyst_id": "@analysts.jsmith",
@@ -1272,7 +1286,7 @@
                 "updated_datetime": "__RELATIVE_DATE:-1d__"
             },
             {
-                "title": "Reclaim VLAN/IPs and update DNS",
+                "title": "Reclaim VLAN\/IPs and update DNS",
                 "status": "To Do",
                 "priority": "Medium",
                 "parent_task_id": "@tasks.t_citrix_decom",
@@ -2543,6 +2557,740 @@
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:-104d__",
                 "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya",
+                "title": "Starter: Priya Shah",
+                "description": null,
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+7d__",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya_1",
+                "title": "Create network account for Priya Shah",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+2d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_priya",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya_2",
+                "title": "Create mailbox",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+2d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_priya",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya_3",
+                "title": "Create private mailbox for Priya Shah",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+3d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_priya",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya_4",
+                "title": "Grant DMS access",
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+4d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_priya",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya_5",
+                "title": "Add Priya Shah to the Dispute Resolution matter groups",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+4d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_priya",
+                "board_position": 4,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya_6",
+                "title": "Build and issue laptop",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+5d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_priya",
+                "board_position": 5,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya_7",
+                "title": "Issue phone",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+5d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_priya",
+                "board_position": 6,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_priya_8",
+                "title": "First-day IT walkthrough with Priya Shah",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+7d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_priya",
+                "board_position": 7,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_tom",
+                "title": "Starter: Tom Okafor",
+                "description": null,
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+14d__",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_tom_1",
+                "title": "Create network account for Tom Okafor",
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+9d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_tom",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_tom_2",
+                "title": "Create mailbox",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+9d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_tom",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_tom_3",
+                "title": "Build and issue laptop",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+12d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_tom",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_tom_4",
+                "title": "Issue monitor",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+13d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_tom",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_tom_5",
+                "title": "First-day IT walkthrough with Tom Okafor",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+14d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_tom",
+                "board_position": 4,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_daniel",
+                "title": "Starter: Daniel Reyes",
+                "description": null,
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-3d__",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_daniel_1",
+                "title": "Create network account for Daniel Reyes",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-8d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_daniel",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-8d__"
+            },
+            {
+                "_ref": "jml_t_daniel_2",
+                "title": "Create mailbox",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-8d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_daniel",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-8d__"
+            },
+            {
+                "_ref": "jml_t_daniel_3",
+                "title": "Grant DMS access",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-6d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_daniel",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "jml_t_daniel_4",
+                "title": "Grant PMS access",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-6d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_daniel",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "jml_t_daniel_5",
+                "title": "Add Daniel Reyes to the Corporate matter groups",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-6d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_daniel",
+                "board_position": 4,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "jml_t_daniel_6",
+                "title": "Build and issue laptop",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-5d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_daniel",
+                "board_position": 5,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "jml_t_daniel_7",
+                "title": "First-day IT walkthrough with Daniel Reyes",
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-3d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_daniel",
+                "board_position": 6,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_sophie",
+                "title": "Starter: Sophie Turner",
+                "description": null,
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-25d__",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-18d__"
+            },
+            {
+                "_ref": "jml_t_sophie_1",
+                "title": "Create network account for Sophie Turner",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-30d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "jml_t_sophie_2",
+                "title": "Create mailbox",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-30d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "jml_t_sophie_3",
+                "title": "Create private mailbox for Sophie Turner",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-29d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-29d__"
+            },
+            {
+                "_ref": "jml_t_sophie_4",
+                "title": "Grant DMS access",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-28d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "jml_t_sophie_5",
+                "title": "Grant PMS access",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-28d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 4,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "jml_t_sophie_6",
+                "title": "Add Sophie Turner to the Real Estate matter groups",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-28d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 5,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "jml_t_sophie_7",
+                "title": "Build and issue laptop",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-27d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 6,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "_ref": "jml_t_sophie_8",
+                "title": "Issue phone",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-27d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 7,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "_ref": "jml_t_sophie_9",
+                "title": "Issue monitor",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-26d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 8,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-26d__"
+            },
+            {
+                "_ref": "jml_t_sophie_10",
+                "title": "First-day IT walkthrough with Sophie Turner",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-25d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_sophie",
+                "board_position": 9,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-25d__"
+            },
+            {
+                "_ref": "jml_t_james",
+                "title": "Starter: James Patel",
+                "description": null,
+                "status": "Cancelled",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+30d__",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-15d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_james_1",
+                "title": "Create network account for James Patel",
+                "status": "Cancelled",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+25d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_james",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-15d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_james_2",
+                "title": "Create mailbox",
+                "status": "Cancelled",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+25d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_james",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-15d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_james_3",
+                "title": "Build and issue laptop",
+                "status": "Cancelled",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+28d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_james",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-15d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_james_4",
+                "title": "First-day IT walkthrough with James Patel",
+                "status": "Cancelled",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+30d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_james",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-15d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_hannah",
+                "title": "Starter: Hannah Kowalski",
+                "description": null,
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+21d__",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.lbrown",
+                "created_datetime": "__RELATIVE_DATE:-1d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_bob",
+                "title": "Leaver: Bob Taylor",
+                "description": null,
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-1d__",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_bob_1",
+                "title": "Disable account at the end of the last day",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-1d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_bob",
+                "board_position": 0,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_bob_2",
+                "title": "Convert mailbox to shared and set an auto-reply",
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+0d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_bob",
+                "board_position": 1,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_bob_3",
+                "title": "Recover kit",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-1d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_bob",
+                "board_position": 2,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_bob_4",
+                "title": "Remove DMS and PMS access",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:-1d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_bob",
+                "board_position": 3,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_frank",
+                "title": "Leaver: Frank Roberts",
+                "description": null,
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+10d__",
+                "assigned_analyst_id": "@analysts.mjones",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-4d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_frank_1",
+                "title": "Disable account at the end of the last day",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+10d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_frank",
+                "board_position": 0,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-4d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_frank_2",
+                "title": "Convert mailbox to shared and set an auto-reply",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+11d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_frank",
+                "board_position": 1,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-4d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_frank_3",
+                "title": "Recover kit",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+10d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_frank",
+                "board_position": 2,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-4d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_frank_4",
+                "title": "Remove DMS and PMS access",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+10d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_frank",
+                "board_position": 3,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-4d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_claire",
+                "title": "Mover: Claire Davies",
+                "description": null,
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+3d__",
+                "assigned_analyst_id": "@analysts.mjones",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 20,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-5d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_claire_1",
+                "title": "Update job title and department in the directory",
+                "status": "Done",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+3d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_claire",
+                "board_position": 0,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-5d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_claire_2",
+                "title": "Review access for the new role",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+3d__",
+                "assigned_team_id": "@teams.escalation",
+                "parent_task_id": "@tasks.jml_t_claire",
+                "board_position": 1,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-5d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "jml_t_claire_3",
+                "title": "Move to the new team's shared drives",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+4d__",
+                "assigned_team_id": "@teams.servicedesk",
+                "parent_task_id": "@tasks.jml_t_claire",
+                "board_position": 2,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-5d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
             }
         ],
         "task_comments": [
@@ -3493,7 +4241,7 @@
                 "actual_amount": 13000,
                 "planned_date": "__RELATIVE_DATEONLY:-15d__",
                 "spent_date": "__RELATIVE_DATEONLY:-14d__",
-                "notes": "Wi-Fi 6E decision added £1,000.",
+                "notes": "Wi-Fi 6E decision added \u00a31,000.",
                 "position": 2,
                 "created_by_id": "@analysts.admin",
                 "created_datetime": "__RELATIVE_DATE:-30d__",
@@ -3799,7 +4547,7 @@
                 "project_id": "@projects.prj_office",
                 "title": "Lower running cost",
                 "measure": "Rent and service charge a month",
-                "unit": "£",
+                "unit": "\u00a3",
                 "direction": "down",
                 "baseline_value": 21500,
                 "target_value": 16000,
@@ -3913,7 +4661,7 @@
                 "project_id": "@projects.prj_backup",
                 "title": "Lower backup cost",
                 "measure": "Backup running cost a year",
-                "unit": "£",
+                "unit": "\u00a3",
                 "direction": "down",
                 "baseline_value": 14000,
                 "target_value": 9000,
@@ -7215,7 +7963,7 @@
                 "project_id": "@projects.prj_office",
                 "kind": "highlight",
                 "title": "Highlight report - month 1",
-                "body": "## Where the project stands\nOn track overall. Survey and design closed with a **go**; the network build has started.\n\n## Done this month\n- Desk plan signed off by every manager\n- Cabling and switches ordered\n\n## Next\n- Cabling on every floor\n- Switches racked\n\n## Risks and issues\n- **Switch delivery** could slip past the cabling date - second distributor lined up\n\n## Budget\n£23,600 spent of £57,600; the cabling invoice is still to come.",
+                "body": "## Where the project stands\nOn track overall. Survey and design closed with a **go**; the network build has started.\n\n## Done this month\n- Desk plan signed off by every manager\n- Cabling and switches ordered\n\n## Next\n- Cabling on every floor\n- Switches racked\n\n## Risks and issues\n- **Switch delivery** could slip past the cabling date - second distributor lined up\n\n## Budget\n\u00a323,600 spent of \u00a357,600; the cabling invoice is still to come.",
                 "status": "approved",
                 "ai_drafted": 0,
                 "ai_edited": 0,
@@ -7261,7 +8009,7 @@
                 "project_id": "@projects.prj_mail",
                 "kind": "exception",
                 "title": "Exception report - time tolerance",
-                "body": "## The situation\nBatch 2 is running at a third of the expected speed because the cloud service is throttling it. The **time tolerance (5 days)** will be exceeded.\n\n## The cause\nThe largest mailboxes are in Sales; throttling limits are per tenant.\n\n## If nothing changes\nCut-over slips about three weeks.\n\n## Options\n- Wait it out (3 weeks late)\n- Pre-stage large mailboxes and add consultant days (2 weeks late, £4,800)\n- Split Sales across two batches (2.5 weeks late)\n\n## Recommendation\nOption 2 - raised as CR-1.",
+                "body": "## The situation\nBatch 2 is running at a third of the expected speed because the cloud service is throttling it. The **time tolerance (5 days)** will be exceeded.\n\n## The cause\nThe largest mailboxes are in Sales; throttling limits are per tenant.\n\n## If nothing changes\nCut-over slips about three weeks.\n\n## Options\n- Wait it out (3 weeks late)\n- Pre-stage large mailboxes and add consultant days (2 weeks late, \u00a34,800)\n- Split Sales across two batches (2.5 weeks late)\n\n## Recommendation\nOption 2 - raised as CR-1.",
                 "status": "approved",
                 "ai_drafted": 1,
                 "ai_edited": 1,
@@ -7277,7 +8025,7 @@
                 "project_id": "@projects.prj_backup",
                 "kind": "closure",
                 "title": "Closure report",
-                "body": "## What was delivered\nEvery server backed up nightly to disk and the cloud; the tape library is gone.\n\n## Against the plan\n- Finished **2 days early**\n- £22,750 spent of £23,800 - **£1,050 under**\n\n## Benefits\n- **Faster restores**: 18 hours to 1.2 - achieved\n- **Backups that work**: 91% to 99.4% - achieved\n- **Lower cost**: on the way - £10,200 against a target of £9,000; reviewed in six months (owner: Administrator)\n\n## Lessons\n- Test a restore before retiring anything\n- Seed the first cloud copy from a disk\n\n## Handover\nThe restore runbook is in Knowledge; monthly restore tests are a recurring task for the infrastructure team.",
+                "body": "## What was delivered\nEvery server backed up nightly to disk and the cloud; the tape library is gone.\n\n## Against the plan\n- Finished **2 days early**\n- \u00a322,750 spent of \u00a323,800 - **\u00a31,050 under**\n\n## Benefits\n- **Faster restores**: 18 hours to 1.2 - achieved\n- **Backups that work**: 91% to 99.4% - achieved\n- **Lower cost**: on the way - \u00a310,200 against a target of \u00a39,000; reviewed in six months (owner: Administrator)\n\n## Lessons\n- Test a restore before retiring anything\n- Seed the first cloud copy from a disk\n\n## Handover\nThe restore runbook is in Knowledge; monthly restore tests are a recurring task for the infrastructure team.",
                 "status": "approved",
                 "ai_drafted": 0,
                 "ai_edited": 0,
@@ -7736,6 +8484,80 @@
                 "source": "app",
                 "created_datetime": "__RELATIVE_DATE:-80d__"
             }
+        ],
+        "task_checklists": [
+            {
+                "_ref": "jml_c_priya_6",
+                "task_id": "@tasks.jml_t_priya_6",
+                "template_id": "@checklist_templates.tpl_onboard",
+                "_optional_fields": [
+                    "template_id"
+                ],
+                "title": "Employee onboarding provisioning",
+                "sort_order": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "jml_c_tom_3",
+                "task_id": "@tasks.jml_t_tom_3",
+                "template_id": "@checklist_templates.tpl_onboard",
+                "_optional_fields": [
+                    "template_id"
+                ],
+                "title": "Employee onboarding provisioning",
+                "sort_order": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "jml_c_daniel_6",
+                "task_id": "@tasks.jml_t_daniel_6",
+                "template_id": "@checklist_templates.tpl_onboard",
+                "_optional_fields": [
+                    "template_id"
+                ],
+                "title": "Employee onboarding provisioning",
+                "sort_order": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "_ref": "jml_c_sophie_7",
+                "task_id": "@tasks.jml_t_sophie_7",
+                "template_id": "@checklist_templates.tpl_onboard",
+                "_optional_fields": [
+                    "template_id"
+                ],
+                "title": "Employee onboarding provisioning",
+                "sort_order": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__"
+            },
+            {
+                "_ref": "jml_c_bob_1",
+                "task_id": "@tasks.jml_t_bob_1",
+                "template_id": "@checklist_templates.tpl_offboard",
+                "_optional_fields": [
+                    "template_id"
+                ],
+                "title": "Employee offboarding",
+                "sort_order": 0,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "_ref": "jml_c_frank_1",
+                "task_id": "@tasks.jml_t_frank_1",
+                "template_id": "@checklist_templates.tpl_offboard",
+                "_optional_fields": [
+                    "template_id"
+                ],
+                "title": "Employee offboarding",
+                "sort_order": 0,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-4d__"
+            }
         ]
     },
     "tier4": {
@@ -8022,6 +8844,280 @@
                 "raid_id": "@project_raid.pr_m_throttle",
                 "task_id": "@tasks.pm_b2",
                 "created_datetime": "__RELATIVE_DATE:-8d__"
+            }
+        ],
+        "task_checklist_items": [
+            {
+                "task_checklist_id": "@task_checklists.jml_c_priya_6",
+                "title": "Confirm start date and line manager with HR",
+                "is_mandatory": 1,
+                "sort_order": 1,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_priya_6",
+                "title": "Create the account and add to the starter groups",
+                "is_mandatory": 1,
+                "sort_order": 2,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_priya_6",
+                "title": "Assign a laptop and record the asset tag",
+                "is_mandatory": 1,
+                "sort_order": 3,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_priya_6",
+                "title": "Licence the mailbox and confirm mail flow",
+                "is_mandatory": 1,
+                "sort_order": 4,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_priya_6",
+                "title": "Issue a building access badge",
+                "is_mandatory": 1,
+                "sort_order": 5,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_priya_6",
+                "title": "Book the new-starter IT walkthrough",
+                "is_mandatory": 1,
+                "sort_order": 6,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_tom_3",
+                "title": "Confirm start date and line manager with HR",
+                "is_mandatory": 1,
+                "sort_order": 1,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_tom_3",
+                "title": "Create the account and add to the starter groups",
+                "is_mandatory": 1,
+                "sort_order": 2,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_tom_3",
+                "title": "Assign a laptop and record the asset tag",
+                "is_mandatory": 1,
+                "sort_order": 3,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_tom_3",
+                "title": "Licence the mailbox and confirm mail flow",
+                "is_mandatory": 1,
+                "sort_order": 4,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_tom_3",
+                "title": "Issue a building access badge",
+                "is_mandatory": 1,
+                "sort_order": 5,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_tom_3",
+                "title": "Book the new-starter IT walkthrough",
+                "is_mandatory": 1,
+                "sort_order": 6,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_daniel_6",
+                "title": "Confirm start date and line manager with HR",
+                "is_mandatory": 1,
+                "sort_order": 1,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_daniel_6",
+                "title": "Create the account and add to the starter groups",
+                "is_mandatory": 1,
+                "sort_order": 2,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_daniel_6",
+                "title": "Assign a laptop and record the asset tag",
+                "is_mandatory": 1,
+                "sort_order": 3,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_daniel_6",
+                "title": "Licence the mailbox and confirm mail flow",
+                "is_mandatory": 1,
+                "sort_order": 4,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_daniel_6",
+                "title": "Issue a building access badge",
+                "is_mandatory": 1,
+                "sort_order": 5,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_daniel_6",
+                "title": "Book the new-starter IT walkthrough",
+                "is_mandatory": 1,
+                "sort_order": 6,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_sophie_7",
+                "title": "Confirm start date and line manager with HR",
+                "is_mandatory": 1,
+                "sort_order": 1,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_sophie_7",
+                "title": "Create the account and add to the starter groups",
+                "is_mandatory": 1,
+                "sort_order": 2,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_sophie_7",
+                "title": "Assign a laptop and record the asset tag",
+                "is_mandatory": 1,
+                "sort_order": 3,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_sophie_7",
+                "title": "Licence the mailbox and confirm mail flow",
+                "is_mandatory": 1,
+                "sort_order": 4,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_sophie_7",
+                "title": "Issue a building access badge",
+                "is_mandatory": 1,
+                "sort_order": 5,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_sophie_7",
+                "title": "Book the new-starter IT walkthrough",
+                "is_mandatory": 1,
+                "sort_order": 6,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.jsmith",
+                "completed_datetime": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_bob_1",
+                "title": "Disable the account at the agreed time",
+                "is_mandatory": 1,
+                "sort_order": 1,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.swilliams",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_bob_1",
+                "title": "Remove from all groups and distribution lists",
+                "is_mandatory": 1,
+                "sort_order": 2,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.swilliams",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_bob_1",
+                "title": "Revoke MFA methods and sign out every session",
+                "is_mandatory": 1,
+                "sort_order": 3,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.swilliams",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_bob_1",
+                "title": "Forward or delegate the mailbox as HR asked",
+                "is_mandatory": 1,
+                "sort_order": 4,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.swilliams",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_bob_1",
+                "title": "Collect the badge",
+                "is_mandatory": 1,
+                "sort_order": 5,
+                "is_completed": 1,
+                "completed_by_id": "@analysts.swilliams",
+                "completed_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_frank_1",
+                "title": "Disable the account at the agreed time",
+                "is_mandatory": 1,
+                "sort_order": 1,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_frank_1",
+                "title": "Remove from all groups and distribution lists",
+                "is_mandatory": 1,
+                "sort_order": 2,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_frank_1",
+                "title": "Revoke MFA methods and sign out every session",
+                "is_mandatory": 1,
+                "sort_order": 3,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_frank_1",
+                "title": "Forward or delegate the mailbox as HR asked",
+                "is_mandatory": 1,
+                "sort_order": 4,
+                "is_completed": 0
+            },
+            {
+                "task_checklist_id": "@task_checklists.jml_c_frank_1",
+                "title": "Collect the badge",
+                "is_mandatory": 1,
+                "sort_order": 5,
+                "is_completed": 0
             }
         ]
     }
