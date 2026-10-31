@@ -96,7 +96,7 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('starters.' . $k, $p));
 
     <script>window.JML_MULTI = <?php echo $multi ? 'true' : 'false'; ?>;</script>
     <script src="../assets/js/starters.js?v=2"></script>
-    <script src="../assets/js/starters-list.js?v=1"></script>
+    <script src="../assets/js/starters-list.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

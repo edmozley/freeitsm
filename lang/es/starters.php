@@ -65,6 +65,7 @@ return [
         'col_status' => 'Estado',
         'steps' => '{done} de {total}',
         'no_steps' => 'Sin pasos',
+        'waiting' => 'Esperando respuestas',
         'empty_title' => 'Aún no hay casos',
         'empty_body' => 'Abra un caso cuando alguien se incorpore, cambie de puesto o se marche. Sus pasos se convierten en tareas para los equipos adecuados, con vencimiento en los días adecuados, y su equipamiento se entrega y se recupera a través de Activos.',
         'empty_filtered' => 'Ningún caso coincide.',

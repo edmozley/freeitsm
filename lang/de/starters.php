@@ -65,6 +65,7 @@ return [
         'col_status' => 'Status',
         'steps' => '{done} von {total}',
         'no_steps' => 'Keine Schritte',
+        'waiting' => 'Wartet auf Antworten',
         'empty_title' => 'Noch keine Fälle',
         'empty_body' => 'Eröffnen Sie einen Fall, wenn jemand eintritt, wechselt oder ausscheidet. Seine Schritte werden zu Aufgaben für die richtigen Teams, fällig an den richtigen Tagen, und seine Ausstattung wird über Assets ausgegeben und zurückgenommen.',
         'empty_filtered' => 'Keine passenden Fälle.',

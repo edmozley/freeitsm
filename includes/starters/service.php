@@ -777,7 +777,7 @@ final class StartersService
         if (!empty($f['kind']) && JmlKind::tryFrom($f['kind'])) { $where[] = 'c.kind = ?'; $args[] = $f['kind']; }
         if (!empty($f['status']) && JmlStatus::tryFrom($f['status'])) { $where[] = 'c.status = ?'; $args[] = $f['status']; }
         $st = $conn->prepare(
-            "SELECT c.id, c.kind, c.person_name, c.person_email, c.user_id, c.effective_date, c.status, c.tenant_id,
+            "SELECT c.id, c.kind, c.person_name, c.person_email, c.user_id, c.effective_date, c.status, c.tenant_id, c.steps_pending,
                     tn.name AS company_name, tp.name AS template_name, own.full_name AS owner_name,
                     (SELECT COUNT(*) FROM tasks s WHERE s.parent_task_id = c.parent_task_id) AS steps_total,
                     (SELECT COUNT(*) FROM tasks s JOIN task_statuses ss ON ss.id = s.status_id

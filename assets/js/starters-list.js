@@ -32,7 +32,8 @@
             kindPill(c.kind),
             esc(date(c.effective_date)) + '<div class="jml-when' + (soon ? ' soon' : '') + '">' + esc(c.status === 'open' ? when(c.effective_date) : '') + '</div>',
             esc(c.template_name || ''),
-            bar(c.steps_done || 0, c.steps_total || 0),
+            // A template with questions adds its steps when they are answered - say so, not "No steps".
+            +c.steps_pending ? '<span class="jml-bar-text">' + esc(T('list.waiting')) + '</span>' : bar(c.steps_done || 0, c.steps_total || 0),
             esc(c.owner_name || ''),
         ];
         if (window.JML_MULTI) cells.push(esc(c.company_name || ''));

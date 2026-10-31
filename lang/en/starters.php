@@ -66,6 +66,7 @@ return [
         'col_status'     => 'Status',
         'steps'          => '{done} of {total}',
         'no_steps'       => 'No steps',
+        'waiting'       => 'Waiting for answers',
         'empty_title'    => 'No cases yet',
         'empty_body'     => 'Open a case when someone joins, moves or leaves. Its steps become tasks for the right teams, due on the right days, and its kit is issued and recovered through Assets.',
         'empty_filtered' => 'No cases match.',
