@@ -307,7 +307,7 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
                 </div>
                 <div class="result" id="syncResult"></div>
                 <div class="hint sched" style="margin-top:12px;"><?php echo t('system.sso.entra_schedule_hint', [
-                    'cmd' => '<code>php scripts/directory_sync.php --all</code>',
+                    'cmd' => '<code>php cron/directory_sync.php --all</code>',
                 ]); ?></div>
             </div>
         </div>
