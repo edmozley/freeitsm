@@ -2166,7 +2166,7 @@ return [
         'entra_user_scope_groups'=> 'Only members of these groups',
         'entra_guests'           => 'Also import guests (external users)',
         'entra_group_scope'      => 'Which groups',
-        'entra_group_scope_hint' => 'Imported groups and their members appear on the Groups tab, and their names replace the object ids in the sign-in group mappings. Only people who are imported are linked as members.',
+        'entra_group_scope_hint' => 'Imported groups and their members appear on the Groups tab, and their names replace the object ids in the sign-in group mappings. In People, the Group filter lists the members of any imported group. Only people who are imported are linked as members.',
         'entra_group_scope_none' => 'Do not import groups',
         'entra_group_scope_selected' => 'Only these groups',
         'entra_group_scope_all'  => 'Every group in the directory',
