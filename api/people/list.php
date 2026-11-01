@@ -1,6 +1,7 @@
 <?php
 /**
- * People (#153 step 2) — GET ?q=&company=&status=active|leavers|all
+ * People (#153 step 2) — GET ?q=&company=&group=&status=active|leavers|all
+ * group is a directory_groups id (an imported Entra group); see peopleGroups().
  * The people this analyst can see: only companies they can access.
  */
 session_start(['read_and_close' => true]);
@@ -24,6 +25,7 @@ try {
     $rows = peopleListRows($conn, $aid, [
         'q' => (string)($_GET['q'] ?? ''),
         'company' => (int)($_GET['company'] ?? 0) ?: null,
+        'group' => (int)($_GET['group'] ?? 0) ?: null,
         'status' => $status,
     ], $limit + 1);
     $more = count($rows) > $limit;

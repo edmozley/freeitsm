@@ -49,6 +49,13 @@ try {
         // An install predating the table. Not a reason to refuse the delete.
         error_log('[sso] write log cleanup skipped: ' . $e->getMessage());
     }
+    // Same reasoning for groups imported from Entra, members first.
+    try {
+        $conn->prepare("DELETE m FROM directory_group_members m JOIN directory_groups g ON g.id = m.group_id WHERE g.provider_id = ?")->execute([$id]);
+        $conn->prepare("DELETE FROM directory_groups WHERE provider_id = ?")->execute([$id]);
+    } catch (Throwable $e) {
+        error_log('[sso] directory group cleanup skipped: ' . $e->getMessage());
+    }
 
     $stmt = $conn->prepare("DELETE FROM auth_providers WHERE id = ?");
     $stmt->execute([$id]);
