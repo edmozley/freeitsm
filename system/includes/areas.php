@@ -164,6 +164,8 @@ function getSystemAreas() {
             'title'    => 'system.landing.sso_title',
             'desc'     => 'system.landing.sso_desc',
             'keywords' => 'system.landing.sso_keywords',
+            // Directory sync from Microsoft Entra ID: users, groups, scheduling.
+            'keywords_more' => 'system.landing.sso_keywords_directory',
         ],
         [
             'icon'     => 'api',
@@ -312,6 +314,28 @@ function getSystemAreas() {
             'keywords' => 'system.landing.contributors_keywords',
         ],
     ];
+}
+
+/**
+ * An area's search synonyms, resolved: 'keywords' plus the optional
+ * 'keywords_more', each dropped when its key has no text (t() then returns the
+ * key itself, which must never land in a search haystack).
+ *
+ * 'keywords_more' exists so a feature can add its own words without rewriting
+ * an existing keywords string - changing existing English leaves every
+ * translation of it silently out of date (CONTRIBUTING.md, rule 8).
+ *
+ * @param array $area  one entry of getSystemAreas()
+ */
+function systemAreaKeywords(array $area): string
+{
+    $out = [];
+    foreach (['keywords', 'keywords_more'] as $k) {
+        if (empty($area[$k])) continue;
+        $kw = t($area[$k]);
+        if ($kw !== $area[$k]) $out[] = $kw;
+    }
+    return implode(' ', $out);
 }
 
 /**

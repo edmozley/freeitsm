@@ -40,11 +40,28 @@ try {
     // for provider N" is one action and the caller should not have to know
     // which transport it is. The protocol chooses the engine; everything above
     // this point — the admin guard, the mode, the response shape — is shared.
-    $s = $conn->prepare("SELECT * FROM auth_providers WHERE id = ? AND protocol IN ('ldap', 'carddav')");
+    $s = $conn->prepare("SELECT * FROM auth_providers WHERE id = ? AND protocol IN ('ldap', 'carddav', 'oidc')");
     $s->execute([$pid]);
     $provider = $s->fetch(PDO::FETCH_ASSOC);
     if (!$provider) {
         echo json_encode(['success' => false, 'error' => 'No such people source']);
+        exit;
+    }
+
+    // An OIDC provider is a people source only when it is Microsoft Entra ID,
+    // read through Graph (includes/entra_sync.php). Secrets are decrypted there.
+    if ($provider['protocol'] === 'oidc') {
+        require_once '../../includes/entra_sync.php';
+        if (!entraIsEntraIssuer((string)$provider['issuer_url'])) {
+            echo json_encode(['success' => false, 'error' => 'Only a Microsoft Entra ID provider can import people.']);
+            exit;
+        }
+        if ((int)$provider['sync_enabled'] !== 1) {
+            echo json_encode(['success' => false, 'error' => 'Directory sync is switched off for this provider. Turn it on and save first.']);
+            exit;
+        }
+        $run = directorySyncRecorded($conn, $provider, $mode, fn() => entraSyncRun($conn, $provider, $mode, (int)$_SESSION['analyst_id']));
+        echo json_encode(['success' => true, 'run' => $run]);
         exit;
     }
 
@@ -108,6 +125,14 @@ function directorySyncRecorded(PDO $conn, array $provider, string $mode, callabl
         JobRun::skipped($conn, 'directory_sync', 'manual', 'Dry run (Preview): nothing written.', $who);
         return $work();
     }
+    // One import of a source at a time, whoever starts it: the scheduled task or
+    // FreeITSM's own background start may be importing it right now. A live run
+    // here also postpones the next automatic one (includes/directory_sync_auto.php).
+    require_once __DIR__ . '/../../includes/directory_sync_auto.php';
+    if (!dsyncLock($conn, (int)$provider['id'])) {
+        throw new RuntimeException('An import of this source is already running. Wait for it to finish, then look at the History tab.');
+    }
+    dsyncMarkAttempt($conn, (int)$provider['id']);
     $runId = JobRun::start($conn, 'directory_sync', 'manual', $who);
     try {
         $run = $work();
