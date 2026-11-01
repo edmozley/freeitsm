@@ -249,6 +249,7 @@ function getHelpTopics() {
                      . ' microsoft graph directory sync import users import groups group membership members'
                      . ' user.read.all groupmember.read.all application permissions admin consent client secret'
                      . ' tenant id object id guests external users aadsts7000215 aadsts7000222 scheduled task cron'
+                     . ' field mapping attribute mapping extensionattribute extension attribute onpremisesextensionattributes employeeorgdata division city'
                      . ' add to address book new contact create card not in address book link person'
                      . ' log logging troubleshoot diagnose health check drift compare d015 d016'
                      . ' email domain domains route redirect straight to microsoft 365 m365 portal first sign-in hide button email only'

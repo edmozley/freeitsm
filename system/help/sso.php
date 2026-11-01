@@ -609,6 +609,10 @@ require __DIR__ . '/_top.php';
     </table></div>
     <p>An account <strong>disabled</strong> in Entra is marked as having left here, and re-enabling it brings the person back.</p>
 
+    <h4>Taking a detail from a different attribute</h4>
+    <p>The table above is the default. The <strong>Field mapping</strong> tab points any of those fields at another Entra attribute, the same way an LDAP directory's mapping does: <strong>Office</strong> from <code>city</code>, <strong>Department</strong> from <code>employeeOrgData/division</code>, or <strong>Employee number</strong> from <code>onPremisesExtensionAttributes/extensionAttribute5</code>, which many organisations fill from their on-premises Active Directory. A blank box keeps the default, and your own directory extensions (<code>extension_&lt;app id&gt;_&lt;name&gt;</code>) work too.</p>
+    <p><strong>Test</strong> on that tab reads one real person and shows what each field would import, with everything that person has, before anything is saved. The unique id (the object id) and the manager are fixed and cannot be mapped. A mapped email that is not an address, or a mapped sign-in name that is empty, falls back to the user principal name, so nobody is left impossible to match.</p>
+
     <h4>Matching people who are already here</h4>
     <p>A person is recognised first by their Entra <strong>object ID</strong>, which survives renames and changes of email address, then by username, then by email. A match by email on somebody who is not yet linked to this provider is decided by <strong>When somebody is already here</strong>: link them, or leave them alone and flag it in the run.</p>
     <div class="help-note warn"><strong>Linking someone changes how they sign in.</strong> Once a person is linked to Entra they sign in with Microsoft, and any portal password they had stops working. If some of your requesters deliberately use local passwords, choose <em>Leave them alone</em>, preview, and decide case by case.</div>
