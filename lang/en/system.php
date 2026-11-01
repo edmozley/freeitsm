@@ -2192,6 +2192,13 @@ return [
         'entra_kind_mail_security' => 'Mail-enabled security',
         'entra_kind_microsoft365'  => 'Microsoft 365',
         'entra_kind_distribution'  => 'Distribution',
+        // Entra field mapping (system/sso/entra.php, Field mapping tab) - the LDAP mapping's map_* strings plus these.
+        'entra_map_desc'         => 'Which Entra attribute becomes which detail in FreeITSM. Leave a box blank to use the attribute shown in grey, which is what Entra normally uses. The import reads the attribute you name at its next run.',
+        'entra_map_col_theirs'   => 'Entra attribute',
+        'entra_map_hint_guid'    => 'Always the Entra object id. It never changes, even when somebody is renamed, so it cannot be mapped.',
+        'entra_map_hint_manager' => 'Their manager in Entra, matched to the person it points at. A relationship rather than an attribute, so it cannot be mapped.',
+        'entra_map_names_hint'   => 'Use the name as Microsoft Graph spells it. One level into a grouped property works too - onPremisesExtensionAttributes/extensionAttribute5, employeeOrgData/division - and so do your own directory extensions (extension_<app id>_<name>).',
+        'entra_map_test_sample'  => 'Sign-in name (UPN) of somebody to check (optional)',
     ],
 
     // Companies page (system/companies/index.php). "Company" is the

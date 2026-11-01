@@ -64,10 +64,11 @@ $issuerTenant = entraTenantId(array_merge($p, ['graph_tenant_id' => '']));
 $tabs = [
     ['id' => 'connection', 'cap' => null, 'label' => t('system.sso.tab_connection')],
     ['id' => 'import',     'cap' => null, 'label' => t('system.sso.tab_import')],
+    ['id' => 'mapping',    'cap' => null, 'label' => t('system.sso.tab_mapping')],
     ['id' => 'groups',     'cap' => null, 'label' => t('system.sso.entra_tab_groups')],
     ['id' => 'history',    'cap' => null, 'label' => t('system.sso.tab_history')],
 ];
-$activeTab = in_array($_GET['tab'] ?? '', ['connection', 'import', 'groups', 'history'], true) ? $_GET['tab'] : 'connection';
+$activeTab = in_array($_GET['tab'] ?? '', ['connection', 'import', 'mapping', 'groups', 'history'], true) ? $_GET['tab'] : 'connection';
 
 /**
  * Print a value into an input safely.
@@ -187,6 +188,27 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         .run-empty { padding: 40px 24px; text-align: center; color: var(--text-dim, #999); font-size: 13px; }
         .preview-banner { background: #fff4ce; color: #6b5900; padding: 10px 24px; font-size: 12.5px; font-weight: 600; }
         [data-theme-mode="dark"] .preview-banner { background: #3a3218; color: #fde68a; }
+        /* The field mapping table - the same look as the LDAP provider's (provider.php). */
+        table.map { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        table.map th, table.map td { text-align: left; padding: 8px 10px; vertical-align: top; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+        table.map thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); border-bottom: 1px solid var(--border, #e0e0e0); }
+        table.map tbody th { font-weight: 600; color: var(--text, #333); }
+        table.map .map-hint { display: block; font-weight: 400; font-size: 11.5px; color: var(--text-dim, #888); margin-top: 2px; line-height: 1.45; }
+        table.map input { width: 100%; box-sizing: border-box; padding: 7px 9px; font-size: 12.5px; font-family: ui-monospace, Consolas, monospace;
+            border: 1px solid var(--border, #ddd); border-radius: 5px; background: var(--surface, #fff); color: var(--text, #333); }
+        table.map .map-fixed { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; color: var(--text-dim, #888); padding: 7px 0; display: block; }
+        tr.map-group td { background: var(--app-bg, #f7f7f7); font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .04em; color: var(--text-dim, #888); padding: 7px 10px; border-bottom: 1px solid var(--border, #e6e6e6); }
+        td.map-sample { font-size: 12.5px; color: var(--text-muted, #555); word-break: break-word; }
+        td.map-sample.filled { color: var(--text, #2e7d32); }
+        td.map-sample.missing { color: #c62828; font-style: italic; }
+        [data-theme-mode="dark"] td.map-sample.filled { color: #86efac; }
+        [data-theme-mode="dark"] td.map-sample.missing { color: #fca5a5; }
+        .avail { margin-top: 12px; font-size: 12px; color: var(--text-dim, #888); }
+        .avail summary { cursor: pointer; font-weight: 600; color: var(--sys-accent, #546e7a); }
+        .avail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 3px 18px; margin-top: 10px; }
+        .avail-grid code { font-family: ui-monospace, Consolas, monospace; color: var(--text, #444); }
+        .avail-grid span { color: var(--text-dim, #999); }
         .back-link { font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
         @media (max-width: 700px) { .prov-wrap { padding: 14px 12px 50px; } }
@@ -298,6 +320,83 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
                 <div class="hint sched" style="margin-top:12px;"><?php echo t('system.sso.entra_schedule_hint', [
                     'cmd' => '<code>php scripts/directory_sync.php --all</code>',
                 ]); ?></div>
+            </div>
+        </div>
+
+        <!-- ================= Field mapping =================
+             The LDAP provider's mapping tab (provider.php) for Graph: FreeITSM's
+             field on the left, the Entra attribute it is read from on the right,
+             a blank box meaning the default. The unique id and the manager are
+             shown but fixed: the object id is the identity everything else
+             hangs on, and the manager is a Graph relationship, not an attribute. -->
+        <div class="tab-pane<?php echo $activeTab === 'mapping' ? ' active' : ''; ?>" id="mapping-pane">
+            <?php
+            // key => whether it is an identity field (signing in also depends on it)
+            $mapRows = ['name' => true, 'username' => true, 'email' => true, 'job_title' => false, 'department' => false,
+                        'office' => false, 'phone' => false, 'mobile' => false, 'employee_id' => false];
+            $fixedRow = function (string $key, string $attr, string $hintKey) {
+                ?>
+                <tr data-field="<?php echo $key; ?>">
+                    <th scope="row"><?php echo et('map_field_' . $key); ?><span class="map-hint"><?php echo et($hintKey); ?></span></th>
+                    <td><span class="map-fixed"><?php echo htmlspecialchars($attr); ?></span></td>
+                    <td class="map-sample">&mdash;</td>
+                </tr>
+                <?php
+            };
+            $renderMapRows = function (bool $identity) use ($mapRows, $p) {
+                foreach ($mapRows as $key => $isIdentity) {
+                    if ($isIdentity !== $identity) continue;
+                    ?>
+                    <tr data-field="<?php echo $key; ?>">
+                        <th scope="row"><?php echo et('map_field_' . $key); ?><span class="map-hint"><?php echo et('map_hint_' . $key); ?></span></th>
+                        <td><input type="text" id="fGraphAttr_<?php echo $key; ?>" class="graph-attr" data-field="<?php echo $key; ?>" list="entraAttrList"
+                                   value="<?php echo v($p, 'graph_attr_' . $key); ?>" placeholder="<?php echo htmlspecialchars(ESYNC_ATTR_DEFAULTS[$key]); ?>"></td>
+                        <td class="map-sample">&mdash;</td>
+                    </tr>
+                    <?php
+                }
+            };
+            ?>
+            <div class="fld wide">
+                <div class="hint" style="margin-bottom:14px;"><?php echo et('entra_map_desc'); ?></div>
+                <table class="map">
+                    <thead>
+                        <tr>
+                            <th style="width:32%;"><?php echo et('map_col_ours'); ?></th>
+                            <th style="width:30%;"><?php echo et('entra_map_col_theirs'); ?></th>
+                            <th><?php echo et('map_col_example'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="map-group"><td colspan="3"><?php echo et('map_group_identity'); ?></td></tr>
+                        <?php $renderMapRows(true); $fixedRow('guid', 'id', 'entra_map_hint_guid'); ?>
+                        <tr class="map-group"><td colspan="3"><?php echo et('map_group_details'); ?></td></tr>
+                        <?php $renderMapRows(false); $fixedRow('manager', 'manager', 'entra_map_hint_manager'); ?>
+                    </tbody>
+                </table>
+                <datalist id="entraAttrList">
+                    <?php foreach (['displayName', 'givenName', 'surname', 'userPrincipalName', 'mail', 'otherMails', 'mailNickname',
+                                    'onPremisesSamAccountName', 'onPremisesUserPrincipalName', 'jobTitle', 'department', 'companyName',
+                                    'employeeType', 'employeeId', 'employeeOrgData/division', 'employeeOrgData/costCenter',
+                                    'officeLocation', 'city', 'state', 'country', 'streetAddress', 'postalCode', 'usageLocation',
+                                    'businessPhones', 'mobilePhone', 'faxNumber'] as $a): ?>
+                    <option value="<?php echo $a; ?>">
+                    <?php endforeach; ?>
+                    <?php for ($i = 1; $i <= 15; $i++): ?>
+                    <option value="onPremisesExtensionAttributes/extensionAttribute<?php echo $i; ?>">
+                    <?php endfor; ?>
+                </datalist>
+                <div class="hint" style="margin-top:10px;"><?php echo et('entra_map_names_hint'); ?></div>
+            </div>
+            <div class="fld wide">
+                <label><?php echo et('map_test_heading'); ?></label>
+                <div class="hint"><?php echo et('map_test_hint'); ?></div>
+                <div class="fld-row">
+                    <input type="text" id="fMapSample" placeholder="<?php echo et('entra_map_test_sample'); ?>">
+                    <button class="btn btn-test" id="mapTestBtn" type="button" style="flex:0 0 auto;"><?php echo et('map_test'); ?></button>
+                </div>
+                <div class="result" id="mapResult"></div>
+                <div id="mapAvailable"></div>
             </div>
         </div>
 
@@ -453,6 +552,7 @@ function payload() {
     return Object.assign(connection(), {
         id: PROVIDER_ID,
         sync_enabled: $('fSyncEnabled').checked ? 1 : 0,
+        ...mappingValues(),
         graph_user_scope: radio('userScope'),
         graph_user_groups: userGroupsPicker.ids(),
         graph_include_guests: $('fGuests').checked ? 1 : 0,
@@ -650,6 +750,62 @@ async function loadRuns() {
     } catch (e) {
         box.innerHTML = '<div class="hint">' + esc(String(e.message || e)) + '</div>';
     }
+}
+
+/* ---------------- Field mapping ----------------
+   The LDAP provider's mapping test (provider.php), for Graph. */
+function mappingValues() {
+    const out = {};
+    document.querySelectorAll('input.graph-attr').forEach(i => { out['graph_attr_' + i.dataset.field] = i.value.trim(); });
+    return out;
+}
+
+/* Fill the example column from one real person, with the values ON THE FORM,
+   so a mapping can be checked before it is saved. */
+$('mapTestBtn').addEventListener('click', async function () {
+    const box = $('mapResult');
+    box.className = 'result ok';
+    box.textContent = window.t('system.sso.map_testing');
+    this.disabled = true;
+    try {
+        const d = await post('test_entra_mapping.php', Object.assign(connection(), mappingValues(), { sample: $('fMapSample').value.trim() }));
+        if (!d.success) {
+            box.className = 'result err';
+            box.textContent = d.error || 'Failed';
+            clearSamples();
+            return;
+        }
+        (d.rows || []).forEach(r => {
+            const cell = document.querySelector('#mapping-pane tr[data-field="' + r.key + '"] .map-sample');
+            if (!cell) return;
+            cell.className = 'map-sample ' + (r.missing ? 'missing' : 'filled');
+            cell.textContent = r.missing ? window.t('system.sso.map_empty') : r.value;
+        });
+        const bad = (d.rows || []).filter(r => r.missing).length;
+        box.className = 'result ' + (bad ? 'warn' : 'ok');
+        box.textContent = bad
+            ? window.t('system.sso.map_result_gaps', { name: d.sample, n: bad })
+            : window.t('system.sso.map_result_ok',   { name: d.sample });
+        renderAvailable(d.available || []);
+    } catch (e) {
+        box.className = 'result err'; box.textContent = String(e.message || e);
+    } finally { this.disabled = false; }
+});
+
+function clearSamples() {
+    document.querySelectorAll('#mapping-pane td.map-sample').forEach(c => { c.className = 'map-sample'; c.textContent = '—'; });
+}
+
+/* Everything the sample person has, so an empty example can be told apart:
+   a misspelt attribute, or a detail this person simply does not have. */
+function renderAvailable(list) {
+    const box = $('mapAvailable');
+    if (!list.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '<details class="avail"><summary>'
+        + esc(window.t('system.sso.map_available', { n: list.length }))
+        + '</summary><div class="avail-grid">'
+        + list.map(a => '<div><code>' + esc(a.name) + '</code> <span>' + esc(a.value) + '</span></div>').join('')
+        + '</div></details>';
 }
 
 const START_TAB = <?php echo json_encode($activeTab); ?>;

@@ -99,6 +99,19 @@ try {
         bail('Type the client secret of this app registration.');
     }
 
+    // Field mapping (graph_attr_*): blank is the default attribute. A name that
+    // is not plainly an attribute is refused here, because it ends up in a
+    // Graph URL. Only once Database Verification has added the columns.
+    if (array_key_exists('graph_attr_name', $row)) {
+        foreach (array_keys(ESYNC_ATTR_DEFAULTS) as $field) {
+            $attr = trim((string)($data['graph_attr_' . $field] ?? ''));
+            if ($attr !== '' && !entraAttrNameValid($attr)) {
+                bail('"' . $attr . '" is not an Entra attribute name. Use the name as Microsoft Graph spells it, such as city or onPremisesExtensionAttributes/extensionAttribute5.');
+            }
+            $cols['graph_attr_' . $field] = $attr !== '' ? $attr : null;
+        }
+    }
+
     if ($enabled) {
         // Resolve now so a multi-tenant issuer without a tenant id is caught at save.
         try { entraConfig(array_merge($row, $cols)); } catch (Throwable $e) { bail(entraErrorForAdmin($e, 'save_entra_sync')); }

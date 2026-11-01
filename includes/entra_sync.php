@@ -66,6 +66,102 @@ const ESYNC_USER_SELECT = 'id,userPrincipalName,mail,displayName,givenName,surna
 const ESYNC_GROUP_SELECT = 'id,displayName,description,mail,groupTypes,securityEnabled,mailEnabled';
 
 /**
+ * Which Entra attribute fills each person field when the provider does not say.
+ *
+ * The same model as LDAP's dsyncAttrDefaults() / ldap_attr_*: one attribute per
+ * field, set per provider in graph_attr_<field>, and a blank box meaning this
+ * default. Two fields are deliberately not here: the unique id is always the
+ * object id (`id`), which the identity scheme at the top of this file depends
+ * on, and the manager is a Graph relationship (`$expand=manager`), not an
+ * attribute that could be pointed elsewhere.
+ */
+const ESYNC_ATTR_DEFAULTS = [
+    'name'        => 'displayName',
+    'username'    => 'userPrincipalName',
+    'email'       => 'mail',
+    'job_title'   => 'jobTitle',
+    'department'  => 'department',
+    'office'      => 'officeLocation',
+    'phone'       => 'businessPhones',
+    'mobile'      => 'mobilePhone',
+    'employee_id' => 'employeeId',
+];
+
+/**
+ * Can this be used as an Entra attribute name? A user property, or one level
+ * into a complex one - `onPremisesExtensionAttributes/extensionAttribute5`,
+ * `employeeOrgData/division` - including a tenant's own directory extensions
+ * (`extension_<appId>_<name>`).
+ *
+ * 🔴 It ends up in a Graph URL ($select). Anything that is not plainly a name is
+ * refused, rather than escaped, so a setting can never reshape the query.
+ *
+ * @param string $name  what the administrator typed
+ */
+function entraAttrNameValid(string $name): bool
+{
+    return (bool)preg_match('#^[A-Za-z][A-Za-z0-9_]{0,99}(/[A-Za-z][A-Za-z0-9_]{0,99})?$#', $name);
+}
+
+/**
+ * The attribute one field is read from: the provider's choice, else the default.
+ * A stored value that is not a valid name falls back to the default rather
+ * than reaching Graph (it cannot be saved, but a row edited by hand could hold one).
+ *
+ * @param array $provider  the auth_providers row - graph_attr_<field> is read
+ * @param string $field  a key of ESYNC_ATTR_DEFAULTS
+ */
+function entraAttr(array $provider, string $field): string
+{
+    $set = trim((string)($provider['graph_attr_' . $field] ?? ''));
+    return ($set !== '' && entraAttrNameValid($set)) ? $set : (ESYNC_ATTR_DEFAULTS[$field] ?? '');
+}
+
+/**
+ * The $select for /users: what the import always needs, plus every attribute
+ * the mapping reads (a complex one by its top-level name - Graph returns it whole).
+ *
+ * @param array $provider  the auth_providers row
+ */
+function entraUserSelect(array $provider): string
+{
+    $props = explode(',', ESYNC_USER_SELECT);
+    foreach (array_keys(ESYNC_ATTR_DEFAULTS) as $field) {
+        $props[] = explode('/', entraAttr($provider, $field))[0];
+    }
+    return implode(',', array_values(array_unique($props)));
+}
+
+/**
+ * One attribute's value from a Graph user, as text ('' when absent or empty).
+ *
+ * A path goes one level into a complex property. A list gives its first
+ * non-empty value - `businessPhones`, `otherMails`. Names are matched ignoring
+ * case, because an administrator types `OfficeLocation` as easily as
+ * `officeLocation`, and $select accepts either while the JSON does not.
+ *
+ * @param array $u  one item of /users
+ * @param string $path  e.g. 'city' or 'onPremisesExtensionAttributes/extensionAttribute5'
+ */
+function entraUserValue(array $u, string $path): string
+{
+    $v = $u;
+    foreach (explode('/', $path) as $seg) {
+        if (!is_array($v)) return '';
+        $found = false;
+        foreach ($v as $k => $x) {
+            if (is_string($k) && strcasecmp($k, $seg) === 0) { $v = $x; $found = true; break; }
+        }
+        if (!$found) return '';
+    }
+    if (is_array($v)) {
+        foreach ($v as $x) if (is_scalar($x) && trim((string)$x) !== '') return trim((string)$x);
+        return '';
+    }
+    return (is_bool($v) || $v === null) ? '' : trim((string)$v);
+}
+
+/**
  * Is this issuer Microsoft Entra ID?
  *
  * @param string $issuer  auth_providers.issuer_url
@@ -382,51 +478,58 @@ function entraIsGuid(string $s): bool
  * Null when the user has no object id (which Graph never does, but a bad page
  * must not become a person with no identity).
  *
- * Choices made in the open:
- *   email    — `mail`; failing that the UPN, IF it is a real address and not a
- *              guest's `#EXT#` one. Tenants without Exchange licences leave
- *              `mail` empty for everybody, and a service desk that cannot email
- *              anyone is a worse outcome than using the sign-in address.
- *   username — the UPN. What the person types to sign in to Microsoft, and what
- *              an analyst recognises; it is stored per provider, not globally.
- *   phone    — the first of `businessPhones`.
- *   office   — `officeLocation`.
+ * Each field is read from the attribute the provider maps it to (entraAttr();
+ * the defaults are ESYNC_ATTR_DEFAULTS). Choices made in the open, whatever the
+ * mapping:
+ *   email    — must be a real address. Failing that, the UPN, IF it is one and
+ *              not a guest's `#EXT#` one. Tenants without Exchange licences
+ *              leave `mail` empty for everybody, and a service desk that cannot
+ *              email anyone is a worse outcome than using the sign-in address.
+ *   username — failing the mapped attribute, the UPN: a mapping to, say,
+ *              onPremisesSamAccountName is empty for cloud-only accounts, and a
+ *              person with no username cannot be matched on the next run.
+ *   name     — failing the mapped attribute, first name and surname, then the UPN.
+ *   phone    — a list attribute (`businessPhones`) gives its first number.
  *
  * @param array $u  one item of /users
+ * @param array $provider  the auth_providers row - graph_attr_* are read; [] for the defaults
  */
-function entraMapUser(array $u): ?array
+function entraMapUser(array $u, array $provider = []): ?array
 {
     $oid = strtolower(trim((string)($u['id'] ?? '')));
     if ($oid === '') return null;
+    $val = fn(string $field) => entraUserValue($u, entraAttr($provider, $field));
 
     $upn   = trim((string)($u['userPrincipalName'] ?? ''));
-    $email = strtolower(trim((string)($u['mail'] ?? '')));
+    $email = strtolower($val('email'));
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $email = '';
     if ($email === '' && $upn !== '' && !str_contains($upn, '#EXT#') && filter_var($upn, FILTER_VALIDATE_EMAIL)) {
         $email = strtolower($upn);
     }
 
-    $name = trim((string)($u['displayName'] ?? ''));
+    $username = $val('username');
+    if ($username === '') $username = $upn;
+
+    $name = $val('name');
     if ($name === '') $name = trim(($u['givenName'] ?? '') . ' ' . ($u['surname'] ?? ''));
     if ($name === '') $name = $upn !== '' ? $upn : $oid;
 
-    $phones = $u['businessPhones'] ?? [];
-    $phone  = is_array($phones) && $phones ? trim((string)$phones[0]) : '';
-    $mgr    = strtolower(trim((string)($u['manager']['id'] ?? '')));
+    $mgr = strtolower(trim((string)($u['manager']['id'] ?? '')));
 
-    $nz = fn($v) => ($v = trim((string)$v)) !== '' ? $v : null;
+    $nz = fn(string $field) => ($v = $val($field)) !== '' ? $v : null;
     return [
         // Deliberately '' — see the identity note at the top of this file.
         'guid'        => '',
         'entra_id'    => $oid,
-        'username'    => $upn,
+        'username'    => $username,
         'email'       => $email !== '' ? $email : null,
         'name'        => $name,
-        'job_title'   => $nz($u['jobTitle'] ?? ''),
-        'department'  => $nz($u['department'] ?? ''),
-        'office'      => $nz($u['officeLocation'] ?? ''),
-        'phone'       => $phone !== '' ? $phone : null,
-        'mobile'      => $nz($u['mobilePhone'] ?? ''),
-        'employee_id' => $nz($u['employeeId'] ?? ''),
+        'job_title'   => $nz('job_title'),
+        'department'  => $nz('department'),
+        'office'      => $nz('office'),
+        'phone'       => $nz('phone'),
+        'mobile'      => $nz('mobile'),
+        'employee_id' => $nz('employee_id'),
         // The manager pass keys on 'dn'. Here both are object ids, which is
         // exactly the job a DN does there: a stable name for one person.
         'manager_dn'  => $mgr !== '' ? $mgr : null,
@@ -801,13 +904,13 @@ function entraSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int $a
         }
 
         // Manager is expanded inline: one request per page rather than one per person.
-        $raw = entraGetAll($cfg, '/users?$select=' . ESYNC_USER_SELECT . '&$expand=manager($select=id)&$top=100',
+        $raw = entraGetAll($cfg, '/users?$select=' . entraUserSelect($provider) . '&$expand=manager($select=id)&$top=100',
             $inScope === null ? ESYNC_MAX_PEOPLE : PHP_INT_MAX);
 
         $includeGuests = (int)($provider['graph_include_guests'] ?? 0) === 1;
         $people = [];
         foreach ($raw as $u) {
-            $p = entraMapUser($u);
+            $p = entraMapUser($u, $provider);
             if ($p === null) continue;
             if ($inScope !== null && !isset($inScope[$p['entra_id']])) continue;
             if ($p['is_guest'] && !$includeGuests) continue;

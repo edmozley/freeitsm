@@ -208,6 +208,17 @@ return [
         'graph_include_guests'   => 'TINYINT(1) NOT NULL DEFAULT 0',
         'graph_group_scope'      => "VARCHAR(10) NOT NULL DEFAULT 'none'",
         'graph_groups'           => 'TEXT NULL',
+        // Which Entra attribute fills each person field - the ldap_attr_* idea
+        // for Graph. NULL = the default in ESYNC_ATTR_DEFAULTS (entra_sync.php).
+        'graph_attr_name'        => 'VARCHAR(128) NULL',
+        'graph_attr_username'    => 'VARCHAR(128) NULL',
+        'graph_attr_email'       => 'VARCHAR(128) NULL',
+        'graph_attr_job_title'   => 'VARCHAR(128) NULL',
+        'graph_attr_department'  => 'VARCHAR(128) NULL',
+        'graph_attr_office'      => 'VARCHAR(128) NULL',
+        'graph_attr_phone'       => 'VARCHAR(128) NULL',
+        'graph_attr_mobile'      => 'VARCHAR(128) NULL',
+        'graph_attr_employee_id' => 'VARCHAR(128) NULL',
 
         'sync_last_run_datetime' => 'DATETIME NULL',
         'sync_last_count'        => 'INT NULL',
