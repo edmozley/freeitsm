@@ -186,6 +186,37 @@ function userSignsInElsewhere(PDO $conn, $providerId): bool
     return strtolower((string)$protocol) !== 'carddav';
 }
 
+/**
+ * Why this person may not be deleted here, or null when nothing a directory
+ * owns stands in the way.
+ *
+ * A person a directory import keeps up to date (LDAP, CardDAV, Entra ID -
+ * `is_managed`) is never deleted, leaver or not. Deleting cascades away their
+ * link to the directory (user_sso_identities) and their group memberships, so
+ * while they are still in the directory the next import creates them again as
+ * a NEW person - same name, new id, none of the history. The directory decides
+ * who has left; it marks them as left and keeps them.
+ *
+ * Asked by api/tickets/delete_user.php AFTER its company check, so it never
+ * answers anything about a person the caller cannot reach.
+ *
+ * @param int $userId  users.id of the person about to be deleted
+ */
+function userDeleteBlockedByDirectory(PDO $conn, int $userId): ?string
+{
+    $st = $conn->prepare(
+        "SELECT u.is_managed, p.display_name AS provider_name
+           FROM users u LEFT JOIN auth_providers p ON p.id = u.auth_provider_id
+          WHERE u.id = ?"
+    );
+    $st->execute([$userId]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row || (int)$row['is_managed'] !== 1) return null;
+    return 'This person is kept up to date from ' . ($row['provider_name'] ?: 'a directory')
+         . ', so they cannot be deleted here: the next import would create them again. '
+         . 'Remove or disable them there, and they are marked as left.';
+}
+
 // ─── Where a person comes from ───────────────────────────────────────────────
 //
 // "Source" on the people screens: the directory, address book or sign-in

@@ -480,11 +480,9 @@ $translationNamespaces = ['common', 'system'];
                     <?php
                     $title = t($area['title']);
                     $desc  = t($area['desc']);
-                    // Keywords are i18n keys; if a synonym key isn't defined the
-                    // resolver returns the key itself — strip that so it never
-                    // pollutes the search haystack.
-                    $kw = t($area['keywords']);
-                    if ($kw === $area['keywords']) $kw = '';
+                    // Keywords are i18n keys; an undefined one is dropped by
+                    // systemAreaKeywords() so it never pollutes the search haystack.
+                    $kw = systemAreaKeywords($area);
                     $haystack = mb_strtolower(trim($title . ' ' . $desc . ' ' . $kw));
                     // The settings inside this card, by the page's own headings,
                     // so a search can find one and link straight to it (#2293).

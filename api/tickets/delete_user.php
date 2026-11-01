@@ -3,7 +3,8 @@
  * API Endpoint: Delete an end user
  *
  * Refuses to delete if the user is referenced by any tickets or asset assignments,
- * so analyst-visible history is never silently broken.
+ * so analyst-visible history is never silently broken - or if a directory import
+ * manages them (is_managed), which would only create them again.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -53,6 +54,14 @@ try {
     // "not yours" from "not there".
     if (!analystCanAccessUser($conn, (int)$_SESSION['analyst_id'], $id)) {
         echo json_encode(['success' => false, 'error' => 'User not found']);
+        exit;
+    }
+
+    // A person a directory import keeps up to date is never deleted here: the
+    // next import would only create them again. See userDeleteBlockedByDirectory().
+    require_once '../../includes/users.php';
+    if ($blocked = userDeleteBlockedByDirectory($conn, $id)) {
+        echo json_encode(['success' => false, 'error' => $blocked]);
         exit;
     }
 
