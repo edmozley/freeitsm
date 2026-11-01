@@ -199,8 +199,26 @@ return [
         // Meaningless unless write-back is on; the save forces it off otherwise.
         'carddav_allow_create'   => 'TINYINT(1) NOT NULL DEFAULT 0',
 
+        // Microsoft Entra ID directory sync on an OIDC provider - includes/entra_sync.php.
+        'graph_tenant_id'        => 'VARCHAR(64) NULL',
+        'graph_client_id'        => 'VARCHAR(255) NULL',
+        'graph_client_secret'    => 'VARCHAR(500) NULL',
+        'graph_user_scope'       => "VARCHAR(10) NOT NULL DEFAULT 'all'",
+        'graph_user_groups'      => 'TEXT NULL',
+        'graph_include_guests'   => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'graph_group_scope'      => "VARCHAR(10) NOT NULL DEFAULT 'none'",
+        'graph_groups'           => 'TEXT NULL',
+
         'sync_last_run_datetime' => 'DATETIME NULL',
         'sync_last_count'        => 'INT NULL',
+        // 0 = import every time the scheduled task runs (what every source did
+        // before this column); > 0 = import at most this often, from the
+        // scheduled task OR, with no scheduled task, in the background while an
+        // analyst has FreeITSM open (dsyncClaimDue() / dsyncKickDue()).
+        'sync_interval_minutes'      => 'INT NOT NULL DEFAULT 0',
+        // When an automatic import of this source last STARTED, whatever its
+        // outcome. Claimed atomically, so two triggers never start the same run.
+        'sync_last_attempt_datetime' => 'DATETIME NULL',
         'enabled'                => 'TINYINT(1) NOT NULL DEFAULT 1',
         'auto_create_users'      => 'TINYINT(1) NOT NULL DEFAULT 0',
         'auto_create_analysts'   => 'TINYINT(1) NOT NULL DEFAULT 0',
@@ -1483,6 +1501,29 @@ return [
         'display_name'       => 'VARCHAR(255) NULL',
         'detail'             => 'VARCHAR(1000) NULL',
         'created_datetime'   => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // Groups imported from a directory (Entra ID), and who is in them. Never
+    // deleted; a group out of scope is marked inactive. includes/entra_sync.php.
+    'directory_groups' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'provider_id'         => 'INT NOT NULL',
+        'external_id'         => 'VARCHAR(255) NOT NULL',
+        'display_name'        => 'VARCHAR(255) NOT NULL',
+        'description'         => 'VARCHAR(1000) NULL',
+        'mail'                => 'VARCHAR(255) NULL',
+        'group_kind'          => 'VARCHAR(20) NULL',
+        'member_count'        => 'INT NOT NULL DEFAULT 0',
+        'is_active'           => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'last_seen_in_source' => 'DATETIME NULL',
+        'created_datetime'    => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'    => 'DATETIME NULL',
+    ],
+    'directory_group_members' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'group_id'         => 'INT NOT NULL',
+        'user_id'          => 'INT NOT NULL',
+        'created_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     // Every attempt to write a contact back to an address book — succeeded,

@@ -195,7 +195,37 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     -- default and separate from write-back; only honoured while write-back is on.
     `carddav_allow_create`   TINYINT(1) NOT NULL DEFAULT 0,
 
+    -- ---------------------------------------------------------------------
+    -- Microsoft Entra ID directory sync (protocol = 'oidc', Entra issuer).
+    --
+    -- Not a protocol of its own: an OIDC provider pointing at Entra, with
+    -- `sync_enabled` on, reads people and groups through Microsoft Graph. The
+    -- `sync_*` policy columns above apply unchanged. See includes/entra_sync.php.
+    -- ---------------------------------------------------------------------
+    -- NULL = the tenant in issuer_url. Needed only for a multi-tenant issuer.
+    `graph_tenant_id`        VARCHAR(64) NULL,
+    -- NULL = the sign-in app registration (client_id / client_secret). Set for a
+    -- separate registration that holds the Graph application permissions.
+    `graph_client_id`        VARCHAR(255) NULL,
+    -- Encrypted with encryptValue(); never returned by a GET endpoint.
+    `graph_client_secret`    VARCHAR(500) NULL,
+    -- WHO is imported: 'all' users, or the members of `graph_user_groups`.
+    `graph_user_scope`       VARCHAR(10) NOT NULL DEFAULT 'all',
+    -- Group object ids, one per line. Membership is transitive.
+    `graph_user_groups`      TEXT NULL,
+    -- Guests (userType = Guest) are left out unless this is on.
+    `graph_include_guests`   TINYINT(1) NOT NULL DEFAULT 0,
+    -- WHICH groups are imported into directory_groups: 'none' | 'selected' | 'all'.
+    `graph_group_scope`      VARCHAR(10) NOT NULL DEFAULT 'none',
+    -- Group object ids for 'selected', one per line.
+    `graph_groups`           TEXT NULL,
+
     `sync_last_run_datetime` DATETIME NULL,
+    -- 0 = every time the scheduled task runs; > 0 = at most this often, from the
+    -- scheduled task or, without one, in the background while FreeITSM is open.
+    `sync_interval_minutes`  INT NOT NULL DEFAULT 0,
+    -- When an automatic import last started, whatever its outcome (claimed atomically).
+    `sync_last_attempt_datetime` DATETIME NULL,
     -- People found by the last SUCCESSFUL run. The number the brake compares
     -- against; NULL means "no baseline yet", so a first run is never braked.
     `sync_last_count`        INT NULL,
@@ -2843,6 +2873,44 @@ CREATE TABLE IF NOT EXISTS `directory_sync_entries` (
     KEY `idx_dse_user` (`user_id`),
     -- The run owns its entries; deleting the provider takes both with it.
     CONSTRAINT `fk_dse_run` FOREIGN KEY (`run_id`) REFERENCES `directory_sync_runs` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Groups imported from a directory (Microsoft Entra ID today; see
+-- includes/entra_sync.php). Never deleted: a group that leaves the import scope
+-- is marked inactive and keeps its last known members, the same rule people get.
+CREATE TABLE IF NOT EXISTS `directory_groups` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `provider_id`         INT NOT NULL,
+    -- The source's own id for the group (an Entra object id). Survives renames.
+    `external_id`         VARCHAR(255) NOT NULL,
+    `display_name`        VARCHAR(255) NOT NULL,
+    `description`         VARCHAR(1000) NULL,
+    `mail`                VARCHAR(255) NULL,
+    -- security | mail-security | microsoft365 | distribution
+    `group_kind`          VARCHAR(20) NULL,
+    `member_count`        INT NOT NULL DEFAULT 0,
+    `is_active`           TINYINT(1) NOT NULL DEFAULT 1,
+    `last_seen_in_source` DATETIME NULL,
+    `created_datetime`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`    DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_directory_groups_ext` (`provider_id`, `external_id`),
+    KEY `idx_directory_groups_name` (`display_name`),
+    CONSTRAINT `fk_directory_groups_provider` FOREIGN KEY (`provider_id`) REFERENCES `auth_providers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Who is in each imported group. Transitive: members of nested groups count.
+-- Only people FreeITSM holds are linked; the group's own member_count may be higher.
+CREATE TABLE IF NOT EXISTS `directory_group_members` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `group_id`         INT NOT NULL,
+    `user_id`          INT NOT NULL,
+    `created_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_directory_group_member` (`group_id`, `user_id`),
+    KEY `idx_directory_group_members_user` (`user_id`),
+    CONSTRAINT `fk_dgm_group` FOREIGN KEY (`group_id`) REFERENCES `directory_groups` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_dgm_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Every attempt to write a contact BACK to a CardDAV address book — succeeded,

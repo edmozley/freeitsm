@@ -33,6 +33,10 @@
  * counts as unhealthy.
  */
 
+/** The auth_providers rows directory_sync imports from: LDAP, CardDAV, and OIDC providers whose issuer is Microsoft Entra ID. */
+const JOB_DSYNC_PROTOCOLS = "(protocol IN ('ldap','carddav') OR (protocol = 'oidc' AND (issuer_url LIKE 'https://login.microsoftonline.%'"
+                          . " OR issuer_url LIKE 'https://login.chinacloudapi.cn/%' OR issuer_url LIKE 'https://sts.windows.net/%')))";
+
 /** A lookup the health check could not make. The job's status becomes "unknown". */
 class JobHealthUnknown extends RuntimeException {}
 
@@ -175,10 +179,12 @@ function jobRegistry(): array
             'sources' => fn(PDO $c) => ['part:extract', 'part:tidy'],
         ],
         'directory_sync' => [
-            'command' => 'php scripts/directory_sync.php --all --quiet', 'web' => false,
+            'command' => 'php cron/directory_sync.php --all --quiet', 'web' => false,
             'interval' => 1440, 'grace' => 720, 'max_runtime' => 60,
-            'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM auth_providers WHERE enabled = 1 AND sync_enabled = 1 AND protocol IN ('ldap','carddav') LIMIT 1"),
-            'sources' => fn(PDO $c) => jobSourceKeys($c, 'provider:', "SELECT id FROM auth_providers WHERE enabled = 1 AND sync_enabled = 1 AND protocol IN ('ldap','carddav')"),
+            // An OIDC row is a source only when its issuer is Entra - the same
+            // test as entraIsEntraIssuer() and cron/directory_sync.php --all.
+            'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM auth_providers WHERE enabled = 1 AND sync_enabled = 1 AND " . JOB_DSYNC_PROTOCOLS . " LIMIT 1"),
+            'sources' => fn(PDO $c) => jobSourceKeys($c, 'provider:', "SELECT id FROM auth_providers WHERE enabled = 1 AND sync_enabled = 1 AND " . JOB_DSYNC_PROTOCOLS),
         ],
     ];
     // GH #217. A job whose module is switched off for the install is not needed:

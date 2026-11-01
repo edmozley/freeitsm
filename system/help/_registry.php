@@ -201,7 +201,7 @@ function getHelpTopics() {
         ],
         'sso' => [
             'hero' => 'Authentication',
-            'sub'  => 'Choose how people sign in: single sign-on through an identity provider (Microsoft Entra, Google, Okta, Keycloak or any OpenID Connect provider), or against your LDAP / Active Directory. Local passwords keep working as a fallback. A CardDAV address book also lives here, as a source of contact details rather than a way to sign in.',
+            'sub'  => 'Choose how people sign in: single sign-on through an identity provider (Microsoft Entra, Google, Okta, Keycloak or any OpenID Connect provider), or against your LDAP / Active Directory. Local passwords keep working as a fallback. A Microsoft Entra ID provider can also import people, groups and membership through Microsoft Graph, and a CardDAV address book lives here too, as a source of contact details rather than a way to sign in.',
             'sections' => [
                 ['id' => 'overview',   'label' => 'Overview'],
                 ['id' => 'which',      'label' => 'Single or multi-company?'],
@@ -223,6 +223,12 @@ function getHelpTopics() {
                 ['id' => 'carddav-diagnostics', 'label' => 'Checking it is working'],
                 ['id' => 'carddav-safety', 'label' => 'Safety, leavers & scheduling'],
                 ['id' => 'carddav-faq',    'label' => 'CardDAV troubleshooting'],
+                ['id' => 'entra',          'label' => 'Importing from Entra ID'],
+                ['id' => 'entra-setup',    'label' => 'Connecting to Microsoft Graph'],
+                ['id' => 'entra-scope',    'label' => 'Choosing people and groups'],
+                ['id' => 'entra-fields',   'label' => 'What Entra imports'],
+                ['id' => 'entra-schedule', 'label' => 'Entra safety & scheduling'],
+                ['id' => 'entra-faq',      'label' => 'Entra troubleshooting'],
                 ['id' => 'experience', 'label' => 'What people see'],
                 ['id' => 'breakglass', 'label' => 'Break-glass & safety'],
                 ['id' => 'faq',        'label' => 'Troubleshooting'],
@@ -240,6 +246,9 @@ function getHelpTopics() {
                      . ' categories tags kind group member digest basic phone number job title department office'
                      . ' write back writeback two-way two way send changes back update the address book'
                      . ' read-only permission privilege etag conflict changed since'
+                     . ' microsoft graph directory sync import users import groups group membership members'
+                     . ' user.read.all groupmember.read.all application permissions admin consent client secret'
+                     . ' tenant id object id guests external users aadsts7000215 aadsts7000222 scheduled task cron'
                      . ' add to address book new contact create card not in address book link person'
                      . ' log logging troubleshoot diagnose health check drift compare d015 d016'
                      . ' email domain domains route redirect straight to microsoft 365 m365 portal first sign-in hide button email only'
@@ -594,7 +603,7 @@ function helpCards($multiTenant = false) {
             'icon'     => $area['icon'],
             'title'    => t($area['title']),
             'desc'     => t($area['desc']),
-            'keywords' => t($area['keywords']),
+            'keywords' => systemAreaKeywords($area),
             'sub'      => $topic['sub'],
             'sections' => $topic['sections'],
             'terms'    => $topic['terms'] ?? '',

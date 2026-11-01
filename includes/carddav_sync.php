@@ -522,7 +522,7 @@ function cardDavSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int 
     // things silently, and neither showed up until the documented scheduled-task
     // command was actually run:
     //
-    //  - `scripts/directory_sync.php` prints `$run['seen_count']` and the other
+    //  - `cron/directory_sync.php` prints `$run['seen_count']` and the other
     //    flat column names, so every number it reported was **0** while the
     //    message beside it said "Contacts read: 2. Created: 2." A scheduled
     //    task's own output contradicted itself.
