@@ -209,6 +209,81 @@ function assetLabelTemplateItems(string $template, array $stock, array $s): arra
 }
 
 /**
+ * A design's items for a label of this size: what the designer saved (template
+ * 'custom', slice 2), or worked out from the template and the label settings.
+ *
+ * @param array $design  a design row from assetLabelDesignDecode()
+ * @param array $stock   the stock to draw on - a custom design is always drawn on its own
+ * @param array $s       assetLabelSettings()
+ */
+function assetLabelItemsFor(array $design, array $stock, array $s): array
+{
+    $d = $design['design'] ?? [];
+    if (($d['template'] ?? '') === 'custom') return is_array($d['items'] ?? null) ? $d['items'] : [];
+    return assetLabelTemplateItems((string)($d['template'] ?? 'standard'), $stock, $s);
+}
+
+/**
+ * Cleans the items the designer sends, before they are saved: only the known item
+ * types and their known options, numbers held to sensible ranges, colours as
+ * #rrggbb, fields from the company's own list. Anything else is dropped, so a saved
+ * design can only ever hold what the drawing code understands.
+ *
+ * @param array    $items      what the browser sent
+ * @param array    $stock      the design's label size, to hold positions near it
+ * @param string[] $fieldKeys  the fields a label may show (assetLabelAvailableFields() keys)
+ * @return array the clean items, at most 100
+ */
+function assetLabelSanitiseItems(array $items, array $stock, array $fieldKeys): array
+{
+    $W = (float)$stock['w']; $H = (float)$stock['h'];
+    $num = fn($v, float $lo, float $hi, float $def) => is_numeric($v) ? round(max($lo, min($hi, (float)$v)), 2) : $def;
+    $pick = fn($v, array $ok, $def) => in_array($v, $ok, true) ? $v : $def;
+    $colour = fn($v) => is_string($v) && preg_match('/^#[0-9a-f]{6}$/i', $v) ? strtolower($v) : '#000000';
+    $out = [];
+    $seen = [];
+    foreach (array_slice(array_values($items), 0, 100) as $i => $it) {
+        if (!is_array($it)) continue;
+        $type = (string)($it['type'] ?? '');
+        if (!in_array($type, ['text', 'field', 'fields', 'qr', 'image', 'line', 'box'], true)) continue;
+        $id = is_string($it['id'] ?? null) && preg_match('/^[a-z0-9]{1,16}$/i', $it['id']) && !isset($seen[$it['id']]) ? $it['id'] : 'i' . ($i + 1) . bin2hex(random_bytes(2));
+        $seen[$id] = true;
+        $c = ['id' => $id, 'type' => $type,
+              'x' => $num($it['x'] ?? 0, -$W, 2 * $W, 0), 'y' => $num($it['y'] ?? 0, -$H, 2 * $H, 0),
+              // A line runs from (x, y) to (x + w, y + h): either can be 0 (upright or level).
+              'w' => $num($it['w'] ?? 10, $type === 'line' ? 0 : 0.5, 3 * $W, 10), 'h' => $num($it['h'] ?? 5, $type === 'line' ? 0 : 0.5, 3 * $H, 5),
+              'rot' => $pick((int)($it['rot'] ?? 0), [0, 90, 180, 270], 0)];
+        if (in_array($type, ['text', 'field', 'fields'], true)) {
+            $size = $num($it['size'] ?? 8, 2, 96, 8);
+            $c += ['size' => $size, 'min' => $num($it['min'] ?? 4, 2, $size, min(4, $size)),
+                   'bold' => !empty($it['bold']), 'italic' => !empty($it['italic']),
+                   'align' => $pick($it['align'] ?? 'left', ['left', 'center', 'right'], 'left'),
+                   'valign' => $pick($it['valign'] ?? 'middle', ['top', 'middle', 'bottom'], 'middle'),
+                   'fit' => $pick($it['fit'] ?? 'shrink', ['shrink', 'wrap', 'clip'], 'shrink'),
+                   'color' => $colour($it['color'] ?? '#000000')];
+        }
+        $caption = fn($v) => $v === true ? 'inline' : $pick($v, ['none', 'inline', 'above'], 'none');
+        if ($type === 'text') $c['text'] = mb_substr((string)($it['text'] ?? ''), 0, 500);
+        if ($type === 'field') {
+            $c['field'] = in_array($it['field'] ?? '', $fieldKeys, true) ? $it['field'] : 'asset_tag';
+            $c['caption'] = $caption($it['caption'] ?? 'none');
+        }
+        if ($type === 'fields') {
+            $c['fields'] = array_values(array_unique(array_filter((array)($it['fields'] ?? []), fn($f) => in_array($f, $fieldKeys, true))));
+            if (!$c['fields']) $c['fields'] = ['asset_tag'];
+            $c['caption'] = $caption($it['caption'] ?? 'none');
+            $c['tag_size'] = $num($it['tag_size'] ?? $c['size'], 2, 96, $c['size']);
+        }
+        if ($type === 'qr') $c['logo'] = !empty($it['logo']);
+        if ($type === 'image') $c['src'] = 'logo';
+        if ($type === 'line' || $type === 'box') { $c['thick'] = $num($it['thick'] ?? 0.3, 0.1, 5, 0.3); $c['color'] = $colour($it['color'] ?? '#000000'); }
+        if ($type === 'box') $c['fill'] = !empty($it['fill']);
+        $out[] = $c;
+    }
+    return $out;
+}
+
+/**
  * The designs a company can print with: its own, and any made for every company.
  * The first time a company has none, its "Standard" design is made - today's label,
  * from its current settings - and becomes its default, so nothing changes on upgrade.

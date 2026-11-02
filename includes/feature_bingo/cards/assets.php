@@ -520,6 +520,18 @@ return [
         'check'    => ['rows', 'asset_label_designs', "design_json LIKE '%\"font\":\"font:%'"],
     ],
     [
+        'id'       => 'assets.label_designer',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'A label laid out by you',
+        'what'     => 'A label design laid out in the label designer: text, fields, the QR code, your logo, lines and boxes placed exactly where you want them, previewed with real assets.',
+        'why'      => 'Every organisation\'s labels are different - the designer fits the label to your kit, your printer and your brand, rather than the other way round.',
+        'done'     => 'At least one label design has been saved in the designer.',
+        'link'     => 'asset-management/settings/?tab=asset-labels',
+        'check'    => ['rows', 'asset_label_designs', "design_json LIKE '%\"template\":\"custom\"%'"],
+    ],
+    [
         'id'       => 'assets.disk_hide_rules',
         'module'   => 'assets',
         'tier'     => 'extra',

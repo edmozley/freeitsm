@@ -5594,7 +5594,7 @@ $translationNamespaces = ['common', 'asset-management'];
             $ldSettings = assetLabelSettings($ldConn, $ldTenant);
             $ldItems = [];
             foreach (assetLabelDesignsFor($ldConn, $ldTenant, $ldAnalyst) as $ldD) {
-                $ldItems[$ldD['id'] . ':' . $ldD['stock']['key']] = assetLabelTemplateItems((string)($ldD['design']['template'] ?? 'standard'), $ldD['stock'], $ldSettings);
+                $ldItems[$ldD['id'] . ':' . $ldD['stock']['key']] = assetLabelItemsFor($ldD, $ldD['stock'], $ldSettings);
             }
             $ldSample = ['values' => ['asset_tag' => 'AST-00042', 'hostname' => 'LON-LT-042', 'service_tag' => 'SN9876543210', 'manufacturer' => 'Dell',
                                       'model' => 'Dell Latitude 7440', 'company' => getTenantById($ldConn, $ldTenant)['name'] ?? '', 'location' => 'London', 'asset_type' => 'Laptop'],
@@ -5607,8 +5607,8 @@ $translationNamespaces = ['common', 'asset-management'];
         window.LD_CAPTIONS = <?php echo json_encode(assetLabelPrintFields($ldConn, $ldTenant), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
         <?php if ($ldSettings['logo_path'] !== ''): ?>window.LD_LOGO = new Image(); window.LD_LOGO.src = <?php echo json_encode(BASE_URL . ltrim($ldSettings['logo_path'], '/')); ?>;<?php endif; ?>
     </script>
-    <script src="../../assets/js/asset-labels/render.js?v=1"></script>
-    <script src="../../assets/js/asset-labels/designs-admin.js?v=1"></script>
+    <script src="../../assets/js/asset-labels/render.js?v=2"></script>
+    <script src="../../assets/js/asset-labels/designs-admin.js?v=2"></script>
     <?php endif; endif; ?>
     <script>window.ASSET_LAYOUT = <?php echo json_encode(['defaults' => AssetTypeLayout::defaults(), 'presets' => AssetTypeLayout::PRESETS], JSON_HEX_TAG | JSON_HEX_AMP); ?>;</script>
     <script src="../../assets/js/mobile.js?v=83"></script>

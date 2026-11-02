@@ -1,0 +1,121 @@
+/*
+ * Assets - the label designer (asset-management/label-designer.php, GH #229).
+ * The Report Pack designer's Office-style frame: title bar, ribbon, toolbox | label |
+ * properties, status bar. Theme tokens throughout; the LABEL stays white in dark mode,
+ * because it is a sticker.
+ */
+body.ld-body { --accent: #107c10; --accent-soft: #e3f2e3; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+.ld-app { flex: 1; min-height: 0; display: flex; flex-direction: column; background: var(--app-bg, #f3f4f6); color: var(--text, #222); }
+
+/* ── Title bar ─────────────────────────────────────────────────────── */
+.ld-titlebar { display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e0e0e0); }
+.ld-back { display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted, #555); text-decoration: none; font-size: 13px; padding: 4px 8px; border-radius: 6px; }
+.ld-back:hover { background: var(--surface-hover, #f3f4f6); color: var(--text, #222); }
+.ld-name { font: inherit; font-size: 16px; font-weight: 600; color: var(--text, #222); border: 1px solid transparent; border-radius: 6px; padding: 4px 8px; min-width: 220px; background: transparent; }
+.ld-name:hover { border-color: var(--border, #ddd); }
+.ld-name:focus { outline: none; border-color: var(--accent); background: var(--surface, #fff); }
+.ld-state { font-size: 12px; color: var(--text-dim, #888); }
+.ld-state.is-dirty { color: var(--accent); }
+.ld-spacer { flex: 1; }
+.ld-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: 6px; background: none; cursor: pointer; color: var(--text, #333); }
+.ld-icon-btn:hover:not(:disabled) { background: var(--surface-hover, #f1f3f5); }
+.ld-icon-btn:disabled { opacity: .35; cursor: default; }
+.ld-banner { padding: 8px 16px; font-size: 13px; background: var(--warning-bg, #fff4e5); color: var(--text, #333); border-bottom: 1px solid var(--border, #e0e0e0); }
+
+/* ── Ribbon ────────────────────────────────────────────────────────── */
+.ld-ribbon { background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e0e0e0); user-select: none; }
+.ld-tabs { display: flex; gap: 2px; padding: 0 10px; background: var(--surface-2, #f5f6f8); border-bottom: 1px solid var(--border-soft, #eceef1); }
+.ld-tab { border: none; background: none; font: inherit; font-size: 13px; color: var(--text-muted, #555); padding: 8px 14px 7px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.ld-tab:hover { color: var(--text, #222); background: var(--surface-hover, #eef0f2); }
+.ld-tab.is-active { color: var(--accent); border-bottom-color: var(--accent); background: var(--surface, #fff); font-weight: 600; }
+.ld-panel { display: flex; align-items: stretch; padding: 6px 8px 0; min-height: 86px; overflow-x: auto; }
+.ld-group { display: flex; flex-direction: column; padding: 0 10px; border-right: 1px solid var(--border-soft, #eceef1); }
+.ld-group:last-child { border-right: none; }
+.ld-group-body { display: flex; align-items: flex-start; gap: 4px; flex: 1; }
+.ld-group-label { font-size: 11px; color: var(--text-dim, #888); text-align: center; padding: 3px 0 4px; white-space: nowrap; }
+.ld-stack { display: flex; flex-direction: column; gap: 3px; }
+.ld-row { display: flex; gap: 2px; align-items: center; }
+.ld-rb { display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; border-radius: 5px; background: none; cursor: pointer; color: var(--text, #333); font: inherit; font-size: 12px; padding: 4px 6px; min-height: 28px; }
+.ld-rb:hover:not(:disabled) { background: var(--surface-hover, #f1f3f5); border-color: var(--border-soft, #e5e7ea); }
+.ld-rb[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.ld-rb:disabled { opacity: .38; cursor: default; }
+.ld-rb-big { flex-direction: column; justify-content: flex-start; min-width: 56px; padding: 6px 6px 4px; gap: 4px; text-align: center; line-height: 1.15; }
+.ld-rsel { font: inherit; font-size: 12px; padding: 4px 6px; border: 1px solid var(--border, #ccd); border-radius: 5px; background: var(--surface, #fff); color: var(--text, #333); max-width: 230px; }
+
+/* ── Main area ─────────────────────────────────────────────────────── */
+.ld-main { flex: 1; min-height: 0; display: grid; grid-template-columns: 220px 1fr 290px; }
+.ld-toolbox, .ld-props { background: var(--surface, #fff); overflow-y: auto; min-height: 0; }
+.ld-toolbox { border-right: 1px solid var(--border, #e0e0e0); }
+.ld-props { border-left: 1px solid var(--border, #e0e0e0); }
+.ld-pane-head { position: sticky; top: 0; z-index: 2; background: var(--surface, #fff); padding: 12px 14px 6px; }
+.ld-pane-head h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted, #666); }
+.ld-tool { display: flex; align-items: center; gap: 10px; margin: 2px 8px; padding: 8px 10px; border-radius: 6px; cursor: grab; font-size: 13px; color: var(--text, #333); user-select: none; border: 1px solid transparent; }
+.ld-tool:hover { background: var(--surface-hover, #f1f3f5); border-color: var(--border-soft, #e5e7ea); }
+.ld-tool small { display: block; color: var(--text-dim, #888); font-size: 11px; }
+.ld-tool-sub { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); margin: 14px 18px 4px; }
+.ld-ghost { position: fixed; z-index: 9999; pointer-events: none; padding: 6px 10px; border-radius: 6px; background: var(--accent); color: #fff; font-size: 12px; opacity: .9; }
+
+/* ── The label ─────────────────────────────────────────────────────── */
+.ld-stage { position: relative; overflow: auto; outline: none; background: var(--app-bg, #e9ebee); }
+.ld-sheet { position: relative; margin: 40px auto; }
+.ld-ruler-h, .ld-ruler-v { position: absolute; background: var(--surface, #fff); }
+.ld-ruler-h { left: 0; top: -24px; height: 22px; }
+.ld-ruler-v { left: -24px; top: 0; width: 22px; }
+.ld-paper { position: relative; background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, .25); }
+.ld-paper canvas { display: block; }
+.ld-overlay { position: absolute; inset: 0; cursor: default; touch-action: none; }
+.ld-sel { position: absolute; border: 1px solid var(--accent); pointer-events: none; }
+.ld-sel.is-primary { border-width: 2px; margin: -1px; }
+.ld-hover { position: absolute; border: 1px dashed rgba(16, 124, 16, .55); pointer-events: none; }
+.ld-handle { position: absolute; width: 9px; height: 9px; margin: -5px 0 0 -5px; background: #fff; border: 1px solid var(--accent); border-radius: 2px; pointer-events: auto; }
+.ld-guide { position: absolute; background: #e3008c; pointer-events: none; z-index: 3; }
+.ld-guide.v { width: 1px; top: -12px; bottom: -12px; }
+.ld-guide.h { height: 1px; left: -12px; right: -12px; }
+.ld-marquee { position: absolute; border: 1px solid var(--accent); background: rgba(16, 124, 16, .08); pointer-events: none; }
+.ld-gridline { position: absolute; pointer-events: none; }
+
+/* ── Properties ────────────────────────────────────────────────────── */
+.ld-props-body { padding: 4px 14px 20px; font-size: 13px; }
+.ld-props-body h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); margin: 16px 0 6px; }
+.ld-pf { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.ld-pf > span { min-width: 74px; color: var(--text-muted, #555); font-size: 12px; }
+.ld-pf input[type=number], .ld-pf input[type=text], .ld-pf select, .ld-props-body textarea { font: inherit; font-size: 12.5px; padding: 5px 7px; border: 1px solid var(--border, #ccd); border-radius: 5px; background: var(--surface, #fff); color: var(--text, #333); min-width: 0; flex: 1; }
+.ld-pf input[type=number] { width: 70px; flex: 0 0 auto; }
+.ld-pf input[type=color] { width: 40px; height: 28px; padding: 1px; border: 1px solid var(--border, #ccd); border-radius: 5px; background: var(--surface, #fff); }
+.ld-props-body textarea { width: 100%; box-sizing: border-box; min-height: 60px; resize: vertical; }
+.ld-xywh { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 6px 8px; align-items: center; font-size: 12px; color: var(--text-muted, #555); }
+.ld-xywh input { width: 100%; box-sizing: border-box; font: inherit; font-size: 12.5px; padding: 5px 6px; border: 1px solid var(--border, #ccd); border-radius: 5px; background: var(--surface, #fff); color: var(--text, #333); }
+.ld-seg { display: inline-flex; border: 1px solid var(--border, #ccd); border-radius: 5px; overflow: hidden; }
+.ld-seg button { border: none; background: var(--surface, #fff); color: var(--text, #333); padding: 4px 8px; cursor: pointer; font: inherit; font-size: 12px; }
+.ld-seg button + button { border-left: 1px solid var(--border, #ccd); }
+.ld-seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.ld-fieldlist { border: 1px solid var(--border, #ccd); border-radius: 5px; max-height: 220px; overflow-y: auto; }
+.ld-fieldlist label { display: flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 12.5px; }
+.ld-fieldlist label + label { border-top: 1px solid var(--border-soft, #eee); }
+.ld-fieldlist .ld-mv { margin-left: auto; display: flex; gap: 2px; }
+.ld-fieldlist .ld-mv button { border: none; background: none; cursor: pointer; color: var(--text-muted, #666); padding: 0 3px; }
+.ld-hint { font-size: 12px; color: var(--text-dim, #888); line-height: 1.4; }
+
+/* ── Status bar and menus ──────────────────────────────────────────── */
+.ld-statusbar { display: flex; align-items: center; gap: 16px; padding: 4px 14px; font-size: 12px; color: var(--text-muted, #666); background: var(--surface, #fff); border-top: 1px solid var(--border, #e0e0e0); }
+.ld-statusbar input[type=range] { width: 120px; accent-color: var(--accent); }
+.ld-menu { position: fixed; z-index: 9999; min-width: 190px; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); padding: 4px; }
+.ld-menu button { display: flex; justify-content: space-between; gap: 18px; width: 100%; border: none; background: none; text-align: left; font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 5px; cursor: pointer; color: var(--text, #222); }
+.ld-menu button:hover:not(:disabled) { background: var(--surface-hover, #f1f3f5); }
+.ld-menu button:disabled { opacity: .4; cursor: default; }
+.ld-menu kbd { font: inherit; font-size: 11px; color: var(--text-dim, #888); }
+.ld-menu hr { border: none; border-top: 1px solid var(--border-soft, #eee); margin: 4px 0; }
+
+/* Narrower screens: as the Report Pack designer. Below 860px the toolbox goes (the
+   Insert tab does the same job) and the properties stack under the label - unlike a
+   report, a label's words are edited there, so they cannot be hidden. */
+@media (max-width: 1100px) {
+    .ld-main { grid-template-columns: 190px 1fr 260px; }
+}
+@media (max-width: 860px) {
+    .ld-main { grid-template-columns: 1fr; grid-template-rows: minmax(220px, 1fr) auto; }
+    .ld-toolbox { display: none; }
+    .ld-props { border-left: none; border-top: 1px solid var(--border, #e0e0e0); max-height: 40vh; }
+    .ld-name { min-width: 0; width: 100%; }
+    .ld-state { display: none; }
+}

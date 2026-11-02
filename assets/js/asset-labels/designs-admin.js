@@ -37,7 +37,8 @@
             + D.designs.map(d => '<tr data-id="' + d.id + '"><td><canvas class="ld-prev" data-id="' + d.id + '"></canvas></td><td><strong>' + esc(d.name) + '</strong>'
                 + (d.is_default ? ' <span class="status-badge status-active">' + esc(T('default')) + '</span>' : '') + '</td>'
                 + '<td>' + esc(T('tpl_' + (d.design.template || 'standard'))) + '</td><td>' + esc(stock(d.stock)) + '</td><td>' + esc(fontName(d.design.font)) + '</td>'
-                + '<td style="white-space:nowrap">' + (D.can_manage ? '<button type="button" class="btn btn-secondary" data-ld-edit>' + esc(window.t('common.edit')) + '</button> '
+                + '<td style="white-space:nowrap">' + (D.can_manage ? '<a class="btn btn-primary" href="../label-designer.php?id=' + d.id + '">' + esc(T('open_designer')) + '</a> '
+                + '<button type="button" class="btn btn-secondary" data-ld-edit>' + esc(window.t('common.edit')) + '</button> '
                 + (d.is_default ? '' : '<button type="button" class="btn btn-secondary" data-ld-default>' + esc(T('set_default')) + '</button> ')
                 + '<button type="button" class="btn btn-secondary delete" data-ld-del>' + esc(window.t('common.delete')) + '</button>' : '') + '</td></tr>').join('')
             + '</tbody></table>';

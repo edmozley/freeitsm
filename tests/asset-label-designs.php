@@ -92,6 +92,41 @@ ok('any other extension is refused', !assetLabelFontLooksValid($f('d.php', "\x00
 array_map('unlink', glob("$dir/*")); rmdir($dir);
 ok('the bundled font\'s licence is shipped beside it', is_file(__DIR__ . '/../assets/fonts/noto-sans/OFL.txt'));
 
+echo "\nPART 1b - what the designer saves (slice 2)\n";
+$tz = assetLabelStockFrom(['key' => 'tze24']);
+$keys = ['asset_tag', 'hostname', 'service_tag'];
+$clean = assetLabelSanitiseItems([
+    ['id' => 'a1', 'type' => 'text', 'x' => 2, 'y' => 3, 'w' => 30, 'h' => 6, 'text' => 'Serial {service_tag}', 'size' => 9, 'bold' => 1, 'align' => 'center', 'color' => '#FF0000'],
+    ['id' => 'a2', 'type' => 'field', 'field' => 'hostname', 'caption' => 'above', 'x' => 1, 'y' => 1, 'w' => 20, 'h' => 5],
+    ['id' => 'a3', 'type' => 'qr', 'x' => 50, 'y' => 1, 'w' => 21, 'h' => 21, 'logo' => true],
+    ['id' => 'a4', 'type' => 'line', 'x' => 0, 'y' => 12, 'w' => 73, 'h' => 0],
+    ['id' => 'a5', 'type' => 'line', 'x' => 30, 'y' => 0, 'w' => 0, 'h' => 24],
+], $tz, $keys);
+ok('control: clean items pass through, in order', array_column($clean, 'id') === ['a1', 'a2', 'a3', 'a4', 'a5']);
+ok('...the text keeps its words, its {field} and its style', $clean[0]['text'] === 'Serial {service_tag}' && $clean[0]['bold'] === true && $clean[0]['align'] === 'center' && $clean[0]['color'] === '#ff0000');
+ok('...a caption above is kept', $clean[1]['caption'] === 'above');
+ok('...a level line and an upright line keep their 0 height / width', $clean[3]['h'] == 0 && $clean[4]['w'] == 0);
+$bad = assetLabelSanitiseItems([
+    ['type' => 'script', 'x' => 0, 'y' => 0, 'w' => 5, 'h' => 5],
+    'not an item',
+    ['id' => 'b1', 'type' => 'field', 'field' => 'password_hash', 'x' => 0, 'y' => 0, 'w' => 5, 'h' => 5],
+    ['id' => 'b2', 'type' => 'text', 'x' => 9999, 'y' => -9999, 'w' => 0, 'h' => 9999, 'size' => 500, 'align' => 'justify', 'fit' => 'explode', 'color' => 'red;background:url(x)', 'rot' => 45, 'onclick' => 'x'],
+    ['id' => 'b2', 'type' => 'image', 'src' => 'https://evil.example/x.png', 'x' => 0, 'y' => 0, 'w' => 5, 'h' => 5],
+    ['id' => '<b3>', 'type' => 'fields', 'fields' => ['nope', 'hostname', 'hostname'], 'x' => 0, 'y' => 0, 'w' => 5, 'h' => 5],
+], $tz, $keys);
+ok('an unknown item type and a non-item are dropped', count($bad) === 4 && !in_array('script', array_column($bad, 'type'), true));
+ok('a field that is not offered falls back to the asset tag', $bad[0]['field'] === 'asset_tag');
+ok('numbers are held inside the label\'s range', $bad[1]['x'] <= 146 && $bad[1]['y'] >= -24 && $bad[1]['w'] >= 0.5 && $bad[1]['h'] <= 72 && $bad[1]['size'] <= 96);
+ok('choices outside the list fall back: align, fit, colour, rotation', $bad[1]['align'] === 'left' && $bad[1]['fit'] === 'shrink' && $bad[1]['color'] === '#000000' && $bad[1]['rot'] === 0);
+ok('properties the designer does not know are not saved', !array_key_exists('onclick', $bad[1]));
+ok('a picture is always the logo from label settings, never an address', $bad[2]['src'] === 'logo');
+ok('a repeated or odd id is replaced', $bad[2]['id'] !== 'b2' && $bad[3]['id'] !== '<b3>');
+ok('a field list keeps only offered fields, once each', $bad[3]['fields'] === ['hostname']);
+ok('at most 100 items are kept', count(assetLabelSanitiseItems(array_fill(0, 150, ['type' => 'box', 'x' => 0, 'y' => 0, 'w' => 5, 'h' => 5]), $tz, $keys)) === 100);
+$custom = ['design' => ['template' => 'custom', 'items' => $clean]];
+ok('a designed label prints its own items, whatever the label settings say', assetLabelItemsFor($custom, $tz, $settings) === $clean);
+ok('control: a template design still follows the label settings', assetLabelItemsFor(['design' => ['template' => 'tape_small']], $tz, $settings) === assetLabelTemplateItems('tape_small', $tz, $settings));
+
 echo "\nPART 2 - designs on a test company\n";
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

@@ -105,6 +105,22 @@ try {
             echo json_encode(['success' => true]);
             exit;
 
+        case 'save_items':
+            // The designer (slice 2): the design's own items, cleaned, on its own size.
+            // From now on it no longer follows a template.
+            $row = $own((int)($in['id'] ?? 0));
+            $name = trim((string)($in['name'] ?? ''));
+            if ($name === '' || mb_strlen($name) > 100) aldFail(t('asset-management.label_designs.name_needed'));
+            try { $stock = assetLabelStockFrom((array)($in['stock'] ?? [])); } catch (InvalidArgumentException $e) { aldFail($e->getMessage()); }
+            $items = assetLabelSanitiseItems((array)($in['items'] ?? []), $stock, array_keys(assetLabelAvailableFields($conn, $tenantId)));
+            $design = ['v' => 1, 'template' => 'custom', 'font' => assetLabelFontRef($conn, $tenantId, (string)($in['font'] ?? ASSET_LABEL_BUILTIN_FONT)), 'items' => $items];
+            $u = $conn->prepare("UPDATE asset_label_designs SET name = ?, stock_json = ?, design_json = ?, version = version + 1, updated_by = ?, updated_datetime = UTC_TIMESTAMP()
+                                  WHERE id = ? AND version = ?");
+            $u->execute([$name, json_encode($stock), json_encode($design), $analystId, (int)$row['id'], (int)($in['version'] ?? 0)]);
+            if (!$u->rowCount()) aldFail(t('asset-management.label_designs.changed_meanwhile'), 409);
+            echo json_encode(['success' => true, 'version' => (int)$in['version'] + 1, 'items' => $items]);
+            exit;
+
         case 'set_default':
             $row = $own((int)($in['id'] ?? 0));
             $conn->beginTransaction();

@@ -28,7 +28,9 @@ try {
 } catch (InvalidArgumentException) {
     $stock = $design['stock'];
 }
-$items = assetLabelTemplateItems((string)($design['design']['template'] ?? 'standard'), $stock, $labelSettings);
+$isCustom = ($design['design']['template'] ?? '') === 'custom';
+if ($isCustom) $stock = $design['stock'];   // a designed label is drawn for its own size only
+$items = assetLabelItemsFor($design, $stock, $labelSettings);
 
 $labels = [];
 foreach ($assets as $a) {
@@ -57,7 +59,7 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('asset-management.label
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.labels.browser_title'))); ?></title>
     <script src="../assets/js/qrcode.min.js"></script>
     <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
-    <script src="../assets/js/asset-labels/render.js?v=1"></script>
+    <script src="../assets/js/asset-labels/render.js?v=2"></script>
     <style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f6fa; color: #222; }
         .bar { background: #546e7a; color: #fff; padding: 12px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -86,7 +88,7 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('asset-management.label
         </select>
     </label>
     <label><?php echo $tt('size'); ?>
-        <select id="stockSel">
+        <select id="stockSel"<?php echo $isCustom ? ' disabled title="' . $tt('size_fixed') . '"' : ''; ?>>
             <?php foreach (assetLabelStocks() as $k => $st): ?>
                 <option value="<?php echo htmlspecialchars((string)$k); ?>" <?php echo (string)$k === (string)$stock['key'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($st['name']); ?></option>
             <?php endforeach; ?>
