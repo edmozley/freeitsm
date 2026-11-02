@@ -258,6 +258,10 @@ enum Cap: string
     // SERVICE_STATUS decides whether a domain's problems raise incidents on the
     // Service Status page, which customers read - sensitive for that reason.
     case DOMAINS_SERVICE_STATUS = 'domains.service_status';
+    // GH #203 slice 2: the HTTPS endpoints FreeITSM connects to on internal
+    // domains, the networks and ports it may reach, and the CAs it trusts for
+    // them. Sensitive: it decides which internal addresses the server connects to.
+    case DOMAINS_INTERNAL = 'domains.internal';
 
     // ---- Files -------------------------------------------------------------
     // ⚠️ None of these lets anybody READ a file. Files is pessimistic: content is

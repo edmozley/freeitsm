@@ -4112,9 +4112,10 @@ return array (
               'enum' => 
               array (
                 0 => 'healthy',
-                1 => 'problem',
-                2 => 'not_checked',
-                3 => 'stale',
+                1 => 'expiring',
+                2 => 'problem',
+                3 => 'not_checked',
+                4 => 'stale',
               ),
             ),
             'known' => 
@@ -4124,7 +4125,8 @@ return array (
               'enum' => 
               array (
                 0 => 'healthy',
-                1 => 'problem',
+                1 => 'expiring',
+                2 => 'problem',
               ),
             ),
             'last_completed_at' => 
@@ -4618,9 +4620,10 @@ return array (
               'enum' => 
               array (
                 0 => 'healthy',
-                1 => 'problem',
-                2 => 'not_checked',
-                3 => 'stale',
+                1 => 'expiring',
+                2 => 'problem',
+                3 => 'not_checked',
+                4 => 'stale',
               ),
             ),
             'known' => 
@@ -4630,7 +4633,8 @@ return array (
               'enum' => 
               array (
                 0 => 'healthy',
-                1 => 'problem',
+                1 => 'expiring',
+                2 => 'problem',
               ),
             ),
             'last_completed_at' => 
@@ -5132,9 +5136,10 @@ return array (
               'enum' => 
               array (
                 0 => 'healthy',
-                1 => 'problem',
-                2 => 'not_checked',
-                3 => 'stale',
+                1 => 'expiring',
+                2 => 'problem',
+                3 => 'not_checked',
+                4 => 'stale',
               ),
             ),
             'known' => 
@@ -5144,7 +5149,8 @@ return array (
               'enum' => 
               array (
                 0 => 'healthy',
-                1 => 'problem',
+                1 => 'expiring',
+                2 => 'problem',
               ),
             ),
             'last_completed_at' => 

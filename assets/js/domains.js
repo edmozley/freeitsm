@@ -65,7 +65,7 @@
      */
     function health(h, big) {
         h = h || { state: 'not_checked' };
-        const cls = { healthy: 'green', problem: 'red', not_checked: 'grey', stale: 'amber' }[h.state] || 'grey';
+        const cls = { healthy: 'green', expiring: 'amber', problem: 'red', not_checked: 'grey', stale: 'amber' }[h.state] || 'grey';
         let tip = T('health.title', { state: T('health.' + h.state) });
         if (h.known && h.known !== h.state) tip += ' - ' + T('health.known_after', { state: T('health.' + h.known), date: fmtDate(h.last_completed) });
         return '<span class="dom-pill dom-health ' + cls + (big ? ' big' : '') + '" title="' + esc(tip) + '">' + esc(T('health.' + h.state)) + '</span>';

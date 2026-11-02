@@ -12,7 +12,9 @@
  *
  * Only ever called for the domain itself, www, and the extra hosts on the
  * domain's own record — which domainParseSslHosts() restricts to sub-domains of
- * that domain, so this cannot be pointed at an arbitrary address.
+ * that domain, so this cannot be pointed at an arbitrary address — and for an
+ * internal domain's endpoints (GH #203), which domainCheckEndpoint() only lets
+ * through once the resolved address and the port are permitted.
  */
 
 if (file_exists(__DIR__ . '/../ssl.php')) require_once __DIR__ . '/../ssl.php';
@@ -22,15 +24,18 @@ if (file_exists(__DIR__ . '/../ssl.php')) require_once __DIR__ . '/../ssl.php';
  * names - then says whether it matches the host name and whether the chain
  * verifies against the trusted CA bundle.
  *
- * @param string $host     the host name to connect to and to send as SNI
- * @param int    $port     the TCP port to try
- * @param int    $timeout  connect timeout in seconds, for each of the two handshakes
+ * @param string  $host       the host name to send as SNI and to check the certificate's names against
+ * @param int     $port       the TCP port to try
+ * @param int     $timeout    connect timeout in seconds, for each of the two handshakes
+ * @param ?string $connectTo  the IP address to connect to, already resolved and permitted (GH #203);
+ *                            null lets the operating system resolve $host, as public checks always have
+ * @param ?string $cafile     the CA file to verify the chain against; null for the server's normal bundle
  *
  * @return array{ok:bool, host:string, error:?string, subject:?string, issuer:?string,
  *               valid_from:?string, valid_to:?string, days_left:?int, sans:array,
  *               hostname_match:?bool, chain_valid:?bool}
  */
-function domainTlsCertificate(string $host, int $port = 443, int $timeout = 8): array
+function domainTlsCertificate(string $host, int $port = 443, int $timeout = 8, ?string $connectTo = null, ?string $cafile = null): array
 {
     $out = ['ok' => false, 'host' => $host, 'error' => null, 'subject' => null, 'issuer' => null,
             'valid_from' => null, 'valid_to' => null, 'days_left' => null, 'sans' => [],
@@ -43,9 +48,15 @@ function domainTlsCertificate(string $host, int $port = 443, int $timeout = 8): 
         'SNI_enabled'       => true,
         'peer_name'         => $host,
     ]]);
+    // GH #203: connect to the address we resolved and permitted, so the DNS check and
+    // the certificate check can never look at two different machines. The host name
+    // still goes as SNI (peer_name) and is what the certificate's names are checked against.
+    $target = $connectTo === null ? $host : (str_contains($connectTo, ':') ? "[$connectTo]" : $connectTo);
     // The same trace as domainHttpGet() (GH #203): a test sees every connection Domains makes.
-    if (isset($GLOBALS['DOMAIN_HTTP_TRACE']) && is_array($GLOBALS['DOMAIN_HTTP_TRACE'])) $GLOBALS['DOMAIN_HTTP_TRACE'][] = "tls://$host:$port";
-    $s = @stream_socket_client("ssl://$host:$port", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $ctx);
+    if (isset($GLOBALS['DOMAIN_HTTP_TRACE']) && is_array($GLOBALS['DOMAIN_HTTP_TRACE'])) {
+        $GLOBALS['DOMAIN_HTTP_TRACE'][] = "tls://$host:$port" . ($connectTo !== null ? "@$connectTo" : '');
+    }
+    $s = @stream_socket_client("ssl://$target:$port", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $ctx);
     if (!$s) {
         $out['error'] = $errstr !== '' ? $errstr : 'No HTTPS answer on port ' . $port;
         return $out;
@@ -77,11 +88,13 @@ function domainTlsCertificate(string $host, int $port = 443, int $timeout = 8): 
     $out['sans'] = array_values(array_unique($sans));
     $out['hostname_match'] = domainTlsNameMatches($host, $out['sans']);
 
-    // Second handshake: does the chain verify against the trusted bundle?
-    $bundle = defined('SSL_CA_BUNDLE') ? SSL_CA_BUNDLE : (function_exists('sslResolveCaBundle') ? sslResolveCaBundle() : '');
+    // Second handshake: does the chain verify against the trusted bundle - or the
+    // endpoint's trust profile, which changes WHICH CAs are trusted, never whether
+    // the chain and the name are checked (GH #203)?
+    $bundle = $cafile ?? (defined('SSL_CA_BUNDLE') ? SSL_CA_BUNDLE : (function_exists('sslResolveCaBundle') ? sslResolveCaBundle() : ''));
     $vopts = ['verify_peer' => true, 'verify_peer_name' => true, 'SNI_enabled' => true, 'peer_name' => $host];
     if ($bundle) $vopts['cafile'] = $bundle;
-    $v = @stream_socket_client("ssl://$host:$port", $e2, $s2, $timeout, STREAM_CLIENT_CONNECT, stream_context_create(['ssl' => $vopts]));
+    $v = @stream_socket_client("ssl://$target:$port", $e2, $s2, $timeout, STREAM_CLIENT_CONNECT, stream_context_create(['ssl' => $vopts]));
     if ($v) { $out['chain_valid'] = true; fclose($v); }
     else    { $out['chain_valid'] = $out['hostname_match'] === false ? null : false; }
 

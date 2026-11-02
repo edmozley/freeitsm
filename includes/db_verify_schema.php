@@ -6036,6 +6036,36 @@ return [
         'display_order'    => 'INT NOT NULL DEFAULT 0',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
+    // GH #203 slice 2: HTTPS endpoints on internal domains, and trust profiles for their CAs.
+    'domain_endpoints' => [
+        'id'                      => 'INT NOT NULL AUTO_INCREMENT',
+        'domain_id'               => 'INT NOT NULL',
+        'host'                    => 'VARCHAR(253) NOT NULL',
+        'port'                    => 'INT NOT NULL DEFAULT 443',
+        'warn_days'               => 'INT NOT NULL DEFAULT 21',
+        'trust_profile_id'        => 'INT NULL',
+        'status'                  => 'VARCHAR(12) NULL',
+        'incomplete'              => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'detail_key'              => 'VARCHAR(40) NULL',
+        'detail_params'           => 'TEXT NULL',
+        'address'                 => 'VARCHAR(45) NULL',
+        'cert_json'               => 'TEXT NULL',
+        'last_attempt_datetime'   => 'DATETIME NULL',
+        'last_completed_datetime' => 'DATETIME NULL',
+        'last_healthy_datetime'   => 'DATETIME NULL',
+        'created_by'              => 'INT NULL',
+        'created_datetime'        => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'        => 'DATETIME NULL',
+    ],
+    'domain_trust_profiles' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'name'             => 'VARCHAR(100) NOT NULL',
+        'ca_pem'           => 'MEDIUMTEXT NOT NULL',
+        'summary'          => 'VARCHAR(1000) NULL',
+        'created_by'       => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime' => 'DATETIME NULL',
+    ],
 
     // Cost centres (GH #160, stage 1). Always one company's (tenant_id NOT NULL);
     // the code is TEXT so "0010" stays "0010", unique per company ignoring case.

@@ -19,6 +19,7 @@ Tz::init();
 
 require_once '../../includes/settings_manifest.php';
 require_once '../../includes/domains/scope.php';   // GH #203: DOMAIN_INTERNAL_INTERVALS
+require_once '../../includes/domains/endpoints.php';   // GH #203 slice 2: DOMAIN_COMMON_TLS_PORTS
 requireModuleAccess('domains');
 
 $settingsManifest = settingsManifestFor('domains');
@@ -226,6 +227,42 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         </div>
         <?php endif; ?>
 
+        <?php if (settingsTabVisible($visibleTabs, 'internal')): ?>
+        <?php /* GH #203 slice 2: where FreeITSM may connect to check internal certificates. The ticks
+                 and the "other" boxes are folded into the two hidden settings before saving. */ ?>
+        <div class="tab-content<?php echo $activeTabId === 'internal' ? ' active' : ''; ?>" id="internal-tab" data-capability="<?php echo capKey(Cap::DOMAINS_INTERNAL); ?>" data-settings-tab="internal">
+            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('internal_title'); ?></h2>
+            <div class="set-box"><?php echo $tt('internal_intro'); ?></div>
+            <input type="hidden" data-k="domain_internal_networks" id="intNetworks">
+            <input type="hidden" data-k="domain_internal_ports" id="intPorts">
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('networks'); ?></div><div class="desc"><?php echo $tt('networks_desc'); ?></div></div>
+                <div>
+                    <?php foreach (['10.0.0.0/8' => 'net_10', '172.16.0.0/12' => 'net_172', '192.168.0.0/16' => 'net_192', 'fc00::/7' => 'net_fc'] as $cidr => $key): ?>
+                    <label style="display:block;margin:2px 0"><input type="checkbox" class="int-net" value="<?php echo htmlspecialchars($cidr); ?>"> <?php echo $tt($key); ?></label>
+                    <?php endforeach; ?>
+                    <label for="intNetOther" style="display:block;margin-top:8px;font-size:13px"><?php echo $tt('networks_other'); ?></label>
+                    <textarea id="intNetOther" rows="2" style="width:100%;max-width:320px" placeholder="<?php echo htmlspecialchars(t('domains.settings.networks_other_ph')); ?>"></textarea>
+                </div></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('ports'); ?></div><div class="desc"><?php echo $tt('ports_desc'); ?></div></div>
+                <div>
+                    <?php foreach (DOMAIN_COMMON_TLS_PORTS as $p): ?>
+                    <label style="display:block;margin:2px 0"><input type="checkbox" class="int-port" value="<?php echo $p; ?>"> <?php echo $tt('port_' . $p); ?></label>
+                    <?php endforeach; ?>
+                    <label for="intPortOther" style="display:block;margin-top:8px;font-size:13px"><?php echo $tt('ports_other'); ?></label>
+                    <input type="text" id="intPortOther" style="width:160px" placeholder="<?php echo htmlspecialchars(t('domains.settings.ports_other_ph')); ?>">
+                    <div class="dflt" data-d="domain_internal_ports"></div>
+                </div></div>
+            <div class="set-actions"><button type="button" class="dom-btn primary" data-save="internal"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
+
+            <h2 style="margin:28px 0 4px;font-size:18px"><?php echo $tt('tp_title'); ?></h2>
+            <p class="dom-hint" style="margin:0 0 10px"><?php echo $tt('tp_intro'); ?></p>
+            <div style="margin-bottom:10px"><button type="button" class="dom-btn" id="tpAdd"><?php echo $tt('tp_add'); ?></button></div>
+            <table class="st-list"><thead><tr>
+                <th><?php echo $tt('tp_name'); ?></th><th><?php echo $tt('tp_cas'); ?></th><th><?php echo $tt('tp_used'); ?></th><th></th>
+            </tr></thead><tbody id="tpBody"></tbody></table>
+        </div>
+        <?php endif; ?>
+
         <?php if (settingsTabVisible($visibleTabs, 'auth-codes')): ?>
         <div class="tab-content<?php echo $activeTabId === 'auth-codes' ? ' active' : ''; ?>" id="auth-codes-tab" data-capability="<?php echo capKey(Cap::DOMAINS_AUTH_CODES); ?>" data-settings-tab="auth-codes">
             <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('codes_title'); ?></h2>
@@ -255,6 +292,23 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         </div>
     </div>
 
+    <!-- A trust profile: an internal certificate authority (GH #203 slice 2) -->
+    <div class="modal" id="mTrust">
+        <div class="modal-content" style="max-width:620px">
+            <div class="modal-header" id="tpTitle"></div>
+            <div class="modal-body">
+                <div class="form-group"><label for="tpName"><?php echo $tt('tp_name'); ?></label><input type="text" id="tpName" maxlength="100"></div>
+                <div class="form-group"><label for="tpPem"><?php echo $tt('tp_pem'); ?></label>
+                    <textarea id="tpPem" rows="10" style="width:100%;font-family:monospace;font-size:12px" placeholder="<?php echo htmlspecialchars(t('domains.settings.tp_pem_ph')); ?>" spellcheck="false"></textarea>
+                    <div class="dom-hint"><?php echo $tt('tp_pem_hint'); ?></div></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close="mTrust"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="tpSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal" id="mCertType">
         <div class="modal-content" style="max-width:480px">
             <div class="modal-header" id="ctTitle"></div>
@@ -270,7 +324,7 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
         </div>
     </div>
 
-    <script src="../../assets/js/domains.js?v=3"></script>
+    <script src="../../assets/js/domains.js?v=4"></script>
     <script>
     (function () {
         'use strict';
@@ -443,7 +497,75 @@ $tt = fn(string $k) => htmlspecialchars(t('domains.settings.' . $k));
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => { loadSettings().catch(e => showToast(e.message, 'error')); loadStatuses().catch(() => {}); loadCertTypes().catch(() => {}); });
+        // ---- internal monitoring (GH #203 slice 2) ---------------------------------
+        // The two settings are comma lists; the ticks and "other" boxes are their face.
+        const intTab = document.getElementById('internal-tab');
+        function paintInternal() {
+            if (!intTab) return;
+            const nets = (S.domain_internal_networks || '').split(',').filter(Boolean);
+            const ticks = [...intTab.querySelectorAll('.int-net')];
+            ticks.forEach(c => { c.checked = nets.includes(c.value); });
+            document.getElementById('intNetOther').value = nets.filter(n => !ticks.some(c => c.value === n)).join('\n');
+            const ports = (S.domain_internal_ports || '').split(',').filter(Boolean);
+            const pticks = [...intTab.querySelectorAll('.int-port')];
+            pticks.forEach(c => { c.checked = ports.includes(c.value); });
+            document.getElementById('intPortOther').value = ports.filter(p => !pticks.some(c => c.value === p)).join(', ');
+        }
+        function syncInternal() {
+            if (!intTab) return;
+            const nets = [...intTab.querySelectorAll('.int-net:checked')].map(c => c.value)
+                .concat(document.getElementById('intNetOther').value.split(/[\s,;]+/).filter(Boolean));
+            document.getElementById('intNetworks').value = nets.join(',');
+            const ports = [...intTab.querySelectorAll('.int-port:checked')].map(c => c.value)
+                .concat(document.getElementById('intPortOther').value.split(/[\s,;]+/).filter(Boolean));
+            document.getElementById('intPorts').value = ports.join(',');
+        }
+        if (intTab) {
+            intTab.addEventListener('input', syncInternal);
+            intTab.addEventListener('change', syncInternal);
+        }
+        let profiles = [], tpEditing = null;
+        async function loadProfiles() {
+            const body = document.getElementById('tpBody'); if (!body) return;
+            const d = await api('endpoints.php?profiles=1');
+            if (!d.ready) { body.innerHTML = '<tr><td colspan="4" class="dom-hint">' + esc(T('endpoint.not_ready')) + '</td></tr>'; return; }
+            profiles = d.profiles || [];
+            body.innerHTML = profiles.length ? profiles.map(p => '<tr data-id="' + p.id + '"><td>' + esc(p.name) + '</td><td class="dom-hint" style="font-size:12.5px">' + esc(p.summary || '') + '</td>'
+                + '<td>' + esc(p.used_by) + '</td>'
+                + '<td><button type="button" class="action-btn tp-edit" title="' + esc(window.t('common.edit')) + '">' + SVG_EDIT + '</button>'
+                + '<button type="button" class="action-btn delete tp-del" title="' + esc(window.t('common.delete')) + '">' + SVG_DEL + '</button></td></tr>').join('')
+                : '<tr><td colspan="4" class="dom-hint">' + esc(T('settings.tp_none')) + '</td></tr>';
+        }
+        const tpBody = document.getElementById('tpBody');
+        if (tpBody) {
+            // The PEM is not sent back to the screen: editing a profile means pasting its certificates again.
+            const openProfile = p => {
+                tpEditing = p ? p.id : null;
+                document.getElementById('tpTitle').textContent = T(p ? 'settings.tp_edit' : 'settings.tp_add');
+                document.getElementById('tpName').value = p ? p.name : '';
+                document.getElementById('tpPem').value = '';
+                window.Dom.openModal('mTrust');
+                document.getElementById('tpName').focus();
+            };
+            document.getElementById('tpAdd').addEventListener('click', () => openProfile(null));
+            tpBody.addEventListener('click', async e => {
+                const tr = e.target.closest('tr[data-id]'); if (!tr) return;
+                const p = profiles.find(x => String(x.id) === tr.dataset.id);
+                if (e.target.closest('.tp-edit')) openProfile(p);
+                if (e.target.closest('.tp-del')) {
+                    if (!(await showConfirm({ title: T('settings.tp_delete'), message: T('settings.tp_delete_body', { name: p.name }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
+                    try { await api('endpoints.php', { action: 'delete_profile', id: p.id }); await loadProfiles(); } catch (err) { showToast(err.message, 'error'); }
+                }
+            });
+            document.getElementById('tpSave').addEventListener('click', async () => {
+                try {
+                    await api('endpoints.php', { action: 'save_profile', id: tpEditing, name: document.getElementById('tpName').value, ca_pem: document.getElementById('tpPem').value });
+                    window.Dom.closeModal('mTrust'); showToast(T('settings.tp_saved'), 'success'); await loadProfiles();
+                } catch (err) { showToast(err.message, 'error'); }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { loadSettings().then(paintInternal).catch(e => showToast(e.message, 'error')); loadStatuses().catch(() => {}); loadCertTypes().catch(() => {}); loadProfiles().catch(() => {}); });
     })();
     </script>
     <script src="../../assets/js/mobile.js?v=83"></script>

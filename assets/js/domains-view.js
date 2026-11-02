@@ -12,6 +12,8 @@
     const when = v => v ? (window.fmtDateTime ? fmtDateTime(String(v).replace(' ', 'T') + 'Z') : v) : '';
     const ID = window.DOMAIN_ID;
     let D = null, data = null, L = null;
+    /** GH #203 slice 2: an internal domain's HTTPS endpoints, from endpoints.php - null for a public domain. */
+    let EP = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
         wire();
@@ -30,6 +32,8 @@
         try {
             data = await api('get.php?id=' + ID);
             D = data.domain;
+            EP = null;
+            if (internal()) { try { EP = await api('endpoints.php?domain_id=' + ID); } catch (e) { EP = null; } }
             renderHero(); renderOverview(); renderSecurity(); renderCerts(); renderLookalikes(); renderHistory();
             loadConnections();
         } catch (e) {
@@ -213,7 +217,7 @@
     function renderSecurity() {
         const f = D.findings || [];
         if (!f.length) {
-            document.getElementById('security').innerHTML = '<div class="dom-empty"><h3>' + esc(T('page.not_checked')) + '</h3><p>' + esc(T('page.not_checked_body')) + '</p></div>';
+            document.getElementById('security').innerHTML = endpointsHtml() + '<div class="dom-empty"><h3>' + esc(T('page.not_checked')) + '</h3><p>' + esc(T('page.not_checked_body')) + '</p></div>';
             return;
         }
         const order = { fail: 0, warn: 1, info: 2, pass: 3 };
@@ -223,11 +227,88 @@
             : '<div style="display:flex;gap:16px;align-items:center;margin-bottom:18px">' + grade(D.security_grade, true)
             + '<div><div style="font-weight:600">' + esc(T('page.grade_line', { score: D.security_score })) + '</div>'
             + '<div class="dom-sub">' + esc(T('page.grade_explain')) + (D.checked_at ? ' ' + esc(T('page.checked_at', { when: fmtDate(D.checked_at) })) : '') + '</div></div></div>';
-        document.getElementById('security').innerHTML = intro + AREAS.map(a => {
+        document.getElementById('security').innerHTML = intro + endpointsHtml() + AREAS.map(a => {
             const items = f.filter(x => x.area === a).sort((x, y) => order[x.level] - order[y.level]);
             if (!items.length) return '';
             return '<div class="dom-area-h">' + esc(T('area.' + a)) + '</div><div class="dom-findings">' + items.map(finding).join('') + '</div>';
         }).join('');
+    }
+
+    // ---------------------------------------------------------------- internal endpoints (GH #203 slice 2)
+    /**
+     * An internal domain's HTTPS endpoints: each host:port, the trust it is checked
+     * against, its last result with the reason, its certificate's expiry and its two
+     * dates. Add / Edit / Delete only for analysts with the Internal monitoring
+     * permission; everybody who can see the domain sees the results.
+     */
+    function endpointsHtml() {
+        if (!internal() || !EP) return '';
+        if (!EP.ready) return '<p class="dom-hint">' + esc(T('endpoint.not_ready')) + '</p>';
+        const eps = EP.endpoints || [];
+        const settingsUrl = 'settings/?tab=internal';
+        const warn = EP.can_internal && !EP.networks_set
+            ? '<div class="dom-finding warn" style="margin-bottom:10px"><span class="ic">!</span><div><div class="t">' + esc(T('endpoint.no_networks_title')) + '</div><div class="a">'
+              + esc(T('endpoint.no_networks_body')) + ' <a href="' + settingsUrl + '">' + esc(T('endpoint.open_settings')) + '</a></div></div></div>' : '';
+        const pill = ep => {
+            if (!ep.status) return '<span class="dom-pill grey">' + esc(T('health.not_checked')) + '</span>';
+            const cls = { healthy: 'green', expiring: 'amber', problem: 'red' }[ep.status] || 'grey';
+            return '<span class="dom-pill ' + cls + '">' + esc(T('health.' + ep.status)) + '</span>';
+        };
+        const detail = ep => {
+            if (!ep.detail_key) return ep.status ? '' : esc(T('endpoint.never'));
+            const txt = T('endpoint.detail.' + ep.detail_key, ep.detail_params || {});
+            // An attempt that could not run sits beside the last known result, never instead of it.
+            return ep.incomplete && ep.status ? esc(T('endpoint.not_checked_since', { why: txt })) : esc(txt);
+        };
+        const rows = eps.map(ep => '<tr style="cursor:default"><td><strong>' + esc(ep.host + ':' + ep.port) + '</strong>'
+                + (ep.address ? '<div class="dom-sub">' + esc(ep.address) + '</div>' : '') + '</td>'
+                + '<td>' + esc(ep.trust_profile_name || T('endpoint.server_bundle')) + '</td>'
+                + '<td>' + pill(ep) + '<div class="dom-sub">' + detail(ep) + '</div></td>'
+                + '<td>' + (ep.cert && ep.cert.valid_to ? esc(fmtDate(ep.cert.valid_to)) + ' ' + daysPill(ep.cert.days_left, ep.warn_days) : '<span class="dom-sub">-</span>') + '</td>'
+                + '<td class="dom-sub">' + esc(ep.last_completed_datetime ? when(ep.last_completed_datetime) : T('health.never'))
+                + (ep.last_healthy_datetime && ep.last_healthy_datetime !== ep.last_completed_datetime ? '<br>' + esc(T('endpoint.healthy_at', { when: when(ep.last_healthy_datetime) })) : '') + '</td>'
+                + (EP.can_internal ? '<td style="white-space:nowrap"><a href="#" data-ep-edit="' + ep.id + '">' + esc(window.t('common.edit')) + '</a> · <a href="#" data-ep-del="' + ep.id + '">' + esc(window.t('common.delete')) + '</a></td>' : '')
+                + '</tr>').join('');
+        return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 6px"><h3 style="margin:0;font-size:15px">' + esc(T('endpoint.title')) + '</h3>'
+            + '<span style="flex:1"></span>' + (EP.can_internal ? '<button type="button" class="dom-btn" id="epAdd">' + esc(T('endpoint.add')) + '</button>' : '') + '</div>'
+            + '<p class="dom-hint" style="font-size:12.5px">' + esc(T('endpoint.intro')) + '</p>' + warn
+            + (eps.length ? '<table class="dom-table" style="margin-bottom:22px"><thead><tr><th class="nosort">' + esc(T('endpoint.col_endpoint')) + '</th><th class="nosort">'
+                + esc(T('endpoint.trust')) + '</th><th class="nosort">' + esc(T('health.label')) + '</th><th class="nosort">' + esc(T('cert.expires')) + '</th><th class="nosort">'
+                + esc(T('health.last_completed')) + '</th>' + (EP.can_internal ? '<th class="nosort"></th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>'
+              : '<div class="dom-sub" style="margin-bottom:22px">' + esc(T(EP.can_internal ? 'endpoint.none_can' : 'endpoint.none')) + '</div>');
+    }
+
+    let epEditing = 0;
+    /** Opens the endpoint dialog, empty (the domain's own name, port 443) or filled from one endpoint. */
+    function openEndpoint(ep) {
+        epEditing = ep ? ep.id : 0;
+        document.getElementById('epTitle').textContent = T(ep ? 'endpoint.edit' : 'endpoint.add');
+        document.getElementById('epHost').value = ep ? ep.host : D.domain_name;
+        document.getElementById('epHostHint').textContent = T('endpoint.host_hint', { domain: D.domain_name });
+        // The permitted ports; an endpoint's own port stays listed even if it has since been taken off.
+        const ports = (EP.ports || []).slice();
+        if (ep && !ports.includes(+ep.port)) ports.push(+ep.port);
+        if (!ports.length) ports.push(443);
+        window.Dom.fillSelect('epPort', ports.sort((a, b) => a - b).map(p => ({ id: p, name: String(p) + ((EP.ports || []).includes(p) ? '' : ' - ' + T('endpoint.port_not_permitted')) })));
+        document.getElementById('epPort').value = ep ? ep.port : (ports.includes(443) ? 443 : ports[0]);
+        document.getElementById('epWarn').value = ep ? ep.warn_days : 21;
+        window.Dom.fillSelect('epTrust', EP.profiles || [], { blank: T('endpoint.server_bundle') });
+        document.getElementById('epTrust').value = ep && ep.trust_profile_id ? ep.trust_profile_id : '';
+        window.Dom.openModal('mEndpoint');
+        document.getElementById('epHost').focus();
+    }
+
+    /** Saves the endpoint dialog, then reloads: the next check (or Check now) reads its certificate. */
+    async function saveEndpoint() {
+        try {
+            await api('endpoints.php', { action: 'save', id: epEditing || undefined, domain_id: ID,
+                host: document.getElementById('epHost').value, port: +document.getElementById('epPort').value,
+                warn_days: +document.getElementById('epWarn').value, trust_profile_id: +document.getElementById('epTrust').value || null });
+            window.Dom.closeModal('mEndpoint');
+            showToast(T('endpoint.saved'), 'success');
+            await load();
+            switchTab('security');
+        } catch (e) { showToast(e.message, 'error'); }
     }
 
     // ---------------------------------------------------------------- certificates
@@ -239,8 +320,13 @@
                 + esc((c.sans || []).slice(0, 6).join(', ')) + ((c.sans || []).length > 6 ? '…' : '') + '</td><td>'
                 + (c.ok ? (c.hostname_match === false ? '<span class="dom-pill red">' + esc(T('cert.wrong_name')) + '</span>' : (c.chain_valid === false ? '<span class="dom-pill red">' + esc(T('cert.untrusted')) + '</span>' : '<span class="dom-pill green">' + esc(T('cert.ok')) + '</span>')) : '')
                 + '</td></tr>').join('') + '</tbody></table>'
-            : '<div class="dom-sub">' + esc(T('cert.none_live')) + '</div>';
+            : '<div class="dom-sub">' + esc(T(internal() ? 'endpoint.certs_none' : 'cert.none_live')) + '</div>';
 
+        // An internal domain is never sent to Certificate Transparency (GH #203).
+        if (internal()) {
+            document.getElementById('certs').innerHTML = manualCertsHtml() + '<h3 style="margin:22px 0 10px;font-size:15px">' + esc(T('endpoint.certs_title')) + '</h3>' + liveHtml;
+            return;
+        }
         const ct = data.ct || [];
         const newOnes = ct.filter(c => c.acknowledged == 0).length;
         const last = (data.last_scans || {}).ct_scanned;
@@ -599,6 +685,18 @@
             if (e.target.id === 'ctScan') { busy(e.target, async () => { const d = await api('watch.php', { id: ID, action: 'scan_ct' }); showToast(T('cert.scanned', { n: d.result.total, fresh: d.result.new }), 'success'); await load(); }); return; }
             if (e.target.id === 'ctAck') { try { await api('watch.php', { id: ID, action: 'ack_ct' }); await load(); } catch (err) { showToast(err.message, 'error'); } return; }
             if (e.target.id === 'mcAdd') { openCert(null); return; }
+            // GH #203 slice 2: an internal domain's HTTPS endpoints.
+            if (e.target.id === 'epAdd') { openEndpoint(null); return; }
+            const epE = e.target.closest('[data-ep-edit]');
+            if (epE) { e.preventDefault(); openEndpoint((EP.endpoints || []).find(x => +x.id === +epE.dataset.epEdit)); return; }
+            const epD = e.target.closest('[data-ep-del]');
+            if (epD) {
+                e.preventDefault();
+                const ep = (EP.endpoints || []).find(x => +x.id === +epD.dataset.epDel);
+                if (!ep || !(await showConfirm({ title: T('endpoint.delete'), message: T('endpoint.delete_body', { endpoint: ep.host + ':' + ep.port }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
+                try { await api('endpoints.php', { action: 'delete', id: ep.id }); await load(); switchTab('security'); } catch (err) { showToast(err.message, 'error'); }
+                return;
+            }
             const mcE = e.target.closest('[data-mc-edit]');
             if (mcE) { e.preventDefault(); openCert((data.manual_certificates || []).find(c => c.id === +mcE.dataset.mcEdit)); return; }
             const mcD = e.target.closest('[data-mc-del]');
@@ -614,6 +712,7 @@
             if (la) { e.preventDefault(); try { await api('watch.php', { id: ID, action: 'dismiss', lookalike_id: la.dataset.la, dismissed: la.dataset.dismissed === '1' }); await load(); } catch (err) { showToast(err.message, 'error'); } }
         });
         document.getElementById('mcSave').addEventListener('click', saveCert);
+        document.getElementById('epSave').addEventListener('click', saveEndpoint);
         document.getElementById('mcSupplier').addEventListener('change', mcProviderToggle);
         document.getElementById('eParent').addEventListener('change', regOnlyToggle);
         document.getElementById('eScope').addEventListener('change', regOnlyToggle);

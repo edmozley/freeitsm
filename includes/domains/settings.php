@@ -21,6 +21,8 @@
 // GH #203: DomainScope, the gate and DOMAIN_INTERNAL_INTERVALS - every Domains
 // entry point loads this file, so the gate is always there to ask.
 require_once __DIR__ . '/scope.php';
+// GH #203 slice 2: the endpoint check, and the network and port rules the settings validate with.
+require_once __DIR__ . '/endpoints.php';
 
 if (!defined('DOMAIN_SETTINGS_LOADED')) {
     define('DOMAIN_SETTINGS_LOADED', true);
@@ -94,6 +96,16 @@ if (!defined('DOMAIN_SETTINGS_LOADED')) {
             // for installs with no cron. At most once an hour.
             'domain_opportunistic'         => ['1',         'bool',     'monitoring'],
 
+            // ---- Internal monitoring tab (GH #203 slice 2) ------------------
+            // Where FreeITSM may connect to check an internal endpoint's
+            // certificate: CIDR ranges, checked against the RESOLVED address at
+            // every connection. EMPTY until an administrator ticks some - an
+            // upgrade never starts connecting anywhere on its own.
+            'domain_internal_networks'     => ['',          'networks', 'internal'],
+            // The ports it may connect to. 443 out of the box; 8443 and any other
+            // are an administrator's choice.
+            'domain_internal_ports'        => ['443',       'ports',    'internal'],
+
             // ---- Auth codes tab ---------------------------------------------
             // Record every time somebody reveals an auth code in the domain's
             // history. On by default: who looked at a transfer secret is exactly
@@ -156,8 +168,10 @@ if (!defined('DOMAIN_SETTINGS_LOADED')) {
             foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
                 if ($r['setting_value'] !== null && $r['setting_value'] !== '') {
                     $out[$r['setting_key']] = (string)$r['setting_value'];
-                } elseif ($r['setting_key'] === 'domain_alert_emails') {
-                    $out[$r['setting_key']] = '';   // an emptied list IS a value
+                } elseif (in_array($r['setting_key'], ['domain_alert_emails', 'domain_internal_ports'], true)) {
+                    // An emptied list IS a value. No ports means no internal
+                    // connections at all, not "back to 443" (GH #203).
+                    $out[$r['setting_key']] = '';
                 }
             }
         } catch (Throwable) {
@@ -232,6 +246,24 @@ if (!defined('DOMAIN_SETTINGS_LOADED')) {
             case $rule === 'interval':
                 if (!in_array((int)$v, DOMAIN_INTERNAL_INTERVALS, true) || (string)(int)$v !== trim($v)) throw new InvalidArgumentException('Choose how often internal domains are checked.');
                 return (string)(int)$v;
+            case $rule === 'networks':
+                $out = [];
+                foreach (preg_split('/[\s,;]+/', $v) as $c) {
+                    if ($c === '') continue;
+                    $n = domainCidrNormalise($c);
+                    if ($n === null) throw new InvalidArgumentException("Not a network range: $c. Use the form 10.20.0.0/16 or fd00::/8.");
+                    $out[$n] = true;
+                }
+                return implode(',', array_keys($out));
+            case $rule === 'ports':
+                $out = [];
+                foreach (preg_split('/[\s,;]+/', $v) as $p) {
+                    if ($p === '') continue;
+                    if (!ctype_digit($p) || (int)$p < 1 || (int)$p > 65535) throw new InvalidArgumentException("Not a port number: $p");
+                    $out[(int)$p] = true;
+                }
+                ksort($out);
+                return implode(',', array_keys($out));
             case $rule === 'resolver':
                 if (!in_array($v, ['auto', 'system', 'system_only', 'google', 'cloudflare'], true)) throw new InvalidArgumentException('Choose a DNS resolver.');
                 return $v;

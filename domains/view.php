@@ -208,13 +208,31 @@ $translationNamespaces = ['common', 'domains'];
             </div>
         </div>
     </div>
+    <!-- An HTTPS endpoint on an internal domain (GH #203 slice 2) -->
+    <div class="modal" id="mEndpoint">
+        <div class="modal-content" style="max-width:560px">
+            <div class="modal-header" id="epTitle"></div>
+            <div class="modal-body">
+                <div class="dom-form-grid">
+                    <div class="form-group full"><label for="epHost"><?php echo htmlspecialchars(t('domains.endpoint.host')); ?></label><input type="text" id="epHost" maxlength="253" autocomplete="off"><div class="dom-hint" id="epHostHint"></div></div>
+                    <div class="form-group"><label for="epPort"><?php echo htmlspecialchars(t('domains.endpoint.port')); ?></label><select id="epPort"></select></div>
+                    <div class="form-group"><label for="epWarn"><?php echo htmlspecialchars(t('domains.endpoint.warn_days')); ?></label><input type="number" id="epWarn" min="1" max="120" value="21"></div>
+                    <div class="form-group full"><label for="epTrust"><?php echo htmlspecialchars(t('domains.endpoint.trust')); ?></label><select id="epTrust"></select><div class="dom-hint"><?php echo htmlspecialchars(t('domains.endpoint.trust_hint')); ?></div></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close="mEndpoint"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="epSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
     <script>window.DOMAIN_ID = <?php echo (int)$domainId; ?>;
     // The customer links to their People page (#153), for analysts who can open People.
     window.DOM_PEOPLE = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') ? BASE_URL . 'people/' : null); ?>;
     // Supplier and contact pages in People (#162) also need Contracts, which owns those records.
     window.DOM_PEOPLE_SUPPLIERS = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') && analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'contracts')); ?>;</script>
-    <script src="../assets/js/domains.js?v=3"></script>
-    <script src="../assets/js/domains-view.js?v=11"></script>
+    <script src="../assets/js/domains.js?v=4"></script>
+    <script src="../assets/js/domains-view.js?v=12"></script>
     <?php endif; ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

@@ -9006,6 +9006,56 @@ CREATE TABLE IF NOT EXISTS `domain_certificate_types` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- HTTPS endpoints on an INTERNAL domain (GH #203, slice 2): the host:port whose
+-- certificate is checked, switched on per target - never assumed on the domain,
+-- its apex or www. The host is the domain or a name under it; the address it
+-- resolves to must be in a permitted network, and the port a permitted port
+-- (Domains -> Settings -> Internal monitoring), at every connection. The
+-- connection goes to the address this server's resolver gave, with the host
+-- name kept for SNI and the certificate's name check.
+-- Two dates, as for the domain's own health: the last COMPLETED check (one that
+-- ran to an answer, a confirmed problem included) and the last HEALTHY one.
+-- status: healthy | expiring | problem (the last completed result).
+-- incomplete: the latest attempt could not run (a resolver error, a refused
+-- address or port) - it says nothing about the target, so the known status stays.
+CREATE TABLE IF NOT EXISTS `domain_endpoints` (
+    `id`                      INT NOT NULL AUTO_INCREMENT,
+    `domain_id`               INT NOT NULL,
+    `host`                    VARCHAR(253) NOT NULL,
+    `port`                    INT NOT NULL DEFAULT 443,
+    `warn_days`               INT NOT NULL DEFAULT 21,     -- certificate warning window
+    `trust_profile_id`        INT NULL,                    -- NULL = the server's normal CA bundle
+    `status`                  VARCHAR(12) NULL,
+    `incomplete`              TINYINT(1) NOT NULL DEFAULT 0,
+    `detail_key`              VARCHAR(40) NULL,            -- why: expired, untrusted, no_answer, network_refused ...
+    `detail_params`           TEXT NULL,                   -- JSON for the detail's message
+    `address`                 VARCHAR(45) NULL,            -- the address last connected to
+    `cert_json`               TEXT NULL,                   -- the certificate last read: subject, issuer, dates, names, checks
+    `last_attempt_datetime`   DATETIME NULL,
+    `last_completed_datetime` DATETIME NULL,
+    `last_healthy_datetime`   DATETIME NULL,
+    `created_by`              INT NULL,
+    `created_datetime`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`        DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_domain_endpoint` (`domain_id`, `host`, `port`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Trust profiles (GH #203, slice 2): an organisation's own certificate
+-- authorities, for checking internal certificates. A profile changes WHICH CAs
+-- are trusted for an endpoint, never WHETHER the chain and the host name are
+-- checked. Domains only, one list for every company; administrators only.
+CREATE TABLE IF NOT EXISTS `domain_trust_profiles` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `name`             VARCHAR(100) NOT NULL,
+    `ca_pem`           MEDIUMTEXT NOT NULL,                -- one or more CA certificates, PEM
+    `summary`          VARCHAR(1000) NULL,                 -- each CA's name and expiry, worked out on save
+    `created_by`       INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime` DATETIME NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------------
 -- Domains, joined to the rest of FreeITSM (3.0.0). Four plain links - each is
 -- one row per pair, deleted with either side - and the record of which status

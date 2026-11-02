@@ -174,8 +174,8 @@ function domainShapeInterval(?int $set = null): int
 /**
  * An internal domain's health, as the screens, the API and the counts show it.
  *
- *   state   healthy | problem | not_checked | stale
- *   known   the last COMPLETED result (healthy | problem), or null when no check
+ *   state   healthy | expiring | problem | not_checked | stale
+ *   known   the last COMPLETED result (healthy | expiring | problem), or null when no check
  *           has ever completed - shown beside a stale or not-checked state, so a
  *           known problem never disappears into "unknown"
  *   since_incomplete  the latest attempt did not complete (a resolver error)
@@ -190,7 +190,8 @@ function domainShapeInterval(?int $set = null): int
 function domainHealth(array $d, int $interval, ?int $now = null): array
 {
     $now = $now ?? time();
-    $known      = in_array($d['health_status'] ?? null, ['healthy', 'problem'], true) ? $d['health_status'] : null;
+    // 'expiring' (slice 2): an endpoint's certificate is valid but inside its warning window.
+    $known      = in_array($d['health_status'] ?? null, ['healthy', 'expiring', 'problem'], true) ? $d['health_status'] : null;
     $completed  = $d['health_completed_datetime'] ?? null;
     $healthy    = $d['health_healthy_datetime'] ?? null;
     $incomplete = !empty($d['health_incomplete']);

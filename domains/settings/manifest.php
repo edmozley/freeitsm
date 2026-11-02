@@ -52,6 +52,15 @@ return [
             'grant'     => 'Configure registry lookups, DNS and certificate checks, and look-alike scanning',
         ],
         [
+            // GH #203 slice 2: the first time FreeITSM connects to addresses an
+            // administrator types in, so who may set them is its own permission.
+            'id'        => 'internal',
+            'cap'       => capKey(Cap::DOMAINS_INTERNAL),
+            'label_key' => 'domains.settings.tab_internal',
+            'grant'     => 'Choose which internal websites have their certificates checked, the networks and ports FreeITSM may connect to, and the certificate authorities it trusts for them',
+            'sensitive' => true,   // decides which internal addresses the server connects to
+        ],
+        [
             'id'        => 'service-status',
             'cap'       => capKey(Cap::DOMAINS_SERVICE_STATUS),
             'label_key' => 'domains.settings.tab_service_status',

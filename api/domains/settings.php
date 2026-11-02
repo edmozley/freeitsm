@@ -20,6 +20,7 @@ $tabCaps = [
     'monitoring' => capKey(Cap::DOMAINS_MONITORING),
     'auth-codes' => capKey(Cap::DOMAINS_AUTH_CODES),
     'service-status' => capKey(Cap::DOMAINS_SERVICE_STATUS),
+    'internal'   => capKey(Cap::DOMAINS_INTERNAL),   // GH #203 slice 2
 ];
 
 domainApiRun(function () use ($conn, $analystId, $tabCaps) {

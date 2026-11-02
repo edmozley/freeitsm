@@ -65,7 +65,7 @@ $translationNamespaces = ['common', 'domains'];
         </div>
     </div>
 
-    <script src="../../assets/js/domains.js?v=3"></script>
+    <script src="../../assets/js/domains.js?v=4"></script>
     <script>
     (function () {
         'use strict';
@@ -93,8 +93,9 @@ $translationNamespaces = ['common', 'domains'];
                 + card(s.ssl_expiring, T('dash.ssl_expiring'), s.ssl_expiring ? 'amber' : 'green', '../?view=certificate')
                 + card(s.lookalikes + s.new_certificates, T('dash.watch_hits'), (s.lookalikes + s.new_certificates) ? 'amber' : 'green', '../?view=lookalikes')
                 // GH #203: internal domains, by health - never in the grade chart or the email posture.
-                + (s.internal ? card(s.internal, T('dash.internal') + ' - ' + T('dash.internal_desc', { healthy: s.internal_healthy, problem: s.internal_problem, other: s.internal_not_checked + s.internal_stale }),
-                       s.internal_problem ? 'red' : (s.internal_not_checked + s.internal_stale ? 'amber' : 'green'), '../?view=attention') : '')
+                + (s.internal ? card(s.internal, T('dash.internal') + ' - ' + T('dash.internal_desc', { healthy: s.internal_healthy, problem: s.internal_problem, other: s.internal_not_checked + s.internal_stale })
+                    + (s.internal_expiring ? ' - ' + T('dash.internal_expiring', { n: s.internal_expiring }) : ''),
+                       s.internal_problem ? 'red' : (s.internal_not_checked + s.internal_stale + (s.internal_expiring || 0) ? 'amber' : 'green'), '../?view=attention') : '')
                 + (s.annual_cost ? card(M(s.annual_cost), T('stat.annual_cost'), 'accent', '#') : '');
             if (d.mixed_currency) document.getElementById('dCostNote').textContent = T('dash.mixed_currency');
 

@@ -281,6 +281,18 @@ return [
         'check'    => ['rows', 'domains', "scope = 'internal' AND $real"],   // GH #203
     ],
     [
+        'id'       => 'domains.internal_endpoint',
+        'module'   => 'domains',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'An internal website\'s certificate checked',
+        'what'     => 'An HTTPS endpoint on an internal domain - a host and port such as intranet.example.local:8443 - whose certificate FreeITSM checks from inside, within the networks and ports you permit, against your own certificate authority if you add one.',
+        'why'      => 'Internal certificates expire too, and nobody else is watching them. When one lapses, the first sign is usually staff ringing to say the intranet shows a warning.',
+        'done'     => 'At least one HTTPS endpoint on an internal domain has been checked.',
+        'link'     => 'domains/settings/?tab=internal',
+        'check'    => ['rows', 'domain_endpoints', "last_completed_datetime IS NOT NULL"],   // GH #203 slice 2
+    ],
+    [
         'id'       => 'domains.recorded_certificates',
         'module'   => 'domains',
         'tier'     => 'extra',

@@ -160,7 +160,11 @@ function domainNeedsAttention(array $r): array
         $state = $r['health']['state'] ?? null;
         if ($state === 'problem' || ($r['health']['known'] ?? null) === 'problem') $why[] = 'health';
         if ($state === 'stale') $why[] = 'stale';
-        if ((($r['manual_cert_days_left'] ?? null) !== null && $r['manual_cert_days_left'] <= 14)) $why[] = 'certificate';
+        // Slice 2: an endpoint's certificate inside its warning window, or the earliest
+        // endpoint certificate (ssl_days_left) close to expiry.
+        if ($state === 'expiring'
+            || (($r['ssl_days_left'] ?? null) !== null && $r['ssl_days_left'] <= 14)
+            || (($r['manual_cert_days_left'] ?? null) !== null && $r['manual_cert_days_left'] <= 14)) $why[] = 'certificate';
         return $why;
     }
     $alerting = !array_key_exists('alerts_enabled', $r) || $r['alerts_enabled'] === null || $r['alerts_enabled'];

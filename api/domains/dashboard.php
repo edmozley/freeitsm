@@ -17,7 +17,7 @@ domainApiRun(function () use ($conn, $analystId) {
               'never_checked' => 0, 'annual_cost' => 0.0,
               // GH #203: internal domains, by health. They are in none of the public
               // counts below - no grade, no email posture, no registration.
-              'internal' => 0, 'internal_healthy' => 0, 'internal_problem' => 0, 'internal_not_checked' => 0, 'internal_stale' => 0];
+              'internal' => 0, 'internal_healthy' => 0, 'internal_expiring' => 0, 'internal_problem' => 0, 'internal_not_checked' => 0, 'internal_stale' => 0];
     $grades = ['A+' => 0, 'A' => 0, 'B' => 0, 'C' => 0, 'D' => 0, 'F' => 0, 'none' => 0];
     $months = [];
     for ($i = 0; $i < 12; $i++) {

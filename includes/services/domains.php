@@ -310,7 +310,7 @@ class DomainsService
             // The 3.0.0 links, by the same rule - each on its own, because before
             // Database Verification the tables are not there, and a missing table
             // must never stop a domain being deleted.
-            foreach (['domain_cmdb_objects', 'domain_status_services', 'ticket_domains', 'domain_knowledge_articles', 'domain_status_incidents', 'domain_manual_certificates'] as $t) {
+            foreach (['domain_cmdb_objects', 'domain_status_services', 'ticket_domains', 'domain_knowledge_articles', 'domain_status_incidents', 'domain_manual_certificates', 'domain_endpoints'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE domain_id = ?")->execute([$id]); } catch (Throwable) { /* not created yet */ }
             }
             // Its subdomains stay, standing on their own: deleting a parent
@@ -531,7 +531,16 @@ class DomainsService
         // GH #203: an internal domain gets the DNS-only health check, through this
         // server's resolver - never the public checks, which ask public DNS for
         // DS and connect to its hosts for certificates.
-        if (!domainMayLeaveNetwork($row)) return self::runInternalChecks($conn, $row, $id);
+        if (!domainMayLeaveNetwork($row)) {
+            // Slice 2: its HTTPS endpoints are probed by the scheduled run, and by a
+            // person only when they hold the permission that sets them - everybody
+            // else's Check now re-runs the DNS and keeps the endpoints' last results.
+            $probe = $ctx === null;
+            if (!$probe) {
+                try { $probe = analystHasCapability($conn, $ctx->actorId, Cap::DOMAINS_INTERNAL); } catch (Throwable) { $probe = false; }
+            }
+            return self::runInternalChecks($conn, $row, $id, $probe);
+        }
         // A subdomain's checks need its parent: its name (DMARC and CAA are
         // inherited from it) and its DNSSEC (signed at the parent's zone).
         $checkRow = $row;
@@ -608,52 +617,264 @@ class DomainsService
      * neither and only marks the latest attempt incomplete, so the last known
      * state - a problem included - stays on screen beside the "not checked".
      *
-     * The public results are cleared: no grade, no certificate, no expiry from
-     * when the domain was public, so nothing alerts or counts on them.
+     * The public results are cleared: no grade, and no certificate from when the
+     * domain was public. The certificate expiry kept is the earliest of its
+     * endpoints' (slice 2), so the existing certificate alerts, calendar entries
+     * and Watchtower count work for internal certificates too.
      *
-     * @param array $row  the domains row, already loaded for the actor
-     * @param int   $id   the domain
+     * Slice 2: each HTTPS endpoint is checked too (domainCheckEndpoint), within
+     * the permitted networks and ports. A problem on any endpoint is a problem for
+     * the domain; a certificate inside its warning window is "expiring"; an
+     * endpoint that could not be checked leaves the domain's latest attempt
+     * incomplete, like a resolver error does.
+     *
+     * @param array $row    the domains row, already loaded for the actor
+     * @param int   $id     the domain
+     * @param bool  $probe  connect to the endpoints; false re-uses their last results
      */
-    private static function runInternalChecks(PDO $conn, array $row, int $id): array
+    private static function runInternalChecks(PDO $conn, array $row, int $id, bool $probe = true): array
     {
         $res = domainRunInternalChecks($row);
-        $status = $res['problem'] ? 'problem' : 'healthy';
+        $problem = $res['problem'];
+        $failed = !$res['completed'];
+        $expiring = false;
+        $certs = [];
+        $earliest = null;
 
-        if ($res['completed']) {
+        $settings = domainSettings($conn);
+        if (domainEndpointsReady($conn)) {
+            $eps = $conn->prepare("SELECT e.*, t.ca_pem FROM domain_endpoints e LEFT JOIN domain_trust_profiles t ON t.id = e.trust_profile_id
+                                    WHERE e.domain_id = ? ORDER BY e.host, e.port");
+            $eps->execute([$id]);
+            foreach ($eps->fetchAll(PDO::FETCH_ASSOC) as $ep) {
+                if ($probe) {
+                    // A profile that has been deleted is never quietly swapped for the server's bundle.
+                    $r = (!empty($ep['trust_profile_id']) && $ep['ca_pem'] === null)
+                        ? ['completed' => false, 'status' => null, 'detail' => 'profile_missing', 'params' => [], 'address' => null, 'cert' => null]
+                        : domainCheckEndpoint($ep, (string)$row['domain_name'], domainInternalNetworks($settings), domainInternalPorts($settings), $ep['ca_pem']);
+                    $ep = self::storeEndpointResult($conn, $id, $ep, $r);
+                }
+                $label = $ep['host'] . ':' . $ep['port'];
+                $cert = $ep['cert_json'] ? json_decode($ep['cert_json'], true) : null;
+                if (!empty($ep['incomplete']) || $ep['status'] === null) $failed = true;
+                if ($ep['status'] === 'problem') $problem = true;
+                if ($ep['status'] === 'expiring') $expiring = true;
+                $params = $ep['detail_params'] ? (json_decode($ep['detail_params'], true) ?: []) : [];
+                $level = ['healthy' => 'pass', 'expiring' => 'warn', 'problem' => 'fail'][$ep['incomplete'] ? '' : ($ep['status'] ?? '')] ?? 'info';
+                $res['findings'][] = ['key' => 'ep_' . ($ep['detail_key'] ?: 'never'), 'area' => 'health', 'level' => $level, 'weight' => 0,
+                                      'params' => $params + ['endpoint' => $label]];
+                if ($cert) {
+                    $certs[] = ['ok' => true, 'host' => $label, 'error' => null] + $cert;
+                    if (!empty($cert['valid_to']) && ($earliest === null || $cert['valid_to'] < $earliest['valid_to'])) $earliest = $cert;
+                } elseif ($ep['detail_key'] === 'no_answer') {
+                    $certs[] = ['ok' => false, 'host' => $label, 'error' => (string)($params['error'] ?? '')];
+                }
+            }
+        }
+        $status = $problem ? 'problem' : ($expiring ? 'expiring' : 'healthy');
+        // A confirmed problem is a fresh observation even when something else could not run.
+        $completed = $problem || !$failed;
+        $results = json_encode(['findings' => $res['findings'], 'certificates' => $certs, 'at' => gmdate('Y-m-d H:i:s'), 'scope' => 'internal']);
+        $sslTo = $earliest['valid_to'] ?? null;
+        $sslIssuer = isset($earliest['issuer']) ? mb_substr((string)$earliest['issuer'], 0, 255) : null;
+
+        if ($completed) {
             $conn->prepare(
                 "UPDATE domains SET check_results = ?, security_score = NULL, security_grade = NULL,
-                        ssl_expiry_date = NULL, ssl_issuer = NULL,
+                        ssl_expiry_date = ?, ssl_issuer = ?,
                         health_status = ?, health_completed_datetime = UTC_TIMESTAMP(),
                         health_healthy_datetime = IF(? = 'healthy', UTC_TIMESTAMP(), health_healthy_datetime),
                         health_incomplete = 0, last_check_datetime = UTC_TIMESTAMP() WHERE id = ?"
-            )->execute([
-                json_encode(['findings' => $res['findings'], 'certificates' => [], 'at' => gmdate('Y-m-d H:i:s'), 'scope' => 'internal']),
-                $status, $status, $id,
-            ]);
+            )->execute([$results, $sslTo, $sslIssuer, $status, $status, $id]);
             if (($row['health_status'] ?? null) !== $status) {
                 self::audit($conn, $id, null, 'health_status', $row['health_status'] ?? null, $status, 'check');
             }
         } else {
             $conn->prepare(
                 "UPDATE domains SET check_results = ?, security_score = NULL, security_grade = NULL,
-                        ssl_expiry_date = NULL, ssl_issuer = NULL,
+                        ssl_expiry_date = ?, ssl_issuer = ?,
                         health_incomplete = 1, last_check_datetime = UTC_TIMESTAMP() WHERE id = ?"
-            )->execute([
-                json_encode(['findings' => $res['findings'], 'certificates' => [], 'at' => gmdate('Y-m-d H:i:s'), 'scope' => 'internal']),
-                $id,
-            ]);
+            )->execute([$results, $sslTo, $sslIssuer, $id]);
         }
         $fresh = self::loadRow($conn, $id);
         return [
             'findings'        => $res['findings'],
             'score'           => null,
             'grade'           => null,
-            'ssl_expiry_date' => null,
-            'ssl_issuer'      => null,
-            'certificates'    => [],
-            'health'          => domainHealth($fresh, domainInternalInterval(domainSettings($conn))),
+            'ssl_expiry_date' => $sslTo,
+            'ssl_issuer'      => $sslIssuer,
+            'certificates'    => $certs,
+            'health'          => domainHealth($fresh, domainInternalInterval($settings)),
             'changes'         => [],
         ];
+    }
+
+    /**
+     * Stores one endpoint's check (GH #203 slice 2) and returns the row as it now is.
+     * Completed: the status, the completed date, and the healthy date when healthy.
+     * Not completed: only the attempt and why - the known status stays. A change of
+     * status goes into the domain's history, labelled by host:port.
+     *
+     * @param int   $domainId  the domain the endpoint belongs to
+     * @param array $ep        the domain_endpoints row before the check
+     * @param array $r         domainCheckEndpoint()'s result
+     */
+    private static function storeEndpointResult(PDO $conn, int $domainId, array $ep, array $r): array
+    {
+        $params = $r['params'] ? json_encode($r['params']) : null;
+        if ($r['completed']) {
+            $conn->prepare("UPDATE domain_endpoints SET status = ?, incomplete = 0, detail_key = ?, detail_params = ?, address = ?,
+                                   cert_json = ?, last_attempt_datetime = UTC_TIMESTAMP(), last_completed_datetime = UTC_TIMESTAMP(),
+                                   last_healthy_datetime = IF(? = 'healthy', UTC_TIMESTAMP(), last_healthy_datetime) WHERE id = ?")
+                 ->execute([$r['status'], $r['detail'], $params, $r['address'], $r['cert'] ? json_encode($r['cert']) : $ep['cert_json'],
+                            $r['status'], (int)$ep['id']]);
+            if (($ep['status'] ?? null) !== $r['status']) {
+                $label = $ep['host'] . ':' . $ep['port'];
+                self::audit($conn, $domainId, null, 'endpoint_status', $ep['status'] ? "$label: {$ep['status']}" : null, "$label: {$r['status']}", 'check');
+            }
+        } else {
+            $conn->prepare("UPDATE domain_endpoints SET incomplete = 1, detail_key = ?, detail_params = ?, last_attempt_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$r['detail'], $params, (int)$ep['id']]);
+        }
+        $s = $conn->prepare("SELECT * FROM domain_endpoints WHERE id = ?");
+        $s->execute([(int)$ep['id']]);
+        return $s->fetch(PDO::FETCH_ASSOC) ?: $ep;
+    }
+
+    // ======================================================================
+    //  Internal endpoints and trust profiles (GH #203 slice 2)
+    // ======================================================================
+
+    /**
+     * Adds or changes an HTTPS endpoint on an internal domain. The caller has checked
+     * Cap::DOMAINS_INTERNAL; this checks everything about the endpoint itself.
+     *
+     * @param array $in  {domain_id, id?, host, port, warn_days, trust_profile_id}
+     * @return array  the stored row
+     */
+    public static function saveEndpoint(PDO $conn, ActorContext $ctx, array $in): array
+    {
+        if (!domainEndpointsReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System -> Database Verification first.');
+        $domain = self::loadForActor($conn, $ctx, (int)($in['domain_id'] ?? 0));
+        if (domainMayLeaveNetwork($domain)) {
+            throw new ServiceError('validation', 'not_internal', 'Endpoints are for internal domains. A public domain\'s certificates are checked on its own hosts.');
+        }
+        $name = (string)$domain['domain_name'];
+        $host = domainNormaliseHost((string)($in['host'] ?? '')) ?? '';
+        if ($host === '' || @inet_pton($host) !== false) {
+            throw new ServiceError('validation', 'host', 'Enter a host name, not an address: the address comes from DNS.');
+        }
+        if (!domainHostBelongsTo($host, $name)) {
+            throw new ServiceError('validation', 'host', "The host must be $name or a name under it.");
+        }
+        $port = (int)($in['port'] ?? 443);
+        if ($port < 1 || $port > 65535) throw new ServiceError('validation', 'port', 'Enter a port from 1 to 65535.');
+        $warn = (int)($in['warn_days'] ?? 21);
+        if ($warn < 1 || $warn > 120) throw new ServiceError('validation', 'warn_days', 'Enter a warning window from 1 to 120 days.');
+        $profile = (int)($in['trust_profile_id'] ?? 0) ?: null;
+        if ($profile !== null) {
+            $p = $conn->prepare("SELECT id FROM domain_trust_profiles WHERE id = ?");
+            $p->execute([$profile]);
+            if (!$p->fetchColumn()) throw new ServiceError('validation', 'trust_profile', 'That trust profile no longer exists.');
+        }
+        $id = (int)($in['id'] ?? 0);
+        try {
+            if ($id) {
+                $cur = $conn->prepare("SELECT * FROM domain_endpoints WHERE id = ? AND domain_id = ?");
+                $cur->execute([$id, (int)$domain['id']]);
+                $old = $cur->fetch(PDO::FETCH_ASSOC);
+                if (!$old) throw new ServiceError('not_found', 'endpoint', 'Endpoint not found.');
+                // A different target is a new observation: its old results described something else.
+                $moved = $old['host'] !== $host || (int)$old['port'] !== $port || (int)$old['trust_profile_id'] !== (int)$profile;
+                $conn->prepare("UPDATE domain_endpoints SET host = ?, port = ?, warn_days = ?, trust_profile_id = ?, updated_datetime = UTC_TIMESTAMP()"
+                             . ($moved ? ", status = NULL, incomplete = 0, detail_key = NULL, detail_params = NULL, address = NULL, cert_json = NULL,
+                                          last_attempt_datetime = NULL, last_completed_datetime = NULL, last_healthy_datetime = NULL" : '')
+                             . " WHERE id = ?")->execute([$host, $port, $warn, $profile, $id]);
+                self::audit($conn, (int)$domain['id'], $ctx->actorId ?: null, 'endpoint', "{$old['host']}:{$old['port']}", "$host:$port", $ctx->source === 'api' ? 'api' : 'app');
+            } else {
+                $conn->prepare("INSERT INTO domain_endpoints (domain_id, host, port, warn_days, trust_profile_id, created_by) VALUES (?, ?, ?, ?, ?, ?)")
+                     ->execute([(int)$domain['id'], $host, $port, $warn, $profile, $ctx->actorId ?: null]);
+                $id = (int)$conn->lastInsertId();
+                self::audit($conn, (int)$domain['id'], $ctx->actorId ?: null, 'endpoint', null, "$host:$port", $ctx->source === 'api' ? 'api' : 'app');
+            }
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000') throw new ServiceError('validation', 'duplicate', "$host:$port is already listed.");
+            throw $e;
+        }
+        $s = $conn->prepare("SELECT * FROM domain_endpoints WHERE id = ?");
+        $s->execute([$id]);
+        return $s->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Removes an endpoint. Its past results stay in the domain's history.
+     *
+     * @param int $id  the domain_endpoints row
+     */
+    public static function deleteEndpoint(PDO $conn, ActorContext $ctx, int $id): void
+    {
+        $s = $conn->prepare("SELECT * FROM domain_endpoints WHERE id = ?");
+        $s->execute([$id]);
+        $ep = $s->fetch(PDO::FETCH_ASSOC);
+        if (!$ep) throw new ServiceError('not_found', 'endpoint', 'Endpoint not found.');
+        self::loadForActor($conn, $ctx, (int)$ep['domain_id']);   // the company check
+        $conn->prepare("DELETE FROM domain_endpoints WHERE id = ?")->execute([$id]);
+        self::audit($conn, (int)$ep['domain_id'], $ctx->actorId ?: null, 'endpoint', "{$ep['host']}:{$ep['port']}", null, $ctx->source === 'api' ? 'api' : 'app');
+    }
+
+    /**
+     * Adds or changes a trust profile: a name and the CA certificates, pasted as PEM.
+     *
+     * @param array $in  {id?, name, ca_pem}
+     */
+    public static function saveTrustProfile(PDO $conn, ActorContext $ctx, array $in): array
+    {
+        if (!domainEndpointsReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System -> Database Verification first.');
+        $name = trim((string)($in['name'] ?? ''));
+        if ($name === '' || mb_strlen($name) > 100) throw new ServiceError('validation', 'name', 'Give the trust profile a name, up to 100 characters.');
+        $id = (int)($in['id'] ?? 0);
+        // Editing with the certificate box left empty renames it and keeps its certificates.
+        if ($id && trim((string)($in['ca_pem'] ?? '')) === '') {
+            $u = $conn->prepare("UPDATE domain_trust_profiles SET name = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?");
+            $u->execute([$name, $id]);
+            $x = $conn->prepare("SELECT summary FROM domain_trust_profiles WHERE id = ?");
+            $x->execute([$id]);
+            $summary = $x->fetchColumn();
+            if ($summary === false) throw new ServiceError('not_found', 'trust_profile', 'Trust profile not found.');
+            return ['id' => $id, 'name' => $name, 'summary' => $summary];
+        }
+        try { $p = domainTrustProfileParse((string)($in['ca_pem'] ?? '')); }
+        catch (InvalidArgumentException $e) { throw new ServiceError('validation', 'ca_pem', $e->getMessage()); }
+        if ($id) {
+            $u = $conn->prepare("UPDATE domain_trust_profiles SET name = ?, ca_pem = ?, summary = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?");
+            $u->execute([$name, $p['pem'], $p['summary'], $id]);
+            if (!$u->rowCount()) {
+                $x = $conn->prepare("SELECT id FROM domain_trust_profiles WHERE id = ?");
+                $x->execute([$id]);
+                if (!$x->fetchColumn()) throw new ServiceError('not_found', 'trust_profile', 'Trust profile not found.');
+            }
+        } else {
+            $conn->prepare("INSERT INTO domain_trust_profiles (name, ca_pem, summary, created_by) VALUES (?, ?, ?, ?)")
+                 ->execute([$name, $p['pem'], $p['summary'], $ctx->actorId ?: null]);
+            $id = (int)$conn->lastInsertId();
+        }
+        return ['id' => $id, 'name' => $name, 'summary' => $p['summary']];
+    }
+
+    /**
+     * Deletes a trust profile - refused while an endpoint uses it, so no endpoint's
+     * trust ever changes without somebody choosing it.
+     *
+     * @param int $id  the domain_trust_profiles row
+     */
+    public static function deleteTrustProfile(PDO $conn, int $id): void
+    {
+        $n = $conn->prepare("SELECT COUNT(*) FROM domain_endpoints WHERE trust_profile_id = ?");
+        $n->execute([$id]);
+        if ((int)$n->fetchColumn() > 0) {
+            throw new ServiceError('validation', 'in_use', 'Endpoints still use this trust profile. Move them to another one first.');
+        }
+        $conn->prepare("DELETE FROM domain_trust_profiles WHERE id = ?")->execute([$id]);
     }
 
     // ======================================================================
