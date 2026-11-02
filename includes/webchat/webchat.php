@@ -225,22 +225,26 @@ function webchatOpenTicket(PDO $conn, array $conversation, array $channel, strin
     $name   = trim((string) ($conversation['visitor_name'] ?? ''));
     $userId       = webchatGetOrCreateUser($conn, $email, $name);
     $tenantId     = ($channel['tenant_id'] ?? null) !== null ? (int) $channel['tenant_id'] : null;
-    $ticketNumber = messagingGenerateTicketNumber($conn, $tenantId);
     $originId     = getChannelOriginId($conn, 'webchat');
+    // GH #230: the type rules / default, before the number (which can carry it).
+    require_once __DIR__ . '/../ticket_type_rules.php';
+    $typePick     = ticketTypeAutoPick($conn, $tenantId, ['channel' => 'webchat', 'origin_id' => $originId, 'subject' => $subject, 'requester_email' => $email]);
+    $ticketNumber = messagingGenerateTicketNumber($conn, $tenantId, $typePick['type_id'] ?? null);
 
     $sql = "INSERT INTO tickets (
                 ticket_number, subject, status_id, priority_id,
                 created_datetime, updated_datetime, last_inbound_at,
-                user_id, tenant_id, origin_id
+                user_id, tenant_id, origin_id, ticket_type_id
             ) VALUES (
                 ?, ?,
                 (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
                 (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
                 UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP(),
-                ?, ?, ?
+                ?, ?, ?, ?
             )";
-    $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId]);
+    $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId, $typePick['type_id'] ?? null]);
     $ticketId = (int) $conn->lastInsertId();
+    ticketTypeAutoRecord($conn, $ticketId, $typePick);
     // Confidential defaults (discussion #62). Nothing to apply yet - no department
     // or mailbox - but every ticket-creating path calls it; see ticket_sensitivity.php.
     require_once __DIR__ . '/../ticket_sensitivity.php';

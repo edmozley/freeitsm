@@ -481,7 +481,7 @@ function domainRenewalActionsRun(PDO $conn, array $s): int
                     'description' => $desc,
                     'requester_email' => $req,
                     'requester_name' => $d['owner_name'] ?: '',
-                ], $d['owner_analyst_id'] ? (int)$d['owner_analyst_id'] : null, 'Raised by Domains at the renewal window');
+                ], $d['owner_analyst_id'] ? (int)$d['owner_analyst_id'] : null, 'Raised by Domains at the renewal window', 'monitoring');
             }
             DomainsService::audit($conn, (int)$d['id'], null, 'renewal_' . $s['domain_renewal_action'], null, 'Raised for expiry ' . $d['expiry_date'], 'check');
             $n++;

@@ -1530,6 +1530,17 @@ class WorkflowEngine
                     'category_id' => ['type' => 'lookup', 'label' => 'Category', 'lookup' => 'ticket_category', 'required' => true],
                 ],
             ],
+            // GH #230. For a type that changes later in a ticket's life; the type a
+            // ticket is BORN with is the type rules' job (Tickets -> Settings -> Ticket
+            // types), because the number is made then. The number is not changed.
+            'set_ticket_type' => [
+                'label'       => 'Set ticket type',
+                'description' => 'Change the ticket\'s type. It must be one the ticket\'s company uses. The ticket number stays as it is, and a category that belongs to another type is cleared, as on screen.',
+                'args'        => [
+                    'ticket_id'      => $ticketIdArg,
+                    'ticket_type_id' => ['type' => 'lookup', 'label' => 'Ticket type', 'lookup' => 'ticket_type', 'required' => true],
+                ],
+            ],
             'add_ticket_note' => [
                 'label'       => 'Add a note to the ticket',
                 'description' => 'Append a free-text note to the ticket\'s audit trail (visible to analysts; never sent to the requester).',
@@ -2267,6 +2278,7 @@ class WorkflowEngine
             case 'assign_ticket_team':    return self::action_ticket_field($args, $payload, 'team_id', 'assigned_team_id', 'team');
             case 'set_ticket_department': return self::action_ticket_field($args, $payload, 'department_id', 'department_id', 'department');
             case 'set_ticket_category':   return self::action_ticket_field($args, $payload, 'category_id', 'category_id', 'category');
+            case 'set_ticket_type':       return self::action_ticket_field($args, $payload, 'ticket_type_id', 'ticket_type_id', 'type');
             default:
                 throw new Exception("Unknown action type: {$type}");
         }
@@ -2671,7 +2683,7 @@ class WorkflowEngine
         $ticket = $t->fetch(PDO::FETCH_ASSOC);
         if (!$ticket) throw new Exception("Unknown ticket_id: {$ticketId}");
 
-        $tables = ['team' => ['teams', 'name'], 'department' => ['departments', 'name'], 'category' => ['ticket_categories', 'name']];
+        $tables = ['team' => ['teams', 'name'], 'department' => ['departments', 'name'], 'category' => ['ticket_categories', 'name'], 'type' => ['ticket_types', 'name']];
         [$table, $labelCol] = $tables[$what];
         $n = $conn->prepare("SELECT `$labelCol` FROM `$table` WHERE id = ?");
         $n->execute([$valueId]);
@@ -2689,6 +2701,15 @@ class WorkflowEngine
                 throw new Exception("Category {$valueId} is not one this ticket can have - it belongs to another company, is retired, or is for a different ticket type.");
             }
             $name = $offered[$valueId]['path_label'];
+        }
+        if ($what === 'type') {
+            // GH #230: the same list the ticket's own Type picker offers - active,
+            // shared and not hidden by its company, or the company's own.
+            require_once dirname(__DIR__, 2) . '/includes/ticket_type_rules.php';
+            $tenant = $ticket['tenant_id'] !== null ? (int)$ticket['tenant_id'] : null;
+            if (!isset(ticketTypeUsable($conn, $tenant)[$valueId])) {
+                throw new Exception("Ticket type {$valueId} is not one this ticket can have - it belongs to another company, is hidden or is inactive.");
+            }
         }
 
         require_once dirname(__DIR__, 2) . '/includes/service_context.php';
@@ -3345,6 +3366,7 @@ class WorkflowEngine
                 'from_email'          => $fromEmail,
                 'from_name'           => $fromName,
                 'audit_note'          => 'Raised from a form submission by a workflow',
+                '_channel'            => 'workflow',   // GH #230: for the type rules
             ]);
         }
 
@@ -3412,6 +3434,17 @@ class WorkflowEngine
 
             // TRAP: the install's numbering, never a number made here - see
             //   messagingGenerateTicketNumber() for what went wrong when it was.
+            // GH #230: the step names no type, so the type rules / default may -
+            // before the number, which can carry it.
+            $typePick = null;
+            if (!$typeId) {
+                require_once dirname(__DIR__, 2) . '/includes/ticket_type_rules.php';
+                $typePick = ticketTypeAutoPick($conn, $ticketTenant, [
+                    'channel' => 'workflow', 'mailbox_id' => $mailboxId, 'department_id' => $departmentId ?: null,
+                    'subject' => $subject, 'requester_email' => $fromEmail,
+                ]);
+                $typeId = $typePick['type_id'] ?? null;
+            }
             require_once dirname(__DIR__, 2) . '/includes/ticket_numbering.php';
             $ticketNumber = TicketNumbering::next($conn, $typeId ? (int)$typeId : null, $ticketTenant);
 
@@ -3429,6 +3462,7 @@ class WorkflowEngine
                 $departmentId, $typeId, $assignedTeamId, $assignedAnalystId, $assignedAnalystId, $userId, $ticketTenant,
             ]);
             $newTicketId = (int)$conn->lastInsertId();
+            if ($typePick) ticketTypeAutoRecord($conn, $newTicketId, $typePick);
             // Confidential defaults (discussion #62) - the rule may have put it in a
             // confidential department. Every ticket-creating path calls this.
             require_once dirname(__DIR__, 2) . '/includes/ticket_sensitivity.php';

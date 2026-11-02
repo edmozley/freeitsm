@@ -199,6 +199,7 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
                 <tr><td><code>assign_ticket_team</code></td><td><?php echo t('workflow.help.actions_row10_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row10_args')); ?></td></tr>
                 <tr><td><code>set_ticket_department</code></td><td><?php echo t('workflow.help.actions_row11_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row11_args')); ?></td></tr>
                 <tr><td><code>set_ticket_category</code></td><td><?php echo t('workflow.help.actions_row12_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row12_args')); ?></td></tr>
+                <tr><td><code>set_ticket_type</code></td><td><?php echo t('workflow.help.actions_row13_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row13_args')); ?></td></tr>
             </table>
             </div>
             <p><?php echo t('workflow.help.actions_note'); ?></p>

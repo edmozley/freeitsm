@@ -311,6 +311,8 @@ return [
         'actions_row11_args' => 'ticket_id, department_id',
         'actions_row12_does' => 'Ändert die Kategorie des Tickets. Sie muss eine sein, die das Unternehmen des Tickets verwendet, und, wenn die Kategorie zu einem Tickettyp gehört, eine für den Typ des Tickets - andernfalls schlägt der Schritt fehl und nennt den Grund.',
         'actions_row12_args' => 'ticket_id, category_id',
+        'actions_row13_does' => 'Ändert den Typ des Tickets in einen, den die Firma des Tickets verwendet. Für einen Typ, der sich später im Leben eines Tickets ändert - den Typ, mit dem ein neues Ticket beginnt, legen Sie unter <strong>Tickets &rarr; Einstellungen &rarr; Tickettypen</strong> fest. Die Ticketnummer bleibt, wie sie ist, und eine Kategorie, die zu einem anderen Typ gehört, wird geleert, wie auf dem Bildschirm.',
+        'actions_row13_args' => 'ticket_id, ticket_type_id',
         'actions_note' => 'Die erforderlichen Argumente jeder Aktion sind im Formular mit einem <code>*</code> gekennzeichnet. Fehlende Pflichtargumente lassen die Aktion zur Laufzeit fehlschlagen &mdash; die Engine protokolliert den Fehler in der Ausführungszeile und stoppt die restliche Kette.',
         'actions_webhook_callout' => '<strong>Die Aktion <code>send_webhook</code> ist ein eigenes großes Thema</strong> &mdash; Chat-Voreinstellungen, „Vollständiger Datensatz"-Nutzlasten des gesamten Objekts, HMAC-Signierung, eine Schaltfläche „Test senden", Zustellung im Hintergrund mit Wiederholungsversuchen und ein Health-Dashboard. Dazu gibt es eine eigene Anleitung: <a href="help-webhooks.php"><strong>Webhooks-Anleitung &rarr;</strong></a>',
         'variables_heading' => 'Variablen &mdash; <code>{{path.to.field}}</code>',

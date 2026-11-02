@@ -804,6 +804,11 @@ try {
                             <strong><?php echo t('tickets.help.settings.card_types_title'); ?></strong>
                             <span><?php echo t('tickets.help.settings.card_types_body'); ?></span>
                         </div>
+                        <?php /* GH #230 */ ?>
+                        <div class="help-card">
+                            <strong><?php echo t('tickets.help.settings.card_type_rules_title'); ?></strong>
+                            <span><?php echo t('tickets.help.settings.card_type_rules_body'); ?></span>
+                        </div>
                         <div class="help-card">
                             <strong><?php echo t('tickets.help.settings.card_priorities_title'); ?></strong>
                             <span><?php echo t('tickets.help.settings.card_priorities_body'); ?></span>

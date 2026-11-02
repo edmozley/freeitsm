@@ -99,6 +99,24 @@ return [
         ]],
     ],
 
+    // ─── Type for new tickets (GH #230) ─────────────────────────────────────
+    [
+        'id'       => 'tickets.type_rules',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'Every new ticket has a type',
+        'what'     => 'A default type for new tickets, and rules that choose one by how a ticket arrived, its mailbox, origin, department, subject or the requester\'s domain - so emails, portal requests and chats are typed the moment they arrive.',
+        'why'      => 'An untyped ticket is missing from every report split by type, and typing tickets by hand is the job nobody remembers. With the type in a ticket number, it is right from the start too.',
+        'done'     => 'A default type is set, or at least one type rule is switched on.',
+        'link'     => 'tickets/settings/#ticket-types',
+        'check'    => ['any', [
+            ['rows', 'ticket_type_rules', 'is_active = 1'],
+            ['rows', 'system_settings', "setting_key = 'ticket_default_type_id' AND setting_value NOT IN ('', '0')"],
+            ['rows', 'tenant_settings', "setting_key = 'ticket_default_type_id' AND setting_value NOT IN ('', '0')"],
+        ]],
+    ],
+
     // ─── Categories and resolution codes ────────────────────────────────────
     [
         'id'       => 'tickets.categories',

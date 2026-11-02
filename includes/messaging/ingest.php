@@ -155,23 +155,27 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
         // The company is decided BEFORE the number: per-company numbering and
         // {COMPANY} both need it.
         $tenantId     = resolveTicketTenantForChannel($conn, $channel['id'], $from);
-        $ticketNumber = messagingGenerateTicketNumber($conn, $tenantId);
         $originId     = getChannelOriginId($conn, $channelType);
         $subject      = buildChannelSubject($channelType, $displayName, $body);
+        // GH #230: the type rules / default, before the number (which can carry it).
+        require_once __DIR__ . '/../ticket_type_rules.php';
+        $typePick     = ticketTypeAutoPick($conn, $tenantId, ['channel' => 'messaging', 'origin_id' => $originId, 'subject' => $subject]);
+        $ticketNumber = messagingGenerateTicketNumber($conn, $tenantId, $typePick['type_id'] ?? null);
 
         $sql = "INSERT INTO tickets (
                     ticket_number, subject, status_id, priority_id,
                     created_datetime, updated_datetime, last_inbound_at,
-                    user_id, tenant_id, origin_id
+                    user_id, tenant_id, origin_id, ticket_type_id
                 ) VALUES (
                     ?, ?,
                     (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
                     (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
                     UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP(),
-                    ?, ?, ?
+                    ?, ?, ?, ?
                 )";
-        $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId]);
+        $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId, $typePick['type_id'] ?? null]);
         $ticketId = (int) $conn->lastInsertId();
+        ticketTypeAutoRecord($conn, $ticketId, $typePick);
         // Confidential defaults (discussion #62). No department or mailbox here
         // yet, so today this does nothing - but every ticket-creating path calls
         // it, so a default added later cannot be missed on this one.
@@ -1028,9 +1032,9 @@ function buildChannelSubject(string $channelType, string $displayName, string $b
  *   approvals, merge and split). Pass the ticket's company: per-company
  *   numbering and {COMPANY} need it.
  */
-function messagingGenerateTicketNumber(PDO $conn, ?int $tenantId = null): string
+function messagingGenerateTicketNumber(PDO $conn, ?int $tenantId = null, ?int $typeId = null): string
 {
-    return TicketNumbering::next($conn, null, $tenantId);
+    return TicketNumbering::next($conn, $typeId, $tenantId);
 }
 
 /**

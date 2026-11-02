@@ -877,10 +877,11 @@ function handleEmailAfterProcessing($accessToken, $messageId, $action, $folderNa
  * includes/ticket_numbering.php (GH #71). An emailed ticket must be numbered by
  * exactly the same rules as one raised by an analyst or through the portal.
  */
-function generateTicketNumber($conn, ?int $tenantId = null) {
+function generateTicketNumber($conn, ?int $tenantId = null, ?int $typeId = null) {
     // ⚠️ THE COMPANY MUST BE PASSED IN — see the call site, where the routing
-    // decision now happens BEFORE the number is made rather than after it.
-    return TicketNumbering::next($conn, null, $tenantId);
+    // decision now happens BEFORE the number is made rather than after it. The
+    // type too, since GH #230 can give an emailed ticket one.
+    return TicketNumbering::next($conn, $typeId, $tenantId);
 }
 
 /**
@@ -1229,8 +1230,6 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         // where per-company numbering is chosen.
         $ticketTenantId = resolveTicketTenantForEmail($conn, $mailboxId, $fromAddress);
 
-        $ticketNumber = generateTicketNumber($conn, $ticketTenantId);
-
         // Where the ticket came from, as configured on THIS mailbox (#79). Per
         // mailbox rather than one global "Email", because a helpdesk address and a
         // monitoring alert address both arrive by email and are not the same
@@ -1241,25 +1240,37 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         $ticketOriginId = $originStmt->fetchColumn();
         $ticketOriginId = $ticketOriginId ? (int) $ticketOriginId : null;
 
+        // GH #230: an emailed ticket's type comes from the type rules / default -
+        // before the number, which can carry the type.
+        require_once __DIR__ . '/../../includes/ticket_type_rules.php';
+        $ticketTypePick = ticketTypeAutoPick($conn, $ticketTenantId, [
+            'channel' => 'email', 'mailbox_id' => $mailboxId, 'origin_id' => $ticketOriginId,
+            'subject' => $subject, 'requester_email' => $fromAddress,
+        ]);
+        $ticketTypeId = $ticketTypePick['type_id'] ?? null;
+
+        $ticketNumber = generateTicketNumber($conn, $ticketTenantId, $ticketTypeId);
+
         // Status/priority resolve to the CONFIGURED default, never to the literal
         // names 'Open'/'Normal' — those are display names an admin may rename or
         // translate, and a missed match silently inserted a NULL status_id (#79).
         $ticketSql = "INSERT INTO tickets (
             ticket_number, subject, status_id, priority_id,
-            created_datetime, updated_datetime, user_id, tenant_id, origin_id
+            created_datetime, updated_datetime, user_id, tenant_id, origin_id, ticket_type_id
         ) VALUES (
             ?, ?,
             (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
             (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
-            ?, UTC_TIMESTAMP(), ?, ?, ?
+            ?, UTC_TIMESTAMP(), ?, ?, ?, ?
         )";
 
         $ticketStmt = $conn->prepare($ticketSql);
         $ticketStmt->execute([
-            $ticketNumber, $subject, $receivedDateTime, $userId, $ticketTenantId, $ticketOriginId
+            $ticketNumber, $subject, $receivedDateTime, $userId, $ticketTenantId, $ticketOriginId, $ticketTypeId
         ]);
 
         $ticketId = $conn->lastInsertId();
+        ticketTypeAutoRecord($conn, (int)$ticketId, $ticketTypePick);
         // Announced further down, once the opening message has been written —
         // anything listening (the search indexer especially) wants the ticket
         // and its first message to both exist.

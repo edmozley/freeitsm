@@ -635,6 +635,26 @@ CREATE TABLE IF NOT EXISTS `ticket_types` (
     UNIQUE KEY `uq_ticket_types_tenant_name` (`tenant_id`, `name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The type a new ticket gets when nobody chose one (GH #230) - see
+-- includes/ticket_type_rules.php. Checked in order, first match wins; a company's
+-- own rules (tenant_id set) before the shared ones (NULL). conditions_json holds
+-- the criteria: channels, mailboxes, origins, departments, companies, subject
+-- words and requester domains; every one given must match.
+CREATE TABLE IF NOT EXISTS `ticket_type_rules` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`         INT NULL,
+    `name`              VARCHAR(100) NOT NULL,
+    `ticket_type_id`    INT NOT NULL,
+    `conditions_json`   TEXT NOT NULL,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_by`        INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_ttr_tenant_order` (`tenant_id`, `display_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `ticket_origins` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `name`              VARCHAR(100) NOT NULL,

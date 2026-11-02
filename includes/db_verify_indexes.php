@@ -32,6 +32,7 @@ return [
     ['rbac_analyst_roles', 'uq_rar_analyst_role', 'unique', '(`analyst_id`,`role_id`)'],
     ['rbac_team_roles', 'uq_rtr_team_role', 'unique', '(`team_id`,`role_id`)'],
     ['ticket_types', 'uq_ticket_types_tenant_name', 'unique', '(`tenant_id`,`name`)'],
+    ['ticket_type_rules', 'idx_ttr_tenant_order', 'key', '(`tenant_id`,`display_order`)'],
     ['ticket_categories', 'uq_ticket_categories_scope', 'unique', '(`tenant_id`,`parent_id`,`name`)'],
     ['ticket_categories', 'ix_ticket_categories_parent', 'key', '(`parent_id`)'],
     ['ticket_categories', 'ix_ticket_categories_type', 'key', '(`ticket_type_id`)'],

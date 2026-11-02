@@ -468,6 +468,21 @@ return [
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
+    // GH #230: the type a new ticket gets when nobody chose one - see
+    // includes/ticket_type_rules.php. tenant_id NULL = a shared rule (every company).
+    'ticket_type_rules' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'         => 'INT NULL',
+        'name'              => 'VARCHAR(100) NOT NULL',
+        'ticket_type_id'    => 'INT NOT NULL',
+        'conditions_json'   => 'TEXT NOT NULL',
+        'display_order'     => 'INT NOT NULL DEFAULT 0',
+        'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by'        => 'INT NULL',
+        'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'  => 'DATETIME NULL',
+    ],
+
     'ticket_origins' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'name'              => 'VARCHAR(100) NOT NULL',

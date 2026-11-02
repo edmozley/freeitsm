@@ -311,6 +311,8 @@ return [
         'actions_row11_args' => 'ticket_id, department_id',
         'actions_row12_does' => 'Cambia la categoría del ticket. Debe ser una que use la empresa del ticket y, cuando la categoría pertenece a un tipo de ticket, una del tipo del ticket; de lo contrario el paso falla y dice por qué.',
         'actions_row12_args' => 'ticket_id, category_id',
+        'actions_row13_does' => 'Cambia el tipo del ticket a uno que use la empresa del ticket. Para un tipo que cambia más adelante en la vida de un ticket: el tipo con el que empieza un ticket nuevo se configura en <strong>Tickets &rarr; Configuración &rarr; Tipos de ticket</strong>. El número del ticket no cambia, y una categoría que pertenece a otro tipo se borra, como en pantalla.',
+        'actions_row13_args' => 'ticket_id, ticket_type_id',
         'actions_note' => 'Los argumentos obligatorios de cada acción están marcados con un <code>*</code> en el formulario. Si faltan argumentos obligatorios, la acción falla en tiempo de ejecución &mdash; el motor registra el fallo en la fila de ejecución y detiene el resto de la cadena.',
         'actions_webhook_callout' => '<strong>La acción <code>send_webhook</code> es todo un tema en sí misma</strong> &mdash; preajustes de chat, cargas de "Registro completo" del objeto entero, firma HMAC, un botón de prueba de envío, entrega en segundo plano con reintentos, y un panel de estado. Tiene su propia guía: <a href="help-webhooks.php"><strong>Guía de webhooks &rarr;</strong></a>',
         'variables_heading' => 'Variables &mdash; <code>{{path.to.field}}</code>',

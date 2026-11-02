@@ -644,6 +644,19 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
     // from; with none, the ticket cannot be emailed. Checked by the caller.
     $mailboxId    = isset($overrides['mailbox_id'])          && $overrides['mailbox_id']          ? (int)$overrides['mailbox_id']          : null;
 
+    // GH #230: no type configured on the form or the rule, so the type rules /
+    // default may give one - before the number, which can carry it. A workflow
+    // raising from a form says so through '_channel'; a form's own action is 'catalogue'.
+    $typePick = null;
+    if ($typeId === null) {
+        require_once __DIR__ . '/ticket_type_rules.php';
+        $typePick = ticketTypeAutoPick($conn, $tenantId !== null ? (int)$tenantId : null, [
+            'channel' => ($overrides['_channel'] ?? '') === 'workflow' ? 'workflow' : 'catalogue',
+            'mailbox_id' => $mailboxId, 'department_id' => $departmentId, 'subject' => $subject, 'requester_email' => $fromEmail,
+        ]);
+        $typeId = $typePick['type_id'] ?? null;
+    }
+
     // TRAP: the install's numbering, never a number made here - see
     //   messagingGenerateTicketNumber() for what went wrong when it was.
     $ticketNumber = TicketNumbering::next($conn, $typeId, $tenantId !== null ? (int)$tenantId : null);
@@ -662,6 +675,7 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
         $userId, $tenantId,
     ]);
     $ticketId = (int)$conn->lastInsertId();
+    if ($typePick) ticketTypeAutoRecord($conn, $ticketId, $typePick);
     // Confidential defaults (discussion #62). Every path that creates a ticket
     // calls this - see the header of includes/ticket_sensitivity.php for why.
     require_once __DIR__ . '/ticket_sensitivity.php';

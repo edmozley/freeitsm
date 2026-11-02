@@ -645,7 +645,7 @@ class ProjectToolsService
             'description'     => $desc,
             'requester_email' => $email,
             'requester_name'  => (string)($me['full_name'] ?? ''),
-        ], $r['owner_analyst_id'] ? (int)$r['owner_analyst_id'] : $ctx->actorId, 'Raised from project ' . $code . ' (RAID issue)');
+        ], $r['owner_analyst_id'] ? (int)$r['owner_analyst_id'] : $ctx->actorId, 'Raised from project ' . $code . ' (RAID issue)', 'internal');
         $conn->prepare("UPDATE project_raid SET ticket_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$ticketId, $raidId]);
         self::linkQuietly($conn, $ctx, $projectId, 'ticket', $ticketId);
         $num = $conn->prepare("SELECT ticket_number FROM tickets WHERE id = ?");

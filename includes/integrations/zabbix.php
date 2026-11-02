@@ -340,7 +340,7 @@ function zabbixHandleEvent(PDO $conn, array $p): array
         if (!empty($cfg['priority_map'][$e['severity']])) $in['priority_id'] = $cfg['priority_map'][$e['severity']];
         if ($cfg['team_id'])   $in['assigned_team_id'] = $cfg['team_id'];
         if ($cfg['origin_id']) $in['origin_id'] = $cfg['origin_id'];
-        $ticketId = TicketsService::createTicket($conn, $ctx, $tenantId, $in, null, 'Created from a Zabbix alert');
+        $ticketId = TicketsService::createTicket($conn, $ctx, $tenantId, $in, null, 'Created from a Zabbix alert', 'monitoring');
 
         if ($ci) {
             $conn->prepare("INSERT INTO ticket_cmdb_objects (ticket_id, cmdb_object_id, created_datetime, created_by_analyst_id) VALUES (?, ?, UTC_TIMESTAMP(), NULL)")

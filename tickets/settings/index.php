@@ -152,6 +152,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.settings'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="../../assets/css/ticket-type-rules.css?v=1">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=3"></script>
     <script src="../../assets/js/ai-settings.js?v=4"></script>
@@ -743,6 +744,44 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
+
+            <?php /* GH #230: the type a new ticket gets when nobody chose one. Filled by
+                     assets/js/ticket-type-rules.js from api/tickets/ticket_type_rules.php. */ ?>
+            <div class="ttr" id="ttrSection">
+                <div class="section-header" style="margin-top:36px;">
+                    <h2><?php echo htmlspecialchars(t('tickets.type_rules.title')); ?></h2>
+                </div>
+                <p class="ttr-intro"><?php echo t('tickets.type_rules.intro'); ?></p>
+                <div id="ttrBody"><p class="ttr-hint"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></p></div>
+            </div>
+
+            <div id="ttrModal" class="modal">
+                <div class="modal-content" style="max-width:720px;">
+                    <div class="modal-header" id="ttrModalTitle"></div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="ttrName"><?php echo htmlspecialchars(t('tickets.type_rules.rule_name')); ?></label>
+                            <input type="text" id="ttrName" class="form-control" maxlength="100" placeholder="<?php echo htmlspecialchars(t('tickets.type_rules.rule_name_ph')); ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="ttrType"><?php echo htmlspecialchars(t('tickets.type_rules.then_type')); ?></label>
+                            <select id="ttrType" class="form-control"></select>
+                        </div>
+                        <p class="ttr-hint"><?php echo htmlspecialchars(t('tickets.type_rules.when_hint')); ?></p>
+                        <div id="ttrCriteria"></div>
+                        <div class="form-group">
+                            <label class="toggle-label">
+                                <span class="toggle-switch"><input type="checkbox" id="ttrActive" checked><span class="toggle-slider"></span></span>
+                                <?php echo htmlspecialchars(t('tickets.type_rules.active')); ?>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-ttr-close><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                        <button class="btn btn-primary" type="button" id="ttrSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Ticket Origins Tab -->
@@ -9622,6 +9661,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
     </script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
+    <script src="../../assets/js/ticket-type-rules.js?v=1"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

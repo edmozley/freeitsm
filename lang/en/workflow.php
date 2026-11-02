@@ -333,6 +333,8 @@ return [
         'actions_row11_args' => 'ticket_id, department_id',
         'actions_row12_does' => 'Changes the ticket\'s category. It has to be one the ticket\'s company uses and, when the category belongs to a ticket type, one for the ticket\'s type - otherwise the step fails and says why.',
         'actions_row12_args' => 'ticket_id, category_id',
+        'actions_row13_does' => 'Changes the ticket\'s type, to one the ticket\'s company uses. For a type that changes later in a ticket\'s life - the type a new ticket starts with is set under <strong>Tickets &rarr; Settings &rarr; Ticket types</strong>. The ticket number stays as it is, and a category that belongs to another type is cleared, as on screen.',
+        'actions_row13_args' => 'ticket_id, ticket_type_id',
         'actions_note'    => 'Each action\'s required args are marked with a <code>*</code> in the form. Missing required args cause the action to fail at execution time &mdash; the engine logs the failure to the execution row and stops the rest of the chain.',
         'actions_webhook_callout' => '<strong>The <code>send_webhook</code> action is a big topic of its own</strong> &mdash; chat presets, whole-object &ldquo;Full record&rdquo; payloads, HMAC signing, a Send-test button, background delivery with retries, and a health dashboard. It has a dedicated guide: <a href="help-webhooks.php"><strong>Webhooks guide &rarr;</strong></a>',
 

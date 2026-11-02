@@ -1,0 +1,42 @@
+/* Tickets -> Settings -> Ticket types: "Type for new tickets" (GH #230). */
+.ttr-intro, .ttr-hint { color: var(--text-muted, #666); font-size: 13px; line-height: 1.5; }
+.ttr-intro { margin-bottom: 16px; }
+.ttr-hint { margin: 6px 0 12px; }
+.ttr-default { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ttr-default label { font-weight: 600; }
+/* The page styles inputs inside .form-group; these sit outside one, so say it here. */
+.ttr select, .ttr input[type=text], .ttr input[type=email], .ttr-crit textarea {
+    font: inherit; font-size: 14px; color: var(--text, #333); background: var(--surface, #fff);
+    padding: 8px 10px; border: 1px solid var(--border, #ccc); border-radius: 4px; box-sizing: border-box; width: 100%;
+}
+.ttr-crit textarea { resize: vertical; min-height: 58px; }
+.ttr-default select { max-width: 360px; width: auto; flex: 0 1 360px; }
+.ttr-rules-head { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
+.ttr-rules-head h3, .ttr-sub { margin: 0; font-size: 15px; }
+.ttr-sub { margin-top: 24px; }
+.ttr-table { width: 100%; }
+.ttr-table td { vertical-align: top; }
+.ttr-num { width: 32px; color: var(--text-muted, #666); }
+.ttr-when { font-size: 12.5px; color: var(--text-muted, #666); margin-top: 4px; line-height: 1.5; }
+.ttr-when strong { color: var(--text, #333); font-weight: 600; }
+.ttr-and { text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+.ttr-actions { white-space: nowrap; text-align: right; }
+.ttr-actions .action-btn { width: auto; min-width: 30px; padding: 4px 8px; margin-left: 4px; }
+.ttr-actions .action-btn:disabled { opacity: .35; cursor: default; }
+.ttr-off td { opacity: .6; }
+.ttr-empty { color: var(--text-muted, #666); font-style: italic; padding: 10px 0; }
+.ttr-crit { border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 8px 12px 10px; margin: 0 0 12px; }
+.ttr-crit legend { font-weight: 600; font-size: 13px; padding: 0 6px; }
+.ttr-crit legend label { font-weight: 600; margin: 0; }
+.ttr-crit small { display: block; color: var(--text-muted, #666); margin-top: 4px; }
+.ttr-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 12px; max-height: 180px; overflow-y: auto; }
+.ttr-checks label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: normal; margin: 0; }
+.ttr-try { margin-top: 28px; border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 10px 14px; background: var(--surface-2, #f8f9fa); }
+.ttr-try summary { cursor: pointer; font-weight: 600; }
+.ttr-try-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 14px; margin-bottom: 12px; }
+.ttr-try-f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--text-muted, #666); margin: 0; }
+.ttr-try-result { margin: 10px 0 0; font-size: 14px; min-height: 1.4em; }
+@media (max-width: 600px) {
+    .ttr-default select { flex-basis: 100%; max-width: none; }
+    .ttr-checks { grid-template-columns: 1fr; }
+}

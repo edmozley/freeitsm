@@ -135,7 +135,7 @@ class TaskFollowUps
         $ticketId = TicketsService::createTicket($conn, $ctx, $tenant, [
             'subject' => mb_substr($subject, 0, 255), 'description' => $desc,
             'requester_email' => $email, 'requester_name' => (string)($me['full_name'] ?? ''),
-        ], $ctx->actorId, 'Raised from task TASK-' . $taskId . ' (follow-up)');
+        ], $ctx->actorId, 'Raised from task TASK-' . $taskId . ' (follow-up)', 'internal');
         return self::insert($conn, $ctx, $taskId, 'ticket', $ticketId, true, $sourceKind, $sourceId, $note, $clientRef);
     }
 

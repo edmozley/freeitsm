@@ -479,7 +479,7 @@ function threecxHandleCall(PDO $conn, array $p): array
             $ctx = $plan['author_is_agent']
                 ? new ActorContext(actorId: $plan['author']['id'], companyScope: null, source: 'system', actorName: $plan['author']['name'])
                 : ActorContext::system('3CX');
-            $ticketId = TicketsService::createTicket($conn, $ctx, (int)$plan['tenant_id'], $in, $assignee, 'Created from a 3CX call');
+            $ticketId = TicketsService::createTicket($conn, $ctx, (int)$plan['tenant_id'], $in, $assignee, 'Created from a 3CX call', 'phone');
             threecxLog($conn, $key, $c, $plan, $ticketId, 'created', '');
             return ['ok' => true, 'action' => 'created', 'ticket_id' => $ticketId];
         }

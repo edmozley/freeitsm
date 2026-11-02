@@ -76,8 +76,10 @@ class TicketsService
      *     logging are enforced - the New ticket form and the API pass it, an alert raised by the system does not)
      * @param ?int $defaultAnalystId  the assignee when $in names none (UI: the creator; API: null for unassigned)
      * @param string $creationNote  the text of the 'Ticket Created' audit row, e.g. "Created via API (key: X)"
+     * @param ?string $channel  how it arrived, for the type rules (TICKET_TYPE_CHANNELS); null = 'form' from
+     *     the UI, 'api' otherwise. A parameter, never a key in $in, so an API caller cannot claim another channel.
      */
-    public static function createTicket(PDO $conn, ActorContext $ctx, int $tenantId, array $in, ?int $defaultAnalystId, string $creationNote): int
+    public static function createTicket(PDO $conn, ActorContext $ctx, int $tenantId, array $in, ?int $defaultAnalystId, string $creationNote, ?string $channel = null): int
     {
         $subject        = trim((string)($in['subject'] ?? ''));
         $description    = trim((string)($in['description'] ?? ''));
@@ -197,6 +199,22 @@ class TicketsService
             }
         }
 
+        // GH #230: nobody chose a type, so the rules / default may. AFTER the
+        // checks above on purpose: the custom fields and the category were checked
+        // against the type the caller sent (none), which is what their form showed -
+        // a rule must never make a field required that nobody was asked for.
+        // BEFORE the number, which can carry the type.
+        $typePick = null;
+        if ($typeId === null) {
+            require_once dirname(__DIR__) . '/ticket_type_rules.php';
+            $typePick = ticketTypeAutoPick($conn, $tenantId, [
+                'channel' => $channel ?? ($ctx->source === 'ui' ? 'form' : 'api'),
+                'mailbox_id' => $mailboxId, 'origin_id' => $originId, 'department_id' => $departmentId,
+                'subject' => $subject, 'requester_email' => $requesterEmail,
+            ]);
+            if ($typePick) $typeId = $typePick['type_id'];
+        }
+
         try {
             $conn->beginTransaction();
 
@@ -273,6 +291,7 @@ class TicketsService
             )->execute([$mailboxId, $subject, $requesterEmail, $requesterName, $requesterEmail, $bodyPreview, $bodyHtml, $ticketId]);
 
             self::auditWrite($conn, $ticketId, $ctx->actorId, 'Ticket Created', null, $creationNote);
+            if ($typePick) ticketTypeAutoRecord($conn, $ticketId, $typePick);
 
             if ($customValues) {
                 TicketFieldsService::write($conn, $ctx, $ticketId, $customDefs, $customValues);

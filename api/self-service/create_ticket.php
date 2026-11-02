@@ -124,6 +124,19 @@ try {
     $customValues = TicketFieldsService::validate($conn, $customDefs,
         is_array($input['custom_fields'] ?? null) ? $input['custom_fields'] : [], true);
 
+    // GH #230: the requester chose no type (or the portal does not ask), so the
+    // type rules / default may give it one. AFTER the custom fields above, which
+    // were asked for the type the requester chose - a rule never adds questions
+    // nobody saw. BEFORE the number, which can carry the type.
+    $ticketTypePick = null;
+    if ($ticketTypeId === null) {
+        require_once '../../includes/ticket_type_rules.php';
+        $ticketTypePick = ticketTypeAutoPick($conn, $ticketTenantId, [
+            'channel' => 'portal', 'mailbox_id' => $mailboxId, 'subject' => $subject, 'requester_email' => $fromEmail,
+        ]);
+        $ticketTypeId = $ticketTypePick['type_id'] ?? null;
+    }
+
     // Generate unique ticket number - per type, where the numbering says so.
     $ticketNumber = generateTicketNumber($conn, $ticketTenantId, $ticketTypeId);
 
@@ -173,6 +186,7 @@ try {
     ]);
 
     $ticketId = $conn->lastInsertId();
+    if ($ticketTypePick) ticketTypeAutoRecord($conn, (int)$ticketId, $ticketTypePick);
 
     // The answers to the custom fields the requester was asked, already
     // validated above. Audited like any other change, with no analyst behind it.
