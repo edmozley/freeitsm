@@ -28,15 +28,22 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/job_scheduler.php';
 
-$opts   = getopt('', ['dry-run', 'quiet']);
-$dryRun = isset($opts['dry-run']);
-$quiet  = isset($opts['quiet']);
+$opts     = getopt('', ['dry-run', 'quiet', 'fallback']);
+$dryRun   = isset($opts['dry-run']);
+$quiet    = isset($opts['quiet']);
+// --fallback: started from a page because no scheduled task runs this (the switch on
+// Background jobs). Every job it starts inherits FREEITSM_JOB_TRIGGER=page, so each
+// run is recorded as a page run and health never counts it as the schedule working.
+$fallback = isset($opts['fallback']);
+if ($fallback) putenv('FREEITSM_JOB_TRIGGER=page');
 
 try {
     $conn = connectToDatabase();
+    // A real scheduler started since the page asked: it does the work, not us.
+    if ($fallback && jobSchedulerRunning($conn)) exit(0);
     // PHP_BINARY is this process's own PHP: the one the scheduled task already runs,
     // with whatever extensions the jobs need.
-    $result = jobSchedulerTick($conn, PHP_BINARY, $dryRun);
+    $result = jobSchedulerTick($conn, PHP_BINARY, $dryRun, $fallback);
 } catch (Throwable $e) {
     fwrite(STDERR, 'Scheduler failed: ' . $e->getMessage() . "\n");
     exit(1);

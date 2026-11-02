@@ -552,8 +552,21 @@ function intuneFindPhpExe(?string $override): string {
     if (defined('PHP_BINARY') && PHP_BINARY) {
         $candidates[] = dirname(PHP_BINARY) . DIRECTORY_SEPARATOR . $exeName;
     }
+    // Where this PHP was installed: /usr/bin on Debian, /usr/local/bin in the Docker image.
+    if (!$isWindows) $candidates[] = PHP_BINDIR . '/' . $exeName;
     if ($isWindows) {
-        foreach (glob('c:\\wamp64\\bin\\php\\php*\\php.exe') ?: [] as $g) {
+        // TRAP: WAMP keeps every PHP it has ever had, and glob() lists them oldest
+        // first, so this used to pick the oldest - 8.0 on a box serving pages with
+        // 8.4, which then failed on code that needs 8.1 (#233). The web server's own
+        // version first, then newest first.
+        $found = glob('c:\\wamp64\\bin\\php\\php*\\php.exe') ?: [];
+        usort($found, function ($a, $b) {
+            $va = preg_match('/php(\d+\.\d+\.\d+)/i', $a, $m) ? $m[1] : '0';
+            $vb = preg_match('/php(\d+\.\d+\.\d+)/i', $b, $m) ? $m[1] : '0';
+            if ($va === PHP_VERSION || $vb === PHP_VERSION) return ($vb === PHP_VERSION) <=> ($va === PHP_VERSION);
+            return version_compare($vb, $va);
+        });
+        foreach ($found as $g) {
             $candidates[] = $g;
         }
     }

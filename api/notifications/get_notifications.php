@@ -29,7 +29,10 @@ try {
     // The badge poll is the common case and runs on every open tab. Skipping the
     // list keeps it to a single indexed COUNT.
     if (!empty($_GET['count_only'])) {
-        echo json_encode(['success' => true, 'unread' => $unread]);
+        // #233: the scheduler's fallback rides on this once-a-minute poll. Only a flag -
+        // starting anything is a write, so the bell POSTs to scheduler_fallback.php for that.
+        require_once '../../includes/job_scheduler.php';
+        echo json_encode(['success' => true, 'unread' => $unread, 'scheduler_due' => jobSchedulerFallbackDue($conn)]);
         exit;
     }
 

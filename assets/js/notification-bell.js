@@ -201,6 +201,12 @@ window.NotificationBell = {
             try {
                 const d = await (await fetch(COUNT, { credentials: 'same-origin' })).json();
                 if (d.success) { paintBadge(d.unread); chimeIfNew(d.unread); }
+                // #233: the scheduler's fallback, analyst bell only. The server says when
+                // it is due; starting it is a POST, and the server claims the minute so
+                // many open tabs start it once.
+                if (d.scheduler_due && cfg.schedulerTick) {
+                    fetch(cfg.schedulerTick, { method: 'POST', credentials: 'same-origin' }).catch(function () {});
+                }
             } catch (e) { /* a failed poll is not worth telling anyone about */ }
         }
 

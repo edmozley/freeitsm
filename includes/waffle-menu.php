@@ -1272,6 +1272,7 @@ function renderNotificationBell($path_prefix) {
         'clear'      => $url . 'api/notifications/clear.php',
         'linkPrefix' => $url,
         'seenKey'    => 'nbSeenUnread',
+        'schedulerTick' => $url . 'api/reporting/scheduler_fallback.php',   // #233 fallback; the portal bell has none
     ]);
 }
 

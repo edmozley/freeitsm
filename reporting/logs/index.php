@@ -771,7 +771,32 @@ $translationNamespaces = ['common', 'reporting'];
             // The Docker image runs it itself: there is no line to add, only a container to look at.
             if (s.builtin) return `<div class="jobs-scheduler warn">${escapeHtml(JT('scheduler_container_silent'))}</div>` + tz;
             const why = s.last_beat ? JT('scheduler_stopped', { when: fmtUtc(s.last_beat) }) : JT('scheduler_none');
-            return `<div class="jobs-scheduler${s.last_beat ? ' warn' : ''}">${escapeHtml(why)}<code>${escapeHtml(s.line)}</code></div>` + tz;
+            return `<div class="jobs-scheduler${s.last_beat ? ' warn' : ''}">${escapeHtml(why)}<code>${escapeHtml(s.line)}</code></div>` + tz + fallbackHtml(s);
+        }
+
+        // #233: the fallback - due jobs started from analysts' pages when no scheduled task runs.
+        // Off by default; its limits are said here, where it is switched on, not discovered later.
+        function fallbackHtml(s) {
+            const can = jobsData && jobsData.can_configure;
+            if (!can && !s.fallback) return '';
+            let state = '';
+            if (s.fallback) state = s.fallback_beat ? JT('fallback_last', { when: fmtUtc(s.fallback_beat) }) : JT('fallback_not_yet');
+            const err = s.fallback && s.fallback_error ? `<div class="hint">${escapeHtml(JT('fallback_error', { when: fmtUtc(s.fallback_error) }))}</div>` : '';
+            return `<div class="jobs-scheduler job-form${s.fallback ? ' warn' : ''}">
+                <label><input type="checkbox" id="jobFallback" ${s.fallback ? 'checked' : ''} ${can ? '' : 'disabled'} onchange="saveFallback(this.checked)"> ${escapeHtml(JT('fallback_label'))}</label>
+                <div class="hint">${escapeHtml(JT('fallback_hint'))}</div>
+                ${state ? `<div class="hint">${escapeHtml(state)}</div>` : ''}${err}
+            </div>`;
+        }
+
+        async function saveFallback(on) {
+            const res = await fetch(API_BASE + 'job_health.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'fallback', on })
+            });
+            const d = await res.json();
+            if (!d.success) { alert(d.error || ''); return; }
+            loadJobs();
         }
 
         // A job's schedule, under its expected interval - only once the scheduler has run.

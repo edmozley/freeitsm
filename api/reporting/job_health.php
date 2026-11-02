@@ -57,10 +57,19 @@ try {
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $in = json_decode(file_get_contents('php://input'), true) ?: [];
-        if (($in['action'] ?? '') !== 'config') throw new InvalidArgumentException('Unknown action.');
+        if (!in_array($in['action'] ?? '', ['config', 'fallback'], true)) throw new InvalidArgumentException('Unknown action.');
         if (!jobHealthMayConfigure($conn, $analystId)) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => t('reporting.jobs.no_config_permission'), 'code' => 'forbidden']);
+            exit;
+        }
+        if ($in['action'] === 'fallback') {
+            // #233: start due jobs from analysts' pages when no scheduled task runs them. Off by default.
+            require_once '../../includes/job_scheduler.php';
+            $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)
+                            ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
+                 ->execute([JOB_SCHEDULER_FALLBACK, !empty($in['on']) ? '1' : '0']);
+            echo json_encode(['success' => true]);
             exit;
         }
         $job = (string)($in['job'] ?? '');
@@ -122,11 +131,14 @@ try {
             'jobs'            => array_values(jobHealthAll($conn)),
             'scheduler'       => [
                 'last_beat' => $beat ?: null,
-                'running'   => $beat !== '' && strtotime($beat . ' UTC') > time() - 180,
+                'running'   => jobSchedulerRunning($conn),
                 'line'      => jobSchedulerLine(),
                 'timezone'  => date_default_timezone_get(),
                 'builtin'   => $container && !in_array(strtolower((string)getenv('FREEITSM_SCHEDULER')), ['0', 'false', 'no', 'off'], true),
                 'tz_unset'  => $container && (!is_string($tz) || !in_array($tz, timezone_identifiers_list(), true)),
+                'fallback'        => jobSetting($conn, JOB_SCHEDULER_FALLBACK) === '1',
+                'fallback_beat'   => jobSetting($conn, JOB_SCHEDULER_FALLBACK_BEAT) ?: null,
+                'fallback_error'  => jobSetting($conn, JOB_SCHEDULER_FALLBACK_ERROR) ?: null,
             ],
             'schedules'       => jobSchedules($conn),
             'can_configure'   => jobHealthMayConfigure($conn, $analystId),

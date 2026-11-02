@@ -33,6 +33,16 @@ require_once __DIR__ . '/job_registry.php';
 /** The heartbeat cron/run.php writes on every run - how the page knows a real schedule exists. */
 const JOB_SCHEDULER_BEAT = 'scheduler_last_beat';
 
+/** The fallback (#233 slice 4): its switch, off unless '1'; its own heartbeat; and when it may next start. */
+const JOB_SCHEDULER_FALLBACK      = 'scheduler_fallback';
+const JOB_SCHEDULER_FALLBACK_BEAT = 'scheduler_fallback_beat';
+const JOB_SCHEDULER_FALLBACK_NEXT = 'scheduler_fallback_next';
+/** Set when the fallback could not start PHP - shown on the tab. */
+const JOB_SCHEDULER_FALLBACK_ERROR = 'scheduler_fallback_error';
+
+/** Seconds without a heartbeat before the real scheduler counts as not running. */
+const JOB_SCHEDULER_STALE = 180;
+
 /** The modes a schedule can have. */
 const JOB_SCHEDULE_MODES = ['interval', 'daily', 'off'];
 
@@ -198,18 +208,80 @@ function jobSchedulerSpawn(string $phpExe, string $script, array $args): bool
     return true;
 }
 
+/** Whether the real scheduler (a scheduled task or the Docker loop) has run in the last few minutes. */
+function jobSchedulerRunning(PDO $conn): bool
+{
+    $beat = jobSetting($conn, JOB_SCHEDULER_BEAT);
+    return $beat !== '' && strtotime($beat . ' UTC') > time() - JOB_SCHEDULER_STALE;
+}
+
+/**
+ * Whether the fallback should start the scheduler now: switched on, no real scheduler
+ * running, and its minute has come round. Read-only and cheap - the bell's poll asks it
+ * from every open analyst tab.
+ */
+function jobSchedulerFallbackDue(PDO $conn): bool
+{
+    try {
+        $s = $conn->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN (?, ?, ?)");
+        $s->execute([JOB_SCHEDULER_FALLBACK, JOB_SCHEDULER_BEAT, JOB_SCHEDULER_FALLBACK_NEXT]);
+        $v = $s->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (Throwable) {
+        return false;
+    }
+    if (($v[JOB_SCHEDULER_FALLBACK] ?? '') !== '1') return false;
+    $beat = (string)($v[JOB_SCHEDULER_BEAT] ?? '');
+    if ($beat !== '' && strtotime($beat . ' UTC') > time() - JOB_SCHEDULER_STALE) return false;
+    $next = (string)($v[JOB_SCHEDULER_FALLBACK_NEXT] ?? '');
+    return $next === '' || strtotime($next . ' UTC') <= time();
+}
+
+/**
+ * Starts the scheduler from a page, when the fallback is due: claims the minute with one
+ * atomic UPDATE, so ten open tabs start it once, then runs `cron/run.php --fallback` as
+ * its own process. If PHP may not start a process, that is logged and recorded, and the
+ * next try waits 15 minutes rather than coming round every minute.
+ *
+ * @return string  started, not_due or failed
+ */
+function jobSchedulerFallbackStart(PDO $conn): string
+{
+    if (!jobSchedulerFallbackDue($conn)) return 'not_due';
+    $conn->prepare("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES (?, '2000-01-01 00:00:00')")
+         ->execute([JOB_SCHEDULER_FALLBACK_NEXT]);
+    $claim = $conn->prepare("UPDATE system_settings SET setting_value = DATE_FORMAT(UTC_TIMESTAMP() + INTERVAL 1 MINUTE, '%Y-%m-%d %H:%i:00')
+                              WHERE setting_key = ? AND setting_value <= DATE_FORMAT(UTC_TIMESTAMP(), '%Y-%m-%d %H:%i:%s')");
+    $claim->execute([JOB_SCHEDULER_FALLBACK_NEXT]);
+    if ($claim->rowCount() !== 1) return 'not_due';
+
+    require_once __DIR__ . '/intune.php';   // intuneFindPhpExe(): the same PHP the Intune worker uses
+    $run = realpath(__DIR__ . '/../cron/run.php');
+    $ok = $run && jobSchedulerSpawn(intuneFindPhpExe(jobSetting($conn, 'intune_php_exe') ?: null), $run, ['--fallback', '--quiet']);
+    $save = $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+    if ($ok) {
+        $save->execute([JOB_SCHEDULER_FALLBACK_ERROR, '']);
+        return 'started';
+    }
+    error_log('[scheduler fallback] could not start PHP (popen refused or failed); trying again in 15 minutes');
+    $save->execute([JOB_SCHEDULER_FALLBACK_ERROR, gmdate('Y-m-d H:i:s')]);
+    $save->execute([JOB_SCHEDULER_FALLBACK_NEXT, gmdate('Y-m-d H:i:00', time() + 900)]);
+    return 'failed';
+}
+
 /**
  * One tick of the scheduler: what cron/run.php does each minute.
  *
  * @param string $phpExe  the PHP binary to start jobs with
  * @param bool $dryRun  work out what is due without claiming or starting anything
+ * @param bool $fallback  started from a page by the fallback: writes the fallback's own
+ *     heartbeat, never the real one, so the tab keeps saying no scheduled task runs
  * @return array<string,string>  per job: started, not_due, not_needed, off, claimed_elsewhere, failed_to_start, bad_command
  */
-function jobSchedulerTick(PDO $conn, string $phpExe, bool $dryRun = false): array
+function jobSchedulerTick(PDO $conn, string $phpExe, bool $dryRun = false, bool $fallback = false): array
 {
     if (!$dryRun) {
         $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, UTC_TIMESTAMP())
-                        ON DUPLICATE KEY UPDATE setting_value = UTC_TIMESTAMP()")->execute([JOB_SCHEDULER_BEAT]);
+                        ON DUPLICATE KEY UPDATE setting_value = UTC_TIMESTAMP()")->execute([$fallback ? JOB_SCHEDULER_FALLBACK_BEAT : JOB_SCHEDULER_BEAT]);
         jobSchedulerSeed($conn);
     }
     $schedules = jobSchedules($conn);

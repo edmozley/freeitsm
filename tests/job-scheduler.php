@@ -136,6 +136,36 @@ if ($keep) {
          ->execute(array_values($keep));
 }
 
+echo "The fallback\n";
+$keys = [JOB_SCHEDULER_FALLBACK, JOB_SCHEDULER_BEAT, JOB_SCHEDULER_FALLBACK_NEXT];
+$in = implode(',', array_fill(0, count($keys), '?'));
+$saved = $conn->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ($in)");
+$saved->execute($keys);
+$saved = $saved->fetchAll(PDO::FETCH_KEY_PAIR);
+$set = function (string $k, ?string $v) use ($conn) {
+    if ($v === null) { $conn->prepare("DELETE FROM system_settings WHERE setting_key = ?")->execute([$k]); return; }
+    $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$k, $v]);
+};
+$set(JOB_SCHEDULER_BEAT, gmdate('Y-m-d H:i:s', time() - 3600));
+$set(JOB_SCHEDULER_FALLBACK_NEXT, null);
+$set(JOB_SCHEDULER_FALLBACK, null);
+check('off by default: never due', !jobSchedulerFallbackDue($conn));
+$set(JOB_SCHEDULER_FALLBACK, '1');
+check('control: switched on with no scheduler running, it is due', jobSchedulerFallbackDue($conn));
+$set(JOB_SCHEDULER_BEAT, gmdate('Y-m-d H:i:s', time() - 30));
+check('a real scheduler ran 30s ago: not due', !jobSchedulerFallbackDue($conn));
+$set(JOB_SCHEDULER_BEAT, gmdate('Y-m-d H:i:s', time() - 3600));
+$set(JOB_SCHEDULER_FALLBACK_NEXT, gmdate('Y-m-d H:i:s', time() + 60));
+check('its next minute has not come: not due', !jobSchedulerFallbackDue($conn));
+// The claim, without starting anything: the same UPDATE jobSchedulerFallbackStart() makes.
+$set(JOB_SCHEDULER_FALLBACK_NEXT, '2000-01-01 00:00:00');
+$claim = "UPDATE system_settings SET setting_value = DATE_FORMAT(UTC_TIMESTAMP() + INTERVAL 1 MINUTE, '%Y-%m-%d %H:%i:00')
+           WHERE setting_key = ? AND setting_value <= DATE_FORMAT(UTC_TIMESTAMP(), '%Y-%m-%d %H:%i:%s')";
+$c1 = $conn->prepare($claim); $c1->execute([JOB_SCHEDULER_FALLBACK_NEXT]);
+$c2 = $other->prepare($claim); $c2->execute([JOB_SCHEDULER_FALLBACK_NEXT]);
+check('two tabs in the same minute: exactly one claims it', $c1->rowCount() === 1 && $c2->rowCount() === 0);
+foreach ($keys as $k) $set($k, $saved[$k] ?? null);
+
 echo "A dry run\n";
 $beat = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = '" . JOB_SCHEDULER_BEAT . "'")->fetchColumn();
 $r = jobSchedulerTick($conn, PHP_BINARY, true);

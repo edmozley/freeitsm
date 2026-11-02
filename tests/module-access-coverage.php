@@ -66,6 +66,7 @@ $EXEMPT = [
     'api/notifications/clear.php'          => 'your own notifications (the bell on every page)',
     'api/notifications/get_notifications.php' => 'your own notifications (the bell on every page)',
     'api/notifications/mark_read.php'      => 'your own notifications (the bell on every page)',
+    'api/reporting/scheduler_fallback.php' => 'the bell on every page starts the scheduler fallback (#233): it reads nothing back and starts only jobs already due',
     'api/settings/save_system_settings.php' => 'generic writer: authorised PER KEY by includes/settings_keys.php',
     'api/system/set_user_preference.php'   => 'your own preferences, used by every module',
     'api/system/get_user_preference.php'   => 'your own preferences, used by every module',
