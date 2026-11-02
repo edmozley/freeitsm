@@ -562,7 +562,7 @@ function renderChangeList() {
                     </div>
                 </div>
                 <div class="change-card-badges">
-                    ${c.risk_level ? `<span class="risk-badge risk-${c.risk_level.toLowerCase().replace(/\s+/g, '-')}">${c.risk_level}</span>` : ''}
+                    ${c.risk_level ? `<span class="risk-badge risk-${riskLevelClass(c.risk_level)}">${escapeHtml(riskLevelLabel(c.risk_level))}</span>` : ''}
                     <span class="type-badge ${typeClass}">${escapeHtml(c.change_type)}</span>
                     <span class="priority-badge ${priorityClass}">${escapeHtml(c.priority)}</span>
                     <span class="status-badge ${statusClass}">${escapeHtml(c.status)}</span>
@@ -627,7 +627,7 @@ function renderChangeDetail() {
     if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.work_end_datetime)}</span></div>`;
     if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_start')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_start_datetime)}</span></div>`;
     if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_end_datetime)}</span></div>`;
-    if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.risk_level')}</span><span class="detail-meta-value"><span class="risk-badge risk-${c.risk_level.toLowerCase().replace(/\s+/g, '-')}">${c.risk_level} (${c.risk_score})</span></span></div>`;
+    if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.risk_level')}</span><span class="detail-meta-value"><span class="risk-badge risk-${riskLevelClass(c.risk_level)}">${escapeHtml(riskLevelLabel(c.risk_level))} (${c.risk_score})</span></span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.created')}</span><span class="detail-meta-value">${c.created_by_name ? window.t('change-management.detail.created_by', { datetime: formatDateTime(c.created_datetime), name: c.created_by_name }) : formatDateTime(c.created_datetime)}</span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.last_modified')}</span><span class="detail-meta-value">${formatDateTime(c.modified_datetime)}</span></div>`;
 
@@ -939,29 +939,16 @@ function renderDetailSection(title, content, field) {
 
 /** The 5 by 5 likelihood-by-impact risk matrix with the change's cell highlighted. */
 function renderRiskMatrix(likelihood, impact, score, level) {
-    const riskClass = level ? level.toLowerCase().replace(/\s+/g, '-') : '';
+    const riskClass = riskLevelClass(level);
 
-    // 5x5 grid: rows = likelihood (5 top to 1 bottom), cols = impact (1 left to 5 right)
-    const cellColors = [
-        // [likelihood][impact] => color class
-        // Row 1 (likelihood=1): impacts 1-5
-        ['low','low','low','medium','medium'],
-        // Row 2 (likelihood=2): impacts 1-5
-        ['low','low','medium','medium','high'],
-        // Row 3 (likelihood=3): impacts 1-5
-        ['low','medium','medium','high','high'],
-        // Row 4 (likelihood=4): impacts 1-5
-        ['medium','medium','high','very-high','very-high'],
-        // Row 5 (likelihood=5): impacts 1-5
-        ['medium','high','high','very-high','critical'],
-    ];
-
+    // 5x5 grid: rows = likelihood (5 top to 1 bottom), cols = impact (1 left to 5 right).
+    // Each cell is coloured by its score's band, so the grid always agrees with the
+    // level shown beside it (a hand-written table had 1x4 and 4x1 as Medium; 4 is Low).
     let gridHtml = '';
-    // Render rows from top (likelihood=5) to bottom (likelihood=1)
     for (let l = 5; l >= 1; l--) {
         gridHtml += `<div class="risk-matrix-label-y">${l}</div>`;
         for (let i = 1; i <= 5; i++) {
-            const cellClass = cellColors[l-1][i-1];
+            const cellClass = riskLevelClass(riskLevelForScore(l * i));
             const isActive = (l === parseInt(likelihood) && i === parseInt(impact));
             gridHtml += `<div class="risk-matrix-cell ${cellClass}${isActive ? ' active' : ''}">${l * i}</div>`;
         }
@@ -974,7 +961,7 @@ function renderRiskMatrix(likelihood, impact, score, level) {
                 <div class="risk-matrix-info">
                     <div class="risk-score-badge ${riskClass}">
                         <span class="risk-score-value">${score}</span>
-                        <span class="risk-score-label">${level}</span>
+                        <span class="risk-score-label">${escapeHtml(riskLevelLabel(level))}</span>
                     </div>
                     <div class="risk-matrix-details">
                         <div><strong>${window.t('change-management.risk.likelihood')}:</strong> ${likelihood} / 5</div>
@@ -2007,6 +1994,68 @@ function switchTab(tab) {
 // ============ Risk Scoring & PIR Visibility ============
 
 /** Works out likelihood times impact and shows the score with its level (Low to Critical). */
+/**
+ * The risk band for a score (likelihood x impact), as the server stores it in
+ * risk_level - the English word, which is also the CSS class. Keep in step with
+ * ChangeService::riskLevel() (includes/services/changes.php); this only draws them.
+ */
+function riskLevelForScore(score) {
+    if (score <= 4) return 'Low';
+    if (score <= 9) return 'Medium';
+    if (score <= 15) return 'High';
+    if (score <= 20) return 'Very High';
+    return 'Critical';
+}
+/** 'Very High' -> 'very-high', for the risk-* classes. */
+function riskLevelClass(level) {
+    return String(level || '').toLowerCase().replace(/\s+/g, '-');
+}
+/** A stored risk_level in the reader's language; an unknown word is shown as it is. */
+function riskLevelLabel(level) {
+    const key = { 'low': 'low', 'medium': 'medium', 'high': 'high', 'very-high': 'very_high', 'critical': 'critical' }[riskLevelClass(level)];
+    return key ? window.t('change-management.risk.' + key) : String(level || '');
+}
+
+/**
+ * GH #231: the ? beside Risk likelihood and Risk impact opens the rating guide
+ * under them, with that field's explanation marked; pressed again, or Escape, or
+ * the close button, it closes and focus goes back to the button.
+ */
+(function () {
+    let opener = null;
+    function close() {
+        const g = document.getElementById('riskGuide');
+        if (!g || g.hidden) return;
+        g.hidden = true;
+        document.querySelectorAll('.cm-risk-help-btn').forEach(b => b.setAttribute('aria-expanded', 'false'));
+        if (opener) opener.focus();
+        opener = null;
+    }
+    function open(btn) {
+        const g = document.getElementById('riskGuide');
+        const part = btn.dataset.riskHelp;
+        g.hidden = false;
+        document.querySelectorAll('.cm-risk-help-btn').forEach(b => b.setAttribute('aria-expanded', b === btn ? 'true' : 'false'));
+        g.querySelectorAll('[data-risk-part]').forEach(p => p.classList.toggle('is-current', p.dataset.riskPart === part));
+        opener = btn;
+        g.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('.cm-risk-help-btn');
+        if (btn) {
+            const g = document.getElementById('riskGuide');
+            if (!g.hidden && opener === btn) close(); else open(btn);
+            return;
+        }
+        if (e.target.closest('.cm-risk-guide-close')) close();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        const g = document.getElementById('riskGuide');
+        if (g && !g.hidden && (g.contains(document.activeElement) || document.activeElement === opener)) { e.stopPropagation(); close(); }
+    }, true);
+})();
+
 function updateRiskScore() {
     const likelihood = parseInt(document.getElementById('riskLikelihood').value) || 0;
     const impact = parseInt(document.getElementById('riskImpactScore').value) || 0;
@@ -2014,14 +2063,9 @@ function updateRiskScore() {
 
     if (likelihood && impact) {
         const score = likelihood * impact;
-        let level, cssClass;
-        if (score <= 4) { level = 'Low'; cssClass = 'risk-low'; }
-        else if (score <= 9) { level = 'Medium'; cssClass = 'risk-medium'; }
-        else if (score <= 15) { level = 'High'; cssClass = 'risk-high'; }
-        else if (score <= 20) { level = 'Very High'; cssClass = 'risk-very-high'; }
-        else { level = 'Critical'; cssClass = 'risk-critical'; }
-        display.textContent = score + ' - ' + level;
-        display.className = 'risk-score-display ' + cssClass;
+        const level = riskLevelForScore(score);
+        display.textContent = score + ' - ' + riskLevelLabel(level);
+        display.className = 'risk-score-display risk-' + riskLevelClass(level);
     } else {
         display.textContent = '-';
         display.className = 'risk-score-display';

@@ -30,7 +30,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes', t('change-management.nav.help'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/change-management.css?v=7">
+    <link rel="stylesheet" href="../assets/css/change-management.css?v=12">
     <link rel="stylesheet" href="../assets/css/help.css?v=6">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
@@ -352,6 +352,12 @@ $translationNamespaces = ['common', 'change-management'];
                         <div class="cm-help-risk-level critical"><span>21&ndash;25</span> <?php echo htmlspecialchars(t('change-management.help.risk_critical')); ?></div>
                     </div>
                     <p class="help-note"><?php echo htmlspecialchars(t('change-management.help.risk_tip')); ?></p>
+                    <?php /* GH #231 */ ?>
+                    <p><?php echo t('change-management.help.risk_guide'); ?></p>
+                    <ul>
+                        <li><strong><?php echo htmlspecialchars(t('change-management.editor.risk_likelihood')); ?></strong> - <?php echo htmlspecialchars(t('change-management.editor.risk_help_likelihood')); ?></li>
+                        <li><strong><?php echo htmlspecialchars(t('change-management.editor.risk_impact')); ?></strong> - <?php echo htmlspecialchars(t('change-management.editor.risk_help_impact')); ?></li>
+                    </ul>
                 </div>
 
                 <!-- Section 7: PIR -->

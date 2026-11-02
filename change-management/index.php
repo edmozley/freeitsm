@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=11">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=12">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -276,7 +276,12 @@ $translationNamespaces = ['common', 'change-management'];
                         <div class="cm-field-wrap" data-field-key="risk">
                             <div class="form-row risk-scoring-row">
                                 <div class="form-group">
-                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_likelihood')); ?></label>
+                                    <?php /* GH #231: the ? opens the rating guide below the row. */ ?>
+                                    <div class="cm-risk-label">
+                                        <label class="form-label" for="riskLikelihood"><?php echo htmlspecialchars(t('change-management.editor.risk_likelihood')); ?></label>
+                                        <button type="button" class="cm-risk-help-btn" data-risk-help="likelihood" aria-expanded="false" aria-controls="riskGuide"
+                                                aria-label="<?php echo htmlspecialchars(t('change-management.editor.risk_help_likelihood_btn')); ?>" title="<?php echo htmlspecialchars(t('change-management.editor.risk_help_likelihood_btn')); ?>">?</button>
+                                    </div>
                                     <select class="form-input" id="riskLikelihood" onchange="updateRiskScore()">
                                         <option value=""><?php echo htmlspecialchars(t('change-management.editor.not_assessed')); ?></option>
                                         <option value="1"><?php echo htmlspecialchars(t('change-management.editor.rl_1')); ?></option>
@@ -287,7 +292,11 @@ $translationNamespaces = ['common', 'change-management'];
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_impact')); ?></label>
+                                    <div class="cm-risk-label">
+                                        <label class="form-label" for="riskImpactScore"><?php echo htmlspecialchars(t('change-management.editor.risk_impact')); ?></label>
+                                        <button type="button" class="cm-risk-help-btn" data-risk-help="impact" aria-expanded="false" aria-controls="riskGuide"
+                                                aria-label="<?php echo htmlspecialchars(t('change-management.editor.risk_help_impact_btn')); ?>" title="<?php echo htmlspecialchars(t('change-management.editor.risk_help_impact_btn')); ?>">?</button>
+                                    </div>
                                     <select class="form-input" id="riskImpactScore" onchange="updateRiskScore()">
                                         <option value=""><?php echo htmlspecialchars(t('change-management.editor.not_assessed')); ?></option>
                                         <option value="1"><?php echo htmlspecialchars(t('change-management.editor.rl_1')); ?></option>
@@ -298,9 +307,35 @@ $translationNamespaces = ['common', 'change-management'];
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_score')); ?></label>
+                                    <div class="cm-risk-label"><label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_score')); ?></label></div>
                                     <div class="risk-score-display" id="riskScoreDisplay">-</div>
                                 </div>
+                            </div>
+                            <?php /* GH #231: how to choose the two ratings. Inline rather than a floating popover:
+                                     it works the same by mouse, keyboard and touch, and on a phone it simply sits
+                                     under the fields. Guidance only - the scale, score and bands are unchanged. */ ?>
+                            <div class="cm-risk-guide" id="riskGuide" role="region" aria-labelledby="riskGuideTitle" tabindex="-1" hidden>
+                                <div class="cm-risk-guide-head">
+                                    <strong id="riskGuideTitle"><?php echo htmlspecialchars(t('change-management.editor.risk_help_title')); ?></strong>
+                                    <button type="button" class="cm-risk-guide-close" aria-label="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
+                                </div>
+                                <p data-risk-part="likelihood"><strong><?php echo htmlspecialchars(t('change-management.editor.risk_likelihood')); ?></strong> - <?php echo htmlspecialchars(t('change-management.editor.risk_help_likelihood')); ?></p>
+                                <p data-risk-part="impact"><strong><?php echo htmlspecialchars(t('change-management.editor.risk_impact')); ?></strong> - <?php echo htmlspecialchars(t('change-management.editor.risk_help_impact')); ?></p>
+                                <p><?php echo htmlspecialchars(t('change-management.editor.risk_help_same')); ?></p>
+                                <div class="cm-risk-guide-scroll">
+                                    <table class="cm-risk-guide-table">
+                                        <thead><tr><th></th><th scope="col"><?php echo htmlspecialchars(t('change-management.risk.likelihood')); ?></th><th scope="col"><?php echo htmlspecialchars(t('change-management.risk.impact')); ?></th></tr></thead>
+                                        <tbody>
+                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                            <tr><th scope="row"><?php echo $i; ?></th>
+                                                <td><?php echo htmlspecialchars(t('change-management.editor.risk_help_l' . $i)); ?></td>
+                                                <td><?php echo htmlspecialchars(t('change-management.editor.risk_help_i' . $i)); ?></td></tr>
+                                        <?php endfor; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p><?php echo htmlspecialchars(t('change-management.editor.risk_help_example')); ?></p>
+                                <p class="cm-risk-guide-note"><?php echo htmlspecialchars(t('change-management.editor.risk_help_note')); ?></p>
                             </div>
                         </div>
 
@@ -587,7 +622,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/project-links.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/safe-html.js?v=4"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=34"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=35"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

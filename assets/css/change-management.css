@@ -954,8 +954,10 @@ body.cm-editor-open .editor-form {
 
 /* ============ Risk Scoring (Editor) ============ */
 
+/* Top-aligned since GH #231: the three labels share one height (.cm-risk-label),
+   so their tops line up; the old flex-end left Risk score lower than the other two. */
 .risk-scoring-row {
-    align-items: flex-end;
+    align-items: flex-start;
 }
 
 .risk-score-display {
@@ -977,6 +979,38 @@ body.cm-editor-open .editor-form {
 .risk-score-display.risk-high { background: #fbe9e7; color: #d84315; }
 .risk-score-display.risk-very-high { background: #fce4ec; color: #c62828; }
 .risk-score-display.risk-critical { background: #c62828; color: #fff; }
+
+/* GH #231: the ? beside each rating, and the guide it opens under the row. */
+.cm-risk-label { display: flex; align-items: center; gap: 6px; min-height: 22px; margin-bottom: 6px; }
+.cm-risk-label .form-label { margin-bottom: 0; }
+.risk-scoring-row .risk-score-display { min-height: 42px; box-sizing: border-box; }
+.cm-risk-help-btn {
+    width: 20px; height: 20px; padding: 0; flex: 0 0 auto;
+    border: 1px solid var(--border, #ccc); border-radius: 50%;
+    background: var(--surface, #fff); color: var(--text-muted, #555);
+    font: 600 12px/1 inherit; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.cm-risk-help-btn:hover, .cm-risk-help-btn[aria-expanded="true"] { border-color: var(--accent, #107c10); color: var(--accent, #107c10); }
+.cm-risk-help-btn:focus-visible { outline: 2px solid var(--accent, #107c10); outline-offset: 2px; }
+.cm-risk-guide {
+    margin: 4px 0 16px; padding: 12px 16px;
+    border: 1px solid var(--border, #ddd); border-radius: 6px;
+    background: var(--surface-2, #f8f9fa); color: var(--text, #333);
+    font-size: 13px; line-height: 1.5;
+}
+.cm-risk-guide:focus { outline: none; }
+.cm-risk-guide p { margin: 0 0 8px; }
+.cm-risk-guide p.is-current { border-left: 3px solid var(--accent, #107c10); padding-left: 8px; margin-left: -11px; }
+.cm-risk-guide-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cm-risk-guide-close { border: none; background: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--text-muted, #666); padding: 0 4px; }
+.cm-risk-guide-close:focus-visible { outline: 2px solid var(--accent, #107c10); }
+.cm-risk-guide-scroll { overflow-x: auto; margin: 4px 0 10px; }
+.cm-risk-guide-table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.cm-risk-guide-table th, .cm-risk-guide-table td { border: 1px solid var(--border, #ddd); padding: 5px 8px; text-align: left; vertical-align: top; }
+.cm-risk-guide-table thead th { background: var(--surface, #fff); font-weight: 600; }
+.cm-risk-guide-table tbody th { width: 28px; text-align: center; background: var(--surface, #fff); }
+.cm-risk-guide-note { color: var(--text-muted, #666); font-size: 12px; }
 
 /* Risk level badges */
 .risk-badge {
