@@ -15,6 +15,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
 | 2701 | Background jobs   | Fix         | Every background job now takes one run lock named per database (JobRun::lock), including Run now and page-load runs, so a job started twice runs once; four jobs had no lock and five relied on a read-then-write minimum interval. |
+| 2703 | Background jobs   | Feature     | Built-in scheduler, slice 2 (#233): Edit on a job sets every so many minutes, once a day at a set time (install timezone shown) or off, and saves the schedule and what health expects in one transaction so the two never disagree. |
 | 2702 | Background jobs   | Feature     | Built-in scheduler, slice 1 (#233, vsc55's design): cron/run.php run every minute starts each due job as its own process from the new job_schedules table, and the Background jobs tab shows whether it is running and each job's schedule. |
 
 

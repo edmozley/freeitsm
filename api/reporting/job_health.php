@@ -70,8 +70,23 @@ try {
         $cfg = jobHealthConfig($conn);
         $mine = $cfg[$job] ?? [];
         $interval = (int)($in['interval'] ?? 0);
-        if ($interval > 0) $mine['interval'] = max(1, min(60 * 24 * 31, $interval)); else unset($mine['interval']);
         $notUsed = !empty($in['not_used']);
+        // #233: a scheduled job's schedule IS what health expects of it - one setting, not two.
+        // Daily is expected once a day; off is "not used here".
+        $mode = (string)($in['mode'] ?? '');
+        $atTime = (string)($in['at_time'] ?? '');
+        if ($mode !== '') {
+            require_once '../../includes/job_scheduler.php';
+            if (!isset(jobRegistry()[$job]) || !in_array($mode, JOB_SCHEDULE_MODES, true)) throw new InvalidArgumentException('Unknown schedule.');
+            if ($mode === 'daily' && !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $atTime)) {
+                echo json_encode(['success' => false, 'error' => t('reporting.jobs.time_invalid')]);
+                exit;
+            }
+            if ($mode === 'daily') $interval = 1440;
+            $notUsed = $mode === 'off';
+        }
+        if ($interval > 0 && $interval !== (int)$registry[$job]['interval']) $mine['interval'] = max(1, min(60 * 24 * 31, $interval));
+        elseif ($mode !== 'off') unset($mine['interval']);
         if ($notUsed && empty($mine['not_used'])) {
             // Who said so, and when - "not used here" silences a job's alarm, so it is on the record.
             $mine['not_used'] = true;
@@ -81,8 +96,14 @@ try {
             unset($mine['not_used'], $mine['not_used_by'], $mine['not_used_at']);
         }
         if ($mine) $cfg[$job] = $mine; else unset($cfg[$job]);
+        $conn->beginTransaction();
         $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('job_health_config', ?)
                         ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([json_encode($cfg)]);
+        if ($mode !== '') {
+            jobScheduleSave($conn, $job, $mode, $mode === 'interval' ? ($mine['interval'] ?? (int)$registry[$job]['interval']) : null,
+                            $mode === 'daily' ? $atTime : null, $analystId);
+        }
+        $conn->commit();
         echo json_encode(['success' => true, 'job' => jobHealthOne($conn, $registry[$job], $cfg[$job] ?? [])]);
         exit;
     }

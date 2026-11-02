@@ -407,6 +407,10 @@ $translationNamespaces = ['common', 'reporting'];
         .job-form label { display: block; font-size: 13px; margin: 10px 0 4px; color: var(--text, #333); }
         .job-form input[type=number] { width: 120px; padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); }
         .job-form .hint { font-size: 12px; color: var(--text-muted, #666); margin-top: 4px; }
+        .job-form label.job-mode { margin: 12px 0 4px; font-weight: 500; }
+        .job-form .job-mode-detail { margin-left: 24px; }
+        .job-form input[type=time] { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); }
+        .job-form .job-mode-footnote { margin-top: 14px; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border, #ddd); }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> block, or a rule at
@@ -917,6 +921,7 @@ $translationNamespaces = ['common', 'reporting'];
         function editJob(key) {
             const j = jobsData.jobs.find(x => x.key === key);
             if (!j) return;
+            if (!j.pushed) return editJobSchedule(j);
             openJobModal(j.name, `
                 <div class="job-form">
                     <label for="jobInterval">${escapeHtml(JT('interval_label'))}</label>
@@ -927,6 +932,52 @@ $translationNamespaces = ['common', 'reporting'];
                 </div>`,
                 `<button class="btn btn-secondary" onclick="closeJobModal()">${escapeHtml(JT('cancel'))}</button>
                  <button class="btn btn-primary" onclick="saveJob('${escapeHtml(key)}')">${escapeHtml(JT('save'))}</button>`);
+        }
+
+        // #233: a job FreeITSM runs - its schedule, which is also what health expects of it.
+        function editJobSchedule(j) {
+            const s = (jobsData.schedules || {})[j.key] || {};
+            const mode = j.not_used ? 'off' : (s.mode === 'daily' ? 'daily' : 'interval');
+            const sch = jobsData.scheduler || {};
+            const radio = (m, label) => `<label class="job-mode"><input type="radio" name="jobMode" value="${m}" ${mode === m ? 'checked' : ''} onchange="jobModeChanged()"> ${escapeHtml(label)}</label>`;
+            openJobModal(j.name, `
+                <div class="job-form">
+                    ${radio('interval', JT('mode_interval'))}
+                    <div class="job-mode-detail" data-mode="interval">
+                        <input type="number" id="jobInterval" min="1" value="${j.interval !== j.default_interval && mode === 'interval' ? j.interval : ''}" placeholder="${j.default_interval}" aria-label="${escapeHtml(JT('mode_interval'))}">
+                        <div class="hint">${escapeHtml(JT('interval_default', { d: intervalText(j.default_interval) }))}</div>
+                    </div>
+                    ${radio('daily', JT('mode_daily'))}
+                    <div class="job-mode-detail" data-mode="daily">
+                        <input type="time" id="jobAtTime" value="${escapeHtml(s.at_time || '06:00')}" aria-label="${escapeHtml(JT('mode_daily'))}">
+                        <span class="hint">${escapeHtml(sch.timezone || '')}</span>
+                        <div class="hint">${escapeHtml(JT('daily_hint', { tz: sch.timezone || '' }))}</div>
+                    </div>
+                    ${radio('off', JT('mode_off'))}
+                    <div class="job-mode-detail" data-mode="off"><div class="hint">${escapeHtml(JT('not_used_hint'))}</div></div>
+                    <div class="hint job-mode-footnote">${escapeHtml(JT(sch.running ? 'schedule_hint_running' : 'schedule_hint_cron'))}</div>
+                </div>`,
+                `<button class="btn btn-secondary" onclick="closeJobModal()">${escapeHtml(JT('cancel'))}</button>
+                 <button class="btn btn-primary" onclick="saveJobSchedule('${escapeHtml(j.key)}')">${escapeHtml(JT('save'))}</button>`);
+            jobModeChanged();
+        }
+
+        function jobModeChanged() {
+            const m = (document.querySelector('input[name="jobMode"]:checked') || {}).value;
+            document.querySelectorAll('.job-mode-detail').forEach(el => { el.hidden = el.dataset.mode !== m; });
+        }
+
+        async function saveJobSchedule(key) {
+            const mode = (document.querySelector('input[name="jobMode"]:checked') || {}).value || 'interval';
+            const res = await fetch(API_BASE + 'job_health.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'config', job: key, mode, interval: document.getElementById('jobInterval').value,
+                                       at_time: document.getElementById('jobAtTime').value })
+            });
+            const d = await res.json();
+            if (!d.success) { alert(d.error || ''); return; }
+            closeJobModal();
+            loadJobs();
         }
 
         async function saveJob(key) {

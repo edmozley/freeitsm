@@ -116,6 +116,26 @@ if ($keep) {
          ->execute(array_values($keep));
 }
 
+echo "Saving a schedule\n";
+$keep = $conn->query("SELECT * FROM job_schedules WHERE job_key = 'domains'")->fetch(PDO::FETCH_ASSOC);
+jobScheduleSave($conn, 'domains', 'daily', null, '06:00', 1);
+$row = $conn->query("SELECT mode, at_time, next_due_at, updated_by FROM job_schedules WHERE job_key = 'domains'")->fetch(PDO::FETCH_ASSOC);
+$want = jobScheduleNextDue('daily', null, '06:00', new DateTimeImmutable('now', $utc), new DateTimeZone(date_default_timezone_get()));
+check('daily: saved with its time, who changed it, and its next 06:00 as next start',
+    $row['mode'] === 'daily' && $row['at_time'] === '06:00' && $row['next_due_at'] === $want && (int)$row['updated_by'] === 1, json_encode($row));
+$conn->exec("UPDATE job_schedules SET last_claimed_at = UTC_TIMESTAMP() - INTERVAL 10 MINUTE WHERE job_key = 'domains'");
+jobScheduleSave($conn, 'domains', 'interval', 30, null, 1);
+$gap = (int)$conn->query("SELECT TIMESTAMPDIFF(MINUTE, last_claimed_at, next_due_at) FROM job_schedules WHERE job_key = 'domains'")->fetchColumn();
+check('every 30 minutes: counts from its last start, not from now', $gap === 30, "gap {$gap}");
+jobScheduleSave($conn, 'domains', 'off', null, null, 1);
+$row = $conn->query("SELECT mode, next_due_at FROM job_schedules WHERE job_key = 'domains'")->fetch(PDO::FETCH_ASSOC);
+check('off: no next start', $row['mode'] === 'off' && $row['next_due_at'] === null);
+$conn->exec("DELETE FROM job_schedules WHERE job_key = 'domains'");
+if ($keep) {
+    $conn->prepare("INSERT INTO job_schedules (" . implode(',', array_keys($keep)) . ") VALUES (" . implode(',', array_fill(0, count($keep), '?')) . ")")
+         ->execute(array_values($keep));
+}
+
 echo "A dry run\n";
 $beat = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = '" . JOB_SCHEDULER_BEAT . "'")->fetchColumn();
 $r = jobSchedulerTick($conn, PHP_BINARY, true);

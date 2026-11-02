@@ -115,6 +115,35 @@ function jobSchedules(PDO $conn): array
 }
 
 /**
+ * Saves a job's schedule from the Background jobs tab and works out its next start: a new
+ * interval counts from the job's last start (or now), a daily time is its next occurrence.
+ *
+ * @param string $mode  interval, daily or off
+ * @param ?int $interval  minutes, for interval
+ * @param ?string $at  HH:MM in the install's timezone, for daily
+ * @param int $analystId  who changed it
+ */
+function jobScheduleSave(PDO $conn, string $job, string $mode, ?int $interval, ?string $at, int $analystId): void
+{
+    jobSchedulerSeed($conn);
+    $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+    $next = null;
+    if ($mode === 'interval') {
+        $s = $conn->prepare("SELECT last_claimed_at FROM job_schedules WHERE job_key = ?");
+        $s->execute([$job]);
+        $last = $s->fetchColumn();
+        $next = $last ? (new DateTimeImmutable($last, new DateTimeZone('UTC')))->modify('+' . max(1, (int)$interval) . ' minutes')->format('Y-m-d H:i:s')
+                      : $now->format('Y-m-d H:i:s');
+    } elseif ($mode === 'daily') {
+        $next = jobScheduleNextDue('daily', null, $at, $now, new DateTimeZone(date_default_timezone_get()));
+    }
+    $conn->prepare("UPDATE job_schedules SET mode = ?, interval_minutes = ?, at_time = ?, next_due_at = ?,
+                           updated_by = ?, updated_datetime = UTC_TIMESTAMP()
+                     WHERE job_key = ?")
+         ->execute([$mode, $mode === 'interval' ? max(1, (int)$interval) : null, $mode === 'daily' ? $at : null, $next, $analystId, $job]);
+}
+
+/**
  * Claims a job that is due: moves its next_due_at on in ONE statement, so only one caller
  * wins. True when this caller won and should start it.
  *
