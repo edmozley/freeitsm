@@ -95,6 +95,13 @@ RUN mkdir -p /var/www/html/tickets/attachments \
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
+# tini as process 1 (#233). The built-in scheduler starts each background job as
+# its own detached process, and a detached process whose parent has gone is handed
+# to process 1 to collect when it ends. Apache is not written to be process 1, so
+# without tini every finished job could linger as a zombie. tini also passes
+# Docker's stop signal on to Apache.
+RUN apt-get update && apt-get install -y --no-install-recommends tini && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 80 443
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["tini", "--", "entrypoint.sh"]

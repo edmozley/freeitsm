@@ -38,6 +38,9 @@ services:
       # container — X-Forwarded-Proto is client-settable, so it must never be trusted
       # by default.
       # - TRUST_PROXY_HTTPS=1
+      # The container runs FreeITSM's background jobs itself (SLA checks, webhooks,
+      # directory imports...). Set to 0 only if you run cron/run.php from the host.
+      # - FREEITSM_SCHEDULER=0
       # Show PHP errors in the browser - development only. They are always logged
       # (docker logs) either way; never turn this on for an install people use.
       # - FREEITSM_DISPLAY_ERRORS=1

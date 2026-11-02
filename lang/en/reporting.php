@@ -134,6 +134,8 @@ return [
         'scheduler_running' => 'The built-in scheduler is running: one scheduled task starts every job below. It last ran {when}.',
         'scheduler_stopped' => 'The built-in scheduler last ran {when} and has stopped. Check that this scheduled task still runs every minute:',
         'scheduler_none'    => 'Each job below needs its own scheduled task. One scheduled task can start them all instead, every minute:',
+        'scheduler_container_silent' => 'This container runs the built-in scheduler itself, but it has not run in the last few minutes. Check the container\'s logs (docker logs), and that FREEITSM_SCHEDULER is not set to 0.',
+        'scheduler_tz_unset' => 'No timezone is set for this container, so daily times are in UTC. Set TZ in docker-compose.yml, for example TZ=Europe/London, and restart the container.',
         'starts'            => 'Scheduler: {when}',
         'starts_daily'      => 'Scheduler: daily at {time} ({tz})',
         'starts_off'        => 'Scheduler: off',

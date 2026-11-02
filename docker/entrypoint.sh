@@ -77,5 +77,30 @@ case "$TRUST_PROXY_HTTPS" in
         ;;
 esac
 
+# The built-in scheduler (#233): cron/run.php once a minute, as www-data, so the
+# background jobs run with no cron in the container or on the host. A loop rather
+# than the cron daemon, because cron starts jobs with an almost empty environment
+# and docker/config.php reads DB_* and TZ from it. FREEITSM_SCHEDULER=0 turns it
+# off, for an install that runs cron/run.php or the per-job scripts from the host.
+# Errors go to `docker logs`.
+case "$FREEITSM_SCHEDULER" in
+    0|false|no|off)
+        echo "FREEITSM_SCHEDULER is off: this container does not start background jobs."
+        ;;
+    *)
+        (
+            while true; do
+                # Deprecation notices off: php.ini's session.sid_* lines raise two at
+                # every PHP start on 8.4, which would be 2,880 log lines a day. Errors
+                # still reach the log.
+                runuser -u www-data -- php -d "error_reporting=E_ALL & ~E_DEPRECATED" /var/www/html/cron/run.php --quiet
+                # Wake at the top of the next minute, however long this run took.
+                sleep $((60 - $(date +%s) % 60))
+            done
+        ) &
+        echo "Built-in scheduler started: background jobs run inside this container."
+        ;;
+esac
+
 # Start Apache in foreground
 exec apache2-foreground

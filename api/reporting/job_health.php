@@ -111,7 +111,12 @@ try {
     if ($view === 'health') {
         require_once '../../includes/job_scheduler.php';
         // #233: whether the one-line scheduler is running, and each job's schedule.
+        require_once '../../includes/storage_persistence.php';
         $beat = jobSetting($conn, JOB_SCHEDULER_BEAT);
+        // In the Docker image the container runs the scheduler itself (docker/entrypoint.sh)
+        // unless FREEITSM_SCHEDULER turns it off, and the timezone comes from TZ, UTC when unset.
+        $container = storagePersistenceInContainer();
+        $tz = getenv('TZ');
         echo json_encode([
             'success'         => true,
             'jobs'            => array_values(jobHealthAll($conn)),
@@ -120,6 +125,8 @@ try {
                 'running'   => $beat !== '' && strtotime($beat . ' UTC') > time() - 180,
                 'line'      => jobSchedulerLine(),
                 'timezone'  => date_default_timezone_get(),
+                'builtin'   => $container && !in_array(strtolower((string)getenv('FREEITSM_SCHEDULER')), ['0', 'false', 'no', 'off'], true),
+                'tz_unset'  => $container && (!is_string($tz) || !in_array($tz, timezone_identifiers_list(), true)),
             ],
             'schedules'       => jobSchedules($conn),
             'can_configure'   => jobHealthMayConfigure($conn, $analystId),

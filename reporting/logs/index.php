@@ -765,9 +765,13 @@ $translationNamespaces = ['common', 'reporting'];
         // #233: is the one-line scheduler (cron/run.php) running?
         function schedulerHtml(s) {
             if (!s) return '';
-            if (s.running) return `<div class="jobs-scheduler ok">${escapeHtml(JT('scheduler_running', { when: fmtUtc(s.last_beat) }))}</div>`;
+            // Docker on its UTC default: daily times would be UTC, which nobody expects.
+            const tz = s.tz_unset ? `<div class="jobs-scheduler warn">${escapeHtml(JT('scheduler_tz_unset'))}</div>` : '';
+            if (s.running) return `<div class="jobs-scheduler ok">${escapeHtml(JT('scheduler_running', { when: fmtUtc(s.last_beat) }))}</div>` + tz;
+            // The Docker image runs it itself: there is no line to add, only a container to look at.
+            if (s.builtin) return `<div class="jobs-scheduler warn">${escapeHtml(JT('scheduler_container_silent'))}</div>` + tz;
             const why = s.last_beat ? JT('scheduler_stopped', { when: fmtUtc(s.last_beat) }) : JT('scheduler_none');
-            return `<div class="jobs-scheduler${s.last_beat ? ' warn' : ''}">${escapeHtml(why)}<code>${escapeHtml(s.line)}</code></div>`;
+            return `<div class="jobs-scheduler${s.last_beat ? ' warn' : ''}">${escapeHtml(why)}<code>${escapeHtml(s.line)}</code></div>` + tz;
         }
 
         // A job's schedule, under its expected interval - only once the scheduler has run.
