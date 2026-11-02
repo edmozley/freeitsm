@@ -186,3 +186,381 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
 
 /* Projects section (3.2.0): the project colour before its name */
 .ppl-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 7px; vertical-align: 1px; }
+
+/* ---------- organisation chart (people/org.php) ----------------------------- */
+/* Two views of one data source, each with its own layouts: the tree (cards,
+   compact, columns) and the chart (cards or compact, top to bottom or left to
+   right). Avatars take their colour from the person's department, set inline
+   by people/org.php; the chart's cards carry it as --dc. */
+.ppl-org-views { display: flex; gap: 0; margin-bottom: 10px; }
+.ppl-org-view {
+    flex: 1; padding: 7px 10px; font-size: 13px; cursor: pointer; border: 1px solid var(--border, #ddd);
+    background: var(--surface, #fff); color: var(--text, #333);
+}
+.ppl-org-view:first-child { border-radius: 6px 0 0 6px; }
+.ppl-org-view:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+.ppl-org-view[aria-pressed="true"] { background: var(--ppl-accent); border-color: var(--ppl-accent); color: #fff; }
+.ppl-org-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text, #333); cursor: pointer; }
+.ppl-org-check input { width: auto; margin: 0; }
+.ppl-org-small { font-size: 12px; line-height: 1.5; margin: 6px 0; }
+
+.ppl-org-results {
+    border: 1px solid var(--border, #ddd); border-radius: 6px; margin: -4px 0 8px; max-height: 300px; overflow-y: auto;
+    background: var(--surface, #fff);
+}
+.ppl-org-results[hidden] { display: none; }
+.ppl-org-results button {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 7px 10px; border: none;
+    border-bottom: 1px solid var(--border, #eee); background: none; color: var(--text, #333); font-size: 13px; text-align: left; cursor: pointer;
+}
+.ppl-org-results button:last-child { border-bottom: none; }
+.ppl-org-results button:hover, .ppl-org-results button:focus-visible { background: var(--ppl-accent-soft); outline: none; }
+.ppl-org-results .ppl-dim { font-size: 11px; }
+
+.ppl-org-gap { border: 1px solid var(--border, #eee); border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; font-size: 13px; }
+.ppl-org-gap summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 6px; color: var(--text, #333); }
+.ppl-org-gap ul { margin: 4px 0 0; padding-left: 18px; }
+.ppl-org-gap li { margin: 3px 0; }
+.ppl-org-gap a { color: var(--ppl-accent); text-decoration: none; }
+.ppl-org-gap a:hover { text-decoration: underline; }
+
+/* The card fills the main area down to the bottom of the window, and what is in
+   it scrolls inside - so the columns and the chart reach the bottom, whatever
+   the window's height, and the card's header with its switches stays in view. */
+.ppl-org-card { height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+.ppl-org-card > .ppl-org-tree { flex: 1; min-height: 0; overflow: auto; }
+.ppl-org-card > .ppl-org-tree.columns { overflow: hidden; display: flex; flex-direction: column; }
+.ppl-org-card > .ppl-org-chart { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.ppl-org-focus {
+    display: flex; align-items: center; gap: 8px; margin: -2px 0 8px; padding: 6px 6px 6px 10px; border-radius: 6px;
+    background: var(--ppl-accent-soft); color: var(--text, #333); font-size: 13px;
+}
+.ppl-org-focus[hidden] { display: none; }
+.ppl-org-focus span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ppl-org-focus button {
+    flex: none; width: 26px; height: 26px; border: none; border-radius: 4px; background: none; color: var(--ppl-accent);
+    font-size: 18px; line-height: 1; cursor: pointer; padding: 0;
+}
+.ppl-org-focus button:hover, .ppl-org-focus button:focus-visible { background: var(--surface, #fff); outline: none; }
+.ppl-org-tools { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.ppl-org-tools[hidden] { display: none; }
+.ppl-org-tools .ppl-btn { cursor: pointer; padding: 4px 10px; }
+.ppl-org-tools .ppl-btn[hidden] { display: none; }
+.ppl-org-refresh { gap: 6px; }
+/* Export: a button and the menu under it, right-aligned to stay inside the card. */
+.ppl-org-dd { position: relative; }
+.ppl-org-menu {
+    position: absolute; top: calc(100% + 4px); right: 0; z-index: 20; min-width: 190px; padding: 4px;
+    background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.14);
+}
+.ppl-org-menu[hidden] { display: none; }
+.ppl-org-menu button {
+    display: block; width: 100%; padding: 7px 10px; border: none; border-radius: 6px; background: none;
+    font: inherit; font-size: 13px; color: var(--text, #333); text-align: left; cursor: pointer;
+}
+.ppl-org-menu button:hover, .ppl-org-menu button:focus-visible { background: var(--ppl-accent-soft); color: var(--ppl-accent); outline: none; }
+.ppl-org-menu-sep { height: 1px; margin: 4px 6px; background: var(--border, #eee); }
+.ppl-org-menu button[aria-checked="true"] { font-weight: 600; color: var(--ppl-accent); }
+.ppl-org-menu button[aria-checked="true"]::after { content: "\2713"; float: right; }
+.ppl-org-menu-form { padding: 6px 10px 4px; font-size: 13px; }
+.ppl-org-menu-form label { display: block; margin-bottom: 4px; color: var(--text, #333); }
+.ppl-org-menu-row { display: flex; gap: 6px; }
+.ppl-org-menu-row input { width: 70px; padding: 5px 8px; font: inherit; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
+.ppl-org-menu-row input[aria-invalid="true"] { border-color: var(--danger, #dc2626); }
+.ppl-org-menu .ppl-org-menu-row button.ppl-btn { width: auto; display: inline-flex; padding: 5px 12px; border: 1px solid var(--border, #ddd); }
+.ppl-org-menu-hint { margin: 4px 0 0; font-size: 12px; color: var(--text-dim, #888); }
+.ppl-org-menu-hint.bad { color: var(--danger, #dc2626); }
+.ppl-org-status { padding: 12px 16px; font-size: 13px; color: var(--text-dim, #888); }
+.ppl-org-status[hidden], .ppl-org-status:empty { display: none; }
+
+/* Layout switches in the card header. */
+.ppl-org-seg { display: inline-flex; }
+.ppl-org-seg button {
+    font: inherit; font-size: 12px; padding: 5px 10px; margin-left: -1px; cursor: pointer;
+    border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text, #333);
+}
+.ppl-org-seg button:first-child { margin-left: 0; border-radius: 6px 0 0 6px; }
+.ppl-org-seg button:last-child { border-radius: 0 6px 6px 0; }
+.ppl-org-seg button[aria-pressed="true"] { background: var(--ppl-accent); border-color: var(--ppl-accent); color: #fff; position: relative; }
+.ppl-org-seg button:focus-visible { outline: 2px solid var(--ppl-accent); outline-offset: 1px; position: relative; }
+
+/* Avatars: initials on the department's colour. */
+.ppl-org-av {
+    flex: none; border-radius: 50%; color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+    background: var(--ppl-accent); letter-spacing: .3px;
+}
+.ppl-org-av.s { width: 24px; height: 24px; font-size: 10px; }
+.ppl-org-av.m { width: 36px; height: 36px; font-size: 13px; }
+.ppl-org-av.l { width: 52px; height: 52px; font-size: 18px; }
+.ppl-org-n { font-size: 12px; font-weight: 600; color: var(--ppl-accent); background: var(--ppl-accent-soft); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+
+/* The tree, cards and compact: one <ul> per level, opened on demand. */
+.ppl-org-tree { padding: 12px 16px 18px; }
+.ppl-org-tree[hidden], .ppl-org-chart[hidden] { display: none !important; }
+.ppl-org-level { list-style: none; margin: 0; padding: 0; }
+/* Must beat the layouts' own display rules (flex in Cards), or a collapsed level stays open. */
+.ppl-org-level[hidden] { display: none !important; }
+.ppl-org-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.ppl-org-who { flex: 1; min-width: 0; }
+
+/* The lines: each person draws their own piece of the vertical (::after) and
+   their elbow (::before), and the last one's vertical stops at its elbow - so
+   the line never runs on below the last person in a team. */
+.ppl-org-tree.cards .ppl-org-level { display: flex; flex-direction: column; gap: 8px; }
+.ppl-org-tree.cards .ppl-org-level .ppl-org-level { margin: 8px 0 0 22px; padding-left: 22px; }
+.ppl-org-tree.cards .ppl-org-level .ppl-org-level > li { position: relative; }
+.ppl-org-tree.cards .ppl-org-level .ppl-org-level > li::before { content: ''; position: absolute; left: -22px; top: 28px; width: 18px; border-top: 2px solid var(--border, #e5e7eb); }
+.ppl-org-tree.cards .ppl-org-level .ppl-org-level > li::after { content: ''; position: absolute; left: -22px; top: -8px; bottom: 0; border-left: 2px solid var(--border, #e5e7eb); }
+.ppl-org-tree.cards .ppl-org-level .ppl-org-level > li:last-child::after { bottom: auto; height: 38px; }
+.ppl-org-tree.cards .ppl-org-row {
+    padding: 9px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: 10px; background: var(--surface, #fff); max-width: 640px; box-sizing: border-box;
+}
+.ppl-org-tree.cards .ppl-org-row.leaver { border-style: dashed; border-color: #9ca3af; background: var(--surface-hover, #fafafa); }
+.ppl-org-tree.cards .ppl-org-meta { display: block; }
+.ppl-org-tree.cards .ppl-org-row.hit { border-color: var(--ppl-accent); box-shadow: 0 0 0 1px var(--ppl-accent); background: var(--ppl-accent-soft); }
+
+.ppl-org-tree.compact .ppl-org-level .ppl-org-level { margin-left: 13px; padding-left: 14px; }
+.ppl-org-tree.compact .ppl-org-level .ppl-org-level > li { position: relative; }
+/* The elbow runs on to the person's avatar (past the empty space where an
+   expand arrow would be), or stops at the arrow when they have a team. */
+.ppl-org-tree.compact .ppl-org-level .ppl-org-level > li::before { content: ''; position: absolute; z-index: 1; left: -14px; top: 16px; width: 47px; border-top: 1px solid var(--border, #d4d4d8); }
+.ppl-org-tree.compact .ppl-org-level .ppl-org-level > li.has-team::before { width: 20px; }
+.ppl-org-tree.compact .ppl-org-level .ppl-org-level > li::after { content: ''; position: absolute; left: -14px; top: 0; bottom: 0; border-left: 1px solid var(--border, #d4d4d8); }
+.ppl-org-tree.compact .ppl-org-level .ppl-org-level > li:last-child::after { bottom: auto; height: 16px; }
+.ppl-org-tree.compact .ppl-org-row { min-height: 32px; padding: 0 6px; border-radius: 6px; gap: 8px; }
+.ppl-org-tree.compact .ppl-org-row:hover { background: var(--surface-hover, #f6f6f8); }
+.ppl-org-tree.compact .ppl-org-row.hit { background: var(--ppl-accent-soft); box-shadow: inset 3px 0 0 var(--ppl-accent); }
+.ppl-org-tree.compact .ppl-org-row.leaver .ppl-org-name { color: var(--text-dim, #888); }
+.ppl-org-cells, .ppl-org-chead {
+    display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 170px) 70px; gap: 16px; color: var(--text-muted, #666); flex: none;
+}
+.ppl-org-cells span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ppl-org-cells .n, .ppl-org-chead .n { text-align: right; color: var(--ppl-accent); font-weight: 600; }
+.ppl-org-chead {
+    justify-content: end; padding: 0 40px 8px 0; margin-bottom: 4px; border-bottom: 1px solid var(--border, #eee);
+    font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-dim, #888);
+}
+.ppl-org-tree.compact .ppl-org-as-chart { margin-left: 0; }
+/* The columns need about 520px beside the names, whatever the window: so it is
+   the tree's own width that decides, not the screen's (the sidebar takes 250px
+   of a laptop's). Too narrow and the names are crushed under them - so they go. */
+.ppl-org-tree.compact { container-type: inline-size; }
+@container (max-width: 860px) {
+    .ppl-org-cells, .ppl-org-chead { display: none; }
+}
+
+.ppl-org-toggle {
+    width: 22px; height: 22px; flex-shrink: 0; border: none; border-radius: 4px; background: none; cursor: pointer; padding: 0;
+    color: var(--text-dim, #888); position: relative;
+}
+.ppl-org-toggle::before {
+    content: ''; position: absolute; left: 8px; top: 7px; width: 6px; height: 6px;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform 120ms ease;
+}
+.ppl-org-toggle[aria-expanded="true"]::before { transform: rotate(45deg); top: 5px; }
+.ppl-org-toggle:hover, .ppl-org-toggle:focus-visible { background: var(--ppl-accent-soft); color: var(--ppl-accent); outline: none; }
+.ppl-org-toggle.none::before { display: none; }
+/* The space kept where the arrow would be, so names line up: not a button, so no hover. */
+.ppl-org-toggle.none, .ppl-org-toggle.none:hover { background: none; cursor: default; pointer-events: none; }
+.ppl-org-name { font-weight: 600; color: var(--ppl-accent); text-decoration: none; }
+.ppl-org-name:hover { text-decoration: underline; }
+.ppl-org-meta { color: var(--text-dim, #888); font-size: 12px; min-width: 0; overflow-wrap: anywhere; }
+.ppl-org-as-chart {
+    margin-left: auto; border: none; background: none; cursor: pointer; padding: 3px; border-radius: 4px;
+    color: var(--text-dim, #999); display: inline-flex; opacity: .6;
+}
+.ppl-org-row:hover .ppl-org-as-chart, .ppl-org-as-chart:focus-visible { opacity: 1; }
+.ppl-org-as-chart:hover, .ppl-org-as-chart:focus-visible { color: var(--ppl-accent); background: var(--ppl-accent-soft); outline: none; }
+.ppl-org-more { padding: 6px 8px; font-size: 12px; color: var(--text-dim, #888); }
+
+/* The tree, columns: one column per level in a strip that scrolls sideways,
+   a path naming every level above it, and the person chosen last on the right.
+   Any depth works the same: the strip scrolls to its newest column. */
+.ppl-org-tree.columns { padding: 0; }
+.ppl-org-crumbs {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 16px; font-size: 13px;
+    border-bottom: 1px solid var(--border, #eee); color: var(--text-dim, #999);
+}
+.ppl-org-crumb { font: inherit; border: none; background: none; padding: 2px 4px; border-radius: 4px; color: var(--ppl-accent); cursor: pointer; }
+.ppl-org-crumb:hover, .ppl-org-crumb:focus-visible { background: var(--ppl-accent-soft); outline: none; }
+.ppl-org-crumb[aria-current="true"] { color: var(--text, #222); font-weight: 600; }
+/* Down to the bottom of the card: the columns and the panel stretch, each scrolls on its own. */
+.ppl-org-colsview { display: flex; flex: 1; min-height: 0; }
+.ppl-org-strip { flex: 1; min-width: 0; display: flex; overflow-x: auto; }
+.ppl-org-col { flex: none; width: 250px; box-sizing: border-box; padding: 8px; border-right: 1px solid var(--border, #eee); overflow-y: auto; }
+.ppl-org-col h4 { margin: 0; padding: 6px 8px; font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-dim, #888); }
+.ppl-org-pick {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border: none; border-radius: 8px;
+    background: none; text-align: left; font: inherit; color: var(--text, #222); cursor: pointer;
+}
+.ppl-org-pick:hover { background: var(--surface-hover, #f6f6f8); }
+.ppl-org-pick:focus-visible { outline: 2px solid var(--ppl-accent); outline-offset: -2px; }
+.ppl-org-pick.on { background: var(--ppl-accent-soft); }
+.ppl-org-pick.cur { background: var(--ppl-accent); color: #fff; }
+.ppl-org-pick.cur .ppl-org-av { background: #fff !important; color: var(--ppl-accent); }
+.ppl-org-pick .t { flex: 1; min-width: 0; }
+.ppl-org-pick .t b, .ppl-org-pick .t span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ppl-org-pick .t b { font-size: 13px; }
+.ppl-org-pick .t span { font-size: 12px; color: var(--text-dim, #888); }
+.ppl-org-pick.cur .t span { color: inherit; opacity: .85; }
+.ppl-org-pick.leaver .t b { color: var(--text-dim, #888); }
+.ppl-org-pick .n { font-size: 12px; color: var(--text-dim, #888); white-space: nowrap; }
+.ppl-org-pick.cur .n { color: inherit; }
+.ppl-org-detail {
+    flex: none; width: 300px; box-sizing: border-box; padding: 18px; background: var(--surface-hover, #fafafa);
+    display: flex; flex-direction: column; gap: 14px; font-size: 13px; border-left: 1px solid var(--border, #eee); overflow-y: auto;
+}
+.ppl-org-detail-hint { color: var(--text-dim, #888); }
+.ppl-org-team h5 { margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-dim, #888); }
+.ppl-org-team button {
+    display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 6px; border: none; border-radius: 6px;
+    background: none; font: inherit; font-size: 13px; color: var(--text, #222); text-align: left; cursor: pointer;
+}
+.ppl-org-team button:hover, .ppl-org-team button:focus-visible { background: var(--ppl-accent-soft); outline: none; }
+.ppl-org-team button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ppl-org-detail[hidden] { display: none; }
+.ppl-org-detail-who { display: flex; align-items: center; gap: 14px; }
+.ppl-org-detail-name { font-size: 17px; font-weight: 700; color: var(--text, #222); }
+.ppl-org-detail .ppl-fields { padding: 0; }
+.ppl-org-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.ppl-org-detail-actions .ppl-btn { cursor: pointer; }
+
+/* The chart: HTML boxes and CSS lines, drawn by people/org.php. */
+.ppl-org-chart-head { padding: 12px 16px 6px; font-size: 13px; color: var(--text, #333); }
+.ppl-org-chart-title { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+.ppl-org-chart-head a { color: var(--ppl-accent); text-decoration: none; }
+.ppl-org-chart-head a:hover { text-decoration: underline; }
+.ppl-org-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 6px; font-size: 12px; color: var(--text-muted, #555); }
+.ppl-org-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ppl-org-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.ppl-org-chartbody { display: flex; flex: 1; min-height: 0; border-top: 1px solid var(--border, #eee); }
+.ppl-org-canvas { flex: 1; min-width: 0; overflow: auto; padding: 16px; background: var(--surface-hover, #fafafa); }
+/* Moved by dragging and zoomed by the wheel, so the bars only got in the way: hidden, still scrollable. */
+.ppl-org-canvas { cursor: grab; scrollbar-width: none; }
+.ppl-org-canvas::-webkit-scrollbar { display: none; }
+.ppl-org-canvas.panning, .ppl-org-canvas.panning * { cursor: grabbing; user-select: none; }
+.ppl-org-zoom { min-width: 56px; font-variant-numeric: tabular-nums; }
+.ppl-org-chartbody .ppl-org-detail { background: var(--surface, #fff); position: relative; padding-top: 48px; }
+.ppl-org-panel-body { display: flex; flex-direction: column; gap: 14px; }
+.ppl-org-panel-toggle {
+    position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border: 1px solid var(--border, #ddd); border-radius: 6px;
+    background: var(--surface, #fff); color: var(--text-muted, #555); font-size: 18px; line-height: 1; cursor: pointer; padding: 0;
+}
+.ppl-org-panel-toggle:hover, .ppl-org-panel-toggle:focus-visible { color: var(--ppl-accent); border-color: var(--ppl-accent); outline: none; }
+.ppl-org-detail.collapsed { width: 50px; padding: 48px 0 0; overflow: hidden; }
+.ppl-org-detail.collapsed .ppl-org-panel-body { display: none; }
+.ppl-org-contact:empty { display: none; }
+.ppl-org-contact dd { display: flex; align-items: flex-start; gap: 6px; }
+.ppl-org-val { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ppl-org-copy {
+    flex: none; width: 24px; height: 24px; margin-top: -3px; padding: 0; border: none; border-radius: 4px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; background: none; color: var(--text-dim, #999);
+}
+.ppl-org-copy:hover, .ppl-org-copy:focus-visible { color: var(--ppl-accent); background: var(--ppl-accent-soft); outline: none; }
+.ppl-org-copy.done { color: #16a34a; }
+.ppl-oc-scale { margin: 0 auto; }
+.ppl-oc { display: inline-block; transform-origin: 0 0; padding: 8px 8px 20px; color: var(--text, #222); }
+
+/* z-index: the boxes (and the count on them) sit above the lines, which are
+   drawn by later elements and would otherwise run across the count. */
+.ppl-oc-card {
+    position: relative; z-index: 1; box-sizing: border-box; width: 172px; padding: 10px 10px 16px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+    background: var(--surface, #fff); border-radius: 12px; border-top: 4px solid var(--dc, var(--ppl-accent));
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+/* Marked by colour, not by rings: the person the drawing is about has the
+   accent's tint and their name in it; the one whose panel is open, the tint.
+   The outline is kept for the keyboard only, where it is the way to see focus. */
+.ppl-oc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.14); }
+.ppl-oc-card:focus-visible { outline: 2px solid var(--ppl-accent); outline-offset: 2px; }
+/* The person the drawing is about: filled with the accent, as the chosen person
+   is in Columns. A pale tint was tried first and read as the same grey as the
+   canvas behind it. The one whose panel is open: white, with the accent's top
+   band and name - secondary, but still told apart. */
+/* ⚠️ The department's band stays (top, or left when sideways): it is what says
+   which department somebody is in, and filling the card must not take it away. */
+/* Chosen from eight drawn options: the card stays white with its department's
+   band, gains an accent bar along the bottom and a "Chosen" tag in the corner.
+   (A tint matched the canvas's grey; a filled card was too loud.) */
+.ppl-oc-card.root { border-bottom: 5px solid var(--ppl-accent); box-shadow: 0 6px 16px color-mix(in srgb, var(--ppl-accent) 25%, transparent); }
+.ppl-oc-card.root .ppl-oc-name { color: var(--ppl-accent); }
+.ppl-oc-pill {
+    position: absolute; top: -11px; right: -10px; z-index: 2; font-size: 10px; font-weight: 700; color: #fff;
+    background: var(--ppl-accent); border-radius: 999px; padding: 2px 8px; box-shadow: 0 2px 6px rgba(0,0,0,.2); white-space: nowrap;
+}
+/* The one whose panel is open, when it is somebody else: a soft accent shadow and name. */
+.ppl-oc-card.sel:not(.root) { box-shadow: 0 4px 14px color-mix(in srgb, var(--ppl-accent) 25%, transparent); }
+.ppl-oc-card.sel:not(.root) .ppl-oc-name { color: var(--ppl-accent); }
+/* Dim the others (a switch): everybody but the chosen and the selected fades back. */
+.ppl-oc.dim .ppl-oc-card:not(.root):not(.sel) { opacity: .4; transition: opacity 120ms ease; }
+.ppl-oc.dim .ppl-oc-card:not(.root):not(.sel):hover, .ppl-oc.dim .ppl-oc-card:not(.root):not(.sel):focus-visible { opacity: 1; }
+.ppl-oc-card.leaver { border: 2px dashed #9ca3af; box-shadow: none; background: var(--surface-hover, #fafafa); }
+.ppl-oc-txt { display: flex; flex-direction: column; align-items: inherit; min-width: 0; max-width: 100%; }
+.ppl-oc-name, .ppl-oc-job { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ppl-oc-name { font-weight: 600; font-size: 13px; }
+.ppl-oc-job { font-size: 11px; color: var(--text-dim, #6b7280); }
+.ppl-oc-card.leaver .ppl-oc-job { color: #b91c1c; font-weight: 600; }
+/* Filled: everybody under them is drawn. Outlined: click them to draw the rest. */
+.ppl-oc-badge {
+    position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); min-width: 24px; height: 24px; padding: 0 6px; box-sizing: border-box;
+    border-radius: 12px; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    background: var(--surface, #fff); border: 2px solid var(--dc, var(--ppl-accent)); color: var(--dc, var(--ppl-accent));
+}
+.ppl-oc-badge.open { background: var(--dc, var(--ppl-accent)); color: #fff; }
+.ppl-oc-card.small {
+    width: 156px; padding: 6px 10px; align-items: flex-start; text-align: left; border-radius: 8px;
+    border-top: 0; border-left: 4px solid var(--dc, var(--ppl-accent)); box-shadow: 0 1px 3px rgba(0,0,0,.07);
+}
+
+/* Top to bottom: nested lists, the lines drawn by each item's ::before/::after. */
+.ppl-oc.v ul.t { display: flex; justify-content: center; margin: 0; padding: 26px 0 0; position: relative; }
+.ppl-oc.v > ul.t { padding-top: 0; gap: 24px; }
+.ppl-oc.v li.t { list-style: none; position: relative; padding: 26px 8px 0; display: flex; flex-direction: column; align-items: center; }
+.ppl-oc.v > ul.t > li.t { padding-top: 0; }
+.ppl-oc.v ul.t ul.t > li.t::before, .ppl-oc.v ul.t ul.t > li.t::after {
+    content: ''; position: absolute; top: 0; right: 50%; width: 50%; height: 26px; border-top: 2px solid var(--border-strong, #d4d4d8);
+}
+.ppl-oc.v ul.t ul.t > li.t::after { right: auto; left: 50%; border-left: 2px solid var(--border-strong, #d4d4d8); }
+.ppl-oc.v ul.t ul.t > li.t:first-child::before, .ppl-oc.v ul.t ul.t > li.t:last-child::after { border: 0 none; }
+.ppl-oc.v ul.t ul.t > li.t:last-child::before { border-right: 2px solid var(--border-strong, #d4d4d8); border-radius: 0 10px 0 0; }
+.ppl-oc.v ul.t ul.t > li.t:first-child::after { border-radius: 10px 0 0 0; }
+/* ⚠️ After the first/last rules, on purpose: somebody alone in a team is both,
+   and the last-child rule would take their vertical away and leave a gap
+   between the manager and them. Theirs is a straight line down, no elbow. */
+.ppl-oc.v ul.t ul.t > li.t:only-child::before { display: none; }
+.ppl-oc.v ul.t ul.t > li.t:only-child::after { border: 0 none; border-left: 2px solid var(--border-strong, #d4d4d8); border-radius: 0; }
+.ppl-oc.v li.t > ul.t::before { content: ''; position: absolute; top: 0; left: 50%; height: 26px; border-left: 2px solid var(--border-strong, #d4d4d8); }
+/* Compact: a team with no teams of its own, stacked under its manager on one spine. */
+.ppl-oc-stack { list-style: none; margin: 0; padding: 22px 0 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ppl-oc-stack::before { content: ''; position: absolute; top: 0; bottom: 12px; left: 50%; border-left: 2px solid var(--border-strong, #d4d4d8); }
+.ppl-oc-stack > li { position: relative; }
+
+/* Left to right: each box, then its team in a column joined by elbows. */
+.ppl-oc.h .h-roots { display: flex; flex-direction: column; gap: 22px; }
+.ppl-oc.h .h-node { display: flex; align-items: center; }
+.ppl-oc.h .h-kids { display: flex; flex-direction: column; gap: 10px; padding-left: 40px; position: relative; }
+.ppl-oc.h .h-kids::before { content: ''; position: absolute; left: 0; top: 50%; width: 20px; border-top: 2px solid var(--border-strong, #d4d4d8); }
+.ppl-oc.h .h-kids > .h-node { position: relative; }
+.ppl-oc.h .h-kids > .h-node::before { content: ''; position: absolute; left: -20px; top: 50%; width: 20px; border-top: 2px solid var(--border-strong, #d4d4d8); }
+.ppl-oc.h .h-kids > .h-node::after { content: ''; position: absolute; left: -20px; top: -5px; bottom: -5px; border-left: 2px solid var(--border-strong, #d4d4d8); }
+.ppl-oc.h .h-kids > .h-node:first-child::after { top: 50%; }
+.ppl-oc.h .h-kids > .h-node:last-child::after { bottom: 50%; }
+.ppl-oc.h .h-kids > .h-node:only-child::after { display: none; }
+.ppl-oc.h .ppl-oc-card { flex-direction: row; width: 230px; padding: 10px 18px 10px 10px; text-align: left; gap: 10px; border-top: 0; border-left: 4px solid var(--dc, var(--ppl-accent)); }
+.ppl-oc.h .ppl-oc-card.leaver { border: 2px dashed #9ca3af; }
+.ppl-oc.h .ppl-oc-card.small { width: 180px; }
+.ppl-oc.h .ppl-oc-txt { align-items: flex-start; }
+.ppl-oc.h .ppl-oc-badge { bottom: auto; left: auto; top: 50%; right: -12px; transform: translateY(-50%); }
+
+@media (prefers-reduced-motion: reduce) { .ppl-org-toggle::before { transition: none; } }
+@media (max-width: 900px) {
+    .ppl-org-card { height: auto; }
+    .ppl-org-card > .ppl-org-tree, .ppl-org-card > .ppl-org-tree.columns { overflow: visible; }
+    .ppl-org-cells, .ppl-org-chead { display: none; }
+    .ppl-org-colsview, .ppl-org-chartbody { flex-direction: column; height: auto; }
+    .ppl-org-canvas { max-height: 70vh; }
+    .ppl-org-col { width: 100%; border-right: none; }
+    .ppl-org-col:not(:last-child) { display: none; }
+    .ppl-org-detail { width: auto; border-left: none; border-top: 1px solid var(--border, #eee); }
+}

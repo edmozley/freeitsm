@@ -96,6 +96,10 @@ $multi = isMultiTenant($conn);
                         if ($p['reports']) {
                             $f('reports', implode('', array_map(fn($r) => '<div><a href="person.php?id=' . $r['id'] . '">' . pplE($r['name']) . '</a>' . ($r['is_active'] ? '' : ' <span class="ppl-dim">(' . pplE(t('people.person.leaver')) . ')</span>') . '</div>', $p['reports'])), true);
                         }
+                        // Only somebody with a reporting line has a place in the chart.
+                        if ($p['manager'] || $p['reports']) {
+                            $f('org', '<a href="org.php?person=' . (int)$p['id'] . '">' . pplE(t('people.person.org_link')) . '</a>', true);
+                        }
                         $f('source', $p['source']);
                         $f('first_seen', fmt_date($p['created_at']));
                         if (!$p['is_active']) $f('left', fmt_date($p['deactivated_datetime']));

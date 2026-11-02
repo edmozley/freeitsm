@@ -941,3 +941,419 @@ function peopleBareDate(?string $d): string
         return (string)$d;
     }
 }
+
+// ---------------------------------------------------------------------------
+//  Organisation chart
+// ---------------------------------------------------------------------------
+//
+// The reporting lines in users.manager_id, read one level at a time. Stored once,
+// pointing UP, so a level is "who has this person as their manager".
+//
+// 🔑 ONE RULE FOR EVERY ANSWER. A node is somebody this analyst could open
+// (peopleScope()), and the tree and the chart are the same data drawn twice.
+//  - A manager in a company the reader cannot access is not named: the people
+//    under them simply start a branch of their own, as if they had no manager.
+//  - Leavers are hidden unless asked for, EXCEPT a leaver who still has active
+//    people reporting to them - hiding that one would hide the gap.
+//  - Nothing here writes. Reporting lines are changed where they always were.
+
+/** How far a reporting line is walked upwards - a bound real data never reaches, so bad data cannot loop. */
+const PEOPLE_ORG_MAX_DEPTH = 32;
+/** The chart draws one branch: this many levels below the person it starts from, unless the reader picks another... */
+const PEOPLE_ORG_CHART_LEVELS = 3;
+/** ...or every level ("all"), which is as far as a reporting line is ever walked... */
+const PEOPLE_ORG_CHART_LEVELS_MAX = PEOPLE_ORG_MAX_DEPTH;
+/** ...with these offered in the chart's Levels menu, besides All and a number of the reader's own. */
+const PEOPLE_ORG_CHART_LEVELS_PRESETS = [1, 2, 3, 4, 5, 8, 10];
+/** ...and never more boxes than this, past which a chart is no longer readable. */
+const PEOPLE_ORG_CHART_MAX = 150;
+/**
+ * The levels a chart is drawn to: what the reader asked for, held between 1 and
+ * PEOPLE_ORG_CHART_LEVELS_MAX - "all" and 0 (no limit, however written: '00' too) are that - and
+ * PEOPLE_ORG_CHART_LEVELS when they asked for nothing, or for something that is
+ * not a level. However deep, PEOPLE_ORG_CHART_MAX still caps the boxes.
+ *
+ * @param mixed $asked  the request's levels: a string, or null when it has none
+ */
+function peopleOrgChartLevels($asked): int
+{
+    // ?levels[]=5 arrives as an array: not a level, and casting it would warn.
+    $asked = is_scalar($asked) ? trim((string)$asked) : '';
+    if ($asked === 'all') return PEOPLE_ORG_CHART_LEVELS_MAX;
+    if (!ctype_digit($asked)) return PEOPLE_ORG_CHART_LEVELS;
+    $n = (int)$asked;
+    return $n === 0 ? PEOPLE_ORG_CHART_LEVELS_MAX : min($n, PEOPLE_ORG_CHART_LEVELS_MAX);
+}
+
+/** The most people one level of the tree returns. */
+const PEOPLE_ORG_LEVEL_LIMIT = 500;
+/** The most people each list of gaps names. */
+const PEOPLE_ORG_GAPS_LIMIT = 50;
+
+/**
+ * " AND <shown>" for the person aliased $a: always true with leavers, otherwise
+ * active, or a leaver with an active person still reporting to them.
+ *
+ * @param string $a  the users alias, e.g. 'u'
+ * @param bool $leavers  true to show everybody, leavers included
+ */
+function peopleOrgShownSql(PDO $conn, int $analystId, string $a, bool $leavers): array
+{
+    if ($leavers) return ['', []];
+    [$scope, $args] = peopleScope($conn, $analystId, "{$a}k.tenant_id");
+    return [" AND ($a.is_active = 1 OR EXISTS (SELECT 1 FROM users {$a}k WHERE {$a}k.manager_id = $a.id AND {$a}k.is_active = 1$scope))", $args];
+}
+
+/**
+ * People as chart nodes: who they are, and how many people the reader would see under them.
+ *
+ * @param string $where  the condition on `u`, e.g. 'u.manager_id = ?'
+ * @param array $whereArgs  its placeholders
+ * @param bool $leavers  true to show leavers too
+ * @param int $limit  the most rows to return
+ * @param string $having  an optional HAVING on the result, e.g. 'reports > 0'
+ */
+function peopleOrgNodes(PDO $conn, int $analystId, string $where, array $whereArgs, bool $leavers, int $limit, string $having = ''): array
+{
+    [$scopeU, $argsU] = peopleScope($conn, $analystId, 'u.tenant_id');
+    [$showU, $argsS]  = peopleOrgShownSql($conn, $analystId, 'u', $leavers);
+    [$scopeR, $argsR] = peopleScope($conn, $analystId, 'r.tenant_id');
+    [$showR, $argsSR] = peopleOrgShownSql($conn, $analystId, 'r', $leavers);
+    $st = $conn->prepare(
+        "SELECT u.id, u.display_name, u.preferred_name, u.email, u.username, u.job_title, u.department,
+                u.is_active, u.manager_id, tn.name AS company_name,
+                (SELECT COUNT(*) FROM users r WHERE r.manager_id = u.id AND r.id <> u.id $scopeR $showR) AS reports
+           FROM users u LEFT JOIN tenants tn ON tn.id = u.tenant_id
+          WHERE $where $scopeU $showU" . ($having !== '' ? " HAVING $having" : '') . "
+          ORDER BY (COALESCE(NULLIF(u.preferred_name, ''), NULLIF(u.display_name, ''), u.email) IS NULL),
+                   COALESCE(NULLIF(u.preferred_name, ''), NULLIF(u.display_name, ''), u.email)
+          LIMIT " . (int)$limit
+    );
+    // The subquery in the SELECT list comes before the WHERE, and so do its placeholders.
+    $st->execute(array_merge($argsR, $argsSR, $whereArgs, $argsU, $argsS));
+    // Asked once per request: a chart asks for a level per manager drawn.
+    static $company = null;
+    if ($company === null) {
+        $multi = isMultiTenant($conn);
+        $company = [$multi, $multi ? (getTenantById($conn, getDefaultTenantId($conn))['name'] ?? null) : null];
+    }
+    [$multi, $defaultName] = $company;
+    return array_map(fn($r) => [
+        'id' => (int)$r['id'], 'name' => peopleName($r),
+        'job_title' => $r['job_title'], 'department' => $r['department'],
+        'company' => $multi ? ($r['company_name'] ?? $defaultName) : null,
+        'is_active' => (int)$r['is_active'] === 1, 'reports' => (int)$r['reports'],
+    ], $st->fetchAll(PDO::FETCH_ASSOC));
+}
+
+/**
+ * One level of the tree: the people who report to $managerId, or the top when it is 0.
+ *
+ * The top is everybody who manages somebody the reader can see and has no
+ * manager the reader can see - nobody above them, or nobody they may know about.
+ *
+ * @param int $managerId  users.id of the manager, or 0 for the top of the chart
+ * @param bool $leavers  true to show leavers too
+ * @return array ['people' => nodes, 'more' => bool]
+ */
+function peopleOrgLevel(PDO $conn, int $analystId, int $managerId, bool $leavers): array
+{
+    if ($managerId > 0) {
+        if (!analystCanAccessUser($conn, $analystId, $managerId)) return ['people' => [], 'more' => false];
+        $rows = peopleOrgNodes($conn, $analystId, 'u.manager_id = ? AND u.id <> ?', [$managerId, $managerId], $leavers, PEOPLE_ORG_LEVEL_LIMIT + 1);
+    } else {
+        [$scopeM, $argsM] = peopleScope($conn, $analystId, 'm.tenant_id');
+        [$showM, $argsSM] = peopleOrgShownSql($conn, $analystId, 'm', $leavers);
+        $rows = peopleOrgNodes($conn, $analystId,
+            "(u.manager_id IS NULL OR u.manager_id = u.id
+              OR NOT EXISTS (SELECT 1 FROM users m WHERE m.id = u.manager_id $scopeM $showM))",
+            array_merge($argsM, $argsSM), $leavers, PEOPLE_ORG_LEVEL_LIMIT + 1, 'reports > 0');
+    }
+    $more = count($rows) > PEOPLE_ORG_LEVEL_LIMIT;
+    return ['people' => array_slice($rows, 0, PEOPLE_ORG_LEVEL_LIMIT), 'more' => $more];
+}
+
+/**
+ * The reporting line from the top of the reader's chart down to one person, or null if out of reach.
+ *
+ * Walked upwards, bounded and with a visited set, and stopped at the first
+ * manager the reader may not see - the same place the tree starts their branch.
+ * With leavers hidden it also stops at a manager the tree would not show (a
+ * leaver nobody current reports to), for the same reason: the tree starts below them.
+ *
+ * @param int $userId  users.id of the person
+ * @param bool $leavers  true to show leavers too
+ * @return array|null ['ids' => users.id top first, ending with $userId, 'is_active' => bool, 'name' => string]
+ */
+function peopleOrgPath(PDO $conn, int $analystId, int $userId, bool $leavers = true): ?array
+{
+    if ($userId <= 0 || !analystCanAccessUser($conn, $analystId, $userId)) return null;
+    $st = $conn->prepare("SELECT id, manager_id, is_active, display_name, preferred_name, email, username FROM users WHERE id = ?");
+    $st->execute([$userId]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row) return null;
+    $active = (int)$row['is_active'] === 1;
+    $name = peopleName($row);
+
+    [$show, $showArgs] = peopleOrgShownSql($conn, $analystId, 'u', $leavers);
+    $shown = $leavers ? null : $conn->prepare("SELECT 1 FROM users u WHERE u.id = ?$show");
+    $ids = [$userId];
+    $seen = [$userId => true];
+    $cur = (int)($row['manager_id'] ?? 0);
+    for ($i = 0; $i < PEOPLE_ORG_MAX_DEPTH && $cur > 0 && !isset($seen[$cur]); $i++) {
+        if (!analystCanAccessUser($conn, $analystId, $cur)) break;
+        if ($shown) {
+            $shown->execute(array_merge([$cur], $showArgs));
+            if (!$shown->fetchColumn()) break;
+        }
+        $seen[$cur] = true;
+        array_unshift($ids, $cur);
+        $st->execute([$cur]);
+        $cur = (int)($st->fetch(PDO::FETCH_ASSOC)['manager_id'] ?? 0);
+    }
+    return ['ids' => $ids, 'is_active' => $active, 'name' => $name];
+}
+
+/**
+ * What the chart's side panel shows about one person: how to reach them and the
+ * few details that say who they are. Null when out of reach, as everywhere here.
+ *
+ * Only what the person page already shows the same reader (personDetail()), so
+ * the panel tells nobody anything new.
+ *
+ * @param int $userId  users.id of the person
+ */
+function peopleOrgPerson(PDO $conn, int $analystId, int $userId): ?array
+{
+    if ($userId <= 0 || !analystCanAccessUser($conn, $analystId, $userId)) return null;
+    $st = $conn->prepare(
+        "SELECT u.email, u.phone, u.mobile, u.office, u.employee_id, u.deactivated_datetime, tn.name AS company_name
+           FROM users u LEFT JOIN tenants tn ON tn.id = u.tenant_id WHERE u.id = ?"
+    );
+    $st->execute([$userId]);
+    $u = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$u) return null;
+    $multi = isMultiTenant($conn);
+    return [
+        'email' => $u['email'], 'phone' => $u['phone'], 'mobile' => $u['mobile'],
+        'office' => $u['office'], 'employee_id' => $u['employee_id'],
+        'company' => $multi ? ($u['company_name'] ?? (getTenantById($conn, getDefaultTenantId($conn))['name'] ?? null)) : null,
+        'left' => $u['deactivated_datetime'],
+    ];
+}
+
+/**
+ * One branch for the chart: a person and up to $levels levels below them,
+ * never more than PEOPLE_ORG_CHART_MAX people in all.
+ *
+ * Every node carries 'children' (drawn) and 'more' (people under them that
+ * were not drawn), so the chart can say what it left out.
+ *
+ * $rootId 0 is the whole organisation, as the tree shows it: a root that is
+ * nobody (id 0, no name), whose children are the people at the top. It is not
+ * a person, so it does not count towards the limit.
+ *
+ * @param int $rootId  users.id of the person the branch starts from, or 0 for the whole organisation
+ * @param bool $leavers  true to show leavers too
+ * @param int $levels  how many levels below them, already through peopleOrgChartLevels()
+ * @return array|null ['root' => node, 'manager' => ['id','name']|null, 'total' => int, 'truncated' => bool]
+ */
+function peopleOrgBranch(PDO $conn, int $analystId, int $rootId, bool $leavers, int $levels = PEOPLE_ORG_CHART_LEVELS): ?array
+{
+    if ($rootId === 0) {
+        // Its count is the top row, set below from the first level asked for.
+        $root = ['id' => 0, 'name' => '', 'job_title' => null, 'department' => null, 'company' => null,
+                 'is_active' => true, 'reports' => 0];
+        $total = 0;
+    } else {
+        if ($rootId < 0 || !analystCanAccessUser($conn, $analystId, $rootId)) return null;
+        // The root is shown even as a leaver: somebody asked for them by name.
+        $root = peopleOrgNodes($conn, $analystId, 'u.id = ?', [$rootId], true, 1)[0] ?? null;
+        if (!$root) return null;
+        $total = 1;
+    }
+
+    $truncated = false;
+    $seen = [$rootId => true];
+    $nodes = [$rootId => $root];
+    $children = [];
+    $level = [$rootId];
+    // The whole organisation's root is nobody, so the top row does not use up a level.
+    $levels += $rootId === 0 ? 1 : 0;
+    for ($depth = 0; $depth < $levels && $level; $depth++) {
+        $next = [];
+        foreach ($level as $pid) {
+            $kids = [];
+            $under = peopleOrgLevel($conn, $analystId, $pid, $leavers);
+            if ($pid === $rootId) {
+                // What is under the root follows the reader's leavers choice, whoever
+                // the root is - the level just asked for is exactly that.
+                $nodes[$rootId]['reports'] = max(count($under['people']), $under['more'] ? $nodes[$rootId]['reports'] : 0);
+            }
+            if ($under['more']) $truncated = true;
+            foreach ($under['people'] as $kid) {
+                if (isset($seen[$kid['id']])) continue;            // a loop in bad data
+                if ($total >= PEOPLE_ORG_CHART_MAX) {
+                    // Full: nobody else is drawn, so nobody else is asked for.
+                    $truncated = true;
+                    $children[$pid] = $kids;
+                    break 3;
+                }
+                $seen[$kid['id']] = true;
+                $nodes[$kid['id']] = $kid;
+                $kids[] = $kid['id'];
+                $next[] = $kid['id'];
+                $total++;
+            }
+            $children[$pid] = $kids;
+        }
+        $level = $next;
+    }
+    if ($level) $truncated = $truncated || array_sum(array_map(fn($id) => $nodes[$id]['reports'], $level)) > 0;
+
+    $build = function (int $id) use (&$build, &$nodes, &$children): array {
+        $n = $nodes[$id];
+        $n['children'] = array_map($build, $children[$id] ?? []);
+        $n['more'] = max(0, $n['reports'] - count($n['children']));
+        return $n;
+    };
+
+    $manager = null;
+    $st = $conn->prepare("SELECT m.id, m.display_name, m.preferred_name, m.email, m.username
+                            FROM users u JOIN users m ON m.id = u.manager_id WHERE u.id = ? AND m.id <> u.id");
+    $st->execute([$rootId]);
+    if (($m = $st->fetch(PDO::FETCH_ASSOC)) && analystCanAccessUser($conn, $analystId, (int)$m['id'])) {
+        $manager = ['id' => (int)$m['id'], 'name' => peopleName($m)];
+    }
+    return ['root' => $build($rootId), 'manager' => $manager, 'total' => $total, 'truncated' => $truncated];
+}
+
+/** In a person's place in the organisation, how many of each team on the way up are drawn beside the line. */
+const PEOPLE_ORG_CONTEXT_PEERS = 12;
+
+/**
+ * A person in the organisation: the line from the top down to them, each
+ * manager's team beside it, and their own branch below - so the chart can show
+ * where somebody sits, not only who is under them.
+ *
+ * Up the line, only the people on it are opened; their colleagues are drawn
+ * closed, at most PEOPLE_ORG_CONTEXT_PEERS per team besides the one on the line
+ * (the rest count as "more"). Below the person, peopleOrgBranch() as usual.
+ * The top is where peopleOrgPath() stops: a manager the reader may not see is
+ * never drawn, as everywhere here.
+ *
+ * @param int $userId  users.id of the person
+ * @param bool $leavers  true to show leavers too
+ * @param int $levels  how many levels below them, already through peopleOrgChartLevels()
+ * @return array|null ['root' => node, 'focus' => $userId, 'manager' => null, 'total' => int, 'truncated' => bool]
+ */
+function peopleOrgContext(PDO $conn, int $analystId, int $userId, bool $leavers, int $levels = PEOPLE_ORG_CHART_LEVELS): ?array
+{
+    $path = peopleOrgPath($conn, $analystId, $userId, $leavers);
+    $branch = $path ? peopleOrgBranch($conn, $analystId, $userId, $leavers, $levels) : null;
+    if (!$branch) return null;
+
+    $node = $branch['root'];
+    $total = $branch['total'];
+    $truncated = $branch['truncated'];
+    $ids = $path['ids'];
+    for ($i = count($ids) - 2; $i >= 0; $i--) {
+        // Counted the way the reader asked, so hidden leavers are not "more" -
+        // but drawn all the same if hidden: they are on the line.
+        $boss = peopleOrgNodes($conn, $analystId, 'u.id = ?', [$ids[$i]], $leavers, 1)[0]
+             ?? peopleOrgNodes($conn, $analystId, 'u.id = ?', [$ids[$i]], true, 1)[0] ?? null;
+        if (!$boss) break;
+        $team = peopleOrgLevel($conn, $analystId, $ids[$i], $leavers)['people'];
+        $children = [];
+        $peers = 0;
+        $onLine = false;
+        foreach ($team as $member) {
+            if ($member['id'] === $node['id']) { $children[] = $node; $onLine = true; continue; }
+            if ($peers >= PEOPLE_ORG_CONTEXT_PEERS) { $truncated = true; continue; }
+            $member['children'] = [];
+            $member['more'] = $member['reports'];
+            $children[] = $member;
+            $peers++;
+            $total++;
+        }
+        // Somebody on the line hidden by the leavers choice is drawn all the same: they ARE the line.
+        if (!$onLine) $children[] = $node;
+        $boss['reports'] = max($boss['reports'], count($team));
+        $boss['children'] = $children;
+        $boss['more'] = max(0, $boss['reports'] - count($children));
+        $node = $boss;
+        $total++;
+    }
+    return ['root' => $node, 'focus' => $userId, 'manager' => null, 'total' => $total, 'truncated' => $truncated];
+}
+
+/**
+ * The departments of the current people the reader can see, in order - what the
+ * chart's colours are handed out by, so each one keeps its colour wherever it
+ * appears and no two of the first few share one.
+ *
+ * @return string[]  department names, sorted, at most 200
+ */
+function peopleOrgDepartments(PDO $conn, int $analystId): array
+{
+    [$scope, $args] = peopleScope($conn, $analystId, 'u.tenant_id');
+    $st = $conn->prepare(
+        "SELECT DISTINCT TRIM(u.department) AS d FROM users u
+          WHERE u.is_active = 1 AND u.department IS NOT NULL AND TRIM(u.department) <> '' $scope
+          ORDER BY d LIMIT 200"
+    );
+    $st->execute($args);
+    return array_map('strval', $st->fetchAll(PDO::FETCH_COLUMN));
+}
+
+/**
+ * The gaps a chart makes visible, limited to the people the reader can see.
+ *
+ *  - no_manager: current people a directory keeps up to date (is_managed) who
+ *    have no manager and manage nobody - the directory has no reporting line
+ *    for them. People typed in by hand, often customers, are left out: for
+ *    them no manager is normal, not a gap.
+ *  - left_with_reports: leavers who still have current people reporting to them.
+ *
+ * @return array ['no_manager' => ['total', 'people'], 'left_with_reports' => ['total', 'people']]
+ */
+function peopleOrgGaps(PDO $conn, int $analystId): array
+{
+    [$scopeU, $argsU] = peopleScope($conn, $analystId, 'u.tenant_id');
+    [$scopeR, $argsR] = peopleScope($conn, $analystId, 'r.tenant_id');
+    $list = function (string $where, array $args) use ($conn): array {
+        $st = $conn->prepare("SELECT COUNT(*) FROM users u WHERE $where");
+        $st->execute($args);
+        $total = (int)$st->fetchColumn();
+        $st = $conn->prepare(
+            "SELECT u.id, u.display_name, u.preferred_name, u.email, u.username, u.job_title, u.department
+               FROM users u WHERE $where
+              ORDER BY COALESCE(NULLIF(u.preferred_name, ''), NULLIF(u.display_name, ''), u.email)
+              LIMIT " . PEOPLE_ORG_GAPS_LIMIT
+        );
+        $st->execute($args);
+        $people = array_map(fn($r) => [
+            'id' => (int)$r['id'], 'name' => peopleName($r), 'job_title' => $r['job_title'],
+            'department' => $r['department'], 'reports' => null,
+        ], $st->fetchAll(PDO::FETCH_ASSOC));
+        return ['total' => $total, 'people' => $people];
+    };
+
+    $noManager = $list(
+        "u.is_active = 1 AND u.is_managed = 1 AND u.manager_id IS NULL $scopeU
+         AND NOT EXISTS (SELECT 1 FROM users r WHERE r.manager_id = u.id $scopeR)",
+        array_merge($argsU, $argsR));
+    $left = $list(
+        "u.is_active = 0 $scopeU AND EXISTS (SELECT 1 FROM users r WHERE r.manager_id = u.id AND r.is_active = 1 $scopeR)",
+        array_merge($argsU, $argsR));
+    // How many current people each one still has under them.
+    if ($left['people']) {
+        $cnt = $conn->prepare("SELECT COUNT(*) FROM users r WHERE r.manager_id = ? AND r.is_active = 1 $scopeR");
+        foreach ($left['people'] as &$p) {
+            $cnt->execute(array_merge([$p['id']], $argsR));
+            $p['reports'] = (int)$cnt->fetchColumn();
+        }
+        unset($p);
+    }
+    return ['no_manager' => $noManager, 'left_with_reports' => $left];
+}

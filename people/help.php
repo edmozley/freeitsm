@@ -28,6 +28,7 @@ $sections = [
     'overview'  => 1,
     'people'    => 3,
     'person'    => 3,
+    'org'       => 4,
     'companies' => 3,
     'suppliers' => 4,
     'getting'   => 0,
