@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2715 | Tickets           | Fix         | The Mailbox list in a ticket type rule showed each mailbox's encrypted address, which overlapped the next column; it now shows the mailbox name, and long names wrap. |
 | 2714 | Analysts          | Fix         | Sixteen columns recording which analyst did something (forms approvals, 3CX calls, virtualisation reviews, asset links, manual certificates, scheduler, label designs, internal endpoints, type rules) were missing from the leaver map, so Delete did not see them and tests/analyst-lifecycle.php had been failing; all are now kept as history. |
 | 2713 | Tickets           | Feature     | A type for every new ticket (GH #230): a default type and ordered rules (arrived by, mailbox, origin, department, company, subject words, requester domain; first match wins, per company then shared) applied before the ticket is numbered on all seven creation paths, noted on the ticket's history, with a Try it tester; plus a Workflow "Set ticket type" action for later changes. |
 | 2712 | Change Management | Fix         | The risk level (Low ... Critical) showed in English to every language on the score, list, detail, matrix and table, and the matrix coloured the two cells scoring 4 as Medium although 4 is Low; the level is now translated for display (still stored in English) and every matrix cell takes its score's band. |

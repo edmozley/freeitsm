@@ -30,7 +30,8 @@
 .ttr-crit legend label { font-weight: 600; margin: 0; }
 .ttr-crit small { display: block; color: var(--text-muted, #666); margin-top: 4px; }
 .ttr-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 12px; max-height: 180px; overflow-y: auto; }
-.ttr-checks label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: normal; margin: 0; }
+.ttr-checks label { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; font-weight: normal; margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.ttr-checks label input { margin-top: 2px; flex: 0 0 auto; }
 .ttr-try { margin-top: 28px; border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 10px 14px; background: var(--surface-2, #f8f9fa); }
 .ttr-try summary { cursor: pointer; font-weight: 600; }
 .ttr-try-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 14px; margin-bottom: 12px; }

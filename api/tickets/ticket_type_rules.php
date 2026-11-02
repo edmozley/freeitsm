@@ -82,11 +82,9 @@ try {
         }
 
         $mailboxes = [];
-        $mbSql = "SELECT id, name, target_mailbox FROM target_mailboxes WHERE is_active = 1" . ($scopeTenant !== null ? " AND (tenant_id IS NULL OR tenant_id = " . (int)$scopeTenant . ")" : "") . " ORDER BY name";
-        foreach ($conn->query($mbSql) as $m) {
-            $addr = trim((string)$m['target_mailbox']);
-            $mailboxes[] = ['id' => (int)$m['id'], 'name' => $m['name'] . ($addr !== '' && strcasecmp($addr, (string)$m['name']) !== 0 ? ' (' . $addr . ')' : '')];
-        }
+        // The name only: target_mailbox is stored encrypted, so it would show as ENC:...
+        $mbSql = "SELECT id, name FROM target_mailboxes WHERE is_active = 1" . ($scopeTenant !== null ? " AND (tenant_id IS NULL OR tenant_id = " . (int)$scopeTenant . ")" : "") . " ORDER BY name";
+        foreach ($conn->query($mbSql) as $m) $mailboxes[] = ['id' => (int)$m['id'], 'name' => (string)$m['name']];
         $origins = array_map(fn($o) => ['id' => (int)$o['id'], 'name' => $o['name']],
             $viewTenant !== null ? getTenantConfigRows($conn, 'ticket_origins', 'ticket_origin', $viewTenant, 'id, name', 'is_active = 1')
                                  : $conn->query("SELECT id, name FROM ticket_origins WHERE is_active = 1 AND tenant_id IS NULL ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC));
