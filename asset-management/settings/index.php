@@ -1228,21 +1228,30 @@ $translationNamespaces = ['common', 'asset-management'];
         <?php if (settingsTabVisible($visibleTabs, 'asset-labels')): ?>
         <!-- Asset Labels & QR Tab -->
         <div class="tab-content<?php echo $activeTabId === 'asset-labels' ? ' active' : ''; ?>" id="asset-labels-tab" data-capability="<?php echo capKey(Cap::ASSETS_LABELS); ?>">
-            <?php /* GH #229: label designs and label fonts. Filled by assets/js/asset-labels/designs-admin.js. */ ?>
+            <?php /* GH #229: label designs and label fonts. Filled by assets/js/asset-labels/designs-admin.js.
+                     Until Database Verification has made their tables, the sections say so instead. */
+            require_once __DIR__ . '/../../includes/asset_label_designs.php';
+            $ldTablesReady = assetLabelDesignsReady(connectToDatabase()); ?>
             <div class="settings-section" id="labelDesignsSection">
                 <div class="settings-section-header"><h2><?php echo htmlspecialchars(t('asset-management.label_designs.title')); ?></h2></div>
                 <div class="settings-section-body">
-                    <p class="form-hint" style="margin-top:0"><?php echo htmlspecialchars(t('asset-management.label_designs.intro')); ?></p>
-                    <div style="margin-bottom:10px"><button type="button" class="btn btn-primary" id="ldNew"><?php echo htmlspecialchars(t('asset-management.label_designs.new')); ?></button></div>
+                    <p class="form-hint" style="margin:0 0 14px"><?php echo htmlspecialchars(t('asset-management.label_designs.intro')); ?></p>
+                    <?php if ($ldTablesReady): ?>
+                    <div style="margin-bottom:12px"><button type="button" class="btn btn-primary" id="ldNew"><?php echo htmlspecialchars(t('asset-management.label_designs.new')); ?></button></div>
                     <div id="ldList"></div>
+                    <?php else: ?>
+                    <div class="form-hint" style="margin:0"><strong><?php echo htmlspecialchars(t('asset-management.label_designs.not_ready')); ?></strong></div>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="settings-section" id="labelFontsSection">
                 <div class="settings-section-header"><h2><?php echo htmlspecialchars(t('asset-management.label_designs.fonts_title')); ?></h2></div>
                 <div class="settings-section-body">
-                    <p class="form-hint" style="margin-top:0"><?php echo htmlspecialchars(t('asset-management.label_designs.fonts_intro')); ?></p>
-                    <div style="margin-bottom:10px"><button type="button" class="btn btn-secondary" id="lfUpload"><?php echo htmlspecialchars(t('asset-management.label_designs.font_upload')); ?></button></div>
+                    <p class="form-hint" style="margin:0 0 14px"><?php echo htmlspecialchars(t('asset-management.label_designs.fonts_intro')); ?></p>
+                    <?php if ($ldTablesReady): ?>
+                    <div style="margin-bottom:12px"><button type="button" class="btn btn-secondary" id="lfUpload"><?php echo htmlspecialchars(t('asset-management.label_designs.font_upload')); ?></button></div>
                     <div id="lfList"></div>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="modal" id="ldModal">
