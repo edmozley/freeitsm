@@ -1278,7 +1278,6 @@ Endre namn likevel?',
         'asset_labels' => [
             'nav' => 'Fysiske ressursetikettar og tilpassing av QR',
             'heading' => 'Fysiske ressursetikettar og tilpassing av QR',
-            'intro' => 'Skriv ut profesjonelle ressursetikettar direkte på vanlege A4-ark, eller eksporter ressursdata til trykkeri.',
             'fields_strong' => 'Konfigurerbart feltval',
             'fields_text' => 'Under <strong>Settings &rarr; Asset labels &amp; QR</strong> vel du kva for felt som skal vises og i kva rekkjefølgje - vertsnamn, serienummer, modell, stad, dine eigne eigendefinerte felt som ein økonomi-ID - og dessutan ein topptekst, ein botntekst og om namnet på kvart felt skal skrivast ut. Ressurstaggen er alltid med på etiketten.',
             'qr_strong' => 'QR-koden og ein logo',

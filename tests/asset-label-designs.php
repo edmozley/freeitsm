@@ -1,0 +1,130 @@
+<?php
+/* 🔴 NEVER OVER THE WEB. See tests/README.md. */
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
+/**
+ * Asset label designs (GH #229, slice 1): label sizes, the ready-made layouts, fonts.
+ *
+ *   php tests/asset-label-designs.php
+ *   FREEITSM_TEST_DATABASE=<a throwaway database> php tests/asset-label-designs.php   (part 2 as well)
+ *
+ * PART 1 - no database: every sheet fits its page; a size out of range is refused;
+ *          every layout on every size keeps every item inside the label; the font
+ *          check reads the file's own first bytes.
+ * PART 2 - the designs on a test company (id 987654, which no install uses): the
+ *          Standard design is made the first time, one default per company, and the
+ *          version moves on every save. Its rows are removed at the end.
+ *
+ * The drawing and the PDF are checked in a browser - see the developer guide.
+ *
+ * @wiki Asset-Label-Designer-Design
+ */
+
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/i18n.php';
+require_once __DIR__ . '/../includes/tenancy.php';
+require_once __DIR__ . '/../includes/tenant_settings.php';
+require_once __DIR__ . '/../includes/asset_label_designs.php';
+
+$pass = 0; $fail = 0;
+function ok(string $what, bool $cond, string $detail = ''): void
+{
+    global $pass, $fail;
+    if ($cond) { $pass++; echo "  PASS  $what\n"; }
+    else       { $fail++; echo "  FAIL  $what" . ($detail !== '' ? "  <- $detail" : '') . "\n"; }
+}
+
+echo "PART 1 - sizes, layouts and fonts\n";
+$stocks = assetLabelStocks();
+ok('control: there are tape and sheet sizes', count(array_filter($stocks, fn($s) => $s['kind'] === 'tape')) > 3 && count(array_filter($stocks, fn($s) => $s['kind'] === 'sheet')) === 4);
+ok('today\'s four sheets keep their old keys, so ?sheet=65 links still work', isset($stocks['65'], $stocks['40'], $stocks['24'], $stocks['12']));
+foreach ($stocks as $k => $s) {
+    if ($s['kind'] !== 'sheet') continue;
+    $right = $s['left'] + ($s['cols'] - 1) * $s['h_pitch'] + $s['w'];
+    $bottom = $s['top'] + ($s['rows'] - 1) * $s['v_pitch'] + $s['h'];
+    ok("sheet $k: every label is on the page ($right x $bottom mm on 210 x 297)", $right <= 210.01 && $bottom <= 297.01);
+}
+$refused = function (array $in) { try { assetLabelStockFrom($in); return false; } catch (InvalidArgumentException) { return true; } };
+ok('control: your own size within range is accepted', !$refused(['key' => 'custom', 'w' => 62, 'h' => 29]));
+ok('a label too small is refused', $refused(['key' => 'custom', 'w' => 5, 'h' => 3]));
+ok('a label too large is refused', $refused(['key' => 'custom', 'w' => 500, 'h' => 30]));
+ok('an unknown size is refused', $refused(['key' => 'nope']));
+ok('a printer offset is held to 10 mm', assetLabelStockFrom(['key' => '65', 'offset_x' => 40])['offset_x'] === 10.0);
+
+$settings = ['title' => 'ZHL Group', 'fields' => ['asset_tag', 'hostname', 'service_tag', 'model'], 'footer' => 'IT helpdesk ext. 4000',
+             'logo_path' => 'system/uploads/branding/x.png', 'show_field_labels' => true];
+$noLogo = ['logo_path' => ''] + $settings;
+$outside = [];
+foreach (ASSET_LABEL_TEMPLATES as $tpl) {
+    foreach ($stocks as $k => $s) {
+        foreach ([$settings, $noLogo] as $set) {
+            foreach (assetLabelTemplateItems($tpl, assetLabelStockFrom(['key' => $k]), $set) as $it) {
+                if ($it['w'] <= 0 || $it['h'] <= 0 || $it['x'] < -0.01 || $it['y'] < -0.01 || $it['x'] + $it['w'] > $s['w'] + 0.01 || $it['y'] + $it['h'] > $s['h'] + 0.01) {
+                    $outside[] = "$tpl on $k: {$it['type']} at {$it['x']},{$it['y']} {$it['w']}x{$it['h']}";
+                }
+            }
+        }
+    }
+}
+ok('every layout on every size keeps every item inside the label', !$outside, implode('; ', array_slice($outside, 0, 3)));
+$std = assetLabelTemplateItems('standard', assetLabelStockFrom(['key' => '65']), $settings);
+$types = array_column($std, 'type');
+ok('Standard is today\'s label: header, QR with the logo inside, the fields, footer',
+   in_array('qr', $types, true) && in_array('fields', $types, true) && count(array_filter($std, fn($i) => $i['type'] === 'text')) === 2
+   && array_values(array_filter($std, fn($i) => $i['type'] === 'qr'))[0]['logo'] === true);
+$tape = assetLabelTemplateItems('tape_logo_left', assetLabelStockFrom(['key' => 'tze24']), $settings);
+$img = array_values(array_filter($tape, fn($i) => $i['type'] === 'image'));
+$qr = array_values(array_filter($tape, fn($i) => $i['type'] === 'qr'));
+ok('Logo left: the logo on the left, the QR on the right, no logo inside the QR', $img && $qr && $img[0]['x'] < $qr[0]['x'] && $qr[0]['logo'] === false);
+ok('...and with no logo uploaded, no picture is placed', !array_filter(assetLabelTemplateItems('tape_logo_left', assetLabelStockFrom(['key' => 'tze24']), $noLogo), fn($i) => $i['type'] === 'image'));
+
+$dir = sys_get_temp_dir() . '/zz-fonts-' . bin2hex(random_bytes(3));
+mkdir($dir);
+$f = fn(string $name, string $bytes) => (file_put_contents("$dir/$name", $bytes . str_repeat("\0", 64)) ? "$dir/$name" : '');
+ok('control: the bundled Noto Sans is a TTF', assetLabelFontLooksValid(__DIR__ . '/../assets/fonts/noto-sans/NotoSans-Regular.ttf', 'ttf'));
+ok('a WOFF2 is recognised', assetLabelFontLooksValid($f('a.woff2', 'wOF2'), 'woff2'));
+ok('an OTF is recognised', assetLabelFontLooksValid($f('a.otf', 'OTTO'), 'otf'));
+ok('a PNG renamed .ttf is refused', !assetLabelFontLooksValid($f('a.ttf', "\x89PNG"), 'ttf'));
+ok('a WOFF named .woff2 is refused', !assetLabelFontLooksValid($f('b.woff2', 'wOFF'), 'woff2'));
+ok('a font collection (.ttc) is refused - a browser cannot load one', !assetLabelFontLooksValid($f('c.ttf', 'ttcf'), 'ttf'));
+ok('any other extension is refused', !assetLabelFontLooksValid($f('d.php', "\x00\x01\x00\x00"), 'php'));
+array_map('unlink', glob("$dir/*")); rmdir($dir);
+ok('the bundled font\'s licence is shipped beside it', is_file(__DIR__ . '/../assets/fonts/noto-sans/OFL.txt'));
+
+echo "\nPART 2 - designs on a test company\n";
+$conn = connectToDatabase();
+$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$dbName = $conn->query('SELECT DATABASE()')->fetchColumn();
+if (getenv('FREEITSM_TEST_DATABASE') !== $dbName) {
+    echo "  SKIP  PART 2 - set FREEITSM_TEST_DATABASE to the throwaway database config.php points at (this one is $dbName)\n";
+} elseif (!assetLabelDesignsReady($conn)) {
+    echo "  SKIP  PART 2 - run Database Verification on this database first\n";
+} else {
+    $T = 987654;
+    try {
+        $conn->prepare("DELETE FROM asset_label_designs WHERE tenant_id = ?")->execute([$T]);
+        $list = assetLabelDesignsFor($conn, $T, null);
+        ok('a company with no designs gets "Standard", as its default', count($list) >= 1 && $list[0]['design']['template'] === 'standard' && $list[0]['is_default']);
+        $again = assetLabelDesignsFor($conn, $T, null);
+        ok('...once, not on every visit', count(array_filter($again, fn($d) => (int)($d['tenant_id'] ?? 0) === $T)) === 1);
+        $tapeId = assetLabelDesignCreate($conn, $T, 'zz tape', 'tape_logo_left', ['key' => 'tze24'], null, true);
+        $n = $conn->prepare("SELECT COUNT(*) FROM asset_label_designs WHERE tenant_id = ? AND is_default = 1");
+        $n->execute([$T]);
+        ok('making another the default leaves exactly one default', (int)$n->fetchColumn() === 1);
+        $d = $conn->query("SELECT is_default, version FROM asset_label_designs WHERE id = $tapeId")->fetch(PDO::FETCH_ASSOC);
+        ok('...and it is the new one', (int)$d['is_default'] === 1);
+        $u = $conn->prepare("UPDATE asset_label_designs SET name = 'zz tape 2', version = version + 1 WHERE id = ? AND version = ?");
+        $u->execute([$tapeId, (int)$d['version']]);
+        $first = $u->rowCount();
+        $u->execute([$tapeId, (int)$d['version']]);
+        ok('a save with the version it read succeeds; a second save with the same, stale, version changes nothing', $first === 1 && $u->rowCount() === 0);
+        ok('an unknown layout is refused', (function () use ($conn, $T) { try { assetLabelDesignCreate($conn, $T, 'zz', 'nope', ['key' => '65'], null); return false; } catch (InvalidArgumentException) { return true; } })());
+        ok('a font that is not this company\'s falls back to Noto Sans', assetLabelFontRef($conn, $T, 'font:99999999') === ASSET_LABEL_BUILTIN_FONT);
+    } finally {
+        $conn->prepare("DELETE FROM asset_label_designs WHERE tenant_id = ?")->execute([$T]);
+    }
+}
+
+echo "\n$pass passed, $fail failed\n";
+exit($fail ? 1 : 0);

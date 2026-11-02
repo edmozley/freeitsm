@@ -1278,7 +1278,6 @@ Renomear mesmo assim?',
         'asset_labels' => [
             'nav' => 'Etiquetas físicas de ativos e personalização do QR',
             'heading' => 'Etiquetas físicas de ativos e personalização do QR',
-            'intro' => 'Imprima etiquetas profissionais de ativos diretamente em folhas A4 padrão ou exporte os dados dos ativos para gráficas.',
             'fields_strong' => 'Seleção configurável de campos',
             'fields_text' => 'Em <strong>Configurações &rarr; Etiquetas de ativos e QR</strong>, escolha quais campos aparecem e em que ordem - nome do host, série, modelo, local, seus próprios campos personalizados, como um ID financeiro - além de um cabeçalho, um rodapé e se o nome de cada campo é impresso. A etiqueta do ativo está sempre na etiqueta.',
             'qr_strong' => 'O código QR e um logotipo',

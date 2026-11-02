@@ -1278,7 +1278,6 @@ Le renommer quand même ?',
         'asset_labels' => [
             'nav' => 'Étiquettes physiques d\'actifs &amp; personnalisation des QR',
             'heading' => 'Étiquettes physiques d\'actifs et personnalisation des QR',
-            'intro' => 'Imprimez des étiquettes d\'actifs professionnelles directement sur des planches A4 standard ou exportez les données des actifs pour des imprimeurs professionnels.',
             'fields_strong' => 'Sélection configurable des champs',
             'fields_text' => 'Sous <strong>Paramètres &rarr; Étiquettes d\'actifs &amp; QR</strong>, choisissez quels champs apparaissent et dans quel ordre - nom d\'hôte, numéro de série, modèle, emplacement, vos propres champs personnalisés tels qu\'un ID financier - ainsi qu\'un en-tête, un pied de page et s\'il faut imprimer le nom de chaque champ. L\'étiquette d\'actif figure toujours sur l\'étiquette.',
             'qr_strong' => 'Le QR code et un logo',

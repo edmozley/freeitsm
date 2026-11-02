@@ -1278,7 +1278,6 @@ Rinominarlo comunque?',
         'asset_labels' => [
             'nav' => 'Etichette fisiche degli asset e personalizzazione QR',
             'heading' => 'Etichette fisiche degli asset e personalizzazione QR',
-            'intro' => 'Stampa etichette commerciali per asset direttamente su fogli A4 standard oppure esporta i dati degli asset per le tipografie.',
             'fields_strong' => 'Selezione configurabile dei campi',
             'fields_text' => 'In <strong>Impostazioni &rarr; Etichette asset e QR</strong>, scegli quali campi compaiono e in che ordine - hostname, seriale, modello, sede, i tuoi campi personalizzati come un ID finanziario - più un\'intestazione, un piè di pagina e se stampare il nome di ogni campo. L\'asset tag è sempre presente sull\'etichetta.',
             'qr_strong' => 'Il codice QR e un logo',

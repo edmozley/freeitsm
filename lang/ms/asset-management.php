@@ -1278,7 +1278,6 @@ Namakan semula juga?',
         'asset_labels' => [
             'nav' => 'Label aset fizikal &amp; penyesuaian QR',
             'heading' => 'Label aset fizikal dan penyesuaian QR',
-            'intro' => 'Cetak label aset komersial terus pada stok helaian A4 piawai atau eksport data aset untuk rumah cetak komersial.',
             'fields_strong' => 'Pemilihan medan yang boleh dikonfigurasikan',
             'fields_text' => 'Di bawah <strong>Tetapan &rarr; Label aset &amp; QR</strong>, pilih medan yang dipaparkan dan mengikut turutan apa - nama hos, siri, model, lokasi, medan tersuai anda sendiri seperti ID kewangan - serta pengepala, pengaki dan sama ada mahu mencetak nama setiap medan. Tag aset sentiasa ada pada label.',
             'qr_strong' => 'Kod QR dan logo',

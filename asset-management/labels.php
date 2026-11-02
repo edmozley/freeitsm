@@ -154,6 +154,14 @@ $printCatalogue = assetLabelPrintFields($conn, $activeTenantId);
 $showFieldLabels = !empty($labelSettings['show_field_labels']);
 $labelHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $hostIsLocal = (bool)preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/i', $labelHost);
+
+// GH #229: label designs, printed as an exact-size PDF. Until Database Verification
+// has made their tables, the sheet below prints exactly as it always has.
+require_once '../includes/asset_label_designs.php';
+if ($ready && assetLabelDesignsReady($conn)) {
+    require __DIR__ . '/includes/labels_designs_view.php';
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">

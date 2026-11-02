@@ -1278,7 +1278,6 @@ Czy mimo to zmienić nazwę?',
         'asset_labels' => [
             'nav' => 'Fizyczne etykiety zasobów i dostosowanie kodów QR',
             'heading' => 'Fizyczne etykiety zasobów i dostosowanie kodów QR',
-            'intro' => 'Drukuj profesjonalne etykiety zasobów bezpośrednio na standardowych arkuszach A4 albo eksportuj dane zasobów dla drukarni.',
             'fields_strong' => 'Konfigurowalny wybór pól',
             'fields_text' => 'W <strong>Ustawienia &rarr; Etykiety zasobów i QR</strong> wybierz, które pola mają się pojawić i w jakiej kolejności - nazwa hosta, numer seryjny, model, lokalizacja, własne pola niestandardowe, np. identyfikator finansowy - oraz nagłówek, stopkę i to, czy drukować nazwę każdego pola. Tag zasobu zawsze jest na etykiecie.',
             'qr_strong' => 'Kod QR i logo',

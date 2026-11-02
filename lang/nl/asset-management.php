@@ -1278,7 +1278,6 @@ Toch hernoemen?',
         'asset_labels' => [
             'nav' => 'Fysieke assetlabels &amp; QR-aanpassing',
             'heading' => 'Fysieke assetlabels en QR-aanpassing',
-            'intro' => 'Druk professionele assetlabels rechtstreeks af op standaard A4-labelvellen of exporteer assetgegevens voor professionele drukkerijen.',
             'fields_strong' => 'Configureerbare veldselectie',
             'fields_text' => 'Kies onder <strong>Instellingen &rarr; Assetlabels &amp; QR</strong> welke velden verschijnen en in welke volgorde - hostnaam, serienummer, model, locatie, je eigen velden zoals een financiële ID - plus een koptekst, een voettekst en of de naam van elk veld wordt afgedrukt. De assettag staat altijd op het label.',
             'qr_strong' => 'De QR-code en een logo',

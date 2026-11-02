@@ -1278,7 +1278,6 @@ Hernoem dit tog?',
         'asset_labels' => [
             'nav' => 'Fisiese bate-etikette &amp; QR-aanpassing',
             'heading' => 'Fisiese bate-etikette en QR-aanpassing',
-            'intro' => 'Druk kommersiële bate-etikette direk op standaard A4-veloorraad of voer batedata uit vir kommersiële drukkerye.',
             'fields_strong' => 'Instelbare veldkeuse',
             'fields_text' => 'Kies onder <strong>Instellings &rarr; Bate-etikette &amp; QR</strong> watter velde verskyn en in watter volgorde - gasheernaam, reeksnommer, model, ligging, jou eie pasgemaakte velde soos \'n finansies-ID - plus \'n kopstuk, \'n voetstuk en of elke veld se naam gedruk word. Die bate-etiket is altyd op die etiket.',
             'qr_strong' => 'Die QR-kode en \'n logo',

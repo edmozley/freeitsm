@@ -3403,6 +3403,50 @@ CREATE TABLE IF NOT EXISTS `asset_tag_counters` (
     PRIMARY KEY (`counter_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Asset label designs (GH #229). A design is what one label looks like (items
+-- placed in mm, design_json) on a stock (stock_json): a tape or roll, one label
+-- per page, or a sheet of labels in rows and columns. Printing makes a PDF at the
+-- stock's exact size. Slice 1 designs come from a template whose items are worked
+-- out from the company's label settings at print time; the designer (slice 2)
+-- saves its own items. tenant_id is the company; NULL = every company. One
+-- is_default per company: what Print label uses unless another is picked. version
+-- moves on every save, so two people cannot silently overwrite each other.
+-- See includes/asset_label_designs.php and wiki Asset-Label-Designer-Design.
+CREATE TABLE IF NOT EXISTS `asset_label_designs` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`        INT NULL,
+    `name`             VARCHAR(100) NOT NULL,
+    `stock_json`       TEXT NOT NULL,
+    `design_json`      MEDIUMTEXT NOT NULL,
+    `is_default`       TINYINT(1) NOT NULL DEFAULT 0,
+    `version`          INT NOT NULL DEFAULT 1,
+    `created_by`       INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_by`       INT NULL,
+    `updated_datetime` DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_ald_tenant` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Fonts uploaded for labels (GH #229): a brand font, or one for a language the
+-- bundled Noto Sans does not cover. Checked to be a real TTF / OTF / WOFF / WOFF2
+-- from its first bytes, stored under system/uploads/label-fonts with a name of
+-- our making, and served only through api/assets/label_font.php (company-scoped).
+-- A font in use by a design cannot be deleted.
+CREATE TABLE IF NOT EXISTS `asset_label_fonts` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`        INT NULL,
+    `name`             VARCHAR(100) NOT NULL,
+    `original_name`    VARCHAR(255) NULL,
+    `stored_name`      VARCHAR(100) NOT NULL,
+    `format`           VARCHAR(10) NOT NULL,                -- ttf | otf | woff | woff2
+    `size_bytes`       INT NOT NULL DEFAULT 0,
+    `created_by`       INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_alf_tenant` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Who is holding an asset.
 --
 -- EITHER a requester (`user_id`) OR a member of the desk (`analyst_id`), never

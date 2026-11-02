@@ -1278,7 +1278,6 @@ Gi den nytt navn likevel?',
         'asset_labels' => [
             'nav' => 'Fysiske ressursetiketter &amp; tilpasning av QR',
             'heading' => 'Fysiske ressursetiketter og tilpasning av QR',
-            'intro' => 'Skriv ut profesjonelle ressursetiketter direkte på vanlige A4-ark, eller eksporter ressursdata til trykkerier.',
             'fields_strong' => 'Valg av felter',
             'fields_text' => 'Under <strong>Innstillinger &rarr; Ressursetiketter &amp; QR</strong> velger du hvilke felter som vises og i hvilken rekkefølge - vertsnavn, serienummer, modell, sted, dine egne egendefinerte felter som en økonomi-ID - pluss en topptekst, en bunntekst og om navnet på hvert felt skal skrives ut. Ressursmerket står alltid på etiketten.',
             'qr_strong' => 'QR-koden og en logo',

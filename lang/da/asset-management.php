@@ -1278,7 +1278,6 @@ Omdøb det alligevel?',
         'asset_labels' => [
             'nav' => 'Fysiske aktivmærkater &amp; tilpasning af QR',
             'heading' => 'Fysiske aktivmærkater og tilpasning af QR',
-            'intro' => 'Udskriv professionelle aktivmærkater direkte på standard A4-ark, eller eksportér aktivdata til trykkerier.',
             'fields_strong' => 'Konfigurerbart feltvalg',
             'fields_text' => 'Under <strong>Indstillinger &rarr; Aktivmærkater &amp; QR</strong> vælger du, hvilke felter der vises, og i hvilken rækkefølge - værtsnavn, serienummer, model, placering, dine egne brugerdefinerede felter som et økonomi-id - plus et sidehoved, en sidefod og om hvert felts navn skal trykkes. Aktivmærket er altid på mærkatet.',
             'qr_strong' => 'QR-koden og et logo',

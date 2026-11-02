@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — asset-management strings (id).
- *
- * Keys mirror lang/en/asset-management.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php id
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'vcloud' => [
@@ -1278,7 +1268,6 @@ Tetap ganti nama?',
         'asset_labels' => [
             'nav' => 'Label aset fisik &amp; kustomisasi QR',
             'heading' => 'Label aset fisik dan kustomisasi QR',
-            'intro' => 'Cetak label aset komersial langsung pada kertas label A4 standar atau ekspor data aset untuk percetakan komersial.',
             'fields_strong' => 'Pemilihan bidang yang dapat dikonfigurasi',
             'fields_text' => 'Di <strong>Pengaturan &rarr; Label aset &amp; QR</strong>, pilih bidang apa yang muncul dan dalam urutan apa - nama host, nomor seri, model, lokasi, bidang kustom Anda sendiri seperti ID keuangan - ditambah header, footer, dan apakah nama tiap bidang dicetak. Tag aset selalu ada pada label.',
             'qr_strong' => 'Kode QR dan logo',

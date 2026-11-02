@@ -1921,6 +1921,31 @@ return [
         'next_value'        => 'BIGINT NOT NULL DEFAULT 1',
         'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
     ],
+    // GH #229: label designs and the fonts uploaded for them.
+    'asset_label_designs' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'        => 'INT NULL',
+        'name'             => 'VARCHAR(100) NOT NULL',
+        'stock_json'       => 'TEXT NOT NULL',
+        'design_json'      => 'MEDIUMTEXT NOT NULL',
+        'is_default'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'version'          => 'INT NOT NULL DEFAULT 1',
+        'created_by'       => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_by'       => 'INT NULL',
+        'updated_datetime' => 'DATETIME NULL',
+    ],
+    'asset_label_fonts' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'        => 'INT NULL',
+        'name'             => 'VARCHAR(100) NOT NULL',
+        'original_name'    => 'VARCHAR(255) NULL',
+        'stored_name'      => 'VARCHAR(100) NOT NULL',
+        'format'           => 'VARCHAR(10) NOT NULL',
+        'size_bytes'       => 'INT NOT NULL DEFAULT 0',
+        'created_by'       => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
 
     'assets' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',

@@ -1228,6 +1228,58 @@ $translationNamespaces = ['common', 'asset-management'];
         <?php if (settingsTabVisible($visibleTabs, 'asset-labels')): ?>
         <!-- Asset Labels & QR Tab -->
         <div class="tab-content<?php echo $activeTabId === 'asset-labels' ? ' active' : ''; ?>" id="asset-labels-tab" data-capability="<?php echo capKey(Cap::ASSETS_LABELS); ?>">
+            <?php /* GH #229: label designs and label fonts. Filled by assets/js/asset-labels/designs-admin.js. */ ?>
+            <div class="settings-section" id="labelDesignsSection">
+                <div class="settings-section-header"><h2><?php echo htmlspecialchars(t('asset-management.label_designs.title')); ?></h2></div>
+                <div class="settings-section-body">
+                    <p class="form-hint" style="margin-top:0"><?php echo htmlspecialchars(t('asset-management.label_designs.intro')); ?></p>
+                    <div style="margin-bottom:10px"><button type="button" class="btn btn-primary" id="ldNew"><?php echo htmlspecialchars(t('asset-management.label_designs.new')); ?></button></div>
+                    <div id="ldList"></div>
+                </div>
+            </div>
+            <div class="settings-section" id="labelFontsSection">
+                <div class="settings-section-header"><h2><?php echo htmlspecialchars(t('asset-management.label_designs.fonts_title')); ?></h2></div>
+                <div class="settings-section-body">
+                    <p class="form-hint" style="margin-top:0"><?php echo htmlspecialchars(t('asset-management.label_designs.fonts_intro')); ?></p>
+                    <div style="margin-bottom:10px"><button type="button" class="btn btn-secondary" id="lfUpload"><?php echo htmlspecialchars(t('asset-management.label_designs.font_upload')); ?></button></div>
+                    <div id="lfList"></div>
+                </div>
+            </div>
+            <div class="modal" id="ldModal">
+                <div class="modal-content" style="max-width:520px">
+                    <div class="modal-header" id="ldModalTitle"></div>
+                    <div class="modal-body">
+                        <div class="form-group"><label for="ldName"><?php echo htmlspecialchars(t('asset-management.label_designs.name')); ?></label><input type="text" class="form-input" id="ldName" maxlength="100"></div>
+                        <div class="form-group" id="ldTemplateRow"><label for="ldTemplate"><?php echo htmlspecialchars(t('asset-management.label_designs.template')); ?></label><select class="form-select" id="ldTemplate"></select><div class="form-hint" id="ldTemplateHint"></div></div>
+                        <div class="form-group"><label for="ldStock"><?php echo htmlspecialchars(t('asset-management.label_designs.size')); ?></label><select class="form-select" id="ldStock"></select></div>
+                        <div class="form-group" id="ldCustomRow" style="display:none"><label><?php echo htmlspecialchars(t('asset-management.label_designs.custom_size')); ?></label>
+                            <div style="display:flex;gap:8px;align-items:center"><input type="number" class="form-input" id="ldW" min="10" max="300" step="0.1" style="width:100px"> x <input type="number" class="form-input" id="ldH" min="6" max="300" step="0.1" style="width:100px"> mm</div></div>
+                        <div class="form-group" id="ldOffsetRow"><label><?php echo htmlspecialchars(t('asset-management.label_designs.offset')); ?></label>
+                            <div style="display:flex;gap:8px;align-items:center"><input type="number" class="form-input" id="ldOx" min="-10" max="10" step="0.1" style="width:90px"> <input type="number" class="form-input" id="ldOy" min="-10" max="10" step="0.1" style="width:90px"> mm</div>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.label_designs.offset_hint')); ?></div></div>
+                        <div class="form-group"><label for="ldFont"><?php echo htmlspecialchars(t('asset-management.label_designs.font')); ?></label><select class="form-select" id="ldFont"></select></div>
+                        <div class="form-group" id="ldDefaultRow"><label><input type="checkbox" id="ldDefault"> <?php echo htmlspecialchars(t('asset-management.label_designs.make_default')); ?></label></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-ld-close><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                        <button type="button" class="btn btn-primary" id="ldSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal" id="lfModal">
+                <div class="modal-content" style="max-width:520px">
+                    <div class="modal-header"><?php echo htmlspecialchars(t('asset-management.label_designs.font_upload_title')); ?></div>
+                    <div class="modal-body">
+                        <div class="form-group"><label for="lfName"><?php echo htmlspecialchars(t('asset-management.label_designs.name')); ?></label><input type="text" class="form-input" id="lfName" maxlength="100"></div>
+                        <div class="form-group"><label for="lfFile"><?php echo htmlspecialchars(t('asset-management.label_designs.font_file')); ?></label><input type="file" id="lfFile" accept=".ttf,.otf,.woff,.woff2"><div class="form-hint"><?php echo htmlspecialchars(t('asset-management.label_designs.font_file_hint')); ?></div></div>
+                        <div class="form-group"><label><input type="checkbox" id="lfLicence"> <?php echo htmlspecialchars(t('asset-management.label_designs.font_licence')); ?></label></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-ld-close><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                        <button type="button" class="btn btn-primary" id="lfSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                    </div>
+                </div>
+            </div>
             <div class="settings-section">
                 <div class="settings-section-header">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -5521,6 +5573,34 @@ $translationNamespaces = ['common', 'asset-management'];
     <script src="../../assets/js/vcloud-settings.js?v=2"></script>
     <script src="../../assets/js/network-mapper-icons.js?v=3"></script>
     <script src="../../assets/js/reorder-list.js?v=1"></script>
+    <?php
+    // GH #229: the label designs' previews - each design's items, worked out here for its
+    // size, and a sample asset to draw them with (the same drawing code as printing).
+    if (settingsTabVisible($visibleTabs, 'asset-labels')):
+        require_once __DIR__ . '/../../includes/asset_label_designs.php';
+        $ldConn = connectToDatabase();
+        if (assetLabelDesignsReady($ldConn) && assetLabelsSchemaReady($ldConn)):
+            $ldAnalyst = (int)$_SESSION['analyst_id'];
+            $ldTenant = getActiveTenantId($ldConn, $ldAnalyst);
+            $ldSettings = assetLabelSettings($ldConn, $ldTenant);
+            $ldItems = [];
+            foreach (assetLabelDesignsFor($ldConn, $ldTenant, $ldAnalyst) as $ldD) {
+                $ldItems[$ldD['id'] . ':' . $ldD['stock']['key']] = assetLabelTemplateItems((string)($ldD['design']['template'] ?? 'standard'), $ldD['stock'], $ldSettings);
+            }
+            $ldSample = ['values' => ['asset_tag' => 'AST-00042', 'hostname' => 'LON-LT-042', 'service_tag' => 'SN9876543210', 'manufacturer' => 'Dell',
+                                      'model' => 'Dell Latitude 7440', 'company' => getTenantById($ldConn, $ldTenant)['name'] ?? '', 'location' => 'London', 'asset_type' => 'Laptop'],
+                         'url' => BASE_URL . 'a/SAMPLE0000000000000', 'noTag' => t('asset-management.labels.no_tag')];
+    ?>
+    <script>
+        window.LD_BASE = <?php echo json_encode(BASE_URL); ?>;
+        window.LD_ITEMS = <?php echo json_encode($ldItems, JSON_HEX_TAG | JSON_HEX_AMP); ?>;
+        window.LD_SAMPLE = <?php echo json_encode($ldSample, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        window.LD_CAPTIONS = <?php echo json_encode(assetLabelPrintFields($ldConn, $ldTenant), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        <?php if ($ldSettings['logo_path'] !== ''): ?>window.LD_LOGO = new Image(); window.LD_LOGO.src = <?php echo json_encode(BASE_URL . ltrim($ldSettings['logo_path'], '/')); ?>;<?php endif; ?>
+    </script>
+    <script src="../../assets/js/asset-labels/render.js?v=1"></script>
+    <script src="../../assets/js/asset-labels/designs-admin.js?v=1"></script>
+    <?php endif; endif; ?>
     <script>window.ASSET_LAYOUT = <?php echo json_encode(['defaults' => AssetTypeLayout::defaults(), 'presets' => AssetTypeLayout::PRESETS], JSON_HEX_TAG | JSON_HEX_AMP); ?>;</script>
     <script src="../../assets/js/mobile.js?v=83"></script>
     <?php if (settingsTabVisible($visibleTabs, 'hyperv')): ?><script src="hyperv.js?v=3"></script><?php endif; ?>

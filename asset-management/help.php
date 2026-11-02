@@ -519,6 +519,10 @@ $translationNamespaces = ['common', 'asset-management'];
                     <div class="help-list">
                         <div><strong><?php echo htmlspecialchars(t('asset-management.help.asset_labels.fields_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.asset_labels.fields_text'); ?></div>
                         <div><strong><?php echo htmlspecialchars(t('asset-management.help.asset_labels.qr_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.asset_labels.qr_text'); ?></div>
+                        <?php /* GH #229: designs, sizes and fonts. */ ?>
+                        <div><strong><?php echo htmlspecialchars(t('asset-management.help.asset_labels.designs_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.asset_labels.designs_text'); ?></div>
+                        <div><strong><?php echo htmlspecialchars(t('asset-management.help.asset_labels.sizes_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.asset_labels.sizes_text'); ?></div>
+                        <div><strong><?php echo htmlspecialchars(t('asset-management.help.asset_labels.fonts_strong')); ?></strong> &mdash; <?php echo t('asset-management.help.asset_labels.fonts_text'); ?></div>
                     </div>
                 </div>
 
