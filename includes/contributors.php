@@ -37,6 +37,18 @@ function getContributors(): array
 {
     return [
         [
+            // Public GitHub handle only; ask in the #235 reply how they would like
+            // to be credited - change this if they say otherwise.
+            'name'   => 'vsc55',
+            'github' => 'vsc55',
+            'date'   => '2026-11-02',
+            'what'   => 'Brought Microsoft Entra ID to FreeITSM as a people source (PR #235): people, groups, '
+                      . 'nested membership and reporting lines read through Microsoft Graph, so a new starter '
+                      . 'exists before they first sign in, with a careful design for matching two different '
+                      . 'names for one person. Also the design for a built-in scheduler, one line for every '
+                      . 'background job (#233).',
+        ],
+        [
             // Name and company as Ed was given them (October 2026). The package
             // he sent also held six modules, not taken yet - add them here if
             // they are.

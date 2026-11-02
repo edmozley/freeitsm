@@ -997,6 +997,12 @@ function dsyncResolveManagers(PDO $conn, array $people, array $dnToUserId, int $
             continue;
         }
 
+        // Already right: nothing to write and nothing to report, or every run
+        // says "1 set" about a reporting line that has not changed in years.
+        $now = $conn->prepare("SELECT manager_id FROM users WHERE id = ?");
+        $now->execute([$meId]);
+        if ((int)$now->fetchColumn() === $mgrId) continue;
+
         if (!$preview) {
             $conn->prepare("UPDATE users SET manager_id = ? WHERE id = ?")->execute([$mgrId, $meId]);
         }
@@ -1009,6 +1015,42 @@ function dsyncResolveManagers(PDO $conn, array $people, array $dnToUserId, int $
                 $outside ? sprintf(', %d manager(s) outside the synced area', $outside) : '',
                 $looped  ? sprintf(', %d skipped as circular', $looped) : ''));
     }
+}
+
+/**
+ * Hold the one-import-at-a-time lock for a source. False when another process
+ * is importing it right now. Lasts until dsyncUnlock() or the connection closes.
+ *
+ * TRAP: GET_LOCK names are per MySQL SERVER, not per database, so the database
+ * is part of the name. Two installs on one server each have a provider 1.
+ *
+ * @param int $providerId  auth_providers.id
+ */
+function dsyncLock(PDO $conn, int $providerId): bool
+{
+    $st = $conn->prepare("SELECT GET_LOCK(?, 0)");
+    $st->execute([dsyncLockName($conn, $providerId)]);
+    return (int)$st->fetchColumn() === 1;
+}
+
+/**
+ * Give up the lock dsyncLock() took.
+ *
+ * @param int $providerId  auth_providers.id
+ */
+function dsyncUnlock(PDO $conn, int $providerId): void
+{
+    $conn->prepare("SELECT RELEASE_LOCK(?)")->execute([dsyncLockName($conn, $providerId)]);
+}
+
+/**
+ * The lock's name, which MySQL limits to 64 characters whatever the database is called.
+ *
+ * @param int $providerId  auth_providers.id
+ */
+function dsyncLockName(PDO $conn, int $providerId): string
+{
+    return 'freeitsm.dsync.' . substr(md5((string)$conn->query('SELECT DATABASE()')->fetchColumn()), 0, 16) . '.' . $providerId;
 }
 
 /**

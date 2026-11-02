@@ -943,6 +943,7 @@ CREATE TABLE IF NOT EXISTS `user_sso_identities` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_user_sso_provider_subject` (`provider_id`, `subject`),
     UNIQUE KEY `uq_user_sso_provider_user` (`provider_id`, `user_id`),
+    KEY `idx_user_sso_source_ref` (`provider_id`, `source_ref`(64)),
     CONSTRAINT `fk_user_sso_identity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_user_sso_identity_provider` FOREIGN KEY (`provider_id`) REFERENCES `auth_providers` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

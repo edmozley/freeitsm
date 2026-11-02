@@ -194,6 +194,45 @@ function oidcExchangeCode(array $provider, array $disco, string $code, string $c
 }
 
 /**
+ * Link a requester to the identity that has just signed in, for next time.
+ *
+ * TRAP: uq_user_sso_provider_user allows one identity per person per provider,
+ * and that refusal is a protection. Somebody whose email matches an account
+ * already linked to a different identity must not take it over, so a real link
+ * is never replaced. The one exception is the placeholder a directory import
+ * holds (`entra:<oid>`, includes/entra_sync.php), and only for the account it
+ * was made for when the provider says which account that is.
+ *
+ * @param int $providerId  auth_providers.id
+ * @param int $userId  users.id
+ * @param string $sub  the subject that signed in
+ * @param string $email  their email claim, '' when there was none
+ * @param string $oid  Entra's object id claim, lower-cased; '' when there was none
+ * @return bool  false when this person is already linked to a different identity
+ */
+function oidcLinkRequester(PDO $conn, int $providerId, int $userId, string $sub, string $email, string $oid = ''): bool {
+    $stmt = $conn->prepare("SELECT id, subject, source_ref FROM user_sso_identities WHERE provider_id = ? AND user_id = ?");
+    $stmt->execute([$providerId, $userId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$row) {
+        $conn->prepare(
+            "INSERT INTO user_sso_identities (user_id, provider_id, subject, email, linked_datetime, last_login_datetime)
+             VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+        )->execute([$userId, $providerId, $sub, $email ?: null]);
+        return true;
+    }
+
+    $ref = strtolower((string)$row['source_ref']);
+    if (!str_starts_with((string)$row['subject'], 'entra:') || ($oid !== '' && $ref !== '' && $ref !== $oid)) {
+        return false;
+    }
+    $conn->prepare("UPDATE user_sso_identities SET subject = ?, email = ?, last_login_datetime = UTC_TIMESTAMP() WHERE id = ?")
+         ->execute([$sub, $email ?: null, (int)$row['id']]);
+    return true;
+}
+
+/**
  * Validate an ID token: signature (JWKS), issuer, audience, nonce, expiry.
  * Returns the validated claims as an associative array. Throws on any failure.
  *

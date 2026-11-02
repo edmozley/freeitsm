@@ -26,7 +26,8 @@ try {
     $s = $conn->prepare("SELECT * FROM auth_providers WHERE id = ? AND protocol = 'oidc'");
     $s->execute([(int)($data['provider_id'] ?? 0)]);
     $row = $s->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
+    // Entra only: the stored secret goes to Microsoft, and another provider's must not.
+    if (!$row || !entraIsEntraIssuer((string)$row['issuer_url'])) {
         echo json_encode(['success' => false, 'error' => 'Provider not found']);
         exit;
     }

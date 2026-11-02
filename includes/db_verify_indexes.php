@@ -49,6 +49,7 @@ return [
     ['users', 'idx_users_department', 'key', '(`department`)'],
     ['user_sso_identities', 'uq_user_sso_provider_subject', 'unique', '(`provider_id`,`subject`)'],
     ['user_sso_identities', 'uq_user_sso_provider_user', 'unique', '(`provider_id`,`user_id`)'],
+    ['user_sso_identities', 'idx_user_sso_source_ref', 'key', '(`provider_id`,`source_ref`(64))'],
     ['user_verification_tokens', 'uq_uvt_token', 'unique', '(`token_hash`)'],
     ['user_verification_tokens', 'ix_uvt_email', 'key', '(`email`)'],
     ['user_verification_tokens', 'ix_uvt_expires', 'key', '(`expires_at`)'],

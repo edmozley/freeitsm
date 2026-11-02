@@ -59,6 +59,13 @@ const ESYNC_MAX_PEOPLE = 20000;
 /** Hard ceiling on groups imported in one run when the scope is "all groups". */
 const ESYNC_MAX_GROUPS = 5000;
 
+/**
+ * Hard ceiling on users READ when the scope is chosen groups. Graph can only list
+ * the directory and filter here, so a small scope in a big tenant still reads it
+ * all. Higher than ESYNC_MAX_PEOPLE, which limits who is imported.
+ */
+const ESYNC_MAX_SCAN = 200000;
+
 /** What Graph is asked for, per user. */
 const ESYNC_USER_SELECT = 'id,userPrincipalName,mail,displayName,givenName,surname,jobTitle,department,'
                         . 'officeLocation,businessPhones,mobilePhone,employeeId,accountEnabled,userType';
@@ -580,6 +587,14 @@ function entraMemberIds(array $cfg, array $groupIds): array
  *   1. the object id, in user_sso_identities.source_ref — survives renames
  *   2. dsyncFindExisting(): directory username (UPN), then email
  *
+ * TRAP: a match in step 2 is a NAME, and names get reused. A leaver's address
+ * given to a new starter arrives with a new object id, and matching it would
+ * hand them the leaver's record, tickets and portal sign-in. A record already
+ * linked to a different object id is therefore never matched: it comes back as
+ * 'taken', which the caller reports as a conflict, whatever the conflict setting.
+ * Two people cannot share one record, and a directory import is not allowed to
+ * decide that they are the same person.
+ *
  * An email match on somebody ALREADY assigned to this provider is reported as
  * 'sso' rather than 'email': that is a person who has been signing in through
  * this very app registration, not one being taken over from a local password,
@@ -599,6 +614,12 @@ function entraFindExisting(PDO $conn, array $provider, array $p): array
     if ($row = $s->fetch(PDO::FETCH_ASSOC)) return [$row, 'guid'];
 
     [$row, $how] = dsyncFindExisting($conn, $provider, $p);
+    if ($row) {
+        $s = $conn->prepare("SELECT source_ref FROM user_sso_identities WHERE provider_id = ? AND user_id = ?");
+        $s->execute([(int)$provider['id'], (int)$row['id']]);
+        $linked = strtolower(trim((string)$s->fetchColumn()));
+        if ($linked !== '' && $linked !== $p['entra_id']) return [$row, 'taken'];
+    }
     if ($row && $how === 'email' && (int)($row['auth_provider_id'] ?? 0) === (int)$provider['id']) {
         $how = 'sso';
     }
@@ -609,8 +630,9 @@ function entraFindExisting(PDO $conn, array $provider, array $p): array
  * Record the object id against the person, without ever touching a real `sub`.
  *
  * If they already have an identity row for this provider (they have signed in),
- * only source_ref is set on it. Otherwise one is created with the placeholder
- * subject `entra:<oid>`, which the OIDC callback replaces on first sign-in.
+ * only source_ref is set on it, and never over a different object id: see
+ * entraFindExisting(). Otherwise one is created with the placeholder subject
+ * `entra:<oid>`, which the OIDC callback replaces on first sign-in.
  *
  * @param int $providerId  auth_providers.id
  * @param int $userId  users.id
@@ -623,8 +645,10 @@ function entraLinkIdentity(PDO $conn, int $providerId, int $userId, array $p): v
         $s->execute([$providerId, $userId]);
         $rowId = $s->fetchColumn();
         if ($rowId) {
-            $conn->prepare("UPDATE user_sso_identities SET source_ref = ?, email = COALESCE(?, email) WHERE id = ?")
-                 ->execute([$p['entra_id'], $p['email'], (int)$rowId]);
+            $conn->prepare(
+                "UPDATE user_sso_identities SET source_ref = ?, email = COALESCE(?, email)
+                  WHERE id = ? AND (source_ref IS NULL OR source_ref = '' OR LOWER(source_ref) = ?)"
+            )->execute([$p['entra_id'], $p['email'], (int)$rowId, $p['entra_id']]);
             return;
         }
         $conn->prepare(
@@ -858,6 +882,79 @@ function entraLabelSeenGroup(PDO $conn, int $pid, string $gid, string $name): vo
 }
 
 /**
+ * Import one person: find them, then update, create, or leave them alone as a
+ * conflict. Writes nothing on a preview except the run's own log.
+ *
+ * @param array $provider  the auth_providers row
+ * @param array $p  the person from entraMapUser()
+ * @param bool $preview  true to work it out without changing people
+ * @param int $runId  directory_sync_runs.id
+ * @param array $counts  the run's counts, added to
+ * @param array $seenUserIds  users.id of everybody found, added to
+ * @param array $oidToUserId  object id => users.id, added to
+ */
+function entraImportPerson(PDO $conn, array $provider, array $p, bool $preview, int $runId,
+                           array &$counts, array &$seenUserIds, array &$oidToUserId): void
+{
+    $pid = (int)$provider['id'];
+    [$existing, $how] = entraFindExisting($conn, $provider, $p);
+
+    if ($how === 'taken') {
+        $counts['conflict']++;
+        dsyncLogEntry($conn, $runId, 'conflict', (int)$existing['id'], $p,
+            'A different Entra account now uses this sign-in name or email address, so this is a new '
+            . 'person, not the one already here. Left untouched and not imported, so that nobody takes over '
+            . 'the old record.');
+        return;
+    }
+
+    if ($existing && $how === 'email'
+        && (string)($provider['sync_on_conflict'] ?? 'adopt') !== 'adopt') {
+        $counts['conflict']++;
+        dsyncLogEntry($conn, $runId, 'conflict', (int)$existing['id'], $p,
+            'Already exists here with the same email address. Left untouched, because this '
+            . 'directory is set to flag conflicts rather than adopt them.');
+        return;
+    }
+
+    if ($existing) {
+        $uid = (int)$existing['id'];
+        $seenUserIds[] = $uid;
+        $oidToUserId[$p['entra_id']] = $uid;
+        $changes = dsyncApplyToExisting($conn, $provider, $existing, $p, $preview);
+        if (!$preview) entraLinkIdentity($conn, $pid, $uid, $p);
+        if ($how === 'email') {
+            $counts['adopted']++;
+            dsyncLogEntry($conn, $runId, 'adopt', $uid, $p,
+                'Matched an existing person by email address and linked them to Entra. '
+                . '⚠️ They now sign in with Microsoft, so any portal password they had no longer works.'
+                . ($changes ? ' Also updated: ' . $changes : ''));
+        } elseif ($changes !== '') {
+            $counts['updated']++;
+            dsyncLogEntry($conn, $runId, 'update', $uid, $p, $changes);
+        } else {
+            dsyncLogEntry($conn, $runId, 'unchanged', $uid, $p, '');
+        }
+        return;
+    }
+
+    $newId = dsyncCreate($conn, $provider, $p, $preview);
+    if ($newId === null) {
+        $counts['error']++;
+        dsyncLogEntry($conn, $runId, 'error', null, $p, 'Could not be created — see the server error log.');
+        return;
+    }
+    $counts['created']++;
+    if ($newId > 0) {
+        $seenUserIds[] = $newId;
+        $oidToUserId[$p['entra_id']] = $newId;
+        entraLinkIdentity($conn, $pid, $newId, $p);
+    }
+    dsyncLogEntry($conn, $runId, 'create', $newId ?: null, $p, dsyncNewPersonSummary($p)
+        . ($p['disabled'] ? ' Disabled in Entra, so ' . ($preview ? 'they will be' : 'they were') . ' added as having left.' : ''));
+}
+
+/**
  * Run an import for one Entra provider.
  *
  * Mirrors cardDavSyncRun(): same run table, same counts, same status words
@@ -883,6 +980,13 @@ function entraSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int $a
     $status  = 'ok';
     $message = '';
 
+    // A preview changes nobody, so it can run beside a live import.
+    if (!$preview && !dsyncLock($conn, $pid)) {
+        dsyncFinishRun($conn, $runId, 'stopped', $counts,
+            'Stopped without changing anything: another import of this source is still running.');
+        return dsyncGetRun($conn, $runId);
+    }
+
     try {
         $cfg = entraConfig($provider);
 
@@ -905,7 +1009,7 @@ function entraSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int $a
 
         // Manager is expanded inline: one request per page rather than one per person.
         $raw = entraGetAll($cfg, '/users?$select=' . entraUserSelect($provider) . '&$expand=manager($select=id)&$top=100',
-            $inScope === null ? ESYNC_MAX_PEOPLE : PHP_INT_MAX);
+            $inScope === null ? ESYNC_MAX_PEOPLE : ESYNC_MAX_SCAN);
 
         $includeGuests = (int)($provider['graph_include_guests'] ?? 0) === 1;
         $people = [];
@@ -936,51 +1040,7 @@ function entraSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int $a
         $oidToUserId = [];
         foreach ($people as $p) {
             try {
-                [$existing, $how] = entraFindExisting($conn, $provider, $p);
-
-                if ($existing && $how === 'email'
-                    && (string)($provider['sync_on_conflict'] ?? 'adopt') !== 'adopt') {
-                    $counts['conflict']++;
-                    dsyncLogEntry($conn, $runId, 'conflict', (int)$existing['id'], $p,
-                        'Already exists here with the same email address. Left untouched, because this '
-                        . 'directory is set to flag conflicts rather than adopt them.');
-                    continue;
-                }
-
-                if ($existing) {
-                    $uid = (int)$existing['id'];
-                    $seenUserIds[] = $uid;
-                    $oidToUserId[$p['entra_id']] = $uid;
-                    $changes = dsyncApplyToExisting($conn, $provider, $existing, $p, $preview);
-                    if (!$preview) entraLinkIdentity($conn, $pid, $uid, $p);
-                    if ($how === 'email') {
-                        $counts['adopted']++;
-                        dsyncLogEntry($conn, $runId, 'adopt', $uid, $p,
-                            'Matched an existing person by email address and linked them to Entra. '
-                            . '⚠️ They now sign in with Microsoft, so any portal password they had no longer works.'
-                            . ($changes ? ' Also updated: ' . $changes : ''));
-                    } elseif ($changes !== '') {
-                        $counts['updated']++;
-                        dsyncLogEntry($conn, $runId, 'update', $uid, $p, $changes);
-                    } else {
-                        dsyncLogEntry($conn, $runId, 'unchanged', $uid, $p, '');
-                    }
-                    continue;
-                }
-
-                $newId = dsyncCreate($conn, $provider, $p, $preview);
-                if ($newId === null) {
-                    $counts['error']++;
-                    dsyncLogEntry($conn, $runId, 'error', null, $p, 'Could not be created — see the server error log.');
-                } else {
-                    $counts['created']++;
-                    if ($newId > 0) {
-                        $seenUserIds[] = $newId;
-                        $oidToUserId[$p['entra_id']] = $newId;
-                        entraLinkIdentity($conn, $pid, $newId, $p);
-                    }
-                    dsyncLogEntry($conn, $runId, 'create', $newId ?: null, $p, dsyncNewPersonSummary($p));
-                }
+                entraImportPerson($conn, $provider, $p, $preview, $runId, $counts, $seenUserIds, $oidToUserId);
             } catch (Throwable $e) {
                 $counts['error']++;
                 dsyncLogEntry($conn, $runId, 'error', null, $p, 'Could not be imported: ' . $e->getMessage());
@@ -1011,11 +1071,12 @@ function entraSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int $a
                     $g = entraSyncGroups($conn, $cfg, $provider, $oidToUserId, $runId, $preview);
                     $message .= sprintf(' Groups: %d (new: %d, no longer imported: %d). Memberships added: %d, removed: %d.',
                         $g['groups'], $g['new'], $g['gone'], $g['added'], $g['removed']);
-                    if ($g['outside'] > 0) {
-                        $message .= sprintf(' Members not imported as people (outside the people scope, or guests): %d.', $g['outside']);
-                    }
-                    if ($preview && $g['added'] > 0) {
+                    // A preview has created nobody, so everybody new would read as
+                    // "outside the scope" here. It can only say what it cannot count.
+                    if ($preview) {
                         $message .= ' (A preview cannot count memberships of people it has not created yet.)';
+                    } elseif ($g['outside'] > 0) {
+                        $message .= sprintf(' Members not imported as people (outside the people scope, or guests): %d.', $g['outside']);
                     }
                 } catch (Throwable $e) {
                     // People are already done and correct; a group failure must
@@ -1035,6 +1096,8 @@ function entraSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int $a
         $status  = 'failed';
         $message = $e->getMessage();
         error_log('[esync] provider ' . $pid . ' failed: ' . $e->getMessage());
+    } finally {
+        if (!$preview) dsyncUnlock($conn, $pid);
     }
 
     dsyncFinishRun($conn, $runId, $status, $counts, $message);

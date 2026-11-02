@@ -493,11 +493,12 @@ function completeSelfServiceSso(PDO $conn, array $provider, int $providerId, str
     // Graph knows a person by object id, Entra sign-in by a PAIRWISE `sub`, so
     // the import records the object id in source_ref under a placeholder
     // subject. The `oid` claim finds that row, and the real `sub` replaces the
-    // placeholder so step 1 finds them directly from now on.
+    // placeholder so step 1 finds them directly from now on. Only the placeholder:
+    // a real subject is a link somebody already made, see oidcLinkRequester().
     $oid = strtolower(trim((string)($claims['oid'] ?? '')));
     if (!$userId && $oid !== '') {
-        $stmt = $conn->prepare("SELECT id, user_id FROM user_sso_identities WHERE provider_id = ? AND source_ref = ? LIMIT 1");
-        $stmt->execute([$providerId, $oid]);
+        $stmt = $conn->prepare("SELECT id, user_id FROM user_sso_identities WHERE provider_id = ? AND source_ref = ? AND subject = ? LIMIT 1");
+        $stmt->execute([$providerId, $oid, 'entra:' . $oid]);
         $link = $stmt->fetch(PDO::FETCH_ASSOC);
         $linked = $link ? ssLoadUser($conn, (int)$link['user_id']) : null;
         if ($linked) {
@@ -571,14 +572,9 @@ function completeSelfServiceSso(PDO $conn, array $provider, int $providerId, str
         }
 
         // Link this IdP identity to the requester for next time.
-        // ⚠️ Upsert: directory sync may already hold a row for this person and
-        // provider (placeholder subject, no `oid` claim to find it by), and a
-        // plain INSERT would hit uq_user_sso_provider_user and fail the sign-in.
-        $conn->prepare(
-            "INSERT INTO user_sso_identities (user_id, provider_id, subject, email, linked_datetime, last_login_datetime)
-             VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
-             ON DUPLICATE KEY UPDATE subject = VALUES(subject), email = VALUES(email), last_login_datetime = UTC_TIMESTAMP()"
-        )->execute([$userId, $providerId, $sub, $email ?: null]);
+        if (!oidcLinkRequester($conn, $providerId, (int)$userId, $sub, $email, $oid)) {
+            ssoBail('This account is already linked to a different sign-in. Contact the service desk.');
+        }
     }
 
     // Every path above has now passed its access checks, so it is safe to write.

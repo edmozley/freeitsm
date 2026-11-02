@@ -290,6 +290,9 @@ return [
         // "workspace" and "channel", never "connection" or "project".
         'slack_blurb' => 'Turn a message in a Slack channel into a ticket, and answer it from the inbox without leaving the thread.',
 
+        // A signpost: the page itself is under Authentication, with the sign-in it extends.
+        'entra_blurb' => 'Import people, groups and who manages whom from Microsoft Entra ID, before anybody signs in. Set up under Authentication.',
+
         // ── Zabbix ───────────────────────────────────────────────────────────
         // Monitoring alerts become incidents. Contributed by Carl Steynvaard
         // (Open Resilience), October 2026. See includes/integrations/zabbix.php.

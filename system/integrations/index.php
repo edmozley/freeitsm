@@ -95,6 +95,17 @@ foreach ($providers as $pk => $pmeta) {
     try { $counts[$pk] = threecxConfigured($conn) ? 1 : 0; }
     catch (Exception $e) { $counts[$pk] = 0; }
 }
+
+// Importing from Entra lives under Authentication, with the sign-in it extends.
+// The card is only a signpost, because this is where people look for it.
+$entraImporting = false;
+try {
+    $entraImporting = (bool)$conn->query(
+        "SELECT 1 FROM auth_providers WHERE protocol = 'oidc' AND sync_enabled = 1 LIMIT 1"
+    )->fetchColumn();
+} catch (Exception $e) {
+    // Not verified yet: reads as not configured.
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -188,6 +199,19 @@ foreach ($providers as $pk => $pmeta) {
                     </span>
                 </a>
             <?php endforeach; ?>
+            <a class="provider-card" href="../sso/">
+                <svg class="provider-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="1.7"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                <h3>Microsoft Entra ID</h3>
+                <p><?php echo htmlspecialchars(t('system.integrations.entra_blurb')); ?></p>
+                <span class="provider-count <?php echo $entraImporting ? '' : 'is-none'; ?>">
+                    <?php echo htmlspecialchars(t($entraImporting ? 'system.integrations.configured' : 'system.integrations.not_configured')); ?>
+                </span>
+            </a>
         </div>
     </div>
     <script src="../../assets/js/mobile.js?v=83"></script>

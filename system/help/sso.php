@@ -639,6 +639,8 @@ require __DIR__ . '/_top.php';
         <li><strong>Missing once is noise.</strong> Somebody has to be absent for the number of runs you set before they are marked as left. 0 means never automatically.</li>
         <li><strong>A run that looks wrong changes nothing.</strong> If an import finds far fewer people than last time (the percentage you set), it stops before touching anyone. With Entra the usual causes are a group taken out of the scope, or the app losing its Graph permissions &mdash; both look exactly like everybody leaving at once.</li>
         <li><strong>An empty or deleted scope group stops the run.</strong> If the groups you import people from have no members, or one of them no longer exists, nothing is changed.</li>
+        <li><strong>A new account never takes over an old record.</strong> When a leaver's sign-in name or email goes to somebody new, Entra gives them a different account. The import shows a conflict and leaves the old record alone, whatever the conflict setting says.</li>
+        <li><strong>One import at a time.</strong> A second import of the same source stops and says so, and changes nothing.</li>
     </ul>
     <div class="help-note ok"><strong>Preview first, every time.</strong> It runs the real import with the writing switched off and shows, person by person, what would be created, updated, linked or marked as left.</div>
 
@@ -665,6 +667,8 @@ require __DIR__ . '/_top.php';
         <li><strong>Test connection signs in but cannot read users or groups (403).</strong> The Graph permissions are missing, were added as <em>Delegated</em> rather than <em>Application</em>, or admin consent was never granted. After granting it, wait a minute or two and test again.</li>
         <li><strong>Fewer people imported than the directory holds.</strong> Guests are left out unless you include them, and with <em>Only members of these groups</em> anybody outside those groups is too. The run's detail names everyone it brought in.</li>
         <li><strong>A group's "Linked" count is lower than "In Entra".</strong> Expected: only people who are imported are linked. Members outside your people scope, guests, and nested groups themselves are counted in Entra but not held here.</li>
+        <li><strong>"A different Entra account now uses this sign-in name or email address".</strong> That address belonged to somebody already here, and a new Entra account has taken it over. FreeITSM treats them as two people, so the old record is untouched and the new person is not imported. There is no way yet to separate them from this screen.</li>
+        <li><strong>"This account is already linked to a different sign-in".</strong> Somebody signed in with a Microsoft account whose email matches a person already linked to a different account. The sign-in is refused so that nobody takes over the record.</li>
         <li><strong>The import stopped and changed nothing.</strong> That is a safety check. Read the run's message, preview, and if the numbers are genuinely right, run it again or adjust the percentage.</li>
         <li><strong>"Groups were not imported: run Database Verification".</strong> People were imported correctly; the group tables do not exist yet. Run Database Verification and import again.</li>
         <li><strong>Nothing has imported for days.</strong> Check the scheduled task is still running. The History tab shows when the last run happened and whether somebody started it by hand.</li>
