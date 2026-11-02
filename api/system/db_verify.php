@@ -78,6 +78,7 @@ $primaryKeys = [
     // the read-and-increment happen in one statement (#1147).
     'ticket_number_counters'    => 'counter_key',
     'asset_tag_counters'        => 'counter_key',   // the same design, for asset tags (PR #164)
+    'job_schedules'             => 'job_key',       // one row per job, claimed by one atomic UPDATE (#233)
     'attachment_text'           => 'attachment_id',
     'document_text'             => 'document_id',
     'system_settings'           => 'setting_key',

@@ -73,6 +73,9 @@ domainApiRun(function () use ($conn, $analystId, $tabCaps) {
         set_time_limit(180);
         // #182: a MANUAL run - recorded, but it never makes the schedule look alive.
         require_once __DIR__ . '/../../includes/job_runs.php';
+        if (!JobRun::tryLock($conn, 'domains')) {   // #233: never alongside a scheduled run
+            domainApiFail('A scheduled run is going. Try again in a few minutes.', 409);
+        }
         $runId = JobRun::start($conn, 'domains', 'manual', $analystId);
         try {
             $r = domainScheduledRun($conn, 90, false);

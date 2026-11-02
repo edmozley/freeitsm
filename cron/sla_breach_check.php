@@ -149,6 +149,11 @@ try {
         }
     }
 
+    if (!JobRun::lock($conn, 'sla_breach', $trigger)) {
+        sla_cron_log_finish($conn, $runId, 'rate_limited', [], 'another run is still going');
+        exit;
+    }
+
     // ---- LAYER 3: Min interval between successful runs ----
     // Both CLI + HTTP — protects against double-scheduling regardless of source.
     if ($minInterval > 0) {

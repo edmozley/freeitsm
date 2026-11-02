@@ -46,10 +46,69 @@ final class JobRun
     private static $current = null;
     private static $shutdownRegistered = false;
 
-    /** 'cron' from the command line, 'web' over HTTP - how a cron entry point names its own trigger. */
+    /**
+     * 'cron' from the command line, 'web' over HTTP - how a cron entry point names its own trigger.
+     * A job the scheduler's fallback started (#233) is a 'page' run: cron/run.php --fallback passes
+     * FREEITSM_JOB_TRIGGER=page to it, so health never counts it as the schedule being alive.
+     */
     public static function scheduledTrigger(): string
     {
-        return PHP_SAPI === 'cli' ? 'cron' : 'web';
+        if (PHP_SAPI !== 'cli') return 'web';
+        return getenv('FREEITSM_JOB_TRIGGER') === 'page' ? 'page' : 'cron';
+    }
+
+    /**
+     * Takes this job's run lock, so a job started twice - by the scheduler, an old per-job cron
+     * line, its token address, the fallback or Run now - still runs once (#233). Turned away, it
+     * records the skip, answers 429 over HTTP and returns false: the caller exits.
+     *
+     *     if (!JobRun::lock($conn, 'domains', $trigger)) exit;
+     *
+     * TRAP: the lock belongs to the database CONNECTION and goes when it closes, which is the
+     *   end of the process or request. Never open the connection with PDO::ATTR_PERSISTENT, or
+     *   a finished request keeps the lock and the job never runs again.
+     * TRAP: GET_LOCK names are shared by every database on the MySQL server, so the name
+     *   includes this database - two installs on one server must not lock each other out.
+     *
+     * @param string $job  a key from jobRegistry()
+     * @param string $trigger  how this run was started, for the skip record
+     */
+    public static function lock(PDO $conn, string $job, string $trigger): bool
+    {
+        if (self::tryLock($conn, $job)) return true;
+        if (PHP_SAPI !== 'cli') http_response_code(429);
+        self::skipped($conn, $job, $trigger, 'Another run is still going.');
+        echo "Skipped: another run of this job is still going.\n";
+        return false;
+    }
+
+    /**
+     * Takes this job's run lock and says nothing either way - for Run now and page-load runs,
+     * which answer in their own words. The same lock as lock(), so they never overlap a scheduled run.
+     *
+     * @param string $job  a key from jobRegistry()
+     */
+    public static function tryLock(PDO $conn, string $job): bool
+    {
+        $s = $conn->prepare("SELECT GET_LOCK(?, 0)");
+        $s->execute([self::lockName($conn, $job)]);
+        return (int)$s->fetchColumn() === 1;
+    }
+
+    /** Gives the lock back before the connection closes - for a page run, which carries on serving the page. */
+    public static function unlock(PDO $conn, string $job): void
+    {
+        try {
+            $conn->prepare("SELECT RELEASE_LOCK(?)")->execute([self::lockName($conn, $job)]);
+        } catch (Throwable) {
+            // it goes when the connection closes anyway
+        }
+    }
+
+    /** The lock's name, within MySQL's 64 characters whatever the database is called. */
+    public static function lockName(PDO $conn, string $job): string
+    {
+        return 'freeitsm.job.' . substr(md5((string)$conn->query('SELECT DATABASE()')->fetchColumn()), 0, 16) . '.' . $job;
     }
 
     /**

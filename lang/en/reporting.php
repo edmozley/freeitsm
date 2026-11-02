@@ -130,6 +130,14 @@ return [
         'not_used_by'    => 'Marked not used by {who}, {when}',
         'refused'        => 'Last call turned away: {reason}, {when}',
         'schedule_hint'  => 'Schedule:',
+        // The built-in scheduler (#233): one cron line, cron/run.php, starts every job.
+        'scheduler_running' => 'The built-in scheduler is running: one scheduled task starts every job below. It last ran {when}.',
+        'scheduler_stopped' => 'The built-in scheduler last ran {when} and has stopped. Check that this scheduled task still runs every minute:',
+        'scheduler_none'    => 'Each job below needs its own scheduled task. One scheduled task can start them all instead, every minute:',
+        'starts'            => 'Scheduler: {when}',
+        'starts_daily'      => 'Scheduler: daily at {time} ({tz})',
+        'starts_off'        => 'Scheduler: off',
+        'next_start'        => 'next {when}',
 
         'status_healthy'    => 'Healthy',
         'status_unknown'    => 'Unknown',

@@ -72,6 +72,8 @@ try {
         }
     }
 
+    if (!JobRun::lock($conn, 'workflow_scheduled', $trigger)) exit;
+
     // ---- Min interval between runs (CLI + HTTP) ----
     if ($minInterval > 0 && !empty($settings['workflow_cron_last_run'])) {
         $ageStmt = $conn->prepare("SELECT TIMESTAMPDIFF(SECOND, ?, UTC_TIMESTAMP())");

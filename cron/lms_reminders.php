@@ -76,6 +76,8 @@ if ($settings[LMS_REM_ENABLED] !== '1') {
     echo "Training reminders are switched off (LMS > Settings > Reminders). Nothing to do.\n";
     exit(0);
 }
+// Never two at once (#233): two runs would both find the same reminders unsent.
+if (!JobRun::lock($conn, 'lms_reminders', $trigger)) exit(0);
 
 $runId = JobRun::start($conn, 'lms_reminders', $trigger);
 try {

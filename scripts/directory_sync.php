@@ -65,7 +65,10 @@ if (!$providers) {
 // #182: a --preview writes nothing, so it is recorded as SKIPPED - a dry run is
 // never evidence that the job works, and can never clear a failure. A single
 // --provider run is a manual run of that one source.
-$runId = $preview ? null : JobRun::start($conn, 'directory_sync', isset($opts['all']) ? 'cron' : 'manual');
+// #233: one --all run at a time. Each source also has its own lock (dsyncLock), which
+// is what keeps a single source and Import now apart.
+if (!$preview && isset($opts['all']) && !JobRun::lock($conn, 'directory_sync', JobRun::scheduledTrigger())) exit(0);
+$runId = $preview ? null : JobRun::start($conn, 'directory_sync', isset($opts['all']) ? JobRun::scheduledTrigger() : 'manual');
 if ($preview) JobRun::skipped($conn, 'directory_sync', 'manual', 'Dry run (--preview): nothing written.');
 
 require_once __DIR__ . '/../includes/encryption.php';

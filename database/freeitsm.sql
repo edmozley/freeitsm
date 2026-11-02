@@ -1190,6 +1190,25 @@ CREATE TABLE IF NOT EXISTS `job_run_sources` (
     KEY `idx_job_run_sources_src` (`job_key`, `source_key`, `id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The built-in scheduler (#233): when cron/run.php should next start each job.
+-- One row per key of jobRegistry(), added by run.php itself the first time it sees
+-- a job, so a job new in a release runs with no change on the server.
+-- mode: interval (every interval_minutes) | daily (at at_time, HH:MM in the install's
+-- timezone) | off. next_due_at is UTC. A job is claimed by ONE atomic UPDATE that
+-- moves next_due_at on - never a SELECT then an UPDATE - so two dispatchers started
+-- in the same minute cannot both start it.
+CREATE TABLE IF NOT EXISTS `job_schedules` (
+    `job_key`          VARCHAR(40) NOT NULL,
+    `mode`             VARCHAR(10) NOT NULL DEFAULT 'interval',
+    `interval_minutes` INT NULL,
+    `at_time`          CHAR(5) NULL,
+    `next_due_at`      DATETIME NULL,
+    `last_claimed_at`  DATETIME NULL,
+    `updated_by`       INT NULL,                -- the analyst who last changed the schedule
+    `updated_datetime` DATETIME NULL,
+    PRIMARY KEY (`job_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================================
 -- Ticket numbering (GH discussion #71).
 --

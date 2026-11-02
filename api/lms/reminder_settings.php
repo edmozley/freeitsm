@@ -118,6 +118,10 @@ try {
         // Guarded by the same capability as everything else on this screen.
         // #182: a MANUAL run - recorded, but never proof that the schedule is alive.
         require_once __DIR__ . '/../../includes/job_runs.php';
+        if (!JobRun::tryLock($conn, 'lms_reminders')) {   // #233: never alongside a scheduled run
+            echo json_encode(['success' => false, 'error' => 'A scheduled run is sending reminders. Try again in a few minutes.']);
+            exit;
+        }
         $runId = JobRun::start($conn, 'lms_reminders', 'manual', $analystId);
         try {
             $result = lmsRemindersRun($conn, false);

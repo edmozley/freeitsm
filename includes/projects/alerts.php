@@ -296,6 +296,7 @@ function projectAlertsOpportunistic(PDO $conn): void
         // #182: project alerts are one part of the scheduled-workflows job. A page
         // run of that part is recorded as one - never as proof the schedule is alive.
         require_once __DIR__ . '/../job_runs.php';
+        if (!JobRun::tryLock($conn, 'workflow_scheduled')) return;   // a scheduled run is doing it (#233)
         $runId = JobRun::start($conn, 'workflow_scheduled', 'page', isset($_SESSION['analyst_id']) ? (int)$_SESSION['analyst_id'] : null);
         try {
             $fired = projectAlertsRun($conn);
@@ -305,6 +306,8 @@ function projectAlertsOpportunistic(PDO $conn): void
             JobRun::source($conn, $runId, 'workflow_scheduled', 'part:projects', 'Project alerts', false, $e->getMessage());
             JobRun::fail($conn, $runId, $e);
             throw $e;
+        } finally {
+            JobRun::unlock($conn, 'workflow_scheduled');
         }
     } catch (Throwable $e) {
         error_log('projects alerts: ' . $e->getMessage());

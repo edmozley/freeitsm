@@ -206,12 +206,15 @@ function domainOpportunisticRun(PDO $conn): ?array
         // #182: recorded as a PAGE run. It does the work, but never keeps the job's
         // schedule looking healthy - only a cron or token-address run does that.
         require_once __DIR__ . '/../job_runs.php';
+        if (!JobRun::tryLock($conn, 'domains')) return null;   // a scheduled run is doing it (#233)
         $runId = JobRun::start($conn, 'domains', 'page', isset($_SESSION['analyst_id']) ? (int)$_SESSION['analyst_id'] : null);
         try {
             $r = domainScheduledRun($conn, 25, false);
         } catch (Throwable $e) {
             JobRun::fail($conn, $runId, $e);
             throw $e;
+        } finally {
+            JobRun::unlock($conn, 'domains');
         }
         domainJobFinish($conn, $runId, $r);
         return $r;

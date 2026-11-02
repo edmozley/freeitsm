@@ -68,12 +68,7 @@ if (cronModuleSwitchedOff($conn, 'domains', 'domains', $trigger)) exit(0);
 
 // Never two at once: a slow run overlapping the next hour's would double the
 // registry and crt.sh traffic for no gain.
-$lock = $conn->query("SELECT GET_LOCK('freeitsm_domains_cron', 0)")->fetchColumn();
-if ((int)$lock !== 1) {
-    JobRun::skipped($conn, 'domains', $trigger, 'Another run is still going.');
-    echo "Another Domains run is still going. Nothing to do.\n";
-    exit(0);
-}
+if (!JobRun::lock($conn, 'domains', $trigger)) exit(0);
 
 $runId = JobRun::start($conn, 'domains', $trigger);
 try {
@@ -83,7 +78,7 @@ try {
     JobRun::fail($conn, $runId, $e);
     throw $e;
 } finally {
-    $conn->query("SELECT RELEASE_LOCK('freeitsm_domains_cron')");
+    JobRun::unlock($conn, 'domains');
 }
 
 $a = $r['alerts'] ?? [];

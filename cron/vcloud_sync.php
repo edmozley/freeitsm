@@ -19,16 +19,13 @@ require_once __DIR__ . '/../includes/job_runs.php';   // run history (#182)
 
 $conn = connectToDatabase();
 // GH #217: nothing to do while the module is switched off for the install.
-if (cronModuleSwitchedOff($conn, 'assets', 'vcloud_sync', 'cron')) exit(0);
+$trigger = JobRun::scheduledTrigger();
+if (cronModuleSwitchedOff($conn, 'assets', 'vcloud_sync', $trigger)) exit(0);
 
 // Never two at once (#182): a slow sync overlapping the next would read the same
 // servers twice and race to write the same assets.
-if ((int)$conn->query("SELECT GET_LOCK('freeitsm_vcloud_sync', 0)")->fetchColumn() !== 1) {
-    JobRun::skipped($conn, 'vcloud_sync', 'cron', 'Another sync is still running.');
-    echo date('c') . " another sync is still running\n";
-    exit(0);
-}
-$runId = JobRun::start($conn, 'vcloud_sync', 'cron');
+if (!JobRun::lock($conn, 'vcloud_sync', $trigger)) exit(0);
+$runId = JobRun::start($conn, 'vcloud_sync', $trigger);
 $failed = 0;
 $due = $conn->query(
     "SELECT id, name FROM vcloud_connections

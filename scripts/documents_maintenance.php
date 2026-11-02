@@ -56,9 +56,12 @@ try {
 }
 
 $exit = 0;
+$trigger = JobRun::scheduledTrigger();
+// The extractor's claims make two runs safe, but the tidy-up is not worth doing twice (#233).
+if (!JobRun::lock($conn, 'documents_maintenance', $trigger)) exit(0);
 // #182: its two halves are its two sources, so a stuck queue or a failing tidy-up
 // is named on the health page instead of only in an exit code nobody reads.
-$runId = JobRun::start($conn, 'documents_maintenance', 'cron');
+$runId = JobRun::start($conn, 'documents_maintenance', $trigger);
 
 if ($extract > 0) {
     $depth = documentTextQueueDepth($conn);

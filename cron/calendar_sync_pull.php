@@ -69,11 +69,7 @@ try {
 
     // Never two at once (#182): a slow pull overlapping the next one would read the
     // same calendars twice and race to apply the same moves.
-    if ((int)$conn->query("SELECT GET_LOCK('freeitsm_calendar_pull', 0)")->fetchColumn() !== 1) {
-        JobRun::skipped($conn, 'calendar_sync_pull', $trigger, 'Another pull is still running.');
-        echo "Another calendar pull is still running. Nothing to do.\n";
-        exit;
-    }
+    if (!JobRun::lock($conn, 'calendar_sync_pull', $trigger)) exit;
     $runId = JobRun::start($conn, 'calendar_sync_pull', $trigger);
 
     // ── Subscriptions first ─────────────────────────────────────────────────

@@ -458,12 +458,15 @@ function lmsRemindersRunOpportunistic(PDO $conn): void
 
         // #182: a PAGE run - recorded, never proof that the schedule is alive.
         require_once __DIR__ . '/job_runs.php';
+        if (!JobRun::tryLock($conn, 'lms_reminders')) return;   // a scheduled run is sending them (#233)
         $runId = JobRun::start($conn, 'lms_reminders', 'page', isset($_SESSION['analyst_id']) ? (int)$_SESSION['analyst_id'] : null);
         try {
             $r = lmsRemindersRun($conn, false);
         } catch (Throwable $e) {
             JobRun::fail($conn, $runId, $e);
             throw $e;
+        } finally {
+            JobRun::unlock($conn, 'lms_reminders');
         }
         lmsRemindersJobFinish($conn, $runId, $r);
     } catch (Throwable $e) {

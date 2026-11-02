@@ -73,6 +73,7 @@ try {
 
     // GH #217: nothing to do while the module is switched off for the install.
     if (cronModuleSwitchedOff($conn, 'tasks', 'task_recurrence', $trigger)) exit(0);
+    if (!JobRun::lock($conn, 'task_recurrence', $trigger)) exit;
 
     if ($minInterval > 0 && !empty($settings['task_recurrence_last_run'])) {
         $ageStmt = $conn->prepare("SELECT TIMESTAMPDIFF(SECOND, ?, UTC_TIMESTAMP())");

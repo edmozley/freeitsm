@@ -377,6 +377,10 @@ $translationNamespaces = ['common', 'reporting'];
 
         /* ---- Background jobs (#182) ------------------------------------- */
         .jobs-meta { font-size: 13px; color: var(--text-muted, #666); padding: 12px 15px 0; }
+        .jobs-scheduler { margin: 12px 15px 0; padding: 10px 12px; border-radius: 4px; font-size: 13px; background: var(--surface-2, #f0f0f0); color: var(--text, #333); }
+        .jobs-scheduler.ok { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
+        .jobs-scheduler.warn { background: var(--warning-bg, #fff3cd); color: var(--warning-text, #856404); }
+        .jobs-scheduler code { display: block; margin-top: 6px; font-size: 12px; background: var(--surface, #fff); color: var(--text, #333); padding: 4px 8px; border-radius: 3px; overflow-x: auto; white-space: nowrap; user-select: all; }
         .jobs-section-title { font-size: 15px; font-weight: 600; color: var(--text, #333); padding: 16px 15px 8px; margin: 0; }
         .jobs-table td { vertical-align: top; }
         .jobs-table tbody tr { cursor: default; }
@@ -754,6 +758,27 @@ $translationNamespaces = ['common', 'reporting'];
             return JT('every_minutes', { n: min });
         }
 
+        // #233: is the one-line scheduler (cron/run.php) running?
+        function schedulerHtml(s) {
+            if (!s) return '';
+            if (s.running) return `<div class="jobs-scheduler ok">${escapeHtml(JT('scheduler_running', { when: fmtUtc(s.last_beat) }))}</div>`;
+            const why = s.last_beat ? JT('scheduler_stopped', { when: fmtUtc(s.last_beat) }) : JT('scheduler_none');
+            return `<div class="jobs-scheduler${s.last_beat ? ' warn' : ''}">${escapeHtml(why)}<code>${escapeHtml(s.line)}</code></div>`;
+        }
+
+        // A job's schedule, under its expected interval - only once the scheduler has run.
+        function scheduleText(d, j) {
+            const s = (d.schedules || {})[j.key];
+            if (!s || !d.scheduler || !d.scheduler.last_beat) return '';
+            let what = JT('starts_off');
+            if (s.mode === 'interval') what = JT('starts', { when: intervalText(+s.interval_minutes) });
+            if (s.mode === 'daily') what = JT('starts_daily', { time: s.at_time, tz: d.scheduler.timezone });
+            // A job that is not needed is not started, so it has no next start to show.
+            const waiting = j.status === 'not_needed' || j.status === 'not_used';
+            const next = s.mode !== 'off' && s.next_due_at && !waiting ? ' · ' + JT('next_start', { when: fmtUtc(s.next_due_at) }) : '';
+            return '<br>' + escapeHtml(what + next);
+        }
+
         async function loadJobs() {
             const container = document.getElementById('logsTableContainer');
             container.innerHTML = `<div class="loading"><div class="spinner"></div><div>${escapeHtml(t('reporting.logs.loading'))}</div></div>`;
@@ -776,6 +801,7 @@ $translationNamespaces = ['common', 'reporting'];
             const options = d.jobs.map(j => `<option value="${escapeHtml(j.key)}"${jobsHist.job === j.key ? ' selected' : ''}>${escapeHtml(j.name)}</option>`).join('');
             document.getElementById('logsTableContainer').innerHTML = `
                 <div class="jobs-meta">${escapeHtml(JT('meta', { checked: fmtUtc(d.checked_utc), months: d.retention_months, since: fmtUtc(d.recording_since) }))}</div>
+                ${schedulerHtml(d.scheduler)}
                 <h3 class="jobs-section-title">${escapeHtml(JT('health_heading'))}</h3>
                 <table class="logs-table jobs-table" data-log-type="jobs">
                     <thead><tr>
@@ -796,7 +822,7 @@ $translationNamespaces = ['common', 'reporting'];
                             <td class="log-datetime">${escapeHtml(fmtUtc(j.last_scheduled_success))}</td>
                             <td>${j.last_run ? `<span class="job-pill ${escapeHtml(j.last_run.outcome)}">${escapeHtml(JT('outcome_' + j.last_run.outcome))}</span>
                                 <div class="job-sub">${escapeHtml(JT('trigger_' + j.last_run.trigger))} · ${escapeHtml(fmtUtc(j.last_run.started))}</div>` : '<span class="job-sub">-</span>'}</td>
-                            <td class="job-sub">${escapeHtml(intervalText(j.interval))}${j.interval !== j.default_interval ? '<br>' + escapeHtml(JT('changed_from', { d: intervalText(j.default_interval) })) : ''}</td>
+                            <td class="job-sub">${escapeHtml(intervalText(j.interval))}${j.interval !== j.default_interval ? '<br>' + escapeHtml(JT('changed_from', { d: intervalText(j.default_interval) })) : ''}${scheduleText(d, j)}</td>
                             ${d.can_configure ? `<td><button class="job-edit-btn" onclick="editJob('${escapeHtml(j.key)}')">${escapeHtml(JT('edit'))}</button></td>` : ''}
                         </tr>`).join('')}
                     </tbody>

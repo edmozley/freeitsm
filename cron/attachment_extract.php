@@ -73,11 +73,13 @@ try {
         exit;
     }
 
-    // ⚠️ Overlap guard, same idea as cron/webhook_deliveries.php. A five-minute
-    // schedule with a run that takes ten gives you two workers on one queue.
-    // The claim in extractQueueDrain() makes that SAFE, but it is still two
-    // processes doing half the work each and competing for the extractor, so
-    // the second one is better off not starting.
+    // ⚠️ Overlap guard. A five-minute schedule with a run that takes ten gives you
+    // two workers on one queue. The claim in extractQueueDrain() makes that SAFE,
+    // but it is still two processes doing half the work each and competing for
+    // the extractor, so the second one is better off not starting. The minimum
+    // interval below reads then writes, so on its own two callers can both pass
+    // it: the lock is what makes it one run (#233).
+    if (!JobRun::lock($conn, 'attachment_extract', $trigger)) exit;
     $MIN_INTERVAL = 60;   // seconds
     $lastRun = null;
     try {

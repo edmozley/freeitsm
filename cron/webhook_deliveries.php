@@ -63,6 +63,7 @@ try {
     // sent as a backlog by this check; they go when Workflows is back on.
     // GH #217: nothing to do while the module is switched off for the install.
     if (cronModuleSwitchedOff($conn, 'workflow', 'webhook_deliveries', $trigger)) exit(0);
+    if (!JobRun::lock($conn, 'webhook_deliveries', $trigger)) exit;
 
     // ---- Min interval between runs (CLI + HTTP) ----
     if ($minInterval > 0 && !empty($settings['webhook_cron_last_run'])) {

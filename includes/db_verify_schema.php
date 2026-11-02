@@ -800,6 +800,18 @@ return [
         'message'          => 'VARCHAR(500) NULL',
         'created_datetime' => 'DATETIME NOT NULL',
     ],
+    // The built-in scheduler (#233). ⚠️ job_key is the PK, declared in db_verify.php's
+    // $primaryKeys map: the claim is one UPDATE of one row.
+    'job_schedules' => [
+        'job_key'          => 'VARCHAR(40) NOT NULL',
+        'mode'             => "VARCHAR(10) NOT NULL DEFAULT 'interval'",
+        'interval_minutes' => 'INT NULL',
+        'at_time'          => 'CHAR(5) NULL',
+        'next_due_at'      => 'DATETIME NULL',
+        'last_claimed_at'  => 'DATETIME NULL',
+        'updated_by'       => 'INT NULL',
+        'updated_datetime' => 'DATETIME NULL',
+    ],
 
     // --- Ticket numbering (GH #71) ------------------------------------------
     // ⚠️ ticket_number_counters has NO auto-increment id: counter_key is the

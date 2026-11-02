@@ -37,6 +37,9 @@ try {
     // #182: Sync now is a MANUAL run of the job, for this one server - recorded,
     // and it can clear that server's failure, but it never makes the schedule look alive.
     require_once __DIR__ . '/../../includes/job_runs.php';
+    if (!JobRun::tryLock($conn, 'vcloud_sync')) {   // #233: never alongside a scheduled sync
+        throw new Exception('A scheduled sync is running. Try again in a few minutes.');
+    }
     $runId = JobRun::start($conn, 'vcloud_sync', 'manual', (int)($_SESSION['analyst_id'] ?? 0) ?: null);
     try {
         $summary = vcdSyncConnection($conn, $id);

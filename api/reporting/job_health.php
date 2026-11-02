@@ -88,9 +88,19 @@ try {
     }
 
     if ($view === 'health') {
+        require_once '../../includes/job_scheduler.php';
+        // #233: whether the one-line scheduler is running, and each job's schedule.
+        $beat = jobSetting($conn, JOB_SCHEDULER_BEAT);
         echo json_encode([
             'success'         => true,
             'jobs'            => array_values(jobHealthAll($conn)),
+            'scheduler'       => [
+                'last_beat' => $beat ?: null,
+                'running'   => $beat !== '' && strtotime($beat . ' UTC') > time() - 180,
+                'line'      => jobSchedulerLine(),
+                'timezone'  => date_default_timezone_get(),
+            ],
+            'schedules'       => jobSchedules($conn),
             'can_configure'   => jobHealthMayConfigure($conn, $analystId),
             'recording_since' => jobSetting($conn, 'job_runs_recording_since') ?: null,
             'retention_months'=> jobHealthRetentionMonths($conn),

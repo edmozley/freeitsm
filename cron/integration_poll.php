@@ -78,6 +78,8 @@ try {
         }
     }
 
+    if (!JobRun::lock($conn, 'integration_poll', $trigger)) exit;
+
     // ---- Min interval between runs (CLI + HTTP) ----
     if ($minInterval > 0 && !empty($settings['integration_cron_last_run'])) {
         $ageStmt = $conn->prepare("SELECT TIMESTAMPDIFF(SECOND, ?, UTC_TIMESTAMP())");
