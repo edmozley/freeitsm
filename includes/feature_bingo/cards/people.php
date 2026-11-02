@@ -25,10 +25,10 @@ return [
         'tier'     => 'extra',
         'category' => 'organisation',
         'title'    => 'Who reports to whom',
-        'what'     => 'A manager recorded against people - by hand in Users or filled in by directory sync - shown on each person\'s page.',
-        'why'      => 'You can see who to chase about an approval or a leaver without leaving the person\'s page.',
+        'what'     => 'A manager recorded against people - by hand in Users or filled in by directory sync - shown on each person\'s page and drawn as an organisation chart under People -> Organisation (4.8.0, PR #242), with the gaps: leavers who still manage people, and people with no manager.',
+        'why'      => 'You can see who to chase about an approval or a leaver, everybody under a director, and where the directory\'s reporting lines have gone stale.',
         'done'     => 'At least one person has a manager.',
-        'link'     => 'people/',
+        'link'     => 'people/org.php',
         'check'    => ['rows', 'users', 'manager_id IS NOT NULL'],
     ],
     [
