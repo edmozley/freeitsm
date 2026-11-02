@@ -277,6 +277,8 @@ $translationNamespaces = ['common', 'reporting'];
                     <!-- Background jobs (#182) -->
                     <h4 id="background-jobs"><?php echo htmlspecialchars(t('reporting.help.s3_jobs_heading')); ?></h4>
                     <p><?php echo htmlspecialchars(t('reporting.help.s3_jobs_intro')); ?></p>
+                    <p><?php echo htmlspecialchars(t('reporting.help.s3_jobs_scheduler')); ?></p>
+                    <p><?php echo htmlspecialchars(t('reporting.help.s3_jobs_fallback')); ?></p>
                     <p><?php echo htmlspecialchars(t('reporting.help.s3_jobs_states')); ?></p>
                     <p><?php echo htmlspecialchars(t('reporting.help.s3_jobs_rules')); ?></p>
                     <p><?php echo htmlspecialchars(t('reporting.help.s3_jobs_told')); ?></p>
