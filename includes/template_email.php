@@ -211,8 +211,17 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
 
         emailLogSent($conn, $mailbox, 'template', $recipientEmail, $fullSubject, $ticketId);
 
-        // Save to emails table
-        templateSaveSentEmail($conn, $ticketId, $mailbox, $recipientEmail, $fullSubject, $body);
+        // Save to the conversation - only what went to the REQUESTER (GH #244).
+        // TRAP: an email to an analyst ("this ticket is now yours") is internal. Stored
+        // in the conversation it became the newest message, so Reply addressed the
+        // reply to the analyst, and a portal that shows third-party messages showed it
+        // to the requester. It is still in the email send log above, and the ticket's
+        // history says it was sent.
+        if (templateEventAudience($eventTrigger) === 'analyst') {
+            templateNoteAnalystEmail($conn, $ticketId, (string)($mergeData['assigned_analyst_name'] ?? ''), $recipientEmail);
+        } else {
+            templateSaveSentEmail($conn, $ticketId, $mailbox, $recipientEmail, $fullSubject, $body);
+        }
 
     } catch (Exception $e) {
         error_log("Template email error ($eventTrigger, ticket $ticketId): " . $e->getMessage());
@@ -735,6 +744,24 @@ function internalTicketEmail(PDO $conn, int $ticketId, array $recipients, string
     }
     if ($firstError) {
         throw $firstError;
+    }
+}
+
+/**
+ * A line in the ticket's history for an email that went to an analyst, not the
+ * requester (GH #244) - kept out of the conversation, but never invisible. No analyst
+ * is credited: the system sent it. Never throws.
+ *
+ * @param string $name  the analyst's name, '' when unknown
+ * @param string $to    the address it went to
+ */
+function templateNoteAnalystEmail(PDO $conn, int $ticketId, string $name, string $to): void {
+    try {
+        $conn->prepare("INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
+                        VALUES (?, NULL, 'Assignment email', NULL, ?, UTC_TIMESTAMP())")
+             ->execute([$ticketId, 'Sent to ' . ($name !== '' ? "$name <$to>" : $to)]);
+    } catch (Exception $e) {
+        error_log('Template email: failed to note the analyst email on ticket ' . $ticketId . ': ' . $e->getMessage());
     }
 }
 

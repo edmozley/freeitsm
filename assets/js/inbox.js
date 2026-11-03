@@ -392,6 +392,7 @@ let ticketCategories = [];
 let ticketResolutionCodes = [];
 let ticketClassification = { category: false, closure_category: false, resolution_code: false };
 let analysts = [];
+let analystEmails = new Set();   // GH #244: every analyst's address, lower-case, leavers included
 let analystsMultiCompany = false;   // GH #176: set by loadAnalysts()
 
 /**
@@ -1169,6 +1170,8 @@ async function loadAnalysts() {
         if (data.success) {
             analysts = data.analysts.filter(a => a.is_active);
             analystsMultiCompany = !!data.multi_company;
+            // GH #244: every analyst's address, leavers included - see correspondentAddress().
+            analystEmails = new Set(data.analysts.map(a => String(a.email || '').trim().toLowerCase()).filter(Boolean));
         }
     } catch (error) {
         console.error('Error loading analysts:', error);
@@ -7463,10 +7466,25 @@ async function saveNoteNow() {
 function correspondentAddress(email) {
     if (!email) return '';
     const isOutbound = String(email.direction || '').toLowerCase() === 'outbound';
+    if (isOutbound && outboundToStaffOnly(email.to_recipients)) {
+        // GH #244: an outbound message to our OWN analysts - the "this ticket is now
+        // yours" email, which earlier releases stored in the conversation - is not
+        // the conversation. Replying goes to the requester, never to a colleague.
+        return email.requester_email || '';
+    }
     return (isOutbound
                 ? (email.to_recipients || email.requester_email)
                 : (email.from_address  || email.requester_email)
            ) || '';
+}
+
+/** Is every address in a recipient list one of our analysts (GH #244)? Empty is no. */
+function outboundToStaffOnly(recipients) {
+    const list = String(recipients || '').split(/[;,]/).map(s => {
+        const m = s.match(/<([^>]+)>/);
+        return (m ? m[1] : s).trim().toLowerCase();
+    }).filter(Boolean);
+    return list.length > 0 && list.every(a => analystEmails.has(a));
 }
 
 /**
