@@ -956,6 +956,8 @@ function peopleBareDate(?string $d): string
 //  - Leavers are hidden unless asked for, EXCEPT a leaver who still has active
 //    people reporting to them - hiding that one would hide the gap.
 //  - Nothing here writes. Reporting lines are changed where they always were.
+//
+// @wiki Organisation-Chart-Developer-Guide
 
 /** How far a reporting line is walked upwards - a bound real data never reaches, so bad data cannot loop. */
 const PEOPLE_ORG_MAX_DEPTH = 32;

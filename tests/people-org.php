@@ -19,6 +19,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * Controls: an analyst who can see every company sees the manager the
  * restricted one may not, and leavers appear when asked for, so a missing
  * person means "left out", not "broken".
+ *
+ * @wiki Organisation-Chart-Developer-Guide
  */
 
 require_once __DIR__ . '/../config.php';

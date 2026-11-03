@@ -393,6 +393,8 @@ function intuneLinkDevicesToAssets(PDO $conn, ?int $companyId = null): array {
  * workflows, so it is the administrator's to switch on.
  *
  * @return array  ['assigned' => assets given a holder, 'failed' => assets that could not be, each logged]
+ *
+ * @wiki Asset-Reconciliation-Developer-Guide
  */
 function intuneAssignPrimaryUsers(PDO $conn): array {
     require_once __DIR__ . '/services/assets.php';

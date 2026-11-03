@@ -20,6 +20,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * sit in a transaction: it makes two companies, two analysts and a small
  * organisation, all named with one random tag, and deletes every one of them
  * in finally. It checks first that the server sees them, and stops if not.
+ *
+ * @wiki Organisation-Chart-Developer-Guide
  */
 
 require_once __DIR__ . '/../config.php';

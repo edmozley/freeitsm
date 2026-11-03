@@ -23,6 +23,8 @@
  *
  * Read only. Reporting lines are changed where they always were: Tickets ->
  * Users, or the directory that owns the person.
+ *
+ * @wiki Organisation-Chart-Developer-Guide
  */
 session_start();
 require_once '../config.php';
@@ -191,6 +193,8 @@ $seg = function (string $label, string $attr, array $options) {
                 .then(function (r) { return r.json(); });
         }
         function say(text) { statusEl.textContent = text || ''; statusEl.hidden = !text; }
+        // Keeps the person and the view in the address (without a new history
+        // entry), so F5 and a copied link open the page as it is now.
         function remember() {
             var q = new URLSearchParams();
             if (state.person) q.set('person', state.person);
@@ -231,6 +235,7 @@ $seg = function (string $label, string $attr, array $options) {
         }
         function avatar(n, size) { return '<span class="ppl-org-av ' + size + '" style="background:' + colour(n) + '" aria-hidden="true">' + esc(initials(n.name)) + '</span>'; }
         function leaverPill(n) { return n.is_active ? '' : ' <span class="ppl-pill bad">' + esc(T('org.leaver')) + '</span>'; }
+        // The small button on a tree row that opens the chart from that person.
         function asChart(n) {
             return '<button type="button" class="ppl-org-as-chart" data-chart="' + n.id + '" title="' + esc(T('org.as_chart')) + '" aria-label="' + esc(T('org.as_chart') + ': ' + n.name) + '">'
                 + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="1"></rect><rect x="2" y="17" width="6" height="5" rx="1"></rect><rect x="16" y="17" width="6" height="5" rx="1"></rect><path d="M12 7v5M5 17v-3h14v3"></path></svg></button>';
@@ -271,6 +276,8 @@ $seg = function (string $label, string $attr, array $options) {
                 setTimeout(function () { b.innerHTML = COPY_ICON; b.classList.remove('done'); b.title = b.getAttribute('aria-label'); }, 1500);
             });
         });
+        // Fills a panel's contact details from action=person, fetched when the
+        // panel is drawn; a panel replaced while it waited is left alone.
         function fillContact(container) {
             var dl = container && container.querySelector('[data-contact]');
             if (!dl) return;
@@ -295,6 +302,7 @@ $seg = function (string $label, string $attr, array $options) {
                 .then(function (d) { if (d.success) { contactCache[id] = d.person; draw(d.person); } })
                 .catch(function () {});
         }
+        // Marks which button of a group (all carrying `attr`) is the one in use.
         function pressed(attr, value) {
             document.querySelectorAll('[' + attr + ']').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute(attr) === value ? 'true' : 'false'); });
         }
@@ -314,6 +322,8 @@ $seg = function (string $label, string $attr, array $options) {
             return '<li class="ppl-org-node' + (n.reports > 0 ? ' has-team' : '') + '" data-id="' + n.id + '" data-name="' + esc(n.name) + '">'
                 + '<div class="ppl-org-row' + (n.is_active ? '' : ' leaver') + '">' + row + asChart(n) + '</div></li>';
         }
+        // One level of the tree as a list under `container`, with a line saying
+        // when the server held some back (PEOPLE_ORG_LEVEL_LIMIT).
         function renderLevel(container, d) {
             var ul = document.createElement('ul');
             ul.className = 'ppl-org-level';
@@ -328,6 +338,7 @@ $seg = function (string $label, string $attr, array $options) {
                 ? '<div class="ppl-org-chead" aria-hidden="true"><span>' + esc(T('org.col_job')) + '</span><span>' + esc(T('org.col_department')) + '</span><span class="n">' + esc(T('org.col_under')) + '</span></div>'
                 : '';
         }
+        // Starts the tree (Cards or Compact) again from the top of the organisation.
         function loadTop() {
             treeEl.className = 'ppl-org-tree ' + state.treeMode;
             treeEl.dataset.mode = state.treeMode;
@@ -339,6 +350,9 @@ $seg = function (string $label, string $attr, array $options) {
                 renderLevel(treeEl, d);
             });
         }
+        // Opens or closes one person's team in the tree (`open` omitted: toggles).
+        // Their team is fetched the first time only; afterwards it is shown or
+        // hidden. Resolves once it is on the page, so callers can chain opens.
         function expand(li, open) {
             var btn = li.querySelector(':scope > .ppl-org-row > .ppl-org-toggle');
             if (!btn || btn.classList.contains('none')) return Promise.resolve();
@@ -350,6 +364,8 @@ $seg = function (string $label, string $attr, array $options) {
             if (sub) { sub.hidden = false; saveOpen(); return Promise.resolve(); }
             return get('action=level&id=' + li.dataset.id).then(function (d) { if (d.success) renderLevel(li, d); saveOpen(); });
         }
+        // Opens the tree down a reporting line - `ids` top first, from action=path -
+        // one level at a time, then marks and scrolls to the last person.
         function jumpTree(ids) {
             var i = 0;
             var step = function () {
@@ -386,6 +402,8 @@ $seg = function (string $label, string $attr, array $options) {
                 drawCols();
             });
         }
+        // Columns: choosing person `id` in column `i` drops the columns to its right
+        // and, if they manage anybody, adds a column with their team.
         function pickInCol(i, id) {
             var col = state.cols[i];
             var n = col ? col.people.filter(function (p) { return p.id === id; })[0] : null;
@@ -400,6 +418,8 @@ $seg = function (string $label, string $attr, array $options) {
                 return true;
             });
         }
+        // Draws the Columns layout from state.cols: the columns, the path naming
+        // each level above them, and the chosen person's panel on the right.
         function drawCols() {
             var strip = treeEl.querySelector('.ppl-org-strip'), crumbs = treeEl.querySelector('.ppl-org-crumbs'), detail = treeEl.querySelector('.ppl-org-detail');
             if (!strip) return;
@@ -433,6 +453,7 @@ $seg = function (string $label, string $attr, array $options) {
             }
             strip.scrollLeft = strip.scrollWidth;
         }
+        // jumpTree() for the Columns layout: chooses each person on the line in turn.
         function jumpCols(ids) {
             var i = 0;
             var step = function () {
@@ -446,6 +467,9 @@ $seg = function (string $label, string $attr, array $options) {
             return step();
         }
 
+        // Opens the tree on one person: asks for their reporting line, ticks
+        // Show leavers first if they have left, then opens the line in whichever
+        // layout is showing.
         function jumpTo(id) {
             state.person = id; remember();
             return get('action=path&id=' + id).then(function (d) {
@@ -479,9 +503,12 @@ $seg = function (string $label, string $attr, array $options) {
             if (treeEl.dataset.mode === 'columns' || state.restoring) return;
             try { sessionStorage.setItem('people.org.open', JSON.stringify(openIds())); } catch (e) {}
         }
+        // The ids of the teams that were open before F5 (see saveOpen()).
         function savedOpen() {
             try { var v = JSON.parse(sessionStorage.getItem('people.org.open') || '[]'); return Array.isArray(v) ? v.map(Number).filter(Boolean) : []; } catch (e) { return []; }
         }
+        // Opens those teams again, one after another - a team can only open once
+        // the team above it is on the page.
         function reopen(ids) {
             if (!ids.length) return Promise.resolve();
             // Columns show one line, not several branches: the person, if any, decides it.
@@ -500,6 +527,8 @@ $seg = function (string $label, string $attr, array $options) {
         // Expand all opens team after team, a few at a time, and stops at a
         // ceiling: on a large organisation "everything" is thousands of requests.
         var EXPAND_MAX = 300;
+        // Opens every closed team that is visible, ten at a time, round after
+        // round until none are left or EXPAND_MAX have been opened.
         function expandAll() {
             var opened = 0;
             say(T('org.loading'));
@@ -538,6 +567,8 @@ $seg = function (string $label, string $attr, array $options) {
             return state.chartCompact && n.children.length > 0
                 && n.children.every(function (c) { return !c.children.length && !(c.more > 0); });
         }
+        // One person's box in the chart: name, job (or "Leaver"), and a badge with
+        // how many are under them - filled when all are drawn, outlined when not.
         function cardHtml(n, isRoot, small) {
             var job = n.is_active ? (n.job_title || n.department || '') : T('org.leaver');
             var label = n.name + (meta(n) ? ', ' + meta(n) : '') + (n.more > 0 ? ', ' + T('org.more_under', { n: n.more }) : '');
@@ -555,6 +586,8 @@ $seg = function (string $label, string $attr, array $options) {
                 + '<span class="ppl-oc-txt"><span class="ppl-oc-name">' + esc(n.name) + '</span><span class="ppl-oc-job">' + esc(job) + '</span></span>'
                 + badge + pill + '</div>';
         }
+        // A person and everybody drawn under them, top to bottom (Compact stacks a
+        // team with no teams of its own - see leafy()).
         function vNode(n, isRoot) {
             var kids = '';
             if (n.children.length) {
@@ -564,6 +597,7 @@ $seg = function (string $label, string $attr, array $options) {
             }
             return '<li class="t">' + cardHtml(n, isRoot, false) + kids + '</li>';
         }
+        // vNode() for Left to right.
         function hNode(n, isRoot) {
             var kids = '';
             if (n.children.length) {
@@ -686,6 +720,9 @@ $seg = function (string $label, string $attr, array $options) {
             btn.title = T(state.panelOpen ? 'org.panel_hide' : 'org.panel_show');
             btn.innerHTML = state.panelOpen ? '&rsaquo;' : '&lsaquo;';
         }
+        // Applies the zoom. A CSS scale does not change the space a box takes, so
+        // the wrapper is sized to the scaled drawing by hand - or the scroll
+        // area would stay the unscaled size.
         function sizeChart() {
             var inner = chartEl.querySelector('.ppl-oc');
             if (!inner) return;
@@ -804,6 +841,7 @@ $seg = function (string $label, string $attr, array $options) {
 
         // A file name from the drawing's person, safe on every system.
         function fileName(ext) { var f = state.chartFocus && state.chartIndex[state.chartFocus]; return 'org-chart-' + ((f && f.n.name) || 'organisation').replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() + '.' + ext; }
+        // Saves a file the page has made, through a temporary link.
         function download(blob, name) {
             var a = document.createElement('a');
             a.href = URL.createObjectURL(blob); a.download = name;
@@ -819,10 +857,13 @@ $seg = function (string $label, string $attr, array $options) {
         // size, whatever the zoom, whatever the theme - and PNG and PDF are made
         // from that SVG by the browser and the bundled jsPDF.
         var EXPORT_ACCENT = '#a21caf';
+        // Who an export starts from: the person drawn from, or - for the whole
+        // organisation, whose root is an id-0 stand-in - the people at the top.
         function exportTops() {
             var root = state.branch.root;
             return root.id === 0 ? root.children : [root];
         }
+        // The heading on an exported image: that person, or "the whole organisation".
         function exportTitle() {
             var f = state.chartFocus && state.chartIndex[state.chartFocus];
             return f ? f.n.name : T('org.chart_all');
@@ -838,6 +879,9 @@ $seg = function (string $label, string $attr, array $options) {
             return String(s == null ? '' : s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '')
                 .replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]; });
         }
+        // The chart as an SVG, laid out again from the data - boxes of a fixed
+        // size placed slot by slot and depth by depth, in either direction -
+        // rather than copied from the screen. Returns {svg, width, height}.
         function buildSvg() {
             var W = 200, H = 66, PAD = 28, HEAD = 46, h = state.chartDir === 'h';
             var GX = h ? 60 : 18, GY = h ? 14 : 58;
@@ -912,6 +956,8 @@ $seg = function (string $label, string $attr, array $options) {
             };
             return exportTops().map(map);
         }
+        // Saves what the chart shows: 'svg', 'png' and 'pdf' from buildSvg(),
+        // 'csv', 'json' and 'xml' from the same people as data.
         function exportAs(fmt) {
             if (!state.branch) return;
             var failed = function () { if (typeof window.showToast === 'function') window.showToast(T('org.export_failed'), 'error'); };
@@ -1002,6 +1048,7 @@ $seg = function (string $label, string $attr, array $options) {
 
         // -------------------------------------------------------------- search
         var seq = 0, timer = null;
+        // A search result chosen: open that person in whichever view is showing.
         function find(id) {
             resultsEl.hidden = true;
             if (state.view === 'chart') loadChart(id); else jumpTo(id);
@@ -1093,17 +1140,20 @@ $seg = function (string $label, string $attr, array $options) {
             $('orgLevelsInput').value = v === 'all' ? '' : v;
             levelsError('');
         }
+        // The Levels box's own number: a problem with it, or (no text) the range allowed.
         function levelsError(text) {
             var input = $('orgLevelsInput'), hint = $('orgLevelsHint');
             input.setAttribute('aria-invalid', text ? 'true' : 'false');
             hint.textContent = text || T('org.levels_range', { max: LEVELS_MAX });
             hint.classList.toggle('bad', !!text);
         }
+        // Opens or closes the Levels menu, moving focus into it when it opens.
         function levelsMenu(open) {
             $('orgLevelsMenu').hidden = !open;
             $('orgLevels').setAttribute('aria-expanded', open ? 'true' : 'false');
             if (open) { showLevels(); ($('orgLevelsMenu').querySelector('[aria-checked="true"]') || $('orgLevelsInput')).focus(); }
         }
+        // A new depth for the chart ('all' or a number): remembered, and the chart redrawn.
         function setLevels(v) {
             levelsMenu(false);
             if (v === state.chartLevels) return;
@@ -1150,6 +1200,9 @@ $seg = function (string $label, string $attr, array $options) {
             }
             return (state.treeMode === 'columns' ? refreshCols() : refreshTree()).then(function (ok) { toast(!!ok); }, failed);
         }
+        // Refresh for Cards and Compact: builds the tree again off the page, with
+        // the same teams open, and only then swaps it in at the same scroll - so
+        // the reader never sees it collapse and reopen.
         function refreshTree() {
             var ids = openIds(), fresh = document.createElement('div');
             state.restoring = true;
@@ -1176,6 +1229,7 @@ $seg = function (string $label, string $attr, array $options) {
                 });
             });
         }
+        // Refresh for Columns: reloads each column down the chosen line.
         function refreshCols() {
             var chain = state.cols.filter(function (c) { return c.sel; }).map(function (c) { return c.sel; });
             var cols = [];

@@ -18,6 +18,8 @@
  * Only people in companies this analyst can access, by the rules in
  * includes/people.php (peopleOrgLevel() and the rest). Out of reach reads as
  * "nobody", never as an error that says somebody exists.
+ *
+ * @wiki Organisation-Chart-Developer-Guide
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';

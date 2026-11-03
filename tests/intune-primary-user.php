@@ -28,6 +28,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * the same transaction, and rolled back with it.
  *
  * Run:  FREEITSM_TEST_DATABASE=<throwaway db> php tests/intune-primary-user.php
+ *
+ * @wiki Asset-Reconciliation-Developer-Guide
  */
 
 require_once __DIR__ . '/../config.php';
