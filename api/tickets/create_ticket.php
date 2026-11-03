@@ -58,6 +58,17 @@ try {
             exit;
         }
         $tenantId = $wanted;
+    } elseif (isActiveTenantAll($conn)) {
+        // GH #218: none chosen in the all-companies view. Before, this fell back to
+        // the active or first company - a guess the form alone was preventing. One
+        // reachable company is not ambiguous and is used, said in so many words;
+        // with several, the server refuses rather than guess.
+        $reachable = array_map('intval', getAccessibleTenantIds($conn, $analystId));
+        if (count($reachable) !== 1) {
+            echo json_encode(['success' => false, 'error' => 'Choose which company this ticket is for.']);
+            exit;
+        }
+        $tenantId = $reachable[0];
     }
 
     // ⚠️ A SCOPED LIST IS NOT A CHECK.

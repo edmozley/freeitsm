@@ -28,6 +28,12 @@ try {
     $analystId = (int)$_SESSION['analyst_id'];
     $multi     = isMultiTenant($conn);
     $tenantId  = getActiveTenantId($conn, $analystId);
+    // GH #218: ?tenant_id= - the company chosen on New ticket in the all-companies
+    // view, so the list follows the ticket's company, not the board's. Only a company
+    // this analyst can reach; anything else keeps the active one.
+    if (!empty($_GET['tenant_id']) && analystCanAccessTenant($conn, $analystId, (int)$_GET['tenant_id'])) {
+        $tenantId = (int)$_GET['tenant_id'];
+    }
 
     $tenantName = null;
     if ($multi) {

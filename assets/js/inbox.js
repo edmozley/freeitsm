@@ -8993,6 +8993,7 @@ function openNewTicketModal() {
             // until one is chosen — see the change handler below.
             typeSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_company_first')) + '</option>';
             typeSelect.disabled = true;
+            preselectNewTicketCompany(coSel);
         } else {
             coRow.hidden = true;
             typeSelect.disabled = false;
@@ -9036,6 +9037,24 @@ async function loadNewTicketCustomFields() {
 }
 
 /**
+ * GH #218: "My company for new tickets" (System -> Preferences) pre-selects a company
+ * in the all-companies view. A convenience, not an authority: used only while that
+ * company is still one this analyst can reach (moveCompanies is the reachable list,
+ * fetched fresh), otherwise nothing is chosen and the analyst picks. The row stays on
+ * show either way, and the server checks the company it is sent as it always does.
+ * Read on every opening, so a change in Preferences applies without a reload.
+ */
+async function preselectNewTicketCompany(coSel) {
+    try {
+        const d = await (await fetch(sharedApiBase() + 'system/get_user_preference.php?key=tickets_new_ticket_company')).json();
+        const id = d && d.success ? String(d.value || '') : '';
+        if (!id || coSel.value || !moveCompanies.some(c => String(c.id) === id)) return;
+        coSel.value = id;
+        onNewTicketCompanyChange();
+    } catch (e) { /* nothing pre-selected - the analyst chooses */ }
+}
+
+/**
  * Refill the New Ticket type list once a company is chosen (#1554).
  *
  * ⚠️ The types have to follow the CHOSEN company, not the active one. Offering
@@ -9057,21 +9076,25 @@ function onNewTicketCompanyChange() {
         list.map(ty => `<option value="${ty.id}">${escapeHtml(ty.name)}</option>`).join('');
     typeSelect.disabled = false;
     loadNewTicketCustomFields();
+    loadNewTicketMailboxes();   // GH #218: the mailboxes follow the chosen company too
 }
 
-// Load the mailboxes this ticket can be sent from (scoped to the active company)
-// and populate the New Ticket modal's mailbox picker. Fires async; the modal can
-// open before it returns.
+// Load the mailboxes this ticket can be sent from - the company chosen on the form
+// in the all-companies view (GH #218), otherwise the active one - and populate the
+// New Ticket modal's mailbox picker. Fires async; the modal can open before it returns.
 async function loadNewTicketMailboxes() {
     const sel = document.getElementById('newTicketMailbox');
     const label = document.getElementById('newTicketCompanyLabel');
     const hint = document.getElementById('newTicketMailboxHint');
     if (!sel) return;
+    const coRow = document.getElementById('newTicketCompanyRow');
+    const coId = coRow && !coRow.hidden ? (document.getElementById('newTicketCompany').value || '') : '';
     sel.innerHTML = '<option value="">Loading…</option>';
     if (label) label.textContent = '';
     if (hint) hint.textContent = '';
     try {
-        const r = await fetch(API_BASE + 'get_sendable_mailboxes.php', { credentials: 'same-origin' });
+        const r = await fetch(API_BASE + 'get_sendable_mailboxes.php' + (coId ? '?tenant_id=' + encodeURIComponent(coId) : ''), { credentials: 'same-origin' });
+        if (coRow && !coRow.hidden && (document.getElementById('newTicketCompany').value || '') !== coId) return;   // the choice moved on meanwhile
         const d = await r.json();
         if (!d.success) throw new Error(d.error || 'failed');
 

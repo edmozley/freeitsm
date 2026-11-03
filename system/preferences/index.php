@@ -99,6 +99,10 @@ $prefDefaults = [
     // once. Read by assets/js/inbox.js. 'summary' is the default because it puts
     // what you are about to act on, and the actions themselves, on screen.
     'tickets_multiselect_pane'   => 'summary',
+    // GH #218: the company New ticket pre-selects in the all-companies view. A tenant
+    // id, or '' for none. Checked against the companies the analyst can reach each
+    // time the form opens - a convenience, never an authority.
+    'tickets_new_ticket_company' => '',
     // Use the ticket workspace (PR #211). On unless turned off, and only offered
     // when an administrator has switched the workspace on; see
     // ticketWorkspacePersonal() in includes/ticket_workspace.php.
@@ -1070,6 +1074,34 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 <p class="pref-hint" id="multiSelectPaneHint" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;"></p>
             </div>
 
+            <?php
+            // GH #218: the company New ticket pre-selects in the all-companies view. Only
+            // offered to someone who can reach more than one company - nobody else is asked.
+            $ntCompanies = [];
+            try {
+                require_once __DIR__ . '/../../includes/tenancy.php';
+                $conn = $conn ?? connectToDatabase();
+                if (isset($_SESSION['analyst_id']) && isMultiTenant($conn)) {
+                    $__reach = array_map('intval', getAccessibleTenantIds($conn, (int)$_SESSION['analyst_id']));
+                    if (count($__reach) > 1) {
+                        foreach (getAllTenants($conn, true) as $__t) if (in_array((int)$__t['id'], $__reach, true)) $ntCompanies[] = $__t;
+                    }
+                }
+            } catch (Throwable $e) { $ntCompanies = []; }
+            if (count($ntCompanies) > 1): ?>
+            <div class="pref-section">
+                <h3 id="new-ticket-company"><?php echo htmlspecialchars(t('system.preferences.nt_company_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.nt_company_desc')); ?></p>
+                <select id="ntCompanySelect" class="pref-language-select">
+                    <option value=""><?php echo htmlspecialchars(t('system.preferences.nt_company_none')); ?></option>
+                    <?php foreach ($ntCompanies as $__t): ?>
+                        <option value="<?php echo (int)$__t['id']; ?>"<?php echo (string)$prefs['tickets_new_ticket_company'] === (string)$__t['id'] ? ' selected' : ''; ?>><?php echo htmlspecialchars($__t['name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="pref-saving-hint" id="ntCompanySavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+            </div>
+            <?php endif; ?>
+
             <div class="pref-section">
                 <h3 id="morning-checks"><?php echo htmlspecialchars(t('system.preferences.mc_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.mc_desc')); ?></p>
@@ -1446,6 +1478,17 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 boardSubtasksHint.classList.add('show');
                 await savePref('tasks_board_subtasks', boardSubtasksSelect.value);
                 setTimeout(() => boardSubtasksHint.classList.remove('show'), 1200);
+            });
+        }
+
+        // ===== My company for new tickets (tickets_new_ticket_company, GH #218) =====
+        const ntCompanySelect = document.getElementById('ntCompanySelect');
+        const ntCompanyHint   = document.getElementById('ntCompanySavingHint');
+        if (ntCompanySelect) {
+            ntCompanySelect.addEventListener('change', async function() {
+                ntCompanyHint.classList.add('show');
+                await savePref('tickets_new_ticket_company', ntCompanySelect.value);
+                setTimeout(() => ntCompanyHint.classList.remove('show'), 1200);
             });
         }
 
