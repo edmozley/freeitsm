@@ -18,6 +18,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2718 | Assets            | Improvement | Label designs gain a "Black-only printer" setting - on by default for tape and roll sizes - that prints all text, lines and boxes in solid black and the logo in pure black and white, in the preview and the PDF (#229). |
 | 2719 | Tasks             | Feature     | A personal preference folds empty Checklist, Forms and Follow-ups sections in a task's Work view to a heading such as "Forms (0)"; an opened section and half-typed text survive refreshes, and a section that fails to load now says so with Retry instead of disappearing (#218 part B). |
 | 2720 | Self-Service      | Feature     | A new Custom fields setting asks the portal's custom field questions in the main New ticket form - subject, request type, questions (two to a row on a wide screen), then description, with the page scrolling - instead of the side panel, which stays the default (#218 part C). |
+| 2721 | Tasks             | Feature     | Tasks -> Settings -> Involved can hide the Contractor and Contact there fields and the Contractor filter, for the install or per company; a task that already has a contractor shows it read-only, and Projects and the REST API are unchanged (#218 part A). |
 
 
 

@@ -286,6 +286,20 @@ function ticketClassificationSettings(PDO $conn, ?int $tenantId): array
     ];
 }
 
+// ---------------------------------------------------------------------------
+// Contractor fields on tasks (GH #218 part A). Whether the task screen shows the
+// Contractor and Contact there pair. PRESENTATION ONLY: Projects and the REST API
+// still assign contractors, and a task that already has one keeps it and shows it
+// read-only. Switching contractors off for real is the Contracts module's switch
+// (#217). Default on - nothing changes until someone hides them.
+const SETTING_TASK_CONTRACTOR_FIELDS = 'tasks_contractor_fields';
+
+/** Should the task screen offer the Contractor and Contact there fields for this company? */
+function taskContractorFieldsOn(PDO $conn, ?int $tenantId): bool
+{
+    return tenantSettingOn($conn, $tenantId, SETTING_TASK_CONTRACTOR_FIELDS, true);
+}
+
 /** The company a ticket belongs to, or null. Used to resolve both of the above. */
 function ticketTenantId(PDO $conn, int $ticketId): ?int
 {

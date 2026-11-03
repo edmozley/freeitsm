@@ -95,6 +95,11 @@ try {
     // Contractors (3.3.0): the supplier and the person there, by name.
     require_once '../../includes/task_contractors.php';
     $task = tasksWithContractors($conn, [$task])[0];
+    // GH #218: whether this task's company shows the Contractor fields. Hidden, a
+    // contractor already on the task is still shown, read-only.
+    require_once '../../includes/tenant_settings.php';
+    // A task with no company belongs to the Default company, which can have its own answer.
+    $task['contractor_fields'] = taskContractorFieldsOn($conn, isset($task['tenant_id']) ? (int)$task['tenant_id'] : getDefaultTenantId($conn));
     $task['project_name'] = $task['project_colour'] = $task['project_stage_name'] = null;
     if (!empty($task['project_id']) && projectsSchemaReady($conn)) {
         $pst = $conn->prepare("SELECT p.name, p.colour, s.name AS stage_name

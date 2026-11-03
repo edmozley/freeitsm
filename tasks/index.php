@@ -68,6 +68,15 @@ $taskBoardSubtasks = null;
 $taskWorkOpen = true;
 // GH #218 part B: fold empty Checklists / Forms / Follow-ups to a heading. Off unless turned on.
 $taskCollapseEmptyWork = false;
+// GH #218: does the active company show Contractor fields? Decides the sidebar filter;
+// each task carries its own answer for the task window. All companies: the install default.
+$taskContractorFields = true;
+try {
+    require_once __DIR__ . '/../includes/tenant_settings.php';
+    $__c = connectToDatabase();
+    $__t = getActiveTenantId($__c, (int) ($_SESSION['analyst_id'] ?? 0));
+    $taskContractorFields = taskContractorFieldsOn($__c, isActiveTenantAll($__c) ? null : $__t);
+} catch (Throwable) { /* keep them shown */ }
 $taskSubtaskCards = [];
 try {
     $__p = connectToDatabase()->prepare(
@@ -128,7 +137,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title><?php echo htmlspecialchars(pageTitle('tasks')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/tasks.css?v=57">
+    <link rel="stylesheet" href="../assets/css/tasks.css?v=58">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -392,6 +401,7 @@ $translationNamespaces = ['common', 'tasks'];
     window.TASK_MODAL_LAYOUT = <?php echo json_encode($taskModalLayout); ?>;
     window.TASK_WORK_OPEN = <?php echo json_encode($taskWorkOpen); ?>;
     window.TASK_COLLAPSE_EMPTY_WORK = <?php echo json_encode($taskCollapseEmptyWork); ?>;
+    window.TASK_CONTRACTOR_FIELDS = <?php echo json_encode($taskContractorFields); ?>;
     window.TASK_VIEW = <?php echo json_encode($taskView); ?>;
     window.TASK_BOARD_GROUP = <?php echo json_encode($taskBoardGroup); ?>;
     window.TASK_BOARD_SORT = <?php echo json_encode($taskBoardSort); ?>;
@@ -405,7 +415,7 @@ $translationNamespaces = ['common', 'tasks'];
     <!-- The one cleaner for HTML from elsewhere: Knowledge procedure bodies and task instructions in the Work view (GH #190). -->
     <script src="../assets/js/safe-html.js?v=4"></script>
     <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=2"></script><?php endif; ?>
-    <script src="../assets/js/tasks.js?v=72"></script>
+    <script src="../assets/js/tasks.js?v=73"></script>
     <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=86"></script><?php endif; ?>
 
 </body>

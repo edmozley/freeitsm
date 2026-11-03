@@ -2763,3 +2763,6 @@ body.module-read-only #ctxMenu .ctx-sep { display: none !important; }
 
 /* GH #191: the note under Card order while cards are sorted by due date. */
 .sidebar-hint { font-size: 11px; line-height: 1.4; color: var(--text-muted, #666); margin-top: 6px; }
+
+/* GH #218: a note under a read-only field, e.g. a contractor kept while contractor fields are hidden. */
+.detail-field .detail-hint { margin-top: 4px; font-size: 12px; color: var(--text-muted, #666); }

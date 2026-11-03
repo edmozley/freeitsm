@@ -456,7 +456,10 @@ function refreshContractorFilter() {
     const sel = document.getElementById('contractorFilter');
     if (!section || !sel) return;
     const seen = new Map();
-    tasks.forEach(t => { if (t.supplier_id && !seen.has(t.supplier_id)) seen.set(t.supplier_id, t.supplier_name); });
+    // GH #218: the company hides contractor fields, so the filter goes with them.
+    if (window.TASK_CONTRACTOR_FIELDS !== false) {
+        tasks.forEach(t => { if (t.supplier_id && !seen.has(t.supplier_id)) seen.set(t.supplier_id, t.supplier_name); });
+    }
     section.style.display = seen.size ? '' : 'none';
     if (!seen.size && currentContractorFilter) currentContractorFilter = '';
     const keep = currentContractorFilter;
@@ -4693,6 +4696,13 @@ async function loadContractorChoices() {
  */
 function contractorFieldHtml(task) {
     const label = `<label>${esc(window.t('tasks.detail.contractor'))}</label>`;
+    // GH #218: the company hides the pair. Nothing to choose - but a contractor already
+    // on the task stays on show, read-only, rather than counting where nobody can see it.
+    if (task.contractor_fields === false) {
+        if (!task.supplier_id) return '';
+        return `<div class="detail-field">${label}<div class="detail-project-readonly">${esc(task.supplier_name)}${task.contact_name ? ' &middot; ' + esc(task.contact_name) : ''}</div>
+            <div class="detail-hint">${esc(window.t('tasks.detail.contractor_hidden_note'))}</div></div>`;
+    }
     if (!contractorChoices) {
         if (!task.supplier_id) return '';
         return `<div class="detail-field">${label}<div class="detail-project-readonly">${esc(task.supplier_name)}${task.contact_name ? ' &middot; ' + esc(task.contact_name) : ''}</div></div>`;

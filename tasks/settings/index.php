@@ -39,7 +39,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title><?php echo htmlspecialchars(pageTitle('tasks', t('tasks.nav.settings'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/tasks.css?v=57">
+    <link rel="stylesheet" href="../../assets/css/tasks.css?v=58">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
@@ -262,6 +262,18 @@ $translationNamespaces = ['common', 'tasks'];
             <!-- Said plainly, because "does this stop me closing the task?" is the
                  first thing anybody switching it on will want to know. -->
             <p style="color: var(--text-muted, #666); margin-top: 16px;"><?php echo htmlspecialchars(t('tasks.settings.involved_note')); ?></p>
+
+            <!-- GH #218: the Contractor and Contact there pair. Saved on change, like the tick above. -->
+            <h3 style="margin: 28px 0 6px;"><?php echo htmlspecialchars(t('tasks.settings.contractor_fields_heading')); ?></h3>
+            <p style="color: var(--text-muted, #666); margin-bottom: 12px;"><?php echo htmlspecialchars(t('tasks.settings.contractor_fields_desc')); ?></p>
+            <select id="contractorFieldsDefault" class="settings-table-select" style="max-width: 320px;" disabled>
+                <option value="1"><?php echo htmlspecialchars(t('tasks.settings.contractor_fields_show')); ?></option>
+                <option value="0"><?php echo htmlspecialchars(t('tasks.settings.contractor_fields_hide')); ?></option>
+            </select>
+            <table class="settings-table" id="contractorFieldsCompanies" style="margin-top: 14px; max-width: 560px;" hidden>
+                <thead><tr><th><?php echo htmlspecialchars(t('tasks.settings.contractor_fields_company')); ?></th><th><?php echo htmlspecialchars(t('tasks.settings.contractor_fields_heading')); ?></th></tr></thead>
+                <tbody></tbody>
+            </table>
         </div>
         <?php endif; ?>
 
@@ -836,6 +848,45 @@ $translationNamespaces = ['common', 'tasks'];
                 else showToast(data.error || t('tasks.toast.save_failed'), 'error');
             } catch (e) { showToast(t('tasks.toast.save_failed'), 'error'); }
         }
+
+        // ── Contractor fields on tasks, per company (GH #218) ──
+        // A company row's '' = follow the install default (its answer is deleted).
+        // TRAP: the default select stays disabled until the load succeeds, so a failed
+        // fetch can never be read as "Show" and saved back as a decision.
+        (function () {
+            const def = document.getElementById('contractorFieldsDefault');
+            const table = document.getElementById('contractorFieldsCompanies');
+            if (!def || !table) return;
+            const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const save = async body => {
+                try {
+                    const d = await (await fetch(API_BASE + 'contractor_fields.php', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                    })).json();
+                    showToast(d.success ? t('tasks.toast.saved') : (d.error || t('tasks.toast.save_failed')), d.success ? 'success' : 'error');
+                } catch (e) { showToast(t('tasks.toast.save_failed'), 'error'); }
+            };
+            fetch(API_BASE + 'contractor_fields.php').then(r => r.json()).then(d => {
+                if (!d.success) return;
+                def.value = d.default ? '1' : '0';
+                def.disabled = false;
+                if (d.multi_tenant && d.companies.length) {
+                    const opt = (v, cur, label) => `<option value="${v}"${v === cur ? ' selected' : ''}>${esc(label)}</option>`;
+                    table.querySelector('tbody').innerHTML = d.companies.map(c => {
+                        const cur = c.value === null ? '' : (c.value ? '1' : '0');
+                        return `<tr data-id="${c.id}"><td>${esc(c.name)}</td><td><select class="settings-table-select">
+                            ${opt('', cur, t('tasks.settings.contractor_fields_follow'))}${opt('1', cur, t('tasks.settings.contractor_fields_show'))}${opt('0', cur, t('tasks.settings.contractor_fields_hide'))}
+                        </select></td></tr>`;
+                    }).join('');
+                    table.hidden = false;
+                }
+            }).catch(() => {});
+            def.addEventListener('change', () => save({ default: def.value === '1' }));
+            table.addEventListener('change', e => {
+                const tr = e.target.closest('tr[data-id]');
+                if (tr) save({ companies: [{ id: Number(tr.dataset.id), value: e.target.value === '' ? null : e.target.value === '1' }] });
+            });
+        })();
 
         // ── Card field toggles ──
         // priority is deliberately absent: it holds a placement, not a boolean,

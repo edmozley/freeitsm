@@ -78,7 +78,7 @@ return [
             'cap'          => capKey(Cap::TASKS_INVOLVED),
             'label_key'    => 'tasks.settings.tab_involved',
             'grant'        => 'Configure whether people on a task tick off their own part',
-            'setting_keys' => ['tasks_collaborator_completion'],
+            'setting_keys' => ['tasks_collaborator_completion', 'tasks_contractor_fields'],
         ],
         [
             // Checklists on tasks (discussion #138, round three). Off by default:
