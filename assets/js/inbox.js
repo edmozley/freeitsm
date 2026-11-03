@@ -727,7 +727,7 @@ async function setFolderGrouping(mode) {
 document.addEventListener('DOMContentLoaded', function() {
     loadDepartments();
     loadTicketTypes();
-    loadTicketClassification();
+    const classificationReady = loadTicketClassification();
     loadTicketTeams();
     loadTicketOrigins();
     loadTicketStatuses();
@@ -739,7 +739,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Both the counts and the list depend on the view filter (#149), so neither
     // is fetched until it is known — otherwise the list paints unfiltered and
     // then changes under the analyst a moment later.
-    const inboxPrefsReady = Promise.all([loadFolderGroupingPreference(), loadViewFilterPreference()]);
+    // GH #218: the field switches too - whether the Department grouping exists at all
+    // depends on them (applyDeptFolderRule). Fetched in parallel, so no extra wait.
+    const inboxPrefsReady = Promise.all([loadFolderGroupingPreference(), loadViewFilterPreference(), classificationReady]).then(applyDeptFolderRule);
     // updateViewFilterUI again once BOTH are in: whether "Mine" applies depends
     // on the grouping, and the two preferences can arrive in either order.
     inboxPrefsReady.then(() => { updateViewFilterUI(); loadFolderCounts(); });
@@ -975,6 +977,46 @@ async function loadTicketTeams() {
         // direction: a dropdown that cannot list the teams is worse than none.
         console.error('Error loading teams:', error);
     }
+}
+
+/**
+ * GH #218: is the Department field shown for this ticket's company? Per ticket, like
+ * the category switches - a board of several companies can show it on one ticket and
+ * hide it on the next. Anything unknown counts as shown: a switch that failed to load
+ * must never hide a field.
+ */
+function deptShownFor(email) {
+    const s = (allCompaniesView && classificationByCompany && email)
+        ? (classificationByCompany[ticketCompanyId(email)] || classificationByCompany[String(ticketCompanyId(email))] || ticketClassification)
+        : ticketClassification;
+    return !s || s.department !== false;
+}
+
+/**
+ * GH #218: when every company on the board hides Department, the Department folder
+ * grouping has nothing to group by - so its button goes, and an analyst grouped by
+ * department sees the Analyst grouping instead. In memory only: the saved preference
+ * is untouched, so it returns if Department is shown again. The same idea as
+ * loadTicketTeams() dropping back from a team grouping once the teams are gone.
+ */
+function applyDeptFolderRule() {
+    const shown = deptShownAnywhere();
+    const btn = document.querySelector('.folder-group-btn[data-group="department"]');
+    if (btn) btn.hidden = !shown;
+    if (!shown && folderGrouping === 'department') {
+        folderGrouping = 'analyst';
+        document.querySelectorAll('.folder-group-btn[data-group]').forEach(b => b.classList.toggle('active', b.dataset.group === folderGrouping));
+    }
+}
+
+/**
+ * GH #218: for controls that act on many tickets at once (the bulk button, the
+ * right-click menu, the department folders, the column): shown when ANY company on
+ * the board shows Department. Per-ticket screens use deptShownFor().
+ */
+function deptShownAnywhere() {
+    if (allCompaniesView && classificationByCompany) return Object.values(classificationByCompany).some(s => !s || s.department !== false);
+    return !ticketClassification || ticketClassification.department !== false;
 }
 
 // Load the classification lists and the three switches (#1540) — one request,
@@ -2457,7 +2499,7 @@ function selectionActionsHtml(compact) {
         <button type="button" class="${cls}" onclick="openSelectionMenu(event, 'assignee')">${escapeHtml(t('tickets.bulk.assign'))} ▾</button>
         <button type="button" class="${cls}" onclick="openSelectionMenu(event, 'status')">${escapeHtml(t('tickets.bulk.status'))} ▾</button>
         <button type="button" class="${cls}" onclick="openSelectionMenu(event, 'priority')">${escapeHtml(t('tickets.bulk.priority'))} ▾</button>
-        <button type="button" class="${cls}" onclick="openSelectionMenu(event, 'department')">${escapeHtml(t('tickets.bulk.department'))} ▾</button>
+        ${deptShownAnywhere() ? `<button type="button" class="${cls}" onclick="openSelectionMenu(event, 'department')">${escapeHtml(t('tickets.bulk.department'))} ▾</button>` : ''}
         <button type="button" class="${cls} sel-act-danger" onclick="bulkDeleteSelection()">${escapeHtml(t('tickets.bulk.delete'))}</button>
     `;
 }
@@ -3246,7 +3288,9 @@ function displayEmail(email, recordings) {
     // TRAP: define controls once and choose their destinations while rendering.
     // Relocating a rendered classic pane would quietly lose future controls.
     const propertyFields = {
-        department: `<div class="toolbar-field">
+        // GH #218: '' when this ticket's company hides Department - in the classic pane
+        // and the workspace alike, since both are filled from this one list.
+        department: !deptShownFor(email) ? '' : `<div class="toolbar-field">
                         <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_department'))}</label>
                         <select class="toolbar-select" id="departmentSelect" onchange="assignDepartment()">
                             <option value=""></option>
@@ -3321,10 +3365,10 @@ function displayEmail(email, recordings) {
                     <!-- Discussion #62: shown with the panel collapsed too, so nobody works a
                          confidential ticket without seeing that it is one. -->
                     <span class="summary-confidential" id="summaryConfidential" ${email.sensitivity === 'confidential' ? '' : 'hidden'} title="${escapeHtml(t('tickets.reading_pane.sensitivity_help'))}">${confidentialIcon()}${escapeHtml(t('tickets.reading_pane.sensitivity_confidential'))}</span>
-                    <span class="ticket-properties-summary-item">
+                    ${deptShownFor(email) ? `<span class="ticket-properties-summary-item">
                         <span class="ticket-properties-summary-label">${escapeHtml(t('tickets.reading_pane.summary_dept'))}</span>
                         <span class="ticket-properties-summary-value" id="summaryDept">${escapeHtml(summaryDept)}</span>
-                    </span>
+                    </span>` : ''}
                     <span class="ticket-properties-summary-item">
                         <span class="ticket-properties-summary-label">${escapeHtml(t('tickets.reading_pane.summary_status'))}</span>
                         <span class="ticket-properties-summary-value" id="summaryStatus">${escapeHtml(summaryStatus)}</span>
@@ -9003,6 +9047,7 @@ function openNewTicketModal() {
     // Populate the "Send replies from" mailbox dropdown for the active company.
     loadNewTicketMailboxes();
     loadNewTicketCustomFields();
+    syncNewTicketDepartment();   // GH #218
 
     document.getElementById('newTicketModal').classList.add('active');
 }
@@ -9034,6 +9079,32 @@ async function loadNewTicketCustomFields() {
         newTicketCustomFieldDefs = [];
         box.innerHTML = '';
     }
+}
+
+/**
+ * GH #218: the New ticket Department box follows the company the ticket is for - the
+ * one chosen on the form in the all-companies view (any company showing it, before
+ * one is chosen), otherwise the active one. Hidden, its value is cleared so nothing is
+ * sent and the company's default department applies on the server. The row's grid is
+ * re-counted so a hidden box leaves no empty slot.
+ */
+function syncNewTicketDepartment() {
+    const sel = document.getElementById('newTicketDepartment');
+    if (!sel) return;
+    const group = sel.closest('.form-group');
+    const row = group && group.parentElement;
+    const coRow = document.getElementById('newTicketCompanyRow');
+    const asked = !!(coRow && !coRow.hidden);
+    const coId = asked ? (document.getElementById('newTicketCompany').value || '') : '';
+    let shown;
+    if (asked && !coId) shown = deptShownAnywhere();
+    else {
+        const s = (coId && classificationByCompany) ? (classificationByCompany[coId] || classificationByCompany[String(coId)] || ticketClassification) : ticketClassification;
+        shown = !s || s.department !== false;
+    }
+    group.style.display = shown ? '' : 'none';
+    if (!shown) sel.value = '';
+    if (row) row.style.gridTemplateColumns = 'repeat(' + Math.max(1, [...row.children].filter(c => c.style.display !== 'none').length) + ', 1fr)';
 }
 
 /**
@@ -9069,6 +9140,7 @@ function onNewTicketCompanyChange() {
     if (id == null) {
         typeSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_company_first')) + '</option>';
         typeSelect.disabled = true;
+        syncNewTicketDepartment();
         return;
     }
     const list = (ticketTypesByCompany && (ticketTypesByCompany[id] || ticketTypesByCompany[String(id)])) || ticketTypes;
@@ -9077,6 +9149,7 @@ function onNewTicketCompanyChange() {
     typeSelect.disabled = false;
     loadNewTicketCustomFields();
     loadNewTicketMailboxes();   // GH #218: the mailboxes follow the chosen company too
+    syncNewTicketDepartment();   // ...and whether Department is asked
 }
 
 // Load the mailboxes this ticket can be sent from - the company chosen on the form
@@ -10816,6 +10889,13 @@ async function setPriorityFromContext(priorityId) {
 function populateContextDepartmentSubmenu() {
     const sub = document.getElementById('ctxDepartmentSubmenu');
     if (!sub) return;
+    // GH #218: the whole "Set department" item goes when Department is hidden - for
+    // the right-clicked ticket's company, or for every company on a selection.
+    const target = !ctxActsOnSelection && Array.isArray(emails) ? emails.find(e => e.ticket_id == ctxTargetTicketId) : null;
+    const shown = target ? deptShownFor(target) : deptShownAnywhere();
+    const parentItem = sub.closest('.ticket-context-menu-item');
+    if (parentItem) parentItem.style.display = shown ? '' : 'none';
+    if (!shown) return;
     if (!departments.length) {
         sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.no_departments')) + '</div>';
         return;

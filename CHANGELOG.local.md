@@ -21,6 +21,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2721 | Tasks             | Feature     | Tasks -> Settings -> Involved can hide the Contractor and Contact there fields and the Contractor filter, for the install or per company; a task that already has a contractor shows it read-only, and Projects and the REST API are unchanged (#218 part A). |
 | 2722 | Tickets           | Fix         | In the all-companies view the server now refuses a new ticket sent with no company, instead of quietly filing it under the active or first company, and uses the only company when an analyst can reach just one (#218 part A). |
 | 2723 | Tickets           | Improvement | On New ticket in the all-companies view the mailbox list follows the chosen company, and a new "My company for new tickets" preference pre-selects a company the analyst can still reach (#218 part A). |
+| 2724 | Tickets           | Feature     | The Department field can be hidden, install-wide or per company, from the ticket panel, workspace, summary, New ticket, bulk and right-click actions (and the Department folders and column when no company shows it), and a default department for new tickets applies on every creation channel, without changing any ticket's department or who can open it (#218 part A). |
+| 2725 | Tickets           | Improvement | Department settings are kept consistent: it cannot be hidden where Mandatory fields requires it or required where it is hidden, a default must be active, a department that is a default cannot be deactivated or deleted, and an inactive default is skipped with a note on the ticket (#218 part A). |
 
 
 

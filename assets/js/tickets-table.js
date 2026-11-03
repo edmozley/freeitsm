@@ -239,7 +239,12 @@ window.TicketTable = (() => {
             ['work_end_datetime',   null,               false, true],
             ['snoozed_until',       null,               false, true],
             ['company_name',        null,               false, false],
-        ].map(([key, field, visible, sortable], index) => ({
+        ]
+        // GH #218: no Department column when every company on the board hides the
+        // field (deptShownAnywhere() is inbox.js's). Built on first use, after the
+        // field switches have loaded.
+        .filter(([key]) => key !== 'department_id' || typeof deptShownAnywhere !== 'function' || deptShownAnywhere())
+        .map(([key, field, visible, sortable], index) => ({
             key,
             label: text('columns.' + key),
             defaultVisible: visible,
