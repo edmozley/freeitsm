@@ -556,6 +556,12 @@ $pageStyles = <<<'CSS'
            the page is exactly as it was.
            TRAP: the layout selector must out-rank `body.portal-app .portal-layout`
            (0,2,0) above, so it carries the extra class - (0,3,0). */
+        /* TRAP: release the BODY too. self-service.css locks `body.portal-app` to
+           height 100vh with overflow hidden (the app shell other pages scroll a pane
+           inside). Freeing only .portal-layout let it grow, and the body clipped it:
+           nothing below the fold could be reached (found by Ed - screenshots taken in
+           a window tall enough to hold the whole page never showed it). */
+        body.portal-app.ss-ask-main { height: auto; overflow: visible; }
         body.portal-app.ss-ask-main .portal-layout { height: auto; overflow: visible; }
         .ss-ask-main .form-card,
         .ss-ask-main .form-card form,
