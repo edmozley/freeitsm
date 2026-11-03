@@ -79,6 +79,9 @@ $prefDefaults = [
     'tasks_hide_done_subtasks'   => '',
     // GH #184: all | open | none. Unset falls back to the old key above.
     'tasks_board_subtasks'       => '',
+    // GH #218 part B: 'on' folds an empty Checklists / Forms / Follow-ups section to
+    // a heading in a task's Work view. '' shows them in full, as before.
+    'tasks_collapse_empty_work'  => '',
     // Left-panel visibility — one key per module that has a left panel.
     // Each module's header reads its key; module settings pages (where one
     // exists) edit the same key. Surfaced together below.
@@ -664,6 +667,17 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     <?php endforeach; ?>
                 </select>
                 <span class="pref-saving-hint" id="boardSubtasksSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+            </div>
+
+            <!-- GH #218: empty Checklists, Forms and Follow-ups folded to a heading. -->
+            <div class="pref-section">
+                <h3 id="work-fold"><?php echo htmlspecialchars(t('system.preferences.work_fold_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.work_fold_desc')); ?></p>
+                <select id="workFoldSelect" class="pref-language-select">
+                    <option value=""><?php echo htmlspecialchars(t('system.preferences.work_fold_show')); ?></option>
+                    <option value="on"<?php echo $prefs['tasks_collapse_empty_work'] === 'on' ? ' selected' : ''; ?>><?php echo htmlspecialchars(t('system.preferences.work_fold_collapse')); ?></option>
+                </select>
+                <span class="pref-saving-hint" id="workFoldSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
 
             <div class="pref-section">
@@ -1432,6 +1446,17 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 boardSubtasksHint.classList.add('show');
                 await savePref('tasks_board_subtasks', boardSubtasksSelect.value);
                 setTimeout(() => boardSubtasksHint.classList.remove('show'), 1200);
+            });
+        }
+
+        // ===== Empty Work sections on a task (tasks_collapse_empty_work, GH #218) =====
+        const workFoldSelect = document.getElementById('workFoldSelect');
+        const workFoldHint   = document.getElementById('workFoldSavingHint');
+        if (workFoldSelect) {
+            workFoldSelect.addEventListener('change', async function() {
+                workFoldHint.classList.add('show');
+                await savePref('tasks_collapse_empty_work', workFoldSelect.value);
+                setTimeout(() => workFoldHint.classList.remove('show'), 1200);
             });
         }
 

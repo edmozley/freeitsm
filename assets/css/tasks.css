@@ -2388,6 +2388,20 @@ body {
 #taskWorkSection .work-progress .chk-bar-fill { height: 100%; background: var(--success-text, #16a34a); }
 #taskWorkSection .work-actions { display: flex; align-items: center; gap: 12px; }
 #taskWorkSection .work-open-pref { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted, #666); font-weight: normal; margin: 0; cursor: pointer; }
+/* GH #218 part B: an empty section folded to "Checklists (0)". Looks like the section's
+   own label, with the board card's subtask chevron, so the Work view reads the same. */
+#taskWorkSection .work-fold {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin: 0 0 5px -4px; padding: 2px 6px 2px 4px;
+    border: none; border-radius: 5px; background: none; cursor: pointer;
+    font-family: inherit; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-dim, #999);
+}
+#taskWorkSection .work-fold:hover { background: var(--surface-2, #f1f1f4); color: var(--text, #333); }
+#taskWorkSection .work-fold:focus-visible { outline: 2px solid var(--tsk-accent, #7c3aed); outline-offset: 1px; }
+#taskWorkSection .work-fold-chevron { flex-shrink: 0; transition: transform 0.15s ease; }
+#taskWorkSection .work-fold.is-open .work-fold-chevron { transform: rotate(90deg); }
+#taskWorkSection .work-load-error { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--danger-text, #b91c1c); margin-bottom: 8px; }
 #taskWorkSection .work-instructions { margin-bottom: 14px; }
 #taskWorkSection .work-instructions-body { font-size: 14px; color: var(--text, #333); line-height: 1.5; overflow-wrap: anywhere; }
 #taskWorkSection .work-instructions-body img { max-width: 100%; height: auto; }

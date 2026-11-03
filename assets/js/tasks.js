@@ -2428,11 +2428,15 @@ async function loadTaskChecklists(taskId) {
     if (!host) return;
     try {
         const data = await fetch(API_BASE + 'checklists.php?task_id=' + taskId).then(r => r.json());
-        if (!data.success || !data.enabled) { host.innerHTML = ''; host.style.display = 'none'; workLoaded(taskId, 'checklists', false, 0); return; }
+        if (!data.success) throw new Error(data.error || 'checklists');
+        if (!data.enabled) { host.innerHTML = ''; host.style.display = 'none'; workLoaded(taskId, 'checklists', false, 0); return; }
         checklistState = { taskId, enabled: true, checklists: data.checklists || [], templates: data.templates || [] };
         renderTaskChecklists();
         workLoaded(taskId, 'checklists', true, checklistState.checklists.length);
-    } catch (e) { console.error(e); host.innerHTML = ''; host.style.display = 'none'; }
+    } catch (e) {
+        console.error(e);
+        workSectionFailed(host, taskId, 'checklists', window.t('tasks.detail.checklist_heading'), 'loadTaskChecklists');
+    }
 }
 
 /**
@@ -2511,11 +2515,13 @@ function renderTaskChecklists() {
            </div>`
         : `<div class="chk-empty">${esc(T('checklist_no_templates'))}</div>`;
 
-    host.innerHTML = `
-        <label>${esc(T('checklist_heading'))}</label>
+    const { head, folded } = workSectionHead('checklists', T('checklist_heading'), checklistState.checklists.length);
+    host.innerHTML = folded ? head : `
+        ${head}
         ${lists ? `<div class="chk-lists" data-sort="lists" ondragover="chkDragOver(event)">${lists}</div>`
                 : `<div class="chk-empty">${esc(T('checklist_none'))}</div>`}
         ${attach}`;
+    restoreWorkDrafts(host);
 }
 
 // ── Re-ordering checklists, and the steps inside one, by dragging ───────────
@@ -2588,6 +2594,7 @@ async function postTaskChecklist(payload) {
         }
         checklistState.checklists = data.checklists || [];
         checklistState.templates  = data.templates || [];
+        if (payload.item_id) dropWorkDrafts('chkValue' + payload.item_id, 'chkNote' + payload.item_id);
         renderTaskChecklists();
         workLoaded(selectedTaskId, 'checklists', true, checklistState.checklists.length);
         if (selectedTaskId) loadTaskHistory(selectedTaskId);   // the step change is on the record now (#181)
@@ -2670,11 +2677,15 @@ async function loadTaskForms(taskId) {
     if (!host) return;
     try {
         const data = await fetch(API_BASE + 'forms.php?answers=1&task_id=' + taskId).then(r => r.json());
-        if (!data.success || !data.enabled) { host.innerHTML = ''; host.style.display = 'none'; workLoaded(taskId, 'forms', false, 0); return; }
+        if (!data.success) throw new Error(data.error || 'forms');
+        if (!data.enabled) { host.innerHTML = ''; host.style.display = 'none'; workLoaded(taskId, 'forms', false, 0); return; }
         formState = { taskId, forms: data.forms || [], available: data.available || [], open: formState.taskId === taskId ? (formState.open || {}) : {} };
         renderTaskForms();
         workLoaded(taskId, 'forms', true, formState.forms.length);
-    } catch (e) { console.error(e); host.innerHTML = ''; host.style.display = 'none'; }
+    } catch (e) {
+        console.error(e);
+        workSectionFailed(host, taskId, 'forms', window.t('tasks.forms.heading'), 'loadTaskForms');
+    }
 }
 
 /** Draws each form the task needs - its requirement, who submitted or is drafting it, its answers - and the picker. */
@@ -2734,8 +2745,9 @@ function renderTaskForms() {
            </div>`
         : `<div class="tf-empty">${esc(T('none_available'))}</div>`;
 
-    host.innerHTML = `
-        <label>${esc(T('heading'))}</label>
+    const { head, folded } = workSectionHead('forms', T('heading'), formState.forms.length);
+    host.innerHTML = folded ? head : `
+        ${head}
         ${cards || `<div class="tf-empty">${esc(T('none'))}</div>`}
         ${add}`;
 }
@@ -2921,6 +2933,112 @@ async function setWorkOpenPref(on) {
     } catch (e) { showToast(window.t('tasks.detail.view_not_saved'), 'error'); }
 }
 
+// ── Calmer Work view (GH #218 part B) ────────────────────────────────────────
+//
+// With the personal preference "Collapse empty work sections" on, a Checklists,
+// Forms or Follow-ups section that LOADED and holds nothing shrinks to a heading
+// such as "Checklists (0)" that opens on click. A section with records - done or
+// not - stays open; one that failed to load says so with Retry, never "(0)".
+//
+// TRAP: the fold state and the typed drafts live OUTSIDE the panel's markup, keyed by
+// task. openDetailPanel() rebuilds the whole panel after many actions (Complete, a
+// refused status change...), so anything kept in the DOM would be lost on every
+// redraw - an opened section would snap shut and half-typed text would vanish.
+
+let workFold = { taskId: null, open: {} };
+let workDrafts = { taskId: null, values: {} };
+
+/** The fold state for the open task, started afresh when another task opens. */
+function workFoldState() {
+    if (workFold.taskId !== selectedTaskId) workFold = { taskId: selectedTaskId, open: {} };
+    return workFold;
+}
+
+/**
+ * A Work section's heading, and whether its body is folded away. A plain label as
+ * today unless the preference is on and the section is empty; then a disclosure
+ * button. A section once seen with records counts as opened, so removing its last
+ * record does not snap it shut under the pointer.
+ *
+ * @param {string} part   'checklists' | 'forms' | 'followups'
+ * @param {string} label  the section's heading, already translated
+ * @param {number} count  how many records it holds
+ * @returns {{head: string, folded: boolean}}
+ */
+function workSectionHead(part, label, count) {
+    const f = workFoldState();
+    if (count > 0) f.open[part] = true;
+    if (!window.TASK_COLLAPSE_EMPTY_WORK || count > 0) return { head: `<label>${esc(label)}</label>`, folded: false };
+    const open = f.open[part] === true;
+    return {
+        folded: !open,
+        head: `<button type="button" class="work-fold${open ? ' is-open' : ''}" data-work-fold="${part}" aria-expanded="${open}" onclick="toggleWorkFold('${part}')">
+            <svg class="work-fold-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>
+            <span>${esc(window.t('tasks.work.section_count', { name: label, count }))}</span>
+        </button>`,
+    };
+}
+
+/** Opens or folds an empty Work section, keeping keyboard focus on its heading. */
+function toggleWorkFold(part) {
+    const f = workFoldState();
+    f.open[part] = !f.open[part];
+    workRenderPart(part);
+    document.querySelector(`#taskWorkSection [data-work-fold="${part}"]`)?.focus();
+}
+
+/** Opens a Work section without the user pressing its heading - an action that sends them there. */
+function workOpenPart(part) { workFoldState().open[part] = true; }
+
+/** Redraws one Work section from the state it already holds. */
+function workRenderPart(part) {
+    if (part === 'checklists') renderTaskChecklists();
+    else if (part === 'forms') renderTaskForms();
+    else if (part === 'followups') renderTaskFollowUps();
+}
+
+/**
+ * A section that could not load: its heading, open, with what failed and Retry.
+ * Reported to the Work view as switched on, so the failure shows rather than the
+ * whole block quietly disappearing.
+ */
+function workSectionFailed(host, taskId, part, label, retry) {
+    if (taskId !== selectedTaskId) return;
+    host.style.display = '';
+    host.innerHTML = `<label>${esc(label)}</label>
+        <div class="work-load-error" role="alert">${esc(window.t('tasks.work.load_failed', { name: label }))}
+            <button type="button" class="btn btn-secondary btn-sm" onclick="${retry}(selectedTaskId)">${esc(window.t('common.retry'))}</button>
+        </div>`;
+    if (part !== 'followups') workLoaded(taskId, part, true, 0);
+}
+
+// Typed but not yet sent: the follow-up boxes, a step's value and its Fail note.
+// Kept as they are typed, put back after any redraw, dropped once sent.
+const WORK_DRAFT_ID = /^(fuTitle|fuRef|chkValue\d+|chkNote\d+)$/;
+document.addEventListener('input', e => {
+    const el = e.target;
+    if (!el || !el.id || !WORK_DRAFT_ID.test(el.id) || !el.closest('#taskWorkSection')) return;
+    if (workDrafts.taskId !== selectedTaskId) workDrafts = { taskId: selectedTaskId, values: {} };
+    workDrafts.values[el.id] = el.value;
+});
+
+/** Puts typed drafts back into a freshly drawn section; a Fail note that was being typed reopens its box. */
+function restoreWorkDrafts(host) {
+    if (workDrafts.taskId !== selectedTaskId) return;
+    Object.entries(workDrafts.values).forEach(([id, v]) => {
+        const el = host.querySelector('#' + id);
+        if (!el || el.disabled || v === '') return;
+        el.value = v;
+        if (id.startsWith('chkNote')) {
+            const box = document.getElementById('chkException' + id.slice(7));
+            if (box) box.style.display = '';
+        }
+    });
+}
+
+/** Forgets drafts once what they were typed for has been sent. */
+function dropWorkDrafts(...ids) { ids.forEach(id => delete workDrafts.values[id]); }
+
 // ── Follow-ups: tickets and tasks that fix what a check found (GH #190 phase 3) ──
 
 let followState = { taskId: null, items: [], mayTicket: false, source: null, ref: null };
@@ -2931,10 +3049,13 @@ async function loadTaskFollowUps(taskId) {
     if (!host) return;
     try {
         const d = await fetch(API_BASE + 'follow_ups.php?task_id=' + taskId).then(r => r.json());
-        if (!d.success) { host.style.display = 'none'; return; }
+        if (!d.success) throw new Error(d.error || 'follow-ups');
         followState = { taskId, items: d.follow_ups || [], mayTicket: !!d.may_ticket, source: null, ref: null };
         renderTaskFollowUps();
-    } catch (e) { console.error(e); host.style.display = 'none'; }
+    } catch (e) {
+        console.error(e);
+        workSectionFailed(host, taskId, 'followups', window.t('tasks.followups.heading'), 'loadTaskFollowUps');
+    }
 }
 
 /** Draws the follow-ups with their live state, and the create / link row. */
@@ -2953,8 +3074,10 @@ function renderTaskFollowUps() {
             <button type="button" class="btn-link-small fu-remove" onclick="unlinkTaskFollowUp(${f.id})">${esc(T('remove'))}</button>
         </div>`).join('');
     const src = followState.source;
+    const { head, folded } = workSectionHead('followups', T('heading'), followState.items.length);
+    if (folded) { host.innerHTML = head; return; }
     host.innerHTML = `
-        <label>${esc(T('heading'))}</label>
+        ${head}
         ${rows || `<div class="tf-empty">${esc(T('none'))}</div>`}
         <div class="fu-add">
             ${src ? `<div class="work-sub">${esc(T('from_' + src.kind, { name: src.name }))}</div>` : ''}
@@ -2971,11 +3094,17 @@ function renderTaskFollowUps() {
                 <button type="button" class="btn btn-secondary btn-sm" onclick="linkTaskFollowUp()">${esc(T('link'))}</button>
             </div>
         </div>`;
+    restoreWorkDrafts(host);
 }
 
-/** Starts a follow-up from a failed step or a submitted form: prefilled, and remembered as its source. */
+/**
+ * Starts a follow-up from a failed step or a submitted form: prefilled, and remembered as its source.
+ * Opens Follow-ups if it was folded away, since this is where it sends you.
+ */
 function followUpFrom(kind, id, name, note) {
     followState.source = { kind, id, name, title: window.t('tasks.followups.default_title', { name }) , note: note || '' };
+    workOpenPart('followups');
+    dropWorkDrafts('fuTitle');   // the prefilled title, not whatever was typed before
     renderTaskFollowUps();
     const box = document.getElementById('fuTitle');
     if (box) { box.focus(); box.scrollIntoView({ block: 'center' }); }
@@ -2991,6 +3120,7 @@ async function postTaskFollowUp(payload) {
         followState.items = d.follow_ups || [];
         followState.source = null;
         followState.ref = null;
+        if (payload.action !== 'unlink') dropWorkDrafts('fuTitle', 'fuRef');
         renderTaskFollowUps();
         loadTaskHistory(selectedTaskId);
         return true;

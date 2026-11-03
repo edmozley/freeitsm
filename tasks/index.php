@@ -66,13 +66,15 @@ $taskHideDone = false;
 $taskBoardSubtasks = null;
 // GH #190: does a task with working material open on its Work tab? On unless turned off.
 $taskWorkOpen = true;
+// GH #218 part B: fold empty Checklists / Forms / Follow-ups to a heading. Off unless turned on.
+$taskCollapseEmptyWork = false;
 $taskSubtaskCards = [];
 try {
     $__p = connectToDatabase()->prepare(
         "SELECT preference_key, preference_value FROM user_preferences
          WHERE analyst_id = ? AND preference_key IN
                ('tasks_detail_view', 'tasks_modal_layout', 'tasks_view', 'tasks_filter', 'tasks_board_group',
-                'tasks_hide_done_subtasks', 'tasks_hide_done', 'tasks_board_subtasks', 'tasks_subtask_cards', 'tasks_board_sort', 'tasks_work_open')"
+                'tasks_hide_done_subtasks', 'tasks_hide_done', 'tasks_board_subtasks', 'tasks_subtask_cards', 'tasks_board_sort', 'tasks_work_open', 'tasks_collapse_empty_work')"
     );
     $__p->execute([(int) ($_SESSION['analyst_id'] ?? 0)]);
     foreach ($__p->fetchAll(PDO::FETCH_KEY_PAIR) as $__k => $__v) {
@@ -88,6 +90,7 @@ try {
         if ($__k === 'tasks_board_group' && $__v === 'analyst') { $taskBoardGroup = 'analyst'; }
         if ($__k === 'tasks_board_sort' && $__v === 'due') { $taskBoardSort = 'due'; }
         if ($__k === 'tasks_work_open' && $__v === 'off') { $taskWorkOpen = false; }
+        if ($__k === 'tasks_collapse_empty_work' && $__v === 'on') { $taskCollapseEmptyWork = true; }
         // System -> Preferences: stop listing subtasks under a card once all are done.
         if ($__k === 'tasks_hide_done_subtasks' && $__v === 'on') { $taskHideDoneSubtasks = true; }
         if ($__k === 'tasks_hide_done' && $__v === 'on') { $taskHideDone = true; }
@@ -125,7 +128,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title><?php echo htmlspecialchars(pageTitle('tasks')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/tasks.css?v=56">
+    <link rel="stylesheet" href="../assets/css/tasks.css?v=57">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -388,6 +391,7 @@ $translationNamespaces = ['common', 'tasks'];
     window.TASK_DETAIL_VIEW = <?php echo json_encode($taskEmbedded ? 'modal' : $taskDetailView); ?>;
     window.TASK_MODAL_LAYOUT = <?php echo json_encode($taskModalLayout); ?>;
     window.TASK_WORK_OPEN = <?php echo json_encode($taskWorkOpen); ?>;
+    window.TASK_COLLAPSE_EMPTY_WORK = <?php echo json_encode($taskCollapseEmptyWork); ?>;
     window.TASK_VIEW = <?php echo json_encode($taskView); ?>;
     window.TASK_BOARD_GROUP = <?php echo json_encode($taskBoardGroup); ?>;
     window.TASK_BOARD_SORT = <?php echo json_encode($taskBoardSort); ?>;
@@ -401,7 +405,7 @@ $translationNamespaces = ['common', 'tasks'];
     <!-- The one cleaner for HTML from elsewhere: Knowledge procedure bodies and task instructions in the Work view (GH #190). -->
     <script src="../assets/js/safe-html.js?v=4"></script>
     <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=2"></script><?php endif; ?>
-    <script src="../assets/js/tasks.js?v=71"></script>
+    <script src="../assets/js/tasks.js?v=72"></script>
     <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=86"></script><?php endif; ?>
 
 </body>
