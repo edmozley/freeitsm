@@ -615,6 +615,30 @@ function ldapCreateAnalyst(PDO $conn, int $providerId, string $preferredUser, st
  * @param array $provider  the provider row from ldapGetProvider()
  * @param array $ldapUser  the 'user' from a successful ldapAuthenticate() (guid, username, email, name)
  */
+/**
+ * Is this account already linked, for this directory, to a DIFFERENT identity?
+ *
+ * Sign-in matches an existing account by email when the directory identity is new
+ * to us. An address can be given to a new person after its owner leaves, so an
+ * account already linked to another identity of the same directory is somebody
+ * else, and must never be signed in to - see the callers. A lookup failure is not
+ * caught: a sign-in that cannot check this fails rather than guesses.
+ *
+ * @param string $kind  'analyst' (analyst_sso_identities) or 'user' (user_sso_identities)
+ * @param int $id  analysts.id or users.id
+ * @param string $subject  the directory identity signing in (its GUID)
+ */
+function ldapLinkedToOther(PDO $conn, string $kind, int $providerId, int $id, string $subject): bool {
+    $st = $conn->prepare($kind === 'analyst'
+        ? "SELECT subject FROM analyst_sso_identities WHERE provider_id = ? AND analyst_id = ?"
+        : "SELECT subject FROM user_sso_identities WHERE provider_id = ? AND user_id = ?");
+    $st->execute([$providerId, $id]);
+    foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $linked) {
+        if (strcasecmp((string)$linked, $subject) !== 0) return true;
+    }
+    return false;
+}
+
 function ldapResolveAnalyst(PDO $conn, array $provider, array $ldapUser): array {
     $providerId = (int)$provider['id'];
     $subject    = (string)$ldapUser['guid'];
@@ -674,6 +698,13 @@ function ldapResolveAnalyst(PDO $conn, array $provider, array $ldapUser): array 
         if ((int)($analyst['auth_provider_id'] ?? 0) !== $providerId) {
             return ['ok' => false, 'error' => 'This account is not set up to sign in with this directory.'];
         }
+        // TRAP: an email match is a NAME, and addresses get reused. An analyst already
+        // linked to a DIFFERENT directory account is somebody else - signing this
+        // person in would hand them that analyst's access. Refused; an administrator
+        // decides who the account belongs to.
+        if (ldapLinkedToOther($conn, 'analyst', $providerId, $analystId, $subject)) {
+            return ['ok' => false, 'error' => 'This email address belongs to a different directory account. Ask an administrator.'];
+        }
     } else {
         // 3) Just-in-time create.
         // Analyst JIT has its own switch since discussion #155. Before Database
@@ -704,8 +735,12 @@ function ldapResolveAnalyst(PDO $conn, array $provider, array $ldapUser): array 
              VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
         )->execute([$analystId, $providerId, $subject, $email ?: null]);
     } catch (Exception) {
-        // uq_sso_provider_analyst can trip if the analyst was linked concurrently.
-        // The analyst is resolved either way, so this is not fatal.
+        // uq_sso_provider_analyst: one link per analyst per provider. A concurrent link
+        // of the SAME identity is fine; anything else means the account belongs to a
+        // different directory identity, and is refused rather than signed in.
+        if (ldapLinkedToOther($conn, 'analyst', $providerId, $analystId, $subject)) {
+            return ['ok' => false, 'error' => 'This email address belongs to a different directory account. Ask an administrator.'];
+        }
     }
 
     return ['ok' => true, 'analyst_id' => $analystId];
@@ -806,6 +841,12 @@ function ldapResolveUser(PDO $conn, array $provider, array $ldapUser): array {
         $userId   = (int)$user['id'];
         $assigned = (int)($user['auth_provider_id'] ?? 0);
 
+        // TRAP: checked BEFORE anything is claimed. A record already linked to a
+        // different directory account is another person whose address was reused -
+        // signing in to it would show this person somebody else's tickets.
+        if (ldapLinkedToOther($conn, 'user', $providerId, $userId, $subject)) {
+            return ['ok' => false, 'error' => 'This email address belongs to a different directory account. Ask your service desk.'];
+        }
         if ($assigned === 0) {
             // See divergence 2 — claim it, don't strand them.
             $conn->prepare("UPDATE users SET auth_provider_id = ? WHERE id = ?")->execute([$providerId, $userId]);
@@ -865,7 +906,12 @@ function ldapResolveUser(PDO $conn, array $provider, array $ldapUser): array {
              VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
         )->execute([$userId, $providerId, $subject, $emailOrNull]);
     } catch (Exception) {
-        // uq_user_sso_provider_user can trip on a concurrent link; resolved anyway.
+        // uq_user_sso_provider_user: one link per person per provider. The same
+        // identity linked concurrently is fine; a different one is refused, never
+        // signed in to (see ldapLinkedToOther()).
+        if (ldapLinkedToOther($conn, 'user', $providerId, $userId, $subject)) {
+            return ['ok' => false, 'error' => 'This email address belongs to a different directory account. Ask your service desk.'];
+        }
     }
 
     return ['ok' => true, 'user_id' => $userId];

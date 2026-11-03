@@ -443,6 +443,15 @@ function cardDavSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int 
             try {
                 [$existing, $how] = dsyncFindExisting($conn, $provider, $p);
 
+                // A name match on somebody else's record (dsyncNameMatchRefused()):
+                // never updated, and never re-linked to this card - which is what
+                // sent later write-backs to the wrong contact.
+                if ($how === 'taken' || $how === 'other_directory') {
+                    $counts['conflict']++;
+                    dsyncLogEntry($conn, $runId, 'conflict', (int)$existing['id'], $p, dsyncRefusedMessage($how, 'address book'));
+                    continue;
+                }
+
                 // Already here, matched only by email, and this source is set to
                 // flag rather than adopt.
                 if ($existing && $how === 'email'

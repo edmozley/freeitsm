@@ -907,6 +907,13 @@ function entraImportPerson(PDO $conn, array $provider, array $p, bool $preview, 
             . 'the old record.');
         return;
     }
+    // Already managed by another sign-in source - an LDAP directory holding the same
+    // address, say. Never moved between sources by an import (dsyncNameMatchRefused()).
+    if ($how === 'other_directory') {
+        $counts['conflict']++;
+        dsyncLogEntry($conn, $runId, 'conflict', (int)$existing['id'], $p, dsyncRefusedMessage($how));
+        return;
+    }
 
     if ($existing && $how === 'email'
         && (string)($provider['sync_on_conflict'] ?? 'adopt') !== 'adopt') {

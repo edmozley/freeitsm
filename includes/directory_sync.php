@@ -439,7 +439,7 @@ function dsyncFindExisting(PDO $conn, array $provider, array $p): array
             "SELECT * FROM users WHERE auth_provider_id = ? AND LOWER(directory_username) = LOWER(?) LIMIT 1"
         );
         $s->execute([$pid, $p['username']]);
-        if ($row = $s->fetch(PDO::FETCH_ASSOC)) return [$row, 'directory_username'];
+        if ($row = $s->fetch(PDO::FETCH_ASSOC)) return [$row, dsyncNameMatchRefused($conn, $provider, $p, $row) ?? 'directory_username'];
     }
 
     // ⚠️ Email matching is scoped to the provider's company. Two tenants can
@@ -455,10 +455,60 @@ function dsyncFindExisting(PDO $conn, array $provider, array $p): array
             $s = $conn->prepare("SELECT * FROM users WHERE LOWER(email) = ? AND tenant_id = ? LIMIT 1");
             $s->execute([$p['email'], $tenantId]);
         }
-        if ($row = $s->fetch(PDO::FETCH_ASSOC)) return [$row, 'email'];
+        if ($row = $s->fetch(PDO::FETCH_ASSOC)) return [$row, dsyncNameMatchRefused($conn, $provider, $p, $row) ?? 'email'];
     }
 
     return [null, ''];
+}
+
+/**
+ * Why a match by NAME (directory username or email) must not be used, or null.
+ *
+ * Names get reused - a leaver's address or sign-in name handed to a new starter -
+ * so a name match is only a candidate. Two answers stop it, and the callers report
+ * either as a conflict for an administrator, whatever the conflict setting:
+ *
+ *   'taken'           the record is already linked, in THIS directory, to a different
+ *                     identity (another GUID / card UID). It is somebody else: updating
+ *                     it would overwrite their details, and on CardDAV re-point their
+ *                     link at the new card so write-back reached the wrong contact.
+ *   'other_directory' the record belongs to a DIFFERENT sign-in source. Moving it would
+ *                     change how that person signs in, and two directories holding the
+ *                     same address would pull the record back and forth on every run.
+ *                     Hybrid setups where both really are one person are an
+ *                     administrator's decision, never an import's.
+ *
+ * Entra (guid '') skips the first check: it keeps the object id in source_ref and
+ * makes the same check in entraFindExisting().
+ *
+ * @param array $row  the users row the name matched
+ */
+function dsyncNameMatchRefused(PDO $conn, array $provider, array $p, array $row): ?string
+{
+    $pid = (int)$provider['id'];
+    $assigned = (int)($row['auth_provider_id'] ?? 0);
+    if ($assigned !== 0 && $assigned !== $pid) return 'other_directory';
+    if (($p['guid'] ?? '') !== '') {
+        $s = $conn->prepare("SELECT subject FROM user_sso_identities WHERE provider_id = ? AND user_id = ?");
+        $s->execute([$pid, (int)$row['id']]);
+        foreach ($s->fetchAll(PDO::FETCH_COLUMN) as $subject) {
+            if (strcasecmp((string)$subject, (string)$p['guid']) !== 0) return 'taken';
+        }
+    }
+    return null;
+}
+
+/**
+ * The run-history message for a refused name match (dsyncNameMatchRefused()).
+ *
+ * @param string $how  'taken' or 'other_directory'
+ * @param string $source  what the source is called in the message, e.g. 'directory' or 'address book'
+ */
+function dsyncRefusedMessage(string $how, string $source = 'directory'): string
+{
+    return $how === 'other_directory'
+        ? "Already here with the same sign-in name or email address, but managed by a different sign-in source. Left untouched and not imported: moving a person between sources is an administrator's decision."
+        : "A different {$source} entry now uses this sign-in name or email address, so this is a new person, not the one already here. Left untouched and not imported, so that nobody takes over the old record.";
 }
 
 /**
@@ -633,6 +683,15 @@ function directorySyncRun(PDO $conn, array $provider, string $mode = 'live', ?in
         $dnToUserId  = [];
         foreach ($people as $p) {
             [$existing, $how] = dsyncFindExisting($conn, $provider, $p);
+
+            // A name match on somebody else's record - see dsyncNameMatchRefused().
+            // A conflict whatever the conflict setting, and the person is not counted
+            // as seen: the record belongs to somebody else.
+            if ($how === 'taken' || $how === 'other_directory') {
+                $counts['conflict']++;
+                dsyncLogEntry($conn, $runId, 'conflict', (int)$existing['id'], $p, dsyncRefusedMessage($how));
+                continue;
+            }
 
             // Somebody already here, matched only by email, and the provider is
             // set to leave them alone.
