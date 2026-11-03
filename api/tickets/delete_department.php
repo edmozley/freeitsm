@@ -29,6 +29,15 @@ try {
 
     $conn = connectToDatabase();
 
+    // GH #218: never retire a department that is a default for new tickets - new
+    // tickets would silently start with none. Replace or clear the default first.
+    require_once '../../includes/ticket_department_rules.php';
+    $usedBy = ticketDepartmentDefaultUses($conn, (int) $id);
+    if ($usedBy) {
+        throw new Exception('This department is the default for new tickets for ' . ticketDepartmentPlaceList($usedBy)
+            . '. Choose another default, or No default, on Tickets -> Settings -> Custom fields -> Built-in fields, then delete it.');
+    }
+
     $sql = "DELETE FROM departments WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$id]);

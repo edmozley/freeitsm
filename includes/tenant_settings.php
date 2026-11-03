@@ -283,6 +283,9 @@ function ticketClassificationSettings(PDO $conn, ?int $tenantId): array
         'category'         => ticketCategoryOn($conn, $tenantId),
         'closure_category' => ticketClosureCategoryOn($conn, $tenantId),
         'resolution_code'  => ticketResolutionCodeOn($conn, $tenantId),
+        // GH #218: travels with the other field switches, so a board of several
+        // companies can show Department for one ticket and hide it for the next.
+        'department'       => ticketDepartmentShown($conn, $tenantId),
     ];
 }
 

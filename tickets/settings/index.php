@@ -1072,6 +1072,29 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 </select>
                 <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.portal_answers_help')); ?></small>
             </div>
+            <?php /* GH #218 part A: the built-in Department field - shown or hidden, and the
+                     department new tickets start in. Filled by the script below. */ ?>
+            <div class="form-group" id="deptFieldPanel" style="margin-bottom: 26px; padding: 16px 18px; border: 1px solid var(--border, #e5e7eb); border-radius: 8px;">
+                <h3 style="margin: 0 0 6px;"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_heading')); ?></h3>
+                <p style="margin: 0 0 14px; color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_intro')); ?></p>
+                <div class="form-hint" id="dfLoadError" hidden style="color: var(--danger-text, #b91c1c);"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_load_error')); ?></div>
+                <div id="dfStale" hidden style="color: var(--danger-text, #b91c1c); margin-bottom: 12px;"></div>
+                <div style="display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end;">
+                    <div><label for="dfShown"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_shown_label')); ?></label>
+                        <select id="dfShown" class="settings-table-select" disabled>
+                            <option value="1"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_show')); ?></option>
+                            <option value="0"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_hide')); ?></option>
+                        </select></div>
+                    <div><label for="dfDefault"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_default_label')); ?></label>
+                        <select id="dfDefault" class="settings-table-select" disabled></select></div>
+                </div>
+                <p id="dfWarn" hidden style="margin: 12px 0 0; padding: 10px 12px; border-radius: 6px; background: var(--warning-bg, #fff8e1); color: var(--text, #333);"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_warn_no_default')); ?></p>
+                <table class="settings-table" id="dfCompanies" hidden style="margin-top: 14px;">
+                    <thead><tr><th><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_company')); ?></th><th><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_shown_label')); ?></th><th><?php echo htmlspecialchars(t('tickets.settings.custom_fields.dept_default_label')); ?></th></tr></thead>
+                    <tbody></tbody>
+                </table>
+                <div style="margin-top: 14px;"><button type="button" class="btn btn-primary" id="dfSave" disabled><?php echo htmlspecialchars(t('common.save')); ?></button></div>
+            </div>
             <?php /* GH #218 part C: where the portal's New ticket page ASKS them. */ ?>
             <div class="form-group" style="margin-bottom: 22px;">
                 <label for="portalFieldAsk"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.portal_ask_label')); ?></label>
@@ -3813,6 +3836,71 @@ function renderOversizeFields(string $px, bool $withLimits): void
         // Discussion #193: where the portal shows a requester their answers.
         // Never saved = 'header'; must match portalFieldAnswersPlace() in
         // api/self-service/get_ticket_detail.php.
+        // GH #218 part A: the Department field - shown or hidden, and the default for new
+        // tickets, install-wide and per company. The server refuses a hidden Department
+        // where Mandatory fields requires it, and a default that is not active; its
+        // message is shown as it comes.
+        // TRAP: the controls stay disabled until the load succeeds - a failed fetch must
+        // never be read as "Show / no default" and saved back as a decision.
+        (function () {
+            const panel = document.getElementById('deptFieldPanel');
+            if (!panel) return;
+            const $ = id => document.getElementById(id);
+            const T = k => window.t('tickets.settings.custom_fields.dept_' + k);
+            const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            let depts = [];
+            const deptOptions = (cur, withFollow) => (withFollow ? `<option value=""${cur === null ? ' selected' : ''}>${esc(T('follow'))}</option>` : '')
+                + `<option value="0"${cur === 0 || (!withFollow && cur === null) ? ' selected' : ''}>${esc(T('no_default'))}</option>`
+                + depts.map(d => `<option value="${d.id}"${cur === d.id ? ' selected' : ''}>${esc(d.name)}</option>`).join('');
+            const shownOptions = cur => `<option value=""${cur === null ? ' selected' : ''}>${esc(T('follow'))}</option>`
+                + `<option value="1"${cur === true ? ' selected' : ''}>${esc(T('show'))}</option><option value="0"${cur === false ? ' selected' : ''}>${esc(T('hide'))}</option>`;
+            // The plain warning: hidden somewhere with no default there.
+            function warn() {
+                const instHidden = $('dfShown').value === '0', instNone = $('dfDefault').value === '0';
+                let any = instHidden && instNone;
+                document.querySelectorAll('#dfCompanies tbody tr').forEach(tr => {
+                    const s = tr.querySelector('.df-shown').value, d = tr.querySelector('.df-default').value;
+                    const hidden = s === '' ? instHidden : s === '0', none = d === '' ? instNone : d === '0';
+                    if (hidden && none) any = true;
+                });
+                $('dfWarn').hidden = !any;
+            }
+            fetch(API_BASE + 'department_field_settings.php').then(r => r.json()).then(d => {
+                if (!d.success) throw new Error(d.error);
+                depts = d.departments || [];
+                $('dfShown').value = d.default.shown ? '1' : '0';
+                $('dfDefault').innerHTML = deptOptions(d.default.department_id, false);
+                if (d.multi_tenant && d.companies.length) {
+                    $('dfCompanies').querySelector('tbody').innerHTML = d.companies.map(c => `<tr data-id="${c.id}"><td>${esc(c.name)}</td>
+                        <td><select class="settings-table-select df-shown">${shownOptions(c.shown)}</select></td>
+                        <td><select class="settings-table-select df-default">${deptOptions(c.department_id, true)}</select></td></tr>`).join('');
+                    $('dfCompanies').hidden = false;
+                }
+                if (d.stale && d.stale.length) {
+                    $('dfStale').textContent = d.stale.map(s => T('stale').replace('{name}', s.name).replace('{place}', s.place || T('install'))).join(' ');
+                    $('dfStale').hidden = false;
+                }
+                ['dfShown', 'dfDefault', 'dfSave'].forEach(id => { $(id).disabled = false; });
+                warn();
+            }).catch(() => { $('dfLoadError').hidden = false; });
+            panel.addEventListener('change', warn);
+            $('dfSave').addEventListener('click', async () => {
+                const val = (v, num) => v === '' ? null : (num ? Number(v) : v === '1');
+                const body = {
+                    default: { shown: $('dfShown').value === '1', department_id: Number($('dfDefault').value) },
+                    companies: [...document.querySelectorAll('#dfCompanies tbody tr')].map(tr => ({
+                        id: Number(tr.dataset.id), shown: val(tr.querySelector('.df-shown').value, false), department_id: val(tr.querySelector('.df-default').value, true)
+                    }))
+                };
+                try {
+                    const d = await (await fetch(API_BASE + 'department_field_settings.php', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                    })).json();
+                    showToast(d.success ? T('saved') : (d.error || 'Failed'), d.success ? 'success' : 'error');
+                } catch (e) { showToast('Failed', 'error'); }
+            });
+        })();
+
         // GH #218 part C: where the portal's New ticket page asks them - the same shape.
         // Never saved = 'side'; must match TicketFieldsService::portalAskPlace().
         [['portalFieldAnswers', 'ticket_portal_field_answers', ['off', 'header', 'side'], 'header'],

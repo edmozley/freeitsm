@@ -130,7 +130,7 @@ return [
             'grant'     => 'Design the custom fields each ticket type carries, and when they must be filled in',
             // Where the portal shows a requester the answers they gave (discussion #193),
             // and where its New ticket page asks the questions (GH #218 part C).
-            'setting_keys' => ['ticket_portal_field_answers', 'ticket_portal_field_ask'],
+            'setting_keys' => ['ticket_portal_field_answers', 'ticket_portal_field_ask', 'ticket_department_shown', 'ticket_department_default'],
         ],
         [
             'id'        => 'statuses',

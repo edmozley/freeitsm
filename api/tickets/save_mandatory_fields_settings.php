@@ -81,6 +81,17 @@ $record = !empty($in['record']);
 
 try {
     $conn = connectToDatabase();
+    // GH #218: Department cannot be required at closure where it is hidden - a
+    // field nobody can fill would trap tickets. Refused, naming where.
+    if (in_array('department', $fields, true)) {
+        require_once '../../includes/ticket_department_rules.php';
+        $hiddenFor = ticketDepartmentConflicts($conn, null, [], true);
+        if ($hiddenFor) {
+            echo json_encode(['success' => false, 'error' => 'Department is hidden for ' . ticketDepartmentPlaceList($hiddenFor)
+                . ' (Tickets -> Settings -> Custom fields -> Built-in fields), so it cannot be required at closure. Show it there first.']);
+            exit;
+        }
+    }
     // setting_key is the PRIMARY KEY of system_settings, so the upsert is safe.
     $st = $conn->prepare(
         "INSERT INTO system_settings (setting_key, setting_value, updated_datetime)
