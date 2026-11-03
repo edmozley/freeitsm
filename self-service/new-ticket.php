@@ -13,6 +13,20 @@ $activeNav    = '';   // reached from the dashboard button, not the nav
 // App-shell: the compose screen fills the viewport and the EDITOR takes up the
 // slack, rather than the page scrolling with a fixed-height box in it.
 $bodyClass    = 'portal-app';
+
+// GH #218 part C: where the questions are asked. 'main' puts the request type and
+// the questions in the main column, between the subject and the description, and
+// the PAGE scrolls instead of the editor filling the height - several questions
+// and their error messages need room the app shell cannot give them. Read here,
+// before header.php, because it decides the body class. Same order the header
+// uses: session first, then config. A failure keeps today's side panel.
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/services/ticket_fields.php';
+try { $ssAskMain = TicketFieldsService::portalAskPlace(connectToDatabase()) === 'main'; }
+catch (Throwable) { $ssAskMain = false; }
+if ($ssAskMain) $bodyClass .= ' ss-ask-main';
 // Loads assets/js/screen-recorder.js — shared with the reply composer on
 // tickets.php. Pairs with includes/record-modal.php in the markup below.
 $needsRecorder = true;
@@ -533,6 +547,35 @@ $pageStyles = <<<'CSS'
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        /* ── "Main form" (GH #218 part C) ─────────────────────────────────
+           The questions sit in the left column above the description, so the
+           app shell above - fixed height, editor filling the slack - would
+           squeeze them. Here the PAGE scrolls and the editor gets a height of
+           its own. Without .ss-ask-main on the body none of this applies, and
+           the page is exactly as it was.
+           TRAP: the layout selector must out-rank `body.portal-app .portal-layout`
+           (0,2,0) above, so it carries the extra class - (0,3,0). */
+        body.portal-app.ss-ask-main .portal-layout { height: auto; overflow: visible; }
+        .ss-ask-main .form-card,
+        .ss-ask-main .form-card form,
+        .compose-ask-main { flex: none; }
+        .compose-ask-main { grid-template-rows: auto auto auto; }
+        .compose-ask-main .compose-questions { grid-column: 1; grid-row: 1; min-width: 0; }
+        .compose-ask-main .compose-label-row { grid-row: 2; }
+        .compose-ask-main .compose-editor    { grid-row: 3; }
+        /* A comfortable box, like the ticket note box - not the leftover height. */
+        body:not(.ss-compose-full) .compose-ask-main .compose-editor { height: 320px; }
+        .compose-ask-main .compose-side { overflow: visible; align-self: start; }
+        .compose-questions .form-group { margin-bottom: 16px; }
+        .compose-questions:empty { display: none; }
+        @media (max-width: 900px) {
+            /* One column: back to DOM order - questions, description, then the panel
+               with Submit - the same undoing the block above does for the others. */
+            .compose-ask-main .compose-questions,
+            .compose-ask-main .compose-label-row,
+            .compose-ask-main .compose-editor { grid-column: auto; grid-row: auto; }
+        }
 CSS;
 
 $pageScripts = <<<'JS'
@@ -1035,12 +1078,14 @@ let attachments = [];
             } else {
                 errEl.textContent = data.error;
                 errEl.style.display = 'block';
+                errEl.scrollIntoView({ block: 'nearest' });   // the Main form scrolls (GH #218): the error is above Submit
                 btn.disabled = false;
                 btn.textContent = window.t('self-service.new_ticket.submit');
             }
         } catch (err) {
             errEl.textContent = window.t('self-service.new_ticket.create_failed');
             errEl.style.display = 'block';
+            errEl.scrollIntoView({ block: 'nearest' });
             btn.disabled = false;
             btn.textContent = window.t('self-service.new_ticket.submit');
         }
@@ -1054,6 +1099,22 @@ let attachments = [];
 JS;
 
 require __DIR__ . '/includes/header.php';
+
+/**
+ * Ticket type and custom fields (#179). The type picker is revealed only when
+ * choosing one changes what is asked; the fields are drawn by loadTicketFields().
+ * Printed in the side panel or the main column ($ssAskMain, GH #218) - the same
+ * ids either way, so the script that fills, keeps and sends them is unchanged.
+ */
+$ssQuestions = function () { ?>
+                <div class="form-group" id="ticketTypeGroup" hidden>
+                    <label for="ticketType"><?php echo htmlspecialchars(t('self-service.new_ticket.ticket_type')); ?></label>
+                    <select id="ticketType" onchange="loadTicketFields()">
+                        <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.ticket_type_none')); ?></option>
+                    </select>
+                </div>
+                <div id="ticketCustomFields"></div>
+<?php };
 ?>
         <h1 class="page-title"><?php echo htmlspecialchars(t('self-service.new_ticket.heading')); ?></h1>
 
@@ -1078,7 +1139,14 @@ require __DIR__ . '/includes/header.php';
                     </div>
                 </div>
 
-                <div class="compose-body">
+                <div class="compose-body<?php echo $ssAskMain ? ' compose-ask-main' : ''; ?>">
+                    <?php if ($ssAskMain): ?>
+                    <!-- GH #218 part C, "Main form": the request type and its questions
+                         between the subject and the description - the order a person
+                         explains a request in. First in the DOM, so a phone stacks them
+                         there too. -->
+                    <div class="compose-questions" id="composeQuestions"><?php $ssQuestions(); ?></div>
+                    <?php endif; ?>
                     <!-- ⚠️ This field had NO label. Every other field on the form
                          has one, so the message body — the whole point of the
                          page — was the one box with nothing naming it, and the
@@ -1113,16 +1181,7 @@ require __DIR__ . '/includes/header.php';
                         <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.category_none')); ?></option>
                     </select>
                 </div>
-                <?php /* Ticket type and custom fields (#179). The type picker is
-                         revealed only when choosing one changes what is asked;
-                         the fields are drawn by loadTicketFields(). */ ?>
-                <div class="form-group" id="ticketTypeGroup" hidden>
-                    <label for="ticketType"><?php echo htmlspecialchars(t('self-service.new_ticket.ticket_type')); ?></label>
-                    <select id="ticketType" onchange="loadTicketFields()">
-                        <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.ticket_type_none')); ?></option>
-                    </select>
-                </div>
-                <div id="ticketCustomFields"></div>
+                <?php if (!$ssAskMain) $ssQuestions(); ?>
                 <div class="form-group">
                     <label for="priority"><?php echo htmlspecialchars(t('self-service.new_ticket.priority')); ?></label>
                     <select id="priority">

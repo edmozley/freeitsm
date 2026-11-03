@@ -244,6 +244,22 @@ final class TicketFieldsService
     }
 
     /**
+     * Where the portal's New ticket page ASKS the questions (GH #218 part C): 'side'
+     * (never saved - the panel beside the editor, as it always was) or 'main' (the
+     * main column, between the subject and the description). Install-wide, like the
+     * setting above. Tickets -> Settings -> Custom fields.
+     */
+    public static function portalAskPlace(PDO $conn): string
+    {
+        try {
+            $v = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'ticket_portal_field_ask'")->fetchColumn();
+            return $v === 'main' ? 'main' : 'side';
+        } catch (Throwable) {
+            return 'side';
+        }
+    }
+
+    /**
      * The answers to the fields a ticket asks its requester, as they are now -
      * answered ones only: [{label, type, config, value, display}]. 🔑 The
      * 'requester' audience, so a field only analysts fill in is never returned.

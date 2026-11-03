@@ -1072,6 +1072,15 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 </select>
                 <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.portal_answers_help')); ?></small>
             </div>
+            <?php /* GH #218 part C: where the portal's New ticket page ASKS them. */ ?>
+            <div class="form-group" style="margin-bottom: 22px;">
+                <label for="portalFieldAsk"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.portal_ask_label')); ?></label>
+                <select id="portalFieldAsk" style="max-width: 360px;">
+                    <option value="side"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.portal_ask_side')); ?></option>
+                    <option value="main"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.portal_ask_main')); ?></option>
+                </select>
+                <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.custom_fields.portal_ask_help')); ?></small>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -3804,24 +3813,27 @@ function renderOversizeFields(string $px, bool $withLimits): void
         // Discussion #193: where the portal shows a requester their answers.
         // Never saved = 'header'; must match portalFieldAnswersPlace() in
         // api/self-service/get_ticket_detail.php.
-        (function () {
-            const sel = document.getElementById('portalFieldAnswers');
+        // GH #218 part C: where the portal's New ticket page asks them - the same shape.
+        // Never saved = 'side'; must match TicketFieldsService::portalAskPlace().
+        [['portalFieldAnswers', 'ticket_portal_field_answers', ['off', 'header', 'side'], 'header'],
+         ['portalFieldAsk', 'ticket_portal_field_ask', ['side', 'main'], 'side']].forEach(([id, key, allowed, fallback]) => {
+            const sel = document.getElementById(id);
             if (!sel) return;
             fetch(API_SETTINGS + 'get_system_settings.php').then(r => r.json()).then(d => {
-                const v = d && d.settings ? d.settings.ticket_portal_field_answers : '';
-                sel.value = ['off', 'header', 'side'].includes(v) ? v : 'header';
+                const v = d && d.settings ? d.settings[key] : '';
+                sel.value = allowed.includes(v) ? v : fallback;
             }).catch(() => {});
             sel.addEventListener('change', async () => {
                 try {
                     const d = await (await fetch(API_SETTINGS + 'save_system_settings.php', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ settings: { ticket_portal_field_answers: sel.value } })
+                        body: JSON.stringify({ settings: { [key]: sel.value } })
                     })).json();
                     if (d.success) showToast(window.t('tickets.settings.custom_fields.portal_answers_saved'), 'success');
                     else showToast('Error: ' + d.error, 'error');
                 } catch (e) { showToast('Failed to save settings', 'error'); }
             });
-        })();
+        });
 
         async function loadCustomFields() {
             const tbody = document.getElementById('custom-fields-list');
