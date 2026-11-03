@@ -634,7 +634,7 @@ class DomainsService
      */
     private static function runInternalChecks(PDO $conn, array $row, int $id, bool $probe = true): array
     {
-        $res = domainRunInternalChecks($row);
+        $res = domainRunInternalChecks($row, self::expectedRecords($conn, $id));
         $problem = $res['problem'];
         $failed = !$res['completed'];
         $expiring = false;
@@ -820,6 +820,109 @@ class DomainsService
         self::loadForActor($conn, $ctx, (int)$ep['domain_id']);   // the company check
         $conn->prepare("DELETE FROM domain_endpoints WHERE id = ?")->execute([$id]);
         self::audit($conn, (int)$ep['domain_id'], $ctx->actorId ?: null, 'endpoint', "{$ep['host']}:{$ep['port']}", null, $ctx->source === 'api' ? 'api' : 'app');
+    }
+
+    // ======================================================================
+    //  Expected records (GH #243, #203 slice 3)
+    // ======================================================================
+
+    /** Has Database Verification made the expected-records table yet? */
+    public static function expectedReady(PDO $conn): bool
+    {
+        static $ok = null;
+        if ($ok !== null) return $ok;
+        try { $conn->query("SELECT id FROM domain_expected_records LIMIT 0"); return $ok = true; }
+        catch (Throwable) { return $ok = false; }
+    }
+
+    /** A domain's expected records, host then type - [] before Database Verification. */
+    public static function expectedRecords(PDO $conn, int $domainId): array
+    {
+        if (!self::expectedReady($conn)) return [];
+        $s = $conn->prepare("SELECT id, host, record_type, expected_values, updated_datetime, created_datetime
+                               FROM domain_expected_records WHERE domain_id = ? ORDER BY host, FIELD(record_type, 'A', 'AAAA', 'CNAME', 'NS', 'SOA')");
+        $s->execute([$domainId]);
+        return $s->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Adds or changes what a name of an internal domain should hold. The caller has
+     * checked Cap::DOMAINS_INTERNAL. Values are optional: none means the type only has
+     * to exist; values are stored one per line, normalised, and must all be valid for
+     * the type - a typo is refused rather than silently never matching.
+     *
+     * @param array $in  {domain_id, id?, host, record_type, expected_values (text, one per line)}
+     * @return array  the stored row
+     */
+    public static function saveExpectedRecord(PDO $conn, ActorContext $ctx, array $in): array
+    {
+        if (!self::expectedReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System -> Database Verification first.');
+        $domain = self::loadForActor($conn, $ctx, (int)($in['domain_id'] ?? 0));
+        if (domainMayLeaveNetwork($domain)) {
+            throw new ServiceError('validation', 'not_internal', 'Expected records are for internal domains.');
+        }
+        $name = (string)$domain['domain_name'];
+        $host = domainNormaliseHost((string)($in['host'] ?? '')) ?? '';
+        if ($host === '' || !domainHostBelongsTo($host, $name)) {
+            throw new ServiceError('validation', 'host', "The name must be $name or a name under it.");
+        }
+        $type = DomainRecordType::tryFrom(strtoupper(trim((string)($in['record_type'] ?? ''))));
+        if ($type === null) throw new ServiceError('validation', 'record_type', 'Choose A, AAAA, CNAME, NS or SOA.');
+        $typed = array_values(array_filter(array_map('trim', preg_split('/[\r\n,]+/', (string)($in['expected_values'] ?? ''))), 'strlen'));
+        foreach ($typed as $v) {
+            if (!domainRecordValues($type, [$v])) {
+                throw new ServiceError('validation', 'expected_values', "\"$v\" is not a valid {$type->value} value. Enter one per line.");
+            }
+        }
+        $values = domainRecordValues($type, $typed);
+        if (in_array($type, [DomainRecordType::CNAME, DomainRecordType::SOA], true) && count($values) > 1) {
+            throw new ServiceError('validation', 'expected_values', "A name has only one {$type->value}: enter one value.");
+        }
+        $stored = $values ? implode("\n", $values) : null;
+        $id = (int)($in['id'] ?? 0);
+        $src = $ctx->source === 'api' ? 'api' : 'app';
+        try {
+            if ($id) {
+                $cur = $conn->prepare("SELECT * FROM domain_expected_records WHERE id = ? AND domain_id = ?");
+                $cur->execute([$id, (int)$domain['id']]);
+                $old = $cur->fetch(PDO::FETCH_ASSOC);
+                if (!$old) throw new ServiceError('not_found', 'expected_record', 'Expected record not found.');
+                $conn->prepare("UPDATE domain_expected_records SET host = ?, record_type = ?, expected_values = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                     ->execute([$host, $type->value, $stored, $id]);
+                self::audit($conn, (int)$domain['id'], $ctx->actorId ?: null, 'expected_record',
+                    "{$old['host']} {$old['record_type']}" . ($old['expected_values'] ? ': ' . str_replace("\n", ', ', $old['expected_values']) : ''),
+                    "$host {$type->value}" . ($stored ? ': ' . str_replace("\n", ', ', $stored) : ''), $src);
+            } else {
+                $conn->prepare("INSERT INTO domain_expected_records (domain_id, host, record_type, expected_values, created_by) VALUES (?, ?, ?, ?, ?)")
+                     ->execute([(int)$domain['id'], $host, $type->value, $stored, $ctx->actorId ?: null]);
+                $id = (int)$conn->lastInsertId();
+                self::audit($conn, (int)$domain['id'], $ctx->actorId ?: null, 'expected_record', null,
+                    "$host {$type->value}" . ($stored ? ': ' . str_replace("\n", ', ', $stored) : ''), $src);
+            }
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000') throw new ServiceError('validation', 'duplicate', "$host already has an expected {$type->value} record.");
+            throw $e;
+        }
+        $s = $conn->prepare("SELECT * FROM domain_expected_records WHERE id = ?");
+        $s->execute([$id]);
+        return $s->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Removes an expected record. What it found stays in the domain's history.
+     *
+     * @param int $id  the domain_expected_records row
+     */
+    public static function deleteExpectedRecord(PDO $conn, ActorContext $ctx, int $id): void
+    {
+        if (!self::expectedReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System -> Database Verification first.');
+        $s = $conn->prepare("SELECT * FROM domain_expected_records WHERE id = ?");
+        $s->execute([$id]);
+        $x = $s->fetch(PDO::FETCH_ASSOC);
+        if (!$x) throw new ServiceError('not_found', 'expected_record', 'Expected record not found.');
+        self::loadForActor($conn, $ctx, (int)$x['domain_id']);   // the company check
+        $conn->prepare("DELETE FROM domain_expected_records WHERE id = ?")->execute([$id]);
+        self::audit($conn, (int)$x['domain_id'], $ctx->actorId ?: null, 'expected_record', "{$x['host']} {$x['record_type']}", null, $ctx->source === 'api' ? 'api' : 'app');
     }
 
     /**

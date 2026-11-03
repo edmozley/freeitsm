@@ -109,6 +109,28 @@ return [
         'internal' => 'Internal',
     ],
     // GH #203 slice 2: HTTPS endpoints on an internal domain.
+    // GH #243: expected records on an internal domain's Health tab.
+    'expected' => [
+        'title' => 'Expected records',
+        'add' => 'Add',
+        'edit' => 'Edit expected record',
+        'intro' => 'What each name should hold. Leave the values empty when only the record type has to exist - an address that changes, say. With values, the record must hold exactly those (in any order).',
+        'host' => 'Name',
+        'type' => 'Record type',
+        'values' => 'Expected values',
+        'type_hint' => 'NS and SOA are for a name that is a zone. An SOA is compared by its primary name server.',
+        'values_hint' => 'One per line. Empty: the record only has to exist.',
+        'host_hint' => '{domain} or a name under it.',
+        'any' => 'Any value',
+        'ok' => 'As expected',
+        'problem' => 'Problem',
+        'found' => 'Found: {found}',
+        'none' => 'No expected records.',
+        'none_can' => 'No expected records yet. Add one to check what a name holds, not only that it resolves.',
+        'saved' => 'Saved. The next check compares it.',
+        'delete' => 'Delete expected record',
+        'delete_body' => 'Stop checking {record}? What it found stays in the history.',
+    ],
     'endpoint' => [
         'title'          => 'HTTPS endpoints',
         'intro'          => 'The internal websites whose certificate is checked: a host and a port. Only what is listed here is connected to - never the domain itself, or www, unless you add it. Each is checked through this server\'s DNS, and only when its address is in a permitted network and its port a permitted port.',
@@ -345,11 +367,27 @@ return [
     // ---- check findings: title + advice, per key -----------------------------------
     'check' => [
         // GH #203: an internal domain's DNS-only health check.
+        'int_expected_ok' => [
+            'title' => '{host} has the expected {type} record ({found})',
+            'advice' => '',
+        ],
+        'int_expected_missing' => [
+            'title' => '{host} has no {type} record',
+            'advice' => 'This server\'s DNS resolver has no {type} record for {host}, and one is expected. Check the record on your internal DNS server - or whether this server asks the right DNS server.',
+        ],
+        'int_expected_mismatch' => [
+            'title' => '{host} {type} is {found}, not {expected}',
+            'advice' => 'The {type} record for {host} does not hold the expected values. If the change is intended, update the expected record on the Health tab; if not, check your internal DNS.',
+        ],
+        'int_expected_not_checked' => [
+            'title' => '{host} {type}: not checked',
+            'advice' => 'This server\'s DNS resolver could not be asked ({error}). That says nothing about the record; the next check tries again.',
+        ],
         'int_resolves'    => ['title' => '{host} resolves ({addresses})', 'advice' => ''],
         'int_no_address'  => ['title' => '{host} does not resolve', 'advice' => 'This server\'s DNS resolver has no address for {host}. If the name should exist, check the record on your internal DNS server - or whether this server asks the right DNS server.'],
         'int_no_ipv4'     => ['title' => '{host} has no IPv4 address', 'advice' => 'This server\'s DNS resolver answered with no IPv4 address for {host}, and its IPv6 lookup could not be completed (on Windows this is how a name that does not exist is answered). If the name should exist, check the record on your internal DNS server.'],
         'int_not_checked' => ['title' => '{host}: not checked', 'advice' => 'This server could not ask its DNS resolver about {host} ({error}). That says nothing about the name itself - the last known health is kept until a check completes.'],
-        'int_scope_note'  => ['title' => 'Internal: checked through this server\'s DNS only', 'advice' => 'Nothing about this domain is sent outside the network. Registration, email security, name servers and DNSSEC do not apply. Certificates are checked only on the HTTPS endpoints listed above, within the networks and ports permitted in Domains -> Settings -> Internal monitoring.'],
+        'int_scope_note'  => ['title' => 'Internal: checked through this server\'s DNS only', 'advice' => 'Nothing about this domain is sent outside the network. Registration, email security and DNSSEC do not apply, and name servers are checked only where you add them as expected records. Certificates are checked only on the HTTPS endpoints listed above, within the networks and ports permitted in Domains -> Settings -> Internal monitoring.'],
         // GH #203 slice 2: one per HTTPS endpoint.
         'ep_healthy'         => ['title' => '{endpoint}: certificate valid until {date}', 'advice' => ''],
         'ep_expiring'        => ['title' => '{endpoint}: certificate expires in {days} days', 'advice' => 'It is valid, but inside its warning window ({date}). Renew it before it expires.'],
@@ -1075,6 +1113,7 @@ return [
             'p5'    => 'Certificates are checked only on the **HTTPS endpoints** you list on the domain\'s Health tab: a host (the domain or a name under it) and a port, such as `intranet.example.local:8443`. Nothing is assumed - not the domain itself, not www. FreeITSM looks the host up through this server\'s DNS and connects to that address, keeping the host name for the certificate check, so DNS and the certificate always describe the same machine. A certificate is never accepted just because the site is internal: expired, wrong name and not trusted are each a problem.',
             'p6'    => 'It only connects within limits an administrator sets under **Settings → Internal monitoring**: the **networks** it may reach (every address the name resolves to must be inside one - none is ticked until you choose, so nothing is connected to until then) and the **ports** (443 out of the box; tick 8443 or add others). For a certificate from your own certificate authority, add a **trust profile** there with the CA\'s certificate and choose it for the endpoint. Endpoints, the limits and trust profiles need the **Internal monitoring** permission; everybody who can see the domain sees the results, but **Check now** only reconnects to the endpoints for somebody who holds it.',
             'p7'    => 'Note that *This server only* keeps FreeITSM\'s questions on this server - if this server\'s DNS resolver forwards questions it cannot answer to a public service, a name can still leave the network from there.',
+            'p8' => '<strong>Expected records</strong>, on the same Health tab, check what a name holds, not only that it resolves: an A, AAAA, CNAME, NS or SOA record, with the values you expect, one per line. Leave the values empty when only the record has to exist - an address that changes, say. With values, the record must hold exactly those, in any order, and a missing record or different values is a problem that says what it found. They use the same permission as endpoints.',
         ],
         'grade' => [
             'nav'   => 'The security grade',

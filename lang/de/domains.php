@@ -106,6 +106,28 @@ return [
         'public' => 'Öffentlich',
         'internal' => 'Intern',
     ],
+    // GH #243: expected records on an internal domain's Health tab.
+    'expected' => [
+        'title' => 'Erwartete Einträge',
+        'add' => 'Hinzufügen',
+        'edit' => 'Erwarteten Eintrag bearbeiten',
+        'intro' => 'Was jeder Name enthalten soll. Lassen Sie die Werte leer, wenn nur der Eintragstyp vorhanden sein muss - etwa bei einer wechselnden Adresse. Mit Werten muss der Eintrag genau diese enthalten (in beliebiger Reihenfolge).',
+        'host' => 'Name',
+        'type' => 'Eintragstyp',
+        'values' => 'Erwartete Werte',
+        'type_hint' => 'NS und SOA sind für einen Namen, der eine Zone ist. Ein SOA wird über seinen primären Nameserver verglichen.',
+        'values_hint' => 'Einer pro Zeile. Leer: Der Eintrag muss nur vorhanden sein.',
+        'host_hint' => '{domain} oder ein Name darunter.',
+        'any' => 'Beliebiger Wert',
+        'ok' => 'Wie erwartet',
+        'problem' => 'Problem',
+        'found' => 'Gefunden: {found}',
+        'none' => 'Keine erwarteten Einträge.',
+        'none_can' => 'Noch keine erwarteten Einträge. Fügen Sie einen hinzu, um zu prüfen, was ein Name enthält, nicht nur, ob er aufgelöst wird.',
+        'saved' => 'Gespeichert. Die nächste Prüfung vergleicht ihn.',
+        'delete' => 'Erwarteten Eintrag löschen',
+        'delete_body' => '{record} nicht mehr prüfen? Was gefunden wurde, bleibt im Verlauf.',
+    ],
     'endpoint' => [
         'title' => 'HTTPS-Endpunkte',
         'intro' => 'Die internen Websites, deren Zertifikat geprüft wird: ein Host und ein Port. Verbunden wird nur mit dem, was hier aufgeführt ist - nie mit der Domain selbst oder www, es sei denn, Sie fügen sie hinzu. Jeder wird über das DNS dieses Servers geprüft, und nur, wenn seine Adresse in einem erlaubten Netzwerk und sein Port ein erlaubter Port ist.',
@@ -336,6 +358,22 @@ return [
         'done' => 'Fertig. Alles, was nicht erreichbar war, versucht der geplante Lauf erneut.',
     ],
     'check' => [
+        'int_expected_ok' => [
+            'title' => '{host} hat den erwarteten {type}-Eintrag ({found})',
+            'advice' => '',
+        ],
+        'int_expected_missing' => [
+            'title' => '{host} hat keinen {type}-Eintrag',
+            'advice' => 'Der DNS-Resolver dieses Servers hat keinen {type}-Eintrag für {host}, obwohl einer erwartet wird. Prüfen Sie den Eintrag auf Ihrem internen DNS-Server - oder ob dieser Server den richtigen DNS-Server fragt.',
+        ],
+        'int_expected_mismatch' => [
+            'title' => '{host} {type} ist {found}, nicht {expected}',
+            'advice' => 'Der {type}-Eintrag für {host} enthält nicht die erwarteten Werte. Ist die Änderung gewollt, passen Sie den erwarteten Eintrag auf der Registerkarte Zustand an; sonst prüfen Sie Ihr internes DNS.',
+        ],
+        'int_expected_not_checked' => [
+            'title' => '{host} {type}: nicht geprüft',
+            'advice' => 'Der DNS-Resolver dieses Servers konnte nicht gefragt werden ({error}). Das sagt nichts über den Eintrag aus; die nächste Prüfung versucht es erneut.',
+        ],
         'int_resolves' => [
             'title' => '{host} wird aufgelöst ({addresses})',
             'advice' => '',
@@ -354,7 +392,7 @@ return [
         ],
         'int_scope_note' => [
             'title' => 'Intern: nur über das DNS dieses Servers geprüft',
-            'advice' => 'Nichts über diese Domain wird nach außerhalb des Netzwerks gesendet. Registrierung, E-Mail-Sicherheit, Nameserver und DNSSEC treffen nicht zu. Zertifikate werden nur auf den oben aufgeführten HTTPS-Endpunkten geprüft, innerhalb der Netzwerke und Ports, die unter Domains -> Einstellungen -> Interne Überwachung erlaubt sind.',
+            'advice' => 'Nichts über diese Domain wird nach außerhalb des Netzwerks gesendet. Registrierung, E-Mail-Sicherheit und DNSSEC treffen nicht zu, und Nameserver werden nur geprüft, wo Sie sie als erwartete Einträge hinzufügen. Zertifikate werden nur auf den oben aufgeführten HTTPS-Endpunkten geprüft, innerhalb der Netzwerke und Ports, die unter Domains -> Einstellungen -> Interne Überwachung erlaubt sind.',
         ],
         'ep_healthy' => [
             'title' => '{endpoint}: Zertifikat gültig bis {date}',
@@ -1230,6 +1268,7 @@ return [
             'p5' => 'Zertifikate werden nur auf den **HTTPS-Endpunkten** geprüft, die Sie auf dem Reiter Zustand der Domain aufführen: ein Host (die Domain oder ein Name darunter) und ein Port, etwa `intranet.example.local:8443`. Nichts wird angenommen - weder die Domain selbst noch www. FreeITSM löst den Host über das DNS dieses Servers auf und verbindet sich mit dieser Adresse, wobei der Hostname für die Zertifikatsprüfung erhalten bleibt, sodass DNS und Zertifikat immer dieselbe Maschine beschreiben. Ein Zertifikat wird nie akzeptiert, nur weil die Website intern ist: abgelaufen, falscher Name und nicht vertrauenswürdig sind jeweils ein Problem.',
             'p6' => 'Verbunden wird nur innerhalb der Grenzen, die ein Administrator unter **Einstellungen → Interne Überwachung** festlegt: die **Netzwerke**, die erreicht werden dürfen (jede Adresse, zu der der Name aufgelöst wird, muss in einem davon liegen - nichts ist angehakt, bis Sie eine Auswahl treffen, daher wird bis dahin mit nichts verbunden), und die **Ports** (443 von Anfang an; haken Sie 8443 an oder fügen Sie weitere hinzu). Für ein Zertifikat Ihrer eigenen Zertifizierungsstelle fügen Sie dort ein **Vertrauensprofil** mit dem Zertifikat der Stelle hinzu und wählen es für den Endpunkt. Endpunkte, die Grenzen und Vertrauensprofile erfordern die Berechtigung **Interne Überwachung**; alle, die die Domain sehen können, sehen die Ergebnisse, aber **Jetzt prüfen** verbindet sich nur bei jemandem neu mit den Endpunkten, der diese Berechtigung hat.',
             'p7' => 'Beachten Sie, dass *Nur dieser Server* die Anfragen von FreeITSM auf diesem Server hält - leitet der DNS-Resolver dieses Servers Anfragen, die er nicht selbst beantworten kann, an einen öffentlichen Dienst weiter, kann ein Name das Netzwerk von dort aus dennoch verlassen.',
+            'p8' => '<strong>Erwartete Einträge</strong> auf derselben Registerkarte Zustand prüfen, was ein Name enthält, nicht nur, ob er aufgelöst wird: einen A-, AAAA-, CNAME-, NS- oder SOA-Eintrag mit den erwarteten Werten, einer pro Zeile. Lassen Sie die Werte leer, wenn nur der Eintrag vorhanden sein muss - etwa bei einer wechselnden Adresse. Mit Werten muss der Eintrag genau diese enthalten, in beliebiger Reihenfolge; ein fehlender Eintrag oder andere Werte sind ein Problem, das sagt, was gefunden wurde. Sie brauchen dieselbe Berechtigung wie Endpunkte.',
         ],
         'grade' => [
             'nav' => 'Die Sicherheitsnote',

@@ -23,6 +23,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2723 | Tickets           | Improvement | On New ticket in the all-companies view the mailbox list follows the chosen company, and a new "My company for new tickets" preference pre-selects a company the analyst can still reach (#218 part A). |
 | 2724 | Tickets           | Feature     | The Department field can be hidden, install-wide or per company, from the ticket panel, workspace, summary, New ticket, bulk and right-click actions (and the Department folders and column when no company shows it), and a default department for new tickets applies on every creation channel, without changing any ticket's department or who can open it (#218 part A). |
 | 2725 | Tickets           | Improvement | Department settings are kept consistent: it cannot be hidden where Mandatory fields requires it or required where it is hidden, a default must be active, a department that is a default cannot be deactivated or deleted, and an inactive default is skipped with a note on the ticket (#218 part A). |
+| 2726 | Domains           | Feature     | An internal domain's Health tab lists expected DNS records - A, AAAA, CNAME, NS or SOA per name, with optional values compared normalised and sorted - and reports a missing record or different values as a problem, through this server's resolver only (#243 slice 3). |
 
 
 

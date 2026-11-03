@@ -94,7 +94,8 @@ function domainDns(string $name, string $type, string $resolver = 'system'): arr
  */
 function domainDnsSystem(string $name, string $type): array
 {
-    $map = ['A' => DNS_A, 'AAAA' => DNS_AAAA, 'MX' => DNS_MX, 'TXT' => DNS_TXT, 'NS' => DNS_NS, 'CNAME' => DNS_CNAME];
+    // SOA (GH #243): an internal domain can expect a name to be a zone; its primary name server is the value compared.
+    $map = ['A' => DNS_A, 'AAAA' => DNS_AAAA, 'MX' => DNS_MX, 'TXT' => DNS_TXT, 'NS' => DNS_NS, 'CNAME' => DNS_CNAME, 'SOA' => DNS_SOA];
     if (defined('DNS_CAA')) $map['CAA'] = constant('DNS_CAA');
     if (!isset($map[$type])) return ['ok' => false, 'nxdomain' => false, 'records' => [], 'error' => "Type $type not supported"];
 
@@ -111,6 +112,7 @@ function domainDnsSystem(string $name, string $type): array
             case 'AAAA':  if (!empty($r['ipv6'])) $out[] = strtolower($r['ipv6']); break;
             case 'NS':
             case 'CNAME': if (!empty($r['target'])) $out[] = strtolower(rtrim($r['target'], '.')); break;
+            case 'SOA':   if (!empty($r['mname'])) $out[] = strtolower(rtrim($r['mname'], '.')); break;
             case 'MX':    if (isset($r['target'])) $out[] = [(int)($r['pri'] ?? 0), strtolower(rtrim($r['target'], '.'))]; break;
             case 'TXT':   $out[] = isset($r['entries']) ? implode('', $r['entries']) : (string)($r['txt'] ?? ''); break;
             case 'CAA':   $out[] = [(int)($r['flags'] ?? 0), strtolower((string)($r['tag'] ?? '')), (string)($r['value'] ?? '')]; break;
@@ -139,7 +141,7 @@ function domainDnsDoh(string $name, string $type, string $provider): array
     if ($status === 3) return ['ok' => true, 'nxdomain' => true, 'records' => [], 'error' => null];
     if ($status !== 0) return ['ok' => false, 'nxdomain' => false, 'records' => [], 'error' => "DNS server failure (status $status)"];
 
-    $typeNum = ['A' => 1, 'NS' => 2, 'CNAME' => 5, 'MX' => 15, 'TXT' => 16, 'AAAA' => 28, 'DS' => 43, 'DNSKEY' => 48, 'CAA' => 257][$type] ?? 0;
+    $typeNum = ['A' => 1, 'NS' => 2, 'CNAME' => 5, 'SOA' => 6, 'MX' => 15, 'TXT' => 16, 'AAAA' => 28, 'DS' => 43, 'DNSKEY' => 48, 'CAA' => 257][$type] ?? 0;
     $out = [];
     foreach ($j['Answer'] ?? [] as $a) {
         if ((int)($a['type'] ?? 0) !== $typeNum) continue;   // skip the CNAME hops in a chain
@@ -147,6 +149,7 @@ function domainDnsDoh(string $name, string $type, string $provider): array
         switch ($type) {
             case 'A': case 'AAAA': $out[] = strtolower($d); break;
             case 'NS': case 'CNAME': $out[] = strtolower(rtrim($d, '.')); break;
+            case 'SOA': $out[] = strtolower(rtrim((string)(preg_split('/\s+/', trim($d))[0] ?? ''), '.')); break;   // its primary name server
             case 'MX':
                 $p = preg_split('/\s+/', trim($d), 2);
                 $out[] = [(int)($p[0] ?? 0), strtolower(rtrim($p[1] ?? '', '.'))];

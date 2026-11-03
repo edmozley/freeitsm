@@ -226,13 +226,30 @@ $translationNamespaces = ['common', 'domains'];
             </div>
         </div>
     </div>
+    <?php /* GH #243: what a name of an internal domain should hold. */ ?>
+    <div class="modal" id="mExpected">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header" id="exTitle"></div>
+            <div class="modal-body">
+                <div class="dom-form-grid">
+                    <div class="form-group full"><label for="exHost"><?php echo htmlspecialchars(t('domains.expected.host')); ?></label><input type="text" id="exHost" maxlength="253" autocomplete="off"><div class="dom-hint" id="exHostHint"></div></div>
+                    <div class="form-group full"><label for="exType"><?php echo htmlspecialchars(t('domains.expected.type')); ?></label><select id="exType"><option value="A">A</option><option value="AAAA">AAAA</option><option value="CNAME">CNAME</option><option value="NS">NS</option><option value="SOA">SOA</option></select><div class="dom-hint"><?php echo htmlspecialchars(t('domains.expected.type_hint')); ?></div></div>
+                    <div class="form-group full"><label for="exValues"><?php echo htmlspecialchars(t('domains.expected.values')); ?></label><textarea id="exValues" rows="4"></textarea><div class="dom-hint"><?php echo htmlspecialchars(t('domains.expected.values_hint')); ?></div></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close="mExpected"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="exSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
     <script>window.DOMAIN_ID = <?php echo (int)$domainId; ?>;
     // The customer links to their People page (#153), for analysts who can open People.
     window.DOM_PEOPLE = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') ? BASE_URL . 'people/' : null); ?>;
     // Supplier and contact pages in People (#162) also need Contracts, which owns those records.
     window.DOM_PEOPLE_SUPPLIERS = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') && analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'contracts')); ?>;</script>
     <script src="../assets/js/domains.js?v=4"></script>
-    <script src="../assets/js/domains-view.js?v=12"></script>
+    <script src="../assets/js/domains-view.js?v=13"></script>
     <?php endif; ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

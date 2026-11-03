@@ -217,7 +217,7 @@
     function renderSecurity() {
         const f = D.findings || [];
         if (!f.length) {
-            document.getElementById('security').innerHTML = endpointsHtml() + '<div class="dom-empty"><h3>' + esc(T('page.not_checked')) + '</h3><p>' + esc(T('page.not_checked_body')) + '</p></div>';
+            document.getElementById('security').innerHTML = endpointsHtml() + expectedHtml() + '<div class="dom-empty"><h3>' + esc(T('page.not_checked')) + '</h3><p>' + esc(T('page.not_checked_body')) + '</p></div>';
             return;
         }
         const order = { fail: 0, warn: 1, info: 2, pass: 3 };
@@ -227,7 +227,7 @@
             : '<div style="display:flex;gap:16px;align-items:center;margin-bottom:18px">' + grade(D.security_grade, true)
             + '<div><div style="font-weight:600">' + esc(T('page.grade_line', { score: D.security_score })) + '</div>'
             + '<div class="dom-sub">' + esc(T('page.grade_explain')) + (D.checked_at ? ' ' + esc(T('page.checked_at', { when: fmtDate(D.checked_at) })) : '') + '</div></div></div>';
-        document.getElementById('security').innerHTML = intro + endpointsHtml() + AREAS.map(a => {
+        document.getElementById('security').innerHTML = intro + endpointsHtml() + expectedHtml() + AREAS.map(a => {
             const items = f.filter(x => x.area === a).sort((x, y) => order[x.level] - order[y.level]);
             if (!items.length) return '';
             return '<div class="dom-area-h">' + esc(T('area.' + a)) + '</div><div class="dom-findings">' + items.map(finding).join('') + '</div>';
@@ -306,6 +306,62 @@
                 warn_days: +document.getElementById('epWarn').value, trust_profile_id: +document.getElementById('epTrust').value || null });
             window.Dom.closeModal('mEndpoint');
             showToast(T('endpoint.saved'), 'success');
+            await load();
+            switchTab('security');
+        } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ---------------------------------------------------------------- expected records (GH #243)
+    /**
+     * What each name of an internal domain should hold, with the latest result of each
+     * from the last check's findings. No values: the record type only has to exist.
+     * Add / Edit / Delete need the Internal monitoring permission, like endpoints.
+     */
+    function expectedHtml() {
+        if (!internal() || !EP || !EP.ready || !EP.expected_ready) return '';
+        const rows = EP.expected || [];
+        const result = x => {
+            const f = (D.findings || []).find(y => /^int_expected_/.test(y.key) && y.params && y.params.host === x.host && y.params.type === x.record_type);
+            if (!f) return '<span class="dom-pill grey">' + esc(T('health.not_checked')) + '</span>';
+            const cls = { pass: 'green', fail: 'red' }[f.level] || 'grey';
+            const label = { pass: T('expected.ok'), fail: T('expected.problem') }[f.level] || T('health.not_checked');
+            return '<span class="dom-pill ' + cls + '">' + esc(label) + '</span>' + (f.params.found ? '<div class="dom-sub">' + esc(T('expected.found', { found: f.params.found })) + '</div>' : '');
+        };
+        const body = rows.map(x => '<tr style="cursor:default"><td><strong>' + esc(x.host) + '</strong></td><td>' + esc(x.record_type) + '</td>'
+                + '<td class="dom-sub">' + (x.expected_values ? esc(x.expected_values.split('\n').join(', ')) : esc(T('expected.any'))) + '</td>'
+                + '<td>' + result(x) + '</td>'
+                + (EP.can_internal ? '<td style="white-space:nowrap"><a href="#" data-ex-edit="' + x.id + '">' + esc(window.t('common.edit')) + '</a> · <a href="#" data-ex-del="' + x.id + '">' + esc(window.t('common.delete')) + '</a></td>' : '')
+                + '</tr>').join('');
+        return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 6px"><h3 style="margin:0;font-size:15px">' + esc(T('expected.title')) + '</h3>'
+            + '<span style="flex:1"></span>' + (EP.can_internal ? '<button type="button" class="dom-btn" id="exAdd">' + esc(T('expected.add')) + '</button>' : '') + '</div>'
+            + '<p class="dom-hint" style="font-size:12.5px">' + esc(T('expected.intro')) + '</p>'
+            + (rows.length ? '<table class="dom-table" style="margin-bottom:22px"><thead><tr><th class="nosort">' + esc(T('expected.host')) + '</th><th class="nosort">'
+                + esc(T('expected.type')) + '</th><th class="nosort">' + esc(T('expected.values')) + '</th><th class="nosort">' + esc(T('health.label')) + '</th>'
+                + (EP.can_internal ? '<th class="nosort"></th>' : '') + '</tr></thead><tbody>' + body + '</tbody></table>'
+              : '<div class="dom-sub" style="margin-bottom:22px">' + esc(T(EP.can_internal ? 'expected.none_can' : 'expected.none')) + '</div>');
+    }
+
+    let exEditing = 0;
+    /** Opens the expected-record dialog, empty (the domain's own name, A) or filled from one row. */
+    function openExpected(x) {
+        exEditing = x ? x.id : 0;
+        document.getElementById('exTitle').textContent = T(x ? 'expected.edit' : 'expected.add');
+        document.getElementById('exHost').value = x ? x.host : D.domain_name;
+        document.getElementById('exHostHint').textContent = T('expected.host_hint', { domain: D.domain_name });
+        document.getElementById('exType').value = x ? x.record_type : 'A';
+        document.getElementById('exValues').value = x && x.expected_values ? x.expected_values : '';
+        window.Dom.openModal('mExpected');
+        document.getElementById('exHost').focus();
+    }
+
+    /** Saves the expected-record dialog, then reloads: the next check (or Check now) compares it. */
+    async function saveExpected() {
+        try {
+            await api('endpoints.php', { action: 'save_expected', id: exEditing || undefined, domain_id: ID,
+                host: document.getElementById('exHost').value, record_type: document.getElementById('exType').value,
+                expected_values: document.getElementById('exValues').value });
+            window.Dom.closeModal('mExpected');
+            showToast(T('expected.saved'), 'success');
             await load();
             switchTab('security');
         } catch (e) { showToast(e.message, 'error'); }
@@ -687,6 +743,18 @@
             if (e.target.id === 'mcAdd') { openCert(null); return; }
             // GH #203 slice 2: an internal domain's HTTPS endpoints.
             if (e.target.id === 'epAdd') { openEndpoint(null); return; }
+            // GH #243: expected records.
+            if (e.target.id === 'exAdd') { openExpected(null); return; }
+            const exE = e.target.closest('[data-ex-edit]');
+            if (exE) { e.preventDefault(); openExpected((EP.expected || []).find(x => +x.id === +exE.dataset.exEdit)); return; }
+            const exD = e.target.closest('[data-ex-del]');
+            if (exD) {
+                e.preventDefault();
+                const x = (EP.expected || []).find(y => +y.id === +exD.dataset.exDel);
+                if (!x || !(await showConfirm({ title: T('expected.delete'), message: T('expected.delete_body', { record: x.host + ' ' + x.record_type }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
+                try { await api('endpoints.php', { action: 'delete_expected', id: x.id }); await load(); switchTab('security'); } catch (err) { showToast(err.message, 'error'); }
+                return;
+            }
             const epE = e.target.closest('[data-ep-edit]');
             if (epE) { e.preventDefault(); openEndpoint((EP.endpoints || []).find(x => +x.id === +epE.dataset.epEdit)); return; }
             const epD = e.target.closest('[data-ep-del]');
@@ -713,6 +781,7 @@
         });
         document.getElementById('mcSave').addEventListener('click', saveCert);
         document.getElementById('epSave').addEventListener('click', saveEndpoint);
+        document.getElementById('exSave').addEventListener('click', saveExpected);   // GH #243
         document.getElementById('mcSupplier').addEventListener('change', mcProviderToggle);
         document.getElementById('eParent').addEventListener('change', regOnlyToggle);
         document.getElementById('eScope').addEventListener('change', regOnlyToggle);

@@ -262,6 +262,7 @@ function analystReferenceRegistry(): array {
         ['domain_manual_certificates', 'created_by', 'history'],
         ['domain_endpoints', 'created_by', 'history'],
         ['domain_trust_profiles', 'created_by', 'history'],
+        ['domain_expected_records', 'created_by', 'history'],   // GH #243
         ['form_submission_votes', 'analyst_id', 'history'],
         ['form_submission_approval_events', 'analyst_id', 'history'],
         ['job_schedules', 'updated_by', 'history'],

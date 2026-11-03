@@ -6097,6 +6097,17 @@ return [
         'created_datetime'        => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'        => 'DATETIME NULL',
     ],
+    // GH #243: what each name of an internal domain should hold.
+    'domain_expected_records' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'domain_id'        => 'INT NOT NULL',
+        'host'             => 'VARCHAR(253) NOT NULL',
+        'record_type'      => 'VARCHAR(5) NOT NULL',
+        'expected_values'  => 'TEXT NULL',
+        'created_by'       => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime' => 'DATETIME NULL',
+    ],
     'domain_trust_profiles' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
         'name'             => 'VARCHAR(100) NOT NULL',

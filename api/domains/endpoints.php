@@ -11,6 +11,8 @@
  * POST {action:'delete', id}
  * POST {action:'save_profile', id?, name, ca_pem}
  * POST {action:'delete_profile', id}
+ * POST {action:'save_expected', id?, domain_id, host, record_type, expected_values}   GH #243
+ * POST {action:'delete_expected', id}
  *
  * Every write needs Cap::DOMAINS_INTERNAL: endpoints decide which internal
  * addresses the server connects to. Thin adapter over DomainsService.
@@ -46,6 +48,9 @@ domainApiRun(function () use ($conn, $ctx, $analystId) {
         domainApiOk([
             'ready'        => true,
             'endpoints'    => $eps,
+            // GH #243: what each name should hold. The results are findings on the Health tab.
+            'expected'     => DomainsService::expectedRecords($conn, (int)$domain['id']),
+            'expected_ready' => DomainsService::expectedReady($conn),
             // The names only, for the endpoint dialog's list - never the certificates.
             'profiles'     => $canInternal ? $conn->query("SELECT id, name FROM domain_trust_profiles ORDER BY name")->fetchAll(PDO::FETCH_ASSOC) : [],
             'can_internal' => $canInternal,
@@ -65,6 +70,11 @@ domainApiRun(function () use ($conn, $ctx, $analystId) {
             domainApiOk();
         case 'save_profile':
             domainApiOk(['profile' => DomainsService::saveTrustProfile($conn, $ctx, $in)]);
+        case 'save_expected':
+            domainApiOk(['expected' => DomainsService::saveExpectedRecord($conn, $ctx, $in)]);
+        case 'delete_expected':
+            DomainsService::deleteExpectedRecord($conn, $ctx, (int)($in['id'] ?? 0));
+            domainApiOk();
         case 'delete_profile':
             DomainsService::deleteTrustProfile($conn, (int)($in['id'] ?? 0));
             domainApiOk();

@@ -9107,6 +9107,23 @@ CREATE TABLE IF NOT EXISTS `domain_endpoints` (
     UNIQUE KEY `uq_domain_endpoint` (`domain_id`, `host`, `port`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Expected DNS records (GH #243, #203 slice 3): what each name of an internal
+-- domain should hold. No values = the record type only has to exist (an address
+-- that changes, say); values = the normalised, sorted set must match exactly.
+-- Checked through this server's resolver only, like the rest of an internal domain.
+CREATE TABLE IF NOT EXISTS `domain_expected_records` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `domain_id`        INT NOT NULL,
+    `host`             VARCHAR(253) NOT NULL,
+    `record_type`      VARCHAR(5) NOT NULL,                -- DomainRecordType: A | AAAA | CNAME | NS | SOA
+    `expected_values`  TEXT NULL,                          -- one per line; NULL = only that the type exists
+    `created_by`       INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime` DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_domain_expected_record` (`domain_id`, `host`, `record_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Trust profiles (GH #203, slice 2): an organisation's own certificate
 -- authorities, for checking internal certificates. A profile changes WHICH CAs
 -- are trusted for an endpoint, never WHETHER the chain and the host name are

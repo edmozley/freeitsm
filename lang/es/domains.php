@@ -106,6 +106,28 @@ return [
         'public' => 'Público',
         'internal' => 'Interno',
     ],
+    // GH #243: expected records on an internal domain's Health tab.
+    'expected' => [
+        'title' => 'Registros esperados',
+        'add' => 'Añadir',
+        'edit' => 'Editar registro esperado',
+        'intro' => 'Lo que debe contener cada nombre. Deje los valores vacíos cuando solo tenga que existir el tipo de registro, por ejemplo una dirección que cambia. Con valores, el registro debe contener exactamente esos (en cualquier orden).',
+        'host' => 'Nombre',
+        'type' => 'Tipo de registro',
+        'values' => 'Valores esperados',
+        'type_hint' => 'NS y SOA son para un nombre que es una zona. Un SOA se compara por su servidor de nombres principal.',
+        'values_hint' => 'Uno por línea. Vacío: el registro solo tiene que existir.',
+        'host_hint' => '{domain} o un nombre por debajo.',
+        'any' => 'Cualquier valor',
+        'ok' => 'Como se esperaba',
+        'problem' => 'Problema',
+        'found' => 'Encontrado: {found}',
+        'none' => 'No hay registros esperados.',
+        'none_can' => 'Aún no hay registros esperados. Añada uno para comprobar lo que contiene un nombre, no solo que se resuelve.',
+        'saved' => 'Guardado. La próxima comprobación lo compara.',
+        'delete' => 'Eliminar registro esperado',
+        'delete_body' => '¿Dejar de comprobar {record}? Lo encontrado se queda en el historial.',
+    ],
     'endpoint' => [
         'title' => 'Puntos de conexión HTTPS',
         'intro' => 'Los sitios web internos cuyo certificado se comprueba: un host y un puerto. Solo se establece conexión con lo que aparece aquí; nunca con el propio dominio ni con www, salvo que usted los añada. Cada uno se comprueba mediante el DNS de este servidor, y solo cuando su dirección está en una red permitida y su puerto es un puerto permitido.',
@@ -336,6 +358,22 @@ return [
         'done' => 'Listo. Lo que no se pudo alcanzar lo vuelve a intentar la ejecución programada.',
     ],
     'check' => [
+        'int_expected_ok' => [
+            'title' => '{host} tiene el registro {type} esperado ({found})',
+            'advice' => '',
+        ],
+        'int_expected_missing' => [
+            'title' => '{host} no tiene registro {type}',
+            'advice' => 'El resolvedor DNS de este servidor no tiene ningún registro {type} para {host}, y se espera uno. Compruebe el registro en su servidor DNS interno, o si este servidor pregunta al servidor DNS correcto.',
+        ],
+        'int_expected_mismatch' => [
+            'title' => '{host} {type} es {found}, no {expected}',
+            'advice' => 'El registro {type} de {host} no contiene los valores esperados. Si el cambio es intencionado, actualice el registro esperado en la pestaña Salud; si no, revise su DNS interno.',
+        ],
+        'int_expected_not_checked' => [
+            'title' => '{host} {type}: sin comprobar',
+            'advice' => 'No se pudo preguntar al resolvedor DNS de este servidor ({error}). Eso no dice nada del registro; la próxima comprobación lo vuelve a intentar.',
+        ],
         'int_resolves' => [
             'title' => '{host} se resuelve ({addresses})',
             'advice' => '',
@@ -354,7 +392,7 @@ return [
         ],
         'int_scope_note' => [
             'title' => 'Interno: comprobado solo mediante el DNS de este servidor',
-            'advice' => 'Nada sobre este dominio se envía fuera de la red. El registro, la seguridad del correo, los servidores de nombres y DNSSEC no se aplican. Los certificados solo se comprueban en los puntos de conexión HTTPS indicados arriba, dentro de las redes y puertos permitidos en Dominios -> Ajustes -> Supervisión interna.',
+            'advice' => 'Nada sobre este dominio se envía fuera de la red. El registro, la seguridad del correo y DNSSEC no se aplican, y los servidores de nombres solo se comprueban donde los añada como registros esperados. Los certificados solo se comprueban en los puntos de conexión HTTPS indicados arriba, dentro de las redes y puertos permitidos en Dominios -> Ajustes -> Supervisión interna.',
         ],
         'ep_healthy' => [
             'title' => '{endpoint}: certificado válido hasta el {date}',
@@ -1230,6 +1268,7 @@ return [
             'p5' => 'Los certificados solo se comprueban en los **puntos de conexión HTTPS** que usted indique en la pestaña Salud del dominio: un host (el dominio o un nombre que dependa de él) y un puerto, como `intranet.example.local:8443`. No se da nada por supuesto: ni el propio dominio ni www. FreeITSM resuelve el host mediante el DNS de este servidor y se conecta a esa dirección, conservando el nombre del host para comprobar el certificado, de modo que el DNS y el certificado describen siempre la misma máquina. Un certificado nunca se acepta solo porque el sitio sea interno: caducado, nombre incorrecto y no de confianza son, cada uno, un problema.',
             'p6' => 'Solo se conecta dentro de los límites que un administrador establece en **Ajustes → Supervisión interna**: las **redes** a las que puede llegar (cada dirección en la que se resuelve el nombre debe estar dentro de una; no hay ninguna marcada hasta que usted elija, así que hasta entonces no se conecta a nada) y los **puertos** (443 desde el principio; marque 8443 o añada otros). Para un certificado de su propia autoridad de certificación, añada allí un **perfil de confianza** con el certificado de la autoridad y elíjalo para el punto de conexión. Los puntos de conexión, los límites y los perfiles de confianza requieren el permiso **Supervisión interna**; todos los que pueden ver el dominio ven los resultados, pero **Comprobar ahora** solo vuelve a conectarse a los puntos de conexión cuando lo usa alguien que tiene ese permiso.',
             'p7' => 'Tenga en cuenta que *Solo este servidor* mantiene las consultas de FreeITSM en este servidor: si el resolvedor DNS de este servidor reenvía a un servicio público las consultas que no puede responder, un nombre aún puede salir de la red desde allí.',
+            'p8' => 'Los <strong>registros esperados</strong>, en la misma pestaña Salud, comprueban lo que contiene un nombre, no solo que se resuelve: un registro A, AAAA, CNAME, NS o SOA, con los valores que espera, uno por línea. Deje los valores vacíos cuando solo tenga que existir el registro, por ejemplo una dirección que cambia. Con valores, el registro debe contener exactamente esos, en cualquier orden, y un registro que falta o valores distintos son un problema que dice lo que encontró. Usan el mismo permiso que los puntos de conexión.',
         ],
         'grade' => [
             'nav' => 'La calificación de seguridad',

@@ -45,6 +45,49 @@ enum DomainScope: string
 const DOMAIN_INTERNAL_INTERVALS = [15, 30, 60, 240, 1440];
 
 /** Has Database Verification added domains.scope and the health columns yet? */
+/**
+ * The record types an internal domain can expect a name to hold (GH #243). NS and SOA
+ * are for a name that IS a zone. An SOA is compared by its primary name server.
+ */
+enum DomainRecordType: string
+{
+    case A     = 'A';
+    case AAAA  = 'AAAA';
+    case CNAME = 'CNAME';
+    case NS    = 'NS';
+    case SOA   = 'SOA';
+}
+
+/**
+ * Record values in the one form they are compared in: trimmed, lower-case, no
+ * trailing dot, IPv6 written the one canonical way, no duplicates, sorted. Anything
+ * that is not a valid value of the type is dropped - so a typo can never make a
+ * comparison pass, and saveExpectedRecord() refuses it before it gets here.
+ *
+ * @param string[] $values
+ * @return string[]
+ */
+function domainRecordValues(DomainRecordType $type, array $values): array
+{
+    $out = [];
+    foreach ($values as $v) {
+        $v = strtolower(rtrim(trim((string)$v), '.'));
+        if ($v === '') continue;
+        if ($type === DomainRecordType::A) {
+            if (filter_var($v, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) continue;
+        } elseif ($type === DomainRecordType::AAAA) {
+            if (filter_var($v, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false) continue;
+            $v = inet_ntop(inet_pton($v));
+        } elseif (!preg_match('/^(?=.{1,253}$)([a-z0-9_]([a-z0-9_-]{0,61}[a-z0-9])?)(\.[a-z0-9_]([a-z0-9_-]{0,61}[a-z0-9])?)*$/', $v)) {
+            continue;
+        }
+        $out[] = $v;
+    }
+    $out = array_values(array_unique($out));
+    sort($out);
+    return $out;
+}
+
 function domainScopeReady(PDO $conn): bool
 {
     static $ok = null;
@@ -115,8 +158,12 @@ function domainInternalInterval(array $settings): int
  *   completed: every question got an answer, or a problem was confirmed (a fresh
  *   observation either way). problem: at least one name has no address.
  */
-function domainRunInternalChecks(array $d): array
+function domainRunInternalChecks(array $d, array $expected = [], ?callable $resolve = null): array
 {
+    // TRAP: always system_only here, whatever the install-wide resolver says -
+    // 'system' falls back to Google, and 'auto' IS Google on Windows. A test may
+    // pass its own resolver; production never does.
+    $resolve = $resolve ?? fn(string $h, string $t) => domainDns($h, $t, 'system_only');
     $name  = (string)$d['domain_name'];
     $hosts = array_merge([$name], domainParseSslHosts($d['ssl_hosts'] ?? '', $name));
     $f = [];
@@ -127,10 +174,8 @@ function domainRunInternalChecks(array $d): array
     $problem = false;
     $failed  = false;
     foreach ($hosts as $h) {
-        // TRAP: always system_only here, whatever the install-wide resolver says -
-        // 'system' falls back to Google, and 'auto' IS Google on Windows.
-        $a  = domainDns($h, 'A', 'system_only');
-        $aa = domainDns($h, 'AAAA', 'system_only');
+        $a  = $resolve($h, 'A');
+        $aa = $resolve($h, 'AAAA');
         $addresses = array_merge($a['ok'] ? $a['records'] : [], $aa['ok'] ? $aa['records'] : []);
         if ($addresses) {
             // Either answer with an address is enough: the name resolves.
@@ -150,6 +195,34 @@ function domainRunInternalChecks(array $d): array
             $add($aa['ok'] ? 'int_no_address' : 'int_no_ipv4', 'fail', ['host' => $h]);
         }
     }
+    // Expected records (GH #243, slice 3). No values: the type only has to exist (an
+    // address that changes is not a problem). Values: the normalised, sorted set must
+    // match - so order alone is never a change. Same three outcomes as above: an
+    // answer that matches, a confirmed problem, or "could not ask".
+    foreach ($expected as $x) {
+        $host = (string)$x['host'];
+        $type = DomainRecordType::tryFrom(strtoupper((string)$x['record_type']));
+        if ($type === null) continue;
+        $want = domainRecordValues($type, preg_split('/\r\n|\r|\n/', (string)($x['expected_values'] ?? '')));
+        $r = $resolve($host, $type->value);
+        $p = ['host' => $host, 'type' => $type->value];
+        if (!$r['ok']) {
+            $failed = true;
+            $add('int_expected_not_checked', 'info', $p + ['error' => (string)$r['error']]);
+            continue;
+        }
+        $got = domainRecordValues($type, $r['records']);
+        if (!$got) {
+            $problem = true;
+            $add('int_expected_missing', 'fail', $p);
+        } elseif ($want && $want !== $got) {
+            $problem = true;
+            $add('int_expected_mismatch', 'fail', $p + ['expected' => implode(', ', $want), 'found' => implode(', ', array_slice($got, 0, 8))]);
+        } else {
+            $add('int_expected_ok', 'pass', $p + ['found' => implode(', ', array_slice($got, 0, 8))]);
+        }
+    }
+
     // Said once: what slice 1 deliberately does not do, so an empty certificate
     // section reads as "not checked here", never as "fine".
     $add('int_scope_note', 'info', []);
