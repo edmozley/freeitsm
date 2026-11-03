@@ -1267,6 +1267,8 @@ $translationNamespaces = ['common', 'asset-management'];
                             <div style="display:flex;gap:8px;align-items:center"><input type="number" class="form-input" id="ldOx" min="-10" max="10" step="0.1" style="width:90px"> <input type="number" class="form-input" id="ldOy" min="-10" max="10" step="0.1" style="width:90px"> mm</div>
                             <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.label_designs.offset_hint')); ?></div></div>
                         <div class="form-group"><label for="ldFont"><?php echo htmlspecialchars(t('asset-management.label_designs.font')); ?></label><select class="form-select" id="ldFont"></select></div>
+                        <div class="form-group"><label><input type="checkbox" id="ldMono"> <?php echo htmlspecialchars(t('asset-management.label_designs.mono')); ?></label>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.label_designs.mono_hint')); ?></div></div>
                         <div class="form-group" id="ldDefaultRow"><label><input type="checkbox" id="ldDefault"> <?php echo htmlspecialchars(t('asset-management.label_designs.make_default')); ?></label></div>
                     </div>
                     <div class="modal-footer">
@@ -5619,8 +5621,8 @@ $translationNamespaces = ['common', 'asset-management'];
         window.LD_CAPTIONS = <?php echo json_encode(assetLabelPrintFields($ldConn, $ldTenant), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
         <?php if ($ldSettings['logo_path'] !== ''): ?>window.LD_LOGO = new Image(); window.LD_LOGO.src = <?php echo json_encode(BASE_URL . ltrim($ldSettings['logo_path'], '/')); ?>;<?php endif; ?>
     </script>
-    <script src="../../assets/js/asset-labels/render.js?v=2"></script>
-    <script src="../../assets/js/asset-labels/designs-admin.js?v=2"></script>
+    <script src="../../assets/js/asset-labels/render.js?v=3"></script>
+    <script src="../../assets/js/asset-labels/designs-admin.js?v=3"></script>
     <?php endif; endif; ?>
     <script>window.ASSET_LAYOUT = <?php echo json_encode(['defaults' => AssetTypeLayout::defaults(), 'presets' => AssetTypeLayout::PRESETS], JSON_HEX_TAG | JSON_HEX_AMP); ?>;</script>
     <script src="../../assets/js/mobile.js?v=83"></script>

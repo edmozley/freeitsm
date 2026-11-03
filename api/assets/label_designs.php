@@ -5,8 +5,8 @@
  * GET                     the active company's designs (its "Standard" design is made the
  *                         first time), the label sizes, the templates, the fonts, and whether
  *                         this analyst may change them
- * POST {action:'create', name, template, stock:{key, w?, h?, offset_x?, offset_y?}, font, default?}
- * POST {action:'update', id, version, name, stock, font}
+ * POST {action:'create', name, template, stock:{key, w?, h?, offset_x?, offset_y?}, font, mono?, default?}
+ * POST {action:'update', id, version, name, stock, font, mono?}
  * POST {action:'set_default', id}
  * POST {action:'delete', id}
  * POST multipart action=upload_font, name, licence=1, font=<file>
@@ -85,7 +85,7 @@ try {
         case 'create':
             try {
                 $id = assetLabelDesignCreate($conn, $tenantId, (string)($in['name'] ?? ''), (string)($in['template'] ?? ''), (array)($in['stock'] ?? []),
-                                             $analystId, !empty($in['default']), ['font' => (string)($in['font'] ?? '')]);
+                                             $analystId, !empty($in['default']), ['font' => (string)($in['font'] ?? '')] + (isset($in['mono']) ? ['mono' => !empty($in['mono'])] : []));
             } catch (InvalidArgumentException $e) { aldFail($e->getMessage()); }
             echo json_encode(['success' => true, 'id' => $id]);
             exit;
@@ -97,6 +97,7 @@ try {
             try { $stock = assetLabelStockFrom((array)($in['stock'] ?? [])); } catch (InvalidArgumentException $e) { aldFail($e->getMessage()); }
             $design = json_decode((string)$row['design_json'], true) ?: ['v' => 1, 'template' => 'standard'];
             $design['font'] = assetLabelFontRef($conn, $tenantId, (string)($in['font'] ?? ASSET_LABEL_BUILTIN_FONT));
+            if (isset($in['mono'])) $design['mono'] = !empty($in['mono']);
             // Somebody else saved it since this screen loaded it: say so rather than overwrite.
             $u = $conn->prepare("UPDATE asset_label_designs SET name = ?, stock_json = ?, design_json = ?, version = version + 1, updated_by = ?, updated_datetime = UTC_TIMESTAMP()
                                   WHERE id = ? AND version = ?");
@@ -114,6 +115,9 @@ try {
             try { $stock = assetLabelStockFrom((array)($in['stock'] ?? [])); } catch (InvalidArgumentException $e) { aldFail($e->getMessage()); }
             $items = assetLabelSanitiseItems((array)($in['items'] ?? []), $stock, array_keys(assetLabelAvailableFields($conn, $tenantId)));
             $design = ['v' => 1, 'template' => 'custom', 'font' => assetLabelFontRef($conn, $tenantId, (string)($in['font'] ?? ASSET_LABEL_BUILTIN_FONT)), 'items' => $items];
+            // The black-only setting is made on the settings screen, not here: keep it.
+            $was = json_decode((string)$row['design_json'], true) ?: [];
+            if (isset($was['mono'])) $design['mono'] = (bool)$was['mono'];
             $u = $conn->prepare("UPDATE asset_label_designs SET name = ?, stock_json = ?, design_json = ?, version = version + 1, updated_by = ?, updated_datetime = UTC_TIMESTAMP()
                                   WHERE id = ? AND version = ?");
             $u->execute([$name, json_encode($stock), json_encode($design), $analystId, (int)$row['id'], (int)($in['version'] ?? 0)]);

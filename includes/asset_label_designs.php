@@ -209,6 +209,22 @@ function assetLabelTemplateItems(string $template, array $stock, array $s): arra
 }
 
 /**
+ * Does this design print in solid black only (GH #229)? A tape or roll printer has no
+ * grey - its driver prints grey as dots - so text, lines and boxes go solid black and
+ * the logo pure black and white. Unset (every design made before 4.8.1) follows the
+ * label size it is printed on: tape and roll yes, A4 sheets no. Mirrors monoFor() in
+ * render.js.
+ *
+ * @param array $design  a design row from assetLabelDesignDecode()
+ * @param array $stock   the stock it is printed on
+ */
+function assetLabelMono(array $design, array $stock): bool
+{
+    $m = $design['design']['mono'] ?? null;
+    return is_bool($m) ? $m : ($stock['kind'] ?? 'sheet') !== 'sheet';
+}
+
+/**
  * A design's items for a label of this size: what the designer saved (template
  * 'custom', slice 2), or worked out from the template and the label settings.
  *
@@ -323,7 +339,7 @@ function assetLabelDesignDecode(array $r): array
  *
  * @param string $template  one of ASSET_LABEL_TEMPLATES
  * @param array  $stockIn   for assetLabelStockFrom()
- * @param array  $options   {font: 'noto' or 'font:<id>'}
+ * @param array  $options   {font: 'noto' or 'font:<id>', mono?: bool - left unset, it follows the size}
  * @return int the new design's id
  */
 function assetLabelDesignCreate(PDO $conn, ?int $tenantId, string $name, string $template, array $stockIn, ?int $analystId, bool $default = false, array $options = []): int
@@ -333,6 +349,7 @@ function assetLabelDesignCreate(PDO $conn, ?int $tenantId, string $name, string 
     if ($name === '' || mb_strlen($name) > 100) throw new InvalidArgumentException('Give the design a name, up to 100 characters.');
     $stock = assetLabelStockFrom($stockIn);
     $design = ['v' => 1, 'template' => $template, 'font' => assetLabelFontRef($conn, $tenantId, (string)($options['font'] ?? ASSET_LABEL_BUILTIN_FONT))];
+    if (isset($options['mono'])) $design['mono'] = (bool)$options['mono'];
     $conn->beginTransaction();
     try {
         $n = $conn->prepare("SELECT COUNT(*) FROM asset_label_designs WHERE tenant_id <=> ?");

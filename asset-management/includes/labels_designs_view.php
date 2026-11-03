@@ -43,6 +43,7 @@ $job = [
     'captions' => assetLabelPrintFields($conn, $activeTenantId),
     'noTag'    => t('asset-management.labels.no_tag'),
     'font'     => (string)($design['design']['font'] ?? ASSET_LABEL_BUILTIN_FONT),
+    'mono'     => assetLabelMono($design, $stock),
     'logo'     => $labelSettings['logo_path'] !== '' ? BASE_URL . ltrim($labelSettings['logo_path'], '/') : null,
     'base'     => BASE_URL,
     'file'     => 'asset-labels-' . date('Ymd-His') . '.pdf',
@@ -59,7 +60,7 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('asset-management.label
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.labels.browser_title'))); ?></title>
     <script src="../assets/js/qrcode.min.js"></script>
     <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
-    <script src="../assets/js/asset-labels/render.js?v=2"></script>
+    <script src="../assets/js/asset-labels/render.js?v=3"></script>
     <style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f6fa; color: #222; }
         .bar { background: #546e7a; color: #fff; padding: 12px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -134,7 +135,7 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('asset-management.label
             cv.style.width = (cv.width / (window.devicePixelRatio || 1)) + 'px';
             const g = cv.getContext('2d');
             g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
-            LabelRender.drawLabel(g, { items: JOB.items, values: lab.values, url: lab.url, captions: JOB.captions, noTag: JOB.noTag, font: JOB.font, logo }, px);
+            LabelRender.drawLabel(g, { items: JOB.items, values: lab.values, url: lab.url, captions: JOB.captions, noTag: JOB.noTag, font: JOB.font, logo, mono: JOB.mono }, px);
             box.appendChild(cv);
         });
         const btn = document.getElementById('btnPdf');

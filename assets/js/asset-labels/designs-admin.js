@@ -69,7 +69,8 @@
             cv.style.border = '1px solid var(--border, #ddd)';
             const g = cv.getContext('2d');
             g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
-            window.LabelRender.drawLabel(g, { items, values: sample.values, url: sample.url, captions: window.LD_CAPTIONS, noTag: sample.noTag, font: d.design.font, logo: window.LD_LOGO }, px);
+            window.LabelRender.drawLabel(g, { items, values: sample.values, url: sample.url, captions: window.LD_CAPTIONS, noTag: sample.noTag, font: d.design.font, logo: window.LD_LOGO,
+                                              mono: window.LabelRender.monoFor(d.design, d.stock) }, px);
         });
     }
 
@@ -83,6 +84,9 @@
         const st = D.stocks.find(s => s.key === k);
         document.getElementById('ldCustomRow').style.display = k === 'custom' ? '' : 'none';
         document.getElementById('ldOffsetRow').style.display = st && st.kind === 'sheet' ? '' : 'none';
+        // Black-only follows the size (tape and roll yes, sheets no) until somebody ticks it themselves.
+        const mono = document.getElementById('ldMono');
+        if (!mono.dataset.touched) mono.checked = !st || st.kind !== 'sheet';
     }
     function openDesign(d) {
         editing = d;
@@ -104,6 +108,10 @@
         document.getElementById('ldFont').value = d ? (d.design.font || 'noto') : 'noto';
         document.getElementById('ldDefaultRow').style.display = d ? 'none' : '';
         document.getElementById('ldDefault').checked = false;
+        // A design that has a setting keeps it; one that never had one shows what it prints with today.
+        const mono = document.getElementById('ldMono');
+        mono.checked = d ? window.LabelRender.monoFor(d.design, d.stock) : true;
+        if (d && typeof d.design.mono === 'boolean') mono.dataset.touched = '1'; else delete mono.dataset.touched;
         stockChanged();
         open('ldModal');
         document.getElementById('ldName').focus();
@@ -111,10 +119,13 @@
     async function saveDesign() {
         const stock = { key: document.getElementById('ldStock').value, w: +document.getElementById('ldW').value, h: +document.getElementById('ldH').value,
                         offset_x: +document.getElementById('ldOx').value || 0, offset_y: +document.getElementById('ldOy').value || 0 };
+        // Sent only once somebody has ticked or unticked it, so an untouched design keeps following its size.
+        const monoEl = document.getElementById('ldMono');
+        const mono = monoEl.dataset.touched ? { mono: monoEl.checked } : {};
         const body = editing
-            ? { action: 'update', id: editing.id, version: editing.version, name: document.getElementById('ldName').value, stock, font: document.getElementById('ldFont').value }
-            : { action: 'create', name: document.getElementById('ldName').value, template: document.getElementById('ldTemplate').value, stock,
-                font: document.getElementById('ldFont').value, default: document.getElementById('ldDefault').checked };
+            ? Object.assign({ action: 'update', id: editing.id, version: editing.version, name: document.getElementById('ldName').value, stock, font: document.getElementById('ldFont').value }, mono)
+            : Object.assign({ action: 'create', name: document.getElementById('ldName').value, template: document.getElementById('ldTemplate').value, stock,
+                font: document.getElementById('ldFont').value, default: document.getElementById('ldDefault').checked }, mono);
         try { await api(body); close(); location.reload(); } catch (e) { showToast(e.message, 'error'); }
     }
 
@@ -123,6 +134,7 @@
         load();
         document.getElementById('ldNew').addEventListener('click', () => openDesign(null));
         document.getElementById('ldStock').addEventListener('change', stockChanged);
+        document.getElementById('ldMono').addEventListener('change', e => { e.target.dataset.touched = '1'; });
         document.getElementById('ldSave').addEventListener('click', saveDesign);
         document.querySelectorAll('[data-ld-close]').forEach(b => b.addEventListener('click', close));
         document.getElementById('lfUpload').addEventListener('click', () => {

@@ -127,6 +127,15 @@ $custom = ['design' => ['template' => 'custom', 'items' => $clean]];
 ok('a designed label prints its own items, whatever the label settings say', assetLabelItemsFor($custom, $tz, $settings) === $clean);
 ok('control: a template design still follows the label settings', assetLabelItemsFor(['design' => ['template' => 'tape_small']], $tz, $settings) === assetLabelTemplateItems('tape_small', $tz, $settings));
 
+echo "\nPART 1c - black-only printers (4.8.1)\n";
+$a4 = assetLabelStockFrom(['key' => '65']);
+$own = assetLabelStockFrom(['key' => 'custom', 'w' => 60, 'h' => 20]);
+ok('a design with no setting prints black-only on tape', assetLabelMono(['design' => ['template' => 'standard']], $tz) === true);
+ok('...and on a size of your own (a roll)', assetLabelMono(['design' => []], $own) === true);
+ok('control: ...but not on an A4 sheet', assetLabelMono(['design' => ['template' => 'standard']], $a4) === false);
+ok('a setting wins over the size, both ways', assetLabelMono(['design' => ['mono' => false]], $tz) === false && assetLabelMono(['design' => ['mono' => true]], $a4) === true);
+ok('anything but true or false is treated as unset', assetLabelMono(['design' => ['mono' => '1']], $a4) === false);
+
 echo "\nPART 2 - designs on a test company\n";
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -154,6 +163,11 @@ if (getenv('FREEITSM_TEST_DATABASE') !== $dbName) {
         $first = $u->rowCount();
         $u->execute([$tapeId, (int)$d['version']]);
         ok('a save with the version it read succeeds; a second save with the same, stale, version changes nothing', $first === 1 && $u->rowCount() === 0);
+        $m = assetLabelDesignCreate($conn, $T, 'zz mono off', 'tape_small', ['key' => 'tze24'], null, false, ['font' => 'noto', 'mono' => false]);
+        $n = assetLabelDesignCreate($conn, $T, 'zz mono unset', 'tape_small', ['key' => 'tze24'], null);
+        $get = function (int $id) use ($conn) { $s = $conn->prepare("SELECT * FROM asset_label_designs WHERE id = ?"); $s->execute([$id]); return assetLabelDesignDecode($s->fetch(PDO::FETCH_ASSOC)); };
+        ok('a black-only setting given when made is saved', ($get($m)['design']['mono'] ?? null) === false && assetLabelMono($get($m), $get($m)['stock']) === false);
+        ok('control: none given saves none, so it follows the size', !array_key_exists('mono', $get($n)['design']) && assetLabelMono($get($n), $get($n)['stock']) === true);
         ok('an unknown layout is refused', (function () use ($conn, $T) { try { assetLabelDesignCreate($conn, $T, 'zz', 'nope', ['key' => '65'], null); return false; } catch (InvalidArgumentException) { return true; } })());
         ok('a font that is not this company\'s falls back to Noto Sans', assetLabelFontRef($conn, $T, 'font:99999999') === ASSET_LABEL_BUILTIN_FONT);
     } finally {

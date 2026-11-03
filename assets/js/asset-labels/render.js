@@ -17,6 +17,11 @@
  * what prints is exactly what the preview showed. 600 dpi is twice what most label
  * printers print.
  *
+ * 🔑 Black-only printers (`mono`). A tape or roll printer has no grey: its driver
+ * turns grey into a pattern of dots, which at label sizes is unreadable (GH #229 -
+ * grey captions and a speckled logo). With mono on, every text, line and box prints
+ * in solid black and the logo is cut to pure black and white, in the preview too.
+ *
  * @wiki Asset-Label-Designer-Design
  */
 (function () {
@@ -76,7 +81,9 @@
             const cap = ctx.captions[key] || '';
             if (key === 'asset_tag' && val === '') return [Object.assign({}, base, { text: ctx.noTag, size, bold: false, color: '#888888' })];
             if (val === '') return [];
-            if (it.caption === 'above' && cap) return [Object.assign({}, base, { text: cap, size: size * 0.55, bold: false, color: '#444444' }),
+            // TRAP: the caption is in the item's own colour and never below 5 pt (or the value's
+            // size, if that is smaller). Grey at 55% printed as dots on a tape printer (GH #229).
+            if (it.caption === 'above' && cap) return [Object.assign({}, base, { text: cap, size: Math.max(size * 0.7, Math.min(size, 5)), bold: false }),
                                                        Object.assign({}, base, { text: val, size, bold })];
             if ((it.caption === 'inline' || it.caption === true) && cap && key !== 'asset_tag') return [Object.assign({}, base, { text: cap + ': ' + val, size, bold })];
             return [Object.assign({}, base, { text: val, size, bold })];
@@ -165,7 +172,7 @@
         laid.forEach(l => {
             const lh = l.size * PT * px * LINE;
             g.font = fontOf(l, px, family);
-            g.fillStyle = l.color || '#000000';
+            g.fillStyle = ctx.mono ? '#000000' : (l.color || '#000000');
             g.textAlign = it.align === 'center' ? 'center' : it.align === 'right' ? 'right' : 'left';
             const x = it.align === 'center' ? W / 2 : it.align === 'right' ? W : 0;
             g.fillText(l.text, x, y + lh / 2);
@@ -190,6 +197,46 @@
         return { x: x + (w - dw) / 2, y: y + (h - dh) / 2, w: dw, h: dh };
     }
 
+    /** Does a design print in solid black only? Unset follows the size: tape and roll printers are black-only. */
+    function monoFor(design, stock) {
+        return typeof (design || {}).mono === 'boolean' ? design.mono : (stock || {}).kind !== 'sheet';
+    }
+
+    /**
+     * The logo cut to pure black and white, for a black-only printer: each pixel, laid
+     * on white, is black if darker than about 60% grey, otherwise left clear. Enlarged
+     * first (to 1200 px on its long side) so a small logo keeps smooth edges. The
+     * result is a canvas that carries naturalWidth / naturalHeight like the image did.
+     */
+    const monoCache = new WeakMap();
+    function monoImage(img) {
+        if (!img) return null;
+        if (monoCache.has(img)) return monoCache.get(img);
+        const nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
+        if (!nw || !nh) return img;
+        const r = 1200 / Math.max(nw, nh);
+        const cv = document.createElement('canvas');
+        cv.width = Math.max(1, Math.round(nw * r)); cv.height = Math.max(1, Math.round(nh * r));
+        const g = cv.getContext('2d');
+        g.drawImage(img, 0, 0, cv.width, cv.height);
+        let out = cv;
+        try {
+            const d = g.getImageData(0, 0, cv.width, cv.height), p = d.data;
+            for (let i = 0; i < p.length; i += 4) {
+                const a = p[i + 3] / 255;
+                const lum = (0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2]) * a + 255 * (1 - a);
+                p[i] = p[i + 1] = p[i + 2] = 0;
+                p[i + 3] = lum < 160 ? 255 : 0;
+            }
+            g.putImageData(d, 0, 0);
+            cv.naturalWidth = cv.width; cv.naturalHeight = cv.height;
+        } catch (e) {
+            out = img;   // a logo from another site cannot be read back: print it as it is
+        }
+        monoCache.set(img, out);
+        return out;
+    }
+
     /** Runs a rotated item: rot 90 / 180 / 270 turns the box about its centre. */
     function rotated(g, it, px, draw) {
         const rot = (+it.rot || 0) % 360;
@@ -206,9 +253,10 @@
 
     /**
      * Draws one whole label on a canvas context, px pixels per millimetre, for the
-     * preview. ctx: {items, values, url, captions, noTag, font, logo (an Image or null)}.
+     * preview. ctx: {items, values, url, captions, noTag, font, logo (an Image or null), mono}.
      */
     function drawLabel(g, ctx, px) {
+        if (ctx.mono && ctx.logo) ctx = Object.assign({}, ctx, { logo: monoImage(ctx.logo) });
         (ctx.items || []).forEach(it => {
             if (it.type === 'qr') {
                 if (!ctx.url) return;
@@ -229,10 +277,11 @@
                 if (!ctx.logo) return;
                 rotated(g, it, px, b => { const r = containRect(ctx.logo, 0, 0, b.w, b.h); g.drawImage(ctx.logo, r.x * px, r.y * px, r.w * px, r.h * px); });
             } else if (it.type === 'line' || it.type === 'box') {
-                g.strokeStyle = it.color || '#000000';
+                const ink = ctx.mono ? '#000000' : (it.color || '#000000');
+                g.strokeStyle = ink;
                 g.lineWidth = (it.thick || 0.3) * px;
                 if (it.type === 'line') { g.beginPath(); g.moveTo(it.x * px, it.y * px); g.lineTo((it.x + it.w) * px, (it.y + it.h) * px); g.stroke(); }
-                else if (it.fill) { g.fillStyle = it.color || '#000000'; g.fillRect(it.x * px, it.y * px, it.w * px, it.h * px); }
+                else if (it.fill) { g.fillStyle = ink; g.fillRect(it.x * px, it.y * px, it.w * px, it.h * px); }
                 else g.strokeRect(it.x * px, it.y * px, it.w * px, it.h * px);
             } else {
                 rotated(g, it, px, b => drawText(g, b, ctx, px));
@@ -243,7 +292,7 @@
     /**
      * Builds the PDF: one page per label on a tape, labels laid out on pages for a
      * sheet. job: {stock, items, labels:[{values, url}], captions, noTag, font, logo,
-     * onProgress(done, total)}. Returns the jsPDF document.
+     * mono, onProgress(done, total)}. Returns the jsPDF document.
      */
     async function pdf(job) {
         const st = job.stock;
@@ -252,7 +301,8 @@
         const pw = tape ? st.w : st.page_w, ph = tape ? st.h : st.page_h;
         const doc = new J({ unit: 'mm', format: [pw, ph], orientation: pw >= ph ? 'l' : 'p', compress: true });
         const perPage = tape ? 1 : st.cols * st.rows;
-        const logoUrl = job.logo ? imageData(job.logo, 1200) : null;
+        const logo = job.mono ? monoImage(job.logo) : job.logo;
+        const logoUrl = logo ? imageData(logo, 1200) : null;
         const staticCache = new Map();   // the same text on every label is drawn once
 
         for (let i = 0; i < job.labels.length; i++) {
@@ -261,7 +311,7 @@
             const slot = i % perPage;
             const ox = tape ? 0 : st.left + (slot % st.cols) * st.h_pitch + (st.offset_x || 0);
             const oy = tape ? 0 : st.top + Math.floor(slot / st.cols) * st.v_pitch + (st.offset_y || 0);
-            const ctx = { values: lab.values, captions: job.captions, noTag: job.noTag, font: job.font };
+            const ctx = { values: lab.values, captions: job.captions, noTag: job.noTag, font: job.font, mono: !!job.mono };
             for (const it of job.items) {
                 const x = ox + it.x, y = oy + it.y;
                 if (it.type === 'qr') {
@@ -283,15 +333,15 @@
                         const side = Math.min(it.w, it.h) * 0.22, bx = x + (Math.min(it.w, it.h) - side) / 2, by = y + (Math.min(it.w, it.h) - side) / 2;
                         doc.setFillColor(255, 255, 255);
                         doc.rect(bx, by, side, side, 'F');
-                        const r = containRect(job.logo, bx + side * 0.04, by + side * 0.04, side * 0.92, side * 0.92);
+                        const r = containRect(logo,bx + side * 0.04, by + side * 0.04, side * 0.92, side * 0.92);
                         doc.addImage(logoUrl, 'PNG', r.x, r.y, r.w, r.h, 'label-logo', 'FAST');
                     }
                 } else if (it.type === 'image') {
                     if (!logoUrl) continue;
-                    const img = renderToCanvas(it, b => (g, px) => { const r = containRect(job.logo, 0, 0, b.w, b.h); g.drawImage(job.logo, r.x * px, r.y * px, r.w * px, r.h * px); return true; });
+                    const img = renderToCanvas(it, b => (g, px) => { const r = containRect(logo, 0, 0, b.w, b.h); g.drawImage(logo, r.x * px, r.y * px, r.w * px, r.h * px); return true; });
                     if (img) doc.addImage(img, 'PNG', x, y, it.w, it.h, 'label-image-' + it.id, 'FAST');
                 } else if (it.type === 'line' || it.type === 'box') {
-                    const c = hexRgb(it.color);
+                    const c = job.mono ? [0, 0, 0] : hexRgb(it.color);
                     doc.setDrawColor(c[0], c[1], c[2]); doc.setFillColor(c[0], c[1], c[2]);
                     doc.setLineWidth(it.thick || 0.3);
                     if (it.type === 'line') doc.line(x, y, x + it.w, y + it.h);
@@ -348,5 +398,5 @@
         return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [0, 0, 0];
     }
 
-    window.LabelRender = { loadFonts, drawLabel, pdf, familyFor };
+    window.LabelRender = { loadFonts, drawLabel, pdf, familyFor, monoFor };
 })();

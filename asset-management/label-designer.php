@@ -70,6 +70,7 @@ $boot = [
     'base'     => BASE_URL,
     'design'   => ['id' => $design['id'], 'name' => $design['name'], 'version' => (int)$design['version'], 'stock' => $design['stock'],
                    'font' => (string)($design['design']['font'] ?? ASSET_LABEL_BUILTIN_FONT),
+                   'mono' => assetLabelMono($design, $design['stock']),
                    'template' => (string)($design['design']['template'] ?? 'standard'),
                    'items' => assetLabelItemsFor($design, $design['stock'], $settings)],
     'stocks'   => $stocks,
@@ -106,7 +107,7 @@ $translationNamespaces = ['common', 'asset-management'];
     <script>window.LD = <?php echo json_encode($boot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES); ?>;</script>
     <script src="../assets/js/toast.js"></script>
     <script src="../assets/js/qrcode.min.js"></script>
-    <script src="../assets/js/asset-labels/render.js?v=2"></script>
-    <script src="../assets/js/asset-labels/designer.js?v=1"></script>
+    <script src="../assets/js/asset-labels/render.js?v=3"></script>
+    <script src="../assets/js/asset-labels/designer.js?v=2"></script>
 </body>
 </html>

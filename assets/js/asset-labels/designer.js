@@ -397,7 +397,7 @@
             }
         }
         const s = B.samples[sampleIdx] || { values: {} };
-        window.LabelRender.drawLabel(g, { items: doc.items, values: s.values, url: B.sampleUrl, captions: B.captions, noTag: B.noTag, font: doc.font, logo }, px);
+        window.LabelRender.drawLabel(g, { items: doc.items, values: s.values, url: B.sampleUrl, captions: B.captions, noTag: B.noTag, font: doc.font, logo, mono: B.design.mono }, px);
         drawRulers();
     }
     /** Rulers in millimetres along the top and left, a long tick every 5 and a number every 10. */
