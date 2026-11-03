@@ -7122,6 +7122,504 @@
                     },
                     "section": "Domains",
                     "slug": "get-domain-registrar-accounts"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/domains\/{id}\/endpoints",
+                    "perm": "domains.read",
+                    "s": "A domain's HTTPS endpoints",
+                    "d": "The internal domain's HTTPS endpoints with their last result: status (healthy, expiring, problem or null when never checked), not_checked_since (the latest attempt could not run, so status is the last known result), detail (why), the address connected to, the certificate last read, and the last attempt, completed and healthy times. A public domain has none.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Endpoints and their certificates",
+                                "note": "Each endpoint's certificate and why it is or is not healthy.",
+                                "path": {
+                                    "id": 1
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "get-domains-id-endpoints"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/domains\/{id}\/endpoints",
+                    "perm": "domains.internal",
+                    "s": "Add an HTTPS endpoint",
+                    "d": "Adds an endpoint to an internal domain: host (the domain or a name under it - a name, not an address) and port (one of the permitted ports), with an optional certificate warning window, trust profile and HTTP check (http_path, http_expect). It is checked on the next run or a check. The same host and port twice is refused (422). Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id",
+                            "req": true
+                        },
+                        {
+                            "name": "host",
+                            "in": "body",
+                            "desc": "The domain or a name under it",
+                            "req": true
+                        },
+                        {
+                            "name": "port",
+                            "in": "body",
+                            "desc": "A permitted port (default 443)",
+                            "req": false
+                        },
+                        {
+                            "name": "warn_days",
+                            "in": "body",
+                            "desc": "Certificate warning window, 1-120 days (default 21)",
+                            "req": false
+                        },
+                        {
+                            "name": "trust_profile_id",
+                            "in": "body",
+                            "desc": "A trust profile, or null for the server's normal CA bundle",
+                            "req": false
+                        },
+                        {
+                            "name": "http_path",
+                            "in": "body",
+                            "desc": "Optional page to ask for once the certificate passes, starting with \/",
+                            "req": false
+                        },
+                        {
+                            "name": "http_expect",
+                            "in": "body",
+                            "desc": "Its expected status codes, e.g. \"200, 204\" (default 200). Redirects are never followed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "host": "intranet.example.local",
+                        "port": 443,
+                        "http_path": "\/health",
+                        "http_expect": "200"
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "An intranet with a health page",
+                                "note": "The certificate and \/health are both checked.",
+                                "path": {
+                                    "id": 1
+                                },
+                                "body": {
+                                    "host": "intranet.example.local",
+                                    "port": 443,
+                                    "http_path": "\/health"
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "post-domains-id-endpoints"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/domains\/{id}\/endpoints\/{endpoint_id}",
+                    "perm": "domains.internal",
+                    "s": "Change an HTTPS endpoint",
+                    "d": "Partial: omitted fields keep their values. Changing the host, port, trust profile or HTTP check clears the old results, which described a different target. Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id",
+                            "req": true
+                        },
+                        {
+                            "name": "endpoint_id",
+                            "in": "path",
+                            "desc": "Endpoint id",
+                            "req": true
+                        },
+                        {
+                            "name": "host \/ port \/ warn_days \/ trust_profile_id \/ http_path \/ http_expect",
+                            "in": "body",
+                            "desc": "As for POST",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "warn_days": 30
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Warn earlier",
+                                "note": "Only the warning window changes; the results stay.",
+                                "path": {
+                                    "id": 1,
+                                    "endpoint_id": 1
+                                },
+                                "body": {
+                                    "warn_days": 30
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "patch-domains-id-endpoints-endpoint-id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/domains\/{id}\/endpoints\/{endpoint_id}",
+                    "perm": "domains.internal",
+                    "s": "Remove an HTTPS endpoint",
+                    "d": "Stops checking it. Its past results stay in the domain's history. Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id",
+                            "req": true
+                        },
+                        {
+                            "name": "endpoint_id",
+                            "in": "path",
+                            "desc": "Endpoint id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Remove an endpoint",
+                                "note": "",
+                                "path": {
+                                    "id": 1,
+                                    "endpoint_id": 1
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "delete-domains-id-endpoints-endpoint-id"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/domains\/{id}\/expected-records",
+                    "perm": "domains.read",
+                    "s": "A domain's expected DNS records",
+                    "d": "What each name of the internal domain should hold: host, record_type (A, AAAA, CNAME, NS or SOA) and expected_values - empty when the record type only has to exist. The latest result of each is in GET \/domains\/{id}\/findings (keys int_expected_*).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Expected records",
+                                "note": "",
+                                "path": {
+                                    "id": 1
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "get-domains-id-expected-records"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/domains\/{id}\/expected-records",
+                    "perm": "domains.internal",
+                    "s": "Add an expected DNS record",
+                    "d": "host (the domain or a name under it), record_type and, optionally, expected_values (a list, or text one per line). With values, the record must hold exactly those, compared tidied and sorted; without, it only has to exist. Each value must be valid for the type; a CNAME or SOA takes one; the same host and type twice is refused (422). Internal domains only. Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id",
+                            "req": true
+                        },
+                        {
+                            "name": "host",
+                            "in": "body",
+                            "desc": "The domain or a name under it",
+                            "req": true
+                        },
+                        {
+                            "name": "record_type",
+                            "in": "body",
+                            "desc": "A, AAAA, CNAME, NS or SOA (NS and SOA for a name that is a zone; an SOA is compared by its primary name server)",
+                            "req": true
+                        },
+                        {
+                            "name": "expected_values",
+                            "in": "body",
+                            "desc": "List of values, or text one per line; empty = the type only has to exist",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "host": "app.example.local",
+                        "record_type": "A",
+                        "expected_values": [
+                            "10.0.0.5"
+                        ]
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "An address that must not change",
+                                "note": "A different address is reported as a problem.",
+                                "path": {
+                                    "id": 1
+                                },
+                                "body": {
+                                    "host": "app.example.local",
+                                    "record_type": "A",
+                                    "expected_values": [
+                                        "10.0.0.5"
+                                    ]
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "post-domains-id-expected-records"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/domains\/{id}\/expected-records\/{record_id}",
+                    "perm": "domains.internal",
+                    "s": "Change an expected DNS record",
+                    "d": "Partial: omitted fields keep their values; the same rules as POST then apply. Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id",
+                            "req": true
+                        },
+                        {
+                            "name": "record_id",
+                            "in": "path",
+                            "desc": "Expected record id",
+                            "req": true
+                        },
+                        {
+                            "name": "host \/ record_type \/ expected_values",
+                            "in": "body",
+                            "desc": "As for POST",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "expected_values": [
+                            "10.0.0.5",
+                            "10.0.0.6"
+                        ]
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "A second address",
+                                "note": "",
+                                "path": {
+                                    "id": 1,
+                                    "record_id": 1
+                                },
+                                "body": {
+                                    "expected_values": [
+                                        "10.0.0.5",
+                                        "10.0.0.6"
+                                    ]
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "patch-domains-id-expected-records-record-id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/domains\/{id}\/expected-records\/{record_id}",
+                    "perm": "domains.internal",
+                    "s": "Remove an expected DNS record",
+                    "d": "Stops checking it. What it found stays in the domain's history. Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id",
+                            "req": true
+                        },
+                        {
+                            "name": "record_id",
+                            "in": "path",
+                            "desc": "Expected record id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Remove an expected record",
+                                "note": "",
+                                "path": {
+                                    "id": 1,
+                                    "record_id": 1
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "delete-domains-id-expected-records-record-id"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/domain-trust-profiles",
+                    "perm": "domains.internal",
+                    "s": "Trust profiles",
+                    "d": "The certificate authorities internal endpoints can be checked against - one list for every company. Each has its name, a summary of its CAs (names and expiry dates - never the certificates themselves) and how many endpoints use it. Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [],
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Trust profiles",
+                                "note": ""
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "get-domain-trust-profiles"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/domain-trust-profiles",
+                    "perm": "domains.internal",
+                    "s": "Add a trust profile",
+                    "d": "A name and the CA certificate(s), PEM in ca_pem - never a private key (refused). A profile changes which CAs are trusted, never whether the chain and the name are checked. Shared by every company, so the key must not be limited to some companies (403). Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "name",
+                            "in": "body",
+                            "desc": "Up to 100 characters",
+                            "req": true
+                        },
+                        {
+                            "name": "ca_pem",
+                            "in": "body",
+                            "desc": "One or more -----BEGIN CERTIFICATE----- blocks",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "name": "Contoso Root CA",
+                        "ca_pem": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Your own certificate authority",
+                                "note": "",
+                                "body": {
+                                    "name": "Contoso Root CA",
+                                    "ca_pem": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "post-domain-trust-profiles"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/domain-trust-profiles\/{id}",
+                    "perm": "domains.internal",
+                    "s": "Change a trust profile",
+                    "d": "Rename it, or replace its certificates by sending ca_pem; without ca_pem the certificates stay. Shared by every company, so the key must not be limited to some companies (403). Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Trust profile id",
+                            "req": true
+                        },
+                        {
+                            "name": "name \/ ca_pem",
+                            "in": "body",
+                            "desc": "As for POST",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "name": "Contoso Root CA 2027"
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Rename",
+                                "note": "",
+                                "path": {
+                                    "id": 1
+                                },
+                                "body": {
+                                    "name": "Contoso Root CA 2027"
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "patch-domain-trust-profiles-id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/domain-trust-profiles\/{id}",
+                    "perm": "domains.internal",
+                    "s": "Delete a trust profile",
+                    "d": "Refused (422) while an endpoint uses it - an endpoint is never quietly switched to the server's bundle. Shared by every company, so the key must not be limited to some companies (403). Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Trust profile id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Delete an unused profile",
+                                "note": "",
+                                "path": {
+                                    "id": 1
+                                }
+                            }
+                        ],
+                        "errors": []
+                    },
+                    "section": "Domains",
+                    "slug": "delete-domain-trust-profiles-id"
                 }
             ]
         },
@@ -14075,6 +14573,176 @@
         }
     ],
     "extras": {
+        "GET \/domains\/{id}\/endpoints": {
+            "examples": [
+                {
+                    "title": "Endpoints and their certificates",
+                    "note": "Each endpoint's certificate and why it is or is not healthy.",
+                    "path": {
+                        "id": 1
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "POST \/domains\/{id}\/endpoints": {
+            "examples": [
+                {
+                    "title": "An intranet with a health page",
+                    "note": "The certificate and \/health are both checked.",
+                    "path": {
+                        "id": 1
+                    },
+                    "body": {
+                        "host": "intranet.example.local",
+                        "port": 443,
+                        "http_path": "\/health"
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "PATCH \/domains\/{id}\/endpoints\/{endpoint_id}": {
+            "examples": [
+                {
+                    "title": "Warn earlier",
+                    "note": "Only the warning window changes; the results stay.",
+                    "path": {
+                        "id": 1,
+                        "endpoint_id": 1
+                    },
+                    "body": {
+                        "warn_days": 30
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "DELETE \/domains\/{id}\/endpoints\/{endpoint_id}": {
+            "examples": [
+                {
+                    "title": "Remove an endpoint",
+                    "note": "",
+                    "path": {
+                        "id": 1,
+                        "endpoint_id": 1
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "GET \/domains\/{id}\/expected-records": {
+            "examples": [
+                {
+                    "title": "Expected records",
+                    "note": "",
+                    "path": {
+                        "id": 1
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "POST \/domains\/{id}\/expected-records": {
+            "examples": [
+                {
+                    "title": "An address that must not change",
+                    "note": "A different address is reported as a problem.",
+                    "path": {
+                        "id": 1
+                    },
+                    "body": {
+                        "host": "app.example.local",
+                        "record_type": "A",
+                        "expected_values": [
+                            "10.0.0.5"
+                        ]
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "PATCH \/domains\/{id}\/expected-records\/{record_id}": {
+            "examples": [
+                {
+                    "title": "A second address",
+                    "note": "",
+                    "path": {
+                        "id": 1,
+                        "record_id": 1
+                    },
+                    "body": {
+                        "expected_values": [
+                            "10.0.0.5",
+                            "10.0.0.6"
+                        ]
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "DELETE \/domains\/{id}\/expected-records\/{record_id}": {
+            "examples": [
+                {
+                    "title": "Remove an expected record",
+                    "note": "",
+                    "path": {
+                        "id": 1,
+                        "record_id": 1
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "GET \/domain-trust-profiles": {
+            "examples": [
+                {
+                    "title": "Trust profiles",
+                    "note": ""
+                }
+            ],
+            "errors": []
+        },
+        "POST \/domain-trust-profiles": {
+            "examples": [
+                {
+                    "title": "Your own certificate authority",
+                    "note": "",
+                    "body": {
+                        "name": "Contoso Root CA",
+                        "ca_pem": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "PATCH \/domain-trust-profiles\/{id}": {
+            "examples": [
+                {
+                    "title": "Rename",
+                    "note": "",
+                    "path": {
+                        "id": 1
+                    },
+                    "body": {
+                        "name": "Contoso Root CA 2027"
+                    }
+                }
+            ],
+            "errors": []
+        },
+        "DELETE \/domain-trust-profiles\/{id}": {
+            "examples": [
+                {
+                    "title": "Delete an unused profile",
+                    "note": "",
+                    "path": {
+                        "id": 1
+                    }
+                }
+            ],
+            "errors": []
+        },
         "GET \/changes\/{id}\/attachments": {
             "examples": [],
             "errors": []

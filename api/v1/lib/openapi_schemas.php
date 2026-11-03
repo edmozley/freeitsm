@@ -5640,6 +5640,42 @@ return array (
         ),
       ),
     ),
+    // GH #243: internal monitoring on domains.
+    'DomainEndpoint' => [
+      'type' => 'object',
+      'properties' => [
+        'id' => ['type' => 'integer'], 'domain_id' => ['type' => 'integer'],
+        'host' => ['type' => 'string'], 'port' => ['type' => 'integer'], 'warn_days' => ['type' => 'integer'],
+        'trust_profile_id' => ['type' => 'integer', 'nullable' => true],
+        'http_path' => ['type' => 'string', 'nullable' => true, 'description' => 'The page asked for once the certificate passes; null = no HTTP check'],
+        'http_expect' => ['type' => 'string', 'nullable' => true, 'description' => 'Expected status codes, e.g. "200, 204"; null = 200'],
+        'status' => ['type' => 'string', 'nullable' => true, 'enum' => ['healthy', 'expiring', 'problem', null], 'description' => 'The last completed result; null when never checked'],
+        'not_checked_since' => ['type' => 'boolean', 'description' => 'The latest attempt could not run; status is the last known result'],
+        'detail' => ['type' => 'string', 'nullable' => true, 'description' => 'Why: healthy, expiring, expired, wrong_name, untrusted, no_answer, no_address, http_status, http_no_answer, network_refused, port_refused ...'],
+        'address' => ['type' => 'string', 'nullable' => true],
+        'certificate' => ['type' => 'object', 'nullable' => true, 'additionalProperties' => true, 'description' => 'subject, issuer, valid_from, valid_to, days_left, sans, hostname_match, chain_valid'],
+        'last_attempt_at' => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
+        'last_completed_at' => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
+        'last_healthy_at' => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
+      ],
+    ],
+    'DomainExpectedRecord' => [
+      'type' => 'object',
+      'properties' => [
+        'id' => ['type' => 'integer'], 'domain_id' => ['type' => 'integer'], 'host' => ['type' => 'string'],
+        'record_type' => ['type' => 'string', 'enum' => ['A', 'AAAA', 'CNAME', 'NS', 'SOA']],
+        'expected_values' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Empty when the record type only has to exist'],
+      ],
+    ],
+    'DomainTrustProfile' => [
+      'type' => 'object',
+      'properties' => [
+        'id' => ['type' => 'integer'], 'name' => ['type' => 'string'],
+        'summary' => ['type' => 'string', 'nullable' => true, 'description' => 'Each CA\'s name and expiry - never the certificates'],
+        'used_by' => ['type' => 'integer', 'nullable' => true, 'description' => 'How many endpoints use it'],
+        'updated_at' => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
+      ],
+    ],
     'DomainHistoryEntry' => 
     array (
       'type' => 'object',
@@ -13794,6 +13830,66 @@ return array (
   ),
   'responses' => 
   array (
+    'GET /domains/{id}/endpoints' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/DomainEndpoint',
+      ),
+    ),
+    'POST /domains/{id}/endpoints' => 
+    array (
+      '$ref' => '#/components/schemas/DomainEndpoint',
+    ),
+    'PATCH /domains/{id}/endpoints/{endpoint_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DomainEndpoint',
+    ),
+    'DELETE /domains/{id}/endpoints/{endpoint_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
+    'GET /domains/{id}/expected-records' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/DomainExpectedRecord',
+      ),
+    ),
+    'POST /domains/{id}/expected-records' => 
+    array (
+      '$ref' => '#/components/schemas/DomainExpectedRecord',
+    ),
+    'PATCH /domains/{id}/expected-records/{record_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DomainExpectedRecord',
+    ),
+    'DELETE /domains/{id}/expected-records/{record_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
+    'GET /domain-trust-profiles' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/DomainTrustProfile',
+      ),
+    ),
+    'POST /domain-trust-profiles' => 
+    array (
+      '$ref' => '#/components/schemas/DomainTrustProfile',
+    ),
+    'PATCH /domain-trust-profiles/{id}' => 
+    array (
+      '$ref' => '#/components/schemas/DomainTrustProfile',
+    ),
+    'DELETE /domain-trust-profiles/{id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
     'GET /changes/{id}/attachments' => ['type'=>'array','items'=>['$ref'=>'#/components/schemas/ChangeEvidenceAttachment']],
     'POST /changes/{id}/attachments' => ['$ref'=>'#/components/schemas/ChangeEvidenceAttachment'],
     'GET /assets/{id}/inventory'=>['type'=>'array','items'=>['$ref'=>'#/components/schemas/AssetInventoryProvenance']],

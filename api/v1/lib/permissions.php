@@ -270,6 +270,8 @@ function apiV1PermissionCatalog(): array {
                 'create' => 'Add domains to the register',
                 'update' => 'Change domain fields, and run a registry lookup or the health checks',
                 'delete' => 'Permanently delete a domain and its history',
+                // GH #243: also needs the Internal monitoring capability on the key's analyst.
+                'internal' => 'Manage internal monitoring: HTTPS endpoints, expected DNS records and trust profiles. Decides which internal addresses the server connects to; the key\'s analyst must also have the Internal monitoring permission',
             ],
         ],
         'cost_centres' => [

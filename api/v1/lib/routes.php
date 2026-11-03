@@ -254,6 +254,19 @@ return [
     ['GET',    '#^/domains/(\d+)/history$#',               ['domains', 'read'],               'apiDomainsHistory'],
     ['GET',    '#^/domain-statuses$#',                     ['domains', 'read'],               'apiDomainStatusesList'],
     ['GET',    '#^/domain-registrar-accounts$#',           ['domains', 'read'],               'apiDomainAccountsList'],
+    // Internal monitoring (GH #243): changes need domains.internal AND the analyst's Internal monitoring capability.
+    ['GET',    '#^/domains/(\d+)/endpoints$#',                  ['domains', 'read'],     'apiDomainEndpointsList'],
+    ['POST',   '#^/domains/(\d+)/endpoints$#',                  ['domains', 'internal'], 'apiDomainEndpointsCreate'],
+    ['PATCH',  '#^/domains/(\d+)/endpoints/(\d+)$#',           ['domains', 'internal'], 'apiDomainEndpointsUpdate'],
+    ['DELETE', '#^/domains/(\d+)/endpoints/(\d+)$#',           ['domains', 'internal'], 'apiDomainEndpointsDelete'],
+    ['GET',    '#^/domains/(\d+)/expected-records$#',           ['domains', 'read'],     'apiDomainExpectedList'],
+    ['POST',   '#^/domains/(\d+)/expected-records$#',           ['domains', 'internal'], 'apiDomainExpectedCreate'],
+    ['PATCH',  '#^/domains/(\d+)/expected-records/(\d+)$#',    ['domains', 'internal'], 'apiDomainExpectedUpdate'],
+    ['DELETE', '#^/domains/(\d+)/expected-records/(\d+)$#',    ['domains', 'internal'], 'apiDomainExpectedDelete'],
+    ['GET',    '#^/domain-trust-profiles$#',                     ['domains', 'internal'], 'apiDomainTrustProfilesList'],
+    ['POST',   '#^/domain-trust-profiles$#',                     ['domains', 'internal'], 'apiDomainTrustProfilesCreate'],
+    ['PATCH',  '#^/domain-trust-profiles/(\d+)$#',              ['domains', 'internal'], 'apiDomainTrustProfilesUpdate'],
+    ['DELETE', '#^/domain-trust-profiles/(\d+)$#',              ['domains', 'internal'], 'apiDomainTrustProfilesDelete'],
 
     // Cost centres (GH #160) — company-scoped; /sync is what an accounting system calls.
     ['GET',    '#^/cost-centres$#',                        ['cost_centres', 'read'],          'apiCostCentresList'],

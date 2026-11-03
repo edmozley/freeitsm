@@ -27,6 +27,7 @@ require_once __DIR__ . '/resources/cmdb.php';
 require_once __DIR__ . '/resources/virtual_estate.php';   // GH #199
 require_once __DIR__ . '/resources/contracts.php';
 require_once __DIR__ . '/resources/domains.php';
+require_once __DIR__ . '/resources/domain_monitoring.php';   // GH #243
 require_once __DIR__ . '/resources/cost_centres.php';
 require_once __DIR__ . '/resources/projects.php';
 require_once __DIR__ . '/resources/calendar.php';
@@ -160,6 +161,9 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /domains', 'POST /domains', 'GET /domains/{id}', 'PATCH /domains/{id}', 'DELETE /domains/{id}',
             'POST /domains/{id}/lookup', 'POST /domains/{id}/check', 'GET /domains/{id}/findings', 'GET /domains/{id}/history',
             'GET /domain-statuses', 'GET /domain-registrar-accounts',
+            'GET /domains/{id}/endpoints', 'POST /domains/{id}/endpoints', 'PATCH /domains/{id}/endpoints/{endpoint_id}', 'DELETE /domains/{id}/endpoints/{endpoint_id}',
+            'GET /domains/{id}/expected-records', 'POST /domains/{id}/expected-records', 'PATCH /domains/{id}/expected-records/{record_id}', 'DELETE /domains/{id}/expected-records/{record_id}',
+            'GET /domain-trust-profiles', 'POST /domain-trust-profiles', 'PATCH /domain-trust-profiles/{id}', 'DELETE /domain-trust-profiles/{id}',
             'GET /cost-centres', 'POST /cost-centres', 'POST /cost-centres/sync', 'GET /cost-centres/{id}',
             'PATCH /cost-centres/{id}', 'DELETE /cost-centres/{id}',
             'GET /calendar/events', 'POST /calendar/events', 'GET /calendar/events/{id}',
