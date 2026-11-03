@@ -127,7 +127,7 @@ $custom = ['design' => ['template' => 'custom', 'items' => $clean]];
 ok('a designed label prints its own items, whatever the label settings say', assetLabelItemsFor($custom, $tz, $settings) === $clean);
 ok('control: a template design still follows the label settings', assetLabelItemsFor(['design' => ['template' => 'tape_small']], $tz, $settings) === assetLabelTemplateItems('tape_small', $tz, $settings));
 
-echo "\nPART 1c - black-only printers (4.8.1)\n";
+echo "\nPART 1c - black-only printers (4.9.0)\n";
 $a4 = assetLabelStockFrom(['key' => '65']);
 $own = assetLabelStockFrom(['key' => 'custom', 'w' => 60, 'h' => 20]);
 ok('a design with no setting prints black-only on tape', assetLabelMono(['design' => ['template' => 'standard']], $tz) === true);

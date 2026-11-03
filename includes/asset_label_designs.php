@@ -211,7 +211,7 @@ function assetLabelTemplateItems(string $template, array $stock, array $s): arra
 /**
  * Does this design print in solid black only (GH #229)? A tape or roll printer has no
  * grey - its driver prints grey as dots - so text, lines and boxes go solid black and
- * the logo pure black and white. Unset (every design made before 4.8.1) follows the
+ * the logo pure black and white. Unset (every design made before 4.9.0) follows the
  * label size it is printed on: tape and roll yes, A4 sheets no. Mirrors monoFor() in
  * render.js.
  *
