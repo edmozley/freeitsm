@@ -560,7 +560,10 @@ $pageStyles = <<<'CSS'
         .ss-ask-main .form-card,
         .ss-ask-main .form-card form,
         .compose-ask-main { flex: none; }
-        .compose-ask-main { grid-template-rows: auto auto auto; }
+        /* TRAP: the last row is 1fr, not auto. The side panel spans every row and is
+           usually the taller column; with three auto rows the grid shared that extra
+           height between them, opening gaps above and below "Description". */
+        .compose-ask-main { grid-template-rows: auto auto 1fr; }
         .compose-ask-main .compose-questions { grid-column: 1; grid-row: 1; min-width: 0; }
         .compose-ask-main .compose-label-row { grid-row: 2; }
         .compose-ask-main .compose-editor    { grid-row: 3; }
@@ -569,6 +572,13 @@ $pageStyles = <<<'CSS'
         .compose-ask-main .compose-side { overflow: visible; align-self: start; }
         .compose-questions .form-group { margin-bottom: 16px; }
         .compose-questions:empty { display: none; }
+        /* Two to a row: every kind of question is one line (text, number, date,
+           yes/no, list, address, email), and a date across the whole column is a
+           lot of empty box. `display: contents` lets the type picker and each
+           question share the one grid. One to a row on a phone. */
+        .compose-questions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; align-items: start; }
+        .compose-questions #ticketCustomFields { display: contents; }
+        @media (max-width: 640px) { .compose-questions { grid-template-columns: minmax(0, 1fr); } }
         @media (max-width: 900px) {
             /* One column: back to DOM order - questions, description, then the panel
                with Submit - the same undoing the block above does for the others. */
