@@ -573,8 +573,12 @@ $pageStyles = <<<'CSS'
         .compose-ask-main .compose-questions { grid-column: 1; grid-row: 1; min-width: 0; }
         .compose-ask-main .compose-label-row { grid-row: 2; }
         .compose-ask-main .compose-editor    { grid-row: 3; }
-        /* A comfortable box, like the ticket note box - not the leftover height. */
-        body:not(.ss-compose-full) .compose-ask-main .compose-editor { height: 320px; }
+        /* At least a comfortable box, like the ticket note box; and when the side panel
+           is the taller column, the editor stretches down its 1fr row so its bottom
+           lines up with the panel's (Ed). How many questions sit above it does not
+           matter: few, and the row takes the panel's spare height; many, and the left
+           column is the taller one and the editor stays at its minimum. */
+        body:not(.ss-compose-full) .compose-ask-main .compose-editor { min-height: 320px; align-self: stretch; }
         .compose-ask-main .compose-side { overflow: visible; align-self: start; }
         .compose-questions .form-group { margin-bottom: 16px; }
         .compose-questions:empty { display: none; }
