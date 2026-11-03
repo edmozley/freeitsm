@@ -174,22 +174,89 @@ function domainCheckEndpoint(array $ep, string $domain, array $networks, array $
         $cafile = tempnam(sys_get_temp_dir(), 'fitsm-ca-');
         file_put_contents($cafile, $caPem);
     }
+    // The CA file lives until the optional HTTP check below has used it too.
     try {
         $c = domainTlsCertificate($host, $port, 8, $address, $cafile);
+        $cert = $c['ok'] ? array_intersect_key($c, array_flip(['subject', 'issuer', 'valid_from', 'valid_to', 'days_left', 'sans', 'hostname_match', 'chain_valid'])) : null;
+        $label = $host . ':' . $port;
+
+        if (!$c['ok']) return $out(true, 'problem', 'no_answer', ['endpoint' => $label, 'error' => (string)$c['error']], $address);
+        if ($c['days_left'] !== null && $c['days_left'] < 0) return $out(true, 'problem', 'expired', ['endpoint' => $label, 'date' => (string)$c['valid_to']], $address, $cert);
+        if ($c['hostname_match'] === false) return $out(true, 'problem', 'wrong_name', ['endpoint' => $label, 'host' => $host], $address, $cert);
+        if ($c['chain_valid'] === false) return $out(true, 'problem', 'untrusted', ['endpoint' => $label, 'issuer' => (string)$c['issuer']], $address, $cert);
+
+        // The optional HTTP check (GH #243, slice 3) - only once the certificate itself is
+        // good, over a verified connection to the same permitted address.
+        $path = trim((string)($ep['http_path'] ?? ''));
+        if ($path !== '') {
+            $expect = domainHttpExpect($ep['http_expect'] ?? null);
+            $h = domainHttpStatus($host, $port, $address, $path, $cafile);
+            $where = ['endpoint' => $label, 'path' => $path];
+            if (!$h['ok']) return $out(true, 'problem', 'http_no_answer', $where + ['error' => (string)$h['error']], $address, $cert);
+            if (!in_array($h['status'], $expect, true)) {
+                return $out(true, 'problem', 'http_status', $where + ['status' => $h['status'], 'expected' => implode(', ', $expect)], $address, $cert);
+            }
+        }
     } finally {
         if ($cafile !== null) @unlink($cafile);
     }
-    $cert = $c['ok'] ? array_intersect_key($c, array_flip(['subject', 'issuer', 'valid_from', 'valid_to', 'days_left', 'sans', 'hostname_match', 'chain_valid'])) : null;
-    $label = $host . ':' . $port;
-
-    if (!$c['ok']) return $out(true, 'problem', 'no_answer', ['endpoint' => $label, 'error' => (string)$c['error']], $address);
-    if ($c['days_left'] !== null && $c['days_left'] < 0) return $out(true, 'problem', 'expired', ['endpoint' => $label, 'date' => (string)$c['valid_to']], $address, $cert);
-    if ($c['hostname_match'] === false) return $out(true, 'problem', 'wrong_name', ['endpoint' => $label, 'host' => $host], $address, $cert);
-    if ($c['chain_valid'] === false) return $out(true, 'problem', 'untrusted', ['endpoint' => $label, 'issuer' => (string)$c['issuer']], $address, $cert);
     if ($c['days_left'] !== null && $c['days_left'] <= (int)($ep['warn_days'] ?? 21)) {
         return $out(true, 'expiring', 'expiring', ['endpoint' => $label, 'days' => (int)$c['days_left'], 'date' => (string)$c['valid_to']], $address, $cert);
     }
     return $out(true, 'healthy', 'healthy', ['endpoint' => $label, 'date' => (string)$c['valid_to']], $address, $cert);
+}
+
+/**
+ * The status codes an HTTP check expects (GH #243): "200, 204" -> [200, 204]. Empty
+ * means 200. Anything that is not a status code (100-599) is dropped; saveEndpoint()
+ * refuses it before it is stored.
+ *
+ * @return int[]
+ */
+function domainHttpExpect(?string $raw): array
+{
+    $codes = [];
+    foreach (preg_split('/[\s,]+/', (string)$raw) as $c) {
+        if (preg_match('/^[1-5]\d\d$/', $c)) $codes[] = (int)$c;
+    }
+    $codes = array_values(array_unique($codes));
+    sort($codes);
+    return $codes ?: [200];
+}
+
+/**
+ * The status an endpoint answers one GET with (GH #243, slice 3). Over TLS to the
+ * address already resolved and permitted, with the host name for SNI, the Host header
+ * and certificate checking - validation on, as for the certificate check itself.
+ *
+ * TRAP: only the status line is read. Nothing else is fetched, no login is sent, and a
+ * redirect is NEVER followed: a 3xx is the answer, which an endpoint can expect. That is
+ * the design's "no redirect unless the target is also permitted", at its strictest.
+ *
+ * @param string  $address  the permitted address to connect to
+ * @param string  $path     starts with '/'
+ * @param ?string $cafile   the trust profile's CA file, or null for the server's bundle
+ * @return array{ok:bool, status:?int, error:?string}
+ */
+function domainHttpStatus(string $host, int $port, string $address, string $path, ?string $cafile, int $timeout = 8): array
+{
+    if (isset($GLOBALS['DOMAIN_HTTP_TRACE']) && is_array($GLOBALS['DOMAIN_HTTP_TRACE'])) {
+        $GLOBALS['DOMAIN_HTTP_TRACE'][] = "https://$host:$port$path@$address";
+    }
+    $ssl = ['verify_peer' => true, 'verify_peer_name' => true, 'peer_name' => $host, 'SNI_enabled' => true];
+    if ($cafile !== null) $ssl['cafile'] = $cafile;
+    $target = str_contains($address, ':') ? "[$address]" : $address;
+    $s = @stream_socket_client("ssl://$target:$port", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, stream_context_create(['ssl' => $ssl]));
+    if (!$s) return ['ok' => false, 'status' => null, 'error' => $errstr !== '' ? $errstr : 'No answer on port ' . $port];
+    stream_set_timeout($s, $timeout);
+    $hostHeader = $port === 443 ? $host : "$host:$port";
+    fwrite($s, "GET $path HTTP/1.1\r\nHost: $hostHeader\r\nUser-Agent: FreeITSM-monitor\r\nAccept: */*\r\nConnection: close\r\n\r\n");
+    $line = (string)fgets($s, 1024);
+    fclose($s);
+    if (!preg_match('#^HTTP/\d(?:\.\d)?\s+(\d{3})\b#', $line, $m)) {
+        return ['ok' => false, 'status' => null, 'error' => $line === '' ? 'No HTTP answer' : 'Not an HTTP answer'];
+    }
+    return ['ok' => true, 'status' => (int)$m[1], 'error' => null];
 }
 
 /**

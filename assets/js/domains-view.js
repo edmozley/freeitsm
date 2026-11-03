@@ -261,6 +261,7 @@
             return ep.incomplete && ep.status ? esc(T('endpoint.not_checked_since', { why: txt })) : esc(txt);
         };
         const rows = eps.map(ep => '<tr style="cursor:default"><td><strong>' + esc(ep.host + ':' + ep.port) + '</strong>'
+                + (ep.http_path ? '<div class="dom-sub">' + esc(T('endpoint.http_line', { path: ep.http_path, codes: ep.http_expect || '200' })) + '</div>' : '')
                 + (ep.address ? '<div class="dom-sub">' + esc(ep.address) + '</div>' : '') + '</td>'
                 + '<td>' + esc(ep.trust_profile_name || T('endpoint.server_bundle')) + '</td>'
                 + '<td>' + pill(ep) + '<div class="dom-sub">' + detail(ep) + '</div></td>'
@@ -294,6 +295,8 @@
         document.getElementById('epWarn').value = ep ? ep.warn_days : 21;
         window.Dom.fillSelect('epTrust', EP.profiles || [], { blank: T('endpoint.server_bundle') });
         document.getElementById('epTrust').value = ep && ep.trust_profile_id ? ep.trust_profile_id : '';
+        document.getElementById('epPath').value = ep && ep.http_path ? ep.http_path : '';      // GH #243
+        document.getElementById('epExpect').value = ep && ep.http_expect ? ep.http_expect : '';
         window.Dom.openModal('mEndpoint');
         document.getElementById('epHost').focus();
     }
@@ -303,7 +306,8 @@
         try {
             await api('endpoints.php', { action: 'save', id: epEditing || undefined, domain_id: ID,
                 host: document.getElementById('epHost').value, port: +document.getElementById('epPort').value,
-                warn_days: +document.getElementById('epWarn').value, trust_profile_id: +document.getElementById('epTrust').value || null });
+                warn_days: +document.getElementById('epWarn').value, trust_profile_id: +document.getElementById('epTrust').value || null,
+                http_path: document.getElementById('epPath').value, http_expect: document.getElementById('epExpect').value });
             window.Dom.closeModal('mEndpoint');
             showToast(T('endpoint.saved'), 'success');
             await load();

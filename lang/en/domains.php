@@ -150,6 +150,10 @@ return [
         'warn_days'      => 'Warn this many days before the certificate expires',
         'trust'          => 'Trusted certificate authorities',
         'trust_hint'     => 'The server\'s normal list, or one of your trust profiles for an internal CA. The chain and the name are always checked.',
+        'http_path' => 'Check a page (optional)',
+        'http_expect' => 'Expected status codes',
+        'http_hint' => 'Beyond the certificate, ask for this path and check the answer\'s status code - 200 when left empty, or list several, such as 200, 204. Only the status is read: nothing is signed in to, and redirects are not followed (expect 301 or 302 if that is the right answer).',
+        'http_line' => 'Checks {path} for {codes}',
         'server_bundle'  => 'The server\'s normal list',
         'never'          => 'Not checked yet',
         'not_checked_since' => 'Not checked: {why}',
@@ -173,6 +177,8 @@ return [
             'no_networks'     => 'No network is permitted yet.',
             'host_refused'    => '{host} is not this domain or a name under it.',
             'profile_missing' => 'Its trust profile no longer exists.',
+            'http_status' => '{path} answered {status}, not {expected}.',
+            'http_no_answer' => '{path} did not answer over HTTP ({error}).',
         ],
     ],
     // GH #203: an internal domain's health, instead of a grade.
@@ -391,6 +397,14 @@ return [
         // GH #203 slice 2: one per HTTPS endpoint.
         'ep_healthy'         => ['title' => '{endpoint}: certificate valid until {date}', 'advice' => ''],
         'ep_expiring'        => ['title' => '{endpoint}: certificate expires in {days} days', 'advice' => 'It is valid, but inside its warning window ({date}). Renew it before it expires.'],
+        'ep_http_status' => [
+            'title' => '{endpoint}: {path} answered {status}',
+            'advice' => 'The certificate is fine, but the page answered {status} where {expected} was expected. Check the application behind it - or, if {status} is the right answer now, change the expected codes on the endpoint.',
+        ],
+        'ep_http_no_answer' => [
+            'title' => '{endpoint}: {path} did not answer',
+            'advice' => 'The certificate is fine, but no HTTP answer came back for {path} ({error}). The web server or the application behind it may be down.',
+        ],
         'ep_expired'         => ['title' => '{endpoint}: certificate expired', 'advice' => 'The certificate expired on {date}. Browsers refuse it.'],
         'ep_wrong_name'      => ['title' => '{endpoint}: certificate is for a different name', 'advice' => 'The certificate does not list {host}. Browsers refuse it.'],
         'ep_untrusted'       => ['title' => '{endpoint}: certificate not trusted', 'advice' => 'Its issuer ({issuer}) is not among the trusted certificate authorities. If it is your own CA, add it as a trust profile under Settings -> Internal monitoring and choose it for this endpoint. Validation is never switched off.'],
@@ -1110,10 +1124,10 @@ return [
             'p2'    => 'Instead of a security grade it gets a **health**: does each name - the domain and its extra hosts - resolve, asked of this server\'s DNS resolver only, and is the certificate on each of its HTTPS endpoints valid. **Healthy**, **Expiring** (a certificate is inside its warning window), **Problem** (a name does not resolve, or a certificate is expired, for the wrong name or not trusted, or nothing answers), **Not checked** (the check could not run - which says nothing about the name) or **Stale** (no check has completed for twice the interval). Nothing that did not run is ever shown as a pass.',
             'p3'    => 'Two dates are kept: the **last completed check** and when it was **last healthy**. A check that finds a problem is still a current result, and if later checks cannot complete, the last known problem stays on screen with a note rather than turning into "unknown".',
             'p4'    => 'Internal domains are checked every hour by default - change it under **Settings → Monitoring → Check internal domains every**. The scheduled job has to run at least that often for a short interval to happen. They are left out of the security grades, the email posture and registration alerts; a problem appears under **Needs attention** and on the dashboard.',
-            'p5'    => 'Certificates are checked only on the **HTTPS endpoints** you list on the domain\'s Health tab: a host (the domain or a name under it) and a port, such as `intranet.example.local:8443`. Nothing is assumed - not the domain itself, not www. FreeITSM looks the host up through this server\'s DNS and connects to that address, keeping the host name for the certificate check, so DNS and the certificate always describe the same machine. A certificate is never accepted just because the site is internal: expired, wrong name and not trusted are each a problem.',
+            'p5'    => 'Certificates are checked only on the **HTTPS endpoints** you list on the domain\'s Health tab: a host (the domain or a name under it) and a port, such as `intranet.example.local:8443`. Nothing is assumed - not the domain itself, not www. FreeITSM looks the host up through this server\'s DNS and connects to that address, keeping the host name for the certificate check, so DNS and the certificate always describe the same machine. A certificate is never accepted just because the site is internal: expired, wrong name and not trusted are each a problem. An endpoint can also **check a page**: give a path, such as /health, and the status codes it should answer with (200 when left empty). Only the status is read - nothing is signed in to, and a redirect is never followed, so expect 301 or 302 if that is the right answer.',
             'p6'    => 'It only connects within limits an administrator sets under **Settings → Internal monitoring**: the **networks** it may reach (every address the name resolves to must be inside one - none is ticked until you choose, so nothing is connected to until then) and the **ports** (443 out of the box; tick 8443 or add others). For a certificate from your own certificate authority, add a **trust profile** there with the CA\'s certificate and choose it for the endpoint. Endpoints, the limits and trust profiles need the **Internal monitoring** permission; everybody who can see the domain sees the results, but **Check now** only reconnects to the endpoints for somebody who holds it.',
             'p7'    => 'Note that *This server only* keeps FreeITSM\'s questions on this server - if this server\'s DNS resolver forwards questions it cannot answer to a public service, a name can still leave the network from there.',
-            'p8' => '<strong>Expected records</strong>, on the same Health tab, check what a name holds, not only that it resolves: an A, AAAA, CNAME, NS or SOA record, with the values you expect, one per line. Leave the values empty when only the record has to exist - an address that changes, say. With values, the record must hold exactly those, in any order, and a missing record or different values is a problem that says what it found. They use the same permission as endpoints.',
+            'p8' => '**Expected records**, on the same Health tab, check what a name holds, not only that it resolves: an A, AAAA, CNAME, NS or SOA record, with the values you expect, one per line. Leave the values empty when only the record has to exist - an address that changes, say. With values, the record must hold exactly those, in any order, and a missing record or different values is a problem that says what it found. They use the same permission as endpoints.',
         ],
         'grade' => [
             'nav'   => 'The security grade',

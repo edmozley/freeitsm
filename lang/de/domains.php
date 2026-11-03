@@ -147,6 +147,10 @@ return [
         'warn_days' => 'So viele Tage vor Ablauf des Zertifikats warnen',
         'trust' => 'Vertrauenswürdige Zertifizierungsstellen',
         'trust_hint' => 'Die normale Liste des Servers oder eines Ihrer Vertrauensprofile für eine interne Zertifizierungsstelle. Die Kette und der Name werden immer geprüft.',
+        'http_path' => 'Eine Seite prüfen (optional)',
+        'http_expect' => 'Erwartete Statuscodes',
+        'http_hint' => 'Zusätzlich zum Zertifikat diesen Pfad abrufen und den Statuscode der Antwort prüfen - 200, wenn leer, oder mehrere, etwa 200, 204. Nur der Status wird gelesen: Es wird nichts angemeldet, und Weiterleitungen werden nicht verfolgt (erwarten Sie 301 oder 302, wenn das die richtige Antwort ist).',
+        'http_line' => 'Prüft {path} auf {codes}',
         'server_bundle' => 'Die normale Liste des Servers',
         'never' => 'Noch nicht geprüft',
         'not_checked_since' => 'Nicht geprüft: {why}',
@@ -170,6 +174,8 @@ return [
             'no_networks' => 'Noch ist kein Netzwerk erlaubt.',
             'host_refused' => '{host} ist weder diese Domain noch ein Name darunter.',
             'profile_missing' => 'Sein Vertrauensprofil existiert nicht mehr.',
+            'http_status' => '{path} antwortete {status}, nicht {expected}.',
+            'http_no_answer' => '{path} hat nicht über HTTP geantwortet ({error}).',
         ],
     ],
     'health' => [
@@ -401,6 +407,14 @@ return [
         'ep_expiring' => [
             'title' => '{endpoint}: Zertifikat läuft in {days} Tagen ab',
             'advice' => 'Es ist gültig, liegt aber in seinem Warnzeitraum ({date}). Erneuern Sie es, bevor es abläuft.',
+        ],
+        'ep_http_status' => [
+            'title' => '{endpoint}: {path} antwortete {status}',
+            'advice' => 'Das Zertifikat ist in Ordnung, aber die Seite antwortete {status}, erwartet war {expected}. Prüfen Sie die Anwendung dahinter - oder ändern Sie die erwarteten Codes am Endpunkt, wenn {status} jetzt die richtige Antwort ist.',
+        ],
+        'ep_http_no_answer' => [
+            'title' => '{endpoint}: {path} hat nicht geantwortet',
+            'advice' => 'Das Zertifikat ist in Ordnung, aber für {path} kam keine HTTP-Antwort ({error}). Der Webserver oder die Anwendung dahinter ist möglicherweise ausgefallen.',
         ],
         'ep_expired' => [
             'title' => '{endpoint}: Zertifikat abgelaufen',
@@ -1265,10 +1279,10 @@ return [
             'p2' => 'Statt einer Sicherheitsnote erhält sie einen **Zustand**: Wird jeder Name - die Domain und ihre zusätzlichen Hosts - aufgelöst, gefragt wird nur der DNS-Resolver dieses Servers, und ist das Zertifikat auf jedem ihrer HTTPS-Endpunkte gültig. **In Ordnung**, **Läuft ab** (ein Zertifikat liegt in seinem Warnzeitraum), **Problem** (ein Name wird nicht aufgelöst, ein Zertifikat ist abgelaufen, gilt für einen anderen Namen oder ist nicht vertrauenswürdig, oder nichts antwortet), **Nicht geprüft** (die Prüfung konnte nicht laufen - das sagt nichts über den Namen aus) oder **Veraltet** (seit dem doppelten Intervall ist keine Prüfung abgeschlossen). Was nicht gelaufen ist, wird nie als bestanden angezeigt.',
             'p3' => 'Zwei Zeitpunkte werden festgehalten: die **letzte abgeschlossene Prüfung** und wann sie **zuletzt in Ordnung** war. Eine Prüfung, die ein Problem findet, ist trotzdem ein aktuelles Ergebnis, und wenn spätere Prüfungen nicht abgeschlossen werden können, bleibt das zuletzt bekannte Problem mit einem Hinweis sichtbar, statt zu "unbekannt" zu werden.',
             'p4' => 'Interne Domains werden standardmäßig stündlich geprüft - ändern Sie das unter **Einstellungen → Überwachung → Interne Domains prüfen alle**. Der geplante Job muss mindestens so oft laufen, damit ein kurzes Intervall eingehalten wird. Sie fließen nicht in die Sicherheitsnoten, die E-Mail-Übersicht und die Registrierungswarnungen ein; ein Problem erscheint unter **Braucht Aufmerksamkeit** und auf dem Dashboard.',
-            'p5' => 'Zertifikate werden nur auf den **HTTPS-Endpunkten** geprüft, die Sie auf dem Reiter Zustand der Domain aufführen: ein Host (die Domain oder ein Name darunter) und ein Port, etwa `intranet.example.local:8443`. Nichts wird angenommen - weder die Domain selbst noch www. FreeITSM löst den Host über das DNS dieses Servers auf und verbindet sich mit dieser Adresse, wobei der Hostname für die Zertifikatsprüfung erhalten bleibt, sodass DNS und Zertifikat immer dieselbe Maschine beschreiben. Ein Zertifikat wird nie akzeptiert, nur weil die Website intern ist: abgelaufen, falscher Name und nicht vertrauenswürdig sind jeweils ein Problem.',
+            'p5' => 'Zertifikate werden nur auf den **HTTPS-Endpunkten** geprüft, die Sie auf dem Reiter Zustand der Domain aufführen: ein Host (die Domain oder ein Name darunter) und ein Port, etwa `intranet.example.local:8443`. Nichts wird angenommen - weder die Domain selbst noch www. FreeITSM löst den Host über das DNS dieses Servers auf und verbindet sich mit dieser Adresse, wobei der Hostname für die Zertifikatsprüfung erhalten bleibt, sodass DNS und Zertifikat immer dieselbe Maschine beschreiben. Ein Zertifikat wird nie akzeptiert, nur weil die Website intern ist: abgelaufen, falscher Name und nicht vertrauenswürdig sind jeweils ein Problem. Ein Endpunkt kann auch **eine Seite prüfen**: Geben Sie einen Pfad an, etwa /health, und die Statuscodes, mit denen er antworten soll (200, wenn leer). Nur der Status wird gelesen - es wird nichts angemeldet, und einer Weiterleitung wird nie gefolgt; erwarten Sie also 301 oder 302, wenn das die richtige Antwort ist.',
             'p6' => 'Verbunden wird nur innerhalb der Grenzen, die ein Administrator unter **Einstellungen → Interne Überwachung** festlegt: die **Netzwerke**, die erreicht werden dürfen (jede Adresse, zu der der Name aufgelöst wird, muss in einem davon liegen - nichts ist angehakt, bis Sie eine Auswahl treffen, daher wird bis dahin mit nichts verbunden), und die **Ports** (443 von Anfang an; haken Sie 8443 an oder fügen Sie weitere hinzu). Für ein Zertifikat Ihrer eigenen Zertifizierungsstelle fügen Sie dort ein **Vertrauensprofil** mit dem Zertifikat der Stelle hinzu und wählen es für den Endpunkt. Endpunkte, die Grenzen und Vertrauensprofile erfordern die Berechtigung **Interne Überwachung**; alle, die die Domain sehen können, sehen die Ergebnisse, aber **Jetzt prüfen** verbindet sich nur bei jemandem neu mit den Endpunkten, der diese Berechtigung hat.',
             'p7' => 'Beachten Sie, dass *Nur dieser Server* die Anfragen von FreeITSM auf diesem Server hält - leitet der DNS-Resolver dieses Servers Anfragen, die er nicht selbst beantworten kann, an einen öffentlichen Dienst weiter, kann ein Name das Netzwerk von dort aus dennoch verlassen.',
-            'p8' => '<strong>Erwartete Einträge</strong> auf derselben Registerkarte Zustand prüfen, was ein Name enthält, nicht nur, ob er aufgelöst wird: einen A-, AAAA-, CNAME-, NS- oder SOA-Eintrag mit den erwarteten Werten, einer pro Zeile. Lassen Sie die Werte leer, wenn nur der Eintrag vorhanden sein muss - etwa bei einer wechselnden Adresse. Mit Werten muss der Eintrag genau diese enthalten, in beliebiger Reihenfolge; ein fehlender Eintrag oder andere Werte sind ein Problem, das sagt, was gefunden wurde. Sie brauchen dieselbe Berechtigung wie Endpunkte.',
+            'p8' => '**Erwartete Einträge** auf derselben Registerkarte Zustand prüfen, was ein Name enthält, nicht nur, ob er aufgelöst wird: einen A-, AAAA-, CNAME-, NS- oder SOA-Eintrag mit den erwarteten Werten, einer pro Zeile. Lassen Sie die Werte leer, wenn nur der Eintrag vorhanden sein muss - etwa bei einer wechselnden Adresse. Mit Werten muss der Eintrag genau diese enthalten, in beliebiger Reihenfolge; ein fehlender Eintrag oder andere Werte sind ein Problem, das sagt, was gefunden wurde. Sie brauchen dieselbe Berechtigung wie Endpunkte.',
         ],
         'grade' => [
             'nav' => 'Die Sicherheitsnote',

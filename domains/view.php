@@ -218,6 +218,10 @@ $translationNamespaces = ['common', 'domains'];
                     <div class="form-group"><label for="epPort"><?php echo htmlspecialchars(t('domains.endpoint.port')); ?></label><select id="epPort"></select></div>
                     <div class="form-group"><label for="epWarn"><?php echo htmlspecialchars(t('domains.endpoint.warn_days')); ?></label><input type="number" id="epWarn" min="1" max="120" value="21"></div>
                     <div class="form-group full"><label for="epTrust"><?php echo htmlspecialchars(t('domains.endpoint.trust')); ?></label><select id="epTrust"></select><div class="dom-hint"><?php echo htmlspecialchars(t('domains.endpoint.trust_hint')); ?></div></div>
+                    <?php /* GH #243: the optional HTTP check. */ ?>
+                    <div class="form-group"><label for="epPath"><?php echo htmlspecialchars(t('domains.endpoint.http_path')); ?></label><input type="text" id="epPath" maxlength="500" placeholder="/health" autocomplete="off"></div>
+                    <div class="form-group"><label for="epExpect"><?php echo htmlspecialchars(t('domains.endpoint.http_expect')); ?></label><input type="text" id="epExpect" maxlength="100" placeholder="200" autocomplete="off"></div>
+                    <div class="form-group full"><div class="dom-hint"><?php echo htmlspecialchars(t('domains.endpoint.http_hint')); ?></div></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -249,7 +253,7 @@ $translationNamespaces = ['common', 'domains'];
     // Supplier and contact pages in People (#162) also need Contracts, which owns those records.
     window.DOM_PEOPLE_SUPPLIERS = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') && analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'contracts')); ?>;</script>
     <script src="../assets/js/domains.js?v=4"></script>
-    <script src="../assets/js/domains-view.js?v=13"></script>
+    <script src="../assets/js/domains-view.js?v=14"></script>
     <?php endif; ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

@@ -6084,6 +6084,8 @@ return [
         'port'                    => 'INT NOT NULL DEFAULT 443',
         'warn_days'               => 'INT NOT NULL DEFAULT 21',
         'trust_profile_id'        => 'INT NULL',
+        'http_path'               => 'VARCHAR(500) NULL',   // GH #243
+        'http_expect'             => 'VARCHAR(100) NULL',
         'status'                  => 'VARCHAR(12) NULL',
         'incomplete'              => 'TINYINT(1) NOT NULL DEFAULT 0',
         'detail_key'              => 'VARCHAR(40) NULL',

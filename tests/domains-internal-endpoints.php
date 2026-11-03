@@ -116,7 +116,24 @@ echo count($socks), "\n";
 $end = time() + (int)$argv[2];
 while (time() < $end) {
     $r = $socks; $w = null; $x = null;
-    if (@stream_select($r, $w, $x, 1) > 0) foreach ($r as $s) { $c = @stream_socket_accept($s, 1); if ($c) fclose($c); }
+    // GH #243: a request line gets an HTTP answer by path; a bare certificate check sends
+    // nothing and simply leaves. /moved points outside, to prove a redirect is not followed.
+    if (@stream_select($r, $w, $x, 1) > 0) foreach ($r as $s) {
+        $c = @stream_socket_accept($s, 1);
+        if (!$c) continue;
+        stream_set_timeout($c, 2);
+        $line = (string)@fgets($c, 1024);
+        if (preg_match("#^GET (\S+)#", $line, $q)) {
+            $code = ["/ok" => "200 OK", "/moved" => "301 Moved Permanently"][$q[1]] ?? "404 Not Found";
+            @fwrite($c, "HTTP/1.1 $code
+Location: https://example.org/
+Content-Length: 0
+Connection: close
+
+");
+        }
+        fclose($c);
+    }
 }');
 $map = [$ports['good'] => $certs['good'], $ports['soon'] => $certs['soon'], $ports['wrong'] => $certs['wrong']];
 $proc = proc_open([PHP_BINARY, $server, json_encode($map), '60'], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
@@ -165,6 +182,23 @@ ok('a host that is not this domain or under it: refused, no connection', !$r['co
 $t = $check(['host' => 'missing.zz-ep.test', 'port' => $ports['good']], $nets, $allPorts, $caPem);
 ok('a name with no address: a confirmed problem, no connection', $r['completed'] && $r['detail'] === 'no_address' && $t === [], json_encode($t));
 
+echo "
+PART 2b - the optional HTTP check (GH #243)
+";
+$t = $check(['host' => $host, 'port' => $ports['good'], 'http_path' => '/ok'], $nets, $allPorts, $caPem);
+ok('a page answering the expected 200: healthy', $r['status'] === 'healthy', json_encode($r));
+ok('...asked once, at the resolved address, after the certificate', $t === ["tls://$host:{$ports['good']}@127.0.0.1", "https://$host:{$ports['good']}/ok@127.0.0.1"], json_encode($t));
+$check(['host' => $host, 'port' => $ports['good'], 'http_path' => '/missing'], $nets, $allPorts, $caPem);
+ok('a page answering 404 when 200 is expected: a problem saying so', $r['status'] === 'problem' && $r['detail'] === 'http_status' && $r['params']['status'] === 404 && $r['params']['expected'] === '200', json_encode($r));
+$t = $check(['host' => $host, 'port' => $ports['good'], 'http_path' => '/moved', 'http_expect' => '301, 302'], $nets, $allPorts, $caPem);
+ok('a redirect that is expected: healthy', $r['status'] === 'healthy', json_encode($r));
+ok('...and never followed - nothing else is asked', count(array_filter($t, fn($x) => str_starts_with($x, 'https://'))) === 1 && !array_filter($t, fn($x) => str_contains($x, 'example.org')), json_encode($t));
+$check(['host' => $host, 'port' => $ports['good'], 'http_path' => '/moved'], $nets, $allPorts, $caPem);
+ok('a redirect that is not expected: a problem', $r['detail'] === 'http_status' && $r['params']['status'] === 301, json_encode($r));
+$t = $check(['host' => $host, 'port' => $ports['good'], 'http_path' => '/ok'], $nets, $allPorts, null);
+ok('an untrusted certificate is the problem - the page is never asked', $r['detail'] === 'untrusted' && !array_filter($t, fn($x) => str_starts_with($x, 'https://')), json_encode($t));
+ok('expected codes are read tidily, 200 by default', domainHttpExpect(' 204,200 200') === [200, 204] && domainHttpExpect('') === [200] && domainHttpExpect('abc') === [200]);
+
 // ------------------------------------------------------------------ PART 3
 echo "\nPART 3 - through DomainsService on the test database\n";
 $conn = connectToDatabase();
@@ -209,6 +243,16 @@ if (!$expected || $expected !== $dbName) {
         $good = DomainsService::saveEndpoint($conn, $ctx, ['domain_id' => $id, 'host' => "app.$iname", 'port' => $ports['good'], 'warn_days' => 21, 'trust_profile_id' => $profileId]);
         ok('control: a good endpoint is saved', (int)$good['id'] > 0);
         ok('the same host and port twice is refused', (bool)$refused(['domain_id' => $id, 'host' => "app.$iname", 'port' => $ports['good']]));
+        // GH #243: the optional HTTP check's path and codes.
+        if (DomainsService::httpCheckReady($conn)) {
+            ok('a path without a leading / is refused', (bool)$refused(['domain_id' => $id, 'host' => "h1.$iname", 'port' => $ports['good'], 'http_path' => 'health']));
+            ok('a path with a space is refused', (bool)$refused(['domain_id' => $id, 'host' => "h1.$iname", 'port' => $ports['good'], 'http_path' => '/a b']));
+            ok('a code that is not a status code is refused', (bool)$refused(['domain_id' => $id, 'host' => "h1.$iname", 'port' => $ports['good'], 'http_path' => '/ok', 'http_expect' => '200, 999']));
+            $h = DomainsService::saveEndpoint($conn, $ctx, ['domain_id' => $id, 'host' => "h2.$iname", 'port' => $ports['good'], 'http_path' => '/ok', 'http_expect' => '204 200']);
+            ok('a valid HTTP check is stored, its codes tidied (control)', $h['http_path'] === '/ok' && $h['http_expect'] === '200, 204', json_encode($h));
+            $h2 = DomainsService::saveEndpoint($conn, $ctx, ['domain_id' => $id, 'host' => "h3.$iname", 'port' => $ports['good'], 'http_expect' => '204']);
+            ok('codes without a path store nothing', $h2['http_path'] === null && $h2['http_expect'] === null);
+        }
         ok('a trust profile in use cannot be deleted', (function () use ($conn, $profileId) { try { DomainsService::deleteTrustProfile($conn, $profileId); return false; } catch (ServiceError) { return true; } })());
 
         // Our certificates are for app.zz-ep.test, so this endpoint's name does not match - except the

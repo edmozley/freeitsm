@@ -32,7 +32,9 @@ domainApiRun(function () use ($conn, $ctx, $analystId) {
             domainApiOk(['ready' => true, 'profiles' => $rows]);
         }
         $domain = DomainsService::loadForActor($conn, $ctx, (int)($_GET['domain_id'] ?? 0));   // company check
-        $s = $conn->prepare("SELECT e.id, e.host, e.port, e.warn_days, e.trust_profile_id, t.name AS trust_profile_name,
+        // GH #243: the HTTP check's path and codes, once Database Verification has added them.
+        $httpCols = DomainsService::httpCheckReady($conn) ? 'e.http_path, e.http_expect, ' : '';
+        $s = $conn->prepare("SELECT e.id, e.host, e.port, e.warn_days, e.trust_profile_id, t.name AS trust_profile_name, $httpCols
                                     e.status, e.incomplete, e.detail_key, e.detail_params, e.address, e.cert_json,
                                     e.last_attempt_datetime, e.last_completed_datetime, e.last_healthy_datetime
                                FROM domain_endpoints e LEFT JOIN domain_trust_profiles t ON t.id = e.trust_profile_id

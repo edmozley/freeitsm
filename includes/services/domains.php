@@ -777,6 +777,19 @@ class DomainsService
             $p->execute([$profile]);
             if (!$p->fetchColumn()) throw new ServiceError('validation', 'trust_profile', 'That trust profile no longer exists.');
         }
+        // GH #243: the optional HTTP check. A path that starts with "/", printable, no
+        // spaces; the expected codes, each a status code. Both NULL when unused.
+        $http = self::httpCheckReady($conn);
+        $path = $http ? trim((string)($in['http_path'] ?? '')) : '';
+        $expect = $http ? trim((string)($in['http_expect'] ?? '')) : '';
+        if ($path !== '' && (!str_starts_with($path, '/') || strlen($path) > 500 || !preg_match('/^[\x21-\x7e]+$/', $path))) {
+            throw new ServiceError('validation', 'http_path', 'The path starts with / and has no spaces, for example /health.');
+        }
+        foreach (preg_split('/[\s,]+/', $expect, -1, PREG_SPLIT_NO_EMPTY) as $code) {
+            if (!preg_match('/^[1-5]\d\d$/', $code)) throw new ServiceError('validation', 'http_expect', "\"$code\" is not an HTTP status code. Enter codes such as 200, 204.");
+        }
+        $path = $path !== '' ? $path : null;
+        $expect = ($path !== null && $expect !== '') ? implode(', ', domainHttpExpect($expect)) : null;
         $id = (int)($in['id'] ?? 0);
         try {
             if ($id) {
@@ -785,17 +798,21 @@ class DomainsService
                 $old = $cur->fetch(PDO::FETCH_ASSOC);
                 if (!$old) throw new ServiceError('not_found', 'endpoint', 'Endpoint not found.');
                 // A different target is a new observation: its old results described something else.
-                $moved = $old['host'] !== $host || (int)$old['port'] !== $port || (int)$old['trust_profile_id'] !== (int)$profile;
+                $moved = $old['host'] !== $host || (int)$old['port'] !== $port || (int)$old['trust_profile_id'] !== (int)$profile
+                      || ($http && (($old['http_path'] ?? null) !== $path || ($old['http_expect'] ?? null) !== $expect));
                 $conn->prepare("UPDATE domain_endpoints SET host = ?, port = ?, warn_days = ?, trust_profile_id = ?, updated_datetime = UTC_TIMESTAMP()"
+                             . ($http ? ", http_path = ?, http_expect = ?" : '')
                              . ($moved ? ", status = NULL, incomplete = 0, detail_key = NULL, detail_params = NULL, address = NULL, cert_json = NULL,
                                           last_attempt_datetime = NULL, last_completed_datetime = NULL, last_healthy_datetime = NULL" : '')
-                             . " WHERE id = ?")->execute([$host, $port, $warn, $profile, $id]);
-                self::audit($conn, (int)$domain['id'], $ctx->actorId ?: null, 'endpoint', "{$old['host']}:{$old['port']}", "$host:$port", $ctx->source === 'api' ? 'api' : 'app');
+                             . " WHERE id = ?")->execute(array_merge([$host, $port, $warn, $profile], $http ? [$path, $expect] : [], [$id]));
+                self::audit($conn, (int)$domain['id'], $ctx->actorId ?: null, 'endpoint', "{$old['host']}:{$old['port']}" . (!empty($old['http_path']) ? " {$old['http_path']}" : ''),
+                    "$host:$port" . ($path ? " $path" : ''), $ctx->source === 'api' ? 'api' : 'app');
             } else {
-                $conn->prepare("INSERT INTO domain_endpoints (domain_id, host, port, warn_days, trust_profile_id, created_by) VALUES (?, ?, ?, ?, ?, ?)")
-                     ->execute([(int)$domain['id'], $host, $port, $warn, $profile, $ctx->actorId ?: null]);
+                $conn->prepare("INSERT INTO domain_endpoints (domain_id, host, port, warn_days, trust_profile_id, created_by" . ($http ? ", http_path, http_expect" : '') . ")
+                                VALUES (?, ?, ?, ?, ?, ?" . ($http ? ", ?, ?" : '') . ")")
+                     ->execute(array_merge([(int)$domain['id'], $host, $port, $warn, $profile, $ctx->actorId ?: null], $http ? [$path, $expect] : []));
                 $id = (int)$conn->lastInsertId();
-                self::audit($conn, (int)$domain['id'], $ctx->actorId ?: null, 'endpoint', null, "$host:$port", $ctx->source === 'api' ? 'api' : 'app');
+                self::audit($conn, (int)$domain['id'], $ctx->actorId ?: null, 'endpoint', null, "$host:$port" . ($path ? " $path" : ''), $ctx->source === 'api' ? 'api' : 'app');
             }
         } catch (PDOException $e) {
             if ($e->getCode() === '23000') throw new ServiceError('validation', 'duplicate', "$host:$port is already listed.");
@@ -825,6 +842,15 @@ class DomainsService
     // ======================================================================
     //  Expected records (GH #243, #203 slice 3)
     // ======================================================================
+
+    /** Has Database Verification added the HTTP check's columns to endpoints yet (GH #243)? */
+    public static function httpCheckReady(PDO $conn): bool
+    {
+        static $ok = null;
+        if ($ok !== null) return $ok;
+        try { $conn->query("SELECT http_path, http_expect FROM domain_endpoints LIMIT 0"); return $ok = true; }
+        catch (Throwable) { return $ok = false; }
+    }
 
     /** Has Database Verification made the expected-records table yet? */
     public static function expectedReady(PDO $conn): bool

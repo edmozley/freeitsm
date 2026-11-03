@@ -9091,6 +9091,8 @@ CREATE TABLE IF NOT EXISTS `domain_endpoints` (
     `port`                    INT NOT NULL DEFAULT 443,
     `warn_days`               INT NOT NULL DEFAULT 21,     -- certificate warning window
     `trust_profile_id`        INT NULL,                    -- NULL = the server's normal CA bundle
+    `http_path`               VARCHAR(500) NULL,           -- GH #243: an optional HTTP check - the path to GET
+    `http_expect`             VARCHAR(100) NULL,           -- its expected status codes, e.g. "200, 204"; empty = 200
     `status`                  VARCHAR(12) NULL,
     `incomplete`              TINYINT(1) NOT NULL DEFAULT 0,
     `detail_key`              VARCHAR(40) NULL,            -- why: expired, untrusted, no_answer, network_refused ...

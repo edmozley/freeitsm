@@ -147,6 +147,10 @@ return [
         'warn_days' => 'Avisar con estos días de antelación antes de que caduque el certificado',
         'trust' => 'Autoridades de certificación de confianza',
         'trust_hint' => 'La lista habitual del servidor o uno de sus perfiles de confianza para una autoridad de certificación interna. La cadena y el nombre se comprueban siempre.',
+        'http_path' => 'Comprobar una página (opcional)',
+        'http_expect' => 'Códigos de estado esperados',
+        'http_hint' => 'Además del certificado, solicitar esta ruta y comprobar el código de estado de la respuesta: 200 si se deja vacío, o varios, como 200, 204. Solo se lee el estado: no se inicia sesión en nada y no se siguen redirecciones (espere 301 o 302 si esa es la respuesta correcta).',
+        'http_line' => 'Comprueba {path} con {codes}',
         'server_bundle' => 'La lista habitual del servidor',
         'never' => 'Aún sin comprobar',
         'not_checked_since' => 'Sin comprobar: {why}',
@@ -170,6 +174,8 @@ return [
             'no_networks' => 'Aún no hay ninguna red permitida.',
             'host_refused' => '{host} no es este dominio ni un nombre que dependa de él.',
             'profile_missing' => 'Su perfil de confianza ya no existe.',
+            'http_status' => '{path} respondió {status}, no {expected}.',
+            'http_no_answer' => '{path} no respondió por HTTP ({error}).',
         ],
     ],
     'health' => [
@@ -401,6 +407,14 @@ return [
         'ep_expiring' => [
             'title' => '{endpoint}: el certificado caduca dentro de {days} días',
             'advice' => 'Es válido, pero está dentro de su periodo de aviso ({date}). Renuévelo antes de que caduque.',
+        ],
+        'ep_http_status' => [
+            'title' => '{endpoint}: {path} respondió {status}',
+            'advice' => 'El certificado está bien, pero la página respondió {status} cuando se esperaba {expected}. Revise la aplicación que hay detrás o, si {status} es ahora la respuesta correcta, cambie los códigos esperados en el punto de conexión.',
+        ],
+        'ep_http_no_answer' => [
+            'title' => '{endpoint}: {path} no respondió',
+            'advice' => 'El certificado está bien, pero no llegó ninguna respuesta HTTP para {path} ({error}). Puede que el servidor web o la aplicación que hay detrás no funcionen.',
         ],
         'ep_expired' => [
             'title' => '{endpoint}: certificado caducado',
@@ -1265,10 +1279,10 @@ return [
             'p2' => 'En lugar de una calificación de seguridad recibe un **estado de salud**: si cada nombre (el dominio y sus hosts adicionales) se resuelve, consultando solo al resolvedor DNS de este servidor, y si el certificado de cada uno de sus puntos de conexión HTTPS es válido. **Correcto**, **Por caducar** (un certificado está dentro de su periodo de aviso), **Problema** (un nombre no se resuelve, o un certificado ha caducado, es para otro nombre o no es de confianza, o nada responde), **Sin comprobar** (la comprobación no pudo ejecutarse, lo que no dice nada del nombre) o **Desactualizado** (ninguna comprobación ha terminado en el doble del intervalo). Lo que no se ha ejecutado nunca se muestra como superado.',
             'p3' => 'Se guardan dos fechas: la **última comprobación completada** y cuándo fue **por última vez correcto**. Una comprobación que encuentra un problema sigue siendo un resultado vigente, y si las comprobaciones posteriores no pueden completarse, el último problema conocido permanece en pantalla con una nota en lugar de pasar a «desconocido».',
             'p4' => 'Los dominios internos se comprueban cada hora de forma predeterminada; se cambia en **Ajustes → Supervisión → Comprobar los dominios internos cada**. La tarea programada debe ejecutarse al menos con esa frecuencia para que un intervalo corto se cumpla. Quedan fuera de las notas de seguridad, de la situación del correo y de las alertas de registro; un problema aparece en **Requieren atención** y en el panel.',
-            'p5' => 'Los certificados solo se comprueban en los **puntos de conexión HTTPS** que usted indique en la pestaña Salud del dominio: un host (el dominio o un nombre que dependa de él) y un puerto, como `intranet.example.local:8443`. No se da nada por supuesto: ni el propio dominio ni www. FreeITSM resuelve el host mediante el DNS de este servidor y se conecta a esa dirección, conservando el nombre del host para comprobar el certificado, de modo que el DNS y el certificado describen siempre la misma máquina. Un certificado nunca se acepta solo porque el sitio sea interno: caducado, nombre incorrecto y no de confianza son, cada uno, un problema.',
+            'p5' => 'Los certificados solo se comprueban en los **puntos de conexión HTTPS** que usted indique en la pestaña Salud del dominio: un host (el dominio o un nombre que dependa de él) y un puerto, como `intranet.example.local:8443`. No se da nada por supuesto: ni el propio dominio ni www. FreeITSM resuelve el host mediante el DNS de este servidor y se conecta a esa dirección, conservando el nombre del host para comprobar el certificado, de modo que el DNS y el certificado describen siempre la misma máquina. Un certificado nunca se acepta solo porque el sitio sea interno: caducado, nombre incorrecto y no de confianza son, cada uno, un problema. Un punto de conexión también puede **comprobar una página**: indique una ruta, como /health, y los códigos de estado con los que debe responder (200 si se deja vacío). Solo se lee el estado: no se inicia sesión en nada y nunca se sigue una redirección, así que espere 301 o 302 si esa es la respuesta correcta.',
             'p6' => 'Solo se conecta dentro de los límites que un administrador establece en **Ajustes → Supervisión interna**: las **redes** a las que puede llegar (cada dirección en la que se resuelve el nombre debe estar dentro de una; no hay ninguna marcada hasta que usted elija, así que hasta entonces no se conecta a nada) y los **puertos** (443 desde el principio; marque 8443 o añada otros). Para un certificado de su propia autoridad de certificación, añada allí un **perfil de confianza** con el certificado de la autoridad y elíjalo para el punto de conexión. Los puntos de conexión, los límites y los perfiles de confianza requieren el permiso **Supervisión interna**; todos los que pueden ver el dominio ven los resultados, pero **Comprobar ahora** solo vuelve a conectarse a los puntos de conexión cuando lo usa alguien que tiene ese permiso.',
             'p7' => 'Tenga en cuenta que *Solo este servidor* mantiene las consultas de FreeITSM en este servidor: si el resolvedor DNS de este servidor reenvía a un servicio público las consultas que no puede responder, un nombre aún puede salir de la red desde allí.',
-            'p8' => 'Los <strong>registros esperados</strong>, en la misma pestaña Salud, comprueban lo que contiene un nombre, no solo que se resuelve: un registro A, AAAA, CNAME, NS o SOA, con los valores que espera, uno por línea. Deje los valores vacíos cuando solo tenga que existir el registro, por ejemplo una dirección que cambia. Con valores, el registro debe contener exactamente esos, en cualquier orden, y un registro que falta o valores distintos son un problema que dice lo que encontró. Usan el mismo permiso que los puntos de conexión.',
+            'p8' => 'Los **registros esperados**, en la misma pestaña Salud, comprueban lo que contiene un nombre, no solo que se resuelve: un registro A, AAAA, CNAME, NS o SOA, con los valores que espera, uno por línea. Deje los valores vacíos cuando solo tenga que existir el registro, por ejemplo una dirección que cambia. Con valores, el registro debe contener exactamente esos, en cualquier orden, y un registro que falta o valores distintos son un problema que dice lo que encontró. Usan el mismo permiso que los puntos de conexión.',
         ],
         'grade' => [
             'nav' => 'La calificación de seguridad',
