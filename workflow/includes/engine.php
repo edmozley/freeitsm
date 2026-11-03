@@ -3436,6 +3436,10 @@ class WorkflowEngine
             //   messagingGenerateTicketNumber() for what went wrong when it was.
             // GH #230: the step names no type, so the type rules / default may -
             // before the number, which can carry it.
+            // GH #218: the step names no department, so the company's default -
+            // before the type rules, which can match on the department.
+            require_once dirname(__DIR__, 2) . '/includes/tenant_settings.php';
+            [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $ticketTenant !== null ? (int)$ticketTenant : null, $departmentId ?: null);
             $typePick = null;
             if (!$typeId) {
                 require_once dirname(__DIR__, 2) . '/includes/ticket_type_rules.php';
@@ -3462,6 +3466,7 @@ class WorkflowEngine
                 $departmentId, $typeId, $assignedTeamId, $assignedAnalystId, $assignedAnalystId, $userId, $ticketTenant,
             ]);
             $newTicketId = (int)$conn->lastInsertId();
+            ticketDepartmentNote($conn, $newTicketId, $departmentNote);
             if ($typePick) ticketTypeAutoRecord($conn, $newTicketId, $typePick);
             // Confidential defaults (discussion #62) - the rule may have put it in a
             // confidential department. Every ticket-creating path calls this.

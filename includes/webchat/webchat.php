@@ -234,16 +234,20 @@ function webchatOpenTicket(PDO $conn, array $conversation, array $channel, strin
     $sql = "INSERT INTO tickets (
                 ticket_number, subject, status_id, priority_id,
                 created_datetime, updated_datetime, last_inbound_at,
-                user_id, tenant_id, origin_id, ticket_type_id
+                user_id, tenant_id, origin_id, ticket_type_id, department_id
             ) VALUES (
                 ?, ?,
                 (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
                 (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
                 UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP(),
-                ?, ?, ?, ?
+                ?, ?, ?, ?, ?
             )";
-    $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId, $typePick['type_id'] ?? null]);
+    // GH #218: a chat has no department of its own, so the company's default department, if any.
+    require_once __DIR__ . '/../tenant_settings.php';
+    [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $tenantId, null);
+    $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId, $typePick['type_id'] ?? null, $departmentId]);
     $ticketId = (int) $conn->lastInsertId();
+    ticketDepartmentNote($conn, $ticketId, $departmentNote);
     ticketTypeAutoRecord($conn, $ticketId, $typePick);
     // Confidential defaults (discussion #62). Nothing to apply yet - no department
     // or mailbox - but every ticket-creating path calls it; see ticket_sensitivity.php.

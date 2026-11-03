@@ -164,14 +164,19 @@ try {
         }
     }
 
+    // GH #218: a requester never chooses a department, so the company's default
+    // department (if any, and still active) is where the ticket starts.
+    require_once '../../includes/tenant_settings.php';
+    [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $ticketTenantId !== null ? (int) $ticketTenantId : null, null);
+
     $ticketSql = "INSERT INTO tickets (
         ticket_number, subject, status_id, priority_id, category_id, ticket_type_id,
-        user_id, tenant_id, created_datetime, updated_datetime
+        user_id, tenant_id, department_id, created_datetime, updated_datetime
     ) VALUES (
         ?, ?,
         (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
         (SELECT id FROM ticket_priorities WHERE name = ? LIMIT 1),
-        ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP()
+        ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP()
     )";
 
     $ticketStmt = $conn->prepare($ticketSql);
@@ -183,9 +188,11 @@ try {
         $ticketTypeId,
         $userId,
         $ticketTenantId,
+        $departmentId,
     ]);
 
     $ticketId = $conn->lastInsertId();
+    ticketDepartmentNote($conn, (int) $ticketId, $departmentNote);
     if ($ticketTypePick) ticketTypeAutoRecord($conn, (int)$ticketId, $ticketTypePick);
 
     // The answers to the custom fields the requester was asked, already

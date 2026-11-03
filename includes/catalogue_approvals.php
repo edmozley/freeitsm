@@ -647,6 +647,10 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
     // GH #230: no type configured on the form or the rule, so the type rules /
     // default may give one - before the number, which can carry it. A workflow
     // raising from a form says so through '_channel'; a form's own action is 'catalogue'.
+    // GH #218: none set by the catalogue item, so the company's default department -
+    // before the type rules, which can match on the department.
+    require_once __DIR__ . '/tenant_settings.php';
+    [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $tenantId !== null ? (int)$tenantId : null, $departmentId);
     $typePick = null;
     if ($typeId === null) {
         require_once __DIR__ . '/ticket_type_rules.php';
@@ -675,6 +679,7 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
         $userId, $tenantId,
     ]);
     $ticketId = (int)$conn->lastInsertId();
+    ticketDepartmentNote($conn, $ticketId, $departmentNote);
     if ($typePick) ticketTypeAutoRecord($conn, $ticketId, $typePick);
     // Confidential defaults (discussion #62). Every path that creates a ticket
     // calls this - see the header of includes/ticket_sensitivity.php for why.

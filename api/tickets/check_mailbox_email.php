@@ -1254,22 +1254,28 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         // Status/priority resolve to the CONFIGURED default, never to the literal
         // names 'Open'/'Normal' — those are display names an admin may rename or
         // translate, and a missed match silently inserted a NULL status_id (#79).
+        // GH #218: an emailed ticket has no department of its own (a mailbox cannot
+        // set one), so it starts in the company's default department, if any.
+        require_once __DIR__ . '/../../includes/tenant_settings.php';
+        [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $ticketTenantId !== null ? (int) $ticketTenantId : null, null);
+
         $ticketSql = "INSERT INTO tickets (
             ticket_number, subject, status_id, priority_id,
-            created_datetime, updated_datetime, user_id, tenant_id, origin_id, ticket_type_id
+            created_datetime, updated_datetime, user_id, tenant_id, origin_id, ticket_type_id, department_id
         ) VALUES (
             ?, ?,
             (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
             (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
-            ?, UTC_TIMESTAMP(), ?, ?, ?, ?
+            ?, UTC_TIMESTAMP(), ?, ?, ?, ?, ?
         )";
 
         $ticketStmt = $conn->prepare($ticketSql);
         $ticketStmt->execute([
-            $ticketNumber, $subject, $receivedDateTime, $userId, $ticketTenantId, $ticketOriginId, $ticketTypeId
+            $ticketNumber, $subject, $receivedDateTime, $userId, $ticketTenantId, $ticketOriginId, $ticketTypeId, $departmentId
         ]);
 
         $ticketId = $conn->lastInsertId();
+        ticketDepartmentNote($conn, (int) $ticketId, $departmentNote);
         ticketTypeAutoRecord($conn, (int)$ticketId, $ticketTypePick);
         // Announced further down, once the opening message has been written —
         // anything listening (the search indexer especially) wants the ticket

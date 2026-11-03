@@ -300,6 +300,71 @@ function taskContractorFieldsOn(PDO $conn, ?int $tenantId): bool
     return tenantSettingOn($conn, $tenantId, SETTING_TASK_CONTRACTOR_FIELDS, true);
 }
 
+// ---------------------------------------------------------------------------
+// Department on tickets (GH #218 part A). Two answers per company:
+//   shown    - whether the Department field is on the ticket screens (default yes);
+//   default  - the department a NEW ticket starts in when nothing else gave it one.
+// Hiding is presentation only: a ticket keeps its department, routing, team
+// visibility, SLA rules and workflows all still read it. Guards that stop a
+// hidden Department conflicting with Mandatory fields, or a default pointing at a
+// retired department, live in includes/ticket_department_rules.php.
+const SETTING_TICKET_DEPARTMENT_SHOWN   = 'ticket_department_shown';
+const SETTING_TICKET_DEPARTMENT_DEFAULT = 'ticket_department_default';
+
+/** Is the Department field shown on tickets of this company? */
+function ticketDepartmentShown(PDO $conn, ?int $tenantId): bool
+{
+    return tenantSettingOn($conn, $tenantId, SETTING_TICKET_DEPARTMENT_SHOWN, true);
+}
+
+/** The company's default department id as stored, or null. Not checked - see ticketDepartmentForNewTicket(). */
+function ticketDefaultDepartmentId(PDO $conn, ?int $tenantId): ?int
+{
+    $v = (int) tenantSetting($conn, $tenantId, SETTING_TICKET_DEPARTMENT_DEFAULT, '');
+    return $v > 0 ? $v : null;
+}
+
+/**
+ * The department a NEW ticket starts in, for every channel that creates one.
+ *
+ * A department the channel itself set always wins (an invalid one is the caller's
+ * to refuse - never quietly swapped for the default). Otherwise the company's
+ * default, checked AGAIN here: one no longer active is not applied, and the note
+ * returned goes on the ticket's history, so a stale setting never silently leaves
+ * tickets with no department (and so visible to every team).
+ *
+ * @param mixed $explicit  the department the channel set: an id, or null / '' for none
+ * @return array{0: ?int, 1: ?string}  [the department to store, a history note or null]
+ */
+function ticketDepartmentForNewTicket(PDO $conn, ?int $tenantId, $explicit): array
+{
+    if ($explicit !== null && $explicit !== '' && (int) $explicit > 0) return [(int) $explicit, null];
+    $id = ticketDefaultDepartmentId($conn, $tenantId);
+    if ($id === null) return [null, null];
+    try {
+        $st = $conn->prepare("SELECT name, is_active FROM departments WHERE id = ?");
+        $st->execute([$id]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+    } catch (Throwable) {
+        return [null, null];
+    }
+    if ($row && (int) $row['is_active'] === 1) return [$id, null];
+    $name = $row ? (string) $row['name'] : ('#' . $id);
+    return [null, "Default department '{$name}' is no longer active, so it was not applied."];
+}
+
+/** Writes ticketDepartmentForNewTicket()'s note on a new ticket's history. Never throws. */
+function ticketDepartmentNote(PDO $conn, int $ticketId, ?string $note): void
+{
+    if ($note === null) return;
+    try {
+        $conn->prepare("INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
+                        VALUES (?, NULL, 'Department', NULL, ?, UTC_TIMESTAMP())")->execute([$ticketId, $note]);
+    } catch (Throwable $e) {
+        error_log('[department-default] could not note ticket ' . $ticketId . ': ' . $e->getMessage());
+    }
+}
+
 /** The company a ticket belongs to, or null. Used to resolve both of the above. */
 function ticketTenantId(PDO $conn, int $ticketId): ?int
 {

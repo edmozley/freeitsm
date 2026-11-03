@@ -150,6 +150,10 @@ class TicketsService
         }
 
         self::validateLookupId($conn, 'departments', $departmentId, 'department');
+        // GH #218: none given, so the company's default department - checked here,
+        // after an explicit one was validated (a wrong one is refused above, never
+        // swapped for the default) and before anything that depends on it.
+        [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $tenantId, $departmentId);
         self::validateLookupId($conn, 'ticket_types', $typeId, 'ticket type');
         self::validateLookupId($conn, 'ticket_origins', $originId, 'origin');
         self::validateLookupId($conn, 'ticket_categories', $categoryId, 'category');
@@ -291,6 +295,7 @@ class TicketsService
             )->execute([$mailboxId, $subject, $requesterEmail, $requesterName, $requesterEmail, $bodyPreview, $bodyHtml, $ticketId]);
 
             self::auditWrite($conn, $ticketId, $ctx->actorId, 'Ticket Created', null, $creationNote);
+            ticketDepartmentNote($conn, $ticketId, $departmentNote);
             if ($typePick) ticketTypeAutoRecord($conn, $ticketId, $typePick);
 
             if ($customValues) {
