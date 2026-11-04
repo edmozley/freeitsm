@@ -1,6 +1,6 @@
 <?php
 /**
- * API: list open incidents (tickets) that can be linked to a change — scoped to the
+ * API: list open tickets (any type - GH #245) that can be linked to a change — scoped to the
  * change's company, excluding closed/trashed ones and any already linked. Optional ?q
  * search on number/subject. Used by the change detail's "Link incident" picker.
  */
@@ -47,9 +47,10 @@ try {
     }
 
     $sql = "SELECT t.id, t.ticket_number, t.subject, t.created_datetime,
-                   ts.name AS status, COALESCE(NULLIF(TRIM(u.display_name),''), u.email) AS requester
+                   ts.name AS status, tt.name AS ticket_type, COALESCE(NULLIF(TRIM(u.display_name),''), u.email) AS requester
             FROM tickets t
             LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
+            LEFT JOIN ticket_types tt ON tt.id = t.ticket_type_id
             LEFT JOIN users u ON u.id = t.user_id
             $where
             ORDER BY t.created_datetime DESC

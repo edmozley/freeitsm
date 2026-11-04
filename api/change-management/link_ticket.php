@@ -1,6 +1,6 @@
 <?php
 /**
- * API: link an incident (ticket) to a change. Thin UI adapter over
+ * API: link a ticket (any type) to a change. Thin UI adapter over
  * ChangesService::linkTicket (which gates both sides, enforces the same-company
  * rule, and writes the audit row). Accepts change_id and ticket_id|ticket_number.
  */
@@ -31,7 +31,7 @@ try {
     if ($ticketId <= 0) throw new Exception('Ticket not found — check the ticket number.');
 
     ChangesService::linkTicket($conn, ActorContext::fromSession($conn), $changeId, ['ticket_id' => $ticketId]);
-    echo json_encode(['success' => true, 'change_id' => $changeId, 'message' => 'Incident linked']);
+    echo json_encode(['success' => true, 'change_id' => $changeId, 'message' => 'Ticket linked']);
 } catch (ServiceError $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } catch (Exception $e) {

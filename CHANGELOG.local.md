@@ -27,6 +27,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2727 | Domains           | Feature     | An internal HTTPS endpoint can also check a page: a path and the expected status codes, asked once the certificate passes, over a verified connection to the permitted address, reading only the status and never following a redirect (#243 slice 3). |
 | 2728 | API               | Feature     | The REST API manages internal monitoring on domains - endpoints, expected records and trust profiles - through the same service as the screens; changes need the new domains.internal permission and the key's analyst holding Internal monitoring (#243 slice 3). |
 | 2729 | Tickets           | Fix         | After somebody else assigned a ticket, Reply was addressed to the assigned analyst instead of the requester, because the analyst's assignment email (#148) was saved into the conversation; it now goes to the ticket's history instead, and Reply ignores older messages sent only to analysts (#244). |
+| 2730 | Change Management | Improvement | The change's "Linked incidents" section, picker, buttons, messages, timeline and help now say "tickets" in every translated language, because any ticket type can be linked, and each linked ticket shows its type beside its number (#245). |
 
 
 

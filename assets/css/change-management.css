@@ -1937,6 +1937,19 @@ body.module-read-only #fileUploadArea { display: none !important; }
 
 .linked-incidents-table td a { color: var(--primary, #2563eb); text-decoration: none; font-weight: 600; }
 .linked-incidents-table td a:hover { text-decoration: underline; }
+/* The ticket's type beside its number - any type can be linked (GH #245). */
+.linked-ticket-type {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--surface-2, #f3f4f6);
+    border: 1px solid var(--border, #e5e7eb);
+    color: var(--text-muted, #6b7280);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
 
 .linked-incidents-empty td {
     color: var(--text-muted, #6b7280);

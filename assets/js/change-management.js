@@ -798,14 +798,15 @@ function cmPreviewBadge(type, id) {
 }
 
 /**
- * The linked incidents table for a change - each with a link, a preview badge and Unlink
- * - and the button to link another.
+ * The linked tickets table for a change - each with its type, a link, a preview badge and
+ * Unlink - and the button to link another. Any ticket type can be linked, so the wording is
+ * "tickets", and the type beside each one says which kind it is (GH #245).
  */
 function renderLinkedIncidents(c) {
     const incidents = c.incidents || [];
     const rows = incidents.map(i => `
         <tr>
-            <td><a href="../tickets/index.php?ticket_id=${i.id}" target="_blank" rel="noopener">${escapeHtml(i.ticket_number || ('#' + i.id))}</a></td>
+            <td><a href="../tickets/index.php?ticket_id=${i.id}" target="_blank" rel="noopener">${escapeHtml(i.ticket_number || ('#' + i.id))}</a>${i.ticket_type ? ` <span class="linked-ticket-type">${escapeHtml(i.ticket_type)}</span>` : ''}</td>
             <td>${escapeHtml(i.subject || '')}</td>
             <td>${escapeHtml(i.status || '')}</td>
             <td class="linked-incidents-actions">
@@ -860,7 +861,7 @@ async function loadLinkableIncidents() {
         list.innerHTML = data.tickets.map(t => `
             <button type="button" class="link-incident-row" onclick="linkChangeIncident(${t.id})">
                 <span class="link-incident-title">${escapeHtml(t.subject || '(no subject)')}</span>
-                <span class="link-incident-meta">${escapeHtml(t.ticket_number || '')}${t.status ? ' &middot; ' + escapeHtml(t.status) : ''}${t.requester ? ' &middot; ' + escapeHtml(t.requester) : ''}</span>
+                <span class="link-incident-meta">${escapeHtml(t.ticket_number || '')}${t.ticket_type ? ' &middot; ' + escapeHtml(t.ticket_type) : ''}${t.status ? ' &middot; ' + escapeHtml(t.status) : ''}${t.requester ? ' &middot; ' + escapeHtml(t.requester) : ''}</span>
             </button>`).join('');
     } catch (e) {
         list.innerHTML = `<div class="link-incident-empty">${window.t('change-management.toast.load_incidents_failed')}</div>`;

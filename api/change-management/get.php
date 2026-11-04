@@ -86,13 +86,15 @@ try {
     $commentStmt->execute([$changeId]);
     $change['comments'] = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Linked incidents (tickets). Degrades to [] if the table isn't present yet.
+    // Linked tickets - any type, not only incidents (GH #245); the key stays 'incidents'
+    // because the screen and older callers read it. Degrades to [] if the table isn't present yet.
     $change['incidents'] = [];
     try {
-        $incSql = "SELECT t.id, t.ticket_number, t.subject, ts.name AS status
+        $incSql = "SELECT t.id, t.ticket_number, t.subject, ts.name AS status, tt.name AS ticket_type
                    FROM change_tickets ct
                    JOIN tickets t ON t.id = ct.ticket_id
                    LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
+                   LEFT JOIN ticket_types tt ON tt.id = t.ticket_type_id
                    WHERE ct.change_id = ? AND t.deleted_datetime IS NULL
                    ORDER BY t.created_datetime DESC";
         $incStmt = $conn->prepare($incSql);

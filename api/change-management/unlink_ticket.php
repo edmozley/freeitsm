@@ -22,7 +22,7 @@ try {
 
     $conn = connectToDatabase();
     ChangesService::unlinkTicket($conn, ActorContext::fromSession($conn), $changeId, $ticketId);
-    echo json_encode(['success' => true, 'message' => 'Incident unlinked']);
+    echo json_encode(['success' => true, 'message' => 'Ticket unlinked']);
 } catch (ServiceError $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } catch (Exception $e) {

@@ -1200,6 +1200,9 @@ class ChangesService
 
         $conn->prepare("INSERT INTO change_tickets (change_id, ticket_id, created_by_id, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
              ->execute([$changeId, $ticketId, $actorId]);
+        // TRAP: 'Linked incident' is a stored marker, not wording - the timeline matches it
+        // (change-management.js) and shows the translated "linked ticket". Renaming it would
+        // orphan every existing history row; the screen went neutral in GH #245, this stays.
         self::auditWrite($conn, $changeId, $actorId, 'field_change', 'Linked incident', null, $ticket['ticket_number']);
         $conn->prepare("UPDATE changes SET modified_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$changeId]);
 
