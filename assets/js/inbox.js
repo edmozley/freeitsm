@@ -987,7 +987,11 @@ async function loadTicketTeams() {
  * must never hide a field.
  */
 function deptShownFor(email) {
-    const s = (allCompaniesView && classificationByCompany && email)
+    // TRAP: keyed on classificationByCompany, NOT allCompaniesView. The per-company
+    // settings only arrive in the all-companies view, and they are loaded before the
+    // folder rule runs - allCompaniesView is set later, by loadEmails(), and never in
+    // table mode. Gating on it answered for the active company alone.
+    const s = (classificationByCompany && email)
         ? (classificationByCompany[ticketCompanyId(email)] || classificationByCompany[String(ticketCompanyId(email))] || ticketClassification)
         : ticketClassification;
     return !s || s.department !== false;
@@ -1016,7 +1020,8 @@ function applyDeptFolderRule() {
  * the board shows Department. Per-ticket screens use deptShownFor().
  */
 function deptShownAnywhere() {
-    if (allCompaniesView && classificationByCompany) return Object.values(classificationByCompany).some(s => !s || s.department !== false);
+    // Not gated on allCompaniesView - see the TRAP in deptShownFor().
+    if (classificationByCompany) return Object.values(classificationByCompany).some(s => !s || s.department !== false);
     return !ticketClassification || ticketClassification.department !== false;
 }
 

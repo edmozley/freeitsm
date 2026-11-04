@@ -35,7 +35,7 @@ try {
     $usedBy = ticketDepartmentDefaultUses($conn, (int) $id);
     if ($usedBy) {
         throw new Exception('This department is the default for new tickets for ' . ticketDepartmentPlaceList($usedBy)
-            . '. Choose another default, or No default, on Tickets -> Settings -> Custom fields -> Built-in fields, then delete it.');
+            . '. Choose another default, or No default, on Tickets -> Settings -> Custom fields -> Department field, then delete it.');
     }
 
     $sql = "DELETE FROM departments WHERE id = ?";

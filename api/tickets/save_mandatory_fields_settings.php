@@ -88,7 +88,7 @@ try {
         $hiddenFor = ticketDepartmentConflicts($conn, null, [], true);
         if ($hiddenFor) {
             echo json_encode(['success' => false, 'error' => 'Department is hidden for ' . ticketDepartmentPlaceList($hiddenFor)
-                . ' (Tickets -> Settings -> Custom fields -> Built-in fields), so it cannot be required at closure. Show it there first.']);
+                . ' (Tickets -> Settings -> Custom fields -> Department field), so it cannot be required at closure. Show it there first.']);
             exit;
         }
     }

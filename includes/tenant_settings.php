@@ -307,8 +307,8 @@ function taskContractorFieldsOn(PDO $conn, ?int $tenantId): bool
 // Department on tickets (GH #218 part A). Two answers per company:
 //   shown    - whether the Department field is on the ticket screens (default yes);
 //   default  - the department a NEW ticket starts in when nothing else gave it one.
-// Hiding is presentation only: a ticket keeps its department, routing, team
-// visibility, SLA rules and workflows all still read it. Guards that stop a
+// Hiding is presentation only: a ticket keeps its department, and folders, routing,
+// SLA rules and workflows all still read it (departments never decide who may open a ticket). Guards that stop a
 // hidden Department conflicting with Mandatory fields, or a default pointing at a
 // retired department, live in includes/ticket_department_rules.php.
 const SETTING_TICKET_DEPARTMENT_SHOWN   = 'ticket_department_shown';
@@ -334,7 +334,7 @@ function ticketDefaultDepartmentId(PDO $conn, ?int $tenantId): ?int
  * to refuse - never quietly swapped for the default). Otherwise the company's
  * default, checked AGAIN here: one no longer active is not applied, and the note
  * returned goes on the ticket's history, so a stale setting never silently leaves
- * tickets with no department (and so visible to every team).
+ * tickets with no department (and so out of every department folder and rule).
  *
  * @param mixed $explicit  the department the channel set: an id, or null / '' for none
  * @return array{0: ?int, 1: ?string}  [the department to store, a history note or null]

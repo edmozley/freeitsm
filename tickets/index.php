@@ -1139,7 +1139,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=184"></script>
+    <script src="../assets/js/inbox.js?v=185"></script>
     <script src="../assets/js/tickets-table.js?v=5"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>
