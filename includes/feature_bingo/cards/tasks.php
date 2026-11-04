@@ -427,6 +427,19 @@ return [
         'link'     => 'tasks/',
         'check'    => ['rows', 'user_preferences', "(preference_key = 'tasks_board_subtasks' AND preference_value IN ('open','none')) OR (preference_key = 'tasks_hide_done_subtasks' AND preference_value = 'on')"],
     ],
+    // GH #218 part B (and PR #247 for Procedures): empty Work sections fold to a heading.
+    [
+        'id'       => 'tasks.work_fold_empty',
+        'module'   => 'tasks',
+        'tier'     => 'extra',
+        'category' => 'look',
+        'title'    => 'A calmer Work view',
+        'what'     => 'Preferences -> Empty work sections on a task -> fold, so an empty Checklists, Forms, Procedures or Follow-ups section on a task shrinks to a heading such as "Forms (0)" that opens with a click.',
+        'why'      => 'A task with one checklist no longer shows three empty pickers under it - what the task actually holds is what you see.',
+        'done'     => 'Somebody has chosen to fold empty Work sections.',
+        'link'     => 'system/preferences/#work-fold',
+        'check'    => ['rows', 'user_preferences', "preference_key = 'tasks_collapse_empty_work' AND preference_value = 'on'"],
+    ],
     [
         'id'       => 'tasks.assigned_email',
         'module'   => 'tasks',

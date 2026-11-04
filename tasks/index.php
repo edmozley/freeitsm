@@ -66,7 +66,7 @@ $taskHideDone = false;
 $taskBoardSubtasks = null;
 // GH #190: does a task with working material open on its Work tab? On unless turned off.
 $taskWorkOpen = true;
-// GH #218 part B: fold empty Checklists / Forms / Follow-ups to a heading. Off unless turned on.
+// GH #218 part B: fold empty Checklists / Forms / Procedures / Follow-ups to a heading. Off unless turned on.
 $taskCollapseEmptyWork = false;
 // GH #218: does the active company show Contractor fields? Decides the sidebar filter;
 // each task carries its own answer for the task window. All companies: the install default.

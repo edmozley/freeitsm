@@ -79,7 +79,7 @@ $prefDefaults = [
     'tasks_hide_done_subtasks'   => '',
     // GH #184: all | open | none. Unset falls back to the old key above.
     'tasks_board_subtasks'       => '',
-    // GH #218 part B: 'on' folds an empty Checklists / Forms / Follow-ups section to
+    // GH #218 part B: 'on' folds an empty Checklists / Forms / Procedures / Follow-ups section to
     // a heading in a task's Work view. '' shows them in full, as before.
     'tasks_collapse_empty_work'  => '',
     // Left-panel visibility — one key per module that has a left panel.
@@ -673,7 +673,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 <span class="pref-saving-hint" id="boardSubtasksSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
 
-            <!-- GH #218: empty Checklists, Forms and Follow-ups folded to a heading. -->
+            <!-- GH #218: empty Checklists, Forms, Procedures and Follow-ups folded to a heading. -->
             <div class="pref-section">
                 <h3 id="work-fold"><?php echo htmlspecialchars(t('system.preferences.work_fold_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.work_fold_desc')); ?></p>
