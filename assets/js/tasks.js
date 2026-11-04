@@ -2939,7 +2939,7 @@ async function setWorkOpenPref(on) {
 // ── Calmer Work view (GH #218 part B) ────────────────────────────────────────
 //
 // With the personal preference "Collapse empty work sections" on, a Checklists,
-// Forms or Follow-ups section that LOADED and holds nothing shrinks to a heading
+// Forms, Procedures or Follow-ups section that LOADED and holds nothing shrinks to a heading
 // such as "Checklists (0)" that opens on click. A section with records - done or
 // not - stays open; one that failed to load says so with Retry, never "(0)".
 //
@@ -2963,7 +2963,7 @@ function workFoldState() {
  * button. A section once seen with records counts as opened, so removing its last
  * record does not snap it shut under the pointer.
  *
- * @param {string} part   'checklists' | 'forms' | 'followups'
+ * @param {string} part   'checklists' | 'forms' | 'procedures' | 'followups'
  * @param {string} label  the section's heading, already translated
  * @param {number} count  how many records it holds
  * @returns {{head: string, folded: boolean}}
@@ -2997,6 +2997,7 @@ function workOpenPart(part) { workFoldState().open[part] = true; }
 function workRenderPart(part) {
     if (part === 'checklists') renderTaskChecklists();
     else if (part === 'forms') renderTaskForms();
+    else if (part === 'procedures') renderTaskProcedures();
     else if (part === 'followups') renderTaskFollowUps();
 }
 
@@ -3015,9 +3016,9 @@ function workSectionFailed(host, taskId, part, label, retry) {
     if (part !== 'followups') workLoaded(taskId, part, true, 0);
 }
 
-// Typed but not yet sent: the follow-up boxes, a step's value and its Fail note.
+// Typed but not yet sent: the follow-up boxes, procedure search, a step's value and its Fail note.
 // Kept as they are typed, put back after any redraw, dropped once sent.
-const WORK_DRAFT_ID = /^(fuTitle|fuRef|chkValue\d+|chkNote\d+)$/;
+const WORK_DRAFT_ID = /^(fuTitle|fuRef|tpSearch|chkValue\d+|chkNote\d+)$/;
 document.addEventListener('input', e => {
     const el = e.target;
     if (!el || !el.id || !WORK_DRAFT_ID.test(el.id) || !el.closest('#taskWorkSection')) return;
@@ -3180,11 +3181,16 @@ async function loadTaskProcedures(taskId) {
     if (!host) return;
     try {
         const data = await fetch(API_BASE + 'procedures.php?task_id=' + taskId).then(r => r.json());
-        if (!data.success || !data.enabled) { host.innerHTML = ''; host.style.display = 'none'; workLoaded(taskId, 'procedures', false, 0); return; }
+        if (taskId !== selectedTaskId) return;
+        if (!data.success) throw new Error(data.error || 'procedures');
+        if (!data.enabled) { host.innerHTML = ''; host.style.display = 'none'; workLoaded(taskId, 'procedures', false, 0); return; }
         procState = { taskId, procedures: data.procedures || [], mayAdd: !!data.may_add };
         renderTaskProcedures();
         workLoaded(taskId, 'procedures', true, procState.procedures.length);
-    } catch (e) { console.error(e); host.innerHTML = ''; host.style.display = 'none'; }
+    } catch (e) {
+        console.error(e);
+        workSectionFailed(host, taskId, 'procedures', window.t('tasks.work.procedures'), 'loadTaskProcedures');
+    }
 }
 
 /** Draws each procedure - the article in line where the viewer may read it - and the picker. */
@@ -3212,7 +3218,10 @@ function renderTaskProcedures() {
             <input type="search" id="tpSearch" class="detail-input" placeholder="${esc(T('search'))}" oninput="searchTaskProcedures(this.value)" autocomplete="off">
             <div class="tp-results" id="tpResults"></div>
         </div>` : `<div class="tf-empty">${esc(T('need_knowledge'))}</div>`;
-    host.innerHTML = `<label>${esc(T('procedures'))}</label>${cards || `<div class="tf-empty">${esc(T('no_procedures'))}</div>`}${add}`;
+    const { head, folded } = workSectionHead('procedures', T('procedures'), procState.procedures.length);
+    host.innerHTML = folded ? head : `${head}${cards || `<div class="tf-empty">${esc(T('no_procedures'))}</div>`}${add}`;
+    restoreWorkDrafts(host);
+    if (!folded && host.querySelector('#tpSearch')?.value) searchTaskProcedures(host.querySelector('#tpSearch').value);
 }
 
 let tpSearchTimer = null;
