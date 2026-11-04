@@ -548,4 +548,19 @@ return [
         'link'     => 'system/managers/',
         'check'    => ['setting', 'managers_edit_by', 'eq', 'people_editors'],
     ],
+    [
+        'id'       => 'self-service.questions_in_main_form',
+        'module'   => 'self-service',
+        'tier'     => 'extra',
+        'category' => 'customer',
+        'title'    => 'Questions asked in the main form',
+        'what'     => 'The portal\'s New ticket page asks your custom field questions in the main form - subject, request type, the questions two to a row, then the description - instead of in the side panel.',
+        'why'      => 'When the questions matter as much as the description, putting them in the main form means requesters read and answer them rather than skipping past a side panel.',
+        'done'     => 'Custom field questions are asked in the main form, for the install or for at least one company.',
+        'link'     => 'tickets/settings/?tab=custom-fields',
+        'check'    => ['any', [   // GH #218 part C
+            ['setting', 'ticket_portal_field_ask', 'eq', 'main'],
+            ['sql', "SELECT COUNT(*) FROM tenant_settings WHERE setting_key = 'ticket_portal_field_ask' AND setting_value = 'main'", 1],
+        ]],
+    ],
 ];

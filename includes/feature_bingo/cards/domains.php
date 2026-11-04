@@ -293,6 +293,30 @@ return [
         'check'    => ['rows', 'domain_endpoints', "last_completed_datetime IS NOT NULL"],   // GH #203 slice 2
     ],
     [
+        'id'       => 'domains.internal_expected_records',
+        'module'   => 'domains',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'An internal name\'s DNS answers pinned',
+        'what'     => 'Expected DNS records on an internal domain - an A, AAAA, CNAME, NS or SOA record per name, with the values it should hold if you know them - checked through this server\'s DNS on every run.',
+        'why'      => 'An internal record that quietly changes, or disappears, breaks things in ways that look like a network fault. A pinned answer turns that into a named problem on the Health tab.',
+        'done'     => 'At least one expected record is set on a real internal domain.',
+        'link'     => 'domains/',
+        'check'    => ['rows', 'domain_expected_records', "domain_id IN (SELECT id FROM domains WHERE scope = 'internal' AND $real)"],   // GH #243 slice 3a
+    ],
+    [
+        'id'       => 'domains.internal_http_check',
+        'module'   => 'domains',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'An internal page that must answer',
+        'what'     => 'An internal HTTPS endpoint that also asks for a page - a health check path such as /health - and expects a status code such as 200, once its certificate passes.',
+        'why'      => 'A valid certificate on an application that returns errors is still an outage. The page check catches the application, not just the certificate.',
+        'done'     => 'At least one internal endpoint checks a page.',
+        'link'     => 'domains/settings/?tab=internal',
+        'check'    => ['rows', 'domain_endpoints', "http_path IS NOT NULL AND http_path <> ''"],   // GH #243 slice 3b
+    ],
+    [
         'id'       => 'domains.recorded_certificates',
         'module'   => 'domains',
         'tier'     => 'extra',
