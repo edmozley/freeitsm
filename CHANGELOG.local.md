@@ -29,6 +29,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2729 | Tickets           | Fix         | After somebody else assigned a ticket, Reply was addressed to the assigned analyst instead of the requester, because the analyst's assignment email (#148) was saved into the conversation; it now goes to the ticket's history instead, and Reply ignores older messages sent only to analysts (#244). |
 | 2730 | Change Management | Improvement | The change's "Linked incidents" section, picker, buttons, messages, timeline and help now say "tickets" in every translated language, because any ticket type can be linked, and each linked ticket shows its type beside its number (#245). |
 | 2731 | Tickets           | Fix         | In the all-companies view the Department folder grouping, the bulk Department button and the table's Department column followed only the active company when the page loaded, so they could disappear while another company still showed Department; they now follow every company on the board, and the settings refusals name the "Department field" panel (#218). |
+| 2732 | Domains           | Fix         | Deleting a domain now deletes its expected DNS records, and an internal endpoint's page check verifies against the same CA bundle as its certificate check, so it can no longer fail on an install where PHP has no CA store of its own (#243). |
 
 
 

@@ -27,7 +27,8 @@
  *  - VALIDATION IS NEVER SWITCHED OFF. A trust profile changes which CAs are
  *    trusted, never whether the chain and the name are checked. Untrusted, expired
  *    and wrong name are three different problems, each said as itself.
- *  - NO REDIRECTS. Only a TLS handshake is made; nothing is fetched.
+ *  - NO REDIRECTS. The certificate check is a TLS handshake and nothing more. The
+ *    optional HTTP check (GH #243) reads one status line and never follows a redirect.
  *
  * A refusal (address or port not permitted, nothing permitted yet) and a resolver
  * error are NOT CHECKED - they say nothing about the target - and the endpoint's
@@ -243,8 +244,17 @@ function domainHttpStatus(string $host, int $port, string $address, string $path
     if (isset($GLOBALS['DOMAIN_HTTP_TRACE']) && is_array($GLOBALS['DOMAIN_HTTP_TRACE'])) {
         $GLOBALS['DOMAIN_HTTP_TRACE'][] = "https://$host:$port$path@$address";
     }
+    // The path goes into the request line, so it is checked again here, not only on
+    // save - a row written some other way must not be able to add a header.
+    if (!str_starts_with($path, '/') || strlen($path) > 500 || !preg_match('/^[!-~]+$/', $path)) {
+        return ['ok' => false, 'status' => null, 'error' => 'The path is not valid'];
+    }
     $ssl = ['verify_peer' => true, 'verify_peer_name' => true, 'peer_name' => $host, 'SNI_enabled' => true];
-    if ($cafile !== null) $ssl['cafile'] = $cafile;
+    // TRAP: the SAME bundle as domainTlsCertificate(), or the certificate could pass and
+    // the page check then fail on an install where PHP has no CA store of its own
+    // (stock WAMP - see includes/ssl.php).
+    $bundle = $cafile ?? (defined('SSL_CA_BUNDLE') ? SSL_CA_BUNDLE : (function_exists('sslResolveCaBundle') ? sslResolveCaBundle() : ''));
+    if ($bundle) $ssl['cafile'] = $bundle;
     $target = str_contains($address, ':') ? "[$address]" : $address;
     $s = @stream_socket_client("ssl://$target:$port", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, stream_context_create(['ssl' => $ssl]));
     if (!$s) return ['ok' => false, 'status' => null, 'error' => $errstr !== '' ? $errstr : 'No answer on port ' . $port];

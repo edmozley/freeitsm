@@ -118,6 +118,12 @@ if (!$expected || $expected !== $dbName) {
 
         DomainsService::deleteExpectedRecord($conn, $ctx, (int)$y['id']);
         ok('a record can be removed', count(DomainsService::expectedRecords($conn, $id)) === 1);
+
+        // Deleting the domain takes its expected records with it - there is no foreign key
+        // to cascade, so deleteDomain() must remove them itself.
+        DomainsService::deleteDomain($conn, $ctx, $id);
+        $made = array_values(array_diff($made, [$id]));
+        ok('deleting the domain deletes its expected records', (int)$conn->query("SELECT COUNT(*) FROM domain_expected_records WHERE domain_id = $id")->fetchColumn() === 0);
     } finally {
         foreach ($made as $m) {
             $conn->prepare("DELETE FROM domain_expected_records WHERE domain_id = ?")->execute([$m]);

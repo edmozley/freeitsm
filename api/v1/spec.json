@@ -7157,7 +7157,7 @@
                     "p": "\/domains\/{id}\/endpoints",
                     "perm": "domains.internal",
                     "s": "Add an HTTPS endpoint",
-                    "d": "Adds an endpoint to an internal domain: host (the domain or a name under it - a name, not an address) and port (one of the permitted ports), with an optional certificate warning window, trust profile and HTTP check (http_path, http_expect). It is checked on the next run or a check. The same host and port twice is refused (422). Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
+                    "d": "Adds an endpoint to an internal domain: host (the domain or a name under it - a name, not an address) and port (1-65535; a port outside the permitted ports is saved, then refused as port_refused when it is checked), with an optional certificate warning window, trust profile and HTTP check (http_path, http_expect). It is checked on the next run or a check. The same host and port twice is refused (422). Needs domains.internal, and the key's analyst must have the Internal monitoring permission (403 otherwise).",
                     "params": [
                         {
                             "name": "id",
