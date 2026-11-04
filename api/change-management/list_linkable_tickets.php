@@ -2,7 +2,7 @@
 /**
  * API: list open tickets (any type - GH #245) that can be linked to a change — scoped to the
  * change's company, excluding closed/trashed ones and any already linked. Optional ?q
- * search on number/subject. Used by the change detail's "Link incident" picker.
+ * search on number/subject. Used by the change detail's "Link ticket" picker.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';

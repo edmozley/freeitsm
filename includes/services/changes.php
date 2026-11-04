@@ -1156,10 +1156,10 @@ class ChangesService
     // ======================================================================
 
     /**
-     * Link an incident (ticket) to a change. Returns [change_id, ticket_id, ticket_number, linked].
+     * Link a ticket (any type) to a change. Returns [change_id, ticket_id, ticket_number, linked].
      *
      * @param int $changeId  the change to link to
-     * @param array $in  ticket_id (required) - the incident to link
+     * @param array $in  ticket_id (required) - the ticket to link
      */
     public static function linkTicket(PDO $conn, ActorContext $ctx, int $changeId, array $in): array
     {
@@ -1188,14 +1188,14 @@ class ChangesService
             $cTid = $change['tenant_id'] === null ? $default : (int)$change['tenant_id'];
             $tTid = $ticket['tenant_id'] === null ? $default : (int)$ticket['tenant_id'];
             if ($cTid !== $tTid) {
-                throw new ServiceError('validation', 'invalid_field', 'That incident belongs to a different company than this change.');
+                throw new ServiceError('validation', 'invalid_field', 'That ticket belongs to a different company than this change.');
             }
         }
 
         $dup = $conn->prepare("SELECT id FROM change_tickets WHERE change_id = ? AND ticket_id = ?");
         $dup->execute([$changeId, $ticketId]);
         if ($dup->fetchColumn()) {
-            throw new ServiceError('conflict', 'conflict', 'This incident is already linked to this change.');
+            throw new ServiceError('conflict', 'conflict', 'This ticket is already linked to this change.');
         }
 
         $conn->prepare("INSERT INTO change_tickets (change_id, ticket_id, created_by_id, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
@@ -1210,7 +1210,7 @@ class ChangesService
     }
 
     /**
-     * Unlink an incident from a change. 404 if not linked. Audited.
+     * Unlink a ticket from a change. 404 if not linked. Audited.
      *
      * @param int $changeId  the change to unlink from
      */
