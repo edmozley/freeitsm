@@ -25,7 +25,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/services/ticket_fields.php';
 try { $ssAskMain = TicketFieldsService::portalAskPlace(connectToDatabase()) === 'main'; }
-catch (Throwable) { $ssAskMain = false; }
+catch (Throwable $e) { $ssAskMain = false; }
 if ($ssAskMain) $bodyClass .= ' ss-ask-main';
 // Loads assets/js/screen-recorder.js — shared with the reply composer on
 // tickets.php. Pairs with includes/record-modal.php in the markup below.

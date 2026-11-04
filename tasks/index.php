@@ -76,7 +76,7 @@ try {
     $__c = connectToDatabase();
     $__t = getActiveTenantId($__c, (int) ($_SESSION['analyst_id'] ?? 0));
     $taskContractorFields = taskContractorFieldsOn($__c, isActiveTenantAll($__c) ? null : $__t);
-} catch (Throwable) { /* keep them shown */ }
+} catch (Throwable $e) { /* keep them shown */ }
 $taskSubtaskCards = [];
 try {
     $__p = connectToDatabase()->prepare(
