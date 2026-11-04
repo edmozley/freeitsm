@@ -3247,6 +3247,9 @@ async function postTaskProcedure(payload) {
         }).then(r => r.json());
         if (!d.success) { showToast(d.error || window.t('tasks.work.failed'), 'error'); return; }
         procState.procedures = d.procedures || [];
+        // The search was for the article just added: drop it, or the redraw puts the
+        // text back and offers the same article again.
+        if (payload.action === 'add') dropWorkDrafts('tpSearch');
         renderTaskProcedures();
         workLoaded(selectedTaskId, 'procedures', true, procState.procedures.length);
         loadTaskHistory(selectedTaskId);

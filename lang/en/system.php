@@ -1330,7 +1330,7 @@ return [
         'board_subtasks_open'    => 'Only the ones still to do',
         'board_subtasks_none'    => 'None - just the count',
         'work_fold_heading' => 'Empty work sections on a task',
-        'work_fold_desc' => 'A task\'s Work view has Checklists, Forms and Follow-ups. Choose whether one with nothing in it is shown in full, with its attach and create controls, or folded to a heading such as "Checklists (0)" that opens with a click.',
+        'work_fold_desc' => 'A task\'s Work view has Checklists, Forms, Procedures and Follow-ups. Choose whether one with nothing in it is shown in full, with its attach and create controls, or folded to a heading such as "Checklists (0)" that opens with a click.',
         'work_fold_show' => 'Show them in full',
         'work_fold_collapse' => 'Fold empty ones to a heading',
         'nt_company_heading' => 'My company for new tickets',

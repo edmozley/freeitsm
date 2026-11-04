@@ -1147,7 +1147,7 @@ return [
         'board_subtasks_open' => 'Nur die noch offenen',
         'board_subtasks_none' => 'Keine - nur die Anzahl',
         'work_fold_heading' => 'Leere Arbeitsbereiche einer Aufgabe',
-        'work_fold_desc' => 'Die Arbeitsansicht einer Aufgabe enthält Checklisten, Formulare und Folgemaßnahmen. Wählen Sie, ob ein leerer Bereich vollständig mit seinen Steuerelementen zum Anhängen und Erstellen angezeigt wird oder zu einer Überschrift wie „Checklisten (0)“ eingeklappt wird, die sich per Klick öffnet.',
+        'work_fold_desc' => 'Die Arbeitsansicht einer Aufgabe enthält Checklisten, Formulare, Verfahren und Folgemaßnahmen. Wählen Sie, ob ein leerer Bereich vollständig mit seinen Steuerelementen zum Anhängen und Erstellen angezeigt wird oder zu einer Überschrift wie „Checklisten (0)“ eingeklappt wird, die sich per Klick öffnet.',
         'work_fold_show' => 'Vollständig anzeigen',
         'work_fold_collapse' => 'Leere zu einer Überschrift einklappen',
         'nt_company_heading' => 'Meine Firma für neue Tickets',

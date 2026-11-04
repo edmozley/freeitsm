@@ -14,6 +14,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2735 | Tasks             | Fix         | Adding a procedure from the Work view clears the search box and its results again, instead of putting the search back after the redraw and offering the article just added (PR #247 review). |
+| 2734 | Tasks             | Improvement | An empty Procedures section in a task's Work view now folds to "Procedures (0)" with Checklists, Forms and Follow-ups when "Empty work sections on a task" is set to fold, a procedures load that fails says so with Retry instead of the section vanishing, and a half-typed procedure search survives a redraw (PR #247 by Dr4inder, #218). |
 
 
 

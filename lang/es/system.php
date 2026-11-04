@@ -1147,7 +1147,7 @@ return [
         'board_subtasks_open' => 'Solo las que quedan por hacer',
         'board_subtasks_none' => 'Ninguna: solo el recuento',
         'work_fold_heading' => 'Secciones de trabajo vacías en una tarea',
-        'work_fold_desc' => 'La vista Trabajo de una tarea tiene Listas de comprobación, Formularios y Seguimientos. Elija si una sección vacía se muestra completa, con sus controles para adjuntar y crear, o se pliega a un encabezado como «Listas de comprobación (0)» que se abre con un clic.',
+        'work_fold_desc' => 'La vista Trabajo de una tarea tiene Listas de comprobación, Formularios, Procedimientos y Seguimientos. Elija si una sección vacía se muestra completa, con sus controles para adjuntar y crear, o se pliega a un encabezado como «Listas de comprobación (0)» que se abre con un clic.',
         'work_fold_show' => 'Mostrarlas completas',
         'work_fold_collapse' => 'Plegar las vacías a un encabezado',
         'nt_company_heading' => 'Mi empresa para tickets nuevos',
