@@ -21,6 +21,16 @@ requireAnyModuleAccessJson(['knowledge', 'tickets', 'lms'], null, 'knowledge'); 
 
 $search = trim($_GET['search'] ?? '');
 $tagIds = isset($_GET['tags']) ? array_filter(explode(',', $_GET['tags'])) : [];
+$limit = null;
+if (isset($_GET['limit'])) {
+    $limit = filter_var($_GET['limit'], FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1, 'max_range' => 50]]);
+    if ($limit === false) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Invalid limit']);
+        exit;
+    }
+}
 
 try {
     $conn = connectToDatabase();
@@ -89,6 +99,7 @@ try {
     }
 
     $sql .= " ORDER BY a.modified_datetime DESC";
+    if ($limit !== null) $sql .= " LIMIT " . $limit;
 
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
