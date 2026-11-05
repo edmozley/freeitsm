@@ -104,8 +104,8 @@ try {
         $tagStmt->execute([$article['id']]);
         $article['tags'] = $tagStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Strip HTML from preview
-        $article['preview'] = strip_tags($article['preview']);
+        // Strip markup and decode entities; the client escapes the plain text on render.
+        $article['preview'] = html_entity_decode(strip_tags((string) $article['preview']), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
     echo json_encode([
