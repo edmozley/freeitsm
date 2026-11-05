@@ -871,10 +871,13 @@ function goUpOneLevel() {
 /** Makes a folder the current one, updates the URL and reloads the folder tree and the article list for it. */
 function selectFolder(value) {
     activeFolder = String(value);
-    // ⚠️ The URL syncs from showView(), and changing folder does not change
-    // VIEW — so without this the address bar keeps naming whichever folder you
-    // arrived on and every link copied afterwards is wrong.
-    syncArticleUrl('list');
+    // A folder click leaves an open article detail for the selected folder's list.
+    // Keep an open editor visible so an unsaved draft is not hidden.
+    if (document.getElementById('articleDetailView').style.display === 'block') {
+        showView('list');
+    } else {
+        syncArticleUrl('list');
+    }
     renderFolderTree(0);   // repaint the selection; counts come back on reload
     loadFolders();
     loadArticles(document.getElementById('articleSearch').value, activeTagFilters);
