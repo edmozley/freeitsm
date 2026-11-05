@@ -69,6 +69,16 @@ return [
             'sensitive' => true,
         ],
         [
+            // The risk policy (#246): the likelihood and impact levels, the results and the
+            // matrix. Sensitive: it decides how risky every new change reads, and so how much
+            // review it gets.
+            'id'        => 'risk-policy',
+            'cap'       => capKey(Cap::CHANGES_RISK_POLICY),
+            'label_key' => 'change-management.settings.tab_risk_policy',
+            'grant'     => 'Manage the change risk policy',
+            'sensitive' => true,
+        ],
+        [
             // Standard-change templates (#180 §8): writing the recipes. Approving one is a
             // separate, everyday permission (below), so the author cannot approve their own.
             'id'        => 'templates',

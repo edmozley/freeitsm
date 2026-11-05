@@ -55,6 +55,8 @@ try {
             'values'             => $draft,
             'team_ids'           => array_map('intval', $teams->fetchAll(PDO::FETCH_COLUMN)),
             'current_version_id' => $t['current_version_id'] !== null ? (int)$t['current_version_id'] : null,
+            // The risk policy its ratings were given under (#246); null = built-in.
+            'risk_policy_version_id' => isset($t['risk_policy_version_id']) ? (int)$t['risk_policy_version_id'] ?: null : null,
             'retired'            => $t['retired_datetime'] !== null,
             'versions'           => $vers->fetchAll(PDO::FETCH_ASSOC),
         ];

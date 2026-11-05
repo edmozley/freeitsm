@@ -22,10 +22,9 @@ const RP_CHANGE_DIMENSIONS = [
     'type'     => ["COALESCE(ct.name, 'Unknown')",      '', 'MAX(ct.colour)'],
     'priority' => ["COALESCE(cp.name, 'Not set')",      'LEFT JOIN change_priorities cp ON cp.id = c.priority_id', 'MAX(cp.colour)'],
     'impact'   => ["COALESCE(ci.name, 'Not set')",      'LEFT JOIN change_impacts ci ON ci.id = c.impact_id', 'MAX(ci.colour)'],
-    // Risk has no lookup table: ChangeService::riskLevel() stores the level as text.
-    'risk'     => ["COALESCE(c.risk_level, 'Not assessed')", '',
-                   "CASE MAX(c.risk_level) WHEN 'Low' THEN '#16a34a' WHEN 'Medium' THEN '#ca8a04' WHEN 'High' THEN '#ea580c'
-                                           WHEN 'Very High' THEN '#dc2626' WHEN 'Critical' THEN '#991b1b' ELSE '#94a3b8' END"],
+    // Risk has no lookup table: the result is stored as its policy's word (#246). The colour
+    // comes from the policies afterwards (rpChangeRiskColours()), not from SQL.
+    'risk'     => ["COALESCE(c.risk_level, 'Not assessed')", '', 'NULL'],
 ];
 
 const RP_CHANGE_LOOKUPS = 'LEFT JOIN change_statuses cs ON cs.id = c.status_id LEFT JOIN change_types ct ON ct.id = c.change_type_id';
@@ -58,7 +57,14 @@ function rpChangesBreakdown(PDO $conn, int $analystId, array $o, array $range, $
                            $where
                           GROUP BY label ORDER BY value DESC");
     $s->execute($params);
-    return rpChartFromRows($s->fetchAll(PDO::FETCH_ASSOC), $o['limit'], $o['chart'], t('reporting.packs.series.changes'));
+    $rows = $s->fetchAll(PDO::FETCH_ASSOC);
+    if ($o['by'] === 'risk') {
+        // Each result in the colour its policy gives it; "Not assessed" grey.
+        require_once __DIR__ . '/../changes/risk_policy.php';
+        foreach ($rows as &$r) $r['colour'] = ChangeRiskPolicy::colourFor($conn, $r['label'] === 'Not assessed' ? null : $r['label']);
+        unset($r);
+    }
+    return rpChartFromRows($rows, $o['limit'], $o['chart'], t('reporting.packs.series.changes'));
 }
 
 /**

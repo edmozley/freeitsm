@@ -6,6 +6,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/changes/risk_policy.php';
 
 header('Content-Type: application/json');
 
@@ -50,6 +51,7 @@ try {
                 c.work_end_datetime,
                 c.risk_score,
                 c.risk_level,
+                " . (ChangeRiskPolicy::ready($conn) ? 'c.risk_policy_version_id,' : 'NULL AS risk_policy_version_id,') . "   -- #246: drawn on the scale it was rated on
                 c.created_datetime,
                 c.modified_datetime,
                 c.assigned_to_id,

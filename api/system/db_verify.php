@@ -386,6 +386,29 @@ try {
         // Non-fatal — everyone with an address is unaffected either way.
     }
 
+    // `changes.risk_level` was VARCHAR(20), wide enough for the built-in words
+    // ("Very High"). A risk policy (#246) uses the organisation's own words, so
+    // it is 50 now. Same probe-then-MODIFY shape as above; widening a VARCHAR
+    // cannot invalidate an existing row.
+    try {
+        $rlCol = $conn->prepare(
+            "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns
+             WHERE table_schema = ? AND table_name = 'changes' AND column_name = 'risk_level'"
+        );
+        $rlCol->execute([$dbName]);
+        $rlLen = $rlCol->fetchColumn();
+        if ($rlLen !== false && (int)$rlLen < 50) {
+            $conn->exec("ALTER TABLE `changes` MODIFY `risk_level` VARCHAR(50) NULL");
+            $results[] = [
+                'table'   => 'changes',
+                'status'  => 'updated',
+                'details' => ['risk_level: VARCHAR(' . (int)$rlLen . ') → VARCHAR(50) (a risk policy uses its own words)'],
+            ];
+        }
+    } catch (Exception $e) {
+        // Non-fatal — the built-in words fit either way; only a long policy word would be cut.
+    }
+
     // `calendar_sync_events.ticket_id` was NOT NULL back when only a ticket
     // could reach a calendar. A task now can (#75), and a row belongs to one or
     // the other, never both — so a task's row has no ticket to name. Same

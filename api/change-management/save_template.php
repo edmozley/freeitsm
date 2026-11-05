@@ -14,6 +14,8 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/changes/templates.php';
+require_once '../../includes/service_context.php';
+require_once '../../includes/changes/risk_policy.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -45,8 +47,38 @@ try {
     $teamIds = array_values(array_unique(array_filter(array_map('intval', is_array($in['team_ids'] ?? null) ? $in['team_ids'] : []))));
 
     $conn = connectToDatabase();
-    $conn->beginTransaction();
     $id = (int)($in['id'] ?? 0);
+
+    // Risk ratings belong to a risk policy (#246). Templates are install-wide, so they use
+    // the install's policy. Ratings sent back unchanged keep the scale they were given on;
+    // new ones are checked against the policy in use and remember it.
+    $riskReady = ChangeRiskPolicy::ready($conn);
+    $riskVersion = null;
+    if ($riskReady) {
+        $policy = ChangeRiskPolicy::current($conn, null);
+        $old = ['risk_likelihood' => null, 'risk_impact_score' => null, 'risk_policy_version_id' => null];
+        if ($id > 0) {
+            $o = $conn->prepare("SELECT risk_likelihood, risk_impact_score, risk_policy_version_id FROM change_templates WHERE id = ?");
+            $o->execute([$id]);
+            $old = $o->fetch(PDO::FETCH_ASSOC) ?: $old;
+        }
+        $li = array_search('risk_likelihood', array_keys(ChangeTemplates::FIELDS), true);
+        $ii = array_search('risk_impact_score', array_keys(ChangeTemplates::FIELDS), true);
+        $newL = $args[$li]; $newI = $args[$ii];
+        $oldL = $old['risk_likelihood'] !== null ? (int)$old['risk_likelihood'] : null;
+        $oldI = $old['risk_impact_score'] !== null ? (int)$old['risk_impact_score'] : null;
+        if ($newL === $oldL && $newI === $oldI && empty($in['risk_reassess'])) {
+            $riskVersion = $old['risk_policy_version_id'] !== null ? (int)$old['risk_policy_version_id'] : null;
+        } else {
+            $args[$li] = ChangeRiskPolicy::rating($newL, 'risk_likelihood', $policy['content'], 'likelihood');
+            $args[$ii] = ChangeRiskPolicy::rating($newI, 'risk_impact_score', $policy['content'], 'impact');
+            $riskVersion = ($args[$li] !== null || $args[$ii] !== null) ? $policy['version_id'] : null;
+        }
+        $cols[] = 'risk_policy_version_id';
+        $args[] = $riskVersion;
+    }
+
+    $conn->beginTransaction();
     if ($id > 0) {
         $set = implode(', ', array_map(fn($c) => "$c = ?", $cols));
         $conn->prepare("UPDATE change_templates SET name = ?, scope_use = ?, scope_not = ?, open_fields = ?, $set WHERE id = ?")

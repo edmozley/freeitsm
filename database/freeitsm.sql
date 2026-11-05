@@ -4516,7 +4516,8 @@ CREATE TABLE IF NOT EXISTS `changes` (
     `risk_likelihood`               TINYINT NULL,
     `risk_impact_score`             TINYINT NULL,
     `risk_score`                    TINYINT NULL,
-    `risk_level`                    VARCHAR(20) NULL,
+    `risk_level`                    VARCHAR(50) NULL,
+    `risk_policy_version_id`        INT NULL,   -- #246: NULL = the built-in 5 x 5
     `pir_was_successful`            TINYINT(1) NULL,
     `pir_actual_start`              DATETIME NULL,
     `pir_actual_end`                DATETIME NULL,
@@ -4756,6 +4757,7 @@ CREATE TABLE IF NOT EXISTS `change_templates` (
     `open_fields`               VARCHAR(255) NOT NULL DEFAULT 'description',
     `current_version_id`        INT NULL,
     `retired_datetime`          DATETIME NULL,
+    `risk_policy_version_id`    INT NULL,   -- #246: the risk policy its ratings were given under
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_template_category` FOREIGN KEY (`category_id`) REFERENCES `change_categories` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_template_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`),
@@ -4783,6 +4785,31 @@ CREATE TABLE IF NOT EXISTS `change_template_versions` (
     CONSTRAINT `fk_ctv_template` FOREIGN KEY (`template_id`) REFERENCES `change_templates` (`id`),
     CONSTRAINT `fk_ctv_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_ctv_approved_by` FOREIGN KEY (`approved_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Change risk policies (#246): one row per install (tenant_id NULL) today, a company's own later.
+-- current_version_id NULL = the built-in 5 x 5. See includes/changes/risk_policy.php.
+CREATE TABLE IF NOT EXISTS `change_risk_policies` (
+    `id`                 INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`          INT NULL,
+    `current_version_id` INT NULL,
+    `updated_by_id`      INT NULL,
+    `updated_datetime`   DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_crp_tenant` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Every saved version of a risk policy; never updated, so a change always shows the scale it was rated on.
+CREATE TABLE IF NOT EXISTS `change_risk_policy_versions` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `policy_id`        INT NOT NULL,
+    `version_no`       INT NOT NULL,
+    `content`          LONGTEXT NOT NULL,
+    `content_hash`     CHAR(64) NOT NULL,
+    `created_by_id`    INT NULL,
+    `created_datetime` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_crpv_policy_version` (`policy_id`, `version_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Who may use a template (#180 §8): no rows = everyone with Change Management.

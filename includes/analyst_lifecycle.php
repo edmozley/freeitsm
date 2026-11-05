@@ -203,6 +203,8 @@ function analystReferenceRegistry(): array {
         ['change_templates', 'created_by_id', 'history'],
         ['change_template_versions', 'created_by_id', 'history'],
         ['change_template_versions', 'approved_by_id', 'history'],
+        ['change_risk_policies', 'updated_by_id', 'history'],          // #246
+        ['change_risk_policy_versions', 'created_by_id', 'history'],   // #246
         ['change_tickets', 'created_by_id', 'history'],
         ['problems', 'created_by_id', 'history'],
         ['problem_tickets', 'created_by_id', 'history'],

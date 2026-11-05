@@ -270,6 +270,14 @@ function changeApprovalMaterialValues(array $row, array $material): array
         }
         $out[$key] = count($vals) === 1 ? $vals[0] : $vals;
     }
+    // A rating means nothing without its scale (#246): "3 of 5" re-assessed as "3 of 4"
+    // is a material change even though the number is the same. TRAP: added only when the
+    // change is on a saved policy - the built-in is NULL, so every fingerprint taken
+    // before risk policies existed is still the same and no approval reads as edited.
+    if ((in_array('risk_likelihood', $material, true) || in_array('risk_impact_score', $material, true))
+        && ($row['risk_policy_version_id'] ?? null) !== null) {
+        $out['risk_policy_version_id'] = (string)$row['risk_policy_version_id'];
+    }
     ksort($out);
     return $out;
 }

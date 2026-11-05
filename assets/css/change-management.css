@@ -1011,6 +1011,11 @@ body.cm-editor-open .editor-form {
 .cm-risk-guide-table thead th { background: var(--surface, #fff); font-weight: 600; }
 .cm-risk-guide-table tbody th { width: 28px; text-align: center; background: var(--surface, #fff); }
 .cm-risk-guide-note { color: var(--text-muted, #666); font-size: 12px; }
+/* GH #246: a change rated under an earlier risk policy, and Re-assess. */
+.cm-risk-older { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 4px; padding: 8px 10px;
+    border-radius: 6px; background: var(--surface-2, #f5f5f7); color: var(--text-muted, #555); font-size: 13px; }
+.cm-risk-older[hidden] { display: none; }
+.risk-matrix-policy { font-size: 12px; color: var(--text-dim, #888); }
 
 /* Risk level badges */
 .risk-badge {

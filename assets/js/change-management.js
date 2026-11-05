@@ -562,7 +562,7 @@ function renderChangeList() {
                     </div>
                 </div>
                 <div class="change-card-badges">
-                    ${c.risk_level ? `<span class="risk-badge risk-${riskLevelClass(c.risk_level)}">${escapeHtml(riskLevelLabel(c.risk_level))}</span>` : ''}
+                    ${ChangeRisk.badge(c)}
                     <span class="type-badge ${typeClass}">${escapeHtml(c.change_type)}</span>
                     <span class="priority-badge ${priorityClass}">${escapeHtml(c.priority)}</span>
                     <span class="status-badge ${statusClass}">${escapeHtml(c.status)}</span>
@@ -627,7 +627,7 @@ function renderChangeDetail() {
     if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.work_end_datetime)}</span></div>`;
     if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_start')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_start_datetime)}</span></div>`;
     if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_end_datetime)}</span></div>`;
-    if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.risk_level')}</span><span class="detail-meta-value"><span class="risk-badge risk-${riskLevelClass(c.risk_level)}">${escapeHtml(riskLevelLabel(c.risk_level))} (${c.risk_score})</span></span></div>`;
+    if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.risk_level')}</span><span class="detail-meta-value">${ChangeRisk.badge(c, true)}</span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.created')}</span><span class="detail-meta-value">${c.created_by_name ? window.t('change-management.detail.created_by', { datetime: formatDateTime(c.created_datetime), name: c.created_by_name }) : formatDateTime(c.created_datetime)}</span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.last_modified')}</span><span class="detail-meta-value">${formatDateTime(c.modified_datetime)}</span></div>`;
 
@@ -716,7 +716,7 @@ function renderChangeDetail() {
 
     // Risk Matrix (shown when risk scores exist)
     if (v('risk') && c.risk_likelihood && c.risk_impact_score) {
-        html += renderRiskMatrix(c.risk_likelihood, c.risk_impact_score, c.risk_score, c.risk_level);
+        html += ChangeRisk.matrix(c);
     }
 
     // PIR Structured Data (for changes in the Done stage - Completed, Failed, or any renamed equivalent)
@@ -938,54 +938,8 @@ function renderDetailSection(title, content, field) {
 
 // ============ Risk Matrix ============
 
-/** The 5 by 5 likelihood-by-impact risk matrix with the change's cell highlighted. */
-function renderRiskMatrix(likelihood, impact, score, level) {
-    const riskClass = riskLevelClass(level);
-
-    // 5x5 grid: rows = likelihood (5 top to 1 bottom), cols = impact (1 left to 5 right).
-    // Each cell is coloured by its score's band, so the grid always agrees with the
-    // level shown beside it (a hand-written table had 1x4 and 4x1 as Medium; 4 is Low).
-    let gridHtml = '';
-    for (let l = 5; l >= 1; l--) {
-        gridHtml += `<div class="risk-matrix-label-y">${l}</div>`;
-        for (let i = 1; i <= 5; i++) {
-            const cellClass = riskLevelClass(riskLevelForScore(l * i));
-            const isActive = (l === parseInt(likelihood) && i === parseInt(impact));
-            gridHtml += `<div class="risk-matrix-cell ${cellClass}${isActive ? ' active' : ''}">${l * i}</div>`;
-        }
-    }
-
-    return `
-        <div class="risk-matrix-section">
-            <h3>${window.t('change-management.risk.assessment')}</h3>
-            <div class="risk-matrix-wrapper">
-                <div class="risk-matrix-info">
-                    <div class="risk-score-badge ${riskClass}">
-                        <span class="risk-score-value">${score}</span>
-                        <span class="risk-score-label">${escapeHtml(riskLevelLabel(level))}</span>
-                    </div>
-                    <div class="risk-matrix-details">
-                        <div><strong>${window.t('change-management.risk.likelihood')}:</strong> ${likelihood} / 5</div>
-                        <div><strong>${window.t('change-management.risk.impact')}:</strong> ${impact} / 5</div>
-                    </div>
-                </div>
-                <div class="risk-matrix-grid-container">
-                    <div class="risk-matrix-y-label">${window.t('change-management.risk.likelihood')}</div>
-                    <div class="risk-matrix-grid">
-                        ${gridHtml}
-                        <div class="risk-matrix-spacer"></div>
-                        <div class="risk-matrix-label-x">1</div>
-                        <div class="risk-matrix-label-x">2</div>
-                        <div class="risk-matrix-label-x">3</div>
-                        <div class="risk-matrix-label-x">4</div>
-                        <div class="risk-matrix-label-x">5</div>
-                    </div>
-                    <div class="risk-matrix-x-label">${window.t('change-management.risk.impact')}</div>
-                </div>
-            </div>
-        </div>
-    `;
-}
+// Drawn by ChangeRisk.matrix() (assets/js/change-risk.js), on the policy version the change
+// was rated under (#246).
 
 // ============ PIR Detail ============
 
@@ -1387,11 +1341,11 @@ function openCreateChange() {
     document.getElementById('changeOutageEnd').value = '';
     document.getElementById('editorAttachmentList').innerHTML = '';
 
-    // Risk scoring
+    // Risk scoring: a new change is rated on the policy in use (#246)
+    setEditorRiskScale(ChangeRisk.currentId(), false);
     document.getElementById('riskLikelihood').value = '';
     document.getElementById('riskImpactScore').value = '';
-    document.getElementById('riskScoreDisplay').textContent = '-';
-    document.getElementById('riskScoreDisplay').className = 'risk-score-display';
+    updateRiskScore();
 
     // PIR fields
     document.querySelectorAll('input[name="pirWasSuccessful"]').forEach(r => r.checked = false);
@@ -1448,7 +1402,9 @@ function editCurrentChange() {
     // Render existing attachments with delete buttons
     renderEditorAttachments(c.attachments || []);
 
-    // Risk scoring
+    // Risk scoring: on the scale it was rated on; an unrated change on the policy in use (#246)
+    const rated = !!(c.risk_likelihood || c.risk_impact_score);
+    setEditorRiskScale(rated ? (c.risk_policy_version_id || 0) : ChangeRisk.currentId(), false);
     document.getElementById('riskLikelihood').value = c.risk_likelihood || '';
     document.getElementById('riskImpactScore').value = c.risk_impact_score || '';
     updateRiskScore();
@@ -1525,8 +1481,14 @@ function applyChangeTemplate(versionId) {
     if (v.change_type_id && nameOf(changeTypes, v.change_type_id)) document.getElementById('changeType').value = nameOf(changeTypes, v.change_type_id);
     if (v.priority_id && nameOf(changePriorities, v.priority_id)) document.getElementById('changePriority').value = nameOf(changePriorities, v.priority_id);
     if (v.impact_id && nameOf(changeImpacts, v.impact_id)) document.getElementById('changeImpact').value = nameOf(changeImpacts, v.impact_id);
-    if (v.risk_likelihood) document.getElementById('riskLikelihood').value = v.risk_likelihood;
-    if (v.risk_impact_score) document.getElementById('riskImpactScore').value = v.risk_impact_score;
+    // A template's ratings belong to the policy they were given under (#246): on another
+    // scale they are left for the analyst, and the server leaves them out the same way.
+    if ((tpl.risk_policy_version_id || 0) === (editorRisk.version || 0)) {
+        if (v.risk_likelihood) document.getElementById('riskLikelihood').value = v.risk_likelihood;
+        if (v.risk_impact_score) document.getElementById('riskImpactScore').value = v.risk_impact_score;
+    } else if (v.risk_likelihood || v.risk_impact_score) {
+        showToast(window.t('change-management.risk_policy.template_other_scale'), 'info');
+    }
     updateRiskScore();
     const set = (id, val) => { if (val) setEditorContent(id, val); };
     set('editorDescription', v.description);
@@ -1657,6 +1619,7 @@ async function saveChange() {
         post_implementation_review: getEditorContent('editorPir'),
         risk_likelihood: document.getElementById('riskLikelihood').value || null,
         risk_impact_score: document.getElementById('riskImpactScore').value || null,
+        risk_reassess: editorRisk.reassess || undefined,
         pir_was_successful: (() => { const r = document.querySelector('input[name="pirWasSuccessful"]:checked'); return r ? r.value : null; })(),
         pir_actual_start: document.getElementById('pirActualStart').value || null,
         pir_actual_end: document.getElementById('pirActualEnd').value || null,
@@ -1994,27 +1957,43 @@ function switchTab(tab) {
 
 // ============ Risk Scoring & PIR Visibility ============
 
-/** Works out likelihood times impact and shows the score with its level (Low to Critical). */
 /**
- * The risk band for a score (likelihood x impact), as the server stores it in
- * risk_level - the English word, which is also the CSS class. Keep in step with
- * ChangeService::riskLevel() (includes/services/changes.php); this only draws them.
+ * The scale the editor is rating on (#246): the policy version a change was rated under,
+ * or the one in use for a new or unrated change. `reassess` is set by Re-assess, which
+ * moves an older change onto the current policy deliberately - the server needs both
+ * ratings then, and records the move.
  */
-function riskLevelForScore(score) {
-    if (score <= 4) return 'Low';
-    if (score <= 9) return 'Medium';
-    if (score <= 15) return 'High';
-    if (score <= 20) return 'Very High';
-    return 'Critical';
+let editorRisk = { version: 0, reassess: false };
+
+/** Puts a version's levels in the two selects and its criteria in the guide, with the "older policy" note. */
+function setEditorRiskScale(versionId, reassess) {
+    editorRisk = { version: versionId || 0, reassess: !!reassess };
+    ChangeRisk.fillSelects(editorRisk.version, document.getElementById('riskLikelihood'), document.getElementById('riskImpactScore'));
+    const body = document.getElementById('riskGuideRows');
+    if (body) body.innerHTML = ChangeRisk.guideRows(editorRisk.version);
+    const p = ChangeRisk.policy(editorRisk.version);
+    const note = document.getElementById('riskGuideNote');
+    if (note) note.textContent = ChangeRisk.isBuiltin(p)
+        ? window.t('change-management.editor.risk_help_note')
+        : window.t('change-management.risk_policy.guide_note', { name: p.name || '' });
+    const example = document.getElementById('riskGuideExample');
+    if (example) example.style.display = ChangeRisk.isBuiltin(p) ? '' : 'none';
+    const older = document.getElementById('riskOlderPolicy');
+    if (older) {
+        const isOlder = editorRisk.version !== (ChangeRisk.currentId() || 0);
+        older.hidden = !isOlder;
+        if (isOlder) document.getElementById('riskOlderPolicyText').textContent = window.t('change-management.risk_policy.older_note', {
+            name: ChangeRisk.isBuiltin(p) ? window.t('change-management.risk_policy.builtin_name') : (p.name || '') });
+    }
 }
-/** 'Very High' -> 'very-high', for the risk-* classes. */
-function riskLevelClass(level) {
-    return String(level || '').toLowerCase().replace(/\s+/g, '-');
-}
-/** A stored risk_level in the reader's language; an unknown word is shown as it is. */
-function riskLevelLabel(level) {
-    const key = { 'low': 'low', 'medium': 'medium', 'high': 'high', 'very-high': 'very_high', 'critical': 'critical' }[riskLevelClass(level)];
-    return key ? window.t('change-management.risk.' + key) : String(level || '');
+
+/** Re-assess: clear the ratings and offer the policy in use now. */
+function reassessRisk() {
+    document.getElementById('riskLikelihood').value = '';
+    document.getElementById('riskImpactScore').value = '';
+    setEditorRiskScale(ChangeRisk.currentId(), true);
+    updateRiskScore();
+    document.getElementById('riskLikelihood').focus();
 }
 
 /**
@@ -2057,19 +2036,22 @@ function riskLevelLabel(level) {
     }, true);
 })();
 
+/** Shows the score and the result the policy's matrix gives the two ratings - never the score banded. */
 function updateRiskScore() {
     const likelihood = parseInt(document.getElementById('riskLikelihood').value) || 0;
     const impact = parseInt(document.getElementById('riskImpactScore').value) || 0;
     const display = document.getElementById('riskScoreDisplay');
-
-    if (likelihood && impact) {
-        const score = likelihood * impact;
-        const level = riskLevelForScore(score);
-        display.textContent = score + ' - ' + riskLevelLabel(level);
-        display.className = 'risk-score-display risk-' + riskLevelClass(level);
+    const p = ChangeRisk.policy(editorRisk.version);
+    const r = likelihood && impact ? ChangeRisk.resultFor(p, likelihood, impact) : null;
+    if (r) {
+        const pt = ChangeRisk.paint(r);
+        display.textContent = (likelihood * impact) + ' - ' + ChangeRisk.resultName(r);
+        display.className = 'risk-score-display ' + pt.cls;
+        display.style.cssText = pt.style;
     } else {
         display.textContent = '-';
         display.className = 'risk-score-display';
+        display.style.cssText = '';
     }
 }
 

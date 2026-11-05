@@ -96,6 +96,7 @@ return [
     ['GET',    '#^/change-priorities$#',                   ['reference', 'read'],             'apiChangePrioritiesList'],
     ['GET',    '#^/change-impacts$#',                      ['reference', 'read'],             'apiChangeImpactsList'],
     ['GET',    '#^/change-categories$#',                   ['reference', 'read'],             'apiChangeCategoriesList'],
+    ['GET',    '#^/change-risk-policy$#',                  ['reference', 'read'],             'apiChangeRiskPolicyGet'],
 
     ['GET',    '#^/knowledge/articles$#',                  ['knowledge', 'read'],             'apiKnowledgeArticlesList'],
     ['POST',   '#^/knowledge/articles$#',                  ['knowledge', 'create'],           'apiKnowledgeArticlesCreate'],

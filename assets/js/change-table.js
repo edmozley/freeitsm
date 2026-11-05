@@ -68,11 +68,11 @@
           display: c => c.impact || '',
           editable: { kind: 'lookup', listKey: 'impacts', valueKey: 'name', labelKey: 'name', colourKey: 'colour' } },
         { key: 'risk_level', label: T('col_risk'), type: 'string', defaultVisible: true, defaultOrder: 6,
-          // Stored as the English band word; shown in the reader's language (GH #231).
-          display: c => {
-              const k = { 'low': 'low', 'medium': 'medium', 'high': 'high', 'very high': 'very_high', 'critical': 'critical' }[String(c.risk_level || '').toLowerCase()];
-              return k && window.t ? window.t('change-management.risk.' + k) : (c.risk_level || '');
-          } },
+          // Stored as its policy's word; a built-in word is shown in the reader's language
+          // (GH #231), a policy's own word as typed (#246, assets/js/change-risk.js).
+          display: c => c.risk_level
+              ? window.ChangeRisk.resultName(window.ChangeRisk.resultByLabel(window.ChangeRisk.policy(c.risk_policy_version_id), c.risk_level), c.risk_level)
+              : '' },
         { key: 'assigned_to_id', label: T('col_assigned_to'), type: 'string', defaultVisible: true, defaultOrder: 7,
           display: c => c.assigned_to_name || '',
           editable: { kind: 'lookup', listKey: 'analysts', valueKey: 'id', labelKey: 'name', allowNull: true, nullLabel: '—' } },

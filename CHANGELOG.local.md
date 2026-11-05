@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2736 | Change Management | Feature     | Risk policies: Settings -> Risk policy sets the likelihood and impact levels with their criteria, the results with their colours and an explicit result for every cell of the matrix (2-10 levels per axis, 2-8 results); each save is an immutable version, every change keeps the version it was rated under, an older change is moved deliberately with Re-assess, templates rated on another scale are not copied, the approval fingerprint counts the scale, and the REST API validates against the policy and adds GET /change-risk-policy; the built-in 5 x 5 stays the default (#246). |
 | 2735 | Tasks             | Fix         | Adding a procedure from the Work view clears the search box and its results again, instead of putting the search back after the redraw and offering the article just added (PR #247 review). |
 | 2734 | Tasks             | Improvement | An empty Procedures section in a task's Work view now folds to "Procedures (0)" with Checklists, Forms and Follow-ups when "Empty work sections on a task" is set to fold, a procedures load that fails says so with Retry instead of the section vanishing, and a half-typed procedure search survives a redraw (PR #247 by Dr4inder, #218). |
 

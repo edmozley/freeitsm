@@ -7,6 +7,18 @@
 return array (
   'schemas' => 
   array (
+    // GET /change-risk-policy (#246)
+    'ChangeRiskPolicy' => [
+      'type' => 'object',
+      'properties' => [
+        'version_id' => ['type' => 'integer', 'nullable' => true], 'version' => ['type' => 'integer', 'nullable' => true],
+        'builtin' => ['type' => 'boolean'], 'name' => ['type' => 'string'],
+        'likelihood' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['value' => ['type' => 'integer'], 'label' => ['type' => 'string'], 'criteria' => ['type' => 'string', 'nullable' => true]]]],
+        'impact' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['value' => ['type' => 'integer'], 'label' => ['type' => 'string'], 'criteria' => ['type' => 'string', 'nullable' => true]]]],
+        'results' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => ['label' => ['type' => 'string'], 'colour' => ['type' => 'string']]]],
+        'matrix' => ['type' => 'array', 'items' => ['type' => 'array', 'items' => ['type' => 'integer']]],
+      ],
+    ],
     'ChangeEvidenceAttachment' => [
       'type'=>'object',
       'properties'=>[
@@ -1797,38 +1809,19 @@ return array (
           'type' => 'object',
           'properties' => 
           array (
-            'likelihood' => 
-            array (
-              'type' => 'integer',
-              'nullable' => true,
-              'minimum' => 1,
-              'maximum' => 5,
-            ),
-            'impact' => 
-            array (
-              'type' => 'integer',
-              'nullable' => true,
-              'minimum' => 1,
-              'maximum' => 5,
-            ),
-            'score' => 
-            array (
-              'type' => 'integer',
-              'nullable' => true,
-            ),
-            'level' => 
-            array (
-              'type' => 'string',
-              'nullable' => true,
-              'enum' => 
-              array (
-                0 => 'Low',
-                1 => 'Medium',
-                2 => 'High',
-                3 => 'Very High',
-                4 => 'Critical',
-              ),
-            ),
+            // #246: the range and the words come from the change's risk policy (risk.policy).
+            'likelihood' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1, 'maximum' => 10],
+            'impact' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1, 'maximum' => 10],
+            'score' => ['type' => 'integer', 'nullable' => true],
+            'level' => ['type' => 'string', 'nullable' => true,
+                        'description' => "The result in its policy's words; the built-in policy's are Low, Medium, High, Very High, Critical."],
+            'policy' => ['type' => 'object', 'nullable' => true, 'description' => 'The risk policy the ratings were given under; null when unrated.',
+                'properties' => [
+                    'version_id' => ['type' => 'integer', 'nullable' => true, 'description' => 'null = the built-in 5 x 5'],
+                    'builtin' => ['type' => 'boolean'],
+                    'name' => ['type' => 'string'],
+                    'levels' => ['type' => 'object', 'properties' => ['likelihood' => ['type' => 'integer'], 'impact' => ['type' => 'integer']]],
+                ]],
           ),
         ),
         'schedule' => 
@@ -2724,38 +2717,19 @@ return array (
           'description' => 'Includes evaluation, which is only present on the detail view.',
           'properties' => 
           array (
-            'likelihood' => 
-            array (
-              'type' => 'integer',
-              'nullable' => true,
-              'minimum' => 1,
-              'maximum' => 5,
-            ),
-            'impact' => 
-            array (
-              'type' => 'integer',
-              'nullable' => true,
-              'minimum' => 1,
-              'maximum' => 5,
-            ),
-            'score' => 
-            array (
-              'type' => 'integer',
-              'nullable' => true,
-            ),
-            'level' => 
-            array (
-              'type' => 'string',
-              'nullable' => true,
-              'enum' => 
-              array (
-                0 => 'Low',
-                1 => 'Medium',
-                2 => 'High',
-                3 => 'Very High',
-                4 => 'Critical',
-              ),
-            ),
+            // #246: the range and the words come from the change's risk policy (risk.policy).
+            'likelihood' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1, 'maximum' => 10],
+            'impact' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1, 'maximum' => 10],
+            'score' => ['type' => 'integer', 'nullable' => true],
+            'level' => ['type' => 'string', 'nullable' => true,
+                        'description' => "The result in its policy's words; the built-in policy's are Low, Medium, High, Very High, Critical."],
+            'policy' => ['type' => 'object', 'nullable' => true, 'description' => 'The risk policy the ratings were given under; null when unrated.',
+                'properties' => [
+                    'version_id' => ['type' => 'integer', 'nullable' => true, 'description' => 'null = the built-in 5 x 5'],
+                    'builtin' => ['type' => 'boolean'],
+                    'name' => ['type' => 'string'],
+                    'levels' => ['type' => 'object', 'properties' => ['likelihood' => ['type' => 'integer'], 'impact' => ['type' => 'integer']]],
+                ]],
             'evaluation' => 
             array (
               'type' => 'string',
@@ -14255,6 +14229,7 @@ return array (
         '$ref' => '#/components/schemas/LookupWithDescription',
       ),
     ),
+    'GET /change-risk-policy' => ['$ref' => '#/components/schemas/ChangeRiskPolicy'],
     'GET /change-impacts' => 
     array (
       'type' => 'array',

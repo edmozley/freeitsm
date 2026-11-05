@@ -40,6 +40,7 @@ require_once __DIR__ . '/../changes/approvals.php';
 require_once __DIR__ . '/../changes/revisions.php';
 require_once __DIR__ . '/../rbac.php';   // analystMayAct() - "Choose approvers" (#180 Part 3)
 require_once __DIR__ . '/../changes/templates.php';
+require_once __DIR__ . '/../changes/risk_policy.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class ChangesService
@@ -70,6 +71,8 @@ class ChangesService
     private static function applyCreate(PDO $conn, ActorContext $ctx, int $tenantId, array $in): array
     {
         self::assertCanWrite($conn, $ctx);
+        // The risk policy new assessments in this company use (#246).
+        $policy = ChangeRiskPolicy::current($conn, $tenantId);
         // Raised from an approved template (#180 §8): the version must be approved and usable
         // by this person; its fields fill in whatever the request leaves out.
         $templateVersion = null;
@@ -79,7 +82,11 @@ class ChangesService
                 || !ChangeTemplates::mayUse($conn, $templateVersion['content'], $ctx->actorId)) {
                 throw new ServiceError('validation', 'invalid_field', t('change-management.templates.not_usable'));
             }
+            // A template's ratings belong to the policy they were given under: on another
+            // scale a 4 is not the same 4, so they are left for the analyst to rate (#246).
+            $ratingsFit = ChangeTemplates::riskPolicyMatches($templateVersion['content'], $policy['version_id']);
             foreach ($templateVersion['content']['values'] ?? [] as $col => $val) {
+                if (!$ratingsFit && in_array($col, ['risk_likelihood', 'risk_impact_score'], true)) continue;
                 if (!array_key_exists($col, $in) && $val !== null && $val !== '') $in[$col] = $val;
             }
         }
@@ -127,10 +134,9 @@ class ChangesService
                 ? self::parseDate((string)$in[$key], $key) : null;
         }
 
-        $riskLikelihood = self::riskInput($in['risk_likelihood'] ?? null, 'risk_likelihood');
-        $riskImpact     = self::riskInput($in['risk_impact_score'] ?? null, 'risk_impact_score');
-        $riskScore = ($riskLikelihood !== null && $riskImpact !== null) ? $riskLikelihood * $riskImpact : null;
-        $riskLevel = self::riskLevel($riskScore);
+        $riskLikelihood = ChangeRiskPolicy::rating($in['risk_likelihood'] ?? null, 'risk_likelihood', $policy['content'], 'likelihood');
+        $riskImpact     = ChangeRiskPolicy::rating($in['risk_impact_score'] ?? null, 'risk_impact_score', $policy['content'], 'impact');
+        [$riskScore, $riskLevel] = ChangeRiskPolicy::assess($policy['content'], $riskLikelihood, $riskImpact);
 
         $cabRequired = !empty($in['cab_required']) ? 1 : 0;
         // "Choose approvers" (#180 Part 3): where Settings restricts it, somebody without
@@ -176,6 +182,10 @@ class ChangesService
             $statusStage === 'approved' ? 1 : 0,
         ]);
         $changeId = (int)$conn->lastInsertId();
+        // Rated now: under the policy in use now, for ever. The built-in is NULL, as it was.
+        if ($policy['version_id'] !== null && ($riskLikelihood !== null || $riskImpact !== null)) {
+            $conn->prepare("UPDATE changes SET risk_policy_version_id = ? WHERE id = ?")->execute([$policy['version_id'], $changeId]);
+        }
 
         self::auditWrite($conn, $changeId, $actorId, 'status_change', 'Status', null, 'Created as ' . ($status[1] ?? 'Draft'));
 
@@ -395,20 +405,55 @@ class ChangesService
             }
         }
 
-        // Risk inputs — recompute score + level from the merged pair.
+        // Risk inputs — recompute score + level from the merged pair, under a policy (#246).
+        //
+        // A change keeps the policy version it was rated under. Its ratings are judged on
+        // THAT scale while it stays there; sending the same ratings back (every full-form
+        // save does) is not a re-assessment. Sending different ones - or risk_reassess -
+        // when the change is on an older version re-assesses it under the current policy,
+        // and then both ratings are needed: one new number beside one old one means nothing.
         $riskTouched = array_key_exists('risk_likelihood', $in) || array_key_exists('risk_impact_score', $in);
         if ($riskTouched) {
-            $newLikelihood = array_key_exists('risk_likelihood', $in)
-                ? self::riskInput($in['risk_likelihood'], 'risk_likelihood')
-                : ($current['risk_likelihood'] !== null ? (int)$current['risk_likelihood'] : null);
-            $newImpact = array_key_exists('risk_impact_score', $in)
-                ? self::riskInput($in['risk_impact_score'], 'risk_impact_score')
-                : ($current['risk_impact_score'] !== null ? (int)$current['risk_impact_score'] : null);
-            $newScore = ($newLikelihood !== null && $newImpact !== null) ? $newLikelihood * $newImpact : null;
-            $newLevel = self::riskLevel($newScore);
-
             $oldLikelihood = $current['risk_likelihood'] !== null ? (int)$current['risk_likelihood'] : null;
             $oldImpact     = $current['risk_impact_score'] !== null ? (int)$current['risk_impact_score'] : null;
+            $policy        = ChangeRiskPolicy::current($conn, $current['tenant_id'] !== null ? (int)$current['tenant_id'] : null);
+            $oldVersion    = isset($current['risk_policy_version_id']) && $current['risk_policy_version_id'] !== null ? (int)$current['risk_policy_version_id'] : null;
+            $rated         = $oldLikelihood !== null || $oldImpact !== null;
+            $asSent = static function ($v, ?int $old): bool {
+                return ($v === null || $v === '') ? $old === null : (is_numeric($v) && (int)$v === $old);
+            };
+            $same = (!array_key_exists('risk_likelihood', $in) || $asSent($in['risk_likelihood'], $oldLikelihood))
+                 && (!array_key_exists('risk_impact_score', $in) || $asSent($in['risk_impact_score'], $oldImpact));
+            $newVersion = $oldVersion;
+            if ($rated && $oldVersion !== $policy['version_id']) {
+                if ($same && empty($in['risk_reassess'])) {
+                    $riskTouched = false;   // untouched: it stays on the scale it was rated on
+                } else {
+                    if (!array_key_exists('risk_likelihood', $in) || !array_key_exists('risk_impact_score', $in)) {
+                        throw new ServiceError('validation', 'invalid_field', t('change-management.risk_policy.err_reassess_both'));
+                    }
+                    $newVersion = $policy['version_id'];
+                }
+            } elseif (!$rated) {
+                $newVersion = $policy['version_id'];   // a first rating uses the policy in use now
+            }
+        }
+        if ($riskTouched) {
+            $scale = ChangeRiskPolicy::content($conn, $newVersion);
+            $newLikelihood = array_key_exists('risk_likelihood', $in)
+                ? ChangeRiskPolicy::rating($in['risk_likelihood'], 'risk_likelihood', $scale, 'likelihood')
+                : $oldLikelihood;
+            $newImpact = array_key_exists('risk_impact_score', $in)
+                ? ChangeRiskPolicy::rating($in['risk_impact_score'], 'risk_impact_score', $scale, 'impact')
+                : $oldImpact;
+            [$newScore, $newLevel] = ChangeRiskPolicy::assess($scale, $newLikelihood, $newImpact);
+            if ($newLikelihood === null && $newImpact === null) $newVersion = null;   // nothing rated: no scale to remember
+
+            if ($newVersion !== $oldVersion && ChangeRiskPolicy::ready($conn)) {
+                $updates[] = 'risk_policy_version_id = ?';
+                $args[]    = $newVersion;
+                $queueAudit('Risk Policy', ChangeRiskPolicy::describeVersion($conn, $oldVersion), ChangeRiskPolicy::describeVersion($conn, $newVersion));
+            }
             if ($newLikelihood !== $oldLikelihood) {
                 $updates[] = 'risk_likelihood = ?';
                 $args[]    = $newLikelihood;
@@ -419,7 +464,8 @@ class ChangesService
                 $args[]    = $newImpact;
                 $queueAudit('Risk Impact Score', $oldImpact, $newImpact);
             }
-            if ($newLikelihood !== $oldLikelihood || $newImpact !== $oldImpact) {
+            // A re-assessment can keep both numbers and still change the result: the matrix moved.
+            if ($newLikelihood !== $oldLikelihood || $newImpact !== $oldImpact || $newVersion !== $oldVersion) {
                 if ($newLevel !== $current['risk_level']) {
                     $queueAudit('Risk Level', $current['risk_level'], $newLevel);
                 }
@@ -1710,21 +1756,6 @@ class ChangesService
     }
 
     /**
-     * The risk banding (score = likelihood × impact).
-     *
-     * @param ?int $score  likelihood x impact (1-25), or null when either is unset
-     */
-    private static function riskLevel(?int $score): ?string
-    {
-        if ($score === null) return null;
-        if ($score <= 4)  return 'Low';
-        if ($score <= 9)  return 'Medium';
-        if ($score <= 15) return 'High';
-        if ($score <= 20) return 'Very High';
-        return 'Critical';
-    }
-
-    /**
      * Resolve a change lookup (type/status/priority/impact) by name or id from
      * input keys "<key>" / "<key>_id". Strict: unknown values are a 422. Returns
      * [id, name, extraCol?] or null when neither key was sent.
@@ -1793,24 +1824,6 @@ class ChangesService
         $s->execute([$statusId]);
         $stage = $s->fetchColumn();
         return changeStageIsValid($stage) ? $stage : null;
-    }
-
-    /**
-     * Validate a 1-5 risk input. Null/'' clears.
-     *
-     * @param mixed $value  the 1-5 score from the request; null or '' gives null
-     * @param string $field  the request field name, used in the error message
-     */
-    private static function riskInput($value, string $field): ?int
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-        $v = (int)$value;
-        if ($v < 1 || $v > 5) {
-            throw new ServiceError('validation', 'invalid_field', "'{$field}' must be between 1 and 5.");
-        }
-        return $v;
     }
 
     /**

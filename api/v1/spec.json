@@ -2718,7 +2718,7 @@
                         {
                             "name": "risk_level",
                             "in": "query",
-                            "desc": "Low, Medium, High, Very High, Critical",
+                            "desc": "The stored result, in its risk policy's words. The built-in policy's are Low, Medium, High, Very High, Critical; a saved policy's are listed by GET \/change-risk-policy.",
                             "req": false
                         },
                         {
@@ -2795,7 +2795,7 @@
                     "p": "\/changes",
                     "perm": "changes.create",
                     "s": "Create a change",
-                    "d": "Creates a change exactly like the UI: defaults Normal \/ Draft \/ Medium \/ Medium, risk score and level computed server-side from likelihood × impact (1-5 each), a creation entry written to the audit trail. The CHG-#### reference is derived from the id.",
+                    "d": "Creates a change exactly like the UI: defaults Normal \/ Draft \/ Medium \/ Medium, risk score and level computed server-side under the risk policy in use (score = likelihood × impact, the level from the policy's matrix; 1-5 each on the built-in policy), a creation entry written to the audit trail. The CHG-#### reference is derived from the id.",
                     "params": [
                         {
                             "name": "title",
@@ -2836,7 +2836,7 @@
                         {
                             "name": "risk_likelihood \/ risk_impact_score",
                             "in": "body",
-                            "desc": "1-5 each — score and level are computed",
+                            "desc": "1 to the risk policy's number of levels each (1-5 on the built-in; see GET \/change-risk-policy) — score and level are computed. On a change rated under an earlier policy, sending different ratings, or risk_reassess: true, re-assesses it under the current policy and needs both.",
                             "req": false
                         },
                         {
@@ -2908,7 +2908,7 @@
                             {
                                 "code": 422,
                                 "slug": "invalid_field",
-                                "when": "'risk_likelihood' or 'risk_impact_score' is outside 1-5."
+                                "when": "'risk_likelihood' or 'risk_impact_score' is outside the risk policy's levels (1-5 on the built-in), or only one was sent to re-assess a change rated under an earlier policy."
                             }
                         ]
                     }
@@ -3032,7 +3032,7 @@
                             {
                                 "code": 422,
                                 "slug": "invalid_field",
-                                "when": "'risk_likelihood' or 'risk_impact_score' is outside 1-5."
+                                "when": "'risk_likelihood' or 'risk_impact_score' is outside the risk policy's levels (1-5 on the built-in), or only one was sent to re-assess a change rated under an earlier policy."
                             }
                         ]
                     }
@@ -14265,6 +14265,24 @@
                 },
                 {
                     "m": "GET",
+                    "p": "\/change-risk-policy",
+                    "perm": "reference.read",
+                    "s": "Get the change risk policy",
+                    "d": "The risk policy new assessments use: the likelihood and impact levels with their criteria, the results with their colours, and the matrix giving the result for every likelihood × impact cell (matrix[likelihood - 1][impact - 1] is an index into results). The built-in 5 × 5 when none has been set (builtin: true). A change keeps the policy it was rated under - see risk.policy on the change.",
+                    "params": [],
+                    "section": "Reference data",
+                    "slug": "get-change-risk-policy",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "The policy in use",
+                                "note": "No parameters - offer these levels when rating a change."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
                     "p": "\/knowledge\/tags",
                     "perm": "reference.read",
                     "s": "List knowledge tags",
@@ -15010,6 +15028,14 @@
                 {
                     "title": "All change categories",
                     "note": "No parameters — empty on a fresh install until categories are configured in Changes > Settings."
+                }
+            ]
+        },
+        "GET \/change-risk-policy": {
+            "examples": [
+                {
+                    "title": "The policy in use",
+                    "note": "No parameters - offer these levels when rating a change."
                 }
             ]
         },
@@ -16388,7 +16414,7 @@
                 {
                     "code": 422,
                     "slug": "invalid_field",
-                    "when": "'risk_likelihood' or 'risk_impact_score' is outside 1-5."
+                    "when": "'risk_likelihood' or 'risk_impact_score' is outside the risk policy's levels (1-5 on the built-in), or only one was sent to re-assess a change rated under an earlier policy."
                 }
             ]
         },
@@ -16457,7 +16483,7 @@
                 {
                     "code": 422,
                     "slug": "invalid_field",
-                    "when": "'risk_likelihood' or 'risk_impact_score' is outside 1-5."
+                    "when": "'risk_likelihood' or 'risk_impact_score' is outside the risk policy's levels (1-5 on the built-in), or only one was sent to re-assess a change rated under an earlier policy."
                 }
             ]
         },

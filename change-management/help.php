@@ -30,7 +30,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes', t('change-management.nav.help'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/change-management.css?v=13">
+    <link rel="stylesheet" href="../assets/css/change-management.css?v=14">
     <link rel="stylesheet" href="../assets/css/help.css?v=6">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
@@ -352,6 +352,8 @@ $translationNamespaces = ['common', 'change-management'];
                         <div class="cm-help-risk-level critical"><span>21&ndash;25</span> <?php echo htmlspecialchars(t('change-management.help.risk_critical')); ?></div>
                     </div>
                     <p class="help-note"><?php echo htmlspecialchars(t('change-management.help.risk_tip')); ?></p>
+                    <?php /* GH #246 */ ?>
+                    <p><?php echo htmlspecialchars(t('change-management.help.risk_scale_builtin')); ?> <?php echo t('change-management.help.risk_policy'); ?></p>
                     <?php /* GH #231 */ ?>
                     <p><?php echo t('change-management.help.risk_guide'); ?></p>
                     <ul>

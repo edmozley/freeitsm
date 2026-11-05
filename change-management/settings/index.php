@@ -247,6 +247,29 @@ $translationNamespaces = ['common', 'change-management'];
         .ar-group legend { font-weight: 600; padding: 0 6px; color: var(--text, #333); }
         .ar-choice { display: block; padding: 8px 10px; border: 1px solid var(--border-soft, #eee); border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
         .ar-help { display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; }
+        /* Risk policy tab (#246) */
+        .rp-rows { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+        .rp-row { display: flex; align-items: flex-start; gap: 8px; }
+        .rp-n { width: 20px; padding-top: 9px; text-align: right; color: var(--text-dim, #888); font-weight: 600; flex-shrink: 0; }
+        .rp-label { width: 200px; flex-shrink: 0; }
+        .rp-criteria { flex: 1; min-width: 0; resize: vertical; font-family: inherit; font-size: 13px; }
+        .rp-colour { width: 44px; height: 36px; padding: 2px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); }
+        .rp-remove { border: none; background: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--text-muted, #777); padding: 6px; }
+        .rp-remove:hover { color: var(--danger-text, #c62828); }
+        .rp-warn { margin-top: 10px; }
+        .rp-matrix-scroll { overflow-x: auto; margin-top: 10px; }
+        .rp-matrix { border-collapse: separate; border-spacing: 4px; }
+        .rp-matrix th { font-size: 12px; font-weight: 600; color: var(--text-muted, #666); padding: 2px 6px; text-align: center; max-width: 120px; }
+        .rp-matrix th[scope="row"] { text-align: right; }
+        .rp-cell { min-width: 110px; padding: 6px; border: 2px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
+        .rp-cell.is-empty { border-style: dashed; border-color: var(--danger-text, #c62828); }
+        .rp-history { border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .rp-history td { padding: 4px 12px 4px 0; color: var(--text-muted, #666); }
+        .rp-history tr.is-current td { color: var(--text, #333); font-weight: 600; }
+        .rp-actions { display: flex; gap: 10px; }
+        .cm-risk-older { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0; padding: 8px 10px; border-radius: 6px; background: var(--surface-2, #f5f5f7); color: var(--text-muted, #555); font-size: 13px; }
+        .cm-risk-older[hidden] { display: none; }
+        @media (max-width: 700px) { .rp-row { flex-wrap: wrap; } .rp-label { width: calc(100% - 70px); } .rp-criteria { flex-basis: 100%; margin-left: 28px; } }
         .ar-choice .ar-help { margin-left: 22px; }
         .ar-sub { font-size: 13px; font-weight: 500; margin: 12px 0 6px; color: var(--text, #333); }
         .ar-ticks { display: flex; flex-wrap: wrap; gap: 6px 18px; }
@@ -380,6 +403,58 @@ $translationNamespaces = ['common', 'change-management'];
         </div>
 
         <!-- Left panel tab — per-analyst preference -->
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'risk-policy')): ?>
+        <!-- Risk policy (#246) - get_risk_policy / save_risk_policy, drawn by the "Risk policy" script below. -->
+        <div class="tab-content<?php echo $activeTabId === 'risk-policy' ? ' active' : ''; ?>" id="risk-policy-tab" data-capability="<?php echo capKey(Cap::CHANGES_RISK_POLICY); ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('change-management.risk_policy.heading')); ?></h2>
+            </div>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('change-management.risk_policy.intro')); ?></p>
+
+            <fieldset class="ar-group">
+                <legend><?php echo htmlspecialchars(t('change-management.risk_policy.in_use')); ?></legend>
+                <div id="rpInUse"></div>
+                <table class="rp-history" id="rpHistory"></table>
+            </fieldset>
+
+            <form id="riskPolicyForm" autocomplete="off" onsubmit="event.preventDefault(); saveRiskPolicy();">
+                <fieldset class="ar-group">
+                    <legend><?php echo htmlspecialchars(t('change-management.risk_policy.name')); ?></legend>
+                    <input type="text" id="rpName" class="form-input" maxlength="100" style="max-width: 420px;">
+                    <span class="ar-help"><?php echo htmlspecialchars(t('change-management.risk_policy.name_help')); ?></span>
+                </fieldset>
+
+                <?php foreach (['likelihood', 'impact'] as $axis): ?>
+                <fieldset class="ar-group">
+                    <legend><?php echo htmlspecialchars(t('change-management.risk_policy.levels_' . $axis)); ?></legend>
+                    <span class="ar-help"><?php echo htmlspecialchars(t('change-management.risk_policy.levels_help')); ?></span>
+                    <div class="rp-rows" id="rp_<?php echo $axis; ?>"></div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="rpAdd('<?php echo $axis; ?>')"><?php echo htmlspecialchars(t('change-management.risk_policy.add')); ?></button>
+                </fieldset>
+                <?php endforeach; ?>
+
+                <fieldset class="ar-group">
+                    <legend><?php echo htmlspecialchars(t('change-management.risk_policy.results')); ?></legend>
+                    <span class="ar-help"><?php echo htmlspecialchars(t('change-management.risk_policy.results_help')); ?></span>
+                    <div class="rp-rows" id="rp_results"></div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="rpAdd('results')"><?php echo htmlspecialchars(t('change-management.risk_policy.add')); ?></button>
+                    <span class="ar-help rp-warn"><?php echo htmlspecialchars(t('change-management.risk_policy.results_workflows')); ?></span>
+                </fieldset>
+
+                <fieldset class="ar-group">
+                    <legend><?php echo htmlspecialchars(t('change-management.risk_policy.matrix')); ?></legend>
+                    <span class="ar-help"><?php echo htmlspecialchars(t('change-management.risk_policy.matrix_help')); ?></span>
+                    <div class="rp-matrix-scroll"><table class="rp-matrix" id="rpMatrix"></table></div>
+                </fieldset>
+
+                <div class="rp-actions">
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('change-management.settings.modal_save')); ?></button>
+                    <button type="button" class="btn btn-secondary" id="rpBuiltinBtn" onclick="useBuiltinRiskPolicy()"><?php echo htmlspecialchars(t('change-management.risk_policy.use_builtin')); ?></button>
+                </div>
+            </form>
+        </div>
         <?php endif; ?>
 
         <?php if (settingsTabVisible($visibleTabs, 'templates')): ?>
@@ -633,9 +708,11 @@ $translationNamespaces = ['common', 'change-management'];
                     <div class="form-group"><label for="tplType"><?php echo htmlspecialchars(t('change-management.approval_settings.field_change_type_id')); ?></label><select id="tplType"></select></div>
                     <div class="form-group"><label for="tplPriority"><?php echo htmlspecialchars(t('change-management.approval_settings.field_priority_id')); ?></label><select id="tplPriority"></select></div>
                     <div class="form-group"><label for="tplImpact"><?php echo htmlspecialchars(t('change-management.approval_settings.field_impact_id')); ?></label><select id="tplImpact"></select></div>
-                    <div class="form-group"><label for="tplRiskL"><?php echo htmlspecialchars(t('change-management.approval_settings.field_risk_likelihood')); ?></label><select id="tplRiskL"><option value=""></option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
-                    <div class="form-group"><label for="tplRiskI"><?php echo htmlspecialchars(t('change-management.approval_settings.field_risk_impact_score')); ?></label><select id="tplRiskI"><option value=""></option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+                    <div class="form-group"><label for="tplRiskL"><?php echo htmlspecialchars(t('change-management.approval_settings.field_risk_likelihood')); ?></label><select id="tplRiskL"></select></div>
+                    <div class="form-group"><label for="tplRiskI"><?php echo htmlspecialchars(t('change-management.approval_settings.field_risk_impact_score')); ?></label><select id="tplRiskI"></select></div>
                 </div>
+                <div class="cm-risk-older" id="tplRiskOlder" hidden><span id="tplRiskOlderText"></span>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="tplReassessRisk()"><?php echo htmlspecialchars(t('change-management.risk_policy.reassess')); ?></button></div>
                 <?php foreach (['description', 'reason_for_change', 'risk_evaluation', 'test_plan', 'rollback_plan'] as $lf): ?>
                 <div class="form-group"><label for="tpl_<?php echo $lf; ?>"><?php echo htmlspecialchars(t('change-management.revisions.field.' . $lf)); ?></label><textarea id="tpl_<?php echo $lf; ?>" rows="3"></textarea></div>
                 <?php endforeach; ?>
@@ -665,6 +742,8 @@ $translationNamespaces = ['common', 'change-management'];
 
     <!-- Toast notification -->
 
+    <?php require_once '../../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
     <script>
         const API_BASE = '../../api/change-management/';
 
@@ -723,10 +802,154 @@ $translationNamespaces = ['common', 'change-management'];
             } catch (e) { /* no-op */ }
         }
 
+        // ============================================================
+        // Risk policy (#246) - get|save_risk_policy.php
+        //
+        // The editor holds the policy as plain arrays (RP) and redraws from them, so adding
+        // or removing a level re-shapes the matrix without losing the cells already chosen.
+        // Saving always makes the NEXT version; nothing already rated changes.
+        // ============================================================
+        let RP = null;          // { name, likelihood: [{label, criteria}], impact: [...], results: [{label, colour}], matrix: [[idx]] }
+        let RP_LIMITS = {};
+        const RPT = (k, p) => window.t('change-management.risk_policy.' + k, p);
+
+        async function loadRiskPolicy() {
+            try {
+                const d = await fetch(API_BASE + 'get_risk_policy.php').then(r => r.json());
+                if (!d.success) { showToast(d.error || window.t('change-management.toast.error_loading'), 'error'); return; }
+                RP_LIMITS = d.limits || {};
+                const p = d.current.content;
+                const builtin = !!p.builtin;
+                // Start from the policy in use. The built-in becomes editable words in the reader's language.
+                const lv = (axis) => (p[axis] || []).map((x, n) => ({
+                    label: builtin ? ChangeRisk.levelLabel(p, axis, n + 1) : x.label,
+                    criteria: builtin ? ChangeRisk.criteria(p, axis, n + 1) : (x.criteria || ''),
+                }));
+                RP = {
+                    name: builtin ? '' : (p.name || ''),
+                    likelihood: lv('likelihood'), impact: lv('impact'),
+                    results: (p.results || []).map(r => ({ label: builtin ? ChangeRisk.resultName(r) : r.label, colour: r.colour })),
+                    matrix: (p.matrix || []).map(row => row.slice()),
+                };
+                const cur = builtin ? RPT('builtin_name') : RPT('version_label', { name: p.name || '', n: d.current.version_no });
+                document.getElementById('rpInUse').innerHTML = `<strong>${escapeHtml(cur)}</strong>`
+                    + (d.ready ? '' : `<div class="ar-warning">${escapeHtml(RPT('not_ready'))}</div>`);
+                const rows = (d.versions || []).map(v => `<tr${v.id === d.current.version_id ? ' class="is-current"' : ''}>
+                        <td>${escapeHtml(RPT('version_label', { name: v.name, n: v.version_no }))}</td><td>${escapeHtml(v.size)}</td>
+                        <td>${escapeHtml(v.created_by || '')} ${v.created_datetime ? escapeHtml(typeof formatDateTime === 'function' ? formatDateTime(v.created_datetime) : v.created_datetime) : ''}</td>
+                        <td>${escapeHtml(RPT('changes_count', { n: v.changes }))}</td></tr>`).join('');
+                document.getElementById('rpHistory').innerHTML = rows + `<tr${d.current.version_id === null ? ' class="is-current"' : ''}><td>${escapeHtml(RPT('builtin_name'))}</td><td>5 x 5</td><td></td><td>${escapeHtml(RPT('changes_count', { n: d.builtin_count }))}</td></tr>`;
+                document.getElementById('rpBuiltinBtn').style.display = builtin ? 'none' : '';
+                drawRiskPolicy();
+            } catch (e) { showToast(window.t('change-management.toast.error_loading'), 'error'); }
+        }
+
+        /** Draws the level and result rows and the matrix from RP. */
+        function drawRiskPolicy() {
+            document.getElementById('rpName').value = RP.name;
+            ['likelihood', 'impact'].forEach(axis => {
+                document.getElementById('rp_' + axis).innerHTML = RP[axis].map((lv, n) => `
+                    <div class="rp-row">
+                        <span class="rp-n">${n + 1}</span>
+                        <input type="text" class="form-input rp-label" maxlength="${RP_LIMITS.label_max || 50}" value="${escapeHtml(lv.label)}"
+                               aria-label="${escapeHtml(RPT('label_n', { n: n + 1 }))}" oninput="RP['${axis}'][${n}].label = this.value; drawRiskMatrix()">
+                        <textarea class="form-input rp-criteria" rows="2" maxlength="${RP_LIMITS.criteria_max || 1000}" placeholder="${escapeHtml(RPT('criteria'))}"
+                                  aria-label="${escapeHtml(RPT('criteria_n', { n: n + 1 }))}" oninput="RP['${axis}'][${n}].criteria = this.value">${escapeHtml(lv.criteria)}</textarea>
+                        <button type="button" class="rp-remove" aria-label="${escapeHtml(RPT('remove_n', { n: n + 1 }))}" onclick="rpRemove('${axis}', ${n})">&times;</button>
+                    </div>`).join('');
+            });
+            document.getElementById('rp_results').innerHTML = RP.results.map((r, n) => `
+                <div class="rp-row">
+                    <span class="rp-n">${n + 1}</span>
+                    <input type="text" class="form-input rp-label" maxlength="${RP_LIMITS.label_max || 50}" value="${escapeHtml(r.label)}"
+                           aria-label="${escapeHtml(RPT('label_n', { n: n + 1 }))}" oninput="RP.results[${n}].label = this.value; drawRiskMatrix()">
+                    <input type="color" class="rp-colour" value="${escapeHtml(r.colour)}" aria-label="${escapeHtml(RPT('colour_n', { n: n + 1 }))}"
+                           oninput="RP.results[${n}].colour = this.value; drawRiskMatrix()">
+                    <button type="button" class="rp-remove" aria-label="${escapeHtml(RPT('remove_n', { n: n + 1 }))}" onclick="rpRemove('results', ${n})">&times;</button>
+                </div>`).join('');
+            drawRiskMatrix();
+        }
+
+        /** The matrix: rows likelihood (highest at the top, as on a change), columns impact, a result per cell. */
+        function drawRiskMatrix() {
+            const L = RP.likelihood.length, I = RP.impact.length;
+            let html = `<tr><th></th>${RP.impact.map((lv, i) => `<th scope="col">${escapeHtml(lv.label || String(i + 1))}</th>`).join('')}</tr>`;
+            for (let l = L - 1; l >= 0; l--) {
+                html += `<tr><th scope="row">${escapeHtml(RP.likelihood[l].label || String(l + 1))}</th>`;
+                for (let i = 0; i < I; i++) {
+                    const v = (RP.matrix[l] || [])[i];
+                    const r = v === undefined || v === null ? null : RP.results[v];
+                    const style = r ? `background:${r.colour}22;border-color:${r.colour};` : '';
+                    html += `<td><select class="rp-cell${r ? '' : ' is-empty'}" style="${style}"
+                                aria-label="${escapeHtml(RPT('cell', { l: RP.likelihood[l].label, i: RP.impact[i].label }))}"
+                                onchange="rpSetCell(${l}, ${i}, this.value)">
+                                <option value="">-</option>${RP.results.map((x, n) => `<option value="${n}"${v === n ? ' selected' : ''}>${escapeHtml(x.label)}</option>`).join('')}
+                             </select></td>`;
+                }
+                html += '</tr>';
+            }
+            document.getElementById('rpMatrix').innerHTML = html;
+        }
+
+        function rpSetCell(l, i, v) {
+            if (!RP.matrix[l]) RP.matrix[l] = [];
+            RP.matrix[l][i] = v === '' ? null : parseInt(v, 10);
+            drawRiskMatrix();
+        }
+
+        /** Adds a level or a result after the last (highest) one. A new level's matrix cells start empty: the policy decides them. */
+        function rpAdd(part) {
+            const max = part === 'results' ? (RP_LIMITS.max_results || 8) : (RP_LIMITS.max_levels || 10);
+            if (RP[part].length >= max) { showToast(RPT('too_many', { n: max }), 'error'); return; }
+            if (part === 'results') RP.results.push({ label: '', colour: '#64748b' });
+            else {
+                RP[part].push({ label: '', criteria: '' });
+                if (part === 'likelihood') RP.matrix.push(new Array(RP.impact.length).fill(null));
+                else RP.matrix.forEach(row => row.push(null));
+            }
+            drawRiskPolicy();
+        }
+
+        /** Removes a level (and its row or column of the matrix) or a result (and the cells that used it). */
+        function rpRemove(part, n) {
+            const min = part === 'results' ? (RP_LIMITS.min_results || 2) : (RP_LIMITS.min_levels || 2);
+            if (RP[part].length <= min) { showToast(RPT('too_few', { n: min }), 'error'); return; }
+            RP[part].splice(n, 1);
+            if (part === 'likelihood') RP.matrix.splice(n, 1);
+            else if (part === 'impact') RP.matrix.forEach(row => row.splice(n, 1));
+            else RP.matrix = RP.matrix.map(row => row.map(v => v === n ? null : (v !== null && v > n ? v - 1 : v)));
+            drawRiskPolicy();
+        }
+
+        async function saveRiskPolicy() {
+            RP.name = document.getElementById('rpName').value.trim();
+            if (!confirm(RPT('confirm_save'))) return;
+            try {
+                const d = await fetch(API_BASE + 'save_risk_policy.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'save', policy: RP })
+                }).then(r => r.json());
+                if (d.success) { showToast(RPT('saved'), 'success'); setTimeout(() => location.reload(), 600); }
+                else showToast(d.error || window.t('change-management.toast.error_loading'), 'error');
+            } catch (e) { showToast(window.t('change-management.toast.error_loading'), 'error'); }
+        }
+
+        async function useBuiltinRiskPolicy() {
+            if (!confirm(RPT('confirm_builtin'))) return;
+            try {
+                const d = await fetch(API_BASE + 'save_risk_policy.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'builtin' })
+                }).then(r => r.json());
+                if (d.success) { showToast(RPT('saved'), 'success'); setTimeout(() => location.reload(), 600); }
+                else showToast(d.error || window.t('change-management.toast.error_loading'), 'error');
+            } catch (e) { showToast(window.t('change-management.toast.error_loading'), 'error'); }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             loadSettings();
             loadLookups();
             if (document.getElementById('approvalRulesForm')) loadApprovalRules();
+            if (document.getElementById('riskPolicyForm')) loadRiskPolicy();
             if (document.getElementById('templates-list')) loadTemplates();
         });
 
@@ -819,8 +1042,13 @@ $translationNamespaces = ['common', 'change-management'];
             fillSelect('tplType', lookupCache.type, v.change_type_id);
             fillSelect('tplPriority', lookupCache.priority, v.priority_id);
             fillSelect('tplImpact', lookupCache.impact, v.impact_id);
+            // Ratings on the scale they were given on; unrated on the policy in use (#246).
+            const rated = !!(v.risk_likelihood || v.risk_impact_score);
+            tplRisk = { version: rated ? (t.risk_policy_version_id || 0) : ChangeRisk.currentId(), reassess: false };
+            ChangeRisk.fillSelects(tplRisk.version, document.getElementById('tplRiskL'), document.getElementById('tplRiskI'));
             document.getElementById('tplRiskL').value = v.risk_likelihood || '';
             document.getElementById('tplRiskI').value = v.risk_impact_score || '';
+            tplShowRiskScale();
             ['description', 'reason_for_change', 'risk_evaluation', 'test_plan', 'rollback_plan'].forEach(f => {
                 document.getElementById('tpl_' + f).value = v[f] || '';
             });
@@ -848,6 +1076,22 @@ $translationNamespaces = ['common', 'change-management'];
 
         function closeTemplateEditor() { document.getElementById('templateModal').classList.remove('active'); }
 
+        // The scale a template's ratings are on (#246) - as on a change: kept until Re-assess.
+        let tplRisk = { version: 0, reassess: false };
+        function tplShowRiskScale() {
+            const older = tplRisk.version !== (ChangeRisk.currentId() || 0);
+            const p = ChangeRisk.policy(tplRisk.version);
+            document.getElementById('tplRiskOlder').hidden = !older;
+            if (older) document.getElementById('tplRiskOlderText').textContent = window.t('change-management.risk_policy.older_note_template', {
+                name: ChangeRisk.isBuiltin(p) ? window.t('change-management.risk_policy.builtin_name') : (p.name || '') });
+        }
+        function tplReassessRisk() {
+            tplRisk = { version: ChangeRisk.currentId(), reassess: true };
+            document.getElementById('tplRiskL').value = ''; document.getElementById('tplRiskI').value = '';
+            ChangeRisk.fillSelects(tplRisk.version, document.getElementById('tplRiskL'), document.getElementById('tplRiskI'));
+            tplShowRiskScale();
+        }
+
         async function saveTemplate(submit) {
             const values = {
                 change_type_id: document.getElementById('tplType').value, priority_id: document.getElementById('tplPriority').value,
@@ -863,6 +1107,7 @@ $translationNamespaces = ['common', 'change-management'];
                 values,
                 open_fields: [...document.querySelectorAll('input[name="tplOpen"]:checked')].map(i => i.value),
                 team_ids: [...document.querySelectorAll('input[name="tplTeam"]:checked')].map(i => parseInt(i.value)),
+                risk_reassess: tplRisk.reassess || undefined,
                 submit
             };
             try {

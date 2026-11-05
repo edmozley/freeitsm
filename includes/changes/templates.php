@@ -133,7 +133,7 @@ final class ChangeTemplates
         $teams = $conn->prepare("SELECT team_id FROM change_template_teams WHERE template_id = ? ORDER BY team_id");
         $teams->execute([$templateId]);
         $open = array_values(array_intersect(array_filter(explode(',', (string)($t['open_fields'] ?? ''))), array_keys(self::FIELDS)));
-        return [
+        $content = [
             'name'      => $t['name'],
             'scope_use' => $t['scope_use'] ?? null,
             'scope_not' => $t['scope_not'] ?? null,
@@ -141,6 +141,10 @@ final class ChangeTemplates
             'open'      => $open,
             'team_ids'  => array_map('intval', $teams->fetchAll(PDO::FETCH_COLUMN)),
         ];
+        // The risk policy its ratings were given under (#246). Only when it is a saved one, so a
+        // template rated on the built-in 5 x 5 freezes exactly the content it always did.
+        if (!empty($t['risk_policy_version_id'])) $content['risk_policy_version_id'] = (int)$t['risk_policy_version_id'];
+        return $content;
     }
 
     /**
@@ -276,6 +280,12 @@ final class ChangeTemplates
             return ['ok' => false, 'reason' => 'changed', 'version' => $v,
                     'changed_fields' => self::changedFields($row, $v['content'])];
         }
+        // The same numbers on a different risk scale are not what was approved (#246).
+        $riskFixed = array_values(array_intersect(self::fixedFields($v['content']), ['risk_likelihood', 'risk_impact_score']));
+        $rowVersion = isset($row['risk_policy_version_id']) && $row['risk_policy_version_id'] !== null ? (int)$row['risk_policy_version_id'] : null;
+        if ($riskFixed && !self::riskPolicyMatches($v['content'], $rowVersion)) {
+            return ['ok' => false, 'reason' => 'changed', 'version' => $v, 'changed_fields' => $riskFixed];
+        }
         return ['ok' => true, 'reason' => null, 'version' => $v];
     }
 
@@ -294,6 +304,19 @@ final class ChangeTemplates
             if (self::norm($row[$col] ?? null, $kind) !== self::norm($content['values'][$col] ?? null, $kind)) $out[] = $col;
         }
         return $out;
+    }
+
+    /**
+     * Were a template version's ratings given under this risk policy version (#246)? A version
+     * frozen before risk policies, or rated on the built-in, has no key: the built-in.
+     *
+     * @param array $content  a version's content
+     * @param ?int $policyVersionId  the policy version to compare with; null = the built-in
+     */
+    public static function riskPolicyMatches(array $content, ?int $policyVersionId): bool
+    {
+        $own = isset($content['risk_policy_version_id']) ? (int)$content['risk_policy_version_id'] : null;
+        return $own === $policyVersionId;
     }
 
     /**
@@ -322,6 +345,7 @@ final class ChangeTemplates
                 'scope_not'   => $v['content']['scope_not'] ?? null,
                 'values'      => $v['content']['values'] ?? [],
                 'open'        => $v['content']['open'] ?? [],
+                'risk_policy_version_id' => $v['content']['risk_policy_version_id'] ?? null,
             ];
         }
         return $out;

@@ -118,6 +118,7 @@ enum Cap: string
     case CHANGES_TYPES      = 'changes.types';
     case CHANGES_IMPACTS    = 'changes.impacts';
     case CHANGES_APPROVALS  = 'changes.approvals';   // the approval rules (#180) - sensitive: they govern the audit trail
+    case CHANGES_RISK_POLICY = 'changes.risk_policy'; // the risk scale, results and matrix (#246) - sensitive: how risky every change reads
     // Everyday work, not a settings tab (#180 Part 3) - see the manifest's 'actions'.
     case CHANGES_CHOOSE_APPROVERS = 'changes.choose_approvers';
     case CHANGES_TEMPLATES         = 'changes.templates';           // write standard-change templates (#180 §8)

@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=13">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=14">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -284,11 +284,6 @@ $translationNamespaces = ['common', 'change-management'];
                                     </div>
                                     <select class="form-input" id="riskLikelihood" onchange="updateRiskScore()">
                                         <option value=""><?php echo htmlspecialchars(t('change-management.editor.not_assessed')); ?></option>
-                                        <option value="1"><?php echo htmlspecialchars(t('change-management.editor.rl_1')); ?></option>
-                                        <option value="2"><?php echo htmlspecialchars(t('change-management.editor.rl_2')); ?></option>
-                                        <option value="3"><?php echo htmlspecialchars(t('change-management.editor.rl_3')); ?></option>
-                                        <option value="4"><?php echo htmlspecialchars(t('change-management.editor.rl_4')); ?></option>
-                                        <option value="5"><?php echo htmlspecialchars(t('change-management.editor.rl_5')); ?></option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -299,17 +294,17 @@ $translationNamespaces = ['common', 'change-management'];
                                     </div>
                                     <select class="form-input" id="riskImpactScore" onchange="updateRiskScore()">
                                         <option value=""><?php echo htmlspecialchars(t('change-management.editor.not_assessed')); ?></option>
-                                        <option value="1"><?php echo htmlspecialchars(t('change-management.editor.rl_1')); ?></option>
-                                        <option value="2"><?php echo htmlspecialchars(t('change-management.editor.rl_2')); ?></option>
-                                        <option value="3"><?php echo htmlspecialchars(t('change-management.editor.rl_3')); ?></option>
-                                        <option value="4"><?php echo htmlspecialchars(t('change-management.editor.rl_4')); ?></option>
-                                        <option value="5"><?php echo htmlspecialchars(t('change-management.editor.rl_5')); ?></option>
                                     </select>
                                 </div>
                                 <div class="form-group">
                                     <div class="cm-risk-label"><label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_score')); ?></label></div>
                                     <div class="risk-score-display" id="riskScoreDisplay">-</div>
                                 </div>
+                            </div>
+                            <?php /* GH #246: a change rated under an earlier risk policy keeps that scale until somebody re-assesses it. */ ?>
+                            <div class="cm-risk-older" id="riskOlderPolicy" hidden>
+                                <span id="riskOlderPolicyText"></span>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="reassessRisk()"><?php echo htmlspecialchars(t('change-management.risk_policy.reassess')); ?></button>
                             </div>
                             <?php /* GH #231: how to choose the two ratings. Inline rather than a floating popover:
                                      it works the same by mouse, keyboard and touch, and on a phone it simply sits
@@ -325,17 +320,12 @@ $translationNamespaces = ['common', 'change-management'];
                                 <div class="cm-risk-guide-scroll">
                                     <table class="cm-risk-guide-table">
                                         <thead><tr><th></th><th scope="col"><?php echo htmlspecialchars(t('change-management.risk.likelihood')); ?></th><th scope="col"><?php echo htmlspecialchars(t('change-management.risk.impact')); ?></th></tr></thead>
-                                        <tbody>
-                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                            <tr><th scope="row"><?php echo $i; ?></th>
-                                                <td><?php echo htmlspecialchars(t('change-management.editor.risk_help_l' . $i)); ?></td>
-                                                <td><?php echo htmlspecialchars(t('change-management.editor.risk_help_i' . $i)); ?></td></tr>
-                                        <?php endfor; ?>
-                                        </tbody>
+                                        <?php /* GH #246: the rows are the policy's own levels and criteria, drawn by setEditorRiskScale(). */ ?>
+                                        <tbody id="riskGuideRows"></tbody>
                                     </table>
                                 </div>
-                                <p><?php echo htmlspecialchars(t('change-management.editor.risk_help_example')); ?></p>
-                                <p class="cm-risk-guide-note"><?php echo htmlspecialchars(t('change-management.editor.risk_help_note')); ?></p>
+                                <p id="riskGuideExample"><?php echo htmlspecialchars(t('change-management.editor.risk_help_example')); ?></p>
+                                <p class="cm-risk-guide-note" id="riskGuideNote"><?php echo htmlspecialchars(t('change-management.editor.risk_help_note')); ?></p>
                             </div>
                         </div>
 
@@ -622,7 +612,9 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/project-links.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/safe-html.js?v=4"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=36"></script>
+    <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=37"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

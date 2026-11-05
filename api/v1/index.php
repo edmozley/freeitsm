@@ -135,7 +135,7 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /changes/{id}/attachments', 'POST /changes/{id}/attachments',
             'GET /changes/{id}/attachments/{attachment_id}/content',
             'GET /change-statuses', 'GET /change-types', 'GET /change-priorities',
-            'GET /change-impacts', 'GET /change-categories',
+            'GET /change-impacts', 'GET /change-categories', 'GET /change-risk-policy',
             'GET /knowledge/articles', 'POST /knowledge/articles', 'GET /knowledge/articles/{id}',
             'PATCH /knowledge/articles/{id}', 'DELETE /knowledge/articles/{id}',
             'POST /knowledge/articles/{id}/restore', 'DELETE /knowledge/articles/{id}/permanent',

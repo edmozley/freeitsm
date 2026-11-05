@@ -66,9 +66,10 @@ function apiChangeAttachmentContent(PDO $conn, array $apiKey, array $params, arr
  *     action_type 'status_change' for status else 'field_change', longtext
  *     bodies deliberately NOT audited, and the change.approved workflow event
  *     on a genuine transition into Approved.
- *   - risk is computed server-side exactly like the UI: score = likelihood ×
- *     impact (1-5 each), banded Low ≤4 / Medium ≤9 / High ≤15 / Very High ≤20
- *     / Critical.
+ *   - risk is computed server-side exactly like the UI, under the change's risk
+ *     policy (#246): score = likelihood × impact, the result from the policy's
+ *     matrix. The built-in 5 x 5 bands Low ≤4 / Medium ≤9 / High ≤15 /
+ *     Very High ≤20 / Critical. GET /change-risk-policy returns the policy in use.
  *   - CAB voting mirrors submit_cab_vote.php: the key's acts-as analyst must
  *     be an un-voted member; any required Reject sends the change back to
  *     Draft; the all/majority threshold on required members auto-approves
@@ -173,6 +174,7 @@ function apiSerializeChange(array $r): array {
             'impact'     => $r['risk_impact_score'] !== null ? (int)$r['risk_impact_score'] : null,
             'score'      => $r['risk_score'] !== null ? (int)$r['risk_score'] : null,
             'level'      => $r['risk_level'],
+            'policy'     => apiChangeRiskPolicyRef($r),
         ],
         'schedule'      => [
             'work_start_at'   => apiIsoDate($r['work_start_datetime']),
@@ -658,6 +660,48 @@ function apiChangePrioritiesList(PDO $conn, array $apiKey, array $params, array 
 function apiChangeImpactsList(PDO $conn, array $apiKey, array $params, array $body): void {
     apiChangeLookupList($conn, 'change_impacts');
 }
+/**
+ * The risk policy a change's ratings were given under (#246), for its 'risk' block:
+ * which version, its name and how many levels each axis has. Null when unrated.
+ *
+ * @param array $r  the changes row
+ */
+function apiChangeRiskPolicyRef(array $r): ?array {
+    // The serializer has no connection of its own; one is opened once per request, and
+    // ChangeRiskPolicy caches each version, so a list of 100 changes costs one lookup each.
+    static $conn = null;
+    $conn = $conn ?? connectToDatabase();
+    if ($r['risk_likelihood'] === null && $r['risk_impact_score'] === null) return null;
+    require_once __DIR__ . '/../../../includes/changes/risk_policy.php';
+    $vid = isset($r['risk_policy_version_id']) && $r['risk_policy_version_id'] !== null ? (int)$r['risk_policy_version_id'] : null;
+    $c = ChangeRiskPolicy::content($conn, $vid);
+    return ['version_id' => $vid, 'builtin' => !empty($c['builtin']), 'name' => ChangeRiskPolicy::describeVersion($conn, $vid),
+            'levels' => ['likelihood' => count($c['likelihood'] ?? []), 'impact' => count($c['impact'] ?? [])]];
+}
+
+/**
+ * GET /change-risk-policy - the risk policy new assessments use (#246): its levels with
+ * their criteria, its results with their colours, and the matrix, so an integration can
+ * offer the right choices. The built-in 5 x 5 when none has been set.
+ */
+function apiChangeRiskPolicyGet(PDO $conn, array $apiKey, array $params, array $body): void {
+    require_once __DIR__ . '/../../../includes/changes/risk_policy.php';
+    $cur = ChangeRiskPolicy::current($conn, null);
+    $c = $cur['content'];
+    $lv = fn(string $axis) => array_map(fn($x, $n) => ['value' => $n + 1, 'label' => $x['label'], 'criteria' => ($x['criteria'] ?? '') !== '' ? $x['criteria'] : null],
+                                          $c[$axis], array_keys($c[$axis]));
+    apiRespond([
+        'version_id' => $cur['version_id'],
+        'version'    => $cur['version_no'],
+        'builtin'    => !empty($c['builtin']),
+        'name'       => ChangeRiskPolicy::describe($c, $cur['version_no']),
+        'likelihood' => $lv('likelihood'),
+        'impact'     => $lv('impact'),
+        'results'    => array_map(fn($x) => ['label' => $x['label'], 'colour' => $x['colour']], $c['results']),
+        'matrix'     => $c['matrix'],
+    ]);
+}
+
 /** GET /change-categories - the change categories, in display order. */
 function apiChangeCategoriesList(PDO $conn, array $apiKey, array $params, array $body): void {
     $rows = $conn->query("SELECT id, name, description, is_active FROM change_categories ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC);

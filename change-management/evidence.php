@@ -32,6 +32,7 @@ require_once '../includes/html_sanitise.php';
 require_once '../includes/changes/approvals.php';
 require_once '../includes/changes/revisions.php';
 require_once '../includes/changes/templates.php';
+require_once '../includes/changes/risk_policy.php';
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../auth/login.php');
@@ -138,7 +139,11 @@ $fieldLabel = fn($k) => ChangeRevisions::FIELDS[$k][1] ?? ($k === 'comment' ? 'D
     <tr><th>Category</th><td><?php echo $e($c['category_name'] ?? $c['category']); ?></td></tr>
     <tr><th>Requester / assigned to / approver</th><td><?php echo $e($c['requester_name']); ?> / <?php echo $e($c['assigned_name']); ?> / <?php echo $e($c['approver_name']); ?></td></tr>
     <tr><th>CAB</th><td><?php echo $c['cab_required'] ? 'Required (' . $e($c['cab_approval_type']) . ')' : 'Not required'; ?></td></tr>
-    <tr><th>Risk</th><td>Likelihood <?php echo $e($c['risk_likelihood']); ?>, impact <?php echo $e($c['risk_impact_score']); ?>, score <?php echo $e($c['risk_score']); ?> (<?php echo $e($c['risk_level']); ?>)</td></tr>
+    <?php // #246: the ratings in the words of the policy they were given under, and which policy that was.
+    $rpVer = isset($c['risk_policy_version_id']) && $c['risk_policy_version_id'] !== null ? (int)$c['risk_policy_version_id'] : null;
+    $rpc = ChangeRiskPolicy::content($conn, $rpVer);
+    $rpLv = function (string $axis, $n) use ($rpc) { $n = (int)$n; $lv = $rpc[$axis][$n - 1] ?? null; return $n ? ($lv ? $lv['label'] . ' (' . $n . ' of ' . count($rpc[$axis]) . ')' : (string)$n) : ''; }; ?>
+    <tr><th>Risk</th><td>Likelihood <?php echo $e($rpLv('likelihood', $c['risk_likelihood'])); ?>, impact <?php echo $e($rpLv('impact', $c['risk_impact_score'])); ?>, score <?php echo $e($c['risk_score']); ?> (<?php echo $e($c['risk_level']); ?>)<br>Risk policy: <?php echo $e(ChangeRiskPolicy::describeVersion($conn, $rpVer)); ?></td></tr>
     <tr><th>Work window</th><td><?php echo $e($c['work_start_datetime']); ?> to <?php echo $e($c['work_end_datetime']); ?> (local time as entered)</td></tr>
     <tr><th>Outage window</th><td><?php echo $e($c['outage_start_datetime']); ?> to <?php echo $e($c['outage_end_datetime']); ?> (local time as entered)</td></tr>
     <tr><th>Approved</th><td><?php echo $utc($c['approval_datetime']); ?></td></tr>

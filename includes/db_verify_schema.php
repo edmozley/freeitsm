@@ -3000,7 +3000,8 @@ return [
         'risk_likelihood'               => 'TINYINT NULL',
         'risk_impact_score'             => 'TINYINT NULL',
         'risk_score'                    => 'TINYINT NULL',
-        'risk_level'                    => 'VARCHAR(20) NULL',
+        'risk_level'                    => 'VARCHAR(50) NULL',   // the result as stored, in its policy's words (#246; was 20)
+        'risk_policy_version_id'        => 'INT NULL',   // the risk policy version it was assessed under; NULL = built-in 5 x 5 (#246)
         'pir_was_successful'            => 'TINYINT(1) NULL',
         'pir_actual_start'              => 'DATETIME NULL',
         'pir_actual_end'                => 'DATETIME NULL',
@@ -3174,6 +3175,7 @@ return [
         'open_fields'               => "VARCHAR(255) NOT NULL DEFAULT 'description'",   // completed per change
         'current_version_id'        => 'INT NULL',       // the approved version in use
         'retired_datetime'          => 'DATETIME NULL',
+        'risk_policy_version_id'    => 'INT NULL',       // the risk policy its ratings were given under; NULL = built-in (#246)
     ],
 
     // Every version of a template submitted for approval (#180 §8). Immutable once approved.
@@ -3189,6 +3191,27 @@ return [
         'approved_by_id'    => 'INT NULL',
         'approved_datetime' => 'DATETIME NULL',
         'approval_note'     => 'TEXT NULL',
+    ],
+
+    // Change risk policies (#246) - see includes/changes/risk_policy.php. One row per
+    // install (tenant_id NULL) today; a company may have its own later.
+    'change_risk_policies' => [
+        'id'                 => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'          => 'INT NULL',          // NULL = the install's policy
+        'current_version_id' => 'INT NULL',          // NULL = the built-in 5 x 5
+        'updated_by_id'      => 'INT NULL',
+        'updated_datetime'   => 'DATETIME NULL',
+    ],
+
+    // Every saved version of a risk policy. Immutable: a change points at the version it was assessed under.
+    'change_risk_policy_versions' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'policy_id'        => 'INT NOT NULL',
+        'version_no'       => 'INT NOT NULL',
+        'content'          => 'LONGTEXT NOT NULL',   // JSON: name, likelihood, impact, results, matrix
+        'content_hash'     => 'CHAR(64) NOT NULL',
+        'created_by_id'    => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL',
     ],
 
     // Who may use a template (#180 §8): no rows = everyone with Change Management.

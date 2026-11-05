@@ -287,6 +287,8 @@ return [
     ['change_tickets', 'ix_ctickets_ticket', 'key', '(`ticket_id`)'],
     ['change_categories', 'uq_change_categories_name', 'unique', '(`name`)'],
     ['change_template_versions', 'uq_ctv_template_version', 'unique', '(`template_id`,`version_no`)'],
+    ['change_risk_policies', 'ix_crp_tenant', 'key', '(`tenant_id`)'],
+    ['change_risk_policy_versions', 'uq_crpv_policy_version', 'unique', '(`policy_id`,`version_no`)'],
     ['change_template_teams', 'uq_ctt_template_team', 'unique', '(`template_id`,`team_id`)'],
     ['change_notifications', 'idx_notifications_analyst', 'key', '(`analyst_id`,`is_read`)'],
     ['problems', 'ix_problems_status_id', 'key', '(`status_id`)'],
