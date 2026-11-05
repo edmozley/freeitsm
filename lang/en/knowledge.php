@@ -148,6 +148,12 @@ return [
         'fullscreen'       => 'Full screen',
         'fullscreen_title' => 'Just the editor, filling the screen. Press Esc to come back.',
         'create_tag'       => 'Create "{name}"',
+        'link_picker_title'   => 'Select an article',
+        'link_picker_search'  => 'Search articles...',
+        'link_picker_loading' => 'Loading articles...',
+        'link_picker_count'   => 'Articles found: {count}',
+        'link_picker_empty'   => 'No articles found',
+        'link_picker_error'   => 'Could not load articles. Try again.',
     ],
 
     'layout' => [
