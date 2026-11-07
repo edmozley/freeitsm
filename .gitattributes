@@ -1,2 +1,7 @@
 # Force LF line endings for shell scripts (required for Docker/Linux)
 *.sh text eol=lf
+
+# Vendored PDFKit bundle (GH #254): minified, with line breaks INSIDE string
+# literals. Converting them to CRLF on a Windows checkout would change what the
+# code writes into PDFs. Never convert - every checkout gets the tested bytes.
+assets/js/vendor/pdfkit/pdfkit.bundle.js -text
