@@ -18,6 +18,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2738 | Change Management | Fix         | Risk policy matrix: the general settings-table row lines, padding and row hover no longer apply to it, so the cells read as a clean grid (#246). |
 | 2739 | Tickets           | Fix         | Ticket type rules: a Department condition now matches on portal, email, messaging and web chat tickets - those routes work out the default department before picking the type and pass it to the rules (#248). |
 | 2740 | Tickets           | Fix         | Dashboard: the widget cog opens the edit window again, and New widget and Edit work in the Widget Library - the shared editor called an `esc()` it did not have; a test now catches an undefined `esc()` in any script (#260). |
+| 2741 | Knowledge         | Fix         | Clicking a folder while an article is open now shows that folder's list instead of leaving the article on screen; an open editor stays put (PR #251 by Dr4inder, #250). |
 
 
 
