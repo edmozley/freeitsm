@@ -16,6 +16,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 |------|-------------------|-------------|-------------|
 | 2737 | Change Management | Fix         | Risk policy matrix: each coloured cell now sits under its column heading on a wide screen, and the gaps between cells show (PR #258 by Dr4inder, #246). |
 | 2738 | Change Management | Fix         | Risk policy matrix: the general settings-table row lines, padding and row hover no longer apply to it, so the cells read as a clean grid (#246). |
+| 2739 | Tickets           | Fix         | Ticket type rules: a Department condition now matches on portal, email, messaging and web chat tickets - those routes work out the default department before picking the type and pass it to the rules (#248). |
 
 
 

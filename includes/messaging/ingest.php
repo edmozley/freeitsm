@@ -158,8 +158,12 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
         $originId     = getChannelOriginId($conn, $channelType);
         $subject      = buildChannelSubject($channelType, $displayName, $body);
         // GH #230: the type rules / default, before the number (which can carry it).
+        // GH #218: a chat has no department of its own, so the company's default department, if any.
+        // TRAP: worked out BEFORE the type rules, and passed to them (#248).
+        require_once __DIR__ . '/../tenant_settings.php';
+        [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $tenantId, null);
         require_once __DIR__ . '/../ticket_type_rules.php';
-        $typePick     = ticketTypeAutoPick($conn, $tenantId, ['channel' => 'messaging', 'origin_id' => $originId, 'subject' => $subject]);
+        $typePick     = ticketTypeAutoPick($conn, $tenantId, ['channel' => 'messaging', 'origin_id' => $originId, 'subject' => $subject, 'department_id' => $departmentId]);
         $ticketNumber = messagingGenerateTicketNumber($conn, $tenantId, $typePick['type_id'] ?? null);
 
         $sql = "INSERT INTO tickets (
@@ -173,9 +177,6 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
                     UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP(),
                     ?, ?, ?, ?, ?
                 )";
-        // GH #218: a chat has no department of its own, so the company's default department, if any.
-        require_once __DIR__ . '/../tenant_settings.php';
-        [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $tenantId, null);
         $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId, $typePick['type_id'] ?? null, $departmentId]);
         $ticketId = (int) $conn->lastInsertId();
         ticketDepartmentNote($conn, $ticketId, $departmentNote);

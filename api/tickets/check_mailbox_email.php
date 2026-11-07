@@ -1242,10 +1242,16 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
 
         // GH #230: an emailed ticket's type comes from the type rules / default -
         // before the number, which can carry the type.
+        // GH #218: an emailed ticket has no department of its own (a mailbox cannot
+        // set one), so it starts in the company's default department, if any.
+        // TRAP: worked out BEFORE the type rules, and passed to them - a rule with a
+        // department condition never matched here while this came afterwards (#248).
+        require_once __DIR__ . '/../../includes/tenant_settings.php';
+        [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $ticketTenantId !== null ? (int) $ticketTenantId : null, null);
         require_once __DIR__ . '/../../includes/ticket_type_rules.php';
         $ticketTypePick = ticketTypeAutoPick($conn, $ticketTenantId, [
             'channel' => 'email', 'mailbox_id' => $mailboxId, 'origin_id' => $ticketOriginId,
-            'subject' => $subject, 'requester_email' => $fromAddress,
+            'subject' => $subject, 'requester_email' => $fromAddress, 'department_id' => $departmentId,
         ]);
         $ticketTypeId = $ticketTypePick['type_id'] ?? null;
 
@@ -1254,11 +1260,6 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         // Status/priority resolve to the CONFIGURED default, never to the literal
         // names 'Open'/'Normal' — those are display names an admin may rename or
         // translate, and a missed match silently inserted a NULL status_id (#79).
-        // GH #218: an emailed ticket has no department of its own (a mailbox cannot
-        // set one), so it starts in the company's default department, if any.
-        require_once __DIR__ . '/../../includes/tenant_settings.php';
-        [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $ticketTenantId !== null ? (int) $ticketTenantId : null, null);
-
         $ticketSql = "INSERT INTO tickets (
             ticket_number, subject, status_id, priority_id,
             created_datetime, updated_datetime, user_id, tenant_id, origin_id, ticket_type_id, department_id

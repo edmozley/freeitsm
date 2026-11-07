@@ -128,11 +128,20 @@ try {
     // type rules / default may give it one. AFTER the custom fields above, which
     // were asked for the type the requester chose - a rule never adds questions
     // nobody saw. BEFORE the number, which can carry the type.
+    //
+    // GH #218: a requester never chooses a department, so the company's default
+    // department (if any, and still active) is where the ticket starts.
+    // TRAP: worked out BEFORE the type rules, and passed to them - a rule with a
+    // department condition never matched here while this came afterwards (#248).
+    require_once '../../includes/tenant_settings.php';
+    [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $ticketTenantId !== null ? (int) $ticketTenantId : null, null);
+
     $ticketTypePick = null;
     if ($ticketTypeId === null) {
         require_once '../../includes/ticket_type_rules.php';
         $ticketTypePick = ticketTypeAutoPick($conn, $ticketTenantId, [
             'channel' => 'portal', 'mailbox_id' => $mailboxId, 'subject' => $subject, 'requester_email' => $fromEmail,
+            'department_id' => $departmentId,
         ]);
         $ticketTypeId = $ticketTypePick['type_id'] ?? null;
     }
@@ -163,11 +172,6 @@ try {
             }
         }
     }
-
-    // GH #218: a requester never chooses a department, so the company's default
-    // department (if any, and still active) is where the ticket starts.
-    require_once '../../includes/tenant_settings.php';
-    [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $ticketTenantId !== null ? (int) $ticketTenantId : null, null);
 
     $ticketSql = "INSERT INTO tickets (
         ticket_number, subject, status_id, priority_id, category_id, ticket_type_id,

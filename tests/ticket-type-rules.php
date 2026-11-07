@@ -130,6 +130,39 @@ ok('subject words match in any case, anywhere', $m(['subject' => "vpn"], ['subje
 ok('a domain matches its subdomains, not look-alikes', $m(['domains' => 'example.com'], ['requester_email' => 'a@mail.example.com'])
    && !$m(['domains' => 'example.com'], ['requester_email' => 'a@badexample.com']) && !$m(['domains' => 'example.com'], ['requester_email' => '']));
 
+// GH #248: every route that creates a ticket must work out the department
+// BEFORE the type rules and hand it to them, or a department condition never
+// matches on that route. Read from the source, because the four routes below
+// need a portal session, a mailbox or a chat to drive for real.
+echo "\nPART 1b - the department reaches the rules on every route (#248)\n";
+$routes = [
+    'portal'        => 'api/self-service/create_ticket.php',
+    'email'         => 'api/tickets/check_mailbox_email.php',
+    'messaging'     => 'includes/messaging/ingest.php',
+    'web chat'      => 'includes/webchat/webchat.php',
+    'new ticket'    => 'includes/services/tickets.php',
+    'catalogue'     => 'includes/catalogue_approvals.php',
+    'workflow'      => 'workflow/includes/engine.php',
+];
+foreach ($routes as $name => $file) {
+    $src  = (string) file_get_contents(__DIR__ . '/../' . $file);
+    $dept = strpos($src, 'ticketDepartmentForNewTicket(');
+    $pick = strpos($src, 'ticketTypeAutoPick(');
+    $call = $pick === false ? '' : substr($src, $pick, (int) strpos($src, ');', $pick) - $pick);
+    ok("$name: department worked out before the type is picked", $dept !== false && $pick !== false && $dept < $pick, $file);
+    ok("$name: and passed to the rules", str_contains($call, "'department_id' =>"), $file);
+}
+// The sweep, so a NEW route cannot slip past the list above.
+$callers = [];
+$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(dirname(__DIR__), FilesystemIterator::SKIP_DOTS));
+foreach ($it as $f) {
+    $p = str_replace('\\', '/', substr($f->getPathname(), strlen(dirname(__DIR__)) + 1));
+    if (!str_ends_with($p, '.php') || preg_match('#^(vendor|tests|local|node_modules)/#', $p)) continue;
+    if (preg_match('/(?<!function )ticketTypeAutoPick\(/', (string) file_get_contents($f->getPathname()))) $callers[] = $p;
+}
+$known = array_merge(array_values($routes), ['api/tickets/ticket_type_rules.php', 'includes/ticket_type_rules.php']);   // + the rules screen's Test button, and where it is defined
+ok('no route picks a type that this test does not check', !array_diff($callers, $known), implode(', ', array_diff($callers, $known)));
+
 echo "\nPART 2 - one company\n";
 $conn = testDb();
 if (!$conn) { echo "  SKIP  parts 2 and 3 - set FREEITSM_TEST_DATABASE to the throwaway database config.php points at\n"; done(); }
