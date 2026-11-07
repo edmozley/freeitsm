@@ -227,14 +227,14 @@
 
         const allowedSeries = SERIES_RULES[prop] || [];
         seriesSelect.innerHTML = '<option value="">' +
-            esc(we('form.series_none', 'None (single series)')) + '</option>';
+            escapeHtml(we('form.series_none', 'None (single series)')) + '</option>';
         allowedSeries.forEach(function(s) {
             // "By status" is one string, not "By " + a word: the preposition
             // does not sit in front of the noun in every language.
             var label = s === 'priority'
                 ? we('form.series_priority', 'By priority')
                 : we('form.series_status', 'By status');
-            seriesSelect.innerHTML += '<option value="' + s + '">' + esc(label) + '</option>';
+            seriesSelect.innerHTML += '<option value="' + s + '">' + escapeHtml(label) + '</option>';
         });
 
         if (allowedSeries.length === 0) {

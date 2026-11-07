@@ -279,7 +279,7 @@ $translationNamespaces = ['common', 'tickets'];
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=3"></script>
     <script src="../../assets/js/chart.min.js"></script>
-    <script src="../../assets/js/widget-editor.js?v=2"></script>
+    <script src="../../assets/js/widget-editor.js?v=3"></script>
     <script>
         const API_BASE = '../../api/tickets/';
         let dashboardWidgets = [];

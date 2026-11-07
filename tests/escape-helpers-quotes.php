@@ -63,5 +63,26 @@ foreach ($it as $f) {
 }
 ok('no escape helper leaves quotes unescaped', !$found, implode("\n        ", $found));
 
+/*
+ * A script that CALLS esc() must define it or import it (#260). widget-editor.js called esc()
+ * from 2.5.0 to 4.10.0 but only defined escapeHtml(), so the dashboard cog died with
+ * "esc is not defined". Most scripts import it: `esc = P.esc`, `{ T, esc } = window.Dom`.
+ */
+function callsEscUndefined(string $src): bool {
+    if (!preg_match('/(?<![\w$.])esc\s*\(/', $src)) return false;
+    return !preg_match('/function\s+esc\s*\(|(?<![\w$.])esc\s*=[^=]|[{,]\s*esc\s*[,}]/', $src);
+}
+ok('control: esc() called but never defined is flagged',
+   callsEscUndefined("(function () {\n  function escapeHtml(s) { return s; }\n  x.innerHTML = esc(label);\n})();"));
+ok('control: esc imported from a shared module is not',
+   !callsEscUndefined("const T = P.T, esc = P.esc;\nx.innerHTML = esc(label);")
+   && !callsEscUndefined("const { T, esc, api } = window.Dom;\nx.innerHTML = esc(label);"));
+$undef = [];
+foreach (glob('assets/js/*.js') as $p) {
+    if (str_ends_with($p, '.min.js')) continue;
+    if (callsEscUndefined(file_get_contents($p))) $undef[] = $p;
+}
+ok('no script calls esc() without defining or importing it', $undef === [], implode(', ', $undef));
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail ? 1 : 0);
