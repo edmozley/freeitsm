@@ -287,3 +287,56 @@ function domainHealth(array $d, int $interval, ?int $now = null): array
         'interval_minutes' => $interval,
     ];
 }
+
+// ====================================================================== split DNS (GH #249)
+
+/**
+ * The same name's OTHER record - its "twin" - or null.
+ *
+ * Split DNS (#249): one name can answer differently outside and inside the
+ * network. FreeITSM watches both by keeping TWO records with the same name in the
+ * same company - one Public (graded, looked up publicly) and one Internal (health,
+ * never leaves the network) - instead of one record holding two perspectives. Each
+ * record already keeps its own findings, history, certificates and permission, so
+ * nothing is shared and nothing can be inherited between the two.
+ *
+ * The rule that makes it safe: at most ONE record per name, per company, per scope.
+ * So a name has at most one twin. DomainsService enforces it on add, rename and
+ * scope change; this only finds it.
+ *
+ * @param int $id  the record whose twin is wanted (never returned itself)
+ * @param string $name  its domain name, as stored
+ * @param ?int $storeTenant  its company as stored (NULL = Default)
+ * @return ?array{id:int, scope:string}
+ */
+function domainTwin(PDO $conn, int $id, string $name, ?int $storeTenant): ?array
+{
+    if (!domainScopeReady($conn)) return null;
+    $st = $conn->prepare("SELECT id, scope FROM domains WHERE domain_name = ? AND tenant_id <=> ? AND id <> ? ORDER BY id LIMIT 1");
+    $st->execute([$name, $storeTenant, $id]);
+    $r = $st->fetch(PDO::FETCH_ASSOC);
+    return $r ? ['id' => (int)$r['id'], 'scope' => (string)$r['scope']] : null;
+}
+
+/**
+ * The id of the record with this name and SCOPE in this company, or null - the
+ * duplicate check behind "one record per name, per company, per scope".
+ *
+ * Before Database Verification has added the scope column every record is public,
+ * so the check is by name alone - exactly the rule before #249.
+ *
+ * @param string $scope  'public' or 'internal'
+ * @param int $exceptId  a record to ignore (the one being edited); 0 for none
+ */
+function domainSameScopeId(PDO $conn, string $name, ?int $storeTenant, string $scope, int $exceptId = 0): ?int
+{
+    if (domainScopeReady($conn)) {
+        $st = $conn->prepare("SELECT id FROM domains WHERE domain_name = ? AND tenant_id <=> ? AND scope = ? AND id <> ? LIMIT 1");
+        $st->execute([$name, $storeTenant, $scope, $exceptId]);
+    } else {
+        $st = $conn->prepare("SELECT id FROM domains WHERE domain_name = ? AND tenant_id <=> ? AND id <> ? LIMIT 1");
+        $st->execute([$name, $storeTenant, $exceptId]);
+    }
+    $v = $st->fetchColumn();
+    return $v === false ? null : (int)$v;
+}

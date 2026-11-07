@@ -317,6 +317,18 @@ return [
         'check'    => ['rows', 'domain_endpoints', "http_path IS NOT NULL AND http_path <> ''"],   // GH #243 slice 3b
     ],
     [
+        'id'       => 'domains.split_dns',
+        'module'   => 'domains',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'One name, watched from both sides',
+        'what'     => 'A domain in the register twice - once Public, once Internal - because it answers differently inside your network than outside it (split DNS). Add an internal view from the public domain\'s page.',
+        'why'      => 'The public site can be fine while the internal server staff reach under the same name is broken, or the other way round. Watching only one side misses half of it.',
+        'done'     => 'At least one name has both a Public and an Internal record.',
+        'link'     => 'domains/',
+        'check'    => ['sql', "SELECT COUNT(*) FROM domains i JOIN domains p ON p.domain_name = i.domain_name AND p.tenant_id <=> i.tenant_id AND p.scope = 'public' WHERE i.scope = 'internal'", 1],   // GH #249
+    ],
+    [
         'id'       => 'domains.recorded_certificates',
         'module'   => 'domains',
         'tier'     => 'extra',

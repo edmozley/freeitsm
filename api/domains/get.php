@@ -44,7 +44,10 @@ domainApiRun(function () use ($conn, $analystId) {
         'last_scans'   => $scans->fetchAll(PDO::FETCH_KEY_PAIR),
         'subdomains_ready'   => domainSubdomainsReady($conn),
         'subdomains'         => domainSubdomains($conn, $id),
-        'parent_candidates'  => domainParentCandidates($conn, $d['domain_name'], $storeTenant, $id),
+        'parent_candidates'  => domainParentCandidates($conn, $d['domain_name'], $storeTenant, $id, (string)($d['scope'] ?? 'public')),
+        // Split DNS (#249): the same name's record in the other scope, if any.
+        'twin'               => domainTwin($conn, $id, $d['domain_name'], $storeTenant),
+        'scope_ready'        => domainScopeReady($conn),
         'manual_certs_ready' => domainManualCertsReady($conn),
         'manual_certificates'=> domainManualCertificates($conn, $id),
         'cert_types'         => array_values(array_filter(domainCertificateTypes($conn), fn($t) => $t['is_active'])),

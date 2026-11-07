@@ -586,6 +586,16 @@ return [
         'delete_body'     => 'Delete {name} from the register, with its history? This does not touch the registration itself.',
         'saved'           => 'Saved.',
         'subdomain_of'    => 'subdomain of {name}',
+        // Split DNS (#249): the same name in the register twice, Public and Internal.
+        'twin_of_public'     => 'Split DNS - also watched from inside the network: {name}',
+        'twin_of_internal'   => 'Split DNS - also watched from outside: {name}',
+        'twin_link_internal' => 'the internal view',
+        'twin_link_public'   => 'the public view',
+        'add_internal'       => 'Add an internal view',
+        'add_internal_hint'  => 'Watch this name as your own network sees it, too - for split DNS',
+        'add_internal_title' => 'Add an internal view?',
+        'add_internal_body'  => 'This adds a second record for {name}, set to Internal. It is checked the way your own network sees the name - this server\'s DNS only, never anything outside - and keeps its own health, owner and settings, separate from this one. Use it when {name} answers differently inside your network (split DNS).',
+        'add_internal_ok'    => 'Add',
         'parent_reg'      => 'Registration - {name}\'s',
         'parent_reg_note' => 'A subdomain is registered as part of its parent. These are {name}\'s details; renew and refresh it there.',
         'parent_open'     => 'Open {name}',
@@ -1128,6 +1138,8 @@ return [
             'p6'    => 'It only connects within limits an administrator sets under **Settings → Internal monitoring**: the **networks** it may reach (every address the name resolves to must be inside one - none is ticked until you choose, so nothing is connected to until then) and the **ports** (443 out of the box; tick 8443 or add others). For a certificate from your own certificate authority, add a **trust profile** there with the CA\'s certificate and choose it for the endpoint. Endpoints, the limits and trust profiles need the **Internal monitoring** permission; everybody who can see the domain sees the results, but **Check now** only reconnects to the endpoints for somebody who holds it.',
             'p7'    => 'Note that *This server only* keeps FreeITSM\'s questions on this server - if this server\'s DNS resolver forwards questions it cannot answer to a public service, a name can still leave the network from there.',
             'p8' => '**Expected records**, on the same Health tab, check what a name holds, not only that it resolves: an A, AAAA, CNAME, NS or SOA record, with the values you expect, one per line. Leave the values empty when only the record has to exist - an address that changes, say. With values, the record must hold exactly those, in any order, and a missing record or different values is a problem that says what it found. They use the same permission as endpoints.',
+            // Split DNS (#249).
+            'p9' => '**Split DNS** - when a name answers differently inside your network than outside it (the public website for the world, an internal server for staff), watch both: open the public domain and choose **Add an internal view**. That adds a second record of the same name, set to Internal, with its own health, owner and settings. Each links to the other. A name can be in the register once as Public and once as Internal - never twice in the same scope - and the internal one never sends anything outside, whatever its public twin does.',
         ],
         'grade' => [
             'nav'   => 'The security grade',

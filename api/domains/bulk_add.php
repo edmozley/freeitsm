@@ -26,11 +26,14 @@ domainApiRun(function () use ($conn, $ctx, $analystId) {
             if ($raw === '') { $skipped[] = ['input' => 'row ' . ($i + 2), 'reason' => 'No domain name.']; continue; }
             $n = domainNormalise($raw);
             if (!$n['ok']) { $skipped[] = ['input' => $raw, 'reason' => $n['error']]; continue; }
-            if (isset($seen[$n['name']])) { $skipped[] = ['input' => $raw, 'reason' => 'Listed twice.']; continue; }
-            $seen[$n['name']] = true;
             $fields = array_merge($defaults, array_intersect_key($row, DomainsService::fieldMap()));
             // Named rather than numbered: a CSV says "Active" and "Jane Smith".
             $fields = domainImportResolveNames($conn, $fields, $row);
+            // Split DNS (#249): the same name once Public and once Internal is two
+            // records, not a repeat - "listed twice" means same name AND same scope.
+            $seenKey = $n['name'] . '|' . (strtolower(trim((string)($fields['scope'] ?? ''))) === 'internal' ? 'internal' : 'public');
+            if (isset($seen[$seenKey])) { $skipped[] = ['input' => $raw, 'reason' => 'Listed twice.']; continue; }
+            $seen[$seenKey] = true;
             try {
                 $id = DomainsService::createDomain($conn, $ctx, array_merge($fields, ['domain_name' => $n['name']]), $tenant, 'import');
                 $added[] = ['id' => $id, 'name' => $n['name']];
@@ -77,6 +80,9 @@ function domainImportResolveNames(PDO $conn, array $fields, array $row): array
         }
     }
     if (isset($fields['purpose'])) $fields['purpose'] = strtolower(str_replace([' ', '-'], '_', trim((string)$fields['purpose'])));
+    // A CSV says "Internal" - the same tidying as purpose (#249: a name can now be
+    // imported once as Public and once as Internal, so the scope must be read right).
+    if (isset($fields['scope'])) $fields['scope'] = strtolower(trim((string)$fields['scope']));
     if (isset($fields['renewal_mode'])) {
         $m = strtolower(str_replace([' ', '-'], '_', trim((string)$fields['renewal_mode'])));
         $fields['renewal_mode'] = ['yes' => 'auto', 'on' => 'auto', 'true' => 'auto', 'no' => 'manual', 'off' => 'manual', 'false' => 'manual'][$m] ?? $m;

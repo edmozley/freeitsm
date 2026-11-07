@@ -253,7 +253,7 @@ $translationNamespaces = ['common', 'domains'];
     // Supplier and contact pages in People (#162) also need Contracts, which owns those records.
     window.DOM_PEOPLE_SUPPLIERS = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') && analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'contracts')); ?>;</script>
     <script src="../assets/js/domains.js?v=4"></script>
-    <script src="../assets/js/domains-view.js?v=14"></script>
+    <script src="../assets/js/domains-view.js?v=15"></script>
     <?php endif; ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

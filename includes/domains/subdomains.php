@@ -22,6 +22,8 @@
  * Watchtower beside the checked ones.
  */
 
+require_once __DIR__ . '/scope.php';   // domainScopeReady() - split DNS prefers a same-scope parent (#249)
+
 /** Has Database Verification added domains.parent_domain_id yet? */
 function domainSubdomainsReady(PDO $conn): bool
 {
@@ -54,11 +56,17 @@ function domainIsUnder(string $name, string $parent): bool
  * The domains in the same company that $name could be a subdomain of - the
  * top-level ones it ends with - longest (closest) first.
  *
+ * Split DNS (#249): a name can be in the register twice, Public and Internal. With
+ * $preferScope, the parent of THAT scope comes before its twin, so a new internal
+ * subdomain links to the internal parent when there is one. Closest name still
+ * wins over scope: scope only breaks a tie between two records of the same name.
+ *
  * @param ?int $storeTenant  the company as stored (NULL = Default)
  * @param int  $selfId       the domain itself, never its own parent (0 on create)
- * @return list<array{id:int,name:string}>
+ * @param ?string $preferScope  'public' or 'internal' - which of two same-named parents comes first
+ * @return list<array{id:int,name:string,scope:string}>
  */
-function domainParentCandidates(PDO $conn, string $name, ?int $storeTenant, int $selfId = 0): array
+function domainParentCandidates(PDO $conn, string $name, ?int $storeTenant, int $selfId = 0, ?string $preferScope = null): array
 {
     if (!domainSubdomainsReady($conn)) return [];
     // Every proper suffix of the name with at least two labels is a candidate.
@@ -67,11 +75,12 @@ function domainParentCandidates(PDO $conn, string $name, ?int $storeTenant, int 
     for ($i = 1; $i < count($labels) - 1; $i++) $suffixes[] = implode('.', array_slice($labels, $i));
     if (!$suffixes) return [];
     $ph = implode(',', array_fill(0, count($suffixes), '?'));
-    $st = $conn->prepare("SELECT id, domain_name FROM domains
+    $hasScope = domainScopeReady($conn);
+    $st = $conn->prepare("SELECT id, domain_name, " . ($hasScope ? 'scope' : "'public' AS scope") . " FROM domains
                            WHERE domain_name IN ($ph) AND tenant_id <=> ? AND parent_domain_id IS NULL AND id <> ?
-                        ORDER BY CHAR_LENGTH(domain_name) DESC");
-    $st->execute(array_merge($suffixes, [$storeTenant, $selfId]));
-    return array_map(fn($r) => ['id' => (int)$r['id'], 'name' => (string)$r['domain_name']], $st->fetchAll(PDO::FETCH_ASSOC));
+                        ORDER BY CHAR_LENGTH(domain_name) DESC" . ($hasScope && $preferScope !== null ? ', (scope = ?) DESC, id' : ', id'));
+    $st->execute(array_merge($suffixes, [$storeTenant, $selfId], $hasScope && $preferScope !== null ? [$preferScope] : []));
+    return array_map(fn($r) => ['id' => (int)$r['id'], 'name' => (string)$r['domain_name'], 'scope' => (string)$r['scope']], $st->fetchAll(PDO::FETCH_ASSOC));
 }
 
 /**
@@ -131,7 +140,9 @@ function domainLinkExistingSubdomains(PDO $conn): int
 function domainSubdomains(PDO $conn, int $parentId): array
 {
     if (!domainSubdomainsReady($conn)) return [];
-    $st = $conn->prepare("SELECT id, domain_name, display_name, purpose, security_grade, ssl_expiry_date
+    // scope (#249): split DNS moves a subdomain to the parent of its own scope.
+    $scope = domainScopeReady($conn) ? 'scope' : "'public' AS scope";
+    $st = $conn->prepare("SELECT id, domain_name, display_name, purpose, security_grade, ssl_expiry_date, $scope
                             FROM domains WHERE parent_domain_id = ? ORDER BY domain_name");
     $st->execute([$parentId]);
     return array_map(function ($r) { $r['id'] = (int)$r['id']; return $r; }, $st->fetchAll(PDO::FETCH_ASSOC));

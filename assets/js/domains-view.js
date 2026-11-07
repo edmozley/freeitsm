@@ -62,6 +62,7 @@
             + '<div style="min-width:0"><h1>' + esc(D.display_name || D.domain_name) + '</h1>'
             + (D.display_name ? '<div class="dom-sub">' + esc(D.domain_name) + '</div>' : '')
             + (P ? '<div class="dom-sub">' + withLink('page.subdomain_of', '<a href="view.php?id=' + P.id + '">' + esc(P.display_name || P.domain_name) + '</a>') + '</div>' : '')
+            + twinLine()
             + '<div class="meta">' + status(D.status_name, D.status_colour)
             + '<span>' + esc(internal() ? T('scope.internal') : purpose(D.purpose)) + '</span>'
             + (data.multi_company && D.company_name ? '<span>· ' + esc(D.company_name) + '</span>' : '')
@@ -88,6 +89,26 @@
         document.getElementById('certBadge').innerHTML = newCt ? '<span class="dom-pill red">' + newCt + '</span>' : '';
         const la = (data.lookalikes || []).filter(x => x.dismissed == 0).length;
         document.getElementById('laBadge').innerHTML = la ? '<span class="dom-pill amber">' + la + '</span>' : '';
+    }
+
+    /**
+     * Split DNS (#249): the same name can be in the register twice - Public and
+     * Internal - to watch it from outside and from inside. Each record links to its
+     * twin; a Public record without one offers to add its internal view. Never the
+     * other way: an internal name added as Public would be looked up publicly, so
+     * that is only ever a deliberate New.
+     */
+    function twinLine() {
+        const tw = data.twin;
+        if (tw) {
+            const key = internal() ? 'page.twin_of_internal' : 'page.twin_of_public';
+            const link = '<a href="view.php?id=' + Number(tw.id) + '">' + esc(T(tw.scope === 'internal' ? 'page.twin_link_internal' : 'page.twin_link_public')) + '</a>';
+            return '<div class="dom-sub">' + withLink(key, link) + '</div>';
+        }
+        if (!internal() && data.scope_ready) {
+            return '<div class="dom-sub"><a href="#" id="addInternalView" title="' + esc(T('page.add_internal_hint')) + '">' + esc(T('page.add_internal')) + '</a></div>';
+        }
+        return '';
     }
 
     /** A translated sentence with a link where its {name} goes - the words escaped, the link as given. */
@@ -738,6 +759,14 @@
             if (e.target.id === 'codeReveal') {
                 e.preventDefault();
                 try { const d = await api('auth_code.php', { id: ID, action: 'reveal' }); document.getElementById('codeVal').textContent = d.code || ''; e.target.remove(); }
+                catch (err) { showToast(err.message, 'error'); }
+                return;
+            }
+            if (e.target.id === 'addInternalView') {
+                e.preventDefault();
+                const ok = await showConfirm({ title: T('page.add_internal_title'), message: T('page.add_internal_body', { name: D.domain_name }), okLabel: T('page.add_internal_ok') });
+                if (!ok) return;
+                try { const d = await api('add_internal_view.php', { id: ID }); location.href = 'view.php?id=' + Number(d.id); }
                 catch (err) { showToast(err.message, 'error'); }
                 return;
             }

@@ -156,10 +156,14 @@ class DomainsService
                 throw new ServiceError('forbidden', 'forbidden', 'You cannot add domains for that company.');
             }
         }
-        $dup = $conn->prepare("SELECT id FROM domains WHERE domain_name = ? AND tenant_id <=> ?");
-        $dup->execute([$n['name'], $store]);
-        if (($existing = $dup->fetchColumn()) !== false) {
-            throw new ServiceError('conflict', 'conflict', "{$n['name']} is already in the register (id {$existing}).");
+        // One record per name, per company, PER SCOPE (#249): a name may be in the
+        // register twice - once Public, once Internal - to watch it from both sides
+        // (split DNS). Never twice in the same scope. includes/domains/scope.php.
+        $newScope = (($in['scope'] ?? '') === DomainScope::Internal->value) ? DomainScope::Internal->value : DomainScope::Public->value;
+        if (($existing = domainSameScopeId($conn, $n['name'], $store, $newScope)) !== null) {
+            throw new ServiceError('conflict', 'conflict', domainScopeReady($conn)
+                ? "{$n['name']} is already in the register as " . ($newScope === 'internal' ? 'an Internal' : 'a Public') . " domain (id {$existing})."
+                : "{$n['name']} is already in the register (id {$existing}).");
         }
 
         $cols = ['domain_name', 'display_name', 'tenant_id', 'created_by'];
@@ -168,7 +172,8 @@ class DomainsService
         // A subdomain of a domain already in the register is linked to it unless
         // the caller said otherwise - the closest parent, when there are several.
         if (!array_key_exists('parent_domain_id', $in) && domainSubdomainsReady($conn)) {
-            $cand = domainParentCandidates($conn, $n['name'], $store);
+            // Split DNS (#249): when the parent is in twice, the one of the SAME scope.
+            $cand = domainParentCandidates($conn, $n['name'], $store, 0, $newScope);
             if ($cand) $in['parent_domain_id'] = $cand[0]['id'];
         }
         $in   = self::normaliseParties($conn, $in, []);
@@ -204,10 +209,52 @@ class DomainsService
                 $conn->prepare("UPDATE domains SET parent_domain_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$id, $childId]);
                 self::audit($conn, $childId, $ctx->actorId, 'parent_domain_id', null, $n['name'], $auditSource);
             }
+            // Split DNS (#249): this name's twin may already be the parent of
+            // subdomains of THIS record's scope (an internal intranet.example.com
+            // linked to public example.com, before internal example.com existed).
+            // They move to the parent of their own scope - the same rule a new
+            // subdomain follows. Each move is in the subdomain's history.
+            if (($twin = domainTwin($conn, $id, $n['name'], $store)) !== null) {
+                foreach (domainSubdomains($conn, $twin['id']) as $child) {
+                    if (($child['scope'] ?? 'public') !== $newScope) continue;
+                    $conn->prepare("UPDATE domains SET parent_domain_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$id, $child['id']]);
+                    self::audit($conn, (int)$child['id'], $ctx->actorId, 'parent_domain_id', $n['name'] . ' (' . $twin['scope'] . ')', $n['name'] . ' (' . $newScope . ')', $auditSource);
+                }
+            }
         }
         self::afterDateChange($conn);
         self::dispatchCrud($conn, 'created', $id);
         return $id;
+    }
+
+    /**
+     * Split DNS (#249): adds the INTERNAL record for a public domain's name - its
+     * "internal view" - in the same company, and returns the new id.
+     *
+     * One way only. Public -> Internal is safe: the new record never leaves the
+     * network. Internal -> Public would send an internal name to public DNS, the
+     * registries and crt.sh - the leak internal scope exists to stop - so that is
+     * never a one-click action; somebody who means it adds the name with New.
+     *
+     * Starts with the public record's owner, so it is not flagged "No owner"; every
+     * other field - checks, expected records, endpoints, notes - is its own.
+     *
+     * @param int $id  the PUBLIC domain whose name gets an internal view
+     */
+    public static function addInternalView(PDO $conn, ActorContext $ctx, int $id): int
+    {
+        $cur = self::loadForActor($conn, $ctx, $id);
+        if (!domainScopeReady($conn)) {
+            throw new ServiceError('validation', 'invalid_field', 'Internal domains need Database Verification to be run first (System -> Database Verification).');
+        }
+        if (domainIsInternal($cur)) {
+            throw new ServiceError('validation', 'invalid_field', 'This is already the internal view of ' . $cur['domain_name'] . '.');
+        }
+        $in = ['domain_name' => $cur['domain_name'], 'scope' => DomainScope::Internal->value];
+        if (!empty($cur['owner_analyst_id'])) $in['owner_analyst_id'] = (int)$cur['owner_analyst_id'];
+        // The record's own company, NOT the analyst's active one: a twin in another
+        // company is not a twin. createDomain re-checks the caller may add there.
+        return self::createDomain($conn, $ctx, $in, $cur['tenant_id'] === null ? getDefaultTenantId($conn) : (int)$cur['tenant_id']);
     }
 
     /**
@@ -230,13 +277,28 @@ class DomainsService
 
         $sets = []; $args = []; $changes = [];
 
+        // One record per name, per company, per scope (#249). A rename, a scope
+        // change, or both at once must not make a second record of the same name
+        // AND scope - that would be two records claiming the same perspective.
+        // Changing scope while the twin exists in the other scope is exactly that.
+        $curScope  = (string)($cur['scope'] ?? DomainScope::Public->value);
+        $nextScope = array_key_exists('scope', $in) && in_array($in['scope'], array_column(DomainScope::cases(), 'value'), true) ? (string)$in['scope'] : $curScope;
+        $nextName  = $cur['domain_name'];
+        if (array_key_exists('domain_name', $in)) {
+            $nn = domainNormalise((string)$in['domain_name']);
+            if ($nn['ok']) $nextName = $nn['name'];
+        }
+        if (($nextName !== $cur['domain_name'] || $nextScope !== $curScope)
+            && ($other = domainSameScopeId($conn, $nextName, $cur['tenant_id'] === null ? null : (int)$cur['tenant_id'], $nextScope, $id)) !== null) {
+            throw new ServiceError('conflict', 'conflict', $nextScope !== $curScope
+                ? "{$nextName} is already in the register as " . ($nextScope === 'internal' ? 'an Internal' : 'a Public') . " domain (id {$other}) - one record per name and scope. Edit that one instead, or delete it first."
+                : "{$nextName} is already in the register.");
+        }
+
         if (array_key_exists('domain_name', $in)) {
             $n = domainNormalise((string)$in['domain_name']);
             if (!$n['ok']) throw new ServiceError('validation', 'invalid_field', $n['error']);
             if ($n['name'] !== $cur['domain_name']) {
-                $dup = $conn->prepare("SELECT id FROM domains WHERE domain_name = ? AND tenant_id <=> ? AND id <> ?");
-                $dup->execute([$n['name'], $cur['tenant_id'], $id]);
-                if ($dup->fetchColumn() !== false) throw new ServiceError('conflict', 'conflict', "{$n['name']} is already in the register.");
                 $sets[] = 'domain_name = ?'; $args[] = $n['name'];
                 $sets[] = 'display_name = ?'; $args[] = $n['display'];
                 // A different name is a different registration: what change
