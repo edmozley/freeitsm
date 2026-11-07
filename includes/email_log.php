@@ -50,6 +50,8 @@ const EMAIL_LOG_ROUTES = [
     // addresses in the settings, and the reply to the sender.
     'oversize_alert' => 'Oversized email alert',
     'oversize_reply' => 'Oversized email reply',
+    // The Test button on a mailbox's settings (4.11.0) - always to the analyst who clicked it.
+    'mailbox_test'   => 'Mailbox test',
     // Domains (#154): expiry/certificate digests and change-detection warnings.
     'domain_alert'   => 'Domain alert',
     // A task assigned to an analyst who asked to be emailed about it (2.10.0).

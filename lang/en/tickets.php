@@ -1279,6 +1279,8 @@ return [
             'test_connection' => 'Test connection',
             'verify'          => 'Verify',
             'verifying'       => 'Verifying...',
+            'test'            => 'Test',
+            'testing'         => 'Sending...',
         ],
         // Results of "Check all" and of the Verify button beside a folder field.
         // These were built in JavaScript as English literals, so they stayed
@@ -1299,6 +1301,17 @@ return [
             'counts'       => '({total} items, {unread} unread)',
             'not_found'    => 'Folder not found',
             'failed'       => 'Failed to verify folder',
+        ],
+        // The Test button on a mailbox (4.11.0): a short email to the analyst who
+        // clicked it, through the same route a reply takes. subject/body are the email.
+        'mailbox_test' => [
+            'label'      => 'Test sending',
+            'help'       => 'Sends a short email to you through this mailbox, the way a reply goes. A Basic IMAP mailbox is tested with the settings above, saved or not; Microsoft 365 and Google as saved.',
+            'sent'       => 'Sent to {to} - check that it arrives.',
+            'sent_saved' => 'Sent to {to} using the saved settings - check that it arrives.',
+            'failed'     => 'The test could not run.',
+            'subject'    => 'FreeITSM test email from {name}',
+            'body'       => 'This is a test from the "{name}" mailbox in FreeITSM. If you can read it, replies from this mailbox will be delivered.',
         ],
         // Add/Edit modal contents across the settings tabs. Each modal has its
         // own sub-namespace below. Convention for technical labels: product
@@ -3481,7 +3494,7 @@ return [
             'card_csat_body'       => 'Send mode (off / auto / manual), delay, one-per-ticket guard, scale (stars or emojis). See section 6 for the full flow',
             'email_heading' => '<strong>Email importing in detail</strong>',
             'email_body'    => 'The email import feature connects to your shared mailbox and pulls in new messages as tickets. When an end user sends an email to your support address (e.g. support@yourcompany.com), FreeITSM creates a ticket with the email subject as the title and the email body as the description. If the sender replies to a notification email, the reply is threaded into the existing ticket rather than creating a duplicate.',
-            'email_step1'   => '<strong>Configure the mailbox</strong> &mdash; go to Settings and enter your Exchange or Microsoft 365 credentials. OAuth authentication is supported for secure, password-free connections.',
+            'email_step1'   => '<strong>Configure the mailbox</strong> &mdash; go to Settings &rarr; Mailboxes and add one: Microsoft 365 or Google, which sign in with OAuth and store no password, or <strong>Basic IMAP / SMTP</strong> for any other mail server, with a username and password and nothing to install. <strong>Test</strong> sends you a short email through the mailbox the way a reply goes, and <strong>Verify</strong> checks the folder.',
             'email_step2'   => '<strong>Set polling interval</strong> &mdash; choose how frequently FreeITSM checks the mailbox for new messages. Shorter intervals mean faster ticket creation.',
             'email_step3'   => '<strong>Map defaults</strong> &mdash; set the default department, type, and priority for tickets created from email. Analysts can adjust these after import.',
             'tip'           => 'Use email templates to maintain a professional, consistent tone in all end-user communications. Templates support dynamic placeholders for ticket reference, requester name, analyst name, and status.',

@@ -164,5 +164,25 @@ function mailboxHealthProblems(array $mb, array $context = []): array
             'Mail can be collected from this mailbox but replies cannot be sent from it.');
     }
 
+    // A port and an encryption setting that do not belong together (4.11.0). The
+    // classic is STARTTLS on 465: the mailbox looks fine, collects mail, and every
+    // reply fails. Flagged here so it shows BEFORE the first reply bounces. Only
+    // a warning, and dismissible: a provider can run something unusual on a port.
+    if (($mb['provider'] ?? '') === 'imap') {
+        require_once __DIR__ . '/mail_ports.php';
+        $smtpHint = mailPortMismatch('smtp', (int)($mb['smtp_port'] ?? 0), (string)($mb['smtp_encryption'] ?? ''));
+        if ($smtpHint !== null && trim((string)($mb['smtp_server'] ?? '')) !== '') {
+            $add($problems, 'smtp_port_encryption', 'warning',
+                'Sending will fail: the SMTP port and encryption do not match',
+                $smtpHint . ' Use Test in the mailbox settings to check.');
+        }
+        $imapHint = mailPortMismatch('imap', (int)($mb['imap_port'] ?? 0), (string)($mb['imap_encryption'] ?? ''));
+        if ($imapHint !== null) {
+            $add($problems, 'imap_port_encryption', 'warning',
+                'Collecting mail will fail: the IMAP port and encryption do not match',
+                $imapHint);
+        }
+    }
+
     return $problems;
 }

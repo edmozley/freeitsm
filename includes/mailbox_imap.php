@@ -22,6 +22,7 @@
 require_once __DIR__ . '/encryption.php';
 require_once __DIR__ . '/mime_message.php';
 require_once __DIR__ . '/imap_client.php';
+require_once __DIR__ . '/mail_ports.php';
 
 /**
  * Open (and cache within the request) a signed-in connection with a folder selected.
@@ -339,40 +340,68 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
     $context = imapStreamContext();
     $errno = 0;
     $errstr = '';
+    // TRAP: every failure below names its STEP, and a port/encryption mismatch says
+    // what to change (includes/mail_ports.php). Before 4.11.0 STARTTLS on port 465
+    // waited 30 seconds for a greeting that never comes and reported only
+    // 'expected 220, got ""' - which told nobody that SSL was the fix.
+    $hint = mailPortMismatch('smtp', $port, $enc);
     $fp = @stream_socket_client($transport . $host . ':' . $port, $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
     if (!$fp) {
-        throw new Exception('SMTP connection to ' . $host . ':' . $port . ' failed: ' . $errstr . ' (' . $errno . ')');
+        throw new Exception('SMTP connection to ' . $host . ':' . $port . ' failed: ' . $errstr . ' (' . $errno . ')' . ($hint ? ' ' . $hint : ''));
     }
     stream_set_timeout($fp, 30);
 
     try {
-        imapSmtpExpect($fp, [220]);
+        try {
+            imapSmtpExpect($fp, [220]);
+        } catch (SmtpReplyException $e) {
+            throw new Exception($e->reply === ''
+                ? $host . ':' . $port . ' accepted the connection but never said hello (no SMTP greeting). '
+                    . ($hint ?? 'Check the port and the encryption setting - they usually go together: 465 with SSL, 587 with STARTTLS.')
+                : 'The SMTP server refused the connection: ' . $e->reply);
+        }
         $ehloHost = imapSmtpClientHostname($from);
         imapSmtpCommand($fp, 'EHLO ' . $ehloHost, [250]);
 
         // STARTTLS upgrade for the 'tls' setting.
         if ($enc === 'tls') {
-            imapSmtpCommand($fp, 'STARTTLS', [220]);
+            try {
+                imapSmtpCommand($fp, 'STARTTLS', [220]);
+            } catch (SmtpReplyException $e) {
+                throw new Exception('The SMTP server does not offer STARTTLS: ' . $e->reply . ($hint ? ' ' . $hint : ''));
+            }
             $crypto = STREAM_CRYPTO_METHOD_TLS_CLIENT;
             if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT')) {
                 $crypto |= STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT;
             }
             if (!@stream_socket_enable_crypto($fp, true, $crypto)) {
-                throw new Exception('SMTP STARTTLS negotiation failed.');
+                throw new Exception('SMTP STARTTLS negotiation failed - the server\'s certificate could not be verified, or it offers no TLS version this PHP accepts.');
             }
             imapSmtpCommand($fp, 'EHLO ' . $ehloHost, [250]);
         }
 
         // AUTH LOGIN (username + password, each base64).
         if ($user !== '') {
-            imapSmtpCommand($fp, 'AUTH LOGIN', [334]);
-            imapSmtpCommand($fp, base64_encode($user), [334]);
-            imapSmtpCommand($fp, base64_encode($pass), [235]);
+            try {
+                imapSmtpCommand($fp, 'AUTH LOGIN', [334]);
+                imapSmtpCommand($fp, base64_encode($user), [334]);
+                imapSmtpCommand($fp, base64_encode($pass), [235]);
+            } catch (SmtpReplyException $e) {
+                throw new Exception('SMTP sign-in failed: ' . $e->reply);
+            }
         }
 
-        imapSmtpCommand($fp, 'MAIL FROM:<' . $from . '>', [250]);
+        try {
+            imapSmtpCommand($fp, 'MAIL FROM:<' . $from . '>', [250]);
+        } catch (SmtpReplyException $e) {
+            throw new Exception('The SMTP server will not send as ' . $from . ': ' . $e->reply);
+        }
         foreach (array_merge($toList, $ccList) as $rcpt) {
-            imapSmtpCommand($fp, 'RCPT TO:<' . $rcpt . '>', [250, 251]);
+            try {
+                imapSmtpCommand($fp, 'RCPT TO:<' . $rcpt . '>', [250, 251]);
+            } catch (SmtpReplyException $e) {
+                throw new Exception('The SMTP server refused the recipient ' . $rcpt . ': ' . $e->reply);
+            }
         }
 
         imapSmtpCommand($fp, 'DATA', [354]);
@@ -453,9 +482,22 @@ function imapSmtpExpect($fp, array $expected): string {
     }
     $code = (int) substr($response, 0, 3);
     if (!in_array($code, $expected, true)) {
-        throw new Exception('SMTP error: expected ' . implode('/', $expected) . ', got "' . trim($response) . '"');
+        throw new SmtpReplyException('SMTP error: expected ' . implode('/', $expected) . ', got "' . trim($response) . '"', trim($response));
     }
     return $response;
+}
+
+/** An SMTP reply that was not the one expected. $reply is the server's own words ('' when it said nothing), so a caller can name the step that failed. */
+class SmtpReplyException extends Exception
+{
+    /**
+     * @param string $message  the full message, as before
+     * @param string $reply  what the server actually said, trimmed; '' for silence
+     */
+    public function __construct(string $message, public string $reply = '')
+    {
+        parent::__construct($message);
+    }
 }
 
 /**

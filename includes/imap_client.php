@@ -25,6 +25,7 @@
  */
 
 require_once __DIR__ . '/ssl.php';
+require_once __DIR__ . '/mail_ports.php';
 
 /** A failure talking to an IMAP server. The message is safe to show an administrator. */
 class ImapException extends Exception {}
@@ -100,18 +101,25 @@ class ImapClient
             $scheme . $this->host . ':' . $this->port,
             $errno, $errstr, $this->timeout, STREAM_CLIENT_CONNECT, imapStreamContext()
         );
+        // Port 993 with STARTTLS, or 143 with SSL, cannot work - say which to change.
+        $hint = mailPortMismatch('imap', $this->port, $this->encryption);
         if (!$fp) {
             $why = trim($errstr) !== '' ? $errstr : 'no response';
             if ($this->encryption === 'ssl' && stripos($why, 'certificate') !== false) {
                 $why .= ' - the server\'s certificate could not be verified';
             }
-            throw new ImapException('IMAP connection to ' . $this->host . ':' . $this->port . ' failed: ' . $why);
+            throw new ImapException('IMAP connection to ' . $this->host . ':' . $this->port . ' failed: ' . $why . ($hint ? ' ' . $hint : ''));
         }
         stream_set_timeout($fp, $this->timeout);
         $this->fp = $fp;
 
         // The greeting is untagged: "* OK ...", "* PREAUTH ..." or "* BYE ...".
-        $greeting = $this->readLogicalLine();
+        try {
+            $greeting = $this->readLogicalLine();
+        } catch (ImapException $e) {
+            throw new ImapException($this->host . ':' . $this->port . ' accepted the connection but never said hello (no IMAP greeting). '
+                . ($hint ?? 'Check the port and the encryption setting - they usually go together: 993 with SSL, 143 with STARTTLS.'));
+        }
         if (preg_match('/^\* BYE\b/i', $greeting)) {
             throw new ImapException('The IMAP server refused the connection: ' . trim(substr($greeting, 5)));
         }

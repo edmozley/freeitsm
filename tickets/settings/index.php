@@ -2900,6 +2900,19 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <input type="password" id="mailboxSmtpPassword" autocomplete="new-password" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_password_placeholder')); ?>">
                     </div>
 
+                    <!-- Test sending (4.11.0): every provider, so no provider-* class. It
+                         sends a short email to the analyst clicking it, through the same
+                         route a reply takes (api/tickets/test_mailbox_send.php). Basic IMAP
+                         is tested with these unsaved values; the others as saved. -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label><?php echo htmlspecialchars(t('tickets.settings.mailbox_test.label')); ?></label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button type="button" class="btn btn-secondary" id="testMailboxSendBtn" onclick="testMailboxSend()" style="padding: 8px 12px; white-space: nowrap;"><?php echo htmlspecialchars(t('tickets.settings.buttons.test')); ?></button>
+                            <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.mailbox_test.help')); ?></small>
+                        </div>
+                        <small id="testMailboxSendResult" style="display: none; margin-top: 5px;"></small>
+                    </div>
+
                     <div class="form-group">
                         <label for="mailboxFolder"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.email_folder')); ?></label>
                         <!-- The folder mail is READ from had no Verify, while the folder
@@ -5997,6 +6010,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             toggleImportedFolder();
             document.getElementById('verifyFolderResult').style.display = 'none';
             document.getElementById('verifyIntakeFolderResult').style.display = 'none';
+            document.getElementById('testMailboxSendResult').style.display = 'none';
             document.getElementById('mailboxActive').checked = mailbox ? mailbox.is_active : true;
             document.getElementById('mailboxConfidential').checked = !!(mailbox && mailbox.default_sensitivity === 'confidential');
             await populateMailboxCompanies(mailbox ? (mailbox.tenant_id ?? null) : null);
@@ -6231,6 +6245,64 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 // Was a literal 'Verify', so a German button read "Prüfen" until
                 // the first click and "Verify" ever after.
                 btn.textContent = window.t('tickets.settings.buttons.verify');
+            }
+        }
+
+        /**
+         * The Test button (4.11.0): sends a short email to the analyst clicking it,
+         * through the mailbox's own route. Sends the form's CURRENT values - Basic
+         * IMAP is tested with them, saved or not; the server decides which password
+         * it may reuse (mailboxTestResolve() in includes/mailbox_send.php).
+         */
+        async function testMailboxSend() {
+            const resultEl = document.getElementById('testMailboxSendResult');
+            const btn = document.getElementById('testMailboxSendBtn');
+            const val = id => document.getElementById(id).value;
+
+            btn.disabled = true;
+            btn.textContent = window.t('tickets.settings.buttons.testing');
+            resultEl.style.display = 'none';
+
+            try {
+                const res = await fetch(API_BASE + 'test_mailbox_send.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mailbox_id: parseInt(val('mailboxId')) || null,
+                        provider: val('mailboxProvider'),
+                        name: val('mailboxName'),
+                        target_mailbox: val('mailboxEmail'),
+                        imap_server: val('mailboxImapServer'),
+                        imap_port: parseInt(val('mailboxImapPort')) || 993,
+                        imap_encryption: val('mailboxImapEncryption'),
+                        imap_username: val('mailboxImapUsername'),
+                        imap_password: val('mailboxImapPassword'),
+                        smtp_server: val('mailboxSmtpServer'),
+                        smtp_port: parseInt(val('mailboxSmtpPort')) || 587,
+                        smtp_encryption: val('mailboxSmtpEncryption'),
+                        smtp_same_as_imap: document.getElementById('mailboxSmtpSameAsImap').checked,
+                        smtp_username: val('mailboxSmtpUsername'),
+                        smtp_password: val('mailboxSmtpPassword')
+                    })
+                });
+                const data = await res.json();
+                resultEl.style.display = '';
+                if (data.success) {
+                    resultEl.style.color = '#155724';
+                    resultEl.textContent = window.t(data.used_saved ? 'tickets.settings.mailbox_test.sent_saved' : 'tickets.settings.mailbox_test.sent', { to: data.to });
+                } else {
+                    // The server's message names the step that failed and, for a
+                    // port/encryption mismatch, what to change. textContent: no HTML.
+                    resultEl.style.color = '#721c24';
+                    resultEl.textContent = data.error || window.t('tickets.settings.mailbox_test.failed');
+                }
+            } catch (err) {
+                resultEl.style.display = '';
+                resultEl.style.color = '#721c24';
+                resultEl.textContent = window.t('tickets.settings.mailbox_test.failed');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = window.t('tickets.settings.buttons.test');
             }
         }
 
