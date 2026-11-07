@@ -855,7 +855,7 @@ $seg = function (string $label, string $attr, array $options) {
         // and failed silently: the chart jumped to a corner and nothing downloaded.
         // So the images are an SVG built here from state.branch - crisp at any
         // size, whatever the zoom, whatever the theme - and PNG and PDF are made
-        // from that SVG by the browser and the bundled jsPDF.
+        // from that SVG by the browser and the shared PDF writer (pdf-writer.js).
         var EXPORT_ACCENT = '#a21caf';
         // Who an export starts from: the person drawn from, or - for the whole
         // organisation, whose root is an id-0 stand-in - the people at the top.
@@ -967,15 +967,18 @@ $seg = function (string $label, string $attr, array $options) {
                 return;
             }
             if (fmt === 'pdf') {
-                if (!window.jspdf || !window.jspdf.jsPDF) { failed(); return; }
+                if (!window.FitsmPdf) { failed(); return; }
                 var drawing = buildSvg();
                 svgToCanvas(drawing).then(function (c) {
-                    var pdf = new window.jspdf.jsPDF({ orientation: drawing.width > drawing.height ? 'landscape' : 'portrait', unit: 'pt', format: [drawing.width, drawing.height] });
-                    // JPEG, not PNG: jsPDF stores a PNG all but uncompressed (13 MB for a
-                    // small chart). On the white ground a high-quality JPEG looks the same.
-                    pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, drawing.width, drawing.height);
-                    pdf.save(fileName('pdf'));
-                }, failed);
+                    // The shared PDF writer (assets/js/pdf-writer.js - GH #254). The chart is a
+                    // picture the browser drew, so every language in it is already right.
+                    return FitsmPdf.create({ orientation: drawing.width > drawing.height ? 'landscape' : 'portrait', unit: 'pt', format: [drawing.width, drawing.height] }).then(function (pdf) {
+                        // JPEG, not PNG: a high-quality JPEG of a chart on a white ground looks
+                        // the same and is far smaller.
+                        pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, drawing.width, drawing.height);
+                        return pdf.save(fileName('pdf'));
+                    });
+                }).catch(failed);
                 return;
             }
             if (fmt === 'json') {
@@ -1272,7 +1275,7 @@ $seg = function (string $label, string $attr, array $options) {
         loadGaps().then(function () { setView(state.view); }, function () { setView(state.view); });
     })();
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/vendor/jspdf.umd.min.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer (GH #254) -->
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

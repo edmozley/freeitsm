@@ -2719,7 +2719,7 @@
     // =========================================================
     //  PNG / PDF export
     //  Snapshot the canvas via html2canvas, optionally wrap into a paper-
-    //  sized PDF via jsPDF. Driven entirely from the live DOM: temporarily
+    //  sized PDF via the shared PDF writer. Driven entirely from the live DOM: temporarily
     //  reset zoom to 1, hide selection/edge-handle chrome via .is-exporting,
     //  render the clipped rect, restore everything. The page outline drives
     //  the clip rect when a paper size is set (WYSIWYG export); otherwise
@@ -2852,9 +2852,8 @@
 
     /** Exports the diagram as a PDF sized to its paper choice (A4 portrait when none is set). */
     async function exportPdf() {
-        // jsPDF UMD exposes its constructor under window.jspdf.jsPDF
-        const jsPDF = (window.jspdf && window.jspdf.jsPDF) || null;
-        if (!jsPDF) {
+        // The shared PDF writer (assets/js/pdf-writer.js - GH #254).
+        if (!window.FitsmPdf) {
             if (window.showToast) showToast(t('network-mapper.toast.pdf_lib_failed'), 'error');
             return;
         }
@@ -2865,17 +2864,17 @@
         // scaled to fit the page, which is fine for content-bbox exports.
         const paperSize  = (diagram && diagram.paper_size)        || 'A4';
         const orient     = (diagram && diagram.paper_orientation) || 'portrait';
-        const doc = new jsPDF({
+        const doc = await FitsmPdf.create({
             orientation: orient === 'landscape' ? 'l' : 'p',
             unit: 'pt',
-            // jsPDF accepts paper sizes lowercased; our stored values are
+            // The PDF writer takes paper sizes lowercased; our stored values are
             // capitalised so .toLowerCase() bridges the convention gap.
             format: paperSize.toLowerCase(),
         });
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
         doc.addImage(result.canvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
-        doc.save(exportFilename('pdf'));
+        await doc.save(exportFilename('pdf'));
         if (window.showToast) showToast(t('network-mapper.toast.pdf_exported'), 'success');
     }
 

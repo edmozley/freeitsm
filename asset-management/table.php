@@ -79,9 +79,8 @@ try {
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
-    <!-- jsPDF + autotable (same versions as morning-checks) for PDF export -->
-    <script src="../assets/js/vendor/jspdf.umd.min.js?v=4.2.1"></script>
-    <script src="../assets/js/vendor/jspdf.plugin.autotable.min.js?v=5.0.9"></script>
+    <!-- The shared PDF writer for PDF export (PDFKit + bundled fonts, every language - GH #254) -->
+    <script src="../assets/js/pdf-writer.js?v=1"></script>
     <?php /* Mobile-friendly opt-in (#937). Last stylesheet so its @media rules
              win on ties. Every rule inside is gated at 768px. */ ?>
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
@@ -137,7 +136,7 @@ try {
     </div>
 
     <script>window.assetCustomColumns = <?php echo json_encode($assetCustomColumns, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/data-table.js?v=9"></script>
+    <script src="../assets/js/data-table.js?v=10"></script>
     <script src="../assets/js/asset-table.js?v=12"></script>
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
     <script src="../assets/js/mobile.js?v=83"></script>

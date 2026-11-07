@@ -60,6 +60,18 @@ const BRANDING_DEFAULT_LOGO = 'assets/images/CompanyLogo.png';
 const BRANDING_UPLOAD_DIR = 'system/uploads/branding/';
 
 /**
+ * The organisation's OWN logo as a web URL, or null when none has been set - for
+ * documents that should carry the organisation's logo or nothing, never
+ * FreeITSM's (GH #254: an exported article showed FreeITSM's logo).
+ */
+function brandingCustomLogoUrl(?PDO $conn = null): ?string
+{
+    $url = brandingLogoUrl($conn);
+    $base = defined('BASE_URL') ? BASE_URL : '/';
+    return $url === $base . BRANDING_DEFAULT_LOGO ? null : $url;
+}
+
+/**
  * The organisation's logo as a web URL, with the bundled one as the fallback.
  *
  * ⚠️ Never throws and never returns empty: a page that cannot reach the database

@@ -591,11 +591,11 @@ $translationNamespaces = ['common', 'change-management'];
         </div>
     </div>
 
-    <!-- PDF of a change: html2canvas draws it, jsPDF pages it (changePdfDocument() in
-         change-management.js). html2pdf did this until 4.1.0, carrying its own older
-         copy of jsPDF; now there is one jsPDF on the install, and it is current. -->
+    <!-- PDF of a change: html2canvas draws it, the shared PDF writer pages it
+         (changePdfDocument() in change-management.js). html2pdf did this until 4.1.0,
+         carrying its own copy of a PDF library; now there is one, pdf-writer.js. -->
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
-    <script src="../assets/js/vendor/jspdf.umd.min.js?v=4.2.1"></script>
+    <script src="../assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script>
         window.API_BASE = '<?php echo BASE_URL; ?>api/change-management/';
         <?php if (!empty($openCreateOnLoad)): ?>
@@ -614,7 +614,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
     <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=37"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=38"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

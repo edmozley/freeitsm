@@ -24,8 +24,8 @@ before assuming what you have.
 | --- | --- | --- | --- | --- |
 | TinyMCE | **8.10.0** | `assets/js/tinymce/` | https://www.tiny.cloud · npm `tinymce` | GPL (see `assets/js/tinymce/license.md`) |
 | Chart.js | **4.4.7** | `assets/js/chart.min.js` | https://www.chartjs.org · npm `chart.js` | MIT |
-| jsPDF | **4.2.1** | `assets/js/vendor/jspdf.umd.min.js` - the only copy: Change Management's PDF used html2pdf, which bundled its own older jsPDF, until 4.1.0 | https://github.com/parallax/jsPDF · npm `jspdf` | MIT (`assets/js/vendor/jspdf.LICENSE`) |
-| jsPDF AutoTable | **5.0.9** | `assets/js/vendor/jspdf.plugin.autotable.min.js` | https://github.com/simonbengtsson/jsPDF-AutoTable · npm `jspdf-autotable` | MIT (`assets/js/vendor/jspdf.plugin.autotable.LICENSE`) |
+| PDFKit | **0.20.2** | `assets/js/vendor/pdfkit/pdfkit.bundle.js` - ONE self-contained ES module: PDFKit plus everything it is built from (fontkit - the text-shaping engine - linebreak, png-js, fflate, @noble/hashes and ciphers, restructure, and fontkit's helpers). Downloaded from `https://esm.sh/pdfkit@0.20.2/es2020/pdfkit.bundle.mjs` and renamed `.js` (IIS and older nginx do not serve `.mjs` as JavaScript). Loaded only by `assets/js/pdf-writer.js`, with `import()`. Replaced jsPDF 4.2.1 and AutoTable 5.0.9 in GH #254 | https://github.com/foliojs/pdfkit · npm `pdfkit` | MIT; `@swc/helpers` inside is Apache-2.0 (`assets/js/vendor/pdfkit/LICENSE.txt`, every package listed) |
+| Noto fonts (Sans, Serif, Sans Mono, and Sans for 11 scripts) | *not embedded* - downloaded 2026-11-07 (Noto Sans: 2026-11-02, for asset labels) | `assets/fonts/noto-sans/` (also used by asset labels), `assets/fonts/noto-serif/`, `assets/fonts/noto-sans-mono/`, `assets/fonts/noto-sans-scripts/` (Devanagari, Bengali, Gujarati, Gurmukhi, Kannada, Malayalam, Tamil, Telugu, Arabic, Hebrew, Thai - Regular and Bold). The PDF writer fetches a script's font only when a PDF contains it | https://github.com/notofonts/notofonts.github.io (`fonts/<Family>/hinted/ttf`) | SIL Open Font License 1.1 (`OFL.txt` in each folder) |
 | html2canvas | **1.4.1** (the latest) | `assets/js/vendor/html2canvas.min.js` | https://html2canvas.hertzen.com | MIT |
 | pdf.js (Mozilla) | **6.3.289** | `assets/js/vendor/pdfjs/` - `build/pdf.min.mjs` and `pdf.worker.min.mjs` renamed to `.js` (IIS and older nginx do not serve `.mjs` as JavaScript), plus `cmaps/`, `standard_fonts/`, `wasm/`, `iccs/`; the QuickJS scripting sandbox (`wasm/quickjs-eval.*`) deliberately removed - the Files viewer never runs PDF JavaScript | https://mozilla.github.io/pdf.js · npm `pdfjs-dist` | Apache-2.0 (`assets/js/vendor/pdfjs/LICENSE`) |
 | mammoth.js | **1.13.0** | `assets/js/vendor/mammoth.browser.min.js` | https://github.com/mwilliamson/mammoth.js · npm `mammoth` | BSD-2-Clause (`assets/js/vendor/mammoth.LICENSE`) |
@@ -38,9 +38,11 @@ before assuming what you have.
 
 ## Checking for updates
 
-There is no automation for this yet, so it is a manual job - **part of every pre-release docs audit.** Last checked **2026-10-25** (4.1.0: TinyMCE, jsPDF, AutoTable and Prism updated for published security fixes; Chart.js, pdf.js, php-jwt, qrcode-generator and the CA bundle have newer releases not yet taken).
+There is no automation for this yet, so it is a manual job - **part of every pre-release docs audit.** Last checked **2026-10-25** (4.1.0: TinyMCE, jsPDF, AutoTable and Prism updated for published security fixes - jsPDF and AutoTable have since been replaced by PDFKit, GH #254; Chart.js, pdf.js, php-jwt, qrcode-generator and the CA bundle have newer releases not yet taken).
 
-`tests/security-findings/run.php` (section F6) fails if TinyMCE, jsPDF or Prism falls back below the version with the fix, or if a second copy of jsPDF appears.
+`tests/security-findings/run.php` (section F6) fails if TinyMCE or Prism falls back below the version with the fix, if PDFKit is not the version recorded here, or if jsPDF (or a second PDF library) appears again.
+
+**PDFKit is updated differently from the rest**, because it is many npm packages, not one file: download the new bundle from `https://esm.sh/pdfkit@<version>/es2020/pdfkit.bundle.mjs`, check its first line names that version and that it has no `import` of another URL (it must be self-contained - an air-gapped install cannot fetch anything), rename it `pdfkit.bundle.js`, update `LICENSE.txt` from the new version's dependency list, then run `php tests/pdf-writer.php` and look at the PDF it saves. Why and how: wiki [JavaScript modules and vendoring explained](https://github.com/edmozley/freeitsm/wiki/JavaScript-Modules-And-Vendoring-Explained).
 
 For anything on npm:
 

@@ -205,22 +205,40 @@
             return (clean(rt.name) || 'Report').slice(0, 150) + period + '.pdf';
         };
 
-        /** Load everything, lay out, and build the PDF. Resolves to the jsPDF document. */
+        /** Everything the report will print - the design and its data - for the fonts it needs. */
+        rt.textAll = function () {
+            return rt.name + ' ' + JSON.stringify(rt.design) + ' ' + JSON.stringify(rt.dataMap ? rt.dataMap() : {}) + ' ' + JSON.stringify(rt.fields || {});
+        };
+
+        /**
+         * Loads the PDF writer and the fonts this report's text needs (GH #254). The engine
+         * measures with them; before they arrive it uses the browser's measure, so lay out
+         * again once this resolves. Resolves true when it loaded something new.
+         */
+        rt.prepareFonts = async function () {
+            if (!window.FitsmPdf) return false;
+            const before = window.FitsmPdf.isReady();
+            await window.FitsmPdf.ready(rt.textAll());
+            return !before;
+        };
+
+        /** Load everything, lay out, and build the PDF. Resolves to the document. */
         rt.buildPdf = async function () {
             await rt.loadContext();
             await rt.loadData();
+            await rt.prepareFonts();   // before layout: the engine measures with the PDF's fonts
             const layout = rt.layout();
-            return window.RPRenderPdf.build(layout, {
+            return await window.RPRenderPdf.build(layout, {
                 title: rt.name,
                 logo: rt.logo && rt.logo.dataUrl ? rt.logo : null,
                 chartImage: (it) => rt.chartImage(it, 3),
             });
         };
 
-        /** Builds the PDF and saves it as a download; resolves to the jsPDF document. */
+        /** Builds the PDF and saves it as a download; resolves to the document. */
         rt.exportPdf = async function () {
             const doc = await rt.buildPdf();
-            doc.save(rt.fileName());
+            await doc.save(rt.fileName());
             return doc;
         };
 

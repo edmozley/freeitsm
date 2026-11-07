@@ -3420,7 +3420,7 @@ const PM = (() => {
     // =========================================================
     // Captures the canvas at 2× resolution, packages as either a PNG file
     // or a paper-sized PDF. Same vendor libraries Network Mapper uses
-    // (#257) — html2canvas for the raster, jsPDF for the document wrap.
+    // (#257) — html2canvas for the raster, the shared PDF writer for the document wrap.
 
     // Slugify the current process title for the download filename.
     function exportFilename(ext) {
@@ -3570,9 +3570,8 @@ const PM = (() => {
     /** Captures the diagram and downloads it as an A4 PDF, landscape or portrait to match its shape, scaled to fit inside a 24pt margin. */
     async function exportToPdf() {
         if (!currentProcessId) { showToast('Open a process first', 'error'); return; }
-        // jsPDF UMD exposes its constructor under window.jspdf.jsPDF
-        const jsPDF = (window.jspdf && window.jspdf.jsPDF) || null;
-        if (!jsPDF) {
+        // The shared PDF writer (assets/js/pdf-writer.js - GH #254).
+        if (!window.FitsmPdf) {
             showToast(t('process-mapper.toast.export_lib_missing'), 'error');
             return;
         }
@@ -3583,7 +3582,7 @@ const PM = (() => {
         // Pick the PDF page orientation by aspect ratio of the captured rect
         // so the diagram fills the page in its natural reading direction.
         const orientation = (result.rect.width > result.rect.height) ? 'l' : 'p';
-        const doc = new jsPDF({ orientation, unit: 'pt', format: 'a4' });
+        const doc = await FitsmPdf.create({ orientation, unit: 'pt', format: 'a4' });
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
 
@@ -3600,7 +3599,7 @@ const PM = (() => {
         const drawX = (pageW - drawW) / 2;
         const drawY = (pageH - drawH) / 2;
         doc.addImage(result.canvas.toDataURL('image/png'), 'PNG', drawX, drawY, drawW, drawH);
-        doc.save(exportFilename('pdf'));
+        await doc.save(exportFilename('pdf'));
         showToast(t('process-mapper.toast.pdf_exported'), 'success');
     }
 

@@ -52,7 +52,7 @@ $dtSearchPlaceholder = t('domains.table.search');
         <?php include '../../includes/data-table-skeleton.php'; ?>
     </div>
     <script src="../../assets/js/domains.js?v=4"></script>
-    <script src="../../assets/js/data-table.js?v=9"></script>
+    <script src="../../assets/js/data-table.js?v=10"></script>
     <script src="../../assets/js/domains-table.js?v=4"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>

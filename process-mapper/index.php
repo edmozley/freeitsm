@@ -507,9 +507,9 @@ try {
     <!-- Vendored locally so PNG/PDF export works offline and doesn't depend on a
          CDN at print time. Same versions used by Network Mapper (#257). -->
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
-    <script src="../assets/js/vendor/jspdf.umd.min.js?v=4.2.1"></script>
+    <script src="../assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/hover-preview.js?v=1"></script>
-    <script src="../assets/js/process-mapper.js?v=20"></script>
+    <script src="../assets/js/process-mapper.js?v=21"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

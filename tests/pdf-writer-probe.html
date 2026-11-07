@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>pdf-writer probe</title></head>
+<body>
+<!--
+  Browser half of tests/pdf-writer.php (GH #254). It is copied to the app root under
+  a random name for one run and deleted again - tests/ is never served over the web.
+  Writes {checks:[...], pdf:<base64>} into #result.
+-->
+<pre id="result">RUNNING</pre>
+<script src="assets/js/pdf-writer.js?v=probe"></script>
+<script>
+(async function () {
+    const checks = [];
+    const ok = (label, pass, detail) => checks.push({ label, pass: !!pass, detail: detail === undefined ? null : detail });
+    try {
+        const SAMPLE = {
+            pl: 'Zażółć gęślą jaźń. ĄĆĘŁŃÓŚŹŻ ąćęłńóśźż',
+            ru: 'Съешь же ещё этих мягких французских булок',
+            hi: 'हिन्दी: क्षत्रिय कि किताब विद्यार्थी',
+            ta: 'தமிழ்: கொள்கை தமிழ் நாடு',
+            bn: 'বাংলা: ক্ষমা বাংলা ভাষা',
+        };
+        const all = Object.values(SAMPLE).join(' ');
+
+        // 1. Scripts and runs
+        const sc = FitsmPdf.scriptsIn(all);
+        ok('scripts found: Devanagari, Tamil, Bengali', sc.has('deva') && sc.has('taml') && sc.has('beng'), [...sc]);
+        ok('Polish and Russian need no extra font', FitsmPdf.scriptsIn(SAMPLE.pl + SAMPLE.ru).size === 0);
+        ok('Chinese is reported as not supported', !FitsmPdf.supported('报告') && FitsmPdf.supported(all));
+
+        const doc = await FitsmPdf.create({ unit: 'mm', format: 'a4', orientation: 'portrait' }, all);
+        const r = FitsmPdf.runs(SAMPLE.hi, 'helvetica', 'normal');
+        ok('a Hindi sentence is ONE run in the Devanagari font (spaces kept inside, so it is shaped whole)',
+           r.some(x => x.font === 'deva-normal' && x.text.includes(' ') && x.text.includes('क्षत्रिय')), r);
+        const rb = FitsmPdf.runs(SAMPLE.bn, 'helvetica', 'normal');
+        ok('a colon the Bengali font lacks goes to the main font, not an empty box',
+           rb.some(x => x.text.includes(':') && x.font === 'sans-normal'), rb);
+        const rd = FitsmPdf.runs('चाहिए।', 'helvetica', 'normal');
+        ok('a "।" ending a Hindi sentence stays in the Devanagari font (the main font has none - it showed as a box)',
+           rd.length === 1 && rd[0].font === 'deva-normal', rd);
+        ok('bold Hindi uses the bold Devanagari font', FitsmPdf.runs('क्ष', 'helvetica', 'bold')[0].font === 'deva-bold');
+        ok('italic Hindi falls back to regular (script fonts have no italic)', FitsmPdf.runs('क्ष', 'helvetica', 'italic')[0].font === 'deva-normal');
+        ok('Courier maps to Noto Sans Mono', FitsmPdf.runs('abc', 'courier', 'bolditalic')[0].font === 'mono-bold');
+
+        // 2. Measuring - shaped, not a sum of letters
+        const joined = FitsmPdf.measure('क्ष', 'helvetica', 'normal', 12);
+        const parts = FitsmPdf.measure('क', 'helvetica', 'normal', 12) + FitsmPdf.measure('्', 'helvetica', 'normal', 12) + FitsmPdf.measure('ष', 'helvetica', 'normal', 12);
+        ok('क्ष is measured as ONE joined letter, narrower than its three parts added up', joined > 0 && joined < parts - 0.5, { joined, parts });
+        ok('Polish ł has a real width (not zero, not a question mark)', FitsmPdf.measure('ł', 'helvetica', 'normal', 12) > 1);
+
+        // 3. Wrapping
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+        const lines = doc.splitTextToSize('lorem ipsum dolor sit amet '.repeat(12), 60);
+        ok('splitTextToSize wraps, and every line fits the width', lines.length > 3 && lines.every(l => doc.getTextWidth(l) <= 60.01), lines.length);
+        const long = doc.splitTextToSize('Zażółćgęśląjaźń'.repeat(8), 30);
+        ok('a word longer than the line is broken between letters', long.length > 1 && long.every(l => doc.getTextWidth(l) <= 30.01), long);
+
+        // 4. Drawing - everything an export uses
+        doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);
+        doc.text('FreeITSM pdf-writer probe', 15, 20);
+        doc.setFontSize(12); doc.setFont('helvetica', 'normal');
+        let y = 32;
+        Object.entries(SAMPLE).forEach(([k, s]) => { doc.text(k + ': ' + s, 15, y); y += 8; });
+        doc.setFont('times', 'italic'); doc.text('Serif italic: Zażółć gęślą jaźń', 15, y); y += 8;
+        doc.setFont('courier', 'normal'); doc.text('Mono: const x = 42;', 15, y); y += 8;
+        doc.setFont('helvetica', 'bold'); doc.text('Right aligned', 195, y, { align: 'right' }); y += 4;
+        doc.setDrawColor(200, 0, 0); doc.setLineWidth(0.5); doc.line(15, y, 195, y); y += 4;
+        doc.setFillColor(230, 240, 255); doc.setDrawColor(0, 80, 160); doc.roundedRect(15, y, 80, 14, 2, 2, 'FD');
+        doc.setLineDashPattern([1.2, 1], 0); doc.rect(100, y, 40, 14, 'S'); doc.setLineDashPattern([], 0);
+        doc.setFillColor(0, 0, 0); doc.circle(160, y + 7, 3, 'F'); y += 20;
+        const cv = document.createElement('canvas'); cv.width = 40; cv.height = 20;
+        const g = cv.getContext('2d'); g.fillStyle = '#0078d4'; g.fillRect(0, 0, 40, 20); g.fillStyle = 'rgba(255,0,0,0.5)'; g.fillRect(10, 5, 20, 10);
+        const png = cv.toDataURL('image/png');
+        doc.addImage(png, 'PNG', 15, y, 20, 10, 'probe-logo'); doc.addImage(png, 'PNG', 40, y, 20, 10, 'probe-logo'); y += 16;
+
+        // 5. A table across pages, with a status hook
+        const body = [];
+        for (let i = 1; i <= 60; i++) body.push(['Row ' + i, i % 3 ? SAMPLE.pl : SAMPLE.hi, i % 2 ? 'OK' : 'FAIL']);
+        const before = doc.getNumberOfPages();
+        doc.autoTable({
+            startY: y, head: [['Name', 'Text', 'Status']], body,
+            styles: { fontSize: 9, cellPadding: 2 },
+            headStyles: { fillColor: [0, 120, 212], textColor: [255, 255, 255], fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            columnStyles: { 0: { cellWidth: 25, fontStyle: 'bold' }, 2: { cellWidth: 20, halign: 'center' } },
+            margin: { left: 15, right: 15 },
+            didParseCell: d => { if (d.section === 'body' && d.column.index === 2) d.cell.styles.textColor = d.cell.raw === 'OK' ? [0, 128, 0] : [200, 0, 0]; },
+        });
+        ok('the table ran onto new pages', doc.getNumberOfPages() > before, doc.getNumberOfPages());
+        ok('lastAutoTable.finalY is set, inside the page', doc.lastAutoTable && doc.lastAutoTable.finalY > 0 && doc.lastAutoTable.finalY < 297);
+
+        // 6. Page numbers stamped at the end (setPage)
+        const n = doc.getNumberOfPages();
+        for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFontSize(8); doc.setTextColor(150, 150, 150); doc.text('Page ' + i + ' of ' + n, 195, 290, { align: 'right' }); }
+
+        // 7. Output
+        const blob = await doc.output('blob');
+        const head = new Uint8Array(await blob.slice(0, 5).arrayBuffer());
+        ok('output is a PDF', String.fromCharCode(...head) === '%PDF-', String.fromCharCode(...head));
+        const text = new TextDecoder('latin1').decode(new Uint8Array(await blob.arrayBuffer()));
+        // A transparent PNG is two image objects in a PDF - the picture and its alpha
+        // mask (/SMask) - so count the pictures, not the masks.
+        const imgs = (text.match(/\/Subtype \/Image/g) || []).length;
+        const masks = (text.match(/\/SMask \d+ 0 R/g) || []).length;
+        ok('the image placed twice is stored ONCE (one picture, one transparency mask)', imgs - masks === 1 && masks <= 1, { imageObjects: imgs, masks });
+        ok('the PDF is a sensible size (fonts subset, not whole)', blob.size < 400000, blob.size);
+
+        // 8. Air gap: nothing was fetched from anywhere but this server
+        const foreign = performance.getEntriesByType('resource').map(e => e.name).filter(u => !u.startsWith(location.origin));
+        ok('AIR GAP: every file came from this server - nothing from the internet', foreign.length === 0, foreign);
+
+        const b = new Uint8Array(await blob.arrayBuffer()); let s = '';
+        for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+        document.getElementById('result').textContent = JSON.stringify({ checks, pdf: btoa(s) });
+    } catch (e) {
+        ok('the probe ran without an error', false, e.message + ' ' + (e.stack || ''));
+        document.getElementById('result').textContent = JSON.stringify({ checks, pdf: null });
+    }
+})();
+</script>
+</body></html>

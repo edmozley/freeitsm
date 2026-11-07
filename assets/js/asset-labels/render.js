@@ -5,15 +5,15 @@
  * ways from the same code:
  *
  *   - on a canvas, for the preview: everything drawn by the browser;
- *   - into a PDF at the stock's exact size (jsPDF): the QR code, lines and boxes as
+ *   - into a PDF at the stock's exact size (the shared PDF writer): the QR code, lines and boxes as
  *     vector shapes, and every piece of TEXT drawn by the browser on a canvas at
  *     600 dpi and placed as an image.
  *
- * 🔑 Why text is an image. jsPDF's own text uses the standard PDF fonts, which hold
- * only Western European characters, and it cannot join Arabic letters or combine
- * Indic ones. The browser does all of that, with the bundled Noto Sans, any font
- * uploaded for labels, and the system's own fonts for anything neither has (the
- * font list falls back character by character). So every character prints, and
+ * 🔑 Why text is an image. It was first done because jsPDF (FreeITSM's PDF library
+ * until GH #254) could only print Western European letters. The shared PDF writer
+ * now prints every bundled language as real text, but labels keep the picture on
+ * purpose: the browser draws it with any font UPLOADED for labels and the system's
+ * own fonts for anything else (the font list falls back character by character), so
  * what prints is exactly what the preview showed. 600 dpi is twice what most label
  * printers print.
  *
@@ -292,14 +292,15 @@
     /**
      * Builds the PDF: one page per label on a tape, labels laid out on pages for a
      * sheet. job: {stock, items, labels:[{values, url}], captions, noTag, font, logo,
-     * mono, onProgress(done, total)}. Returns the jsPDF document.
+     * mono, onProgress(done, total)}. Returns the document (assets/js/pdf-writer.js).
      */
     async function pdf(job) {
         const st = job.stock;
-        const J = window.jspdf.jsPDF;
         const tape = st.kind !== 'sheet';
         const pw = tape ? st.w : st.page_w, ph = tape ? st.h : st.page_h;
-        const doc = new J({ unit: 'mm', format: [pw, ph], orientation: pw >= ph ? 'l' : 'p', compress: true });
+        // The shared PDF writer (assets/js/pdf-writer.js - GH #254). Label text stays a
+        // picture the browser draws (see the top of this file), so no fonts are fetched.
+        const doc = await FitsmPdf.create({ unit: 'mm', format: [pw, ph], orientation: pw >= ph ? 'l' : 'p' });
         const perPage = tape ? 1 : st.cols * st.rows;
         const logo = job.mono ? monoImage(job.logo) : job.logo;
         const logoUrl = logo ? imageData(logo, 1200) : null;

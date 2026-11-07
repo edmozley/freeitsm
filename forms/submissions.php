@@ -32,14 +32,13 @@ $translationNamespaces = ['common', 'forms'];
     <!-- For FormLogic.formatDateValue() — date answers are naive local values and must
          NOT go through Tz, which would shift them into the reader's timezone. -->
     <script src="../assets/js/form-logic.js?v=9"></script>
-    <script src="../assets/js/vendor/jspdf.umd.min.js?v=4.2.1"></script>
-    <!-- autotable: a table QUESTION is drawn as a real table in the PDF rather
-         than flattened into a paragraph. Same versions as morning-checks. -->
-    <script src="../assets/js/vendor/jspdf.plugin.autotable.min.js?v=5.0.9"></script>
+    <!-- The shared PDF writer (PDFKit + bundled fonts, every language - GH #254). A
+         table QUESTION is drawn as a real table in the PDF, by its autoTable(). -->
+    <script src="../assets/js/pdf-writer.js?v=1"></script>
     <!-- The shared document builder, also used by forms/collection.php. One
          implementation of what a record looks like, so the two pages cannot
          disagree the first time a field type changes. -->
-    <script src="../assets/js/form-pdf.js?v=2"></script>
+    <script src="../assets/js/form-pdf.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <!-- The detail panel draws a table QUESTION as a real table, and .form-table

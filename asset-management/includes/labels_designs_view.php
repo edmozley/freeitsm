@@ -59,8 +59,8 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('asset-management.label
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.labels.browser_title'))); ?></title>
     <script src="../assets/js/qrcode.min.js"></script>
-    <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
-    <script src="../assets/js/asset-labels/render.js?v=3"></script>
+    <script src="../assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
+    <script src="../assets/js/asset-labels/render.js?v=4"></script>
     <style>
         body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f6fa; color: #222; }
         .bar { background: #546e7a; color: #fff; padding: 12px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -145,7 +145,7 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('asset-management.label
             const meta = document.getElementById('meta'), was = meta.textContent;
             try {
                 const doc = await LabelRender.pdf(Object.assign({}, JOB, { onProgress: (n, t) => { meta.textContent = <?php echo json_encode(t('asset-management.label_designs.making', ['n' => '{n}', 't' => '{t}'])); ?>.replace('{n}', n).replace('{t}', t); } }));
-                doc.save(JOB.file);
+                await doc.save(JOB.file);
             } catch (e) {
                 alert(e.message);
             } finally {

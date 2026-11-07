@@ -57,7 +57,7 @@ $translationNamespaces = ['common', 'calendar'];
         <?php include '../../includes/data-table-skeleton.php'; ?>
     </div>
 
-    <script src="../../assets/js/data-table.js?v=9"></script>
+    <script src="../../assets/js/data-table.js?v=10"></script>
     <script src="../../assets/js/calendar-table.js?v=3"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>

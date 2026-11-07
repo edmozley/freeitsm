@@ -240,6 +240,8 @@
         build();
         await rt.loadLogo();
         await rt.loadContext();
+        // The PDF's own fonts, so the page on screen breaks lines exactly as the PDF will (GH #254).
+        try { await rt.prepareFonts(); } catch (e) { console.warn('Report Packs: fonts', e); }
         scheduleRender();
         loadData();
     }
@@ -753,6 +755,7 @@
 
     // ── The canvas: pages, rulers, frames ────────────────────────────────
     let renderQueued = false;
+    let fontsHave = null, fontsPending = false;   // the scripts whose PDF fonts are loaded (GH #254)
     /** Queues one render for the next animation frame, however many times it is called before then. */
     function scheduleRender() {
         if (renderQueued) return;
@@ -774,6 +777,15 @@
         if (!S.design) return;
         if (S.editing) { refreshRibbonState(); return; }   // never redraw under the cursor
         const scrollTop = els.canvas.scrollTop;
+        // New text in a script whose font is not loaded yet (somebody just typed Hindi):
+        // fetch it, and lay out again when it is here - this pass measures it roughly.
+        if (window.FitsmPdf && window.FitsmPdf.isReady() && !fontsPending) {
+            const want = [...window.FitsmPdf.scriptsIn(rt.textAll())].join(',');
+            if (want !== fontsHave) {
+                fontsPending = true;
+                rt.prepareFonts().then(() => { fontsHave = want; fontsPending = false; scheduleRender(); }, () => { fontsPending = false; });
+            }
+        }
         S.layout = rt.layout();
         const L = S.layout, G = L.geometry, k = pxmm();
         const chartScale = Math.min(3, Math.round(S.zoom * (window.devicePixelRatio || 1) * 2) / 2 || 1);

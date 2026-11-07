@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
+require_once '../includes/branding.php';   // the organisation's logo for the PDF export (GH #254)
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
@@ -559,14 +560,16 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
 
     <!-- Link Copied Toast -->
 
-    <!-- jsPDF for searchable PDF generation -->
-    <script src="../assets/js/vendor/jspdf.umd.min.js?v=4.2.1"></script>
+    <!-- The shared PDF writer (PDFKit + bundled Noto fonts, every language - GH #254) -->
+    <script src="../assets/js/pdf-writer.js?v=1"></script>
     <script>window.API_BASE = '../api/knowledge/';</script>
+    <!-- The organisation's own logo for the PDF, or null - never FreeITSM's (GH #254). -->
+    <script>window.KB_PDF_LOGO = <?php echo json_encode(brandingCustomLogoUrl()); ?>;</script>
     <script>window.KB_SHOW_DOMAINS = <?php echo $showDomains ? 'true' : 'false'; ?>; window.KB_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.KB_BASE = <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/safe-html.js?v=4"></script>   <!-- article bodies are cleaned before display -->
-    <script src="../assets/js/knowledge.js?v=66"></script>
+    <script src="../assets/js/knowledge.js?v=67"></script>
     <!-- Prism.js for code syntax highlighting when viewing articles -->
     <script src="../assets/js/vendor/prism.min.js?v=1.30.0"></script>
     <script src="../assets/js/vendor/prism-powershell.min.js"></script>

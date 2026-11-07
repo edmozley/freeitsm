@@ -121,7 +121,7 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
     </div>
 
-    <script src="../../assets/js/data-table.js?v=9"></script>
+    <script src="../../assets/js/data-table.js?v=10"></script>
     <script src="../../assets/js/tasks-ctx-menu.js?v=5"></script>
     <?php /* The panel renders a description through the shared cleaner - without it
              the HTML showed as text (GH #219). Calendar and Timeline load it too. */ ?>

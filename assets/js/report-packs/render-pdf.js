@@ -1,8 +1,9 @@
 /**
- * Report Packs - draw the engine's pages into a PDF with jsPDF.
+ * Report Packs - draw the engine's pages into a PDF with the shared PDF writer
+ * (assets/js/pdf-writer.js - PDFKit and the bundled Noto fonts, GH #254).
  *
  * The twin of render-svg.js: same primitives, same coordinates, same order.
- * Text is real PDF text in the standard fonts (searchable, selectable, sharp),
+ * Text is real PDF text in every language FreeITSM ships (searchable, sharp),
  * charts are images at ~300 dpi, and the logo is embedded ONCE under an alias
  * however many pages carry it (see the note in assets/js/form-pdf.js on what an
  * un-aliased logo does to file size).
@@ -21,22 +22,13 @@
         return [n >> 16, (n >> 8) & 255, n & 255];
     }
 
-    /** Characters the standard fonts cannot encode become '?' rather than garbage. */
-    const EXTRA = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
     /**
-     * Replaces characters outside WinAnsi with "?" (an open bullet becomes "-") so the PDF never
-     * prints garbage.
+     * Kept for callers: text goes into the PDF as it is now. Until GH #254 this replaced
+     * everything outside Western European (WinAnsi) with "?" - the writer's fonts print it.
      */
-    function safe(text) {
-        let out = '';
-        for (const ch of String(text)) {
-            const c = ch.codePointAt(0);
-            out += (c <= 0xff || EXTRA.indexOf(ch) >= 0) ? ch : (ch === '◦' ? '-' : '?');
-        }
-        return out;
-    }
+    function safe(text) { return String(text); }
 
-    /** Sets jsPDF's font, style, size and text colour from a run style. */
+    /** Sets the writer's font, style, size and text colour from a run style. */
     function setStyle(doc, st) {
         doc.setFont(st.font || 'helvetica', window.RPEngine.styleKey(st.b, st.i));
         doc.setFontSize(st.size);
@@ -54,7 +46,7 @@
             doc.rect(x, y - st.size * PT * 0.82, w, st.size * PT * 1.08, 'F');
         }
         setStyle(doc, st);
-        doc.text(safe(text), x, y, { baseline: 'alphabetic' });
+        doc.text(String(text), x, y);   // y is the baseline, as the engine measured it
         if (st.u || st.s) {
             doc.setDrawColor(...rgb(st.color || '#222222'));
             doc.setLineWidth(Math.max(0.15, st.size * PT * 0.07));
@@ -107,15 +99,28 @@
         });
     }
 
+    /** Every piece of text on the laid-out pages, so the writer fetches the fonts it needs. */
+    function textOf(layout) {
+        const out = [];
+        const rich = r => { if (r && r.L) r.L.lines.forEach(l => { if (l.marker) out.push(l.marker.text); l.items.forEach(it => out.push(it.text)); }); };
+        layout.pages.forEach(pg => {
+            rich(pg.headerRich); rich(pg.footerRich); rich(pg.coverRich);
+            (pg.toc || []).forEach(d => d.text && out.push(d.text));
+            pg.items.forEach(it => { it.draw.forEach(d => d.text && out.push(d.text)); rich(it.rich); });
+        });
+        return out.join(' ');
+    }
+
     /**
      * Build the PDF. layout = RPEngine.paginate(...) result.
      * opts: {title, logo: {dataUrl}|null, chartImage(item) -> PNG dataURL}
+     * Async: resolves to the document (the writer loads PDFKit and fonts first).
      */
-    function build(layout, opts) {
+    async function build(layout, opts) {
         const G = layout.geometry;
-        const doc = new window.jspdf.jsPDF({
-            unit: 'mm', format: [G.pw, G.ph], orientation: G.pw > G.ph ? 'landscape' : 'portrait', compress: true,
-        });
+        const doc = await window.FitsmPdf.create({
+            unit: 'mm', format: [G.pw, G.ph], orientation: G.pw > G.ph ? 'landscape' : 'portrait',
+        }, textOf(layout));
         doc.setProperties({ title: opts.title || 'Report', creator: 'FreeITSM' });
 
         layout.pages.forEach((pg, i) => {

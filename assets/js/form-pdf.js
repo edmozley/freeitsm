@@ -13,7 +13,7 @@
  * collection page every row may belong to a different form, so "the form" can
  * no longer be a property of the page.
  *
- * Depends on: jspdf (vendored), window.t (i18n), window.fmtDate (timezones),
+ * Depends on: window.FitsmPdf (assets/js/pdf-writer.js), window.t (i18n), window.fmtDate (timezones),
  * FormLogic (lookup labels + naive date values).
  *
  * @wiki Submission-PDF-Export-Developer-Guide
@@ -217,10 +217,19 @@
         return logoPromise;
     }
 
-    /** A new blank A4 portrait jsPDF document measured in millimetres. */
-    function newDoc() {
-        var jsPDF = window.jspdf.jsPDF;
-        return new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    /**
+     * A new blank A4 portrait document in millimetres, from the shared PDF writer
+     * (assets/js/pdf-writer.js - PDFKit, every language, GH #254). It is handed the
+     * submissions' text so it fetches the fonts that text needs (Hindi, Tamil...).
+     */
+    function newDoc(text) {
+        return window.FitsmPdf.create({ unit: 'mm', format: 'a4', orientation: 'portrait' }, text);
+    }
+
+    /** Everything a set of submissions will print, for newDoc() - titles, labels, answers, the approval trail. */
+    function textOf(items) {
+        return JSON.stringify(items.map(function (it) { return [it.form && it.form.title, it.form && it.form.fields, it.sub]; }))
+            + ' ' + window.t('forms.subs.pdf_footer', { n: 1, total: 1 });
     }
 
     /**
@@ -328,7 +337,7 @@
             /* A table's answer is drawn AS A TABLE. Flattening thirty cells into
                a paragraph is technically a record and practically unreadable —
                and a purchase requisition's whole point is the table. */
-            if (p.kind === 'grid' && !p.empty && typeof doc.autoTable === 'function') {
+            if (p.kind === 'grid' && !p.empty) {
                 room(labelLines.length * 5 + 20);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
@@ -395,10 +404,10 @@
     /** One submission, one file. */
     async function exportOne(form, sub, num, logoUrl) {
         var logo = await loadBrandLogo(logoUrl);
-        var doc = newDoc();
+        var doc = await newDoc(textOf([{ form: form, sub: sub }]));
         drawSubmission(doc, form, sub, num, logo);
         stampFooters(doc);
-        doc.save(submissionFileName(form, sub));
+        await doc.save(submissionFileName(form, sub));
     }
 
     /**
@@ -407,7 +416,7 @@
      */
     async function exportBundle(items, bundleTitle, logoUrl) {
         var logo = await loadBrandLogo(logoUrl);
-        var doc = newDoc();
+        var doc = await newDoc(textOf(items));
         items.forEach(function (it, i) {
             // Each record starts its own page; the first is the page the
             // document already has.
@@ -415,7 +424,7 @@
             drawSubmission(doc, it.form, it.sub, it.num, logo);
         });
         stampFooters(doc);
-        doc.save(bundleFileName(bundleTitle, items.length));
+        await doc.save(bundleFileName(bundleTitle, items.length));
     }
 
     /**
@@ -426,10 +435,10 @@
     async function exportSeparate(items, logoUrl) {
         var logo = await loadBrandLogo(logoUrl);
         for (var i = 0; i < items.length; i++) {
-            var doc = newDoc();
+            var doc = await newDoc(textOf([items[i]]));
             drawSubmission(doc, items[i].form, items[i].sub, items[i].num, logo);
             stampFooters(doc);
-            doc.save(submissionFileName(items[i].form, items[i].sub));
+            await doc.save(submissionFileName(items[i].form, items[i].sub));
             await new Promise(function (r) { setTimeout(r, 150); });
         }
     }

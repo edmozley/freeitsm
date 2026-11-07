@@ -331,14 +331,17 @@ if (!is_string($tiny) || !preg_match('/majorVersion:"(\d+)",minorVersion:"([\d.]
 }
 
 // The other bundled libraries with published fixes FreeITSM depends on (4.1.0).
-$jspdf = @file_get_contents("$APP/assets/js/vendor/jspdf.umd.min.js");
-$jv = (is_string($jspdf) && preg_match('/Version (\d+\.\d+\.\d+)/', $jspdf, $m)) ? $m[1] : '0';
-check("bundled jsPDF is 4.2.1 or later (CVE-2025-68428, CVE-2026-24737, CVE-2026-25940, CVE-2026-31938)",
-      version_compare($jv, '4.2.1', '>='), "found $jv");
+// PDFs are written by PDFKit since GH #254; jsPDF (which had four published CVEs
+// before 4.2.1) must not come back alongside it, and PDFKit must be the pinned build.
+check("jsPDF is no longer bundled - every PDF goes through assets/js/pdf-writer.js (GH #254)",
+      !is_file("$APP/assets/js/vendor/jspdf.umd.min.js") && !is_file("$APP/assets/js/vendor/jspdf.plugin.autotable.min.js"));
+$pdfkit = (string)@file_get_contents("$APP/assets/js/vendor/pdfkit/pdfkit.bundle.js", false, null, 0, 200);
+preg_match('/pdfkit@(\d+\.\d+\.\d+)/', $pdfkit, $pm);
+check("bundled PDFKit is the version VENDOR.md records (0.20.2)", ($pm[1] ?? '') === '0.20.2', 'found ' . ($pm[1] ?? 'none'));
 $prism = @file_get_contents("$APP/assets/js/vendor/prism.min.js");
 check("bundled Prism has the CVE-2024-53382 fix (1.30.0: currentScript must be a SCRIPT)",
       is_string($prism) && str_contains($prism, '"SCRIPT"===document.currentScript.tagName'));
-check("no second copy of jsPDF is bundled (html2pdf carried its own until 4.1.0)",
+check("no second PDF library is bundled (html2pdf carried its own jsPDF until 4.1.0)",
       !is_file("$APP/assets/js/vendor/html2pdf.bundle.min.js"));
 check("VENDOR.md exists so a scanner-invisible dependency is at least written down",
       is_file("$APP/VENDOR.md"));

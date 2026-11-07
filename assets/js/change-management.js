@@ -2623,18 +2623,19 @@ function shareChangeLink() {
  * page-high slices, each a JPEG on its own page inside 10mm margins.
  *
  * html2pdf did exactly this with a copy of jsPDF bundled inside it, which fell
- * behind the install's own (and its security fixes). Doing the three steps here
- * keeps one jsPDF.
+ * behind the install's own (and its security fixes). Doing the steps here keeps
+ * ONE PDF library - since GH #254 the shared PDF writer (assets/js/pdf-writer.js).
  *
  * TRAP: the content must be IN the document, at the printable width, while it is
  * drawn - html2canvas renders laid-out elements, and a detached one has no size.
  *
  * @param {HTMLElement} content  what buildPdfContent() returns (detached)
- * @returns {Promise<object>} the jsPDF document
+ * @returns {Promise<object>} the document (the shared PDF writer, assets/js/pdf-writer.js - GH #254)
  */
 async function changePdfDocument(content) {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    // A picture of the page, so the browser has already drawn every language; the
+    // writer only wraps the pictures into pages - no text fonts to fetch.
+    const pdf = await FitsmPdf.create({ unit: 'mm', format: 'a4', orientation: 'portrait' });
     const margin = 10;
     const pageW = pdf.internal.pageSize.getWidth() - margin * 2;
     const pageH = pdf.internal.pageSize.getHeight() - margin * 2;
@@ -2676,7 +2677,7 @@ async function shareChangePdf() {
     const ref = getChangeRef();
     try {
         const pdf = await changePdfDocument(buildPdfContent());
-        pdf.save(`${ref}_${currentChange.title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+        await pdf.save(`${ref}_${currentChange.title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
     } catch (error) {
         console.error('Error generating PDF:', error);
         showToast(window.t('change-management.toast.pdf_error'), 'error');
@@ -2730,7 +2731,7 @@ async function sendShareEmail() {
 
     if (includePdf) {
         try {
-            const pdfBlob = (await changePdfDocument(buildPdfContent())).output('blob');
+            const pdfBlob = await (await changePdfDocument(buildPdfContent())).output('blob');   // the writer's output is async
             pdfBase64 = await blobToBase64(pdfBlob);
         } catch (error) {
             console.error('Error generating PDF:', error);

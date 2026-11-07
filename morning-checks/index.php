@@ -447,8 +447,8 @@ $translationNamespaces = ['common', 'morning-checks'];
     </div>
 
     <script src="../assets/js/vendor/chart.umd.min.js"></script>
-    <script src="../assets/js/vendor/jspdf.umd.min.js?v=4.2.1"></script>
-    <script src="../assets/js/vendor/jspdf.plugin.autotable.min.js?v=5.0.9"></script>
+    <!-- The shared PDF writer (PDFKit + bundled fonts, every language - GH #254) -->
+    <script src="../assets/js/pdf-writer.js?v=1"></script>
     <script>
         const API_BASE = '../api/morning-checks/';
         const TICKETS_API = '../api/tickets/';
@@ -1338,8 +1338,10 @@ $translationNamespaces = ['common', 'morning-checks'];
         async function saveToPDF() {
             const selectedDate = document.getElementById('checkDate').value;
             const dateText = document.getElementById('dateDisplayText').textContent;
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+            // The shared PDF writer (assets/js/pdf-writer.js), handed the page's text first so
+            // the right fonts are fetched - check names and notes can be in any language (GH #254).
+            const doc = await FitsmPdf.create({ unit: 'mm', format: 'a4', orientation: 'portrait' },
+                dateText + ' ' + document.getElementById('checksTableBody').textContent);
 
             let startY = 10;
 
@@ -1402,7 +1404,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                         const status = data.cell.raw;
                         data.cell.styles.fontStyle = 'bold';
                         // Look up the status's configured colour from MC_STATUSES
-                        // and convert #rrggbb → [r,g,b] for jsPDF. Unknown
+                        // and convert #rrggbb → [r,g,b] for the PDF writer. Unknown
                         // statuses (e.g. a "Not set" placeholder, or a label
                         // that's been since deleted) fall back to grey.
                         const s = MC_STATUSES.find(x => x.Label === status);
@@ -1418,7 +1420,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                 }
             });
 
-            doc.save(window.t('morning-checks.pdf.filename', { date: selectedDate }));
+            await doc.save(window.t('morning-checks.pdf.filename', { date: selectedDate }));
             showToast(window.t('morning-checks.toast.pdf_saved'), 'success');
         }
 

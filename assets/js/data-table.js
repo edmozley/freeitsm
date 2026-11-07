@@ -1470,20 +1470,24 @@
         }
 
         /**
-         * Downloads the filtered, sorted rows as a landscape A4 PDF (jsPDF + autoTable), with optional logo.
+         * Downloads the filtered, sorted rows as a landscape A4 PDF (the shared PDF writer and its
+         * autoTable), with optional logo.
          *
-         * Shows an error toast when the page has not loaded jsPDF.
+         * Shows an error toast when the page has not loaded the writer (assets/js/pdf-writer.js).
          */
         async function exportPDF() {
-            if (!window.jspdf) {
+            // The shared PDF writer (assets/js/pdf-writer.js - PDFKit, every language, GH #254).
+            if (!window.FitsmPdf) {
                 if (window.showToast) showToast('PDF library not loaded', 'error');
                 return;
             }
             const opts = config.pdf || {};
-            const { jsPDF } = window.jspdf;
             const cols = visibleColumns();
             const rows = applyFiltersAndSort();
-            const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+            const bodyRows = rows.map(row => cols.map(c => colDisplay(c, row)));
+            // Handed the text first, so the writer fetches the fonts it needs (Hindi, Tamil...).
+            const doc = await FitsmPdf.create({ unit: 'mm', format: 'a4', orientation: 'landscape' },
+                (opts.title || '') + ' ' + cols.map(c => c.label).join(' ') + ' ' + JSON.stringify(bodyRows));
             let startY = 10;
 
             if (opts.logo) {
@@ -1511,14 +1515,14 @@
             doc.autoTable({
                 startY: startY,
                 head: [cols.map(c => c.label)],
-                body: rows.map(row => cols.map(c => colDisplay(c, row))),
+                body: bodyRows,
                 styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
                 headStyles: { fillColor: opts.headFill || [0, 120, 212], textColor: [255, 255, 255], fontStyle: 'bold' },
                 alternateRowStyles: { fillColor: [248, 250, 252] },
                 margin: { left: 10, right: 10 },
             });
 
-            doc.save(`${config.exportName || 'export'}-${formatDateStr()}.pdf`);
+            await doc.save(`${config.exportName || 'export'}-${formatDateStr()}.pdf`);
             if (window.showToast) showToast(`Exported ${rows.length} ${noun}${rows.length === 1 ? '' : 's'} to PDF`, 'success');
         }
 

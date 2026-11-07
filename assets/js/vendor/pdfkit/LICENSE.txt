@@ -1,0 +1,58 @@
+pdfkit.bundle.js - PDFKit 0.20.2 and the packages it is built from, as one
+self-contained ES module (vendored 2026-11-07 from
+https://esm.sh/pdfkit@0.20.2/es2020/pdfkit.bundle.mjs, renamed .js so every web
+server serves it as JavaScript). See VENDOR.md.
+
+Every package below is under the MIT licence (full text once, below) except
+@swc/helpers, which is under the Apache License 2.0 (notice at the end). The
+browser build of PDFKit does not include the Adobe standard-font metrics, so
+Adobe's AFM notice does not apply to this file.
+
+  pdfkit 0.20.2              Copyright (c) 2014 Devon Govett
+  fontkit 2.0.4              Copyright (c) 2014-present Devon Govett
+  linebreak                  Copyright (c) 2014-present Devon Govett
+  png-js 2.0.0               Copyright (c) 2017 Devon Govett
+  restructure                Copyright (c) 2015-present Devon Govett
+  tiny-inflate               Copyright (c) 2015-present Devon Govett
+  dfa, brotli, unicode-trie,
+  unicode-properties         Copyright (c) Devon Govett (foliojs)
+  fflate 0.8.3               Copyright (c) 2026 Arjun Barrett
+  @noble/hashes, @noble/ciphers   Copyright (c) 2022 Paul Miller (https://paulmillr.com)
+  clone                      Copyright (c) 2011-2015 Paul Vorbach <paul@vorba.ch>
+  fast-deep-equal            Copyright (c) 2017 Evgeny Poberezkin
+  base64-js                  Copyright (c) 2014 Jameson Little
+  unenv (node shims added by the esm.sh build)   Copyright (c) Pooya Parsa and unjs contributors
+
+-------------------------------------------------------------------------------
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+@swc/helpers - Apache License 2.0
+Copyright (c) SWC contributors
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.

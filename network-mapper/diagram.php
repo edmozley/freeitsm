@@ -1656,7 +1656,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     </div>
 
     <!-- Vendor: PNG/PDF export. html2canvas rasterises the diagram canvas;
-         jsPDF wraps the rasterised image into a paper-sized PDF document.
+         the shared PDF writer wraps the rasterised image into a paper-sized PDF.
          Loaded eagerly because the editor is a heavy page already and lazy
          loading adds complexity for marginal gain. -->
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
@@ -1664,10 +1664,10 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
-    <script src="../assets/js/vendor/jspdf.umd.min.js?v=4.2.1"></script>
+    <script src="../assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
-    <script src="../assets/js/network-mapper.js?v=6"></script>
+    <script src="../assets/js/network-mapper.js?v=7"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

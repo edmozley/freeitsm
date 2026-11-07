@@ -8,17 +8,20 @@
  * reason the PDF matches the screen: there is only one place where a line
  * breaks or a table runs onto the next page, and it is here.
  *
- * TEXT IS MEASURED WITH THE PDF'S OWN FONT METRICS
- * ------------------------------------------------
- * Widths come from jsPDF (Helvetica, Times, Courier - the PDF standard fonts),
- * not from the browser. The screen then draws each line at the x the engine
- * chose, with textLength pinning its width, so a browser whose Arial is a
- * hair wider than Helvetica still breaks at the same word.
+ * TEXT IS MEASURED WITH THE PDF'S OWN FONTS
+ * ----------------------------------------
+ * Widths come from the shared PDF writer (assets/js/pdf-writer.js) - the bundled
+ * Noto fonts the PDF is printed in, measured AFTER shaping, so a joined Hindi
+ * letter is as wide as it prints, not the sum of its parts (GH #254). The screen
+ * then draws each line at the x the engine chose, with textLength pinning its
+ * width, so the browser's own font still breaks at the same word.
  *
- * Those fonts cover Western European text (WinAnsi), which includes Spanish
- * accents and ñ. Characters outside it are drawn on screen but cannot go into
- * the PDF; hasUnsupported() lets the designer say so instead of letting them
- * silently turn into question marks.
+ * Every language FreeITSM ships prints. hasUnsupported() flags only text no
+ * bundled font covers (Chinese, Japanese, Korean) so the designer can say so.
+ *
+ * Until the writer's fonts have loaded - the first moment on the designer page -
+ * widths come from the browser's canvas instead, and the designer lays out again
+ * when the fonts arrive (runtime.js prepareFonts).
  *
  * Units: millimetres throughout. Font sizes are points; PT converts.
  *
@@ -39,52 +42,49 @@
     };
 
     // ── Measurement ──────────────────────────────────────────────────────
-    let M = null;                         // a jsPDF used only for its font metrics
-    const widthCache = new Map();         // "font|style" -> Map(char -> units)
+    const widthCache = new Map();         // "font|style|text" -> width in points at size 1
+    let probe = null;                     // a canvas, for widths before the writer is ready
 
-    /** Returns the jsPDF font style name for bold / italic flags - normal, bold, italic or bolditalic. */
+    /** Returns the font style name (normal, bold, italic, bolditalic) for bold / italic flags, as the PDF writer takes it. */
     function styleKey(b, i) { return b && i ? 'bolditalic' : b ? 'bold' : i ? 'italic' : 'normal'; }
 
     /**
-     * Returns a character's width in font units from jsPDF's metrics, cached per font and style.
+     * Width in mm of `str` set in this style - the whole string, SHAPED, from the PDF
+     * writer (cached per font, style and text at size 1; width scales with size).
      *
-     * A character the font has no glyph for is given the width of an "n" so it does not collapse on
-     * screen.
+     * TRAP: never add up single characters. That was right for Helvetica and is wrong
+     * for any script whose letters join - क्ष is narrower than क + ् + ष (GH #254).
      */
-    function charUnits(font, style, ch) {
-        const key = font + '|' + style;
-        let m = widthCache.get(key);
-        if (!m) { m = new Map(); widthCache.set(key, m); }
-        let w = m.get(ch);
-        if (w === undefined) {
-            if (!M) M = new window.jspdf.jsPDF({ unit: 'pt' });
-            M.setFont(font, style);
-            w = M.getStringUnitWidth(ch);
-            // A character the font has no glyph for measures as nothing, which would
-            // collapse it on screen. Give it the width of an "n" so layout stays sane;
-            // the designer flags it anyway.
-            if (!w && ch !== '​') w = M.getStringUnitWidth('n');
-            m.set(ch, w);
-        }
-        return w;
-    }
-
-    /** Width in mm of `str` set in this style. */
     function textWidth(str, st) {
         const style = styleKey(st.b, st.i);
-        let u = 0;
-        for (const ch of str) u += charUnits(st.font, style, ch);
-        return u * st.size * PT;
+        const W = window.FitsmPdf;
+        if (W && W.isReady()) {
+            const key = st.font + '|' + style + '|' + str;
+            let u = widthCache.get(key);
+            if (u === undefined) {
+                u = W.measure(str, st.font, style, 1);
+                if (widthCache.size > 20000) widthCache.clear();
+                widthCache.set(key, u);
+            }
+            return u * st.size * PT;
+        }
+        // Not ready yet: the browser's measure, in the matching family. Replaced by the
+        // real widths on the next layout, once the fonts have loaded.
+        probe = probe || document.createElement('canvas').getContext('2d');
+        probe.font = (st.i ? 'italic ' : '') + (st.b ? 'bold ' : '') + st.size + 'pt ' + (FONT_CSS[st.font] || FONT_CSS.helvetica);
+        return probe.measureText(str).width * 25.4 / 96;
     }
 
-    const WINANSI_EXTRA = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
-    /** Whether a string holds a character outside WinAnsi, which the PDF standard fonts cannot print. */
+    /** Whether a string holds text no bundled font covers (Chinese, Japanese, Korean...) - everything else prints. */
     function hasUnsupported(str) {
-        for (const ch of String(str)) {
-            const c = ch.codePointAt(0);
-            if (c > 0xff && WINANSI_EXTRA.indexOf(ch) < 0) return true;
-        }
-        return false;
+        return window.FitsmPdf ? !window.FitsmPdf.supported(str) : false;
+    }
+
+    /** A string's characters as people see them - never half of a joined letter (Intl.Segmenter where there is one). */
+    function graphemes(s) {
+        return (typeof Intl !== 'undefined' && Intl.Segmenter)
+            ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(s), x => x.segment)
+            : Array.from(s);
     }
 
     // ── Rich text ────────────────────────────────────────────────────────
@@ -239,9 +239,10 @@
             if (cur.width + t.w <= avail + 0.01) { cur.items.push(t); cur.width += t.w; continue; }
             if (cur.items.length) push(false);
             if (t.w <= avail) { cur.items.push(t); cur.width += t.w; continue; }
-            // A single word longer than the line: break it where it has to.
+            // A single word longer than the line: break it where it has to - between
+            // whole characters, never inside a joined letter.
             let piece = '';
-            for (const ch of t.text) {
+            for (const ch of graphemes(t.text)) {
                 const w = textWidth(piece + ch, t.st);
                 if (w > avail && piece) {
                     const pw = textWidth(piece, t.st);

@@ -3010,29 +3010,40 @@ function shareArticleLink() {
 }
 
 
-// Build a searchable jsPDF document from the current article
+/**
+ * Build a searchable PDF of the current article - through the shared PDF writer
+ * (assets/js/pdf-writer.js), so Polish, Hindi and every other language prints right
+ * and text is measured with the font it is printed in (GH #254).
+ */
 async function buildArticlePdf() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    // The writer fetches only the fonts the article's text needs, so hand it the text first.
+    const probe = document.createElement('div');
+    probe.innerHTML = kbSafeBody(currentArticle.body);
+    const doc = await FitsmPdf.create({ unit: 'mm', format: 'a4', orientation: 'portrait' },
+        currentArticle.title + ' ' + probe.textContent + ' ' + (currentArticle.author_name || ''));
     const pageW = doc.internal.pageSize.getWidth();
     const margin = 15;
     const contentW = pageW - margin * 2;
     let y = margin;
 
-    // --- Logo ---
-    try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = '../assets/images/CompanyLogo.png';
-        });
-        const maxH = 12;
-        const w = maxH * (img.width / img.height);
-        doc.addImage(img, 'PNG', margin, y, w, maxH);
-        y += maxH + 6;
-    } catch (e) { /* continue without logo */ }
+    // --- Logo: the organisation's own, or none ---
+    // TRAP: never a hard-coded file. This used '../assets/images/CompanyLogo.png' -
+    // FreeITSM's own logo - on every organisation's articles (GH #254).
+    if (window.KB_PDF_LOGO) {
+        try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = window.KB_PDF_LOGO;
+            });
+            const maxH = 12;
+            const w = Math.min(maxH * (img.width / img.height), contentW);
+            doc.addImage(img, 'PNG', margin, y, w, maxH);
+            y += maxH + 6;
+        } catch (e) { /* continue without logo */ }
+    }
 
     // --- Title ---
     doc.setFontSize(18);
@@ -3049,8 +3060,10 @@ async function buildArticlePdf() {
     const meta = window.t('knowledge.detail.by', { name: currentArticle.author_name }) + '  |  ' +
         window.t('knowledge.detail.created', { date: formatDate(currentArticle.created_datetime), version: currentArticle.version || 1 }) + '  |  ' +
         window.t('knowledge.detail.modified', { date: formatDate(currentArticle.modified_datetime) });
-    doc.text(meta, margin, y);
-    y += 4;
+    // Wrapped: in a longer language the meta line ran past the margin (GH #254).
+    const metaLines = doc.splitTextToSize(meta, contentW);
+    doc.text(metaLines, margin, y);
+    y += metaLines.length * 4;
 
     // --- Divider ---
     doc.setDrawColor(200, 200, 200);
@@ -3173,22 +3186,25 @@ async function buildArticlePdf() {
             return;
         }
 
-        // Table support — render as simple rows
+        // A table is drawn AS A TABLE - columns, a header row, wrapping cells, the header
+        // repeated on a new page. It used to be "cell | cell" text lines (GH #254).
         if (tag === 'table') {
-            const rows = node.querySelectorAll('tr');
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('th, td');
-                const cellTexts = Array.from(cells).map(c => c.textContent.trim());
-                const text = cellTexts.join('  |  ');
-                doc.setFontSize(9);
-                const isHeader = row.querySelector('th');
-                doc.setFont('helvetica', isHeader ? 'bold' : 'normal');
-                doc.setTextColor(50, 50, 50);
-                const lines = doc.splitTextToSize(text, contentW);
-                printLines(lines, margin, 4.5);
-                y += 1;
+            const rows = Array.from(node.querySelectorAll('tr'));
+            const cellsOf = row => Array.from(row.querySelectorAll('th, td')).map(c => c.textContent.replace(/\s+/g, ' ').trim());
+            const headRow = rows.length && rows[0].querySelector('th') ? rows.shift() : null;
+            if (!rows.length && !headRow) return;
+            ensureSpace(12);
+            doc.setFont('helvetica', 'normal');
+            doc.autoTable({
+                startY: y,
+                head: headRow ? [cellsOf(headRow)] : [],
+                body: rows.map(cellsOf),
+                styles: { fontSize: 9, cellPadding: 1.8, textColor: [50, 50, 50] },
+                headStyles: { fillColor: [240, 242, 245], textColor: [30, 30, 30], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [250, 251, 252] },
+                margin: { left: margin, right: margin, top: margin, bottom: margin },
             });
-            y += 2;
+            y = doc.lastAutoTable.finalY + 4;
             return;
         }
 
@@ -3206,7 +3222,7 @@ async function shareArticlePdf() {
     if (!currentArticle) return;
 
     const doc = await buildArticlePdf();
-    doc.save(`${currentArticle.title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+    await doc.save(`${currentArticle.title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
 }
 
 // Open email share modal with both link and PDF options
@@ -3252,7 +3268,7 @@ async function sendShareEmail() {
     if (includePdf) {
         try {
             const doc = await buildArticlePdf();
-            const pdfBlob = doc.output('blob');
+            const pdfBlob = await doc.output('blob');   // the PDF writer's output is async
             pdfBase64 = await blobToBase64(pdfBlob);
         } catch (error) {
             console.error('Error generating PDF:', error);
