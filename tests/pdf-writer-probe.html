@@ -38,6 +38,9 @@
         const rd = FitsmPdf.runs('चाहिए।', 'helvetica', 'normal');
         ok('a "।" ending a Hindi sentence stays in the Devanagari font (the main font has none - it showed as a box)',
            rd.length === 1 && rd[0].font === 'deva-normal', rd);
+        const rs = FitsmPdf.runs('Level ◦ two', 'helvetica', 'normal');
+        ok('a symbol Noto Sans lacks (◦, Report Packs\' nested bullet) is taken from Noto Sans Mono, not printed as a box',
+           rs.some(x => x.text === '◦' && x.font === 'mono-normal') && rs[0].font === 'sans-normal', rs);
         ok('bold Hindi uses the bold Devanagari font', FitsmPdf.runs('क्ष', 'helvetica', 'bold')[0].font === 'deva-bold');
         ok('italic Hindi falls back to regular (script fonts have no italic)', FitsmPdf.runs('क्ष', 'helvetica', 'italic')[0].font === 'deva-normal');
         ok('Courier maps to Noto Sans Mono', FitsmPdf.runs('abc', 'courier', 'bolditalic')[0].font === 'mono-bold');

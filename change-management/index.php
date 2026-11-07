@@ -595,7 +595,7 @@ $translationNamespaces = ['common', 'change-management'];
          (changePdfDocument() in change-management.js). html2pdf did this until 4.1.0,
          carrying its own copy of a PDF library; now there is one, pdf-writer.js. -->
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
-    <script src="../assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
+    <script src="../assets/js/pdf-writer.js?v=2"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script>
         window.API_BASE = '<?php echo BASE_URL; ?>api/change-management/';
         <?php if (!empty($openCreateOnLoad)): ?>

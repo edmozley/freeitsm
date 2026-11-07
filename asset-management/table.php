@@ -80,7 +80,7 @@ try {
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
     <!-- The shared PDF writer for PDF export (PDFKit + bundled fonts, every language - GH #254) -->
-    <script src="../assets/js/pdf-writer.js?v=1"></script>
+    <script src="../assets/js/pdf-writer.js?v=2"></script>
     <?php /* Mobile-friendly opt-in (#937). Last stylesheet so its @media rules
              win on ties. Every rule inside is gated at 768px. */ ?>
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">

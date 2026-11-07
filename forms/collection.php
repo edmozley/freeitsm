@@ -44,7 +44,7 @@ $translationNamespaces = ['common', 'forms'];
     <script src="../assets/js/form-logic.js?v=9"></script>
     <!-- The shared PDF writer (PDFKit + bundled fonts, every language - GH #254). A
          table QUESTION is drawn as a real table in the PDF, by its autoTable(). -->
-    <script src="../assets/js/pdf-writer.js?v=1"></script>
+    <script src="../assets/js/pdf-writer.js?v=2"></script>
     <!-- The shared document builder. Same code as the single-form page, so a
          record exported from here is identical to one exported from there. -->
     <script src="../assets/js/form-pdf.js?v=3"></script>

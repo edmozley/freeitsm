@@ -1664,7 +1664,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=3"></script>
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
-    <script src="../assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
+    <script src="../assets/js/pdf-writer.js?v=2"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>
     <script>window.NM_CMDB = <?php echo $nmCmdb ? 'true' : 'false'; ?>; window.NM_CMDB_OFF = <?php echo json_encode(moduleIsEnabled(connectToDatabase(), 'cmdb') ? '' : moduleDisabledMessage('cmdb')); ?>;   // GH #217</script>
     <script src="../assets/js/network-mapper.js?v=7"></script>

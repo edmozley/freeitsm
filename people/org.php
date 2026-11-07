@@ -1275,7 +1275,7 @@ $seg = function (string $label, string $attr, array $options) {
         loadGaps().then(function () { setView(state.view); }, function () { setView(state.view); });
     })();
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer (GH #254) -->
+    <script src="<?php echo BASE_URL; ?>assets/js/pdf-writer.js?v=2"></script>   <!-- the shared PDF writer (GH #254) -->
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

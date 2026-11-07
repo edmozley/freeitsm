@@ -51,7 +51,7 @@ $translationNamespaces = ['common', 'reporting'];
         window.RP_API  = '../../api/reporting/packs/';
         window.RP_LOGO = <?php echo json_encode(brandingLogoUrl()); ?>;
     </script>
-    <script src="../../assets/js/pdf-writer.js?v=1"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
+    <script src="../../assets/js/pdf-writer.js?v=2"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../../assets/js/chart.min.js"></script>
     <script src="../../assets/js/report-packs/engine.js?v=2"></script>
     <script src="../../assets/js/report-packs/charts.js?v=1"></script>

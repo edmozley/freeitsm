@@ -561,7 +561,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <!-- Link Copied Toast -->
 
     <!-- The shared PDF writer (PDFKit + bundled Noto fonts, every language - GH #254) -->
-    <script src="../assets/js/pdf-writer.js?v=1"></script>
+    <script src="../assets/js/pdf-writer.js?v=2"></script>
     <script>window.API_BASE = '../api/knowledge/';</script>
     <!-- The organisation's own logo for the PDF, or null - never FreeITSM's (GH #254). -->
     <script>window.KB_PDF_LOGO = <?php echo json_encode(brandingCustomLogoUrl()); ?>;</script>

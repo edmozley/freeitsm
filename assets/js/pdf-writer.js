@@ -264,6 +264,15 @@
                 s = null;
             }
             fonts[i] = s ? scriptFont(s, style) : base;
+            // A symbol the main font lacks - Noto Sans has no ◦ (Report Packs' nested list
+            // bullet), ○, ■ or →, Noto Sans Mono does - is taken from another bundled font
+            // that has it, rather than printed as an empty box.
+            if (!s && cps[i] > 0x7F && !hasGlyph(base, cps[i])) {
+                const bold = base.endsWith('bold') || base.endsWith('bolditalic');
+                for (const alt of [bold ? 'mono-bold' : 'mono-normal', 'sans-normal', 'serif-normal']) {
+                    if (alt !== base && hasGlyph(alt, cps[i])) { fonts[i] = alt; break; }
+                }
+            }
         }
         const out = [];
         for (let i = 0; i < chars.length; i++) {
