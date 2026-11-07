@@ -260,6 +260,9 @@ $translationNamespaces = ['common', 'change-management'];
         .rp-matrix-scroll { overflow-x: auto; margin-top: 10px; }
         /* Override the full-width settings table so each heading stays over its coloured cell. */
         .tab-content table.rp-matrix { width: max-content; border-collapse: separate; border-spacing: 4px; }
+        /* The settings-table row lines and padding break into dashes once the cells have gaps. */
+        .tab-content table.rp-matrix td, .tab-content table.rp-matrix th { border-bottom: none; padding: 2px 6px; }
+        .tab-content table.rp-matrix tbody tr:hover { background: none; }
         .rp-matrix th { font-size: 12px; font-weight: 600; color: var(--text-muted, #666); padding: 2px 6px; text-align: center; max-width: 120px; }
         .rp-matrix th[scope="row"] { text-align: right; }
         .rp-cell { min-width: 110px; padding: 6px; border: 2px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
