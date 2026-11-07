@@ -19,8 +19,10 @@ zip         # LMS SCORM course upload, RFP Builder .docx text, document search i
 intl        # Domains: international domain names (xn--)
 
 # NOT IN THE IMAGE, ON PURPOSE
-# imap      PHP 8.4 removed it from PHP itself (it is now a PECL add-on), and the
-#           C library it is built on (c-client) is no longer packaged by current
-#           Debian, which the base image uses. Basic IMAP mailboxes therefore do
-#           not work in the container; Microsoft 365 and Gmail mailboxes are not
-#           affected. The fix is an IMAP client that needs no extension - GH #50.
+# (none)
+#
+# imap is NOT needed, and must not come back. PHP 8.4 removed it from PHP itself
+# and Debian 13 no longer packages the C library it is built on, so Basic IMAP
+# mailboxes now read through includes/imap_client.php, which speaks IMAP in plain
+# PHP (GH #257, #259). tests/docker-php-extensions.php fails if an imap_*() call
+# reappears, because imap is neither installed nor excluded here.

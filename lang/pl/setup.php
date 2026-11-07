@@ -75,7 +75,6 @@ return [
         'extension_loaded' => 'Załadowane',
         'extension_not_loaded' => 'Nie załadowane — włącz w php.ini',
         'pdo_mysql_not_loaded' => 'Nie załadowane — włącz pdo_mysql w php.ini',
-        'imap_not_loaded' => 'Nie załadowane — potrzebne tylko dla podstawowych skrzynek IMAP/SMTP. PHP 8.4 nie zawiera już tego rozszerzenia; jeśli go używasz, zainstaluj je przez PECL.',
         'db_config_not_found_masked' => 'Nie znaleziono pod ścieżką ustawioną w config.php',
         'ssl_verified_masked' => 'Włączone i działa — rzeczywiste żądanie HTTPS przeszło weryfikację certyfikatu',
         'ssl_broken_masked' => 'Włączone, ale serwer nie mógł zweryfikować certyfikatu — wychodzące połączenia HTTPS (e-mail, AI, webhooki, logowanie) nie będą działać. Zaloguj się jako administrator, aby zobaczyć błąd.',

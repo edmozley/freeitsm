@@ -287,15 +287,11 @@ if ($mysqlLoaded) {
 }
 
 // 8. Optional extensions — absent is fine, but say so, because the feature that
-// needs one fails silently otherwise. imap is the live case: PHP 8.4 unbundled
-// it, so a basic IMAP/SMTP mailbox on 8.4 simply never collects mail and nothing
-// on screen explains why (includes/mailbox_imap.php degrades on function_exists).
-if (extension_loaded('imap')) {
-    $checks[] = ['name' => t('setup.checks.php_extension_optional', ['ext' => 'imap']), 'status' => 'pass', 'detail' => t('setup.detail.extension_loaded')];
-} else {
-    $checks[] = ['name' => t('setup.checks.php_extension_optional', ['ext' => 'imap']), 'status' => 'warn', 'detail' => t('setup.detail.imap_not_loaded')];
-}
-// The others a feature needs (GH #207 - the Docker image had none of them until
+// needs one fails silently otherwise.
+// TRAP: there is no imap check any more. Basic IMAP mailboxes read through
+// includes/imap_client.php, which needs no extension (GH #257, #259); before
+// that, imap was the case this block was written for.
+// The extensions a feature needs (GH #207 - the Docker image had none of them until
 // 4.0.0). docker/php-extensions.txt lists what each one is for.
 foreach (['ldap', 'zip', 'intl'] as $ext) {
     $loaded = extension_loaded($ext);

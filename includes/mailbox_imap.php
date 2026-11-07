@@ -10,109 +10,74 @@
  * (Google): every message is normalised to the SAME Graph-like array structure so the
  * downstream import code in check_mailbox_email.php needs no provider-specific handling.
  *
- * Reading uses PHP's `imap_*` extension. Sending uses a minimal, dependency-free
- * SMTP client (fsockopen) — the repo vendors no mail library, so a small
- * self-contained sender is proportional. The message itself (HTML body, inline
+ * Reading uses includes/imap_client.php, a small IMAP client in plain PHP - NOT
+ * PHP's `imap_*` extension, which PHP 8.4 removed and Debian 13 cannot build
+ * (GH #257, #259, #50). Sending uses a minimal, dependency-free SMTP client
+ * (fsockopen) - the repo vendors no mail library, so a small self-contained
+ * sender is proportional; the reader is the same idea. The message itself (HTML body, inline
  * images, attachments) is built by includes/mime_message.php, shared with the
  * Gmail send path. See the Basic-IMAP-Mailboxes wiki page for the design.
  */
 
 require_once __DIR__ . '/encryption.php';
 require_once __DIR__ . '/mime_message.php';
-
-/** True when the PHP IMAP extension is loaded (self-hosters must enable it). */
-function imapExtensionAvailable(): bool {
-    return function_exists('imap_open');
-}
+require_once __DIR__ . '/imap_client.php';
 
 /**
- * Build the IMAP connection reference string, e.g. {mail.example.com:993/imap/ssl}INBOX.
- * Encryption: 'ssl' → implicit TLS, 'tls' → STARTTLS, anything else → plaintext.
+ * Open (and cache within the request) a signed-in connection with a folder selected.
+ * The cache lets the inbound poll reuse one connection across the fetch and the
+ * per-email post-actions rather than signing in for each.
  *
- * @param array $mailbox  the target_mailboxes row (imap_server, imap_port, imap_encryption, email_folder)
- * @param ?string $folder  the folder to open; null uses the mailbox's email_folder, or INBOX; '' gives the server root
- */
-function imapMailboxRef(array $mailbox, ?string $folder = null): string {
-    $host = $mailbox['imap_server'] ?? '';
-    $port = (int) ($mailbox['imap_port'] ?? 993);
-    $enc  = strtolower($mailbox['imap_encryption'] ?? 'ssl');
-    $folder = $folder ?? ($mailbox['email_folder'] ?: 'INBOX');
-
-    $flags = '/imap';
-    if ($enc === 'ssl') {
-        $flags .= '/ssl';
-    } elseif ($enc === 'tls') {
-        $flags .= '/tls';
-    } else {
-        $flags .= '/notls';
-    }
-
-    return '{' . $host . ':' . $port . $flags . '}' . $folder;
-}
-
-/**
- * Open (and cache within the request) an IMAP stream for a mailbox/folder.
- * The cache lets the inbound poll reuse one authenticated connection across the
- * fetch + per-email post-actions rather than logging in repeatedly.
+ * GH #257, #259: this no longer needs PHP's imap extension. includes/imap_client.php
+ * speaks the protocol itself, so it works the same in Docker, on Windows and on Linux.
  *
  * @param array $mailbox  the target_mailboxes row, decrypted (imap_* settings and password, id)
  * @param ?string $folder  the folder to open; null uses the mailbox's email_folder, or INBOX
  */
-function imapStreamFor(array $mailbox, ?string $folder = null) {
+function imapStreamFor(array $mailbox, ?string $folder = null): ImapClient {
     static $cache = [];
-
-    if (!imapExtensionAvailable()) {
-        throw new Exception('The PHP IMAP extension is not enabled on this server. Enable it (php.ini: extension=imap) to use Basic IMAP mailboxes.');
-    }
 
     $folder = $folder ?? ($mailbox['email_folder'] ?: 'INBOX');
     $key = ($mailbox['id'] ?? '0') . '|' . $folder;
-    if (isset($cache[$key]) && $cache[$key] !== false) {
+    if (isset($cache[$key])) {
         return $cache[$key];
     }
 
-    $ref = imapMailboxRef($mailbox, $folder);
-    $user = $mailbox['imap_username'] ?? '';
-    $pass = $mailbox['imap_password'] ?? '';
-
-    // OP_SECURE forbids plaintext auth over an unencrypted link. Suppress the
-    // native warning and surface imap_last_error() as a clean exception instead.
-    $stream = @imap_open($ref, $user, $pass, 0, 1);
-    if ($stream === false) {
-        $err = imap_last_error() ?: 'unknown error';
-        imap_errors(); // drain the error stack so it doesn't leak into later output
-        throw new Exception('IMAP connection failed: ' . $err);
+    $client = new ImapClient(
+        (string) ($mailbox['imap_server'] ?? ''),
+        (int) ($mailbox['imap_port'] ?? 993),
+        (string) ($mailbox['imap_encryption'] ?? 'ssl')
+    );
+    try {
+        $client->connect();
+        $client->login((string) ($mailbox['imap_username'] ?? ''), (string) ($mailbox['imap_password'] ?? ''));
+        $client->select($folder);
+    } catch (ImapException $e) {
+        // Same prefix as before, so logs and the mailbox screen read the same.
+        throw new Exception(str_starts_with($e->getMessage(), 'IMAP') ? $e->getMessage() : 'IMAP connection failed: ' . $e->getMessage());
     }
 
-    $cache[$key] = $stream;
-    return $stream;
+    $cache[$key] = $client;
+    return $client;
 }
 
 /**
  * Fetch unread messages, normalised to the Graph-like structure the importer expects.
- * Bodies are fetched with FT_PEEK so messages stay UNSEEN until the configured
+ * Parts are fetched with BODY.PEEK so messages stay unread until the configured
  * post-import action runs (mark read / delete / move).
  *
  * @param array $mailbox  the target_mailboxes row, decrypted (max_emails_per_check caps how many are read)
  */
 function imapGetEmails(array $mailbox): array {
-    $stream = imapStreamFor($mailbox);
+    $client = imapStreamFor($mailbox);
     $max = (int) ($mailbox['max_emails_per_check'] ?? 10);
 
-    // UIDs are stable per-mailbox, so we search + act by UID.
-    $uids = imap_search($stream, 'UNSEEN', SE_UID);
-    imap_errors();
-    if (!$uids) {
-        return [];
-    }
-
-    // Oldest first, capped at the per-check limit.
-    sort($uids);
-    $uids = array_slice($uids, 0, $max);
+    // UIDs are stable per folder, so we search and act by UID. Oldest first.
+    $uids = array_slice($client->uidSearch('UNSEEN'), 0, $max);
 
     $emails = [];
     foreach ($uids as $uid) {
-        $msg = imapNormaliseMessage($stream, (int) $uid, $mailbox);
+        $msg = imapNormaliseMessage($client, $uid, $mailbox);
         if ($msg) {
             $emails[] = $msg;
         }
@@ -123,63 +88,57 @@ function imapGetEmails(array $mailbox): array {
 /**
  * Build one normalised (Graph-like) message array from a UID.
  *
- * @param mixed $stream  the open IMAP stream from imapStreamFor()
+ * TRAP: the MAIL SERVER does the MIME parsing. BODYSTRUCTURE describes the parts
+ * and BODY.PEEK[1.2] fetches one; ENVELOPE gives the addresses already split.
+ * Nothing here reads raw MIME - that is what keeps the client small (see the
+ * developer guide, "Why the server parses the message").
+ *
+ * @param ImapClient $client  the signed-in connection from imapStreamFor()
  * @param int $uid  the message's IMAP UID
  * @param array $mailbox  the target_mailboxes row (its id makes the fallback de-duplication key)
  */
-function imapNormaliseMessage($stream, int $uid, array $mailbox): ?array {
-    $overview = imap_fetch_overview($stream, (string) $uid, FT_UID);
-    if (empty($overview)) {
+function imapNormaliseMessage(ImapClient $client, int $uid, array $mailbox): ?array {
+    $item = $client->uidFetch($uid, '(UID ENVELOPE BODYSTRUCTURE INTERNALDATE)');
+    if (empty($item['ENVELOPE'])) {
         return null;
     }
-    $ov = $overview[0];
+    $env = imapEnvelope($item['ENVELOPE']);
 
-    $subject = isset($ov->subject) ? imapDecodeHeader($ov->subject) : '(No Subject)';
-    if ($subject === '') {
-        $subject = '(No Subject)';
-    }
+    $subject = $env['subject'] !== '' ? $env['subject'] : '(No Subject)';
 
-    // Sender: prefer the parsed address list for a clean name/address split.
     $fromName = '';
     $fromAddress = '';
-    $fromList = imapParseAddressList($ov->from ?? '');
-    if (!empty($fromList)) {
-        $fromAddress = $fromList[0]['emailAddress']['address'];
-        $fromName = $fromList[0]['emailAddress']['name'];
+    if (!empty($env['from'])) {
+        $fromAddress = $env['from'][0]['emailAddress']['address'];
+        $fromName = $env['from'][0]['emailAddress']['name'];
     }
 
-    $toRecipients = imapParseAddressList($ov->to ?? '');
-    $ccRecipients = imapParseAddressList($ov->cc ?? '');
+    // The Date header, else when the server received it, else now.
+    $ts = $env['date'] !== '' ? strtotime($env['date']) : false;
+    if ($ts === false && !empty($item['INTERNALDATE'])) {
+        $ts = strtotime((string) $item['INTERNALDATE']);
+    }
+    $received = gmdate('Y-m-d\TH:i:s\Z', $ts === false ? time() : $ts);
 
-    $received = isset($ov->date) && $ov->date
-        ? gmdate('Y-m-d\TH:i:s\Z', strtotime($ov->date))
-        : gmdate('Y-m-d\TH:i:s\Z');
-
-    // Walk the MIME structure once for the body (prefer HTML) and any attachments.
+    // Walk the structure once for the body (prefer HTML) and any attachments.
     $html = '';
     $plain = '';
     $attachments = [];
-    $structure = imap_fetchstructure($stream, $uid, FT_UID);
-    if ($structure) {
-        imapWalkStructure($stream, $uid, $structure, '', $html, $plain, $attachments);
-    }
+    $structure = imapBodyStructure($item['BODYSTRUCTURE'] ?? null);
+    imapWalkStructure($client, $uid, $structure, '', $html, $plain, $attachments);
 
     if ($html !== '') {
         $body = $html;
-        $bodyType = 'html';
     } elseif ($plain !== '') {
         $body = nl2br(htmlspecialchars($plain));
-        $bodyType = 'html';
     } else {
         $body = '';
-        $bodyType = 'html';
     }
 
     // Globally-unique dedup key: the Message-ID header (falls back to a
     // mailbox-scoped UID so two mailboxes can't collide on the same UID number).
-    $messageId = isset($ov->message_id) ? trim($ov->message_id) : '';
-    $dedupId = $messageId !== ''
-        ? $messageId
+    $dedupId = $env['message_id'] !== ''
+        ? $env['message_id']
         : ('imap-' . ($mailbox['id'] ?? '0') . '-' . $uid);
 
     return [
@@ -194,12 +153,12 @@ function imapNormaliseMessage($stream, int $uid, array $mailbox): ?array {
                 'address' => $fromAddress,
             ],
         ],
-        'toRecipients' => $toRecipients,
-        'ccRecipients' => $ccRecipients,
+        'toRecipients' => $env['to'],
+        'ccRecipients' => $env['cc'],
         'receivedDateTime' => $received,
         'bodyPreview' => mb_substr(trim(strip_tags($body)), 0, 255),
         'body' => [
-            'contentType' => $bodyType,
+            'contentType' => 'html',
             'content' => $body,
         ],
         'hasAttachments' => !empty($attachments),
@@ -212,41 +171,27 @@ function imapNormaliseMessage($stream, int $uid, array $mailbox): ?array {
 }
 
 /**
- * Recursively walk an imap_fetchstructure() tree, accumulating decoded HTML/plain
- * body text and Graph-shaped attachment entries.
+ * Walk a message's structure (from imapBodyStructure()), collecting decoded
+ * HTML/plain body text and Graph-shaped attachment entries. Each part is fetched
+ * by its part number with BODY.PEEK, so nothing is marked read.
  *
- * @param mixed $stream  the open IMAP stream
+ * @param ImapClient $client  the signed-in connection
  * @param int $uid  the message's IMAP UID
- * @param mixed $part  one node of the imap_fetchstructure() tree (an object)
+ * @param array $part  one node of the imapBodyStructure() tree
  * @param string $partNo  the IMAP part number of $part, e.g. '1.2'; '' for the top of the message
  * @param string $html  collects the decoded HTML body, by reference
  * @param string $plain  collects the decoded plain-text body, by reference
  * @param array $attachments  collects Graph-shaped fileAttachment arrays, by reference
  */
-function imapWalkStructure($stream, int $uid, $part, string $partNo, string &$html, string &$plain, array &$attachments): void {
-    $type = $part->type ?? 0; // 0=text 1=multipart 2=message 3=application 5=image ...
-    $encoding = $part->encoding ?? 0;
-    $subtype = strtoupper($part->subtype ?? '');
-
-    $params = [];
-    if (!empty($part->parameters)) {
-        foreach ($part->parameters as $p) {
-            $params[strtolower($p->attribute)] = $p->value;
-        }
-    }
-    if (!empty($part->dparameters)) {
-        foreach ($part->dparameters as $p) {
-            $params['d_' . strtolower($p->attribute)] = $p->value;
-        }
-    }
+function imapWalkStructure(ImapClient $client, int $uid, array $part, string $partNo, string &$html, string &$plain, array &$attachments): void {
+    $type = $part['type'];
+    $subtype = $part['subtype'];
 
     // multipart/* — recurse into children (part numbers 1, 1.1, 1.2, ...).
-    if ($type === 1) {
-        if (!empty($part->parts)) {
-            foreach ($part->parts as $i => $sub) {
-                $subNo = ($partNo === '') ? (string) ($i + 1) : $partNo . '.' . ($i + 1);
-                imapWalkStructure($stream, $uid, $sub, $subNo, $html, $plain, $attachments);
-            }
+    if ($type === 'multipart') {
+        foreach ($part['parts'] as $i => $sub) {
+            $subNo = ($partNo === '') ? (string) ($i + 1) : $partNo . '.' . ($i + 1);
+            imapWalkStructure($client, $uid, $sub, $subNo, $html, $plain, $attachments);
         }
         return;
     }
@@ -254,157 +199,55 @@ function imapWalkStructure($stream, int $uid, $part, string $partNo, string &$ht
     // For a single-part message the body lives at part "1".
     $fetchNo = ($partNo === '') ? '1' : $partNo;
 
-    $filename = imapDecodeHeader($params['d_filename'] ?? $params['name'] ?? '');
-    $isDisposedAttachment = !empty($part->ifdisposition)
-        && in_array(strtolower($part->disposition), ['attachment', 'inline'], true);
+    $filename = imapPartFilename($part);
+    $disposition = $part['disposition'];
 
-    // Treat as attachment if it has a filename or an attachment/inline disposition,
-    // and it isn't the main text/plain or text/html body.
-    $isBodyText = ($type === 0 && in_array($subtype, ['PLAIN', 'HTML'], true) && $filename === '');
-    if (!$isBodyText && ($filename !== '' || $isDisposedAttachment || $type !== 0)) {
-        $raw = imap_fetchbody($stream, $uid, $fetchNo, FT_UID | FT_PEEK);
-        if ($raw === false || $raw === '') {
+    // An attachment if it has a filename, an attachment/inline disposition, or is
+    // not text - unless it is the main text/plain or text/html body.
+    $isBodyText = ($type === 'text' && in_array($subtype, ['plain', 'html'], true) && $filename === '');
+    $isDisposed = in_array($disposition, ['attachment', 'inline'], true);
+    if (!$isBodyText && ($filename !== '' || $isDisposed || $type !== 'text')) {
+        $data = imapDecodeTransfer(imapFetchPart($client, $uid, $fetchNo), $part['encoding']);
+        if ($data === '') {
             return;
         }
-        $data = imapDecodePart($raw, $encoding);
-
-        $typeMap = [0 => 'text', 1 => 'multipart', 2 => 'message', 3 => 'application', 4 => 'audio', 5 => 'image', 6 => 'video', 7 => 'other'];
-        $primary = $typeMap[$type] ?? 'application';
-        $contentType = $primary . '/' . strtolower($part->subtype ?? 'octet-stream');
-
+        $contentId = $part['id'] !== null && $part['id'] !== '' ? trim($part['id'], '<>') : null;
         $attachments[] = [
             '@odata.type' => '#microsoft.graph.fileAttachment',
             'id' => $fetchNo,
             'name' => $filename !== '' ? $filename : 'attachment',
-            'contentType' => $contentType,
+            'contentType' => $type . '/' . ($subtype !== '' ? $subtype : 'octet-stream'),
             'contentBytes' => base64_encode($data),
-            'isInline' => (!empty($part->ifdisposition) && strtolower($part->disposition) === 'inline') || !empty($part->ifid),
-            'contentId' => !empty($part->id) ? trim($part->id, '<>') : null,
+            'isInline' => $disposition === 'inline' || $contentId !== null,
+            'contentId' => $contentId,
             'size' => strlen($data),
         ];
         return;
     }
 
     // text/plain or text/html body part.
-    if ($type === 0) {
-        $raw = imap_fetchbody($stream, $uid, $fetchNo, FT_UID | FT_PEEK);
-        if ($raw === false) {
-            return;
-        }
-        $data = imapDecodePart($raw, $encoding);
-        $data = imapToUtf8($data, $params['charset'] ?? 'UTF-8');
-        if ($subtype === 'HTML') {
+    if ($type === 'text') {
+        $data = imapDecodeTransfer(imapFetchPart($client, $uid, $fetchNo), $part['encoding']);
+        $data = imapCharsetToUtf8($data, $part['params']['charset'] ?? 'UTF-8');
+        if ($subtype === 'html') {
             $html .= $data;
-        } elseif ($subtype === 'PLAIN') {
+        } elseif ($subtype === 'plain') {
             $plain .= $data;
         }
     }
 }
 
 /**
- * Decode a transfer-encoded body part (base64 / quoted-printable / raw).
+ * One part of a message, still transfer-encoded, without marking the message read.
  *
- * @param string $data  the part as fetched
- * @param int $encoding  IMAP's transfer encoding code - 3 base64, 4 quoted-printable, anything else returned as is
+ * @param ImapClient $client  the signed-in connection
+ * @param int $uid  the message's IMAP UID
+ * @param string $partNo  the part number, e.g. '1' or '2.1'
  */
-function imapDecodePart(string $data, int $encoding): string {
-    switch ($encoding) {
-        case 3: // base64
-            return base64_decode($data) ?: '';
-        case 4: // quoted-printable
-            return quoted_printable_decode($data);
-        default: // 7bit / 8bit / binary / other
-            return $data;
-    }
-}
-
-/**
- * Convert a string to UTF-8 from the part's declared charset (best effort).
- *
- * @param string $data  the decoded text
- * @param string $charset  the part's declared charset; blank is read as UTF-8
- */
-function imapToUtf8(string $data, string $charset): string {
-    $charset = trim($charset) ?: 'UTF-8';
-    if (strcasecmp($charset, 'UTF-8') === 0 || strcasecmp($charset, 'US-ASCII') === 0) {
-        return $data;
-    }
-    if (function_exists('mb_convert_encoding')) {
-        $converted = @mb_convert_encoding($data, 'UTF-8', $charset);
-        if ($converted !== false && $converted !== '') {
-            return $converted;
-        }
-    }
-    if (function_exists('iconv')) {
-        $converted = @iconv($charset, 'UTF-8//IGNORE', $data);
-        if ($converted !== false) {
-            return $converted;
-        }
-    }
-    return $data;
-}
-
-/**
- * Decode a MIME-encoded header value (e.g. =?UTF-8?B?...?=) to a UTF-8 string.
- *
- * @param string $value  a raw header value, possibly MIME-encoded words
- */
-function imapDecodeHeader(string $value): string {
-    if ($value === '') {
-        return '';
-    }
-    if (!function_exists('imap_mime_header_decode')) {
-        return $value;
-    }
-    $out = '';
-    foreach (imap_mime_header_decode($value) as $part) {
-        $charset = $part->charset ?? 'default';
-        $text = $part->text ?? '';
-        $out .= ($charset === 'default' || strcasecmp($charset, 'UTF-8') === 0)
-            ? $text
-            : imapToUtf8($text, $charset);
-    }
-    return trim($out);
-}
-
-/**
- * Parse an RFC 2822 address-list header into the Graph-like recipient shape.
- * Uses imap_rfc822_parse_adrlist when available; falls back to a light regex.
- *
- * @param string $raw  a raw address-list header, e.g. 'Name <a@b>, c@d'
- */
-function imapParseAddressList(string $raw): array {
-    $raw = trim($raw);
-    if ($raw === '') {
-        return [];
-    }
-
-    $result = [];
-    if (function_exists('imap_rfc822_parse_adrlist')) {
-        foreach (imap_rfc822_parse_adrlist($raw, '') as $addr) {
-            if (empty($addr->mailbox) || empty($addr->host) || $addr->host === '.SYNTAX-ERROR.') {
-                continue;
-            }
-            $result[] = [
-                'emailAddress' => [
-                    'name' => isset($addr->personal) ? imapDecodeHeader($addr->personal) : '',
-                    'address' => $addr->mailbox . '@' . $addr->host,
-                ],
-            ];
-        }
-        return $result;
-    }
-
-    // Fallback parser: "Name <a@b>, c@d"
-    foreach (preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $raw) as $part) {
-        $part = trim($part);
-        if (preg_match('/^(.*?)\s*<(.+?)>$/', $part, $m)) {
-            $result[] = ['emailAddress' => ['name' => imapDecodeHeader(trim($m[1], '" ')), 'address' => $m[2]]];
-        } elseif (filter_var($part, FILTER_VALIDATE_EMAIL)) {
-            $result[] = ['emailAddress' => ['name' => '', 'address' => $part]];
-        }
-    }
-    return $result;
+function imapFetchPart(ImapClient $client, int $uid, string $partNo): string {
+    $item = $client->uidFetch($uid, 'BODY.PEEK[' . $partNo . ']');
+    // The server echoes the section WITHOUT .PEEK: BODY[2.1].
+    return (string) ($item['BODY[' . $partNo . ']'] ?? '');
 }
 
 /**
@@ -417,22 +260,20 @@ function imapParseAddressList(string $raw): array {
  * @param ?string $folderName  the folder to move to for 'move_to_folder'; null or '' deletes instead
  */
 function imapHandleAfterProcessing(array $mailbox, int $uid, string $action, ?string $folderName = null): int {
-    $stream = imapStreamFor($mailbox);
+    $client = imapStreamFor($mailbox);
 
     switch ($action) {
         case 'mark_read':
-            imap_setflag_full($stream, (string) $uid, '\\Seen', ST_UID);
-            imap_errors();
+            $client->uidAddFlags($uid, ['\\Seen']);
             return 200;
 
         case 'move_to_folder':
             if ($folderName) {
-                if (!imap_mail_move($stream, (string) $uid, $folderName, CP_UID)) {
-                    $err = imap_last_error() ?: 'move failed';
-                    imap_errors();
-                    throw new Exception('IMAP move to "' . $folderName . '" failed: ' . $err);
+                try {
+                    $client->uidMove($uid, $folderName);
+                } catch (ImapException $e) {
+                    throw new Exception('IMAP move to "' . $folderName . '" failed: ' . $e->getMessage());
                 }
-                imap_expunge($stream);
                 return 200;
             }
             // No folder given — fall through to delete.
@@ -440,9 +281,7 @@ function imapHandleAfterProcessing(array $mailbox, int $uid, string $action, ?st
         case 'move_to_deleted':
         case 'delete':
         default:
-            imap_delete($stream, (string) $uid, FT_UID);
-            imap_expunge($stream);
-            imap_errors();
+            $client->uidDelete($uid);
             return 200;
     }
 }
@@ -495,9 +334,9 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
     }
 
     $transport = ($enc === 'ssl') ? 'ssl://' : 'tcp://';
-    $context = stream_context_create([
-        'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
-    ]);
+    // The app's one TLS policy (includes/ssl.php): verify, with the CA bundle PHP
+    // on Windows lacks. Before #257 this verified with no bundle at all.
+    $context = imapStreamContext();
     $errno = 0;
     $errstr = '';
     $fp = @stream_socket_client($transport . $host . ':' . $port, $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
@@ -620,40 +459,21 @@ function imapSmtpExpect($fp, array $expected): string {
 }
 
 /**
- * List every folder on the server, with the {host} prefix stripped.
+ * List every folder on the server, names decoded from IMAP's modified UTF-7,
+ * so a folder called "Support/Übergabe" is reported back as it reads.
  *
- * Names come back in modified UTF-7 (IMAP's own encoding), so a folder called
- * "Anfragen" or "Support/Übergabe" would otherwise be reported back mangled.
- *
- * @param mixed $stream  an open IMAP stream for the mailbox
- * @param array $mailbox  the target_mailboxes row, used to build the server reference
+ * @param ImapClient $client  a signed-in connection for the mailbox
+ * @param array $mailbox  the target_mailboxes row (unused now; kept so callers need not change)
  * @return array<int, array{name:string, delimiter:string}>
  */
-function imapListFolders($stream, array $mailbox): array {
-    $boxes = @imap_getmailboxes($stream, imapMailboxRef($mailbox, ''), '*');
-    imap_errors(); // drain so nothing leaks into later output
-
-    if (!is_array($boxes)) {
-        return [];
-    }
-
+function imapListFolders(ImapClient $client, array $mailbox): array {
     $out = [];
-    foreach ($boxes as $box) {
-        $name = (string) ($box->name ?? '');
-        $brace = strpos($name, '}');
-        if ($brace !== false) {
-            $name = substr($name, $brace + 1);
-        }
-        if ($name === '') {
+    foreach ($client->listFolders() as $f) {
+        // \Noselect entries are namespace placeholders, not folders you can open.
+        if (in_array('\\NOSELECT', array_map('strtoupper', $f['flags']), true)) {
             continue;
         }
-        if (function_exists('mb_convert_encoding')) {
-            $decoded = @mb_convert_encoding($name, 'UTF-8', 'UTF7-IMAP');
-            if (is_string($decoded) && $decoded !== '') {
-                $name = $decoded;
-            }
-        }
-        $out[] = ['name' => $name, 'delimiter' => (string) ($box->delimiter ?? '')];
+        $out[] = ['name' => $f['name'], 'delimiter' => $f['delimiter']];
     }
     return $out;
 }
@@ -688,10 +508,10 @@ function imapVerifyFolder(array $mailbox, string $folderName): array {
     }
 
     // Connect against INBOX, which always exists, so a failure here is
-    // unambiguously credentials/TLS/extension rather than a bad folder name.
-    $stream = imapStreamFor($mailbox, 'INBOX');
+    // unambiguously credentials or TLS rather than a bad folder name.
+    $client = imapStreamFor($mailbox, 'INBOX');
 
-    $folders = imapListFolders($stream, $mailbox);
+    $folders = imapListFolders($client, $mailbox);
 
     $match = null;
     foreach ($folders as $folder) {
@@ -719,14 +539,11 @@ function imapVerifyFolder(array $mailbox, string $folderName): array {
     // Open the matched folder BY THE NAME THE SERVER USES, which is the name
     // reading will use too. Counts come from the selected folder rather than a
     // separate STATUS call, so what is reported is the folder actually opened.
-    $folderStream = imapStreamFor($mailbox, $match['name']);
-    $total  = @imap_num_msg($folderStream);
-    $unseen = @imap_search($folderStream, 'UNSEEN', SE_UID);
-    imap_errors();
+    $folderClient = imapStreamFor($mailbox, $match['name']);
 
     return [
         'displayName'     => $match['name'],
-        'totalItemCount'  => $total === false ? null : (int) $total,
-        'unreadItemCount' => is_array($unseen) ? count($unseen) : 0,
+        'totalItemCount'  => $folderClient->messageCount(),
+        'unreadItemCount' => count($folderClient->uidSearch('UNSEEN')),
     ];
 }

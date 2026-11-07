@@ -83,7 +83,6 @@ return [
         'extension_loaded'         => 'Loaded',
         'extension_not_loaded'     => 'Not loaded — enable in php.ini',
         'pdo_mysql_not_loaded'     => 'Not loaded — enable pdo_mysql in php.ini',
-        'imap_not_loaded'          => 'Not loaded — only needed for basic IMAP/SMTP mailboxes. PHP 8.4 no longer bundles this extension; install it via PECL if you use one.',
         'ldap_not_loaded'          => 'Not loaded — only needed for LDAP / Active Directory sign-in and directory sync. Enable extension=ldap if you use them.',
         'zip_not_loaded'           => 'Not loaded — needed to upload LMS courses (SCORM), read Word files in the RFP Builder, and search inside .docx and .xlsx attachments.',
         'intl_not_loaded'          => 'Not loaded — only needed for international domain names (such as münchen.de) in Domains.',

@@ -75,7 +75,6 @@ return [
         'extension_loaded' => 'Lastet',
         'extension_not_loaded' => 'Ikke lastet — aktiver den i php.ini',
         'pdo_mysql_not_loaded' => 'Ikke lastet — aktiver pdo_mysql i php.ini',
-        'imap_not_loaded' => 'Ikke lastet — kreves bare for enkle IMAP/SMTP-postkasser. PHP 8.4 leverer ikke lenger denne utvidelsen; installer den via PECL hvis du bruker en slik postkasse.',
         'db_config_not_found_masked' => 'Ikke funnet på stien som er satt i config.php',
         'ssl_verified_masked' => 'På og fungerer — sertifikatet ble verifisert i en reell HTTPS-forespørsel',
         'ssl_broken_masked' => 'På, men serveren klarte ikke å verifisere et sertifikat — utgående HTTPS (e-post, KI, webhooks, innlogging) vil feile. Logg inn som administrator for å se feilen.',

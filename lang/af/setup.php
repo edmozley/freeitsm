@@ -75,7 +75,6 @@ return [
         'extension_loaded' => 'Gelaai',
         'extension_not_loaded' => 'Nie gelaai nie — skakel aan in php.ini',
         'pdo_mysql_not_loaded' => 'Nie gelaai nie — skakel pdo_mysql aan in php.ini',
-        'imap_not_loaded' => 'Nie gelaai nie — slegs nodig vir basiese IMAP/SMTP-posbusse. PHP 8.4 bevat nie meer hierdie uitbreiding nie; installeer dit via PECL as jy een gebruik.',
         'db_config_not_found_masked' => 'Nie gevind by die pad wat in config.php gestel is nie',
         'ssl_verified_masked' => 'Aan en werk — \'n lewendige HTTPS-versoek is sertifikaat-geverifieer',
         'ssl_broken_masked' => 'Aan, maar die bediener kon nie \'n sertifikaat verifieer nie — uitgaande HTTPS (e-pos, KI, webhooks, aanmelding) sal misluk. Meld aan as \'n administrateur om die fout te sien.',

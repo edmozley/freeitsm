@@ -71,7 +71,6 @@ return [
         'extension_loaded' => 'Indlæst',
         'extension_not_loaded' => 'Ikke indlæst — slå den til i php.ini',
         'pdo_mysql_not_loaded' => 'Ikke indlæst — slå pdo_mysql til i php.ini',
-        'imap_not_loaded' => 'Ikke indlæst — kun nødvendig for almindelige IMAP/SMTP-postkasser. PHP 8.4 leverer ikke længere denne udvidelse med; installér den via PECL, hvis du bruger en.',
         'db_config_not_found_masked' => 'Ikke fundet på den sti, der er sat i config.php',
         'ssl_verified_masked' => 'Slået til og virker — et live HTTPS-kald fik sit certifikat kontrolleret',
         'ssl_broken_masked' => 'Slået til, men serveren kunne ikke kontrollere et certifikat — udgående HTTPS (e-mail, AI, webhooks, login) vil mislykkes. Log ind som administrator for at se fejlen.',

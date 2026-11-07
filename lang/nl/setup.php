@@ -75,7 +75,6 @@ return [
         'extension_loaded' => 'Geladen',
         'extension_not_loaded' => 'Niet geladen — schakel in via php.ini',
         'pdo_mysql_not_loaded' => 'Niet geladen — schakel pdo_mysql in via php.ini',
-        'imap_not_loaded' => 'Niet geladen — alleen nodig voor basis-IMAP/SMTP-postvakken. PHP 8.4 levert deze extensie niet meer mee; installeer hem via PECL als je er een gebruikt.',
         'db_config_not_found_masked' => 'Niet gevonden op het pad dat in config.php is ingesteld',
         'ssl_verified_masked' => 'Aan en werkend — een live HTTPS-verzoek is certificaatgeverifieerd',
         'ssl_broken_masked' => 'Aan, maar de server kon een certificaat niet verifiëren — uitgaand HTTPS (e-mail, AI, webhooks, aanmelden) zal mislukken. Meld je aan als beheerder om de fout te zien.',

@@ -75,7 +75,6 @@ return [
         'extension_loaded' => 'Chargée',
         'extension_not_loaded' => 'Non chargée — activez-la dans php.ini',
         'pdo_mysql_not_loaded' => 'Non chargée — activez pdo_mysql dans php.ini',
-        'imap_not_loaded' => 'Non chargée — nécessaire uniquement pour les boîtes aux lettres IMAP/SMTP basiques. PHP 8.4 n\'inclut plus cette extension ; installez-la via PECL si vous en utilisez une.',
         'db_config_not_found_masked' => 'Introuvable au chemin défini dans config.php',
         'ssl_verified_masked' => 'Activé et fonctionnel — une requête HTTPS en direct a été vérifiée par certificat',
         'ssl_broken_masked' => 'Activé, mais le serveur n\'a pas pu vérifier de certificat — le HTTPS sortant (e-mail, IA, webhooks, connexion) échouera. Connectez-vous en tant qu\'administrateur pour voir l\'erreur.',

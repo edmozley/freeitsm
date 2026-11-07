@@ -75,7 +75,6 @@ return [
         'extension_loaded' => 'Dimuat',
         'extension_not_loaded' => 'Tidak dimuat — aktifkan di php.ini',
         'pdo_mysql_not_loaded' => 'Tidak dimuat — aktifkan pdo_mysql di php.ini',
-        'imap_not_loaded' => 'Tidak dimuat — hanya diperlukan untuk kotak surat IMAP/SMTP dasar. PHP 8.4 tidak lagi menyertakan ekstensi ini; instal melalui PECL jika Anda memakainya.',
         'db_config_not_found_masked' => 'Tidak ditemukan di jalur yang diatur di config.php',
         'ssl_verified_masked' => 'Aktif dan berfungsi — permintaan HTTPS langsung telah diverifikasi sertifikatnya',
         'ssl_broken_masked' => 'Aktif, tetapi server tidak dapat memverifikasi sertifikat — HTTPS keluar (email, AI, webhook, masuk) akan gagal. Masuk sebagai administrator untuk melihat errornya.',

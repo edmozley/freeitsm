@@ -75,7 +75,6 @@ return [
         'extension_loaded' => 'Dimuatkan',
         'extension_not_loaded' => 'Tidak dimuatkan — aktifkan dalam php.ini',
         'pdo_mysql_not_loaded' => 'Tidak dimuatkan — aktifkan pdo_mysql dalam php.ini',
-        'imap_not_loaded' => 'Tidak dimuatkan — hanya diperlukan untuk peti mel IMAP/SMTP asas. PHP 8.4 tidak lagi menyertakan sambungan ini; pasangkannya melalui PECL jika anda menggunakannya.',
         'db_config_not_found_masked' => 'Tidak dijumpai pada laluan yang ditetapkan dalam config.php',
         'ssl_verified_masked' => 'Hidup dan berfungsi — permintaan HTTPS langsung telah disahkan sijil',
         'ssl_broken_masked' => 'Hidup, tetapi server tidak dapat mengesahkan sijil — HTTPS keluar (e-mel, AI, webhook, log masuk) akan gagal. Log masuk sebagai pentadbir untuk melihat ralat.',

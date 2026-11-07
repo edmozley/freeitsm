@@ -19,6 +19,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 2739 | Tickets           | Fix         | Ticket type rules: a Department condition now matches on portal, email, messaging and web chat tickets - those routes work out the default department before picking the type and pass it to the rules (#248). |
 | 2740 | Tickets           | Fix         | Dashboard: the widget cog opens the edit window again, and New widget and Edit work in the Widget Library - the shared editor called an `esc()` it did not have; a test now catches an undefined `esc()` in any script (#260). |
 | 2741 | Knowledge         | Fix         | Clicking a folder while an article is open now shows that folder's list instead of leaving the article on screen; an open editor stays put (PR #251 by Dr4inder, #250). |
+| 2742 | Tickets           | Improvement | Basic IMAP mailboxes no longer need PHP's `imap` extension - new `includes/imap_client.php` speaks IMAP in plain PHP (the server parses MIME via BODYSTRUCTURE/BODY.PEEK), so they work in the Docker image, on Debian 13 and on Windows PHP 8.4 with nothing to install; RFC 2231 filenames, accented folder names and SMTP's CA bundle on Windows fixed on the way; `imap` dropped from the setup checks and the Docker list; parse + live (Dovecot, GreenMail, in-image, send-read round trip) tests (#257, #259). |
 
 
 
