@@ -50,6 +50,18 @@ return [
         'check'    => ['rows', 'target_mailboxes', "provider = 'microsoft' AND auth_mode = 'app_only'"],
     ],
     [
+        'id'       => 'tickets.mailbox_leave_in_place',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Leave collected mail in the mailbox',
+        'what'     => 'A mailbox whose imported mail is marked as read and left where it is, instead of being deleted or moved (Imported emails: Mark as read and leave it in the folder).',
+        'why'      => 'When people also read the support mailbox in Outlook or Thunderbird, deleting or moving what FreeITSM collects takes it out from under them. Left in place, the mailbox keeps its whole history.',
+        'done'     => 'At least one mailbox marks imported mail as read and leaves it.',
+        'link'     => 'tickets/settings/#mailboxes',
+        'check'    => ['rows', 'target_mailboxes', "imported_action = 'mark_read'"],
+    ],
+    [
         'id'       => 'tickets.mailbox_gmail',
         'module'   => 'tickets',
         'tier'     => 'extra',

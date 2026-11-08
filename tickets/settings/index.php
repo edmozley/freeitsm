@@ -2957,7 +2957,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <select id="mailboxImportedAction" onchange="toggleImportedFolder()">
                             <option value="delete"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imported_delete')); ?></option>
                             <option value="move_to_folder"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imported_move_to_folder')); ?></option>
+                            <option value="mark_read"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imported_mark_read')); ?></option>
                         </select>
+                        <?php /* GH #269: what leaving mail in place means, said where it is chosen. */ ?>
+                        <small id="importedMarkReadHint" style="display: none; color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imported_mark_read_hint')); ?></small>
                     </div>
 
                     <div class="form-group" id="importedFolderGroup" style="display: none; grid-column: span 2;">
@@ -6184,6 +6187,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         function toggleImportedFolder() {
             const action = document.getElementById('mailboxImportedAction').value;
             document.getElementById('importedFolderGroup').style.display = action === 'move_to_folder' ? '' : 'none';
+            document.getElementById('importedMarkReadHint').style.display = action === 'mark_read' ? '' : 'none';
         }
 
         // Both folder fields verify through one function. Two copies is what let the

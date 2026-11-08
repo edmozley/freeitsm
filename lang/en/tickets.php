@@ -1417,6 +1417,8 @@ return [
                 'imported_emails'             => 'Imported emails',
                 'imported_delete'             => 'Delete permanently',
                 'imported_move_to_folder'     => 'Move to folder',
+                'imported_mark_read' => 'Mark as read and leave it in the folder',
+                'imported_mark_read_hint' => 'Use this when people also read this mailbox in an email program. FreeITSM collects only unread mail, so a message somebody opens there before FreeITSM checks is never imported - and marking a message unread again makes FreeITSM look at it again (it is never imported twice).',
                 'move_to_folder_label'        => 'Move to folder',
                 'move_to_folder_placeholder'  => 'e.g., Processed',
                 'active'                      => 'Active',

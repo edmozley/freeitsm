@@ -162,7 +162,10 @@ try {
 
     // Validate action values
     $allowedRejectedActions = ['delete', 'move_to_deleted', 'mark_read'];
-    $allowedImportedActions = ['delete', 'move_to_folder'];
+    // 'mark_read' (GH #269): mark it read and leave it where it is, for a mailbox people
+    // also read in Thunderbird or Outlook. handleEmailAfterProcessing() always handled it
+    // for every provider; only this list and the dropdown left it out.
+    $allowedImportedActions = ['delete', 'move_to_folder', 'mark_read'];
     if (!in_array($rejected_action, $allowedRejectedActions)) $rejected_action = 'delete';
     if (!in_array($imported_action, $allowedImportedActions)) $imported_action = 'delete';
 
