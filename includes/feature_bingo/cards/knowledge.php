@@ -50,6 +50,18 @@ return [
         'check'    => ['rows', 'knowledge_folders', 'parent_id IS NOT NULL'],
     ],
     [
+        'id'       => 'knowledge.article_links',
+        'module'   => 'knowledge',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Link articles to each other',
+        'what'     => 'In the editor, Link has a browse button beside the URL that searches your articles and fills in the address - so a how-to can point at the article before it, or a troubleshooting guide at the fix.',
+        'why'      => 'Knowledge is easier to follow when an article says "see this one" with a link that works, instead of a title to search for. The link opens the other article in its own folder, and in the Help Centre for requesters who may read it.',
+        'done'     => 'At least one article links to another.',
+        'link'     => 'knowledge/',
+        'check'    => ['rows', 'knowledge_articles', "is_demo = 0 AND is_archived = 0 AND body LIKE '%?article=%'"],
+    ],
+    [
         'id'       => 'knowledge.shortcuts',
         'module'   => 'knowledge',
         'tier'     => 'extra',

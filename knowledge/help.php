@@ -260,6 +260,7 @@ $translationNamespaces = ['common', 'knowledge'];
                         </div>
                     </div>
                     <p class="help-note"><?php echo htmlspecialchars(t('knowledge.help.writing_tip')); ?></p>
+                    <p class="help-note"><?php echo t('knowledge.help.writing_link_article'); ?></p>
                     <p class="help-note"><?php echo t('knowledge.help.writing_fullscreen'); ?></p>
                     <p class="help-note"><?php echo t('knowledge.help.writing_visibility_callout'); ?></p>
                 </div>

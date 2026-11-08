@@ -19,7 +19,11 @@ $activeNav    = 'help_centre';
 // through $pageData → window.PAGE, never interpolated into $pageScripts (that
 // is a nowdoc — a PHP tag inside it is emitted verbatim and kills the whole
 // script block; see includes/footer.php).
-$pageData = ['articleId' => (int)($_GET['id'] ?? 0)];
+// ?article=N as well (PR #253): the editor's article picker writes links the
+// analyst Knowledge page understands (?article=N), and an article read here
+// resolves them against help-centre.php - so they must open here too. The
+// reader still asks whether this requester may read it, as for ?id=.
+$pageData = ['articleId' => (int)($_GET['id'] ?? $_GET['article'] ?? 0)];
 
 // Page-specific styling only — shared chrome lives in self-service.css.
 $pageStyles = <<<'CSS'
