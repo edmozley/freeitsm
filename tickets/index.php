@@ -89,6 +89,14 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     ?>
     <script>window.TICKETS_LIST_LAYOUT = <?php echo json_encode($ticketListLayout); ?>;</script>
     <script>window.SNOOZE_WAKE_HOUR = <?php echo (int)$snoozeWakeHour; ?>;</script>
+    <?php
+    /* Who Reply addresses (GH #120): 'message' or 'requester'. A failed lookup
+       is 'message', what Reply has always done. */
+    require_once __DIR__ . '/../includes/ticket_reply_to.php';
+    $ticketReplyTo = 'message';
+    try { $ticketReplyTo = ticketReplyTo(connectToDatabase())->value; } catch (Exception $e) {}
+    ?>
+    <script>window.TICKET_REPLY_TO = <?php echo json_encode($ticketReplyTo); ?>;</script>
     <script>window.TICKET_WORKSPACE = <?php echo json_encode($workspaceConfig); ?>;</script>
     <script src="../assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
@@ -1139,7 +1147,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=186"></script>
+    <script src="../assets/js/inbox.js?v=187"></script>
     <script src="../assets/js/tickets-table.js?v=5"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>

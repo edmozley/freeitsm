@@ -74,6 +74,7 @@ try {
     $enumKeys = [
         'ticket_workspace_mode' => ['../../includes/ticket_workspace.php', TicketWorkspaceMode::class],
         'ticket_list_export'    => ['../../includes/ticket_list.php',      TicketListExport::class],
+        'ticket_reply_to'       => ['../../includes/ticket_reply_to.php',  TicketReplyTo::class],
     ];
     foreach ($enumKeys as $key => [$file, $enum]) {
         if (!array_key_exists($key, $settings)) continue;

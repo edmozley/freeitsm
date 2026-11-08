@@ -940,6 +940,10 @@ try {
                             <div><strong><?php echo t('tickets.help.tips.reply_title'); ?></strong><br><?php echo t('tickets.help.tips.reply_body'); ?></div>
                         </div>
                         <div class="help-card row">
+                            <div class="help-card-icon">&#128101;</div>
+                            <div><strong><?php echo t('tickets.help.tips.reply_to_title'); ?></strong><br><?php echo t('tickets.help.tips.reply_to_body'); ?></div>
+                        </div>
+                        <div class="help-card row">
                             <div class="help-card-icon">&#128203;</div>
                             <div><strong><?php echo t('tickets.help.tips.trail_title'); ?></strong><br><?php echo t('tickets.help.tips.trail_body'); ?></div>
                         </div>

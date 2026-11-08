@@ -2014,6 +2014,19 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.queue.export_help')); ?></small>
                 </div>
 
+                <?php /* Who Reply addresses (GH #120). The person on the message you are
+                         reading is what FreeITSM has always done, so it is the default;
+                         see includes/ticket_reply_to.php. */ ?>
+                <div class="form-group">
+                    <label for="ticketReplyTo"><?php echo htmlspecialchars(t('tickets.reply_to.label')); ?></label>
+                    <select id="ticketReplyTo">
+                        <?php require_once __DIR__ . '/../../includes/ticket_reply_to.php'; foreach (TicketReplyTo::cases() as $replyTo): ?>
+                        <option value="<?php echo $replyTo->value; ?>"><?php echo htmlspecialchars(t('tickets.reply_to.' . $replyTo->value)); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.reply_to.help')); ?></small>
+                </div>
+
                 <div class="form-group">
                     <label for="snoozeWakeHour"><?php echo htmlspecialchars(t('tickets.settings.general.snooze_hour_label')); ?></label>
                     <select id="snoozeWakeHour">
@@ -7169,6 +7182,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     };
                     setSelect('ticketWorkspaceMode', data.settings.ticket_workspace_mode, 'off');
                     setSelect('ticketListExport', data.settings.ticket_list_export, 'admins');
+                    setSelect('ticketReplyTo', data.settings.ticket_reply_to, 'message');   // GH #120
                     // Snooze wake hour (#933) — 09:00 when never saved, matching
                     // snoozeWakeHour() in includes/ticket_snooze.php.
                     // Long-message display (#104). Defaults mirror
@@ -7545,6 +7559,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             const settings = {
                 ticket_workspace_mode: document.getElementById('ticketWorkspaceMode').value,
                 ticket_list_export: document.getElementById('ticketListExport').value,
+                ticket_reply_to: document.getElementById('ticketReplyTo').value,
                 reopen_on_customer_reply: document.getElementById('reopenOnCustomerReply').checked ? '1' : '0',
                 snooze_wake_hour: document.getElementById('snoozeWakeHour').value,
                 ticket_collapse_enabled:       document.getElementById('collapseEnabled').checked ? '1' : '0',

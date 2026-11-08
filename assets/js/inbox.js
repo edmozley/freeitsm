@@ -7510,6 +7510,25 @@ function correspondentAddress(email) {
            ) || '';
 }
 
+/**
+ * Who Reply addresses, by Tickets -> Settings -> General -> "Reply goes to" (GH #120).
+ *
+ *   'requester' - the ticket's requester, whichever message is open (as TopDesk
+ *                 does); anybody else is added by hand in To or Cc.
+ *   anything else ('message', the default) - correspondentAddress(): the person on
+ *                 the message you are reading, what Reply has always done.
+ *
+ * TRAP: a requester with no address falls back to correspondentAddress(), so the
+ * box is never left empty when the message has somebody to answer - and that
+ * function already refuses our own mailbox, so neither path can address the
+ * service desk to itself.
+ */
+function replyAddress(email, mode) {
+    if (!email) return '';
+    if (mode === 'requester' && email.requester_email) return email.requester_email;
+    return correspondentAddress(email);
+}
+
 /** Is every address in a recipient list one of our analysts (GH #244)? Empty is no. */
 function outboundToStaffOnly(recipients) {
     const list = String(recipients || '').split(/[;,]/).map(s => {
@@ -7544,7 +7563,7 @@ function openReplyModal() {
     // handed to Graph/Gmail/SMTP as a recipient. Fall back to the requester's
     // address if the payload has one, else leave it empty so the send is
     // refused rather than sent somewhere meaningless.
-    const replyTo = correspondentAddress(currentEmail);
+    const replyTo = replyAddress(currentEmail, window.TICKET_REPLY_TO);
     document.getElementById('emailTo').value = replyTo;
     document.getElementById('emailCc').value = '';
     if (!replyTo) {

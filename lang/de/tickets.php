@@ -11,6 +11,13 @@
  */
 
 return [
+    // Tickets -> Settings -> General -> Reply goes to (GH #120); the choices are TicketReplyTo.
+    'reply_to' => [
+        'label' => 'Antwort geht an',
+        'message' => 'Die Person der Nachricht, die Sie gerade lesen',
+        'requester' => 'Den Anfragenden des Tickets',
+        'help' => 'An wen das Antwortfeld adressiert ist. Die Person der Nachricht ist das bisherige Verhalten von FreeITSM: Hat jemand anderes im Verlauf des Anfragenden geschrieben, antwortet „Antworten“ dieser Person. Der Anfragende des Tickets antwortet immer der Person, für die das Ticket ist; weitere Personen fügen Sie unter An oder Cc hinzu. In beiden Fällen können Sie die Adresse vor dem Senden ändern.',
+    ],
     'queue' => [
         'layout' => 'Ticketliste',
         'back' => 'Zurück',
@@ -3035,6 +3042,8 @@ Das lässt sich nicht rückgängig machen. Fortfahren?',
             'sla_body' => 'SLA-Timer sind bei jedem Ticket im Lesefenster sichtbar. Farblich codierte Anzeigen werden gelb, wenn eine Verletzung bevorsteht, und rot, wenn das Ziel verfehlt wurde, sodass Sie entsprechend priorisieren können.',
             'reply_title' => 'Aus dem Posteingang antworten',
             'reply_body' => 'Sie müssen Ihren E-Mail-Client nicht öffnen, um einem Endbenutzer zu antworten. Nutzen Sie die Schaltfläche Antworten im Lesefenster, um direkt eine Nachricht zu senden. Sie wird automatisch in das Ticket eingeordnet.',
+            'reply_to_title' => 'An wen Antworten geht',
+            'reply_to_body' => '„Antworten“ ist an die Person der Nachricht adressiert, die Sie gerade lesen. Soll die Antwort immer an den Anfragenden des Tickets gehen, ändern Sie <strong>Antwort geht an</strong> unter Tickets &rarr; Einstellungen &rarr; Allgemein. In beiden Fällen können Sie die Adresse vor dem Senden ändern oder weitere Personen in Cc hinzufügen.',
             'trail_title' => 'Das Aktivitätsprotokoll nutzen',
             'trail_body' => 'Bevor Sie an einem Ticket arbeiten, scrollen Sie durch das Aktivitätsprotokoll. Frühere Analystennotizen, E-Mails und Feldänderungen geben Ihnen den vollständigen Kontext, damit Sie den Benutzer nicht bitten müssen, Informationen zu wiederholen.',
             'dash_title' => 'Dashboard für Manager',

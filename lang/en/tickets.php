@@ -19,6 +19,13 @@
 return [
     // The ticket table (PR #213): the list shown as a paginated table, and who may
     // export it. See includes/ticket_list.php and assets/js/tickets-table.js.
+    // Tickets -> Settings -> General -> Reply goes to (GH #120); the choices are TicketReplyTo.
+    'reply_to' => [
+        'label' => 'Reply goes to',
+        'message' => 'The person on the message you are reading',
+        'requester' => 'The ticket\'s requester',
+        'help' => 'Who the Reply box is addressed to. The person on the message is what FreeITSM has always done: if somebody else wrote on the requester\'s thread, Reply answers them. The ticket\'s requester always answers the person the ticket is for, and anyone else is added in To or Cc. Either way you can change the address before sending.',
+    ],
     'queue' => [
         'layout'         => 'Ticket list',
         'back'           => 'Back',
@@ -3536,6 +3543,8 @@ return [
             'sla_body'       => 'SLA timers are visible on each ticket in the reading pane. Colour-coded indicators turn amber when a breach is approaching and red when the target has been missed, so you can prioritise accordingly.',
             'reply_title'    => 'Reply from the inbox',
             'reply_body'     => 'You do not need to open your email client to respond to an end user. Use the Reply button in the reading pane to send a message directly. It threads into the ticket automatically.',
+            'reply_to_title' => 'Who Reply goes to',
+            'reply_to_body' => 'Reply is addressed to the person on the message you are reading. If you would rather it always went to the ticket\'s requester, change <strong>Reply goes to</strong> in Tickets &rarr; Settings &rarr; General. Either way you can change the address, or add people in Cc, before sending.',
             'trail_title'    => 'Use the activity trail',
             'trail_body'     => 'Before working on a ticket, scroll through its activity trail. Previous analyst notes, emails, and field changes give you the full context so you do not ask the user to repeat information.',
             'dash_title'     => 'Dashboard for managers',

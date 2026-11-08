@@ -11,6 +11,13 @@
  */
 
 return [
+    // Tickets -> Settings -> General -> Reply goes to (GH #120); the choices are TicketReplyTo.
+    'reply_to' => [
+        'label' => 'La respuesta va a',
+        'message' => 'La persona del mensaje que está leyendo',
+        'requester' => 'El solicitante del ticket',
+        'help' => 'A quién va dirigido el cuadro de respuesta. La persona del mensaje es lo que FreeITSM ha hecho siempre: si otra persona escribió en el hilo del solicitante, Responder le contesta a ella. El solicitante del ticket contesta siempre a la persona para la que es el ticket, y a cualquier otra se la añade en Para o CC. En ambos casos puede cambiar la dirección antes de enviar.',
+    ],
     'queue' => [
         'layout' => 'Lista de tickets',
         'back' => 'Atrás',
@@ -3035,6 +3042,8 @@ Esto no se puede deshacer. ¿Continuar?',
             'sla_body' => 'Los temporizadores de SLA son visibles en cada ticket, en el panel de lectura. Los indicadores de color se ponen ámbar cuando se acerca un incumplimiento y rojo cuando ya se ha rebasado el objetivo, para que pueda priorizar en consecuencia.',
             'reply_title' => 'Responda desde la bandeja de entrada',
             'reply_body' => 'No necesita abrir su cliente de correo para responder a un usuario final. Use el botón Responder del panel de lectura para enviar un mensaje directamente. Se enhebra en el ticket automáticamente.',
+            'reply_to_title' => 'A quién va Responder',
+            'reply_to_body' => 'Responder va dirigido a la persona del mensaje que está leyendo. Si prefiere que vaya siempre al solicitante del ticket, cambie <strong>La respuesta va a</strong> en Tickets &rarr; Configuración &rarr; General. En ambos casos puede cambiar la dirección, o añadir personas en CC, antes de enviar.',
             'trail_title' => 'Use el historial de actividad',
             'trail_body' => 'Antes de trabajar en un ticket, recorra su historial de actividad. Las notas, correos y cambios de campo de analistas anteriores le dan todo el contexto para que no tenga que pedir al usuario que repita la información.',
             'dash_title' => 'Panel para responsables',

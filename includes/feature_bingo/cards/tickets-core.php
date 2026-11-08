@@ -18,6 +18,18 @@ $companyOn = function (string $key): array {
 };
 
 return [
+    [
+        'id'       => 'tickets.reply_to_requester',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Replies always go to the requester',
+        'what'     => 'Tickets -> Settings -> General -> Reply goes to: the ticket\'s requester. Reply is then addressed to the person the ticket is for, whichever message is open, instead of whoever wrote last on the thread.',
+        'why'      => 'When colleagues of the requester join an email thread, Reply otherwise answers the last of them. Teams used to tools that keep a requester on the ticket expect replies to go back to that person, adding anyone else by hand.',
+        'done'     => 'Reply goes to is set to the ticket\'s requester.',
+        'link'     => 'tickets/settings/',
+        'check'    => ['setting', 'ticket_reply_to', 'eq', 'requester'],
+    ],
 
     // ─── Departments ────────────────────────────────────────────────────────
     [
