@@ -204,6 +204,7 @@ return [
         'affects_documents_maintenance' => 'Die Suche in angehängten Dokumenten und das Aufräumen von Dateien, auf die nichts verweist',
         'name_directory_sync' => 'Verzeichnis- und Adressbuchsynchronisierung',
         'affects_directory_sync' => 'Aus LDAP, Active Directory und CardDAV importierte Personen',
+        'affects_directory_sync_entra' => 'Aus LDAP, Active Directory, CardDAV und Microsoft Entra ID importierte Personen',
         'card_title' => 'Hintergrundjobs',
         'card_body' => '{n} Hintergrundjob(s) benötigen Aufmerksamkeit:',
         'card_link' => 'Öffnen',

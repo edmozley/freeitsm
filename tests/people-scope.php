@@ -129,7 +129,9 @@ try {
         $pm2 = personDetail($conn, $m, $uMine);
         ok('an analyst with only People and Tickets gets just the Tickets section', $pm2 && array_keys($pm2['sections']) === ['tickets'], json_encode(array_keys($pm2['sections'] ?? [])));
         $cm2 = companyDetail($conn, $m, $mine);
-        ok('...on a company page too (plus its people)', $cm2 && array_keys($cm2['sections']) === ['people', 'tickets'], json_encode(array_keys($cm2['sections'] ?? [])));
+        // 'groups' is People's own card (#237), there only when a directory group has been imported.
+        $cm2Keys = array_values(array_diff(array_keys($cm2['sections'] ?? []), ['groups']));
+        ok('...on a company page too (plus its people)', $cm2 && $cm2Keys === ['people', 'tickets'], json_encode(array_keys($cm2['sections'] ?? [])));
         // Suppliers are Contracts' records: People alone does not open them.
         ok('without Contracts, a supplier page is not found', supplierDetail($conn, $m, $sup) === null);
         ok('...nor a supplier contact\'s', supplierContactDetail($conn, $m, $con) === null);

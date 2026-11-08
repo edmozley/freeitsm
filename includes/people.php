@@ -168,6 +168,28 @@ function peopleGroupTablesMissing(PDOException $e): bool
 }
 
 /**
+ * Is there at least one active directory group this analyst can see? For the
+ * People tab, which is drawn on every People page: peopleGroups() counts the
+ * members of every group, and an Entra tenant can hold thousands of groups.
+ */
+function peopleHasGroups(PDO $conn, int $analystId): bool
+{
+    [$gs, $gArgs] = peopleGroupScope($conn, $analystId, 'p');
+    try {
+        $st = $conn->prepare(
+            "SELECT 1 FROM directory_groups g
+               JOIN auth_providers p ON p.id = g.provider_id
+              WHERE g.is_active = 1 $gs LIMIT 1"
+        );
+        $st->execute($gArgs);
+    } catch (PDOException $e) {
+        if (peopleGroupTablesMissing($e)) return false;
+        throw $e;
+    }
+    return $st->fetchColumn() !== false;
+}
+
+/**
  * The active directory groups this analyst can see, for the People filter: id,
  * name, kind, and how many of the people the analyst can see are in it. Empty
  * when no group has been imported, which hides the filter.
@@ -330,7 +352,7 @@ function peopleGroupDetail(PDO $conn, int $analystId, int $groupId): ?array
  */
 function peopleCompanyGroups(PDO $conn, int $analystId, int $tenantId): ?array
 {
-    if (!peopleGroups($conn, $analystId)) return null;
+    if (!peopleHasGroups($conn, $analystId)) return null;
     [$gs, $gArgs] = peopleGroupScope($conn, $analystId, 'p');
     [$cm, $cArgs] = peopleCompanyMatch($conn, $tenantId, 'u.tenant_id');
     $st = $conn->prepare(

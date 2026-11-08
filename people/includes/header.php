@@ -22,7 +22,7 @@ $pplShowSuppliers = analystCanAccessModule($conn ?? connectToDatabase(), (int)$_
 // Groups come from a directory import (Entra today): no tab until there is one to show.
 // Loaded here, not left to the page: Help has no other use for includes/people.php.
 require_once $path_prefix . 'includes/people.php';
-$pplShowGroups = (bool)peopleGroups($conn ?? connectToDatabase(), (int)$_SESSION['analyst_id']);
+$pplShowGroups = peopleHasGroups($conn ?? connectToDatabase(), (int)$_SESSION['analyst_id']);
 
 require_once $path_prefix . 'includes/waffle-menu.php';
 

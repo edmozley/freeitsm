@@ -204,6 +204,7 @@ return [
         'affects_documents_maintenance' => 'Búsqueda en los documentos adjuntos y limpieza de archivos que nada enlaza',
         'name_directory_sync' => 'Sincronización del directorio y la libreta de direcciones',
         'affects_directory_sync' => 'Personas importadas desde LDAP, Active Directory y CardDAV',
+        'affects_directory_sync_entra' => 'Personas importadas desde LDAP, Active Directory, CardDAV y Microsoft Entra ID',
         'card_title' => 'Tareas en segundo plano',
         'card_body' => '{n} tarea(s) en segundo plano requieren atención:',
         'card_link' => 'Abrir',
