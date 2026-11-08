@@ -218,6 +218,7 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
             <div class="help-note"><?php echo t('workflow.help.variables_names'); ?></div>
             <div class="help-note"><?php echo t('workflow.help.variables_number'); ?></div>
             <p><?php echo t('workflow.help.variables_full'); ?></p>
+            <p><?php echo t('workflow.help.variables_full_paths'); ?></p>
             <p><?php echo htmlspecialchars(t('workflow.help.variables_common')); ?></p>
             <ul>
                 <li><?php echo t('workflow.help.variables_li1'); ?></li>

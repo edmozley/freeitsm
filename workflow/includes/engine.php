@@ -1088,7 +1088,7 @@ class WorkflowEngine
             $vars[] = [
                 'path'  => $obj . '.full',
                 'label' => self::humaniseSegment($obj) . ' · whole record',
-                'note'  => 'The entire record as JSON — the same shape the REST API returns.',
+                'note'  => 'The entire record as JSON — the same shape the REST API returns. Any field of it works by path too, in every action: {{' . $obj . '.full.id}}.',
             ];
         }
 
@@ -2338,6 +2338,7 @@ class WorkflowEngine
             // args the handler would have received, then move on. Nothing is
             // written, sent or queued.
             if ($dryRun) {
+                if ($type !== 'send_webhook') $payload = self::fullForTemplates($args, $payload);   // #275: the preview shows it too
                 $stepLog[] = [
                     'kind'       => 'action',
                     'index'      => $i,
@@ -2350,6 +2351,8 @@ class WorkflowEngine
             }
 
             try {
+                // GH #275: {{<record>.full...}} in ANY action, not only a webhook.
+                if ($type !== 'send_webhook') $payload = self::fullForTemplates($args, $payload);
                 $result = self::executeAction($type, $args, $payload);
                 // Feed the result forward so a later action can use what an
                 // earlier one produced — "raise a ticket, then email the
@@ -2378,6 +2381,39 @@ class WorkflowEngine
             }
         }
         return ['success', null];
+    }
+
+    /**
+     * Loads the API-shaped `<record>.full` into the payload when an action's args use it (GH #275).
+     *
+     * It used to be filled only inside send_webhook, so `{{task.full.ticket_id}}` - any field of the
+     * record the REST API returns - was blank in every other action. Loaded once per run (the loader
+     * skips a record that already has `.full`) and only when an arg mentions `.full`, so a plain
+     * action costs no query.
+     *
+     * TRAP: never for a CONFIDENTIAL ticket. send_webhook redacts one to its number and status before
+     * it enriches (ticketRedactForOutbound()), and an email or a note must not get round that by
+     * asking for `{{ticket.full.subject}}` - so a confidential ticket simply has no `.full`.
+     *
+     * @param array $args  the action's saved args, searched (recursively) for '.full'
+     * @param array $payload  the run's payload
+     */
+    private static function fullForTemplates(array $args, array $payload): array
+    {
+        $mentions = false;
+        array_walk_recursive($args, function ($v) use (&$mentions) {
+            if (is_string($v) && str_contains($v, '.full')) $mentions = true;
+        });
+        if (!$mentions) return $payload;
+        try {
+            $conn = connectToDatabase();
+            require_once dirname(__DIR__, 2) . '/includes/ticket_sensitivity.php';
+            $tid = (int)($payload['ticket']['id'] ?? ($payload['ticket_id'] ?? 0));
+            if ($tid > 0 && ticketIsConfidential($conn, $tid)) return $payload;
+            return self::enrichWithFullObjects($conn, $payload);
+        } catch (Throwable) {
+            return $payload;   // best effort, as for webhooks: the action runs, the code is blank
+        }
     }
 
     /**
