@@ -48,7 +48,9 @@ function getContributors(): array
                       . 'background job (#233), and four follow-ups that each came with their own tests '
                       . '(PRs #237-#240): directory groups in People, imported people protected from being '
                       . 'deleted and recreated, each directory page saying when the scheduler imports it, '
-                      . 'and the import script moved in with the other scheduled tasks.',
+                      . 'and the import script moved in with the other scheduled tasks. And the organisation '
+                      . 'chart in People (PR #242): who reports to whom as a tree or a chart you can export, '
+                      . 'with its follow-up (PR #265) counting everybody under each manager.',
         ],
         [
             // Name and company as Ed was given them (October 2026). The package
