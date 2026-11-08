@@ -226,6 +226,7 @@ return [
         'affects_documents_maintenance' => 'Searching attached documents, and tidying files nothing links to',
         'name_directory_sync'        => 'Directory and address book sync',
         'affects_directory_sync'     => 'People imported from LDAP, Active Directory and CardDAV',
+        'affects_directory_sync_entra' => 'People imported from LDAP, Active Directory, CardDAV and Microsoft Entra ID',
 
         // The Watchtower card and the System notice.
         'card_title'     => 'Background jobs',

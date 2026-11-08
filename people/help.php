@@ -26,7 +26,7 @@ $multi = isMultiTenant(connectToDatabase());
 // steps or definitions draw those as well, below.
 $sections = [
     'overview'  => 1,
-    'people'    => 3,
+    'people'    => 4,
     'person'    => 3,
     'org'       => 4,
     'companies' => 3,

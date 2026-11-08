@@ -45,7 +45,7 @@ try {
             "SELECT id, action, user_id, directory_username, display_name, detail, created_datetime
                FROM directory_sync_entries
               WHERE $where
-              ORDER BY FIELD(action,'error','conflict','deactivate','adopt','create','update','skip','unchanged'), id
+              ORDER BY FIELD(action,'error','conflict','deactivate','adopt','create','update','group_join','group_leave','skip','unchanged'), id
               LIMIT 1000"
         );
         $stmt->execute($args);

@@ -508,7 +508,7 @@ return [
         'tier'     => 'extra',
         'category' => 'automation',
         'title'    => 'Scheduled directory import',
-        'what'     => 'A scheduled task running php scripts/directory_sync.php --all, which imports every enabled directory and address book.',
+        'what'     => 'A scheduled task running php cron/directory_sync.php --all, which imports every enabled directory and address book.',
         'why'      => 'Nothing imports on its own - without a schedule, new starters and changed phone numbers stop arriving the day after someone last pressed Import.',
         'done'     => 'At least one live import has run without an analyst starting it (that is, from the scheduled task).',
         'link'     => 'system/sso/',

@@ -2560,6 +2560,7 @@ return [
             'manager'          => 'Manager',
             'source'           => 'Details from',
             'source_directory' => 'A directory, not editable here',
+            'delete_managed'   => 'Kept up to date from a directory, so it cannot be deleted here: the next import would create this person again. Remove or disable them in the directory and they are marked as left.',
             // The source by name: "Baikal (address book)".
             'source_named'     => '{name} - {kind}',
             'signs_in_with'    => 'Signs in with',

@@ -100,6 +100,9 @@ $multi = isMultiTenant($conn);
                         if ($p['manager'] || $p['reports']) {
                             $f('org', '<a href="org.php?person=' . (int)$p['id'] . '">' . pplE(t('people.person.org_link')) . '</a>', true);
                         }
+                        if ($p['groups']) {
+                            $f('groups', implode('', array_map(fn($g) => '<div><a href="group.php?id=' . $g['id'] . '">' . pplE($g['name']) . '</a></div>', $p['groups'])), true);
+                        }
                         $f('source', $p['source']);
                         $f('first_seen', fmt_date($p['created_at']));
                         if (!$p['is_active']) $f('left', fmt_date($p['deactivated_datetime']));

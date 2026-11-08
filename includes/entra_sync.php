@@ -820,6 +820,15 @@ function entraSyncGroups(PDO $conn, array $cfg, array $provider, array $oidToUse
             $seenGroupIds[] = (int)$row['id'];
         }
 
+        // Who joined and who left, one entry per person, so "when did Ana leave
+        // Finance?" has an answer in the run history. Only for a group imported
+        // before: on its first import every member "joins", which says nothing
+        // and, with "every group", buries the run in thousands of lines - the
+        // group's own summary line below covers it.
+        if ($row && ($add || $del)) {
+            entraLogMembershipChanges($conn, $runId, $name, $add, $del, $preview);
+        }
+
         if (!$row) $sum['new']++;
         $action = !$row ? 'create' : (($add || $del || $row['display_name'] !== $name) ? 'update' : 'unchanged');
         dsyncLogEntry($conn, $runId, $action, null, ['username' => 'group', 'name' => 'Group: ' . $name],
@@ -854,6 +863,40 @@ function entraSyncGroups(PDO $conn, array $cfg, array $provider, array $oidToUse
             'This group no longer exists in Entra. Remove it from the groups to import.');
     }
     return $sum;
+}
+
+/**
+ * One run-history entry per person who joined or left a group.
+ *
+ * Logged as 'group_join' / 'group_leave' against the person (user_id), so the
+ * run detail can filter them and a search for the person finds both their own
+ * changes and their memberships. Names are read in one query for the lot.
+ *
+ * @param string $groupName  the group's display name, for the entry's detail
+ * @param int[] $joined  users.id of people added to the group
+ * @param int[] $left  users.id of people removed from it
+ * @param bool $preview  true when nothing was written (the wording says "would")
+ */
+function entraLogMembershipChanges(PDO $conn, int $runId, string $groupName, array $joined, array $left, bool $preview): void
+{
+    $ids = array_values(array_unique(array_merge($joined, $left)));
+    $who = [];
+    try {
+        $st = $conn->prepare("SELECT id, display_name, directory_username FROM users WHERE id IN ("
+            . implode(',', array_fill(0, count($ids), '?')) . ")");
+        $st->execute($ids);
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $who[(int)$r['id']] = ['username' => $r['directory_username'], 'name' => $r['display_name']];
+        }
+    } catch (Throwable $e) {
+        error_log('[esync] membership log names: ' . $e->getMessage());
+    }
+    foreach ([['group_join', $joined, 'Joined'], ['group_leave', $left, 'Left']] as [$action, $uids, $verb]) {
+        foreach ($uids as $uid) {
+            dsyncLogEntry($conn, $runId, $action, (int)$uid, $who[(int)$uid] ?? ['name' => '#' . (int)$uid],
+                ($preview ? 'Would have ' . strtolower($verb) : $verb) . ' the group ' . $groupName . '.');
+        }
+    }
 }
 
 /**

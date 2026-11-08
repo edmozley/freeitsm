@@ -477,9 +477,8 @@ require __DIR__ . '/_top.php';
     <p>A scope that matches <em>nothing</em> also stops the run rather than importing nobody. A group renamed on your server is far likelier than your whole company leaving.</p>
 
     <h4>Running it on a schedule</h4>
-    <p>Nothing imports on its own. You run it from the <strong>Run</strong> button here, or you set up a scheduled task — the same one that runs an LDAP import:</p>
-    <p><code>php scripts/directory_sync.php --all</code></p>
-    <p>That picks up every enabled source with importing switched on, address books and directories alike, and sends each through the right engine. Nightly is a sensible starting point. It reports a proper exit code, so a monitored task tells you when an import failed instead of quietly doing nothing for months.</p>
+    <p>The built-in scheduler imports it, once a day unless you change it, together with every other enabled source with importing switched on - address books and directories alike, each through the right engine. The line under the <strong>Run</strong> button says when the next import is, and warns when nothing will run it: the scheduler needs its one scheduled task on the server, or the fallback switched on. Both, and how often the import runs, are in <strong>Reporting &rarr; Logs &rarr; Background jobs</strong>.</p>
+    <p>A scheduled task of your own that runs <code>php cron/directory_sync.php --all</code> works too, and so does an older one that still says <code>scripts/directory_sync.php</code>: an import started twice runs once.</p>
 
     <h4>History</h4>
     <p>The <strong>History</strong> tab lists every import and what it did — by hand or scheduled, how many contacts were read, created, updated and skipped. A run shown as <strong>stopped</strong> was halted by the safety check, which means nothing was changed and it is waiting on you rather than broken.</p>
@@ -622,6 +621,7 @@ require __DIR__ . '/_top.php';
 
     <h4>Groups</h4>
     <p>The <strong>Groups</strong> tab lists every imported group with its type (Security, Mail-enabled security, Microsoft 365, Distribution), how many members it has in Entra, and how many of them FreeITSM holds. Click a group to see who is in it. A group that leaves the import scope is marked <strong>Inactive</strong> and keeps its last known members; it is never deleted.</p>
+    <p>Imported groups also appear in <strong>People</strong>: a <strong>Groups</strong> tab lists them, each with a page of its members; the People list can be filtered by group; a person's page shows the groups they are in; and a company's page shows the groups its people are in, with how many of them. On a multi-company install, the groups of a provider that belongs to a client company are only offered to analysts who can access that company; inactive groups are not offered.</p>
 
     <div class="help-note ok"><strong>Group names in the sign-in mappings.</strong> Entra sends groups at sign-in as object IDs, so the mapping dropdowns under <a href="#sso-groups">Groups from the identity provider</a> used to show strings like <code>4f1c2a…</code>. Every imported group now appears there by name. A label you typed yourself is never overwritten.</div>
     <h4>Laptops from Intune</h4>
@@ -647,10 +647,10 @@ require __DIR__ . '/_top.php';
     <div class="help-note ok"><strong>Preview first, every time.</strong> It runs the real import with the writing switched off and shows, person by person, what would be created, updated, linked or marked as left.</div>
 
     <h4>Running it on a schedule</h4>
-    <p>Nothing imports on its own. <strong>Import now</strong> runs it once by hand; to keep people current, schedule the same command that runs LDAP and address-book imports:</p>
-    <p><code>php scripts/directory_sync.php --all</code></p>
-    <p>It imports every enabled source with importing switched on, Entra included, and exits with <code>1</code> when a run failed and <code>2</code> when one was stopped by a safety check, so a monitored task tells you. Once or twice a day is plenty for most organisations. The step-by-step setup for cron, Windows Task Scheduler and Docker is on the wiki: <a href="https://github.com/edmozley/freeitsm/wiki/Directory-Sync-Scheduling" target="_blank" rel="noopener">Directory Sync Scheduling</a>.</p>
+    <p><strong>Import now</strong> runs it once by hand. To keep people current, the built-in scheduler imports every enabled source with importing switched on, Entra included - once a day unless you change it in <strong>Reporting &rarr; Logs &rarr; Background jobs</strong>. The line under <strong>Import now</strong> says when the next import is, and warns when nothing will run it.</p>
+    <p>The command it runs is <code>php cron/directory_sync.php --all</code>, which also works from a scheduled task of its own (as does the old path, <code>scripts/directory_sync.php</code>). It exits with <code>1</code> when a run failed and <code>2</code> when one was stopped by a safety check, so a monitored task tells you. Once or twice a day is plenty for most organisations. The step-by-step setup for cron, Windows Task Scheduler and Docker is on the wiki: <a href="https://github.com/edmozley/freeitsm/wiki/Directory-Sync-Scheduling" target="_blank" rel="noopener">Directory Sync Scheduling</a>.</p>
     <p>Every run, by hand or scheduled, is listed on the <strong>History</strong> tab with what it did. Click one to see each person and what happened to them.</p>
+    <p>Membership follows Entra at every import: somebody added to a group in Entra joins it here, somebody removed leaves it. Each change is recorded in the run's detail on the <strong>History</strong> tab as <em>Joined a group</em> or <em>Left a group</em>, against the person, so you can find out when somebody left Finance. A group's first import is the exception: its members are summarised in one line rather than listed one by one.</p>
 </div>
 
 <!-- 4q. Entra troubleshooting -->
@@ -674,6 +674,7 @@ require __DIR__ . '/_top.php';
         <li><strong>The import stopped and changed nothing.</strong> That is a safety check. Read the run's message, preview, and if the numbers are genuinely right, run it again or adjust the percentage.</li>
         <li><strong>"Groups were not imported: run Database Verification".</strong> People were imported correctly; the group tables do not exist yet. Run Database Verification and import again.</li>
         <li><strong>Nothing has imported for days.</strong> Check the scheduled task is still running. The History tab shows when the last run happened and whether somebody started it by hand.</li>
+        <li><strong>Delete is greyed out on an imported person.</strong> On purpose. Deleting them here would also remove their link to Entra, so the next import would create them again as a new person with none of their history. Remove or disable them in Entra instead: they are then marked as left here, and their tickets and equipment stay where they are. The same applies to people imported from LDAP or an address book. Switching the source off does not change this, because switching it back on would bring them back; once the source itself is deleted, nothing can, and its people can be deleted here.</li>
         <li><strong>Somebody left a group in Entra and still shows in it.</strong> Membership is brought across at the next import, not the moment it changes. If they are still there after an import, check the group is still being imported (an <em>Inactive</em> group keeps its last members).</li>
     </ul>
 </div>

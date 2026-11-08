@@ -35,6 +35,7 @@ if (empty($_SESSION['analyst_id'])) {
 }
 
 $conn = connectToDatabase();
+require_once __DIR__ . '/../includes/directory_schedule.php';   // dsyncScheduleNotice(): when it imports on its own
 if (!analystIsAdmin($conn, (int)$_SESSION['analyst_id'])) {
     http_response_code(403);
     exit('Administrator access required.');
@@ -183,6 +184,8 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         .act { display: inline-block; padding: 2px 10px; border-radius: 11px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
         .act.create { background: #e8f5e9; color: #2e7d32; }
         .act.update, .act.adopt { background: #fff4ce; color: #6b5900; }
+        .act.group_join { background: #e3f2fd; color: #1565c0; }
+        .act.group_leave { background: #fce4ec; color: #ad1457; }
         .act.deactivate, .act.skip, .act.unchanged { background: var(--app-bg, #eee); color: var(--text-dim, #777); }
         .act.conflict, .act.error { background: #ffebee; color: #c62828; }
         .run-empty { padding: 40px 24px; text-align: center; color: var(--text-dim, #999); font-size: 13px; }
@@ -317,9 +320,7 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
                     <button class="btn btn-test" id="runBtn" type="button"><?php echo et('sync_run'); ?></button>
                 </div>
                 <div class="result" id="syncResult"></div>
-                <div class="hint sched" style="margin-top:12px;"><?php echo t('system.sso.entra_schedule_hint', [
-                    'cmd' => '<code>php scripts/directory_sync.php --all</code>',
-                ]); ?></div>
+                <div style="margin-top:12px;"><?php echo dsyncScheduleNotice($conn, $p); ?></div>
             </div>
         </div>
 
@@ -668,6 +669,7 @@ async function toggleMembers(tr) {
 const RUN_ACTIONS = [
     { key: 'error', on: true }, { key: 'conflict', on: true }, { key: 'create', on: true },
     { key: 'update', on: true }, { key: 'adopt', on: true }, { key: 'deactivate', on: true },
+    { key: 'group_join', on: true }, { key: 'group_leave', on: true },
     { key: 'skip', on: true }, { key: 'unchanged', on: false }
 ];
 let runShown = new Set();
