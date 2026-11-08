@@ -208,6 +208,37 @@ function jobSchedulerSpawn(string $phpExe, string $script, array $args): bool
     return true;
 }
 
+/**
+ * One job's schedule as a page outside Background jobs shows it: how often, when next,
+ * and what will start it - so a page can say "imported every day at 02:00" truthfully,
+ * or say that nothing will.
+ *
+ * A job with no row yet (the scheduler has never run) reads as the registry's interval,
+ * which is what the first run gives it.
+ *
+ * @param string $job  a jobRegistry() key, e.g. 'directory_sync'
+ * @return array{mode:string,interval:?int,at:?string,next_due:?string,runner:string}
+ *   at is HH:MM in the install's timezone; next_due is UTC; runner is 'scheduler' (a
+ *   scheduled task or the Docker loop is running), 'fallback' (none is, but open pages
+ *   start due jobs) or 'none' (nothing will start it)
+ */
+function jobScheduleSummary(PDO $conn, string $job): array
+{
+    $row = jobSchedules($conn)[$job] ?? null;
+    if ($row === null) {
+        $row = ['mode' => 'interval', 'interval_minutes' => jobRegistry()[$job]['interval'] ?? null, 'at_time' => null, 'next_due_at' => null];
+    }
+    $runner = jobSchedulerRunning($conn) ? 'scheduler'
+            : (jobSetting($conn, JOB_SCHEDULER_FALLBACK) === '1' ? 'fallback' : 'none');
+    return [
+        'mode'     => in_array($row['mode'], JOB_SCHEDULE_MODES, true) ? $row['mode'] : 'interval',
+        'interval' => $row['interval_minutes'] !== null ? (int)$row['interval_minutes'] : null,
+        'at'       => $row['at_time'] !== null ? substr((string)$row['at_time'], 0, 5) : null,
+        'next_due' => $row['next_due_at'] ?: null,
+        'runner'   => $runner,
+    ];
+}
+
 /** Whether the real scheduler (a scheduled task or the Docker loop) has run in the last few minutes. */
 function jobSchedulerRunning(PDO $conn): bool
 {

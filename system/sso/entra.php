@@ -35,6 +35,7 @@ if (empty($_SESSION['analyst_id'])) {
 }
 
 $conn = connectToDatabase();
+require_once __DIR__ . '/../includes/directory_schedule.php';   // dsyncScheduleNotice(): when it imports on its own
 if (!analystIsAdmin($conn, (int)$_SESSION['analyst_id'])) {
     http_response_code(403);
     exit('Administrator access required.');
@@ -319,9 +320,7 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
                     <button class="btn btn-test" id="runBtn" type="button"><?php echo et('sync_run'); ?></button>
                 </div>
                 <div class="result" id="syncResult"></div>
-                <div class="hint sched" style="margin-top:12px;"><?php echo t('system.sso.entra_schedule_hint', [
-                    'cmd' => '<code>php scripts/directory_sync.php --all</code>',
-                ]); ?></div>
+                <div style="margin-top:12px;"><?php echo dsyncScheduleNotice($conn, $p); ?></div>
             </div>
         </div>
 
