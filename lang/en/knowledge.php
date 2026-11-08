@@ -758,6 +758,7 @@ return [
         'sharing_step2'   => '<strong>Export as PDF</strong> &mdash; converts the article to a clean PDF document. Ideal for sending to people outside the system, including in support emails or attaching to change requests.',
         'sharing_step3'   => '<strong>Email (Link + PDF)</strong> &mdash; opens your email client with both the link and a PDF attachment pre-loaded. This gives the recipient the option to read online or offline.',
         'sharing_note'    => 'All sharing options are accessed from the <strong>Share</strong> dropdown button when viewing an article. Click the share icon to reveal the three options above.',
+        'sharing_link_opens' => 'Opening an article link - a shared one, or a link from one article to another - takes you straight to the article with its own folder selected, so <strong>Back to list</strong> shows the articles filed beside it. Opening an article from the list or from search results keeps your place.',
         'sharing_tip'     => 'When resolving a ticket, sharing a relevant knowledge article with the end user helps them solve similar problems in the future without needing to raise another ticket. This is one of the best ways to reduce repeat contacts.',
 
         'tips_heading' => 'Quick tips',

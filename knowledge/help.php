@@ -601,6 +601,8 @@ $translationNamespaces = ['common', 'knowledge'];
 
                     <p><?php echo t('knowledge.help.sharing_note'); ?></p>
 
+                    <p><?php echo t('knowledge.help.sharing_link_opens'); ?></p>
+
                     <p class="help-note"><?php echo htmlspecialchars(t('knowledge.help.sharing_tip')); ?></p>
                 </div>
 

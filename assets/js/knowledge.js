@@ -25,6 +25,9 @@ let isRecycleBinView = false;
 let kbFolders = [];
 let activeFolder = '';
 let kbRootArticleCount = 0;
+// Whether the folder list has come back, successfully or not. The article-link
+// handler waits on it before placing the article in the tree (#252).
+let kbFoldersSettled = false;
 // Whether this analyst may EDIT access, which is a stricter question than
 // whether they may read a folder: anyone who could merely read one must not be
 // able to hand it to somebody else.
@@ -749,7 +752,7 @@ function kbPromptClose() {
  */
 async function loadFolders() {
     const box = document.getElementById('kbFolderTree');
-    if (!box) return;
+    if (!box) { kbFoldersSettled = true; return; }
     try {
         const r = await fetch(API_BASE + 'folders.php?action=list');
         const d = await r.json();
@@ -775,6 +778,8 @@ async function loadFolders() {
         // folders did not load" look identical, and one of them is a lie that
         // makes a document look deleted.
         box.innerHTML = '<div class="no-results">' + escapeHtml(window.t('knowledge.folders.load_failed')) + '</div>';
+    } finally {
+        kbFoldersSettled = true;
     }
 }
 
@@ -2242,14 +2247,6 @@ async function viewArticle(articleId) {
             if (window.trailVisit) window.trailVisit('knowledge_article', articleId);
             renderArticleDetail();
             showView('detail');
-            // A linked article may live in another folder. Keep the sidebar and
-            // the list behind the detail on that article's actual folder.
-            const folder = currentArticle.folder_id == null ? '' : String(currentArticle.folder_id);
-            if (activeFolder !== folder) {
-                activeFolder = folder;
-                renderFolderTree(kbRootArticleCount);
-                loadArticles(document.getElementById('articleSearch').value, activeTagFilters);
-            }
         } else {
             showToast(window.t('knowledge.toast.error_loading', { message: data.error }), 'error');
         }
@@ -3368,10 +3365,14 @@ function blobToBase64(blob) {
         // A valid top level can contain only folders. Its empty article array is
         // still a completed load; matching English empty-state text breaks links
         // in translated installs and in the other layouts.
-        if (kbArticlesLoaded) {
+        // The folders too: the article is placed in the tree below, and the tree
+        // is not known until they arrive. Settled, not succeeded - a folder list
+        // that failed must not stop the article opening.
+        if (kbArticlesLoaded && kbFoldersSettled) {
             clearInterval(checkAndLoad);
             Promise.resolve(viewArticle(articleId)).then(() => {
                 if (!currentArticle || String(currentArticle.id) !== String(articleId)) { showView('list'); return; }
+                kbHomeLinkedArticle();
                 if (!wantEdit) return;
                 // editCurrentArticle populates TinyMCE — wait until the
                 // editor instance is ready so the article body isn't lost.
@@ -3391,6 +3392,30 @@ function blobToBase64(blob) {
         if (!currentArticle && listView && listView.style.display === 'none') showView('list');
     }, 5000);
 })();
+
+/**
+ * After a link opens an article (#252), select that article's folder in the
+ * sidebar and load its list behind the detail, so Back lands where the article
+ * lives rather than on whatever the page opened to.
+ *
+ * TRAP: called from the link handler only, never from viewArticle(). A click on
+ * a search result, a keyboard Enter, the context menu and the AI chat all open
+ * articles through viewArticle() too, and there the list behind is already the
+ * one you were using - re-homing it would drop a search for one folder's list.
+ *
+ * TRAP: only to a folder in this analyst's tree. An article can be shared with
+ * someone whose folder is not (an article-level exception); selecting a folder
+ * they cannot see would leave the list showing an error.
+ */
+function kbHomeLinkedArticle() {
+    if (!currentArticle) return;
+    const folder = currentArticle.folder_id == null ? '' : String(currentArticle.folder_id);
+    if (activeFolder === folder) return;
+    if (folder !== '' && !kbFolders.some(f => String(f.id) === folder)) return;
+    activeFolder = folder;
+    renderFolderTree(kbRootArticleCount);
+    loadArticles(document.getElementById('articleSearch').value, activeTagFilters);
+}
 
 // Server-stamped UTC timestamps (created/modified/archived). Parse as UTC and
 // render in the analyst's chosen zone so the calendar day is correct locally.
