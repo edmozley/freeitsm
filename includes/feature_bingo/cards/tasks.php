@@ -163,7 +163,7 @@ return [
         'tier'     => 'extra',
         'category' => 'productivity',
         'title'    => 'Other people on a task',
-        'what'     => 'Listing everyone else working on a task as Involved. The owner stays accountable, and the task also appears in each involved person\'s own list.',
+        'what'     => 'Listing everyone else working on a task as Involved. The owner stays accountable, and the task also appears in each involved person\'s own list. Anyone can follow a task this way from the board: right-click it and choose Involve me.',
         'why'      => 'Shared work stops falling through the gaps when every person on it sees it in their own list, not just the owner.',
         'done'     => 'At least one person has been added as involved on a real task.',
         'link'     => 'tasks/',

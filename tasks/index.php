@@ -328,6 +328,12 @@ $translationNamespaces = ['common', 'tasks'];
         <div class="ctx-item" data-action="assign-me">
             <span class="ctx-item-label"><?php echo htmlspecialchars(t('tasks.context.assign_me')); ?></span>
         </div>
+        <?php /* GH #276: follow a task without owning it. The label flips between
+                 Involve me and Stop being involved, and the item is hidden where it
+                 cannot apply (your own task, a subtask) - set in buildSubmenus(). */ ?>
+        <div class="ctx-item" data-action="involve-me" id="ctxInvolve" style="display:none;">
+            <span class="ctx-item-label" id="ctxInvolveLabel"><?php echo htmlspecialchars(t('tasks.context.involve_me')); ?></span>
+        </div>
         <div class="ctx-sep"></div>
         <div class="ctx-item ctx-has-sub" data-action="analyst">
             <span class="ctx-item-label"><?php echo htmlspecialchars(t('tasks.context.assign_analyst')); ?></span>
@@ -411,7 +417,7 @@ $translationNamespaces = ['common', 'tasks'];
     window.TASK_FILTER = <?php echo json_encode($taskFilter); ?>;
     window.TASK_CAN_PROJECTS = <?php echo json_encode($taskCanProjects); ?>;</script>
     <script src="../assets/js/tasks-priority.js?v=1"></script>
-    <script src="../assets/js/tasks-ctx-menu.js?v=5"></script>
+    <script src="../assets/js/tasks-ctx-menu.js?v=6"></script>
     <!-- The one cleaner for HTML from elsewhere: Knowledge procedure bodies and task instructions in the Work view (GH #190). -->
     <script src="../assets/js/safe-html.js?v=4"></script>
     <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=2"></script><?php endif; ?>

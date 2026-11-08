@@ -212,6 +212,7 @@ $translationNamespaces = ['common', 'tasks'];
 
                     <h4><?php echo htmlspecialchars(t('tasks.help.board_rightclick_heading')); ?></h4>
                     <p><?php echo t('tasks.help.board_rightclick_body'); ?></p>
+                    <p><?php echo t('tasks.help.board_rightclick_involve'); ?></p>
 
                     <h4><?php echo htmlspecialchars(t('tasks.help.board_search_heading')); ?></h4>
                     <p><?php echo t('tasks.help.board_search_body'); ?></p>

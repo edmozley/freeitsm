@@ -235,6 +235,23 @@
         // series belongs to the piece of work, not a step inside it, and the API
         // rejects it too. The label says which way it will go, so a task that
         // already repeats offers to change it rather than to set it up again.
+        // Involve me (GH #276). Only where the service would allow it: not on a task
+        // you own (the owner is never also Involved) and not on a subtask (people are
+        // involved in the piece of work, not a step inside it) - hidden rather than
+        // offered and refused. Which way it goes comes from the task's own list of
+        // people (list.php sends collaborators with every task).
+        const inv = document.getElementById('ctxInvolve');
+        if (inv) {
+            const me = cfg.currentAnalystId ? parseInt(cfg.currentAnalystId, 10) : 0;
+            const isOwner = me && task && parseInt(task.assigned_analyst_id, 10) === me;
+            const show = !!(me && task && !task.parent_task_id && !isOwner);
+            inv.style.display = show ? '' : 'none';
+            const involved = show && (task.collaborators || []).some(c => parseInt(c.analyst_id, 10) === me);
+            inv.dataset.involved = involved ? '1' : '0';
+            const il = document.getElementById('ctxInvolveLabel');
+            if (il) il.textContent = T(involved ? 'context.stop_involved' : 'context.involve_me');
+        }
+
         const rp = document.getElementById('ctxRepeat');
         if (rp) {
             rp.style.display = task.parent_task_id ? 'none' : '';
@@ -291,6 +308,11 @@
             // Bare identifier: ANALYST_ID is a const in tasks.js, so the config
             // hands it over rather than this file reaching for window.
             setField('assigned_analyst_id', cfg.currentAnalystId ? parseInt(cfg.currentAnalystId, 10) : null);
+            return;
+        }
+        if (e.target.closest('[data-action="involve-me"]')) {
+            const item = document.getElementById('ctxInvolve');
+            setInvolved(item && item.dataset.involved === '1' ? 'remove' : 'add');
             return;
         }
         if (e.target.closest('[data-action="complete"]')) {
@@ -362,6 +384,35 @@
             cfg.onUpdate();
         } catch (e) {
             if (window.showToast) window.showToast(window.t('tasks.context.move_error'), 'error');
+        }
+    }
+
+    /**
+     * Puts the current analyst on the menu's task, or takes them off it (GH #276), through the same
+     * endpoint the detail panel's Involved list uses - TasksService holds every rule (owner, subtask,
+     * company scope), so a refusal is shown as the server words it.
+     */
+    async function setInvolved(action) {
+        const id = ctxTaskId;
+        closeCtx();
+        const me = cfg.currentAnalystId ? parseInt(cfg.currentAnalystId, 10) : 0;
+        if (!id || !me) return;
+        try {
+            const data = await fetch(cfg.apiBase + 'collaborators.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task_id: id, analyst_id: me, action })
+            }).then(r => r.json());
+            if (data.success) {
+                if (typeof showToast === 'function') {
+                    showToast(window.t(action === 'add' ? 'tasks.context.involved_now' : 'tasks.context.no_longer_involved'), 'success');
+                }
+                if (cfg.onUpdate) cfg.onUpdate();
+            } else if (typeof showToast === 'function') {
+                showToast(data.error || window.t('tasks.toast.update_failed'), 'error');
+            }
+        } catch (e) {
+            if (typeof showToast === 'function') showToast(window.t('tasks.toast.update_failed'), 'error');
         }
     }
 
