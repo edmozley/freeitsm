@@ -7,6 +7,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/knowledge/visibility.php';
+require_once '../../includes/knowledge/article_preview.php';
 
 header('Content-Type: application/json');
 
@@ -39,7 +40,7 @@ try {
     $sql = "SELECT DISTINCT a.id, a.title, a.created_datetime, a.modified_datetime, a.view_count,
                    a.tenant_id, a.audience, a.is_published,
                    a.folder_id, a.inherit_permissions, a.is_restricted,
-                   LEFT(a.body, 300) as preview,
+                   LEFT(a.body, 300) as preview, CHAR_LENGTH(a.body) > 300 AS preview_cut,
                    COALESCE(an.full_name, '(deleted analyst)') as author_name
             FROM knowledge_articles a
             LEFT JOIN analysts an ON an.id = a.author_id
@@ -104,8 +105,9 @@ try {
         $tagStmt->execute([$article['id']]);
         $article['tags'] = $tagStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Strip markup and decode entities; the client escapes the plain text on render.
-        $article['preview'] = html_entity_decode(strip_tags((string) $article['preview']), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Plain text, entities decoded (PR #255); knowledge.js escapes it on render.
+        $article['preview'] = knowledgeArticlePreview($article['preview'], 300, (bool) $article['preview_cut']);
+        unset($article['preview_cut']);
     }
 
     echo json_encode([

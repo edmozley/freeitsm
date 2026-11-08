@@ -448,11 +448,10 @@ function recordPreviewKnowledgeArticle(PDO $conn, int $analystId, int $id): ?arr
 
     // The opening lines, as plain text. Tags are stripped rather than rendered:
     // a preview is a glance, and an article's own markup would fight the panel's.
-    $plain = trim(preg_replace('/\s+/', ' ', strip_tags((string)$r['body'])));
-    $lead  = mb_substr($plain, 0, 240);
-    if (mb_strlen($plain) > 240) {
-        $lead = rtrim($lead) . '…';
-    }
+    // The shared helper (PR #255): entities decoded, words kept apart across
+    // tags, cut on a whole word. record-preview.js escapes it.
+    require_once __DIR__ . '/knowledge/article_preview.php';
+    $lead = knowledgeArticlePreview((string)$r['body'], 240);
 
     return [
         'heading' => $r['title'],

@@ -105,8 +105,9 @@ function apiSerializeArticle(PDO $conn, array $r, bool $detail = false): array {
         $out['body_html'] = $r['body'];
         $out['has_embedding'] = $r['embedding'] !== null && $r['embedding'] !== '';
     } else {
-        $preview = trim(preg_replace('/\s+/', ' ', strip_tags((string)$r['body'])));
-        $out['preview'] = mb_substr($preview, 0, 300);
+        // Plain text with entities decoded, the same helper as the app (PR #255).
+        require_once __DIR__ . '/../../../includes/knowledge/article_preview.php';
+        $out['preview'] = knowledgeArticlePreview((string)$r['body'], 300);
     }
     if ((bool)$r['is_archived']) {
         $out['archived_at'] = apiIsoDate($r['archived_datetime']);
