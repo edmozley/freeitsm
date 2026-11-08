@@ -2738,11 +2738,36 @@ function cancelEdit() {
     }
 }
 
-// Back to list
-// (backToList removed — the "Back to list" button now navigates to ./
-// directly so the URL reflects the list page and the article state is
-// fully reset by the page reload. Other call sites still use
-// showView('list') after save / archive flows.)
+/**
+ * Back to list - shows the list that is already in the page behind the article.
+ *
+ * It used to be a plain link to ./ (May 2026), so the address bar would stop
+ * naming the article. That reloaded the whole module on every press - the page,
+ * ~25 scripts including TinyMCE, then folders, articles and tags - which is the
+ * "couple of seconds" the folder list and tag filters took to come back, and it
+ * dropped your folder, search and tag filters too. syncArticleUrl() keeps the
+ * address bar right now, so the reload bought nothing.
+ *
+ * TRAP: it is still an <a href="./">, so Ctrl/Cmd/Shift-click opens the list in
+ * a new tab (middle-click never fires click). Only a plain click stays in-page.
+ *
+ * TRAP: refetch only when the list behind is not the list. An article opened
+ * from the recycle bin leaves the BIN's rows behind it (showView() switches the
+ * bin off and flags it), and a link that opened before the first list arrived
+ * leaves nothing.
+ */
+let kbListNeedsReload = false;
+function kbBackToList(e) {
+    if (e && (e.ctrlKey || e.metaKey || e.shiftKey)) return true;
+    if (e) e.preventDefault();
+    currentArticle = null;
+    showView('list');
+    if (kbListNeedsReload || !kbArticlesLoaded) {
+        kbListNeedsReload = false;
+        loadArticles(document.getElementById('articleSearch').value, activeTagFilters);
+    }
+    return false;
+}
 
 /**
  * Keep the address bar on the article you are actually looking at.
@@ -2824,6 +2849,7 @@ function showView(view) {
     // Reset recycle bin state when navigating away from list
     if (view !== 'list' && isRecycleBinView) {
         isRecycleBinView = false;
+        kbListNeedsReload = true;   // the list behind is the bin's rows - see kbBackToList()
         const toggle = document.getElementById('recycleBinToggle');
         const header = document.getElementById('articleListHeader');
         if (toggle) toggle.classList.remove('active');
