@@ -203,7 +203,7 @@ try {
                         $dq = $conn->prepare('SELECT company_warning_dismissed_tenant_id FROM tickets WHERE id = ?');
                         $dq->execute([(int)$email['ticket_id']]);
                         if ((int)$dq->fetchColumn() === (int)$suggested) $sug = null;
-                    } catch (Throwable) { /* before Database Verification: never dismissed */ }
+                    } catch (Throwable $e) { /* before Database Verification: never dismissed */ }
                 }
                 if ($sug) {
                     $email['company_warning'] = [

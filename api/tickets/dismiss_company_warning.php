@@ -43,7 +43,7 @@ try {
 
     try {
         $conn->query('SELECT company_warning_dismissed_tenant_id FROM tickets LIMIT 0');
-    } catch (Throwable) {
+    } catch (Throwable $e) {
         // Before Database Verification: nowhere to remember it. The banner still
         // goes from the screen; say why it will come back.
         echo json_encode(['success' => false, 'error' => 'not_ready']);
