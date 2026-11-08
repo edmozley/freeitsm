@@ -1293,12 +1293,55 @@ function peopleOrgNodes(PDO $conn, int $analystId, string $where, array $whereAr
         $company = [$multi, $multi ? (getTenantById($conn, getDefaultTenantId($conn))['name'] ?? null) : null];
     }
     [$multi, $defaultName] = $company;
+    $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+    // Everybody under each of them, not only their own team - asked once for the
+    // whole list, and only of the ones with a team.
+    $totals = peopleOrgTotals($conn, $analystId, array_map('intval', array_column(array_filter($rows, fn($r) => (int)$r['reports'] > 0), 'id')), $leavers);
     return array_map(fn($r) => [
         'id' => (int)$r['id'], 'name' => peopleName($r),
         'job_title' => $r['job_title'], 'department' => $r['department'],
         'company' => $multi ? ($r['company_name'] ?? $defaultName) : null,
         'is_active' => (int)$r['is_active'] === 1, 'reports' => (int)$r['reports'],
-    ], $st->fetchAll(PDO::FETCH_ASSOC));
+        'total' => max((int)$r['reports'], $totals[(int)$r['id']] ?? 0),
+    ], $rows);
+}
+
+/**
+ * How many people are under each of $ids, at every level - not only their own team.
+ *
+ * By the same rules as the chart: only people in companies the reader can access,
+ * so the line stops at somebody out of reach, as the tree does; and leavers only
+ * as peopleOrgShownSql() shows them. A recursive query (MySQL 8), bounded by
+ * PEOPLE_ORG_MAX_DEPTH and counting each person once, so a loop in bad data
+ * neither runs away nor counts anybody twice.
+ *
+ * @param int[] $ids  users.id of the people to count under
+ * @param bool $leavers  true to count leavers too
+ * @return array<int,int>  id => how many people are under them; absent means none
+ */
+function peopleOrgTotals(PDO $conn, int $analystId, array $ids, bool $leavers): array
+{
+    $ids = array_values(array_unique(array_filter($ids, fn($i) => $i > 0)));
+    if (!$ids) return [];
+    [$scopeR, $argsR] = peopleScope($conn, $analystId, 'r.tenant_id');
+    [$showR, $argsSR] = peopleOrgShownSql($conn, $analystId, 'r', $leavers);
+    [$scopeC, $argsC] = peopleScope($conn, $analystId, 'c.tenant_id');
+    [$showC, $argsSC] = peopleOrgShownSql($conn, $analystId, 'c', $leavers);
+    $marks = implode(',', array_fill(0, count($ids), '?'));
+    $st = $conn->prepare(
+        "WITH RECURSIVE under_them (root, id, depth) AS (
+             SELECT r.manager_id, r.id, 1 FROM users r
+              WHERE r.manager_id IN ($marks) AND r.id <> r.manager_id $scopeR $showR
+             UNION ALL
+             SELECT s.root, c.id, s.depth + 1 FROM under_them s JOIN users c ON c.manager_id = s.id
+              WHERE c.id <> c.manager_id AND s.depth < " . (int)PEOPLE_ORG_MAX_DEPTH . " $scopeC $showC
+         )
+         SELECT root, COUNT(DISTINCT id) AS total FROM under_them WHERE id <> root GROUP BY root"
+    );
+    $st->execute(array_merge($ids, $argsR, $argsSR, $argsC, $argsSC));
+    $out = [];
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[(int)$r['root']] = (int)$r['total'];
+    return $out;
 }
 
 /**

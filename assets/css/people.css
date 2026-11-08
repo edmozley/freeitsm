@@ -566,3 +566,27 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
     .ppl-org-col:not(:last-child) { display: none; }
     .ppl-org-detail { width: auto; border-left: none; border-top: 1px solid var(--border, #eee); }
 }
+
+/* Mouse and keyboard (people/org.php): a button at the foot of the sidebar, and the dialog. */
+/* The sidebar as a column, so the button sits at its foot however little is above it. */
+.ppl-org-side { display: flex; flex-direction: column; }
+.ppl-org-side > * { flex-shrink: 0; }
+/* Centred with text-align, not display: a display here would beat its hidden attribute in the tree. */
+.ppl-org-side-foot { margin-top: auto; padding-top: 14px; text-align: center; }
+.ppl-org-keys-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font: inherit; font-size: 12.5px;
+    color: var(--ppl-accent); background: none; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer; }
+.ppl-org-keys-btn:hover { background: var(--ppl-accent-soft); }
+/* margin: auto is what centres a modal dialog; a global reset takes it away. */
+.ppl-org-keys { margin: auto; width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow-y: auto; padding: 18px 20px; border: 1px solid var(--border, #ddd); border-radius: 10px;
+    background: var(--surface, #fff); color: var(--text, #333); box-shadow: 0 16px 40px rgba(0,0,0,.2); }
+.ppl-org-keys::backdrop { background: rgba(0,0,0,.35); }
+.ppl-org-keys-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.ppl-org-keys-head h3 { margin: 0; font-size: 16px; }
+.ppl-org-keys-close { font-size: 22px; line-height: 1; padding: 2px 8px; background: none; border: none; color: var(--text-dim, #888); cursor: pointer; }
+.ppl-org-keys h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); }
+.ppl-org-keys table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ppl-org-keys td { padding: 5px 0; vertical-align: top; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+.ppl-org-keys tr:last-child td { border-bottom: none; }
+.ppl-org-keys-k { width: 48%; white-space: nowrap; color: var(--text-dim, #888); }
+.ppl-org-keys kbd { display: inline-block; min-width: 18px; padding: 1px 6px; font: inherit; font-size: 12px; text-align: center; color: var(--text, #333);
+    background: var(--surface-hover, #f6f6f6); border: 1px solid var(--border, #ccc); border-bottom-width: 2px; border-radius: 4px; }

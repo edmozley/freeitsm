@@ -410,7 +410,7 @@ function pplHead(string $title, array $namespaces = ['common', 'people'], array 
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/people.css?v=28">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/people.css?v=32">
     <?php foreach ($extraCss as $css): ?><link rel="stylesheet" href="<?php echo BASE_URL . pplE($css); ?>">
     <?php endforeach; ?>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">

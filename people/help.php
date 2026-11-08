@@ -24,6 +24,9 @@ $multi = isMultiTenant(connectToDatabase());
 
 // id => number of plain paragraphs (help.<id>.p1 … pN). Sections with cards,
 // steps or definitions draw those as well, below.
+// A paragraph rewritten after it was translated gets a new key, because the
+// English of a key never changes; read that one in its place.
+$rewritten = ['org.p2' => 'org.p2_v2'];   // the wheel scrolls the chart, Ctrl and the wheel zooms
 $sections = [
     'overview'  => 1,
     'people'    => 4,
@@ -93,7 +96,7 @@ $pplHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
 
                     <?php /* person.p3 follows its list of sections, below */ ?>
                     <?php for ($i = 1; $i <= ($id === 'person' ? 2 : $paras); $i++): ?>
-                    <p><?php echo $para($id . '.p' . $i); ?></p>
+                    <p><?php echo $para($rewritten[$id . '.p' . $i] ?? $id . '.p' . $i); ?></p>
                     <?php endfor; ?>
 
                     <?php if ($id === 'overview'): ?>
