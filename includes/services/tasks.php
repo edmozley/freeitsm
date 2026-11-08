@@ -465,7 +465,30 @@ class TasksService
     }
 
     /**
-     * Kanban move: change status (+ completed mechanics) and re-pack the target column. No workflow event. Returns the id.
+     * Announce a status change made OUTSIDE saveTask() - the board drag (api/tasks/reorder.php)
+     * and the REST move (moveTask()) - exactly as saveTask() announces its own: task.status_changed,
+     * task.completed when it went from open to closed, then the calendar (GH #266).
+     *
+     * TRAP: they used to announce nothing. WorkflowEngine::dispatch() is what sends the bell
+     * notifications, the emails and the workflows, so a task finished by DRAGGING told nobody,
+     * while the same task finished from its menu told everybody involved.
+     *
+     * Call after the commit, never inside the transaction (the calendar makes a network call).
+     * A reorder within one column changes no status and announces nothing.
+     *
+     * @param int $oldStatusId  the status before the move, from TaskHistory::before()
+     * @param bool $completing  open -> closed, so task.completed fires too
+     */
+    public static function announceStatusMove(PDO $conn, int $taskId, int $oldStatusId, int $newStatusId, bool $completing): void
+    {
+        if ($oldStatusId === $newStatusId) return;
+        if ($completing) self::completedDispatch($conn, $taskId);
+        self::taskEventDispatch($conn, 'task.status_changed', $taskId);
+        self::calendarOnTaskChanged($conn, $taskId);
+    }
+
+    /**
+     * Kanban move: change status (+ completed mechanics) and re-pack the target column, announced like a save (#266). Returns the id.
      *
      * @param array $in  status_id or status (a name; neither keeps the current status), position (0-based place in the
      *     column; null or '' puts it at the end)
@@ -526,17 +549,20 @@ class TasksService
             throw $e;
         }
 
-        // Recurrence fires from HERE TOO (#94). Dragging a card into a closed
-        // column is the commonest way a task gets completed, and this method
-        // deliberately dispatches no workflow event — so hooking only saveTask
-        // would give a task that repeats when you tick it and silently does not
-        // when you drag it. Outside the transaction: the move is committed and
-        // must stand whatever the recurrence does.
+        // Recurrence fires from HERE TOO (#94): hooking only saveTask would give a
+        // task that repeats when you tick it and silently does not when you move it.
+        // Outside the transaction: the move is committed and must stand whatever
+        // the recurrence does.
         // #181: the successor, after the commit - its expectation is already recorded.
         TaskHistory::afterCommit($conn, $ctx, $statusResult);
-        // Completing by DRAGGING must take the calendar entry away too, exactly
-        // as ticking the box does. Same reason recurrence fires from here.
-        self::calendarOnTaskChanged($conn, $taskId);
+        // #266: announced like a save - notifications, workflows, the calendar.
+        // It used to fire no event at all ("a parity quirk"), so a task moved to
+        // Done told nobody. A move within one column still announces nothing.
+        self::announceStatusMove($conn, $taskId, (int)($before['status_id'] ?? 0), $targetStatusId, $completing);
+        if ((int)($before['status_id'] ?? 0) === $targetStatusId) {
+            // Same column: no announcement, but the calendar still reflects the task.
+            self::calendarOnTaskChanged($conn, $taskId);
+        }
         return $taskId;
     }
 

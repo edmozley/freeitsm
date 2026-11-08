@@ -9,6 +9,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/services/checklists.php';   // completion gate (discussion #138)
 require_once '../../includes/services/task_history.php'; // THE status hook (#181)
+require_once '../../includes/services/tasks.php';        // announceStatusMove() - notifications + workflows (#266)
 
 header('Content-Type: application/json');
 
@@ -107,6 +108,11 @@ try {
     $conn->commit();
     // After the commit: a repeat's next occurrence, its expectation already recorded.
     TaskHistory::afterCommit($conn, $ctx, $statusResult);
+    // GH #266: announce the move like a save - the bell notifications, emails and
+    // workflows all hang off the workflow dispatch, which this endpoint never made,
+    // so a task dragged to Done told nobody. A reorder within one column changes no
+    // status and announces nothing. After the commit: the calendar makes a network call.
+    TasksService::announceStatusMove($conn, $taskId, (int)($before['status_id'] ?? 0), $newStatusId, $completing);
     echo json_encode(['success' => true, 'message' => 'Task reordered']);
 
 } catch (Throwable $e) {
