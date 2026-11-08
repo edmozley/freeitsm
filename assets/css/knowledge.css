@@ -500,6 +500,44 @@
 }
 /* Its three link fields wrap in a 340px column instead of overflowing it. */
 .knowledge-container.editor-popout .editor-documents { flex-shrink: 0; }
+
+/* ONE level of box in the pop-out, not three (Ed, 2026-11-08). The pop-out
+   exists to give the editor every pixel, and it had a card (30px padding)
+   holding a bordered properties panel holding bordered Domains and Projects
+   cards. Now: no outer card, and the side column is plain sections divided
+   from the editor by one line - which is kept on purpose, because without it
+   Title and Tags read as part of the article, worst in dark mode where every
+   surface is the same shade. The normal edit screen keeps its single card. */
+.knowledge-container.editor-popout .editor-form {
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+}
+.knowledge-container.editor-popout .kb-editor-side {
+    width: 360px;
+    gap: 24px;
+    padding-left: 20px;
+    border-left: 1px solid var(--border, #e0e0e0);
+}
+.knowledge-container.editor-popout .editor-properties {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+}
+.knowledge-container.editor-popout .editor-documents .dl-card,
+.knowledge-container.editor-popout .editor-documents .pl-card {
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+.knowledge-container.editor-popout .editor-documents .dl-head { padding: 0 0 8px; border-bottom: none; }
+.knowledge-container.editor-popout .editor-documents .dl-body { padding: 0; }
+.knowledge-container.editor-popout .editor-documents .pl-head { padding: 0; }
+.knowledge-container.editor-popout .editor-documents .pl-body { padding: 8px 0 0; }
 /* Inside the property panel, stack the two-column rows vertically so
    each field gets the full panel width. */
 .knowledge-container.editor-popout .editor-properties .form-row {
