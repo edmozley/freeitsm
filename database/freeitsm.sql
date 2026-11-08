@@ -1983,6 +1983,11 @@ CREATE TABLE IF NOT EXISTS `emails` (
     `channel_id`            INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
+    -- GH #280: every imported message is checked for a duplicate by its Message-ID, and every
+    -- conversation is read by ticket - neither had an index, so both scanned the whole table
+    -- and got slower as ticket history grew.
+    KEY `idx_emails_exchange_message_id` (`exchange_message_id`),
+    KEY `idx_emails_ticket` (`ticket_id`),
     CONSTRAINT `fk_emails_analysts` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`),
     CONSTRAINT `fk_emails_departments` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`),
     CONSTRAINT `fk_emails_ticket_types` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_types` (`id`),
