@@ -377,6 +377,18 @@ return [
         'check'    => $action('set_ticket_status'),
     ],
     [
+        'id'       => 'workflow.action_set_field',
+        'module'   => 'workflow',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'Fill a custom field automatically',
+        'what'     => 'A workflow action that sets one of a ticket\'s custom fields, from text with {{merge codes}} - so one field can be worked out from others or from an earlier step.',
+        'why'      => 'Values you would otherwise type by hand - a reference built from the ticket number, a site from the requester\'s company - fill themselves, the same way every time.',
+        'done'     => 'At least one active workflow sets a custom ticket field.',
+        'link'     => 'workflow/',
+        'check'    => $action('set_ticket_field'),
+    ],
+    [
         'id'       => 'workflow.action_set_priority',
         'module'   => 'workflow',
         'tier'     => 'extra',

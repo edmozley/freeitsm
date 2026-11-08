@@ -1541,6 +1541,19 @@ class WorkflowEngine
                     'ticket_type_id' => ['type' => 'lookup', 'label' => 'Ticket type', 'lookup' => 'ticket_type', 'required' => true],
                 ],
             ],
+            // GH #278. The custom fields (Tickets -> Settings -> Custom fields) - the
+            // built-in ones already have an action each. The value takes {{merge codes}},
+            // so a field can be worked out from others; it is checked by the field's type
+            // exactly as on screen and through the API (TicketFieldsService::validate()).
+            'set_ticket_field' => [
+                'label'       => 'Set a ticket field',
+                'description' => 'Set one of the ticket\'s custom fields. The value can use {{merge codes}}, so a field can be filled from other fields or from an earlier step; it is checked by the field\'s type, as on screen. Leave the value empty to clear the field. The field must be one this ticket has - for its company and type - or the step fails and says so.',
+                'args'        => [
+                    'ticket_id' => $ticketIdArg,
+                    'field_key' => ['type' => 'lookup', 'label' => 'Field', 'lookup' => 'ticket_custom_field', 'required' => true],
+                    'value'     => ['type' => 'text', 'label' => 'Value', 'supports_vars' => true],
+                ],
+            ],
             'add_ticket_note' => [
                 'label'       => 'Add a note to the ticket',
                 'description' => 'Append a free-text note to the ticket\'s audit trail (visible to analysts; never sent to the requester).',
@@ -1750,6 +1763,7 @@ class WorkflowEngine
      */
     public static function availableActionLookup(string $key): ?array
     {
+        if ($key === 'ticket_custom_field') return self::ticketCustomFieldLookup();   // GH #278
         if (!isset(self::ACTION_ARG_LOOKUPS[$key])) return null;
         return self::availableValuesForField(self::ACTION_ARG_LOOKUPS[$key]);
     }
@@ -2278,6 +2292,7 @@ class WorkflowEngine
             case 'assign_ticket_team':    return self::action_ticket_field($args, $payload, 'team_id', 'assigned_team_id', 'team');
             case 'set_ticket_department': return self::action_ticket_field($args, $payload, 'department_id', 'department_id', 'department');
             case 'set_ticket_category':   return self::action_ticket_field($args, $payload, 'category_id', 'category_id', 'category');
+            case 'set_ticket_field':      return self::action_set_ticket_field($args, $payload);
             case 'set_ticket_type':       return self::action_ticket_field($args, $payload, 'ticket_type_id', 'ticket_type_id', 'type');
             default:
                 throw new Exception("Unknown action type: {$type}");
@@ -2762,6 +2777,62 @@ class WorkflowEngine
             throw new Exception($e->getMessage());
         }
         return ['ticket_id' => $ticketId, $arg => $valueId, $what . '_name' => $name];
+    }
+
+    /**
+     * set_ticket_field (GH #278): sets one custom ticket field, through TicketsService::updateTicket() -
+     * the save the reading pane and the REST API use - so the value is checked by the field's type, the
+     * field must be one this ticket has (its company and type), and a change is recorded in the ticket's
+     * history with no analyst against it. An empty value clears the field.
+     *
+     * No loop to fear: a custom-field-only change fires no workflow event, so a workflow cannot
+     * trigger itself through this action.
+     *
+     * @param array $args  ticket_id, field_key (the field's stable key), value ({{merge codes}} allowed)
+     * @param array $payload  the run's payload, for the {{merge codes}}
+     * @writes ticket_field_values, ticket_audit - through TicketFieldsService::write()
+     */
+    private static function action_set_ticket_field(array $args, array $payload): array
+    {
+        $ticketId = self::argInt($args, 'ticket_id', $payload);
+        $key      = trim((string)($args['field_key'] ?? ''));
+        $value    = self::argString($args, 'value', $payload);
+        if (!$ticketId) throw new Exception('ticket_id is required');
+        if ($key === '') throw new Exception('field_key is required');
+        $conn = connectToDatabase();
+        self::assertRecordInRunCompany($conn, 'tickets', $ticketId, 'ticket');
+
+        require_once dirname(__DIR__, 2) . '/includes/service_context.php';
+        require_once dirname(__DIR__, 2) . '/includes/services/tickets.php';
+        $scope = self::companyGuardOn($conn) ? [self::$ctxWorkflowTenant] : null;
+        $ctx = new ActorContext(0, $scope, 'workflow', 'en', 'Workflow');
+        try {
+            TicketsService::updateTicket($conn, $ctx, $ticketId, ['custom_fields' => [$key => $value]], true);
+        } catch (ServiceError $e) {
+            throw new Exception($e->getMessage());   // the service's own reason - the useful message
+        }
+        return ['ticket_id' => $ticketId, 'field_key' => $key, 'value' => $value];
+    }
+
+    /**
+     * The custom ticket fields for the Set a ticket field picker: [{id: field_key, label}]. A field
+     * that belongs to one company says which, because two companies may use the same key.
+     */
+    private static function ticketCustomFieldLookup(): array
+    {
+        try {
+            $conn = connectToDatabase();
+            $rows = $conn->query("SELECT f.field_key, f.label, t.name AS company FROM ticket_fields f
+                                    LEFT JOIN tenants t ON t.id = f.tenant_id
+                                   WHERE f.is_deleted = 0 ORDER BY f.display_order, f.label")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable) {
+            return [];   // before Database Verify has made the table
+        }
+        $out = [];
+        foreach ($rows as $r) {
+            $out[] = ['id' => (string)$r['field_key'], 'label' => $r['label'] . ($r['company'] !== null ? ' (' . $r['company'] . ')' : '')];
+        }
+        return $out;
     }
 
     /**
