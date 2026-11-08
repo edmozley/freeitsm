@@ -590,7 +590,11 @@
 /* Make TinyMCE fill the available editor-content height. The default
    iframe sizing is fixed via init config (~400px); in popout we want it
    to fill whatever height the flex column gives it. */
-.knowledge-container.editor-popout .editor-content .tox-tinymce {
+/* TRAP: :not(.tox-fullscreen). Full screen (TinyMCE's own button, and the
+   footer's Full screen, which calls the same command) works by giving the
+   editor an INLINE height; `height: auto !important` beat it and the editor
+   collapsed to its toolbar with the page showing through (Ed, 2026-11-08). */
+.knowledge-container.editor-popout .editor-content .tox-tinymce:not(.tox-fullscreen) {
     flex: 1;
     height: auto !important;
     min-height: 0;
