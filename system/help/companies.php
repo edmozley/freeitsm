@@ -104,4 +104,33 @@ require __DIR__ . '/_top.php';
     <p>The panel also surfaces warnings worth acting on — for instance a company with domains but no shared inbox to match them on, or an inbox that isn't authenticated. The <strong>Default</strong> company additionally catches anything no other company claims, so nothing is ever dropped.</p>
     <div class="help-note ok"><strong>If the summary shows no route,</strong> the company won't receive any mail yet: add an email domain or a specific sender, or pin it an inbox, and the panel will fill in.</div>
 </div>
+
+<!-- 6. One company supporting another (GH #228) -->
+<div class="help-section" id="support">
+    <div class="help-section-header"><?php echo helpSectionNum('support'); ?>
+        <div>
+            <h3>One company supporting another</h3>
+            <p>Sometimes one company gives IT support to another - Support Co looks after Acme's people, say. Each person still belongs to <strong>one</strong> company in FreeITSM. There are two ways to set this up; pick the one that matches how you work.</p>
+        </div>
+    </div>
+    <div class="help-cards">
+        <div class="help-card">
+            <h4>1. Support Co's analysts work inside Acme</h4>
+            <p>Give Support Co's analysts access to the Acme company (<a href="analysts.php">Analysts</a> or <a href="teams.php">Teams</a> &rarr; company access). Acme's tickets stay in Acme, and Support Co's analysts see and work them there. Nothing to set on this page. Best when Support Co simply <em>is</em> Acme's service desk.</p>
+        </div>
+        <div class="help-card">
+            <h4>2. Acme's people send tickets to Support Co</h4>
+            <p>Edit <strong>Support Co</strong> and use <strong>Supports other companies</strong>. Best when Acme has its own IT as well, and only some requests go to Support Co - so Acme's own tickets and the ones sent to Support Co stay apart.</p>
+        </div>
+    </div>
+    <h4>The two ticks</h4>
+    <p>Set on the company giving the support, one row per company it supports. Each tick saves as soon as you click it. Both are off until you tick them, so nothing changes until you do.</p>
+    <div class="help-table"><table>
+        <tr><th>Tick</th><th>What it does</th></tr>
+        <tr><td><strong>Don't warn</strong></td><td>When somebody from Acme emails Support Co, the ticket is filed under Support Co - correctly - but the reading pane would say <em>"Filed under Support Co, but the requester looks like Acme"</em>. With this ticked, that is expected, so the warning is not shown. Only that way round: an Acme ticket from a Support Co person still warns.</td></tr>
+        <tr><td><strong>Portal</strong></td><td>Acme's people get a <strong>Raise with</strong> choice on the portal's New ticket page: Acme (their own, chosen to begin with) or Support Co. Choosing Support Co files the ticket under Support Co, with Support Co's mailboxes, categories, ticket types and questions. Their Knowledge, catalogue and everything else on their portal stay Acme's. Acme managers see those tickets in <strong>Team tickets</strong> too.</td></tr>
+    </table></div>
+    <div class="help-note"><strong>Dismiss is remembered.</strong> Pressing <strong>Dismiss</strong> on a wrong-company warning hides it on that ticket for good - unless it would later suggest a different company. To stop the warning for every ticket from a company you support, use <strong>Don't warn</strong> instead.</div>
+    <div class="help-note warn"><strong>Why not let a person belong to two companies?</strong> Almost everything on the portal follows a person's company - which Knowledge articles they read, the catalogue, the mailboxes, who their manager can see. A person in two companies would need a second answer to every one of those, and different organisations would want different answers. A link between companies keeps all of that exactly as it is, and only changes where a ticket goes.</div>
+</div>
 <?php require __DIR__ . '/_bottom.php'; ?>

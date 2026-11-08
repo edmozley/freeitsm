@@ -193,6 +193,18 @@ try {
             $suggested = resolveTenantIdForAddress($conn, $reqEmail);
             if ($suggested !== null && (int)$suggested !== (int)$effectiveTenant) {
                 $sug = getTenantById($conn, (int)$suggested);
+                // GH #228: expected, not wrong - the ticket's company supports
+                // the requester's with "Don't warn" ticked (System -> Companies).
+                require_once '../../includes/tenant_support.php';
+                if ($sug && tenantSupportQuietWarning($conn, (int)$effectiveTenant, (int)$suggested)) $sug = null;
+                // ...or an analyst already pressed Dismiss on this suggestion.
+                if ($sug) {
+                    try {
+                        $dq = $conn->prepare('SELECT company_warning_dismissed_tenant_id FROM tickets WHERE id = ?');
+                        $dq->execute([(int)$email['ticket_id']]);
+                        if ((int)$dq->fetchColumn() === (int)$suggested) $sug = null;
+                    } catch (Throwable) { /* before Database Verification: never dismissed */ }
+                }
                 if ($sug) {
                     $email['company_warning'] = [
                         'suggested_id'   => (int)$suggested,

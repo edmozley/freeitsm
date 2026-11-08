@@ -1110,6 +1110,26 @@ async function loadMoveCompanies() {
     }
 }
 
+// Dismiss the wrong-company banner, and remember it on the ticket so it does
+// not come back for the same suggestion (GH #228). The banner goes at once; a
+// failure to remember only means it returns next time, so it is said, not fatal.
+async function dismissCompanyWarning(btn, suggestedId) {
+    const banner = btn.closest('.wrong-company-banner');
+    if (banner) banner.remove();
+    if (!currentEmail) return;
+    try {
+        const res = await fetch(API_BASE + 'dismiss_company_warning.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: currentEmail.ticket_id, suggested_id: suggestedId })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error === 'not_ready' ? t('tickets.reading_pane.wrong_company_dismiss_not_ready') : (data.error || ''), 'error');
+        }
+    } catch (e) { /* the banner is gone for now; it returns on the next open */ }
+}
+
 // Move the current ticket to another company. targetId optional (used by the
 // wrong-company banner's quick-move); otherwise read from the Company dropdown.
 async function moveTicketCompany(targetId) {
@@ -3157,12 +3177,19 @@ function displayEmail(email, recordings) {
             </div>`;
         if (email.company_warning) {
             const w = email.company_warning;
+            // GH #228: translated (it was English-only), and Dismiss is remembered
+            // on the ticket - see dismissCompanyWarning().
+            const wcText = t('tickets.reading_pane.wrong_company_text', {
+                filed: '<strong>' + escapeHtml(email.company_name || '') + '</strong>',
+                requester: escapeHtml(w.requester),
+                suggested: '<strong>' + escapeHtml(w.suggested_name) + '</strong>'
+            });
             companyWarningBanner = `
                 <div class="wrong-company-banner">
-                    <span class="wrong-company-text">⚠ Filed under <strong>${escapeHtml(email.company_name || '')}</strong>, but the requester (${escapeHtml(w.requester)}) looks like <strong>${escapeHtml(w.suggested_name)}</strong>.</span>
+                    <span class="wrong-company-text">⚠ ${wcText}</span>
                     <span class="wrong-company-actions">
-                        <button class="action-btn action-btn-primary" onclick="moveTicketCompany(${w.suggested_id})">Move to ${escapeHtml(w.suggested_name)}</button>
-                        <button class="action-btn" onclick="this.closest('.wrong-company-banner').remove()">Dismiss</button>
+                        <button class="action-btn action-btn-primary" onclick="moveTicketCompany(${w.suggested_id})">${escapeHtml(t('tickets.reading_pane.wrong_company_move', { name: w.suggested_name }))}</button>
+                        <button class="action-btn" onclick="dismissCompanyWarning(this, ${w.suggested_id})">${escapeHtml(t('tickets.reading_pane.wrong_company_dismiss'))}</button>
                     </span>
                 </div>`;
         }

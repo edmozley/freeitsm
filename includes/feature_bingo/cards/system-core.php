@@ -655,6 +655,19 @@ return [
         'check'    => ['rows', 'freemail_domains'],
     ],
     [
+        // GH #228.
+        'id'       => 'system.company_supports',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'One company supporting another',
+        'what'     => 'A company says which other companies it gives IT support to - with no warning when their people\'s tickets land here, and a Raise with choice on their portal.',
+        'why'      => 'When one company looks after another\'s IT, their people can send requests to the right desk without belonging to two companies, and nobody is told the ticket is in the wrong place.',
+        'done'     => 'A company supports at least one other company (either tick).',
+        'link'     => 'system/companies/',
+        'check'    => ['rows', 'tenant_support_links'],
+    ],
+    [
         'id'       => 'system.company_ticket_codes',
         'module'   => 'system',
         'tier'     => 'extra',

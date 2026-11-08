@@ -217,6 +217,8 @@ return [
         'confidential_hint' => 'Aktivieren Sie dies, wenn Ihr Ticket persönlich ist – zum Beispiel zu Ihrer Gesundheit oder eine Beschwerde. Vertrauliche Tickets werden vor Vorgesetzten verborgen. Der Service Desk sieht sie weiterhin.',
         'heading' => 'Neues Ticket',
         'mailbox' => 'Postfach *',
+        'raise_with' => 'Einreichen bei',
+        'raise_with_hint' => 'Das Unternehmen, das diese Anfrage bearbeitet.',
         'mailbox_loading' => 'Wird geladen...',
         'mailbox_none' => 'Keine Postfächer verfügbar',
         'mailbox_failed' => 'Postfächer konnten nicht geladen werden',

@@ -39,6 +39,8 @@ $mailboxId = !empty($input['mailbox_id']) ? (int)$input['mailbox_id'] : null;
 $wantsConfidential = !empty($input['confidential']);
 $inputAttachments = $input['attachments'] ?? [];
 $recordingIds = array_values(array_filter(array_map('intval', $input['recording_ids'] ?? [])));
+// GH #228: the "Raise with" company. Re-checked below - honoured only if offered.
+$wantedTenant = !empty($input['tenant_id']) ? (int)$input['tenant_id'] : null;
 
 if (empty($subject)) {
     echo json_encode(['success' => false, 'error' => 'Subject is required']);
@@ -92,9 +94,10 @@ try {
     // with no company on file falls to NULL = triage, exactly as an email from an
     // unrecognised domain does; a single-company install always gets Default so
     // portal tickets aren't shaped differently from every other intake path.
-    $ticketTenantId = $user['tenant_id'] !== null
-        ? (int) $user['tenant_id']
-        : (isMultiTenant($conn) ? null : getDefaultTenantId($conn));
+    // GH #228: or a company that supports theirs from the portal, if they chose
+    // one under "Raise with" - selfServiceTicketTenant() re-checks it, and an id
+    // they were not offered falls back to their own company.
+    $ticketTenantId = selfServiceTicketTenant($conn, $userId, $wantedTenant);
 
     // The mailbox (GH #172). ⚠️ RE-CHECKED HERE, like the category below: the
     // dropdown only offers this user's company's mailboxes and shared ones, but
@@ -103,7 +106,7 @@ try {
     // is dropped, so the ticket is still raised and an analyst picks a mailbox.
     if ($mailboxId !== null) {
         require_once '../../includes/self_service_mailboxes.php';
-        if (!isset(selfServiceMailboxes($conn, $userId)[$mailboxId])) {
+        if (!isset(selfServiceMailboxes($conn, $userId, $wantedTenant)[$mailboxId])) {
             $mailboxId = null;
         }
     }

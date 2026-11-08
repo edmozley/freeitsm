@@ -43,6 +43,12 @@ try {
     $st->execute([$userId]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
     $tenantId = ($row && $row['tenant_id'] !== null) ? (int) $row['tenant_id'] : null;
+    // GH #228: the "Raise with" company - only when it is one this requester
+    // was offered (selfServiceTicketTenant() returns their own otherwise).
+    if ($tenantId !== null && !empty($_GET['tenant_id'])) {
+        require_once '../../includes/self_service_ticket_types.php';
+        $tenantId = selfServiceTicketTenant($conn, $userId, (int)$_GET['tenant_id']);
+    }
 
     $enabled = ticketCategoryOn($conn, $tenantId);
 

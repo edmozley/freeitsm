@@ -264,6 +264,10 @@ return [
         'confidential_hint'  => 'Turn this on if your ticket is personal - about your health, say, or a complaint. Confidential tickets are kept from managers. The service desk still sees them.',
         'heading'            => 'New Ticket',
         'mailbox'            => 'Mailbox *',
+        // GH #228: shown only when another company supports the requester's from
+        // the portal (System -> Companies). Their own company is first.
+        'raise_with'         => 'Raise with',
+        'raise_with_hint'    => 'The company that will handle this request.',
         'mailbox_loading'    => 'Loading...',
         'mailbox_none'       => 'No mailboxes available',
         'mailbox_failed'     => 'Failed to load mailboxes',

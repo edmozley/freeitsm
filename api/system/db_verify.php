@@ -1336,6 +1336,16 @@ try {
             try { $conn->exec("ALTER TABLE tenant_sender_addresses ADD CONSTRAINT fk_tenant_sender_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
+    // GH #228: both ends of a support link go with their company. The unique pair
+    // and the index come from db_verify_indexes.php.
+    if ($tableExists('tenant_support_links') && $tableExists('tenants')) {
+        foreach (['supporter', 'supported'] as $end) {
+            if (!$fkExists('tenant_support_links', "fk_tenant_support_$end")) {
+                try { $conn->exec("DELETE l FROM tenant_support_links l LEFT JOIN tenants t ON t.id = l.{$end}_tenant_id WHERE t.id IS NULL"); } catch (Exception $e) {}
+                try { $conn->exec("ALTER TABLE tenant_support_links ADD CONSTRAINT fk_tenant_support_$end FOREIGN KEY ({$end}_tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+            }
+        }
+    }
     // Messaging channels (WhatsApp etc.): tenant index + FK (pinned company), and the
     // sender-phone → company map FK. Mirrors target_mailboxes / tenant_sender_addresses.
     if ($tableExists('messaging_channels') && $tableExists('tenants') && $colExists('messaging_channels', 'tenant_id')) {

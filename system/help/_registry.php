@@ -340,8 +340,10 @@ function getHelpTopics() {
                 ['id' => 'email',    'label' => 'Routing inbound email'],
                 ['id' => 'senders',  'label' => 'Personal & free email'],
                 ['id' => 'summary',  'label' => 'How email reaches a company'],
+                ['id' => 'support',  'label' => 'One company supporting another'],
             ],
-            'terms' => 'tenant msp client customer multi-tenancy separate organisation domain logo files desktop',
+            'terms' => 'tenant msp client customer multi-tenancy separate organisation domain logo files desktop'
+                     . ' supports support provider outsourced raise with wrong company warning looks like dismiss',
         ],
         // Cost centres (GH #160).
         'cost-centres' => [

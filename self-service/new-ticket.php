@@ -27,6 +27,19 @@ require_once __DIR__ . '/../includes/services/ticket_fields.php';
 try { $ssAskMain = TicketFieldsService::portalAskPlace(connectToDatabase()) === 'main'; }
 catch (Throwable $e) { $ssAskMain = false; }
 if ($ssAskMain) $bodyClass .= ' ss-ask-main';
+// GH #228: "Raise with" - the requester's own company, then each company that
+// supports it from the portal. Empty (no picker) for everyone else.
+$ssRaiseWith = [];
+try {
+    if (!empty($_SESSION['ss_user_id'])) {
+        require_once __DIR__ . '/../includes/tenant_support.php';
+        $ssRwConn = connectToDatabase();
+        $ssRwStmt = $ssRwConn->prepare('SELECT tenant_id FROM users WHERE id = ?');
+        $ssRwStmt->execute([(int)$_SESSION['ss_user_id']]);
+        $ssRwOwn = $ssRwStmt->fetchColumn();
+        if ($ssRwOwn !== false && $ssRwOwn !== null) $ssRaiseWith = selfServiceRaiseWithCompanies($ssRwConn, (int)$ssRwOwn);
+    }
+} catch (Throwable $e) { $ssRaiseWith = []; }
 // Loads assets/js/screen-recorder.js — shared with the reply composer on
 // tickets.php. Pairs with includes/record-modal.php in the markup below.
 $needsRecorder = true;
@@ -933,10 +946,34 @@ let attachments = [];
         } catch (e) { /* silent — the field simply stays hidden */ }
     }
 
+    // GH #228: the "Raise with" company, as a query string for the loaders below
+    // ('' when there is no picker). The server re-checks it every time.
+    function raiseWithQuery(sep) {
+        const rw = document.getElementById('raiseWith');
+        return rw && rw.value ? sep + 'tenant_id=' + encodeURIComponent(rw.value) : '';
+    }
+    // A different company has its own mailboxes, categories, types and questions,
+    // so all three are fetched again. The type picker is emptied first: it is
+    // otherwise filled only once.
+    function onRaiseWithChange() {
+        const typeSel = document.getElementById('ticketType');
+        if (typeSel) {
+            while (typeSel.options.length > 1) typeSel.remove(1);
+            typeSel.value = '';
+            document.getElementById('ticketTypeGroup').hidden = true;
+        }
+        loadMailboxes();
+        loadTicketCategories();
+        loadTicketFields();
+    }
+
     async function loadMailboxes() {
         const select = document.getElementById('mailbox');
+        // Shown again on every load: a company change can bring mailboxes back.
+        select.required = true;
+        select.closest('.form-group').style.display = '';
         try {
-            const resp = await fetch('../api/self-service/get_mailboxes.php');
+            const resp = await fetch('../api/self-service/get_mailboxes.php' + raiseWithQuery('?'));
             const data = await resp.json();
             if (data.success && data.mailboxes.length > 0) {
                 select.innerHTML = data.mailboxes.map(m =>
@@ -968,8 +1005,11 @@ let attachments = [];
         const group  = document.getElementById('categoryGroup');
         const select = document.getElementById('ticketCategory');
         if (!group || !select) return;
+        // Emptied first - a company change brings that company's list (#228).
+        group.hidden = true;
+        while (select.options.length > 1) select.remove(1);
         try {
-            const resp = await fetch('../api/self-service/get_ticket_categories.php');
+            const resp = await fetch('../api/self-service/get_ticket_categories.php' + raiseWithQuery('?'));
             const data = await resp.json();
             if (!data.success || !data.enabled || !data.categories.length) return;
             data.categories.forEach(c => {
@@ -996,7 +1036,7 @@ let attachments = [];
         if (!typeSel || !box || !window.TicketFields) return;
         const kept = TicketFields.collect(box);
         try {
-            const resp = await fetch('../api/self-service/get_ticket_fields.php?type_id=' + encodeURIComponent(typeSel.value || ''));
+            const resp = await fetch('../api/self-service/get_ticket_fields.php?type_id=' + encodeURIComponent(typeSel.value || '') + raiseWithQuery('&'));
             const data = await resp.json();
             if (!data.success) return;
             // The picker is filled once; later calls only redraw the fields.
@@ -1059,6 +1099,8 @@ let attachments = [];
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     mailbox_id: document.getElementById('mailbox').value || null,
+                    // GH #228: "Raise with". Re-checked server-side.
+                    tenant_id: (document.getElementById('raiseWith') || {}).value || null,
                     // Discussion #62 - raise-only, see api/self-service/create_ticket.php.
                     confidential: document.getElementById('confidential').checked ? 1 : 0,
                     subject: document.getElementById('subject').value.trim(),
@@ -1183,6 +1225,17 @@ $ssQuestions = function () { ?>
                     </div>
 
                     <aside class="compose-side">
+                <?php if (count($ssRaiseWith) > 1): ?>
+                <div class="form-group" id="raiseWithGroup">
+                    <label for="raiseWith"><?php echo htmlspecialchars(t('self-service.new_ticket.raise_with')); ?></label>
+                    <select id="raiseWith" onchange="onRaiseWithChange()">
+                        <?php foreach ($ssRaiseWith as $rw): ?>
+                        <option value="<?php echo (int)$rw['id']; ?>"<?php echo $rw['own'] ? ' selected' : ''; ?>><?php echo htmlspecialchars($rw['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="field-hint"><?php echo htmlspecialchars(t('self-service.new_ticket.raise_with_hint')); ?></div>
+                </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label for="mailbox"><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox')); ?></label>
                     <select id="mailbox" required>

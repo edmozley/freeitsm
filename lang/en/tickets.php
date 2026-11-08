@@ -193,6 +193,12 @@ return [
         'summary_open'        => 'Open',
         'summary_unassigned'  => 'Unassigned',
         'field_company'       => 'Company',
+        // The wrong-company warning (multi-company). {filed} and {suggested} are
+        // company names, {requester} an email address. GH #228.
+        'wrong_company_text'    => 'Filed under {filed}, but the requester ({requester}) looks like {suggested}.',
+        'wrong_company_move'    => 'Move to {name}',
+        'wrong_company_dismiss' => 'Dismiss',
+        'wrong_company_dismiss_not_ready' => 'Hidden for now - it will come back until System → Database Verification has been run.',
         'field_department'    => 'Department',
         'field_type'          => 'Type',
         // Classification (#1540). Each of these only appears when its switch is

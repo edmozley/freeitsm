@@ -52,9 +52,11 @@ try {
     $args = $team;
     if (isMultiTenant($conn)) {
         $m  = managerRow($conn, $userId);
-        $mt = managerCompany($conn, $m['tenant_id'] ?? null);
-        $base .= $mt === getDefaultTenantId($conn) ? " AND (t.tenant_id = ? OR t.tenant_id IS NULL)" : " AND t.tenant_id = ?";
-        $args[] = $mt;
+        // GH #228: the manager's company, and any that supports it from the portal.
+        $cos = managerTicketCompanies($conn, $m['tenant_id'] ?? null);
+        $in  = "t.tenant_id IN (" . implode(',', array_fill(0, count($cos), '?')) . ")";
+        $base .= in_array(getDefaultTenantId($conn), $cos, true) ? " AND ($in OR t.tenant_id IS NULL)" : " AND $in";
+        array_push($args, ...$cos);
     }
     if (managersSettings($conn)['confidential'] === 'none' && ticketSensitivityReady($conn)) {
         $base .= " AND t.sensitivity <> 'confidential'";

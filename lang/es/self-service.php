@@ -217,6 +217,8 @@ return [
         'confidential_hint' => 'Active esta opción si su ticket es personal - sobre su salud, por ejemplo, o una queja. Los tickets confidenciales se mantienen fuera del alcance de los responsables. El servicio de asistencia sí los ve.',
         'heading' => 'Nuevo ticket',
         'mailbox' => 'Buzón *',
+        'raise_with' => 'Enviar a',
+        'raise_with_hint' => 'La empresa que atenderá esta solicitud.',
         'mailbox_loading' => 'Cargando...',
         'mailbox_none' => 'No hay buzones disponibles',
         'mailbox_failed' => 'No se han podido cargar los buzones',

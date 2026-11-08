@@ -23,7 +23,9 @@ try {
 
     $mailboxes = array_map(function ($m) {
         return ['id' => $m['id'], 'name' => $m['name'], 'target_mailbox' => $m['target_mailbox']];
-    }, array_values(selfServiceMailboxes($conn, (int)$_SESSION['ss_user_id'])));
+    }, array_values(selfServiceMailboxes($conn, (int)$_SESSION['ss_user_id'],
+        // GH #228: the "Raise with" company; re-checked inside.
+        !empty($_GET['tenant_id']) ? (int)$_GET['tenant_id'] : null)));
 
     echo json_encode(['success' => true, 'mailboxes' => $mailboxes]);
 

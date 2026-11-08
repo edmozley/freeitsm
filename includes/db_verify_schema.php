@@ -916,6 +916,8 @@ return [
         // from the requester's managers; see includes/ticket_sensitivity.php.
         'sensitivity'           => "VARCHAR(20) NOT NULL DEFAULT 'normal'",
         'is_workspace'          => 'TINYINT NOT NULL DEFAULT 0',
+        // GH #228: the company the wrong-company warning suggested when Dismissed.
+        'company_warning_dismissed_tenant_id' => 'INT NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
@@ -1045,6 +1047,16 @@ return [
         'tenant_id'        => 'INT NOT NULL',
         'email'            => 'VARCHAR(255) NOT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // "Company B supports company A" (GH #228) - see includes/tenant_support.php.
+    'tenant_support_links' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'supporter_tenant_id' => 'INT NOT NULL',
+        'supported_tenant_id' => 'INT NOT NULL',
+        'quiet_warning'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'portal_raise'        => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     // Messaging channel "inbox" — the channel twin of target_mailboxes. One row per

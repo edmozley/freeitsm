@@ -1378,6 +1378,11 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     -- 'normal' or 'confidential' (discussion #62); see includes/ticket_sensitivity.php.
     `sensitivity`           VARCHAR(20) NOT NULL DEFAULT 'normal',
     `is_workspace`          TINYINT NOT NULL DEFAULT 0,
+    -- The company the reading pane's "requester looks like another company"
+    -- warning suggested when an analyst pressed Dismiss (GH #228). Shown again
+    -- only if it would suggest a DIFFERENT company. No FK: a deleted company
+    -- just means the warning can never match it again.
+    `company_warning_dismissed_tenant_id` INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_tickets_number` (`ticket_number`),
@@ -1791,6 +1796,27 @@ CREATE TABLE IF NOT EXISTS `tenant_sender_addresses` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_tenant_sender_email` (`email`),
     CONSTRAINT `fk_tenant_sender_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- "Company B supports company A" (GH #228). One row per pair, set on company B
+-- under System -> Companies. A requester still belongs to ONE company; this only
+-- says what B expects from A's people:
+--   quiet_warning - a ticket filed under B from somebody at A is expected, so the
+--                   reading pane's "looks like company A" warning is not shown;
+--   portal_raise  - A's portal users may choose B on New ticket ("Raise with").
+-- Both off = no row. See includes/tenant_support.php.
+CREATE TABLE IF NOT EXISTS `tenant_support_links` (
+    `id`                   INT NOT NULL AUTO_INCREMENT,
+    `supporter_tenant_id`  INT NOT NULL,
+    `supported_tenant_id`  INT NOT NULL,
+    `quiet_warning`        TINYINT(1) NOT NULL DEFAULT 0,
+    `portal_raise`         TINYINT(1) NOT NULL DEFAULT 0,
+    `created_datetime`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tenant_support_pair` (`supporter_tenant_id`,`supported_tenant_id`),
+    KEY `ix_tenant_support_supported` (`supported_tenant_id`),
+    CONSTRAINT `fk_tenant_support_supporter` FOREIGN KEY (`supporter_tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_tenant_support_supported` FOREIGN KEY (`supported_tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Per-company "hide" layer for global config (the add+hide override model, design

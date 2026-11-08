@@ -109,6 +109,8 @@ return [
     ['tenant_domains', 'uq_tenant_domains_domain', 'unique', '(`domain`)'],
     ['freemail_domains', 'uq_freemail_domains_domain', 'unique', '(`domain`)'],
     ['tenant_sender_addresses', 'uq_tenant_sender_email', 'unique', '(`email`)'],
+    ['tenant_support_links', 'uq_tenant_support_pair', 'unique', '(`supporter_tenant_id`,`supported_tenant_id`)'],
+    ['tenant_support_links', 'ix_tenant_support_supported', 'key', '(`supported_tenant_id`)'],
     ['tenant_config_hidden', 'uq_tenant_config_hidden', 'unique', '(`tenant_id`,`entity_type`,`entity_id`)'],
     ['analyst_tenant_access', 'uq_analyst_tenant', 'unique', '(`analyst_id`,`tenant_id`)'],
     ['team_tenant_access', 'uq_team_tenant', 'unique', '(`team_id`,`tenant_id`)'],

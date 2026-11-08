@@ -129,6 +129,15 @@ $translationNamespaces = ['common', 'system'];
         .domain-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border: 1px solid var(--border, #eee); border-radius: 5px; margin-bottom: 6px; font-size: 13px; color: var(--text, #333); }
         .list-none { color: var(--text-faint, #aaa); font-size: 12px; font-style: italic; padding: 6px 0; }
 
+        /* Supports other companies (GH #228) */
+        table.support-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table.support-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-dim, #888); padding: 6px 8px; border-bottom: 1px solid var(--border-soft, #eee); }
+        table.support-table th.tick, table.support-table td.tick { text-align: center; width: 90px; }
+        table.support-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); }
+        table.support-table tr:last-child td { border-bottom: none; }
+        table.support-table .support-inactive { color: var(--text-faint, #999); font-size: 11px; margin-left: 6px; }
+        table.support-table th abbr { text-decoration: underline dotted; cursor: help; }
+
         /* SSO help banner */
         .sso-banner { display: flex; align-items: center; gap: 12px; text-decoration: none; background: linear-gradient(135deg, #eef2ff, #e0e7ff); border: 1px solid #c7d2fe; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; }
         .sso-banner svg { flex-shrink: 0; }
@@ -281,6 +290,14 @@ $translationNamespaces = ['common', 'system'];
                     <label><?php echo htmlspecialchars(t('system.companies.routing_label')); ?></label>
                     <div class="hint"><?php echo htmlspecialchars(t('system.companies.routing_hint')); ?></div>
                     <div class="routing-panel" id="routingPanel"></div>
+                </div>
+
+                <!-- Supports other companies (GH #228). Same visibility as the
+                     domains section (multi-company edit). Each tick saves at once. -->
+                <div class="form-field" id="supportSection" style="display: none;">
+                    <label><?php echo htmlspecialchars(t('system.companies.support_label')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.companies.support_hint')); ?></div>
+                    <div id="supportList"></div>
                 </div>
             </div>
             <div class="co-modal-footer">
@@ -475,10 +492,14 @@ $translationNamespaces = ['common', 'system'];
             loadDomains(c.id);
             loadSenders(c.id);
             loadRouting(c.id);
+            document.getElementById('supportSection').style.display = '';
+            loadSupport(c.id);
         } else {
             domainsSection.style.display = 'none';
             sendersSection.style.display = 'none';
             routingSection.style.display = 'none';
+            document.getElementById('supportSection').style.display = 'none';
+            document.getElementById('supportList').innerHTML = '';
             document.getElementById('domainsList').innerHTML = '';
             document.getElementById('sendersList').innerHTML = '';
             document.getElementById('routingPanel').innerHTML = '';
@@ -690,6 +711,53 @@ $translationNamespaces = ['common', 'system'];
         }
         panel.innerHTML = html;
     }
+
+    // ---------- Supports other companies (GH #228) ----------
+    async function loadSupport(tenantId) {
+        const list = document.getElementById('supportList');
+        list.innerHTML = '';
+        let data;
+        try {
+            const r = await fetch(API + 'system/get_tenant_support.php?tenant_id=' + tenantId);
+            data = await r.json();
+        } catch (e) { data = null; }
+        if (!data || !data.success) { list.innerHTML = '<div class="list-none">' + esc(window.t('system.companies.support_failed')) + '</div>'; return; }
+        if (!data.ready) { list.innerHTML = '<div class="list-none">' + esc(window.t('system.companies.support_not_ready')) + '</div>'; return; }
+        if (!data.companies.length) { list.innerHTML = '<div class="list-none">' + esc(window.t('system.companies.support_none')) + '</div>'; return; }
+        list.innerHTML = `<table class="support-table">
+            <thead><tr>
+                <th>${esc(window.t('system.companies.support_col_company'))}</th>
+                <th class="tick"><abbr title="${esc(window.t('system.companies.support_col_quiet_hint'))}">${esc(window.t('system.companies.support_col_quiet'))}</abbr></th>
+                <th class="tick"><abbr title="${esc(window.t('system.companies.support_col_portal_hint'))}">${esc(window.t('system.companies.support_col_portal'))}</abbr></th>
+            </tr></thead>
+            <tbody>${data.companies.map(c => `<tr data-supported="${c.id}">
+                <td>${esc(c.name)}${c.is_active ? '' : '<span class="support-inactive">(' + esc(window.t('system.companies.support_inactive')) + ')</span>'}</td>
+                <td class="tick"><input type="checkbox" data-tick="quiet_warning" aria-label="${esc(window.t('system.companies.support_col_quiet') + ': ' + c.name)}" ${c.quiet_warning ? 'checked' : ''}></td>
+                <td class="tick"><input type="checkbox" data-tick="portal_raise" aria-label="${esc(window.t('system.companies.support_col_portal') + ': ' + c.name)}" ${c.portal_raise ? 'checked' : ''}></td>
+            </tr>`).join('')}</tbody></table>`;
+    }
+    document.getElementById('supportList').addEventListener('change', async function (e) {
+        const row = e.target.closest('tr[data-supported]');
+        if (!row) return;
+        const boxes = row.querySelectorAll('input[data-tick]');
+        boxes.forEach(b => b.disabled = true);
+        const payload = {
+            tenant_id: parseInt(document.getElementById('companyId').value, 10),
+            supported_id: parseInt(row.getAttribute('data-supported'), 10),
+            quiet_warning: row.querySelector('[data-tick=quiet_warning]').checked ? 1 : 0,
+            portal_raise: row.querySelector('[data-tick=portal_raise]').checked ? 1 : 0
+        };
+        try {
+            const r = await fetch(API + 'system/save_tenant_support.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const d = await r.json();
+            if (d.success) showToast(window.t('system.companies.support_saved'), 'success');
+            else { e.target.checked = !e.target.checked; showToast(d.error || window.t('system.companies.support_failed'), 'error'); }
+        } catch (err) { e.target.checked = !e.target.checked; showToast(window.t('system.companies.support_failed'), 'error'); }
+        boxes.forEach(b => b.disabled = false);
+    });
 
     document.getElementById('addDomainBtn').addEventListener('click', addDomain);
     document.getElementById('domainInput').addEventListener('keydown', e => {

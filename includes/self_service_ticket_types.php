@@ -7,18 +7,34 @@
  */
 
 require_once __DIR__ . '/tenancy.php';
+require_once __DIR__ . '/tenant_support.php';
 
 /**
  * Which company a requester's ticket belongs to: their own, NULL (triage) when
  * they have none on a multi-company install, the Default company otherwise.
  * The same rule api/self-service/create_ticket.php has always used.
+ *
+ * GH #228: $wanted is the portal's "Raise with" choice. It is honoured only when
+ * it is one selfServiceRaiseWithCompanies() offers this requester - a company
+ * that supports theirs from the portal - and otherwise ignored, so a hand-posted
+ * id can never file a ticket into a company the requester was not offered.
+ *
+ * @param ?int $wanted  the company chosen on New ticket; null = their own
  */
-function selfServiceTicketTenant(PDO $conn, int $userId): ?int
+function selfServiceTicketTenant(PDO $conn, int $userId, ?int $wanted = null): ?int
 {
     $stmt = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $t = $stmt->fetchColumn();
-    if ($t !== false && $t !== null) return (int)$t;
+    if ($t !== false && $t !== null) {
+        $own = (int)$t;
+        if ($wanted !== null && $wanted !== $own) {
+            foreach (selfServiceRaiseWithCompanies($conn, $own) as $c) {
+                if ($c['id'] === $wanted) return $wanted;
+            }
+        }
+        return $own;
+    }
     return isMultiTenant($conn) ? null : getDefaultTenantId($conn);
 }
 

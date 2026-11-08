@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2746 | Companies         | Feature     | A company can say which companies it supports (System -> Companies -> Supports other companies, table `tenant_support_links`): "Don't warn" quietens the reading pane's wrong-company warning for their people's tickets, and "Portal" gives their portal users a Raise with choice on New ticket (re-checked through `selfServiceTicketTenant()`; mailboxes, categories, types and questions follow it; managers see those tickets) - a requester still belongs to one company; plus the warning banner is translated and Dismiss is remembered per ticket (`tickets.company_warning_dismissed_tenant_id`) (GH #228). |
 
 
 

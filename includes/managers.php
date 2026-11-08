@@ -266,6 +266,21 @@ function managerCompany(PDO $conn, $tenantId): int
 }
 
 /**
+ * The companies a manager's team tickets may sit in: the manager's own, and
+ * (GH #228) each company that supports it from the portal - their people may
+ * raise tickets there with "Raise with".
+ *
+ * @param mixed $tenantId  the manager's tenant_id as stored
+ * @return int[] the manager's own company first
+ */
+function managerTicketCompanies(PDO $conn, $tenantId): array
+{
+    require_once __DIR__ . '/tenant_support.php';
+    $own = managerCompany($conn, $tenantId);
+    return array_values(array_unique(array_merge([$own], tenantSupportPortalSupporters($conn, $own))));
+}
+
+/**
  * Does this portal user manage anybody? Decides whether "Team tickets" is shown.
  *
  * @param int $userId  the portal user's users.id
@@ -340,9 +355,11 @@ function portalTicketAccess(PDO $conn, int $userId, int $ticketId): ?array
     if (!$team || !in_array((int)$t['user_id'], $team, true)) return null;
 
     // The TICKET must be in the manager's company too - it can be moved.
+    // GH #228: or in a company that supports the manager's from the portal
+    // ("Raise with"), where their people may send tickets.
     if (isMultiTenant($conn)) {
         $m = managerRow($conn, $userId);
-        if (!$m || managerCompany($conn, $t['tenant_id']) !== managerCompany($conn, $m['tenant_id'])) return null;
+        if (!$m || !in_array(managerCompany($conn, $t['tenant_id']), managerTicketCompanies($conn, $m['tenant_id']), true)) return null;
     }
 
     $s = managersSettings($conn);

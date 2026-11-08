@@ -24,7 +24,9 @@ if (!isset($_SESSION['ss_user_id'])) { echo json_encode(['success' => false, 'er
 
 try {
     $conn = connectToDatabase();
-    $tenantId = selfServiceTicketTenant($conn, (int)$_SESSION['ss_user_id']);
+    // GH #228: the "Raise with" company, honoured only if it was offered.
+    $tenantId = selfServiceTicketTenant($conn, (int)$_SESSION['ss_user_id'],
+        !empty($_GET['tenant_id']) ? (int)$_GET['tenant_id'] : null);
     $types = selfServiceTicketTypes($conn, $tenantId);
 
     $typeId = isset($_GET['type_id']) && $_GET['type_id'] !== '' ? (int)$_GET['type_id'] : null;
