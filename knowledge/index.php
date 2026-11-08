@@ -53,7 +53,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <title><?php echo htmlspecialchars(pageTitle('knowledge')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/knowledge.css?v=27">
+    <link rel="stylesheet" href="../assets/css/knowledge.css?v=28">
     <link rel="stylesheet" href="../assets/css/domain-links.css?v=1">
     <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
     <!-- Prism.js for code syntax highlighting -->
@@ -67,7 +67,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/money.js?v=1"></script>
     <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
     <!-- Mobile-friendly overrides (LAYER 17). Linked LAST so its @media rules win ties against knowledge.css. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=200">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -226,6 +226,15 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                     </div>
                     <div class="editor-form">
                         <input type="hidden" id="editArticleId" value="">
+                        <!-- The properties and the documents/domains/projects block
+                             share one wrapper so the popout can make them ONE
+                             right-hand column that scrolls as a whole. Outside the
+                             popout the wrapper is display: contents and `order`
+                             puts the editor between them, as it always was.
+                             TRAP: the documents block once sat loose in .editor-form
+                             and became an unsized third popout column that squeezed
+                             the editor into the middle (knowledge.css). -->
+                        <div class="kb-editor-side">
                         <!-- Property fields. Wrapped so popout mode can reflow
                              them into a right-hand panel via CSS only. -->
                         <div class="editor-properties">
@@ -306,11 +315,6 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                                 </div>
                             </div>
                         </div>
-                        <div class="editor-content">
-                            <div class="form-group">
-                                <textarea id="articleBody"></textarea>
-                            </div>
-                        </div>
                         <!-- Attached documents. This is where adding and removing
                              them lives; the article page itself only LISTS them.
                              Hidden until the article exists, because an
@@ -320,6 +324,12 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                             <?php if ($showDomains): ?><div id="kbEditorDomains" style="margin-top:16px;"></div><?php endif; ?>
                             <div id="kbEditorProjects" style="margin-top:16px;"></div>
                             <p class="field-hint" id="kbEditorDocumentsHint" style="display:none;"><?php echo htmlspecialchars(t('knowledge.editor.documents_after_save')); ?></p>
+                        </div>
+                        </div><!-- /.kb-editor-side -->
+                        <div class="editor-content">
+                            <div class="form-group">
+                                <textarea id="articleBody"></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>

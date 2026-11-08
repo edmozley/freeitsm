@@ -472,15 +472,34 @@
     color: var(--text-dim, #888);
 }
 
-.knowledge-container.editor-popout .editor-properties {
+/* The right-hand column: the properties, then the documents/domains/projects
+   block, scrolling together. Outside the popout the wrapper dissolves
+   (display: contents) and `order` keeps properties / editor / documents in the
+   order they always had - see .kb-editor-side in knowledge/index.php.
+   ⚠️ Scoped to .knowledge-container: .editor-form is shared with Change
+   Management, which must keep its block layout. */
+.knowledge-container .editor-form { display: flex; flex-direction: column; }
+.knowledge-container .kb-editor-side { display: contents; }
+.knowledge-container .editor-content { order: 1; }
+.knowledge-container .editor-documents { order: 2; }
+.knowledge-container.editor-popout .kb-editor-side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     flex-shrink: 0;
     width: 340px;
+    min-height: 0;
+    overflow-y: auto;
+}
+.knowledge-container.editor-popout .editor-properties {
+    flex-shrink: 0;
     background: var(--surface-2, #fafafa);
     border: 1px solid var(--border, #e0e0e0);
     border-radius: 6px;
     padding: 16px;
-    overflow-y: auto;
 }
+/* Its three link fields wrap in a 340px column instead of overflowing it. */
+.knowledge-container.editor-popout .editor-documents { flex-shrink: 0; }
 /* Inside the property panel, stack the two-column rows vertically so
    each field gets the full panel width. */
 .knowledge-container.editor-popout .editor-properties .form-row {

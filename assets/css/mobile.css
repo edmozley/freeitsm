@@ -2384,8 +2384,15 @@
        backstop, because a backstop is what saved the tickets one.
        -------------------------------------------------------------------- */
     .knowledge-container.editor-popout .editor-form {
-        display: block;
-        flex-direction: initial;
+        display: flex;
+        flex-direction: column;
+    }
+    /* Dissolve the popout's side column so properties / editor / documents
+       stack in their desktop order (knowledge.css). */
+    .knowledge-container.editor-popout .kb-editor-side {
+        display: contents;
+        width: auto;
+        overflow-y: visible;
     }
     .knowledge-container.editor-popout .editor-properties {
         width: auto;
