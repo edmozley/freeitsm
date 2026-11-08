@@ -112,6 +112,20 @@ try {
     check('a report in a company the reader cannot see is left out', !in_array($other, $ids($lv), true));
     check('CONTROL: ...and included for an analyst who can see it', in_array($other, $ids(peopleOrgLevel($conn, $all, $boss, false)['people']), true));
     check('each person says how many the reader would see under them', ($named($lv)[$mid] ?? null) === 2 && ($named($lv)[$goneMgr] ?? null) === 1, json_encode($named($lv)));
+
+    echo "Everybody under somebody, not only their team\n";
+    $nb = peopleOrgNodes($conn, $r, 'u.id = ?', [$boss], false, 1)[0] ?? [];
+    check('the boss: 2 in their team, 5 in all - Mid, both leaves, the leaver still managing and who they manage',
+        ($nb['reports'] ?? null) === 2 && ($nb['total'] ?? null) === 5, json_encode([$nb['reports'] ?? null, $nb['total'] ?? null]));
+    $nbl = peopleOrgNodes($conn, $r, 'u.id = ?', [$boss], true, 1)[0] ?? [];
+    check('...6 with leavers shown: the leaver nobody reports to counts too', ($nbl['reports'] ?? null) === 3 && ($nbl['total'] ?? null) === 6,
+        json_encode([$nbl['reports'] ?? null, $nbl['total'] ?? null]));
+    $nba = peopleOrgNodes($conn, $all, 'u.id = ?', [$boss], false, 1)[0] ?? [];
+    check('nobody in a company the reader cannot see is counted', ($nba['total'] ?? null) === 6 && ($nb['total'] ?? null) === 5,
+        json_encode([$nba['total'] ?? null, $nb['total'] ?? null]));
+    $nl = peopleOrgNodes($conn, $r, 'u.id = ?', [$loop1], false, 1)[0] ?? [];
+    check('a loop in bad data ends, and nobody is counted twice', ($nl['total'] ?? null) === 2, json_encode($nl['total'] ?? null));
+    check('somebody with nobody under them counts none', (peopleOrgNodes($conn, $r, 'u.id = ?', [$leaf1], false, 1)[0]['total'] ?? null) === 0);
     check("the boss's own count matches the level below", ($named($top)[$boss] ?? null) === count($lv), json_encode($named($top)));
     check('a person out of reach has no level at all', peopleOrgLevel($conn, $r, $theirBoss, true)['people'] === []);
 
