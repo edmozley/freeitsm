@@ -966,7 +966,7 @@ final class StartersService
         $c['person'] = null;
         $c['kit'] = [];
         if ($c['user_id']) {
-            $st = $conn->prepare("SELECT id, display_name, email, job_title, department, is_active, is_managed, deactivated_datetime FROM users WHERE id = ?");
+            $st = $conn->prepare("SELECT id, display_name, email, job_title, department, is_active, " . userManagedSql('users') . " AS is_managed, deactivated_datetime FROM users WHERE id = ?");
             $st->execute([(int)$c['user_id']]);
             if ($p = $st->fetch(PDO::FETCH_ASSOC)) {
                 $p['is_active'] = (bool)(int)$p['is_active'];
@@ -1149,7 +1149,7 @@ final class StartersService
         if ($c['kind'] !== JmlKind::Leaver->value || !$c['user_id']) {
             throw new ServiceError('validation', 'invalid_field', 'Only a leaver linked to a person can be marked as left.');
         }
-        $st = $conn->prepare("SELECT is_active, is_managed FROM users WHERE id = ?");
+        $st = $conn->prepare("SELECT is_active, " . userManagedSql('users') . " AS is_managed FROM users WHERE id = ?");
         $st->execute([(int)$c['user_id']]);
         $u = $st->fetch(PDO::FETCH_ASSOC);
         if (!$u) throw new ServiceError('not_found', 'not_found', 'Person not found.');

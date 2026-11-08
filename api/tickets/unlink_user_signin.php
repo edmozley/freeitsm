@@ -19,6 +19,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/users.php';   // userManagedSql()
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -49,7 +50,7 @@ try {
     }
 
     $st = $conn->prepare(
-        "SELECT u.email, u.is_managed, u.auth_provider_id, p.display_name AS provider_name,
+        "SELECT u.email, " . userManagedSql() . " AS is_managed, u.auth_provider_id, p.display_name AS provider_name,
                 (SELECT COUNT(*) FROM user_sso_identities i WHERE i.user_id = u.id) AS identities
            FROM users u
       LEFT JOIN auth_providers p ON p.id = u.auth_provider_id

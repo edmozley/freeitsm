@@ -33,6 +33,7 @@
 
 require_once __DIR__ . '/tenancy.php';
 require_once __DIR__ . '/entity_links.php';
+require_once __DIR__ . '/users.php';          // userManagedSql(): managed only while the source exists
 
 const PEOPLE_SECTION_LIMIT = 50;
 
@@ -464,7 +465,7 @@ function personDetail(PDO $conn, int $analystId, int $userId): ?array
     require_once __DIR__ . '/cost_centre_assign.php';
     $st = $conn->prepare(
         "SELECT u.id, u.email, u.username, u.display_name, u.preferred_name, u.job_title, u.department,
-                u.office, u.phone, u.mobile, u.employee_id, u.manager_id, u.is_active, u.is_managed,
+                u.office, u.phone, u.mobile, u.employee_id, u.manager_id, u.is_active, " . userManagedSql() . " AS is_managed,
                 u.deactivated_datetime, u.created_at, u.tenant_id, tn.name AS company_name,
                 ap.display_name AS source_name" . costCentreSelectSql($conn, 'users', 'u') . "
            FROM users u
@@ -1612,6 +1613,9 @@ function peopleOrgDepartments(PDO $conn, int $analystId): array
  *    for them. People typed in by hand, often customers, are left out: for
  *    them no manager is normal, not a gap.
  *  - left_with_reports: leavers who still have current people reporting to them.
+ *  - no_source: people still flagged as imported whose source was deleted (#261).
+ *    Nothing locks them any more (userManagedSql()), but somebody should decide
+ *    whether to keep them - System -> Imported people, where that is done.
  *
  * @return array ['no_manager' => ['total', 'people'], 'left_with_reports' => ['total', 'people']]
  */
@@ -1638,7 +1642,7 @@ function peopleOrgGaps(PDO $conn, int $analystId): array
     };
 
     $noManager = $list(
-        "u.is_active = 1 AND u.is_managed = 1 AND u.manager_id IS NULL $scopeU
+        "u.is_active = 1 AND " . userManagedSql() . " AND u.manager_id IS NULL $scopeU
          AND NOT EXISTS (SELECT 1 FROM users r WHERE r.manager_id = u.id $scopeR)",
         array_merge($argsU, $argsR));
     $left = $list(
@@ -1653,5 +1657,8 @@ function peopleOrgGaps(PDO $conn, int $analystId): array
         }
         unset($p);
     }
-    return ['no_manager' => $noManager, 'left_with_reports' => $left];
+    $noSource = $list(
+        "u.is_managed = 1 AND NOT EXISTS (SELECT 1 FROM auth_providers op WHERE op.id = u.auth_provider_id) $scopeU",
+        $argsU);
+    return ['no_manager' => $noManager, 'left_with_reports' => $left, 'no_source' => $noSource];
 }

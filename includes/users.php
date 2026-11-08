@@ -200,12 +200,12 @@ function userSignsInElsewhere(PDO $conn, $providerId): bool
  * the history. The directory decides who has left; it marks them as left and
  * keeps them.
  *
- * Once the source is deleted (auth_provider_id is then NULL, by its foreign
- * key) nothing can create them again, and they may be deleted like anybody.
+ * Once the source is deleted nothing can create them again, and they may be
+ * deleted like anybody - the rule of userManagedSql(), which this follows.
  *
- * A tool that removes what an import created on purpose - the planned "Remove
- * imported people" - does NOT ask this: undoing an import is its job, and
- * making sure the source does not create the people again is part of it.
+ * A tool that removes what an import created on purpose - Remove imported
+ * people (includes/services/directory_maintenance.php) - does NOT ask this:
+ * undoing an import is its job, and it refuses while the source still imports.
  *
  * Asked by api/tickets/delete_user.php AFTER its company check, so it never
  * answers anything about a person the caller cannot reach.
@@ -226,6 +226,61 @@ function userDeleteBlockedByDirectory(PDO $conn, int $userId): ?string
     return 'This person is kept up to date from ' . ($row['provider_name'] ?: 'a directory')
          . ', so they cannot be deleted here: the next import would create them again. '
          . 'Remove or disable them there, and they are marked as left.';
+}
+
+/**
+ * Whether a person is managed by a directory, as SQL: `is_managed`, AND the
+ * source that imports them still exists. The one rule for every kind of source
+ * (LDAP, CardDAV, Entra ID), read wherever `is_managed` decides something - the
+ * locked fields on Tickets -> Users, the portal profile and Assets -> Users, the
+ * delete refusal, the People gaps (issue #261).
+ *
+ * Why not `is_managed` alone: deleting a source leaves its people flagged, and
+ * with no protocol userDirectoryOwnedFields() locks the whole directory list -
+ * so they were locked for good, with nothing ever updating them again, and an
+ * address book's people ended up MORE locked than while it existed.
+ *
+ * Why EXISTS rather than `auth_provider_id IS NOT NULL`: the foreign key that
+ * NULLs it is in database/freeitsm.sql, but Database Verification adds no
+ * constraints, so on a verified install a deleted source leaves a dangling id.
+ * Deleting a source now releases its people itself (directoryMaintenance::
+ * releaseSource()); this is what keeps an install where that already happened,
+ * or a source deleted any other way, from locking anybody - with no migration.
+ *
+ * Used as a column - "SELECT ... " . userManagedSql() . " AS is_managed" - so
+ * the code reading the row does not change.
+ *
+ * @param string $u  the alias of users in the query, e.g. 'u'
+ */
+function userManagedSql(string $u = 'u'): string
+{
+    return "($u.is_managed = 1 AND EXISTS (SELECT 1 FROM auth_providers ump WHERE ump.id = $u.auth_provider_id))";
+}
+
+/**
+ * Why this person may not be deleted because of what hangs on them, or null.
+ *
+ * A person who raised tickets or holds equipment is never deleted: their
+ * history would break. The same answer for Tickets -> Users and the directory
+ * maintenance tools, so neither can delete what the other refuses.
+ *
+ * @param int $userId  users.id of the person about to be deleted
+ */
+function userDeleteBlockedByHistory(PDO $conn, int $userId): ?string
+{
+    $st = $conn->prepare("SELECT COUNT(*) FROM tickets WHERE user_id = ?");
+    $st->execute([$userId]);
+    $tickets = (int)$st->fetchColumn();
+    if ($tickets > 0) {
+        return "Cannot delete: this user is the requester on $tickets ticket(s). Reassign or close those tickets first.";
+    }
+    $st = $conn->prepare("SELECT COUNT(*) FROM users_assets WHERE user_id = ?");
+    $st->execute([$userId]);
+    $assets = (int)$st->fetchColumn();
+    if ($assets > 0) {
+        return "Cannot delete: this user has $assets asset assignment(s). Unassign those assets first.";
+    }
+    return null;
 }
 
 // ─── Where a person comes from ───────────────────────────────────────────────
@@ -357,7 +412,7 @@ function portalProfileAccess(PDO $conn, int $userId): ?array
     // naming a missing column here would break My Account for everyone.
     $syncCol = ssoJitColumnsReady($conn) ? 'p.profile_sync_mode' : 'NULL AS profile_sync_mode';
     $st = $conn->prepare(
-        "SELECT u.is_managed, u.display_name, p.protocol, p.carddav_write_back, $syncCol, $cols
+        "SELECT " . userManagedSql() . " AS is_managed, u.display_name, p.protocol, p.carddav_write_back, $syncCol, $cols
            FROM users u
       LEFT JOIN auth_providers p ON p.id = u.auth_provider_id
           WHERE u.id = ?"

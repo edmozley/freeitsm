@@ -679,6 +679,21 @@ require __DIR__ . '/_top.php';
     </ul>
 </div>
 
+<!-- 4r. Directory maintenance (#261): every kind of source -->
+<div class="help-section" id="directory-maintenance">
+    <div class="help-section-header"><?php echo helpSectionNum('directory-maintenance'); ?>
+        <div>
+            <h3>Looking after imported people</h3>
+        </div>
+    </div>
+    <p>The same rules hold for people imported from LDAP, an address book or Entra. <strong>A person is kept up to date by a source only while that source exists.</strong> While it does, the fields it owns are locked here and the person cannot be deleted by hand, even with the source switched off, because switching it back on would bring them back. Once the source is deleted, nothing can update them again, so nothing about them is locked any more.</p>
+
+    <h4>Deleting a source</h4>
+    <p>The people it imported stay, as ordinary people that can be edited, with their tickets, equipment and history. The delete question says how many, and offers to mark them as left instead.</p>
+
+    <p>People whose source was deleted, people a source no longer brings in, and undoing an import that should not have happened are all on one page: <strong>System &rarr; Imported people</strong>. Each source's page links to it, under its Run button. See <a href="directory-maintenance.php">Imported people</a>.</p>
+</div>
+
 <!-- 5. Experience -->
 <div class="help-section" id="experience">
     <div class="help-section-header"><?php echo helpSectionNum('experience'); ?>

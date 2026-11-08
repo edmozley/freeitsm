@@ -229,6 +229,7 @@ function getHelpTopics() {
                 ['id' => 'entra-fields',   'label' => 'What Entra imports'],
                 ['id' => 'entra-schedule', 'label' => 'Entra safety & scheduling'],
                 ['id' => 'entra-faq',      'label' => 'Entra troubleshooting'],
+                ['id' => 'directory-maintenance', 'label' => 'Looking after imported people'],
                 ['id' => 'experience', 'label' => 'What people see'],
                 ['id' => 'breakglass', 'label' => 'Break-glass & safety'],
                 ['id' => 'faq',        'label' => 'Troubleshooting'],
@@ -602,6 +603,17 @@ function getHelpTopics() {
                 ['id' => 'notes',    'label' => 'Good to know'],
             ],
             'terms' => 'missing lost hidden stuck invisible disappeared deleted department cannot find ticket reassign fix broken',
+        ],
+        'directory-maintenance' => [
+            'hero' => 'Imported people',
+            'sub'  => 'People imported from a directory sometimes need a decision: their source was deleted, it no longer brings them in, or they should never have been imported. This page lists them, for every kind of source.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'orphans',  'label' => 'Source deleted'],
+                ['id' => 'stale',    'label' => 'No longer brought in'],
+                ['id' => 'remove',   'label' => 'Remove imported people'],
+            ],
+            'terms' => 'orphaned people users imported directory ldap carddav entra source deleted removed missing stale leavers undo import remove cleanup maintenance',
         ],
         'email-routing-test' => [
             'hero' => 'Email routing test',

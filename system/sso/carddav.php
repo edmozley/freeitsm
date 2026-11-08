@@ -360,6 +360,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
                 </div>
                 <div class="result" id="runResult"></div>
                 <div style="margin-top:12px;"><?php echo dsyncScheduleNotice($conn, $p); ?></div>
+                <div class="hint" style="margin-top:8px;"><a href="../directory-maintenance/?source=<?php echo (int)$p['id']; ?>"><?php echo htmlspecialchars(t('system.sso.maint_source_link')); ?></a></div>
             </div>
         </div>
 

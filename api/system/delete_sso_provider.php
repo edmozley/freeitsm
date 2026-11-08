@@ -1,7 +1,11 @@
 <?php
 /**
  * API: Delete an SSO / OIDC identity provider.
- * POST JSON { id }
+ * POST JSON { id, people: 'keep' | 'left' }
+ *
+ * The people a source imported stay, as ordinary people - or as leavers, with
+ * people: 'left' - and nothing points at the source any more: see
+ * DirectoryMaintenance::releaseSource() (issue #261).
  *
  * Linked rows in analyst_sso_identities are removed by the ON DELETE CASCADE
  * foreign key; any analyst whose auth_provider_id pointed here is reset to
@@ -11,6 +15,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/admin_api_guard.php'; // System admins only (issue #34)
 require_once '../../includes/functions.php';
+require_once '../../includes/services/directory_maintenance.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -57,6 +62,13 @@ try {
         error_log('[sso] directory group cleanup skipped: ' . $e->getMessage());
     }
 
+    // Its people first, while the row still says who they belong to: kept as
+    // ordinary people, or marked as left when asked, never left half-managed.
+    $name = $conn->prepare("SELECT display_name FROM auth_providers WHERE id = ?");
+    $name->execute([$id]);
+    $released = DirectoryMaintenance::releaseSource($conn, ActorContext::fromSession($conn), $id,
+        (string)$name->fetchColumn(), ($data['people'] ?? 'keep') === 'left');
+
     $stmt = $conn->prepare("DELETE FROM auth_providers WHERE id = ?");
     $stmt->execute([$id]);
 
@@ -75,7 +87,9 @@ try {
         // An install whose Database Verification has not added the team columns yet.
         error_log('[sso] team sign-in cleanup skipped: ' . $e->getMessage());
     }
-    echo json_encode(['success' => true]);
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    echo json_encode(['success' => true, 'released' => $released]);
+} catch (Throwable $e) {
+    // Never the exception's own text: it can carry SQL and column names.
+    error_log('delete_sso_provider: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The provider could not be deleted.']);
 }
