@@ -24,6 +24,7 @@ let isRecycleBinView = false;
 // questions and an empty value cannot mean both.
 let kbFolders = [];
 let activeFolder = '';
+let kbRootArticleCount = 0;
 // Whether this analyst may EDIT access, which is a stricter question than
 // whether they may read a folder: anyone who could merely read one must not be
 // able to hand it to somebody else.
@@ -754,6 +755,7 @@ async function loadFolders() {
         const d = await r.json();
         if (!d.success) throw new Error(d.error || 'failed');
         kbFolders = d.folders || [];
+        kbRootArticleCount = d.root_count || 0;
         kbCanManagePerms = !!d.can_manage;
         // ⚠️ REPAINT THE MAIN PANE TOO. The folders and the articles are fetched
         // in parallel, and both the tree layout and the folder rows are drawn
@@ -766,7 +768,7 @@ async function loadFolders() {
         // someone who can act on what it shows.
         const exSec = document.getElementById('kbExceptionsSection');
         if (exSec) exSec.style.display = kbCanManagePerms ? '' : 'none';
-        renderFolderTree(d.root_count || 0);
+        renderFolderTree(kbRootArticleCount);
         renderFolderPicker();
     } catch (e) {
         // Say so rather than rendering an empty tree: "no folders" and "the
@@ -2240,6 +2242,14 @@ async function viewArticle(articleId) {
             if (window.trailVisit) window.trailVisit('knowledge_article', articleId);
             renderArticleDetail();
             showView('detail');
+            // A linked article may live in another folder. Keep the sidebar and
+            // the list behind the detail on that article's actual folder.
+            const folder = currentArticle.folder_id == null ? '' : String(currentArticle.folder_id);
+            if (activeFolder !== folder) {
+                activeFolder = folder;
+                renderFolderTree(kbRootArticleCount);
+                loadArticles(document.getElementById('articleSearch').value, activeTagFilters);
+            }
         } else {
             showToast(window.t('knowledge.toast.error_loading', { message: data.error }), 'error');
         }
@@ -3355,7 +3365,10 @@ function blobToBase64(blob) {
     if (listView) listView.style.display = 'none';
 
     const checkAndLoad = setInterval(() => {
-        if (articles.length > 0 || document.getElementById('articleList').innerHTML.includes('No articles')) {
+        // A valid top level can contain only folders. Its empty article array is
+        // still a completed load; matching English empty-state text breaks links
+        // in translated installs and in the other layouts.
+        if (kbArticlesLoaded) {
             clearInterval(checkAndLoad);
             Promise.resolve(viewArticle(articleId)).then(() => {
                 if (!currentArticle || String(currentArticle.id) !== String(articleId)) { showView('list'); return; }
