@@ -1875,8 +1875,7 @@
                 '</button><button type="button">' + esc(L('rb.col_by', 'Deleted by')) + '</button><button type="button">' + esc(L('col.size', 'Size')) + '</button></div>' +
                 rows.map(function (r) {
                     var tip = (r.type === 'folder' ? L('rb.files_inside', 'Files inside: {n}', { n: r.files }) : '') +
-                        (r.purge_at ? (r.type === 'folder' ? '
-' : '') + L('rb.purge_on', 'Deleted permanently on {date}', { date: fmtWhen(r.purge_at) }) : '');
+                        (r.purge_at ? (r.type === 'folder' ? ' - ' : '') + L('rb.purge_on', 'Deleted permanently on {date}', { date: fmtWhen(r.purge_at) }) : '');
                     return '<div class="fx-item" data-k="' + r.type + r.id + '" title="' + esc(tip) + '"><div class="fx-c fx-c-name"><span class="fx-ic">' +
                         (r.type === 'folder' ? FI.folder(18) : FI.file(r.name, 18)) + '</span><span class="fx-name">' + esc(r.name) + '</span></div>' +
                         '<div class="fx-c">' + esc(r.location || L('app.documents', 'Documents')) + '</div><div class="fx-c">' + esc(fmtWhen(r.deleted_at)) + '</div>' +
