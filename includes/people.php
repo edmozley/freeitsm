@@ -1615,7 +1615,7 @@ function peopleOrgDepartments(PDO $conn, int $analystId): array
  *  - left_with_reports: leavers who still have current people reporting to them.
  *  - no_source: people still flagged as imported whose source was deleted (#261).
  *    Nothing locks them any more (userManagedSql()), but somebody should decide
- *    whether to keep them - System -> Imported people, where that is done.
+ *    whether to keep them - Imported people, in System -> Maintenance, where that is done.
  *
  * @return array ['no_manager' => ['total', 'people'], 'left_with_reports' => ['total', 'people']]
  */

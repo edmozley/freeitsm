@@ -345,7 +345,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
 
         <?php
         // People whose source is gone (#261): said here only when there are some,
-        // with the way to System -> Imported people, where they are looked after.
+        // with the way to Imported people (System -> Maintenance), where they are looked after.
         require_once __DIR__ . '/../../includes/services/directory_maintenance.php';
         $orphanCount = 0;
         try {
@@ -752,6 +752,8 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
+    <?php /* The "what if" before a source is deleted (#261): DirectoryMaintenance.previewDelete(). */ ?>
+    <script src="../../assets/js/directory-maintenance.js?v=3"></script>
     <script>
     const API = '<?php echo $path_prefix; ?>api/';
     const MULTI_TENANT = <?php echo $ssoMultiTenant ? 'true' : 'false'; ?>;
@@ -1548,6 +1550,13 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         // them locked for good and nobody was told.
         const count = p ? (p.people_count || 0) : 0;
         let markLeft = false;
+        // The "what if" (#261): everything the delete would do, in full, with the
+        // keep / mark-as-left choice and a PDF - and Delete, so it is the question.
+        if (window.DirectoryMaintenance && window.HTMLDialogElement) {
+            const answer = await DirectoryMaintenance.previewDelete({ provider: id });
+            if (!answer) return;
+            return doDeleteProvider(id, answer.markLeft);
+        }
         const ok = window.showConfirm
             ? await showConfirm({
                   title:    window.t('system.sso.delete'),
@@ -1559,6 +1568,10 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
               })
             : confirm(msg);
         if (!ok) return;
+        return doDeleteProvider(id, markLeft);
+    }
+
+    async function doDeleteProvider(id, markLeft) {
         try {
             const r = await fetch(API + 'system/delete_sso_provider.php', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },

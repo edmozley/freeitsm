@@ -7,9 +7,11 @@
  * people: 'left' - and nothing points at the source any more: see
  * DirectoryMaintenance::releaseSource() (issue #261).
  *
- * Linked rows in analyst_sso_identities are removed by the ON DELETE CASCADE
- * foreign key; any analyst whose auth_provider_id pointed here is reset to
- * local (ON DELETE SET NULL).
+ * Everything that names it goes with it - sign-in links, group mappings, imported
+ * groups, the CardDAV write log - removed here rather than left to foreign keys a
+ * verified install does not have; analysts and teams that signed in with it are
+ * reset. ?action=preview_delete on api/system/directory_maintenance.php lists all
+ * of it first.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -60,6 +62,20 @@ try {
         $conn->prepare("DELETE FROM directory_groups WHERE provider_id = ?")->execute([$id]);
     } catch (Throwable $e) {
         error_log('[sso] directory group cleanup skipped: ' . $e->getMessage());
+    }
+
+    // Sign-in links, group -> team mappings and the groups seen at sign-in: the
+    // same reasoning as the write log - the foreign keys that would remove them
+    // are missing on a verified install, and the preview (#261) says they go.
+    foreach (["DELETE FROM user_sso_identities WHERE provider_id = ?",
+              "DELETE FROM analyst_sso_identities WHERE provider_id = ?",
+              "DELETE FROM sso_group_teams WHERE provider_id = ?",
+              "DELETE FROM sso_groups_seen WHERE provider_id = ?"] as $sql) {
+        try {
+            $conn->prepare($sql)->execute([$id]);
+        } catch (Throwable $e) {
+            error_log('[sso] cleanup skipped: ' . $e->getMessage());
+        }
     }
 
     // Its people first, while the row still says who they belong to: kept as

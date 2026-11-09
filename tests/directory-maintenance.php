@@ -16,6 +16,9 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *
  * Everything happens inside a transaction that is ALWAYS rolled back.
  *
+ * The "what if" previews are checked against the writes they describe: who they
+ * list, what they say happens to each, and that they change nothing.
+ *
  * Controls: a person whose source still exists stays managed and stays out of
  * the orphan list, an analyst limited to one company sees nobody from the other,
  * and Remove imports nothing it was not asked to - so a person missing from a
@@ -182,6 +185,23 @@ try {
     check('refused while the source imports: the next run would create them again',
         refused(fn() => DirectoryMaintenance::apply($conn, $actor, 'imported', 'remove', [$created], ['provider_id' => $src2])) === 'source_imports'
         && $row($created) !== null);
+    echo "What if: Remove imported people\n";
+    $pv = DirectoryMaintenance::previewRemove($conn, $actor, $src2, $run, null);
+    $by = array_column($pv['people'], null, 'id');
+    check('lists the same people as Remove would act on, never the adopted one', isset($by[$created], $by[$createdTicket]) && !isset($by[$adopted]), json_encode(array_keys($by)));
+    check('the created one would be deleted, with their sign-in link', ($by[$created]['outcome'] ?? '') === 'removed' && ($by[$created]['signins'] ?? 0) === 1, json_encode($by[$created] ?? null));
+    check('the one with a ticket would be skipped, and it says why', ($by[$createdTicket]['outcome'] ?? '') === 'skipped' && str_contains((string)($by[$createdTicket]['reason'] ?? ''), 'ticket'));
+    check('...and that the source still imports', $pv['source_imports'] === true);
+    $pick = DirectoryMaintenance::previewRemove($conn, $actor, $src2, null, [$created, $adopted]);
+    check('for the ones picked: only those of them in the list', array_column($pick['people'], 'id') === [$created], json_encode(array_column($pick['people'], 'id')));
+    $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, is_admin, can_access_all_tenants, can_access_all_modules)
+                    VALUES (?, 'x', ?, ?, 1, 1, 0, 1)")->execute(["$tag-b", "$tag-b", "$tag-b@example.invalid"]);
+    $onlyB = (int)$conn->lastInsertId();
+    $conn->prepare("INSERT INTO analyst_tenant_access (analyst_id, tenant_id) VALUES (?, ?)")->execute([$onlyB, $b]);
+    check('an analyst who can access only another company sees none of them',
+        DirectoryMaintenance::previewRemove($conn, new ActorContext($onlyB, [$b], 'ui'), $src2, null, null)['people'] === []);
+    check('a preview changes nothing', $row($created) !== null && $managed($created));
+
     $conn->prepare("UPDATE auth_providers SET sync_enabled = 0 WHERE id = ?")->execute([$src2]);
     $res = DirectoryMaintenance::apply($conn, $actor, 'imported', 'remove', [$created, $createdTicket, $adopted], ['provider_id' => $src2, 'run_id' => $run]);
     check('with its import off: the created person is removed', array_column($res['done'], 'id') === [$created] && $row($created) === null, json_encode($res));
@@ -196,6 +216,20 @@ try {
     $cur = $mk('Current', $src3, $a);
     $plain = $mk('Unflagged, linked', $src3, $a, false);
     check('the count the delete dialog shows', DirectoryMaintenance::sourcePeopleCount($conn, $src3) === 1);
+
+    echo "What if: deleting a source\n";
+    $conn->prepare("INSERT INTO user_sso_identities (user_id, provider_id, subject) VALUES (?, ?, ?)")->execute([$cur, $src3, "$tag-sub3"]);
+    $pv = DirectoryMaintenance::previewSourceDelete($conn, $src3, false);
+    check('lists its people, each kept as an ordinary person', $pv['people_total'] === 1 && array_column($pv['people'], 'outcome', 'id') === [$cur => 'kept'], json_encode($pv['people']));
+    check('says which fields unlock for them: all a directory locks (LDAP)', $pv['unlocks'] === USER_DIRECTORY_OWNED, json_encode($pv['unlocks']));
+    check('counts the people only linked to it, whose link goes', $pv['unlinked'] === 1);
+    $rec = array_column($pv['records'], null, 'key');
+    check('lists the sign-in links that go with it', ($rec['user_signins']['count'] ?? 0) === 1 && $rec['user_signins']['outcome'] === 'removed', json_encode($pv['records']));
+    check('says the scheduled import imports it now', $pv['schedule']['imports'] === true);
+    $pvl = DirectoryMaintenance::previewSourceDelete($conn, $src3, true);
+    check('with "mark them as left": the current ones are marked as left', array_column($pvl['people'], 'outcome', 'id') === [$cur => 'marked_left']);
+    check('a preview changes nothing', $managed($cur) && (int)$row($cur)['is_active'] === 1);
+    check('a provider that does not exist is refused', refused(fn() => DirectoryMaintenance::previewSourceDelete($conn, $gone, false)) === 'not_found');
     $released = DirectoryMaintenance::releaseSource($conn, $actor, $src3, "$tag To delete", false);
     $rc = $row($cur);
     check('keep: its people stay, current and editable, pointing at nothing', $released === 1 && (int)$rc['is_managed'] === 0 && $rc['auth_provider_id'] === null && (int)$rc['is_active'] === 1);

@@ -6,6 +6,10 @@
  *   GET  ?action=stale&provider=<id>&days=30|90|180|365   people a source has not returned for that long
  *   GET  ?action=runs&provider=<id>                       the runs of a source that created anybody
  *   GET  ?action=imported&provider=<id>[&run=<id>]        the people a source created, and still manages
+ *   GET  ?action=preview_delete&provider=<id>&people=keep|left
+ *                                                         what deleting a source would do (#261), changing nothing
+ *   GET  ?action=preview_remove&provider=<id>[&run=<id>][&ids=1,2,3]
+ *                                                         what Remove imported people would do, changing nothing
  *   POST { action: 'apply', list: orphans|stale|imported, do: keep|left|delete|remove,
  *          ids: [...], provider, days, run }               act on the ones picked, if still in that list
  *
@@ -52,6 +56,16 @@ try {
             break;
         case 'imported':
             echo json_encode(['success' => true] + DirectoryMaintenance::imported($conn, $actor, $num('provider'), $num('run') ?: null) + ['limit' => DirectoryMaintenance::LIMIT]);
+            break;
+        case 'preview_delete':
+            require_once '../../includes/entra_sync.php';   // entraIsEntraIssuer(): whether an OIDC source is Entra
+            echo json_encode(['success' => true, 'prepared_by' => $_SESSION['analyst_name'] ?? '',
+                'preview' => DirectoryMaintenance::previewSourceDelete($conn, $num('provider'), ($_GET['people'] ?? '') === 'left')]);
+            break;
+        case 'preview_remove':
+            $ids = is_scalar($_GET['ids'] ?? null) && (string)$_GET['ids'] !== '' ? explode(',', (string)$_GET['ids']) : null;
+            echo json_encode(['success' => true, 'prepared_by' => $_SESSION['analyst_name'] ?? '',
+                'preview' => DirectoryMaintenance::previewRemove($conn, $actor, $num('provider'), $num('run') ?: null, $ids)]);
             break;
         default:
             echo json_encode(['success' => false, 'error' => 'Unknown action.']);

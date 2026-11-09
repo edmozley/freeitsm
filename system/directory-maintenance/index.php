@@ -3,8 +3,8 @@
  * System - Imported people (issue #261).
  *
  * The people a directory source (LDAP, CardDAV, Entra ID) imported, looked
- * after in one place, beside Orphaned tickets - and, once it exists, under
- * System -> Maintenance (#263):
+ * after in one place: a tool in System -> Maintenance (#263), beside Orphaned
+ * tickets:
  *
  *  - people whose source was deleted, from every source;
  *  - for one source, the people it no longer brings in, and Remove imported
@@ -57,6 +57,8 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=79">
     <style>
         /* System module accent (blue-grey), as on Orphaned tickets. */
+        .dmp-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
+        .dmp-back:hover { text-decoration: underline; }
         body {
             --accent: var(--sys-accent, #546e7a);
             --accent-hover: var(--sys-accent-hover, #37474f);
@@ -83,6 +85,7 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
     <?php include '../includes/header.php'; ?>
 
     <div class="dmp-wrap">
+        <a class="dmp-back" href="../maintenance/">&larr; <?php echo htmlspecialchars(t('system.maintenance.back')); ?></a>
         <h2><?php echo $e('maint_page_title'); ?></h2>
         <p class="dmp-sub"><?php echo $e('maint_page_sub'); ?></p>
 
@@ -119,7 +122,7 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <script src="../../assets/js/directory-maintenance.js?v=2"></script>
+    <script src="../../assets/js/directory-maintenance.js?v=3"></script>
     <script>
     DirectoryMaintenance.mount(document.getElementById('dmOrphans'), { kind: 'orphans' });
     // One source at a time; the address keeps it, so a reload or a link opens on it.

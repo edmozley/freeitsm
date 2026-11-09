@@ -612,8 +612,10 @@ function getHelpTopics() {
                 ['id' => 'orphans',  'label' => 'Source deleted'],
                 ['id' => 'stale',    'label' => 'No longer brought in'],
                 ['id' => 'remove',   'label' => 'Remove imported people'],
+                ['id' => 'whatif',   'label' => 'What if: the full effect first'],
             ],
-            'terms' => 'orphaned people users imported directory ldap carddav entra source deleted removed missing stale leavers undo import remove cleanup maintenance',
+            'terms' => 'orphaned people users imported directory ldap carddav entra source deleted removed missing stale leavers undo import remove cleanup maintenance'
+                     . ' preview what if report pdf before deleting',
         ],
         'email-routing-test' => [
             'hero' => 'Email routing test',
