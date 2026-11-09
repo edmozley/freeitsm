@@ -399,7 +399,7 @@ $translationNamespaces = ['common', 'change-management'];
                 <h2><?php echo htmlspecialchars(t('change-management.settings.impacts_heading')); ?></h2>
                 <button class="add-btn" onclick="openLookupModal('impact')"><?php echo htmlspecialchars(t('change-management.settings.add')); ?></button>
             </div>
-            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('change-management.settings.impacts_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('change-management.settings.impacts_scope_intro')); ?></p>
             <table class="lookup-table">
                 <thead><tr><th><?php echo htmlspecialchars(t('change-management.settings.col_name')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_colour')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_default')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_order')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_status')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_actions')); ?></th></tr></thead>
                 <tbody id="impacts-list"><tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('change-management.settings.loading')); ?></td></tr></tbody>
