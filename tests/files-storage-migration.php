@@ -15,7 +15,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * which driver is on either side, and S3 is covered by tests/storage-s3-live.php.
  * Everything runs inside ONE transaction that is rolled back.
  *
- * Run: php tests/files-storage-migration.php
+ * Run: FREEITSM_TEST_DATABASE=<db> php tests/files-storage-migration.php
  */
 
 $root = dirname(__DIR__);
@@ -53,6 +53,11 @@ function queue(PDO $conn, string $key, int $size, ?string $sha): void {
 
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$dbName = (string)$conn->query('SELECT DATABASE()')->fetchColumn();
+if (getenv('FREEITSM_TEST_DATABASE') !== $dbName) {
+    echo "SKIPPED: set FREEITSM_TEST_DATABASE to the database this may write to (this one is $dbName).\n";
+    exit(0);
+}
 
 echo "\nFiles storage migration\n" . str_repeat('=', 72) . "\n";
 $new = sys_get_temp_dir() . '/zz-new-' . bin2hex(random_bytes(4));

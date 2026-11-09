@@ -16,7 +16,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * Everything runs inside ONE transaction that is rolled back, settings rows
  * included. Bytes go to two temporary folders that are removed at the end.
  *
- * Run: php tests/files-storage-backend.php
+ * Run: FREEITSM_TEST_DATABASE=<db> php tests/files-storage-backend.php
  */
 
 $root = dirname(__DIR__);
@@ -46,6 +46,11 @@ function rmTree(string $d): void {
 
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$dbName = (string)$conn->query('SELECT DATABASE()')->fetchColumn();
+if (getenv('FREEITSM_TEST_DATABASE') !== $dbName) {
+    echo "SKIPPED: set FREEITSM_TEST_DATABASE to the database this may write to (this one is $dbName).\n";
+    exit(0);
+}
 
 echo "\nFiles storage backend\n" . str_repeat('=', 72) . "\n";
 $a = sys_get_temp_dir() . '/zz-active-' . bin2hex(random_bytes(4));

@@ -90,8 +90,9 @@ final class FilesStorageService
             ],
             'migration'      => self::migrationSummary($conn),
             // A move only progresses when background jobs run; without the scheduler it
-            // would sit at "0 of N" with no hint why.
-            'scheduler_running' => (function () use ($conn) { try { return jobSchedulerRunning($conn); } catch (Throwable) { return false; } })(),
+            // would sit at "0 of N" with no hint why. null = could not tell (a failed
+            // lookup is not a "no": the page then says nothing rather than something false).
+            'scheduler_running' => (function () use ($conn) { try { return jobSchedulerRunning($conn); } catch (Throwable) { return null; } })(),
         ];
         return $out;
     }

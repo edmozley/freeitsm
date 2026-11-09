@@ -158,7 +158,7 @@ try {
 } catch (Throwable $e) {
     ok('no unexpected error', false, get_class($e) . ': ' . $e->getMessage());
 } finally {
-    foreach ($made as $k) { try { $d->delete($k); } catch (Throwable) {} }
+    foreach ($made as $k) { try { $d->delete($k); } catch (Throwable $ignored) {} }
     @unlink($tmp);
 }
 

@@ -16,7 +16,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * use FREEITSM_TEST_S3_* (see tests/storage-s3-live.php) and are skipped
  * without them.
  *
- * Run: php tests/files-storage-settings.php
+ * Run: FREEITSM_TEST_DATABASE=<db> php tests/files-storage-settings.php
  */
 
 $root = dirname(__DIR__);
@@ -41,6 +41,11 @@ function threw(callable $fn): ?Throwable { try { $fn(); return null; } catch (Th
 
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$dbName = (string)$conn->query('SELECT DATABASE()')->fetchColumn();
+if (getenv('FREEITSM_TEST_DATABASE') !== $dbName) {
+    echo "SKIPPED: set FREEITSM_TEST_DATABASE to the database this may write to (this one is $dbName).\n";
+    exit(0);
+}
 $analystId = (int)$conn->query("SELECT id FROM analysts ORDER BY id LIMIT 1")->fetchColumn();
 $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';
 $s3 = ['endpoint' => $ep, 'region' => 'us-east-1', 'bucket' => getenv('FREEITSM_TEST_S3_BUCKET') ?: '',

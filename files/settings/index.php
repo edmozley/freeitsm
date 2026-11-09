@@ -143,13 +143,13 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
             </div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('max_upload'); ?></div><div class="desc"><?php echo $tt('max_upload_desc'); ?></div></div>
                 <div><input type="number" id="stoMax" min="1" style="width:160px"> MB<div class="dflt"><?php echo $tt('max_upload_default'); ?></div></div></div>
-            <div class="set-box warn"><?php echo $tt('storage_move_warning'); ?></div>
+            <div class="set-box warn"><?php echo $tt('storage_move_note'); ?></div>
             <div class="set-actions"><button type="button" class="fil-btn primary" id="stoSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="stoMsg" style="font-size:13px"></span></div>
         </div>
         <?php endif; ?>
     </div>
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
-    <script src="../../assets/js/files-settings.js?v=3"></script>
+    <script src="../../assets/js/files-settings.js?v=4"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>
