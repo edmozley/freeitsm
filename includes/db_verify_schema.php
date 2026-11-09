@@ -7152,6 +7152,15 @@ return [
         'last_error'          => 'VARCHAR(500) NULL',
         'updated_datetime'    => 'DATETIME NULL',
     ],
+    // Files recycle bin: bytes whose deletion could not reach storage yet.
+    'files_purge_pending' => [
+        'id'                  => 'BIGINT NOT NULL AUTO_INCREMENT',
+        'storage_path'        => 'VARCHAR(255) NOT NULL',
+        'attempts'            => 'INT NOT NULL DEFAULT 0',
+        'last_error'          => 'VARCHAR(500) NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'    => 'DATETIME NULL',
+    ],
     // Starters & leavers (4.6.0) - see freeitsm.sql.
     'jml_templates' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',

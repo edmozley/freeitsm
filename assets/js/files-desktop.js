@@ -135,6 +135,7 @@
         open: svgIcon('<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>'),
         shortcut: svgIcon('<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 16c0-4.5 2.5-7 7-7M12 6l3 3-3 3"/>'),
         location: svgIcon('<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>'),
+        restore: svgIcon('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>'),
         chevron: '<svg viewBox="0 0 10 10" width="10" height="10"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'
     };
 
@@ -738,7 +739,9 @@
                 : L('ex.del_file_q', 'Delete "{name}"?', { name: sel[0].name }))
             : L('ex.del_many_q', 'Delete these {n} items?', { n: sel.length });
         WM.dialog({
-            title: L('ex.delete', 'Delete'), message: msg + '\n\n' + L('ex.del_note', 'The deletion is recorded in the audit trail. There is no recycle bin to restore from yet.'),
+            title: L('ex.delete', 'Delete'), message: msg + '\n\n' + (B.recycleDays > 0
+                ? L('ex.del_note_days', 'It goes to the recycle bin, where it can be restored until it is deleted permanently (days kept: {days}).', { days: B.recycleDays })
+                : L('ex.del_note_bin', 'It goes to the recycle bin, where it can be restored.')),
             buttons: [{ label: L('btn.delete', 'Delete'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }]
         }).then(function (ok) {
             if (!ok) return;
@@ -749,7 +752,8 @@
                     return api(e.type === 'folder' ? 'folder.php' : e.type === 'shortcut' ? 'shortcut.php' : 'item.php', { action: 'delete', id: e.id }).catch(fail);
                 });
             });
-            chain.then(function () { self.reload(); if (anyFolder) changed([]); });
+            // Always tell the bus: the Recycle bin window listens too.
+            chain.then(function () { self.reload(); changed(anyFolder ? [] : [self.folderId]); });
         });
     };
 
@@ -1812,20 +1816,231 @@
     }
 
     // ════════════════════════════════════════════════════════════════════════
+    //  THE RECYCLE BIN (api/files/recycle.php)
+    // ════════════════════════════════════════════════════════════════════════
+    /**
+     * Opens the Recycle bin: what the person deleted, or could see before it was
+     * deleted. Restore puts things back; Delete permanently and Empty recycle bin
+     * remove them and their stored bytes for good. Double-click a folder to see
+     * what is in it.
+     */
+    function openRecycle() {
+        var listener = null;
+        var w = WM.open({ kind: 'recycle', single: true, title: L('app.recycle', 'Recycle bin'), icon: FI.app('recycle', 16),
+                          width: 860, height: 480, geometry: geoFor('recycle'),
+                          /** Stops hearing about deletes once the window is closed. */
+                          onClose: function () { var i = explorers.indexOf(listener); if (i >= 0) explorers.splice(i, 1); } });
+        if (w.loaded) { w.reload(); return; }
+        w.loaded = true;
+        var rows = [], sel = {}, anchor = null, days = 0;
+        var b = w.body;
+        b.classList.add('fx', 'fd-rb');
+        b.innerHTML =
+            '<div class="fx-cmd">' +
+                '<button type="button" data-act="restore">' + IC.restore + '<span>' + esc(L('rb.restore', 'Restore')) + '</span></button>' +
+                '<button type="button" data-act="purge">' + IC.del + '<span>' + esc(L('rb.purge', 'Delete permanently')) + '</span></button>' +
+                '<span class="fx-cmd-sep"></span>' +
+                '<button type="button" data-act="empty">' + IC.del + '<span>' + esc(L('rb.empty', 'Empty recycle bin')) + '</span></button>' +
+                '<span class="fx-cmd-grow"></span>' +
+                '<button type="button" data-act="refresh" title="' + esc(L('ex.refresh', 'Refresh')) + '">' + IC.refresh + '</button>' +
+            '</div>' +
+            '<div class="fd-rb-note"></div>' +
+            '<div class="fx-pane" tabindex="0"><div class="fx-list fx-view-details"></div><div class="fx-empty" hidden></div></div>' +
+            '<div class="fx-status"><span class="fx-st-count"></span><span class="fx-st-sel"></span></div>';
+        var list = b.querySelector('.fx-list'), empty = b.querySelector('.fx-empty'), note = b.querySelector('.fd-rb-note');
+        var stCount = b.querySelector('.fx-st-count'), stSel = b.querySelector('.fx-st-sel');
+
+        /** The rows the person has selected. */
+        var selected = function () { return rows.filter(function (r) { return sel[r.type + r.id]; }); };
+        /** Greys out the commands that do not apply to the selection, and updates the status bar. */
+        var refreshCmds = function () {
+            var s = selected(), mod = s.length > 0 && s.every(function (r) { return r.can_modify; });
+            b.querySelector('[data-act="restore"]').disabled = !mod;
+            b.querySelector('[data-act="purge"]').disabled = !mod;
+            b.querySelector('[data-act="empty"]').disabled = !rows.some(function (r) { return r.can_modify; });
+            stCount.textContent = rows.length === 1 ? L('ex.count_one', '1 item') : L('ex.count', '{n} items', { n: rows.length });
+            stSel.textContent = s.length ? L('ex.selected', '{n} selected', { n: s.length }) : '';
+            list.querySelectorAll('.fx-item').forEach(function (n) { n.classList.toggle('fx-sel', !!sel[n.dataset.k]); });
+        };
+        /** Draws the list. */
+        var render = function () {
+            note.textContent = days > 0
+                ? L('rb.note_days', 'Items are deleted permanently once they have been here longer than the retention period (days kept: {days}).', { days: days })
+                : L('rb.note_forever', 'Items stay here until someone restores them or deletes them permanently.');
+            empty.hidden = rows.length > 0;
+            empty.textContent = L('rb.empty_bin', 'The recycle bin is empty.');
+            list.hidden = !rows.length;
+            list.innerHTML = rows.length ? '<div class="fx-dhead"><button type="button">' + esc(L('col.name', 'Name')) + '</button><button type="button">' +
+                esc(L('rb.col_location', 'Original location')) + '</button><button type="button">' + esc(L('rb.col_deleted', 'Date deleted')) +
+                '</button><button type="button">' + esc(L('rb.col_by', 'Deleted by')) + '</button><button type="button">' + esc(L('col.size', 'Size')) + '</button></div>' +
+                rows.map(function (r) {
+                    var tip = (r.type === 'folder' ? L('rb.files_inside', 'Files inside: {n}', { n: r.files }) : '') +
+                        (r.purge_at ? (r.type === 'folder' ? '
+' : '') + L('rb.purge_on', 'Deleted permanently on {date}', { date: fmtWhen(r.purge_at) }) : '');
+                    return '<div class="fx-item" data-k="' + r.type + r.id + '" title="' + esc(tip) + '"><div class="fx-c fx-c-name"><span class="fx-ic">' +
+                        (r.type === 'folder' ? FI.folder(18) : FI.file(r.name, 18)) + '</span><span class="fx-name">' + esc(r.name) + '</span></div>' +
+                        '<div class="fx-c">' + esc(r.location || L('app.documents', 'Documents')) + '</div><div class="fx-c">' + esc(fmtWhen(r.deleted_at)) + '</div>' +
+                        '<div class="fx-c">' + esc(r.deleted_by_name || '') + '</div><div class="fx-c fx-c-size">' +
+                        esc(fmtSize(r.size)) + '</div></div>';
+                }).join('') : '';
+            refreshCmds();
+        };
+        /** Fetches the bin again, keeping the selection where the rows still exist. */
+        var reload = function () {
+            return api('recycle.php').then(function (r) {
+                rows = r.entries; days = r.days;
+                var keep = {};
+                rows.forEach(function (x) { if (sel[x.type + x.id]) keep[x.type + x.id] = true; });
+                sel = keep;
+                render();
+            }).catch(fail);
+        };
+        w.reload = reload;
+        // Deletes and restores elsewhere refresh this window (the Explorer change bus).
+        listener = { onChanged: function () { reload(); }, markCut: function () {} };
+        explorers.push(listener);
+
+        /**
+         * Restores the rows one by one. When one was in a folder that is in the bin
+         * too, offers to restore that folder first (api() would drop the reply's
+         * restore_first, so this one call is made by hand).
+         */
+        var restore = function (todo) {
+            var chain = Promise.resolve(), touched = 0;
+            todo.forEach(function (r) {
+                chain = chain.then(function () {
+                    return fetch(B.api + 'recycle.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                                                          body: JSON.stringify({ action: 'restore', type: r.type, id: r.id }) })
+                        .then(function (res) { return res.json(); })
+                        .then(function (j) {
+                            if (j.success) {
+                                touched++;
+                                if (j.renamed) WM.notify(L('rb.restored_as', '"{name}" was restored as "{new}" - the name was taken.', { name: r.name, 'new': j.name }));
+                                return;
+                            }
+                            if (!j.restore_first) { WM.notify(j.error || L('err.generic', 'Something went wrong.'), 'error'); return; }
+                            return WM.dialog({ title: L('rb.restore', 'Restore'), message: j.error,
+                                buttons: [{ label: L('rb.restore_folder', 'Restore "{name}"', { name: j.restore_first.name }), value: true, primary: true },
+                                          { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
+                                .then(function (ok) {
+                                    if (!ok) return;
+                                    return restore([{ type: 'folder', id: j.restore_first.id, name: j.restore_first.name }]).then(function () { return restore([r]); });
+                                });
+                        }, fail);
+                });
+            });
+            return chain.then(function () { if (touched) changed([]); else reload(); });
+        };
+        /** Asks, then deletes the rows for good. */
+        var purge = function (todo) {
+            if (!todo.length) return;
+            var msg = todo.length === 1
+                ? (todo[0].type === 'folder'
+                    ? L('rb.purge_folder_q', 'Permanently delete the folder "{name}" and everything in it?', { name: todo[0].name })
+                    : L('rb.purge_file_q', 'Permanently delete "{name}"?', { name: todo[0].name }))
+                : L('rb.purge_many_q', 'Permanently delete these {n} items?', { n: todo.length });
+            WM.dialog({ title: L('rb.purge', 'Delete permanently'), message: msg + '\n\n' + L('rb.purge_note', 'This cannot be undone. The stored files are removed too.'),
+                buttons: [{ label: L('rb.purge', 'Delete permanently'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
+                .then(function (ok) {
+                    if (!ok) return;
+                    var chain = Promise.resolve();
+                    todo.forEach(function (r) { chain = chain.then(function () { return api('recycle.php', { action: 'purge', type: r.type, id: r.id }).catch(fail); }); });
+                    chain.then(reload);
+                });
+        };
+        /** Asks, then empties everything in the bin the person may delete. */
+        var emptyBin = function () {
+            var mine = rows.filter(function (r) { return r.can_modify; });
+            WM.dialog({ title: L('rb.empty', 'Empty recycle bin'),
+                message: L('rb.empty_q', 'Permanently delete everything in the recycle bin? (Items: {n})', { n: mine.length }) +
+                    (mine.length < rows.length ? '\n\n' + L('rb.empty_some', 'Items you can see but not change stay in the bin.') : '') +
+                    '\n\n' + L('rb.purge_note', 'This cannot be undone. The stored files are removed too.'),
+                buttons: [{ label: L('rb.empty', 'Empty recycle bin'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
+                .then(function (ok) { if (ok) api('recycle.php', { action: 'empty' }).then(reload).catch(fail); });
+        };
+        /** Shows what is inside a deleted folder - nothing can be opened from here. */
+        var peek = function (r) {
+            var v = WM.open({ kind: 'rbpeek', key: 'rb' + r.id, single: true, title: r.name, icon: FI.folder(16), width: 620, height: 400, geometry: geoFor('rbpeek') });
+            v.body.classList.add('fd-scroll');
+            v.body.innerHTML = '<div class="fd-pad fd-muted">' + esc(L('loading', 'Loading...')) + '</div>';
+            api('recycle.php?folder=' + r.id).then(function (c) {
+                if (!c.files.length) { v.body.innerHTML = '<div class="fd-pad fd-muted">' + esc(L('ex.empty_folder', 'This folder is empty.')) + '</div>'; return; }
+                v.body.innerHTML = '<div class="fd-rb-note">' + esc(L('rb.peek_note', 'This folder is in the recycle bin. Restore it to open these files.')) + '</div>' +
+                    '<div class="fx-list fx-view-details fd-results"><div class="fx-dhead"><button type="button">' + esc(L('col.name', 'Name')) + '</button><button type="button">' +
+                    esc(L('props.location', 'Location')) + '</button><button type="button"></button><button type="button">' + esc(L('col.size', 'Size')) + '</button></div>' +
+                    c.files.map(function (f) {
+                        return '<div class="fx-item"><div class="fx-c fx-c-name"><span class="fx-ic">' + FI.file(f.name, 18) + '</span><span class="fx-name">' + esc(f.name) +
+                            '</span></div><div class="fx-c">' + esc(f.path ? r.name + ' / ' + f.path : r.name) + '</div><div class="fx-c"></div><div class="fx-c fx-c-size">' + esc(fmtSize(f.size)) + '</div></div>';
+                    }).join('') + '</div>';
+            }).catch(function (e) { v.body.innerHTML = '<div class="fd-pad">' + esc(e.message) + '</div>'; });
+        };
+
+        b.querySelector('.fx-cmd').addEventListener('click', function (ev) {
+            var btn = ev.target.closest('[data-act]');
+            if (!btn || btn.disabled) return;
+            var a = btn.dataset.act;
+            if (a === 'restore') restore(selected());
+            else if (a === 'purge') purge(selected());
+            else if (a === 'empty') emptyBin();
+            else reload();
+        });
+        list.addEventListener('click', function (ev) {
+            var n = ev.target.closest('.fx-item');
+            if (!n) { sel = {}; refreshCmds(); return; }
+            var k = n.dataset.k;
+            if (ev.shiftKey && anchor) {
+                var keys = rows.map(function (r) { return r.type + r.id; }), i = keys.indexOf(anchor), j = keys.indexOf(k);
+                if (!(ev.ctrlKey || ev.metaKey)) sel = {};
+                keys.slice(Math.min(i, j), Math.max(i, j) + 1).forEach(function (x) { sel[x] = true; });
+            } else if (ev.ctrlKey || ev.metaKey) {
+                if (sel[k]) delete sel[k]; else sel[k] = true;
+                anchor = k;
+            } else {
+                sel = {}; sel[k] = true; anchor = k;
+            }
+            refreshCmds();
+        });
+        list.addEventListener('dblclick', function (ev) {
+            var n = ev.target.closest('.fx-item');
+            var r = n && rows.filter(function (x) { return x.type + x.id === n.dataset.k; })[0];
+            if (r && r.type === 'folder') peek(r);
+        });
+        list.addEventListener('contextmenu', function (ev) {
+            var n = ev.target.closest('.fx-item');
+            if (!n) return;
+            ev.preventDefault();
+            if (!sel[n.dataset.k]) { sel = {}; sel[n.dataset.k] = true; anchor = n.dataset.k; refreshCmds(); }
+            var s = selected(), mod = s.every(function (r) { return r.can_modify; });
+            WM.menu(ev.clientX, ev.clientY, [
+                s.length === 1 && s[0].type === 'folder' ? { label: L('rb.look_inside', 'Look inside'), icon: IC.open, action: function () { peek(s[0]); } } : null,
+                { label: L('rb.restore', 'Restore'), icon: IC.restore, action: function () { restore(s); }, disabled: !mod },
+                { label: L('rb.purge', 'Delete permanently'), icon: IC.del, action: function () { purge(s); }, disabled: !mod }
+            ]);
+        });
+        b.querySelector('.fx-pane').addEventListener('keydown', function (ev) {
+            var s = selected().filter(function (r) { return r.can_modify; });
+            if (ev.key === 'Delete' && s.length) { ev.preventDefault(); purge(s); }
+        });
+        reload();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
     //  THE DESKTOP AND THE START MENU
     // ════════════════════════════════════════════════════════════════════════
     var APPS = [
         { key: 'documents', label: function () { return L('app.documents', 'Documents'); }, run: function () { new Explorer(0); } },
         { key: 'recent', label: function () { return L('app.recent', 'Recent'); }, run: openRecent },
         { key: 'search', label: function () { return L('app.search', 'Search'); }, run: openSearch },
+        { key: 'recycle', label: function () { return L('app.recycle', 'Recycle bin'); }, run: openRecycle },
         { key: 'transfers', label: function () { return L('app.transfers', 'Transfers'); }, run: function () { Uploads.open(); } },
         { key: 'personalise', label: function () { return L('app.personalise', 'Personalise'); }, run: openPersonalise },
         { key: 'help', label: function () { return L('app.help', 'Help'); }, run: openHelp }
     ];
-    if (B.caps.folders || B.caps.storage) {
+    var anySettings = B.caps.folders || B.caps.storage || B.caps.recycle;
+    if (anySettings) {
         APPS.push({ key: 'settings', label: function () { return L('app.settings', 'Settings'); }, run: function () { location.href = B.urls.settings; } });
     }
-    var DESKTOP_ICONS = ['documents', 'recent', 'search', 'help'].concat(B.caps.folders || B.caps.storage ? ['settings'] : []);
+    var DESKTOP_ICONS = ['documents', 'recent', 'search', 'recycle', 'help'].concat(anySettings ? ['settings'] : []);
     /** Returns the app (Documents, Recent, Search...) with this key. */
     function appByKey(k) { return APPS.filter(function (a) { return a.key === k; })[0]; }
 

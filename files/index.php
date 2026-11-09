@@ -20,6 +20,7 @@ require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
 require_once '../includes/rbac.php';
 require_once '../includes/files/storage.php';
+require_once '../includes/services/files_recycle.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -38,6 +39,8 @@ $hasCap = function (Cap $cap) use ($conn, $me): bool {
 };
 $capFolders = $hasCap(Cap::FILES_FOLDERS);
 $capStorage = $hasCap(Cap::FILES_STORAGE);
+$capRecycle = $hasCap(Cap::FILES_RECYCLE);
+$recycleDays = FilesRecycleService::retentionDays($conn);   // null = never set: nothing is purged
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -53,7 +56,7 @@ $capStorage = $hasCap(Cap::FILES_STORAGE);
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
-    <link rel="stylesheet" href="../assets/css/files.css?v=13">
+    <link rel="stylesheet" href="../assets/css/files.css?v=14">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
 </head>
 <body class="fd-body" data-navbar="<?php echo htmlspecialchars($prefs['navbar']); ?>" data-mobile-module="files" data-mobile-page="files-desktop">
@@ -103,7 +106,8 @@ $capStorage = $hasCap(Cap::FILES_STORAGE);
         'me'         => ['id' => $me, 'name' => $_SESSION['analyst_name'] ?? ''],
         'prefs'      => $prefs,
         'logo'       => $logo,
-        'caps'       => ['folders' => $capFolders, 'storage' => $capStorage, 'knowledge' => analystCanAccessModule($conn, $me, 'knowledge')],
+        'caps'       => ['folders' => $capFolders, 'storage' => $capStorage, 'recycle' => $capRecycle, 'knowledge' => analystCanAccessModule($conn, $me, 'knowledge')],
+        'recycleDays' => $recycleDays ?: 0,
         'chunk'      => FILES_CHUNK_BYTES,
         'maxUpload'  => filesMaxUploadBytes($conn),
         'modules'    => $startModules,
@@ -116,11 +120,11 @@ $capStorage = $hasCap(Cap::FILES_STORAGE);
     ];
     ?>
     <script>window.FILES_BOOT = <?php echo json_encode($boot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/files-icons.js?v=3"></script>
+    <script src="../assets/js/files-icons.js?v=4"></script>
     <script src="../assets/js/float-window.js?v=2"></script>
     <script src="../assets/js/files-wm.js?v=5"></script>
     <script src="../assets/js/files-viewer.js?v=10"></script>
-    <script src="../assets/js/files-desktop.js?v=15"></script>
+    <script src="../assets/js/files-desktop.js?v=16"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

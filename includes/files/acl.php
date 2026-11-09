@@ -49,12 +49,18 @@ final class FilesAcl
     private static $tree = null;
     /** @var array<int, array<int,int>> analystId => [folderId => level] */
     private static $levels = [];
+    /** @var array|null every folder, deleted ones too (the recycle bin's view) */
+    private static $all = null;
+    /** @var array<int, array<int,int>> analystId => [folderId => level] over $all */
+    private static $levelsAll = [];
 
     /** Forget everything cached - call after changing folders or grants. */
     public static function reset(): void
     {
         self::$tree = null;
         self::$levels = [];
+        self::$all = null;
+        self::$levelsAll = [];
     }
 
     /**
@@ -149,6 +155,90 @@ final class FilesAcl
         // Nothing granted anywhere: the common case for most people, and free.
         if (!$own) return self::$levels[$analystId] = [];
 
+        return self::$levels[$analystId] = self::resolve($tree, $own);
+    }
+
+    /**
+     * Every folder, deleted ones included, keyed by id - with 'deleted' (its own
+     * row is deleted) and 'live' (it and every folder above it are live). ONLY for
+     * the recycle bin: everything else must use tree(), where a deleted folder
+     * does not exist.
+     */
+    public static function allFolders(PDO $conn): array
+    {
+        if (self::$all === null) {
+            $tree = self::tree($conn);
+            self::$all = [];
+            $rows = $conn->query("SELECT id, parent_id, name, inherit_permissions, deleted_by, deleted_datetime FROM files_folders")
+                         ->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($rows as $r) {
+                $id = (int)$r['id'];
+                self::$all[$id] = [
+                    'id'         => $id,
+                    'parent_id'  => $r['parent_id'] !== null ? (int)$r['parent_id'] : null,
+                    'name'       => $r['name'],
+                    'inherit'    => (int)$r['inherit_permissions'],
+                    'deleted'    => $r['deleted_datetime'] !== null,
+                    'deleted_at' => $r['deleted_datetime'],
+                    'deleted_by' => $r['deleted_by'] !== null ? (int)$r['deleted_by'] : null,
+                    'live'       => isset($tree[$id]),
+                ];
+            }
+        }
+        return self::$all;
+    }
+
+    /**
+     * Like levels(), but over every folder INCLUDING deleted ones: what this
+     * person could do to a folder as it was before it was deleted. Only the
+     * recycle bin may use this - a deleted folder is otherwise "not found".
+     */
+    public static function levelsIncludingDeleted(PDO $conn, int $analystId): array
+    {
+        if (isset(self::$levelsAll[$analystId])) return self::$levelsAll[$analystId];
+        $teams = self::teamIds($conn, $analystId);
+        $sql = "SELECT folder_id, MAX(level) FROM files_permissions WHERE (principal_type = 'analyst' AND principal_id = ?)";
+        $args = [$analystId];
+        if ($teams) {
+            $sql .= " OR (principal_type = 'team' AND principal_id IN (" . implode(',', array_fill(0, count($teams), '?')) . "))";
+            $args = array_merge($args, $teams);
+        }
+        $st = $conn->prepare($sql . " GROUP BY folder_id");
+        $st->execute($args);
+        $own = [];
+        foreach ($st->fetchAll(PDO::FETCH_NUM) as [$fid, $lvl]) $own[(int)$fid] = (int)$lvl;
+        if (!$own) return self::$levelsAll[$analystId] = [];
+        return self::$levelsAll[$analystId] = self::resolve(self::allFolders($conn), $own);
+    }
+
+    /**
+     * "Finance / Invoices" for any folder, deleted or not - the recycle bin's
+     * "original location". path() is the one for everything else.
+     *
+     * @param ?int $folderId  the files_folders id; null (the top level) gives ''
+     */
+    public static function pathIncludingDeleted(PDO $conn, ?int $folderId): string
+    {
+        if ($folderId === null) return '';
+        $all = self::allFolders($conn);
+        $parts = [];
+        $guard = 0;
+        $f = $all[$folderId] ?? null;
+        while ($f && $guard++ < 200) {
+            array_unshift($parts, $f['name']);
+            $f = $f['parent_id'] !== null ? ($all[$f['parent_id']] ?? null) : null;
+        }
+        return implode(' / ', $parts);
+    }
+
+    /**
+     * Each folder's level from the direct grants in $own, following inheritance up $tree.
+     *
+     * @param array $tree  folders keyed by id (needs parent_id and inherit)
+     * @param array $own   [folderId => best level granted directly there]
+     */
+    private static function resolve(array $tree, array $own): array
+    {
         $memo = [];
         $resolve = function (int $fid) use (&$resolve, &$memo, $tree, $own): int {
             if (isset($memo[$fid])) return $memo[$fid];
@@ -167,7 +257,7 @@ final class FilesAcl
             $l = $resolve($fid);
             if ($l > 0) $out[$fid] = $l;
         }
-        return self::$levels[$analystId] = $out;
+        return $out;
     }
 
     /**

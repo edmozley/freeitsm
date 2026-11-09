@@ -270,7 +270,9 @@ enum Cap: string
     // the break-glass: it creates top-level folders and can TAKE OWNERSHIP of any
     // folder - give itself Full control, loudly audited - which is how an orphaned
     // folder is recovered. That makes it the most sensitive grant in the module.
-    // STORAGE moves where the bytes live on disk and caps upload size.
+    // STORAGE moves where the bytes live on disk and caps upload size. RECYCLE
+    // sets how long deleted files stay in the recycle bin before they are
+    // deleted for good - it never lets anyone see or restore a file.
     case FILES_MANAGE  = 'files.manage';    // umbrella
     case FILES_FOLDERS = 'files.folders';
     case FILES_STORAGE = 'files.storage';
@@ -280,6 +282,7 @@ enum Cap: string
     // SHARING decides how a file in Files is attached to a task or ticket - a link that
     // keeps Files' rules, or a copy everyone on the record can read: sensitive (GH #303).
     case FILES_SHARING = 'files.sharing';
+    case FILES_RECYCLE = 'files.recycle';
 
     // ---- Projects (3.2.0) --------------------------------------------------
     // GENERAL decides who may create and change projects - the module's own

@@ -457,6 +457,13 @@ body[data-navbar="auto"] .fd-navsensor { display: block; position: fixed; top: 0
 .fd-search-bar .fd-input { width: 100%; }
 .fd-search-out { flex: 1; }
 .fd-results { padding-top: 0; }
+/* Recycle bin: five columns (name, original location, date deleted, deleted by, size). */
+.fd-rb { display: flex; flex-direction: column; }
+.fd-rb .fx-pane { flex: 1; min-height: 0; }
+.fd-rb .fx-dhead, .fd-rb .fx-view-details .fx-item {
+    grid-template-columns: minmax(170px, 2.6fr) minmax(130px, 1.6fr) minmax(120px, 1.2fr) minmax(100px, 1fr) 120px;
+}
+.fd-rb-note { padding: 7px 12px; font-size: 12px; color: var(--text-muted); background: var(--surface-2); border-bottom: 1px solid var(--border-soft); }
 .fd-pers { padding: 6px 18px 12px; overflow: auto; }
 .fd-pers h4 { margin: 14px 0 8px; font-size: 12.5px; }
 .fd-swatches { display: flex; flex-wrap: wrap; gap: 8px; }

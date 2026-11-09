@@ -55,5 +55,12 @@ return [
             'grant'     => 'Choose how a file in Files is attached to a task, ticket or other record - as a link that keeps Files\' folder permissions, as a copy everyone on that record can read, or either',
             'sensitive' => true,   // Copy lets a file be read outside its folder's permissions
         ],
+        [
+            'id'        => 'recycle',
+            'cap'       => capKey(Cap::FILES_RECYCLE),
+            'label_key' => 'files.settings.tab_recycle',
+            'grant'     => 'Choose how long deleted files and folders stay in the recycle bin before they are deleted for good',
+            'sensitive' => true,   // a short period deletes files sooner
+        ],
     ],
 ];

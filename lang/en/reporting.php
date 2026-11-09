@@ -222,6 +222,8 @@ return [
         'affects_report_downloads_tidy' => 'Reports behind expired or revoked download links stay on disk',
         'name_storage_migrate'       => 'Files storage move',
         'affects_storage_migrate'    => 'Copying files to a new storage location (files not copied yet are read from the old one)',
+        'name_files_recycle_purge'   => 'Files recycle bin',
+        'affects_files_recycle_purge' => 'Deleting files for good once they have been in the recycle bin longer than the retention period',
         'name_lms_reminders'         => 'Training reminders',
         'affects_lms_reminders'      => 'LMS reminder emails',
         // GH #199: a pushed source - healthy when its collector's reports arrive on time.

@@ -10729,6 +10729,7 @@ CREATE TABLE IF NOT EXISTS `files_folders` (
     `deleted_datetime`      DATETIME NULL,                          -- set = in the recycle bin
     PRIMARY KEY (`id`),
     KEY `ix_files_folders_parent` (`parent_id`, `deleted_datetime`),
+    KEY `ix_files_folders_deleted` (`deleted_datetime`),
     CONSTRAINT `fk_files_folders_parent` FOREIGN KEY (`parent_id`) REFERENCES `files_folders` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -10747,6 +10748,7 @@ CREATE TABLE IF NOT EXISTS `files_items` (
     `deleted_datetime`      DATETIME NULL,
     PRIMARY KEY (`id`),
     KEY `ix_files_items_folder` (`folder_id`, `deleted_datetime`),
+    KEY `ix_files_items_deleted` (`deleted_datetime`),
     CONSTRAINT `fk_files_items_folder` FOREIGN KEY (`folder_id`) REFERENCES `files_folders` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -10864,6 +10866,20 @@ CREATE TABLE IF NOT EXISTS `storage_migration_items` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_storage_migration_key` (`store`, `object_key`),
     KEY `ix_storage_migration_state` (`store`, `state`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Stored bytes of permanently deleted Files whose deletion could not reach storage
+-- (S3 down). The rows that pointed at them are already gone; the
+-- files_recycle_purge job tries again. See includes/services/files_recycle.php.
+CREATE TABLE IF NOT EXISTS `files_purge_pending` (
+    `id`                    BIGINT NOT NULL AUTO_INCREMENT,
+    `storage_path`          VARCHAR(255) NOT NULL,                  -- yyyy/mm/dd/<hex>.bin
+    `attempts`              INT NOT NULL DEFAULT 0,
+    `last_error`            VARCHAR(500) NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_files_purge_pending_path` (`storage_path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 

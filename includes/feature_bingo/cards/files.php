@@ -80,6 +80,18 @@ return [
         'check'    => ['sql', "SELECT COUNT(*) FROM system_settings WHERE setting_key = 'files_storage_root' AND setting_value IS NOT NULL AND setting_value <> ''"],
     ],
     [
+        'id'       => 'files.recycle_bin',
+        'module'   => 'files',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'A recycle bin that empties itself',
+        'what'     => 'Files -> Settings -> Recycle bin saved with how long deleted files and folders are kept before they are deleted permanently.',
+        'why'      => 'Deleted files can be restored from the recycle bin, but they still take up storage. A retention period frees it without anyone having to remember.',
+        'done'     => 'The recycle bin retention has been saved.',
+        'link'     => 'files/settings/?tab=recycle',
+        'check'    => ['sql', "SELECT COUNT(*) FROM system_settings WHERE setting_key = 'files_recycle_bin_days' AND setting_value IS NOT NULL AND setting_value <> ''"],
+    ],
+    [
         'id'       => 'files.company_logo',
         'module'   => 'files',
         'tier'     => 'extra',

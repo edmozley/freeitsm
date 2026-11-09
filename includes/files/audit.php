@@ -21,7 +21,7 @@ require_once __DIR__ . '/acl.php';
 /** The actions the trail knows. Anything else is a programming error. */
 const FILES_AUDIT_ACTIONS = [
     'browse', 'search', 'view', 'download', 'upload', 'new_version',
-    'create_folder', 'rename', 'move', 'copy', 'delete',
+    'create_folder', 'rename', 'move', 'copy', 'delete', 'restore', 'purge',
     'permissions', 'inheritance', 'watermark', 'shortcut', 'take_ownership', 'denied', 'settings',
     'restore_version', 'delete_version', 'overwrite', 'attach',   // GH #303 - includes/services/files_versions.php
 ];
