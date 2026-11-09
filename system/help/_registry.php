@@ -540,6 +540,16 @@ function getHelpTopics() {
             ],
             'terms' => 'map overview tree structure relationships diagram graph audit review who has access mailbox domain',
         ],
+        'maintenance' => [
+            'hero' => 'Maintenance',
+            'sub'  => 'Data gets left behind: a department is deleted and its tickets keep pointing at it. Maintenance gathers the tools that find it and put it right, and says on each one how much it has found.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'tools',    'label' => 'The tools'],
+                ['id' => 'counts',   'label' => 'The counts'],
+            ],
+            'terms' => 'cleanup clean up tidy orphaned orphans left behind stale broken repair fix housekeeping',
+        ],
         'orphaned-tickets' => [
             'hero' => 'Orphaned tickets',
             'sub'  => 'Delete a department and its tickets do not vanish — they keep pointing at a department that no longer exists, which hides them from every queue. This page finds those tickets and puts them back somewhere real.',
@@ -593,7 +603,18 @@ function helpCards($multiTenant = false) {
     $topics = getHelpTopics();
     $cards  = [];
 
+    // A catalogue's tools (Maintenance, GH #263) have no System card of their own
+    // any more, but keep their help card - straight after the catalogue's.
+    $areas = [];
     foreach (getSystemAreas() as $area) {
+        $areas[] = $area;
+        if (($area['tools'] ?? '') === 'maintenance') {
+            require_once __DIR__ . '/../maintenance/includes/tools.php';
+            foreach (getMaintenanceTools() as $tool) $areas[] = $tool;
+        }
+    }
+
+    foreach ($areas as $area) {
         if (($area['requires'] ?? '') === 'multitenant' && !$multiTenant) continue;
 
         $slug = rtrim($area['url'], '/');

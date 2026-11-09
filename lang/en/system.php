@@ -102,6 +102,9 @@ return [
         'orphaned_title'    => 'Orphaned tickets',
         'orphaned_desc'     => 'Find tickets stuck in a deleted department and reassign them',
         'orphaned_keywords' => 'orphaned tickets department missing deleted hidden reassign fix stuck lost broken',
+        'maintenance_title'    => 'Maintenance',
+        'maintenance_desc'     => 'Find data left behind, such as tickets in a deleted department, and put it right',
+        'maintenance_keywords' => 'maintenance cleanup clean up tidy orphaned orphans left behind stale broken repair fix',
 
         'encryption_title'  => 'Encryption',
         'encryption_desc'   => 'Generate and manage the encryption key used to protect sensitive data such as API keys and credentials.',
@@ -892,6 +895,17 @@ return [
 
         'error'        => 'Error: {message}',
         'connect_fail' => 'Failed to connect: {message}',
+    ],
+
+    // Maintenance page (system/maintenance/index.php, GH #263)
+    'maintenance' => [
+        'heading'            => 'Maintenance',
+        'intro'              => 'Tools that find data left behind - a ticket in a department that was deleted, say - and put it right. Each card says how many items its tool has found.',
+        'search_placeholder' => 'Search maintenance tools...',
+        'no_results'         => 'No maintenance tool matches your search.',
+        'count_found'        => 'Found: {n}',
+        'count_none'         => 'Nothing found',
+        'back'               => 'Maintenance',
     ],
 
     // Debug tools page (system/debug-tools/index.php)

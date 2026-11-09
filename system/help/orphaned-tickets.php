@@ -16,6 +16,7 @@ require __DIR__ . '/_top.php';
         </div>
     </div>
     <p>That makes them <em>invisible</em>, which is what makes them dangerous. They aren't in any team's queue, because no team is linked to a department that doesn't exist. They aren't in the &ldquo;no department&rdquo; bucket either, because as far as the database is concerned they <em>do</em> have a department. They're simply gone from view — still open, still someone's problem, and nobody can see them.</p>
+    <p>You'll find it in <strong>System &rarr; Maintenance</strong>, with the other tools that tidy up data left behind; its card there says how many orphaned tickets there are right now.</p>
     <div class="help-note"><strong>This page is the safety net.</strong> It finds them and lets you put them back into a real department. If it says <strong>no orphaned tickets</strong>, there's nothing to do — that's the normal state, and worth a glance whenever you've been reorganising departments.</div>
 </div>
 

@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2766 | System | Feature | **System &rarr; Maintenance: the tools that find data left behind, in one place, each saying how much it has found** (GH #263). A catalogue like Debug tools (`system/maintenance/`, registry `system/maintenance/includes/tools.php`): a card per tool, a search box, and on each card the count of what the tool has found - *Found: 3* in amber, or *Nothing found* - from one cheap query per tool, run when the page opens; a count that cannot be asked (a table not made yet) shows nothing rather than failing the page. **Orphaned tickets** is its first tool: its System card is replaced by Maintenance, its page keeps its URL (`system/orphaned-tickets/`) with a link back, searching System for *orphaned* still finds the way to it (an area with `'tools' => 'maintenance'` adds its tools' words to the search), and its help card stays, after Maintenance's. Ready for *Imported people* (#261, PR #264). Help: System &rarr; Help &rarr; Maintenance. Test: `tests/system-maintenance.php`. |
 
 
 

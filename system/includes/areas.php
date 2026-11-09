@@ -279,12 +279,16 @@ function getSystemAreas() {
             'desc'     => 'system.landing.topology_desc',
             'keywords' => 'system.landing.topology_keywords',
         ],
+        // Maintenance (GH #263): the tools that find data left behind and put it
+        // right - Orphaned tickets first. 'tools' makes the System search find
+        // each tool by its own name too (systemAreaKeywords()).
         [
-            'icon'     => 'orphaned',
-            'url'      => 'orphaned-tickets/',
-            'title'    => 'system.landing.orphaned_title',
-            'desc'     => 'system.landing.orphaned_desc',
-            'keywords' => 'system.landing.orphaned_keywords',
+            'icon'     => 'maintenance',
+            'url'      => 'maintenance/',
+            'title'    => 'system.landing.maintenance_title',
+            'desc'     => 'system.landing.maintenance_desc',
+            'keywords' => 'system.landing.maintenance_keywords',
+            'tools'    => 'maintenance',
         ],
         [
             'icon'     => 'routing_test',
@@ -325,7 +329,11 @@ function getSystemAreas() {
  * an existing keywords string - changing existing English leaves every
  * translation of it silently out of date (CONTRIBUTING.md, rule 8).
  *
- * @param array $area  one entry of getSystemAreas()
+ * An area with 'tools' => 'maintenance' is a catalogue: each of its tools'
+ * title, description and keywords join in, so searching System for "orphaned"
+ * still finds the card that leads to Orphaned tickets.
+ *
+ * @param array $area  one entry of getSystemAreas(), or of getMaintenanceTools()
  */
 function systemAreaKeywords(array $area): string
 {
@@ -334,6 +342,14 @@ function systemAreaKeywords(array $area): string
         if (empty($area[$k])) continue;
         $kw = t($area[$k]);
         if ($kw !== $area[$k]) $out[] = $kw;
+    }
+    if (($area['tools'] ?? '') === 'maintenance') {
+        require_once __DIR__ . '/../maintenance/includes/tools.php';
+        foreach (getMaintenanceTools() as $tool) {
+            $out[] = t($tool['title']);
+            $out[] = t($tool['desc']);
+            $out[] = systemAreaKeywords($tool);
+        }
     }
     return implode(' ', $out);
 }
@@ -397,6 +413,8 @@ function systemAreaIcon($key) {
         // same star used inside the cards, so the tile is not just a smaller
         // copy of what it opens.
         'contributors' => '<circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>',
+        // A wrench: Maintenance.
+        'maintenance' => '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>',
         'orphaned'    => '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
         'search'      => '<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>',
     ];
