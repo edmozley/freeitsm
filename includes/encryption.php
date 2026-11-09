@@ -86,6 +86,7 @@ define('MASKED_SETTING_KEYS', [
     'knowledge_writeup_api_key',
     'warroom_ai_api_key',
     'projects_ai_api_key',
+    'files_s3_secret',
 ]);
 
 /**
