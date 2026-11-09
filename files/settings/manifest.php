@@ -38,7 +38,7 @@ return [
             'id'        => 'storage',
             'cap'       => capKey(Cap::FILES_STORAGE),
             'label_key' => 'files.settings.tab_storage',
-            'grant'     => 'Choose where files are stored on the server and the largest file that can be uploaded',
+            'grant'     => 'Choose where files are stored (a server folder or S3-compatible storage), move them between locations, and the largest file that can be uploaded',
             'sensitive' => true,   // moves every file's bytes
         ],
     ],

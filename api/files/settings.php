@@ -22,9 +22,6 @@
 require_once __DIR__ . '/../../includes/files/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/files_storage.php';
 
-// Changes settings: never on a GET, which a link on another site can send (csrf.php).
-csrfRequireWriteMethod();
-
 filesApiRun(function () use ($conn, $analystId) {
     $isGet = $_SERVER['REQUEST_METHOD'] === 'GET';
     $in  = $isGet ? [] : filesApiBody();

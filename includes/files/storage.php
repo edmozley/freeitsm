@@ -13,6 +13,12 @@
  * and the generated .htaccess/web.config deny it). Files -> Settings -> Storage
  * can move it anywhere the web server can write - ideally outside the web root.
  * On Docker it is the `files` volume.
+ *
+ * Or the bytes live in S3-compatible storage instead (files_storage_driver =
+ * 's3'): every read and write goes through a StorageDriver (includes/storage/),
+ * chosen by filesActiveStore() / filesStoreFor(). The local root is then only
+ * where uploads are assembled (_incoming/). Changing location moves the files in
+ * the background - see includes/services/files_storage.php.
  */
 
 require_once __DIR__ . '/../uploads.php';
@@ -127,7 +133,7 @@ function filesStoreFor(PDO $conn, string $key): StorageDriver
 /** What a person is told when the store cannot be reached. */
 function filesStoreUnavailableMessage(): string
 {
-    $key = 'files.errors.storage_unavailable';
+    $key = 'files.err.storage_unavailable';
     $s = function_exists('t') ? t($key) : $key;
     return ($s !== $key && $s !== '') ? $s
         : "File storage can't be reached right now. Try again in a few minutes, or tell your administrator.";
