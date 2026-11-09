@@ -51,6 +51,7 @@ if (empty($_SESSION['analyst_id'])) {
 
 $conn = connectToDatabase();
 require_once __DIR__ . '/../includes/directory_schedule.php';   // dsyncScheduleNotice(): when it imports on its own
+require_once __DIR__ . '/../includes/imported_people_notice.php';   // importedPeopleNotice(): how many of its people need a look (#261)
 if (!analystIsAdmin($conn, (int)$_SESSION['analyst_id'])) {
     http_response_code(403);
     exit('Administrator access required.');
@@ -360,7 +361,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
                 </div>
                 <div class="result" id="runResult"></div>
                 <div style="margin-top:12px;"><?php echo dsyncScheduleNotice($conn, $p); ?></div>
-                <div class="hint" style="margin-top:8px;"><a href="../directory-maintenance/?source=<?php echo (int)$p['id']; ?>"><?php echo htmlspecialchars(t('system.sso.maint_source_link')); ?></a></div>
+                <?php echo importedPeopleNotice($conn, $p); ?>
             </div>
         </div>
 

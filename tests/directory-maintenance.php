@@ -159,6 +159,10 @@ try {
     check('CONTROL: found today: not', !in_array($kept, $st90, true));
     check('...and not on the 365-day list', !in_array($old, $ids(DirectoryMaintenance::stale($conn, $actor, $src, 365)), true));
     check('a length not offered is refused', refused(fn() => DirectoryMaintenance::stale($conn, $actor, $src, 7)) === 'invalid_field');
+    check('the count on the source\'s page is the length of that list', DirectoryMaintenance::staleCount($conn, $actor, $src, 90) === count($st90)
+        && DirectoryMaintenance::staleCount($conn, $actor, $src, DirectoryMaintenance::STALE_DEFAULT) === count($ids(DirectoryMaintenance::stale($conn, $actor, $src, DirectoryMaintenance::STALE_DEFAULT))));
+    check('...in the reader\'s companies only', DirectoryMaintenance::staleCount($conn, new ActorContext($r, [$a], 'ui'), $src, 90)
+        === count($ids(DirectoryMaintenance::stale($conn, new ActorContext($r, [$a], 'ui'), $src, 90))));
     DirectoryMaintenance::apply($conn, $actor, 'stale', 'keep', [$old], ['provider_id' => $src, 'days' => 90]);
     check('keep: the source no longer manages them', !$managed($old) && $row($old)['auth_provider_id'] === null);
 

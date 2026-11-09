@@ -76,6 +76,7 @@
         const ac = new AbortController();
         el._dmAbort = ac;
         const kind = opts.kind, provider = opts.provider || 0;
+        // 90: DirectoryMaintenance::STALE_DEFAULT, the number each source's page counts.
         const state = { days: 90, run: 0, last: null };
 
         el.innerHTML = '<div class="dm-bar" data-dm="bar"></div><div data-dm="note"></div>'

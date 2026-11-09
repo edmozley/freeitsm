@@ -692,7 +692,7 @@ require __DIR__ . '/_top.php';
     <p>The people it imported stay, as ordinary people that can be edited, with their tickets, equipment and history. The delete question says how many, and offers to mark them as leavers instead.</p>
     <p>That question is a full preview: every person and what happens to them, every sign-in link, group mapping and imported group that goes with the source, and what happens to the scheduled import - with <strong>Save as PDF</strong>. Nothing changes until you press Delete. See <a href="directory-maintenance.php#whatif">What if</a>.</p>
 
-    <p>People whose source was deleted, people a source no longer brings in, and undoing an import that should not have happened are all on one page: <strong>System &rarr; Maintenance &rarr; Imported people</strong>. Each source's page links to it, under its Run button. See <a href="directory-maintenance.php">Imported people</a>.</p>
+    <p>People whose source was deleted, people a source no longer brings in, and undoing an import that should not have happened are all on one page: <strong>System &rarr; Maintenance &rarr; Imported people</strong>. Each source's page links to it, under its Run button, and says how many of its people it has not found for 90 days. See <a href="directory-maintenance.php">Imported people</a>.</p>
 </div>
 
 <!-- 5. Experience -->

@@ -2332,6 +2332,7 @@ return [
         'maint_deleted_hint'       => 'This source has been deleted, so it brings nobody in any more. The people its imports created are listed below, unless another source keeps them up to date now. Nobody it matched to somebody already here is listed.',
         'maint_no_sources'         => 'No directory source is set up: nobody here was imported by one that still exists.',
         'maint_source_link'        => 'Look after the people this source imported',
+        'maint_source_need_look'   => '{n} of the people this source imported have not been found by an import for {days} days.',
         'maint_orphans_notice'     => '{n} people were imported by a source that has since been deleted.',
         'maint_orphans_review'     => 'Review them in Imported people',
         'maint_orphans_heading'    => 'People whose source was deleted',

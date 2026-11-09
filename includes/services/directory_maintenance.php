@@ -74,6 +74,8 @@ final class DirectoryMaintenance
     public const ACTIONS = ['orphans' => ['keep', 'left', 'delete'], 'stale' => ['keep', 'left', 'delete'], 'imported' => ['remove']];
     /** "Not reported for" choices, in days. */
     public const STALE_DAYS = [30, 90, 180, 365];
+    /** The one Imported people opens on, and each source's page counts. */
+    public const STALE_DEFAULT = 90;
     /** The most people one list returns. */
     public const LIMIT = 500;
 
@@ -106,6 +108,19 @@ final class DirectoryMaintenance
         self::source($conn, $providerId);
         [$where, $args] = self::staleWhere($providerId, self::days($days));
         return self::people($conn, $actor, $where, $args);
+    }
+
+    /**
+     * How many are on that list: the line on each source's page (#261). One query,
+     * in the reader's companies, as the list is.
+     */
+    public static function staleCount(PDO $conn, ActorContext $actor, int $providerId, int $days): int
+    {
+        [$where, $args] = self::staleWhere($providerId, self::days($days));
+        [$scope, $sArgs] = peopleScope($conn, $actor->actorId, 'u.tenant_id');
+        $st = $conn->prepare("SELECT COUNT(*) FROM users u WHERE $where $scope");
+        $st->execute(array_merge($args, $sArgs));
+        return (int)$st->fetchColumn();
     }
 
     /**
