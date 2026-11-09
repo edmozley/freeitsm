@@ -222,6 +222,9 @@ return [
         'move_last_error' => 'Last error: {error}',
         'move_locked' => 'The location cannot be changed while files are being moved.',
         'retry_failed' => 'Retry failed',
+        'skip_missing' => 'Skip missing files',
+        'finish_keep' => 'Finish, keep old copies',
+        'move_skipped' => '{n} skipped: their old copy was already missing before the move.',
         'remove_old' => 'Remove old copies',
         'remove_old_confirm' => 'This permanently deletes the copies at {from}. Continue?',
     ],
@@ -423,7 +426,7 @@ return [
             'p2' => 'The default storage folder is `uploads/files/` inside FreeITSM, which the web server is told never to serve. On Docker it is the `files` volume. Moving it somewhere outside the web root is better still.',
             'p3' => 'System -> Branding -> Files desktop sets whether the desktop shows a logo, and in which corner. The logo is the person\'s company logo (System -> Companies), falling back to the organisation logo.',
             'p4' => 'Each person chooses their own desktop colour and top-bar behaviour in Personalise. Nothing else on the desktop is personal.',
-            'p5' => '**S3-compatible storage** works with any provider that speaks the S3 API - AWS S3, Backblaze B2, Wasabi, Cloudflare R2, MinIO and others. Keep the bucket private: downloads always go through FreeITSM, which checks the folder\'s permissions first. **Test connection** writes, reads and deletes a small file, and S3 settings are only saved once that works. Changing where files are stored copies the existing files to the new location in the background (Reporting -> System logs -> Background jobs, Files storage move); each file is read from the old location until its copy has been checked, and the old copies stay until you choose **Remove old copies**.',
+            'p5' => '**S3-compatible storage** works with any provider that speaks the S3 API - AWS S3, Backblaze B2, Wasabi, Cloudflare R2, MinIO and others. Keep the bucket private: downloads always go through FreeITSM, which checks the folder\'s permissions first. **Test connection** writes, reads and deletes a small file, and S3 settings are only saved once that works. Changing where files are stored copies the existing files to the new location in the background (Reporting -> System logs -> Background jobs, Files storage move); each file is read from the old location until its copy has been checked, and the old copies stay until you choose **Remove old copies** (or **Finish, keep old copies**). Because S3 settings decide where every file is sent, give the Storage permission (System -> Roles) only to people you would trust with all of them.',
         ],
         'phone' => [
             'nav' => 'On a phone',

@@ -138,7 +138,10 @@ final class FilesStorageService
 
         $current = filesStorageConfig($conn);
         $next    = $s3 ?? ['driver' => 'local', 'root' => $rootAbs];
-        $moving  = self::locationKey($current) !== self::locationKey($next);
+        $moving  = self::locationKey($current) !== self::locationKey($next)
+                   // Different settings, same place (another spelling of one folder or bucket):
+                   // nothing to move - and a "move" onto itself must never reach cleanup.
+                   && !storageSameLocation(storageDriver($next, 'files'), storageDriver($current, 'files'));
         if ($moving && filesPreviousStorageConfig($conn) !== null) {
             throw new InvalidArgumentException('A move between storage locations is still running. Wait for it to finish (or remove the old copies) before changing again.');
         }
@@ -182,20 +185,64 @@ final class FilesStorageService
     }
 
     /**
-     * Retries failed copies, or starts removing the old copies once every file is copied.
+     * Called by an upload after its row is committed. If someone saved a new location
+     * while the upload was being stored, its bytes went to the location it started
+     * with - which the move's queue (built at save time) does not know about. Queue
+     * it, so it is copied like the rest and read from the old place until then.
      *
-     * @param string $action  'retry_failed' | 'remove_old'
+     * @param array $usedCfg  filesStorageConfig() as it was when the bytes were stored
+     */
+    public static function queueIfMoved(PDO $conn, array $usedCfg, string $key, int $size, ?string $sha): void
+    {
+        filesStorageReset();
+        if (self::locationKey($usedCfg) === self::locationKey(filesStorageConfig($conn))) return;
+        $prev = filesPreviousStorageConfig($conn);
+        if ($prev !== null && self::locationKey($prev) !== self::locationKey($usedCfg)) {
+            // Cannot happen while a second move is refused during a move; log rather than guess.
+            error_log("files: stored $key in a location that is neither the current nor the previous one");
+            return;
+        }
+        if ($prev === null) filesSaveSetting($conn, 'files_storage_previous', encryptValue(json_encode($usedCfg)));
+        $conn->prepare("INSERT IGNORE INTO storage_migration_items (store, object_key, size_bytes, sha256, state, updated_datetime)
+                        VALUES ('files', ?, ?, ?, 'pending', UTC_TIMESTAMP())")->execute([$key, $size, $sha]);
+        filesStorageReset();
+    }
+
+    /**
+     * What an administrator can do with a running move:
+     *   retry_failed  failed copies go back in the queue
+     *   skip_missing  failed files whose OLD copy no longer exists (already lost before
+     *                 the move) are set aside, so they cannot block the move for ever
+     *   remove_old    once every file is copied: delete the old copies (the job does it)
+     *   finish_keep   once every file is copied: end the move and keep the old copies
+     *
+     * @param string $action  one of the above
      */
     public static function migrationAction(PDO $conn, int $analystId, string $action): void
     {
         $m = self::migrationSummary($conn);
         if ($m === null) throw new InvalidArgumentException('No move between storage locations is running.');
+        $copiedAll = $m['pending'] === 0 && $m['failed'] === 0;
         if ($action === 'retry_failed') {
             $conn->exec("UPDATE storage_migration_items SET state = 'pending', attempts = 0, last_error = NULL, updated_datetime = UTC_TIMESTAMP()
                           WHERE store = 'files' AND state = 'failed'");
+        } elseif ($action === 'skip_missing') {
+            $prev = filesPreviousStore($conn);
+            $rows = $conn->query("SELECT id, object_key FROM storage_migration_items WHERE store = 'files' AND state = 'failed'")->fetchAll(PDO::FETCH_ASSOC);
+            $skip = $conn->prepare("UPDATE storage_migration_items SET state = 'skipped', updated_datetime = UTC_TIMESTAMP() WHERE id = ?");
+            try {
+                foreach ($rows as $r) if ($prev->size((string)$r['object_key']) === null) $skip->execute([$r['id']]);
+            } catch (StorageUnavailable $e) {
+                throw new InvalidArgumentException('The old location cannot be reached, so missing files cannot be told apart: ' . $e->getMessage());
+            }
         } elseif ($action === 'remove_old') {
-            if ($m['pending'] > 0 || $m['failed'] > 0) throw new InvalidArgumentException('Old copies can only be removed once every file has been copied.');
+            if (!$copiedAll) throw new InvalidArgumentException('Old copies can only be removed once every file has been copied.');
             filesSaveSetting($conn, 'files_storage_cleanup', '1');
+        } elseif ($action === 'finish_keep') {
+            if (!$copiedAll) throw new InvalidArgumentException('The move can only be finished once every file has been copied.');
+            filesSaveSetting($conn, 'files_storage_previous', null);
+            filesSaveSetting($conn, 'files_storage_cleanup', null);
+            $conn->exec("DELETE FROM storage_migration_items WHERE store = 'files'");
         } else {
             throw new InvalidArgumentException('Unknown action.');
         }
@@ -209,7 +256,7 @@ final class FilesStorageService
         $prev = filesPreviousStorageConfig($conn);
         if ($prev === null) return null;
         $counts = $conn->query("SELECT state, COUNT(*) FROM storage_migration_items WHERE store = 'files' GROUP BY state")->fetchAll(PDO::FETCH_KEY_PAIR);
-        $m = ['pending' => 0, 'verified' => 0, 'failed' => 0, 'removed' => 0];
+        $m = ['pending' => 0, 'verified' => 0, 'failed' => 0, 'removed' => 0, 'skipped' => 0];
         foreach ($counts as $state => $n) if (isset($m[$state])) $m[$state] = (int)$n;
         $m['total'] = array_sum($m);
         $m['from_label'] = self::label($prev);

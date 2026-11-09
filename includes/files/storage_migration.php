@@ -36,6 +36,19 @@ function storageMigrateBatch(PDO $conn, int $deadlineUnix, int $limit = 200): ar
     $active = filesActiveStore($conn);
     $cleanup = filesSetting($conn, 'files_storage_cleanup') === '1';
 
+    // Before deleting anything: if the old and new locations are one place after all,
+    // every "old copy" IS the new copy. End the move and delete nothing.
+    if ($cleanup && storageSameLocation($active, $prev)) {
+        $from = $prev->label();
+        filesSaveSetting($conn, 'files_storage_previous', null);
+        filesSaveSetting($conn, 'files_storage_cleanup', null);
+        $conn->exec("DELETE FROM storage_migration_items WHERE store = 'files'");
+        filesStorageReset();
+        filesAudit($conn, 0, 'settings', ['path' => '(Settings: storage)'], ['storage_move' => 'ended_same_location_nothing_deleted', 'from' => $from]);
+        $r['done'] = true;
+        return $r;
+    }
+
     $state = $cleanup ? 'verified' : 'pending';
     $st = $conn->prepare("SELECT id, object_key, size_bytes, sha256 FROM storage_migration_items
                            WHERE store = 'files' AND state = ? ORDER BY id LIMIT " . (int)$limit);

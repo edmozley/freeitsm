@@ -54,6 +54,29 @@ $secs = microtime(true) - $t0;
 ok('silent endpoint fails in one connect timeout', $threw instanceof StorageUnavailable && $secs < 7,
    ($threw ? get_class($threw) : 'nothing') . sprintf(' in %.1fs', $secs));
 
+// A server that accepts the connection and then never answers (a hung store).
+// The listening socket is never accept()ed: the kernel completes the handshake,
+// nothing ever replies. Every interactive request must give up at the first-byte
+// limit (2 s here), not after the 60 s no-progress rule and its retries.
+$hung = stream_socket_server('tcp://127.0.0.1:0', $eno, $estr);
+$hungPort = (int)substr(strrchr(stream_socket_get_name($hung, false), ':'), 1);
+$h = new S3Driver(['endpoint' => "http://127.0.0.1:$hungPort", 'region' => 'us-east-1', 'bucket' => 'b',
+                   'access_key_id' => 'k', 'secret' => 's', 'prefix' => '', 'path_style' => true], 'files', 64 * 1048576, 2);
+$small = tempnam(sys_get_temp_dir(), 'zz');
+file_put_contents($small, 'x');
+foreach (['size' => fn() => $h->size('x.bin'),
+          'readRange' => fn() => $h->readRange('x.bin', 0, 1, fn($c) => true),
+          'putFile' => fn() => $h->putFile('x.bin', $small)] as $what => $fn) {
+    $t0 = microtime(true);
+    $threw = null;
+    try { $fn(); } catch (Throwable $e) { $threw = $e; }
+    $secs = microtime(true) - $t0;
+    ok("hung endpoint: $what gives up at the first-byte limit", $threw instanceof StorageUnavailable && $secs < 5,
+       ($threw ? get_class($threw) : 'nothing') . sprintf(' in %.1fs', $secs));
+}
+@unlink($small);
+fclose($hung);
+
 $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';
 if ($ep === '') {
     echo "  SKIP (no S3 test endpoint)\n\n$pass passed, $fail failed\n";

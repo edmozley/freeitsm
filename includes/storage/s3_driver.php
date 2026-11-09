@@ -22,14 +22,18 @@ final class S3Driver implements StorageDriver
     private array $cfg;
     private string $base;     // <prefix><store>/
     private int $threshold;
+    private int $firstByteTimeout;
 
     /**
      * @param array  $cfg        endpoint, region, bucket, access_key_id, secret, prefix, path_style
      * @param string $store      'files' - objects go under <prefix>files/
      * @param int    $multipartThreshold  files larger than this go up in parts
+     * @param int    $firstByteTimeout    seconds a request may wait with nothing sent or received
+     *                                    before it gives up (a store that accepts and then hangs)
      */
-    public function __construct(array $cfg, string $store, int $multipartThreshold = 64 * self::MIB)
+    public function __construct(array $cfg, string $store, int $multipartThreshold = 64 * self::MIB, int $firstByteTimeout = 15)
     {
+        $this->firstByteTimeout = max(1, $firstByteTimeout);
         $this->cfg = [
             'endpoint'      => s3NormaliseEndpoint((string)($cfg['endpoint'] ?? '')),
             'region'        => trim((string)($cfg['region'] ?? '')) ?: 'us-east-1',
@@ -230,12 +234,30 @@ final class S3Driver implements StorageDriver
             },
         ];
         if ($method === 'HEAD') $opts[CURLOPT_NOBODY] = true;
-        $big = $fh !== null || $sink !== null;
+        // CompleteMultipartUpload may legitimately take minutes on a big file before it
+        // answers: no first-byte limit and no total limit for it, only "no progress".
+        $completing = $method === 'POST' && isset($query['uploadId']);
+        $big = $fh !== null || $sink !== null || $completing;
         if ($big) {
             $opts[CURLOPT_LOW_SPEED_LIMIT] = 1;
             $opts[CURLOPT_LOW_SPEED_TIME]  = 60;
         } else {
             $opts[CURLOPT_TIMEOUT] = 30;
+        }
+        if (!$completing) {
+            // A store that accepts the connection and then says nothing: give up after
+            // $firstByteTimeout with nothing sent or received, so the person gets a 503
+            // in seconds rather than the web server's own timeout page.
+            // The clock restarts whenever upload bytes move, so a big upload is never cut
+            // off - only the wait for an answer once everything has been sent.
+            $lastMove = microtime(true);
+            $lastUl = 0;
+            $limit = $this->firstByteTimeout;
+            $opts[CURLOPT_NOPROGRESS] = false;
+            $opts[CURLOPT_XFERINFOFUNCTION] = function ($c, $dlTotal, $dlNow, $ulTotal, $ulNow) use (&$status, &$lastMove, &$lastUl, $limit) {
+                if ($ulNow != $lastUl) { $lastUl = $ulNow; $lastMove = microtime(true); }
+                return ($status === 0 && $dlNow == 0 && microtime(true) - $lastMove > $limit) ? 1 : 0;
+            };
         }
         if ($fh !== null) {
             $left = $length;

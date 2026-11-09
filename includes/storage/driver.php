@@ -53,6 +53,35 @@ interface StorageDriver
 require_once __DIR__ . '/local_driver.php';
 
 /**
+ * True when two drivers turn out to store in the SAME place - one folder typed two
+ * ways (case on Windows, a symlink, a bind mount, "/./"), or one bucket reached
+ * through two endpoint spellings. Settings that look different can be one place,
+ * and a "move" between them verifies every file against itself, after which
+ * removing the "old" copies would delete the only ones.
+ *
+ * Writes a small marker through $a and looks for it through $b. Any failure
+ * answers false (could not prove they are the same).
+ */
+function storageSameLocation(StorageDriver $a, StorageDriver $b): bool
+{
+    $key = '_freeitsm_probe/' . bin2hex(random_bytes(16)) . '.txt';
+    $tmp = tempnam(sys_get_temp_dir(), 'sprb');
+    try {
+        file_put_contents($tmp, 'freeitsm storage identity probe');
+        $a->putFile($key, $tmp);
+        try {
+            return $b->size($key) !== null;
+        } finally {
+            try { $a->delete($key); } catch (Throwable) {}
+        }
+    } catch (Throwable) {
+        return false;
+    } finally {
+        @unlink($tmp);
+    }
+}
+
+/**
  * The driver for a storage configuration.
  *
  * @param array  $cfg    ['driver' => 'local', 'root' => ...] or

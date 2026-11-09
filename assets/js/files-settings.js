@@ -138,13 +138,18 @@
             document.querySelectorAll('input[name="stoType"], #stoRoot, #s3Endpoint, #s3Bucket, #s3Prefix').forEach(function (el) { el.disabled = !!m; });
             clearTimeout(pollTimer);
             if (!m) return;
-            var done = m.verified + m.removed;
+            var done = m.verified + m.removed + m.skipped;
             var text = m.cleanup_running ? L('settings.move_removing', 'Removing the old copies from {from}…', { from: m.from_label })
                 : (m.pending === 0 && m.failed === 0) ? L('settings.move_done', 'Every file has been copied from {from}. The old copies are still there until you remove them.', { from: m.from_label })
                 : L('settings.move_progress', 'Moving files from {from}: {done} of {total} copied, {failed} failed.', { from: m.from_label, done: done, total: m.total, failed: m.failed });
-            $('stoMoveText').innerHTML = esc(text) + (m.last_error ? '<div class="dflt">' + esc(L('settings.move_last_error', 'Last error: {error}', { error: m.last_error })) + '</div>' : '');
+            $('stoMoveText').innerHTML = esc(text) +
+                (m.skipped ? '<div class="dflt">' + esc(L('settings.move_skipped', '{n} skipped: their old copy was already missing before the move.', { n: m.skipped })) + '</div>' : '') +
+                (m.last_error ? '<div class="dflt">' + esc(L('settings.move_last_error', 'Last error: {error}', { error: m.last_error })) + '</div>' : '');
+            var copiedAll = m.pending === 0 && m.failed === 0;
             $('stoRetry').hidden = !(m.failed > 0) || m.cleanup_running;
-            $('stoRemoveOld').hidden = !(m.pending === 0 && m.failed === 0) || m.cleanup_running;
+            $('stoSkip').hidden = !(m.failed > 0) || m.cleanup_running;
+            $('stoRemoveOld').hidden = !copiedAll || m.cleanup_running;
+            $('stoFinishKeep').hidden = !copiedAll || m.cleanup_running;
             if (m.pending > 0 || m.cleanup_running) pollTimer = setTimeout(load, 10000);
         };
         /** Fetches the storage settings and fills the form (the form only on the first load). */
@@ -216,6 +221,14 @@
 
         $('stoRetry').addEventListener('click', function () {
             api('settings.php', { tab: 'storage_migration', action: 'retry_failed' }).then(function () { return load(false); })
+                .catch(function (e) { alert(e.message); });
+        });
+        $('stoSkip').addEventListener('click', function () {
+            api('settings.php', { tab: 'storage_migration', action: 'skip_missing' }).then(function () { return load(false); })
+                .catch(function (e) { alert(e.message); });
+        });
+        $('stoFinishKeep').addEventListener('click', function () {
+            api('settings.php', { tab: 'storage_migration', action: 'finish_keep' }).then(function () { return load(false); })
                 .catch(function (e) { alert(e.message); });
         });
         $('stoRemoveOld').addEventListener('click', function () {

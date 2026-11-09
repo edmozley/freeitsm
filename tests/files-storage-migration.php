@@ -24,6 +24,7 @@ require_once "$root/includes/functions.php";
 require_once "$root/includes/files/audit.php";
 require_once "$root/includes/files/storage.php";
 require_once "$root/includes/files/storage_migration.php";
+require_once "$root/includes/services/files_storage.php";
 
 $pass = 0; $fail = 0;
 function ok(string $label, bool $cond, string $detail = ''): void {
@@ -100,6 +101,37 @@ try {
         && is_file("$new/" . $k('1')) && filesPreviousStorageConfig($conn) === null && filesSetting($conn, 'files_storage_cleanup') === ''
         && (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE store = 'files'")->fetchColumn() === 0 && $r['done'], json_encode($r));
     ok('control: cleanup never touched a file it did not copy', is_file("$old/" . $k('3')));
+
+    // Old and new turn out to be one place (another name for the same folder): the
+    // copies verify against themselves, so cleanup must end the move WITHOUT deleting.
+    $k6 = $k('6');
+    put($new, $k6, 'six!!');
+    setSetting($conn, 'files_storage_previous', encryptValue(json_encode(['driver' => 'local', 'root' => $new . '/.'])));
+    $conn->exec("DELETE FROM storage_migration_items WHERE store = 'files'");
+    queue($conn, $k6, 5, hash('sha256', 'six!!'));
+    storageMigrateBatch($conn, time() + 60);
+    setSetting($conn, 'files_storage_cleanup', '1');
+    $r = storageMigrateBatch($conn, time() + 60);
+    ok('cleanup never deletes when old and new are the same place', is_file("$new/$k6") && filesPreviousStorageConfig($conn) === null && $r['done'], json_encode($r));
+
+    // A move must never be stuck for ever: a file whose old copy is truly gone can be
+    // skipped, and a move can end keeping every old copy.
+    setSetting($conn, 'files_storage_previous', encryptValue(json_encode(['driver' => 'local', 'root' => $old])));
+    $conn->exec("DELETE FROM storage_migration_items WHERE store = 'files'");
+    $k7 = $k('7'); $k8 = $k('8');
+    put($old, $k8, 'eight');
+    queue($conn, $k7, 5, null);                    // old copy missing
+    queue($conn, $k8, 5, hash('sha256', 'nope')); // old copy there, but damaged
+    for ($i = 0; $i < 5; $i++) storageMigrateBatch($conn, time() + 60);
+    FilesStorageService::migrationAction($conn, 0, 'skip_missing');
+    ok('skip_missing skips only files whose old copy is gone', stateOf($conn, $k7) === 'skipped/5' && stateOf($conn, $k8) === 'failed/5', stateOf($conn, $k7) . ' ' . stateOf($conn, $k8));
+    $e = null;
+    try { FilesStorageService::migrationAction($conn, 0, 'finish_keep'); } catch (Throwable $x) { $e = $x; }
+    ok('control: finish_keep refuses while a file failed with its old copy present', $e instanceof InvalidArgumentException && filesPreviousStorageConfig($conn) !== null);
+    $conn->exec("DELETE FROM storage_migration_items WHERE object_key = '$k8'");
+    FilesStorageService::migrationAction($conn, 0, 'finish_keep');
+    ok('finish_keep ends the move and deletes nothing', filesPreviousStorageConfig($conn) === null && is_file("$old/$k8")
+        && (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE store = 'files'")->fetchColumn() === 0);
 } catch (Throwable $e) {
     ok('no unexpected error', false, get_class($e) . ': ' . $e->getMessage() . ' @' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {

@@ -83,10 +83,16 @@ try {
     $n = (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE store = 'files'")->fetchColumn();
     ok('same location saves without a migration', $n === 0 && filesSetting($conn, 'files_max_upload_mb') === '123' && filesPreviousStorageConfig($conn) === null);
 
+    // The same folder typed another way is NOT a move: a move onto itself verifies every
+    // file, and "Remove old copies" would then delete the only copies.
+    FilesStorageService::save($conn, $analystId, ['driver' => 'local', 'storage_root' => $a . '/./', 'max_upload_mb' => 123]);
+    $n = (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE store = 'files'")->fetchColumn();
+    ok('the same folder under another name is not a move', $n === 0 && filesPreviousStorageConfig($conn) === null, "$n rows queued");
+
     FilesStorageService::save($conn, $analystId, ['driver' => 'local', 'storage_root' => $b, 'max_upload_mb' => 123]);
     $n = (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE store = 'files' AND state = 'pending'")->fetchColumn();
     ok('changing location queues every stored path once', $n === $total, "$n rows for $total paths");
-    ok('the old location is remembered', (filesPreviousStorageConfig($conn)['root'] ?? '') === $a);
+    ok('the old location is remembered', realpath((string)(filesPreviousStorageConfig($conn)['root'] ?? '')) === realpath($a));
     ok('the new location is active', filesActiveStore($conn)->label() === $b);
     $d = FilesStorageService::describe($conn);
     ok('describe reports the move', ($d['migration']['pending'] ?? -1) === $total && ($d['migration']['total'] ?? -1) === $total, json_encode($d['migration'] ?? null));
@@ -100,6 +106,22 @@ try {
     $conn->exec("DELETE FROM files_versions");
     FilesStorageService::save($conn, $analystId, ['driver' => 'local', 'storage_root' => $a, 'max_upload_mb' => 123]);
     ok('empty install switches without a migration', filesPreviousStorageConfig($conn) === null && filesActiveStore($conn)->label() === $a);
+
+    // An upload that picked its store just before someone saved a new location: its
+    // bytes are in the OLD place, and its row commits after the move was queued.
+    $used = filesStorageConfig($conn);
+    $kx = '2026/11/08/' . str_repeat('f', 32) . '.bin';
+    @mkdir(dirname("$a/$kx"), 0777, true);
+    file_put_contents("$a/$kx", 'race!');
+    FilesStorageService::save($conn, $analystId, ['driver' => 'local', 'storage_root' => $b, 'max_upload_mb' => 123]);
+    FilesStorageService::queueIfMoved($conn, $used, $kx, 5, hash('sha256', 'race!'));
+    $st = $conn->query("SELECT state FROM storage_migration_items WHERE store = 'files' AND object_key = '$kx'")->fetchColumn();
+    ok('an upload that raced a save is queued and still readable', $st === 'pending' && filesStoreFor($conn, $kx)->label() === realpath($a), "state $st, reads from " . filesStoreFor($conn, $kx)->label());
+    FilesStorageService::queueIfMoved($conn, filesStorageConfig($conn), '2026/11/08/' . str_repeat('9', 32) . '.bin', 1, null);
+    ok('control: an upload to the current location is not queued', (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE object_key LIKE '%9999.bin'")->fetchColumn() === 0);
+    setSetting($conn, 'files_storage_previous', null);
+    $conn->exec("DELETE FROM storage_migration_items WHERE store = 'files'");
+    FilesStorageService::save($conn, $analystId, ['driver' => 'local', 'storage_root' => $a, 'max_upload_mb' => 123]);
 
     if ($ep === '') {
         echo "  SKIP S3 checks (no S3 test endpoint)\n";
