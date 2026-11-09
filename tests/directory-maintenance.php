@@ -239,6 +239,46 @@ try {
     DirectoryMaintenance::releaseSource($conn, $actor, $src4, "$tag To delete, leavers", true);
     $r4 = $row($cur4);
     check('left: marked as left as well', (int)$r4['is_active'] === 0 && (int)$r4['is_managed'] === 0);
+
+    echo "Remove imported people, after the source was deleted\n";
+    $src5 = $source('Deleted later');
+    $made5 = $mk('Made by 5', $src5, $a);
+    $adopted5 = $mk('Adopted by 5', $src5, $a);
+    $moved5 = $mk('Made by 5, now another source', $src5, $a);
+    $conn->prepare("INSERT INTO directory_sync_runs (provider_id, mode, status, created_count, adopted_count) VALUES (?, 'live', 'ok', 2, 1)")->execute([$src5]);
+    $run5 = (int)$conn->lastInsertId();
+    $entry->execute([$run5, 'created', $made5]);
+    $entry->execute([$run5, 'created', $moved5]);
+    $entry->execute([$run5, 'adopted', $adopted5]);
+    // Deleted the way the endpoint deletes it, keeping its people.
+    DirectoryMaintenance::releaseSource($conn, $actor, $src5, "$tag Deleted later", false);
+    $conn->prepare("DELETE FROM auth_providers WHERE id = ?")->execute([$src5]);
+    // ...and one of them taken on by a source that exists since.
+    $conn->prepare("UPDATE users SET is_managed = 1, auth_provider_id = ? WHERE id = ?")->execute([$src, $moved5]);
+
+    $del = array_column(DirectoryMaintenance::deletedSources($conn), 'name', 'id');
+    check('the deleted source is offered, by the name it had', ($del[$src5] ?? '') === "$tag Deleted later", json_encode($del));
+    $imp5 = DirectoryMaintenance::imported($conn, $actor, $src5, null);
+    check('lists whom its imports created, as the delete recorded them', in_array($made5, $ids($imp5), true), json_encode($ids($imp5)));
+    check('...never one it adopted', !in_array($adopted5, $ids($imp5), true));
+    check('...nor one another source keeps up to date now', !in_array($moved5, $ids($imp5), true));
+    check('...and it does not import any more', $imp5['source_imports'] === false);
+    // The runs only where the history outlived the source (no foreign key here).
+    $hasFk = (int)$conn->query("SELECT COUNT(*) FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()
+                                 AND TABLE_NAME = 'directory_sync_runs' AND REFERENCED_TABLE_NAME = 'auth_providers' AND DELETE_RULE = 'CASCADE'")->fetchColumn() > 0;
+    $runs5 = DirectoryMaintenance::importRuns($conn, $actor, $src5);
+    check($hasFk ? 'its history went with it (this database has the foreign key): no runs, and the list still works'
+                 : 'its run is offered, with how many are still here',
+        $hasFk ? $runs5 === [] : (($runs5[0]['remaining'] ?? null) === 1), json_encode($runs5));
+    $pvd = DirectoryMaintenance::previewSourceDelete($conn, $src, false);
+    $hist = array_column($pvd['records'], 'outcome', 'key')['import_runs'] ?? null;
+    check('the delete preview says what really happens to the history here', $hist === null || $hist === ($hasFk ? 'removed' : 'kept'), (string)$hist);
+    $pv5 = DirectoryMaintenance::previewRemove($conn, $actor, $src5, null, null);
+    check('the preview names it and lists the same people', $pv5['source']['name'] === "$tag Deleted later" && array_column($pv5['people'], 'id') === [$made5]);
+    $res = DirectoryMaintenance::apply($conn, $actor, 'imported', 'remove', [$made5, $adopted5, $moved5], ['provider_id' => $src5]);
+    check('Remove works with nothing to switch off first, and only on them',
+        array_column($res['done'], 'id') === [$made5] && $row($made5) === null && $row($adopted5) !== null && $row($moved5) !== null, json_encode($res));
+    check('a source that never existed is still refused', refused(fn() => DirectoryMaintenance::imported($conn, $actor, 999999999, null)) === 'not_found');
 } catch (Throwable $e) {
     check('the run completed', false, get_class($e) . ': ' . $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {

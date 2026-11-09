@@ -29,6 +29,13 @@
  *    'created'), from every run or one, removed on purpose - undoing an import
  *    that should not have happened. Never the people it ADOPTED: they existed
  *    before the import, and removing them would delete somebody who was here.
+ *    It works for a DELETED source too: deleting one releases its people, and
+ *    the log entry the delete writes keeps whom its imports created - so they
+ *    can still be removed afterwards (deletedSources(), removeSource()).
+ *    ⚠️ Not the import history alone: on an install made from
+ *    database/freeitsm.sql, directory_sync_runs has ON DELETE CASCADE to
+ *    auth_providers, so the history goes with the source. A verified install
+ *    has no foreign key and keeps it; both are read.
  *
  * 🔑 NOTHING WITH HISTORY IS DELETED. Somebody who raised tickets or holds
  *    equipment is skipped, with the reason - userDeleteBlockedByHistory(), the
@@ -107,12 +114,13 @@ final class DirectoryMaintenance
      */
     public static function importRuns(PDO $conn, ActorContext $actor, int $providerId): array
     {
-        self::source($conn, $providerId);
+        $src = self::removeSource($conn, $providerId);
         [$scope, $sArgs] = peopleScope($conn, $actor->actorId, 'u.tenant_id');
+        $still = !empty($src['deleted']) ? 'NOT ' . userManagedSql('u') : 'u.auth_provider_id = r.provider_id AND u.is_managed = 1';
         $st = $conn->prepare(
             "SELECT r.id, r.started_datetime, r.created_count,
                     (SELECT COUNT(DISTINCT e.user_id) FROM directory_sync_entries e JOIN users u ON u.id = e.user_id
-                      WHERE e.run_id = r.id AND e.action = 'created' AND u.auth_provider_id = r.provider_id AND u.is_managed = 1 $scope) AS remaining
+                      WHERE e.run_id = r.id AND e.action = 'created' AND $still $scope) AS remaining
                FROM directory_sync_runs r
               WHERE r.provider_id = ? AND r.mode = 'live' AND r.created_count > 0
            ORDER BY r.started_datetime DESC, r.id DESC
@@ -130,11 +138,48 @@ final class DirectoryMaintenance
      */
     public static function imported(PDO $conn, ActorContext $actor, int $providerId, ?int $runId): array
     {
-        $src = self::source($conn, $providerId);
-        [$where, $args] = self::importedWhere($providerId, $runId);
+        $src = self::removeSource($conn, $providerId);
+        [$where, $args] = self::importedWhere($providerId, $runId, !empty($src['deleted']), $src['created'] ?? []);
         $out = self::people($conn, $actor, $where, $args);
         $out['source_imports'] = self::sourceImports($src);
         return $out;
+    }
+
+    /**
+     * Sources that were deleted but whose imports created somebody: their import
+     * history stays, so Remove imported people can still undo them. Named from the
+     * log entry the delete wrote (releaseSource()); "#id" when there is none.
+     *
+     * @return array<int,array{id:int,name:string}>
+     */
+    public static function deletedSources(PDO $conn): array
+    {
+        $out = [];
+        // The delete's own log entry: the name, and whom its imports created.
+        $st = $conn->query("SELECT details FROM system_logs WHERE log_type = 'directory_maintenance' AND details LIKE '%source_deleted%' ORDER BY id");
+        foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $json) {
+            $d = json_decode((string)$json, true);
+            if (($d['list'] ?? '') !== 'source_deleted' || empty($d['provider_id'])) continue;
+            $id = (int)$d['provider_id'];
+            $out[$id] = ['id' => $id, 'name' => ($d['provider'] ?? '') !== '' ? (string)$d['provider'] : '#' . $id,
+                         'created' => array_values(array_unique(array_merge($out[$id]['created'] ?? [], array_map('intval', (array)($d['created'] ?? [])))))];
+        }
+        // The import history, where it outlived the source (a verified install).
+        try {
+            foreach ($conn->query("SELECT DISTINCT r.provider_id FROM directory_sync_runs r
+                                    WHERE r.mode = 'live' AND r.created_count > 0")->fetchAll(PDO::FETCH_COLUMN) as $id) {
+                $id = (int)$id;
+                $out[$id] = $out[$id] ?? ['id' => $id, 'name' => '#' . $id, 'created' => []];
+                $out[$id]['history'] = true;
+            }
+        } catch (Throwable $e) {
+            // No import history on this install.
+        }
+        // Only the ones that are gone, and that created somebody.
+        $exists = array_flip(array_map('intval', $conn->query("SELECT id FROM auth_providers")->fetchAll(PDO::FETCH_COLUMN)));
+        $out = array_filter($out, fn($s) => !isset($exists[$s['id']]) && ($s['created'] || !empty($s['history'])));
+        ksort($out);
+        return array_map(fn($s) => ['id' => $s['id'], 'name' => $s['name'], 'created' => $s['created']], array_values($out));
     }
 
     /** How many people a source still manages - what deleting it would release. */
@@ -228,7 +273,9 @@ final class DirectoryMaintenance
             "SELECT CONCAT(g.display_name, ' (', (SELECT COUNT(*) FROM directory_group_members m WHERE m.group_id = g.id), ')') FROM directory_groups g WHERE g.provider_id = ? ORDER BY g.display_name");
         $add('group_members', 'removed', "SELECT COUNT(*) FROM directory_group_members m JOIN directory_groups g ON g.id = m.group_id WHERE g.provider_id = ?");
         $add('write_log', 'removed', "SELECT COUNT(*) FROM carddav_write_log WHERE provider_id = ?");
-        $add('import_runs', 'kept', "SELECT COUNT(*) FROM directory_sync_runs WHERE provider_id = ?");
+        // Kept - unless this install has the foreign key database/freeitsm.sql
+        // declares, which takes the history with the source.
+        $add('import_runs', self::historyGoesWithSource($conn) ? 'removed' : 'kept', "SELECT COUNT(*) FROM directory_sync_runs WHERE provider_id = ?");
 
         // The scheduled directory import: does it import this source now, and how many others it still has.
         $importer = in_array($protocol, ['ldap', 'carddav'], true)
@@ -267,8 +314,8 @@ final class DirectoryMaintenance
      */
     public static function previewRemove(PDO $conn, ActorContext $actor, int $providerId, ?int $runId, ?array $ids): array
     {
-        $src = self::source($conn, $providerId);
-        [$where, $args] = self::importedWhere($providerId, $runId);
+        $src = self::removeSource($conn, $providerId);
+        [$where, $args] = self::importedWhere($providerId, $runId, !empty($src['deleted']), $src['created'] ?? []);
         if ($ids !== null) {
             $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($i) => $i > 0)));
             if (!$ids) throw new ServiceError('validation', 'missing_field', 'Choose somebody first.');
@@ -345,12 +392,12 @@ final class DirectoryMaintenance
             self::source($conn, $providerId);
             [$where, $args] = self::staleWhere($providerId, self::days((int)($ctx['days'] ?? 0)));
         } else {
-            $src = self::source($conn, $providerId);
+            $src = self::removeSource($conn, $providerId);
             if (self::sourceImports($src)) {
                 throw new ServiceError('conflict', 'source_imports', 'Switch this source off, or its import, before removing what it imported: the next run would create everybody again.');
             }
             $runId = isset($ctx['run_id']) && (int)$ctx['run_id'] > 0 ? (int)$ctx['run_id'] : null;
-            [$where, $args] = self::importedWhere($providerId, $runId);
+            [$where, $args] = self::importedWhere($providerId, $runId, !empty($src['deleted']), $src['created'] ?? []);
         }
 
         // Who is in the list now, of the ones picked - read with the same rule as the page.
@@ -401,6 +448,11 @@ final class DirectoryMaintenance
         $st = $conn->prepare("SELECT id FROM users WHERE auth_provider_id = ? AND is_managed = 1");
         $st->execute([$providerId]);
         $ids = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+        // Whom its imports created, read now: the history may go with the source.
+        [$cw, $ca] = self::importedWhere($providerId, null);
+        $st = $conn->prepare("SELECT u.id FROM users u WHERE $cw");
+        $st->execute($ca);
+        $created = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
         if ($markLeft) {
             $conn->prepare("UPDATE users SET is_active = 0, deactivated_datetime = COALESCE(deactivated_datetime, UTC_TIMESTAMP())
                              WHERE auth_provider_id = ? AND is_managed = 1 AND is_active = 1")->execute([$providerId]);
@@ -408,10 +460,11 @@ final class DirectoryMaintenance
         // Every row pointing at the source, flagged or not: by hand a foreign key
         // would NULL them, but Database Verification adds none (see userManagedSql()).
         $conn->prepare("UPDATE users SET is_managed = 0, auth_provider_id = NULL WHERE auth_provider_id = ?")->execute([$providerId]);
-        if ($ids) {
-            self::log($conn, $actor, ['list' => 'source_deleted', 'action' => $markLeft ? 'left' : 'keep',
-                'provider_id' => $providerId, 'provider' => $providerName, 'done' => $ids, 'skipped' => []]);
-        }
+        // Logged even with nobody to release: the entry is also where a deleted
+        // source's name is kept, for Remove imported people (deletedSources()).
+        self::log($conn, $actor, ['list' => 'source_deleted', 'action' => $markLeft ? 'left' : 'keep',
+            'provider_id' => $providerId, 'provider' => $providerName, 'done' => $ids, 'skipped' => [],
+            'created' => $created]);
         return count($ids);
     }
 
@@ -432,14 +485,48 @@ final class DirectoryMaintenance
                  AND (u.last_seen_in_source IS NULL OR u.last_seen_in_source < UTC_TIMESTAMP() - INTERVAL ? DAY)", [$providerId, $days]];
     }
 
-    /** Created by a live run of this source (one, or any), and still its. */
-    private static function importedWhere(int $providerId, ?int $runId): array
+    /**
+     * Created by a live run of this source (one, or any), and still its - or, for a
+     * deleted source, managed by no source that exists: deleting it released them,
+     * and anybody another source has taken on since is that source's business.
+     */
+    private static function importedWhere(int $providerId, ?int $runId, bool $deleted = false, array $logged = []): array
     {
         $run = $runId ? ' AND r.id = ?' : '';
-        return ["u.auth_provider_id = ? AND u.is_managed = 1 AND EXISTS (
+        $created = "EXISTS (
                     SELECT 1 FROM directory_sync_entries e JOIN directory_sync_runs r ON r.id = e.run_id
-                     WHERE e.user_id = u.id AND e.action = 'created' AND r.provider_id = ? AND r.mode = 'live'$run)",
+                     WHERE e.user_id = u.id AND e.action = 'created' AND r.provider_id = ? AND r.mode = 'live'$run)";
+        if ($deleted) {
+            // From the history, and - for "any import" - from the delete's log entry.
+            $args = $runId ? [$providerId, $runId] : [$providerId];
+            $logged = array_values(array_filter(array_map('intval', $logged), fn($i) => $i > 0));
+            if (!$runId && $logged) {
+                $created = "($created OR u.id IN (" . implode(',', array_fill(0, count($logged), '?')) . '))';
+                $args = array_merge($args, $logged);
+            }
+            return ['NOT ' . userManagedSql('u') . " AND $created", $args];
+        }
+        return ["u.auth_provider_id = ? AND u.is_managed = 1 AND $created",
                 $runId ? [$providerId, $providerId, $runId] : [$providerId, $providerId]];
+    }
+
+    /**
+     * The source Remove imported people works on: one that exists, or a deleted one
+     * its import history still names - which can import nothing any more.
+     */
+    private static function removeSource(PDO $conn, int $providerId): array
+    {
+        try {
+            return self::source($conn, $providerId);
+        } catch (ServiceError $e) {
+            foreach (self::deletedSources($conn) as $d) {
+                if ($d['id'] === $providerId) {
+                    return ['id' => $providerId, 'display_name' => $d['name'], 'protocol' => '', 'enabled' => 0, 'sync_enabled' => 0,
+                            'deleted' => true, 'created' => $d['created']];
+                }
+            }
+            throw $e;
+        }
     }
 
     /** A list of people, scoped to the analyst's companies, each with what would stop a delete. */
@@ -465,6 +552,23 @@ final class DirectoryMaintenance
             'tickets' => (int)$r['tickets'], 'assets' => (int)$r['assets'],
         ], $st->fetchAll(PDO::FETCH_ASSOC));
         return ['people' => $people, 'total' => $total];
+    }
+
+    /**
+     * Whether deleting a source takes its import history with it: true on an
+     * install made from database/freeitsm.sql (directory_sync_runs.provider_id has
+     * ON DELETE CASCADE), false on a verified one, which has no foreign keys.
+     */
+    private static function historyGoesWithSource(PDO $conn): bool
+    {
+        try {
+            $st = $conn->query("SELECT COUNT(*) FROM information_schema.REFERENTIAL_CONSTRAINTS
+                                 WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'directory_sync_runs'
+                                   AND REFERENCED_TABLE_NAME = 'auth_providers' AND DELETE_RULE = 'CASCADE'");
+            return (int)$st->fetchColumn() > 0;
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 
     /** The source, or a ServiceError. */

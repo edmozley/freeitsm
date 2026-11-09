@@ -2328,6 +2328,8 @@ return [
         'maint_page_sub'           => 'The people a directory source - LDAP, an address book or Microsoft Entra ID - imported, when they need a decision: their source was deleted, it no longer brings them in, or they should never have been imported. Nobody with tickets or equipment is ever deleted, and everything done here is recorded in the system log.',
         'maint_source_heading'     => 'One source',
         'maint_source_label'       => 'Source',
+        'maint_deleted_kind'       => 'deleted',
+        'maint_deleted_hint'       => 'This source has been deleted, so it brings nobody in any more. The people its imports created are listed below, unless another source keeps them up to date now. Nobody it matched to somebody already here is listed.',
         'maint_no_sources'         => 'No directory source is set up: nobody here was imported by one that still exists.',
         'maint_source_link'        => 'Look after the people this source imported',
         'maint_orphans_notice'     => '{n} people were imported by a source that has since been deleted.',

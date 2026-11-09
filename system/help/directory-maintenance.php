@@ -61,6 +61,7 @@ require __DIR__ . '/_top.php';
         <li><strong>Only the people it created.</strong> People it matched to somebody already here are never on the list: removing them would delete somebody who existed before the import.</li>
         <li><strong>Only once the source does not import.</strong> Switch the source, or its import, off and save first, or the next import would create everybody again.</li>
     </ul>
+    <p><strong>A deleted source is on the list too</strong>, marked <em>deleted</em>, when its imports created anybody. Deleting a source keeps its people as ordinary people, but it records whom its imports created - so an import can be undone after the source is gone. (A source deleted before this was recorded is listed only where its import history survived it.) Nothing needs switching off first, since a deleted source imports nothing; anybody another source keeps up to date now is left alone.</p>
     <div class="help-note"><strong>Each source's page links here</strong>, under its Run button, already on that source.</div>
 </div>
 

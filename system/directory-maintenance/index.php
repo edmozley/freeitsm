@@ -8,7 +8,8 @@
  *
  *  - people whose source was deleted, from every source;
  *  - for one source, the people it no longer brings in, and Remove imported
- *    people (?source=<id> opens it on that source - each source's page links here).
+ *    people (?source=<id> opens it on that source - each source's page links here);
+ *  - for a deleted source, from its import history, Remove imported people only.
  *
  * The lists are drawn by assets/js/directory-maintenance.js; every rule is the
  * server's (includes/services/directory_maintenance.php).
@@ -41,6 +42,12 @@ foreach ($conn->query("SELECT id, display_name, protocol, issuer_url FROM auth_p
     if ($s['protocol'] === 'oidc' && !entraIsEntraIssuer((string)$s['issuer_url'])) continue;
     $sources[] = ['id' => (int)$s['id'], 'name' => $s['display_name'],
                   'kind' => $s['protocol'] === 'oidc' ? 'Entra ID' : ($s['protocol'] === 'carddav' ? 'CardDAV' : 'LDAP')];
+}
+// Deleted sources whose imports created somebody: only Remove imported people
+// applies to them - nothing brings anybody in any more.
+require_once '../../includes/services/directory_maintenance.php';
+foreach (DirectoryMaintenance::deletedSources($conn) as $d) {
+    $sources[] = ['id' => $d['id'], 'name' => $d['name'], 'kind' => t('system.sso.maint_deleted_kind'), 'deleted' => true];
 }
 $picked = (int)($_GET['source'] ?? 0);
 if (!in_array($picked, array_column($sources, 'id'), true)) $picked = $sources[0]['id'] ?? 0;
@@ -104,13 +111,16 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
                 <label for="dmSource"><?php echo $e('maint_source_label'); ?></label>
                 <select id="dmSource">
                     <?php foreach ($sources as $s): ?>
-                    <option value="<?php echo $s['id']; ?>"<?php echo $s['id'] === $picked ? ' selected' : ''; ?>><?php echo htmlspecialchars($s['name'] . ' (' . $s['kind'] . ')'); ?></option>
+                    <option value="<?php echo $s['id']; ?>"<?php echo !empty($s['deleted']) ? ' data-deleted="1"' : ''; ?><?php echo $s['id'] === $picked ? ' selected' : ''; ?>><?php echo htmlspecialchars($s['name'] . ' (' . $s['kind'] . ')'); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
+            <p class="dmp-hint" id="dmDeletedHint" hidden><?php echo $e('maint_deleted_hint'); ?></p>
+            <div id="dmStaleBlock">
             <h4><?php echo $e('maint_stale_heading'); ?></h4>
             <p class="dmp-hint"><?php echo $e('maint_stale_hint'); ?></p>
             <div id="dmStale"></div>
+            </div>
             <div class="dmp-split">
                 <h4><?php echo $e('maint_remove_heading'); ?></h4>
                 <p class="dmp-hint"><?php echo $e('maint_remove_hint'); ?></p>
@@ -131,7 +141,11 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         if (!pick) return;
         const show = () => {
             const provider = parseInt(pick.value, 10);
-            DirectoryMaintenance.mount(document.getElementById('dmStale'), { kind: 'stale', provider });
+            // A deleted source brings nobody in: only Remove imported people applies.
+            const deleted = !!pick.selectedOptions[0]?.dataset.deleted;
+            document.getElementById('dmStaleBlock').hidden = deleted;
+            document.getElementById('dmDeletedHint').hidden = !deleted;
+            if (!deleted) DirectoryMaintenance.mount(document.getElementById('dmStale'), { kind: 'stale', provider });
             DirectoryMaintenance.mount(document.getElementById('dmImported'), { kind: 'imported', provider });
             history.replaceState(null, '', '?source=' + provider);
         };
