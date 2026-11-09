@@ -55,6 +55,13 @@ ok('prefix and endpoint are normalised: slashes', s3NormalisePrefix('/freeitsm/'
 ok('prefix and endpoint are normalised: nested', s3NormalisePrefix('a//b/') === 'a/b/', s3NormalisePrefix('a//b/'));
 ok('prefix and endpoint are normalised: empty', s3NormalisePrefix('') === '' && s3NormalisePrefix('/') === '');
 ok('prefix and endpoint are normalised: endpoint slash', s3NormaliseEndpoint('http://minio:9000/') === 'http://minio:9000');
+// curl leaves a default port out of the Host header it sends, so a signed ":443" never
+// matches; an upper-case scheme or host would dodge the dotted-bucket rule.
+ok('endpoint: scheme and host lower-cased, default port dropped', s3NormaliseEndpoint('HTTPS://S3.Example.COM:443/') === 'https://s3.example.com', s3NormaliseEndpoint('HTTPS://S3.Example.COM:443/'));
+ok('endpoint: :80 dropped on http', s3NormaliseEndpoint('http://minio:80') === 'http://minio');
+ok('endpoint: other ports kept', s3NormaliseEndpoint('http://minio:9000') === 'http://minio:9000');
+$u = s3ObjectUrl(['endpoint' => 'HTTPS://s3.example.com', 'bucket' => 'my.bucket', 'path_style' => false], 'k');
+ok('upper-case scheme still forces path style for a dotted bucket', $u === 'https://s3.example.com/my.bucket/k', $u);
 $threw = false;
 try { s3NormaliseEndpoint('minio:9000'); } catch (InvalidArgumentException $e) { $threw = true; }
 ok('prefix and endpoint are normalised: scheme required', $threw);

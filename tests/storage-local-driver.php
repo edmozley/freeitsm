@@ -75,6 +75,15 @@ try {
     ok('absolute key is refused', $threw instanceof InvalidArgumentException);
 
     ok('label names the folder', str_contains($d->label(), $root));
+
+    if (is_writable('/dev/full')) {   // Linux: every write fails with "no space left"
+        file_put_contents($tmp, 'abc');
+        $d->putFile($key, $tmp);
+        $threw = null;
+        try { $d->readTo($key, '/dev/full'); } catch (Throwable $e) { $threw = $e; }
+        ok('readTo into a full disk throws', $threw instanceof StorageUnavailable, $threw ? get_class($threw) : 'reported success');
+        ok('control: the failed target is not deleted', file_exists('/dev/full'));
+    }
 } finally {
     rmTree($root);
     @unlink($tmp);

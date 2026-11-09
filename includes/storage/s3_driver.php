@@ -76,20 +76,45 @@ final class S3Driver implements StorageDriver
 
     public function readRange(string $key, int $start, int $end, callable $sink): void
     {
-        $this->call('GET', $this->objectKey($key), [], ['range' => "bytes=$start-$end"], null, $sink);
+        // Exactly bytes $start..$end, whatever the store sends: one (or a proxy in front
+        // of it) that ignores Range answers 200 with the whole object, and the caller
+        // has already promised the browser a Content-Length for the range.
+        $want = $end - $start + 1;
+        $sent = 0;
+        $skip = null;
+        $this->call('GET', $this->objectKey($key), [], ['range' => "bytes=$start-$end"], null,
+            function (string $c, int $status) use (&$sent, &$skip, $want, $start, $sink) {
+                if ($skip === null) $skip = $status === 206 ? 0 : $start;
+                if ($skip > 0) {
+                    $n = min($skip, strlen($c));
+                    $c = (string)substr($c, $n);
+                    $skip -= $n;
+                    if ($c === '') return true;
+                }
+                $c = (string)substr($c, 0, $want - $sent);
+                $sent += strlen($c);
+                if ($c !== '' && $sink($c) === false) return false;
+                return $sent < $want;   // false once complete: stop reading the rest
+            });
     }
 
     public function readTo(string $key, string $localPath): void
     {
         $fh = @fopen($localPath, 'wb');
         if (!$fh) throw new StorageUnavailable('A temporary file could not be written.');
+        $refused = false;
         try {
-            $this->call('GET', $this->objectKey($key), [], [], null, function (string $c) use ($fh) {
-                return fwrite($fh, $c) === strlen($c);
+            $this->call('GET', $this->objectKey($key), [], [], null, function (string $c) use ($fh, &$refused) {
+                if (fwrite($fh, $c) === strlen($c)) return true;
+                $refused = true;
+                return false;
             });
+            // fwrite is buffered: a full disk can also show up only on close.
+            if (!fflush($fh)) $refused = true;
+            if ($refused) throw new StorageUnavailable('The local copy could not be written (is the disk full?).');
         } catch (Throwable $e) {
             fclose($fh);
-            @unlink($localPath);
+            if (is_file($localPath)) @unlink($localPath);   // never a device or anything else
             throw $e;
         }
         fclose($fh);
@@ -227,7 +252,7 @@ final class S3Driver implements StorageDriver
             CURLOPT_WRITEFUNCTION  => function ($c, $chunk) use (&$status, &$buffer, $sink, &$delivered) {
                 if ($sink !== null && $status >= 200 && $status < 300) {
                     $delivered = true;
-                    return $sink($chunk) === false ? 0 : strlen($chunk);
+                    return $sink($chunk, $status) === false ? 0 : strlen($chunk);
                 }
                 if (strlen($buffer) < 1048576) $buffer .= $chunk;
                 return strlen($chunk);

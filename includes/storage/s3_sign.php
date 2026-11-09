@@ -101,12 +101,20 @@ function s3NormalisePrefix(string $prefix): string
     return $segs ? implode('/', $segs) . '/' : '';
 }
 
-/** An endpoint as typed -> scheme://host[:port][/path] without a trailing slash. */
+/**
+ * An endpoint as typed -> scheme://host[:port][/path] without a trailing slash.
+ * Scheme and host are lower-cased and a default port (:443 on https, :80 on http)
+ * is dropped: curl leaves it out of the Host header it sends, so a signed ":443"
+ * would never match what the provider checks.
+ */
 function s3NormaliseEndpoint(string $endpoint): string
 {
     $e = rtrim(trim($endpoint), '/');
-    if (!preg_match('#^https?://[^/\s]+#i', $e)) {
+    if (!preg_match('#^(https?)://(\[[0-9a-f:.]+\]|[^/\s:\[\]]+)(?::(\d+))?(/.*)?$#i', $e, $m)) {
         throw new InvalidArgumentException('The endpoint must start with http:// or https://');
     }
-    return $e;
+    $scheme = strtolower($m[1]);
+    $port   = $m[3] ?? '';
+    if (($scheme === 'https' && $port === '443') || ($scheme === 'http' && $port === '80')) $port = '';
+    return $scheme . '://' . strtolower($m[2]) . ($port !== '' ? ':' . $port : '') . rtrim($m[4] ?? '', '/');
 }

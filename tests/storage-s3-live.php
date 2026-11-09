@@ -77,6 +77,23 @@ foreach (['size' => fn() => $h->size('x.bin'),
 @unlink($small);
 fclose($hung);
 
+// A server that ignores Range and answers 200 with the whole object: the bytes handed
+// on must still be exactly the range asked for (Content-Length was promised for it).
+$probe = stream_socket_server('tcp://127.0.0.1:0');
+$fakePort = (int)substr(strrchr(stream_socket_get_name($probe, false), ':'), 1);
+fclose($probe);
+$serverCode = '$s = stream_socket_server("tcp://127.0.0.1:' . $fakePort . '"); $c = stream_socket_accept($s, 10);'
+            . ' while (($l = fgets($c)) !== false && trim($l) !== "") {}'
+            . ' fwrite($c, "HTTP/1.1 200 OK\r\nContent-Length: 16\r\nConnection: close\r\n\r\n0123456789abcdef"); fclose($c);';
+$proc = proc_open([PHP_BINARY, '-r', $serverCode], [], $pipes);
+usleep(700000);   // let it start listening (it answers one request, then exits)
+$fake = new S3Driver(['endpoint' => "http://127.0.0.1:$fakePort", 'region' => 'us-east-1', 'bucket' => 'b',
+                      'access_key_id' => 'k', 'secret' => 's', 'prefix' => '', 'path_style' => true], 'files');
+$got = '';
+try { $fake->readRange('x.bin', 5, 9, function (string $c) use (&$got) { $got .= $c; return true; }); } catch (Throwable $e) { $got = get_class($e) . ': ' . $e->getMessage(); }
+ok('a store that ignores Range still yields exactly bytes 5..9', $got === '56789', $got);
+proc_terminate($proc); proc_close($proc);
+
 $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';
 if ($ep === '') {
     echo "  SKIP (no S3 test endpoint)\n\n$pass passed, $fail failed\n";
@@ -103,6 +120,12 @@ try {
     $d->readTo($key, $tmp . '.out');
     ok('readTo copies bytes', @file_get_contents($tmp . '.out') === '0123456789abcdef');
     @unlink($tmp . '.out');
+    if (is_writable('/dev/full')) {
+        $threw = null;
+        try { $d->readTo($key, '/dev/full'); } catch (Throwable $e) { $threw = $e; }
+        ok('readTo into a full disk throws', $threw instanceof StorageUnavailable, $threw ? get_class($threw) : 'reported success');
+        ok('control: the failed target is not deleted', file_exists('/dev/full'));
+    }
 
     $threw = null;
     try { $d->readRange('2026/11/08/' . str_repeat('c', 32) . '.bin', 0, 1, fn($c) => true); } catch (Throwable $e) { $threw = $e; }
