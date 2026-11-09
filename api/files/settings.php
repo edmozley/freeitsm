@@ -94,7 +94,8 @@ filesApiRun(function () use ($conn, $analystId) {
 
     if ($tab === 'recycle') {
         requireCapabilityJson(Cap::FILES_RECYCLE, $conn);
-        if ($isGet) filesApiOk(FilesRecycleService::describe($conn));
+        // ?days=N also counts what saving N would let the next run delete (the page asks first).
+        if ($isGet) filesApiOk(FilesRecycleService::describe($conn, isset($_GET['days']) ? max(0, (int)$_GET['days']) : null));
         try {
             FilesRecycleService::saveRetention($conn, $analystId, (int)($in['days'] ?? -1));
         } catch (InvalidArgumentException $e) {

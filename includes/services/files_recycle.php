@@ -83,23 +83,46 @@ final class FilesRecycleService
                    ['recycle_bin_days' => ['from' => $before, 'to' => $days]]);
     }
 
-    /** What the Recycle bin settings tab shows. */
-    public static function describe(PDO $conn): array
+    /**
+     * What the Recycle bin settings tab shows.
+     *
+     * @param ?int $askDays  a period being considered: 'due' then counts what saving it
+     *                       would let the next job run delete (the page asks before saving)
+     */
+    public static function describe(PDO $conn, ?int $askDays = null): array
     {
         $days = self::retentionDays($conn);
         $u = self::binUsage($conn);
         // null = unknown (the table arrives with Database Verification): never a false 0.
         $pending = null;
-        try { $pending = (int)$conn->query("SELECT COUNT(*) FROM files_purge_pending")->fetchColumn(); } catch (PDOException) { }
+        try {
+            $pending = (int)$conn->query("SELECT COUNT(*) FROM files_purge_pending")->fetchColumn();
+        } catch (PDOException $e) {
+            if (!self::missingTable($e)) throw $e;
+        }
+        $entries = self::allEntries($conn);
+        $consider = $askDays ?? $days;
+        $due = 0;
+        if ($consider) {
+            $cutoff = gmdate('Y-m-d H:i:s', time() - $consider * 86400);
+            $due = count(array_filter($entries, fn($e) => $e['deleted_at'] < $cutoff));
+        }
         return [
             'days'          => $days ?? self::DEFAULT_DAYS,
             'configured'    => $days !== null,
-            'entries'       => count(self::allEntries($conn)),
+            'entries'       => count($entries),
+            'due'           => $due,
             'bin_files'     => $u['files'],
             'bin_bytes'     => $u['bytes'],
             'pending_bytes' => $pending,
             'max_days'      => self::MAX_DAYS,
         ];
+    }
+
+    /** True when a query failed only because a table is not there yet (before Database Verification). */
+    private static function missingTable(PDOException $e): bool
+    {
+        return $e->getCode() === '42S02' || str_contains($e->getMessage(), '1146');
     }
 
     /**
@@ -181,6 +204,37 @@ final class FilesRecycleService
     }
 
     /**
+     * The folders of a subtree this person holds at least $need on (as before the
+     * delete). A deleted folder can hold a subfolder that stopped inheriting and was
+     * never shared with the person who deleted the parent: its name, files and sizes
+     * must not reach them through the bin. Analyst 0 (the retention job) gets all.
+     */
+    private static function subtreeAtLeast(PDO $conn, int $analystId, int $folderId, int $need): array
+    {
+        $sub = self::subtree($conn, $folderId);
+        if ($analystId === 0) return $sub;
+        $levels = FilesAcl::levelsIncludingDeleted($conn, $analystId);
+        return array_values(array_filter($sub, fn($fid) => ($levels[$fid] ?? 0) >= $need));
+    }
+
+    /**
+     * May this person delete the whole entry for good? Modify on the folder (or a file's
+     * folder) AND on every folder under a deleted folder: a purge cannot be undone, so it
+     * must never destroy something they could not even see.
+     */
+    private static function canPurge(PDO $conn, int $analystId, array $e): bool
+    {
+        if ($analystId === 0) return true;
+        $levels = FilesAcl::levelsIncludingDeleted($conn, $analystId);
+        if (($levels[self::aclFolder($e)] ?? 0) < FilesAcl::MODIFY) return false;
+        if ($e['type'] !== 'folder') return true;
+        foreach (self::subtree($conn, $e['id']) as $fid) {
+            if (($levels[$fid] ?? 0) < FilesAcl::MODIFY) return false;
+        }
+        return true;
+    }
+
+    /**
      * What this person sees in the bin, most recently deleted first.
      *
      * @return array list of entries: type, id, name, location (the folder it was in),
@@ -201,11 +255,12 @@ final class FilesRecycleService
             $names = $st->fetchAll(PDO::FETCH_KEY_PAIR);
         }
 
-        // Size and file count of each deleted folder: every file under it.
+        // Size and file count of each deleted folder: the files under it in folders this
+        // person may see - never a hidden subfolder's.
         $folderStats = [];
         foreach ($mine as $e) {
             if ($e['type'] !== 'folder') continue;
-            $sub = self::subtree($conn, $e['id']);
+            $sub = self::subtreeAtLeast($conn, $analystId, $e['id'], FilesAcl::VIEW);
             $st = $conn->prepare("SELECT COUNT(*), COALESCE(SUM(size_bytes), 0) FROM files_items WHERE folder_id IN (" . implode(',', array_fill(0, count($sub), '?')) . ")");
             $st->execute($sub);
             $folderStats[$e['id']] = $st->fetch(PDO::FETCH_NUM);
@@ -226,6 +281,7 @@ final class FilesRecycleService
                 'files'           => $isFolder ? (int)$folderStats[$e['id']][0] : null,
                 'purge_at'        => $days ? gmdate('Y-m-d H:i:s', strtotime($e['deleted_at'] . ' UTC') + $days * 86400) : null,
                 'can_modify'      => ($levels[self::aclFolder($e)] ?? 0) >= FilesAcl::MODIFY,
+                'can_purge'       => self::canPurge($conn, $analystId, $e),
             ];
         }
         usort($out, fn($a, $b) => strcmp($b['deleted_at'], $a['deleted_at']) ?: strnatcasecmp($a['name'], $b['name']));
@@ -245,7 +301,8 @@ final class FilesRecycleService
         if (!$f || $f['live'] || (FilesAcl::levelsIncludingDeleted($conn, $analystId)[$folderId] ?? 0) < FilesAcl::VIEW) {
             throw new InvalidArgumentException('Folder not found.');
         }
-        $sub = self::subtree($conn, $folderId);
+        // Only folders this person may see - a hidden subfolder's files are not listed.
+        $sub = self::subtreeAtLeast($conn, $analystId, $folderId, FilesAcl::VIEW);
         $st = $conn->prepare("SELECT folder_id, name, size_bytes FROM files_items WHERE folder_id IN (" . implode(',', array_fill(0, count($sub), '?')) . ")");
         $st->execute($sub);
         $base = FilesAcl::pathIncludingDeleted($conn, $folderId);
@@ -347,8 +404,32 @@ final class FilesRecycleService
             $GLOBALS['analystId'] = $was;
         }
         $table = $type === 'folder' ? 'files_folders' : 'files_items';
-        $conn->prepare("UPDATE $table SET name = ?, deleted_by = NULL, deleted_datetime = NULL, updated_by = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
-             ->execute([$name, $analystId, $id]);
+        $own = !$conn->inTransaction();
+        if ($own) $conn->beginTransaction();
+        try {
+            // Still deleted? A purge may have got there first.
+            $st = $conn->prepare("UPDATE $table SET name = ?, deleted_by = NULL, deleted_datetime = NULL, updated_by = ?, updated_datetime = UTC_TIMESTAMP()
+                                   WHERE id = ? AND deleted_datetime IS NOT NULL");
+            $st->execute([$name, $analystId, $id]);
+            if ($st->rowCount() === 0) throw new InvalidArgumentException($type === 'folder' ? 'Folder not found.' : 'File not found.');
+
+            if ($type === 'folder') {
+                // Things deleted on their own inside it become entries again, each with its
+                // own old date - which the retention job would read as "long overdue" and
+                // delete within the hour. Their time in the bin starts again from now.
+                $sub = array_values(array_diff(self::subtree($conn, $id), [$id]));
+                $conn->prepare("UPDATE files_items SET deleted_datetime = UTC_TIMESTAMP() WHERE deleted_datetime IS NOT NULL AND folder_id IN ("
+                               . implode(',', array_fill(0, count($sub) + 1, '?')) . ")")->execute(array_merge([$id], $sub));
+                if ($sub) {
+                    $conn->prepare("UPDATE files_folders SET deleted_datetime = UTC_TIMESTAMP() WHERE deleted_datetime IS NOT NULL AND id IN ("
+                                   . implode(',', array_fill(0, count($sub), '?')) . ")")->execute($sub);
+                }
+            }
+            if ($own) $conn->commit();
+        } catch (Throwable $ex) {
+            if ($own && $conn->inTransaction()) $conn->rollBack();
+            throw $ex;
+        }
         FilesAcl::reset();
 
         $t = $type === 'folder' ? ['folder_id' => $id] : ['folder_id' => $parent, 'item_id' => $id, 'item_name' => $name];
@@ -386,6 +467,13 @@ final class FilesRecycleService
                        ['wanted' => 'modify', 'held' => FilesAcl::levelKey($lvl), 'doing' => 'purge']);
             throw new InvalidArgumentException('You do not have permission to do that here.');
         }
+        if (!self::canPurge($conn, $analystId, $e)) {
+            // A subfolder they cannot change (or see). Restoring is still theirs to do;
+            // deleting for good is for someone who can change all of it, or the retention job.
+            filesAudit($conn, $analystId, 'denied', ['path' => self::entryPath($conn, $e)],
+                       ['wanted' => 'modify', 'held' => 'not_on_every_subfolder', 'doing' => 'purge']);
+            throw new InvalidArgumentException('This folder holds folders you cannot change, so you cannot delete it permanently. You can restore it, or ask someone with Modify on all of it.');
+        }
 
         $path = self::entryPath($conn, $e);
         $folders = $type === 'folder' ? self::subtree($conn, $id) : [];
@@ -410,6 +498,13 @@ final class FilesRecycleService
         $own = !$conn->inTransaction();
         if ($own) $conn->beginTransaction();
         try {
+            // Still in the bin? A restore may have landed since we looked. Locked until commit.
+            $st = $conn->prepare("SELECT deleted_datetime FROM " . ($type === 'folder' ? 'files_folders' : 'files_items') . " WHERE id = ? FOR UPDATE");
+            $st->execute([$id]);
+            $still = $st->fetchColumn();
+            if ($still === false || ($still === null && ($type === 'folder' || !empty($e['self_deleted'])))) {
+                throw new InvalidArgumentException($type === 'folder' ? 'Folder not found.' : 'File not found.');
+            }
             // Children first: an install grown from an older schema may lack the cascades.
             if ($items) {
                 $in = implode(',', array_fill(0, count($items), '?'));
@@ -442,13 +537,19 @@ final class FilesRecycleService
         FilesAcl::reset();
 
         // Bytes, after the rows are gone: only keys nothing else still points at.
+        // One key's failure must not skip the others or the audit row: the rows are gone.
         $pending = 0;
         $check = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
         foreach ($keys as $key => $size) {
             $check->execute([$key]);
             if ($check->fetchColumn()) continue;   // a copy elsewhere still uses it
             $bytes += (int)$size;
-            if (!self::deleteBytes($conn, (string)$key)) $pending++;
+            try {
+                if (self::deleteBytes($conn, (string)$key) !== 'ok') $pending++;
+            } catch (Throwable $ex) {
+                error_log("files: purge could not finish with stored bytes {$key}: " . $ex->getMessage());
+                $pending++;
+            }
         }
 
         $t = $type === 'folder' ? ['path' => $path] : ['item_id' => $id, 'path' => $path];
@@ -461,18 +562,24 @@ final class FilesRecycleService
 
     /**
      * Deletes one stored object everywhere it may be: the active location and, during a
-     * move, the previous one. Its move row goes too, so the move does not copy it.
-     * False when a store could not be reached - the key then waits in
-     * files_purge_pending for the job.
+     * move, the previous one. During a move its move row goes too, so the move does not
+     * copy it (storageMigrateBatch() removes a copy that was already in flight).
+     *
+     * @return string 'ok'; 'unavailable' (a store could not be reached - the key waits in
+     *                files_purge_pending for the job); 'error' (any other failure, also queued)
      */
-    private static function deleteBytes(PDO $conn, string $key): bool
+    private static function deleteBytes(PDO $conn, string $key): string
     {
-        if (!filesStorageKeyIsValid($key)) return true;   // never a path we wrote: nothing to do
-        $conn->prepare("DELETE FROM storage_migration_items WHERE store = 'files' AND object_key = ?")->execute([$key]);
+        if (!filesStorageKeyIsValid($key)) return 'ok';   // never a path we wrote: nothing to do
         $error = null;
+        $result = 'ok';
         try {
             $stores = [filesActiveStore($conn)];
-            if (($prev = filesPreviousStore($conn)) !== null) $stores[] = $prev;
+            if (($prev = filesPreviousStore($conn)) !== null) {
+                // A move is running, so its table exists.
+                $conn->prepare("DELETE FROM storage_migration_items WHERE store = 'files' AND object_key = ?")->execute([$key]);
+                $stores[] = $prev;
+            }
             foreach ($stores as $s) {
                 try {
                     $s->delete($key);
@@ -480,35 +587,52 @@ final class FilesRecycleService
                     // already gone
                 }
             }
+        } catch (StorageUnavailable $e) {
+            $error = $e->getMessage();
+            $result = 'unavailable';
         } catch (Throwable $e) {
             $error = $e->getMessage();
+            $result = 'error';
         }
-        if ($error === null) {
-            $conn->prepare("DELETE FROM files_purge_pending WHERE storage_path = ?")->execute([$key]);
-            return true;
+        try {
+            if ($error === null) {
+                $conn->prepare("DELETE FROM files_purge_pending WHERE storage_path = ?")->execute([$key]);
+                return 'ok';
+            }
+            error_log("files: could not delete stored bytes {$key}: {$error}");
+            $conn->prepare("INSERT INTO files_purge_pending (storage_path, attempts, last_error, created_datetime, updated_datetime)
+                            VALUES (?, 0, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+                            ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_error = VALUES(last_error), updated_datetime = UTC_TIMESTAMP()")
+                 ->execute([$key, mb_substr($error, 0, 500)]);
+        } catch (PDOException $e) {
+            // Before Database Verification there is no queue: nothing was waiting, and a
+            // failure can only be logged. Say so loudly - those bytes need removing by hand.
+            if (!self::missingTable($e)) throw $e;
+            if ($error !== null) error_log("files: stored bytes {$key} were NOT deleted and cannot be queued: run Database Verification (files_purge_pending is missing)");
         }
-        error_log("files: could not delete stored bytes {$key}: {$error}");
-        $conn->prepare("INSERT INTO files_purge_pending (storage_path, attempts, last_error, created_datetime, updated_datetime)
-                        VALUES (?, 0, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
-                        ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_error = VALUES(last_error), updated_datetime = UTC_TIMESTAMP()")
-             ->execute([$key, mb_substr($error, 0, 500)]);
-        return false;
+        return $result;
     }
 
     /**
-     * Purges every entry this person may purge (Modify). Entries they can only see stay.
+     * Purges what this person may delete for good, until $deadlineUnix. Entries they can
+     * see but not change all of stay, and are counted.
      *
-     * @return array ['entries' => n purged, 'files' => n, 'bytes' => n]
+     * @return array ['entries' => purged, 'files' => n, 'bytes' => n, 'skipped' => n they may
+     *               not purge, 'failed' => n that failed, 'more' => bool (the deadline stopped it)]
      */
-    public static function emptyBin(PDO $conn, int $analystId): array
+    public static function emptyBin(PDO $conn, int $analystId, int $deadlineUnix): array
     {
-        $r = ['entries' => 0, 'files' => 0, 'bytes' => 0];
+        $r = ['entries' => 0, 'files' => 0, 'bytes' => 0, 'skipped' => 0, 'failed' => 0, 'more' => false];
         foreach (self::entries($conn, $analystId) as $e) {
-            if (!$e['can_modify']) continue;
+            if (!$e['can_purge']) { $r['skipped']++; continue; }
+            if (time() >= $deadlineUnix) { $r['more'] = true; break; }
             try {
                 $p = self::purge($conn, $analystId, $e['type'], $e['id']);
-            } catch (InvalidArgumentException $ex) {
-                continue;   // gone meanwhile, or now inside another entry
+            } catch (Throwable $ex) {
+                // Gone meanwhile, restored meanwhile, or a real failure: count it, carry on.
+                if (!$ex instanceof InvalidArgumentException) error_log('files: empty recycle bin: ' . $ex->getMessage());
+                $r['failed']++;
+                continue;
             }
             $r['entries']++;
             $r['files'] += $p['files'];
@@ -521,11 +645,11 @@ final class FilesRecycleService
      * The retention job's work: purges entries deleted more than the retention period
      * ago, until $deadlineUnix. Nothing when the setting was never saved or is 0.
      *
-     * @return array ['entries' => n, 'files' => n, 'bytes' => n, 'done' => bool]
+     * @return array ['entries' => n, 'files' => n, 'bytes' => n, 'failed' => n, 'done' => bool]
      */
     public static function purgeExpired(PDO $conn, int $deadlineUnix): array
     {
-        $r = ['entries' => 0, 'files' => 0, 'bytes' => 0, 'done' => true];
+        $r = ['entries' => 0, 'files' => 0, 'bytes' => 0, 'failed' => 0, 'done' => true];
         $days = self::retentionDays($conn);
         if (!$days) return $r;
         $cutoff = gmdate('Y-m-d H:i:s', time() - $days * 86400);
@@ -535,6 +659,11 @@ final class FilesRecycleService
             try {
                 $p = self::purge($conn, 0, $e['type'], $e['id']);
             } catch (InvalidArgumentException $ex) {
+                continue;   // restored or purged since the list was read
+            } catch (Throwable $ex) {
+                // One stuck entry must not hold up every other one, run after run.
+                error_log("files: recycle bin retention could not purge {$e['type']} {$e['id']}: " . $ex->getMessage());
+                $r['failed']++;
                 continue;
             }
             $r['entries']++;
@@ -553,7 +682,12 @@ final class FilesRecycleService
     public static function retryPendingBytes(PDO $conn, int $deadlineUnix, int $limit = 500): array
     {
         $r = ['deleted' => 0, 'still_pending' => 0];
-        $rows = $conn->query("SELECT storage_path FROM files_purge_pending ORDER BY updated_datetime LIMIT " . (int)$limit)->fetchAll(PDO::FETCH_COLUMN);
+        try {
+            $rows = $conn->query("SELECT storage_path FROM files_purge_pending ORDER BY updated_datetime LIMIT " . (int)$limit)->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException $e) {
+            if (self::missingTable($e)) return $r;   // no queue yet means nothing is queued
+            throw $e;
+        }
         $check = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
         foreach ($rows as $key) {
             if (time() >= $deadlineUnix) break;
@@ -562,12 +696,14 @@ final class FilesRecycleService
                 $conn->prepare("DELETE FROM files_purge_pending WHERE storage_path = ?")->execute([$key]);
                 continue;
             }
-            if (self::deleteBytes($conn, (string)$key)) {
+            $res = self::deleteBytes($conn, (string)$key);
+            if ($res === 'ok') {
                 $r['deleted']++;
-            } else {
-                $r['still_pending']++;
-                break;   // storage is still down: the next run tries again
+                continue;
             }
+            $r['still_pending']++;
+            if ($res === 'unavailable') break;   // storage is still down: the next run tries again
+            // Any other failure is this key's alone (attempts and last_error are kept): try the rest.
         }
         return $r;
     }

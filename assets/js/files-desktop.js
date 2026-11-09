@@ -1854,10 +1854,12 @@
         var selected = function () { return rows.filter(function (r) { return sel[r.type + r.id]; }); };
         /** Greys out the commands that do not apply to the selection, and updates the status bar. */
         var refreshCmds = function () {
+            // Restore needs Modify on the entry; Delete permanently also on every folder inside it (can_purge).
             var s = selected(), mod = s.length > 0 && s.every(function (r) { return r.can_modify; });
+            var purgeable = s.length > 0 && s.every(function (r) { return r.can_purge; });
             b.querySelector('[data-act="restore"]').disabled = !mod;
-            b.querySelector('[data-act="purge"]').disabled = !mod;
-            b.querySelector('[data-act="empty"]').disabled = !rows.some(function (r) { return r.can_modify; });
+            b.querySelector('[data-act="purge"]').disabled = !purgeable;
+            b.querySelector('[data-act="empty"]').disabled = !rows.some(function (r) { return r.can_purge; });
             stCount.textContent = rows.length === 1 ? L('ex.count_one', '1 item') : L('ex.count', '{n} items', { n: rows.length });
             stSel.textContent = s.length ? L('ex.selected', '{n} selected', { n: s.length }) : '';
             list.querySelectorAll('.fx-item').forEach(function (n) { n.classList.toggle('fx-sel', !!sel[n.dataset.k]); });
@@ -1949,13 +1951,25 @@
         };
         /** Asks, then empties everything in the bin the person may delete. */
         var emptyBin = function () {
-            var mine = rows.filter(function (r) { return r.can_modify; });
+            var mine = rows.filter(function (r) { return r.can_purge; });
             WM.dialog({ title: L('rb.empty', 'Empty recycle bin'),
                 message: L('rb.empty_q', 'Permanently delete everything in the recycle bin? (Items: {n})', { n: mine.length }) +
                     (mine.length < rows.length ? '\n\n' + L('rb.empty_some', 'Items you can see but not change stay in the bin.') : '') +
                     '\n\n' + L('rb.purge_note', 'This cannot be undone. The stored files are removed too.'),
                 buttons: [{ label: L('rb.empty', 'Empty recycle bin'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
-                .then(function (ok) { if (ok) api('recycle.php', { action: 'empty' }).then(reload).catch(fail); });
+                .then(function (ok) {
+                    if (!ok) return;
+                    // The server works in slices (a big bin must not outrun one request): ask until done.
+                    var failed = 0;
+                    var round = function () {
+                        return api('recycle.php', { action: 'empty' }).then(function (r) {
+                            failed += r.failed;
+                            if (r.more) return round();
+                            if (failed) WM.notify(L('rb.empty_failed', 'Some items could not be deleted permanently (Items: {n}). They are still in the recycle bin.', { n: failed }), 'error');
+                        });
+                    };
+                    round().catch(fail).then(reload);
+                });
         };
         /** Shows what is inside a deleted folder - nothing can be opened from here. */
         var peek = function (r) {
@@ -2009,15 +2023,15 @@
             if (!n) return;
             ev.preventDefault();
             if (!sel[n.dataset.k]) { sel = {}; sel[n.dataset.k] = true; anchor = n.dataset.k; refreshCmds(); }
-            var s = selected(), mod = s.every(function (r) { return r.can_modify; });
+            var s = selected(), mod = s.every(function (r) { return r.can_modify; }), purgeable = s.every(function (r) { return r.can_purge; });
             WM.menu(ev.clientX, ev.clientY, [
                 s.length === 1 && s[0].type === 'folder' ? { label: L('rb.look_inside', 'Look inside'), icon: IC.open, action: function () { peek(s[0]); } } : null,
                 { label: L('rb.restore', 'Restore'), icon: IC.restore, action: function () { restore(s); }, disabled: !mod },
-                { label: L('rb.purge', 'Delete permanently'), icon: IC.del, action: function () { purge(s); }, disabled: !mod }
+                { label: L('rb.purge', 'Delete permanently'), icon: IC.del, action: function () { purge(s); }, disabled: !purgeable }
             ]);
         });
         b.querySelector('.fx-pane').addEventListener('keydown', function (ev) {
-            var s = selected().filter(function (r) { return r.can_modify; });
+            var s = selected().filter(function (r) { return r.can_purge; });
             if (ev.key === 'Delete' && s.length) { ev.preventDefault(); purge(s); }
         });
         reload();

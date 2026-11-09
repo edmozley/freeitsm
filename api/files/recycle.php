@@ -10,7 +10,9 @@
  *        the bin too, the reply names that folder (restore_first) instead.
  *   POST {action: purge, type, id}                  Modify - deleted for good,
  *        stored bytes included
- *   POST {action: empty}   purges every entry the caller may purge
+ *   POST {action: empty}   purges every entry the caller may purge (Modify on it and
+ *        on every folder inside it), about 20 seconds' worth per call: the reply's
+ *        'more' says to call again; 'skipped' counts entries left for others
  *
  * Permissions are those the folder had before it was deleted; an entry the caller
  * could not View is "not found". The rules are in includes/services/files_recycle.php.
@@ -41,7 +43,9 @@ filesApiRun(function () use ($conn, $analystId) {
     try {
         if ($action === 'restore') filesApiOk(FilesRecycleService::restore($conn, $analystId, $type, $id));
         if ($action === 'purge')   filesApiOk(FilesRecycleService::purge($conn, $analystId, $type, $id));
-        if ($action === 'empty')   filesApiOk(FilesRecycleService::emptyBin($conn, $analystId));
+        // A bounded slice per request: a big bin (or slow storage) must not outrun
+        // max_execution_time. The page asks again while 'more' is true.
+        if ($action === 'empty')   filesApiOk(FilesRecycleService::emptyBin($conn, $analystId, time() + 20));
     } catch (FilesRecycleBlocked $e) {
         filesApiFail($e->getMessage(), 200, $e->first ? ['restore_first' => $e->first] : []);
     } catch (InvalidArgumentException $e) {

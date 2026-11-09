@@ -321,13 +321,26 @@
         api('settings.php?tab=recycle').then(rbRender).catch(function (e) { document.getElementById('rbState').textContent = e.message; });
         document.getElementById('rbSave').addEventListener('click', function () {
             var msg = document.getElementById('rbMsg'), b = this;
-            b.disabled = true;
-            msg.style.color = '';
-            msg.textContent = '';
-            api('settings.php', { tab: 'recycle', days: rbDays.value === '' ? -1 : +rbDays.value })
-                .then(function (r) { rbRender(r); msg.style.color = 'var(--success-text)'; msg.textContent = L('settings.saved', 'Saved.'); })
-                .catch(function (e) { msg.style.color = 'var(--danger-text)'; msg.textContent = e.message; })
-                .then(function () { b.disabled = false; });
+            var days = rbDays.value === '' ? -1 : +rbDays.value;
+            /** Saves the period and redraws the tab. */
+            var save = function () {
+                b.disabled = true;
+                msg.style.color = '';
+                msg.textContent = '';
+                api('settings.php', { tab: 'recycle', days: days })
+                    .then(function (r) { rbRender(r); msg.style.color = 'var(--success-text)'; msg.textContent = L('settings.saved', 'Saved.'); })
+                    .catch(function (e) { msg.style.color = 'var(--danger-text)'; msg.textContent = e.message; })
+                    .then(function () { b.disabled = false; });
+            };
+            if (!(days > 0)) { save(); return; }
+            // Items already older than the new period go at the next run (within the hour):
+            // say how many first - on the first save that can be everything deleted in the past.
+            api('settings.php?tab=recycle&days=' + days).then(function (r) {
+                if (!r.due) { save(); return; }
+                var q = L('settings.recycle_due_confirm', 'Items already in the recycle bin longer than this will be deleted permanently within the hour, with their stored files (Items: {n}). Continue?', { n: r.due });
+                if (window.showConfirm) window.showConfirm({ title: L('settings.recycle_title', 'Recycle bin'), message: q, okLabel: L('btn.save', 'Save'), onConfirm: save });
+                else if (confirm(q)) save();
+            }).catch(function (e) { msg.style.color = 'var(--danger-text)'; msg.textContent = e.message; });
         });
     }
 })();

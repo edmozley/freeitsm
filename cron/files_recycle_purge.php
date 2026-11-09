@@ -44,12 +44,14 @@ try {
     $p = FilesRecycleService::purgeExpired($conn, $deadline);
     $b = FilesRecycleService::retryPendingBytes($conn, $deadline);
 
-    $summary = sprintf('%d deleted for good (%d files, %s bytes); %d waiting stored files removed%s%s.',
-                       $p['entries'], $p['files'], number_format($p['bytes']), $b['deleted'],
-                       $b['still_pending'] ? ' - storage could not be reached, the next run tries again' : '',
+    $summary = sprintf('%d deleted for good (%d files, %s bytes), %d failed; %d waiting stored files removed%s%s.',
+                       $p['entries'], $p['files'], number_format($p['bytes']), $p['failed'], $b['deleted'],
+                       $b['still_pending'] ? ', ' . $b['still_pending'] . ' still waiting (see the PHP error log)' : '',
                        $p['done'] ? '' : ' (more to do: the next run carries on)');
-    JobRun::finish($conn, $runId, $b['still_pending'] ? ($p['entries'] + $b['deleted'] > 0 ? 'partial' : 'failed') : 'ok',
-                   ['entries' => $p['entries'], 'files' => $p['files'], 'bytes' => $p['bytes'], 'bytes_retried' => $b['deleted']], $summary);
+    $problems = $p['failed'] + $b['still_pending'];
+    JobRun::finish($conn, $runId, $problems ? ($p['entries'] + $b['deleted'] > 0 ? 'partial' : 'failed') : 'ok',
+                   ['entries' => $p['entries'], 'files' => $p['files'], 'bytes' => $p['bytes'], 'failed' => $p['failed'],
+                    'bytes_retried' => $b['deleted'], 'bytes_waiting' => $b['still_pending']], $summary);
     echo "Files recycle bin: $summary\n";
 } catch (Throwable $e) {
     JobRun::fail($conn, $runId, $e);

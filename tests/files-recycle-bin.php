@@ -13,10 +13,17 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   - Delete permanently leaving the old copy behind during a storage move
  *   - storage being down making a purge fail, or the bytes being forgotten
  *   - the retention job deleting anything before an admin chose a period
+ *   - a deleted folder showing (or letting someone destroy) a subfolder that was
+ *     never shared with them
+ *   - a restored folder's earlier-deleted contents being purged at once by retention
  *
  * Folders, files and grants are ZZ fixtures; the analysts are ids nobody has.
  * Stored files go to temporary folders. Everything runs inside ONE transaction
  * that is rolled back, settings included.
+ *
+ * With FREEITSM_TEST_S3_{ENDPOINT,KEY,SECRET,BUCKET} set (the bucket must exist) it also
+ * purges from real S3-compatible storage: S3 as the only location, and moves local -> S3
+ * and S3 -> local. Objects go under a random zz- prefix and are removed afterwards.
  *
  * Run: FREEITSM_TEST_DATABASE=<db> php tests/files-recycle-bin.php
  */
@@ -26,6 +33,7 @@ require_once "$root/config.php";
 require_once "$root/includes/functions.php";
 require_once "$root/includes/encryption.php";
 require_once "$root/includes/services/files_recycle.php";
+require_once "$root/includes/storage/s3_driver.php";
 
 $pass = 0; $fail = 0;
 function ok(string $label, bool $cond, string $detail = ''): void {
@@ -88,6 +96,7 @@ $old   = sys_get_temp_dir() . '/zz-rb-old-' . bin2hex(random_bytes(4));
 mkdir($store); mkdir($old);
 $U1 = 990000001;   // Modify on ZZ Projects
 $U2 = 990000002;   // View on ZZ Projects only
+$U3 = 990000003;   // the only one with access to ZZ Finance / ZZ HR
 
 $conn->beginTransaction();
 try {
@@ -213,14 +222,117 @@ try {
     try { FilesRecycleService::saveRetention($conn, $U1, -1); ok('a negative period is refused', false); }
     catch (InvalidArgumentException $e) { ok('a negative period is refused', true); }
 
+    // ── A subfolder the deleter could never see ────────────────────────
+    $fin = folder($conn, null, 'ZZ Finance');
+    $hr  = folder($conn, $fin, 'ZZ HR');
+    $conn->prepare("UPDATE files_folders SET inherit_permissions = 0 WHERE id = ?")->execute([$hr]);
+    grant($conn, $fin, $U1, FilesAcl::MODIFY);
+    grant($conn, $hr, $U3, FilesAcl::FULL);
+    $budget = item($conn, $store, $fin, 'zz-budget.xlsx');
+    $salary = item($conn, $store, $hr, 'zz-salaries.xlsx');
+    softDelete($conn, 'folder', $fin, $U1);
+    $peek = FilesRecycleService::contents($conn, $U1, $fin);
+    ok('CONTROL: U1 can look inside the folder they deleted', in_array('zz-budget.xlsx', array_column($peek['files'], 'name'), true), json_encode($peek));
+    ok('...but never sees the hidden subfolder\'s files or its name',
+       !in_array('zz-salaries.xlsx', array_column($peek['files'], 'name'), true) && !str_contains(json_encode($peek), 'ZZ HR'), json_encode($peek));
+    $finRow = array_values(array_filter(FilesRecycleService::entries($conn, $U1), fn($e) => $e['name'] === 'ZZ Finance'))[0];
+    ok('...and its counts leave the hidden files out', $finRow['files'] === 1, json_encode($finRow));
+    ok('...and it may be restored but not deleted for good', $finRow['can_modify'] && !$finRow['can_purge'], json_encode($finRow));
+    try { FilesRecycleService::purge($conn, $U1, 'folder', $fin); ok('purging over a hidden subfolder is refused', false); }
+    catch (InvalidArgumentException $e) { ok('purging over a hidden subfolder is refused', rowExists($conn, 'files_items', $salary['id']) && is_file("$store/{$salary['key']}"), $e->getMessage()); }
+
+    // ── Restore restarts the clock for what was deleted inside ────────
+    $box  = folder($conn, $proj, 'ZZ Box');
+    $old1 = item($conn, $store, $box, 'zz-60-days.txt');
+    softDelete($conn, 'item', $old1['id'], $U1, 'UTC_TIMESTAMP() - INTERVAL 60 DAY');
+    softDelete($conn, 'folder', $box, $U1);
+    FilesRecycleService::restore($conn, $U1, 'folder', $box);
+    $st = $conn->prepare("SELECT deleted_datetime > UTC_TIMESTAMP() - INTERVAL 1 HOUR FROM files_items WHERE id = ?");
+    $st->execute([$old1['id']]);
+    ok('a file deleted inside a restored folder starts its time in the bin again', (int)$st->fetchColumn() === 1);
+    $r = FilesRecycleService::purgeExpired($conn, time() + 30);   // retention is 30 days here
+    ok('...so retention does not delete it straight away', rowExists($conn, 'files_items', $old1['id']), json_encode($r));
+
+    // ── Saving a period says what it would delete; Empty works in slices ──
+    $d = FilesRecycleService::describe($conn, 1);   // only zz-10-days.txt is older than a day
+    ok('describe(days) counts what the next run would delete', $d['due'] === 1 && $d['entries'] >= 3, json_encode($d));
+    ok('...and only that: 30 days would delete nothing yet', FilesRecycleService::describe($conn, 30)['due'] === 0);
+    softDelete($conn, 'item', $old1['id'], $U1, 'UTC_TIMESTAMP() - INTERVAL 3 DAY');
+    ok('...an entry older than the period is counted', FilesRecycleService::describe($conn, 1)['due'] === 2);
+    $r = FilesRecycleService::emptyBin($conn, $U1, time() - 1);
+    ok('Empty past its deadline does nothing and asks to be called again', $r['entries'] === 0 && $r['more'] === true, json_encode($r));
+
     // ── Empty, and the Storage tab's figures ───────────────────────────
     $u = FilesRecycleService::binUsage($conn);
     ok('binUsage counts what only deleted files use', $u['files'] >= 2, json_encode($u));   // zz-10-days + the hidden folder's file
-    $r = FilesRecycleService::emptyBin($conn, $U2);
+    $r = FilesRecycleService::emptyBin($conn, $U2, time() + 30);
     ok('emptying as View-only purges nothing', $r['entries'] === 0 && rowExists($conn, 'files_items', $newFile['id']), json_encode($r));
-    $r = FilesRecycleService::emptyBin($conn, $U1);
-    ok('emptying as U1 purges everything they may change', $r['entries'] >= 2 && FilesRecycleService::entries($conn, $U1) === [], json_encode($r));
+    $r = FilesRecycleService::emptyBin($conn, $U1, time() + 30);
+    $left = keys(FilesRecycleService::entries($conn, $U1));
+    ok('emptying as U1 purges everything they may change', $r['entries'] >= 2 && $left === ['folder:ZZ Finance'], json_encode([$r, $left]));
+    ok('...and leaves the folder with a hidden subfolder, saying so', $r['skipped'] === 1 && is_file("$store/{$salary['key']}"), json_encode($r));
+    FilesRecycleService::restore($conn, $U1, 'folder', $fin);
+    ok('restoring that folder brings the hidden subfolder back for its owner', isset(FilesAcl::tree($conn)[$hr]) && filesItem($conn, $salary['id']) !== null);
     ok('...including the hidden folder\'s stored file', !is_file("$store/{$secret['key']}"));
+
+    // ── Real S3-compatible storage ─────────────────────────────────────
+    $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';
+    if ($ep === '') {
+        echo "  SKIP S3 checks (set FREEITSM_TEST_S3_ENDPOINT, _KEY, _SECRET, _BUCKET)\n";
+    } else {
+        $s3cfg = ['driver' => 's3', 'endpoint' => $ep, 'region' => getenv('FREEITSM_TEST_S3_REGION') ?: 'us-east-1',
+                  'bucket' => (string)getenv('FREEITSM_TEST_S3_BUCKET'), 'access_key_id' => (string)getenv('FREEITSM_TEST_S3_KEY'),
+                  'secret' => (string)getenv('FREEITSM_TEST_S3_SECRET'), 'prefix' => 'zz-rb-' . bin2hex(random_bytes(4)) . '/', 'path_style' => true];
+        $s3 = new S3Driver($s3cfg, 'files');
+        $s3keys = [];
+        /** A file whose bytes are in S3 (and, with $alsoLocal, in the local folder too). */
+        $s3item = function (string $name, bool $alsoLocal = false) use ($conn, $proj, $store, $s3, &$s3keys): array {
+            $it = item($conn, $store, $proj, $name);           // writes the local copy
+            $s3->putFile($it['key'], "$store/{$it['key']}");   // and the S3 copy
+            if (!$alsoLocal) @unlink("$store/{$it['key']}");
+            $s3keys[] = $it['key'];
+            return $it;
+        };
+        /** Points Files at the test bucket. */
+        $useS3 = function () use ($conn, $s3cfg): void {
+            setSetting($conn, 'files_storage_driver', 's3');
+            foreach (['endpoint', 'region', 'bucket', 'access_key_id', 'prefix'] as $k) setSetting($conn, "files_s3_$k", $s3cfg[$k]);
+            setSetting($conn, 'files_s3_path_style', '1');
+            setSetting($conn, 'files_s3_secret', encryptValue($s3cfg['secret']));
+        };
+        try {
+            // S3 is where files are stored.
+            $useS3();
+            setSetting($conn, 'files_storage_previous', null);
+            $a = $s3item('zz-s3-a.txt');
+            $aCopy = item($conn, $store, $proj, 'zz-s3-a copy.txt', $a['key']);
+            ok('S3 CONTROL: the object is in the bucket', $s3->size($a['key']) !== null);
+            softDelete($conn, 'item', $aCopy['id'], $U1);
+            FilesRecycleService::purge($conn, $U1, 'item', $aCopy['id']);
+            ok('S3: purging a copy keeps the shared object', $s3->size($a['key']) !== null);
+            softDelete($conn, 'item', $a['id'], $U1);
+            $p = FilesRecycleService::purge($conn, $U1, 'item', $a['id']);
+            ok('S3: purging the last user deletes the object from the bucket', $s3->size($a['key']) === null && $p['pending'] === 0, json_encode($p));
+
+            // Moving local -> S3: old copy in the folder, new copy in the bucket.
+            setSetting($conn, 'files_storage_previous', encryptValue(json_encode(['driver' => 'local', 'root' => $store])));
+            $b = $s3item('zz-s3-b.txt', true);
+            softDelete($conn, 'item', $b['id'], $U1);
+            FilesRecycleService::purge($conn, $U1, 'item', $b['id']);
+            ok('move local -> S3: gone from the bucket AND the folder', $s3->size($b['key']) === null && !is_file("$store/{$b['key']}"));
+
+            // Moving S3 -> local: old copy in the bucket, new copy in the folder.
+            foreach (['files_storage_driver', 'files_s3_endpoint', 'files_s3_bucket', 'files_s3_prefix', 'files_s3_secret'] as $k) setSetting($conn, $k, null);
+            setSetting($conn, 'files_storage_previous', encryptValue(json_encode($s3cfg)));
+            $c = $s3item('zz-s3-c.txt', true);
+            softDelete($conn, 'item', $c['id'], $U1);
+            FilesRecycleService::purge($conn, $U1, 'item', $c['id']);
+            ok('move S3 -> local: gone from the folder AND the bucket', $s3->size($c['key']) === null && !is_file("$store/{$c['key']}"));
+        } finally {
+            foreach ($s3keys as $k) { try { $s3->delete($k); } catch (Throwable $e) { } }
+            setSetting($conn, 'files_storage_previous', null);
+        }
+    }
 } catch (Throwable $e) {
     ok('no unexpected exception', false, get_class($e) . ': ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
 } finally {
