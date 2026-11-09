@@ -115,7 +115,8 @@
             if (!state) return false;
             var t = chosenType();
             if (t !== state.driver) return true;
-            if (t === 'local') return (stoRoot.value.trim() || state.default_root).replace(/\/+$/, '') !== state.storage_root;
+            // Windows paths: the server stores them with forward slashes.
+            if (t === 'local') return (stoRoot.value.trim() || state.default_root).replace(/\\/g, '/').replace(/\/+$/, '') !== state.storage_root;
             var v = s3Values(), o = state.s3;
             var norm = function (p) { return p.split('/').filter(Boolean).join('/'); };
             return v.endpoint.replace(/\/+$/, '') !== o.endpoint || v.bucket !== o.bucket || norm(v.prefix) !== norm(o.prefix);
@@ -143,6 +144,8 @@
                 : (m.pending === 0 && m.failed === 0) ? L('settings.move_done', 'Every file has been copied from {from}. The old copies are still there until you remove them.', { from: m.from_label })
                 : L('settings.move_progress', 'Moving files from {from}: {done} of {total} copied, {failed} failed.', { from: m.from_label, done: done, total: m.total, failed: m.failed });
             $('stoMoveText').innerHTML = esc(text) +
+                ((m.pending > 0 || m.cleanup_running) && !r.scheduler_running
+                    ? '<div class="dflt"><strong>' + esc(L('settings.move_no_scheduler', 'Background jobs are not running, so the move is not progressing. See Reporting -> System logs -> Background jobs.')) + '</strong></div>' : '') +
                 (m.skipped ? '<div class="dflt">' + esc(L('settings.move_skipped', '{n} skipped: their old copy was already missing before the move.', { n: m.skipped })) + '</div>' : '') +
                 (m.last_error ? '<div class="dflt">' + esc(L('settings.move_last_error', 'Last error: {error}', { error: m.last_error })) + '</div>' : '');
             var copiedAll = m.pending === 0 && m.failed === 0;

@@ -75,7 +75,12 @@ final class LocalDriver implements StorageDriver
     public function delete(string $key): void
     {
         $p = $this->path($key);
-        if (is_file($p)) @unlink($p);
+        if (!is_file($p)) return;
+        @unlink($p);
+        clearstatcache(true, $p);
+        // Windows refuses to delete a file something still has open (a download in
+        // progress): say so, so the caller does not record it as gone.
+        if (is_file($p)) throw new RuntimeException('The stored file could not be deleted (is it still open?).');
     }
 
     public function label(): string

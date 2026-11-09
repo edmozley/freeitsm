@@ -34,7 +34,8 @@ filesApiRun(function () use ($conn, $analystId) {
         try {
             if ($tab === 'storage_test') {
                 $s = (array)($in['s3'] ?? []);
-                if (isMaskedNoChangeValue((string)($s['secret'] ?? ''))) $s['secret'] = settingGetDecrypted($conn, 'files_s3_secret');
+                $stored = settingGetDecrypted($conn, 'files_s3_secret');
+                if (FilesStorageService::secretUnchanged((string)($s['secret'] ?? ''), $stored)) $s['secret'] = $stored;
                 filesApiOk(FilesStorageService::test($s));
             }
             if ($tab === 'storage_migration') {

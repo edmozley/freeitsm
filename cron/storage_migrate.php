@@ -46,12 +46,14 @@ try {
         $b = storageMigrateBatch($conn, $deadline);
         foreach (['copied', 'failed', 'removed'] as $k) $r[$k] += $b[$k];
         $r['done'] = $b['done'];
+        $unavailable = !empty($b['unavailable']);
         $didWork = $b['copied'] + $b['removed'] > 0;
-    } while (!$r['done'] && $didWork && time() < $deadline);
+    } while (!$r['done'] && $didWork && !$unavailable && time() < $deadline);
 
     $summary = sprintf('%d copied, %d removed, %d failed attempts%s.', $r['copied'], $r['removed'], $r['failed'],
-                       $r['done'] ? '' : ' (more to do: the next run carries on)');
-    JobRun::finish($conn, $runId, $r['failed'] === 0 ? 'ok' : ($r['copied'] + $r['removed'] > 0 ? 'partial' : 'failed'),
+                       $unavailable ? ' - storage could not be reached, the next run tries again'
+                                    : ($r['done'] ? '' : ' (more to do: the next run carries on)'));
+    JobRun::finish($conn, $runId, ($r['failed'] === 0 && !$unavailable) ? 'ok' : ($r['copied'] + $r['removed'] > 0 ? 'partial' : 'failed'),
                    ['copied' => $r['copied'], 'removed' => $r['removed'], 'failed' => $r['failed']], $summary);
     echo "Files storage move: $summary\n";
 } catch (Throwable $e) {

@@ -92,7 +92,14 @@ function filesPreviousStorageConfig(PDO $conn): ?array
 {
     $raw = filesSetting($conn, 'files_storage_previous');
     if ($raw === '') return null;
-    $cfg = json_decode((string)decryptValue($raw), true);
+    try {
+        $plain = (string)decryptValue($raw);
+    } catch (Throwable $e) {
+        // Damaged, or the encryption key was replaced: the old location is unknown, so
+        // files not yet moved cannot be read - "unavailable", never a 500.
+        throw new StorageUnavailable('The previous storage location could not be decrypted (has the encryption key changed?).');
+    }
+    $cfg = json_decode($plain, true);
     return is_array($cfg) && isset($cfg['driver']) ? $cfg : null;
 }
 

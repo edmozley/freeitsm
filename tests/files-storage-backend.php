@@ -92,6 +92,15 @@ try {
     ob_end_clean();
     ok('control: a key we could not have written gives 404', $st === 404, "status $st");
 
+    // A previous-location setting that will not decrypt (key replaced, row damaged):
+    // a clear 503 for the person, not a 500.
+    setSetting($conn, 'files_storage_previous', 'ENC:' . base64_encode('damaged'));
+    ob_start();
+    $st = -1;
+    try { $st = filesServeBytes($conn, ['storage_path' => $k1], 0, 1, fn() => null); } catch (Throwable $e) { $st = get_class($e); }
+    ob_end_clean();
+    ok('an undecryptable storage setting gives 503, not an error', $st === 503, var_export($st, true));
+
     setSetting($conn, 'files_storage_previous', null);
     setSetting($conn, 'files_storage_driver', 's3');
     setSetting($conn, 'files_s3_endpoint', 'http://127.0.0.1:9');

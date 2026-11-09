@@ -74,6 +74,18 @@ try {
     $r = storageMigrateBatch($conn, time() - 1);
     ok('deadline stops the batch', $r['copied'] === 0 && stateOf($conn, $k('1')) === 'pending/0', json_encode($r));
 
+    // The NEW store is down: the batch stops at once and charges no file an attempt
+    // (otherwise an hour-long outage turns every file 'failed').
+    foreach (['files_storage_driver' => 's3', 'files_s3_endpoint' => 'http://127.0.0.1:9', 'files_s3_bucket' => 'zz',
+              'files_s3_access_key_id' => 'zz', 'files_s3_secret' => encryptValue('zz'), 'files_s3_path_style' => '1'] as $sk => $sv) setSetting($conn, $sk, $sv);
+    $r = storageMigrateBatch($conn, time() + 60);
+    ok('an unreachable store stops the batch without charging attempts', $r['copied'] === 0 && $r['failed'] === 0 && !empty($r['unavailable'])
+        && stateOf($conn, $k('1')) === 'pending/0' && stateOf($conn, $k('2')) === 'pending/0', json_encode($r) . ' ' . stateOf($conn, $k('1')));
+    setSetting($conn, 'files_storage_driver', null);
+
+    ok('files are staged in the local working folder, not the system temp folder', storageMigrateTempDir($conn) === filesStorageRoot($conn) . '/_incoming'
+        && is_dir(storageMigrateTempDir($conn)), storageMigrateTempDir($conn));
+
     ok('reads come from the old store before copying', filesStoreFor($conn, $k('1'))->label() === $old);
     $r = storageMigrateBatch($conn, time() + 60);
     ok('pending rows are copied and verified', is_file("$new/" . $k('1')) && stateOf($conn, $k('1')) === 'verified/0' && stateOf($conn, $k('2')) === 'verified/0', json_encode($r));

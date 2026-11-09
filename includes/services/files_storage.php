@@ -22,9 +22,45 @@
 require_once __DIR__ . '/../files/storage.php';
 require_once __DIR__ . '/../files/audit.php';
 require_once __DIR__ . '/../storage/s3_driver.php';
+require_once __DIR__ . '/../job_scheduler.php';
 
 final class FilesStorageService
 {
+    /**
+     * True when a submitted secret means "keep the saved one": empty, the page's
+     * all-asterisk placeholder, or the "****abcd" mask of the saved secret. A NEW
+     * secret that merely starts with "*" is a new secret (the shared
+     * isMaskedNoChangeValue() would throw it away).
+     */
+    public static function secretUnchanged(string $submitted, string $stored): bool
+    {
+        return $submitted === '' || preg_match('/^\*+$/', $submitted) === 1
+            || ($stored !== '' && hash_equals(maskSecret($stored), $submitted));
+    }
+
+    /**
+     * Why an endpoint may not be used, or null. Test connection makes the server send
+     * requests to whatever is typed; a link-local address is the cloud metadata
+     * service, which hands out the server's own credentials. Private-network
+     * addresses (a MinIO on the LAN) stay allowed.
+     */
+    private static function endpointRefusal(string $endpoint): ?string
+    {
+        $host = (string)parse_url($endpoint, PHP_URL_HOST);
+        $host = trim($host, '[]');
+        $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : (gethostbynamel($host) ?: []);
+        foreach ($ips as $ip) {
+            $bin = @inet_pton($ip);
+            if ($bin === false) continue;
+            $linkLocal = strlen($bin) === 4
+                ? ($bin[0] === "\xA9" && $bin[1] === "\xFE") || $bin[0] === "\x00"            // 169.254/16, 0/8
+                : (ord($bin[0]) === 0xFE && (ord($bin[1]) & 0xC0) === 0x80)                     // fe80::/10
+                  || $bin === inet_pton('fd00:ec2::254')                                        // AWS metadata (IPv6)
+                  || (str_starts_with($bin, str_repeat("\0", 10) . "\xFF\xFF") && substr($bin, 12, 2) === "\xA9\xFE");
+            if ($linkLocal) return 'That endpoint is not allowed: ' . $ip . ' is a link-local (cloud metadata) address.';
+        }
+        return null;
+    }
     /** The Storage tab's data. The S3 secret is reported as set or not, never sent. */
     public static function describe(PDO $conn): array
     {
@@ -53,6 +89,9 @@ final class FilesStorageService
                 'secret_set'    => filesSetting($conn, 'files_s3_secret') !== '',
             ],
             'migration'      => self::migrationSummary($conn),
+            // A move only progresses when background jobs run; without the scheduler it
+            // would sit at "0 of N" with no hint why.
+            'scheduler_running' => (function () use ($conn) { try { return jobSchedulerRunning($conn); } catch (Throwable) { return false; } })(),
         ];
         return $out;
     }
@@ -69,6 +108,8 @@ final class FilesStorageService
         $tmp  = tempnam(sys_get_temp_dir(), 'fst');
         $key  = '_freeitsm_test/' . bin2hex(random_bytes(16)) . '.txt';
         try {
+            $refusal = self::endpointRefusal(s3NormaliseEndpoint((string)($cfg['endpoint'] ?? '')));
+            if ($refusal !== null) throw new InvalidArgumentException($refusal);
             $d = new S3Driver(['driver' => 's3'] + $cfg, 'files');
             $bytes = random_bytes(32);
             file_put_contents($tmp, $bytes);
@@ -118,7 +159,8 @@ final class FilesStorageService
             if (!extension_loaded('curl')) throw new InvalidArgumentException('S3-compatible storage needs the PHP curl extension, which this server does not have.');
             $s = (array)($in['s3'] ?? []);
             $secret = (string)($s['secret'] ?? '');
-            if (isMaskedNoChangeValue($secret)) $secret = settingGetDecrypted($conn, 'files_s3_secret');
+            $stored = settingGetDecrypted($conn, 'files_s3_secret');
+            if (self::secretUnchanged($secret, $stored)) $secret = $stored;
             $s3 = [
                 'driver'        => 's3',
                 'endpoint'      => s3NormaliseEndpoint((string)($s['endpoint'] ?? '')),

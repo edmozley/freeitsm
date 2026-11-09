@@ -22,6 +22,20 @@ require_once __DIR__ . '/audit.php';
 const FILES_MIGRATION_MAX_ATTEMPTS = 5;
 
 /**
+ * Where a file waits between the old and the new location: the local working
+ * folder's _incoming/, which already has room for the largest upload - unlike the
+ * system temp folder, often a small tmpfs in a container.
+ */
+function storageMigrateTempDir(PDO $conn): string
+{
+    $dir = filesStorageRoot($conn) . '/_incoming';
+    if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
+        throw new StorageUnavailable('The upload working folder could not be created.');
+    }
+    return $dir;
+}
+
+/**
  * Does one batch of the running move, until $deadlineUnix or $limit rows.
  *
  * @return array ['copied' => int, 'failed' => int, 'removed' => int, 'done' => bool]
@@ -67,12 +81,14 @@ function storageMigrateBatch(PDO $conn, int $deadlineUnix, int $limit = 200): ar
                 $conn->prepare("UPDATE storage_migration_items SET last_error = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
                      ->execute([mb_substr($e->getMessage(), 0, 500), $row['id']]);
                 $r['failed']++;
+                if ($e instanceof StorageUnavailable) { $r['unavailable'] = true; return $r; }
             }
             continue;
         }
 
-        $tmp = tempnam(sys_get_temp_dir(), 'fmig');
+        $tmp = null;
         try {
+            $tmp = tempnam(storageMigrateTempDir($conn), 'fmig');
             if (!filesStorageKeyIsValid($key)) throw new RuntimeException('Not a stored-file path.');
             $prev->readTo($key, $tmp);
             clearstatcache(true, $tmp);
@@ -88,6 +104,13 @@ function storageMigrateBatch(PDO $conn, int $deadlineUnix, int $limit = 200): ar
             $conn->prepare("UPDATE storage_migration_items SET state = 'verified', sha256 = ?, last_error = NULL, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
                  ->execute([$sha, $row['id']]);
             $r['copied']++;
+        } catch (StorageUnavailable $e) {
+            // A store is down (or its disk is full): nothing is wrong with THIS file.
+            // Note why, charge no attempt, and stop - the next run tries again.
+            $conn->prepare("UPDATE storage_migration_items SET last_error = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([mb_substr($e->getMessage(), 0, 500), $row['id']]);
+            $r['unavailable'] = true;
+            return $r;
         } catch (Throwable $e) {
             // MySQL applies SET left to right: `attempts` below is already the new count.
             $conn->prepare("UPDATE storage_migration_items
@@ -98,7 +121,7 @@ function storageMigrateBatch(PDO $conn, int $deadlineUnix, int $limit = 200): ar
                  ->execute([FILES_MIGRATION_MAX_ATTEMPTS, mb_substr($e->getMessage(), 0, 500), $row['id']]);
             $r['failed']++;
         } finally {
-            @unlink($tmp);
+            if ($tmp !== null && is_file($tmp)) @unlink($tmp);
         }
     }
 

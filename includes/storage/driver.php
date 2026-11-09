@@ -43,7 +43,10 @@ interface StorageDriver
     /** The object's size in bytes, or null when it is not there. */
     public function size(string $key): ?int;
 
-    /** Deletes the object; one that is already gone is not an error. */
+    /**
+     * Deletes the object; one that is already gone is not an error. Throws when it
+     * is still there afterwards (RuntimeException), or the store cannot be reached.
+     */
     public function delete(string $key): void;
 
     /** Where this driver stores things, for people to read. Never contains a secret. */

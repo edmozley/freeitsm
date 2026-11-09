@@ -224,6 +224,7 @@ return [
         'retry_failed' => 'Retry failed',
         'skip_missing' => 'Skip missing files',
         'finish_keep' => 'Finish, keep old copies',
+        'move_no_scheduler' => 'Background jobs are not running, so the move is not progressing. See Reporting -> System logs -> Background jobs.',
         'move_skipped' => '{n} skipped: their old copy was already missing before the move.',
         'remove_old' => 'Remove old copies',
         'remove_old_confirm' => 'This permanently deletes the copies at {from}. Continue?',

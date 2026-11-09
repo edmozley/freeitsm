@@ -76,6 +76,20 @@ try {
     $conn->prepare("INSERT INTO files_versions (item_id, version_no, storage_path, size_bytes, mime_type, sha256, uploaded_by, uploaded_datetime) VALUES (?, 2, ?, 5, 'text/plain', NULL, ?, UTC_TIMESTAMP())")->execute([$i1, $kB, $analystId]);
     $total = (int)$conn->query("SELECT COUNT(DISTINCT storage_path) FROM files_versions")->fetchColumn();
 
+    // The masked secret means "keep it"; a NEW secret that happens to start with "*" does not.
+    ok('secret: empty and the mask keep the stored one', FilesStorageService::secretUnchanged('', 'abcd1234')
+        && FilesStorageService::secretUnchanged('********', 'abcd1234') && FilesStorageService::secretUnchanged(maskSecret('abcd1234'), 'abcd1234'));
+    ok('secret: a new one starting with * is a new secret', !FilesStorageService::secretUnchanged('*Kx9-new', 'abcd1234'));
+
+    // The Test button must not become a way to make the server call the cloud
+    // metadata service (which hands out the server's own credentials).
+    foreach (['http://169.254.169.254', 'http://[fd00:ec2::254]'] as $meta) {
+        $r = FilesStorageService::test(['endpoint' => $meta, 'bucket' => 'b', 'access_key_id' => 'k', 'secret' => 's', 'path_style' => true]);
+        ok("metadata endpoint $meta is refused", $r['ok'] === false && str_contains((string)$r['error'], 'not allowed'), json_encode($r));
+    }
+
+    ok('describe says whether the background scheduler is running', is_bool(FilesStorageService::describe($conn)['scheduler_running'] ?? null));
+
     $e = threw(fn() => FilesStorageService::save($conn, $analystId, ['driver' => 'local', 'storage_root' => '/no/such/zz-folder', 'max_upload_mb' => 100]));
     ok('control: local folder that does not exist is refused', $e instanceof InvalidArgumentException, $e ? $e->getMessage() : 'saved');
 
