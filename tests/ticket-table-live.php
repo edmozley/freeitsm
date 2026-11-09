@@ -73,7 +73,7 @@ try {
    let prompted=false;
    modal.classList.add('active');
    window.showConfirm=async()=>{prompted=true;return false;};
-   try { await TicketTable.backToList(); check('cancelling draft discard keeps the detail open',prompted&&document.body.classList.contains('ticket-table-detail')&&modal.classList.contains('active')); }
+   try { await TicketTable.backToList(); check('Back retains the draft without a discard prompt',!prompted&&!document.body.classList.contains('ticket-table-detail')&&modal.classList.contains('active')); }
    finally { modal.classList.remove('active');window.showConfirm=confirm; }
    await TicketTable.backToList();
    check('Back focus preserves the list scroll position',scroller.scrollTop===listScroll);
