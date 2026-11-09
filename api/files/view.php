@@ -143,9 +143,9 @@ try {
     $st = $conn->prepare("SELECT * FROM files_versions WHERE id = ? AND item_id = ?");
     $st->execute([(int)$t['version'], (int)$t['item']]);
     $v = $st->fetch(PDO::FETCH_ASSOC);
-    $abs = $v ? filesAbsolutePath($conn, $v['storage_path']) : null;
-    if ($abs === null || !is_file($abs)) $fail(410, 'The stored copy of this file is missing from the server.');
-    $size = filesize($abs);
+    if (!$v) $fail(410, 'The stored copy of this file is missing from the server.');
+    // The size we recorded at upload: no round trip to the store before the first byte.
+    $size = (int)$v['size_bytes'];
 
     $start = 0;
     $end = $size - 1;
@@ -163,32 +163,26 @@ try {
 
     while (ob_get_level()) ob_end_clean();
     @set_time_limit(0);
-    $ext = strtolower((string)pathinfo($it['name'], PATHINFO_EXTENSION));
-    $type = FILES_VIEW_INLINE_TYPES[$ext] ?? null;
-    header('Content-Type: ' . ($type ?: 'application/octet-stream'));
-    // No filename: "Save as" on this response offers a meaningless name.
-    header('Content-Disposition: ' . ($type ? 'inline' : 'attachment'));
-    header('X-Content-Type-Options: nosniff');
-    header("Content-Security-Policy: sandbox; default-src 'none'; media-src 'self'; img-src 'self'");
-    header('Cache-Control: private, no-store');
-    header('Accept-Ranges: bytes');
-    if ($partial) {
-        http_response_code(206);
-        header("Content-Range: bytes $start-$end/$size");
-    }
-    header('Content-Length: ' . ($end - $start + 1));
-
-    $fh = fopen($abs, 'rb');
-    fseek($fh, $start);
-    $left = $end - $start + 1;
-    while ($left > 0 && !feof($fh) && !connection_aborted()) {
-        $buf = fread($fh, (int)min(1024 * 1024, $left));
-        if ($buf === false) break;
-        echo $buf;
-        flush();
-        $left -= strlen($buf);
-    }
-    fclose($fh);
+    // Headers go out only once the store has answered (see filesServeBytes).
+    $begin = function () use ($it, $size, $start, $end, $partial) {
+        $ext = strtolower((string)pathinfo($it['name'], PATHINFO_EXTENSION));
+        $type = FILES_VIEW_INLINE_TYPES[$ext] ?? null;
+        header('Content-Type: ' . ($type ?: 'application/octet-stream'));
+        // No filename: "Save as" on this response offers a meaningless name.
+        header('Content-Disposition: ' . ($type ? 'inline' : 'attachment'));
+        header('X-Content-Type-Options: nosniff');
+        header("Content-Security-Policy: sandbox; default-src 'none'; media-src 'self'; img-src 'self'");
+        header('Cache-Control: private, no-store');
+        header('Accept-Ranges: bytes');
+        if ($partial) {
+            http_response_code(206);
+            header("Content-Range: bytes $start-$end/$size");
+        }
+        header('Content-Length: ' . ($end - $start + 1));
+    };
+    $status = $size === 0 ? ($begin() ?? 0) : filesServeBytes($conn, $v, $start, $end, $begin);
+    if ($status === 404 || $status === 410) $fail(410, 'The stored copy of this file is missing from the server.');
+    if ($status === 503) $fail(503, filesStoreUnavailableMessage());
 } catch (Throwable $e) {
     error_log('files view: ' . $e->getMessage());
     if (!headers_sent()) $fail(500, 'The file could not be shown.');

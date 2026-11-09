@@ -121,11 +121,17 @@ filesApiRun(function () use ($conn, $analystId) {
         $size = is_file($part) ? filesize($part) : -1;
         if ($size !== (int)$up['size_bytes']) filesApiFail('The file did not arrive in full. Please try again.');
 
-        $rel = filesNewStoragePath($conn);
-        $abs = filesStorageRoot($conn) . '/' . $rel;
-        $sha = hash_file('sha256', $part);
-        if (!@rename($part, $abs)) filesApiFail('The server could not store the file.');
-        $mime = filesDetectMime($abs, $up['file_name']);
+        $rel  = filesNewStoragePath($conn);
+        $sha  = hash_file('sha256', $part);
+        $mime = filesDetectMime($part, $up['file_name']);   // before the put, which may move the .part away
+        $store = filesActiveStore($conn);
+        try {
+            $store->putFile($rel, $part, true);
+        } catch (StorageUnavailable $e) {
+            // The .part stays where it is, so finishing again works once the store is back.
+            error_log('files upload: ' . $e->getMessage());
+            filesApiFail($store instanceof LocalDriver ? 'The server could not store the file.' : filesStoreUnavailableMessage());
+        }
 
         $conn->beginTransaction();
         $itemId = $up['item_id'] !== null ? (int)$up['item_id'] : null;

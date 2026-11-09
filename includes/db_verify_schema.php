@@ -6992,6 +6992,18 @@ return [
         'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'    => 'DATETIME NULL',
     ],
+    // Moving stored bytes between storage locations - see freeitsm.sql.
+    'storage_migration_items' => [
+        'id'                  => 'BIGINT NOT NULL AUTO_INCREMENT',
+        'store'               => 'VARCHAR(20) NOT NULL',
+        'object_key'          => 'VARCHAR(255) NOT NULL',
+        'size_bytes'          => 'BIGINT NOT NULL',
+        'sha256'              => 'CHAR(64) NULL',
+        'state'               => "VARCHAR(10) NOT NULL DEFAULT 'pending'",
+        'attempts'            => 'INT NOT NULL DEFAULT 0',
+        'last_error'          => 'VARCHAR(500) NULL',
+        'updated_datetime'    => 'DATETIME NULL',
+    ],
     // Starters & leavers (4.6.0) - see freeitsm.sql.
     'jml_templates' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
