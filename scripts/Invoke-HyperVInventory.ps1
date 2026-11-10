@@ -16,6 +16,11 @@
       Get-VMHost, Get-VM, Get-VMHardDiskDrive, Get-VHD,
       Get-VMNetworkAdapter, Get-VMNetworkAdapterVlan                     (Hyper-V)
       Win32_ComputerSystemProduct (the hardware UUID), Win32_OperatingSystem   (CIM)
+      Msvm_KvpExchangeComponent (guest OS names, root/virtualization/v2)       (CIM)
+
+    VM operating systems come from the guest's OSName integration-service KVP item,
+    matched by VM Id. Missing or unreadable guest data stays unknown; the host's
+    operating system is never used as a guest OS fallback.
 
     A host or cluster it cannot read is NAMED in the report as unreadable - FreeITSM then
     keeps what it knew about it, marked "not confirmed", instead of treating its VMs as gone.
@@ -105,7 +110,7 @@ param(
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
-$CollectorVersion = '1.0.0'
+$CollectorVersion = '1.0.1'
 
 if (-not $Cluster -and -not $StandaloneHost) {
     Write-Host "Name at least one -Cluster or -StandaloneHost." -ForegroundColor Red
@@ -202,6 +207,42 @@ function Read-HyperVHost([string]$HostName, $ClusterId, [hashtable]$ClusterVmInf
     $vmHost = Try-Read $HostName 'Get-VMHost' { Get-VMHost -ComputerName $HostName }
     $vms = @(Try-Read $HostName 'Get-VM' { Get-VM -ComputerName $HostName })
 
+    # One optional read per host, not one remote call per VM. SystemName is the
+    # Msvm_ComputerSystem Name (the VM Id), not the guest or host's display name.
+    $guestOsById = @{}
+    $guestKvp = @()
+    try {
+        $guestKvp = @(Try-Read $HostName 'guest operating systems (Msvm_KvpExchangeComponent)' {
+            Get-CimInstance -Namespace 'root/virtualization/v2' -ClassName Msvm_KvpExchangeComponent -ComputerName $HostName
+        })
+    } catch { } # KVP being unavailable does not make the host or its VMs unreadable.
+    $xmlSettings = New-Object System.Xml.XmlReaderSettings
+    $xmlSettings.DtdProcessing = [System.Xml.DtdProcessing]::Prohibit
+    $xmlSettings.XmlResolver = $null
+    $xmlSettings.CloseInput = $true
+    foreach ($component in $guestKvp) {
+        $guestId = Get-Str $component.SystemName
+        if ([string]::IsNullOrWhiteSpace($guestId)) { continue }
+        foreach ($item in @($component.GuestIntrinsicExchangeItems)) {
+            $reader = $null
+            try {
+                # Guest-provided XML must not resolve external entities or a DTD.
+                $reader = [System.Xml.XmlReader]::Create((New-Object System.IO.StringReader ([string]$item)), $xmlSettings)
+                $xml = New-Object System.Xml.XmlDocument
+                $xml.XmlResolver = $null
+                $xml.Load($reader)
+                $value = $xml.SelectSingleNode('/INSTANCE[PROPERTY[@NAME="Name"]/VALUE="OSName"]/PROPERTY[@NAME="Data"]/VALUE')
+                if ($value -and -not [string]::IsNullOrWhiteSpace($value.InnerText)) {
+                    $guestOsById[$guestId.ToLowerInvariant()] = $value.InnerText.Trim()
+                    break
+                }
+            } catch { } # A bad optional item must not hide other guest data or VMs.
+            finally {
+                if ($null -ne $reader) { $reader.Dispose() }
+            }
+        }
+    }
+
     $hostItem = [ordered]@{
         id = (RGuid $uuid); name = (Mask 'host' $HostName); cluster_id = (RGuid $ClusterId); node_state = $null
         os_version = $osName; cpu_count = $vmHost.LogicalProcessorCount; memory_bytes = $vmHost.MemoryCapacity
@@ -245,6 +286,7 @@ function Read-HyperVHost([string]$HostName, $ClusterId, [hashtable]$ClusterVmInf
             possible_owners = $(if ($info) { @($info.Owners | ForEach-Object { Mask 'host' $_ }) } else { @() })
             generation = $vm.Generation; cpu_count = $vm.ProcessorCount; memory_bytes = $memory
             guest_addresses = $addresses
+            os_name = $guestOsById[$id]
         }
     }
     return @{ Host = $hostItem; Vms = $vmItems; Disks = $disks; Nets = $nets }
