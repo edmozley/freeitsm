@@ -5,7 +5,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 /**
  * Preference templates (discussion #124).
  *
- *   php tests/preference-templates.php
+ *   FREEITSM_TEST_DATABASE=freeitsm_test php tests/preference-templates.php
  *
  * 1. Every key the Preferences page saves is either in PREF_TEMPLATE_SECTIONS or
  *    listed as personal - so a new preference cannot silently miss templates.
@@ -14,6 +14,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * 3. Apply writes those keys, removes the ones held as null, and leaves every
  *    other preference alone.
  * 4. The "for new analysts" template reaches a new analyst.
+ * 5. Empty Work sections and the new-ticket company survive capture, storage
+ *    and apply, including explicit opt-outs and a return to built-in defaults.
  *
  * Throwaway fixtures (three ZZ analysts, one ZZ template) are deleted in `finally`.
  */
@@ -75,7 +77,16 @@ function zzAnalyst(PDO $conn, string $tag): int {
 }
 
 echo "\nPreference templates (discussion #124)\n" . str_repeat('=', 70) . "\n";
+$testDatabase = getenv('FREEITSM_TEST_DATABASE');
+if (!$testDatabase) {
+    fwrite(STDERR, "Set FREEITSM_TEST_DATABASE to the disposable install's database before running this writing test.\n");
+    exit(1);
+}
 $conn = connectToDatabase();
+if ($conn->query('SELECT DATABASE()')->fetchColumn() !== $testDatabase) {
+    fwrite(STDERR, "FREEITSM_TEST_DATABASE does not match the connected database; no fixtures were written.\n");
+    exit(1);
+}
 
 echo "\n  Every Preferences page key is accounted for\n";
 $page = file_get_contents(__DIR__ . '/../system/preferences/index.php');
@@ -132,6 +143,41 @@ try {
         ok('a new analyst gets the template', ($p['timezone'] ?? '') === 'Pacific/Auckland' && ($p['app_sidebar'] ?? '') === '1');
     } else {
         echo "  SKIP  another template is already given to new analysts on this install\n";
+    }
+
+    echo "\n  Work folding and new-ticket company (GH #218)\n";
+    foreach ([
+        'enabled' => ['tasks_collapse_empty_work' => 'on', 'tickets_new_ticket_company' => '7'],
+        'disabled' => ['tasks_collapse_empty_work' => '', 'tickets_new_ticket_company' => ''],
+        'defaults' => ['tasks_collapse_empty_work' => null, 'tickets_new_ticket_company' => null],
+    ] as $case => $expected) {
+        foreach ($expected as $key => $value) {
+            if ($value === null) {
+                $conn->prepare('DELETE FROM user_preferences WHERE analyst_id = ? AND preference_key = ?')->execute([$src, $key]);
+            } else {
+                setPref($conn, $src, $key, $value);
+            }
+            // Start with the opposite choice so a silently ignored key fails.
+            setPref($conn, $dst, $key, $case === 'enabled' ? '' : ($key === 'tasks_collapse_empty_work' ? 'on' : '7'));
+        }
+        $captured = prefTemplateCapture($conn, $src, ['work-fold', 'new-ticket-company']);
+        ok("$case: captures both selected sections", $captured === $expected, json_encode($captured));
+        $conn->prepare('UPDATE preference_templates SET settings = ? WHERE id = ?')->execute([json_encode($captured), $tplId]);
+        $row = $conn->query("SELECT * FROM preference_templates WHERE id = $tplId")->fetch(PDO::FETCH_ASSOC);
+        $tpl = prefTemplateShape($row);
+        ok("$case: stored values and sections survive loading", $tpl['settings'] === $expected && $tpl['sections'] === ['work-fold', 'new-ticket-company']);
+        prefTemplateApply($conn, $tpl, [$dst]);
+        $p = prefsOf($conn, $dst);
+        foreach ($expected as $key => $value) {
+            ok("$case: applies $key", $value === null ? !array_key_exists($key, $p) : ($p[$key] ?? null) === $value);
+        }
+        if ($new) {
+            prefTemplatesApplyForNew($conn, $new);
+            $p = prefsOf($conn, $new);
+            foreach ($expected as $key => $value) {
+                ok("$case: new-analyst default applies $key", $value === null ? !array_key_exists($key, $p) : ($p[$key] ?? null) === $value);
+            }
+        }
     }
 } finally {
     if ($tplId) $conn->prepare("DELETE FROM preference_templates WHERE id = ? AND name = 'ZZ test template'")->execute([$tplId]);

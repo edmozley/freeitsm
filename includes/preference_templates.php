@@ -49,6 +49,7 @@ const PREF_TEMPLATE_SECTIONS = [
     'search-panel'   => ['system.preferences.search_dismiss_heading',  ['search_panel_close_outside']],
     'cal-subtasks'   => ['system.preferences.cal_subtasks_heading',    ['tasks_calendar_subtasks']],
     'board-subtasks' => ['system.preferences.board_subtasks_heading',  ['tasks_board_subtasks', 'tasks_hide_done_subtasks']],
+    'work-fold'      => ['system.preferences.work_fold_heading',       ['tasks_collapse_empty_work']],
     'start-page'     => ['system.preferences.landing_heading',         ['default_landing_page']],
     'watchtower'     => ['watchtower.scope.impersonal_heading',        ['watchtower_impersonal']],
     'notifications'  => ['system.preferences.notif_heading',           ['notification_types']],
@@ -65,6 +66,7 @@ const PREF_TEMPLATE_SECTIONS = [
                                                                          'system_wiki_sidebar_mode']],
     'multi-select'   => ['system.preferences.multiselect_heading',     ['tickets_multiselect_pane']],
     'ticket-workspace' => ['system.preferences.ticket_workspace_heading', ['ticket_workspace']],
+    'new-ticket-company' => ['system.preferences.nt_company_heading', ['tickets_new_ticket_company']],
     'morning-checks' => ['system.preferences.mc_heading',              ['mc_chart_fill_style']],
 ];
 
