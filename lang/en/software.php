@@ -41,6 +41,8 @@ return [
         // a cloud platform is installed on nothing, so 0 there is correct and says
         // nothing about whether anyone uses it.
         'col_seats'       => 'Seats',
+        'col_installations' => 'Installations',
+        'col_licence_seats' => 'Licence seats',
         'col_actions'     => '',
 
         // Manually added applications (#1549).

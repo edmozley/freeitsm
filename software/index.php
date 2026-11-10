@@ -498,7 +498,7 @@ $translationNamespaces = ['common', 'software'];
                             <?php echo htmlspecialchars(t('software.inventory.col_publisher')); ?> <span class="sort-icon"></span>
                         </th>
                         <th onclick="sortBy('install_count')" id="thCount">
-                            <?php echo htmlspecialchars(t('software.inventory.col_installed')); ?> <span class="sort-icon"></span>
+                            <?php echo htmlspecialchars(t('software.inventory.col_installations')); ?> <span class="sort-icon"></span>
                         </th>
                         <?php /* Seats is a SEPARATE column from Installed, not a
                                  fallback (#1549). A cloud platform is installed on
@@ -508,7 +508,7 @@ $translationNamespaces = ['common', 'software'];
                                  anywhere" distinguishable from "not licensed to
                                  anyone". */ ?>
                         <th onclick="sortBy('seats')" id="thSeats">
-                            <?php echo htmlspecialchars(t('software.inventory.col_seats')); ?> <span class="sort-icon"></span>
+                            <?php echo htmlspecialchars(t('software.inventory.col_licence_seats')); ?> <span class="sort-icon"></span>
                         </th>
                         <th class="sw-actions-col"><?php echo htmlspecialchars(t('software.inventory.col_actions')); ?></th>
                     </tr>
