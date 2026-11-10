@@ -199,7 +199,7 @@ try {
     $outgoing = $outStmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($outgoing as &$r) { $r['id'] = (int)$r['id']; $r['type_id'] = (int)$r['type_id']; $r['other_id'] = (int)$r['other_id']; }
 
-    // Relationships — incoming (other → this); show with the inverse verb so it reads naturally
+    // Relationships — incoming (other → this). Both verbs let callers name either end first.
     $inStmt = $conn->prepare(
         "SELECT r.id, rt.id AS type_id, rt.verb, rt.inverse_verb,
                 r.from_object_id AS other_id, oo.name AS other_name, oc.name AS other_class_name

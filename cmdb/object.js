@@ -346,7 +346,7 @@ async function loadDiscovery(id) {
 /** Returns the breadcrumb - Browse, the class, the parent if any, then this object. */
 function breadcrumbHtml() {
     return '<div class="o2-breadcrumb">' +
-        '<a href="./">Browse</a><span class="sep">›</span>' +
+        '<a href="./">' + esc(window.t('cmdb.object.breadcrumb_browse')) + '</a><span class="sep">›</span>' +
         '<a href="./#class-' + obj.class_id + '">' + esc(obj.class_name) + '</a>' +
         (obj.parent_id ? '<span class="sep">›</span><a href="object.php?id=' + obj.parent_id + '">' + esc(obj.parent_name) + '</a>' : '') +
         '<span class="sep">›</span><span class="here">' + esc(obj.name) + '</span>' +
@@ -566,15 +566,18 @@ function connectionsHtml() {
     // Only relationship rows carry an ×. A property reference is unlinked by
     // clearing the field it lives in, and a descendant by re-parenting it —
     // offering an × on those would imply a delete this panel cannot do.
+    // TRAP: configured verbs cannot be inflected to fit a translated "this".
+    // Name both ends instead. Incoming rows read other -> current, so they need
+    // the forward verb too; the inverse would say a VM hosts its host.
     const left = []
         .concat(tally.incoming.map(x => nodeRow(x.other_id, x.other_name, x.other_class_name,
-            window.t('cmdb.conn.verb_incoming', { verb: x.inverse_verb }), x.id)))
+            window.t('cmdb.conn.relationship_statement', { source: x.other_name, verb: x.verb, target: obj.name }), x.id)))
         .concat(tally.refsIn.map(x => nodeRow(x.id, x.name, x.class_name,
             window.t('cmdb.conn.verb_ref_in', { label: x.property_label || window.t('cmdb.conn.a_property') }))));
 
     const right = []
         .concat(tally.outgoing.map(x => nodeRow(x.other_id, x.other_name, x.other_class_name,
-            window.t('cmdb.conn.verb_outgoing', { verb: x.verb }), x.id)))
+            window.t('cmdb.conn.relationship_statement', { source: obj.name, verb: x.verb, target: x.other_name }), x.id)))
         .concat(tally.refsOut.map(p => nodeRow(p.value_object.id, p.value_object.name, p.value_object.class_name || p.target_class_name, p.label)));
 
     const centre =

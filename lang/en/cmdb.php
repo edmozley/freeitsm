@@ -329,6 +329,7 @@ return [
         'inside_levels'                  => 'inside this, {count} levels down',
         'verb_incoming'                  => '{verb} this',
         'verb_outgoing'                  => 'this {verb}',
+        'relationship_statement'         => '{source} {verb} {target}',
         'verb_ref_in'                    => '{label} points here',
         'a_property'                     => 'a property',
         'unlink_title'                   => 'Remove this relationship',
@@ -618,14 +619,16 @@ return [
         'rel_type_description' => 'Description',
         'rel_type_description_placeholder' => 'Short description',
         'rel_type_display_order' => 'Display order',
-        // Both impact options share one sentence frame and differ only in which
-        // verb reads correctly from the affected object's side, so they stay in
-        // the analyst's own words. Placeholders are filled live from the form.
+        // Keep the old sentence keys for existing translations. The live form
+        // names A/B separately so user-defined verbs need no grammatical changes.
         'rel_type_impact' => 'When something fails',
         'rel_type_impact_hint' => 'Only relationships that carry a failure are followed when working out an object\'s blast radius. Leave this off for links that describe where something sits or who looks after it.',
         'rel_type_impact_none'    => 'Nothing else is affected',
         'rel_type_impact_to_from' => 'Everything that {verb} it is affected',
         'rel_type_impact_from_to' => 'Everything that {verb} it is affected',
+        'rel_type_impact_b_to_a' => 'B fails → A is affected',
+        'rel_type_impact_a_to_b' => 'A fails → B is affected',
+        'rel_type_impact_example' => 'A {verb} B · B {inverse} A',
         'rel_type_impact_verb_fallback'    => 'has this relationship to',
         'rel_type_impact_inverse_fallback' => 'has the inverse relationship to',
         'rel_type_active' => 'Active',

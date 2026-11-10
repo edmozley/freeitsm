@@ -568,10 +568,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                     <div class="form-group">
                         <label for="relTypeImpactDirection"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_impact')); ?></label>
-                        <select id="relTypeImpactDirection">
-                            <!-- Option text is rewritten from the live verb fields by
-                                 syncRelTypeImpactOptions() so it always reads in the
-                                 analyst's own words. -->
+                        <small id="relTypeImpactExample"></small>
+                        <select id="relTypeImpactDirection" aria-describedby="relTypeImpactExample">
+                            <!-- The live example names A and B; the options describe
+                                 failure direction independently of the configured verbs. -->
                             <option value="none"></option>
                             <option value="to_from"></option>
                             <option value="from_to"></option>
@@ -679,7 +679,7 @@ $translationNamespaces = ['common', 'cmdb'];
 
     <script src="../../assets/js/ai-settings.js?v=4"></script>
     <script src="../options-editor.js?v=3"></script>
-    <script src="settings.js?v=9"></script>
+    <script src="settings.js?v=10"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

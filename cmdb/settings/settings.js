@@ -453,11 +453,10 @@ function renderRelTypes() {
 }
 
 /**
- * Rewrite the impact-direction options using whatever is currently typed in the
- * verb fields, so the choice reads as a sentence about the analyst's own estate
- * ("everything that depends on it is affected") rather than as jargon. Both
- * impact options share one frame — the only difference is which verb reads
- * correctly from the affected object's side.
+ * Keep the live A/B example separate from the failure-direction choices.
+ * TRAP: a configured verb cannot safely fill "everything that {verb} it" in
+ * every language. Named endpoints avoid pronoun case and word-order assumptions,
+ * while the options state which endpoint fails and which one is affected.
  */
 function syncRelTypeImpactOptions() {
     const sel = document.getElementById('relTypeImpactDirection');
@@ -467,8 +466,9 @@ function syncRelTypeImpactOptions() {
     const inverse = document.getElementById('relTypeInverseVerb').value.trim()
         || window.t('cmdb.settings.rel_type_impact_inverse_fallback');
     sel.querySelector('option[value="none"]').textContent = window.t('cmdb.settings.rel_type_impact_none');
-    sel.querySelector('option[value="to_from"]').textContent = window.t('cmdb.settings.rel_type_impact_to_from', { verb: verb });
-    sel.querySelector('option[value="from_to"]').textContent = window.t('cmdb.settings.rel_type_impact_from_to', { verb: inverse });
+    sel.querySelector('option[value="to_from"]').textContent = window.t('cmdb.settings.rel_type_impact_b_to_a');
+    sel.querySelector('option[value="from_to"]').textContent = window.t('cmdb.settings.rel_type_impact_a_to_b');
+    document.getElementById('relTypeImpactExample').textContent = window.t('cmdb.settings.rel_type_impact_example', { verb, inverse });
 }
 
 /**
