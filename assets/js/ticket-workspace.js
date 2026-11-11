@@ -240,11 +240,13 @@ window.TicketWorkspace = (() => {
         const update = () => {
             const checklists = panel.querySelector('#ticketChecklistContainer');
             const hasChecklist = checklists && !checklists.hidden && checklists.childElementCount > 0;
+            const forms = panel.querySelector('#twTicketForms');   // GH #272: forms on the ticket (ticket-forms.js)
+            const hasForms = !!forms && !forms.hidden && forms.childElementCount > 0;
             const hasTasks = panel.querySelector('#twTaskList')?.childElementCount > 0
                 || panel.querySelector('#twTaskArea')?.childElementCount > 0;
             // Only when it changes: setting `hidden` is itself a mutation this
             // observer sees, so setting it every time would never stop.
-            const hide = !!(hasChecklist || hasTasks);
+            const hide = !!(hasChecklist || hasForms || hasTasks);
             if (note.hidden !== hide) note.hidden = hide;
         };
         update();

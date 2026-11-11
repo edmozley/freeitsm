@@ -36,6 +36,7 @@
             if (d.success) state = { ticketId, enabled: !!d.enabled, forms: d.forms || [], available: d.available || [], canWrite: !!d.can_write };
         } catch (e) { /* no button */ }
         renderButton();
+        drawInline();
     }
 
     function renderButton() {
@@ -92,6 +93,8 @@
 .tf-answers dt:first-child{margin-top:0;}
 .tf-answers dd{margin:2px 0 0;white-space:pre-wrap;color:var(--text,#1e293b);}
 .tf-exception{color:#dc2626;font-weight:400;}
+.tf-inline-title{font-size:14px;font-weight:600;color:var(--text,#1e293b);margin:18px 0 10px;}
+#twTicketForms .tf-inline-title:first-child{margin-top:4px;}
 #ticketFormsModal .modal-footer{justify-content:space-between;align-items:center;}
 .tf-explain{font-size:12px;line-height:1.45;color:var(--text-muted,#64748b);margin:0;flex:1;}
 @media (max-width:560px){.tf-right{margin-left:0;width:100%;}.tf-row select.form-input{flex:1;}}
@@ -139,7 +142,8 @@
     }
     function fmt(utc) { return typeof formatDateTime === 'function' ? formatDateTime(utc) : utc; }
 
-    function drawPanel(box) {
+    /** The cards and the add row - the same in the modal and in the workspace's Work tab. */
+    function formsHtml() {
         const rows = state.forms.map(f => {
             const mode = f.is_required ? f.requirement_mode : 'optional';
             const badge = '<span class="tf-badge ' + mode + '">'
@@ -161,27 +165,56 @@
         const have = new Set(state.forms.map(f => f.form_id));
         const choices = state.available.filter(a => !have.has(a.id));
         const add = state.canWrite && choices.length
-            ? '<div class="tf-add"><select class="form-input" id="ticketFormsAdd" aria-label="' + esc(T('add_label')) + '"><option value="">' + esc(T('add_label')) + '</option>'
+            ? '<div class="tf-add"><select class="form-input" data-add-select aria-label="' + esc(T('add_label')) + '"><option value="">' + esc(T('add_label')) + '</option>'
               + choices.map(a => '<option value="' + a.id + '">' + esc(a.title) + '</option>').join('') + '</select>'
-              + '<button type="button" class="btn btn-primary" id="ticketFormsAddBtn" disabled>' + esc(T('add')) + '</button></div>' : '';
-        box.innerHTML = '<div class="modal-header">' + esc(T('title')) + '</div>'
-            + '<div class="modal-body">' + rows + add + '</div>'
-            + '<div class="modal-footer"><p class="tf-explain">' + esc(T('explain')) + '</p>'
-            + '<button type="button" class="btn btn-secondary" id="ticketFormsClose">' + esc(T('close')) + '</button></div>';
-        box.querySelector('#ticketFormsClose').onclick = () => closeModal('ticketFormsModal');
-        box.querySelectorAll('[data-fill]').forEach(b => { b.onclick = () => openFill(Number(b.dataset.fill)); });
-        box.querySelectorAll('[data-answers]').forEach(b => { b.onclick = () => showAnswers(box, Number(b.dataset.answers)); });
-        box.querySelectorAll('[data-remove]').forEach(b => { b.onclick = () => removeForm(box, Number(b.dataset.remove)); });
-        box.querySelectorAll('[data-req]').forEach(s => { s.onchange = () => setRequirement(box, Number(s.dataset.req), s.value); });
-        const addSel = box.querySelector('#ticketFormsAdd'), addBtn = box.querySelector('#ticketFormsAddBtn');
+              + '<button type="button" class="btn btn-primary" data-add-btn disabled>' + esc(T('add')) + '</button></div>' : '';
+        return rows + add;
+    }
+
+    function wire(container) {
+        container.querySelectorAll('[data-fill]').forEach(b => { b.onclick = () => openFill(Number(b.dataset.fill)); });
+        container.querySelectorAll('[data-answers]').forEach(b => { b.onclick = () => showAnswers(container, Number(b.dataset.answers)); });
+        container.querySelectorAll('[data-remove]').forEach(b => { b.onclick = () => removeForm(container, Number(b.dataset.remove)); });
+        container.querySelectorAll('[data-req]').forEach(s => { s.onchange = () => setRequirement(container, Number(s.dataset.req), s.value); });
+        const addSel = container.querySelector('[data-add-select]'), addBtn = container.querySelector('[data-add-btn]');
         if (addSel && addBtn) {
             addSel.onchange = () => { addBtn.disabled = !addSel.value; };
             addBtn.onclick = async () => {
                 const v = Number(addSel.value || 0);
-                if (!v) return;
-                await act(box, { action: 'add', ticket_id: state.ticketId, form_id: v });
+                if (v) await act(container, { action: 'add', ticket_id: state.ticketId, form_id: v });
             };
         }
+    }
+
+    function drawPanel(box) {
+        box.innerHTML = '<div class="modal-header">' + esc(T('title')) + '</div>'
+            + '<div class="modal-body">' + formsHtml() + '</div>'
+            + '<div class="modal-footer"><p class="tf-explain">' + esc(T('explain')) + '</p>'
+            + '<button type="button" class="btn btn-secondary" id="ticketFormsClose">' + esc(T('close')) + '</button></div>';
+        box.querySelector('#ticketFormsClose').onclick = () => closeModal('ticketFormsModal');
+        wire(box);
+    }
+
+    /**
+     * The workspace's Work tab (#twTicketForms, inbox.js): the same cards, beside the
+     * checklists and tasks. Only while the ticket has forms - adding the first one is
+     * the toolbar button's job, so an empty Work tab keeps its "nothing here yet" note.
+     */
+    function drawInline() {
+        const host = document.getElementById('twTicketForms');
+        if (!host) return;
+        if (!state.enabled || !state.forms.length) { host.innerHTML = ''; host.hidden = true; return; }
+        injectStyle();
+        host.hidden = false;
+        host.innerHTML = '<h3 class="tf-inline-title">' + esc(T('title')) + '</h3>' + formsHtml();
+        wire(host);
+    }
+
+    /** Both places at once, from the one state. */
+    function redrawAll() {
+        const panel = document.querySelector('#ticketFormsModal.active > .modal-content');
+        if (panel) drawPanel(panel);
+        drawInline();
     }
     async function act(box, body) {
         try {
@@ -189,7 +222,7 @@
             if (!d.success) { showToast(d.error || T('failed'), 'error'); return; }
             state.forms = d.forms || [];
             renderButton();
-            if (box && document.body.contains(box)) drawPanel(box);
+            redrawAll();
         } catch (e) { showToast(T('failed'), 'error'); }
     }
     function setRequirement(box, id, v) {
@@ -232,8 +265,7 @@
         if (!state.ticketId) return;
         const d = await getJson('?ticket_id=' + encodeURIComponent(state.ticketId)).catch(() => null);
         if (d && d.success) { state.forms = d.forms || []; renderButton(); }
-        const panel = document.querySelector('#ticketFormsModal.active > .modal-content');
-        if (panel) drawPanel(panel);
+        redrawAll();
     }
 
     // The fill page says when it saved or submitted, and how tall it is (forms/fill.php).
@@ -248,5 +280,79 @@
         }
     });
 
+    // --- right-click -> Add form ▸ ----------------------------------------
+
+    let ctxIds = [];
+    const CTX_FORMS_SHOWN = 12;
+    const ctxRow = (html, extra) => '<div class="ticket-context-submenu-item"' + (extra || '') + '>' + html + '</div>';
+    const ctxNote = (msg) => ctxRow(esc(msg), ' style="color:#999;font-style:italic;cursor:default;"');
+
+    /**
+     * Fills the submenu for the right-clicked ticket, or the selection. The item stays
+     * hidden while "Forms on tickets" is off. One ticket: forms already on it are ticked
+     * and inert; a selection lists every form and skips tickets that already have it.
+     * Rows use inline onclick so the phone sheet's copy of them still works.
+     */
+    async function populateContextFormsSubmenu(ids) {
+        const item = document.getElementById('ctxFormsItem');
+        const sub = document.getElementById('ctxFormsSubmenu');
+        if (!item || !sub) return;
+        ctxIds = (ids || []).map(Number).filter(Boolean);
+        const asked = ctxIds.join(',');
+        sub.dataset.for = asked;
+        if (!ctxIds.length) { item.style.display = 'none'; return; }
+        sub.innerHTML = ctxNote(typeof window.t === 'function' ? window.t('common.loading') : '…');
+        let d;
+        try { d = await getJson('?ticket_id=' + encodeURIComponent(ctxIds[0])); } catch (e) { d = null; }
+        if (sub.dataset.for !== asked) return;   // reopened on another ticket meanwhile
+        if (!d || !d.success) { sub.innerHTML = ctxNote(window.t('tickets.context.forms_failed')); return; }
+        if (!d.enabled || !d.can_write) { item.style.display = 'none'; return; }
+        item.style.display = '';
+        const on = new Set(ctxIds.length === 1 ? (d.forms || []).map(f => f.form_id) : []);
+        const list = d.available || [];
+        if (!list.length) { sub.innerHTML = ctxNote(window.t('tickets.context.no_forms')); return; }
+        sub.innerHTML = list.slice(0, CTX_FORMS_SHOWN).map(a => on.has(a.id)
+            ? ctxRow('<span class="ctx-status-name">' + esc(a.title) + '</span><span class="ctx-status-check">&#10003;</span>',
+                     ' style="cursor:default;opacity:.6;" title="' + esc(window.t('tickets.context.form_on_ticket')) + '"')
+            : ctxRow('<span class="ctx-status-name">' + esc(a.title) + '</span>', ' onclick="addFormFromContext(' + Number(a.id) + ')"')).join('')
+            + (list.length > CTX_FORMS_SHOWN && ctxIds.length === 1
+                ? ctxRow('<span class="ctx-status-name" style="font-style:italic;">' + esc(window.t('tickets.context.all_forms')) + '</span>',
+                         ' style="border-top:1px solid var(--border,#e5e7eb);" onclick="openFormsFromContext()"') : '');
+    }
+
+    /** Adds the form (required, blocking - the panel's default) to each ticket; one that has it already is skipped. */
+    async function addFormFromContext(formId) {
+        if (typeof closeTicketContextMenu === 'function') closeTicketContextMenu();
+        const ids = ctxIds.slice();
+        let done = 0, already = 0, failed = 0;
+        for (const id of ids) {
+            try {
+                const d = await post({ action: 'add', ticket_id: id, form_id: formId });
+                if (d.success) done++;
+                else if (d.code === 'conflict') already++;
+                else failed++;
+            } catch (e) { failed++; }
+        }
+        if (state.ticketId && ids.includes(Number(state.ticketId))) refresh();
+        let msg = ids.length === 1 ? (done ? window.t('tickets.context.form_added_one') : '')
+                                   : window.t('tickets.context.form_added_many').replace('%d', String(done));
+        if (already) msg += (msg ? ' ' : '') + window.t('tickets.context.form_already').replace('%d', String(already));
+        if (failed)  msg += ' ' + window.t('tickets.context.form_failed').replace('%d', String(failed));
+        showToast(msg.trim(), failed ? 'error' : 'success');
+    }
+
+    /** "All forms…": opens the ticket, then its Forms panel, where the full list is. */
+    async function openFormsFromContext() {
+        if (typeof closeTicketContextMenu === 'function') closeTicketContextMenu();
+        const id = ctxIds[0];
+        if (!id) return;
+        if (Number(state.ticketId) !== id && typeof loadTicketById === 'function') await loadTicketById(id);
+        await loadTicketForms(id);
+        if (state.enabled) openPanel();
+    }
+
+    window.populateContextFormsSubmenu = populateContextFormsSubmenu;
+    window.addFormFromContext = addFormFromContext;
+    window.openFormsFromContext = openFormsFromContext;
     window.loadTicketForms = loadTicketForms;
 })();

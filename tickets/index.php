@@ -849,6 +849,14 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
             </div>
         </div>
         <?php endif; ?>
+        <?php /* GH #272: Add form ▸ - the forms a ticket can carry. Hidden until ticket-forms.js
+                 knows "Forms on tickets" is on (populateContextFormsSubmenu). */ ?>
+        <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0" id="ctxFormsItem" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+            <span><?php echo htmlspecialchars(t('tickets.context.add_form')); ?></span>
+            <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            <div class="ticket-context-submenu" id="ctxFormsSubmenu" role="menu"></div>
+        </div>
         <?php if ($ticketsModuleOn['time-tracking']): /* GH #217 */ ?>
         <button class="ticket-context-menu-item" type="button" onclick="openContextRecordTime()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1157,16 +1165,16 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../checklists/search_scoring.js?v=1"></script>
     <script src="../checklists/ticket_view.js?v=15"></script>
     <script src="../assets/js/ticket-fields.js?v=2"></script>
-    <script src="../assets/js/ticket-workspace.js?v=4"></script>
+    <script src="../assets/js/ticket-workspace.js?v=5"></script>
     <script src="../assets/js/data-table.js?v=10"></script>
     <!-- Note images open in the Files viewer, in a floating window (GH #226). -->
     <script src="../assets/js/float-window.js?v=1"></script>
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=191"></script>
+    <script src="../assets/js/inbox.js?v=193"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
-    <script src="../assets/js/ticket-forms.js?v=2"></script>
+    <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=5"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>

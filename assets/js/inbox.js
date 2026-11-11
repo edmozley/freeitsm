@@ -3527,7 +3527,7 @@ function displayEmail(email, recordings) {
         header: headerHtml + summaryHtml + companyWarningBanner + bannersHtml + actionsHtml,
         properties: propertiesHtml,
         conversation: attachmentHtml + aiHtml + recordingsHtml + threadHtml + notesHtml,
-        work: checklistHtml + '<div class="tw-task-list" id="twTaskList"></div><div class="tw-tasks" id="twTaskArea"></div>',
+        work: checklistHtml + '<div id="twTicketForms" hidden></div><div class="tw-task-list" id="twTaskList"></div><div class="tw-tasks" id="twTaskArea"></div>',
         links: linksHtml,
         time: timeHtml,
     }) : propertiesHtml + companyWarningBanner + headerHtml + attachmentHtml + bannersHtml
@@ -10827,6 +10827,7 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
     populateContextCompanySubmenu();
     populateContextChecklistSubmenu();
     if (typeof populateContextWatchItem === 'function') populateContextWatchItem();   // GH #277
+    if (typeof populateContextFormsSubmenu === 'function') populateContextFormsSubmenu(ctxActsOnSelection ? selectedTicketIds() : [ctxTargetTicketId]);   // GH #272
 
     // On a phone the menu is a full-screen sheet, not a popup at the finger:
     // a 220px flyout menu with hover submenus cannot be used with a thumb.
