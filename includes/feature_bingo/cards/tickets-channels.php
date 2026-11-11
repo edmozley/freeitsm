@@ -98,6 +98,19 @@ return [
         'check'    => ['rows', 'target_mailboxes', "provider = 'imap' AND smtp_username IS NOT NULL AND smtp_username <> ''"],
     ],
     [
+        // GH #270: Basic IMAP files a copy of each sent email in the Sent folder.
+        'id'       => 'tickets.mailbox_imap_sent_copy',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Sent mail in the Sent folder',
+        'what'     => 'An IMAP mailbox that also puts a copy of every reply, template email and workflow email it sends in its Sent folder, marked as read (Save a copy of sent mail, in the mailbox settings).',
+        'why'      => 'SMTP keeps no copy, so without it anyone reading the same mailbox in Thunderbird or webmail cannot see what the service desk sent. Leave it off where the mail server already files sent mail, or you get two copies.',
+        'done'     => 'At least one active IMAP mailbox saves a copy of sent mail.',
+        'link'     => 'tickets/settings/#mailboxes',
+        'check'    => ['rows', 'target_mailboxes', "provider = 'imap' AND is_active = 1 AND save_sent_copy = 1"],
+    ],
+    [
         'id'       => 'tickets.mailbox_sender_allowlist',
         'module'   => 'tickets',
         'tier'     => 'extra',

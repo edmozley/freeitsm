@@ -914,6 +914,8 @@ try {
                     <?php /* GH #120: the two General settings that decide where email replies go. */ ?>
                     <p class="help-note"><?php echo t('tickets.help.settings.email_thread_note'); ?></p>
                     <p class="help-note"><?php echo t('tickets.help.settings.email_reply_to_note'); ?></p>
+                    <?php /* GH #270: Basic IMAP's "Save a copy of sent mail" switch in the mailbox modal. */ ?>
+                    <p class="help-note"><?php echo t('tickets.help.settings.email_sent_copy_note'); ?></p>
 
                     <?php /* #1694 - the one-off closing message. It is configured
                              in a template, so it is documented beside templates,
