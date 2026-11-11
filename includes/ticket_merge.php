@@ -50,7 +50,8 @@
  *
  *   MOVE   emails (attachments follow by email_id), ticket_notes, ticket_time_entries,
  *          ticket_recordings, ticket_cmdb_objects, ticket_assets, tasks,
- *          problem_tickets, change_tickets, form_submissions, webchat_conversations
+ *          problem_tickets, change_tickets, form_submissions, webchat_conversations,
+ *          ticket_watchers (GH #277)
  *
  *   STAY   ticket_audit          the source's own history. Moving it would rewrite
  *                                the past and make the source look like it never had one.
@@ -82,6 +83,7 @@ const MERGE_MOVE_DEDUPE = [
     'ticket_assets'       => 'asset_id',
     'problem_tickets'     => 'problem_id',
     'change_tickets'      => 'change_id',
+    'ticket_watchers'     => 'analyst_id',   // GH #277: watchers follow the conversation, once each
 ];
 
 /**

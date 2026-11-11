@@ -11582,6 +11582,70 @@ return array (
         ),
       ),
     ),
+    'TicketWatcher' => 
+    array (
+      'type' => 'object',
+      'description' => 'An analyst watching a ticket (GH #277).',
+      'properties' => 
+      array (
+        'analyst' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+          ),
+        ),
+        'added_by' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'added_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'TicketWatcherRemoved' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'ticket_id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'analyst_id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'removed' => 
+        array (
+          'type' => 'boolean',
+        ),
+      ),
+    ),
     'TicketNote' => 
     array (
       'type' => 'object',
@@ -15508,6 +15572,22 @@ return array (
     'PATCH /tasks/{id}/checklists/steps/{step_id}' => 
     array (
       '$ref' => '#/components/schemas/ChecklistStep',
+    ),
+    'GET /tickets/{id}/watchers' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/TicketWatcher',
+      ),
+    ),
+    'POST /tickets/{id}/watchers' => 
+    array (
+      '$ref' => '#/components/schemas/TicketWatcher',
+    ),
+    'DELETE /tickets/{id}/watchers/{analyst_id}' => 
+    array (
+      '$ref' => '#/components/schemas/TicketWatcherRemoved',
     ),
     'GET /tickets/{id}/notes' => 
     array (

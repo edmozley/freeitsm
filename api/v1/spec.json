@@ -659,6 +659,124 @@
                 },
                 {
                     "m": "GET",
+                    "p": "\/tickets\/{id}\/watchers",
+                    "perm": "ticket_watchers.read",
+                    "s": "List a ticket's watchers",
+                    "d": "The analysts watching the ticket, oldest first: who, who added them, and when. A watcher is told about the ticket as if it were theirs, through their own notification settings, for the events Tickets -> Settings -> General ticks. GH #277.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "get-tickets-id-watchers",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Who is watching",
+                                "note": "A team lead and a specialist following a major incident.",
+                                "path": {
+                                    "id": 42
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/tickets\/{id}\/watchers",
+                    "perm": "ticket_watchers.create",
+                    "s": "Add a watcher",
+                    "d": "Puts an analyst on the ticket's watchers - the key's own analyst when analyst_id is left out. They must be active and able to see the ticket. 201 when added, 200 when they were already watching. GH #277.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        },
+                        {
+                            "name": "analyst_id",
+                            "in": "body",
+                            "desc": "Who watches; default the key's analyst",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "analyst_id": 7
+                    },
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "post-tickets-id-watchers",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Watch it yourself",
+                                "note": "No body: the key's own analyst.",
+                                "path": {
+                                    "id": 42
+                                },
+                                "body": {}
+                            },
+                            {
+                                "title": "Add a colleague",
+                                "note": "An escalation integration loops in the on-call engineer.",
+                                "path": {
+                                    "id": 42
+                                },
+                                "body": {
+                                    "analyst_id": 7
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "The analyst does not exist, is inactive, or cannot see this ticket."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/tickets\/{id}\/watchers\/{analyst_id}",
+                    "perm": "ticket_watchers.delete",
+                    "s": "Remove a watcher",
+                    "d": "Takes an analyst off the ticket's watchers. 404 when they were not watching. GH #277.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        },
+                        {
+                            "name": "analyst_id",
+                            "in": "path",
+                            "desc": "The watcher's analyst id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "delete-tickets-id-watchers-analyst-id",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Stop watching",
+                                "note": "The incident is resolved; the team lead steps off.",
+                                "path": {
+                                    "id": 42,
+                                    "analyst_id": 7
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
                     "p": "\/tickets\/{id}\/checklists",
                     "perm": "ticket_checklists.read",
                     "s": "List a ticket's checklists",

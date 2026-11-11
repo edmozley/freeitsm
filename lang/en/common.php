@@ -510,6 +510,7 @@ return [
         'event' => [
             'ticket' => [
                 'assigned'         => 'Assigned to you by {actor}',
+                'reassigned'       => '{actor} reassigned it',   // GH #277: to a watcher
                 'reply_received'   => 'The requester replied',
                 'note_added'       => '{actor} added a note',
                 'status_changed'   => '{actor} changed the status',
@@ -568,15 +569,16 @@ return [
         'pref' => [
             'ticket' => [
                 'assigned'         => 'A ticket is assigned to me',
-                'reply_received'   => 'A requester replies to my ticket',
-                'note_added'       => 'Someone adds a note to my ticket',
-                'status_changed'   => 'Someone changes the status of my ticket',
-                'priority_changed' => 'Someone changes the priority of my ticket',
+                'reassigned'       => 'A ticket I watch is reassigned',
+                'reply_received'   => 'A requester replies to my ticket, or one I watch',
+                'note_added'       => 'Someone adds a note to my ticket, or one I watch',
+                'status_changed'   => 'Someone changes the status of my ticket, or one I watch',
+                'priority_changed' => 'Someone changes the priority of my ticket, or one I watch',
                 'created'          => 'A ticket is raised',
             ],
             'sla' => [
-                'warning'  => 'My ticket is approaching its SLA target',
-                'breached' => 'My ticket breaches its SLA target',
+                'warning'  => 'My ticket, or one I watch, is approaching its SLA target',
+                'breached' => 'My ticket, or one I watch, breaches its SLA target',
             ],
             // ⚠️ "on a task I am on" rather than "my task": since GH #89 these
             // reach the owner AND everybody listed as Involved, so wording them

@@ -3544,6 +3544,7 @@ function displayEmail(email, recordings) {
 
     loadAiSummary(email.ticket_id);
     if (typeof loadTicketChecklists === "function") loadTicketChecklists(email.ticket_id);
+    if (typeof loadTicketWatchers === "function") loadTicketWatchers(email.ticket_id);   // GH #277: the Watch button
     // Load full correspondence thread, notes, attachments and linked CMDB objects after rendering
     loadCorrespondenceThread(email.ticket_id);
     loadNotes(email.ticket_id);
@@ -10824,6 +10825,7 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
     populateContextTeamSubmenu();
     populateContextCompanySubmenu();
     populateContextChecklistSubmenu();
+    if (typeof populateContextWatchItem === 'function') populateContextWatchItem();   // GH #277
 
     // On a phone the menu is a full-screen sheet, not a popup at the finger:
     // a 220px flyout menu with hover submenus cannot be used with a thumb.

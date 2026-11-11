@@ -401,6 +401,16 @@ try {
                     <p class="help-note">If a card says the record <strong>cannot be shown</strong>, that is the honest answer rather than a fault: it means the record is not one you have access to, or it is no longer there. FreeITSM deliberately gives the same answer to both, because saying which would tell you something about a record you are not entitled to see.</p>
 
                     <p class="help-note">The &times; on a task pill <strong>unlinks, it does not delete</strong>. The task carries on living in the Tasks module &mdash; it simply stops being connected to this ticket. Deleting a task is done from the task itself, where you can see what you are throwing away. And if you close a ticket that still has unfinished tasks, FreeITSM will say so and let you decide &mdash; it will not stop you, because the remaining work is often somebody else's now.</p>
+
+                    <?php /* GH #277: watching a ticket. */ ?>
+                    <h4 id="watching" style="margin-top: 24px;"><?php echo htmlspecialchars(t('tickets.help.watch.heading')); ?></h4>
+                    <p><?php echo t('tickets.help.watch.body'); ?></p>
+                    <ul>
+                        <li><?php echo t('tickets.help.watch.how'); ?></li>
+                        <li><?php echo t('tickets.help.watch.others'); ?></li>
+                        <li><?php echo t('tickets.help.watch.what'); ?></li>
+                    </ul>
+                    <p class="help-note"><?php echo t('tickets.help.watch.note'); ?></p>
                 </div>
 
                 <!-- Section 4: Working faster — templates, bulk actions, merge & split -->

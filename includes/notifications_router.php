@@ -17,6 +17,7 @@
  */
 
 require_once __DIR__ . '/services/notifications.php';
+require_once __DIR__ . '/services/ticket_watchers.php';   // GH #277: watchers join the ticket events' audience
 
 /**
  * Who caused this? Resolved centrally from the session rather than threaded
@@ -81,7 +82,13 @@ function notificationsHandleEvent(string $event, array $payload): void
             notificationsTaskAssignedEmail($conn, $payload, $actorId, $actorName);
         }
 
+        // GH #277: "Assigned to you" is news for the new assignee alone. A watcher
+        // told about the same reassignment gets its own type, worded "reassigned",
+        // with its own switch in their preferences.
+        $newAssignee = $event === 'ticket.assigned' ? notificationsRecipientFor($event, $payload) : 0;
+
         foreach ($recipients as $recipientId) {
+            $type = ($event === 'ticket.assigned' && $recipientId !== $newAssignee) ? 'ticket.reassigned' : $event;
             // Rule 1 — your own action, applied PER PERSON. This is what makes a
             // multi-recipient event behave: comment on a task and the other four
             // people on it are told while you are not, rather than the whole
@@ -92,12 +99,12 @@ function notificationsHandleEvent(string $event, array $payload): void
             }
             // Each person's OWN toggles decide. Somebody who has turned status
             // changes off still gets the comments they left on.
-            if (!NotificationsService::typeEnabled($conn, $recipientId, $event)) {
+            if (!NotificationsService::typeEnabled($conn, $recipientId, $type)) {
                 continue;
             }
             NotificationsService::notify($conn, [
                 'analyst_id'  => $recipientId,
-                'event_type'  => $event,
+                'event_type'  => $type,
                 'entity_type' => $entityType,
                 'entity_id'   => $entity['id'],
                 'entity_ref'  => $entity['ref'],
@@ -129,9 +136,11 @@ function notificationsHandleEvent(string $event, array $payload): void
  * me" to four other people would be both noisy and false. Events about the TASK —
  * a comment, a status move, the due date, completion — go to everyone on it.
  *
- * Tickets are unchanged and still notify the assignee alone: there is no
- * equivalent list of people on a ticket, and inventing one from "who has touched
- * it" is the firehose that was rejected.
+ * Tickets now have that deliberate list too: WATCHERS (GH #277, ticket_watchers),
+ * put there by hand and removable - never "who has touched it", the firehose that
+ * was rejected. They join the ticket events below that the install chose
+ * (Tickets -> Settings -> General), and a reassignment reaches them as
+ * 'ticket.reassigned', never as "assigned to you".
  *
  * @param string $event  the workflow event name, e.g. 'task.comment_added' or 'ticket.team_assigned'
  * @param array $payload  the event's dispatch payload - reads notify_ids, task, team_id, ticket, domain or project from it
@@ -204,7 +213,17 @@ function notificationsAudienceFor(PDO $conn, string $event, array $payload): arr
     }
 
     $one = notificationsRecipientFor($event, $payload);
-    return $one > 0 ? [$one] : [];
+    $ids = $one > 0 ? [$one] : [];
+
+    // GH #277: the ticket's WATCHERS hear about it too, for the events Tickets ->
+    // Settings -> General ticks - each through their own preferences (applied by
+    // the caller, as for the assignee), and only while they can still see the
+    // ticket. array_unique: an assignee who also watches is told once.
+    if (in_array($event, TicketWatchers::EVENTS, true)) {
+        $ticketId = (int)($payload['ticket']['id'] ?? $payload['ticket_id'] ?? 0);
+        $ids = array_merge($ids, TicketWatchers::audience($conn, $event, $ticketId));
+    }
+    return array_values(array_unique(array_filter($ids)));
 }
 
 /**

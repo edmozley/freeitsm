@@ -78,6 +78,14 @@ try {
     $conn->prepare("DELETE FROM ticket_notes WHERE ticket_id IN ($place)")->execute($ids);
     $conn->prepare("DELETE FROM ticket_audit WHERE ticket_id IN ($place)")->execute($ids);
     $conn->prepare("DELETE FROM ticket_time_entries WHERE ticket_id IN ($place)")->execute($ids);
+    // Checklists and watchers have no foreign key to cascade. Checklists were left behind here
+    // (permanently_delete_ticket.php removed them; this did not); watchers are GH #277.
+    // A table that is not there yet (42S02) is nothing to remove.
+    foreach (["DELETE FROM ticket_checklist_items WHERE ticket_checklist_id IN (SELECT id FROM ticket_checklists WHERE ticket_id IN ($place))",
+              "DELETE FROM ticket_checklists WHERE ticket_id IN ($place)",
+              "DELETE FROM ticket_watchers WHERE ticket_id IN ($place)"] as $sql) {
+        try { $conn->prepare($sql)->execute($ids); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
+    }
     $conn->prepare("DELETE FROM tickets WHERE id IN ($place)")->execute($ids);
     $conn->commit();
 

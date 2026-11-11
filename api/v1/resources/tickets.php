@@ -419,6 +419,53 @@ function apiTicketNotesCreate(PDO $conn, array $apiKey, array $params, array $bo
 }
 
 // ---------------------------------------------------------------------------
+// Watchers (GH #277) - analysts told about a ticket as if it were theirs
+// ---------------------------------------------------------------------------
+
+/** One watcher as the API returns it. */
+function apiTicketWatcherShape(array $w): array {
+    return [
+        'analyst'    => ['id' => $w['analyst_id'], 'name' => $w['name']],
+        'added_by'   => $w['added_by'] !== null ? ['id' => $w['added_by'], 'name' => $w['added_by_name']] : null,
+        'added_at'   => apiIsoDate($w['added_at']),
+    ];
+}
+
+/** GET /tickets/{id}/watchers */
+function apiTicketWatchersList(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, (int)$params[0]);
+    require_once __DIR__ . '/../../../includes/services/ticket_watchers.php';
+    apiRespond(array_map('apiTicketWatcherShape', TicketWatchers::list($conn, (int)$params[0])));
+}
+
+/**
+ * POST /tickets/{id}/watchers - { "analyst_id": 7 }; omitted = the key's own analyst.
+ * 201 when added, 200 when they already watched. The analyst must be able to see the ticket.
+ */
+function apiTicketWatchersAdd(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, (int)$params[0]);
+    require_once __DIR__ . '/../../../includes/services/ticket_watchers.php';
+    $who = isset($body['analyst_id']) ? (int)$body['analyst_id'] : (int)$apiKey['analyst_id'];
+    try {
+        // The key's ticket_watchers.create permission is the write access here.
+        $r = TicketWatchers::add($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $who, true);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    $mine = array_values(array_filter(TicketWatchers::list($conn, (int)$params[0]), fn($w) => $w['analyst_id'] === $who));
+    apiRespond($mine ? apiTicketWatcherShape($mine[0]) : null, $r['added'] ? 201 : 200);
+}
+
+/** DELETE /tickets/{id}/watchers/{analyst_id} - 404 when they were not watching. */
+function apiTicketWatchersRemove(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, (int)$params[0]);
+    require_once __DIR__ . '/../../../includes/services/ticket_watchers.php';
+    try {
+        $r = TicketWatchers::remove($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], (int)$params[1], true);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    if (!$r['removed']) apiError(404, 'not_found', 'That analyst is not watching this ticket.');
+    apiRespond(['ticket_id' => (int)$params[0], 'analyst_id' => (int)$params[1], 'removed' => true]);
+}
+
+// ---------------------------------------------------------------------------
 // Thread (emails / channel messages)
 // ---------------------------------------------------------------------------
 function apiTicketThreadList(PDO $conn, array $apiKey, array $params, array $body): void {

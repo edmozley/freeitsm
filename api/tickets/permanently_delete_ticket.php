@@ -103,6 +103,9 @@ try {
     )->execute([$ticketId]);
     $conn->prepare("DELETE FROM ticket_checklists WHERE ticket_id = ?")->execute([$ticketId]);
 
+    // 6b. Watchers (GH #277) - no foreign key either. Tolerant: no table before Database Verify.
+    try { $conn->prepare("DELETE FROM ticket_watchers WHERE ticket_id = ?")->execute([$ticketId]); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
+
     // 7. The ticket itself (CASCADE/SET NULL children go with it)
     $conn->prepare("DELETE FROM tickets WHERE id = ?")->execute([$ticketId]);
 

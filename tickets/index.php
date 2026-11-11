@@ -832,6 +832,12 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <span><?php echo htmlspecialchars(t('tickets.context.schedule')); ?></span>
         </button>
+        <?php /* GH #277: Watch / Stop watching - the label is set when the menu opens
+                 (populateContextWatchItem in assets/js/ticket-watchers.js). */ ?>
+        <button class="ticket-context-menu-item" type="button" id="ctxWatchItem" data-mode="watch" onclick="watchFromContext()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span><?php echo htmlspecialchars(t('tickets.watch.watch')); ?></span>
+        </button>
         <?php if ($ticketsModuleOn['checklists']): /* Attach a checklist without opening the ticket - to a selection too.
             Best matches first, already-attached ones ticked, and "Search all" for the full picker. */ ?>
         <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0" id="ctxChecklistItem">
@@ -1158,7 +1164,8 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=189"></script>
+    <script src="../assets/js/inbox.js?v=190"></script>
+    <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/tickets-table.js?v=5"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>

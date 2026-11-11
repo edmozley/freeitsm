@@ -1922,6 +1922,15 @@ return [
     ],
 
     // GH #301: surveys waiting out "Delay before sending" (unique per ticket - db_verify_indexes.php).
+    // GH #277: who watches a ticket (unique per ticket + analyst - db_verify_indexes.php).
+    'ticket_watchers' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'ticket_id'        => 'INT NOT NULL',
+        'analyst_id'       => 'INT NOT NULL',
+        'added_by_id'      => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL',
+    ],
+
     'csat_queue' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
         'ticket_id'        => 'INT NOT NULL',

@@ -129,6 +129,9 @@ class NotificationsService
         return [
             // The ones people actually asked for.
             'ticket.assigned'         => ['default' => true,  'entity' => 'ticket'],
+            // GH #277: a ticket you WATCH moved to someone else. Not "assigned to you" -
+            // that is news for the new assignee alone - and its own switch.
+            'ticket.reassigned'       => ['default' => true,  'entity' => 'ticket'],
             /**
              * #1566 — a ticket lands in your team's queue.
              *

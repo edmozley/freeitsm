@@ -31,6 +31,15 @@ function apiV1PermissionCatalog(): array {
                 'create' => 'Add a note to a ticket (internal or public)',
             ],
         ],
+        // GH #277. Watchers are told about a ticket as if it were theirs, through their own settings.
+        'ticket_watchers' => [
+            'label'   => 'Ticket watchers',
+            'actions' => [
+                'read'   => 'List who is watching a ticket',
+                'create' => 'Add an analyst (the key\'s own, or another who can see the ticket) as a watcher',
+                'delete' => 'Take an analyst off a ticket\'s watchers',
+            ],
+        ],
         // GH #273. Writes go through the same rules as the ticket panel and are noted on the ticket "via the API".
         'ticket_checklists' => [
             'label'   => 'Ticket checklists',

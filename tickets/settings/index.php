@@ -6,6 +6,7 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/ticket_workspace.php';   // TicketWorkspaceMode (PR #211)
+require_once '../../includes/services/ticket_watchers.php';   // GH #277: the watched-events ticks
 require_once '../../includes/ticket_list.php';        // TicketListExport (PR #213)
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
@@ -2125,6 +2126,21 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <option value="mine"><?php echo htmlspecialchars(t('tickets.settings.general.team_folders_mine')); ?></option>
                     </select>
                     <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.team_folders_help')); ?></small>
+                </div>
+
+                <!-- GH #277: what WATCHERS are told about. A tick per ticket event; all ticked
+                     when never saved, and nobody watches anything until someone chooses to,
+                     so an upgrade changes nothing. Each watcher's own notification settings
+                     still apply on top. -->
+                <h3 style="margin-top: 34px;"><?php echo htmlspecialchars(t('tickets.settings.general.watch_heading')); ?></h3>
+                <div class="form-group" id="watchEventsGroup">
+                    <?php foreach (TicketWatchers::EVENTS as $__ev): ?>
+                    <label style="display:block;margin-top:6px;font-weight:400;">
+                        <input type="checkbox" class="watch-event" value="<?php echo htmlspecialchars($__ev); ?>" checked>
+                        <?php echo htmlspecialchars(t('tickets.settings.general.watch_event_' . str_replace('.', '_', $__ev))); ?>
+                    </label>
+                    <?php endforeach; ?>
+                    <small style="display:block;margin-top:6px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.watch_help')); ?></small>
                 </div>
 
                 <!-- The two AI reading aids (#104, ideas 7 and 12).
@@ -7243,6 +7259,12 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     cb('groupOlder',          'ticket_group_older',            true);
                     cb('flagDuplicates',      'ticket_flag_duplicates',        true);
                     document.getElementById('teamFolders').value = data.settings.ticket_team_folders === 'mine' ? 'mine' : 'all';
+                    // GH #277: never saved = every event ticked (TicketWatchers::events()).
+                    const watchEv = data.settings.ticket_watch_events;
+                    if (watchEv !== null && watchEv !== undefined) {
+                        const on = String(watchEv).split(',').map(s => s.trim());
+                        document.querySelectorAll('#watchEventsGroup .watch-event').forEach(cb => { cb.checked = on.includes(cb.value); });
+                    }
                     document.getElementById('groupShow').value = parseInt(data.settings.ticket_group_show, 10) || 6;
                     // ⚠️ '|| N' would turn a saved 0 into N, and 0 is the setting that
                     // means "never refresh by itself" — the one an administrator is most
@@ -7615,7 +7637,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 ticket_group_older:            document.getElementById('groupOlder').checked ? '1' : '0',
                 ticket_group_show:             String(document.getElementById('groupShow').value || 6),
                 ticket_flag_duplicates:        document.getElementById('flagDuplicates').checked ? '1' : '0',
-                ticket_team_folders:           document.getElementById('teamFolders').value === 'mine' ? 'mine' : 'all'
+                ticket_team_folders:           document.getElementById('teamFolders').value === 'mine' ? 'mine' : 'all',
+                ticket_watch_events:           Array.from(document.querySelectorAll('#watchEventsGroup .watch-event:checked')).map(cb => cb.value).join(',')
             };
 
             try {

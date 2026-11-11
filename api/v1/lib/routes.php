@@ -17,6 +17,10 @@ return [
 
     ['GET',    '#^/tickets/(\d+)/notes$#',                 ['ticket_notes', 'read'],          'apiTicketNotesList'],
     ['POST',   '#^/tickets/(\d+)/notes$#',                 ['ticket_notes', 'create'],        'apiTicketNotesCreate'],
+    // GH #277: watchers.
+    ['GET',    '#^/tickets/(\d+)/watchers$#',              ['ticket_watchers', 'read'],       'apiTicketWatchersList'],
+    ['POST',   '#^/tickets/(\d+)/watchers$#',              ['ticket_watchers', 'create'],     'apiTicketWatchersAdd'],
+    ['DELETE', '#^/tickets/(\d+)/watchers/(\d+)$#',        ['ticket_watchers', 'delete'],     'apiTicketWatchersRemove'],
     // GH #273: checklists, the same shape on tickets and tasks.
     ['GET',    '#^/tickets/(\d+)/checklists$#',            ['ticket_checklists', 'read'],     'apiTicketChecklistsList'],
     ['PATCH',  '#^/tickets/(\d+)/checklists/steps/(\d+)$#', ['ticket_checklists', 'update'], 'apiTicketChecklistStepUpdate'],

@@ -500,6 +500,7 @@ return [
         'event' => [
             'ticket' => [
                 'assigned' => '{actor} se lo ha asignado a usted',
+                'reassigned' => '{actor} lo ha reasignado',
                 'reply_received' => 'El solicitante ha respondido',
                 'note_added' => '{actor} ha añadido una nota',
                 'status_changed' => '{actor} ha cambiado el estado',
@@ -554,15 +555,16 @@ return [
         'pref' => [
             'ticket' => [
                 'assigned' => 'Se me asigna un ticket',
-                'reply_received' => 'Un solicitante responde a mi ticket',
-                'note_added' => 'Alguien añade una nota a mi ticket',
-                'status_changed' => 'Alguien cambia el estado de mi ticket',
-                'priority_changed' => 'Alguien cambia la prioridad de mi ticket',
+                'reassigned' => 'Se reasigna un ticket que sigo',
+                'reply_received' => 'Un solicitante responde a mi ticket o a uno que sigo',
+                'note_added' => 'Alguien añade una nota a mi ticket o a uno que sigo',
+                'status_changed' => 'Alguien cambia el estado de mi ticket o de uno que sigo',
+                'priority_changed' => 'Alguien cambia la prioridad de mi ticket o de uno que sigo',
                 'created' => 'Se crea un ticket',
             ],
             'sla' => [
-                'warning' => 'Mi ticket se acerca a su objetivo de SLA',
-                'breached' => 'Mi ticket incumple su objetivo de SLA',
+                'warning' => 'Mi ticket, o uno que sigo, se acerca a su objetivo de SLA',
+                'breached' => 'Mi ticket, o uno que sigo, incumple su objetivo de SLA',
             ],
             'task' => [
                 'assigned' => 'Se me asigna una tarea',

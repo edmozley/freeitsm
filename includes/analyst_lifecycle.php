@@ -88,6 +88,7 @@ function analystReferenceRegistry(): array {
         ['warroom_reads', 'analyst_id', 'personal'],
         ['warroom_presence', 'analyst_id', 'personal'],
         ['task_collaborators', 'analyst_id', 'personal'],
+        ['ticket_watchers', 'analyst_id', 'personal'],   // GH #277: their watches go with them
         ['project_members', 'analyst_id', 'personal'],
         ['project_ai_messages', 'analyst_id', 'personal'],
         ['project_ai_threads', 'analyst_id', 'personal'],
@@ -230,6 +231,7 @@ function analystReferenceRegistry(): array {
         ['task_time_entries', 'analyst_id', 'history'],
         ['task_comments', 'analyst_id', 'history'],
         ['task_collaborators', 'added_by_id', 'history'],
+        ['ticket_watchers', 'added_by_id', 'history'],
         ['task_recurrences', 'created_by_id', 'history'],
         ['task_dependencies', 'created_by_id', 'history'],
         ['task_checklists', 'created_by_id', 'history'],

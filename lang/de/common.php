@@ -500,6 +500,7 @@ return [
         'event' => [
             'ticket' => [
                 'assigned' => 'Von {actor} Ihnen zugewiesen',
+                'reassigned' => 'Von {actor} neu zugewiesen',
                 'reply_received' => 'Der Anfragende hat geantwortet',
                 'note_added' => '{actor} hat eine Notiz hinzugefügt',
                 'status_changed' => '{actor} hat den Status geändert',
@@ -554,15 +555,16 @@ return [
         'pref' => [
             'ticket' => [
                 'assigned' => 'Mir wird ein Ticket zugewiesen',
-                'reply_received' => 'Ein Anfragender antwortet auf mein Ticket',
-                'note_added' => 'Jemand fügt meinem Ticket eine Notiz hinzu',
-                'status_changed' => 'Jemand ändert den Status meines Tickets',
-                'priority_changed' => 'Jemand ändert die Priorität meines Tickets',
+                'reassigned' => 'Ein Ticket, das ich beobachte, wird neu zugewiesen',
+                'reply_received' => 'Ein Anfragender antwortet auf mein Ticket oder eines, das ich beobachte',
+                'note_added' => 'Jemand fügt meinem Ticket oder einem, das ich beobachte, eine Notiz hinzu',
+                'status_changed' => 'Jemand ändert den Status meines Tickets oder eines, das ich beobachte',
+                'priority_changed' => 'Jemand ändert die Priorität meines Tickets oder eines, das ich beobachte',
                 'created' => 'Ein Ticket wird erstellt',
             ],
             'sla' => [
-                'warning' => 'Mein Ticket nähert sich seinem SLA-Ziel',
-                'breached' => 'Mein Ticket überschreitet sein SLA-Ziel',
+                'warning' => 'Mein Ticket oder eines, das ich beobachte, nähert sich seinem SLA-Ziel',
+                'breached' => 'Mein Ticket oder eines, das ich beobachte, überschreitet sein SLA-Ziel',
             ],
             'task' => [
                 'assigned' => 'Mir wird eine Aufgabe zugewiesen',

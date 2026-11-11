@@ -3252,6 +3252,20 @@ CREATE TABLE IF NOT EXISTS `ticket_csat_responses` (
 -- GH #301: surveys held back by Tickets -> Settings -> CSAT -> "Delay before sending".
 -- One row per ticket (a second close moves its due time); cron/csat_delayed.php sends
 -- each once due, if the ticket is still closed, and removes it.
+-- GH #277: analysts WATCHING a ticket - told about it as if it were theirs, through their
+-- own preferences, for the events Tickets -> Settings -> General ticks. Put there by
+-- hand (themselves, or a colleague with write access), never inferred from activity.
+CREATE TABLE IF NOT EXISTS `ticket_watchers` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `ticket_id`        INT NOT NULL,
+    `analyst_id`       INT NOT NULL,                    -- who watches
+    `added_by_id`      INT NULL,                        -- who put them there (themselves, a colleague; NULL = the API with no analyst)
+    `created_datetime` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ticket_watchers` (`ticket_id`, `analyst_id`),
+    KEY `ix_ticket_watchers_analyst` (`analyst_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `csat_queue` (
     `id`               INT NOT NULL AUTO_INCREMENT,
     `ticket_id`        INT NOT NULL,
