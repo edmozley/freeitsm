@@ -6893,4 +6893,24 @@ return [
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
+    // The help assistant's index - only a cache of the help pages, one row per
+    // section per language (includes/help_index.php, wiki Help-Assistant-Design).
+    'help_sections' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'section_key'      => 'VARCHAR(191) NOT NULL',
+        'locale'           => "VARCHAR(10) NOT NULL DEFAULT 'en'",
+        'page'             => 'VARCHAR(150) NOT NULL',
+        'anchor'           => 'VARCHAR(100) NOT NULL',
+        'module'           => 'VARCHAR(50) NOT NULL',
+        'cap'              => 'VARCHAR(80) NULL',
+        'title'            => 'VARCHAR(255) NOT NULL',
+        'body'             => 'MEDIUMTEXT NOT NULL',
+        'text_hash'        => 'CHAR(64) NOT NULL',
+        'embedding'        => 'MEDIUMTEXT NULL',
+        'embedding_hash'   => 'CHAR(64) NULL',
+        'embedding_model'  => 'VARCHAR(80) NULL',
+        'source'           => "VARCHAR(20) NOT NULL DEFAULT 'built'",
+        'source_version'   => 'VARCHAR(20) NULL',
+        'built_datetime'   => 'DATETIME NOT NULL',
+    ],
 ];

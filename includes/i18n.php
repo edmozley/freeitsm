@@ -85,6 +85,22 @@ class I18n {
         self::$locale = array_key_exists($locale, self::SUPPORTED_LOCALES) ? $locale : self::DEFAULT_LOCALE;
     }
 
+    /** Set by pinLocale(): initFromSession() then leaves the locale alone. */
+    private static $pinned = false;
+
+    /**
+     * Fix the locale for the rest of this process, so a page's own
+     * initFromSession() cannot change it. Command line only: the help assistant's
+     * index builder renders every help page once per language (scripts/help_render_page.php).
+     *
+     * @param string $locale  a locale code from SUPPORTED_LOCALES
+     */
+    public static function pinLocale(string $locale): void {
+        if (PHP_SAPI !== 'cli') return;
+        self::setLocale($locale);
+        self::$pinned = true;
+    }
+
     /** The locale this request is translating into. */
     public static function getLocale() {
         return self::$locale;
@@ -104,6 +120,8 @@ class I18n {
      * Safe to call without a database — fails silently if config/DB aren't loaded yet.
      */
     public static function initFromSession() {
+        if (self::$pinned) return;   // pinLocale(): the help index builder, command line only
+
         // The saved interface_language preference is read from the DB via
         // connectToDatabase() (defined in functions.php). Many module pages load
         // config.php + i18n.php but NOT functions.php before calling this, which

@@ -10538,6 +10538,43 @@ CREATE TABLE IF NOT EXISTS `jml_audit` (
 
 
 -- ----------------------------------------------------------
+-- The help assistant's index (wiki Help-Assistant-Design)
+-- ----------------------------------------------------------
+-- ONLY A CACHE. The help pages and language files are the truth; this is what
+-- the builder (includes/help_index.php) rendered from them, one row per help
+-- section per language, so the assistant can search without rendering pages.
+-- Emptying it loses nothing - the next build fills it again.
+CREATE TABLE IF NOT EXISTS `help_sections` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    -- The page and the section's id on it: 'tickets/help.php#settings'.
+    `section_key`      VARCHAR(191) NOT NULL,
+    -- The language folder code: 'en', 'de', 'pt-BR'.
+    `locale`           VARCHAR(10) NOT NULL DEFAULT 'en',
+    `page`             VARCHAR(150) NOT NULL,
+    `anchor`           VARCHAR(100) NOT NULL,
+    -- The module the page belongs to ('system' for System help) - the access filter.
+    `module`           VARCHAR(50) NOT NULL,
+    -- A capability (the Cap enum) the section describes, from data-cap; NULL when open to the module.
+    `cap`              VARCHAR(80) NULL,
+    `title`            VARCHAR(255) NOT NULL,
+    `body`             MEDIUMTEXT NOT NULL,
+    -- sha256 of title + body: what the section says now.
+    `text_hash`        CHAR(64) NOT NULL,
+    -- The vector, and the text_hash it was made from - a different hash means out of date.
+    `embedding`        MEDIUMTEXT NULL,
+    `embedding_hash`   CHAR(64) NULL,
+    `embedding_model`  VARCHAR(80) NULL,
+    -- 'built' here, or 'release' when it came with a FreeITSM release; and which one.
+    `source`           VARCHAR(20) NOT NULL DEFAULT 'built',
+    `source_version`   VARCHAR(20) NULL,
+    `built_datetime`   DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_help_sections_key_locale` (`section_key`, `locale`),
+    KEY `idx_help_sections_locale_module` (`locale`, `module`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ----------------------------------------------------------
 -- Seed: Default admin account
 -- ----------------------------------------------------------
 -- Username: admin  |  Password: freeitsm

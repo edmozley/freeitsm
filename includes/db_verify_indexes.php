@@ -643,4 +643,6 @@ return [
     ['jml_cases', 'idx_jml_cases_tenant', 'key', '(`tenant_id`)'],
     ['jml_cases', 'idx_jml_cases_user', 'key', '(`user_id`)'],
     ['jml_audit', 'idx_jml_audit_case', 'key', '(`case_id`,`created_datetime`)'],
+    ['help_sections', 'uq_help_sections_key_locale', 'unique', '(`section_key`,`locale`)'],
+    ['help_sections', 'idx_help_sections_locale_module', 'key', '(`locale`,`module`)'],
 ];
