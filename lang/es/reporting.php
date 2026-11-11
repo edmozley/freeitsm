@@ -182,6 +182,8 @@ return [
         'affects_workflow_scheduled' => 'Flujos de trabajo de caducidad de contratos y garantías, mantenimiento planificado, alertas de proyectos',
         'name_integration_poll' => 'Consulta del gestor de incidencias',
         'affects_integration_poll' => 'Estados y comentarios de Jira y otros gestores en los tickets vinculados',
+        'name_csat_delayed' => 'Encuestas de satisfacción diferidas',
+        'affects_csat_delayed' => 'Encuestas de satisfacción retenidas por "Retraso antes de enviar": nunca se envían',
         'name_task_recurrence' => 'Tareas repetitivas',
         'affects_task_recurrence' => 'Tareas que se repiten con una programación fija',
         'name_attachment_extract' => 'Texto de los adjuntos',

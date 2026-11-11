@@ -41,6 +41,7 @@ $DB_VERIFY_TABLE_OVERRIDES = [
     // (`users` => tickets), not in "other" (#62).
     'manager_grants'       => 'tickets',
     'portal_notifications' => 'tickets',
+    'csat_queue'           => 'tickets',   // GH #301: delayed CSAT surveys sit with their tickets
 ];
 
 /**

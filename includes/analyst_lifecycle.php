@@ -173,6 +173,7 @@ function analystReferenceRegistry(): array {
         ['ticket_merges', 'merged_by_id', 'history'],
         ['ticket_splits', 'split_by_id', 'history'],
         ['ticket_csat_responses', 'analyst_id', 'history'],
+        ['csat_queue', 'analyst_id', 'history'],   // GH #301: kept - the survey still goes, credited as on an immediate send
         ['ticket_cmdb_objects', 'created_by_analyst_id', 'history'],
         ['ticket_assets', 'created_by_analyst_id', 'history'],
         ['ticket_domains', 'created_by_analyst_id', 'history'],

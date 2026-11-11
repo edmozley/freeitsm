@@ -203,6 +203,8 @@ return [
         'affects_workflow_scheduled' => 'Contract and warranty expiry workflows, planned maintenance, project alerts',
         'name_integration_poll'      => 'Issue tracker poll',
         'affects_integration_poll'   => 'Jira and other tracker statuses and comments on linked tickets',
+        'name_csat_delayed' => 'Delayed satisfaction surveys',
+        'affects_csat_delayed' => 'Satisfaction surveys held back by "Delay before sending" - they are never sent',
         'name_task_recurrence'       => 'Repeating tasks',
         'affects_task_recurrence'    => 'Tasks that repeat on a fixed schedule',
         'name_attachment_extract'    => 'Attachment text',

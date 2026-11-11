@@ -3246,6 +3246,21 @@ CREATE TABLE IF NOT EXISTS `ticket_csat_responses` (
     CONSTRAINT `fk_ticket_csat_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- GH #301: surveys held back by Tickets -> Settings -> CSAT -> "Delay before sending".
+-- One row per ticket (a second close moves its due time); cron/csat_delayed.php sends
+-- each once due, if the ticket is still closed, and removes it.
+CREATE TABLE IF NOT EXISTS `csat_queue` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `ticket_id`        INT NOT NULL,
+    `due_datetime`     DATETIME NOT NULL,               -- UTC
+    `analyst_id`       INT NULL,                        -- who closed it; stored on the survey as for an immediate send
+    `link_base`        VARCHAR(255) NULL,               -- the site address it was closed from, for the survey link when none is configured
+    `created_datetime` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_csat_queue_ticket` (`ticket_id`),
+    KEY `ix_csat_queue_due` (`due_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `ticket_rota_shifts` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `name`              VARCHAR(100) NOT NULL,

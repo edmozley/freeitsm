@@ -130,6 +130,14 @@ function jobRegistry(): array
             'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM integration_connections WHERE is_active = 1 LIMIT 1"),
             'sources' => fn(PDO $c) => jobSourceKeys($c, 'connection:', "SELECT id FROM integration_connections WHERE is_active = 1"),
         ],
+        // GH #301: surveys held back by Tickets -> Settings -> CSAT -> "Delay before sending".
+        'csat_delayed' => [
+            'command' => 'php cron/csat_delayed.php', 'web' => true,
+            'interval' => 5, 'grace' => 30, 'max_runtime' => 10,
+            // Needed while a delay is set on "auto" - or while any survey is still queued.
+            'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM csat_queue LIMIT 1")
+                                     || (jobSettingStrict($c, 'csat_mode') === 'auto' && (int)jobSettingStrict($c, 'csat_delay_minutes') > 0),
+        ],
         'task_recurrence' => [
             'command' => 'php cron/task_recurrence.php', 'web' => true,
             'interval' => 1440, 'grace' => 360, 'max_runtime' => 10,
@@ -194,6 +202,7 @@ function jobRegistry(): array
         'lms_reminders' => 'lms', 'domains' => 'domains', 'task_recurrence' => 'tasks',
         'webhook_deliveries' => 'workflow', 'proxmox_sync' => 'assets', 'vcloud_sync' => 'assets',
         'sla_breach' => 'sla',   // a Tickets feature (slice 2)
+        'csat_delayed' => 'csat',   // GH #301
     ];
     foreach ($jobs as $k => &$j) {
         $j['key']         = $k;

@@ -807,9 +807,8 @@ class TicketsService
                 ]);
                 require_once __DIR__ . '/../csat.php';
                 try {
-                    if (csatGetSetting($conn, 'csat_mode', 'off') === 'auto') {
-                        sendCsatSurvey($conn, $ticketId, $actorId);
-                    }
+                    // Now, or queued for after Tickets -> Settings -> CSAT's delay (GH #301).
+                    csatAutoOnClose($conn, $ticketId, $actorId);
                 } catch (Exception $csEx) {
                     error_log('CSAT auto-trigger failed for ticket ' . $ticketId . ': ' . $csEx->getMessage());
                 }

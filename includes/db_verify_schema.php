@@ -1918,6 +1918,16 @@ return [
         'channel_from'       => 'VARCHAR(255) NULL',
     ],
 
+    // GH #301: surveys waiting out "Delay before sending" (unique per ticket - db_verify_indexes.php).
+    'csat_queue' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'ticket_id'        => 'INT NOT NULL',
+        'due_datetime'     => 'DATETIME NOT NULL',
+        'analyst_id'       => 'INT NULL',
+        'link_base'        => 'VARCHAR(255) NULL',   // the site address it was closed from (no request when the job sends)
+        'created_datetime' => 'DATETIME NOT NULL',
+    ],
+
     'ticket_rota_shifts' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'name'              => 'VARCHAR(100) NOT NULL',

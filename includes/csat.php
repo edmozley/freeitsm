@@ -8,8 +8,9 @@
  * (the per-install secret lives in system_settings.csat_token_secret).
  *
  * Called from:
- *   - api/tickets/assign_ticket.php when a ticket transitions into a closed
- *     status and the global csat_mode is 'auto'
+ *   - TicketsService (csatAutoOnClose) when a ticket transitions into a closed
+ *     status and the global csat_mode is 'auto' - at once, or queued for after
+ *     csat_delay_minutes and sent by cron/csat_delayed.php (GH #301)
  *   - api/tickets/request_csat.php when an analyst clicks the manual
  *     "Request feedback" button (regardless of mode, as long as mode != 'off')
  */
@@ -26,7 +27,7 @@ require_once __DIR__ . '/module_availability.php'; // moduleIsEnabled('csat') - 
  * @param string $default  returned when the key has no row (the first answer is cached per request)
  */
 function csatGetSetting(PDO $conn, string $key, string $default = ''): string {
-    static $cache = [];
+    $cache = &csatSettingCache();
     if (isset($cache[$key])) return $cache[$key];
     $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?");
     $stmt->execute([$key]);
@@ -39,6 +40,18 @@ function csatGetSetting(PDO $conn, string $key, string $default = ''): string {
     }
     $cache[$key] = ($val === false || $val === null) ? $default : (string)$val;
     return $cache[$key];
+}
+
+/** The per-request settings cache csatGetSetting() fills (by reference). */
+function &csatSettingCache(): array {
+    static $cache = [];
+    return $cache;
+}
+
+/** Forget cached CSAT settings - for a long-running process or a test that changes them. */
+function csatSettingsForget(): void {
+    $cache = &csatSettingCache();
+    $cache = [];
 }
 
 /**
@@ -60,7 +73,15 @@ function csatGenerateToken(): string {
  *
  * @param string $token  the survey token from ticket_csat_responses.token; URL-encoded here
  */
-function csatBuildUrl(string $token): string {
+function csatBuildUrl(string $token, ?PDO $conn = null): string {
+    // GH #301: with a connection, the CONFIGURED public address (System -> Settings),
+    // then the request's host - publicAbsoluteUrl()'s order. A delayed survey is sent
+    // by a background job with no request at all, where the code below would build
+    // http://localhost/... and mail it to a customer.
+    if ($conn !== null) {
+        require_once __DIR__ . '/public_url.php';
+        return publicAbsoluteUrl($conn, 'csat?token=' . urlencode($token));
+    }
     $scheme = requestScheme();
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     // Find the install root — config.php sits at the repo root, so we walk
@@ -362,8 +383,124 @@ function sendCsatSurvey(PDO $conn, int $ticketId, ?int $analystId, bool $force =
     $responseId = (int)$conn->lastInsertId();
 
     sendTemplateEmail($conn, $ticketId, 'csat_request', [
-        'csat_link' => csatBuildUrl($token),
+        'csat_link' => csatBuildUrl($token, $conn),
     ]);
 
     return ['result' => CSAT_RESULT_SENT, 'response_id' => $responseId];
+}
+
+// ===========================================================================
+//  "Delay before sending" (GH #301)
+// ===========================================================================
+//
+// Tickets -> Settings -> CSAT has had a "Delay before sending (minutes)" since
+// CSAT began, saved and shown back - and read by nothing: the survey went the
+// moment the ticket closed. Now a close with a delay QUEUES the survey in
+// csat_queue (one row per ticket), and the csat_delayed background job sends it
+// once due - but only if the ticket is still closed then. Reopened in the
+// meantime, the survey is dropped; closed again, it is queued afresh with a new
+// delay (the row is per ticket, so the second close moves its due time).
+//
+// TRAP: an upgrade must not stop surveys. With no delay set (0, the default), or
+//   before Database Verification has made csat_queue, the survey goes at once,
+//   exactly as before.
+// TRAP: the job claims a row by DELETING it (rowCount 1) before sending, so two
+//   overlapping runs cannot send one survey twice.
+
+/**
+ * A ticket has just closed with CSAT on "auto": send its survey now, or queue it
+ * for after the delay. Never throws on the queue - a queue that cannot be written
+ * sends at once rather than losing the survey.
+ *
+ * @param ?int $analystId  who closed it - stored on the survey as for an immediate send
+ */
+function csatAutoOnClose(PDO $conn, int $ticketId, ?int $analystId): void {
+    if (csatGetSetting($conn, 'csat_mode', 'off') !== 'auto') return;
+    $delay = max(0, (int)csatGetSetting($conn, 'csat_delay_minutes', '0'));
+    if ($delay > 0) {
+        try {
+            // The site address as it is NOW, while there may be a request to read it
+            // from - the job that sends this later has none (see csatSendDue()).
+            require_once __DIR__ . '/public_url.php';
+            $linkBase = publicBaseUrl($conn);
+            $linkBase = preg_match('#^https?://#i', $linkBase) ? mb_substr($linkBase, 0, 255) : null;
+            $conn->prepare(
+                "INSERT INTO csat_queue (ticket_id, due_datetime, analyst_id, link_base, created_datetime)
+                 VALUES (?, UTC_TIMESTAMP() + INTERVAL ? MINUTE, ?, ?, UTC_TIMESTAMP())
+                 ON DUPLICATE KEY UPDATE due_datetime = VALUES(due_datetime), analyst_id = VALUES(analyst_id),
+                                         link_base = VALUES(link_base), created_datetime = VALUES(created_datetime)"
+            )->execute([$ticketId, $delay, $analystId, $linkBase]);
+            return;
+        } catch (Throwable $e) {
+            error_log('CSAT: could not queue the delayed survey for ticket ' . $ticketId . ' - sending now: ' . $e->getMessage());
+        }
+    }
+    sendCsatSurvey($conn, $ticketId, $analystId);
+}
+
+/**
+ * Make the next survey link start with $base - the site address a queued survey's
+ * ticket was closed from - unless an address is configured, which always wins.
+ * Null just forgets any earlier one. Undone with publicBaseUrlForget().
+ *
+ * @param ?string $base  e.g. https://desk.example.com/freeitsm, or null
+ */
+function csatUseLinkBase(PDO $conn, ?string $base): void {
+    require_once __DIR__ . '/public_url.php';
+    publicBaseUrlForget();
+    if ($base === null || $base === '' || publicBaseUrlSetting($conn) !== '') return;
+    $root = &publicBaseUrlCache();
+    $root = rtrim($base, '/');
+}
+
+/**
+ * Send the surveys whose delay has passed. Called by cron/csat_delayed.php.
+ * Each row is claimed by deleting it, then sent only if CSAT is still on "auto"
+ * and the ticket is still closed and not in the trash.
+ *
+ * @param int $limit  at most this many surveys in one run
+ * @return array{sent:int, reopened:int, skipped:int, failed:int, details:list<array{ticket_id:int,outcome:string}>}
+ */
+function csatSendDue(PDO $conn, int $limit = 200): array {
+    $out = ['sent' => 0, 'reopened' => 0, 'skipped' => 0, 'failed' => 0, 'details' => []];
+    require_once __DIR__ . '/public_url.php';
+    $configured = publicBaseUrlSetting($conn) !== '';
+    $due = $conn->prepare("SELECT ticket_id, due_datetime, analyst_id, link_base FROM csat_queue
+                            WHERE due_datetime <= UTC_TIMESTAMP() ORDER BY due_datetime ASC LIMIT " . max(1, $limit));
+    $due->execute();
+    $claim = $conn->prepare("DELETE FROM csat_queue WHERE ticket_id = ? AND due_datetime = ?");
+    $state = $conn->prepare("SELECT t.deleted_datetime, COALESCE(s.is_closed, 0) AS is_closed
+                               FROM tickets t LEFT JOIN ticket_statuses s ON s.id = t.status_id WHERE t.id = ?");
+    foreach ($due->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $ticketId = (int)$row['ticket_id'];
+        $claim->execute([$ticketId, $row['due_datetime']]);
+        if ($claim->rowCount() !== 1) continue;   // another run took it, or a new close moved it
+        $state->execute([$ticketId]);
+        $t = $state->fetch(PDO::FETCH_ASSOC);
+        if (!$t || $t['deleted_datetime'] !== null || (int)$t['is_closed'] !== 1) {
+            $out['reopened']++;
+            $out['details'][] = ['ticket_id' => $ticketId, 'outcome' => $t ? 'reopened' : 'gone'];
+            continue;
+        }
+        if (!moduleIsEnabled($conn, 'csat') || csatGetSetting($conn, 'csat_mode', 'off') !== 'auto') {
+            $out['skipped']++;
+            $out['details'][] = ['ticket_id' => $ticketId, 'outcome' => 'csat_off'];
+            continue;
+        }
+        try {
+            // TRAP: no request here, so with no public address configured the link
+            // would be a bare path. Use the address the ticket was closed from, just
+            // for this send. A configured address always wins.
+            csatUseLinkBase($conn, $configured ? null : ($row['link_base'] ?? null));
+            $r = sendCsatSurvey($conn, $ticketId, $row['analyst_id'] !== null ? (int)$row['analyst_id'] : null);
+            publicBaseUrlForget();
+            $r['result'] === CSAT_RESULT_SENT ? $out['sent']++ : $out['skipped']++;
+            $out['details'][] = ['ticket_id' => $ticketId, 'outcome' => $r['result']];
+        } catch (Throwable $e) {
+            $out['failed']++;
+            $out['details'][] = ['ticket_id' => $ticketId, 'outcome' => 'failed: ' . $e->getMessage()];
+            error_log('CSAT: delayed survey for ticket ' . $ticketId . ' failed: ' . $e->getMessage());
+        }
+    }
+    return $out;
 }

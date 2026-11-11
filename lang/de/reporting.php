@@ -182,6 +182,8 @@ return [
         'affects_workflow_scheduled' => 'Workflows für Vertrags- und Garantieablauf, geplante Wartung, Projektwarnungen',
         'name_integration_poll' => 'Abfrage des Issue-Trackers',
         'affects_integration_poll' => 'Status und Kommentare von Jira und anderen Trackern an verknüpften Tickets',
+        'name_csat_delayed' => 'Verzögerte Zufriedenheitsumfragen',
+        'affects_csat_delayed' => 'Durch "Verzögerung vor dem Senden" zurückgehaltene Zufriedenheitsumfragen - sie werden nie gesendet',
         'name_task_recurrence' => 'Wiederkehrende Aufgaben',
         'affects_task_recurrence' => 'Aufgaben, die nach einem festen Zeitplan wiederkehren',
         'name_attachment_extract' => 'Anhangstext',
