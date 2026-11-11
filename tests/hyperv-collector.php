@@ -56,6 +56,13 @@ try {
     $r = json_decode((string)@file_get_contents("$dir\\plain.json"), true);
     ok('the collector runs and writes a report', $code === 0 && is_array($r), "exit $code: " . substr($out, 0, 300));
     ok('...naming the host it could not read', ($r['unreadable'][0]['name'] ?? '') === 'HV-DENIED');
+    $reportedVms = array_column($r['sections']['vms']['items'] ?? [], null, 'name');
+    ok('guest OS comes from the matching VM, not the host OS or the first KVP component',
+        ($reportedVms['VM-HA1']['os_name'] ?? null) === 'Microsoft Windows Server 2019 Standard');
+    ok('a Linux guest is read independently of the Windows host',
+        ($reportedVms['VM-PLAIN']['os_name'] ?? null) === 'Ubuntu 24.04 LTS');
+    ok('malformed, unrelated and blank KVP data leaves the guest OS explicitly unknown',
+        isset($reportedVms['VM-S1']) && array_key_exists('os_name', $reportedVms['VM-S1']) && $reportedVms['VM-S1']['os_name'] === null);
     $cid = $mkConn();
     $res = VirtualEstateService::submit($conn, $cid, $r);
     ok('🔴 FreeITSM accepts the collector\'s report as it is', $res['outcome'] === 'applied', json_encode($res['sections']));
@@ -70,12 +77,24 @@ try {
     ok('disks with their sizes, adapters with their addresses', (int)$q("SELECT size_bytes FROM virt_vm_disks d JOIN virt_vms v ON v.id = d.vm_id WHERE v.id = {$ha['id']}") === 136365211648
         && $q("SELECT ip_addresses FROM virt_vm_networks WHERE vm_id = {$ha['id']}") === '10.0.0.6, fe80::1');
     ok('the cluster\'s quorum is recorded', $q("SELECT quorum_type FROM virt_clusters WHERE connection_id = $cid") === 'NodeAndFileShareMajority');
+    ok('the existing ingest stores both guest OS names', $ha['os_name'] === 'Microsoft Windows Server 2019 Standard'
+        && $q("SELECT os_name FROM virt_vms WHERE connection_id = $cid AND name = 'VM-PLAIN'") === 'Ubuntu 24.04 LTS');
+
+    // Optional KVP access must not turn an otherwise readable host into an unreadable one.
+    [$code, $out] = runMock($mock, ['-Out', escapeshellarg("$dir\\guest-denied.json"), '-NoGuestKvp']);
+    $denied = json_decode((string)@file_get_contents("$dir\\guest-denied.json"), true);
+    $deniedVms = array_column($denied['sections']['vms']['items'] ?? [], null, 'name');
+    ok('a refused KVP read keeps the host and VM inventory, with an unknown guest OS', $code === 0
+        && count($denied['sections']['hosts']['items'] ?? []) === 3 && count($deniedVms) === 3
+        && count($denied['unreadable'] ?? []) === 1 && ($denied['unreadable'][0]['name'] ?? '') === 'HV-DENIED'
+        && isset($deniedVms['VM-HA1']) && array_key_exists('os_name', $deniedVms['VM-HA1']) && $deniedVms['VM-HA1']['os_name'] === null
+        && ($deniedVms['VM-PLAIN']['os_name'] ?? null) === 'Ubuntu 24.04 LTS');
 
     // ---- Redacted ------------------------------------------------------------------------
     [$code] = runMock($mock, ['-Out', escapeshellarg("$dir\\redacted.json"), '-Redact']);
     $raw = (string)@file_get_contents("$dir\\redacted.json");
     $leaks = [];
-    foreach (['CL-MOCK', 'HV-N1', 'HV-DENIED', 'VM-HA1', '10.0.0.6', '00155D010203', 'ClusterStorage', 'vSwitch-Prod', 'aaaaaaaa-0000', '4c4c4544-0031', 'Access is denied', php_uname('n')] as $secret) {
+    foreach (['CL-MOCK', 'HV-N1', 'HV-DENIED', 'VM-HA1', '10.0.0.6', '00155D010203', 'ClusterStorage', 'vSwitch-Prod', 'aaaaaaaa-0000', '4c4c4544-0031', 'Access is denied', 'ZZ-GUEST-FQDN.example.invalid', php_uname('n')] as $secret) {
         if (stripos($raw, $secret) !== false) { $leaks[] = $secret; }
     }
     ok('🔴 -Redact leaves no name, address, MAC, path, identifier or error text', $code === 0 && $raw !== '' && !$leaks, implode(', ', $leaks));

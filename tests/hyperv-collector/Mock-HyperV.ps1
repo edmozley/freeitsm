@@ -14,18 +14,43 @@
     Usage (tests/hyperv-collector.php drives it):
       powershell -NoProfile -ExecutionPolicy Bypass -File Mock-HyperV.ps1 -Out <file> [-Redact] [-TestAccess]
 #>
-param([string]$Out, [switch]$Redact, [switch]$TestAccess, [string]$ReportPer = 'All', [string]$ApiUrl, [int]$ConnectionId, [string]$ApiKey)
+param([string]$Out, [switch]$Redact, [switch]$TestAccess, [string]$ReportPer = 'All', [string]$ApiUrl, [int]$ConnectionId, [string]$ApiKey, [switch]$NoGuestKvp)
 
 $MockGuid = @{ 'CL-MOCK' = '11111111-2222-3333-4444-555555555555'; 'VM-HA1' = 'aaaaaaaa-0000-4000-8000-000000000001'; 'VM-PLAIN' = 'aaaaaaaa-0000-4000-8000-000000000002'
     'VM-S1' = 'aaaaaaaa-0000-4000-8000-000000000003'; 'GRP-HA1' = 'bbbbbbbb-0000-4000-8000-000000000001'; 'GRP-CORE' = 'bbbbbbbb-0000-4000-8000-000000000002' }
 $MockUuid = @{ 'HV-N1' = '4c4c4544-0031-3510-8051-b4c04f000001'; 'HV-N2' = '4c4c4544-0031-3510-8051-b4c04f000002'; 'HV-S1' = '4c4c4544-0031-3510-8051-b4c04f000003' }
 $MockVmsOn = @{ 'HV-N1' = @('VM-HA1'); 'HV-N2' = @('VM-PLAIN'); 'HV-S1' = @('VM-S1') }
+$MockGuestKvpDenied = $NoGuestKvp
 
 function Deny([string]$h) { if ($h -eq 'HV-DENIED') { throw [System.UnauthorizedAccessException]"Access is denied ($h)" } }
 
-function Get-CimInstance { param($ClassName, $ComputerName)
+function Get-CimInstance { param($ClassName, $ComputerName, $Namespace)
     Deny $ComputerName
     if ($ClassName -eq 'Win32_ComputerSystemProduct') { return [pscustomobject]@{ UUID = $MockUuid[$ComputerName] } }
+    if ($ClassName -eq 'Msvm_KvpExchangeComponent') {
+        if ($Namespace -ne 'root/virtualization/v2') { throw 'Wrong guest KVP namespace' }
+        if ($MockGuestKvpDenied -and $ComputerName -eq 'HV-N1') { throw 'Guest KVP access is denied' }
+        # A different VM comes first, so reading the first component is not enough.
+        [pscustomobject]@{ SystemName = 'eeeeeeee-0000-4000-8000-000000000001'; GuestIntrinsicExchangeItems = @(
+            '<INSTANCE><PROPERTY NAME="Name"><VALUE>OSName</VALUE></PROPERTY><PROPERTY NAME="Data"><VALUE>ZZ unrelated guest</VALUE></PROPERTY></INSTANCE>'
+        ) }
+        foreach ($n in $MockVmsOn[$ComputerName]) {
+            $items = @(
+                '<INSTANCE><PROPERTY NAME="Name"><VALUE>FullyQualifiedDomainName</VALUE></PROPERTY><PROPERTY NAME="Data"><VALUE>ZZ-GUEST-FQDN.example.invalid</VALUE></PROPERTY></INSTANCE>',
+                '<!DOCTYPE INSTANCE [<!ENTITY os "ZZ untrusted DTD">]><INSTANCE><PROPERTY NAME="Name"><VALUE>OSName</VALUE></PROPERTY><PROPERTY NAME="Data"><VALUE>&os;</VALUE></PROPERTY></INSTANCE>',
+                '<INSTANCE malformed'
+            )
+            if ($n -eq 'VM-HA1') {
+                $items += '<INSTANCE><PROPERTY NAME="Data"><VALUE>Microsoft Windows Server 2019 Standard</VALUE></PROPERTY><PROPERTY NAME="Name"><VALUE>OSName</VALUE></PROPERTY></INSTANCE>'
+            } elseif ($n -eq 'VM-PLAIN') {
+                $items += '<INSTANCE><PROPERTY NAME="Name"><VALUE>OSName</VALUE></PROPERTY><PROPERTY NAME="Data"><VALUE>Ubuntu 24.04 LTS</VALUE></PROPERTY></INSTANCE>'
+            } else {
+                $items += '<INSTANCE><PROPERTY NAME="Name"><VALUE>OSName</VALUE></PROPERTY><PROPERTY NAME="Data"><VALUE> </VALUE></PROPERTY></INSTANCE>'
+            }
+            [pscustomobject]@{ SystemName = $MockGuid[$n].ToUpperInvariant(); GuestIntrinsicExchangeItems = $items }
+        }
+        return
+    }
     return [pscustomobject]@{ Caption = 'Microsoft Windows Server 2022 Datacenter' } }
 function Get-VMHost { param($ComputerName) Deny $ComputerName; [pscustomobject]@{ LogicalProcessorCount = 64; MemoryCapacity = 549755813888 } }
 function Get-VM { param($ComputerName)
