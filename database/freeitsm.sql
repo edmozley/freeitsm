@@ -10563,17 +10563,33 @@ CREATE TABLE IF NOT EXISTS `help_sections` (
     `body`             MEDIUMTEXT NOT NULL,
     -- sha256 of title + body: what the section says now.
     `text_hash`        CHAR(64) NOT NULL,
-    -- The vector, and the text_hash it was made from - a different hash means out of date.
-    `embedding`        MEDIUMTEXT NULL,
-    `embedding_hash`   CHAR(64) NULL,
-    `embedding_model`  VARCHAR(80) NULL,
+    `built_datetime`   DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_help_sections_key_locale` (`section_key`, `locale`),
+    KEY `idx_help_sections_locale_module` (`locale`, `module`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The help assistant's vectors: one per help section per embedding MODEL, so a
+-- new model can be built while the old one keeps answering. Only vectors made by
+-- the model in use (help_vectors_model) are ever compared with a question - from
+-- different models they mean nothing to each other. Also only a cache.
+CREATE TABLE IF NOT EXISTS `help_section_vectors` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `section_id`       INT NOT NULL,
+    -- The model's identity, aiEmbeddingModelId(): 'openai:text-embedding-3-small@512'.
+    `model`            VARCHAR(120) NOT NULL,
+    -- The section's text_hash when this was made - different from the section's now means out of date.
+    `text_hash`        CHAR(64) NOT NULL,
+    -- float32, base64 (aiVectorPack()).
+    `vector`           MEDIUMTEXT NOT NULL,
     -- 'built' here, or 'release' when it came with a FreeITSM release; and which one.
     `source`           VARCHAR(20) NOT NULL DEFAULT 'built',
     `source_version`   VARCHAR(20) NULL,
     `built_datetime`   DATETIME NOT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_help_sections_key_locale` (`section_key`, `locale`),
-    KEY `idx_help_sections_locale_module` (`locale`, `module`)
+    UNIQUE KEY `uq_help_section_vectors` (`section_id`, `model`),
+    KEY `idx_help_section_vectors_model` (`model`),
+    CONSTRAINT `fk_help_section_vectors_section` FOREIGN KEY (`section_id`) REFERENCES `help_sections` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- The help assistant's conversation, one row per message, per analyst - kept

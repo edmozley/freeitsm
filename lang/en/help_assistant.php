@@ -9,6 +9,7 @@ return [
     'button' => 'Help assistant',
     'greeting' => 'Hi! Ask me how to do something in FreeITSM and I\'ll find the right part of the help.',
     'mode_search' => 'Searching the help pages - no AI is set up, so you get the right pages rather than a written answer.',
+    'mode_meaning' => 'Searching the help by meaning - no chat AI is set up, so you get the right pages rather than a written answer.',
     'placeholder' => 'Ask how to do something…',
     'send' => 'Send',
     'reset' => 'Reset',

@@ -238,6 +238,20 @@ not knowing - that is how four locales drifted from 100% to 95.8% across five re
 all missing the same 347 keys. The `i18n drift` workflow warns on every push so this step
 is a confirmation rather than a discovery.
 
+**3b. Refresh the help assistant's ready-made vectors**, so an install on OpenAI
+`text-embedding-3-small` gets matching by meaning without paying to embed the help:
+
+```bash
+php scripts/help_vectors_export.php X.Y.Z
+```
+
+Run it on an install with this release's help and matching by meaning set up for that model
+(System → Help assistant). It rebuilds the English index, embeds what changed (pennies) and
+writes `data/help-vectors/openai-text-embedding-3-small-512.json.gz` (about 1 MB) - commit it
+with the version bump. Skipping it costs nothing but money on each install: a section whose
+text changed since the file was made is simply embedded there. See
+[Help assistant - Developer Guide](https://github.com/edmozley/freeitsm/wiki/Help-Assistant-Developer-Guide).
+
 **4. Commit** the version bump, then tag that exact commit:
 
 ```bash

@@ -533,6 +533,7 @@ function systemAreaSettings(): array
         'help-assistant/' => [
             ['switch', 'system.help_assistant.switch_heading'],
             ['who',    'system.help_assistant.who_heading'],
+            ['meaning', 'system.help_assistant.vectors_heading'],
             ['index',  'system.help_assistant.index_heading'],
         ],
         'status-portal/' => [

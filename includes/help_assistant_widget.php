@@ -32,7 +32,7 @@ function helpAssistantWidgetRender(?string $module): void
         return;
     }
     $base = defined('BASE_URL') ? BASE_URL : '/';
-    $keys = ['title', 'button', 'greeting', 'mode_search', 'placeholder', 'send', 'reset', 'close', 'open', 'also', 'searching', 'error'];
+    $keys = ['title', 'button', 'greeting', 'mode_search', 'mode_meaning', 'placeholder', 'send', 'reset', 'close', 'open', 'also', 'searching', 'error'];
     $strings = [];
     foreach ($keys as $k) $strings[$k] = t('help_assistant.' . $k);
     $config = [
@@ -40,6 +40,8 @@ function helpAssistantWidgetRender(?string $module): void
         'history' => $base . 'api/help_assistant/history.php',
         'reset'   => $base . 'api/help_assistant/reset.php',
         'module'  => $module,
+        // 'search' or 'search_meaning' - which note the window shows under its header.
+        'level'   => helpAssistantLevel($conn)['level'],
         'strings' => $strings,
     ];
     ?>
@@ -49,6 +51,6 @@ function helpAssistantWidgetRender(?string $module): void
     </button>
     <link rel="stylesheet" href="<?php echo $base; ?>assets/css/help-assistant.css?v=1">
     <script>window.HELP_ASSISTANT = <?php echo json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="<?php echo $base; ?>assets/js/help-assistant.js?v=2" defer></script>
+    <script src="<?php echo $base; ?>assets/js/help-assistant.js?v=3" defer></script>
     <?php
 }

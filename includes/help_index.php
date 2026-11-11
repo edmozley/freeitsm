@@ -264,10 +264,10 @@ function helpIndexBuild(PDO $conn, array $locales = [], ?callable $log = null): 
 
     $existing = $conn->prepare("SELECT anchor, text_hash, cap, module FROM help_sections WHERE page = ? AND locale = ?");
     $upsert = $conn->prepare(
-        "INSERT INTO help_sections (section_key, locale, page, anchor, module, cap, title, body, text_hash, source, built_datetime)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'built', UTC_TIMESTAMP())
+        "INSERT INTO help_sections (section_key, locale, page, anchor, module, cap, title, body, text_hash, built_datetime)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())
          ON DUPLICATE KEY UPDATE module = VALUES(module), cap = VALUES(cap), title = VALUES(title), body = VALUES(body),
-             text_hash = VALUES(text_hash), source = 'built', source_version = NULL, built_datetime = UTC_TIMESTAMP()"
+             text_hash = VALUES(text_hash), built_datetime = UTC_TIMESTAMP()"
     );
     $remove = $conn->prepare("DELETE FROM help_sections WHERE page = ? AND locale = ? AND anchor = ?");
 
@@ -473,7 +473,7 @@ function helpSnippet(string $body, array $queryTokens): string
  */
 function helpSectionsFor(PDO $conn, int $analystId, string $locale = 'en'): array
 {
-    $st = $conn->prepare("SELECT section_key, locale, page, anchor, module, cap, title, body FROM help_sections WHERE locale IN ('en', ?)");
+    $st = $conn->prepare("SELECT id, section_key, locale, page, anchor, module, cap, title, body FROM help_sections WHERE locale IN ('en', ?)");
     $st->execute([$locale]);
     $by = [];
     foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {

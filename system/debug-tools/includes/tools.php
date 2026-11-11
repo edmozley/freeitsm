@@ -525,6 +525,7 @@ function debugToolAiFeatureOptions(): array {
     require_once __DIR__ . '/../../../includes/ai_settings.php';
     $opts = [['value' => '', 'label' => 'Every feature (each distinct setup once)']];
     foreach (aiSettingsRegistry() as $ns => $entry) {
+        if (!empty($entry['embeddings'])) continue;   // D014 tests chats; an embedding model cannot chat
         $opts[] = ['value' => $ns, 'label' => $entry['label']];
     }
     return $opts;

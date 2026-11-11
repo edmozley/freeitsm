@@ -10,6 +10,7 @@
  */
 
 require_once __DIR__ . '/help_index.php';
+require_once __DIR__ . '/help_vectors.php';
 
 /**
  * "Clear winner": the top result scores at least this many times the runner-up.
@@ -102,14 +103,14 @@ function helpAssistantRequireJson(): array
 }
 
 /**
- * The level the install is at. Step 3 knows one: 'search' (no AI). Steps 4 and 5
- * add vectors and 'ask' when their keys are set.
+ * The level the install is at: 'search' (words only, no AI) or 'search_meaning'
+ * (words and vectors, step 4). Step 5 adds 'ask' when a chat AI is set up.
  *
  * @return array{level:string}
  */
 function helpAssistantLevel(PDO $conn): array
 {
-    return ['level' => 'search'];
+    return ['level' => helpVectorsReady($conn) !== null ? 'search_meaning' : 'search'];
 }
 
 // ─── The reply ──────────────────────────────────────────────────────────────
@@ -119,21 +120,35 @@ function helpAssistantLevel(PDO $conn): array
  * Pure, so it is tested without a database.
  *
  *   none     nothing matched
- *   weak     the best match is weak (score under HELP_ASSISTANT_WEAK_SCORE)
- *   clear    one clear winner (HELP_ASSISTANT_CLEAR_RATIO times the runner-up, or the only result)
+ *   weak     the best match is weak
+ *   clear    one clear winner
  *   module   several, and the best is from the module the asker is in
  *   several  several decent matches
  *
- * @param list<array{score:float,module?:string}> $results  best first
+ * Words alone: weak is a top score under HELP_ASSISTANT_WEAK_SCORE; clear is
+ * HELP_ASSISTANT_CLEAR_RATIO times the runner-up, or the only result.
+ * With vectors (a result carries 'sim'): weak is BOTH a similarity under
+ * HELP_VECTORS_WEAK_SIM and a weak word score; clear is meaning's own first
+ * choice leading the next by HELP_VECTORS_CLEAR_LEAD, or first by words and by
+ * meaning at once.
+ *
+ * @param list<array{score:float,module?:string,sim?:?float,word_rank?:?int,vec_rank?:?int,lead?:float}> $results  best first
  * @param ?string $currentModule  the module the asker is in
  */
 function helpAssistantReplyKind(array $results, ?string $currentModule = null): string
 {
     if (!$results) return 'none';
-    $top = (float)$results[0]['score'];
-    if ($top < HELP_ASSISTANT_WEAK_SCORE) return 'weak';
-    $second = isset($results[1]) ? (float)$results[1]['score'] : 0.0;
-    if ($second <= 0.0 || $top >= HELP_ASSISTANT_CLEAR_RATIO * $second) return 'clear';
+    $first = $results[0];
+    $top = (float)$first['score'];
+    if (array_key_exists('sim', $first) && $first['sim'] !== null) {
+        if ((float)$first['sim'] < HELP_VECTORS_WEAK_SIM && $top < HELP_ASSISTANT_WEAK_SCORE) return 'weak';
+        $meaningFirst = ($first['vec_rank'] ?? null) === 0;
+        if (($meaningFirst && (float)($first['lead'] ?? 0) >= HELP_VECTORS_CLEAR_LEAD) || ($meaningFirst && ($first['word_rank'] ?? null) === 0)) return 'clear';
+    } else {
+        if ($top < HELP_ASSISTANT_WEAK_SCORE) return 'weak';
+        $second = isset($results[1]) ? (float)$results[1]['score'] : 0.0;
+        if ($second <= 0.0 || $top >= HELP_ASSISTANT_CLEAR_RATIO * $second) return 'clear';
+    }
     if ($currentModule !== null && ($results[0]['module'] ?? null) === $currentModule) return 'module';
     return 'several';
 }
@@ -167,7 +182,11 @@ function helpAssistantPhrase(string $kind): string
 function helpAssistantAnswer(PDO $conn, int $analystId, string $question, string $locale, ?string $currentModule): array
 {
     $sections = helpSectionsFor($conn, $analystId, $locale);
-    $ranked = helpRank($sections, $question, $currentModule, 5);
+    // Words, and - when an embedding model is set up and its vectors are ready -
+    // meaning, merged. Any trouble with the embedding call falls back to words.
+    $byKey = [];
+    foreach ($sections as $s) $byKey[$s['section_key']] = $s;
+    $ranked = helpMerge(helpRank($sections, $question, $currentModule, 20), helpVectorRank($conn, $sections, $question, 20), $byKey, 5);
     // The page each result is on, by its introduction's title ("Tickets Help").
     $pageTitles = [];
     foreach ($sections as $s) if ($s['anchor'] === '') $pageTitles[$s['page']] = $s['title'];
@@ -181,6 +200,10 @@ function helpAssistantAnswer(PDO $conn, int $analystId, string $question, string
             'snippet'    => $r['snippet'],
             'module'     => $r['module'],
             'score'      => $r['score'],
+            'sim'        => $r['sim'] ?? null,
+            'word_rank'  => $r['word_rank'] ?? null,
+            'vec_rank'   => $r['vec_rank'] ?? null,
+            'lead'       => $r['lead'] ?? null,
         ];
     }
     $kind = helpAssistantReplyKind($results, $currentModule);

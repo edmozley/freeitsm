@@ -6909,9 +6909,15 @@ return [
         'title'            => 'VARCHAR(255) NOT NULL',
         'body'             => 'MEDIUMTEXT NOT NULL',
         'text_hash'        => 'CHAR(64) NOT NULL',
-        'embedding'        => 'MEDIUMTEXT NULL',
-        'embedding_hash'   => 'CHAR(64) NULL',
-        'embedding_model'  => 'VARCHAR(80) NULL',
+        'built_datetime'   => 'DATETIME NOT NULL',
+    ],
+    // The help assistant's vectors, one per section per embedding model (wiki Help-Assistant-Design).
+    'help_section_vectors' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'section_id'       => 'INT NOT NULL',
+        'model'            => 'VARCHAR(120) NOT NULL',
+        'text_hash'        => 'CHAR(64) NOT NULL',
+        'vector'           => 'MEDIUMTEXT NOT NULL',
         'source'           => "VARCHAR(20) NOT NULL DEFAULT 'built'",
         'source_version'   => 'VARCHAR(20) NULL',
         'built_datetime'   => 'DATETIME NOT NULL',

@@ -645,5 +645,7 @@ return [
     ['jml_audit', 'idx_jml_audit_case', 'key', '(`case_id`,`created_datetime`)'],
     ['help_sections', 'uq_help_sections_key_locale', 'unique', '(`section_key`,`locale`)'],
     ['help_sections', 'idx_help_sections_locale_module', 'key', '(`locale`,`module`)'],
+    ['help_section_vectors', 'uq_help_section_vectors', 'unique', '(`section_id`,`model`)'],
+    ['help_section_vectors', 'idx_help_section_vectors_model', 'key', '(`model`)'],
     ['help_assistant_messages', 'idx_help_assistant_messages_analyst', 'key', '(`analyst_id`,`id`)'],
 ];

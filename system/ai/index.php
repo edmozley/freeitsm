@@ -63,6 +63,7 @@ $features = [];
 try {
     $conn = connectToDatabase();
     foreach (aiSettingsRegistry() as $ns => $entry) {
+        if (!empty($entry['embeddings'])) continue;   // an embedding model never thinks
         $cfg = aiSettingsLoad($conn, $ns);
         $features[] = [
             'ns'        => $ns,

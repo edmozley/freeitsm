@@ -9,6 +9,15 @@
  *      is turned off). Switching it on with no index yet starts a build.
  * POST {"action": "rebuild"}  -> starts a rebuild in the background
  *
+ * Matching by meaning (step 4, includes/help_vectors.php):
+ * POST {"action": "save_vectors", "enabled": true, "provider": "openai", "model": "...",
+ *       "api_key": "" (blank or **** = keep the saved one), azure_*, compatible_base_url}
+ *      Saved through aiSettingsSave(), which ENCRYPTS the key. Only providers that can
+ *      embed are accepted. The first time it is switched on, vectors are built.
+ * POST {"action": "models", provider, api_key?, azure_*, compatible_base_url}
+ *      -> the provider's embedding models, for the dropdown (a blank key uses the saved one)
+ * POST {"action": "test_vectors"}  -> embeds one sentence with the saved settings
+ *
  * Administrators only, like every System endpoint.
  */
 session_start(['read_and_close' => true]);
@@ -28,6 +37,28 @@ function helpAssistantAdminState(PDO $conn): array
         'level'    => helpAssistantLevel($conn)['level'],
         'analysts' => array_map(fn($a) => ['id' => (int)$a['id'], 'name' => (string)$a['full_name'], 'username' => (string)$a['username'], 'on' => (bool)$a['help_assistant']], $analysts),
         'index'    => helpAssistantIndexStatus($conn),
+        'vectors'  => helpVectorsStatus($conn),
+    ];
+}
+
+/**
+ * The embedding settings posted, completed from what is saved: a blank (or ****)
+ * key means the saved one. Never echoed back.
+ */
+function helpAssistantPostedVectorCfg(PDO $conn, array $in): array
+{
+    $saved = helpVectorsConfig($conn);
+    $provider = (string)($in['provider'] ?? '');
+    if (!in_array($provider, AI_EMBEDDING_PROVIDERS, true)) throw new InvalidArgumentException('Choose OpenAI, Azure OpenAI or your own model server - those are the providers that can make embeddings.');
+    $key = (string)($in['api_key'] ?? '');
+    return [
+        'provider' => $provider,
+        'model'    => trim((string)($in['model'] ?? $saved['model'])),
+        'api_key'  => isMaskedNoChangeValue($key) ? (string)$saved['api_key'] : trim($key),
+        'azure_endpoint'      => trim((string)($in['azure_endpoint'] ?? $saved['azure_endpoint'])),
+        'azure_deployment'    => trim((string)($in['azure_deployment'] ?? $saved['azure_deployment'])),
+        'azure_api_version'   => trim((string)($in['azure_api_version'] ?? $saved['azure_api_version'])),
+        'compatible_base_url' => trim((string)($in['compatible_base_url'] ?? $saved['compatible_base_url'])),
     ];
 }
 
@@ -62,6 +93,34 @@ try {
         // Switched on with nothing to search yet: build it now rather than leave
         // the window answering "nothing found" to everything.
         if (!empty($in['enabled']) && !helpAssistantIndexStatus($conn)['entries']) $started = helpAssistantStartRebuild($conn);
+    } elseif (($in['action'] ?? '') === 'save_vectors') {
+        $enabled = !empty($in['enabled']);
+        if ($enabled) {
+            $cfg = helpAssistantPostedVectorCfg($conn, $in);
+            if ($cfg['model'] === '') throw new InvalidArgumentException('Choose a model.');
+            // Through the shared AI settings, which encrypt the key (aiSettingsSave()).
+            aiSettingsSave($conn, HELP_VECTORS_NS, [
+                'provider' => $cfg['provider'], 'model' => $cfg['model'], 'api_key' => (string)($in['api_key'] ?? ''),
+                'azure_endpoint' => $cfg['azure_endpoint'], 'azure_deployment' => $cfg['azure_deployment'], 'azure_api_version' => $cfg['azure_api_version'],
+                'compatible_base_url' => $cfg['compatible_base_url'],
+            ]);
+        }
+        helpVectorsSet($conn, 'help_vectors_enabled', $enabled ? '1' : '0');
+        // The first time: build them now. A CHANGE of model is not started here - the
+        // page warns and offers Rebuild, because it may cost money.
+        if ($enabled && helpVectorsActiveModel($conn) === null && helpVectorsUsable(helpVectorsConfig($conn))) $started = helpAssistantStartRebuild($conn);
+    } elseif (($in['action'] ?? '') === 'models') {
+        $r = aiEmbeddingModels(helpAssistantPostedVectorCfg($conn, $in));
+        echo json_encode(['success' => true, 'models' => $r['models'], 'error' => $r['error']]);
+        exit;
+    } elseif (($in['action'] ?? '') === 'test_vectors') {
+        $cfg = helpVectorsConfig($conn);
+        if (!helpVectorsUsable($cfg)) throw new InvalidArgumentException('Save a provider, model and key first.');
+        $t = microtime(true);
+        $r = aiEmbedBatch($cfg, ['How do I create a ticketing department?']);
+        echo json_encode(['success' => $r['error'] === null, 'error' => $r['error'], 'dimensions' => $r['error'] === null ? count($r['vectors'][0]) : null,
+                          'ms' => (int)round((microtime(true) - $t) * 1000), 'model' => aiEmbeddingModelId($cfg)]);
+        exit;
     } else {
         throw new InvalidArgumentException('Unknown action');
     }

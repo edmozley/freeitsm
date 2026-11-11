@@ -46,8 +46,22 @@ try {
     $say($e->getMessage() . "\n");
     exit(1);
 }
+// Then the vectors, when matching by meaning is switched on (includes/help_vectors.php):
+// changed sections get new ones, and a newly chosen model is built beside the old
+// and switched to only when complete. A failure here leaves the sections built and
+// the assistant searching as it was - the error is shown on System -> Help assistant.
+$vectors = null;
+if (helpVectorsEnabled($conn)) {
+    try {
+        $vectors = helpVectorsBuild($conn, fn(string $line) => $say("$line\n"));
+    } catch (Throwable $e) {
+        $vectors = ['error' => $e->getMessage()];
+    }
+}
 helpAssistantSetSetting($conn, 'help_index_build_state', json_encode(['state' => $stats['failed'] ? 'failed' : 'done', 'started' => $started,
-    'finished' => gmdate('Y-m-d H:i:s'), 'locales' => array_values(array_unique(array_merge(['en'], $locales))), 'stats' => $stats]));
+    'finished' => gmdate('Y-m-d H:i:s'), 'locales' => array_values(array_unique(array_merge(['en'], $locales))), 'stats' => $stats, 'vectors' => $vectors]));
 $say(sprintf("\n%d pages, %d sections (English): %d added, %d changed, %d removed, in %.1fs\n",
     $stats['pages'], $stats['sections'], $stats['added'], $stats['changed'], $stats['removed'], microtime(true) - $t));
+if ($vectors !== null) $say(sprintf("Vectors (%s): %d ready-made, %d embedded, %d missing%s%s\n", $vectors['model'] ?? '?', $vectors['imported'] ?? 0,
+    $vectors['embedded'] ?? 0, $vectors['missing'] ?? 0, !empty($vectors['switched']) ? ' - now in use' : '', !empty($vectors['error']) ? ' - ' . $vectors['error'] : ''));
 if ($stats['failed']) { $say("FAILED to render: " . implode(', ', $stats['failed']) . "\n"); exit(1); }

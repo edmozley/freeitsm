@@ -3332,6 +3332,20 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // The help assistant's vectors go with their section (wiki Help-Assistant-Design).
+    if ($tableExists('help_section_vectors') && !$fkExists('help_section_vectors', 'fk_help_section_vectors_section')) {
+        try { $conn->exec("ALTER TABLE help_section_vectors ADD CONSTRAINT fk_help_section_vectors_section FOREIGN KEY (section_id) REFERENCES help_sections (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+    }
+    // help_sections briefly had five columns for vectors on dev installs, never in a
+    // release - vectors moved to help_section_vectors (one per model). The table is
+    // only a cache, so dropping them loses nothing.
+    if ($tableExists('help_sections')) {
+        foreach (['embedding', 'embedding_hash', 'embedding_model', 'source', 'source_version'] as $gone) {
+            try {
+                if ($conn->query("SHOW COLUMNS FROM help_sections LIKE '$gone'")->fetch()) $conn->exec("ALTER TABLE help_sections DROP COLUMN `$gone`");
+            } catch (Exception $e) {}
+        }
+    }
     // The help assistant's conversation goes with its analyst (wiki Help-Assistant-Design).
     if ($tableExists('help_assistant_messages') && !$fkExists('help_assistant_messages', 'fk_help_assistant_messages_analyst')) {
         try { $conn->exec("ALTER TABLE help_assistant_messages ADD CONSTRAINT fk_help_assistant_messages_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}

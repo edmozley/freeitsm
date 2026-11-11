@@ -95,6 +95,17 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         .ha-langs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
         .ha-lang { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft, #eceff1); color: var(--text, #333); }
         .ha-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
+        .ha-panel > p.ha-small { font-size: 12.5px; margin-bottom: 8px; }
+        .ha-msg { font-size: 13px; color: var(--text-muted, #666); }
+        .ha-msg.ok { color: var(--success-text, #166534); }
+        .ha-msg.bad { color: var(--danger-text, #b91c1c); }
+        .hv-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px 16px; margin-top: 14px; }
+        .hv-field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--text-muted, #666); min-width: 0; }
+        .hv-field input, .hv-field select { padding: 7px 10px; font: inherit; font-size: 13px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); min-width: 0; }
+        .hv-model-row { display: flex; gap: 6px; }
+        .hv-model-row select { flex: 1; min-width: 0; }
+        .hv-status { margin-top: 14px; }
+        .hv-status .ha-warnbox { background: var(--warning-bg, #fef3c7); border: 1px solid var(--warning-border, #f0d9a8); color: var(--warning-text, #92400e); border-radius: 8px; padding: 12px 14px; margin: 8px 0; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -141,6 +152,45 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         <div style="margin:0 0 26px;">
             <button class="btn btn-primary" id="haSave" onclick="save()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             <span class="ha-saved" id="haSaved" hidden><?php echo $h('saved'); ?></span>
+        </div>
+
+        <?php /* Step 4: matching by meaning. Its own embedding key, stored ENCRYPTED by
+                 aiSettingsSave() through api/system/help_assistant.php; the key is never
+                 sent back - only "Saved (****abcd)". Providers are only those that can
+                 embed, and models come from a dropdown, never typed. */ ?>
+        <div class="ha-panel">
+            <h3 id="meaning"><?php echo $h('vectors_heading'); ?></h3>
+            <p><?php echo $h('vectors_intro'); ?></p>
+            <p class="ha-small"><?php echo $h('vectors_cost'); ?></p>
+            <p class="ha-small"><?php echo $h('vectors_privacy'); ?></p>
+            <label class="ha-toggle">
+                <input type="checkbox" id="hvEnabled" onchange="syncVectors()">
+                <span class="ha-toggle-label"><?php echo $h('vectors_enable'); ?></span>
+            </label>
+            <div class="hv-fields" id="hvFields">
+                <label class="hv-field"><span><?php echo $h('provider'); ?></span>
+                    <select id="hvProvider" onchange="syncProvider(); loadModels();">
+                        <option value="openai"><?php echo $h('prov_openai'); ?></option>
+                        <option value="azure"><?php echo $h('prov_azure'); ?></option>
+                        <option value="openai_compatible"><?php echo $h('prov_compatible'); ?></option>
+                    </select>
+                </label>
+                <label class="hv-field hv-azure"><span><?php echo $h('azure_endpoint'); ?></span><input type="text" id="hvAzEndpoint" autocomplete="off" placeholder="https://my-resource.openai.azure.com"></label>
+                <label class="hv-field hv-azure"><span><?php echo $h('azure_deployment'); ?></span><input type="text" id="hvAzDeployment" autocomplete="off"></label>
+                <label class="hv-field hv-azure"><span><?php echo $h('azure_api_version'); ?></span><input type="text" id="hvAzVersion" autocomplete="off" placeholder="2024-02-01"></label>
+                <label class="hv-field hv-compat"><span><?php echo $h('base_url'); ?></span><input type="text" id="hvBaseUrl" autocomplete="off" placeholder="<?php echo $h('base_url_hint'); ?>" onchange="loadModels()"></label>
+                <label class="hv-field"><span id="hvKeyLabel"><?php echo $h('key'); ?></span><input type="password" id="hvKey" autocomplete="new-password" onchange="loadModels()"></label>
+                <label class="hv-field"><span id="hvModelLabel"><?php echo $h('model'); ?></span>
+                    <span class="hv-model-row"><select id="hvModel"></select>
+                    <button type="button" class="btn btn-secondary" onclick="loadModels()"><?php echo $h('refresh'); ?></button></span>
+                </label>
+            </div>
+            <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                <button class="btn btn-primary" id="hvSave" onclick="saveVectors()"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                <button class="btn btn-secondary" id="hvTest" onclick="testVectors()"><?php echo $h('test'); ?></button>
+                <span class="ha-msg" id="hvMsg"></span>
+            </div>
+            <div class="ha-status hv-status" id="hvStatus"></div>
         </div>
 
         <div class="ha-panel">
@@ -218,6 +268,112 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
             syncEnabled();
             renderList();
             renderIndex(d.index || {});
+            applyVectors(d.vectors || {}, d.index || {});
+            document.getElementById('haLevel').textContent = tr(d.level === 'search_meaning' ? 'level_meaning' : 'level_search');
+        }
+
+        // ── Matching by meaning ──────────────────────────────────────────
+        const SHIPPED_MODEL = 'text-embedding-3-small';
+        let vec = {};
+        const $ = id => document.getElementById(id);
+
+        function syncVectors() { $('hvFields').classList.toggle('ha-disabled', !$('hvEnabled').checked); }
+        function syncProvider() {
+            const p = $('hvProvider').value;
+            document.querySelectorAll('.hv-azure').forEach(e => e.style.display = p === 'azure' ? '' : 'none');
+            document.querySelectorAll('.hv-compat').forEach(e => e.style.display = p === 'openai_compatible' ? '' : 'none');
+            $('hvModelLabel').textContent = tr(p === 'azure' ? 'azure_model' : 'model');
+            const saved = vec.has_key && p === vec.provider;
+            $('hvKeyLabel').textContent = tr(p === 'openai_compatible' ? 'key_optional' : 'key');
+            $('hvKey').placeholder = saved ? tr('key_saved', { hint: vec.key_hint }) : '';
+        }
+        // The posted settings. The key box is EMPTY unless a new key is typed - blank
+        // means "keep the saved one", which never leaves the server.
+        function vectorFields() {
+            return { provider: $('hvProvider').value, api_key: $('hvKey').value, model: $('hvModel').value,
+                     azure_endpoint: $('hvAzEndpoint').value, azure_deployment: $('hvAzDeployment').value,
+                     azure_api_version: $('hvAzVersion').value, compatible_base_url: $('hvBaseUrl').value };
+        }
+        function fillModels(models, keep) {
+            const sel = $('hvModel');
+            sel.textContent = '';
+            const list = models.slice();
+            if (keep && !list.includes(keep)) list.unshift(keep);
+            list.forEach(m => {
+                const o = document.createElement('option');
+                o.value = m;
+                o.textContent = (m === SHIPPED_MODEL && $('hvProvider').value !== 'openai_compatible') ? m + ' - ' + tr('shipped_tag') : m;
+                sel.appendChild(o);
+            });
+            if (keep) sel.value = keep;
+        }
+        async function loadModels() {
+            const keep = $('hvModel').value || vec.model;
+            try {
+                const d = await post(Object.assign({ action: 'models' }, vectorFields()));
+                fillModels(d.models || [], keep);
+                if (d.error) msg(d.error, 'bad');
+            } catch (e) { msg(e.message, 'bad'); }
+        }
+        function msg(text, cls) { const m = $('hvMsg'); m.textContent = text || ''; m.className = 'ha-msg' + (cls ? ' ' + cls : ''); }
+
+        function applyVectors(v, ix) {
+            vec = v;
+            if (!v || !v.provider) return;
+            $('hvEnabled').checked = !!v.enabled;
+            $('hvProvider').value = v.provider;
+            $('hvAzEndpoint').value = v.azure_endpoint || '';
+            $('hvAzDeployment').value = v.azure_deployment || '';
+            $('hvAzVersion').value = v.azure_api_version || '';
+            $('hvBaseUrl').value = v.compatible_base_url || '';
+            $('hvKey').value = '';
+            if (!$('hvModel').options.length) fillModels([v.model], v.model); else if (v.model) { if (![...$('hvModel').options].some(o => o.value === v.model)) fillModels([v.model], v.model); $('hvModel').value = v.model; }
+            syncProvider();
+            syncVectors();
+            renderVectorStatus(v, ix);
+        }
+
+        function renderVectorStatus(v, ix) {
+            const box = $('hvStatus');
+            box.textContent = '';
+            const line = (text, cls) => { const d = document.createElement('div'); d.textContent = text; if (cls) d.className = cls; box.appendChild(d); return d; };
+            const button = (label, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-secondary'; b.textContent = label; b.onclick = fn; b.disabled = !!ix.running; b.style.marginTop = '8px'; box.appendChild(b); };
+            if (!v.enabled) { line(tr('status_off')); return; }
+            if (ix.running) line(tr('index_running'));
+            const cc = v.chosen_counts || { total: 0, current: 0 };
+            const switching = v.active && v.active !== v.chosen;
+            if (v.in_use) line(tr('status_in_use', { model: v.active, count: (v.active_counts || {}).current || 0 }));
+            if (!v.usable) return;
+            const shipped = v.shipped && v.shipped.matches && v.shipped.available;
+            if (switching) {
+                // The old model keeps answering until the new one is complete.
+                line(tr('warn_switch', { active: v.active, chosen: v.chosen, count: cc.total }), 'ha-warnbox');
+                if (shipped) line(tr('shipped_note'));
+                button(shipped ? tr('use_shipped') : tr('rebuild'), rebuild);
+            } else if (!v.in_use) {
+                line(tr('status_first', { model: v.chosen }));
+                button(shipped ? tr('use_shipped') : tr('rebuild'), rebuild);
+            } else if (cc.total > cc.current) {
+                line(tr('warn_stale', { n: cc.total - cc.current }), 'ha-warn');
+                button(tr('rebuild'), rebuild);
+            }
+        }
+
+        async function saveVectors() {
+            const btn = $('hvSave');
+            btn.disabled = true;
+            try {
+                apply(await post(Object.assign({ action: 'save_vectors', enabled: $('hvEnabled').checked }, vectorFields())));
+                msg(tr('saved'), 'ok');
+            } catch (e) { msg(e.message, 'bad'); }
+            finally { btn.disabled = false; }
+        }
+        async function testVectors() {
+            msg('…');
+            try {
+                const d = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'test_vectors' }) }).then(r => r.json());
+                if (d.success) msg(tr('test_ok', { model: d.model, dims: d.dimensions, ms: d.ms }), 'ok'); else msg(d.error, 'bad');
+            } catch (e) { msg(e.message, 'bad'); }
         }
 
         async function load() {
@@ -225,7 +381,11 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
                 const d = await fetch(API).then(r => r.json());
                 if (!d.success) { if (typeof showToast === 'function') showToast(d.error, 'error'); return; }
                 if (document.getElementById('haList').childElementCount === 0) apply(d);
-                else renderIndex(d.index || {});   // a poll must not undo ticks not yet saved
+                else {   // a poll must not undo ticks or typing not yet saved
+                    renderIndex(d.index || {});
+                    renderVectorStatus(d.vectors || {}, d.index || {});
+                    document.getElementById('haLevel').textContent = tr(d.level === 'search_meaning' ? 'level_meaning' : 'level_search');
+                }
             } catch (e) { /* the page keeps its safe defaults: off */ }
         }
 

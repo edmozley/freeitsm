@@ -95,6 +95,18 @@ function aiSettingsRegistry(): array
             'default_provider'=> 'anthropic',
             'default_model'   => 'claude-sonnet-4-6',
         ],
+        // The help assistant's EMBEDDING model (wiki Help-Assistant-Design, step 4) - its
+        // own key so its cost shows on its own. Only OpenAI, Azure OpenAI and an
+        // OpenAI-compatible server can embed (AI_EMBEDDING_PROVIDERS); System -> Help
+        // assistant offers only those, and api/system/help_assistant.php refuses others.
+        'help_embed' => [
+            'label'           => 'Help assistant embeddings',
+            'default_provider'=> 'openai',
+            'default_model'   => 'text-embedding-3-small',
+            // Embeddings only: it never chats or thinks, so System -> AI thinking and the
+            // AI connections debug tool (which test a chat) leave it out.
+            'embeddings'      => true,
+        ],
         // Deferred: 'rfp_ai' (RFP Builder) — needs real OpenRouter SSE streaming first.
     ];
 }

@@ -9,6 +9,7 @@ return [
     'button' => 'Hilfe-Assistent',
     'greeting' => 'Hallo! Fragen Sie mich, wie etwas in FreeITSM geht, und ich finde die passende Stelle in der Hilfe.',
     'mode_search' => 'Die Hilfeseiten werden durchsucht - es ist keine KI eingerichtet, daher erhalten Sie die passenden Seiten statt einer geschriebenen Antwort.',
+    'mode_meaning' => 'Die Hilfe wird nach Bedeutung durchsucht - es ist keine Chat-KI eingerichtet, daher erhalten Sie die passenden Seiten statt einer geschriebenen Antwort.',
     'placeholder' => 'Fragen Sie, wie etwas geht…',
     'send' => 'Senden',
     'reset' => 'Zurücksetzen',

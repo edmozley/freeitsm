@@ -44,7 +44,7 @@ require __DIR__ . '/_top.php';
             <tr><td>A language FreeITSM has no help files for</td><td>Rarely</td></tr>
         </tbody>
     </table></div>
-    <div class="help-note">The last two rows are what later versions improve, with an embedding key (matching by meaning) and a chat AI (a written answer in the asker's own language) - see <a href="#coming">What is coming</a>.</div>
+    <div class="help-note">The last two rows are what an embedding key improves - see <a href="#meaning">Matching by meaning</a>.</div>
 </div>
 
 <!-- 3. Turning it on -->
@@ -112,7 +112,39 @@ require __DIR__ . '/_top.php';
     </ul>
 </div>
 
-<!-- 7. Coming -->
+<!-- 7. Matching by meaning -->
+<div class="help-section" id="meaning">
+    <div class="help-section-header"><?php echo helpSectionNum('meaning'); ?>
+        <div>
+            <h3>Matching by meaning</h3>
+            <p>Optional. Give the assistant an embedding model and it understands loosely worded questions.</p>
+        </div>
+    </div>
+    <p>Word search finds help that uses the same words as the question. An <strong>embedding model</strong> turns each help section, and each question, into a list of numbers that captures what it <em>means</em> - so <em>"my boss wants a weekly PDF of how we are doing"</em> finds <strong>Report packs</strong> although the two share no words. The assistant then merges both: a section that matches by words <em>and</em> by meaning comes first.</p>
+    <div class="help-table"><table>
+        <thead><tr><th>Asked</th><th>Words alone</th><th>Words and meaning</th></tr></thead>
+        <tbody>
+            <tr><td>A plain question</td><td>43 of 47</td><td>46 of 47</td></tr>
+            <tr><td>An exact name</td><td>6 of 6</td><td>6 of 6</td></tr>
+            <tr><td>Something vague</td><td>2 of 6</td><td>6 of 6</td></tr>
+            <tr><td>Another language</td><td>2 of 6</td><td>3 of 6</td></tr>
+        </tbody>
+    </table></div>
+    <p class="help-muted">A right section in the first five, on the same 65 test questions.</p>
+    <div class="help-steps">
+        <div class="help-step"><div class="help-step-num">1</div><div>On <strong>System → Help assistant</strong>, under <strong>Matching by meaning</strong>, tick <strong>Match questions by meaning</strong>.</div></div>
+        <div class="help-step"><div class="help-step-num">2</div><div>Choose the provider - <strong>OpenAI</strong>, <strong>Azure OpenAI</strong> or <strong>your own model server</strong> (Ollama, LM Studio and the like) - enter its key or address, and pick the model from the list. <strong>Test</strong> checks it works.</div></div>
+        <div class="help-step"><div class="help-step-num">3</div><div><strong>Save.</strong> The first time, the help's vectors are built in the background. With OpenAI's <strong>text-embedding-3-small</strong> they come ready-made with each release, so only sections changed on your install are paid for.</div></div>
+    </div>
+    <ul>
+        <li><strong>Its own key</strong>, stored encrypted, so its cost shows separately. Building costs about a penny on OpenAI; each question afterwards a tiny fraction of that.</li>
+        <li><strong>Each question is sent to that provider.</strong> Choose your own model server to keep everything on your network.</li>
+        <li><strong>Changing the model needs new vectors</strong> - vectors from different models cannot be compared. The page says so and offers <strong>Rebuild</strong>; the old model keeps answering until the new vectors are complete. Switching back to text-embedding-3-small uses the ready-made ones, at no cost.</li>
+        <li><strong>It never makes things worse.</strong> If the provider cannot be reached, the assistant quietly searches by words, as it does with nothing set up.</li>
+    </ul>
+</div>
+
+<!-- 8. Coming -->
 <div class="help-section" id="coming">
     <div class="help-section-header"><?php echo helpSectionNum('coming'); ?>
         <div>
@@ -123,8 +155,8 @@ require __DIR__ . '/_top.php';
     <div class="help-table"><table>
         <thead><tr><th>Set up</th><th>What it adds</th></tr></thead>
         <tbody>
-            <tr><td><strong>Nothing</strong> (today)</td><td>Search help - the right sections, instantly, free.</td></tr>
-            <tr><td><strong>An embedding key</strong></td><td>Matching by meaning, so <em>"my boss wants a weekly PDF"</em> finds Report packs. It will have its own key, so its cost shows separately.</td></tr>
+            <tr><td><strong>Nothing</strong></td><td>Search help - the right sections, instantly, free.</td></tr>
+            <tr><td><strong>An embedding key</strong> (available now)</td><td>Matching by meaning, so <em>"my boss wants a weekly PDF"</em> finds Report packs - see <a href="#meaning">above</a>.</td></tr>
             <tr><td><strong>A chat AI</strong> - any provider FreeITSM supports</td><td>A written answer in a sentence or two, in the asker's own language, still linking to the help it used.</td></tr>
         </tbody>
     </table></div>

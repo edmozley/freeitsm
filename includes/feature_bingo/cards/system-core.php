@@ -15,6 +15,18 @@ return [
         'link'     => 'system/help-assistant/',
         'check'    => ['all', [['setting', 'help_assistant_enabled', 'eq', '1'], ['rows', 'analysts', 'help_assistant = 1 AND is_active = 1']]],
     ],
+    [
+        'id'       => 'system.help_assistant_meaning',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'getting-started',
+        'title'    => 'The help assistant understands loosely worded questions',
+        'what'     => 'System -> Help assistant -> Matching by meaning: an embedding model (OpenAI, Azure OpenAI or your own model server) lets the assistant match a question by what it means, not only its words - "my boss wants a weekly PDF" finds Report packs.',
+        'why'      => 'People rarely use the help\'s own words. On the test questions, vague ones went from 2 in 6 answered to 6 in 6. With OpenAI\'s small model the help\'s vectors come ready-made with each release.',
+        'done'     => 'Matching by meaning is switched on, and a model\'s vectors are in use.',
+        'link'     => 'system/help-assistant/#meaning',
+        'check'    => ['all', [['setting', 'help_vectors_enabled', 'eq', '1'], ['setting', 'help_vectors_model', 'nonempty']]],
+    ],
 
     // ───────────────────────── Analysts ─────────────────────────
     [

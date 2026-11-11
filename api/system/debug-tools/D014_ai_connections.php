@@ -162,7 +162,8 @@ function providerLabel(string $p): string {
 }
 
 $conn     = connectToDatabase();
-$registry = aiSettingsRegistry();
+// Chat features only: an embedding model (the help assistant's) cannot answer a chat test.
+$registry = array_filter(aiSettingsRegistry(), fn($e) => empty($e['embeddings']));
 $only     = trim((string)($_GET['ns'] ?? ''));
 if ($only !== '' && !isset($registry[$only])) {
     addSection($sections, 'VERDICT', 'Unknown feature "' . $only . '".');
