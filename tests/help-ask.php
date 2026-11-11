@@ -49,7 +49,10 @@ check('...or followed by an explanation of why (as models do)', helpAskParse("NO
 
 The sections mention departments but give no steps.", $numbered)['not_covered']);
 check('...but an answer that merely mentions the word is still an answer', !helpAskParse('The status NOT_COVERED appears when a ticket has no SLA policy covering it.', $numbered)['not_covered']);
-$leak = "I need to search for this.\n<function_calls>\n<invoke name=\"search_help\">\n<parameter name=\"query\">assets access</parameter>\n</invoke>\n</function_calls>\n\nBased on the help sections, your colleague needs module access.\nSOURCES: 1";
+check('NOT_COVERED on its own line after narration means not covered (a real Haiku reply)',
+    helpAskParse("The search results still do not directly address stopping a mailbox.\n\nBased on section, a mailbox can be switched off.\n\nNOT_COVERED", $numbered)['not_covered']);
+check('...but an answer that merely mentions the word mid-sentence is not caught', !helpAskParse(str_repeat('An answer about mailboxes and how they work in practice. ', 2) . "Not NOT_COVERED here.\nSOURCES: 1", $numbered)['not_covered']);
+$leak ="I need to search for this.\n<function_calls>\n<invoke name=\"search_help\">\n<parameter name=\"query\">assets access</parameter>\n</invoke>\n</function_calls>\n\nBased on the help sections, your colleague needs module access.\nSOURCES: 1";
 $r = helpAskParse($leak, $numbered);
 check('a tool call the model WROTE as text, and its narration, are dropped (seen with a real model)',
     $r['text'] === 'Your colleague needs module access.' && array_column($r['sources'], 'section_key') === ['a'], json_encode($r['text']));
@@ -68,6 +71,9 @@ foreach ([
     'who, not how, without the permission'        => 'Do not explain how',
     'a SOURCES line'                              => 'SOURCES:',
     'the module the user is in'                   => 'the tickets module',
+    'signpost with a path from the module'        => 'Tickets → Settings → Departments',
+    'the help page\'s name is not a menu'         => 'is NOT a menu',
+    'each step in the sections\' own language'    => 'in their language - never from this example',
 ] as $what => $needle) check("the rules say: $what", str_contains($sys, $needle));
 
 echo "\nThe help it reads\n";
@@ -77,6 +83,9 @@ check('a long section is given from the passage that matched, not from its start
 check('a short section is given whole', helpAskSectionText(['body' => 'Short.', 'passage' => '']) === 'Short.');
 check('a section lacking permission is marked for the AI',
     str_contains(helpAskFormatSection(2, ['title' => 'Settings', 'page_title' => 'Tickets Help', 'body' => 'x'], true), '[2] Tickets Help > Settings [needs permission the user does not have]'));
+check('each section tells the AI its module\'s menu name, the start of a path',
+    str_contains(helpAskFormatSection(1, ['title' => 'Renewals', 'page_title' => 'Software Help', 'module' => 'software', 'body' => 'x'], false), '[1] Software Help > Renewals (module: Software)'));
+check('a module with no plain name (Checks) uses its menu name', helpAskModuleName('morning-checks') === 'Checks' && helpAskModuleName(null) === '');
 
 // ─── Part 2 ─────────────────────────────────────────────────────────────────
 $expected = getenv('FREEITSM_TEST_DATABASE');

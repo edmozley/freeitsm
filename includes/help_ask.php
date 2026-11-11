@@ -120,6 +120,7 @@ RULES - follow every one:
 5. First check the sections are really about what is asked - for example, analysts (the people who work tickets) are not users or requesters (the people who raise them). If they are not clearly about it, or the question is not in English, call search_help with English keywords before answering - up to twice. If the help still does not cover it, reply with exactly NOT_COVERED and nothing else. Do not guess.
 6. A section marked [needs permission the user does not have] describes something this user cannot do. Do not explain how; say that an administrator, or someone with access to that module's settings, can do it.
 7. Finish with a line SOURCES: followed by the numbers of the sections you used, for example SOURCES: 1, 3
+8. Signpost: when the answer means going somewhere, show the way there as a path with arrows, starting from the module's name as each section gives it - in English that looks like Tickets → Settings → Departments, or System → Database Verify. Put the path in bold. Build every step from the words the sections themselves use, in their language - never from this example. The help page's own name (such as "Tickets help" or "LMS guide") is NOT a menu, so never put it in a path. If the sections do not say where something is, do not make a path up.
 TXT
         . ($module ? "\n\nThe user is in the {$module} module; when a question could mean several modules, prefer that one." : '');
 }
@@ -128,7 +129,29 @@ TXT
 function helpAskFormatSection(int $n, array $s, bool $lacksPermission): string
 {
     $where = trim(($s['page_title'] ?? '') . ' > ' . ($s['title'] ?? ''), ' >');
-    return "[$n] " . $where . ($lacksPermission ? ' [needs permission the user does not have]' : '') . "\n" . helpAskSectionText($s);
+    $mod = helpAskModuleName($s['module'] ?? null);
+    return "[$n] " . $where . ($mod !== '' ? " (module: $mod)" : '') . ($lacksPermission ? ' [needs permission the user does not have]' : '') . "\n" . helpAskSectionText($s);
+}
+
+/**
+ * A module's name as its menu shows it, in the user's language - so the AI can
+ * start a path from it (rule 8). The help itself writes paths from inside the
+ * module ("Settings → Renewals" in the Software help); this is the missing first step.
+ */
+function helpAskModuleName(?string $module): string
+{
+    if ($module === null || $module === '') return '';
+    $key = 'common.modules.' . $module . '.name';
+    $name = function_exists('t') ? t($key) : '';
+    if ($name === '' || $name === $key) {
+        static $en = null;
+        if ($en === null) {
+            $c = @include __DIR__ . '/../lang/en/common.php';
+            $en = is_array($c) ? ($c['modules'] ?? []) : [];
+        }
+        $name = $en[$module]['name'] ?? '';
+    }
+    return (string)$name;
 }
 
 /**
@@ -238,6 +261,11 @@ function helpAskParse(string $content, array $numbered): array
         fn($m) => mb_strtoupper($m[1]), $content);
     // NOT_COVERED alone - or, as models do, followed by an explanation of why.
     if (preg_match('/^\W*' . HELP_ASK_NOT_COVERED . '\b/', $content)) return ['not_covered' => true, 'text' => '', 'sources' => []];
+    // TRAP: a model can narrate its search first and put NOT_COVERED on a line of
+    // its own at the END ("The search results still do not ... NOT_COVERED"). Only
+    // the start was checked, so the narration was shown as the answer. A line that
+    // is just NOT_COVERED anywhere means not covered - no real answer contains one.
+    if (preg_match('/^\W*' . HELP_ASK_NOT_COVERED . '\W*$/m', $content)) return ['not_covered' => true, 'text' => '', 'sources' => []];
     $sources = [];
     if (preg_match('/^\s*SOURCES?\s*:\s*(.*)$/mi', $content, $m)) {
         preg_match_all('/\d+/', $m[1], $nums);
