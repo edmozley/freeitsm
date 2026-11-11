@@ -67,6 +67,38 @@ function checklistTicketForChecklist(PDO $conn, int $checklistId): int
     $st->execute([$checklistId]);
     return (int) ($st->fetchColumn() ?: 0);
 }
+/**
+ * How well a template matches a ticket's text: 5 for its title in the text, 2 per
+ * keyword found. The ONE scoring rule - the "best match" suggestion and the
+ * right-click menu's order both use it.
+ *
+ * @param string $ticketText  the ticket's subject and first notes, lower-cased
+ * @param array $tpl  a checklist_templates row with title and keywords
+ * @return array{score:int, title_match:bool, keywords:int}
+ */
+function checklistTemplateScore(string $ticketText, array $tpl): array
+{
+    $score = 0; $titleMatch = false; $kwCount = 0;
+    $titleLower = strtolower((string)$tpl['title']);
+    if ($titleLower !== '' && str_contains($ticketText, $titleLower)) { $score += 5; $titleMatch = true; }
+    if (!empty($tpl['keywords'])) {
+        foreach (array_map('trim', explode(',', strtolower((string)$tpl['keywords']))) as $kw) {
+            if ($kw !== '' && str_contains($ticketText, $kw)) { $score += 2; $kwCount++; }
+        }
+    }
+    return ['score' => $score, 'title_match' => $titleMatch, 'keywords' => $kwCount];
+}
+
+/** A ticket's subject and first five notes, lower-cased - the text templates are matched against. */
+function checklistTicketText(PDO $conn, int $ticketId): string
+{
+    $t = $conn->prepare("SELECT subject FROM tickets WHERE id = ? LIMIT 1");
+    $t->execute([$ticketId]);
+    $n = $conn->prepare("SELECT note_text FROM ticket_notes WHERE ticket_id = ? ORDER BY id ASC LIMIT 5");
+    $n->execute([$ticketId]);
+    return strtolower(((string)$t->fetchColumn()) . ' ' . strip_tags(implode(' ', $n->fetchAll(PDO::FETCH_COLUMN))));
+}
+
 $action = $_GET["action"] ?? ($_POST["action"] ?? "");
 
 if (!$action) {
@@ -119,41 +151,14 @@ try {
             if ($ticketId <= 0) throw new Exception("ticket_id required");
             checklistTicketGate($conn, $ticketId);
 
-            $tStmt = $conn->prepare("SELECT id, subject FROM tickets WHERE id = ? LIMIT 1");
-            $tStmt->execute([$ticketId]);
-            $ticket = $tStmt->fetch(PDO::FETCH_ASSOC);
-            if (!$ticket) throw new Exception("Ticket not found");
-
-            $notesStmt = $conn->prepare("SELECT note_text FROM ticket_notes WHERE ticket_id = ? ORDER BY id ASC LIMIT 5");
-            $notesStmt->execute([$ticketId]);
-            $notes = $notesStmt->fetchAll(PDO::FETCH_COLUMN);
-
-            $ticketText = strtolower(($ticket['subject'] ?? '') . ' ' . strip_tags(implode(' ', $notes)));
+            $ticketText = checklistTicketText($conn, $ticketId);
 
             $tpls = $conn->query("SELECT id, title, category, description, keywords FROM checklist_templates WHERE scope IN ('ticket', 'both') AND (is_active = 1 OR is_active IS NULL)")->fetchAll(PDO::FETCH_ASSOC);
 
             $scored = [];
 
             foreach ($tpls as $tpl) {
-                $score = 0;
-                $titleLower = strtolower($tpl['title']);
-                $hasTitleMatch = false;
-                $matchedKeywordsCount = 0;
-
-                if (str_contains($ticketText, $titleLower)) {
-                    $score += 5;
-                    $hasTitleMatch = true;
-                }
-
-                if (!empty($tpl['keywords'])) {
-                    $kwList = array_map('trim', explode(',', strtolower($tpl['keywords'])));
-                    foreach ($kwList as $kw) {
-                        if ($kw !== '' && str_contains($ticketText, $kw)) {
-                            $score += 2;
-                            $matchedKeywordsCount++;
-                        }
-                    }
-                }
+                ['score' => $score, 'title_match' => $hasTitleMatch, 'keywords' => $matchedKeywordsCount] = checklistTemplateScore($ticketText, $tpl);
 
                 if ($score >= 2) {
                     // Calculate intuitive Confidence %
@@ -188,6 +193,39 @@ try {
             ]);
             exit;
 
+        case "context_templates":
+            // The inbox's right-click "Attach checklist" submenu: every template a
+            // ticket may use, best match first for ONE ticket (the suggestion box's
+            // scoring), and whether it is already on every ticket asked about - so the
+            // menu can tick it and not attach it twice.
+            $ids = array_values(array_unique(array_filter(array_map('intval', explode(',', (string)($_GET["ticket_ids"] ?? ''))))));
+            if (!$ids) throw new Exception("ticket_ids is required");
+            $ids = array_slice($ids, 0, 500);
+            foreach ($ids as $id) checklistTicketGate($conn, $id);
+            $tenantId = ticketTenantId($conn, $ids[0]);
+            $tpls = $conn->query("SELECT id, title, category, keywords, closure_mode FROM checklist_templates
+                                   WHERE scope IN ('ticket', 'both') AND (is_active = 1 OR is_active IS NULL)")->fetchAll(PDO::FETCH_ASSOC);
+            $in = implode(',', array_fill(0, count($ids), '?'));
+            $on = $conn->prepare("SELECT template_id, COUNT(DISTINCT ticket_id) FROM ticket_checklists
+                                   WHERE ticket_id IN ($in) AND template_id IS NOT NULL GROUP BY template_id");
+            $on->execute($ids);
+            $onCount = $on->fetchAll(PDO::FETCH_KEY_PAIR);
+            $text = count($ids) === 1 ? checklistTicketText($conn, $ids[0]) : null;
+            $out = [];
+            foreach ($tpls as $tpl) {
+                $out[] = [
+                    'id'                     => (int)$tpl['id'],
+                    'title'                  => (string)$tpl['title'],
+                    'category'               => (string)($tpl['category'] ?? ''),
+                    'effective_closure_mode' => ChecklistsService::effectiveClosureMode($conn, (string)($tpl['closure_mode'] ?: 'warn'), $tenantId),
+                    'score'                  => $text !== null ? checklistTemplateScore($text, $tpl)['score'] : 0,
+                    'attached_all'           => (int)($onCount[$tpl['id']] ?? 0) === count($ids),
+                ];
+            }
+            usort($out, fn($a, $b) => [$b['score'], $a['title']] <=> [$a['score'], $b['title']]);
+            echo json_encode(["success" => true, "templates" => $out]);
+            exit;
+
         case "list_templates_for_ticket":
             $ticketId = (int)($_GET["ticket_id"] ?? $_POST["ticket_id"] ?? 0);
             // Same company as the gate itself will use, so the padlock in the
@@ -214,8 +252,11 @@ try {
             if ($ticketId <= 0 || $templateId <= 0) throw new Exception("ticket_id and template_id required");
             checklistTicketGate($conn, $ticketId);
 
-            $chkId = ChecklistsService::attachTemplateToTicket($conn, ActorContext::fromSession($conn), $ticketId, $templateId);
-            echo json_encode(["success" => true, "checklist_id" => $chkId]);
+            // skip_if_attached: the right-click menu on a selection - a ticket that
+            // already has this checklist is left alone rather than given a second copy.
+            $chkId = ChecklistsService::attachTemplateToTicket($conn, ActorContext::fromSession($conn), $ticketId, $templateId,
+                !empty($_POST["skip_if_attached"]));
+            echo json_encode(["success" => true, "checklist_id" => $chkId, "skipped" => $chkId === null]);
             exit;
 
         case "toggle_item":

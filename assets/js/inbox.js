@@ -10795,9 +10795,6 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
     const schedItem = document.getElementById('ctxScheduleItem');
     if (schedItem) schedItem.style.display = ctxActsOnSelection ? 'none' : '';
 
-    // Attach checklist: the picker is for one ticket, so single-ticket like Schedule.
-    const chkItem = document.getElementById('ctxChecklistItem');
-    if (chkItem) chkItem.style.display = ctxActsOnSelection ? 'none' : '';
 
     // Wake appears only when there is something to wake. On a selection that is
     // any sleeping ticket in it — Wake is harmless on the ones already awake, and
@@ -10826,6 +10823,7 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
     populateContextAssigneeSubmenu();
     populateContextTeamSubmenu();
     populateContextCompanySubmenu();
+    populateContextChecklistSubmenu();
 
     // On a phone the menu is a full-screen sheet, not a popup at the finger:
     // a 220px flyout menu with hover submenus cannot be used with a thumb.
@@ -12468,15 +12466,96 @@ function openContextSchedule() {
 }
 
 /** Opens the "Record time" dialog for the right-clicked ticket, set to now in the display zone. */
+/** How many checklists the right-click submenu lists before "Search all checklists…". */
+const CTX_CHECKLIST_SHOWN = 12;
+
 /**
- * Right-click -> Attach checklist: the same picker as the ticket's own Attach button
- * (checklists/ticket_view.js), for the right-clicked ticket - which need not be the
- * one open in the reading pane. The picker leaves the reading pane alone when it is not.
+ * Right-click -> Attach checklist ▸ : the templates a ticket may use, like Set type.
+ * One ticket: best matches first (the suggestion box's scoring); a selection: by name.
+ * A checklist already on the ticket - on EVERY selected ticket - is ticked and inert.
+ * Critical ones carry the padlock. "Search all checklists…" opens the full picker for
+ * one ticket. Fetched each time the menu opens (the attached state changes), so it
+ * shows "Loading…" for a moment; the phone sheet copies it when tapped into.
  */
-function openContextAttachChecklist() {
+async function populateContextChecklistSubmenu() {
+    const sub = document.getElementById('ctxChecklistSubmenu');
+    if (!sub) return;
+    const ids = ctxActsOnSelection ? selectedTicketIds() : [ctxTargetTicketId];
+    const asked = ids.join(',');
+    sub.dataset.for = asked;
+    sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('common.loading')) + '</div>';
+    let list = [];
+    try {
+        const res = await fetch(API_BASE + 'ticket_checklists.php?action=context_templates&ticket_ids=' + encodeURIComponent(asked));
+        const data = await res.json();
+        if (sub.dataset.for !== asked) return;   // the menu was reopened on another ticket meanwhile
+        if (!data.success) throw new Error(data.error || '');
+        list = data.templates || [];
+    } catch (e) {
+        if (sub.dataset.for === asked) sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.checklists_failed')) + '</div>';
+        return;
+    }
+    if (!list.length) {
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.no_checklists')) + '</div>';
+        return;
+    }
+    const lock = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:4px;flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    const rows = list.slice(0, CTX_CHECKLIST_SHOWN).map(tpl => {
+        const crit = tpl.effective_closure_mode === 'block' ? lock : '';
+        if (tpl.attached_all) {
+            return `<div class="ticket-context-submenu-item" style="cursor: default; opacity: .6;" title="${escapeHtml(t('tickets.context.checklist_attached'))}">
+                <span class="ctx-status-name">${escapeHtml(tpl.title)}</span>${crit}<span class="ctx-status-check">&#10003;</span></div>`;
+        }
+        return `<div class="ticket-context-submenu-item" onclick="attachChecklistFromContext(${Number(tpl.id)})">
+            <span class="ctx-status-name">${escapeHtml(tpl.title)}</span>${crit}</div>`;
+    }).join('');
+    // The full picker is for one ticket: search, categories, descriptions.
+    const more = !ctxActsOnSelection
+        ?`<div class="ticket-context-submenu-item" style="border-top: 1px solid var(--border, #e5e7eb);" onclick="openContextChecklistPicker()">
+               <span class="ctx-status-name" style="font-style: italic;">${escapeHtml(t('tickets.context.search_checklists'))}</span></div>`
+        : '';
+    sub.innerHTML = rows + more;
+}
+
+/** "Search all checklists…": the full picker (checklists/ticket_view.js) for the right-clicked ticket. */
+function openContextChecklistPicker() {
     closeTicketContextMenu();
     if (!ctxTargetTicketId || typeof openAttachChecklistModal !== 'function') return;
     openAttachChecklistModal(ctxTargetTicketId);
+}
+
+/**
+ * Attach the chosen checklist to the right-clicked ticket, or to every selected one -
+ * skipping any that already has it. Refreshes the reading pane's checklist card only
+ * when the ticket open there was one of them.
+ *
+ * @param templateId  the checklist_templates id
+ */
+async function attachChecklistFromContext(templateId) {
+    closeTicketContextMenu();
+    const ids = ctxActsOnSelection ? selectedTicketIds() : [ctxTargetTicketId];
+    let done = 0, already = 0, failed = 0;
+    for (const id of ids) {
+        try {
+            const res = await fetch(API_BASE + 'ticket_checklists.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'attach_template', ticket_id: id, template_id: templateId, skip_if_attached: true })
+            });
+            const data = await res.json();
+            if (!data.success) failed++;
+            else if (data.skipped) already++;
+            else done++;
+        } catch (e) { failed++; }
+    }
+    const openId = currentEmail ? Number(currentEmail.ticket_id) : null;
+    if (openId && ids.map(Number).includes(openId) && typeof loadTicketChecklists === 'function') loadTicketChecklists(openId);
+    let msg = ids.length === 1
+        ? (done ? t('tickets.context.checklist_attached_one') : '')
+        : t('tickets.context.checklist_attached_many').replace('%d', String(done));
+    if (already) msg += (msg ? ' ' : '') + t('tickets.context.checklist_already').replace('%d', String(already));
+    if (failed)  msg += ' ' + t('tickets.context.checklist_failed').replace('%d', String(failed));
+    showToast(msg, failed ? 'error' : 'success');
 }
 
 function openContextRecordTime() {

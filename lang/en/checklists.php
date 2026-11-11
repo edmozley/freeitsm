@@ -233,7 +233,7 @@ return [
         // 4 ---------------------------------------------------------------
         'using_heading' => 'Using one on a ticket',
         'using_intro'   => 'Open a ticket and find the <strong>Checklist</strong> panel. Everything below happens on that ticket alone.',
-        'using_step1'   => '<strong>Attach a checklist</strong> - search by name or keyword and press <strong>Attach</strong>. More than one can be attached to the same ticket. Or, without opening it, <strong>right-click the ticket</strong> in the list and choose <strong>Attach checklist…</strong>.',
+        'using_step1'   => '<strong>Attach a checklist</strong> - search by name or keyword and press <strong>Attach</strong>. More than one can be attached to the same ticket. Or, without opening it, <strong>right-click the ticket</strong> in the list, point to <strong>Attach checklist</strong> and pick one - best matches first, with <strong>Search all checklists…</strong> for the rest. Right-click a selection to attach it to every selected ticket at once.',
         'using_step2'   => '<strong>Best match</strong> - if a template\'s keywords match the ticket, FreeITSM offers it at the top without being asked. This is what the keywords are for.',
         'using_step3'   => '<strong>Tick steps off</strong> as you do them. Each tick records who and when; a step set to ask for a value prompts for it as you tick it.',
         'using_step4'   => '<strong>A note is added to the ticket</strong> each time a step is completed or reopened, so the ticket history tells the story on its own - useful months later, and to anybody auditing the work.',
