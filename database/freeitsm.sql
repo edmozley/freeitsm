@@ -1974,6 +1974,10 @@ CREATE TABLE IF NOT EXISTS `emails` (
     `is_initial`            TINYINT(1) NULL DEFAULT 0,
     `direction`             VARCHAR(20) NULL DEFAULT 'Inbound',
     `mailbox_id`            INT NULL,
+    -- GH #120: the conversation this inbound message belongs to - Graph's conversationId,
+    -- Gmail's threadId, or a Basic IMAP message's References root. A reply without
+    -- [SDREF] can join the ticket its conversation already belongs to.
+    `thread_key`            VARCHAR(255) NULL,
     -- Which channel this message arrived/left on. 'email' (default) keeps every
     -- existing row and the email pipeline unchanged; 'whatsapp' reuses this same
     -- table so the reading-pane thread, threading and attachments work for free.
@@ -1988,6 +1992,8 @@ CREATE TABLE IF NOT EXISTS `emails` (
     -- and got slower as ticket history grew.
     KEY `idx_emails_exchange_message_id` (`exchange_message_id`),
     KEY `idx_emails_ticket` (`ticket_id`),
+    -- GH #120: a reply without [SDREF] joins the ticket its conversation belongs to.
+    KEY `idx_emails_thread` (`mailbox_id`, `thread_key`),
     CONSTRAINT `fk_emails_analysts` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`),
     CONSTRAINT `fk_emails_departments` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`),
     CONSTRAINT `fk_emails_ticket_types` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_types` (`id`),

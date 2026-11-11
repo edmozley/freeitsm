@@ -652,7 +652,8 @@ function getEmails($accessToken, $mailbox) {
 
     $params = [
         '$top' => $mailbox['max_emails_per_check'],
-        '$select' => 'id,subject,from,toRecipients,ccRecipients,receivedDateTime,bodyPreview,body,hasAttachments,importance,isRead',
+        // conversationId (GH #120): the thread a message belongs to, so a reply without [SDREF] can find its ticket.
+        '$select' => 'id,subject,from,toRecipients,ccRecipients,receivedDateTime,bodyPreview,body,hasAttachments,importance,isRead,conversationId',
         '$orderby' => 'receivedDateTime DESC',
         '$filter' => 'isRead eq false'
     ];
@@ -1186,30 +1187,44 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
     $ticketId = null;
     $isInitial = 1;
 
+    // GH #120: the conversation this message belongs to - Graph's conversationId,
+    // Gmail's threadId, or a Basic IMAP message's References root (see
+    // includes/email_threading.php). Stored on every inbound email.
+    require_once __DIR__ . '/../../includes/email_threading.php';
+    $threadKey = $email['thread_key'] ?? ($email['conversationId'] ?? null);
+    $threadKey = (is_string($threadKey) && $threadKey !== '') ? mb_substr($threadKey, 0, 255) : null;
+
     if ($ticketRef) {
         $ticketId = findTicketByNumber($conn, $ticketRef);
-        if ($ticketId) {
-            $isInitial = 0;
-            $updateTicketSql = "UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?";
-            $updateTicketStmt = $conn->prepare($updateTicketSql);
-            $updateTicketStmt->execute([$ticketId]);
+    }
+    // No ticket number in the subject - e.g. a requester replying to their OWN
+    // first email, which quotes nothing of ours. With "A reply without a ticket
+    // number" set to join, it joins the ticket its conversation already belongs
+    // to in this mailbox; otherwise (the default) it starts a new ticket as before.
+    if (!$ticketId && ticketThreadReplies($conn) === TicketThreadReplies::SameTicket) {
+        $ticketId = emailThreadTicket($conn, (int)$mailboxId, $threadKey, $email['in_reply_to'] ?? null);
+    }
+    if ($ticketId) {
+        $isInitial = 0;
+        $updateTicketSql = "UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?";
+        $updateTicketStmt = $conn->prepare($updateTicketSql);
+        $updateTicketStmt->execute([$ticketId]);
 
-            // The requester has come back. If the ticket was finished, reopen it
-            // (Tickets → Settings → General) — the notification email they were
-            // replying to says "just reply to this email and it will be reopened",
-            // and until now nothing honoured that. Shared with the self-service
-            // portal so both doors behave identically; non-fatal by design, so a
-            // reopen problem can never cost us the inbound message.
-            reopenTicketForCustomerReply($conn, (int)$ticketId);
+        // The requester has come back. If the ticket was finished, reopen it
+        // (Tickets → Settings → General) — the notification email they were
+        // replying to says "just reply to this email and it will be reopened",
+        // and until now nothing honoured that. Shared with the self-service
+        // portal so both doors behave identically; non-fatal by design, so a
+        // reopen problem can never cost us the inbound message.
+        reopenTicketForCustomerReply($conn, (int)$ticketId);
 
-            // …and if it was asleep, wake it. A snooze is nearly always "waiting on
-            // them", so their reply is the very event it was waiting for.
-            wakeSnoozedTicketOnCustomerReply($conn, (int)$ticketId);
+        // …and if it was asleep, wake it. A snooze is nearly always "waiting on
+        // them", so their reply is the very event it was waiting for.
+        wakeSnoozedTicketOnCustomerReply($conn, (int)$ticketId);
 
-            // For replies to existing tickets, strip the quoted thread
-            // Look for our reply marker and store only the new content above it
-            $bodyContent = stripInboundThread($bodyContent);
-        }
+        // For replies to existing tickets, strip the quoted thread
+        // Look for our reply marker and store only the new content above it
+        $bodyContent = stripInboundThread($bodyContent);
     }
 
     // Get or create user from sender
@@ -1284,13 +1299,15 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         $ticketWasCreatedHere = true;
     }
 
-    // Insert email
+    // Insert email. GH #120: thread_key only once Database Verify has added the
+    // column - collection must not stop on an install that has not run it yet.
+    $withThread = emailThreadingReady($conn);
     $sql = "INSERT INTO emails (
         exchange_message_id, subject, from_address, from_name, to_recipients,
         cc_recipients, received_datetime, body_preview, body_content, body_type,
         has_attachments, importance, is_read, processed_datetime, ticket_id,
-        is_initial, direction, mailbox_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'Inbound', ?)";
+        is_initial, direction, mailbox_id" . ($withThread ? ", thread_key" : "") . "
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'Inbound', ?" . ($withThread ? ", ?" : "") . ")";
 
     $params = [
         $emailId, $subject, $fromAddress, $fromName, $toRecipientsStr,
@@ -1298,6 +1315,7 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         $hasAttachments ? 1 : 0, $importance, $isRead ? 1 : 0, $ticketId,
         $isInitial, $mailboxId
     ];
+    if ($withThread) $params[] = $threadKey;
 
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);

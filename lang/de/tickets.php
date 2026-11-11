@@ -11,6 +11,13 @@
  */
 
 return [
+    // Tickets -> Settings -> General -> A reply without a ticket number (GH #120); the choices are TicketThreadReplies.
+    'thread_replies' => [
+        'label' => 'Eine Antwort ohne Ticketnummer',
+        'new_ticket' => 'Erstellt ein neues Ticket',
+        'same_ticket' => 'Wird dem Ticket ihrer Unterhaltung zugeordnet',
+        'help' => 'Jede E-Mail, die FreeITSM sendet, enthält die Ticketnummer, sodass eine Antwort darauf immer ihr Ticket findet. Eine Antwort ohne Nummer - typischerweise jemand, der auf seine eigene erste E-Mail antwortet, um etwas Vergessenes nachzureichen - erstellt ein neues Ticket, es sei denn, diese Einstellung ordnet sie dem Ticket zu, zu dem ihre E-Mail-Unterhaltung im selben Postfach bereits gehört.',
+    ],
     // Tickets -> Settings -> General -> Reply goes to (GH #120); the choices are TicketReplyTo.
     'reply_to' => [
         'label' => 'Antwort geht an',

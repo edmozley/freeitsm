@@ -30,6 +30,18 @@ return [
         'link'     => 'tickets/settings/',
         'check'    => ['setting', 'ticket_reply_to', 'eq', 'requester'],
     ],
+    [
+        'id'       => 'tickets.thread_replies_join',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Follow-up emails join their ticket',
+        'what'     => 'Tickets -> Settings -> General -> A reply without a ticket number: joins the ticket its conversation belongs to. A reply that carries no ticket number - somebody replying to their own first email - goes onto the ticket that email opened, in the same mailbox, instead of starting another.',
+        'why'      => 'People often send a request and then reply to it with the attachment they forgot or a detail they missed. Without this, each of those becomes a separate ticket for somebody to merge.',
+        'done'     => 'A reply without a ticket number is set to join the ticket its conversation belongs to.',
+        'link'     => 'tickets/settings/',
+        'check'    => ['setting', 'ticket_thread_replies', 'eq', 'same_ticket'],
+    ],
 
     // ─── Departments ────────────────────────────────────────────────────────
     [

@@ -99,7 +99,8 @@ function imapGetEmails(array $mailbox): array {
  * @param array $mailbox  the target_mailboxes row (its id makes the fallback de-duplication key)
  */
 function imapNormaliseMessage(ImapClient $client, int $uid, array $mailbox): ?array {
-    $item = $client->uidFetch($uid, '(UID ENVELOPE BODYSTRUCTURE INTERNALDATE)');
+    // The two reply headers too (GH #120) - PEEK, so nothing is marked read.
+    $item = $client->uidFetch($uid, '(UID ENVELOPE BODYSTRUCTURE INTERNALDATE BODY.PEEK[HEADER.FIELDS (REFERENCES IN-REPLY-TO)])');
     if (empty($item['ENVELOPE'])) {
         return null;
     }
@@ -142,9 +143,16 @@ function imapNormaliseMessage(ImapClient $client, int $uid, array $mailbox): ?ar
         ? $env['message_id']
         : ('imap-' . ($mailbox['id'] ?? '0') . '-' . $uid);
 
+    // GH #120: the conversation's root, from References / In-Reply-To.
+    require_once __DIR__ . '/email_threading.php';
+    [$references, $inReplyTo] = imapReplyHeaders($item);
+    $threadKey = emailImapThreadKey($references, $inReplyTo, $env['message_id']);
+
     return [
         // 'id' carries the UID — imapHandleAfterProcessing acts on it.
         'id' => (string) $uid,
+        'thread_key' => $threadKey,
+        'in_reply_to' => preg_match('/<[^<>\s]+>/', $inReplyTo, $irt) ? $irt[0] : null,
         // Distinct, globally-unique key used for de-duplication / exchange_message_id.
         'internet_message_id' => $dedupId,
         'subject' => $subject,
@@ -588,4 +596,25 @@ function imapVerifyFolder(array $mailbox, string $folderName): array {
         'totalItemCount'  => $folderClient->messageCount(),
         'unreadItemCount' => count($folderClient->uidSearch('UNSEEN')),
     ];
+}
+/**
+ * References and In-Reply-To from a FETCH of BODY.PEEK[HEADER.FIELDS (REFERENCES IN-REPLY-TO)] (GH #120).
+ *
+ * The server answers under the key BODY[HEADER.FIELDS (REFERENCES IN-REPLY-TO)] - without PEEK,
+ * and some servers change the case or spacing - so the key is found by its start. Folded header
+ * lines are unfolded before reading.
+ *
+ * @param array $item  one uidFetch() result
+ * @return array{0:string,1:string}  [References, In-Reply-To], '' when absent
+ */
+function imapReplyHeaders(array $item): array
+{
+    $raw = '';
+    foreach ($item as $k => $v) {
+        if (is_string($k) && stripos($k, 'BODY[HEADER.FIELDS') === 0 && is_string($v)) { $raw = $v; break; }
+    }
+    $raw = preg_replace('/\r?\n[ \t]+/', ' ', $raw);
+    $refs = preg_match('/^References:\s*(.*)$/mi', $raw, $m) ? trim($m[1]) : '';
+    $irt  = preg_match('/^In-Reply-To:\s*(.*)$/mi', $raw, $m) ? trim($m[1]) : '';
+    return [$refs, $irt];
 }

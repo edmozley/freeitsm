@@ -1417,6 +1417,9 @@ return [
         'is_initial'              => 'TINYINT(1) NULL DEFAULT 0',
         'direction'               => 'VARCHAR(20) NULL DEFAULT \'Inbound\'',
         'mailbox_id'              => 'INT NULL',
+        // GH #120: the conversation an inbound message belongs to (Graph conversationId,
+        // Gmail threadId, IMAP References root) - see includes/email_threading.php.
+        'thread_key'              => 'VARCHAR(255) NULL',
         // Which channel this message arrived/left on. 'email' (default) leaves every
         // existing row and the email pipeline untouched; 'whatsapp' reuses this table.
         'channel'                 => 'VARCHAR(20) NOT NULL DEFAULT \'email\'',

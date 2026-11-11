@@ -117,6 +117,7 @@ return [
     ['target_mailboxes', 'ix_target_mailboxes_tenant_id', 'key', '(`tenant_id`)'],
     ['emails', 'idx_emails_exchange_message_id', 'key', '(`exchange_message_id`)'],
     ['emails', 'idx_emails_ticket', 'key', '(`ticket_id`)'],
+    ['emails', 'idx_emails_thread', 'key', '(`mailbox_id`,`thread_key`)'],
     ['attachment_text', 'ix_attachment_text_status', 'key', '(`status`)'],
     ['messaging_channels', 'ix_messaging_channels_tenant_id', 'key', '(`tenant_id`)'],
     ['tenant_channel_senders', 'uq_tenant_channel_sender_identifier', 'unique', '(`identifier`)'],

@@ -19,6 +19,13 @@
 return [
     // The ticket table (PR #213): the list shown as a paginated table, and who may
     // export it. See includes/ticket_list.php and assets/js/tickets-table.js.
+    // Tickets -> Settings -> General -> A reply without a ticket number (GH #120); the choices are TicketThreadReplies.
+    'thread_replies' => [
+        'label' => 'A reply without a ticket number',
+        'new_ticket' => 'Starts a new ticket',
+        'same_ticket' => 'Joins the ticket its conversation belongs to',
+        'help' => 'Every email FreeITSM sends carries the ticket number, so a reply to it always finds its ticket. A reply that has none - typically somebody replying to their own first email to add something they forgot - starts a new ticket unless this joins it to the ticket its email conversation already belongs to, in the same mailbox.',
+    ],
     // Tickets -> Settings -> General -> Reply goes to (GH #120); the choices are TicketReplyTo.
     'reply_to' => [
         'label' => 'Reply goes to',

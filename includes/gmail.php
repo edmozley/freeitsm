@@ -388,7 +388,10 @@ function gmailGetMessage(string $accessToken, string $messageId): ?array {
         'hasAttachments' => !empty($inlineAttachments),
         'attachments_inline' => $inlineAttachments,
         'importance' => 'normal',
-        'isRead' => false
+        'isRead' => false,
+        // GH #120: Gmail's own conversation id - a reply to a requester's first
+        // email shares it, so it can join that email's ticket without [SDREF].
+        'thread_key' => (string)($msg['threadId'] ?? '') !== '' ? (string)$msg['threadId'] : null,
     ];
 }
 
