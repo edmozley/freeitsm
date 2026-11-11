@@ -77,15 +77,18 @@ function zzAnalyst(PDO $conn, string $tag): int {
 }
 
 echo "\nPreference templates (discussion #124)\n" . str_repeat('=', 70) . "\n";
+// This test writes analysts and a template, so only against the throwaway database.
+// Skipped (exit 0, like every other writing test - see tests/README.md) rather than
+// failed, so a suite run without a test database is not a red run.
 $testDatabase = getenv('FREEITSM_TEST_DATABASE');
 if (!$testDatabase) {
-    fwrite(STDERR, "Set FREEITSM_TEST_DATABASE to the disposable install's database before running this writing test.\n");
-    exit(1);
+    echo "SKIPPED: set FREEITSM_TEST_DATABASE to the disposable install's database - this test writes fixtures.\n";
+    exit(0);
 }
 $conn = connectToDatabase();
 if ($conn->query('SELECT DATABASE()')->fetchColumn() !== $testDatabase) {
-    fwrite(STDERR, "FREEITSM_TEST_DATABASE does not match the connected database; no fixtures were written.\n");
-    exit(1);
+    echo "SKIPPED: FREEITSM_TEST_DATABASE does not match the connected database; no fixtures were written.\n";
+    exit(0);
 }
 
 echo "\n  Every Preferences page key is accounted for\n";
