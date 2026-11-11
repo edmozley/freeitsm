@@ -138,6 +138,12 @@ final class ActorContext
  * A business-rule failure raised by a service. $kind drives the HTTP status the
  * API adapter emits; $code + the message are passed through verbatim so the
  * API's existing error bodies stay byte-identical.
+ *
+ * TRAP: a file that throws ServiceError must require_once this file itself.
+ *   Relying on the caller to have loaded it works until one caller hasn't - then
+ *   the throw is a fatal "Class ServiceError not found" and the page an HTTP 500
+ *   (GH #288: a change opened with Enforce approvals on). tests/service-error-loaded.php
+ *   fails any file that throws it without loading it.
  */
 class ServiceError extends Exception
 {
