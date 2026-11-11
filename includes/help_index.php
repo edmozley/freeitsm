@@ -137,7 +137,9 @@ function helpIndexPhp(): string
  * - skip: data-help-search="off" - never indexed
  *
  * @param string $html  the whole rendered page
- * @return list<array{id:string,title:string,text:string,cap:?string,skip:bool}>
+ * - intro: true for the one extra entry for the page's introduction (id '')
+ *
+ * @return list<array{id:string,title:string,text:string,cap:?string,skip:bool,intro:bool}>
  */
 function helpRenderSections(string $html): array
 {
@@ -165,7 +167,24 @@ function helpRenderSections(string $html): array
             'text'  => implode("\n\n", $blocks),
             'cap'   => $sec->getAttribute('data-cap') !== '' ? $sec->getAttribute('data-cap') : null,
             'skip'  => $sec->getAttribute('data-help-search') === 'off',
+            'intro' => false,
         ];
+    }
+    // The page's introduction - its .help-hero banner and any .help-lede paragraph
+    // outside the sections ("the one sentence that sets up a whole guide", house
+    // style). Not a section, but often the best answer to "what is X?". It links to
+    // the top of the page: id ''.
+    $notInSection = '[not(ancestor::div[contains(concat(" ", normalize-space(@class), " "), " help-section ")])]';
+    $hero = $xp->query('//*[contains(concat(" ", normalize-space(@class), " "), " help-hero ")]' . $notInSection)->item(0);
+    $titleNode = $hero ? $xp->query('.//h1|.//h2', $hero)->item(0)
+                       : $xp->query('//*[contains(concat(" ", normalize-space(@class), " "), " help-main ")]//h2' . $notInSection)->item(0);
+    $intro = [];
+    if ($hero) foreach ($xp->query('.//p', $hero) as $p) $intro[] = helpRenderText($p);
+    foreach ($xp->query('//p[contains(concat(" ", normalize-space(@class), " "), " help-lede ")]' . $notInSection) as $p) $intro[] = helpRenderText($p);
+    $intro = array_values(array_filter(array_map(fn($b) => trim(preg_replace('/\s+/u', ' ', $b)), $intro), fn($b) => $b !== ''));
+    $title = $titleNode ? trim(preg_replace('/\s+/u', ' ', helpRenderText($titleNode))) : '';
+    if ($intro && $title !== '') {
+        $out[] = ['id' => '', 'title' => $title, 'text' => implode("\n\n", $intro), 'cap' => null, 'skip' => false, 'intro' => true];
     }
     return $out;
 }
@@ -251,14 +270,15 @@ function helpIndexBuild(PDO $conn, array $locales = [], ?callable $log = null): 
             foreach ($existing->fetchAll(PDO::FETCH_ASSOC) as $r) $had[$r['anchor']] = $r;
             $kept = [];
             foreach ($sections as $s) {
-                if ($s['skip'] || $s['id'] === '' || $s['text'] === '') continue;
+                // id '' is only allowed for the page's introduction, which links to the top of the page.
+                if ($s['skip'] || ($s['id'] === '' && empty($s['intro'])) || $s['text'] === '') continue;
                 if ($locale === 'en') $english[$s['id']] = $s['text'];
                 elseif (($english[$s['id']] ?? null) === $s['text']) continue;   // untranslated: English already covers it
                 $hash = hash('sha256', $s['title'] . "\n" . $s['text']);
                 $kept[$s['id']] = true;
                 $old = $had[$s['id']] ?? null;
                 if ($old && $old['text_hash'] === $hash && $old['cap'] === $s['cap'] && $old['module'] === $p['module']) continue;
-                $upsert->execute([$p['page'] . '#' . $s['id'], $locale, $p['page'], $s['id'], $p['module'], $s['cap'],
+                $upsert->execute([$p['page'] . ($s['id'] !== '' ? '#' . $s['id'] : ''), $locale, $p['page'], $s['id'], $p['module'], $s['cap'],
                                   mb_substr($s['title'], 0, 255), $s['text'], $hash]);
                 $stats[$old ? 'changed' : 'added']++;
             }

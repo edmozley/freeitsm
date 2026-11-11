@@ -57,6 +57,13 @@ check('each card is one block, its title not glued to its body',
 check('scripts and the number badge are left out', !str_contains($secs[0]['text'] ?? '', 'var x') && !str_contains($secs[0]['text'] ?? '', '10'));
 check('data-cap is carried', ($secs[0]['cap'] ?? null) === 'TICKETS_SETTINGS');
 check('data-help-search="off" is marked to skip', ($secs[1]['skip'] ?? false) === true);
+$introHtml = '<main class="help-main"><div class="help-hero"><h2>Webhooks</h2><p>Tell other systems what happened.</p></div>
+  <p class="help-lede">This guide goes from the basics to signing.</p>
+  <div class="help-section" id="what"><h3>What is a webhook?</h3><p class="help-lede">Not the intro.</p><p>The basics.</p></div></main>';
+$intro = array_values(array_filter(helpRenderSections($introHtml), fn($s) => $s['intro']));
+check("the page's introduction is read too - hero and lede, linking to the top of the page",
+    count($intro) === 1 && $intro[0]['id'] === '' && $intro[0]['title'] === 'Webhooks'
+    && $intro[0]['text'] === "Tell other systems what happened.\n\nThis guide goes from the basics to signing.", json_encode($intro));
 
 echo "\nSearch words\n";
 check('stop words go, plurals and -ing are trimmed', helpTokens('How do I create ticketing departments?') === ['creat', 'ticket', 'department'], json_encode(helpTokens('How do I create ticketing departments?')));
@@ -114,6 +121,8 @@ if ($expected) {
         $missing = array_diff($pages, $have, array_column($off, 'page'));
         check('the contract: every help page gives at least one section', !$missing, implode(', ', $missing));
         check('every section has a title', (int)$conn->query("SELECT COUNT(*) FROM help_sections WHERE title = ''")->fetchColumn() === 0);
+        check("a page's introduction is indexed - the Webhooks guide's lede, linking to the top of the page",
+            (bool)$conn->query("SELECT 1 FROM help_sections WHERE locale = 'en' AND section_key = 'workflow/help-webhooks.php' AND body LIKE '%tells other systems%'")->fetchColumn());
         check('German sections are stored where the text is German',
             (int)$conn->query("SELECT COUNT(*) FROM help_sections WHERE locale = 'de'")->fetchColumn() > 100);
         check('...and untranslated System help is not copied as "German"',
@@ -169,7 +178,7 @@ if ($expected) {
             ['plain', 'en', 'who can see a knowledge article', null, 'knowledge/help.php#permissions'],
             ['plain', 'en', 'ask AI a question about the knowledge base', null, 'knowledge/help.php#ask-ai'],
             ['plain', 'en', 'run a workflow when a ticket is created', null, 'workflow/help.php#triggers', 'workflow/help.php#anatomy', 'workflow/help.php#templates'],
-            ['plain', 'en', 'post to Slack when a ticket comes in', null, 'workflow/help-webhooks.php#quickstart', $S . 'integrations.php#slack'],
+            ['plain', 'en', 'post to Slack when a ticket comes in', null, 'workflow/help-webhooks.php#quickstart', $S . 'integrations.php#slack', 'system/integrations/help.php?provider=slack#overview'],
             ['plain', 'en', 'sign webhook payloads with HMAC', null, 'workflow/help-webhooks.php#signing', $S . 'webhooks.php#security'],
             ['plain', 'en', 'repeat a task every week', null, 'tasks/help.php#repeats'],
             ['plain', 'en', 'upload a SCORM course', null, 'lms/help.php#scorm', 'lms/help.php#uploading'],
