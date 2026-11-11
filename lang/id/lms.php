@@ -47,6 +47,7 @@ return [
         'heading' => 'Kursus',
         'upload' => 'Unggah',
         'create' => 'Buat',
+        'new_tip' => 'Kursus baru',
         'col_title' => 'Judul',
         'col_version' => 'Versi SCORM',
         'col_uploaded' => 'Diunggah',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'Grup Pembelajaran',
         'new' => 'Baru',
+        'new_tip' => 'Grup baru',
         'col_name' => 'Nama',
         'col_description' => 'Deskripsi',
         'col_members' => 'Anggota',

@@ -350,6 +350,7 @@ return [
             'p4' => 'Setiap folder dapat mengaktifkan **tanda air** (Izin -> Tanda air). Setiap berkas yang dibuka dari folder itu, dan folder di dalamnya, lalu menampilkan nama penampil, waktu, dan alamat IP-nya di seluruh halaman - jadi tangkapan layar menunjukkan siapa yang mengambilnya. Folder mengikuti induknya kecuali diatur lain.',
             'p5' => 'Semua ini tidak menghentikan orang yang bertekad: apa pun yang bisa ditampilkan browser bisa difoto atau ditangkap. Hanya-lihat dan tanda air membuat kebocoran menjadi disengaja dan dapat dilacak, bukan mustahil.',
             'p6' => 'Setiap berkas yang dibuka dicatat di jejak audit, termasuk versi mana dan, untuk zip, berkas mana di dalamnya.',
+            'p7' => 'Gambar atau PDF menyesuaikan ulang saat Anda mengubah ukuran atau memaksimalkan jendelanya, sampai Anda memperbesar atau memperkecil sendiri; **Sesuaikan** mengembalikannya. Penampil yang sama membuka gambar dan PDF yang dilampirkan pada tiket, di jendela di atas tiket.',
         ],
         'permissions' => [
             'nav' => 'Izin',

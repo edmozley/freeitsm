@@ -33,8 +33,17 @@ return [
     ],
     'sidebar' => [
         'new_process' => '+ Proses Baru',
+        'new_process_tip' => 'Proses baru',
         'search_placeholder' => 'Cari proses...',
         'no_processes_yet' => 'Belum ada proses',
+        'search_key_tip' => 'Tekan / atau Alt+Shift+O dari mana saja di halaman untuk mencari proses',
+    ],
+    'preview' => [
+        'steps' => 'Langkah',
+        'lanes' => 'Jalur',
+        'created_by' => 'Dibuat oleh',
+        'created' => 'Dibuat',
+        'updated' => 'Terakhir diperbarui',
     ],
     'new_modal' => [
         'title' => 'Proses baru',
