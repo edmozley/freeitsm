@@ -201,11 +201,15 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
                 <tr><td><code>set_ticket_category</code></td><td><?php echo t('workflow.help.actions_row12_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row12_args')); ?></td></tr>
                 <tr><td><code>set_ticket_type</code></td><td><?php echo t('workflow.help.actions_row13_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row13_args')); ?></td></tr>
                 <tr><td><code>set_ticket_field</code></td><td><?php echo t('workflow.help.actions_row14_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row14_args')); ?></td></tr>
+                <tr><td><code>set_task_status</code></td><td><?php echo t('workflow.help.actions_row15_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row15_args')); ?></td></tr>
+                <tr><td><code>assign_task</code></td><td><?php echo t('workflow.help.actions_row16_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row16_args')); ?></td></tr>
+                <tr><td><code>add_task_comment</code></td><td><?php echo t('workflow.help.actions_row17_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row17_args')); ?></td></tr>
             </table>
             </div>
             <p><?php echo t('workflow.help.actions_note'); ?></p>
             <div class="help-note"><?php echo t('workflow.help.actions_webhook_callout'); ?></div>
             <div class="help-note"><?php echo t('workflow.help.actions_forms_callout'); ?></div>
+            <div class="help-note"><?php echo t('workflow.help.actions_tasks_callout'); /* GH #274 */ ?></div>
 
             </div>
 

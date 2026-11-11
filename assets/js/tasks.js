@@ -2081,7 +2081,7 @@ function renderDetailPanel(task) {
                 ${(task.comments || []).map(c => `
                     <div class="comment-item">
                         <div class="comment-header">
-                            <span class="comment-author">${esc(c.analyst_name)}</span>
+                            <span class="comment-author">${esc(c.analyst_name || (Number(c.by_system) ? window.t('tasks.detail.comment_by_system') : ''))}</span>
                             <span class="comment-time">${formatDateTime(c.created_datetime)}</span>
                         </div>
                         <div class="comment-body">${esc(c.comment)}</div>

@@ -213,6 +213,7 @@ Tetap selesaikan tugas? Hal ini akan dicatat dalam riwayat tugas.',
         'subtask_drag' => 'Seret untuk mengubah urutan',
         'checklist_drag' => 'Seret untuk mengubah urutan',
         'comments' => 'Komentar',
+        'comment_by_system' => 'Sistem',   // GH #274: a comment a workflow wrote
         'add_comment' => 'Tambah komentar...',
         'post' => 'Kirim',
         'created_by' => 'Dibuat: {datetime} oleh {name}',

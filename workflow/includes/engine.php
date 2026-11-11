@@ -284,6 +284,9 @@ class WorkflowEngine
     /** GH #217. The actions that belong to a switchable module; the rest are Tickets' or the engine's own. */
     const ACTION_MODULES = [
         'create_task'      => 'tasks',
+        'set_task_status'  => 'tasks',   // GH #274
+        'assign_task'      => 'tasks',
+        'add_task_comment' => 'tasks',
         'create_project'   => 'projects',
         'attach_checklist' => 'checklists',
         'open_jml_case'    => 'starters',
@@ -605,6 +608,11 @@ class WorkflowEngine
             'jml.case_created'           => $jmlFields,
             'jml.case_completed'         => $jmlFields,
         ];
+        // GH #274: every task event carries the ticket the task belongs to (TasksService),
+        // so a task workflow can act on its ticket - or check it has one.
+        foreach ($byTrigger as $k => $f) {
+            if (str_starts_with($k, 'task.') && !in_array('task.ticket_id', $f, true)) $byTrigger[$k][] = 'task.ticket_id';
+        }
         if (isset($byTrigger[$trigger])) {
             return self::withCompanyField($byTrigger[$trigger]);
         }
@@ -855,7 +863,36 @@ class WorkflowEngine
     {
         $payload = self::enrichWithLookupNames($conn, $payload);
         $payload = self::enrichWithReferences($conn, $payload);
+        $payload = self::enrichWithTaskTicket($conn, $payload);
         return self::enrichWithLinks($conn, $payload);
+    }
+
+    /**
+     * GH #274: {{task.ticket_number}}, {{task.ticket_subject}} and {{task.ticket_url}} beside
+     * {{task.ticket_id}}. Kept under `task` on purpose - see TasksService::taskTicketId().
+     * Never clobbers; a missing ticket (deleted, or none) simply adds nothing.
+     *
+     * @param array $payload  the event payload
+     */
+    public static function enrichWithTaskTicket(PDO $conn, array $payload): array
+    {
+        $id = self::dotGet($payload, 'task.ticket_id');
+        if ($id === null || $id === '' || !is_numeric($id) || (int)$id <= 0) return $payload;
+        try {
+            $st = $conn->prepare('SELECT ticket_number, subject FROM tickets WHERE id = ?');
+            $st->execute([(int)$id]);
+            $t = $st->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable) { $t = false; }
+        if (!$t) return $payload;
+        if (self::dotGet($payload, 'task.ticket_number') === null) self::dotSet($payload, 'task.ticket_number', (string)$t['ticket_number']);
+        if (self::dotGet($payload, 'task.ticket_subject') === null) self::dotSet($payload, 'task.ticket_subject', (string)$t['subject']);
+        if (self::dotGet($payload, 'task.ticket_url') === null) {
+            try {
+                require_once dirname(__DIR__, 2) . '/includes/public_url.php';
+                self::dotSet($payload, 'task.ticket_url', rtrim(publicBaseUrl($conn), '/') . '/' . self::RECORD_LINKS['ticket'] . (int)$id);
+            } catch (Throwable) { /* a missing link must never break a run */ }
+        }
+        return $payload;
     }
 
     /** Records with a page of their own, and its address under the app root. */
@@ -1035,6 +1072,13 @@ class WorkflowEngine
                 'label' => self::humaniseSegment($obj) . ' · Link',
                 'note'  => 'The full address of this ' . $obj . ' in FreeITSM.',
             ];
+        }
+
+        // GH #274: the task's ticket (enrichWithTaskTicket()).
+        if (in_array('task.ticket_id', $fields, true)) {
+            $vars[] = ['path' => 'task.ticket_number',  'label' => 'Task · Ticket number',  'note' => 'The reference of the ticket this task belongs to, e.g. ETC-623-64409. Empty when the task has no ticket.'];
+            $vars[] = ['path' => 'task.ticket_subject', 'label' => 'Task · Ticket subject', 'note' => 'The subject of the ticket this task belongs to.'];
+            $vars[] = ['path' => 'task.ticket_url',     'label' => 'Task · Ticket link',    'note' => 'The full address of the task\'s ticket in FreeITSM.'];
         }
 
         // {{<object>.number}} — the reference a human quotes, e.g. ETC-623-64409,
@@ -1301,6 +1345,7 @@ class WorkflowEngine
         'submission.id'          => 'numeric',
         'submission.email'       => 'text',
         'task.id'                => 'numeric',
+        'task.ticket_id'         => 'numeric',   // GH #274
         'task.title'             => 'text',
         'change.id'              => 'numeric',
         'change.title'           => 'text',
@@ -1470,7 +1515,14 @@ class WorkflowEngine
             'supports_vars' => true,
             'required'      => true,
         ];
-        return [
+        $taskIdArg = [   // GH #274
+            'type'          => 'text',
+            'label'         => 'Task ID',
+            'default'       => '{{task.id}}',
+            'supports_vars' => true,
+            'required'      => true,
+        ];
+        $actions = [
             'log_message' => [
                 'label'       => 'Log a message',
                 'description' => 'Write a message into this workflow\'s execution log. Useful as a placeholder while you scaffold a rule and as a test for the engine itself.',
@@ -1734,7 +1786,46 @@ class WorkflowEngine
                     'ticket_id' => $ticketIdArg,
                 ],
             ],
+            // GH #274. Actions that change a TASK - the task the event is about, by default.
+            // Each goes through TasksService, so it obeys the same rules as the screen
+            // (a required checklist step or form still stops a task being completed) and
+            // fires the same events.
+            'set_task_status' => [
+                'label'       => 'Set task status',
+                'description' => 'Change a task\'s status. Moving it to a closed status completes it, exactly as on screen: outstanding required checklist steps or forms set to block stop it, and the step fails saying why.',
+                'args'        => [
+                    'task_id'   => $taskIdArg,
+                    'status_id' => ['type' => 'lookup', 'label' => 'New status', 'lookup' => 'task_status', 'required' => true],
+                ],
+            ],
+            'assign_task' => [
+                'label'       => 'Assign task to analyst',
+                'description' => 'Make an analyst the task\'s owner. They are told as if somebody had assigned it on screen.',
+                'args'        => [
+                    'task_id'    => $taskIdArg,
+                    'analyst_id' => ['type' => 'lookup', 'label' => 'Assign to', 'lookup' => 'analyst', 'required' => true],
+                ],
+            ],
+            'add_task_comment' => [
+                'label'       => 'Add a comment to the task',
+                'description' => 'Add a comment to the task, shown as written by System. Everybody on the task is told, as for any comment.',
+                'args'        => [
+                    'task_id' => $taskIdArg,
+                    'comment' => ['type' => 'textarea', 'label' => 'Comment', 'required' => true, 'supports_vars' => true],
+                ],
+            ],
         ];
+        // GH #274: on a task trigger, a ticket-id arg starts as the TASK's ticket, so
+        // "task done -> note on its ticket" needs nothing typed. The editor applies it to
+        // new actions and swaps it when the trigger changes (workflow-editor.js).
+        foreach ($actions as &$a) {
+            foreach ($a['args'] as &$arg) {
+                if (is_array($arg) && ($arg['default'] ?? null) === '{{ticket.id}}') $arg['trigger_defaults'] = ['task.' => '{{task.ticket_id}}'];
+            }
+            unset($arg);
+        }
+        unset($a);
+        return $actions;
     }
 
     /**
@@ -2284,7 +2375,16 @@ class WorkflowEngine
      */
     private static function executeAction(string $type, array $args, array $payload)
     {
+        // GH #274: a ticket action on a task workflow whose task has no ticket. Said plainly,
+        // rather than "ticket_id is required", which reads like a broken workflow.
+        if (isset($args['ticket_id']) && is_string($args['ticket_id']) && str_contains($args['ticket_id'], 'task.ticket_id')
+            && trim(self::renderTemplate($args['ticket_id'], $payload)) === '' && $type !== 'create_task') {
+            throw new Exception('This task is not linked to a ticket, so there is no ticket to act on. Add the condition "Task · Ticket" is not empty to run only for tasks that have one.');
+        }
         switch ($type) {
+            case 'set_task_status':     return self::action_set_task_status($args, $payload);    // GH #274
+            case 'assign_task':         return self::action_assign_task($args, $payload);
+            case 'add_task_comment':    return self::action_add_task_comment($args, $payload);
             case 'log_message':         return self::action_log_message($args, $payload);
             case 'set_ticket_status':   return self::action_set_ticket_status($args, $payload);
             case 'set_ticket_priority': return self::action_set_ticket_priority($args, $payload);
@@ -3370,6 +3470,125 @@ class WorkflowEngine
             'assignee_id' => $assigneeId,
             'ticket_id'   => $ticketId,
         ];
+    }
+
+    // -----------------------------------------------------------------
+    //  Actions that change a task (GH #274)
+    // -----------------------------------------------------------------
+
+    /**
+     * Who a task action acts as: nobody - the workflow - recorded in the task's history
+     * as "workflow". No company scope of its own: assertRecordInRunCompany() is the
+     * boundary, as for tickets.
+     */
+    private static function taskActionContext(): ActorContext
+    {
+        require_once dirname(__DIR__, 2) . '/includes/service_context.php';
+        require_once dirname(__DIR__, 2) . '/includes/services/tasks.php';
+        $name = 'Workflow';
+        if (self::$ctxWorkflowId) {
+            try {
+                $st = connectToDatabase()->prepare('SELECT name FROM workflows WHERE id = ?');
+                $st->execute([(int)self::$ctxWorkflowId]);
+                $n = $st->fetchColumn();
+                if ($n) $name = 'Workflow: ' . $n;
+            } catch (Throwable) { /* the plain name will do */ }
+        }
+        return new ActorContext(0, null, 'workflow', 'en', mb_substr($name, 0, 100));
+    }
+
+    /** The task the action names, checked to exist and to be in the run's company. */
+    private static function taskForAction(PDO $conn, array $args, array $payload): int
+    {
+        $taskId = self::argInt($args, 'task_id', $payload);
+        if (!$taskId) throw new Exception('task_id is required');
+        $st = $conn->prepare('SELECT 1 FROM tasks WHERE id = ?');
+        $st->execute([$taskId]);
+        if (!$st->fetchColumn()) throw new Exception("Unknown task_id: {$taskId}");
+        self::assertRecordInRunCompany($conn, 'tasks', $taskId, 'task');
+        return $taskId;
+    }
+
+    /**
+     * set_task_status: through TasksService::saveTask(), so completing obeys the task's
+     * completion gate (a ServiceError becomes the step's failure) and fires
+     * task.status_changed / task.completed like a change on screen.
+     *
+     * TRAP: a workflow on task.status_changed that sets a task status triggers itself;
+     * the engine's re-entry guard (a workflow already running is refused) stops it.
+     *
+     * @param array $args  task_id, status_id
+     * @writes tasks, task_audit, task_events
+     */
+    private static function action_set_task_status(array $args, array $payload): array
+    {
+        $conn = connectToDatabase();
+        $taskId = self::taskForAction($conn, $args, $payload);
+        $statusId = self::argInt($args, 'status_id', $payload);
+        if (!$statusId) throw new Exception('status_id is required');
+        $st = $conn->prepare('SELECT name FROM task_statuses WHERE id = ?');
+        $st->execute([$statusId]);
+        $name = $st->fetchColumn();
+        if ($name === false) throw new Exception("Unknown status_id: {$statusId}");
+        try {
+            TasksService::saveTask($conn, self::taskActionContext(), ['id' => $taskId, 'status_id' => $statusId]);
+        } catch (ServiceError $e) {
+            throw new Exception($e->getMessage());
+        }
+        return ['task_id' => $taskId, 'status_id' => $statusId, 'status_name' => (string)$name];
+    }
+
+    /**
+     * assign_task: the task's owner, through TasksService::saveTask() (task.assigned fires,
+     * so the analyst is told). The analyst must be able to see the run's company.
+     *
+     * @param array $args  task_id, analyst_id
+     * @writes tasks, task_audit
+     */
+    private static function action_assign_task(array $args, array $payload): array
+    {
+        $conn = connectToDatabase();
+        $taskId = self::taskForAction($conn, $args, $payload);
+        $analystId = self::argInt($args, 'analyst_id', $payload);
+        if (!$analystId) throw new Exception('analyst_id is required');
+        self::assertAnalystReachesRunCompany($conn, $analystId);
+        $st = $conn->prepare('SELECT full_name FROM analysts WHERE id = ? AND COALESCE(is_active, 1) = 1');
+        $st->execute([$analystId]);
+        $name = $st->fetchColumn();
+        if ($name === false) throw new Exception("Unknown or inactive analyst_id: {$analystId}");
+        try {
+            TasksService::saveTask($conn, self::taskActionContext(), ['id' => $taskId, 'assigned_analyst_id' => $analystId]);
+        } catch (ServiceError $e) {
+            throw new Exception($e->getMessage());
+        }
+        return ['task_id' => $taskId, 'analyst_id' => $analystId, 'analyst_name' => (string)$name];
+    }
+
+    /**
+     * add_task_comment: a comment by System (task_comments.analyst_id NULL, possible since
+     * GH #274's Database Verify), through TasksService::createComment() so task.comment_added
+     * fires and everybody on the task is told.
+     *
+     * TRAP: a workflow on task.comment_added that adds a comment triggers itself; the
+     * re-entry guard stops it after one comment.
+     *
+     * @param array $args  task_id, comment
+     * @writes task_comments
+     */
+    private static function action_add_task_comment(array $args, array $payload): array
+    {
+        $conn = connectToDatabase();
+        $taskId = self::taskForAction($conn, $args, $payload);
+        $text = self::argString($args, 'comment', $payload);
+        if (trim($text) === '') throw new Exception('comment is required');
+        try {
+            $id = TasksService::createComment($conn, self::taskActionContext(), $taskId, $text);
+        } catch (ServiceError $e) {
+            throw new Exception($e->getMessage());
+        } catch (PDOException $e) {
+            throw new Exception('Run System -> Database Verify so a workflow can write a comment with no author: ' . $e->getMessage());
+        }
+        return ['task_id' => $taskId, 'comment_id' => $id, 'comment_length' => mb_strlen($text)];
     }
 
     /**

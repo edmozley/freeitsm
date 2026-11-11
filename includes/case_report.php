@@ -331,7 +331,7 @@ final class CaseReport
     private static function notes(PDO $conn, int $ticketId, bool $internal, array &$r): array
     {
         $st = $conn->prepare(
-            "SELECT n.id, n.note_text, n.is_internal, n.created_datetime, a.full_name AS author
+            "SELECT n.id, n.note_text, n.is_internal, n.created_datetime, a.full_name AS author, (n.analyst_id IS NULL) AS by_system
                FROM ticket_notes n LEFT JOIN analysts a ON a.id = n.analyst_id
               WHERE n.ticket_id = ? ORDER BY n.created_datetime, n.id");
         $st->execute([$ticketId]);
@@ -420,7 +420,7 @@ final class CaseReport
         }
 
         $b['comments'] = $try('comments', function () use ($conn, $taskId) {
-            $s = $conn->prepare("SELECT c.comment, c.created_datetime, a.full_name AS author FROM task_comments c
+            $s = $conn->prepare("SELECT c.comment, c.created_datetime, a.full_name AS author, (c.analyst_id IS NULL) AS by_system FROM task_comments c
                                    LEFT JOIN analysts a ON a.id = c.analyst_id WHERE c.task_id = ? ORDER BY c.created_datetime, c.id");
             $s->execute([$taskId]);
             return $s->fetchAll(PDO::FETCH_ASSOC);

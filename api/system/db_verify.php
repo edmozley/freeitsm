@@ -370,6 +370,26 @@ try {
         // Non-fatal: notes keep working for people; only imported comments stay refused.
     }
 
+    // `task_comments.analyst_id` was NOT NULL, so a comment no person wrote - the
+    // workflow action "Add a comment to the task" (GitHub #274) - had no honest value,
+    // and 0 is refused by `fk_task_comments_analyst`. NULL means System, as it does on
+    // ticket notes (#281). Relaxing it invalidates no existing row; safe to re-run.
+    try {
+        $tcCol = $conn->prepare(
+            "SELECT IS_NULLABLE FROM information_schema.columns
+             WHERE table_schema = ? AND table_name = 'task_comments' AND column_name = 'analyst_id'"
+        );
+        $tcCol->execute([$dbName]);
+        $tcRow = $tcCol->fetch(PDO::FETCH_ASSOC);
+        if ($tcRow && strtoupper($tcRow['IS_NULLABLE']) === 'NO') {
+            $conn->exec("ALTER TABLE `task_comments` MODIFY `analyst_id` INT NULL");
+            $results[] = ['table' => 'task_comments', 'status' => 'updated',
+                          'details' => ["analyst_id: NOT NULL → NULL (a comment a workflow writes is System)"]];
+        }
+    } catch (Exception $e) {
+        // Non-fatal: comments keep working for people; only a workflow's comment is refused.
+    }
+
     // `users_assets.user_id` was NOT NULL, so an asset could only ever be
     // recorded against a REQUESTER. Analysts hold equipment too — and they are
     // not requesters: on a real install five of seven analysts had no `users`

@@ -241,6 +241,7 @@ return [
         'subtask_drag'    => 'Drag to change the order',
         'checklist_drag'  => 'Drag to change the order',
         'comments'       => 'Comments',
+        'comment_by_system' => 'System',   // GH #274: a comment a workflow wrote
         'add_comment'    => 'Add a comment...',
         'post'           => 'Post',
         'created_by'     => 'Created: {datetime} by {name}',

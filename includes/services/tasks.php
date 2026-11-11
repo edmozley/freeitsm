@@ -184,6 +184,7 @@ class TasksService
                     'status_id'   => $status[0],
                     'priority_id' => $priority[0],
                     'assignee_id' => $analystId,
+                    'ticket_id'   => self::taskTicketId($conn, $taskId),   // GH #274
                 ],
             ]);
         } catch (Exception $wfEx) {
@@ -676,6 +677,7 @@ class TasksService
             'title'       => $row['title'] ?? null,
             'priority_id' => isset($row['priority_id']) ? (int)$row['priority_id'] : null,
             'assignee_id' => isset($row['assigned_analyst_id']) ? (int)$row['assigned_analyst_id'] : null,
+            'ticket_id'   => !empty($row['ticket_id']) ? (int)$row['ticket_id'] : null,   // GH #274
         ]]);
         return ['id' => $taskId, 'subtasks_deleted' => count($ids) - 1];
     }
@@ -693,8 +695,9 @@ class TasksService
         if ($text === '') {
             throw new ServiceError('validation', 'missing_field', "'text' is required.");
         }
+        // No person (a workflow - GH #274) is NULL: System. Never 0, which the foreign key refuses.
         $conn->prepare("INSERT INTO task_comments (task_id, analyst_id, comment, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
-             ->execute([$taskId, $ctx->actorId, $text]);
+             ->execute([$taskId, $ctx->actorId > 0 ? $ctx->actorId : null, $text]);
         $commentId = (int)$conn->lastInsertId();
         $conn->prepare("UPDATE tasks SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$taskId]);
         // GH #89. Until now nothing announced that somebody had said something on
@@ -719,7 +722,7 @@ class TasksService
     private static function taskEventDispatch(PDO $conn, string $event, int $taskId, array $extra = []): void
     {
         try {
-            $rb = $conn->prepare("SELECT title, status_id, priority_id, assigned_analyst_id, due_date FROM tasks WHERE id = ?");
+            $rb = $conn->prepare("SELECT title, status_id, priority_id, assigned_analyst_id, due_date, ticket_id FROM tasks WHERE id = ?");
             $rb->execute([$taskId]);
             $taskRow = $rb->fetch(PDO::FETCH_ASSOC) ?: [];
             WorkflowEngine::dispatch($event, [
@@ -730,6 +733,7 @@ class TasksService
                     'priority_id' => isset($taskRow['priority_id']) ? (int)$taskRow['priority_id'] : null,
                     'assignee_id' => isset($taskRow['assigned_analyst_id']) ? (int)$taskRow['assigned_analyst_id'] : null,
                     'due_date'    => $taskRow['due_date'] ?? null,
+                    'ticket_id'   => !empty($taskRow['ticket_id']) ? (int)$taskRow['ticket_id'] : null,   // GH #274
                 ], $extra),
             ]);
         } catch (Exception $wfEx) {
@@ -1014,7 +1018,7 @@ class TasksService
     private static function collaboratorDispatch(PDO $conn, string $event, int $taskId, int $analystId): void
     {
         try {
-            $rb = $conn->prepare("SELECT title, status_id, priority_id, assigned_analyst_id FROM tasks WHERE id = ?");
+            $rb = $conn->prepare("SELECT title, status_id, priority_id, assigned_analyst_id, ticket_id FROM tasks WHERE id = ?");
             $rb->execute([$taskId]);
             $taskRow = $rb->fetch(PDO::FETCH_ASSOC) ?: [];
             WorkflowEngine::dispatch($event, [
@@ -1028,6 +1032,7 @@ class TasksService
                     // accountable rather than the person just added.
                     'assignee_id'     => isset($taskRow['assigned_analyst_id']) ? (int)$taskRow['assigned_analyst_id'] : null,
                     'collaborator_id' => $analystId,
+                    'ticket_id'       => !empty($taskRow['ticket_id']) ? (int)$taskRow['ticket_id'] : null,   // GH #274
                 ],
             ]);
         } catch (Exception $wfEx) {
@@ -1768,7 +1773,7 @@ class TasksService
     private static function assignedDispatch(PDO $conn, int $taskId, int $assigneeId): void
     {
         try {
-            $rb = $conn->prepare("SELECT title, status_id, priority_id FROM tasks WHERE id = ?");
+            $rb = $conn->prepare("SELECT title, status_id, priority_id, ticket_id FROM tasks WHERE id = ?");
             $rb->execute([$taskId]);
             $taskRow = $rb->fetch(PDO::FETCH_ASSOC) ?: [];
             WorkflowEngine::dispatch('task.assigned', [
@@ -1780,6 +1785,7 @@ class TasksService
                     // The NEW assignee. The notification router reads the
                     // recipient from exactly this field.
                     'assignee_id' => $assigneeId,
+                    'ticket_id'   => !empty($taskRow['ticket_id']) ? (int)$taskRow['ticket_id'] : null,   // GH #274
                 ],
             ]);
         } catch (Exception $wfEx) {
@@ -1787,11 +1793,28 @@ class TasksService
         }
     }
 
+    /**
+     * The ticket a task belongs to (tasks.ticket_id), or null - for task.created, whose payload
+     * is built from the input rather than read back (GH #274).
+     *
+     * TRAP: it travels as task.ticket_id, never as a top-level `ticket` object. A `ticket` key
+     * would make the event look like a ticket event: workflowEventTenantId() reads `ticket` first
+     * (the task and its ticket can be in different companies), and the notification router and
+     * search indexer both act on payload['ticket'].
+     */
+    private static function taskTicketId(PDO $conn, int $taskId): ?int
+    {
+        $s = $conn->prepare("SELECT ticket_id FROM tasks WHERE id = ?");
+        $s->execute([$taskId]);
+        $v = $s->fetchColumn();
+        return $v ? (int)$v : null;
+    }
+
     /** save.php's exact task.completed dispatch (open -> closed via PATCH only). */
     private static function completedDispatch(PDO $conn, int $taskId): void
     {
         try {
-            $rb = $conn->prepare("SELECT title, priority_id, assigned_analyst_id FROM tasks WHERE id = ?");
+            $rb = $conn->prepare("SELECT title, priority_id, assigned_analyst_id, ticket_id FROM tasks WHERE id = ?");
             $rb->execute([$taskId]);
             $taskRow = $rb->fetch(PDO::FETCH_ASSOC) ?: [];
             WorkflowEngine::dispatch('task.completed', [
@@ -1800,6 +1823,7 @@ class TasksService
                     'title'       => $taskRow['title'] ?? null,
                     'priority_id' => isset($taskRow['priority_id']) ? (int)$taskRow['priority_id'] : null,
                     'assignee_id' => isset($taskRow['assigned_analyst_id']) ? (int)$taskRow['assigned_analyst_id'] : null,
+                    'ticket_id'   => !empty($taskRow['ticket_id']) ? (int)$taskRow['ticket_id'] : null,   // GH #274
                 ],
             ]);
         } catch (Exception $wfEx) {

@@ -337,6 +337,14 @@ return [
         'actions_row13_args' => 'ticket_id, ticket_type_id',
         'actions_row14_does' => 'Sets one of the ticket\'s custom fields (Tickets &rarr; Settings &rarr; Custom fields). The value can use {{merge codes}}, so one field can be filled from others or from an earlier step, and it is checked by the field\'s type exactly as on screen. Leave it empty to clear the field. Recorded in the ticket\'s history.',
         'actions_row14_args' => 'ticket_id, field_key, value',
+        // GH #274: actions that change a task, and task workflows' ticket.
+        'actions_row15_does' => 'Changes a task\'s status. Moving it to a closed status completes it exactly as on screen: required checklist steps or forms set to block stop it, and the step fails saying why.',
+        'actions_row15_args' => 'task_id, status_id',
+        'actions_row16_does' => 'Makes an analyst the task\'s owner. They are told as if somebody had assigned it on screen.',
+        'actions_row16_args' => 'task_id, analyst_id',
+        'actions_row17_does' => 'Adds a comment to the task, written by <em>System</em>. Everybody on the task is told, as for any comment.',
+        'actions_row17_args' => 'task_id, comment',
+        'actions_tasks_callout' => '<strong>Task workflows and their ticket.</strong> Every task trigger carries the ticket the task belongs to: <code>{{task.ticket_id}}</code>, <code>{{task.ticket_number}}</code>, <code>{{task.ticket_subject}}</code> and <code>{{task.ticket_url}}</code>. A ticket action added to a task workflow starts with <code>{{task.ticket_id}}</code>, so <em>"when a task is done, add a note to its ticket"</em> needs nothing typed - it is also in the template library. Add the condition <strong>Task &middot; Ticket</strong> is not empty so the rule skips tasks that have no ticket. The task actions start with <code>{{task.id}}</code>, the task the event is about.',
         'actions_note'    => 'Each action\'s required args are marked with a <code>*</code> in the form. Missing required args cause the action to fail at execution time &mdash; the engine logs the failure to the execution row and stops the rest of the chain.',
         'actions_webhook_callout' => '<strong>The <code>send_webhook</code> action is a big topic of its own</strong> &mdash; chat presets, whole-object &ldquo;Full record&rdquo; payloads, HMAC signing, a Send-test button, background delivery with retries, and a health dashboard. It has a dedicated guide: <a href="help-webhooks.php"><strong>Webhooks guide &rarr;</strong></a>',
 

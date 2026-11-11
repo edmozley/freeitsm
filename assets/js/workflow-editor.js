@@ -264,6 +264,23 @@ const WFE = (() => {
         selectNode(n.id);
     }
     /**
+     * An arg's starting value. trigger_defaults (GH #274) win when the workflow's trigger
+     * starts with one of their prefixes - a ticket action on a task trigger starts as
+     * {{task.ticket_id}}; then new_default, for a NEWLY added action only (GH #268); then default.
+     *
+     * @param {object} s  the arg's spec
+     * @param {boolean} isNew  a new action (or one whose type just changed)
+     */
+    function argDefault(s, isNew) {
+        if (!s || typeof s !== 'object') return undefined;
+        if (s.trigger_defaults && triggerEvent) {
+            for (const pre of Object.keys(s.trigger_defaults)) if (triggerEvent.startsWith(pre)) return s.trigger_defaults[pre];
+        }
+        if (isNew && s.new_default != null) return s.new_default;
+        return s.default != null ? s.default : undefined;
+    }
+
+    /**
      * Toolbar: adds an action below the stack, of the first action type, seeded with that type's default args, and selects it.
      */
     function addAction() {
@@ -274,11 +291,10 @@ const WFE = (() => {
         const def = window.WF_ACTION_DEFS[firstType] || {};
         const defaults = {};
         Object.keys(def.args || {}).forEach(k => {
-            const s = def.args[k];
             // new_default: for a NEWLY added action only (GH #268) - never seeded into
             // a saved one, whose missing value keeps meaning what it always meant.
-            if (s && typeof s === 'object' && s.new_default != null) defaults[k] = s.new_default;
-            else if (s && typeof s === 'object' && s.default != null) defaults[k] = s.default;
+            const v = argDefault(def.args[k], true);
+            if (v !== undefined) defaults[k] = v;
         });
         const lastY = lowestNodeY('action', 'condition', 'trigger');
         const n = addActionNode(COL_X, lastY + ROW_GAP, firstType, defaults);
@@ -828,7 +844,8 @@ const WFE = (() => {
             labelEl.setAttribute('for', 'wfActArg_' + argName);
             fg.appendChild(labelEl);
 
-            const currentVal = (argName in n.args) ? n.args[argName] : (norm.default != null ? norm.default : '');
+            const shownDefault = argDefault(norm, false);
+            const currentVal = (argName in n.args) ? n.args[argName] : (shownDefault !== undefined ? shownDefault : '');
 
             let ctrl;
             if (norm.type === 'textarea') {
@@ -1001,7 +1018,7 @@ const WFE = (() => {
 
             // Seed n.args with the rendered default so it round-trips
             // through save without the user having to touch every field.
-            if (!(argName in n.args) && norm.default != null) n.args[argName] = norm.default;
+            if (!(argName in n.args) && shownDefault !== undefined) n.args[argName] = shownDefault;
         });
         applyArgVisibility(host, n);
 
@@ -1428,6 +1445,20 @@ const WFE = (() => {
     // Detail-panel handlers exposed via WFE.* for inline onchange / oninput.
     function updateTriggerFromDetail() {
         triggerEvent = document.getElementById('wfTrigger').value;
+        // GH #274: an arg still holding a starting value follows the new trigger -
+        // {{ticket.id}} becomes {{task.ticket_id}} on a task trigger, and back. A value
+        // somebody typed is left alone.
+        nodes.forEach(n => {
+            if (n.kind !== 'action' || !n.args) return;
+            const def = (window.WF_ACTION_DEFS || {})[n.type] || {};
+            Object.keys(def.args || {}).forEach(k => {
+                const s = def.args[k];
+                if (!s || typeof s !== 'object' || !s.trigger_defaults) return;
+                const starts = [s.default].concat(Object.values(s.trigger_defaults));
+                if (starts.includes(n.args[k])) n.args[k] = argDefault(s, false);
+            });
+        });
+        if (selectedNodeId) { const sel = nodes.find(x => x.id === selectedNodeId); if (sel && sel.kind === 'action') showDetailForAction(sel); }
         // Re-render: the trigger node label updates, and any condition node's
         // field-dropdown options will need to refresh next time it's selected.
         nodes.forEach(n => { if (n.el) n.el.innerHTML = renderNodeContent(n); });
@@ -1481,10 +1512,9 @@ const WFE = (() => {
         const def = window.WF_ACTION_DEFS[n.type] || {};
         const next = {};
         Object.keys(def.args || {}).forEach(k => {
-            const s = def.args[k];
             // Changing the action's type makes it a new action: new_default applies (GH #268).
-            if (s && typeof s === 'object' && s.new_default != null) next[k] = s.new_default;
-            else if (s && typeof s === 'object' && s.default != null) next[k] = s.default;
+            const v = argDefault(def.args[k], true);
+            if (v !== undefined) next[k] = v;
         });
         n.args = next;
         showDetailForAction(n);

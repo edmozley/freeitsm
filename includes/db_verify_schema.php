@@ -4599,7 +4599,7 @@ return [
     'task_comments' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'task_id'           => 'INT NOT NULL',
-        'analyst_id'        => 'INT NOT NULL',
+        'analyst_id'        => 'INT NULL',   // NULL = System: a workflow wrote it (GH #274)
         'comment'           => 'LONGTEXT NOT NULL',
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)

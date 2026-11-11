@@ -213,6 +213,7 @@ return [
         'subtask_drag' => 'Arrastre para cambiar el orden',
         'checklist_drag' => 'Arrastre para cambiar el orden',
         'comments' => 'Comentarios',
+        'comment_by_system' => 'Sistema',   // GH #274: a comment a workflow wrote
         'add_comment' => 'Añadir un comentario...',
         'post' => 'Publicar',
         'created_by' => 'Creada: {datetime} por {name}',

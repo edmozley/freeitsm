@@ -140,9 +140,9 @@ try {
 
     // Get comments
     $stmt = $conn->prepare(
-        "SELECT c.id, c.comment, c.created_datetime, a.full_name AS analyst_name
+        "SELECT c.id, c.comment, c.created_datetime, a.full_name AS analyst_name, (c.analyst_id IS NULL) AS by_system
          FROM task_comments c
-         JOIN analysts a ON c.analyst_id = a.id
+         LEFT JOIN analysts a ON c.analyst_id = a.id   -- LEFT: a System comment has no analyst (GH #274)
          WHERE c.task_id = ?
          ORDER BY c.created_datetime ASC"
     );

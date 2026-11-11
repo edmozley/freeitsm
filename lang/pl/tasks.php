@@ -213,6 +213,7 @@ Ukończyć zadanie mimo to? Zostanie to zapisane w historii zadania.',
         'subtask_drag' => 'Przeciągnij, aby zmienić kolejność',
         'checklist_drag' => 'Przeciągnij, aby zmienić kolejność',
         'comments' => 'Komentarze',
+        'comment_by_system' => 'System',   // GH #274: a comment a workflow wrote
         'add_comment' => 'Dodaj komentarz...',
         'post' => 'Opublikuj',
         'created_by' => 'Utworzono: {datetime} przez {name}',

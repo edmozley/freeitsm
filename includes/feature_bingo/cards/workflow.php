@@ -545,4 +545,17 @@ return [
         'link'     => 'workflow/',
         'check'    => ['rows', 'workflows', "$live AND actions LIKE '%\"type\":\"send_webhook\"%' AND actions REGEXP '\"secret\":\"[^\"]'"],
     ],
+    // GH #274: task workflows that act on the task's ticket, or change the task.
+    [
+        'id'       => 'workflow.task_ticket',
+        'module'   => 'workflow',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'A task workflow that reaches its ticket',
+        'what'     => 'An active workflow on a task trigger that acts on the task\'s ticket ({{task.ticket_id}}) or changes a task - status, owner or a comment.',
+        'why'      => '"When a task is done, note it on its ticket" without a webhook to another tool and back.',
+        'done'     => 'At least one active task workflow uses the task\'s ticket or a task action.',
+        'link'     => 'workflow/',
+        'check'    => ['rows', 'workflows', "$live AND trigger_event LIKE 'task.%' AND (actions LIKE '%task.ticket_id%' OR actions LIKE '%\"type\":\"set_task_status\"%' OR actions LIKE '%\"type\":\"assign_task\"%' OR actions LIKE '%\"type\":\"add_task_comment\"%')"],
+    ],
 ];

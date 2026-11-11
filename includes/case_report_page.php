@@ -377,7 +377,7 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
 <?php if (!$r['notes'] && empty($r['unavailable']['notes'])): ?><p><?php echo $T('none'); ?></p><?php endif; ?>
 <?php foreach ($r['notes'] as $n): ?>
 <div class="box">
-    <div class="msg-head"><strong><?php echo $e($n['author'] ?? t('case-report.former_analyst')); ?></strong>
+    <div class="msg-head"><strong><?php echo $e($n['author'] ?? (!empty($n['by_system']) ? t('case-report.by_system') : t('case-report.former_analyst'))); ?></strong>
         <span class="tag<?php echo (int)$n['is_internal'] === 1 ? ' internal' : ''; ?>"><?php echo (int)$n['is_internal'] === 1 ? $T('note_internal') : $T('note_shared'); ?></span>
         <div class="sub"><?php echo $when($n['created_datetime']); ?></div></div>
     <?php echo CaseReport::body($n['note_text']); ?>
@@ -586,7 +586,7 @@ function caseReportTask(array $b, array $r, string $base): void
     <?php if ($b['comments']): ?>
     <h4><?php echo $T('comments'); ?> <span class="sub">(<?php echo count($b['comments']); ?>)</span></h4>
     <?php foreach ($b['comments'] as $c): ?>
-    <div class="box"><div class="msg-head"><strong><?php echo $e($c['author'] ?? t('case-report.former_analyst')); ?></strong> <span class="sub"><?php echo $when($c['created_datetime']); ?></span></div>
+    <div class="box"><div class="msg-head"><strong><?php echo $e($c['author'] ?? (!empty($c['by_system']) ? t('case-report.by_system') : t('case-report.former_analyst'))); ?></strong> <span class="sub"><?php echo $when($c['created_datetime']); ?></span></div>
         <?php echo CaseReport::body($c['comment']); ?></div>
     <?php endforeach; ?>
     <?php endif; ?>

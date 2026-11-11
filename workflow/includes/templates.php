@@ -91,6 +91,29 @@ class WorkflowTemplates
             ],
 
             // ---------------------------------------------------------
+            //  Tasks (GH #274)
+            // ---------------------------------------------------------
+            'task_done_note_on_ticket' => [
+                'name'        => 'When a task is done, note it on its ticket',
+                'category'    => 'Tasks',
+                'description' => 'When a task linked to a ticket is completed, writes an internal note on that ticket naming the task and who owned it - so whoever has the ticket sees the work is finished without opening the task.',
+                'trigger_event' => 'task.completed',
+                'conditions'  => [
+                    ['field' => 'task.ticket_id', 'op' => 'is_not_empty', 'value' => ''],
+                ],
+                'actions'     => [
+                    [
+                        'type' => 'add_ticket_note',
+                        'args' => [
+                            'ticket_id' => '{{task.ticket_id}}',
+                            'note'      => "Task completed: {{task.title}} (owner: {{task.assignee_name}}).",
+                            'write_to'  => 'note',
+                            'shared'    => false,
+                        ],
+                    ],
+                ],
+            ],
+            // ---------------------------------------------------------
             //  Issue trackers
             // ---------------------------------------------------------
             'tracker_escalate_bugs' => [

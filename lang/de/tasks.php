@@ -213,6 +213,7 @@ Aufgabe trotzdem abschließen? Dies wird im Verlauf der Aufgabe festgehalten.',
         'subtask_drag' => 'Zum Ändern der Reihenfolge ziehen',
         'checklist_drag' => 'Zum Ändern der Reihenfolge ziehen',
         'comments' => 'Kommentare',
+        'comment_by_system' => 'System',   // GH #274: a comment a workflow wrote
         'add_comment' => 'Kommentar hinzufügen...',
         'post' => 'Senden',
         'created_by' => 'Erstellt: {datetime} von {name}',
