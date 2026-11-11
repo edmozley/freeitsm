@@ -364,6 +364,7 @@ Aufgabe trotzdem abschließen? Dies wird im Verlauf der Aufgabe festgehalten.',
         'result_na' => 'Nicht zutreffend',
         'result_none' => 'zurückgesetzt',
         'after_completion' => '(nachdem die Aufgabe abgeschlossen wurde)',
+        'via_api' => '(über die API)',   // GH #273
         'audit' => '{field}: {from} zu {to}',
     ],
     'evidence' => [

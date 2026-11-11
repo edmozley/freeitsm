@@ -3875,6 +3875,7 @@ async function loadTaskHistory(taskId) {
             else what = T('step_ticked', { step: det.step });
             if (after.exception_note) what += ' - ' + after.exception_note;
             if (det.after_completion) what += ' ' + T('after_completion');
+            if (after.via === 'api') what += ' ' + T('via_api');   // GH #273
             return what;
         }
         if (h.kind === 'audit') return T('audit', { field: h.type, from: h.from || '-', to: h.to || '-' });

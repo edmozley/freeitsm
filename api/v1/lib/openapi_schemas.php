@@ -11449,6 +11449,139 @@ return array (
         ),
       ),
     ),
+    'Checklist' => 
+    array (
+      'type' => 'object',
+      'description' => 'A checklist on a ticket or a task - the same shape on both (GH #273).',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'title' => 
+        array (
+          'type' => 'string',
+        ),
+        'template_id' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+        ),
+        'template_version' => 
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+        ),
+        'closure' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'warn',
+            1 => 'block',
+          ),
+          'description' => 'What closing / completing does with mandatory steps outstanding.',
+        ),
+        'steps_done' => 
+        array (
+          'type' => 'integer',
+        ),
+        'steps_total' => 
+        array (
+          'type' => 'integer',
+        ),
+        'steps' => 
+        array (
+          'type' => 'array',
+          'items' => 
+          array (
+            '$ref' => '#/components/schemas/ChecklistStep',
+          ),
+        ),
+      ),
+    ),
+    'ChecklistStep' => 
+    array (
+      'type' => 'object',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'title' => 
+        array (
+          'type' => 'string',
+        ),
+        'description' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'mandatory' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'suggested_role' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'asks_for' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'tick',
+            1 => 'value',
+            2 => 'result',
+          ),
+        ),
+        'value_prompt' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'completed' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'value' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'result' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'pass',
+            1 => 'fail',
+            2 => 'na',
+          ),
+          'nullable' => true,
+        ),
+        'note' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'What went wrong, on a fail.',
+        ),
+        'completed_by' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'completed_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+        ),
+      ),
+    ),
     'TicketNote' => 
     array (
       'type' => 'object',
@@ -15351,6 +15484,30 @@ return array (
       array (
         '$ref' => '#/components/schemas/TicketAuditEntry',
       ),
+    ),
+    'GET /tickets/{id}/checklists' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/Checklist',
+      ),
+    ),
+    'PATCH /tickets/{id}/checklists/steps/{step_id}' => 
+    array (
+      '$ref' => '#/components/schemas/ChecklistStep',
+    ),
+    'GET /tasks/{id}/checklists' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/Checklist',
+      ),
+    ),
+    'PATCH /tasks/{id}/checklists/steps/{step_id}' => 
+    array (
+      '$ref' => '#/components/schemas/ChecklistStep',
     ),
     'GET /tickets/{id}/notes' => 
     array (

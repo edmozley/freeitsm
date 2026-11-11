@@ -405,6 +405,7 @@ return [
         'result_na'     => 'Not applicable',
         'result_none'   => 'cleared',
         'after_completion' => '(after the task was completed)',
+        'via_api' => '(via the API)',   // GH #273
         'audit'         => '{field}: {from} to {to}',
     ],
 

@@ -31,6 +31,14 @@ function apiV1PermissionCatalog(): array {
                 'create' => 'Add a note to a ticket (internal or public)',
             ],
         ],
+        // GH #273. Writes go through the same rules as the ticket panel and are noted on the ticket "via the API".
+        'ticket_checklists' => [
+            'label'   => 'Ticket checklists',
+            'actions' => [
+                'read'   => 'Read the checklists on a ticket: each step, what it asks for, its state, result and who completed it',
+                'update' => 'Tick, untick or record a result (pass / fail / not applicable) on a ticket\'s checklist step',
+            ],
+        ],
         'ticket_thread' => [
             'label'   => 'Ticket conversation',
             'actions' => [
@@ -213,6 +221,14 @@ function apiV1PermissionCatalog(): array {
             'actions' => [
                 'read'   => 'Read the comments on a task',
                 'create' => 'Add a comment to a task',
+            ],
+        ],
+        // GH #273: the same shape as ticket checklists. Empty while checklists on tasks are switched off.
+        'task_checklists' => [
+            'label'   => 'Task checklists',
+            'actions' => [
+                'read'   => 'Read the checklists on a task: each step, what it asks for, its state, result and who completed it',
+                'update' => 'Tick, untick or record a result on a task\'s checklist step (a completed task\'s lock still applies)',
             ],
         ],
         // GH #190 phase 5. Reading the ANSWERS also follows the in-app rule: the key's

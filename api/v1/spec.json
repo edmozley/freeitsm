@@ -659,6 +659,141 @@
                 },
                 {
                     "m": "GET",
+                    "p": "\/tickets\/{id}\/checklists",
+                    "perm": "ticket_checklists.read",
+                    "s": "List a ticket's checklists",
+                    "d": "Every checklist on the ticket with its steps, in order. closure is what closing does with mandatory steps still outstanding once the company setting has had its say: \"warn\" (allowed, and recorded) or \"block\" (refused). Each step: id, title, description, mandatory, suggested_role, asks_for (\"tick\", \"value\" - a tick with a text answer - or \"result\": pass \/ fail \/ na), value_prompt, completed, value, result, note (what went wrong, on a fail), completed_by, completed_at. The same shape as GET \/tasks\/{id}\/checklists. GH #273.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "get-tickets-id-checklists",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "A ticket's checklists",
+                                "note": "The new starter procedure, two steps done.",
+                                "path": {
+                                    "id": 42
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/tickets\/{id}\/checklists\/steps\/{step_id}",
+                    "perm": "ticket_checklists.update",
+                    "s": "Answer a ticket checklist step",
+                    "d": "Answers one step, through the same rules as the app: a step that asks for a value needs one, a step that asks for a result is answered with \"result\" rather than ticked, and a fail needs a \"note\" saying what went wrong. A fail still counts as answered - it never stops the ticket closing, it is on the record instead. Send either \"completed\" (true to tick, false to untick - which clears the value and any result) or \"result\" - not both. Recorded as the key's analyst, with a note on the ticket for the change, and marked \"via the API\". Returns the step as it now stands. GH #273.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        },
+                        {
+                            "name": "step_id",
+                            "in": "path",
+                            "desc": "The step's id, from GET \/tickets\/{id}\/checklists",
+                            "req": true
+                        },
+                        {
+                            "name": "completed",
+                            "in": "body",
+                            "desc": "true to tick, false to untick (send this or result)",
+                            "req": false
+                        },
+                        {
+                            "name": "value",
+                            "in": "body",
+                            "desc": "The answer, for a step whose asks_for is \"value\"",
+                            "req": false
+                        },
+                        {
+                            "name": "result",
+                            "in": "body",
+                            "desc": "pass, fail or na, for a step whose asks_for is \"result\" (send this or completed)",
+                            "req": false
+                        },
+                        {
+                            "name": "note",
+                            "in": "body",
+                            "desc": "What went wrong - required with result \"fail\"",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "completed": true,
+                        "value": "AT-4471"
+                    },
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "patch-tickets-id-checklists-steps-step-id",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Tick a step with its answer",
+                                "note": "The step asks for the asset tag.",
+                                "path": {
+                                    "id": 42,
+                                    "step_id": 318
+                                },
+                                "body": {
+                                    "completed": true,
+                                    "value": "AT-4471"
+                                }
+                            },
+                            {
+                                "title": "Record a failed check",
+                                "note": "A fail needs a note; the ticket can still close.",
+                                "path": {
+                                    "id": 42,
+                                    "step_id": 319
+                                },
+                                "body": {
+                                    "result": "fail",
+                                    "note": "Backup job 42 failed overnight"
+                                }
+                            },
+                            {
+                                "title": "Untick a step",
+                                "note": "Clears its value and any result.",
+                                "path": {
+                                    "id": 42,
+                                    "step_id": 318
+                                },
+                                "body": {
+                                    "completed": false
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The ticket or the step does not exist, is outside the key's companies, or the step is not on this ticket."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "Neither or both of completed and result were sent; completed is not true or false; an unknown result; a result on a step that does not ask for one."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "missing_field",
+                                "when": "A step that asks for a value was ticked without one; a result step was ticked instead of answered; a fail has no note."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
                     "p": "\/tickets\/{id}\/thread",
                     "perm": "ticket_thread.read",
                     "s": "Get the conversation",
@@ -4974,6 +5109,137 @@
                                     "id": 340,
                                     "task_form_id": 12
                                 }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/tasks\/{id}\/checklists",
+                    "perm": "task_checklists.read",
+                    "s": "List a task's checklists",
+                    "d": "Every checklist on the task with its steps, in order - the same shape as GET \/tickets\/{id}\/checklists. closure is what completing the task does with mandatory steps outstanding: \"warn\" or \"block\". Each step: id, title, description, mandatory, suggested_role, asks_for (\"tick\", \"value\" - a tick with a text answer - or \"result\": pass \/ fail \/ na), value_prompt, completed, value, result, note (what went wrong, on a fail), completed_by, completed_at. Empty while checklists on tasks are switched off (Tasks -> Settings -> Checklists). GH #273.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Task id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Tasks",
+                    "slug": "get-tasks-id-checklists",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "A task's checklists",
+                                "note": "The monthly server review.",
+                                "path": {
+                                    "id": 340
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/tasks\/{id}\/checklists\/steps\/{step_id}",
+                    "perm": "task_checklists.update",
+                    "s": "Answer a task checklist step",
+                    "d": "Answers one step, through the same rules as the app: a step that asks for a value needs one, a step that asks for a result is answered with \"result\" rather than ticked, and a fail needs a \"note\" saying what went wrong. A fail still counts as answered - it never stops the task closing, it is on the record instead. Send either \"completed\" (true to tick, false to untick - which clears the value and any result) or \"result\" - not both. Recorded as the key's analyst, on the step's history, and marked \"via the API\". Returns the step as it now stands. GH #273. Refused while checklists on tasks are switched off, and - where Tasks -> Settings -> Evidence says so - on a completed task.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Task id",
+                            "req": true
+                        },
+                        {
+                            "name": "step_id",
+                            "in": "path",
+                            "desc": "The step's id, from GET \/tasks\/{id}\/checklists",
+                            "req": true
+                        },
+                        {
+                            "name": "completed",
+                            "in": "body",
+                            "desc": "true to tick, false to untick (send this or result)",
+                            "req": false
+                        },
+                        {
+                            "name": "value",
+                            "in": "body",
+                            "desc": "The answer, for a step whose asks_for is \"value\"",
+                            "req": false
+                        },
+                        {
+                            "name": "result",
+                            "in": "body",
+                            "desc": "pass, fail or na, for a step whose asks_for is \"result\" (send this or completed)",
+                            "req": false
+                        },
+                        {
+                            "name": "note",
+                            "in": "body",
+                            "desc": "What went wrong - required with result \"fail\"",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "result": "pass"
+                    },
+                    "section": "Tasks",
+                    "slug": "patch-tasks-id-checklists-steps-step-id",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Pass a check",
+                                "note": "A step that asks for a result.",
+                                "path": {
+                                    "id": 340,
+                                    "step_id": 911
+                                },
+                                "body": {
+                                    "result": "pass"
+                                }
+                            },
+                            {
+                                "title": "Not applicable",
+                                "note": "No note needed.",
+                                "path": {
+                                    "id": 340,
+                                    "step_id": 912
+                                },
+                                "body": {
+                                    "result": "na"
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The task or the step does not exist, is outside the key's companies, or the step is not on this task."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "Neither or both of completed and result were sent; completed is not true or false; an unknown result; a result on a step that does not ask for one."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "missing_field",
+                                "when": "A step that asks for a value was ticked without one; a result step was ticked instead of answered; a fail has no note."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "disabled",
+                                "when": "Checklists on tasks are switched off (Tasks -> Settings -> Checklists)."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "checklist_locked",
+                                "when": "The task is complete and Tasks -> Settings -> Evidence refuses changes to a completed task's checklist."
                             }
                         ]
                     }

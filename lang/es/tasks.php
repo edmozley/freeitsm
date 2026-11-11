@@ -364,6 +364,7 @@ return [
         'result_na' => 'No aplicable',
         'result_none' => 'borrado',
         'after_completion' => '(después de completarse la tarea)',
+        'via_api' => '(mediante la API)',   // GH #273
         'audit' => '{field}: de {from} a {to}',
     ],
     'evidence' => [

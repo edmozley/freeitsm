@@ -23,6 +23,7 @@ require_once __DIR__ . '/resources/problems.php';
 require_once __DIR__ . '/resources/changes.php';
 require_once __DIR__ . '/resources/knowledge.php';
 require_once __DIR__ . '/resources/tasks.php';
+require_once __DIR__ . '/resources/checklists.php';   // GH #273 - needs tickets.php and tasks.php
 require_once __DIR__ . '/resources/cmdb.php';
 require_once __DIR__ . '/resources/virtual_estate.php';   // GH #199
 require_once __DIR__ . '/resources/contracts.php';
@@ -112,7 +113,7 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
         'endpoints' => [
             'GET /ping', 'GET /tickets', 'POST /tickets', 'GET /tickets/{id}', 'PATCH /tickets/{id}',
             'DELETE /tickets/{id}', 'POST /tickets/{id}/restore', 'GET /tickets/{id}/notes',
-            'POST /tickets/{id}/notes', 'GET /tickets/{id}/thread', 'GET /tickets/{id}/audit',
+            'POST /tickets/{id}/notes', 'GET /tickets/{id}/checklists', 'PATCH /tickets/{id}/checklists/steps/{step_id}', 'GET /tickets/{id}/thread', 'GET /tickets/{id}/audit',
             'GET /tickets/{id}/sla', 'GET /tickets/{id}/time-entries', 'POST /tickets/{id}/time-entries',
             'DELETE /tickets/{id}/time-entries/{entry_id}',
             'GET /assets', 'POST /assets', 'GET /assets/{id}', 'PATCH /assets/{id}',
@@ -144,6 +145,7 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /tasks', 'POST /tasks', 'GET /tasks/{id}', 'PATCH /tasks/{id}', 'DELETE /tasks/{id}',
             'POST /tasks/{id}/move', 'GET /tasks/{id}/comments', 'POST /tasks/{id}/comments',
             'GET /tasks/{id}/forms', 'POST /tasks/{id}/forms/{task_form_id}/submissions',
+            'GET /tasks/{id}/checklists', 'PATCH /tasks/{id}/checklists/steps/{step_id}',
             'GET /task-statuses', 'GET /task-priorities', 'GET /task-tags',
             'GET /cmdb/classes', 'GET /cmdb/classes/{id}', 'GET /cmdb/objects', 'POST /cmdb/objects',
             'GET /cmdb/objects/{id}', 'PATCH /cmdb/objects/{id}', 'DELETE /cmdb/objects/{id}',

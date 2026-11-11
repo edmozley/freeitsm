@@ -17,6 +17,9 @@ return [
 
     ['GET',    '#^/tickets/(\d+)/notes$#',                 ['ticket_notes', 'read'],          'apiTicketNotesList'],
     ['POST',   '#^/tickets/(\d+)/notes$#',                 ['ticket_notes', 'create'],        'apiTicketNotesCreate'],
+    // GH #273: checklists, the same shape on tickets and tasks.
+    ['GET',    '#^/tickets/(\d+)/checklists$#',            ['ticket_checklists', 'read'],     'apiTicketChecklistsList'],
+    ['PATCH',  '#^/tickets/(\d+)/checklists/steps/(\d+)$#', ['ticket_checklists', 'update'], 'apiTicketChecklistStepUpdate'],
     ['GET',    '#^/tickets/(\d+)/thread$#',                ['ticket_thread', 'read'],         'apiTicketThreadList'],
     ['GET',    '#^/tickets/(\d+)/audit$#',                 ['ticket_audit', 'read'],          'apiTicketAuditList'],
     ['GET',    '#^/tickets/(\d+)/sla$#',                   ['ticket_sla', 'read'],            'apiTicketSlaGet'],
@@ -120,6 +123,8 @@ return [
     // GH #190 phase 5: the forms a task occurrence needs, and submitting one for it.
     ['GET',    '#^/tasks/(\d+)/forms$#',                   ['task_forms', 'read'],            'apiTaskFormsList'],
     ['POST',   '#^/tasks/(\d+)/forms/(\d+)/submissions$#',  ['task_forms', 'create'],          'apiTaskFormSubmit'],
+    ['GET',    '#^/tasks/(\d+)/checklists$#',              ['task_checklists', 'read'],       'apiTaskChecklistsList'],
+    ['PATCH',  '#^/tasks/(\d+)/checklists/steps/(\d+)$#',   ['task_checklists', 'update'],     'apiTaskChecklistStepUpdate'],
     ['GET',    '#^/task-statuses$#',                       ['reference', 'read'],             'apiTaskStatusesList'],
     ['GET',    '#^/task-priorities$#',                     ['reference', 'read'],             'apiTaskPrioritiesList'],
     ['GET',    '#^/task-tags$#',                           ['reference', 'read'],             'apiTaskTagsList'],

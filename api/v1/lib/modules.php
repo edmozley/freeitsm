@@ -21,6 +21,7 @@
 const API_V1_RESOURCE_MODULES = [
     // Tickets (always on)
     'tickets' => ['tickets'], 'ticket_notes' => ['tickets'], 'ticket_thread' => ['tickets'],
+    'ticket_checklists' => ['tickets', 'checklists'],   // GH #273: refused while Checklists is switched off
     // A Tickets feature with its own switch (slice 2) is listed beside Tickets.
     'ticket_audit' => ['tickets'], 'ticket_sla' => ['tickets', 'sla'], 'ticket_time_entries' => ['tickets', 'time-tracking'],
     'users' => ['tickets'],
@@ -41,6 +42,7 @@ const API_V1_RESOURCE_MODULES = [
     'knowledge' => ['knowledge'], 'knowledge_versions' => ['knowledge'],
     // Tasks
     'tasks' => ['tasks'], 'task_comments' => ['tasks'], 'task_forms' => ['tasks', 'forms'],
+    'task_checklists' => ['tasks', 'checklists'],   // GH #273
     // CMDB
     'cmdb_classes' => ['cmdb'], 'cmdb_objects' => ['cmdb'], 'cmdb_relationships' => ['cmdb'],
     'cmdb_ticket_links' => ['cmdb'],

@@ -780,12 +780,14 @@ class ChecklistsService
     {
         $pick = fn(array $r) => array_intersect_key($r, array_flip(['is_completed', 'response_value', 'completed_by_name',
             'completed_datetime', 'result', 'exception_note']));
+        $afterJson = $pick($after);
+        if ($ctx->source === 'api') $afterJson['via'] = 'api';   // GH #273: the history line says "via the API"
         try {
             $conn->prepare("INSERT INTO task_checklist_item_events (task_id, task_checklist_id, item_id, checklist_title, item_title,
                                    action, before_json, after_json, after_completion, analyst_id, actor_name, created_datetime)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
                  ->execute([(int)$before['task_id'], (int)$before['checklist_id'], (int)$before['id'], $before['checklist_title'],
-                            $before['title'], $action, json_encode($pick($before)), json_encode($pick($after)),
+                            $before['title'], $action, json_encode($pick($before)), json_encode($afterJson),
                             self::taskIsClosed($conn, (int)$before['task_id']) ? 1 : 0,
                             $ctx->actorId > 0 ? $ctx->actorId : null, $ctx->actorName !== '' ? $ctx->actorName : null]);
         } catch (Throwable $e) {
@@ -1404,6 +1406,9 @@ class ChecklistsService
      */
     private static function writeStepNote(PDO $conn, ActorContext $ctx, int $ticketId, string $text): void
     {
+        // GH #273: a step changed through the REST API says so, as a person reading
+        // the ticket would otherwise take the key's analyst to have done it by hand.
+        if ($ctx->source === 'api') $text .= ' (via the API)';
         try {
             if ($ctx->actorId > 0) {
                 require_once __DIR__ . '/tickets.php';
