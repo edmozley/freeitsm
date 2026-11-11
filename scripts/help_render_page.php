@@ -22,8 +22,10 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 [, $page, $locale, $analystId] = $argv + [null, null, null, null];
 $root = dirname(__DIR__);
 $page = str_replace('\\', '/', (string)$page);
+// A page may carry a query string - system/integrations/help.php?provider=jira.
+[$page, $query] = array_pad(explode('?', $page, 2), 2, '');
 if (!$page || !preg_match('~^[a-z0-9_-]+(/[a-z0-9_-]+)*/help[a-z0-9_-]*\.php$|^system/help/[a-z0-9-]+\.php$~', $page)
-    || !is_file("$root/$page") || !$locale || (int)$analystId <= 0) {
+    || !is_file("$root/$page") || !$locale || (int)$analystId <= 0 || !preg_match('/^[a-z0-9_=&-]*$/', $query)) {
     fwrite(STDERR, "usage: php scripts/help_render_page.php <page> <locale> <analyst id>\n");
     exit(2);
 }
@@ -38,7 +40,10 @@ session_start();
 $_SESSION['analyst_id'] = (int)$analystId;
 $_SERVER['REQUEST_METHOD'] = 'GET';
 $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'] = $_SERVER['PHP_SELF'] = '/' . $page;
+$_SERVER['SCRIPT_NAME'] = $_SERVER['PHP_SELF'] = '/' . $page;
+$_SERVER['REQUEST_URI'] = '/' . $page . ($query !== '' ? "?$query" : '');
+$_SERVER['QUERY_STRING'] = $query;
+parse_str($query, $_GET);
 
 ob_start();
 register_shutdown_function(function () {

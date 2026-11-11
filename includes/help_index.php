@@ -25,6 +25,21 @@ require_once __DIR__ . '/i18n.php';
  */
 const HELP_INDEX_EXCLUDE = ['self-service/help.php', 'self-service/help-centre.php'];
 
+/**
+ * Help pages the folder scan cannot find on its own. The integrations guide is
+ * ONE page for every provider, chosen by ?provider= (it redirects without one),
+ * and System-only. Tika is left out: the page has no Tika sections and would show
+ * the issue-tracker ones - System help -> Integrations covers it.
+ */
+const HELP_INDEX_EXTRA = [
+    ['page' => 'system/integrations/help.php?provider=jira',        'module' => 'system'],
+    ['page' => 'system/integrations/help.php?provider=azuredevops', 'module' => 'system'],
+    ['page' => 'system/integrations/help.php?provider=slack',       'module' => 'system'],
+    ['page' => 'system/integrations/help.php?provider=msteams',     'module' => 'system'],
+    ['page' => 'system/integrations/help.php?provider=threecx',     'module' => 'system'],
+    ['page' => 'system/integrations/help.php?provider=zabbix',      'module' => 'system'],
+];
+
 /** A title word counts this many times over a body word. */
 const HELP_TITLE_WEIGHT = 3;
 
@@ -44,7 +59,8 @@ function helpIndexPages(string $root): array
 {
     $root = rtrim(str_replace('\\', '/', $root), '/');
     $pages = [];
-    foreach (glob("$root/*/help*.php") ?: [] as $f) {
+    // A module's help, one or two folders down (contracts/rfp-builder/help.php).
+    foreach (array_merge(glob("$root/*/help*.php") ?: [], glob("$root/*/*/help*.php") ?: []) as $f) {
         $rel = substr(str_replace('\\', '/', $f), strlen($root) + 1);
         if (in_array($rel, HELP_INDEX_EXCLUDE, true)) continue;
         $src = (string)file_get_contents($f);
@@ -55,6 +71,9 @@ function helpIndexPages(string $root): array
         $base = basename($f);
         if ($base[0] === '_' || $base === 'index.php') continue;
         $pages[] = ['page' => 'system/help/' . $base, 'module' => 'system'];
+    }
+    foreach (HELP_INDEX_EXTRA as $p) {
+        if (is_file("$root/" . strtok($p['page'], '?'))) $pages[] = $p;
     }
     usort($pages, fn($a, $b) => strcmp($a['page'], $b['page']));
     return $pages;
