@@ -96,17 +96,16 @@ window.TicketTable = (() => {
 
     /**
      * Closes the ticket beside the table and gives the table the width back.
-     * Escape does the same (inbox.js), after full screen has had its turn.
+     * Full-screen Back and Escape use this same direct return to the queue.
      */
-    async function backToList() {
+    function backToList() {
         if (!isActive() || !detailOpen) return;
-        if (window.TicketWorkspace && !await TicketWorkspace.canLeave()) return;
-        // TRAP: leave full screen through its own exit, never by removing the
-        // class - toggleTicketPopout() also clears the saved preference and puts
-        // the action row back. Taking the class alone left "full screen" saved,
-        // so the next ticket opened full screen again.
-        if (document.body.classList.contains('ticket-popout')) toggleTicketPopout();
+        if (typeof ticketPendingWrites !== 'undefined' && ticketPendingWrites > 0) return;
+        // TRAP: this only hides the retained editor. canLeave() would discard
+        // its drafts; toggleTicketPopout() would overwrite the saved layout.
+        // Ask the native leave guard when a different ticket is opened instead.
         showDetail(false);
+        leaveTicketPopout();
         // Keep both DOMs: returning to the queue must not reset its page,
         // filters or scroll, nor replace a live task editor or ticket thread.
         (document.querySelector('#dtBody .selected') || document.getElementById('dtSearch')).focus({preventScroll: true});

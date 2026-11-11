@@ -1149,7 +1149,7 @@ async function moveTicketCompany(targetId) {
             // Moving may take the ticket out of the active-company view, so refresh.
             loadFolderCounts();
             loadEmails();
-            selectEmail(currentEmail.id); // re-open to refresh the company field + banner
+            selectEmail(currentEmail.id, {refresh: true}); // refresh the company field + banner
         } else {
             showToast('Could not move ticket: ' + (data.error || 'unknown error'), 'error');
         }
@@ -2012,7 +2012,7 @@ async function handleTicketDrop(targetEl, ticketId, ticketNumber) {
         // If the dragged ticket is the one open in the reading pane, refresh it
         // so the Department/Status dropdowns show the new values.
         if (currentEmail && String(currentEmail.ticket_id) === String(ticketId)) {
-            loadTicketById(currentEmail.ticket_id);
+            loadTicketById(currentEmail.ticket_id, {refresh: true});
         }
     } catch (err) {
         console.error('Drop assign error:', err);
@@ -2477,7 +2477,7 @@ async function onSelectionChanged({ clickedId = null, fromKeys = false } = {}) {
         hideSelectionBar();
         hideKeepModeWarning();
         const only = Array.from(selectedEmailIds)[0];
-        if (only !== selectedEmailId) selectEmail(only);
+        if (only !== selectedEmailId || ticketPopoutPaused || tableShownAlone()) selectEmail(only);
         else window.TicketTable?.showDetail();
         return;
     }
@@ -3000,10 +3000,26 @@ function bulkProgressHtml() {
             </div>`;
 }
 
-// Select and display email by email ID
-async function selectEmail(emailId) {
+// Select and display email by email ID. Mutation callbacks pass refresh:true
+// so a delayed response updates the retained ticket without navigating to it.
+async function selectEmail(emailId, {refresh = false} = {}) {
     if (window.TicketWorkspace?.isActive() && selectedEmailId !== emailId && !await TicketWorkspace.canLeave()) return;
-    window.TicketTable?.showDetail();
+    const sameTicket = currentEmail && (currentEmail.id === emailId || (emailId < 0 && Number(currentEmail.ticket_id) === -emailId));
+    const retained = !refresh && sameTicket && (ticketPopoutPaused || tableShownAlone());
+    if (!refresh) {
+        ticketPopoutPaused = false;
+        window.TicketTable?.showDetail();
+    }
+    // Back keeps the editor in the DOM. Reopening it must not fetch and replace
+    // that DOM, which would lose its drafts; invalidate any older read instead.
+    if (retained) {
+        ticketSelectionGeneration++;
+        selectedEmailId = selectionAnchorId = selectionFocusId = emailId;
+        selectedEmailIds = new Set([emailId]);
+        setSelectedEmailRow(emailId);
+        syncPopoutToTicketState(true);
+        return;
+    }
     // 🔑 A NEGATIVE ID IS A TICKET WITH NO EMAIL. get_emails.php sends
     // COALESCE(le.id, -t.id), so the sign says which kind of thing the row is.
     // Selection, drag and the highlight all work off this id unchanged; only
@@ -3013,7 +3029,7 @@ async function selectEmail(emailId) {
         selectionAnchorId = emailId;
         selectionFocusId  = emailId;
         setSelectedEmailRow(emailId);
-        return loadTicketById(-emailId);
+        return loadTicketById(-emailId, {refresh});
     }
     selectedEmailId = emailId;
     const selectionGeneration = ++ticketSelectionGeneration;
@@ -3067,9 +3083,12 @@ async function selectEmail(emailId) {
 }
 
 // Load and display ticket by ticket ID (from URL parameter)
-async function loadTicketById(ticketId) {
+async function loadTicketById(ticketId, {refresh = false} = {}) {
     if (window.TicketWorkspace?.isActive() && Number(currentEmail?.ticket_id) !== Number(ticketId) && !await TicketWorkspace.canLeave()) return;
-    window.TicketTable?.showDetail();
+    if (!refresh) {
+        ticketPopoutPaused = false;
+        window.TicketTable?.showDetail();
+    }
     const selectionGeneration = ++ticketSelectionGeneration;
     const readingPane = document.getElementById('readingPane');
     if (!(window.TicketWorkspace?.isActive() && Number(currentEmail?.ticket_id) === Number(ticketId)))
@@ -3135,7 +3154,7 @@ async function setTicketWorkspace(value) {
     } finally {
         ticketPendingWrites--;
         // Read after the save rather than trusting a poll with the old flag.
-        if (Number(currentEmail?.ticket_id) === id) loadTicketById(id);
+        if (Number(currentEmail?.ticket_id) === id) loadTicketById(id, {refresh: true});
     }
 }
 
@@ -3653,7 +3672,7 @@ async function doLinkTicketProblem(target) {
         if (data.success) {
             showToast('Linked to problem', 'success');
             closeLinkProblemModal();
-            if (currentEmail && currentEmail.ticket_id == linkProblemTicketId) selectEmail(currentEmail.id);
+            if (currentEmail && currentEmail.ticket_id == linkProblemTicketId) selectEmail(currentEmail.id, {refresh: true});
         } else showToast('Could not link: ' + (data.error || 'unknown error'), 'error');
     } catch (e) { showToast('Failed to link problem', 'error'); }
 }
@@ -3666,7 +3685,7 @@ async function unlinkTicketFromProblem(problemId) {
             body: JSON.stringify({ problem_id: problemId, ticket_id: currentEmail.ticket_id })
         });
         const data = await res.json();
-        if (data.success) { showToast('Unlinked', 'success'); selectEmail(currentEmail.id); }
+        if (data.success) { showToast('Unlinked', 'success'); selectEmail(currentEmail.id, {refresh: true}); }
         else showToast(data.error || 'Failed', 'error');
     } catch (e) { showToast('Failed', 'error'); }
 }
@@ -3745,7 +3764,7 @@ async function doLinkTicketChange(changeId) {
         if (data.success) {
             showToast('Linked to change', 'success');
             closeLinkChangeModal();
-            if (currentEmail && currentEmail.ticket_id == linkChangeTicketId) selectEmail(currentEmail.id);
+            if (currentEmail && currentEmail.ticket_id == linkChangeTicketId) selectEmail(currentEmail.id, {refresh: true});
         } else showToast('Could not link: ' + (data.error || 'unknown error'), 'error');
     } catch (e) { showToast('Failed to link change', 'error'); }
 }
@@ -3758,7 +3777,7 @@ async function unlinkTicketFromChange(changeId) {
             body: JSON.stringify({ change_id: changeId, ticket_id: currentEmail.ticket_id })
         });
         const data = await res.json();
-        if (data.success) { showToast('Unlinked', 'success'); selectEmail(currentEmail.id); }
+        if (data.success) { showToast('Unlinked', 'success'); selectEmail(currentEmail.id, {refresh: true}); }
         else showToast(data.error || 'Failed', 'error');
     } catch (e) { showToast('Failed', 'error'); }
 }
@@ -4572,7 +4591,7 @@ async function submitEscalateTracker() {
             // new pill appear.
             const reloadId = escalateTicketId;
             closeEscalateTrackerModal();
-            loadTicketById(reloadId);
+            loadTicketById(reloadId, {refresh: true});
         } else {
             // Pass the real reason through: "Epic Link is required", or the
             // company guard's refusal. A generic failure teaches nobody anything.
@@ -4647,7 +4666,7 @@ async function pickLinkTicket(targetId) {
         if (data.success) {
             showToast('Tickets linked', 'success');
             closeLinkTicketModal();
-            if (currentEmail && currentEmail.ticket_id == linkTicketSourceId) selectEmail(currentEmail.id);
+            if (currentEmail && currentEmail.ticket_id == linkTicketSourceId) selectEmail(currentEmail.id, {refresh: true});
         } else showToast(data.error || 'Could not link', 'error');
     } catch (e) { showToast('Failed to link tickets', 'error'); }
 }
@@ -4660,7 +4679,7 @@ async function unlinkTicketLink(linkId) {
             body: JSON.stringify({ link_id: linkId })
         });
         const data = await res.json();
-        if (data.success) { showToast('Unlinked', 'success'); if (currentEmail) selectEmail(currentEmail.id); }
+        if (data.success) { showToast('Unlinked', 'success'); if (currentEmail) selectEmail(currentEmail.id, {refresh: true}); }
         else showToast(data.error || 'Failed', 'error');
     } catch (e) { showToast('Failed', 'error'); }
 }
@@ -7968,7 +7987,7 @@ async function saveSubject() {
         closeSubjectModal();
         await loadEmails();
         // Repaint the reading pane if the renamed ticket is the one on screen.
-        if (openId) selectEmail(openId);
+        if (openId) selectEmail(openId, {refresh: true});
     } catch (e) {
         showToast(t('tickets.subject.failed'), 'error');
         btn.disabled = false;
@@ -8805,7 +8824,7 @@ async function sendEmailNow() {
             closeEmailModal();
             // Refresh the current view to show the sent email
             if (currentEmail) {
-                selectEmail(selectedEmailId);
+                selectEmail(selectedEmailId, {refresh: true});
             }
         } else {
             showToast('Failed to send email: ' + data.error, 'error');
@@ -10411,10 +10430,24 @@ document.addEventListener('keydown', function(e) {
  * restructuring. Preference persists in localStorage so the analyst's choice
  * sticks across reloads / ticket selections.
  */
+let ticketPopoutPaused = false; // Back shows the queue until an explicit ticket open, even if its data refreshes.
 function toggleTicketPopout() {
+    ticketPopoutPaused = false;
     const on = document.body.classList.toggle('ticket-popout');
     try { localStorage.setItem('tickets_popout', on ? '1' : '0'); } catch (e) {}
     applyPopoutChrome(on);
+}
+
+/** Return to the queue in one step; the shrink icon remains a separate layout choice. */
+function backToTicketList() {
+    if (window.TicketTable?.isActive()) return TicketTable.backToList();
+    leaveTicketPopout();
+}
+
+/** A navigation exit, not a preference change. Keep the ticket and its drafts for reopening. */
+function leaveTicketPopout() {
+    ticketPopoutPaused = true;
+    syncPopoutToTicketState(false);
 }
 
 /* GH #225. The action row above a full-screen ticket names the ticket and offers
@@ -10463,7 +10496,7 @@ function focusTicketScroller() {
  *  nothing, so focus just leaves the ticket. */
 function focusTicketList() {
     const row = selectionFocusId !== null ? document.querySelector(ticketRowSelector(`[data-email-id="${selectionFocusId}"]`)) : null;
-    if (row && row.tabIndex >= 0) { row.focus({ preventScroll: true }); scrollRowIntoView(selectionFocusId); return; }
+    if (row && row.tabIndex >= 0) { row.focus({ preventScroll: true }); return; }
     const f = document.activeElement;
     if (f && f !== document.body && f.closest && f.closest('.reading-pane')) f.blur();
 }
@@ -10488,11 +10521,9 @@ document.addEventListener('pointerdown', function (e) {
     }
 }, true);
 
-/* Escape steps back one level - full screen to the ticket beside the table (or
- * the three panes), then, in the table, the ticket closed and the table full
- * width (PR #223) - after anything nearer has had it: a dialog, a floating
- * window (FloatWin closes the focused one first), the AI panel, a field or the
- * reply editor. */
+/* Escape returns to the queue in one step, like Back, after anything nearer has
+ * had it: a dialog, a floating window (FloatWin closes the focused one first),
+ * the AI panel, a field or the reply editor. */
 document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape' || e.defaultPrevented) return;
     const popout = document.body.classList.contains('ticket-popout');
@@ -10507,8 +10538,7 @@ document.addEventListener('keydown', function (e) {
     if (window.FloatWin && document.querySelector('.fw-layer') && FloatWin.page().active()) return;
     if (typeof tinymce !== 'undefined' && tinymce.activeEditor && tinymce.activeEditor.hasFocus && tinymce.activeEditor.hasFocus()) return;
     e.preventDefault();
-    if (popout) toggleTicketPopout();
-    else TicketTable.backToList();
+    backToTicketList();
 });
 
 /* Double-click on an email row: open it AND pop out. Sets the popout pref
@@ -10522,17 +10552,14 @@ function selectEmailFullScreen(emailId) {
 }
 
 /**
- * Enter on the list steps IN one level, as Escape steps out one: the ticket
- * opens (beside the table, or in the reading pane), and Enter on the ticket
+ * Enter on the list opens the ticket using the saved layout; Enter on the ticket
  * already showing makes it full screen. A ticket the table's Back closed is
  * shown again as it was - its draft is still in the pane.
  */
 function enterRow(emailId) {
     const showing = currentEmail && currentEmail.id === emailId;
     if (tableShownAlone()) {
-        if (showing) window.TicketTable.showDetail();
-        else selectEmail(emailId);
-        return;
+        return selectEmail(emailId);
     }
     if (showing) openRowFullScreen(emailId);
     else selectEmail(emailId);
@@ -10541,7 +10568,7 @@ function enterRow(emailId) {
 /** Double-click: the ticket, straight to full screen. One already open just
  *  goes full screen - reopening it would throw away a half-written reply. */
 function openRowFullScreen(emailId) {
-    if (currentEmail && currentEmail.id === emailId) {
+    if (currentEmail && currentEmail.id === emailId && !ticketPopoutPaused && !tableShownAlone()) {
         if (!document.body.classList.contains('ticket-popout')) toggleTicketPopout();
         return;
     }
@@ -10719,9 +10746,11 @@ async function deleteTimeEntry(id) {
 // always strip the class). Tying popout to a rendered ticket avoids the
 // trap where an F5 with the pref saved leaves the user with folder + list
 // hidden and the empty "select a ticket" message in the reading pane.
+// After Back, even a successful refresh stays beside/behind the queue until
+// the analyst explicitly opens a ticket again.
 function syncPopoutToTicketState(hasTicket) {
     const was = document.body.classList.contains('ticket-popout');
-    if (!hasTicket) {
+    if (!hasTicket || ticketPopoutPaused) {
         document.body.classList.remove('ticket-popout');
         if (was) applyPopoutChrome(false);
         return;
@@ -11084,7 +11113,7 @@ async function moveToCompanyFromContext(tenantId) {
         showToast(data.message || 'Ticket moved', 'success');
         if (currentEmail && currentEmail.ticket_id == targetId) {
             currentEmail.tenant_id = tenantId;
-            selectEmail(currentEmail.id); // refresh the open ticket's company field + banner
+            selectEmail(currentEmail.id, {refresh: true}); // refresh the open ticket's company field + banner
         }
         loadFolderCounts();
         loadEmails();
@@ -11886,7 +11915,7 @@ async function wakeTickets(ids) {
         const openId = (currentEmail && ids.includes(Number(currentEmail.ticket_id))) ? currentEmail.id : null;
         loadFolderCounts();
         await loadEmails();
-        if (openId) selectEmail(openId);
+        if (openId) selectEmail(openId, {refresh: true});
     } catch (e) {
         showToast(t('tickets.snooze.wake_failed') + ': ' + e.message, 'error');
     }

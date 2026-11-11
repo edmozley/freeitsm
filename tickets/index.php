@@ -109,7 +109,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
           // GH #225: Back shows only in full screen (inbox.js applyPopoutChrome).
           renderActionRow(t('tickets.nav.inbox'), [
                   ['label' => t('tickets.reading_pane.popout_back'), 'title' => t('tickets.reading_pane.popout_back_title'),
-                   'onclick' => 'toggleTicketPopout()', 'id' => 'popoutBackBtn', 'hidden' => true],
+                   'onclick' => 'backToTicketList()', 'id' => 'popoutBackBtn', 'hidden' => true],
                   actionRowNew('openNewTicketModal()', t('tickets.list.new_ticket_btn'))],
               ['extra' => '<button type="button" id="ticketTableBack" class="action-row-btn" hidden onclick="TicketTable.backToList()" title="' . htmlspecialchars(t('tickets.queue.back_title')) . '">' . htmlspecialchars(t('tickets.queue.back')) . '</button>' . ticketListSelector($ticketListLayout), 'title_id' => 'inboxActionTitle']); ?>
 
@@ -1172,10 +1172,10 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=194"></script>
+    <script src="../assets/js/inbox.js?v=195"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
-    <script src="../assets/js/tickets-table.js?v=5"></script>
+    <script src="../assets/js/tickets-table.js?v=6"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>
     // Auto-check mailboxes every 60 seconds - and refresh the inbox whenever
