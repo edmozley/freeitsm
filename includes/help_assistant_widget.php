@@ -49,6 +49,6 @@ function helpAssistantWidgetRender(?string $module): void
     </button>
     <link rel="stylesheet" href="<?php echo $base; ?>assets/css/help-assistant.css?v=1">
     <script>window.HELP_ASSISTANT = <?php echo json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="<?php echo $base; ?>assets/js/help-assistant.js?v=1" defer></script>
+    <script src="<?php echo $base; ?>assets/js/help-assistant.js?v=2" defer></script>
     <?php
 }

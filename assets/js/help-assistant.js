@@ -172,9 +172,57 @@
         return b;
     }
 
+    // ── Opening a result ────────────────────────────────────────────────────
+    // TRAP: help pages scroll INSIDE a panel (.help-main) and the page itself is
+    // never meant to scroll. A plain #anchor makes the browser scroll every
+    // ancestor it can - the page too - so the whole page slid up under the header
+    // and chopped the top nav. The help pages' own section links avoid this the
+    // same way ("Scroll within the help container, not the page").
+
+    /** The nearest ancestor that scrolls - the help page's panel. */
+    function scrollParent(node) {
+        for (var p = node.parentElement; p && p !== document.body; p = p.parentElement) {
+            var o = getComputedStyle(p).overflowY;
+            if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p;
+        }
+        return null;
+    }
+
+    /** Put the page back at the top, then bring a section into view inside its panel. */
+    function reveal(id, smooth) {
+        var docEl = document.scrollingElement || document.documentElement;
+        docEl.scrollTop = 0;
+        document.body.scrollTop = 0;
+        var target = id ? document.getElementById(id) : null;
+        if (!target) return;
+        var panelEl = scrollParent(target);
+        if (!panelEl) { target.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }); return; }
+        panelEl.scrollTo({ top: panelEl.scrollTop + target.getBoundingClientRect().top - panelEl.getBoundingClientRect().top - 20, behavior: smooth ? 'smooth' : 'auto' });
+    }
+
+    /** The same page? Pretty URLs drop .php, so compare without it. */
+    function samePage(u) {
+        var norm = function (p) { return p.replace(/\/index\.php$/, '/').replace(/\.php$/, '').replace(/\/$/, ''); };
+        return u.origin === location.origin && norm(u.pathname) === norm(location.pathname) && u.search === location.search;
+    }
+
+    function openResult(e) {
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;   // a new tab: leave it to the browser
+        var u = new URL(this.href, location.href);
+        var id = decodeURIComponent(u.hash.slice(1));
+        if (samePage(u)) {
+            e.preventDefault();
+            history.replaceState(history.state, '', u.hash || location.pathname + location.search);
+            reveal(id, true);
+        } else {
+            store.set('jump', id);   // the next page puts itself right once it has loaded
+        }
+    }
+
     function card(r, best) {
         var a = el('a', 'hlpa-card' + (best ? ' hlpa-best' : ''));
         a.href = r.url;
+        a.addEventListener('click', openResult);
         a.appendChild(el('div', 'hlpa-card-title', r.title));
         if (r.page_title) a.appendChild(el('div', 'hlpa-card-page', r.page_title));
         if (r.snippet) a.appendChild(el('div', 'hlpa-card-snip', r.snippet));
@@ -250,6 +298,17 @@
             .then(function (d) { if (d.success) greeting(); })
             .catch(function () { /* left as it was */ });
         input.focus();
+    }
+
+    // Arrived from a result on another page: the browser has already jumped to the
+    // #anchor, page and all - put the page back and scroll the panel instead.
+    var jump = store.get('jump', null);
+    if (jump !== null) {
+        store.set('jump', null);
+        if (decodeURIComponent(location.hash.slice(1)) === jump) {
+            var fix = function () { reveal(jump, false); };
+            if (document.readyState === 'complete') setTimeout(fix, 0); else window.addEventListener('load', function () { setTimeout(fix, 0); });
+        }
     }
 
     // Open on this page if it was open on the last one - desktop only: on a phone
