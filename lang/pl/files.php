@@ -350,6 +350,7 @@ return [
             'p4' => 'Każdy folder może włączyć **znak wodny** (Uprawnienia -> Znak wodny). Każdy plik otwarty z tego folderu i folderów w nim zawartych pokazuje wtedy na całej stronie imię i nazwisko oglądającego, czas i jego adres IP - dzięki temu zrzut ekranu pokazuje, kto go zrobił. Foldery dziedziczą ustawienie po nadrzędnym, chyba że ustawiono inaczej.',
             'p5' => 'Nic z tego nie powstrzyma zdeterminowanej osoby: wszystko, co przeglądarka potrafi pokazać, można sfotografować lub przechwycić. Tryb tylko do wyświetlania i znak wodny sprawiają, że wyciek jest celowy i możliwy do wyśledzenia, ale nie niemożliwy.',
             'p6' => 'Każdy otwarty plik jest zapisywany w ścieżce audytu, wraz z informacją, która to wersja, a dla pliku zip - który plik w środku.',
+            'p7' => 'Obraz lub PDF dopasowuje się na nowo przy zmianie rozmiaru lub maksymalizacji okna, dopóki sam nie powiększysz lub nie pomniejszysz widoku; **Dopasuj** oddaje mu kontrolę. Ta sama przeglądarka otwiera obrazy i pliki PDF dołączone do zgłoszeń, w oknie nad zgłoszeniem.',
         ],
         'permissions' => [
             'nav' => 'Uprawnienia',
