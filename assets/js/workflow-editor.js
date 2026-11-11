@@ -275,7 +275,10 @@ const WFE = (() => {
         const defaults = {};
         Object.keys(def.args || {}).forEach(k => {
             const s = def.args[k];
-            if (s && typeof s === 'object' && s.default != null) defaults[k] = s.default;
+            // new_default: for a NEWLY added action only (GH #268) - never seeded into
+            // a saved one, whose missing value keeps meaning what it always meant.
+            if (s && typeof s === 'object' && s.new_default != null) defaults[k] = s.new_default;
+            else if (s && typeof s === 'object' && s.default != null) defaults[k] = s.default;
         });
         const lastY = lowestNodeY('action', 'condition', 'trigger');
         const n = addActionNode(COL_X, lastY + ROW_GAP, firstType, defaults);
@@ -1479,7 +1482,9 @@ const WFE = (() => {
         const next = {};
         Object.keys(def.args || {}).forEach(k => {
             const s = def.args[k];
-            if (s && typeof s === 'object' && s.default != null) next[k] = s.default;
+            // Changing the action's type makes it a new action: new_default applies (GH #268).
+            if (s && typeof s === 'object' && s.new_default != null) next[k] = s.new_default;
+            else if (s && typeof s === 'object' && s.default != null) next[k] = s.default;
         });
         n.args = next;
         showDetailForAction(n);

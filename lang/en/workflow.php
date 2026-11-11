@@ -317,7 +317,7 @@ return [
         'actions_row3_args' => 'ticket_id, priority_id',
         'actions_row4_does' => 'Sets a ticket\'s owner / assignee. Updates both <code>assigned_analyst_id</code> and <code>owner_id</code> so the right-pane Owner field stays in sync.',
         'actions_row4_args' => 'ticket_id, analyst_id',
-        'actions_row5_does' => 'Appends a free-text note to the ticket\'s audit trail. Internal &mdash; never sent to the requester.',
+        'actions_row5_does' => 'Adds a note. <strong>A note on the ticket</strong> (the default for a new action) writes a real note in the ticket\'s Notes, by <em>System</em> - internal, unless you tick <strong>Share with the requester</strong>. <strong>History only</strong> writes it to the ticket\'s history instead, as actions saved before 5.0.0 still do. Never emails anyone.',
         'actions_row5_args' => 'ticket_id, note',
         'actions_row6_does' => 'Sends an email to the ticket\'s requester (or any address) using the ticket\'s mailbox. Subject is prefixed with <code>[SDREF:&hellip;]</code> so replies thread back automatically. <strong>A ticket is now optional</strong> &mdash; choose a mailbox to send from instead, which is how a form acknowledges a submission before any ticket exists. Without a ticket there is nothing for a reply to thread onto, so the &ldquo;reply above this line&rdquo; marker is left off rather than inviting a reply that would go nowhere.',
         'actions_row6_args' => 'ticket_id, to, subject, body',

@@ -295,7 +295,7 @@ return [
         'actions_row3_args' => 'ticket_id, priority_id',
         'actions_row4_does' => 'Legt den Bearbeiter / die zugewiesene Person eines Tickets fest. Aktualisiert sowohl <code>assigned_analyst_id</code> als auch <code>owner_id</code>, damit das Bearbeiter-Feld im rechten Bereich synchron bleibt.',
         'actions_row4_args' => 'ticket_id, analyst_id',
-        'actions_row5_does' => 'Fügt dem Prüfprotokoll des Tickets eine Freitextnotiz hinzu. Intern &mdash; wird nie an den Anfragenden gesendet.',
+        'actions_row5_does' => 'Fügt eine Notiz hinzu. <strong>Eine Notiz am Ticket</strong> (Standard für eine neue Aktion) schreibt eine echte Notiz in die Notizen des Tickets, von <em>System</em> - intern, sofern Sie nicht <strong>Mit dem Anfragenden teilen</strong> anhaken. <strong>Nur Verlauf</strong> schreibt sie stattdessen in den Verlauf des Tickets, wie es vor 5.0.0 gespeicherte Aktionen weiterhin tun. Sendet nie eine E-Mail.',
         'actions_row5_args' => 'ticket_id, note',
         'actions_row6_does' => 'Sendet eine E-Mail an den Anfragenden des Tickets (oder eine beliebige Adresse) über das Postfach des Tickets. Dem Betreff wird <code>[SDREF:&hellip;]</code> vorangestellt, damit Antworten automatisch dem Thread zugeordnet werden.',
         'actions_row6_args' => 'ticket_id, to, subject, body',

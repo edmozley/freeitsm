@@ -147,6 +147,7 @@ class WorkflowTemplates
                         'type' => 'add_ticket_note',
                         'args' => [
                             'ticket_id' => '{{ticket.id}}',
+                            'write_to'  => 'note',   // GH #268: a real note, by System
                             'note'      => "The development team have finished {{tracker.key}} ({{tracker.status_name}}).\n\n{{tracker.url}}",
                         ],
                     ],
@@ -189,6 +190,7 @@ class WorkflowTemplates
                         'type' => 'add_ticket_note',
                         'args' => [
                             'ticket_id' => '{{ticket.id}}',
+                            'write_to'  => 'note',   // GH #268: a real note, by System
                             'note'      => 'P1 workflow fired: the team has been alerted in chat.',
                         ],
                     ],
@@ -220,6 +222,7 @@ class WorkflowTemplates
                         'type' => 'add_ticket_note',
                         'args' => [
                             'ticket_id' => '{{ticket.id}}',
+                            'write_to'  => 'note',   // GH #268: a real note, by System
                             'note'      => 'Escalated to P1 — the team has been alerted in chat.',
                         ],
                     ],
@@ -320,6 +323,7 @@ class WorkflowTemplates
                         'type' => 'add_ticket_note',
                         'args' => [
                             'ticket_id' => '{{ticket.id}}',
+                            'write_to'  => 'note',   // GH #268: a real note, by System
                             'note'      => 'SLA warning: {{sla.percent}}% of the resolution target used, {{sla.remaining_minutes}} minutes remaining. The team has been alerted.',
                         ],
                     ],
@@ -345,6 +349,7 @@ class WorkflowTemplates
                         'type' => 'add_ticket_note',
                         'args' => [
                             'ticket_id' => '{{ticket.id}}',
+                            'write_to'  => 'note',   // GH #268: a real note, by System
                             'note'      => 'SLA BREACHED: the {{sla.target}} target was missed by {{sla.overdue_minutes}} minutes.',
                         ],
                     ],

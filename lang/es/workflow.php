@@ -295,7 +295,7 @@ return [
         'actions_row3_args' => 'ticket_id, priority_id',
         'actions_row4_does' => 'Fija el propietario / responsable de un ticket. Actualiza tanto <code>assigned_analyst_id</code> como <code>owner_id</code> para que el campo Propietario del panel derecho se mantenga sincronizado.',
         'actions_row4_args' => 'ticket_id, analyst_id',
-        'actions_row5_does' => 'Añade una nota de texto libre al historial del ticket. Interna &mdash; nunca se envía al solicitante.',
+        'actions_row5_does' => 'Añade una nota. <strong>Una nota en el ticket</strong> (lo predeterminado para una acción nueva) escribe una nota real en las Notas del ticket, de <em>Sistema</em> - interna, salvo que marque <strong>Compartir con el solicitante</strong>. <strong>Solo historial</strong> la escribe en el historial del ticket, como siguen haciendo las acciones guardadas antes de 5.0.0. Nunca envía correos.',
         'actions_row5_args' => 'ticket_id, note',
         'actions_row6_does' => 'Envía un correo al solicitante del ticket (o a cualquier dirección) usando el buzón del ticket. El asunto lleva el prefijo <code>[SDREF:&hellip;]</code> para que las respuestas se enlacen automáticamente al hilo. <strong>Ahora el ticket es opcional</strong> &mdash; elige un buzón desde el que enviar en su lugar, que es como un formulario confirma un envío antes de que exista ningún ticket. Sin un ticket no hay nada a lo que enlazar una respuesta, así que se omite la marca "responde por encima de esta línea" en lugar de invitar a una respuesta que no iría a ningún sitio.',
         'actions_row6_args' => 'ticket_id, to, subject, body',

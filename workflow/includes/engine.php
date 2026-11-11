@@ -1556,10 +1556,20 @@ class WorkflowEngine
             ],
             'add_ticket_note' => [
                 'label'       => 'Add a note to the ticket',
-                'description' => 'Append a free-text note to the ticket\'s audit trail (visible to analysts; never sent to the requester).',
+                'description' => 'Add a note to the ticket. "A note on the ticket" writes a real note in its Notes, shown as written by System - internal unless you share it with the requester. "History only" writes it to the ticket\'s history instead, as this action always did. It never emails anyone.',
                 'args'        => [
                     'ticket_id' => $ticketIdArg,
                     'note'      => ['type' => 'textarea', 'label' => 'Note', 'required' => true, 'supports_vars' => true],
+                    // GH #268. The EMPTY value is "History only": a workflow saved before
+                    // this option existed has no value and must keep doing exactly what it
+                    // did. new_default (not default) applies only when the action is first
+                    // added - `default` is also seeded into existing actions when their
+                    // panel is opened, which would flip a saved workflow on its next save.
+                    'write_to'  => ['type' => 'select', 'label' => 'Write it as', 'new_default' => 'note', 'options' => [
+                        ['value' => '',     'label' => 'History only (as before)'],
+                        ['value' => 'note', 'label' => 'A note on the ticket'],
+                    ]],
+                    'shared'    => ['type' => 'bool', 'label' => 'Share the note with the requester (shows on their portal)', 'default' => false],
                 ],
             ],
             'send_email' => [
@@ -3043,15 +3053,38 @@ class WorkflowEngine
         if ($note === '') throw new Exception('note is required');
         $conn = connectToDatabase();
         self::assertRecordInRunCompany($conn, 'tickets', $ticketId, 'ticket');
-        // Use the same `ticket_audit` table the rest of the app writes to
-        // for analyst-visible activity. analyst_id is null to flag this as
-        // a workflow-engine-driven note (so the UI can render it differently
-        // if it wants to).
+
+        // GH #268: a REAL note, in the ticket's Notes, written by System (analyst_id
+        // NULL - possible since GH #281). Internal unless shared with the requester.
+        //
+        // TRAP: no ticket.note_added is dispatched for it. A workflow that adds a note
+        // whenever a note is added would otherwise trigger itself until the chain
+        // depth stopped it - and nobody needs a bell for a workflow's own note.
+        if (($args['write_to'] ?? '') === 'note') {
+            $shared = self::argBool($args, 'shared', $payload, false);
+            try {
+                $conn->prepare(
+                    "INSERT INTO ticket_notes (ticket_id, analyst_id, note_text, is_internal, created_datetime)
+                     VALUES (?, NULL, ?, ?, UTC_TIMESTAMP())"
+                )->execute([$ticketId, $note, $shared ? 0 : 1]);
+                $noteId = (int)$conn->lastInsertId();
+                $conn->prepare("UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$ticketId]);
+                return ['ticket_id' => $ticketId, 'note_id' => $noteId, 'written_as' => 'note', 'shared' => $shared, 'note_length' => strlen($note)];
+            } catch (PDOException $e) {
+                // Before Database Verify, a note cannot be written with no author.
+                // The note still lands - in the history, as before - and the run says so.
+                $fellBack = $e->getMessage();
+            }
+        }
+
+        // History only: the ticket's audit trail, as this action always wrote it.
+        // analyst_id NULL marks it as written by the workflow engine.
         $conn->prepare(
             "INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
              VALUES (?, NULL, 'Workflow Note', NULL, ?, UTC_TIMESTAMP())"
         )->execute([$ticketId, $note]);
-        return ['ticket_id' => $ticketId, 'note_length' => strlen($note)];
+        return ['ticket_id' => $ticketId, 'written_as' => 'history', 'note_length' => strlen($note)]
+             + (isset($fellBack) ? ['fell_back' => 'Run Database Verify to write real notes: ' . $fellBack] : []);
     }
 
     /**
