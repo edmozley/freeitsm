@@ -88,7 +88,7 @@ function analystReferenceRegistry(): array {
         ['warroom_reads', 'analyst_id', 'personal'],
         ['warroom_presence', 'analyst_id', 'personal'],
         ['task_collaborators', 'analyst_id', 'personal'],
-        ['ticket_watchers', 'analyst_id', 'personal'],   // GH #277: their watches go with them
+        ['ticket_watchers', 'analyst_id', 'personal'],   // GH #277: anonymise removes them; deactivate follows the ticket_watch_inactive setting
         ['project_members', 'analyst_id', 'personal'],
         ['project_ai_messages', 'analyst_id', 'personal'],
         ['project_ai_threads', 'analyst_id', 'personal'],
@@ -651,6 +651,8 @@ function analystRemovePersonal(PDO $conn, int $analystId): int {
 function analystDeactivate(PDO $conn, ActorContext $ctx, int $analystId): void {
     analystLcAssertActionable($conn, $ctx, $analystId);
     $conn->prepare("UPDATE analysts SET is_active = 0, last_modified_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$analystId]);
+    require_once __DIR__ . '/services/ticket_watchers.php';
+    TicketWatchers::analystDeactivated($conn, $analystId);   // the 'remove' setting: off every ticket they watched
     analystLcLog($conn, $ctx, $analystId, 'deactivated');
 }
 

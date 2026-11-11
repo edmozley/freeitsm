@@ -18,6 +18,14 @@
  *   - The assignee may watch too (to keep following a ticket after handing it on);
  *     nobody is ever notified twice about one event.
  *
+ * A deactivated analyst is never told anything, whatever the setting. Tickets -> Settings ->
+ * General -> "When a watcher is deactivated" decides what happens to their watches:
+ *   - stop (the default): kept, but ignored - hidden from the ticket's watcher list and never
+ *     notified - and back as they were if the analyst is made active again;
+ *   - remove: deleted when the analyst is deactivated (analystDeactivated(), called from every
+ *     place an analyst is switched off: analystDeactivate(), AnalystsService::update(),
+ *     api/tickets/save_analyst.php). Anonymising always removes them (registry: personal).
+ *
  * Merge moves watchers to the surviving ticket without duplicates (ticket_merge.php,
  * MERGE_MOVE_DEDUPE); split leaves them on the original; trash keeps them; a
  * permanent delete removes them.
@@ -66,7 +74,42 @@ class TicketWatchers
     }
 
     /**
+     * What happens to a deactivated analyst's watches: 'stop' (kept, ignored, back on
+     * reactivation) or 'remove'. Never saved = 'stop'.
+     */
+    public static function inactivePolicy(PDO $conn): string
+    {
+        try {
+            $s = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'ticket_watch_inactive'");
+            $s->execute();
+            return $s->fetchColumn() === 'remove' ? 'remove' : 'stop';
+        } catch (Throwable) {
+            return 'stop';
+        }
+    }
+
+    /**
+     * An analyst has just been deactivated: with the 'remove' setting, take them off every
+     * ticket they watch. With 'stop' nothing is deleted - list() and audience() skip inactive
+     * analysts anyway. Never throws (it runs inside saving an analyst).
+     *
+     * @return int watches removed
+     */
+    public static function analystDeactivated(PDO $conn, int $analystId): int
+    {
+        if ($analystId <= 0 || !self::ready($conn) || self::inactivePolicy($conn) !== 'remove') return 0;
+        try {
+            $st = $conn->prepare("DELETE FROM ticket_watchers WHERE analyst_id = ?");
+            $st->execute([$analystId]);
+            return $st->rowCount();
+        } catch (Throwable) {
+            return 0;
+        }
+    }
+
+    /**
      * The analysts watching a ticket, oldest first, with their names.
+     * Active analysts only: a deactivated one's watch (kept under the 'stop' setting) is paused.
      *
      * @return list<array{analyst_id:int, name:string, added_by:?int, added_by_name:?string, added_at:string}>
      */
@@ -78,7 +121,7 @@ class TicketWatchers
                FROM ticket_watchers w
                JOIN analysts a ON a.id = w.analyst_id
                LEFT JOIN analysts b ON b.id = w.added_by_id
-              WHERE w.ticket_id = ?
+              WHERE w.ticket_id = ? AND a.is_active = 1
               ORDER BY w.created_datetime ASC, w.id ASC");
         $st->execute([$ticketId]);
         return array_map(fn($r) => [
@@ -140,7 +183,7 @@ class TicketWatchers
 
     /**
      * Who of a ticket's watchers should hear about this event: none unless watchers
-     * are told about it here, and only those who can still see the ticket.
+     * are told about it here, and only those who are active and can still see the ticket.
      * For the notifications router. Never throws.
      *
      * @return list<int>
@@ -149,7 +192,7 @@ class TicketWatchers
     {
         if ($ticketId <= 0 || !in_array($event, self::events($conn), true)) return [];
         try {
-            $st = $conn->prepare("SELECT analyst_id FROM ticket_watchers WHERE ticket_id = ?");
+            $st = $conn->prepare("SELECT w.analyst_id FROM ticket_watchers w JOIN analysts a ON a.id = w.analyst_id WHERE w.ticket_id = ? AND a.is_active = 1");
             $st->execute([$ticketId]);
             $ids = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
         } catch (Throwable) {

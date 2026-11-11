@@ -135,7 +135,7 @@ if ($wfCompanyPicker) {
     <title><?php echo htmlspecialchars(pageTitle('workflow', $id ? t('workflow.editor.edit_title') : t('workflow.editor.new_title'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/workflow.css?v=11">
+    <link rel="stylesheet" href="../assets/css/workflow.css?v=12">
     <!-- Mobile layer LAST, after workflow.css (Techniques §9). -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>

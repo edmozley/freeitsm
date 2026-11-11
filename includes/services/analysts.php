@@ -142,6 +142,10 @@ final class AnalystsService
         $args[] = $id;
         $conn->prepare("UPDATE analysts SET " . implode(', ', $sets) . ", last_modified_datetime = UTC_TIMESTAMP() WHERE id = ?")
              ->execute($args);
+        if (array_key_exists('is_active', $in) && !self::flag($in['is_active'], 'is_active') && (int)$a['is_active'] === 1) {
+            require_once __DIR__ . '/ticket_watchers.php';
+            TicketWatchers::analystDeactivated($conn, $id);   // the 'remove' setting (Tickets -> Settings -> General)
+        }
     }
 
     /**

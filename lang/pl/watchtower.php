@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> uruchomień przerwanych przez ochronę przed pętlą w ciągu ostatnich 24h',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhooków zrezygnowało z ponawiania — wiadomość nigdy nie dotarła',
         'failures' => '{count} niepowodzeń',
+        'attention' => '<span class="wt-attention-bold">{count}</span> uruchomień pominęło część zadania i zostawiło notatkę - ostatnie: {name}',
     ],
     'mc' => [
         'metric_done' => 'Wykonane',

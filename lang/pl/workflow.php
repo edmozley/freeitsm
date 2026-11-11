@@ -173,6 +173,7 @@ return [
         'skipped' => 'Pominięto (warunki nie zostały spełnione)',
         'running' => 'W trakcie',
         'aborted' => 'Przerwano (ochrona przed pętlą)',
+        'attention' => 'Do sprawdzenia (akcja zostawiła notatkę)',
     ],
     'diagnosis' => [
         'fix_link' => 'Jak to naprawić',

@@ -508,9 +508,18 @@ class ChecklistsService
     public static function taskChecklists(PDO $conn, int $taskId): array
     {
         $tenantId = self::taskTenantId($conn, $taskId);
-        $st = $conn->prepare("SELECT id, template_id, title, closure_mode, sort_order, created_datetime
-                                FROM task_checklists WHERE task_id = ? ORDER BY sort_order ASC, id ASC");
-        $st->execute([$taskId]);
+        // template_version: GET /tasks/{id}/checklists returned it as null on every task because it
+        // was never selected - the ticket twin does (#273's "one shape"). Tolerant of an install that
+        // has not run Database Verify since the column arrived.
+        try {
+            $st = $conn->prepare("SELECT id, template_id, title, closure_mode, sort_order, created_datetime, template_version
+                                    FROM task_checklists WHERE task_id = ? ORDER BY sort_order ASC, id ASC");
+            $st->execute([$taskId]);
+        } catch (PDOException $e) {
+            $st = $conn->prepare("SELECT id, template_id, title, closure_mode, sort_order, created_datetime
+                                    FROM task_checklists WHERE task_id = ? ORDER BY sort_order ASC, id ASC");
+            $st->execute([$taskId]);
+        }
         $lists = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         try {

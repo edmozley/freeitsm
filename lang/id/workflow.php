@@ -173,6 +173,7 @@ return [
         'skipped' => 'Dilewati (kondisi tidak cocok)',
         'running' => 'Berjalan',
         'aborted' => 'Dibatalkan (perlindungan loop)',
+        'attention' => 'Perlu dicek (sebuah aksi meninggalkan catatan)',
     ],
     'diagnosis' => [
         'fix_link' => 'Cara memperbaikinya',

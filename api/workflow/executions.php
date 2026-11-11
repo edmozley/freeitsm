@@ -49,6 +49,9 @@ $params = [];
 
 if ($workflowId > 0) { $where[] = 'e.workflow_id = ?';   $params[] = $workflowId; }
 if (in_array($status, $VALID_STATUS, true)) { $where[] = 'e.status = ?'; $params[] = $status; }
+// 'Needs a look': runs where an action left a note (WorkflowEngine::executeActionList) - the
+// Watchtower Workflows card links here.
+if ($status === 'attention') { $where[] = "e.step_log LIKE '%\"attention\":%'"; }
 if ($trigger !== '') { $where[] = 'e.trigger_event = ?'; $params[] = $trigger; }
 if ($dryRun !== null) { $where[] = 'e.is_dry_run = ?';   $params[] = $dryRun ? 1 : 0; }
 // Dates are compared on the DATE part so "from = to = today" means "today", not

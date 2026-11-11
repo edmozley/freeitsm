@@ -2159,6 +2159,16 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <?php endforeach; ?>
                     <small style="display:block;margin-top:6px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.watch_help')); ?></small>
                 </div>
+                <!-- A deactivated analyst is never told anything; this decides whether their
+                     watches wait for them (stop, the default) or go (remove). TicketWatchers. -->
+                <div class="form-group">
+                    <label for="watchInactive"><?php echo htmlspecialchars(t('tickets.settings.general.watch_inactive_label')); ?></label>
+                    <select id="watchInactive" style="max-width: 420px;">
+                        <option value="stop"><?php echo htmlspecialchars(t('tickets.settings.general.watch_inactive_stop')); ?></option>
+                        <option value="remove"><?php echo htmlspecialchars(t('tickets.settings.general.watch_inactive_remove')); ?></option>
+                    </select>
+                    <small style="display:block;margin-top:6px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.watch_inactive_help')); ?></small>
+                </div>
 
                 <!-- The two AI reading aids (#104, ideas 7 and 12).
                      ⚠️ Both are OFF by default and that is deliberate. Every other
@@ -7282,6 +7292,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         const on = String(watchEv).split(',').map(s => s.trim());
                         document.querySelectorAll('#watchEventsGroup .watch-event').forEach(cb => { cb.checked = on.includes(cb.value); });
                     }
+                    document.getElementById('watchInactive').value = data.settings.ticket_watch_inactive === 'remove' ? 'remove' : 'stop';
                     document.getElementById('groupShow').value = parseInt(data.settings.ticket_group_show, 10) || 6;
                     // ⚠️ '|| N' would turn a saved 0 into N, and 0 is the setting that
                     // means "never refresh by itself" — the one an administrator is most
@@ -7655,6 +7666,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 ticket_group_show:             String(document.getElementById('groupShow').value || 6),
                 ticket_flag_duplicates:        document.getElementById('flagDuplicates').checked ? '1' : '0',
                 ticket_team_folders:           document.getElementById('teamFolders').value === 'mine' ? 'mine' : 'all',
+                ticket_watch_inactive:         document.getElementById('watchInactive').value === 'remove' ? 'remove' : 'stop',
                 ticket_watch_events:           Array.from(document.querySelectorAll('#watchEventsGroup .watch-event:checked')).map(cb => cb.value).join(',')
             };
 

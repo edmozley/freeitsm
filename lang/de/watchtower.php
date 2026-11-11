@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> Lauf/Läufe in den letzten 24 Std. durch den Schleifenschutz abgebrochen',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> Webhook(s) haben die Zustellung aufgegeben — die Nachricht kam nie an',
         'failures' => '{count} Fehlschlag/Fehlschläge',
+        'attention' => '<span class="wt-attention-bold">{count}</span> Lauf/Läufe haben einen Teil ihrer Aufgabe übersprungen und einen Hinweis hinterlassen - zuletzt: {name}',
     ],
     'mc' => [
         'metric_done' => 'Erledigt',

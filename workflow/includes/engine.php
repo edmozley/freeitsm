@@ -1317,7 +1317,7 @@ class WorkflowEngine
         'problem.priority_id'        => ['table' => 'problem_priorities','label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
         'problem.assigned_analyst_id' => ['table' => 'analysts',         'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
         'object.class_id'            => ['table' => 'cmdb_classes',      'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
-        'checklist.template_id'      => ['table' => 'checklist_templates', 'label_col' => 'title', 'extra_cols' => ['category', 'keywords', 'description'], 'where' => 'is_active = 1', 'order' => 'category, title'],
+        'checklist.template_id'      => ['table' => 'checklist_templates', 'label_col' => 'title', 'extra_cols' => ['category', 'keywords', 'description'], 'where' => "is_active = 1 AND (scope IN ('ticket','both') OR scope IS NULL)", 'order' => 'category, title'],   // a tasks-only checklist cannot go on a ticket
         // GH #209. The event's company, for conditions and {{company.name}}.
         'company.id'                 => ['table' => 'tenants',           'label_col' => 'name',      'order' => 'name'],
         // GH #209, for the Set category action. Labelled with the full path by
@@ -2484,13 +2484,20 @@ class WorkflowEngine
                 // requester about it" is two actions, and the second one has to
                 // be able to name the first one's ticket.
                 self::mergeStepResult($payload, $i, $result);
-                $stepLog[] = [
+                $step = [
                     'kind'   => 'action',
                     'index'  => $i,
                     'type'   => $type,
-                    'status' => 'success',
+                    'status' => !empty($result['skipped']) && !empty($result['attention']) ? 'skipped' : 'success',
                     'result' => $result,
                 ];
+                // An action that did not do all it was asked, for a reason somebody should fix
+                // (a tasks-only checklist, say). The run still succeeds and goes on; the note
+                // shows on the step, the 'Needs a look' filter finds it, and the Watchtower
+                // Workflows card counts it. TRAP: the card and the filter match the JSON text
+                // '"attention":' in step_log - keep the key name.
+                if (!empty($result['attention'])) $step['attention'] = (string)$result['attention'];
+                $stepLog[] = $step;
             } catch (Exception $e) {
                 $stepLog[] = [
                     'kind'   => 'action',
@@ -2970,11 +2977,24 @@ class WorkflowEngine
         $conn = connectToDatabase();
         self::assertRecordInRunCompany($conn, 'tickets', $ticketId, 'ticket');
         $attached = [];
+        $notAttached = [];
 
         foreach ($templateIds as $tplIdRaw) {
             $tplId = (int)$tplIdRaw;
             if ($tplId <= 0) continue;
             self::assertSharedOrRunCompany($conn, 'checklist_templates', $tplId, 'checklist template');
+
+            // A checklist made tasks-only AFTER the workflow was saved (the picker offers ticket
+            // and both only). Skip it with a note rather than fail the run, so the other
+            // checklists and the later actions still happen - the note puts the run on the
+            // Watchtower Workflows card, so somebody finds out and fixes the workflow.
+            $sc = $conn->prepare("SELECT title, scope FROM checklist_templates WHERE id = ?");
+            $sc->execute([$tplId]);
+            $scRow = $sc->fetch(PDO::FETCH_ASSOC);
+            if ($scRow && (string)$scRow['scope'] === 'task') {
+                $notAttached[] = (string)$scRow['title'];
+                continue;
+            }
 
             // GH #271: the one copy of "attach a template", shared with the ticket
             // panel and tasks - so steps keep their descriptions and results. It
@@ -2994,11 +3014,18 @@ class WorkflowEngine
             $attached[] = (string)$t->fetchColumn();
         }
 
-        return [
+        $out = [
             'ticket_id'      => $ticketId,
             'attached_count' => count($attached),
             'checklists'     => $attached
         ];
+        if ($notAttached) {
+            $out['not_attached'] = $notAttached;
+            $out['attention'] = 'Not attached - for tasks only, so it cannot go on a ticket: "'
+                . implode('", "', $notAttached) . '". Change the workflow, or make the checklist for tickets too.';
+            if (!$attached) $out['skipped'] = true;
+        }
+        return $out;
     }
 
     /**

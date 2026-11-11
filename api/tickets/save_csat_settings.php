@@ -57,6 +57,10 @@ if ($delay < 0 || $delay > 10080) {
 
 try {
     $conn = connectToDatabase();
+    // Switching the reminder ON (it was off): remember when, so only surveys whose reminder
+    // falls due from now on are reminded - the help promises that, and an admin ticking the
+    // box must not send a burst to everybody surveyed in the last two days.
+    $wasOn = (string)$conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'csat_reminder'")->fetchColumn() === '1';
     $stmt = $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)
                             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_datetime = CURRENT_TIMESTAMP");
     $stmt->execute(['csat_mode', $mode]);
@@ -66,6 +70,9 @@ try {
     $stmt->execute(['csat_in_channel', $inCh]);
     $stmt->execute(['csat_reminder', $rem]);
     $stmt->execute(['csat_reminder_hours', (string)$remH]);
+    if ($rem === '1' && !$wasOn) {
+        $stmt->execute(['csat_reminder_since', gmdate('Y-m-d H:i:s')]);
+    }
 
     echo json_encode(['success' => true]);
 } catch (Exception $e) {

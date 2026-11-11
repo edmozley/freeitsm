@@ -173,6 +173,7 @@ return [
         'skipped' => 'Omitido (las condiciones no coincidieron)',
         'running' => 'En ejecución',
         'aborted' => 'Abortado (protección contra bucles)',
+        'attention' => 'Requiere revisión (una acción dejó una nota)',
     ],
     'diagnosis' => [
         'fix_link' => 'Cómo solucionarlo',

@@ -74,6 +74,8 @@ try {
     $si->execute([$tplId, 'Asset tag', null, 1, 'The tag', 2, 'none']);
     $si->execute([$tplId, 'Backups verified', 'Check last night\'s job.', 0, null, 3, 'pass_fail']);
     $ctx = new ActorContext($actor, null, 'ui', 'en', 'ZZ API 273');
+    // A saved version, so an attached copy records which one it came from (template_version).
+    $conn->prepare("UPDATE checklist_templates SET version_no = 3 WHERE id = ?")->execute([$tplId]);
     $tChk = (int)ChecklistsService::attachTemplateToTicket($conn, $ctx, $ticketId, $tplId);
     $setTasksOn('1');
     $conn->prepare("INSERT INTO tasks (title, created_by_id, created_datetime, updated_datetime) VALUES (?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")->execute(["ZZ #273 task", $actor]);
@@ -94,6 +96,10 @@ try {
     check("GET /tasks/{id}/checklists answers 200 ($c2)", $c2 === 200 && $taskList !== null);
     check('...in exactly the same shape as a ticket\'s', $taskList && array_keys($taskList) === array_keys($mine)
         && array_keys($taskList['steps'][0]) === array_keys($mine['steps'][0]));
+    // The keys matched while the task's template_version was always null (never selected) - values too.
+    $tv = $conn->query("SELECT template_version FROM task_checklists WHERE task_id = " . (int)$taskId . " ORDER BY id LIMIT 1")->fetchColumn();
+    check('...and the task\'s template_version is its real value, not null (' . json_encode($taskList['template_version'] ?? 'missing') . ' vs ' . var_export($tv, true) . ')',
+        $tv !== false && $tv !== null && ($taskList['template_version'] ?? null) === (int)$tv);
     [$c, $j] = $request('GET', "/tickets/$ticketId/checklists", $keys['none']);
     check("a key without ticket_checklists gets 403 ($c)", $c === 403);
 

@@ -179,6 +179,7 @@ return [
         'skipped' => 'Skipped (conditions did not match)',
         'running' => 'Running',
         'aborted' => 'Aborted (loop protection)',
+        'attention' => 'Needs a look (an action left a note)',
     ],
 
     'diagnosis' => [

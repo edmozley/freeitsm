@@ -144,6 +144,12 @@ try {
             $stmt->execute([$username, $fullName, $email, $isActive ? 1 : 0, $authProviderId, $isAdmin, $id]);
         }
         $analystId = (int)$id;
+        if (!$isActive) {
+            // Deactivated (or saved while inactive): the 'remove' setting takes them off every
+            // ticket they watch; 'stop' keeps the watches, ignored. Idempotent.
+            require_once __DIR__ . '/../../includes/services/ticket_watchers.php';
+            TicketWatchers::analystDeactivated($conn, $analystId);
+        }
         $message = 'Analyst updated successfully';
     } else {
         // Create new analyst

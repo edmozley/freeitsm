@@ -38,6 +38,11 @@ $ticketId = (int)$conn->query("SELECT id FROM tickets WHERE deleted_datetime IS 
 $oldAssignee = $conn->query("SELECT assigned_analyst_id FROM tickets WHERE id = $ticketId")->fetchColumn();
 $s = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'ticket_watch_events'"); $s->execute();
 $oldEvents = $s->fetchColumn();
+$s = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'ticket_watch_inactive'"); $s->execute();
+$oldInactive = $s->fetchColumn();
+$setInactive = fn(?string $v) => $v === null
+    ? $conn->exec("DELETE FROM system_settings WHERE setting_key = 'ticket_watch_inactive'")
+    : $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('ticket_watch_inactive', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$v]);
 $people = []; $keyIds = []; $sessions = [];
 $mk = function (string $who, int $active = 1) use ($conn, $tag, &$people, $sessDir, &$sessions): int {
     $u = $tag . $who;
@@ -151,6 +156,32 @@ try {
     [$c] = $api('DELETE', "/tickets/$ticketId/watchers/$owner", $keys['rw']);
     check("...and 404 when they were not watching ($c)", $c === 404);
 
+    echo "\nA watcher who is deactivated\n";
+    require_once 'includes/services/analysts.php';
+    require_once 'includes/analyst_lifecycle.php';
+    TicketWatchers::add($conn, $wCtx, $ticketId, $watcher, false);
+    $watching = fn(int $id) => (int)$conn->query("SELECT COUNT(*) FROM ticket_watchers WHERE ticket_id = $ticketId AND analyst_id = $id")->fetchColumn();
+    $listed = fn(int $id) => in_array($id, array_column(TicketWatchers::list($conn, $ticketId), 'analyst_id'), true);
+    $setInactive(null);
+    check('never saved = stop', TicketWatchers::inactivePolicy($conn) === 'stop');
+    AnalystsService::update($conn, $oCtx, $watcher, ['is_active' => false]);
+    check('stop: the watch is kept', $watching($watcher) === 1);
+    check('...but not shown on the ticket', !$listed($watcher));
+    $before = (int)$conn->query("SELECT COUNT(*) FROM notifications WHERE analyst_id = $watcher")->fetchColumn();
+    $fire('ticket.note_added', $owner);
+    check('...and they are told nothing', (int)$conn->query("SELECT COUNT(*) FROM notifications WHERE analyst_id = $watcher")->fetchColumn() === $before);
+    AnalystsService::update($conn, $oCtx, $watcher, ['is_active' => true]);
+    check('made active again: the watch is back', $listed($watcher));
+    $setInactive('remove');
+    AnalystsService::update($conn, $oCtx, $watcher, ['is_active' => false]);
+    check('remove: deactivating through Analysts (or the REST API) takes them off', $watching($watcher) === 0);
+    AnalystsService::update($conn, $oCtx, $watcher, ['is_active' => true]);
+    TicketWatchers::add($conn, $wCtx, $ticketId, $watcher, false);
+    analystDeactivate($conn, $oCtx, $watcher);
+    check('...and so does Deactivate on the leaving screen', $watching($watcher) === 0);
+    $conn->exec("UPDATE analysts SET is_active = 1 WHERE id = $watcher");
+    $setInactive(null);
+
     echo "\nMerge\n";
     require_once 'includes/ticket_merge.php';
     check('watchers move with a merge, once each (and come back with an unmerge)', (MERGE_MOVE_DEDUPE['ticket_watchers'] ?? '') === 'analyst_id');
@@ -163,6 +194,7 @@ try {
     $conn->exec("DELETE FROM analysts WHERE id IN ($ids)");
     foreach ($sessions as $f) @unlink($f);
     $setEvents($oldEvents === false ? null : $oldEvents);
+    $setInactive($oldInactive === false ? null : $oldInactive);
 }
 echo "\n$pass passed, $fail failed\n";
 exit($fail ? 1 : 0);

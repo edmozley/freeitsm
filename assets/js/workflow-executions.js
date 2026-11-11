@@ -283,6 +283,8 @@
             } else if (s.result) {
                 inner = '<div class="wfx-step-sub"><code>' + esc(JSON.stringify(s.result)) + '</code></div>';
             }
+            // A note the action left for a person (e.g. a tasks-only checklist it could not attach).
+            if (s.attention) inner = '<div class="wfx-step-note">' + esc(s.attention) + '</div>' + inner;
             return `<div class="wfx-step">
                 <div class="wfx-step-head">
                     <span class="wfx-step-status ${cls}">${esc(st)}</span>

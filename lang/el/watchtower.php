@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> εκτέλεση(εις) διακόπηκε από την προστασία βρόχου τις τελευταίες 24 ώρες',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook τα οποία εγκατέλειψαν τις επαναλήψεις - το μήνυμα δεν έφτασε ποτέ',
         'failures' => '{count} αποτυχία(ες)',
+        'attention' => '<span class="wt-attention-bold">{count}</span> εκτέλεση(εις) παρέλειψαν μέρος της εργασίας τους και άφησαν σημείωση - πιο πρόσφατη: {name}',
     ],
     'mc' => [
         'metric_done' => 'Ολοκληρώθηκαν',

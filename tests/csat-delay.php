@@ -9,7 +9,10 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *
  *   FREEITSM_TEST_DATABASE=<throwaway db> php tests/csat-delay.php
  *
- * 🔴 It never sends real mail: every csat_request email template is switched off
+ * 🔴 It never sends real mail or chat: every csat_request and csat_reminder email template is
+ * switched off, and "ask in the customer's chat" (csat_in_channel) is off - sendCsatSurvey() tries
+ * the chat route BEFORE the templates, so a chat ticket would otherwise get a real message.
+ * (Was: csat_request only, which left the chat route and a real csat_reminder template live.)
  * for the run, so sendCsatSurvey() stops at its "no template" pre-flight - which
  * proves the job reached the send without anything leaving the building. The
  * templates, settings, ticket status and queue are all put back in `finally`.
@@ -43,9 +46,11 @@ $closed = (int)$conn->query("SELECT id FROM ticket_statuses WHERE is_closed = 1 
 $open = (int)$conn->query("SELECT id FROM ticket_statuses WHERE is_closed = 0 ORDER BY id LIMIT 1")->fetchColumn();
 $saved = ['mode' => $getSetting('csat_mode'), 'delay' => $getSetting('csat_delay_minutes')];
 $savedReminder = [$getSetting('csat_reminder'), $getSetting('csat_reminder_hours')];
+$savedChannel = $getSetting('csat_in_channel');
+$savedSince = $getSetting('csat_reminder_since');
 $tplId = 0;
 $oldStatus = $conn->query("SELECT status_id FROM tickets WHERE id = $ticketId")->fetchColumn();
-$activeTpl = $conn->query("SELECT id FROM ticket_email_templates WHERE event_trigger = 'csat_request' AND is_active = 1")->fetchAll(PDO::FETCH_COLUMN);
+$activeTpl = $conn->query("SELECT id FROM ticket_email_templates WHERE event_trigger IN ('csat_request', 'csat_reminder') AND is_active = 1")->fetchAll(PDO::FETCH_COLUMN);
 $respMark = (int)$conn->query("SELECT COALESCE(MAX(id), 0) FROM ticket_csat_responses")->fetchColumn();
 $queueBefore = $conn->query("SELECT ticket_id FROM csat_queue")->fetchAll(PDO::FETCH_COLUMN);
 $runCsat = function () use (&$conn): array {
@@ -58,6 +63,8 @@ try {
     if (!$ticketId || !$closed || !$open) { check('a ticket and open / closed statuses exist', false); exit(1); }
     if ($queueBefore) { check('the queue is empty before the run (it holds real surveys)', false); exit(1); }
     if ($activeTpl) $conn->exec("UPDATE ticket_email_templates SET is_active = 0 WHERE id IN (" . implode(',', array_map('intval', $activeTpl)) . ")");
+    setSetting($conn, 'csat_in_channel', '0');      // never a real chat message (see the header)
+    setSetting($conn, 'csat_reminder_since', null); // reminders below are judged without a switch-on time
     $conn->prepare("UPDATE tickets SET status_id = ? WHERE id = ?")->execute([$closed, $ticketId]);
 
     echo "The close path\n";
@@ -162,6 +169,14 @@ try {
     $conn->prepare("UPDATE tickets SET status_id = ? WHERE id = ?")->execute([$open, $ticketId]);
     csatSendReminders($conn, 200, $spy);
     check('no reminder once the ticket has been reopened', count($sent) === 1);
+    // Switching reminders on reminds only surveys whose reminder falls due from then on.
+    $conn->exec("UPDATE ticket_csat_responses SET reminder_sent_datetime = NULL WHERE id = $due");
+    $conn->prepare("UPDATE tickets SET status_id = ? WHERE id = ?")->execute([$closed, $ticketId]);
+    setSetting($conn, 'csat_reminder_since', gmdate('Y-m-d H:i:s')); csatSettingsForget();
+    $before = count($sent);
+    csatSendReminders($conn, 200, $spy);
+    check('switched on just now: a reminder that fell due earlier is NOT sent (no burst)', count($sent) === $before);
+    setSetting($conn, 'csat_reminder_since', null); csatSettingsForget();
     $jobs = jobRegistry();
     check('the job is needed while reminders are on', $jobs['csat_delayed']['needed']($conn) === true);
     $conn->exec("DELETE FROM ticket_email_templates WHERE id = $tplId"); $tplId = 0;
@@ -169,6 +184,7 @@ try {
     if (!empty($tplId)) $conn->exec("DELETE FROM ticket_email_templates WHERE id = $tplId");
     $conn->exec("DELETE FROM ticket_csat_responses WHERE token LIKE 'zz301%'");
     setSetting($conn, 'csat_reminder', $savedReminder[0]); setSetting($conn, 'csat_reminder_hours', $savedReminder[1]);
+    setSetting($conn, 'csat_in_channel', $savedChannel); setSetting($conn, 'csat_reminder_since', $savedSince);
     if ($activeTpl) $conn->exec("UPDATE ticket_email_templates SET is_active = 1 WHERE id IN (" . implode(',', array_map('intval', $activeTpl)) . ")");
     $conn->prepare("UPDATE tickets SET status_id = ? WHERE id = ?")->execute([$oldStatus, $ticketId]);
     $conn->exec("DELETE FROM csat_queue WHERE ticket_id = $ticketId");

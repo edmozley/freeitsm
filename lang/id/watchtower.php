@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> eksekusi dibatalkan oleh perlindungan loop dalam 24 jam terakhir',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook berhenti mencoba ulang — pesan tidak pernah sampai',
         'failures' => '{count} kegagalan',
+        'attention' => '<span class="wt-attention-bold">{count}</span> eksekusi melewatkan sebagian tugasnya dan meninggalkan catatan - terakhir: {name}',
     ],
     'mc' => [
         'metric_done' => 'Selesai',

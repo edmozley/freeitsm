@@ -1217,7 +1217,7 @@ try {
         const esc = (s) => { const x = document.createElement('div'); x.textContent = s == null ? '' : String(s); return x.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
         const broken = wf.failed_24h + wf.aborted_24h;
 
-        setDot('wtWfDot', broken > 0 ? 'red' : (wf.dead_webhooks > 0 ? 'amber' : 'green'));
+        setDot('wtWfDot', broken > 0 ? 'red' : ((wf.dead_webhooks > 0 || wf.attention_24h > 0) ? 'amber' : 'green'));
 
         let html = '';
         if (wf.all_clear) {
@@ -1239,6 +1239,10 @@ try {
         if (wf.dead_webhooks > 0) {
             html += attentionItem('amber', '<a href="../system/webhooks/" style="color:inherit;">'
                   + window.t('watchtower.workflows.dead_webhooks', { count: wf.dead_webhooks }) + '</a>');
+        }
+        if (wf.attention_24h > 0) {
+            html += attentionItem('amber', '<a href="../workflow/executions.php?status=attention" style="color:inherit;">'
+                  + window.t('watchtower.workflows.attention', { count: wf.attention_24h, name: esc(wf.attention_last || '') }) + '</a>');
         }
         html += '</div>';
 

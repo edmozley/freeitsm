@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> ejecución(es) abortada(s) por protección contra bucles en las últimas 24h',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook(s) que dejaron de reintentar — el mensaje nunca llegó',
         'failures' => '{count} fallo(s)',
+        'attention' => '<span class="wt-attention-bold">{count}</span> ejecución(es) omitieron parte de su tarea y dejaron una nota - la última: {name}',
     ],
     'mc' => [
         'metric_done' => 'Hechas',

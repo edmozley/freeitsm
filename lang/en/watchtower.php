@@ -133,6 +133,7 @@ return [
         'aborted'       => '<span class="wt-attention-bold">{count}</span> run(s) aborted by loop protection in the last 24h',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook(s) gave up retrying — the message never arrived',
         'failures'      => '{count} failure(s)',
+        'attention'     => '<span class="wt-attention-bold">{count}</span> run(s) skipped part of their job and left a note - latest: {name}',
     ],
 
     // Morning Checks card.

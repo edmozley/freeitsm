@@ -843,6 +843,18 @@ body { --accent: var(--wf-accent, #f59e0b); }
     color: var(--danger-text, #b91c1c);
     word-break: break-word;
 }
+/* A note an action left for a person - it did part of its job and skipped the rest. */
+.wfx-step-note {
+    margin-top: 4px;
+    padding: 6px 9px;
+    border-radius: 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    background: var(--warning-bg, #fef3c7);
+    border: 1px solid var(--warning-border, #fcd34d);
+    color: var(--warning-text, #92400e);
+    word-break: break-word;
+}
 .wfx-pre {
     margin: 0;
     padding: 10px 12px;

@@ -953,6 +953,8 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
         'failed_24h'      => 0,
         'aborted_24h'     => 0,
         'dead_webhooks'   => 0,
+        'attention_24h'   => 0,    // runs where an action left a note (skipped part of its job)
+        'attention_last'  => '',
         'worst'           => [],   // the workflows failing most, so the card names names
         'all_clear'       => true,
         'available'       => false,
@@ -1012,16 +1014,32 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
             $wfDead = (int)$q->fetchColumn();
         } catch (Exception) { /* table may not exist yet */ }
 
+        // Runs that finished but left a note - an action skipped part of its job for a
+        // reason somebody should fix (a tasks-only checklist on a ticket). Not broken, so
+        // amber; matched on the step_log key WorkflowEngine::executeActionList writes.
+        $q = $conn->prepare(
+            "SELECT COUNT(*) AS n, SUBSTRING_INDEX(GROUP_CONCAT(COALESCE(w.name, e.workflow_name, '') ORDER BY e.id DESC SEPARATOR '||'), '||', 1) AS last_name
+               FROM workflow_executions e
+               LEFT JOIN workflows w ON w.id = e.workflow_id
+              WHERE e.status IN ('success','skipped') AND e.is_dry_run = 0
+                AND e.step_log LIKE '%\"attention\":%'
+                AND e.started_datetime >= UTC_TIMESTAMP() - INTERVAL 24 HOUR$weSql"
+        );
+        $q->execute($weArgs);
+        $wfNote = $q->fetch(PDO::FETCH_ASSOC) ?: ['n' => 0, 'last_name' => ''];
+
         $wf = [
             'failed_24h'    => (int)$wfFailed,
             'aborted_24h'   => (int)$wfAborted,
             'dead_webhooks' => $wfDead,
+            'attention_24h' => (int)$wfNote['n'],
+            'attention_last' => (string)($wfNote['last_name'] ?? ''),
             'worst'         => array_map(fn($r) => [
                 'name'       => $r['name'],
                 'failures'   => (int)$r['failures'],
                 'last_error' => $r['last_error'],
             ], $wfWorst),
-            'all_clear'     => ((int)$wfFailed + (int)$wfAborted + $wfDead) === 0,
+            'all_clear'     => ((int)$wfFailed + (int)$wfAborted + $wfDead + (int)$wfNote['n']) === 0,
             'available'     => true,
         ];
     } catch (Exception) {

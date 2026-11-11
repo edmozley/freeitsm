@@ -173,6 +173,7 @@ return [
         'skipped' => 'Übersprungen (Bedingungen trafen nicht zu)',
         'running' => 'Wird ausgeführt',
         'aborted' => 'Abgebrochen (Schleifenschutz)',
+        'attention' => 'Prüfen (eine Aktion hat einen Hinweis hinterlassen)',
     ],
     'diagnosis' => [
         'fix_link' => 'So beheben Sie dies',

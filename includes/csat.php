@@ -484,12 +484,17 @@ function csatSendReminders(PDO $conn, int $limit = 200, ?callable $send = null):
         return $out;
     }
     $hours = min(CSAT_REMINDER_MAX_HOURS, max(1, (int)csatGetSetting($conn, 'csat_reminder_hours', '48')));
+    // Only reminders that fall due after the reminder was switched on (csat_reminder_since,
+    // written by save_csat_settings.php): ticking the box must not remind everybody surveyed in
+    // the catch-up window at once. Absent on installs that switched it on before this - no limit.
+    $since = csatGetSetting($conn, 'csat_reminder_since', '');
+    $sinceSql = preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $since) ? " AND r.sent_datetime + INTERVAL $hours HOUR >= '$since'" : '';
     $due = $conn->prepare(
         "SELECT r.id, r.ticket_id, r.token, r.link_base
            FROM ticket_csat_responses r
           WHERE r.rating IS NULL AND r.reminder_sent_datetime IS NULL AND r.channel_id IS NULL
             AND r.sent_datetime <= UTC_TIMESTAMP() - INTERVAL $hours HOUR
-            AND r.sent_datetime >  UTC_TIMESTAMP() - INTERVAL " . ($hours + CSAT_REMINDER_CATCHUP_HOURS) . " HOUR
+            AND r.sent_datetime >  UTC_TIMESTAMP() - INTERVAL " . ($hours + CSAT_REMINDER_CATCHUP_HOURS) . " HOUR$sinceSql
           ORDER BY r.sent_datetime ASC LIMIT " . max(1, $limit));
     $due->execute();
     $claim = $conn->prepare("UPDATE ticket_csat_responses SET reminder_sent_datetime = UTC_TIMESTAMP() WHERE id = ? AND reminder_sent_datetime IS NULL AND rating IS NULL");
