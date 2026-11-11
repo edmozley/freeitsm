@@ -24,7 +24,8 @@
  *
  * TRAP: a call note needs a real analyst. ticket_notes.analyst_id is a foreign key
  *   to analysts, so the system actor (id 0) cannot write one - the contributed
- *   version did. On an install with the key (every fresh one) the note is
+ *   version did. (Since #281 a note may have NULL = System, but a call was taken
+ *   by a person, so it still names the agent.) On an install with the key (every fresh one) the note is
  *   refused and the call fails; on an older install that never got the key it
  *   is saved with no author at all. Hence the agent email match, and the
  *   fallback analyst for a 3CX user who is not one.

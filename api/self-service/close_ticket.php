@@ -122,8 +122,8 @@ try {
 
     // Why it closed, in the trail, named.
     //
-    // 🔴 ticket_audit, NOT ticket_notes. `ticket_notes.analyst_id` is NOT NULL,
-    // so a requester has no value to put in it - and the way that goes wrong is
+    // 🔴 ticket_audit, NOT ticket_notes. `ticket_notes.analyst_id` was NOT NULL
+    // (until #281; NULL now means System, not a requester), so a requester has no value to put in it - and the way that goes wrong is
     // that somebody hard-codes an analyst id to satisfy the constraint and the
     // trail then says a member of staff wrote a note they never wrote. This
     // product has made exactly that mistake before. `ticket_audit.analyst_id`

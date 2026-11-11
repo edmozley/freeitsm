@@ -1385,35 +1385,51 @@ function integrationsApplyCommentEvent(PDO $conn, array $connection, array $link
     );
     if ($reason !== '') return $reason;
 
+    // TRAP: the map row and the note are written together or not at all. The map
+    // row is what marks a comment "already imported"; written alone, a note that
+    // was then refused (GitHub #281: analyst_id 0 against fk_notes_analysts) left
+    // the comment marked imported with no note, so it was skipped for ever. The
+    // unique key still settles the race: a second writer waits on this row and
+    // then loses on it - or wins, if this one rolled back.
+    $ownsTransaction = !$conn->inTransaction();
+    if ($ownsTransaction) $conn->beginTransaction();
     try {
+        try {
+            $conn->prepare(
+                "INSERT INTO integration_comment_map
+                    (link_id, direction, external_comment_id, author_identity, author_name, created_datetime)
+                 VALUES (?, 'in', ?, ?, ?, UTC_TIMESTAMP())"
+            )->execute([
+                (int)$link['id'],
+                (string)$event['comment_id'],
+                (string)($event['author_identity'] ?? '') ?: null,
+                (string)($event['author_name'] ?? '') ?: null,
+            ]);
+        } catch (Exception) {
+            // Lost the race (or the row was already there) — the other writer owns it.
+            if ($ownsTransaction) $conn->rollBack();
+            return 'already_imported';
+        }
+        $mapId = (int) $conn->lastInsertId();
+
+        // analyst_id NULL = System: a Jira comment has no FreeITSM author (#281 -
+        // it was 0, which the foreign key refuses). Readers LEFT JOIN analysts and
+        // name the connection instead - see api/tickets/get_notes.php.
         $conn->prepare(
-            "INSERT INTO integration_comment_map
-                (link_id, direction, external_comment_id, author_identity, author_name, created_datetime)
-             VALUES (?, 'in', ?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([
-            (int)$link['id'],
-            (string)$event['comment_id'],
-            (string)($event['author_identity'] ?? '') ?: null,
-            (string)($event['author_name'] ?? '') ?: null,
-        ]);
-    } catch (Exception) {
-        // Lost the race (or the row was already there) — the other writer owns it.
-        return 'already_imported';
+            "INSERT INTO ticket_notes (ticket_id, analyst_id, note_text, is_internal, created_datetime)
+             VALUES (?, NULL, ?, 1, UTC_TIMESTAMP())"
+        )->execute([(int)$link['entity_id'], integrationsCommentNoteText($event, $link)]);
+        $noteId = (int) $conn->lastInsertId();
+
+        $conn->prepare("UPDATE integration_comment_map SET local_note_id = ? WHERE id = ?")
+             ->execute([$noteId, $mapId]);
+        $conn->prepare("UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+             ->execute([(int)$link['entity_id']]);
+        if ($ownsTransaction) $conn->commit();
+    } catch (Throwable $e) {
+        if ($ownsTransaction && $conn->inTransaction()) $conn->rollBack();
+        throw $e;   // the poll keeps its window and tries again next time
     }
-    $mapId = (int) $conn->lastInsertId();
-
-    // analyst_id 0: a Jira comment has no FreeITSM author. Readers LEFT JOIN
-    // analysts and fall back to the connection's name — see api/tickets/get_notes.php.
-    $conn->prepare(
-        "INSERT INTO ticket_notes (ticket_id, analyst_id, note_text, is_internal, created_datetime)
-         VALUES (?, 0, ?, 1, UTC_TIMESTAMP())"
-    )->execute([(int)$link['entity_id'], integrationsCommentNoteText($event, $link)]);
-    $noteId = (int) $conn->lastInsertId();
-
-    $conn->prepare("UPDATE integration_comment_map SET local_note_id = ? WHERE id = ?")
-         ->execute([$noteId, $mapId]);
-    $conn->prepare("UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
-         ->execute([(int)$link['entity_id']]);
 
     // Fired AFTER the map row exists, so the unique key has already guaranteed
     // this comment is imported once — the event inherits that guarantee and

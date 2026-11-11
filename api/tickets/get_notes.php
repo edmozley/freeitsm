@@ -32,7 +32,7 @@ try {
     }
 
     // ⚠️ LEFT JOIN, not JOIN. A note imported from an external issue tracker has
-    // no FreeITSM author (analyst_id 0), and an inner join silently dropped it —
+    // no FreeITSM author (analyst_id NULL - 0 on rows from before #281), and an inner join silently dropped it —
     // which presents as "Jira comments never arrive" with nothing in any log.
     $sql = "SELECT
                 n.id,
@@ -136,7 +136,7 @@ try {
         //   former   — a real analyst_id with no row left. Deleting an analyst is
         //              a hard DELETE that reassigns nothing, so this is the normal
         //              state of every note someone wrote before they left
-        //   system   — analyst_id 0 and no tracker behind it: written by the app
+        //   system   — analyst_id NULL (or 0, before #281) and no tracker behind it: written by the app
         //
         // The label itself is resolved in the browser, which is where the
         // translations live; this endpoint only says which case it is.

@@ -990,7 +990,7 @@ return [
     'ticket_notes' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'ticket_id'         => 'INT NOT NULL',
-        'analyst_id'        => 'INT NOT NULL',
+        'analyst_id'        => 'INT NULL',   // NULL = System: no person wrote it (#281)
         'note_text'         => 'LONGTEXT NOT NULL',
         'is_internal'       => 'TINYINT(1) NULL DEFAULT 1',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',

@@ -240,10 +240,12 @@ final class MandatoryFieldsService
 
     /**
      * An internal note from an analyst, or a 'Workflow Note' audit entry when
-     * nobody is acting. ticket_notes.analyst_id is NOT NULL with a foreign key to
-     * analysts, so a workflow (actor 0) cannot write there - which is why the
+     * nobody is acting. ticket_notes.analyst_id was NOT NULL with a foreign key to
+     * analysts, so a workflow (actor 0) could not write there - which is why the
      * workflow engine's own "add note" action writes to ticket_audit with a NULL
-     * analyst, and this follows it. UTC at rest (GH #126).
+     * analyst, and this follows it. Since #281 a NULL note means System; moving
+     * automation notes into Notes is GitHub #268, so this stays until that is decided.
+     * UTC at rest (GH #126).
      *
      * @param string $note  the note text
      */

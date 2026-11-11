@@ -329,6 +329,47 @@ try {
         // Non-fatal: asset history keeps working for people; only automated entries stay broken.
     }
 
+    // `ticket_notes.analyst_id` was NOT NULL, so a note no person wrote had no
+    // honest value. The Jira / Azure DevOps comment import wrote 0, which the
+    // `fk_notes_analysts` foreign key refuses - and every install created from
+    // freeitsm.sql has that key - so on a fresh install imported comments never
+    // arrived (GitHub #281). NULL now means System, as it does in ticket_audit.
+    //
+    // Three steps, each safe on its own and on a re-run:
+    //  1. relax the column (every existing row has a value, so none is invalidated);
+    //  2. turn the 0s that older installs WITHOUT the key did save into NULL -
+    //     0 never named an analyst, and readers already show both as "System";
+    //  3. drop comment-map rows for imports whose note was refused. Each one
+    //     marked its comment "already imported", so it was skipped for ever.
+    //     Removing them lets a comment Jira still reports be collected again.
+    try {
+        $notesCol = $conn->prepare(
+            "SELECT IS_NULLABLE FROM information_schema.columns
+             WHERE table_schema = ? AND table_name = 'ticket_notes' AND column_name = 'analyst_id'"
+        );
+        $notesCol->execute([$dbName]);
+        $notesRow = $notesCol->fetch(PDO::FETCH_ASSOC);
+        $notesDetails = [];
+        if ($notesRow && strtoupper($notesRow['IS_NULLABLE']) === 'NO') {
+            $conn->exec("ALTER TABLE `ticket_notes` MODIFY `analyst_id` INT NULL");
+            $notesDetails[] = "analyst_id: NOT NULL → NULL (a note no person wrote - an imported Jira comment - is System)";
+        }
+        if ($notesRow && strtoupper($notesRow['IS_NULLABLE']) === 'YES' || $notesDetails) {
+            $zeros = $conn->exec("UPDATE `ticket_notes` SET `analyst_id` = NULL WHERE `analyst_id` = 0");
+            if ($zeros) $notesDetails[] = "$zeros note(s) with no author (analyst 0) now marked System";
+        }
+        $stuck = 0;
+        try {
+            $stuck = (int)$conn->exec("DELETE FROM `integration_comment_map` WHERE `direction` = 'in' AND `local_note_id` IS NULL");
+        } catch (Exception $e) { /* no comment map yet - nothing can be stuck */ }
+        if ($stuck) $notesDetails[] = "$stuck imported comment(s) whose note was refused can now be collected again";
+        if ($notesDetails) {
+            $results[] = ['table' => 'ticket_notes', 'status' => 'updated', 'details' => $notesDetails];
+        }
+    } catch (Exception $e) {
+        // Non-fatal: notes keep working for people; only imported comments stay refused.
+    }
+
     // `users_assets.user_id` was NOT NULL, so an asset could only ever be
     // recorded against a REQUESTER. Analysts hold equipment too — and they are
     // not requesters: on a real install five of seven analysts had no `users`
