@@ -80,6 +80,9 @@ return [
         'orphaned_title' => 'Verwaiste Tickets',
         'orphaned_desc' => 'Tickets finden, die in einer gelöschten Abteilung hängen, und sie neu zuweisen',
         'orphaned_keywords' => 'verwaist orphaned tickets abteilung department fehlend gelöscht versteckt neu zuweisen reparieren hängen verloren defekt',
+        'maintenance_title' => 'Wartung',
+        'maintenance_desc' => 'Zurückgebliebene Daten finden, etwa Tickets in einer gelöschten Abteilung, und sie in Ordnung bringen',
+        'maintenance_keywords' => 'wartung bereinigen aufräumen verwaist verwaiste zurückgeblieben veraltet defekt reparieren beheben maintenance cleanup orphaned',
         'encryption_title' => 'Verschlüsselung',
         'encryption_desc' => 'Den Schlüssel erzeugen und verwalten, mit dem sensible Daten wie API-Schlüssel und Zugangsdaten geschützt werden.',
         'encryption_keywords' => 'verschlüsselung encryption schlüssel key hauptschlüssel krypto geheimnisse secrets zugangsdaten credentials api chiffre',
@@ -2697,5 +2700,16 @@ return [
         'deleted' => 'Bild gelöscht',
         'delete_failed' => 'Das Bild konnte nicht gelöscht werden',
         'size' => '{width} x {height} Zeichen',
+    ],
+
+    // System -> Maintenance (GH #263, PR #291).
+    'maintenance' => [
+        'heading' => 'Wartung',
+        'intro' => 'Werkzeuge, die zurückgebliebene Daten finden - etwa ein Ticket in einer gelöschten Abteilung - und sie in Ordnung bringen. Jede Karte zeigt, wie viele Einträge ihr Werkzeug gefunden hat.',
+        'search_placeholder' => 'Wartungswerkzeuge durchsuchen...',
+        'no_results' => 'Kein Wartungswerkzeug passt zu Ihrer Suche.',
+        'count_found' => 'Gefunden: {n}',
+        'count_none' => 'Nichts gefunden',
+        'back' => 'Wartung',
     ],
 ];

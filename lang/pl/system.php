@@ -80,6 +80,9 @@ return [
         'orphaned_title' => 'Osierocone zgłoszenia',
         'orphaned_desc' => 'Znajdź zgłoszenia utknięte w usuniętym dziale i przypisz je ponownie',
         'orphaned_keywords' => 'osierocone zgłoszenia dział brakujący usunięty ukryty ponowne przypisanie napraw utknięte zgubione zepsute',
+        'maintenance_title' => 'Konserwacja',
+        'maintenance_desc' => 'Znajdź dane, które zostały w tyle, na przykład zgłoszenia w usuniętym dziale, i napraw je',
+        'maintenance_keywords' => 'konserwacja porządki sprzątanie osierocone pozostawione nieaktualne uszkodzone naprawa napraw maintenance cleanup orphaned',
         'encryption_title' => 'Szyfrowanie',
         'encryption_desc' => 'Generuj i zarządzaj kluczem szyfrowania używanym do ochrony poufnych danych, takich jak klucze API i dane logowania.',
         'encryption_keywords' => 'szyfrowanie klucz klucz główny kryptografia sekrety dane logowania klucze api szyfr',
@@ -2698,5 +2701,16 @@ return [
         'deleted' => 'Zdjęcie usunięte',
         'delete_failed' => 'Nie udało się usunąć zdjęcia',
         'size' => '{width} x {height} znaków',
+    ],
+
+    // System -> Maintenance (GH #263, PR #291).
+    'maintenance' => [
+        'heading' => 'Konserwacja',
+        'intro' => 'Narzędzia, które znajdują dane pozostawione w tyle - na przykład zgłoszenie w usuniętym dziale - i je naprawiają. Każda karta pokazuje, ile elementów znalazło jej narzędzie.',
+        'search_placeholder' => 'Szukaj narzędzi konserwacji...',
+        'no_results' => 'Żadne narzędzie konserwacji nie pasuje do wyszukiwania.',
+        'count_found' => 'Znaleziono: {n}',
+        'count_none' => 'Nic nie znaleziono',
+        'back' => 'Konserwacja',
     ],
 ];

@@ -80,6 +80,9 @@ return [
         'orphaned_title' => 'Tiket yatim',
         'orphaned_desc' => 'Temukan tiket yang tersangkut di departemen yang dihapus dan tugaskan ulang',
         'orphaned_keywords' => 'orphaned tickets department missing deleted hidden reassign fix stuck lost broken tiket yatim departemen hilang dihapus tersembunyi tugaskan ulang tersangkut rusak',
+        'maintenance_title' => 'Pemeliharaan',
+        'maintenance_desc' => 'Temukan data yang tertinggal, seperti tiket di departemen yang sudah dihapus, lalu perbaiki',
+        'maintenance_keywords' => 'pemeliharaan pembersihan rapikan yatim tertinggal usang rusak perbaiki maintenance cleanup orphaned',
         'encryption_title' => 'Enkripsi',
         'encryption_desc' => 'Buat dan kelola kunci enkripsi yang melindungi data sensitif seperti API key dan kredensial.',
         'encryption_keywords' => 'encryption key master key crypto secrets credentials api keys cipher enkripsi kunci rahasia kredensial',
@@ -2696,5 +2699,16 @@ return [
         'deleted' => 'Gambar dihapus',
         'delete_failed' => 'Tidak dapat menghapus gambar',
         'size' => '{width} x {height} karakter',
+    ],
+
+    // System -> Maintenance (GH #263, PR #291).
+    'maintenance' => [
+        'heading' => 'Pemeliharaan',
+        'intro' => 'Alat yang menemukan data yang tertinggal - misalnya tiket di departemen yang sudah dihapus - lalu memperbaikinya. Setiap kartu menunjukkan berapa banyak item yang ditemukan alatnya.',
+        'search_placeholder' => 'Cari alat pemeliharaan...',
+        'no_results' => 'Tidak ada alat pemeliharaan yang cocok dengan pencarian Anda.',
+        'count_found' => 'Ditemukan: {n}',
+        'count_none' => 'Tidak ada yang ditemukan',
+        'back' => 'Pemeliharaan',
     ],
 ];

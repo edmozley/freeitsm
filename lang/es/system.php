@@ -80,6 +80,9 @@ return [
         'orphaned_title' => 'Tickets huérfanos',
         'orphaned_desc' => 'Encuentre tickets atascados en un departamento eliminado y reasígnelos',
         'orphaned_keywords' => 'orphaned tickets department missing deleted hidden reassign fix stuck lost broken, huérfanos tickets departamento perdido eliminado oculto reasignar arreglar atascado extraviado roto',
+        'maintenance_title' => 'Mantenimiento',
+        'maintenance_desc' => 'Encuentra datos que se han quedado atrás, como tickets en un departamento eliminado, y corrígelos',
+        'maintenance_keywords' => 'mantenimiento limpieza ordenar huérfanos huérfanas abandonados obsoletos rotos reparar arreglar maintenance cleanup orphaned',
         'encryption_title' => 'Cifrado',
         'encryption_desc' => 'Genere y gestione la clave de cifrado utilizada para proteger datos sensibles como claves de API y credenciales.',
         'encryption_keywords' => 'encryption key master key crypto secrets credentials api keys cipher, cifrado clave clave maestra criptografía secretos credenciales claves de api cifrador',
@@ -2697,5 +2700,16 @@ return [
         'deleted' => 'Imagen eliminada',
         'delete_failed' => 'No se pudo eliminar la imagen',
         'size' => '{width} x {height} caracteres',
+    ],
+
+    // System -> Maintenance (GH #263, PR #291).
+    'maintenance' => [
+        'heading' => 'Mantenimiento',
+        'intro' => 'Herramientas que encuentran datos que se han quedado atrás - un ticket en un departamento eliminado, por ejemplo - y los corrigen. Cada tarjeta dice cuántos elementos ha encontrado su herramienta.',
+        'search_placeholder' => 'Buscar herramientas de mantenimiento...',
+        'no_results' => 'Ninguna herramienta de mantenimiento coincide con tu búsqueda.',
+        'count_found' => 'Encontrados: {n}',
+        'count_none' => 'No se ha encontrado nada',
+        'back' => 'Mantenimiento',
     ],
 ];
