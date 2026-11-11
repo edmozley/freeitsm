@@ -37,7 +37,7 @@ return [
         'col_name'        => 'Application Name',
         'col_publisher'   => 'Publisher',
         'col_installed'   => 'Installed On',
-        // Seats is a SEPARATE column from Installed On, never a fallback (#1549):
+        // Seats is a SEPARATE column from Installations (col_installed was "Installed On" until PR #300), never a fallback (#1549):
         // a cloud platform is installed on nothing, so 0 there is correct and says
         // nothing about whether anyone uses it.
         'col_seats'       => 'Seats',
@@ -378,7 +378,7 @@ return [
         'manual_rule_licence' => '<strong>It is worth more than it looks.</strong> A licence has to belong to an application, so until you add one there is nowhere to record what a cloud subscription costs, how many seats it has or when it renews.',
         'manual_rule_edit'    => 'Manual entries are marked <em>Added by hand</em> and are the only ones you can edit. An agent-discovered application is a report of what is on somebody\'s machine, and any edit would be overwritten at the next inventory run.',
         'manual_rule_adopt'   => 'If the agent later finds one of your manual entries genuinely installed somewhere, it attaches the machines <strong>without touching a word you wrote</strong>.',
-        'manual_rule_seats'   => '<strong>Seats and installs are separate columns.</strong> A cloud platform is installed nowhere, so a nought under Installed On says nothing about whether anyone uses it &mdash; the seats on its licences do.',
+        'manual_rule_seats'   => '<strong>Licence seats and installations are separate columns.</strong> A cloud platform is installed nowhere, so a nought under Installations says nothing about whether anyone uses it &mdash; the seats on its licences do.',
         'manual_tip'          => 'Add the application first, then record a licence against it with the seat count, cost and renewal date. The renewal is what then shows up on Watchtower and in your calendar.',
 
         'dashboard_heading' => 'Dashboard',
