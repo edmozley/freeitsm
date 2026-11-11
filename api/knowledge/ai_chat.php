@@ -8,6 +8,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';
+require_once '../../includes/ai_embeddings.php';   // aiEmbed(), aiCosineSimilarity()
 require_once '../../includes/ai_settings.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/knowledge/visibility.php';
@@ -48,68 +49,6 @@ if (!empty($input['ticket_id'])) {
         echo json_encode(['success' => false, 'confidential' => true, 'error' => TICKET_AI_CONFIDENTIAL_ERROR]);
         exit;
     }
-}
-
-/**
- * Calculate cosine similarity between two vectors
- *
- * @param mixed $vec1  an embedding, as a list of floats
- * @param mixed $vec2  another embedding; only the length both share is compared
- */
-function cosineSimilarity($vec1, $vec2) {
-    $dotProduct = 0;
-    $norm1 = 0;
-    $norm2 = 0;
-
-    $len = min(count($vec1), count($vec2));
-    for ($i = 0; $i < $len; $i++) {
-        $dotProduct += $vec1[$i] * $vec2[$i];
-        $norm1 += $vec1[$i] * $vec1[$i];
-        $norm2 += $vec2[$i] * $vec2[$i];
-    }
-
-    if ($norm1 == 0 || $norm2 == 0) return 0;
-    return $dotProduct / (sqrt($norm1) * sqrt($norm2));
-}
-
-/**
- * Generate embedding for text using OpenAI API
- *
- * @param mixed $text  the text to embed; cut to 30,000 bytes
- * @param mixed $apiKey  the OpenAI API key, in plain text
- */
-function generateEmbedding($text, $apiKey) {
-    // Truncate if too long
-    if (strlen($text) > 30000) {
-        $text = substr($text, 0, 30000);
-    }
-
-    $requestBody = json_encode([
-        'model' => 'text-embedding-3-small',
-        'input' => $text
-    ]);
-
-    $ch = curl_init('https://api.openai.com/v1/embeddings');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $requestBody);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Authorization: Bearer ' . $apiKey
-    ]);
-    sslApplyCurl($ch);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($httpCode !== 200) {
-        return null;
-    }
-
-    $responseData = json_decode($response, true);
-    return $responseData['data'][0]['embedding'] ?? null;
 }
 
 try {
@@ -165,7 +104,7 @@ try {
         $searchMethod = 'vector';
 
         // Generate embedding for the question
-        $questionEmbedding = generateEmbedding($question, $openaiApiKey);
+        $questionEmbedding = aiEmbed($question, $openaiApiKey);
 
         if ($questionEmbedding) {
             // Fetch all articles with embeddings
@@ -181,7 +120,7 @@ try {
             foreach ($allArticles as $article) {
                 $articleEmbedding = json_decode($article['embedding'], true);
                 if ($articleEmbedding) {
-                    $similarity = cosineSimilarity($questionEmbedding, $articleEmbedding);
+                    $similarity = aiCosineSimilarity($questionEmbedding, $articleEmbedding);
                     $scoredArticles[] = [
                         'id' => $article['id'],
                         'title' => $article['title'],

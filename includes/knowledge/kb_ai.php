@@ -9,64 +9,15 @@
  * own aiProviderChat() call — this file only finds the relevant articles and builds the
  * context block.
  *
- * NOTE: api/knowledge/ai_chat.php still carries its own equivalent copy for now; when
- * it's next touched it should be switched to these helpers. Kept separate here to avoid
- * refactoring a working endpoint as part of the web chat build.
+ * Turning text into a vector and comparing two live in includes/ai_embeddings.php,
+ * shared with the rest of FreeITSM.
  */
 
 require_once __DIR__ . '/../encryption.php';
+require_once __DIR__ . '/../ai_embeddings.php';   // aiEmbed(), aiCosineSimilarity()
 require_once __DIR__ . '/audience.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/visibility.php';
-
-/**
- * Cosine similarity of two equal-ish length vectors (0 if either is a zero vector).
- *
- * @param array $a  an embedding vector (list of floats)
- * @param array $b  another embedding vector; only the shorter length of the two is compared
- */
-function kbCosineSimilarity(array $a, array $b): float
-{
-    $dot = 0.0; $na = 0.0; $nb = 0.0;
-    $len = min(count($a), count($b));
-    for ($i = 0; $i < $len; $i++) {
-        $dot += $a[$i] * $b[$i];
-        $na  += $a[$i] * $a[$i];
-        $nb  += $b[$i] * $b[$i];
-    }
-    if ($na == 0.0 || $nb == 0.0) {
-        return 0.0;
-    }
-    return $dot / (sqrt($na) * sqrt($nb));
-}
-
-/**
- * Embed a query with OpenAI's small embedding model. Returns the vector or null.
- *
- * @param string $text  the text to embed; cut to 30,000 bytes first
- * @param string $apiKey  the OpenAI API key, decrypted
- */
-function kbGenerateEmbedding(string $text, string $apiKey): ?array
-{
-    if (strlen($text) > 30000) {
-        $text = substr($text, 0, 30000);
-    }
-    $ch = curl_init('https://api.openai.com/v1/embeddings');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['model' => 'text-embedding-3-small', 'input' => $text]));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $apiKey]);
-    sslApplyCurl($ch);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    $res = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($code !== 200) {
-        return null;
-    }
-    $data = json_decode($res, true);
-    return $data['data'][0]['embedding'] ?? null;
-}
 
 /**
  * The rows this file will ever consider: published, and NOT in the recycle bin.
@@ -144,7 +95,7 @@ function kbRetrieveArticles(PDO $conn, string $question, int $limit = 5, ?int $t
     } catch (Exception) { $haveEmbeddings = false; }
 
     if ($openaiKey !== '' && $haveEmbeddings) {
-        $qvec = kbGenerateEmbedding($question, $openaiKey);
+        $qvec = aiEmbed($question, $openaiKey);
         if ($qvec) {
             $st = $conn->prepare("SELECT id, title, body, embedding FROM knowledge_articles WHERE 1=1" . $scopeSql . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0");
             $st->execute($scopeParams);
@@ -153,7 +104,7 @@ function kbRetrieveArticles(PDO $conn, string $question, int $limit = 5, ?int $t
             foreach ($rows as $r) {
                 $vec = json_decode($r['embedding'], true);
                 if (is_array($vec)) {
-                    $scored[] = ['id' => $r['id'], 'title' => $r['title'], 'body' => $r['body'], 'similarity' => kbCosineSimilarity($qvec, $vec)];
+                    $scored[] = ['id' => $r['id'], 'title' => $r['title'], 'body' => $r['body'], 'similarity' => aiCosineSimilarity($qvec, $vec)];
                 }
             }
             usort($scored, function ($a, $b) { return $b['similarity'] <=> $a['similarity']; });

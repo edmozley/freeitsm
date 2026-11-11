@@ -35,6 +35,7 @@
 
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../encryption.php';   // decryptValue() for the embedding step (safe: only reads the key file when actually called)
+require_once __DIR__ . '/../ai_embeddings.php';   // aiEmbed(), aiEmbeddingText()
 require_once __DIR__ . '/../knowledge/audience.php';
 require_once __DIR__ . '/../knowledge/audit.php';   // every write leaves a history row
 require_once __DIR__ . '/../tenancy.php';
@@ -532,31 +533,11 @@ class KnowledgeService
                 return false;
             }
 
-            $plainText = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($body), ENT_QUOTES, 'UTF-8')));
-            $textToEmbed = $title . "\n\n" . $plainText;
-            if (strlen($textToEmbed) > 30000) {
-                $textToEmbed = substr($textToEmbed, 0, 30000);
-            }
-
-            $ch = curl_init('https://api.openai.com/v1/embeddings');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['model' => 'text-embedding-3-small', 'input' => $textToEmbed]));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $apiKeyValue]);
-            sslApplyCurl($ch);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($httpCode === 200) {
-                $data = json_decode($response, true);
-                $embedding = $data['data'][0]['embedding'] ?? null;
-                if ($embedding && is_array($embedding)) {
-                    $conn->prepare("UPDATE knowledge_articles SET embedding = ?, embedding_updated = UTC_TIMESTAMP() WHERE id = ?")
-                         ->execute([json_encode($embedding), $articleId]);
-                    return true;
-                }
+            $embedding = aiEmbed(aiEmbeddingText($title, $body), $apiKeyValue);
+            if ($embedding) {
+                $conn->prepare("UPDATE knowledge_articles SET embedding = ?, embedding_updated = UTC_TIMESTAMP() WHERE id = ?")
+                     ->execute([json_encode($embedding), $articleId]);
+                return true;
             }
         } catch (Exception) {
             // Embedding is a bonus, never a blocker — same as the UI.

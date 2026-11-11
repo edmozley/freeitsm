@@ -149,7 +149,7 @@ function gapEmbedBatch(PDO $conn, int $analystId, int $lookbackDays, int $batch,
             $done++;
             continue;
         }
-        $vec = kbGenerateEmbedding($text, $openaiKey);
+        $vec = aiEmbed($text, $openaiKey);
         if (!$vec) {
             $failed++;
             continue;
@@ -269,7 +269,7 @@ function gapAnalyse(PDO $conn, int $analystId, array $opts = []): array
         $bestId = null; $best = 0.0;
         if ($useVectors && is_array($vec) && $vec) {
             foreach ($articleVecs as $a) {
-                $sim = kbCosineSimilarity($vec, $a['vec']);
+                $sim = aiCosineSimilarity($vec, $a['vec']);
                 if ($sim > $best) { $best = $sim; $bestId = $a['id']; }
             }
         } else {
@@ -324,7 +324,7 @@ function gapAnalyse(PDO $conn, int $analystId, array $opts = []): array
             if (!$a['vec'] || !$b['vec']) {
                 return writeupTokenSimilarity($a['toks'], $b['toks']);
             }
-            return kbCosineSimilarity($a['vec'], $b['vec']);
+            return aiCosineSimilarity($a['vec'], $b['vec']);
         }
         : function ($a, $b) { return writeupTokenSimilarity($a['toks'], $b['toks']); };
 

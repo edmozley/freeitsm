@@ -10,6 +10,7 @@ require_once '../../includes/tenancy.php';
 require_once '../../includes/knowledge/visibility.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/encryption.php';
+require_once '../../includes/ai_embeddings.php';   // aiEmbedRequest(), aiEmbeddingText()
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -69,62 +70,13 @@ try {
         exit;
     }
 
-    // Prepare text for embedding - combine title and body, strip HTML
-    $plainText = strip_tags($article['body']);
-    $plainText = html_entity_decode($plainText, ENT_QUOTES, 'UTF-8');
-    $plainText = preg_replace('/\s+/', ' ', $plainText);
-    $plainText = trim($plainText);
-
-    $textToEmbed = $article['title'] . "\n\n" . $plainText;
-
-    // Truncate if too long (OpenAI has ~8k token limit for embedding models)
-    // Roughly 4 chars per token, so ~32k chars max to be safe
-    if (strlen($textToEmbed) > 30000) {
-        $textToEmbed = substr($textToEmbed, 0, 30000);
-    }
-
-    // Call OpenAI Embeddings API
-    $requestBody = json_encode([
-        'model' => 'text-embedding-3-small',
-        'input' => $textToEmbed
-    ]);
-
-    $ch = curl_init('https://api.openai.com/v1/embeddings');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $requestBody);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Authorization: Bearer ' . $apiKey
-    ]);
-    sslApplyCurl($ch);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
-
-    if ($curlError) {
-        echo json_encode(['success' => false, 'error' => 'Connection error: ' . $curlError]);
+    // Title + plain-text body, sent to OpenAI by the shared embedding code.
+    $result = aiEmbedRequest(aiEmbeddingText((string)$article['title'], (string)$article['body']), $apiKey);
+    if ($result['error'] !== null) {
+        echo json_encode(['success' => false, 'error' => $result['error']]);
         exit;
     }
-
-    $responseData = json_decode($response, true);
-
-    if ($httpCode !== 200) {
-        $errorMsg = $responseData['error']['message'] ?? 'API returned HTTP ' . $httpCode;
-        echo json_encode(['success' => false, 'error' => 'OpenAI API error: ' . $errorMsg]);
-        exit;
-    }
-
-    // Extract embedding vector
-    $embedding = $responseData['data'][0]['embedding'] ?? null;
-
-    if (!$embedding || !is_array($embedding)) {
-        echo json_encode(['success' => false, 'error' => 'Invalid embedding response']);
-        exit;
-    }
+    $embedding = $result['embedding'];
 
     // Store embedding as JSON
     $embeddingJson = json_encode($embedding);
