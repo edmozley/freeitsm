@@ -25,7 +25,7 @@
  * writing a message, note or history row, is invisible here. Every writer found does one
  * of them; a new writer that does neither will not refresh other people's screens.
  *
- * @wiki Live-Updates
+ * @wiki Live-Updates-Developer-Guide
  */
 
 require_once __DIR__ . '/tenancy.php';
@@ -79,6 +79,10 @@ function livePulseTickets(PDO $conn, int $analystId): ?string
         livePulseOne($conn, "SELECT e.id FROM emails e JOIN tickets t ON t.id = e.ticket_id WHERE 1 = 1{$f} ORDER BY e.id DESC LIMIT 1", $p),
         livePulseOne($conn, "SELECT n.id FROM ticket_notes n JOIN tickets t ON t.id = n.ticket_id WHERE 1 = 1{$f} ORDER BY n.id DESC LIMIT 1", $p),
         livePulseOne($conn, "SELECT a.id FROM ticket_audit a JOIN tickets t ON t.id = a.ticket_id WHERE 1 = 1{$f} ORDER BY a.id DESC LIMIT 1", $p),
+        // TRAP: binning or restoring through the REST API writes no history row and does
+        // not touch updated_datetime (TicketsService::deleteTicket(..., writeAudit: false)).
+        // The trash count catches both; ix_tickets_deleted_datetime keeps it a range read.
+        livePulseOne($conn, "SELECT COUNT(*) FROM tickets t WHERE t.deleted_datetime IS NOT NULL{$f}", $p),
     ];
     return md5('tickets|' . implode('|', $parts));
 }

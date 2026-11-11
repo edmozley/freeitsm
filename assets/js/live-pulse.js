@@ -21,7 +21,7 @@
  * Callers own the "never wipe what somebody is doing" rule - LivePulse.busyChip() shows
  * the shared "Updated just now · Refresh" prompt when they cannot redraw.
  *
- * @wiki Live-Updates
+ * @wiki Live-Updates-Developer-Guide
  */
 (function () {
     if (window.LivePulse) return;

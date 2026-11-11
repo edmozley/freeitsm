@@ -1272,7 +1272,7 @@ function renderNotificationBell($path_prefix) {
     $liveSeconds = 15;
     try { $liveSeconds = livePulseSeconds(connectToDatabase(), (int)$_SESSION['analyst_id']); } catch (Throwable $e) { /* the default */ }
     echo '<script>window.FREEITSM_LIVE = ' . json_encode(['seconds' => $liveSeconds, 'url' => $url], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES) . ';</script>'
-       . '<script src="' . htmlspecialchars($url) . 'assets/js/live-pulse.js?v=2"></script>';
+       . '<script src="' . htmlspecialchars($url) . 'assets/js/live-pulse.js?v=3"></script>';
     notificationBellRender($url, [
         'list'       => $url . 'api/notifications/get_notifications.php',
         'markRead'   => $url . 'api/notifications/mark_read.php',

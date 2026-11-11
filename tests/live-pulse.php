@@ -12,7 +12,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * Makes a ZZ task, a note, a history row, a notification and a ZZ analyst; touches the
  * first ticket's updated time (put back). All removed in finally.
  *
- * @wiki Live-Updates
+ * @wiki Live-Updates-Developer-Guide
  */
 chdir(__DIR__ . '/..');
 $pass = 0; $fail = 0;
@@ -65,6 +65,15 @@ try {
     $auditId = (int)$conn->lastInsertId();
     $e = $sig(["ticket:$ticketId"]);
     check('a history row (a change that only audits) moves the ticket', $e["ticket:$ticketId"] !== $d["ticket:$ticketId"]);
+
+    // The REST API bins a ticket with no history row and no updated time (writeAudit false).
+    $before = $sig(['tickets'])['tickets'];
+    $conn->prepare("UPDATE tickets SET deleted_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$ticketId]);
+    $binned = $sig(['tickets'])['tickets'];
+    $conn->prepare("UPDATE tickets SET deleted_datetime = NULL WHERE id = ?")->execute([$ticketId]);
+    $restored = $sig(['tickets'])['tickets'];
+    check('binning through the API (no history, no updated time) moves the list', $binned !== $before);
+    check('...and restoring it moves it back', $restored !== $binned && $restored === $before);
 
     echo "\nTasks\n";
     $t0 = $sig(['tasks']);
