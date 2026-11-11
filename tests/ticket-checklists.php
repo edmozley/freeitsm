@@ -58,12 +58,33 @@ try {
     $sessFile = "$sessDir/sess_$tag";
     file_put_contents($sessFile, 'analyst_id|i:' . $analystId . ';analyst_username|s:' . strlen($tag) . ':"' . $tag . '";analyst_name|s:6:"ZZ 271";csrf_token|s:1:"x";');
 
-    $conn->exec("INSERT INTO checklist_templates (title, category, scope, closure_mode, is_active) VALUES ('ZZ #271 checks', 'ZZ', 'ticket', 'block', 1)");
-    $tplId = (int)$conn->lastInsertId();
-    $si = $conn->prepare("INSERT INTO checklist_template_items (template_id, title, description, is_mandatory, requires_input, input_placeholder, sort_order, result_mode) VALUES (?, ?, ?, 1, ?, ?, ?, ?)");
-    $si->execute([$tplId, 'Plain step', null, 0, null, 1, 'none']);
-    $si->execute([$tplId, 'Asset tag', null, 1, 'The tag', 2, 'none']);
-    $si->execute([$tplId, 'Backups verified', 'Open the backup console and check last night\'s job.', 0, null, 3, 'pass_fail']);
+    echo "The template editor's save (checklists/api.php)\n";
+    $editor = function (string $q, ?array $body = null) use ($url, $tag): array {
+        $ch = curl_init("$url/checklists/api.php?$q");
+        $o = [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 60,
+              CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-CSRF-Token: x', 'Cookie: PHPSESSID=' . $tag]];
+        if ($body !== null) { $o[CURLOPT_POST] = true; $o[CURLOPT_POSTFIELDS] = json_encode($body); }
+        curl_setopt_array($ch, $o);
+        return json_decode((string)curl_exec($ch), true) ?: [];
+    };
+    $tplBody = ['id' => 0, 'title' => 'ZZ #271 checks', 'category' => 'ZZ', 'scope' => 'ticket', 'closure_mode' => 'block', 'description' => '', 'keywords' => '',
+                'items' => [
+                    ['title' => 'Plain step', 'description' => '', 'is_mandatory' => 1, 'requires_input' => 0, 'input_placeholder' => '', 'result_mode' => 'none'],
+                    ['title' => 'Asset tag', 'description' => '', 'is_mandatory' => 1, 'requires_input' => 1, 'input_placeholder' => 'The tag', 'result_mode' => 'none'],
+                    ['title' => 'Backups verified', 'description' => 'Open the backup console and check last night\'s job.', 'is_mandatory' => 1, 'requires_input' => 0, 'input_placeholder' => '', 'result_mode' => 'pass_fail'],
+                ]];
+    $r = $editor('action=save', $tplBody);
+    $tplId = (int)($r['id'] ?? 0);
+    check('the editor saves a template with a step description', !empty($r['success']) && $tplId > 0);
+    $got = $editor("action=get&id=$tplId")['template']['items'] ?? [];
+    check('...and gives the description back to the editor', ($got[2]['description'] ?? '') === 'Open the backup console and check last night\'s job.');
+    $tplBody['id'] = $tplId;
+    $editor('action=save', $tplBody);   // save again, unchanged
+    $kept = $conn->query("SELECT description FROM checklist_template_items WHERE template_id = $tplId AND title = 'Backups verified'")->fetchColumn();
+    check('a second save keeps it (saves used to wipe every step description)', $kept === 'Open the backup console and check last night\'s job.');
+    $snap = json_decode((string)$conn->query("SELECT snapshot_json FROM checklist_template_versions WHERE template_id = $tplId ORDER BY version_no DESC LIMIT 1")->fetchColumn(), true);
+    check('the template version keeps what the step said', ($snap['items'][2]['description'] ?? '') === 'Open the backup console and check last night\'s job.');
+    echo "\n";
 
     echo "Attaching (the real endpoint)\n";
     $r = $call('POST', ['action' => 'attach_template', 'ticket_id' => $ticketId, 'template_id' => $tplId]);

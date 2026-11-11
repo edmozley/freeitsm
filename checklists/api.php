@@ -96,6 +96,7 @@ if ($action === 'save') {
     // Its own statement, so the save still works before Database Verification.
     $resultUpd = null;
     try { $conn->query("SELECT result_mode FROM checklist_template_items LIMIT 0"); $resultUpd = $conn->prepare("UPDATE checklist_template_items SET result_mode = ? WHERE id = ?"); } catch (Throwable $e) { /* not yet */ }
+    $descUpd = $conn->prepare("UPDATE checklist_template_items SET description = ? WHERE id = ?");
     foreach ($items as $idx => $it) {
         $itTitle = is_string($it) ? trim($it) : trim($it['title'] ?? '');
         if ($itTitle === '') continue;
@@ -104,8 +105,16 @@ if ($action === 'save') {
         $reqInput = !empty($it['requires_input']) ? 1 : 0;
         $placeholder = is_array($it) ? trim($it['input_placeholder'] ?? '') : '';
         $ins->execute([$id, $itTitle, $role, $isMand, $reqInput, $placeholder, $idx + 1, $isDemo]);
+        $newItemId = (int)$conn->lastInsertId();
         if ($resultUpd && is_array($it) && ($it['result_mode'] ?? '') === 'pass_fail') {
-            $resultUpd->execute(['pass_fail', (int)$conn->lastInsertId()]);
+            $resultUpd->execute(['pass_fail', $newItemId]);
+        }
+        // TRAP: the steps are deleted and re-inserted on every save, so a column
+        // left out of this save is WIPED, not kept. The step description (#190)
+        // was - every save of a template erased its steps' descriptions (#271).
+        $stepDesc = is_array($it) ? trim((string)($it['description'] ?? '')) : '';
+        if ($stepDesc !== '') {
+            $descUpd->execute([mb_substr($stepDesc, 0, 2000), $newItemId]);
         }
     }
 

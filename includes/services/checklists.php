@@ -881,7 +881,8 @@ class ChecklistsService
             $tpl = $t->fetch(PDO::FETCH_ASSOC);
             if (!$tpl) return null;
             $resCol = self::hasResultColumns($conn) ? ', result_mode' : '';
-            $i = $conn->prepare("SELECT title, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order{$resCol}
+            // description: the version keeps what each step said (#271 made it editable).
+            $i = $conn->prepare("SELECT title, description, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order{$resCol}
                                    FROM checklist_template_items WHERE template_id = ? ORDER BY sort_order, id");
             $i->execute([$templateId]);
             $tpl['items'] = $i->fetchAll(PDO::FETCH_ASSOC);

@@ -133,6 +133,9 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
         .step-opts { display: flex; align-items: center; gap: 18px; margin-top: 8px; padding-left: 28px; flex-wrap: wrap; }
         .step-opt { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text, #334155); }
         .step-ph-wrap { flex: 1 1 220px; min-width: 180px; }
+        /* The step's own description (#190 / #271): a full-width line in the options row, so it takes the row's phone layout. */
+        .step-desc-wrap { flex: 1 1 100%; }
+        .step-desc { min-height: 38px; font-size: 12px; }
 
         .ed-empty { text-align: center; padding: 26px; font-size: 13px; color: var(--text-muted, #64748b); border: 1px dashed var(--border-soft, #cbd5e1); border-radius: 6px; }
     </style>
@@ -289,11 +292,15 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                   '<div class="step-opts">' +
                     '<span class="step-opt"><label class="toggle-switch"><input type="checkbox" data-f="is_mandatory"' + (s.is_mandatory ? ' checked' : '') + '><span class="toggle-slider"></span></label> ' + esc(t('checklists.editor.mandatory')) + '</span>' +
                     '<span class="step-opt"><label class="toggle-switch"><input type="checkbox" data-f="requires_input"' + (s.requires_input ? ' checked' : '') + '><span class="toggle-slider"></span></label> ' + esc(t('checklists.editor.ask_for_value')) + '</span>' +
-                    // #181: on a TASK the step records Pass / Fail / Not applicable, and Fail
-                    // asks for an exception note. Tickets keep a plain tick.
+                    // #181 / #271: the step records Pass / Fail / Not applicable on tasks
+                    // and tickets alike, and Fail asks for an exception note.
                     '<span class="step-opt" title="' + esc(t('checklists.editor.ask_for_result_hint')) + '"><label class="toggle-switch"><input type="checkbox" data-f="result_mode"' + (s.result_mode === 'pass_fail' ? ' checked' : '') + '><span class="toggle-slider"></span></label> ' + esc(t('checklists.editor.ask_for_result')) + '</span>' +
                     '<span class="step-ph-wrap"' + (s.requires_input ? '' : ' hidden') + '>' +
                       '<input type="text" class="ed-input step-ph" data-f="input_placeholder" value="' + esc(s.input_placeholder) + '" placeholder="' + esc(t('checklists.editor.value_prompt_ph')) + '">' +
+                    '</span>' +
+                    // The step's description: shown under the step on the ticket or task.
+                    '<span class="step-desc-wrap">' +
+                      '<textarea class="ed-textarea step-desc" data-f="description" rows="1" aria-label="' + esc(t('checklists.editor.step_desc_label')) + '" placeholder="' + esc(t('checklists.editor.step_desc_ph')) + '">' + esc(s.description) + '</textarea>' +
                     '</span>' +
                   '</div>' +
                 '</li>';
@@ -345,7 +352,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
         });
 
         document.getElementById('edAddStep').addEventListener('click', function () {
-            steps.push({ title: '', suggested_role: '', is_mandatory: 1, requires_input: 0, input_placeholder: '', result_mode: 'none' });
+            steps.push({ title: '', description: '', suggested_role: '', is_mandatory: 1, requires_input: 0, input_placeholder: '', result_mode: 'none' });
             markDirty(); renderSteps();
             const inputs = document.querySelectorAll('#edSteps .step-title');
             if (inputs.length) inputs[inputs.length - 1].focus();
@@ -410,6 +417,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                 steps = (t.items || []).map(function (it) {
                     return {
                         title: it.title || '',
+                        description: it.description || '',
                         suggested_role: it.suggested_role || '',
                         is_mandatory: Number(it.is_mandatory) ? 1 : 0,
                         requires_input: Number(it.requires_input) ? 1 : 0,
