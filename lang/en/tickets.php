@@ -308,6 +308,7 @@ return [
         'link_task'        => 'Link to task…',
         'schedule'         => 'Schedule work…',
         'record_time'      => 'Record time…',
+        'attach_checklist' => 'Attach checklist…',
         'set_status'       => 'Set status',
         'set_priority'     => 'Set priority',
         'set_department'   => 'Set department',

@@ -251,6 +251,7 @@ return [
         'link_task' => 'Mit Aufgabe verknüpfen…',
         'schedule' => 'Arbeit planen…',
         'record_time' => 'Zeit erfassen…',
+        'attach_checklist' => 'Checkliste anhängen…',
         'set_status' => 'Status setzen',
         'set_priority' => 'Priorität setzen',
         'set_department' => 'Abteilung setzen',

@@ -129,6 +129,7 @@ return [
         'remove_title' => 'Quitar lista de comprobación',
         'remove_confirm' => '¿Quitar "{name}" de este ticket?',
         'remove_confirm_done' => '¿Quitar "{name}" de este ticket? Se eliminarán con ella {count} paso(s) completado(s) y su autoría.',
+        'attached_elsewhere' => 'Lista de comprobación adjuntada',
         // GH #271: results on ticket steps
         'next' => 'Siguiente:',
         'result_label' => 'Resultado',
@@ -199,7 +200,7 @@ return [
         'steps_delete' => 'Eliminar un paso pregunta antes y le indica cuál es. Eliminar una plantilla completa elimina sus pasos con ella.',
         'using_heading' => 'Usarlo en un ticket',
         'using_intro' => 'Abra un ticket y busque el panel <strong>Lista de comprobación</strong>. Todo lo que sigue ocurre solo en ese ticket.',
-        'using_step1' => '<strong>Adjuntar una lista de comprobación</strong> - busque por nombre o palabra clave y pulse <strong>Adjuntar</strong>. Se puede adjuntar más de una al mismo ticket.',
+        'using_step1' => '<strong>Adjuntar una lista de comprobación</strong> - busque por nombre o palabra clave y pulse <strong>Adjuntar</strong>. Se puede adjuntar más de una al mismo ticket. O, sin abrirlo, <strong>haga clic derecho en el ticket</strong> de la lista y elija <strong>Adjuntar lista de comprobación…</strong>.',
         'using_step2' => '<strong>Mejor coincidencia</strong> - si las palabras clave de una plantilla coinciden con el ticket, FreeITSM la ofrece arriba del todo sin que se le pida. Para eso sirven las palabras clave.',
         'using_step3' => '<strong>Marque los pasos</strong> a medida que los hace. Cada marca registra quién y cuándo; un paso configurado para pedir un valor lo solicita al marcarlo.',
         'using_step4' => '<strong>Se añade una nota al ticket</strong> cada vez que se completa o se reabre un paso, así que el historial del ticket cuenta la historia por sí solo - útil meses después, y para quien audite el trabajo.',

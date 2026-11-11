@@ -251,6 +251,7 @@ return [
         'link_task' => 'Vincular a tarea…',
         'schedule' => 'Programar trabajo…',
         'record_time' => 'Registrar tiempo…',
+        'attach_checklist' => 'Adjuntar lista de comprobación…',
         'set_status' => 'Establecer estado',
         'set_priority' => 'Establecer prioridad',
         'set_department' => 'Establecer departamento',

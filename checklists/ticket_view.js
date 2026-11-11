@@ -861,6 +861,16 @@ async function attachSopToTicket(ticketId, templateId) {
         const data = await res.json();
         if (data.success) {
             closeAttachModal();
+            // TRAP: attached from the inbox's right-click menu, the ticket may not be
+            // the one open in the reading pane. Loading its checklists would put them
+            // on the OPEN ticket's card - and the warning when that ticket is closed
+            // reads ticketChecklistsData, so it would check the wrong steps. Say it
+            // worked and leave the reading pane alone.
+            const openId = (typeof currentEmail !== 'undefined' && currentEmail) ? Number(currentEmail.ticket_id) : null;
+            if (openId !== Number(ticketId)) {
+                showToast(chkT('checklists.panel.attached_elsewhere', 'Checklist attached'), 'success');
+                return;
+            }
             await loadTicketChecklists(ticketId);
             openChecklistModal(ticketId);
         } else {

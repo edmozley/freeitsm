@@ -129,6 +129,7 @@ return [
         'remove_title' => 'Checkliste entfernen',
         'remove_confirm' => '"{name}" von diesem Ticket entfernen?',
         'remove_confirm_done' => '"{name}" von diesem Ticket entfernen? {count} abgeschlossene(r) Schritt(e) und deren Zuordnung gehen damit verloren.',
+        'attached_elsewhere' => 'Checkliste angehängt',
         // GH #271: results on ticket steps
         'next' => 'Nächster:',
         'result_label' => 'Ergebnis',
@@ -199,7 +200,7 @@ return [
         'steps_delete' => 'Das Entfernen eines Schritts fragt zuerst nach und nennt, welcher es ist. Das Löschen einer ganzen Vorlage entfernt auch deren Schritte.',
         'using_heading' => 'Verwendung an einem Ticket',
         'using_intro' => 'Öffnen Sie ein Ticket und suchen Sie das Panel <strong>Checkliste</strong>. Alles Folgende geschieht nur an diesem einen Ticket.',
-        'using_step1' => '<strong>Eine Checkliste anhängen</strong> - nach Name oder Schlagwort suchen und <strong>Anhängen</strong> drücken. Mehr als eine kann an dasselbe Ticket angehängt werden.',
+        'using_step1' => '<strong>Eine Checkliste anhängen</strong> - nach Name oder Schlagwort suchen und <strong>Anhängen</strong> drücken. Mehr als eine kann an dasselbe Ticket angehängt werden. Oder, ohne es zu öffnen, <strong>klicken Sie mit der rechten Maustaste auf das Ticket</strong> in der Liste und wählen <strong>Checkliste anhängen…</strong>.',
         'using_step2' => '<strong>Beste Übereinstimmung</strong> - wenn die Schlagwörter einer Vorlage zum Ticket passen, bietet FreeITSM sie ungefragt ganz oben an. Dafür sind die Schlagwörter da.',
         'using_step3' => '<strong>Schritte abhaken</strong>, während Sie sie erledigen. Jeder Haken erfasst wer und wann; ein Schritt, der nach einem Wert fragt, fordert ihn beim Abhaken an.',
         'using_step4' => '<strong>Eine Notiz wird dem Ticket hinzugefügt</strong>, jedes Mal wenn ein Schritt abgeschlossen oder wieder geöffnet wird, sodass die Ticket-Historie die Geschichte von selbst erzählt - nützlich Monate später und für jeden, der die Arbeit prüft.',

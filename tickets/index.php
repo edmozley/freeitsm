@@ -832,6 +832,12 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <span><?php echo htmlspecialchars(t('tickets.context.schedule')); ?></span>
         </button>
+        <?php if ($ticketsModuleOn['checklists']): /* Attach a checklist without opening the ticket; single-ticket, like Schedule */ ?>
+        <button class="ticket-context-menu-item" type="button" id="ctxChecklistItem" onclick="openContextAttachChecklist()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span><?php echo htmlspecialchars(t('tickets.context.attach_checklist')); ?></span>
+        </button>
+        <?php endif; ?>
         <?php if ($ticketsModuleOn['time-tracking']): /* GH #217 */ ?>
         <button class="ticket-context-menu-item" type="button" onclick="openContextRecordTime()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1138,7 +1144,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/schedule.js?v=1"></script>
     <script src="../checklists/search_scoring.js?v=1"></script>
-    <script src="../checklists/ticket_view.js?v=14"></script>
+    <script src="../checklists/ticket_view.js?v=15"></script>
     <script src="../assets/js/ticket-fields.js?v=2"></script>
     <script src="../assets/js/ticket-workspace.js?v=4"></script>
     <script src="../assets/js/data-table.js?v=10"></script>
@@ -1147,7 +1153,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=187"></script>
+    <script src="../assets/js/inbox.js?v=188"></script>
     <script src="../assets/js/tickets-table.js?v=5"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>

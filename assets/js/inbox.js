@@ -10795,6 +10795,10 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
     const schedItem = document.getElementById('ctxScheduleItem');
     if (schedItem) schedItem.style.display = ctxActsOnSelection ? 'none' : '';
 
+    // Attach checklist: the picker is for one ticket, so single-ticket like Schedule.
+    const chkItem = document.getElementById('ctxChecklistItem');
+    if (chkItem) chkItem.style.display = ctxActsOnSelection ? 'none' : '';
+
     // Wake appears only when there is something to wake. On a selection that is
     // any sleeping ticket in it — Wake is harmless on the ones already awake, and
     // hiding it because the first row happens to be awake would be worse.
@@ -12464,6 +12468,17 @@ function openContextSchedule() {
 }
 
 /** Opens the "Record time" dialog for the right-clicked ticket, set to now in the display zone. */
+/**
+ * Right-click -> Attach checklist: the same picker as the ticket's own Attach button
+ * (checklists/ticket_view.js), for the right-clicked ticket - which need not be the
+ * one open in the reading pane. The picker leaves the reading pane alone when it is not.
+ */
+function openContextAttachChecklist() {
+    closeTicketContextMenu();
+    if (!ctxTargetTicketId || typeof openAttachChecklistModal !== 'function') return;
+    openAttachChecklistModal(ctxTargetTicketId);
+}
+
 function openContextRecordTime() {
     closeTicketContextMenu();
     if (!ctxTargetTicketId) return;
