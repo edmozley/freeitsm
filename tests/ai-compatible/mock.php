@@ -45,7 +45,43 @@ file_put_contents($logFile, json_encode($all));
 
 $model = (string)($body['model'] ?? '');
 
-if (parse_url($uri, PHP_URL_PATH) !== '/v1/chat/completions') {
+/* Embeddings (the help assistant's matching by meaning - tests/help-vectors.php).
+   A real server's /v1/models and /v1/embeddings, shaped on Ollama's and OpenAI's:
+     fake-embed    a deterministic 64-number vector per input - each word adds to
+                   the slots its hash picks, so texts sharing words point the same way
+     fake-embed-b  the same, hashed differently: its vectors mean nothing to
+                   fake-embed's, like two real models
+     fake-broken   HTTP 500                                                        */
+$path = parse_url($uri, PHP_URL_PATH);
+if ($path === '/v1/models') {
+    header('Content-Type: application/json');
+    echo json_encode(['object' => 'list', 'data' => [['id' => 'fake-embed', 'object' => 'model'], ['id' => 'fake-embed-b', 'object' => 'model']]]);
+    exit;
+}
+if ($path === '/v1/embeddings') {
+    header('Content-Type: application/json');
+    if ($model === 'fake-broken') {
+        http_response_code(500);
+        echo json_encode(['error' => ['message' => 'the mock was told to fail', 'type' => 'api_error']]);
+        exit;
+    }
+    $texts = is_array($body['input'] ?? null) ? $body['input'] : [(string)($body['input'] ?? '')];
+    $data = [];
+    foreach ($texts as $i => $t) {
+        $v = array_fill(0, 64, 0.0);
+        foreach (preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower((string)$t), -1, PREG_SPLIT_NO_EMPTY) as $w) {
+            if (mb_strlen($w) < 3) continue;
+            $hash = crc32(($model === 'fake-embed-b' ? 'b:' : '') . $w);
+            $v[$hash % 64] += 1.0;
+            $v[($hash >> 8) % 64] += 0.5;
+        }
+        $data[] = ['object' => 'embedding', 'index' => $i, 'embedding' => $v];
+    }
+    echo json_encode(['object' => 'list', 'data' => $data, 'model' => $model]);
+    exit;
+}
+
+if ($path !== '/v1/chat/completions') {
     http_response_code(404);
     header('Content-Type: text/plain');
     echo '404 page not found';

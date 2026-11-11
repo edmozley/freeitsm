@@ -12,8 +12,9 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * the word and meaning rankings; the reply kinds with vectors; what counts as usable.
  *
  * Part 2, FREEITSM_TEST_DATABASE (a throwaway install, help index built): against
- * a FAKE embedding server this test starts itself (tests/support/fake-embedding-server.php,
- * PHP's built-in server - nothing paid, nothing outside the machine):
+ * the stand-in OpenAI-compatible server tests/ai-compatible/mock.php, which this test
+ * starts with PHP's built-in server - nothing paid, nothing outside the machine
+ * (models fake-embed, fake-embed-b and fake-broken; see the mock):
  * - building: every section gets a vector, then that model is in use
  * - asking: the reply merges words and meaning
  * - choosing another model: the OLD one keeps answering until the new one is built,
@@ -101,14 +102,14 @@ if ($conn->query('SELECT DATABASE()')->fetchColumn() !== $expected) { echo "\n  
 if (!(int)$conn->query("SELECT COUNT(*) FROM help_sections")->fetchColumn()) { check('the help index is built (php scripts/help_index_build.php)', false); exit(1); }
 
 $port = 18700 + random_int(0, 999);
-$logFile = sys_get_temp_dir() . "/fake-embed-$port.log";
+$logFile = 'tests/ai-compatible/last-request.json';   // the mock logs every request here
 @unlink($logFile);
 $keys = ['help_vectors_enabled', 'help_vectors_model', 'help_vectors_active_cfg', 'help_embed_provider', 'help_embed_model', 'help_embed_api_key', 'help_embed_compatible_base_url'];
 $saved = [];
 foreach ($keys as $k) { $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?"); $st->execute([$k]); $saved[$k] = $st->fetchColumn(); }
 $conn->exec("DROP TABLE IF EXISTS zz_help_vectors_backup");
 $conn->exec("CREATE TABLE zz_help_vectors_backup AS SELECT * FROM help_section_vectors");
-$server = proc_open([PHP_BINARY, '-S', "127.0.0.1:$port", 'tests/support/fake-embedding-server.php'], [1 => ['file', sys_get_temp_dir() . "/fake-embed-$port.out", 'w'], 2 => ['file', sys_get_temp_dir() . "/fake-embed-$port.err", 'w']], $pipes, getcwd(), ['FAKE_EMBED_LOG' => $logFile] + getenv());
+$server = proc_open([PHP_BINARY, '-S', "127.0.0.1:$port", 'tests/ai-compatible/mock.php'], [1 => ['file', sys_get_temp_dir() . "/fake-embed-$port.out", 'w'], 2 => ['file', sys_get_temp_dir() . "/fake-embed-$port.err", 'w']], $pipes, getcwd());
 $use = function (string $model) use ($conn, $port): void {
     aiSettingsSave($conn, HELP_VECTORS_NS, ['provider' => 'openai_compatible', 'model' => $model, 'api_key' => '', 'clear_api_key' => true, 'compatible_base_url' => "http://127.0.0.1:$port/v1"]);
     helpVectorsSet($conn, 'help_vectors_enabled', '1');
@@ -119,7 +120,7 @@ $sections = (int)$conn->query("SELECT COUNT(*) FROM help_sections")->fetchColumn
 
 try {
     for ($i = 0; $i < 40 && !@fsockopen('127.0.0.1', $port); $i++) usleep(100000);
-    check('the fake embedding server started', (bool)@fsockopen('127.0.0.1', $port));
+    check('the stand-in server started', (bool)@fsockopen('127.0.0.1', $port));
     $conn->exec("DELETE FROM help_section_vectors");
     $conn->exec("DELETE FROM system_settings WHERE setting_key IN ('help_vectors_model', 'help_vectors_active_cfg')");
 
@@ -130,7 +131,8 @@ try {
     $b = helpVectorsBuild($conn);
     check("every section gets a vector ($sections), then the model is in use",
         $b['embedded'] === $sections && $b['missing'] === 0 && $b['switched'] && helpVectorsActiveModel($conn) === 'compatible:fake-embed', json_encode($b));
-    check('...in batches, not one request a section', count(file($logFile)) === (int)ceil($sections / HELP_VECTORS_BATCH), (string)count(file($logFile)));
+    $calls = count(array_filter(json_decode((string)@file_get_contents($logFile), true) ?: [], fn($r) => str_ends_with((string)$r['uri'], '/embeddings')));
+    check('...in batches, not one request a section', $calls === (int)ceil($sections / HELP_VECTORS_BATCH), (string)$calls);
     check('the level says so', helpAssistantLevel($conn)['level'] === 'search_meaning');
     $again = helpVectorsBuild($conn);
     check('a rebuild with nothing changed embeds nothing', $again['embedded'] === 0 && $again['switched']);
@@ -174,7 +176,8 @@ try {
         if ($val === false) $conn->prepare("DELETE FROM system_settings WHERE setting_key = ?")->execute([$k]);
         else $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$k, $val]);
     }
-    foreach (['log', 'out', 'err'] as $x) @unlink(sys_get_temp_dir() . "/fake-embed-$port." . $x);
+    foreach (['out', 'err'] as $x) @unlink(sys_get_temp_dir() . "/fake-embed-$port." . $x);
+    @unlink($logFile);
 }
 
 echo "\n$pass passed, $fail failed\n";
