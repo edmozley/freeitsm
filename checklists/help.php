@@ -160,7 +160,7 @@ $translationNamespaces = ['common', 'checklists'];
                         </div>
                         <div class="help-step">
                             <div class="help-step-num">3</div>
-                            <div><?php echo t('checklists.help.building_step3'); ?> <?php echo t('checklists.help.building_step3_tasks'); ?></div>
+                            <div><?php echo t('checklists.help.building_step3'); ?> <?php echo t('checklists.help.building_step3_tasks'); ?> <?php echo t('checklists.help.building_step3_workflows'); ?></div>
                         </div>
                         <div class="help-step">
                             <div class="help-step-num">4</div>

@@ -208,6 +208,7 @@ return [
         'building_step3'   => '<strong>Applies to</strong> - whether the checklist is offered on tickets, on tasks, or on both.',
         // A separate key so the translated step above keeps its meaning (discussion #138).
         'building_step3_tasks' => 'Tasks only offer checklists once an administrator switches them on in <strong>Tasks &rarr; Settings &rarr; Checklists</strong>; there, Standard and Critical work exactly as they do on tickets.',
+        'building_step3_workflows' => 'A workflow\'s <strong>Attach SOP Checklist(s)</strong> action offers only checklists for tickets (or both). Making one tasks only after a workflow uses it does not break the workflow: that checklist is skipped, and the run leaves a note in the workflow\'s execution log.',
         'building_step4'   => '<strong>Description</strong> - when and why to use this one. This is what somebody reads when deciding between two similar checklists, so it earns its place.',
         'building_step5'   => '<strong>Keywords</strong> - comma separated, and the reason a checklist finds its own ticket. A VPN checklist tagged <code>vpn, remote access, token</code> is offered on a ticket about any of them.',
         'building_step6'   => '<strong>Closure gate</strong> - choose how mandatory steps behave when a ticket is closed: <em>Standard</em> (warns the analyst and records an audit note if overridden) or <em>Critical</em> (strictly blocks ticket closure until completed).',

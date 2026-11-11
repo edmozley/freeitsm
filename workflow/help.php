@@ -275,6 +275,7 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
             <p><?php echo t('workflow.help.testing_real'); ?></p>
             <h4><?php echo htmlspecialchars(t('workflow.help.testing_log_heading')); ?></h4>
             <p><?php echo t('workflow.help.testing_log_body'); ?></p>
+            <p><?php echo t('workflow.help.testing_log_note'); ?></p>
             <div class="help-note"><?php echo t('workflow.help.testing_log_why'); ?></div>
 
             </div>

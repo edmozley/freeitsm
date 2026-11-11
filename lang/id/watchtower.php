@@ -72,7 +72,7 @@ return [
         'card_projects' => 'Proyek',
         'card_projects_desc' => 'Proyek berjalan yang menyimpang atau berisiko, menurut nama, dan tahap yang berakhir dalam 7 hari ke depan.',
         'card_workflows' => 'Workflows',
-        'card_workflows_desc' => 'Eksekusi yang gagal atau dibatalkan, dan webhook yang berhenti mengirim.',
+        'card_workflows_desc' => 'Eksekusi yang gagal atau dibatalkan, eksekusi yang melewatkan sebagian tugasnya dan meninggalkan catatan, dan webhook yang berhenti mengirim.',
         'configured_elsewhere_assets' => 'Angka garansi dan sewa diatur di Aset → Pengaturan → Peringatan kedaluwarsa',
         'configured_elsewhere_software' => 'Angka perpanjangan diatur di Perangkat Lunak → Pengaturan → Perpanjangan',
         'configured_elsewhere_domains' => 'Apakah kartu ini tampil diatur di Domain → Pengaturan → Peringatan',

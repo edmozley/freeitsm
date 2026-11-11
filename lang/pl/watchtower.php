@@ -72,7 +72,7 @@ return [
         'card_projects' => 'Projekty',
         'card_projects_desc' => 'Projekty w toku poza planem lub zagrożone, z nazwami, oraz etapy kończące się w ciągu najbliższych 7 dni.',
         'card_workflows' => 'Przepływy pracy',
-        'card_workflows_desc' => 'Nieudane lub przerwane uruchomienia oraz webhooki, które przestały dostarczać wiadomości.',
+        'card_workflows_desc' => 'Nieudane lub przerwane uruchomienia, uruchomienia, które pominęły część zadania i zostawiły notatkę, oraz webhooki, które przestały dostarczać wiadomości.',
         'configured_elsewhere_assets' => 'Wartości gwarancji i leasingu ustawia się w Zasoby → Ustawienia → Alerty wygaśnięcia',
         'configured_elsewhere_software' => 'Wartości odnowień ustawia się w Oprogramowanie → Ustawienia → Odnowienia',
         'configured_elsewhere_domains' => 'To, czy ta karta jest widoczna, ustawia się w Domeny → Ustawienia → Alerty',

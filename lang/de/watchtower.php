@@ -72,7 +72,7 @@ return [
         'card_projects' => 'Projekte',
         'card_projects_desc' => 'Laufende Projekte, die vom Kurs abweichen oder gefährdet sind, mit Namen, sowie Phasen, die in den nächsten 7 Tagen enden.',
         'card_workflows' => 'Workflows',
-        'card_workflows_desc' => 'Fehlgeschlagene oder abgebrochene Durchläufe und Webhooks, deren Zustellung gestoppt ist.',
+        'card_workflows_desc' => 'Fehlgeschlagene oder abgebrochene Durchläufe, Durchläufe, die einen Teil ihrer Aufgabe übersprungen und einen Hinweis hinterlassen haben, und Webhooks, deren Zustellung gestoppt ist.',
         'configured_elsewhere_assets' => 'Garantie- und Leasingwerte werden unter Assets → Einstellungen → Ablaufwarnungen festgelegt',
         'configured_elsewhere_software' => 'Verlängerungswerte werden unter Software → Einstellungen → Verlängerungen festgelegt',
         'configured_elsewhere_domains' => 'Ob diese Karte angezeigt wird, wird unter Domänen → Einstellungen → Warnungen festgelegt',

@@ -85,7 +85,7 @@ return [
         'card_projects'            => 'Projects',
         'card_projects_desc'       => 'Live projects off track or at risk, by name, and stages ending in the next 7 days.',
         'card_workflows'           => 'Workflows',
-        'card_workflows_desc'      => 'Failed or aborted runs, and webhooks that have stopped delivering.',
+        'card_workflows_desc'      => 'Failed or aborted runs, runs that skipped part of their job and left a note, and webhooks that have stopped delivering.',
 
         // Some figures on a card are switched on in the module that owns them,
         // because the same setting also controls the calendar - so it cannot

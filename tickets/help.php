@@ -418,6 +418,7 @@ try {
                         <li><?php echo t('tickets.help.watch.how'); ?></li>
                         <li><?php echo t('tickets.help.watch.others'); ?></li>
                         <li><?php echo t('tickets.help.watch.what'); ?></li>
+                        <li><?php echo t('tickets.help.watch.leaver'); ?></li>
                     </ul>
                     <p class="help-note"><?php echo t('tickets.help.watch.note'); ?></p>
 

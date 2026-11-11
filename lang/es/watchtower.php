@@ -72,7 +72,7 @@ return [
         'card_projects' => 'Proyectos',
         'card_projects_desc' => 'Proyectos en curso desviados o en riesgo, por nombre, y etapas que terminan en los próximos 7 días.',
         'card_workflows' => 'Flujos de trabajo',
-        'card_workflows_desc' => 'Ejecuciones fallidas o abortadas, y webhooks que han dejado de entregarse.',
+        'card_workflows_desc' => 'Ejecuciones fallidas o abortadas, ejecuciones que omitieron parte de su tarea y dejaron una nota, y webhooks que han dejado de entregarse.',
         'configured_elsewhere_assets' => 'Las cifras de garantía y arrendamiento se definen en Activos → Ajustes → Alertas de vencimiento',
         'configured_elsewhere_software' => 'Las cifras de renovación se definen en Software → Ajustes → Renovaciones',
         'configured_elsewhere_domains' => 'Si esta tarjeta se muestra se define en Dominios → Ajustes → Alertas',

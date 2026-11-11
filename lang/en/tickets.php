@@ -3346,6 +3346,7 @@ return [
             'how' => '<strong>Watch</strong> on the ticket\'s toolbar, or right-click it in the list and choose <strong>Watch</strong>. Right-click a selection to watch them all. The same places say <strong>Stop watching</strong>.',
             'others' => 'The <strong>Watch</strong> button shows who is watching. With write access to Tickets you can <strong>add a colleague</strong> or take someone off; anyone can take themselves off.',
             'what' => '<strong>Tickets &rarr; Settings &rarr; General &rarr; Watching tickets</strong> chooses what watchers hear about - replies, notes, status, priority, reassignment, SLA warnings and breaches - all of them unless an administrator unticks some. A reassignment reaches a watcher as "reassigned", never "assigned to you", and it has its own switch in each person\'s preferences.',
+            'leaver' => 'A deactivated analyst is never told about a ticket they watch. <strong>Tickets &rarr; Settings &rarr; General &rarr; When a watcher is deactivated</strong> decides what happens to their watches: <strong>Stop</strong> (the default) keeps them out of sight and puts them back if the analyst is made active again; <strong>Remove</strong> takes the analyst off every ticket they watch when they are deactivated.',
             'note' => 'Only people who can see a ticket can watch it, and if they stop being able to see it they stop hearing about it. Nobody is told about their own change. Merging moves watchers to the surviving ticket.',
         ],
         // GH #272: forms on a ticket.
