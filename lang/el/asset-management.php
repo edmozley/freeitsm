@@ -68,7 +68,7 @@ return [
         'setup_ps' => 'Υποστηρίζεται το Windows PowerShell 5.1 σε Windows Server 2016 ή νεότερο. Το PowerShell 7.4 ή νεότερο αναμένεται να λειτουργεί, αλλά δεν έχει ακόμη αποδειχθεί σε πραγματικό περιβάλλον.',
         'setup_modules' => 'Ο management server χρειάζεται τα αρθρώματα PowerShell Hyper-V και Failover Clustering: Install-WindowsFeature Hyper-V-PowerShell, RSAT-Clustering-PowerShell.',
         'setup_cluster' => 'Κάθε Failover Cluster: Grant-ClusterAccess -Cluster <name> -User <account> -ReadOnly.',
-        'setup_hosts' => 'Κάθε Hyper-V host: το Hyper-V δεν έχει ρόλο μόνο για ανάγνωση. Η τοπική ομάδα Hyper-V Administrators λειτουργεί, αλλά επιτρέπει και αλλαγές που ο συλλέκτης δεν κάνει ποτέ. Η ενεργοποίηση των Enable Account και Remote Enable στους χώρους ονομάτων WMI root\\virtualization\\v2 και root\\cimv2, μαζί με τους Remote Management Users, μπορεί να αρκεί - το -TestAccess δείχνει αν αρκεί.',
+        'setup_hosts' => 'Κάθε Hyper-V host: το Hyper-V δεν έχει ρόλο μόνο για ανάγνωση. Η τοπική ομάδα Hyper-V Administrators λειτουργεί, αλλά επιτρέπει και αλλαγές που ο συλλέκτης δεν κάνει ποτέ. Η ενεργοποίηση των Enable Account και Remote Enable στους χώρους ονομάτων WMI root\\virtualization\\v2 και root\\cimv2, μαζί με τους Remote Management Users, μπορεί να αρκεί - το -TestAccess δείχνει αν αρκεί. Το λειτουργικό σύστημα επισκέπτη μιας VM προέρχεται από τις υπηρεσίες ενοποίησής της (την αναφορά του ίδιου του επισκέπτη στο Hyper-V)· μια VM χωρίς αυτές σε λειτουργία δεν δείχνει λειτουργικό σύστημα επισκέπτη.',
         'setup_more' => 'Ο πλήρης οδηγός',
         'servers_title' => 'Αναφορές Hyper-V',
         'servers_hosts' => 'Hosts και clusters',

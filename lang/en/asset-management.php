@@ -69,7 +69,7 @@ return [
         'setup_ps'         => 'Windows PowerShell 5.1 on Windows Server 2016 or later is supported. PowerShell 7.4 or later is expected to work, but has not yet been proven on a real estate.',
         'setup_modules'    => 'The management server needs the Hyper-V and Failover Clustering PowerShell modules: Install-WindowsFeature Hyper-V-PowerShell, RSAT-Clustering-PowerShell.',
         'setup_cluster'    => 'Each Failover Cluster: Grant-ClusterAccess -Cluster <name> -User <account> -ReadOnly.',
-        'setup_hosts'      => 'Each Hyper-V host: Hyper-V has no read-only role. The local Hyper-V Administrators group works but also allows changes the collector never makes. Enable Account and Remote Enable on the root\\virtualization\\v2 and root\\cimv2 WMI namespaces, plus Remote Management Users, may be enough - -TestAccess shows whether it is.',
+        'setup_hosts'      => 'Each Hyper-V host: Hyper-V has no read-only role. The local Hyper-V Administrators group works but also allows changes the collector never makes. Enable Account and Remote Enable on the root\\virtualization\\v2 and root\\cimv2 WMI namespaces, plus Remote Management Users, may be enough - -TestAccess shows whether it is. A VM\'s guest OS comes from its integration services (the guest\'s own report to Hyper-V); a VM without them running shows no guest OS.',
         'setup_more'       => 'The full guide',
         // Servers page
         'servers_title'    => 'Hyper-V reports',

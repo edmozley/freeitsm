@@ -68,7 +68,7 @@ return [
         'setup_ps' => 'Obsługiwany jest Windows PowerShell 5.1 w systemie Windows Server 2016 lub nowszym. PowerShell 7.4 lub nowszy powinien działać, ale nie został jeszcze sprawdzony w rzeczywistym środowisku.',
         'setup_modules' => 'Serwer zarządzający potrzebuje modułów PowerShell Hyper-V i Failover Clustering: Install-WindowsFeature Hyper-V-PowerShell, RSAT-Clustering-PowerShell.',
         'setup_cluster' => 'Każdy Failover Cluster: Grant-ClusterAccess -Cluster <name> -User <account> -ReadOnly.',
-        'setup_hosts' => 'Każdy host Hyper-V: Hyper-V nie ma roli tylko do odczytu. Lokalna grupa Hyper-V Administrators działa, ale pozwala też na zmiany, których kolektor nigdy nie wykonuje. Włączenie Account i Remote Enable w przestrzeniach nazw WMI root\\virtualization\\v2 i root\\cimv2 oraz grupa Remote Management Users mogą wystarczyć - -TestAccess pokazuje, czy tak jest.',
+        'setup_hosts' => 'Każdy host Hyper-V: Hyper-V nie ma roli tylko do odczytu. Lokalna grupa Hyper-V Administrators działa, ale pozwala też na zmiany, których kolektor nigdy nie wykonuje. Włączenie Account i Remote Enable w przestrzeniach nazw WMI root\\virtualization\\v2 i root\\cimv2 oraz grupa Remote Management Users mogą wystarczyć - -TestAccess pokazuje, czy tak jest. System gościa maszyny wirtualnej pochodzi z jej usług integracji (raportu samego gościa dla Hyper-V); maszyna bez uruchomionych usług nie pokazuje systemu gościa.',
         'setup_more' => 'Pełny przewodnik',
         'servers_title' => 'Raporty Hyper-V',
         'servers_hosts' => 'Hosty i klastry',

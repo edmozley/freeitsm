@@ -68,7 +68,7 @@ return [
         'setup_ps' => 'Windows PowerShell 5.1 di Windows Server 2016 atau lebih baru didukung. PowerShell 7.4 atau lebih baru diharapkan dapat berfungsi, tetapi belum terbukti pada infrastruktur nyata.',
         'setup_modules' => 'Server manajemen memerlukan modul PowerShell Hyper-V dan Failover Clustering: Install-WindowsFeature Hyper-V-PowerShell, RSAT-Clustering-PowerShell.',
         'setup_cluster' => 'Setiap Failover Cluster: Grant-ClusterAccess -Cluster <name> -User <account> -ReadOnly.',
-        'setup_hosts' => 'Setiap host Hyper-V: Hyper-V tidak memiliki peran hanya-baca. Grup Hyper-V Administrators lokal dapat dipakai tetapi juga mengizinkan perubahan yang tidak pernah dilakukan kolektor. Mengaktifkan Account dan Remote Enable pada namespace WMI root\\virtualization\\v2 dan root\\cimv2, ditambah Remote Management Users, mungkin sudah cukup - -TestAccess menunjukkan apakah cukup.',
+        'setup_hosts' => 'Setiap host Hyper-V: Hyper-V tidak memiliki peran hanya-baca. Grup Hyper-V Administrators lokal dapat dipakai tetapi juga mengizinkan perubahan yang tidak pernah dilakukan kolektor. Mengaktifkan Account dan Remote Enable pada namespace WMI root\\virtualization\\v2 dan root\\cimv2, ditambah Remote Management Users, mungkin sudah cukup - -TestAccess menunjukkan apakah cukup. OS tamu sebuah VM berasal dari layanan integrasinya (laporan tamu itu sendiri ke Hyper-V); VM yang tidak menjalankannya tidak menampilkan OS tamu.',
         'setup_more' => 'Panduan lengkap',
         'servers_title' => 'Laporan Hyper-V',
         'servers_hosts' => 'Host dan cluster',

@@ -68,7 +68,7 @@ return [
         'setup_ps' => 'Se admite Windows PowerShell 5.1 en Windows Server 2016 o posterior. Se espera que PowerShell 7.4 o posterior funcione, pero todavía no se ha probado en una infraestructura real.',
         'setup_modules' => 'El servidor de administración necesita los módulos de PowerShell de Hyper-V y de Clústeres de conmutación por error: Install-WindowsFeature Hyper-V-PowerShell, RSAT-Clustering-PowerShell.',
         'setup_cluster' => 'Cada clúster de conmutación por error: Grant-ClusterAccess -Cluster <name> -User <account> -ReadOnly.',
-        'setup_hosts' => 'Cada host Hyper-V: Hyper-V no tiene un rol de solo lectura. El grupo local Administradores de Hyper-V funciona, pero también permite cambios que el recopilador nunca hace. Habilitar Account y Remote Enable en los espacios de nombres WMI root\\virtualization\\v2 y root\\cimv2, además de Usuarios de administración remota, puede bastar; -TestAccess indica si es así.',
+        'setup_hosts' => 'Cada host Hyper-V: Hyper-V no tiene un rol de solo lectura. El grupo local Administradores de Hyper-V funciona, pero también permite cambios que el recopilador nunca hace. Habilitar Account y Remote Enable en los espacios de nombres WMI root\\virtualization\\v2 y root\\cimv2, además de Usuarios de administración remota, puede bastar; -TestAccess indica si es así. El sistema operativo invitado de una VM viene de sus servicios de integración (el propio informe del invitado a Hyper-V); una VM sin ellos en marcha no muestra sistema operativo invitado.',
         'setup_more' => 'La guía completa',
         'servers_title' => 'Informes de Hyper-V',
         'servers_hosts' => 'Hosts y clústeres',

@@ -68,7 +68,7 @@ return [
         'setup_ps' => 'Windows PowerShell 5.1 unter Windows Server 2016 oder neuer wird unterstützt. PowerShell 7.4 oder neuer sollte voraussichtlich funktionieren, wurde aber noch nicht in einer realen Umgebung erprobt.',
         'setup_modules' => 'Der Verwaltungsserver benötigt die PowerShell-Module für Hyper-V und Failover-Clustering: Install-WindowsFeature Hyper-V-PowerShell, RSAT-Clustering-PowerShell.',
         'setup_cluster' => 'Jeder Failover-Cluster: Grant-ClusterAccess -Cluster <name> -User <account> -ReadOnly.',
-        'setup_hosts' => 'Jeder Hyper-V-Host: Hyper-V kennt keine schreibgeschützte Rolle. Die lokale Gruppe Hyper-V-Administratoren funktioniert, erlaubt aber auch Änderungen, die der Collector nie vornimmt. Möglicherweise genügen Account Enable und Remote Enable auf den WMI-Namespaces root\\virtualization\\v2 und root\\cimv2 sowie Remoteverwaltungsbenutzer - -TestAccess zeigt, ob es reicht.',
+        'setup_hosts' => 'Jeder Hyper-V-Host: Hyper-V kennt keine schreibgeschützte Rolle. Die lokale Gruppe Hyper-V-Administratoren funktioniert, erlaubt aber auch Änderungen, die der Collector nie vornimmt. Möglicherweise genügen Account Enable und Remote Enable auf den WMI-Namespaces root\\virtualization\\v2 und root\\cimv2 sowie Remoteverwaltungsbenutzer - -TestAccess zeigt, ob es reicht. Das Gastbetriebssystem einer VM stammt aus ihren Integrationsdiensten (der eigenen Meldung des Gasts an Hyper-V); eine VM, auf der sie nicht laufen, zeigt kein Gastbetriebssystem.',
         'setup_more' => 'Die vollständige Anleitung',
         'servers_title' => 'Hyper-V-Berichte',
         'servers_hosts' => 'Hosts und Cluster',
