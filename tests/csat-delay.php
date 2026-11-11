@@ -42,6 +42,8 @@ $ticketId = (int)$conn->query("SELECT id FROM tickets WHERE deleted_datetime IS 
 $closed = (int)$conn->query("SELECT id FROM ticket_statuses WHERE is_closed = 1 ORDER BY id LIMIT 1")->fetchColumn();
 $open = (int)$conn->query("SELECT id FROM ticket_statuses WHERE is_closed = 0 ORDER BY id LIMIT 1")->fetchColumn();
 $saved = ['mode' => $getSetting('csat_mode'), 'delay' => $getSetting('csat_delay_minutes')];
+$savedReminder = [$getSetting('csat_reminder'), $getSetting('csat_reminder_hours')];
+$tplId = 0;
 $oldStatus = $conn->query("SELECT status_id FROM tickets WHERE id = $ticketId")->fetchColumn();
 $activeTpl = $conn->query("SELECT id FROM ticket_email_templates WHERE event_trigger = 'csat_request' AND is_active = 1")->fetchAll(PDO::FETCH_COLUMN);
 $respMark = (int)$conn->query("SELECT COALESCE(MAX(id), 0) FROM ticket_csat_responses")->fetchColumn();
@@ -122,7 +124,51 @@ try {
     $url = csatBuildUrl('abc123', $conn);
     check("a configured public address always wins ($url)", str_starts_with($url, 'https://help.example.test') && str_ends_with($url, '/csat?token=abc123'));
     setSetting($conn, 'public_base_url', $savedPublic); publicBaseUrlForget();
+
+    echo "\nThe optional reminder\n";
+    $conn->exec("DELETE FROM csat_queue WHERE ticket_id = $ticketId");
+    $conn->prepare("UPDATE tickets SET status_id = ? WHERE id = ?")->execute([$closed, $ticketId]);
+    $mk = function (int $hoursAgo, ?int $rating = null, ?int $channel = null, ?string $base = null) use ($conn, $ticketId): int {
+        $conn->prepare("INSERT INTO ticket_csat_responses (ticket_id, token, sent_datetime, rating, channel_id, link_base, created_at)
+                        VALUES (?, ?, UTC_TIMESTAMP() - INTERVAL ? HOUR, ?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$ticketId, 'zz301' . bin2hex(random_bytes(8)), $hoursAgo, $rating, $channel, $base]);
+        return (int)$conn->lastInsertId();
+    };
+    $due     = $mk(50, null, null, 'https://desk.example.test');   // unanswered, 50h ago: due
+    $young   = $mk(10);              // too soon
+    $old     = $mk(200);             // fell due long ago: never caught up
+    $rated   = $mk(50, 4);           // answered
+    $chat    = $mk(50, null, 999);   // asked in a chat
+    $sent = [];
+    $spy = function (int $t, string $ev, string $link) use (&$sent) { $sent[] = [$t, $ev, $link]; };
+    setSetting($conn, 'csat_mode', 'manual'); setSetting($conn, 'csat_reminder', '0'); setSetting($conn, 'csat_reminder_hours', '48');
+    csatSendReminders($conn, 200, $spy);
+    check('reminders are off by default - nothing sent', $sent === []);
+    setSetting($conn, 'csat_reminder', '1');
+    csatSendReminders($conn, 200, $spy);
+    check('with no email template at all, nothing is claimed (it would be lost)',
+        $sent === [] && $conn->query("SELECT reminder_sent_datetime FROM ticket_csat_responses WHERE id = $due")->fetchColumn() === null);
+    $conn->exec("INSERT INTO ticket_email_templates (name, event_trigger, subject_template, body_template, is_active) VALUES ('ZZ #301 reminder', 'csat_reminder', 'Reminder', '[csat_link]', 1)");
+    $tplId = (int)$conn->lastInsertId();
+    $r = csatSendReminders($conn, 200, $spy);
+    $tokenDue = (string)$conn->query("SELECT token FROM ticket_csat_responses WHERE id = $due")->fetchColumn();
+    check('on, after 48 hours: exactly one reminder - for the unanswered emailed survey that just fell due', $r['sent'] === 1 && count($sent) === 1);
+    check('...with the "CSAT reminder" template and the SAME link (one rating whichever is clicked)',
+        ($sent[0][1] ?? '') === 'csat_reminder' && ($sent[0][2] ?? '') === 'https://desk.example.test/csat?token=' . urlencode($tokenDue));
+    check('not one too soon, a long-overdue one, an answered one, or one asked in a chat', count($sent) === 1);
+    csatSendReminders($conn, 200, $spy);
+    check('never a second reminder', count($sent) === 1);
+    $conn->exec("UPDATE ticket_csat_responses SET reminder_sent_datetime = NULL WHERE id = $due");
+    $conn->prepare("UPDATE tickets SET status_id = ? WHERE id = ?")->execute([$open, $ticketId]);
+    csatSendReminders($conn, 200, $spy);
+    check('no reminder once the ticket has been reopened', count($sent) === 1);
+    $jobs = jobRegistry();
+    check('the job is needed while reminders are on', $jobs['csat_delayed']['needed']($conn) === true);
+    $conn->exec("DELETE FROM ticket_email_templates WHERE id = $tplId"); $tplId = 0;
 } finally {
+    if (!empty($tplId)) $conn->exec("DELETE FROM ticket_email_templates WHERE id = $tplId");
+    $conn->exec("DELETE FROM ticket_csat_responses WHERE token LIKE 'zz301%'");
+    setSetting($conn, 'csat_reminder', $savedReminder[0]); setSetting($conn, 'csat_reminder_hours', $savedReminder[1]);
     if ($activeTpl) $conn->exec("UPDATE ticket_email_templates SET is_active = 1 WHERE id IN (" . implode(',', array_map('intval', $activeTpl)) . ")");
     $conn->prepare("UPDATE tickets SET status_id = ? WHERE id = ?")->execute([$oldStatus, $ticketId]);
     $conn->exec("DELETE FROM csat_queue WHERE ticket_id = $ticketId");

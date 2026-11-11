@@ -134,9 +134,11 @@ function jobRegistry(): array
         'csat_delayed' => [
             'command' => 'php cron/csat_delayed.php', 'web' => true,
             'interval' => 5, 'grace' => 30, 'max_runtime' => 10,
-            // Needed while a delay is set on "auto" - or while any survey is still queued.
+            // Needed while a delay is set on "auto", while any survey is still queued,
+            // or while the optional reminder is on.
             'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM csat_queue LIMIT 1")
-                                     || (jobSettingStrict($c, 'csat_mode') === 'auto' && (int)jobSettingStrict($c, 'csat_delay_minutes') > 0),
+                                     || (jobSettingStrict($c, 'csat_mode') === 'auto' && (int)jobSettingStrict($c, 'csat_delay_minutes') > 0)
+                                     || (jobSettingStrict($c, 'csat_mode') !== 'off' && jobSettingStrict($c, 'csat_reminder') === '1'),
         ],
         'task_recurrence' => [
             'command' => 'php cron/task_recurrence.php', 'web' => true,

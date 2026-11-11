@@ -1916,6 +1916,9 @@ return [
         // PR #166 - which chat a rating request was asked in (NULL = emailed).
         'channel_id'         => 'INT NULL',
         'channel_from'       => 'VARCHAR(255) NULL',
+        // GH #301 - the optional one reminder; the site address the survey's link used.
+        'reminder_sent_datetime' => 'DATETIME NULL',
+        'link_base'          => 'VARCHAR(255) NULL',
     ],
 
     // GH #301: surveys waiting out "Delay before sending" (unique per ticket - db_verify_indexes.php).

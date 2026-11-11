@@ -1674,6 +1674,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <option value="ticket_closed"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_closed')); ?></option>
                         <option value="note_shared"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_note_shared')); ?></option>
                         <option value="csat_request"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_csat_request')); ?></option>
+                        <option value="csat_reminder"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_csat_reminder')); ?></option>
                     </select>
                     <input type="text" id="tplSimEmail" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.settings.scope.sim_placeholder')); ?>" onkeydown="if(event.key==='Enter'){event.preventDefault();runTemplateSimulator();}">
                     <button type="button" class="btn btn-secondary" onclick="runTemplateSimulator()"><?php echo htmlspecialchars(t('tickets.settings.scope.sim_button')); ?></button>
@@ -2333,6 +2334,19 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <label for="csatDelay"><?php echo htmlspecialchars(t('tickets.settings.csat.delay_label')); ?></label>
                     <input type="number" id="csatDelay" min="0" max="10080" step="1" style="max-width: 160px;">
                     <small style="display: block; color: var(--text-muted, #666); margin-top: 4px;"><?php echo t('tickets.settings.csat_tab.delay_help'); ?></small>
+                </div>
+
+                <!-- GH #301: one optional reminder for a survey nobody has answered -->
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="csatReminder" onchange="document.getElementById('csatReminderHoursWrap').hidden = !this.checked">
+                        <span><?php echo htmlspecialchars(t('tickets.settings.csat_tab.reminder')); ?></span>
+                    </label>
+                    <div id="csatReminderHoursWrap" hidden style="margin: 8px 0 0 26px;">
+                        <label for="csatReminderHours"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.reminder_hours')); ?></label>
+                        <input type="number" id="csatReminderHours" min="1" max="336" step="1" style="max-width: 160px;">
+                    </div>
+                    <small style="display: block; color: var(--text-muted, #666); margin-top: 4px; margin-left: 26px;"><?php echo t('tickets.settings.csat_tab.reminder_help'); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -3545,6 +3559,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                             <option value="ticket_closed"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_closed')); ?></option>
                             <option value="note_shared"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_note_shared')); ?></option>
                             <option value="csat_request"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_csat_request')); ?></option>
+                            <option value="csat_reminder"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_csat_reminder')); ?></option>
                         </select>
                     </div>
 
@@ -7106,6 +7121,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 document.getElementById('csatDelay').value = data.delay_minutes ?? 0;
                 document.getElementById('csatOnePerTicket').checked = data.one_per_ticket !== '0';
                 document.getElementById('csatInChannel').checked = data.in_channel === '1';
+                document.getElementById('csatReminder').checked = data.reminder === '1';
+                document.getElementById('csatReminderHours').value = data.reminder_hours ?? 48;
+                document.getElementById('csatReminderHoursWrap').hidden = data.reminder !== '1';
 
                 const scale = document.querySelector(`input[name="csatScale"][value="${data.scale || 'stars'}"]`);
                 if (scale) scale.checked = true;
@@ -7121,6 +7139,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 delay_minutes:  parseInt(document.getElementById('csatDelay').value || '0', 10),
                 one_per_ticket: document.getElementById('csatOnePerTicket').checked ? '1' : '0',
                 in_channel:     document.getElementById('csatInChannel').checked ? '1' : '0',
+                reminder:       document.getElementById('csatReminder').checked ? '1' : '0',
+                reminder_hours: parseInt(document.getElementById('csatReminderHours').value || '48', 10),
                 scale:          document.querySelector('input[name="csatScale"]:checked')?.value || 'stars',
             };
             try {
@@ -7626,7 +7646,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
             'analyst_assigned': 'Assigned to an analyst',
             'ticket_closed': 'Ticket closed',
             'note_shared': 'Note shared with requester',
-            'csat_request': 'CSAT survey'
+            'csat_request': 'CSAT survey',
+            'csat_reminder': 'CSAT reminder'
         };
 
         let emailTemplates = [];
@@ -7788,7 +7809,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
             analyst_assigned: t('tickets.settings.modals.template.event_analyst_assigned'),
             ticket_closed:    t('tickets.settings.modals.template.event_closed'),
             note_shared:      t('tickets.settings.modals.template.event_note_shared'),
-            csat_request:     t('tickets.settings.modals.template.event_csat_request')
+            csat_request:     t('tickets.settings.modals.template.event_csat_request'),
+            csat_reminder:    t('tickets.settings.modals.template.event_csat_reminder')
         };
 
         function switchTemplateScope() {

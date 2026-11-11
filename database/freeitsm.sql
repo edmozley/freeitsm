@@ -3237,6 +3237,9 @@ CREATE TABLE IF NOT EXISTS `ticket_csat_responses` (
     -- sent to that customer on that channel. NULL = an emailed survey.
     `channel_id`         INT NULL,
     `channel_from`       VARCHAR(255) NULL,
+    -- GH #301: the optional one reminder, and the site address the link used (for a reminder sent by a background job)
+    `reminder_sent_datetime` DATETIME NULL,
+    `link_base`          VARCHAR(255) NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_ticket_csat_token` (`token`),
     KEY `ix_ticket_csat_ticket_id` (`ticket_id`),

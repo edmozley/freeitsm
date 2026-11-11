@@ -1,6 +1,7 @@
 <?php
 /**
- * CSAT surveys sent after "Delay before sending" (GitHub #301) - cron entry point.
+ * CSAT surveys sent after "Delay before sending", and the optional one reminder
+ * for an unanswered survey (GitHub #301) - cron entry point.
  *
  * Tickets -> Settings -> CSAT -> "Delay before sending (minutes)". A ticket that
  * closes with a delay set has its survey queued (csat_queue); this sends the ones
@@ -55,12 +56,16 @@ try {
 
     $runId = JobRun::start($conn, 'csat_delayed', $trigger);
     $r = csatSendDue($conn);
+    $rem = csatSendReminders($conn);   // the optional one reminder (Tickets -> Settings -> CSAT)
+    $failed = $r['failed'] + $rem['failed'];
     $summary = "Sent {$r['sent']} survey(s); {$r['reopened']} ticket(s) reopened or gone, {$r['skipped']} not sent"
-             . ($r['failed'] ? ", {$r['failed']} failed" : '') . '.';
-    JobRun::finish($conn, $runId, $r['failed'] ? 'partial' : null,
-        ['sent' => $r['sent'], 'reopened' => $r['reopened'], 'skipped' => $r['skipped'], 'failed' => $r['failed']], $summary);
+             . ($r['failed'] ? ", {$r['failed']} failed" : '')
+             . "; {$rem['sent']} reminder(s)" . ($rem['failed'] ? ", {$rem['failed']} failed" : '') . '.';
+    JobRun::finish($conn, $runId, $failed ? 'partial' : null,
+        ['sent' => $r['sent'], 'reopened' => $r['reopened'], 'skipped' => $r['skipped'], 'failed' => $failed,
+         'reminders' => $rem['sent']], $summary);
     echo "CSAT delayed surveys: $summary\n";
-    if ($r['failed']) exit(1);
+    if ($failed) exit(1);
 
 } catch (Throwable $e) {
     if (isset($conn)) JobRun::fail($conn, $runId, $e);

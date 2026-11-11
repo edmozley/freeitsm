@@ -34,6 +34,9 @@ $scale = $data['scale'] ?? 'stars';
 $delay = (int)($data['delay_minutes'] ?? 0);
 $opt   = ($data['one_per_ticket'] ?? '1') === '0' ? '0' : '1';
 $inCh  = ($data['in_channel'] ?? '0') === '1' ? '1' : '0';
+// GH #301: one optional reminder for an unanswered survey, after this many hours.
+$rem   = ($data['reminder'] ?? '0') === '1' ? '1' : '0';
+$remH  = (int)($data['reminder_hours'] ?? 48);
 
 if (!in_array($mode, ['off','auto','manual'], true)) {
     echo json_encode(['success' => false, 'error' => 'Invalid mode']);
@@ -41,6 +44,10 @@ if (!in_array($mode, ['off','auto','manual'], true)) {
 }
 if (!in_array($scale, ['stars','emojis'], true)) {
     echo json_encode(['success' => false, 'error' => 'Invalid scale']);
+    exit;
+}
+if ($remH < 1 || $remH > 336) {
+    echo json_encode(['success' => false, 'error' => 'The reminder must be 1-336 hours (two weeks) after the survey']);
     exit;
 }
 if ($delay < 0 || $delay > 10080) {
@@ -57,6 +64,8 @@ try {
     $stmt->execute(['csat_delay_minutes', (string)$delay]);
     $stmt->execute(['csat_one_per_ticket', $opt]);
     $stmt->execute(['csat_in_channel', $inCh]);
+    $stmt->execute(['csat_reminder', $rem]);
+    $stmt->execute(['csat_reminder_hours', (string)$remH]);
 
     echo json_encode(['success' => true]);
 } catch (Exception $e) {

@@ -381,6 +381,16 @@ function sendCsatSurvey(PDO $conn, int $ticketId, ?int $analystId, bool $force =
     );
     $insert->execute([$ticketId, $token, $analystId]);
     $responseId = (int)$conn->lastInsertId();
+    // The site address this survey's link uses, so a reminder sent later from a
+    // background job links to the same place (GH #301). Its own statement: the
+    // column arrives with Database Verify, and a survey must still go without it.
+    try {
+        require_once __DIR__ . '/public_url.php';
+        $base = publicBaseUrl($conn);
+        if (preg_match('#^https?://#i', $base)) {
+            $conn->prepare("UPDATE ticket_csat_responses SET link_base = ? WHERE id = ?")->execute([mb_substr($base, 0, 255), $responseId]);
+        }
+    } catch (Throwable) { /* before Database Verify */ }
 
     sendTemplateEmail($conn, $ticketId, 'csat_request', [
         'csat_link' => csatBuildUrl($token, $conn),
@@ -436,6 +446,84 @@ function csatAutoOnClose(PDO $conn, int $ticketId, ?int $analystId): void {
         }
     }
     sendCsatSurvey($conn, $ticketId, $analystId);
+}
+
+/** Longest wait an administrator can set before the reminder: two weeks. */
+const CSAT_REMINDER_MAX_HOURS = 336;
+/**
+ * A survey whose reminder fell due more than this long ago gets none. It is what
+ * stops switching reminders on from emailing every unanswered survey ever sent -
+ * and a job that was down for days from catching up with stale ones.
+ */
+const CSAT_REMINDER_CATCHUP_HOURS = 48;
+
+/**
+ * Send one reminder for each emailed survey that has gone unanswered for
+ * Tickets -> Settings -> CSAT's "Remind after (hours)" (GH #301, Abdullah31H's
+ * suggestion). Called by cron/csat_delayed.php after the delayed surveys.
+ *
+ * - Off unless "Send one reminder" is ticked (csat_reminder = 1).
+ * - At most ONE per survey: reminder_sent_datetime is set before sending, by an
+ *   UPDATE that only one run can win - even a failed send counts as the one.
+ * - Only surveys that fell due in the last CSAT_REMINDER_CATCHUP_HOURS.
+ * - Emailed surveys only (channel_id NULL); a chat request has its own window.
+ * - Not if the ticket has since been reopened, trashed, or CSAT switched off.
+ * - The same link (token), so either email works and one rating is stored.
+ * - The "CSAT reminder" email template when there is an active one, otherwise
+ *   the survey template again - so it works before anyone writes one.
+ *
+ * @param ?callable $send  fn(int $ticketId, string $event, string $link) that sends the email; null = sendTemplateEmail().
+ *                         Only tests pass one, so they can check who would be emailed without mailing anybody.
+ * @return array{sent:int, skipped:int, failed:int}
+ */
+function csatSendReminders(PDO $conn, int $limit = 200, ?callable $send = null): array {
+    $out = ['sent' => 0, 'skipped' => 0, 'failed' => 0];
+    csatSettingsForget();
+    if (csatGetSetting($conn, 'csat_reminder', '0') !== '1' || csatGetSetting($conn, 'csat_mode', 'off') === 'off'
+        || !moduleIsEnabled($conn, 'csat')) {
+        return $out;
+    }
+    $hours = min(CSAT_REMINDER_MAX_HOURS, max(1, (int)csatGetSetting($conn, 'csat_reminder_hours', '48')));
+    $due = $conn->prepare(
+        "SELECT r.id, r.ticket_id, r.token, r.link_base
+           FROM ticket_csat_responses r
+          WHERE r.rating IS NULL AND r.reminder_sent_datetime IS NULL AND r.channel_id IS NULL
+            AND r.sent_datetime <= UTC_TIMESTAMP() - INTERVAL $hours HOUR
+            AND r.sent_datetime >  UTC_TIMESTAMP() - INTERVAL " . ($hours + CSAT_REMINDER_CATCHUP_HOURS) . " HOUR
+          ORDER BY r.sent_datetime ASC LIMIT " . max(1, $limit));
+    $due->execute();
+    $claim = $conn->prepare("UPDATE ticket_csat_responses SET reminder_sent_datetime = UTC_TIMESTAMP() WHERE id = ? AND reminder_sent_datetime IS NULL AND rating IS NULL");
+    $state = $conn->prepare("SELECT t.deleted_datetime, COALESCE(s.is_closed, 0) AS is_closed
+                               FROM tickets t LEFT JOIN ticket_statuses s ON s.id = t.status_id WHERE t.id = ?");
+    $tpl = $conn->prepare("SELECT 1 FROM ticket_email_templates WHERE event_trigger = ? AND is_active = 1 LIMIT 1");
+    $tpl->execute(['csat_reminder']);
+    $event = $tpl->fetchColumn() ? 'csat_reminder' : 'csat_request';
+    if ($event === 'csat_request') {
+        // No reminder template and no survey template either: nothing could be sent,
+        // so claim nothing - marking reminders "sent" would lose them for good.
+        $tpl->execute(['csat_request']);
+        if (!$tpl->fetchColumn()) return $out;
+    }
+    $send ??= fn(int $ticketId, string $ev, string $link) => sendTemplateEmail($conn, $ticketId, $ev, ['csat_link' => $link]);
+    $configured = publicBaseUrlSetting($conn) !== '';
+    foreach ($due->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $claim->execute([(int)$r['id']]);
+        if ($claim->rowCount() !== 1) continue;   // answered or reminded meanwhile, or another run took it
+        $state->execute([(int)$r['ticket_id']]);
+        $t = $state->fetch(PDO::FETCH_ASSOC);
+        if (!$t || $t['deleted_datetime'] !== null || (int)$t['is_closed'] !== 1) { $out['skipped']++; continue; }
+        try {
+            csatUseLinkBase($conn, $configured ? null : ($r['link_base'] ?? null));
+            $send((int)$r['ticket_id'], $event, csatBuildUrl((string)$r['token'], $conn));
+            publicBaseUrlForget();
+            $out['sent']++;
+        } catch (Throwable $e) {
+            publicBaseUrlForget();
+            $out['failed']++;
+            error_log('CSAT: reminder for survey ' . $r['id'] . ' failed: ' . $e->getMessage());
+        }
+    }
+    return $out;
 }
 
 /**
