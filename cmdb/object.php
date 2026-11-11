@@ -472,7 +472,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
         }
         .o2-centre-name { font-size: 14px; font-weight: 650; text-align: center; }
         .o2-centre-cls { font-size: 11px; opacity: 0.8; }
-        .o2-rel-verb { font-size: 11px; color: var(--text-dim, #9ca3af); font-style: italic; margin-bottom: 2px; }
+        .o2-rel-verb { font-size: 11px; color: var(--text-dim, #9ca3af); font-style: italic; margin-bottom: 2px; overflow-wrap: anywhere; }
         .o2-conn-col.right .o2-rel-verb { text-align: right; }
         .o2-updown { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 
@@ -952,7 +952,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/ci-asset-link.js?v=5"></script>
-    <script src="object.js?v=18"></script>
+    <script src="object.js?v=19"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>
