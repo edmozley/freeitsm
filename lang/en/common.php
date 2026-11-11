@@ -474,6 +474,11 @@ return [
         'hc_hide'         => 'Hide',
     ],
 
+    // GH #267: live updates (assets/js/live-pulse.js).
+    'live' => [
+        'updated' => 'Updated by someone else just now.',
+        'refresh' => 'Refresh',
+    ],
     'notifications' => [
         'title'       => 'Notifications',
         'aria'        => 'Notifications',

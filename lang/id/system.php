@@ -1188,6 +1188,13 @@ return [
         'ticket_workspace_heading' => 'Ruang kerja tiket',
         'ticket_workspace_label' => 'Gunakan ruang kerja',
         'ticket_workspace_desc' => 'Gunakan ruang kerja untuk tiket yang diaktifkan administrator Anda. Nonaktifkan untuk tetap memakai panel baca.',
+        // GH #267: live updates
+        'live_heading' => 'Pembaruan langsung',
+        'live_desc' => 'Seberapa sering halaman memeriksa perubahan yang dibuat orang lain - daftar tiket, tiket yang terbuka, papan tugas, lonceng - lalu menyusulnya. Berhenti sementara saat tab berada di latar belakang dan langsung menyusul begitu Anda kembali. Berlaku mulai halaman berikutnya yang Anda buka.',
+        'live_15' => 'Setiap 15 detik (default)',
+        'live_30' => 'Setiap 30 detik',
+        'live_60' => 'Setiap menit',
+        'live_0' => 'Mati - segarkan manual',
         'ticket_list_heading' => 'Daftar tiket',
         'ticket_list_desc' => 'Buka tiket sebagai daftar pesan atau sebagai antrean kerja berhalaman.',
         'ticket_list_messages' => 'Pesan',

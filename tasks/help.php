@@ -194,6 +194,7 @@ $translationNamespaces = ['common', 'tasks'];
                     <p><?php echo t('tasks.help.board_columns_by_analyst'); ?></p>
                     <p><?php echo t('tasks.help.board_card_order'); ?></p>
                     <p><?php echo t('tasks.help.board_subtasks'); ?></p>
+                    <p><?php echo t('tasks.help.board_live'); /* GH #267 */ ?></p>
 
                     <h4><?php echo htmlspecialchars(t('tasks.help.board_creating_heading')); ?></h4>
                     <div class="help-steps">

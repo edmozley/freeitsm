@@ -1405,6 +1405,8 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     KEY `ix_tickets_created_datetime` (`created_datetime`),
     KEY `ix_tickets_tenant_id` (`tenant_id`),
     KEY `ix_tickets_deleted_datetime` (`deleted_datetime`),
+    -- GH #267: live updates read the newest change.
+    KEY `ix_tickets_updated_datetime` (`updated_datetime`),
     CONSTRAINT `fk_tickets_analysts` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`),
     -- SET NULL, never CASCADE: deleting a team must not take its tickets with it.
     -- The ticket returns to "no team", which is visible and fixable.
@@ -5962,6 +5964,8 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     KEY `ix_tasks_recurrence_id` (`recurrence_id`),
     KEY `ix_tasks_recurrence_master` (`recurrence_master_id`),
     KEY `ix_tasks_previous_occurrence` (`previous_occurrence_id`),
+    -- GH #267: live updates read the newest change.
+    KEY `ix_tasks_updated_datetime` (`updated_datetime`),
     CONSTRAINT `fk_tasks_supplier` FOREIGN KEY (`assigned_supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_contact` FOREIGN KEY (`assigned_contact_id`) REFERENCES `contacts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_analyst` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,

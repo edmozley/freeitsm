@@ -3328,6 +3328,14 @@ return [
         ],
         // Section 4 — the analyst speed-ups added in #909–#916.
         // GH #277
+        // GH #267: live updates.
+        'live' => [
+            'heading' => 'Live updates',
+            'body' => 'FreeITSM keeps your screen in step with everybody else. When a colleague changes a ticket - its status, priority, owner or team, a reply, a note - your ticket list and the ticket you have open catch up within about 15 seconds, without pressing refresh. The tasks board, an open task and the bell work the same way.',
+            'what' => 'It checks only while the tab is in front of you, and catches up the moment you come back to it. A change you make in one tab shows in your other tabs straight away.',
+            'safe' => 'It never throws away what you are doing. While you are writing a reply or a note, typing in a field or have a menu open, new messages still appear in the conversation, and the rest waits behind a small <strong>Updated by someone else just now &middot; Refresh</strong> prompt.',
+            'setting' => '<strong>Preferences &rarr; Live updates</strong> chooses every 15 seconds (the default), 30 seconds, every minute, or off.',
+        ],
         'watch' => [
             'heading' => 'Watching a ticket',
             'body' => 'Follow a ticket without owning it - a team lead keeping an eye on a major incident, or the analyst who handed it on. Watchers are told about the ticket as if it were theirs, through their own notification settings.',

@@ -2845,6 +2845,14 @@ Esto no se puede deshacer. ¿Continuar?',
             'tip' => 'Haga clic en cualquier ticket de la lista para cargarlo en el panel de lectura. Desde allí puede actualizar campos, añadir comentarios, responder por correo o adjuntar archivos &mdash; todo sin salir de la bandeja de entrada.',
         ],
         // GH #277
+        // GH #267: live updates.
+        'live' => [
+            'heading' => 'Actualizaciones en vivo',
+            'body' => 'FreeITSM mantiene tu pantalla al día con la de todos los demás. Cuando un compañero cambia un ticket - su estado, prioridad, propietario o equipo, una respuesta, una nota -, tu lista de tickets y el ticket que tienes abierto se ponen al día en unos 15 segundos, sin pulsar actualizar. El tablero de tareas, una tarea abierta y la campana funcionan igual.',
+            'what' => 'Solo comprueba mientras la pestaña está delante de ti, y se pone al día en cuanto vuelves. Un cambio que haces en una pestaña aparece al instante en las demás.',
+            'safe' => 'Nunca descarta lo que estás haciendo. Mientras escribes una respuesta o una nota, tecleas en un campo o tienes un menú abierto, los mensajes nuevos siguen apareciendo en la conversación, y el resto espera tras un pequeño aviso <strong>Otra persona lo acaba de actualizar &middot; Actualizar</strong>.',
+            'setting' => '<strong>Preferencias &rarr; Actualizaciones en vivo</strong> elige cada 15 segundos (predeterminado), 30 segundos, cada minuto o desactivado.',
+        ],
         'watch' => [
             'heading' => 'Seguir un ticket',
             'body' => 'Seguir un ticket sin ser su propietario: un responsable de equipo pendiente de una incidencia grave, o el analista que lo traspasó. Los seguidores reciben avisos del ticket como si fuera suyo, según su propia configuración de notificaciones.',

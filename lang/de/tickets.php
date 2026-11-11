@@ -2845,6 +2845,14 @@ Das lässt sich nicht rückgängig machen. Fortfahren?',
             'tip' => 'Klicken Sie auf ein Ticket in der Liste, um es im Lesefenster zu laden. Von dort aus können Sie Felder aktualisieren, Kommentare hinzufügen, per E-Mail antworten oder Dateien anhängen &mdash; alles, ohne den Posteingang zu verlassen.',
         ],
         // GH #277
+        // GH #267: live updates.
+        'live' => [
+            'heading' => 'Live-Aktualisierung',
+            'body' => 'FreeITSM hält Ihren Bildschirm mit allen anderen im Gleichschritt. Ändert ein Kollege ein Ticket - Status, Priorität, Besitzer oder Team, eine Antwort, eine Notiz -, holen Ihre Ticketliste und das geöffnete Ticket das innerhalb von etwa 15 Sekunden nach, ohne dass Sie aktualisieren müssen. Aufgabentafel, geöffnete Aufgabe und Glocke funktionieren genauso.',
+            'what' => 'Es wird nur geprüft, solange der Tab im Vordergrund ist, und sofort nachgeholt, wenn Sie zurückkehren. Eine Änderung in einem Tab erscheint sofort in Ihren anderen Tabs.',
+            'safe' => 'Es verwirft nie, woran Sie gerade arbeiten. Während Sie eine Antwort oder Notiz schreiben, in einem Feld tippen oder ein Menü offen haben, erscheinen neue Nachrichten weiterhin im Verlauf, und der Rest wartet hinter einem kleinen Hinweis <strong>Gerade von jemand anderem aktualisiert &middot; Aktualisieren</strong>.',
+            'setting' => '<strong>Einstellungen &rarr; Live-Aktualisierung</strong> wählt alle 15 Sekunden (Standard), 30 Sekunden, jede Minute oder aus.',
+        ],
         'watch' => [
             'heading' => 'Ein Ticket beobachten',
             'body' => 'Einem Ticket folgen, ohne es zu besitzen - eine Teamleitung, die einen größeren Vorfall im Blick behält, oder der Analyst, der es weitergegeben hat. Beobachter werden über das Ticket informiert, als wäre es ihres - über ihre eigenen Benachrichtigungseinstellungen.',

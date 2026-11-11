@@ -472,6 +472,11 @@ return [
         'hc_show' => 'Tampilkan',
         'hc_hide' => 'Sembunyikan',
     ],
+    // GH #267: live updates (assets/js/live-pulse.js).
+    'live' => [
+        'updated' => 'Baru saja diperbarui oleh orang lain.',
+        'refresh' => 'Segarkan',
+    ],
     'notifications' => [
         'title' => 'Notifikasi',
         'aria' => 'Notifikasi',

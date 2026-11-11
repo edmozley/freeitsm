@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         else if (new URLSearchParams(location.search).get('new') === '1') openNewTask();
     });
     loadTasks();
+    // GH #267: the board follows everybody's changes through the page's one heartbeat.
+    if (window.LivePulse) LivePulse.watch('tasks', liveBoardChanged);
     TasksCtxMenu.init({
         targetSelector: '.task-card',
         getTaskId: el => parseInt(el.dataset.id, 10),
@@ -1828,10 +1830,72 @@ async function openDetailPanel(taskId) {
         panel.classList.add('open');
         document.getElementById('detailOverlay').classList.add('open');
         window.TaskEmbedBridge?.ready();
+        liveWatchTask(taskId);   // GH #267
     } catch (e) {
         if (selectedTaskId !== taskId || generation !== taskDetailGeneration) return;
         console.error(e); window.TaskEmbedBridge?.unavailable();
     }
+}
+
+// ── Live updates (GH #267) ──────────────────────────────────────────────────
+// The board and the open task follow what everybody else does, through the page's one
+// heartbeat (assets/js/live-pulse.js). A card being dragged, a menu that is open, or a
+// field being typed in is never redrawn from under you.
+
+/** Is the board in the middle of something a redraw would break? */
+function taskBoardBusy() {
+    if (dragState || document.querySelector('.col-dragging, .subtask-item.dragging')) return true;
+    const menu = document.getElementById('ctxMenu');
+    return !!(menu && menu.style.display === 'block');
+}
+
+/** Somebody changed a task on this board. Embedded editors have no board to redraw. */
+function liveBoardChanged() {
+    if (window.TASK_EMBED_CONTEXT) return;
+    if (taskBoardBusy()) { setTimeout(liveBoardChanged, 2500); return; }
+    loadTasks();
+}
+
+let liveTaskId = 0, liveTaskStop = null;
+
+/** Follow the task open in the panel (0 = none). */
+function liveWatchTask(taskId) {
+    taskId = Number(taskId) || 0;
+    if (taskId === liveTaskId) return;
+    if (liveTaskStop) liveTaskStop();
+    liveTaskStop = null;
+    liveTaskId = taskId;
+    if (taskId && window.LivePulse) liveTaskStop = LivePulse.watch('task:' + taskId, (topic, info) => liveTaskChanged(taskId, info));
+}
+
+/** Is somebody in the middle of something in the task panel? */
+function taskPanelBusy() {
+    const panel = document.getElementById('detailPanel');
+    if (!panel) return false;
+    const a = document.activeElement;
+    if (a && panel.contains(a) && (a.matches('input, textarea, select') || a.isContentEditable)) return true;
+    if (document.getElementById('newCommentInput')?.value.trim()) return true;
+    if (descSaveTimer || (tinyEditor && typeof tinyEditor.hasFocus === 'function' && tinyEditor.hasFocus())) return true;
+    if (panel.querySelector('.tf-frame') || document.querySelector('.modal.active, .modal-overlay.active')) return true;
+    return taskBoardBusy();
+}
+
+async function liveTaskChanged(taskId, info) {
+    if (selectedTaskId !== taskId || info.mine) return;   // ours: the panel already shows it
+    const panel = document.getElementById('detailPanel');
+    const body = panel?.querySelector('.detail-panel-body') || panel;
+    if (taskPanelBusy()) { LivePulse.busyChip(body, () => liveRedrawTask(taskId)); return; }
+    liveRedrawTask(taskId);
+}
+
+/** Redraw the open task in place, keeping where the panel was scrolled to. */
+async function liveRedrawTask(taskId) {
+    const panel = document.getElementById('detailPanel');
+    const body = panel?.querySelector('.detail-panel-body') || panel;
+    const top = body ? body.scrollTop : 0;
+    await openDetailPanel(taskId);
+    const after = document.getElementById('detailPanel')?.querySelector('.detail-panel-body') || document.getElementById('detailPanel');
+    if (after && top) after.scrollTop = top;
 }
 
 /** Closes the task panel, destroys the description editor and reloads the board. */
@@ -1841,6 +1905,7 @@ async function closeDetailPanel() {
     document.getElementById('detailOverlay').classList.remove('open');
     if (tinyEditor) { tinyEditor.destroy(); tinyEditor = null; }
     selectedTaskId = null;
+    liveWatchTask(0);   // GH #267
     loadTasks();
     window.TaskEmbedBridge?.closed();
 }

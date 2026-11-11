@@ -3546,6 +3546,7 @@ function displayEmail(email, recordings) {
     if (typeof loadTicketChecklists === "function") loadTicketChecklists(email.ticket_id);
     if (typeof loadTicketWatchers === "function") loadTicketWatchers(email.ticket_id);   // GH #277: the Watch button
     if (typeof loadTicketForms === "function") loadTicketForms(email.ticket_id);         // GH #272: the Forms button
+    liveWatchOpenTicket(email.ticket_id);                                                // GH #267: live updates
     // Load full correspondence thread, notes, attachments and linked CMDB objects after rendering
     loadCorrespondenceThread(email.ticket_id);
     loadNotes(email.ticket_id);
@@ -4775,7 +4776,9 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
     // the timer itself calls back with isAuto=true.
     if (!isAuto) {
         stopChannelAutoRefresh();
-        if (currentTicketChannel !== 'email') {
+        // GH #267: with live updates on, the page's heartbeat refreshes the thread when a
+        // message arrives (liveOpenTicketChanged); this timer is the fallback when they are off.
+        if (currentTicketChannel !== 'email' && !window.LivePulse?.enabled()) {
             channelRefreshTimer = setInterval(() => {
                 // Stop if the analyst is no longer viewing this ticket's thread.
                 if (!document.getElementById('threadContainer')) { stopChannelAutoRefresh(); return; }
@@ -11977,6 +11980,66 @@ function buildSnoozeBanner(email) {
 
 const PRESENCE_BEAT_MS = 10000;   // three beats inside the server's 30s stale window
 let presenceTicketId = null;      // the ticket we are currently announcing on
+// ── Live updates (GH #267) ──────────────────────────────────────────────────
+// The open ticket follows what everybody else does to it, through the page's one
+// heartbeat (assets/js/live-pulse.js). Nothing on screen is ever thrown away: the
+// conversation (append-only) always catches up; the rest redraws only when nothing is
+// being typed, saved or chosen - otherwise a small "Updated just now · Refresh" prompt.
+let liveTicketId = 0, liveTicketStop = null;
+
+/** Follow this ticket (0 = none). Safe to call on every draw. */
+function liveWatchOpenTicket(ticketId) {
+    ticketId = Number(ticketId) || 0;
+    if (ticketId === liveTicketId) return;
+    if (liveTicketStop) liveTicketStop();
+    liveTicketStop = null;
+    liveTicketId = ticketId;
+    if (ticketId && window.LivePulse) {
+        liveTicketStop = LivePulse.watch('ticket:' + ticketId, (topic, info) => liveOpenTicketChanged(ticketId, info));
+    }
+}
+
+/** Is somebody in the middle of something on the open ticket? */
+function liveTicketBusy() {
+    if (typeof ticketHasUnsavedInput === 'function' && ticketHasUnsavedInput()) return true;
+    if (ticketPendingWrites > 0) return true;
+    if (window.TicketWorkspace?.isActive() && TicketWorkspace.hasUnsavedWork?.()) return true;
+    if (document.querySelector('.modal.active, #ticketContextMenu.active')) return true;
+    const a = document.activeElement;
+    const pane = document.getElementById('readingPane');
+    return !!(a && pane && pane.contains(a) && (a.matches('input, textarea, select') || a.isContentEditable));
+}
+
+async function liveOpenTicketChanged(ticketId, info) {
+    if (Number(currentEmail?.ticket_id) !== ticketId) return;
+    const busy = liveTicketBusy();
+    if (info.mine || busy) {
+        // Messages and replies can arrive while you write - show them; they never
+        // touch what you are typing.
+        if (document.getElementById('threadContainer')) {
+            loadCorrespondenceThread(ticketId, true);
+            loadTicketAttachments(ticketId);
+        }
+        if (busy && !info.mine) LivePulse.busyChip(document.getElementById('readingPane'), () => liveReloadTicket(ticketId));
+        return;
+    }
+    liveReloadTicket(ticketId);
+}
+
+/** Redraw the open ticket quietly - no spinner, and the reading pane keeps its place. */
+async function liveReloadTicket(ticketId) {
+    try {
+        const d = await (await fetch(`${API_BASE}get_email_detail.php?ticket_id=${ticketId}`)).json();
+        if (!d.success || Number(currentEmail?.ticket_id) !== ticketId || liveTicketBusy()) return;
+        const pane = document.getElementById('readingPane');
+        const scrollers = [pane, ...pane.querySelectorAll('.tw-main, .tw-properties')];
+        const tops = scrollers.map(el => el.scrollTop);
+        displayEmail(d.email, d.recordings || []);
+        const after = [pane, ...pane.querySelectorAll('.tw-main, .tw-properties')];
+        after.forEach((el, i) => { if (tops[i]) el.scrollTop = tops[i]; });
+    } catch (e) { /* the next change tries again */ }
+}
+
 let presenceTimer    = null;
 let presenceOthers   = [];        // last known others, for the composer warning
 let presenceComposing = false;    // is OUR reply/forward/note composer open?
@@ -12003,6 +12066,7 @@ function startPresence(ticketId) {
 
 /** Stop announcing entirely (the reading pane emptied). */
 function stopPresence() {
+    liveWatchOpenTicket(0);   // GH #267: nothing open, nothing to keep current
     if (presenceTimer) { clearInterval(presenceTimer); presenceTimer = null; }
     if (presenceTicketId) leavePresence(presenceTicketId);
     presenceTicketId = null;

@@ -1360,6 +1360,13 @@ return [
         'ticket_workspace_heading' => 'Ticket workspace',
         'ticket_workspace_label'   => 'Use the workspace',
         'ticket_workspace_desc'    => 'Use the workspace for the tickets enabled by your administrator. Switch off to keep using the reading pane.',
+        // GH #267: live updates
+        'live_heading' => 'Live updates',
+        'live_desc' => 'How often a page checks for changes other people make - the ticket list, the open ticket, the tasks board, the bell - and catches up. It pauses while the tab is in the background and catches up as soon as you come back. Applies from the next page you open.',
+        'live_15' => 'Every 15 seconds (default)',
+        'live_30' => 'Every 30 seconds',
+        'live_60' => 'Every minute',
+        'live_0' => 'Off - refresh by hand',
         'ticket_list_heading'      => 'Ticket list',
         'ticket_list_desc'         => 'Open tickets as a message list or as a paginated work queue.',
         'ticket_list_messages'     => 'Messages',

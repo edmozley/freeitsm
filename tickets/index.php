@@ -1165,14 +1165,14 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../checklists/search_scoring.js?v=1"></script>
     <script src="../checklists/ticket_view.js?v=15"></script>
     <script src="../assets/js/ticket-fields.js?v=2"></script>
-    <script src="../assets/js/ticket-workspace.js?v=5"></script>
+    <script src="../assets/js/ticket-workspace.js?v=6"></script>
     <script src="../assets/js/data-table.js?v=10"></script>
     <!-- Note images open in the Files viewer, in a floating window (GH #226). -->
     <script src="../assets/js/float-window.js?v=1"></script>
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=193"></script>
+    <script src="../assets/js/inbox.js?v=194"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=5"></script>
@@ -1236,7 +1236,9 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                 // Refresh if anything new arrived - from this check, a webhook,
                 // or another analyst's inbox. The first look only sets the baseline:
                 // the page has just loaded, so it is already up to date.
-                const marker = await newestMarker();
+                // With live updates on, the page's heartbeat refreshes the list (below);
+                // the marker is the fallback when they are off (GH #267).
+                const marker = window.LivePulse?.enabled() ? null : await newestMarker();
                 const moved = marker !== null && lastMarker !== null && marker > lastMarker;
                 if (marker !== null) lastMarker = Math.max(marker, lastMarker || 0);
                 if ((totalNew > 0 || moved) && typeof refreshCurrentView === 'function') {
@@ -1254,6 +1256,19 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
         // Run on load then every 60s
         checkMailboxes(true);
         setInterval(() => checkMailboxes(true), POLL_INTERVAL);
+
+        // GH #267: live updates. The list (and the folder counts) follow everybody's
+        // changes - status, priority, assignee, team, new tickets, replies, notes - through
+        // the page's one heartbeat. Held while a menu is open or a ticket is being dragged,
+        // so a row never jumps out from under the pointer; selection survives a redraw.
+        if (window.LivePulse) {
+            const listBusy = () => !!document.querySelector('#ticketContextMenu.active, .email-item.dragging, .ctx-sheet.active');
+            const listChanged = () => {
+                if (listBusy()) { setTimeout(listChanged, 2500); return; }
+                if (typeof refreshCurrentView === 'function') refreshCurrentView();
+            };
+            LivePulse.watch('tickets', listChanged);
+        }
     })();
     </script>
 

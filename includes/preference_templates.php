@@ -46,6 +46,7 @@ const PREF_TEMPLATE_SECTIONS = [
     'money'          => ['system.preferences.money_heading',           ['currency_format', 'currency_formats']],
     'task-view'      => ['system.preferences.task_view_heading',       ['tasks_detail_view', 'tasks_open_panel']],
     'ticket-list'    => ['system.preferences.ticket_list_heading',     ['tickets_list_layout']],
+    'live-updates'   => ['system.preferences.live_heading',            ['live_updates']],   // GH #267
     'search-panel'   => ['system.preferences.search_dismiss_heading',  ['search_panel_close_outside']],
     'cal-subtasks'   => ['system.preferences.cal_subtasks_heading',    ['tasks_calendar_subtasks']],
     'board-subtasks' => ['system.preferences.board_subtasks_heading',  ['tasks_board_subtasks', 'tasks_hide_done_subtasks']],

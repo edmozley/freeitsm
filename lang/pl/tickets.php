@@ -2841,6 +2841,14 @@ Tej operacji nie da się cofnąć. Kontynuować?',
             'row_name' => 'Każdy wiersz pokazuje numer zgłoszenia, a potem nazwę. Domyślnie jest to <strong>osoba, która zgłosiła sprawę</strong>, i pozostaje taka sama przez cały czas trwania zgłoszenia. Jeśli wolisz widzieć osobę, która wysłała ostatnią wiadomość &mdash; co po Twojej odpowiedzi staje się Twoją własną skrzynką &mdash; zmień <strong>Nazwa obok numeru zgłoszenia</strong> w <strong>Ustawienia &rarr; Wyświetlanie wierszy</strong>, gdzie możesz też ukryć nazwę i zostawić sam numer. Ta zakładka to Twoje własne ustawienie: nie zmienia niczego u nikogo innego.',
             'tip' => 'Kliknij dowolne zgłoszenie na liście, aby wczytać je w panelu podglądu. Stamtąd możesz aktualizować pola, dodawać notatki, odpowiadać e-mailem lub dołączać pliki &mdash; wszystko bez opuszczania skrzynki odbiorczej.',
         ],
+        // GH #267: live updates.
+        'live' => [
+            'heading' => 'Aktualizacje na żywo',
+            'body' => 'FreeITSM utrzymuje Twój ekran w zgodzie z ekranami innych. Gdy współpracownik zmieni zgłoszenie - status, priorytet, właściciela lub zespół, odpowiedź, notatkę - Twoja lista zgłoszeń i otwarte zgłoszenie nadrabiają to w około 15 sekund, bez odświeżania. Tablica zadań, otwarte zadanie i dzwonek działają tak samo.',
+            'what' => 'Sprawdza tylko wtedy, gdy karta jest na wierzchu, i nadrabia zaległości, gdy tylko do niej wrócisz. Zmiana wprowadzona w jednej karcie od razu pojawia się w pozostałych.',
+            'safe' => 'Nigdy nie wyrzuca tego, nad czym pracujesz. Gdy piszesz odpowiedź lub notatkę, wpisujesz coś w pole albo masz otwarte menu, nowe wiadomości nadal pojawiają się w rozmowie, a reszta czeka za małym komunikatem <strong>Ktoś inny właśnie to zaktualizował &middot; Odśwież</strong>.',
+            'setting' => '<strong>Preferencje &rarr; Aktualizacje na żywo</strong> pozwala wybrać co 15 sekund (domyślnie), 30 sekund, co minutę lub wyłączenie.',
+        ],
         'watch' => [
             'heading' => 'Obserwowanie zgłoszenia',
             'body' => 'Śledź zgłoszenie, nie będąc jego właścicielem - kierownik zespołu pilnujący poważnego incydentu lub analityk, który przekazał zgłoszenie dalej. Obserwujący są informowani o zgłoszeniu tak, jakby było ich, zgodnie z własnymi ustawieniami powiadomień.',

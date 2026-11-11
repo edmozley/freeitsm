@@ -1266,6 +1266,13 @@ function renderNotificationBell($path_prefix) {
     // too high - the script 404'd and the page threw "NotificationBell is not
     // defined". Found adding the Zabbix help page, October 2026.
     $url = defined('BASE_URL') ? BASE_URL : $path_prefix;
+    // GH #267: the page's one heartbeat, before the bell so the bell can watch it.
+    // Every analyst page has the bell, so every analyst page has live updates.
+    require_once __DIR__ . '/live_pulse.php';
+    $liveSeconds = 15;
+    try { $liveSeconds = livePulseSeconds(connectToDatabase(), (int)$_SESSION['analyst_id']); } catch (Throwable $e) { /* the default */ }
+    echo '<script>window.FREEITSM_LIVE = ' . json_encode(['seconds' => $liveSeconds, 'url' => $url], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES) . ';</script>'
+       . '<script src="' . htmlspecialchars($url) . 'assets/js/live-pulse.js?v=2"></script>';
     notificationBellRender($url, [
         'list'       => $url . 'api/notifications/get_notifications.php',
         'markRead'   => $url . 'api/notifications/mark_read.php',

@@ -1189,6 +1189,13 @@ return [
         'ticket_workspace_heading' => 'Ticket-Arbeitsbereich',
         'ticket_workspace_label' => 'Arbeitsbereich verwenden',
         'ticket_workspace_desc' => 'Verwenden Sie den Arbeitsbereich für die Tickets, die Ihr Administrator aktiviert hat. Schalten Sie ihn aus, um weiterhin den Lesebereich zu nutzen.',
+        // GH #267: live updates
+        'live_heading' => 'Live-Aktualisierung',
+        'live_desc' => 'Wie oft eine Seite auf Änderungen anderer prüft - Ticketliste, geöffnetes Ticket, Aufgabentafel, Glocke - und sich aktualisiert. Pausiert, solange der Tab im Hintergrund ist, und holt alles nach, sobald Sie zurückkommen. Gilt ab der nächsten geöffneten Seite.',
+        'live_15' => 'Alle 15 Sekunden (Standard)',
+        'live_30' => 'Alle 30 Sekunden',
+        'live_60' => 'Jede Minute',
+        'live_0' => 'Aus - von Hand aktualisieren',
         'ticket_list_heading' => 'Ticketliste',
         'ticket_list_desc' => 'Tickets als Nachrichtenliste oder als seitenweise Arbeitswarteschlange öffnen.',
         'ticket_list_messages' => 'Nachrichten',

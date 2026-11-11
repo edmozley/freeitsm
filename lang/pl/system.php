@@ -1188,6 +1188,13 @@ return [
         'ticket_workspace_heading' => 'Obszar roboczy zgłoszeń',
         'ticket_workspace_label' => 'Używaj obszaru roboczego',
         'ticket_workspace_desc' => 'Używaj obszaru roboczego dla zgłoszeń włączonych przez administratora. Wyłącz, aby nadal korzystać z panelu podglądu.',
+        // GH #267: live updates
+        'live_heading' => 'Aktualizacje na żywo',
+        'live_desc' => 'Jak często strona sprawdza zmiany wprowadzane przez innych - listę zgłoszeń, otwarte zgłoszenie, tablicę zadań, dzwonek - i nadrabia je. Wstrzymuje się, gdy karta jest w tle, i nadrabia zaległości, gdy tylko wrócisz. Działa od następnej otwartej strony.',
+        'live_15' => 'Co 15 sekund (domyślnie)',
+        'live_30' => 'Co 30 sekund',
+        'live_60' => 'Co minutę',
+        'live_0' => 'Wyłączone - odświeżanie ręczne',
         'ticket_list_heading' => 'Lista zgłoszeń',
         'ticket_list_desc' => 'Otwieraj zgłoszenia jako listę wiadomości albo jako kolejkę pracy z podziałem na strony.',
         'ticket_list_messages' => 'Wiadomości',

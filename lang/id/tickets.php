@@ -2841,6 +2841,14 @@ Ini tidak dapat dibatalkan. Lanjutkan?',
             'row_name' => 'Setiap baris menampilkan referensi tiket lalu sebuah nama. Secara default itu adalah <strong>orang yang membuat tiket</strong>, dan tetap sama selama tiket ada. Jika Anda lebih suka melihat pengirim pesan terbaru &mdash; yang menjadi kotak surat Anda sendiri setelah Anda membalas &mdash; ubah <strong>Nama di samping nomor tiket</strong> di <strong>Pengaturan &rarr; Tampilan baris</strong>, tempat Anda juga dapat menyembunyikan nama dan menyisakan referensinya saja. Tab itu adalah pengaturan Anda sendiri: tidak mengubah apa pun bagi orang lain.',
             'tip' => 'Klik tiket mana pun di daftar untuk memuatnya di panel baca. Dari sana Anda dapat memperbarui bidang, menambahkan komentar, membalas lewat email, atau melampirkan berkas &mdash; semuanya tanpa meninggalkan kotak masuk.',
         ],
+        // GH #267: live updates.
+        'live' => [
+            'heading' => 'Pembaruan langsung',
+            'body' => 'FreeITSM menjaga layar Anda tetap selaras dengan semua orang. Saat rekan mengubah tiket - status, prioritas, pemilik atau tim, balasan, catatan - daftar tiket Anda dan tiket yang sedang terbuka menyusul dalam sekitar 15 detik, tanpa menekan segarkan. Papan tugas, tugas yang terbuka, dan lonceng bekerja dengan cara yang sama.',
+            'what' => 'Pemeriksaan hanya berjalan saat tab berada di depan Anda, dan langsung menyusul begitu Anda kembali. Perubahan yang Anda buat di satu tab langsung muncul di tab lain.',
+            'safe' => 'Tidak pernah membuang apa yang sedang Anda kerjakan. Saat Anda menulis balasan atau catatan, mengetik di kolom, atau membuka menu, pesan baru tetap muncul di percakapan, dan sisanya menunggu di balik pesan kecil <strong>Baru saja diperbarui oleh orang lain &middot; Segarkan</strong>.',
+            'setting' => '<strong>Preferensi &rarr; Pembaruan langsung</strong> memilih setiap 15 detik (default), 30 detik, setiap menit, atau mati.',
+        ],
         'watch' => [
             'heading' => 'Memantau tiket',
             'body' => 'Ikuti tiket tanpa memilikinya - pemimpin tim yang mengawasi insiden besar, atau analis yang menyerahkannya. Pemantau diberi tahu tentang tiket seolah-olah itu miliknya, melalui pengaturan notifikasi mereka sendiri.',

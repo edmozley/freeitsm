@@ -110,6 +110,9 @@ $prefDefaults = [
     // Show the ticket list as Messages or as a Table (PR #213). Read by
     // tickets/index.php; also switchable from the inbox's action row.
     'tickets_list_layout'        => 'messages',
+    // GH #267: how often the page checks what everybody else changed - '15', '30', '60'
+    // seconds or '0' for off. Read by livePulseSeconds() (includes/live_pulse.php).
+    'live_updates'               => '15',
     // Which front door "/" sends you to (discussion #63). Empty string means
     // "whatever the administrator chose" — the only value that is NOT a landing
     // key, because "follow the install default" is a real third choice here.
@@ -1047,6 +1050,17 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 </select>
             </div>
 
+            <!-- Live updates (GH #267): the page's one heartbeat. -->
+            <div class="pref-section">
+                <h3 id="live-updates"><?php echo htmlspecialchars(t('system.preferences.live_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.live_desc')); ?></p>
+                <select id="liveUpdatesSelect" class="pref-language-select">
+                    <?php foreach (['15', '30', '60', '0'] as $sec): ?>
+                    <option value="<?php echo $sec; ?>" <?php echo (string)$prefs['live_updates'] === $sec ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.preferences.live_' . $sec)); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
             <!-- Use the ticket workspace (PR #211). Hidden while an administrator
                  has the workspace off, because then it would change nothing. -->
             <?php if ($showTicketWorkspace): ?>
@@ -1383,6 +1397,18 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             else ticketListSelect.value = savedTicketList;
             ticketListSelect.disabled = false;
         });
+
+        // ===== Live updates (GH #267) - applies from the next page load =====
+        const liveSelect = document.getElementById('liveUpdatesSelect');
+        if (liveSelect) {
+            let savedLive = liveSelect.value;
+            liveSelect.addEventListener('change', async () => {
+                liveSelect.disabled = true;
+                if (await savePref('live_updates', liveSelect.value)) savedLive = liveSelect.value;
+                else liveSelect.value = savedLive;
+                liveSelect.disabled = false;
+            });
+        }
 
         // ===== How a task opens (tasks_detail_view) =====
         const taskViewSelect = document.getElementById('taskViewSelect');

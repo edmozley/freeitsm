@@ -590,7 +590,7 @@ window.TicketWorkspace = (() => {
 
     return {
         enabled, render, fieldGroup, prepare, activate, updateSla, revealMissing, setSectionState,
-        requestPersonal, canLeave, holdRender, flushRender,
+        requestPersonal, canLeave, holdRender, flushRender, hasUnsavedWork,   // hasUnsavedWork: live updates (GH #267)
         openTask, releaseTask: disposeTask, tasksLoaded,
         /** A custom field saved: its saved value is the new baseline. */
         propertySaved(field) { propertyDrafts.set(field, field.value); },

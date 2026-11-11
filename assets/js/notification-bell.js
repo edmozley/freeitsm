@@ -373,5 +373,8 @@ window.NotificationBell = {
 
         poll();
         setInterval(poll, 60000);
+        // GH #267: a new notification shows within one heartbeat (15 seconds by default),
+        // not the next minute. The minute poll stays: it also starts the scheduler (#233).
+        if (window.LivePulse && !cfg.portal) window.LivePulse.watch('notifications', () => poll());
     }
 };

@@ -32,7 +32,7 @@ function notificationBellRender(string $assetBase, array $cfg): void
             <div id="nbList"></div>
         </div>
     </div>
-    <script src="<?php echo htmlspecialchars($assetBase); ?>assets/js/notification-bell.js?v=4"></script>
+    <script src="<?php echo htmlspecialchars($assetBase); ?>assets/js/notification-bell.js?v=5"></script>
     <script>NotificationBell.init(<?php echo json_encode($cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES); ?>);</script>
     <?php
 }

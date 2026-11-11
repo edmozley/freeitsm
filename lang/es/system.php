@@ -1189,6 +1189,13 @@ return [
         'ticket_workspace_heading' => 'Espacio de trabajo de tickets',
         'ticket_workspace_label' => 'Usar el espacio de trabajo',
         'ticket_workspace_desc' => 'Use el espacio de trabajo para los tickets habilitados por su administrador. Desactívelo para seguir usando el panel de lectura.',
+        // GH #267: live updates
+        'live_heading' => 'Actualizaciones en vivo',
+        'live_desc' => 'Con qué frecuencia una página comprueba los cambios de otras personas - la lista de tickets, el ticket abierto, el tablero de tareas, la campana - y se pone al día. Se pausa mientras la pestaña está en segundo plano y se pone al día en cuanto vuelves. Se aplica desde la siguiente página que abras.',
+        'live_15' => 'Cada 15 segundos (predeterminado)',
+        'live_30' => 'Cada 30 segundos',
+        'live_60' => 'Cada minuto',
+        'live_0' => 'Desactivado - actualizar a mano',
         'ticket_list_heading' => 'Lista de tickets',
         'ticket_list_desc' => 'Abrir los tickets como una lista de mensajes o como una cola de trabajo paginada.',
         'ticket_list_messages' => 'Mensajes',

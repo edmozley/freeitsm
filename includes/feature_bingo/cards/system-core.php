@@ -1053,4 +1053,17 @@ return [
         'link'     => 'system/debug-tools/d019/',
         'check'    => ['sql', "SELECT COUNT(*) FROM system_settings WHERE setting_key = 'page_health_last' AND JSON_EXTRACT(setting_value, '$.problems') = 0"],
     ],
+    [
+        // GH #267: one heartbeat per page keeps every screen in step.
+        'id'       => 'system.live_updates',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Live updates',
+        'what'     => 'Ticket lists, open tickets, the tasks board, open tasks and the bell catch up with everybody else\'s changes within about 15 seconds (Preferences -> Live updates).',
+        'why'      => 'Two people stop working the same ticket from different versions of it, and nobody has to remember to press refresh.',
+        'done'     => 'At least one active analyst has live updates on.',
+        'link'     => 'system/preferences/#live-updates',
+        'check'    => ['sql', "SELECT COUNT(*) FROM analysts a WHERE a.is_active = 1 AND NOT EXISTS (SELECT 1 FROM user_preferences p WHERE p.analyst_id = a.id AND p.preference_key = 'live_updates' AND p.preference_value = '0')"],
+    ],
 ];
