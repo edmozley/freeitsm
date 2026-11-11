@@ -13,7 +13,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * server was asked to APPEND. tests/imap-client-live.php does the same against real
  * Dovecot and GreenMail servers when they are running in Docker.
  *
- * @wiki Mail-Collection-Developer-Guide
+ * @wiki Basic-IMAP-Sent-Copy-Developer-Guide
  */
 
 // --- child: a fake SMTP server that takes one email and writes what it received -------
