@@ -376,6 +376,21 @@ function getHelpTopics() {
             'terms' => 'photo album picture webcam camera selfie ascii art braille text art fun green screen amber colour'
                      . ' dithering contrast brightness sharpen upload copy download png txt https secure camera blocked',
         ],
+        'help-assistant' => [
+            'hero' => 'Help assistant',
+            'sub'  => 'A help icon on every page that finds the right part of the help for a question - and it works with no AI at all.',
+            'sections' => [
+                ['id' => 'overview',    'label' => 'What it is'],
+                ['id' => 'no-ai',       'label' => 'It works without AI'],
+                ['id' => 'turning-on',  'label' => 'Turning it on'],
+                ['id' => 'using',       'label' => 'Using it'],
+                ['id' => 'permissions', 'label' => 'What it shows'],
+                ['id' => 'index',       'label' => 'The help index'],
+                ['id' => 'coming',      'label' => 'What is coming'],
+            ],
+            'terms' => 'help assistant chat chatbot bot ai question ask how do i learn search help find'
+                     . ' rebuild index embedding key no ai key needed per analyst who has it',
+        ],
         'status-portal' => [
             'hero' => 'Service status on the portal',
             'sub'  => 'Whether the people who raise tickets also see the incidents behind an outage, and the updates your team has marked as external — and how much history to show them.',

@@ -38,6 +38,7 @@ $EXEMPT_DIRS = [
     'api/myaccount/'    => 'your own profile, signature, password and MFA - every analyst has one',
     'api/external/'     => 'inventory agents, authenticated by API key',
     'api/webchat/'      => 'the public web-chat widget on a customer website',
+    'api/help_assistant/' => 'the help assistant is on every page, not a module: helpAssistantRequireJson() lets in only analysts it is switched on for, and the search only returns help for modules they can open (helpSectionsFor() asks analystCanAccessModule())',
 ];
 
 // Single files, each with the reason it is open.

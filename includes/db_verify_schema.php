@@ -64,6 +64,9 @@ return [
         // 1 so a new analyst is unrestricted; the upgrade back-fill sets it to 0 for
         // analysts who already had analyst_modules rows (i.e. were restricted).
         'can_access_all_modules' => 'TINYINT(1) NOT NULL DEFAULT 1',
+        // The help assistant is on for this analyst (it also needs the install-wide
+        // switch) - System -> Help assistant, includes/help_assistant.php.
+        'help_assistant'         => 'TINYINT(1) NOT NULL DEFAULT 0',
         // Make this analyst change their password before they can do anything else.
         // Set on the seeded `admin` account, because admin/freeitsm was permanent:
         // there was no column like this and nothing anywhere forced, warned about or
@@ -6912,5 +6915,14 @@ return [
         'source'           => "VARCHAR(20) NOT NULL DEFAULT 'built'",
         'source_version'   => 'VARCHAR(20) NULL',
         'built_datetime'   => 'DATETIME NOT NULL',
+    ],
+    // The help assistant's conversation, per analyst, until they click Reset.
+    'help_assistant_messages' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'       => 'INT NOT NULL',
+        'role'             => 'VARCHAR(10) NOT NULL',
+        'body'             => 'TEXT NOT NULL',
+        'results'          => 'MEDIUMTEXT NULL',
+        'created_datetime' => 'DATETIME NOT NULL',
     ],
 ];

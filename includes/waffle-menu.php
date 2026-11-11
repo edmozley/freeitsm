@@ -1940,6 +1940,8 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         <?php // The "Back to ..." link (3.5.0) - System -> Branding. Nothing unless set up.
         try { if (!function_exists('connectToDatabase')) require_once __DIR__ . '/functions.php'; require_once __DIR__ . '/back_link.php'; echo backLinkHtml(connectToDatabase(), 'analyst'); } catch (Throwable) {} ?>
         <?php echo $__tenantSwitcherHtml; ?>
+        <?php // The help assistant - nothing unless it is on for the install and this analyst (wiki Help-Assistant-Design).
+        try { require_once __DIR__ . '/help_assistant_widget.php'; helpAssistantWidgetRender($GLOBALS['current_module'] ?? null); } catch (Throwable) {} ?>
         <?php renderNotificationBell($path_prefix); ?>
         <?php renderWarRoomAlerts($path_prefix); ?>
         <button class="mail-check-btn" id="mailCheckBtn" onclick="triggerMailCheck()" title="<?php echo htmlspecialchars(t('common.account.mail_check')); ?>" style="display:none;">

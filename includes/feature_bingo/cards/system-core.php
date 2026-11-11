@@ -2,6 +2,20 @@
 /** Feature Bingo cards - System core: analysts, teams, roles, module access, security, sign-in (SSO, LDAP, CardDAV), companies, encryption, database verification, date formats, colours, branding and search. See includes/feature_bingo.php for the format. */
 return [
 
+    // ───────────────────────── Help assistant ─────────────────────────
+    [
+        'id'       => 'system.help_assistant',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'getting-started',
+        'title'    => 'A help assistant on every page',
+        'what'     => 'System -> Help assistant: a help icon in the header of every page. Analysts ask how to do something in their own words, and it takes them straight to the right part of the help. It works with no AI at all.',
+        'why'      => 'People learning FreeITSM do not know which module\'s help covers what. Asked as a question, the help answers it - without anyone having to find the page first.',
+        'done'     => 'The help assistant is switched on, and on for at least one analyst.',
+        'link'     => 'system/help-assistant/',
+        'check'    => ['all', [['setting', 'help_assistant_enabled', 'eq', '1'], ['rows', 'analysts', 'help_assistant = 1 AND is_active = 1']]],
+    ],
+
     // ───────────────────────── Analysts ─────────────────────────
     [
         'id'       => 'system.analyst_accounts',

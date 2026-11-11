@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS `analysts` (
     -- Module access (issue #30). 1 = all modules; 0 = restricted to analyst_modules
     -- (+ team grants). New analysts default unrestricted.
     `can_access_all_modules`    TINYINT(1) NOT NULL DEFAULT 1,
+    -- The help assistant (System -> Help assistant): on for this analyst. It also needs
+    -- the install-wide switch; see includes/help_assistant.php.
+    `help_assistant`            TINYINT(1) NOT NULL DEFAULT 0,
     -- Force a password change before this analyst can do anything else. Set on the
     -- seeded `admin` account, whose admin/freeitsm credentials were otherwise
     -- permanent — nothing forced, warned about or nagged on the change.
@@ -10571,6 +10574,23 @@ CREATE TABLE IF NOT EXISTS `help_sections` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_help_sections_key_locale` (`section_key`, `locale`),
     KEY `idx_help_sections_locale_module` (`locale`, `module`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The help assistant's conversation, one row per message, per analyst - kept
+-- across pages until they click Reset (which deletes their rows). Only ever
+-- shown to that analyst.
+CREATE TABLE IF NOT EXISTS `help_assistant_messages` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`       INT NOT NULL,
+    -- 'user' (the question) or 'assistant' (the reply).
+    `role`             VARCHAR(10) NOT NULL,
+    `body`             TEXT NOT NULL,
+    -- The reply's kind (clear / several / weak / module / none) and its results, as JSON.
+    `results`          MEDIUMTEXT NULL,
+    `created_datetime` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_help_assistant_messages_analyst` (`analyst_id`, `id`),
+    CONSTRAINT `fk_help_assistant_messages_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

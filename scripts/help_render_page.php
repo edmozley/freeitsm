@@ -34,6 +34,12 @@ require_once "$root/includes/i18n.php";
 require_once "$root/includes/help_index.php";   // helpRenderSections()
 I18n::pinLocale((string)$locale);
 
+// The page's own session_start() is ignored, because this one is already running
+// (it has to be, or the page would start an empty session over ours). PHP says so
+// with a notice per render - 74 per language per build in the error log. Only that
+// notice is silenced; everything else is reported as normal.
+set_error_handler(fn(int $no, string $msg) => $no === E_NOTICE && str_contains($msg, 'session is already active'), E_NOTICE);
+
 // The page sees an ordinary signed-in GET; a throwaway session, removed at the end.
 session_id('helprender' . bin2hex(random_bytes(8)));
 session_start();

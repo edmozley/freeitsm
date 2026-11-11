@@ -110,6 +110,20 @@ function helpIndexRenderPage(string $root, string $php, string $page, string $lo
     return (is_array($json) && !empty($json['ok'])) ? $json['sections'] : null;
 }
 
+/**
+ * The languages worth indexing besides English: those analysts have chosen as
+ * their interface language (Preferences), and the install's default. An index in
+ * a language nobody uses is wasted work.
+ *
+ * @return list<string>
+ */
+function helpIndexLocalesInUse(PDO $conn): array
+{
+    $have = $conn->query("SELECT DISTINCT preference_value FROM user_preferences WHERE preference_key = 'interface_language'")->fetchAll(PDO::FETCH_COLUMN);
+    $have[] = I18n::DEFAULT_LOCALE;
+    return array_values(array_filter(array_unique($have), fn($l) => $l !== 'en' && array_key_exists($l, I18n::getSupportedLocales())));
+}
+
 /** The PHP command-line program to render pages with. */
 function helpIndexPhp(): string
 {

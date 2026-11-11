@@ -3332,6 +3332,11 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // The help assistant's conversation goes with its analyst (wiki Help-Assistant-Design).
+    if ($tableExists('help_assistant_messages') && !$fkExists('help_assistant_messages', 'fk_help_assistant_messages_analyst')) {
+        try { $conn->exec("ALTER TABLE help_assistant_messages ADD CONSTRAINT fk_help_assistant_messages_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+    }
+
     // Files. Names + rules match freeitsm.sql. files_audit has none on purpose:
     // the trail must outlive the folders, files and people it names.
     $filesFks = [

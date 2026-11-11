@@ -73,6 +73,7 @@ function analystReferenceRegistry(): array {
         ['analyst_software_dashboard_widgets', 'analyst_id', 'personal'],
         ['analyst_signatures', 'analyst_id', 'personal'],
         ['analyst_recent_trail', 'analyst_id', 'personal'],
+        ['help_assistant_messages', 'analyst_id', 'personal'],   // their help assistant conversation
         ['calendar_enrolments', 'analyst_id', 'personal'],
         ['calendar_sync_events', 'analyst_id', 'personal'],
         ['change_notifications', 'analyst_id', 'personal'],
