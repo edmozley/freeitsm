@@ -162,7 +162,30 @@ require __DIR__ . '/_top.php';
     </ul>
 </div>
 
-<!-- 9. Coming -->
+<!-- 9. Written answers -->
+<div class="help-section" id="answers">
+    <div class="help-section-header"><?php echo helpSectionNum('answers'); ?>
+        <div>
+            <h3>Written answers</h3>
+            <p>Optional. Give the assistant a chat AI and it writes the answer in a sentence or two, in the asker's own language.</p>
+        </div>
+    </div>
+    <p>The AI is given the help sections the search found - and only those - and told to answer from them alone: never from what it knows of other products, never inventing a menu or button, and writing menu names exactly as the help does, so they match the screen. It keeps the links to the sections it used, so every answer can be checked. When the sections do not answer the question it searches the help again itself; when the help really does not cover it, it says so, and the question joins <a href="#unanswered">Unanswered questions</a>.</p>
+    <div class="help-steps">
+        <div class="help-step"><div class="help-step-num">1</div><div>On <strong>System → Help assistant</strong>, under <strong>Written answers</strong>, choose a provider, model and key in the AI panel - any provider FreeITSM supports, including your own model server. A small, fast model is plenty.</div></div>
+        <div class="help-step"><div class="help-step-num">2</div><div>Tick <strong>Write answers with AI</strong>.</div></div>
+        <div class="help-step"><div class="help-step-num">3</div><div>Use <strong>Try it</strong> to ask a question as yourself and see the answer, the sections the AI was given and how long it took. Nothing is saved.</div></div>
+    </div>
+    <ul>
+        <li><strong>Measured:</strong> on 65 test questions with Claude Haiku, 46 of 47 plain questions and all 6 asking for a feature by name were answered from the right section, in about three seconds and a third of a penny each.</li>
+        <li><strong>Its own key</strong>, stored encrypted, so its cost shows separately. Each question, and the help sections found for it, are sent to that provider - choose your own model server to keep everything on your network.</li>
+        <li><strong>Permissions are respected.</strong> Someone asking about a setting they cannot change is told who can - an administrator, or someone with that module's settings access - rather than how.</li>
+        <li><strong>Other languages.</strong> The answer comes in the asker's language, with menu names left as they appear on the screen. The System help pages are in English only for now, so a question in another language about System can be answered less well.</li>
+        <li><strong>It never makes things worse.</strong> If the AI cannot be reached, or its credit runs out, the assistant replies with the search results instead.</li>
+    </ul>
+</div>
+
+<!-- 10. Coming -->
 <div class="help-section" id="coming">
     <div class="help-section-header"><?php echo helpSectionNum('coming'); ?>
         <div>
@@ -175,7 +198,7 @@ require __DIR__ . '/_top.php';
         <tbody>
             <tr><td><strong>Nothing</strong></td><td>Search help - the right sections, instantly, free.</td></tr>
             <tr><td><strong>An embedding key</strong> (available now)</td><td>Matching by meaning, so <em>"my boss wants a weekly PDF"</em> finds Report packs - see <a href="#meaning">above</a>.</td></tr>
-            <tr><td><strong>A chat AI</strong> - any provider FreeITSM supports</td><td>A written answer in a sentence or two, in the asker's own language, still linking to the help it used.</td></tr>
+            <tr><td><strong>A chat AI</strong> (available now)</td><td>A written answer in a sentence or two, in the asker's own language, still linking to the help it used - see <a href="#answers">above</a>.</td></tr>
         </tbody>
     </table></div>
 </div>

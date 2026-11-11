@@ -97,6 +97,10 @@ $sessions = [];
 $oldEnabled = helpAssistantSetting($conn, 'help_assistant_enabled');
 $oldFlags = $conn->query("SELECT id, help_assistant FROM analysts")->fetchAll(PDO::FETCH_KEY_PAIR);
 $oldState = helpAssistantSetting($conn, 'help_index_build_state');
+// Written answers (step 5) off for this run: these checks are about search, and an
+// AI answering would change them - and spend the install's credit. Put back in finally.
+$oldAsk = helpAssistantSetting($conn, 'help_ask_enabled');
+helpAssistantSetSetting($conn, 'help_ask_enabled', '0');
 
 /** A ZZ analyst and a forged session for them. */
 $analyst = function (bool $admin) use ($conn, $tag, $sessDir, &$made, &$sessions): array {
@@ -260,6 +264,8 @@ try {
     else helpAssistantSetSetting($conn, 'help_assistant_enabled', $oldEnabled);
     $u = $conn->prepare("UPDATE analysts SET help_assistant = ? WHERE id = ?");
     foreach ($oldFlags as $id => $v) $u->execute([$v, $id]);
+    if ($oldAsk === null) $conn->exec("DELETE FROM system_settings WHERE setting_key = 'help_ask_enabled'");
+    else helpAssistantSetSetting($conn, 'help_ask_enabled', $oldAsk);
 }
 
 echo "\n$pass passed, $fail failed\n";

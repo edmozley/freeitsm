@@ -348,7 +348,7 @@ $translationNamespaces = ['common', 'software'];
                 </div>
 
                 <!-- Section 6: Settings -->
-                <div class="help-section" id="settings">
+                <div class="help-section" id="settings" data-cap="software.manage">
                     <div class="help-section-header">
                         <span class="help-section-num">6</span>
                         <h3><?php echo htmlspecialchars(t('software.help.settings_heading')); ?></h3>

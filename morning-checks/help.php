@@ -372,7 +372,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                 </div>
 
                 <!-- Section 6: Settings (highlighted) -->
-                <div class="help-section" id="settings">
+                <div class="help-section" id="settings" data-cap="morning_checks.manage">
                     <div class="help-section-header">
                         <span class="help-section-num">6</span>
                         <h3><?php echo htmlspecialchars(t('morning-checks.help.settings_heading')); ?></h3>

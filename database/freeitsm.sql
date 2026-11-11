@@ -10605,8 +10605,8 @@ CREATE TABLE IF NOT EXISTS `help_assistant_unanswered` (
     `locale`           VARCHAR(10) NOT NULL,
     -- The module the asker was in, when the page said.
     `module`           VARCHAR(50) NULL,
-    -- 'none' (nothing found) or 'weak' (only weak matches).
-    `kind`             VARCHAR(10) NOT NULL,
+    -- 'none' (nothing found), 'weak' (only weak matches) or 'not_covered' (the AI read the help and said so).
+    `kind`             VARCHAR(20) NOT NULL,
     -- The closest section it did find, if any.
     `best_title`       VARCHAR(255) NULL,
     `analyst_id`       INT NULL,

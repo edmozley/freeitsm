@@ -23,6 +23,12 @@
  * POST {"action": "unanswered", "status": "new" | "done" | "all"}  -> the list
  * POST {"action": "mark", "id": 12, "dealt": true}  -> dealt with (or back to new)
  *
+ * Written answers (step 5) - the AI itself is set up with the shared AI panel
+ * (namespace help_ai, api/system/ai/save_settings.php, key encrypted):
+ * POST {"action": "save_ask", "enabled": true}
+ * POST {"action": "try", "question": "..."}  -> the reply as the admin would get it, plus
+ *      what the AI was given and how long it took - for judging the answers
+ *
  * Administrators only, like every System endpoint.
  */
 session_start(['read_and_close' => true]);
@@ -44,6 +50,7 @@ function helpAssistantAdminState(PDO $conn): array
         'unanswered_count' => helpAssistantUnansweredCount($conn),
         'index'    => helpAssistantIndexStatus($conn),
         'vectors'  => helpVectorsStatus($conn),
+        'ask'      => ['enabled' => helpAskEnabled($conn), 'ready' => helpAskReady($conn) !== null],
     ];
 }
 
@@ -120,6 +127,19 @@ try {
         // The first time: build them now. A CHANGE of model is not started here - the
         // page warns and offers Rebuild, because it may cost money.
         if ($enabled && helpVectorsActiveModel($conn) === null && helpVectorsUsable(helpVectorsConfig($conn))) $started = helpAssistantStartRebuild($conn);
+    } elseif (($in['action'] ?? '') === 'save_ask') {
+        helpAssistantSetSetting($conn, 'help_ask_enabled', !empty($in['enabled']) ? '1' : '0');
+    } elseif (($in['action'] ?? '') === 'try') {
+        // Asked as this admin, in their language - nothing is saved to anyone's
+        // conversation and nothing goes on the unanswered list.
+        require_once '../../includes/i18n.php';
+        I18n::initFromSession();
+        $q = trim((string)($in['question'] ?? ''));
+        if ($q === '') throw new InvalidArgumentException('Ask a question first.');
+        $t = microtime(true);
+        $reply = helpAssistantAnswer($conn, (int)$_SESSION['analyst_id'], mb_substr($q, 0, HELP_ASSISTANT_MAX_QUESTION), I18n::getLocale(), null);
+        echo json_encode(['success' => true, 'reply' => $reply, 'ms' => (int)round((microtime(true) - $t) * 1000)], JSON_UNESCAPED_UNICODE);
+        exit;
     } elseif (($in['action'] ?? '') === 'unanswered') {
         $status = in_array($in['status'] ?? 'new', ['new', 'done', 'all'], true) ? $in['status'] : 'new';
         echo json_encode(['success' => true, 'items' => helpAssistantUnanswered($conn, $status), 'count' => helpAssistantUnansweredCount($conn)], JSON_UNESCAPED_UNICODE);

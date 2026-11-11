@@ -127,4 +127,32 @@ if ($model === 'tools-ok' && !empty($body['tools'])) {
         ]]], 'tool_calls');
     }
 }
+/* The help assistant's written answers (tests/help-ask.php):
+     help-answer  quotes the first section it was given - proof the sections arrived
+     help-none    "the help does not cover it"
+     help-search  asks search_help once, then cites the last section that search returned */
+$userText = ''; $toolText = '';
+foreach ($body['messages'] ?? [] as $m) {
+    $c = is_string($m['content'] ?? null) ? $m['content'] : json_encode($m['content'] ?? '');
+    if (($m['role'] ?? '') === 'user') $userText = $c;
+    if (($m['role'] ?? '') === 'tool') $toolText .= $c;
+}
+if ($model === 'help-answer') {
+    preg_match('/^\[1\] (.*)$/m', $userText, $first);
+    $reply(['content' => "The help explains it: **" . trim($first[1] ?? '?') . "** [1]\nSOURCES: 1"]);
+}
+if ($model === 'help-none') {
+    $reply(['content' => 'NOT_COVERED']);
+}
+if ($model === 'help-search') {
+    if ($toolText === '') {
+        $reply(['content' => '', 'tool_calls' => [[
+            'id' => 'call_s', 'type' => 'function',
+            'function' => ['name' => 'search_help', 'arguments' => json_encode(['words' => 'department create'])],
+        ]]], 'tool_calls');
+    }
+    preg_match_all('/^\[(\d+)\]/m', $toolText, $nums);
+    $n = $nums[1] ? end($nums[1]) : '1';
+    $reply(['content' => "Found it after searching again. [$n]\nSOURCES: $n"]);
+}
 $reply(['content' => 'OK']);

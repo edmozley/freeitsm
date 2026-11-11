@@ -473,7 +473,7 @@ $translationNamespaces = ['common', 'watchtower'];
                     </div>
                 </div>
 
-                <div class="help-section" id="settings">
+                <div class="help-section" id="settings" data-cap="watchtower.manage">
                     <div class="help-section-header">
                         <span class="help-section-num">8</span>
                         <h3><?php echo htmlspecialchars(t('watchtower.help.s7_title')); ?></h3>

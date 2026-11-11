@@ -6931,7 +6931,7 @@ return [
         'question'         => 'VARCHAR(500) NOT NULL',
         'locale'           => 'VARCHAR(10) NOT NULL',
         'module'           => 'VARCHAR(50) NULL',
-        'kind'             => 'VARCHAR(10) NOT NULL',
+        'kind'             => 'VARCHAR(20) NOT NULL',
         'best_title'       => 'VARCHAR(255) NULL',
         'analyst_id'       => 'INT NULL',
         'dealt_by'         => 'INT NULL',

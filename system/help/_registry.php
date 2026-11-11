@@ -388,6 +388,7 @@ function getHelpTopics() {
                 ['id' => 'index',       'label' => 'The help index'],
                 ['id' => 'unanswered',  'label' => 'Unanswered questions'],
                 ['id' => 'meaning',     'label' => 'Matching by meaning'],
+                ['id' => 'answers',     'label' => 'Written answers'],
                 ['id' => 'coming',      'label' => 'What is coming'],
             ],
             'terms' => 'help assistant chat chatbot bot ai question ask how do i learn search help find'

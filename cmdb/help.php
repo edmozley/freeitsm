@@ -491,7 +491,7 @@ $translationNamespaces = ['common', 'cmdb'];
                 </div>
 
                 <!-- 11. Settings tour -->
-                <div class="help-section" id="settings">
+                <div class="help-section" id="settings" data-cap="cmdb.manage">
                     <div class="help-section-header">
                         <span class="help-section-num">11</span>
                         <div>

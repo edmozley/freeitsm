@@ -418,7 +418,7 @@ function helpRank(array $sections, string $question, ?string $currentModule = nu
     foreach ($best as $i => [$score, $passage]) {
         $s = $sections[$i];
         if ($currentModule !== null && ($s['module'] ?? null) === $currentModule) $score *= HELP_MODULE_BOOST;
-        $scored[] = $s + ['score' => round($score, 4), 'snippet' => helpSnippet($passage, $q)];
+        $scored[] = $s + ['score' => round($score, 4), 'snippet' => helpSnippet($passage, $q), 'passage' => $passage];   // passage: what an AI reads (step 5)
     }
     usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
     return array_slice($scored, 0, $limit);

@@ -3352,6 +3352,19 @@ try {
             try { $conn->exec("ALTER TABLE help_assistant_unanswered ADD CONSTRAINT $fk FOREIGN KEY ($col) REFERENCES analysts (id) ON DELETE SET NULL"); } catch (Exception $e) {}
         }
     }
+    // help_assistant_unanswered.kind was VARCHAR(10) on dev installs - one short of
+    // 'not_covered' (step 5), which it truncated to 'not_covere'. Probe, then widen; a
+    // no-op once done. (Never in a release.)
+    if ($tableExists('help_assistant_unanswered')) {
+        try {
+            $k = $conn->prepare("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'help_assistant_unanswered' AND column_name = 'kind'");
+            $k->execute();
+            if ((int)$k->fetchColumn() < 20) {
+                $conn->exec("ALTER TABLE help_assistant_unanswered MODIFY `kind` VARCHAR(20) NOT NULL");
+                $conn->exec("UPDATE help_assistant_unanswered SET kind = 'not_covered' WHERE kind = 'not_covere'");
+            }
+        } catch (Exception $e) {}
+    }
     // The help assistant's conversation goes with its analyst (wiki Help-Assistant-Design).
     if ($tableExists('help_assistant_messages') && !$fkExists('help_assistant_messages', 'fk_help_assistant_messages_analyst')) {
         try { $conn->exec("ALTER TABLE help_assistant_messages ADD CONSTRAINT fk_help_assistant_messages_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}

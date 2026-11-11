@@ -61,7 +61,7 @@
         var close = iconButton('hlpa-close', S('close'), '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>', function () { closePanel(false); });
         head.append(title, reset, close);
 
-        var mode = el('div', 'hlpa-mode', S(C.level === 'search_meaning' ? 'mode_meaning' : 'mode_search'));
+        var mode = el('div', 'hlpa-mode', S(C.level === 'ask' ? 'mode_ask' : (C.level === 'search_meaning' ? 'mode_meaning' : 'mode_search')));
         list = el('div', 'hlpa-list');
         list.setAttribute('aria-live', 'polite');
 
@@ -232,10 +232,38 @@
         return a;
     }
 
+    /**
+     * The AI's answer as text: a line per line, **bold** kept - built from text
+     * nodes and <strong> elements, never innerHTML, since it is model output.
+     */
+    function answerText(text) {
+        var box = el('div', 'hlpa-bot-text hlpa-answer');
+        String(text).split(/\n+/).forEach(function (line) {
+            if (!line.trim()) return;
+            var p = el('div', 'hlpa-line');
+            String(line).split(/(\*\*[^*]+\*\*)/).forEach(function (part) {
+                if (/^\*\*[^*]+\*\*$/.test(part)) p.appendChild(el('strong', null, part.slice(2, -2)));
+                else if (part) p.appendChild(document.createTextNode(part));
+            });
+            box.appendChild(p);
+        });
+        return box;
+    }
+
     function addBot(text, kind, results) {
         var b = el('div', 'hlpa-msg hlpa-bot');
-        if (text) b.appendChild(el('div', 'hlpa-bot-text', text));
         results = results || [];
+        if (kind === 'answer') {
+            // A written answer (step 5): the answer, then the sections it used.
+            b.appendChild(answerText(text));
+            if (results.length) {
+                b.appendChild(el('div', 'hlpa-also', S('sources')));
+                results.slice(0, 3).forEach(function (r) { b.appendChild(card(r, false)); });
+            }
+            list.appendChild(b);
+            return b;
+        }
+        if (text) b.appendChild(el('div', 'hlpa-bot-text', text));
         if (kind === 'clear' && results.length) {
             // One clear winner: it first and larger, the rest underneath.
             b.appendChild(card(results[0], true));
@@ -272,7 +300,7 @@
         addUser(q);
         input.value = '';
         grow();
-        var wait = el('div', 'hlpa-msg hlpa-bot hlpa-wait', S('searching'));
+        var wait = el('div', 'hlpa-msg hlpa-bot hlpa-wait', S(C.level === 'ask' ? 'thinking' : 'searching'));
         list.appendChild(wait);
         scrollDown();
         fetch(C.ask, {

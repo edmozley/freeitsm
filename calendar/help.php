@@ -260,7 +260,7 @@ $translationNamespaces = ['common', 'calendar'];
                 </div>
 
                 <!-- Section 5: Settings (highlighted) -->
-                <div class="help-section" id="settings">
+                <div class="help-section" id="settings" data-cap="calendar.manage">
                     <div class="help-section-header">
                         <span class="help-section-num">5</span>
                         <h3><?php echo htmlspecialchars(t('calendar.help.settings_heading')); ?></h3>

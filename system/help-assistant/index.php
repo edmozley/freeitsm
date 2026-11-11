@@ -13,6 +13,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/timezone.php';
 require_once '../../includes/theme.php';
+require_once '../../includes/ai_settings_panel.php';   // the shared provider / model / key panel (step 5)
 I18n::initFromSession();
 Tz::init();
 
@@ -105,6 +106,11 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         .hv-model-row { display: flex; gap: 6px; }
         .hv-model-row select { flex: 1; min-width: 0; }
         .hv-status { margin-top: 14px; }
+        .hask-ai { margin-top: 14px; }
+        .hask-try { display: flex; gap: 8px; }
+        .hask-out { margin-top: 12px; font-size: 13.5px; color: var(--text, #333); line-height: 1.55; }
+        .hask-out .hask-answer { white-space: pre-wrap; background: var(--surface-hover, #f6f7f8); border-radius: 8px; padding: 12px 14px; }
+        .hask-out .hask-meta { font-size: 12px; color: var(--text-muted, #666); margin-top: 6px; }
         .ha-row .ha-named { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted, #666); white-space: nowrap; }
         .ha-panel > p.ha-named-hint { font-size: 12px; margin: 8px 0 0; }
         .ha-count-pill { display: inline-block; min-width: 18px; padding: 1px 7px; border-radius: 999px; background: var(--accent, #546e7a); color: var(--on-accent, #fff); font-size: 11.5px; text-transform: none; letter-spacing: 0; vertical-align: 1px; text-align: center; }
@@ -205,6 +211,32 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
             <div class="ha-status hv-status" id="hvStatus"></div>
         </div>
 
+        <?php /* Step 5: written answers. The chat AI is set up with the SAME panel as every
+                 other AI feature (namespace help_ai): api/system/ai/save_settings.php saves it,
+                 encrypting the key; only an administrator may (analystCanManageAiNamespace()). */ ?>
+        <div class="ha-panel">
+            <h3 id="answers"><?php echo $h('ask_heading'); ?></h3>
+            <p><?php echo $h('ask_intro'); ?></p>
+            <p class="ha-small"><?php echo $h('ask_cost'); ?></p>
+            <p class="ha-small"><?php echo $h('ask_privacy'); ?></p>
+            <label class="ha-toggle">
+                <input type="checkbox" id="haskEnabled" onchange="saveAsk()">
+                <span>
+                    <span class="ha-toggle-label"><?php echo $h('ask_enable'); ?></span>
+                    <span class="ha-toggle-hint" id="haskHint"></span>
+                </span>
+            </label>
+            <div class="hask-ai"><?php renderAiSettingsPanel('help_ai'); ?></div>
+
+            <h3 id="try" style="margin-top:22px;"><?php echo $h('try_heading'); ?></h3>
+            <p><?php echo $h('try_hint'); ?></p>
+            <div class="hask-try">
+                <input type="text" id="haskQ" class="ha-filter" placeholder="<?php echo $h('try_placeholder'); ?>" onkeydown="if (event.key === 'Enter') tryAsk()">
+                <button type="button" class="btn btn-primary" id="haskGo" onclick="tryAsk()"><?php echo $h('try'); ?></button>
+            </div>
+            <div class="hask-out" id="haskOut"></div>
+        </div>
+
         <?php /* Step 6: questions the help could not answer - admins only, like this whole page. */ ?>
         <div class="ha-panel">
             <h3 id="unanswered"><?php echo $h('unanswered_heading'); ?> <span class="ha-count-pill" id="huCount" hidden></span></h3>
@@ -300,8 +332,42 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
             renderList();
             renderIndex(d.index || {});
             applyVectors(d.vectors || {}, d.index || {});
-            document.getElementById('haLevel').textContent = tr(d.level === 'search_meaning' ? 'level_meaning' : 'level_search');
             showCount(d.unanswered_count || 0);
+            const ask = d.ask || {};
+            document.getElementById('haskEnabled').checked = !!ask.enabled;
+            document.getElementById('haskHint').textContent = ask.enabled && !ask.ready ? tr('ask_not_ready') : '';
+            document.getElementById('haLevel').textContent = tr(d.level === 'ask' ? 'level_ask' : (d.level === 'search_meaning' ? 'level_meaning' : 'level_search'));
+        }
+
+        // ── Written answers ──────────────────────────────────────────────
+        async function saveAsk() {
+            try { apply(await post({ action: 'save_ask', enabled: document.getElementById('haskEnabled').checked })); }
+            catch (e) { if (typeof showToast === 'function') showToast(e.message, 'error'); }
+        }
+        // Try it: the reply as this admin would get it, and what the AI was given. Text only.
+        async function tryAsk() {
+            const q = document.getElementById('haskQ').value.trim();
+            const out = document.getElementById('haskOut');
+            if (!q) return;
+            const btn = document.getElementById('haskGo');
+            btn.disabled = true;
+            out.textContent = '…';
+            try {
+                const d = await post({ action: 'try', question: q });
+                const r = d.reply || {};
+                out.textContent = '';
+                const add = (cls, text) => { const e = document.createElement('div'); e.className = cls; e.textContent = text; out.appendChild(e); return e; };
+                add('hask-answer', r.text || '');
+                (r.results || []).forEach(x => add('hask-meta', '\u2192 ' + (x.page_title ? x.page_title + ' > ' : '') + x.title));
+                if (r.ai) {
+                    add('hask-meta', tr('try_given', { list: (r.ai.sections || []).map(x => '[' + x.n + '] ' + x.title).join(' \u00b7 ') }));
+                    if ((r.ai.searches || []).length) add('hask-meta', tr('try_searched', { words: r.ai.searches.join(' / ') }));
+                    add('hask-meta', tr('try_meta', { model: r.ai.model, ms: r.ai.ms, tin: r.ai.tokens_in, tout: r.ai.tokens_out }));
+                } else {
+                    add('hask-meta', tr('try_search_only', { ms: d.ms }));
+                }
+            } catch (e) { out.textContent = e.message; }
+            finally { btn.disabled = false; }
         }
 
         // ── Unanswered questions ─────────────────────────────────────────
@@ -462,7 +528,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
                 else {   // a poll must not undo ticks or typing not yet saved
                     renderIndex(d.index || {});
                     renderVectorStatus(d.vectors || {}, d.index || {});
-                    document.getElementById('haLevel').textContent = tr(d.level === 'search_meaning' ? 'level_meaning' : 'level_search');
+                    document.getElementById('haLevel').textContent = tr(d.level === 'ask' ? 'level_ask' : (d.level === 'search_meaning' ? 'level_meaning' : 'level_search'));
                 }
             } catch (e) { /* the page keeps its safe defaults: off */ }
         }
@@ -498,6 +564,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         load();
         loadUnanswered('new');
     </script>
+    <script src="../../assets/js/ai-settings.js?v=4"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

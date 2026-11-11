@@ -534,6 +534,8 @@ function systemAreaSettings(): array
             ['switch', 'system.help_assistant.switch_heading'],
             ['who',    'system.help_assistant.who_heading'],
             ['meaning', 'system.help_assistant.vectors_heading'],
+            ['answers', 'system.help_assistant.ask_heading'],
+            ['try',     'system.help_assistant.try_heading'],
             ['unanswered', 'system.help_assistant.unanswered_heading'],
             ['index',  'system.help_assistant.index_heading'],
         ],

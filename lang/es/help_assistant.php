@@ -11,6 +11,9 @@ return [
     'mode_search' => 'Se buscan las páginas de ayuda - no hay ninguna IA configurada, así que obtiene las páginas adecuadas en lugar de una respuesta escrita.',
     'mode_meaning' => 'Se busca en la ayuda por significado - no hay ninguna IA de chat configurada, así que obtiene las páginas adecuadas en lugar de una respuesta escrita.',
     'named_notice' => 'Si la ayuda no puede responder una pregunta, se comparte con sus administradores junto con su nombre.',
+    'mode_ask' => 'Las respuestas las escribe una IA a partir de la ayuda de FreeITSM; las secciones que usó están enlazadas para que pueda comprobarlas.',
+    'sources' => 'De la ayuda',
+    'thinking' => 'Leyendo la ayuda…',
     'placeholder' => 'Pregunte cómo hacer algo…',
     'send' => 'Enviar',
     'reset' => 'Reiniciar',
@@ -43,5 +46,7 @@ return [
             1 => 'No encontré nada sobre eso - ¿pruebe otras palabras o indique el módulo en el que está?',
             2 => 'Nada en la ayuda coincide. ¿Quizá una pregunta más corta?',
         ],
+        // The AI read the help and found it does not cover the question (step 5).
+        'not_covered' => [1 => 'Parece que la ayuda no cubre eso. Estas son las secciones más cercanas:', 2 => 'No lo encontré en la ayuda; esto es lo que más se acerca:'],
     ],
 ];

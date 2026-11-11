@@ -11,6 +11,7 @@
 
 require_once __DIR__ . '/help_index.php';
 require_once __DIR__ . '/help_vectors.php';
+require_once __DIR__ . '/help_ask.php';
 
 /**
  * "Clear winner": the top result scores at least this many times the runner-up.
@@ -115,6 +116,7 @@ function helpAssistantRequireJson(): array
  */
 function helpAssistantLevel(PDO $conn): array
 {
+    if (helpAskReady($conn) !== null) return ['level' => 'ask'];
     return ['level' => helpVectorsReady($conn) !== null ? 'search_meaning' : 'search'];
 }
 
@@ -184,7 +186,7 @@ function helpAssistantPhrase(string $kind): string
  * @param ?string $currentModule  the module they are in
  * @return array{kind:string,text:string,results:list<array{title:string,page_title:string,url:string,snippet:string,module:string}>}
  */
-function helpAssistantAnswer(PDO $conn, int $analystId, string $question, string $locale, ?string $currentModule): array
+function helpAssistantAnswer(PDO $conn, int $analystId, string $question, string $locale, ?string $currentModule, bool $useAi = true): array
 {
     $sections = helpSectionsFor($conn, $analystId, $locale);
     // Words, and - when an embedding model is set up and its vectors are ready -
@@ -195,24 +197,47 @@ function helpAssistantAnswer(PDO $conn, int $analystId, string $question, string
     // The page each result is on, by its introduction's title ("Tickets Help").
     $pageTitles = [];
     foreach ($sections as $s) if ($s['anchor'] === '') $pageTitles[$s['page']] = $s['title'];
-    $base = defined('BASE_URL') ? BASE_URL : '/';
-    $results = [];
-    foreach ($ranked as $r) {
-        $results[] = [
-            'title'      => $r['title'],
-            'page_title' => $pageTitles[$r['page']] ?? '',
-            'url'        => $base . $r['page'] . ($r['anchor'] !== '' ? '#' . $r['anchor'] : ''),
-            'snippet'    => $r['snippet'],
-            'module'     => $r['module'],
-            'score'      => $r['score'],
-            'sim'        => $r['sim'] ?? null,
-            'word_rank'  => $r['word_rank'] ?? null,
-            'vec_rank'   => $r['vec_rank'] ?? null,
-            'lead'       => $r['lead'] ?? null,
-        ];
+    $results = array_map(fn($r) => helpAssistantCard($r, $pageTitles), $ranked);
+
+    // Step 5: a chat AI writes the answer from these sections, when one is set up.
+    // Anything it cannot do falls through to the search reply below.
+    $aiCfg = $useAi ? helpAskReady($conn) : null;
+    if ($aiCfg !== null) {   // even with nothing found: the AI can search itself (in English, for a language with no help of its own)
+        $ai = helpAskAnswer($conn, $aiCfg, $analystId, $question, $locale, $currentModule, $ranked, $sections, $pageTitles);
+        if ($ai !== null && $ai['not_covered']) {
+            return ['kind' => 'not_covered', 'text' => helpAssistantPhrase('not_covered'), 'results' => array_slice($results, 0, 3), 'ai' => $ai['meta']];
+        }
+        if ($ai !== null) {
+            $cited = array_map(fn($r) => helpAssistantCard($r, $pageTitles), $ai['sources']);
+            return ['kind' => 'answer', 'text' => $ai['text'], 'results' => $cited ?: array_slice($results, 0, 2), 'ai' => $ai['meta']];
+        }
     }
+
     $kind = helpAssistantReplyKind($results, $currentModule);
     return ['kind' => $kind, 'text' => helpAssistantPhrase($kind), 'results' => $results];
+}
+
+/**
+ * One result as the window shows it: title, the page it is on, a preview and a link
+ * - plus the scores the reply kind is chosen from.
+ *
+ * @param array<string,string> $pageTitles  page => its title
+ */
+function helpAssistantCard(array $r, array $pageTitles): array
+{
+    $base = defined('BASE_URL') ? BASE_URL : '/';
+    return [
+        'title'      => $r['title'],
+        'page_title' => $pageTitles[$r['page']] ?? '',
+        'url'        => $base . $r['page'] . ($r['anchor'] !== '' ? '#' . $r['anchor'] : ''),
+        'snippet'    => $r['snippet'] ?? helpSnippet((string)($r['body'] ?? ''), []),
+        'module'     => $r['module'],
+        'score'      => $r['score'] ?? 0.0,
+        'sim'        => $r['sim'] ?? null,
+        'word_rank'  => $r['word_rank'] ?? null,
+        'vec_rank'   => $r['vec_rank'] ?? null,
+        'lead'       => $r['lead'] ?? null,
+    ];
 }
 
 // ─── The conversation ───────────────────────────────────────────────────────
@@ -330,7 +355,7 @@ function helpAssistantStartRebuild(PDO $conn): bool
  */
 function helpAssistantShouldRecord(string $kind): bool
 {
-    return in_array($kind, ['none', 'weak'], true);
+    return in_array($kind, ['none', 'weak', 'not_covered'], true);   // not_covered: the AI read the help and said so (step 5)
 }
 
 /** Whether an admin chose to record this analyst's name with their unanswered questions. */
@@ -367,10 +392,13 @@ function helpAssistantRecordUnanswered(PDO $conn, int $analystId, string $questi
         // again across every module (as an administrator would see it): when that
         // finds a good answer, the help exists - they cannot open that module - and
         // it is not "help worth writing". Only on a miss, so it costs nothing usually.
+        // (Search only - no second AI call. A good answer from a module the asker CAN
+        // open does not count: then the help, or the AI reading it, really fell short.)
         $everyone = helpIndexRenderAnalyst($conn);
         if ($everyone !== null && $everyone !== $analystId) {
-            $wide = helpAssistantAnswer($conn, $everyone, $question, $locale, $module);
-            if (!helpAssistantShouldRecord($wide['kind'])) return null;
+            $wide = helpAssistantAnswer($conn, $everyone, $question, $locale, $module, false);
+            $topModule = $wide['results'][0]['module'] ?? null;
+            if (!helpAssistantShouldRecord($wide['kind']) && $topModule !== null && !analystCanAccessModule($conn, $analystId, $topModule)) return null;
         }
         $named = helpAssistantNamed($conn, $analystId);
         $conn->prepare("INSERT INTO help_assistant_unanswered (question, locale, module, kind, best_title, analyst_id, created_datetime)

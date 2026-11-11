@@ -27,6 +27,18 @@ return [
         'link'     => 'system/help-assistant/#meaning',
         'check'    => ['all', [['setting', 'help_vectors_enabled', 'eq', '1'], ['setting', 'help_vectors_model', 'nonempty']]],
     ],
+    [
+        'id'       => 'system.help_assistant_answers',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'getting-started',
+        'title'    => 'The help assistant writes the answer',
+        'what'     => 'System -> Help assistant -> Written answers: a chat AI reads the help sections the search found and answers in a sentence or two, in the asker\'s own language, linking to the sections it used.',
+        'why'      => 'A short answer in your own words beats a list of pages to read - and because it may only use FreeITSM\'s own help, it does not invent menus that are not there. When the help does not cover something, it says so.',
+        'done'     => 'Written answers are switched on.',
+        'link'     => 'system/help-assistant/#answers',
+        'check'    => ['setting', 'help_ask_enabled', 'eq', '1'],
+    ],
 
     // ───────────────────────── Analysts ─────────────────────────
     [

@@ -61,6 +61,7 @@
     border-bottom-left-radius: 4px; width: 88%; box-sizing: border-box;
 }
 .hlpa-bot-text { margin-bottom: 6px; }
+.hlpa-answer .hlpa-line + .hlpa-line { margin-top: 6px; }
 .hlpa-wait { color: var(--text-muted, #666); font-style: italic; width: auto; }
 .hlpa-greeting { width: auto; }
 

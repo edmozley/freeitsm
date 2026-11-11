@@ -481,7 +481,7 @@ $translationNamespaces = ['common', 'tasks'];
                 </div>
 
                 <!-- 11. Settings -->
-                <div class="help-section" id="settings">
+                <div class="help-section" id="settings" data-cap="tasks.manage">
                     <div class="help-section-header">
                         <span class="help-section-num">11</span>
                         <div>

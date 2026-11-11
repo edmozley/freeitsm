@@ -11,6 +11,9 @@ return [
     'mode_search' => 'Die Hilfeseiten werden durchsucht - es ist keine KI eingerichtet, daher erhalten Sie die passenden Seiten statt einer geschriebenen Antwort.',
     'mode_meaning' => 'Die Hilfe wird nach Bedeutung durchsucht - es ist keine Chat-KI eingerichtet, daher erhalten Sie die passenden Seiten statt einer geschriebenen Antwort.',
     'named_notice' => 'Wenn die Hilfe eine Frage nicht beantworten kann, wird sie mit Ihrem Namen an Ihre Administratoren weitergegeben.',
+    'mode_ask' => 'Die Antworten schreibt eine KI aus der FreeITSM-Hilfe - die verwendeten Abschnitte sind verlinkt, damit Sie sie prüfen können.',
+    'sources' => 'Aus der Hilfe',
+    'thinking' => 'Die Hilfe wird gelesen…',
     'placeholder' => 'Fragen Sie, wie etwas geht…',
     'send' => 'Senden',
     'reset' => 'Zurücksetzen',
@@ -43,5 +46,7 @@ return [
             1 => 'Dazu habe ich nichts gefunden - versuchen Sie andere Wörter oder nennen Sie das Modul?',
             2 => 'Nichts in der Hilfe passt dazu. Vielleicht eine kürzere Frage?',
         ],
+        // The AI read the help and found it does not cover the question (step 5).
+        'not_covered' => [1 => 'Das scheint die Hilfe nicht abzudecken. Das sind die nächstliegenden Abschnitte:', 2 => 'Das habe ich in der Hilfe nicht gefunden - das kommt dem am nächsten:'],
     ],
 ];

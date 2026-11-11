@@ -95,6 +95,14 @@ function aiSettingsRegistry(): array
             'default_provider'=> 'anthropic',
             'default_model'   => 'claude-sonnet-4-6',
         ],
+        // The help assistant's written answers (wiki Help-Assistant-Design, step 5) - its own
+        // chat AI and key, so its cost shows on its own. A small, fast model is plenty: it
+        // only rewrites a few help sections into a short answer. includes/help_ask.php.
+        'help_ai' => [
+            'label'           => 'Help assistant answers',
+            'default_provider'=> 'anthropic',
+            'default_model'   => 'claude-haiku-4-5-20251001',
+        ],
         // The help assistant's EMBEDDING model (wiki Help-Assistant-Design, step 4) - its
         // own key so its cost shows on its own. Only OpenAI, Azure OpenAI and an
         // OpenAI-compatible server can embed (AI_EMBEDDING_PROVIDERS); System -> Help

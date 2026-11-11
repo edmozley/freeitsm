@@ -104,7 +104,7 @@ if (!(int)$conn->query("SELECT COUNT(*) FROM help_sections")->fetchColumn()) { c
 $port = 18700 + random_int(0, 999);
 $logFile = 'tests/ai-compatible/last-request.json';   // the mock logs every request here
 @unlink($logFile);
-$keys = ['help_vectors_enabled', 'help_vectors_model', 'help_vectors_active_cfg', 'help_embed_provider', 'help_embed_model', 'help_embed_api_key', 'help_embed_compatible_base_url'];
+$keys = ['help_ask_enabled', 'help_vectors_enabled', 'help_vectors_model', 'help_vectors_active_cfg', 'help_embed_provider', 'help_embed_model', 'help_embed_api_key', 'help_embed_compatible_base_url'];
 $saved = [];
 foreach ($keys as $k) { $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?"); $st->execute([$k]); $saved[$k] = $st->fetchColumn(); }
 $conn->exec("DROP TABLE IF EXISTS zz_help_vectors_backup");
@@ -121,6 +121,8 @@ $sections = (int)$conn->query("SELECT COUNT(*) FROM help_sections")->fetchColumn
 try {
     for ($i = 0; $i < 40 && !@fsockopen('127.0.0.1', $port); $i++) usleep(100000);
     check('the stand-in server started', (bool)@fsockopen('127.0.0.1', $port));
+    // Written answers (step 5) off: these checks are about matching, not the AI (and it would spend credit).
+    helpVectorsSet($conn, 'help_ask_enabled', '0');
     $conn->exec("DELETE FROM help_section_vectors");
     $conn->exec("DELETE FROM system_settings WHERE setting_key IN ('help_vectors_model', 'help_vectors_active_cfg')");
 

@@ -11,6 +11,9 @@ return [
     'mode_search' => 'Searching the help pages - no AI is set up, so you get the right pages rather than a written answer.',
     'mode_meaning' => 'Searching the help by meaning - no chat AI is set up, so you get the right pages rather than a written answer.',
     'named_notice' => 'If the help can\'t answer a question, it\'s shared with your admins with your name.',
+    'mode_ask' => 'Answers are written by AI from FreeITSM\'s own help - the sections it used are linked, so you can check.',
+    'sources' => 'From the help',
+    'thinking' => 'Reading the help…',
     'placeholder' => 'Ask how to do something…',
     'send' => 'Send',
     'reset' => 'Reset',
@@ -43,5 +46,7 @@ return [
             1 => 'I couldn\'t find anything for that - try different words, or name the module you\'re in?',
             2 => 'Nothing in the help matches that. Maybe try a shorter question?',
         ],
+        // The AI read the help and found it does not cover the question (step 5).
+        'not_covered' => [1 => 'The help doesn\'t seem to cover that. These are the closest sections:', 2 => 'I couldn\'t find that in the help - here\'s what comes nearest:'],
     ],
 ];

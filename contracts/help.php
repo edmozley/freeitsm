@@ -362,7 +362,7 @@ $translationNamespaces = ['common', 'contracts'];
                 </div>
 
                 <!-- Section 6: Settings -->
-                <div class="help-section" id="settings">
+                <div class="help-section" id="settings" data-cap="contracts.manage">
                     <div class="help-section-header">
                         <span class="help-section-num">7</span>
                         <h3><?php echo htmlspecialchars(t('contracts.help.nav_settings')); ?></h3>

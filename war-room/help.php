@@ -347,7 +347,7 @@ $translationNamespaces = ['common', 'war-room'];
                 </div>
 
                 <!-- 7 ─────────────────────────────────────────────────────── -->
-                <div class="help-section" id="settings">
+                <div class="help-section" id="settings" data-cap="war_room.manage">
                     <div class="help-section-header">
                         <span class="help-section-num">7</span>
                         <div>
