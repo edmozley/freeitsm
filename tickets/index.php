@@ -1138,7 +1138,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/schedule.js?v=1"></script>
     <script src="../checklists/search_scoring.js?v=1"></script>
-    <script src="../checklists/ticket_view.js?v=13"></script>
+    <script src="../checklists/ticket_view.js?v=14"></script>
     <script src="../assets/js/ticket-fields.js?v=2"></script>
     <script src="../assets/js/ticket-workspace.js?v=4"></script>
     <script src="../assets/js/data-table.js?v=10"></script>

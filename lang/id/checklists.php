@@ -41,7 +41,6 @@ return [
         'mandatory' => 'Wajib',
         'ask_for_value' => 'Minta nilai',
         'ask_for_result' => 'Minta hasil',
-        'ask_for_result_hint' => 'Pada tugas, langkah ini mencatat Lulus, Gagal, atau Tidak berlaku, bukan centang, dan Gagal menanyakan apa yang salah. Tiket tetap memakai centang.',
         'value_prompt_ph' => 'Apa yang diminta, mis. Tag aset',
         'remove_step' => 'Hapus langkah',
         'remove_step_named' => 'Hapus "{name}" dari daftar periksa ini?',

@@ -391,13 +391,16 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
 <?php if ($r['checklists']): ?><p class="sub"><?php echo $T('ticket_checklists_note'); ?></p><?php endif; ?>
 <?php if (!$r['checklists'] && empty($r['unavailable']['checklists'])): ?><p><?php echo $T('none'); ?></p><?php endif; ?>
 <?php foreach ($r['checklists'] as $c): ?>
-<h3><?php echo $e($c['title']); ?></h3>
+<h3><?php echo $e($c['title']); ?><?php if (!empty($c['template_version'])): ?> <span class="sub"><?php echo $T('template_version', ['n' => $c['template_version']]); ?></span><?php endif; ?></h3>
 <table>
     <tr><th><?php echo $T('col_step'); ?></th><th><?php echo $T('col_state'); ?></th><th><?php echo $T('col_by_when'); ?></th></tr>
     <?php foreach ($c['items'] as $it): ?>
     <tr><td><?php echo $e($it['title']); ?><?php if ((int)$it['is_mandatory'] === 1): ?> <span class="sub">(<?php echo $T('mandatory'); ?>)</span><?php endif; ?></td>
-        <td><?php echo (int)$it['is_completed'] === 1 ? $T('done') : $T('not_done'); ?>
-            <?php if ((string)$it['response_value'] !== ''): ?><div class="sub"><?php echo $e($it['response_value']); ?></div><?php endif; ?></td>
+        <td><?php /* GH #271: a ticket step can record a result too, shown as a task's is */ ?>
+            <?php if (!empty($it['result'])): ?><span class="res-<?php echo $e($it['result']); ?>"><?php echo $e(t('tasks.evidence.result_' . $it['result'])); ?></span>
+            <?php else: ?><?php echo (int)$it['is_completed'] === 1 ? $T('done') : $T('not_done'); ?><?php endif; ?>
+            <?php if ((string)($it['response_value'] ?? '') !== ''): ?><div class="sub"><?php echo $e($it['response_value']); ?></div><?php endif; ?>
+            <?php if (!empty($it['exception_note'])): ?><div class="exception"><?php echo $e($it['exception_note']); ?></div><?php endif; ?></td>
         <td class="sub"><?php echo $e(trim((string)$it['completed_by_name'] . ' ' . ($it['completed_datetime'] ? TaskEvidence::when($it['completed_datetime']) : ''))); ?></td></tr>
     <?php endforeach; ?>
 </table>

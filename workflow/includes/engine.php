@@ -2866,44 +2866,22 @@ class WorkflowEngine
             if ($tplId <= 0) continue;
             self::assertSharedOrRunCompany($conn, 'checklist_templates', $tplId, 'checklist template');
 
-            // Check if already attached to this ticket
-            $existsStmt = $conn->prepare("SELECT id FROM ticket_checklists WHERE ticket_id = ? AND template_id = ? LIMIT 1");
-            $existsStmt->execute([$ticketId, $tplId]);
-            if ($existsStmt->fetch()) {
-                continue; // Already attached, skip
+            // GH #271: the one copy of "attach a template", shared with the ticket
+            // panel and tasks - so steps keep their descriptions and results. It
+            // skips a template already on the ticket, and records no analyst: this
+            // used to write created_by_id 1, naming analyst #1 for every attach.
+            require_once __DIR__ . '/../../includes/services/checklists.php';
+            try {
+                $chkId = ChecklistsService::attachTemplateToTicket($conn,
+                    new ActorContext(0, null, 'workflow', 'en', 'Workflow'), $ticketId, $tplId, true);
+            } catch (ServiceError $e) {
+                if ($e->kind === 'not_found') continue;   // a template deleted since the workflow was saved
+                throw $e;
             }
-
-            // Fetch template
-            $tplStmt = $conn->prepare("SELECT title, closure_mode FROM checklist_templates WHERE id = ?");
-            $tplStmt->execute([$tplId]);
-            $tpl = $tplStmt->fetch(PDO::FETCH_ASSOC);
-            if (!$tpl) continue;
-
-            // Insert ticket_checklists
-            $closureMode = (($tpl['closure_mode'] ?? '') === 'block') ? 'block' : 'warn';
-            $ins = $conn->prepare("INSERT INTO ticket_checklists (ticket_id, template_id, title, closure_mode, created_by_id, created_datetime) VALUES (?, ?, ?, ?, 1, UTC_TIMESTAMP())");
-            $ins->execute([$ticketId, $tplId, $tpl['title'], $closureMode]);
-            $chkId = (int)$conn->lastInsertId();
-
-            // Fetch & insert template items
-            $itemsStmt = $conn->prepare("SELECT title, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order FROM checklist_template_items WHERE template_id = ? ORDER BY sort_order ASC, id ASC");
-            $itemsStmt->execute([$tplId]);
-            $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-            $insItem = $conn->prepare("INSERT INTO ticket_checklist_items (ticket_checklist_id, title, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            foreach ($items as $idx => $it) {
-                $insItem->execute([
-                    $chkId,
-                    $it['title'],
-                    $it['suggested_role'] ?? null,
-                    !empty($it['is_mandatory']) ? 1 : 0,
-                    !empty($it['requires_input']) ? 1 : 0,
-                    $it['input_placeholder'] ?? null,
-                    $it['sort_order'] ?? ($idx + 1)
-                ]);
-            }
-
-            $attached[] = $tpl['title'];
+            if ($chkId === null) continue;   // already attached
+            $t = $conn->prepare("SELECT title FROM checklist_templates WHERE id = ?");
+            $t->execute([$tplId]);
+            $attached[] = (string)$t->fetchColumn();
         }
 
         return [

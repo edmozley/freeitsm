@@ -8686,6 +8686,7 @@ CREATE TABLE IF NOT EXISTS `ticket_checklists` (
     `closure_mode` ENUM('warn','block') NOT NULL DEFAULT 'warn',
     `created_by_id` INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `template_version` INT NULL,                          -- GH #271: the template version it was copied from (as tasks, #181)
   `is_demo` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_chk_ticket` (`ticket_id`),
@@ -8706,6 +8707,10 @@ CREATE TABLE IF NOT EXISTS `ticket_checklist_items` (
     `input_placeholder` VARCHAR(255) NULL,
     `response_value` TEXT NULL,
     `sort_order` INT NOT NULL DEFAULT 1,
+    `description` TEXT NULL,                              -- GH #271: the template step's description, copied (as tasks, #190)
+    `result_mode` VARCHAR(10) NOT NULL DEFAULT 'none',    -- GH #271: 'pass_fail' asks for Pass / Fail / Not applicable
+    `result` VARCHAR(10) NULL,                            -- pass, fail or na
+    `exception_note` TEXT NULL,                           -- what went wrong, required for fail
   `is_demo` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_item_ticket_chk` (`ticket_checklist_id`),

@@ -266,9 +266,9 @@ class ChecklistsService
     /**
      * Write one closure-audit entry, wherever it belongs.
      *
-     * 🔴 A WORKFLOW MUST NOT WRITE TO ticket_notes. `analyst_id` is NOT NULL
-     * with a foreign key to `analysts`, and a workflow has no analyst behind it.
-     * Naming any id there does one of two bad things: on an install where that
+     * 🔴 A WORKFLOW MUST NOT NAME AN ANALYST. `analyst_id` has a foreign key to
+     * `analysts` (and was NOT NULL until GH #281 made NULL mean System), and a
+     * workflow has no analyst behind it. Naming any id there does one of two bad things: on an install where that
      * analyst does not exist the insert throws and the audit entry is lost, and
      * on an install where they do exist it puts a real person's name against an
      * action they did not take. So an automated close is recorded in
@@ -1115,6 +1115,304 @@ class ChecklistsService
         } catch (Throwable $e) {
             // A recurrence must still be created if this fails.
             error_log('[checklists] could not copy checklists to recurring task ' . $toTaskId . ': ' . $e->getMessage());
+        }
+    }
+
+    // ======================================================================
+    //  Tickets (GH #271)
+    //
+    //  Ticket checklists used to live in api/tickets/ticket_checklists.php and,
+    //  separately, in the workflow engine's attach_checklist action - two more
+    //  copies of "copy a template", neither with step descriptions (#190) or
+    //  results (#181), and a tick with no server-side check of a required value.
+    //  They now share this engine with tasks. What stays ticket-shaped:
+    //
+    //   - History is a NOTE on the ticket ("✅ Checklist step completed: ..."),
+    //     as it always was - but written HERE, not by the browser after the
+    //     fact, so a tick from the REST API or anywhere else is recorded too.
+    //     A person's note goes through TicketsService::createNote, exactly as
+    //     the browser's did (it fires ticket.note_added); automation, with no
+    //     analyst, writes a System note (analyst_id NULL, GH #281) and no event,
+    //     so a workflow cannot loop on its own notes.
+    //   - The closure gate is unchanged: a result step is outstanding until it
+    //     has a result, and a Fail counts as answered - it is recorded and shown,
+    //     never a reason the ticket cannot close (as on tasks).
+    //  Callers gate on the TICKET (analystCanAccessTicket) before calling.
+    // ======================================================================
+
+    /**
+     * Which optional columns ticket checklists have yet. Before Database
+     * Verification adds #271's columns the ticket side keeps working as plain
+     * ticks. Cached per request.
+     *
+     * @return array{result: bool, description: bool, version: bool}
+     */
+    private static function ticketCols(PDO $conn): array
+    {
+        static $cols = null;
+        if ($cols !== null) return $cols;
+        $has = function (string $sql) use ($conn): bool {
+            try { $conn->query($sql); return true; } catch (Throwable) { return false; }
+        };
+        return $cols = [
+            'result'      => $has("SELECT result_mode, result, exception_note FROM ticket_checklist_items LIMIT 0")
+                             && self::hasResultColumns($conn),
+            'description' => $has("SELECT description FROM ticket_checklist_items LIMIT 0"),
+            'version'     => $has("SELECT template_version FROM ticket_checklists LIMIT 0"),
+        ];
+    }
+
+    /**
+     * A ticket's checklists with their steps and progress, each carrying the
+     * gate it will actually apply - the same shape taskChecklists() returns.
+     */
+    public static function ticketChecklists(PDO $conn, int $ticketId): array
+    {
+        $tenantId = function_exists('ticketTenantId') ? ticketTenantId($conn, $ticketId) : null;
+        $cols = self::ticketCols($conn);
+        $st = $conn->prepare("SELECT id, template_id, title, closure_mode, created_datetime"
+                             . ($cols['version'] ? ', template_version' : '') . "
+                                FROM ticket_checklists WHERE ticket_id = ? ORDER BY id ASC");
+        $st->execute([$ticketId]);
+        $lists = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $extra = ($cols['result'] ? ', result_mode, result, exception_note' : '') . ($cols['description'] ? ', description' : '');
+        $items = $conn->prepare("SELECT id, title, suggested_role, is_mandatory, requires_input, input_placeholder,
+                                        response_value, is_completed, completed_by_id, completed_by_name, completed_datetime{$extra}
+                                   FROM ticket_checklist_items WHERE ticket_checklist_id = ?
+                                  ORDER BY sort_order ASC, id ASC");
+        foreach ($lists as &$l) {
+            $l['closure_mode'] = $l['closure_mode'] ?: 'warn';
+            $l['effective_closure_mode'] = self::effectiveClosureMode($conn, $l['closure_mode'], $tenantId);
+            $items->execute([(int)$l['id']]);
+            $l['items'] = $items->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $done = count(array_filter($l['items'], fn($i) => !empty($i['is_completed'])));
+            $l['total_items'] = count($l['items']);
+            $l['completed_items'] = $done;
+            $l['percent'] = $l['total_items'] > 0 ? (int)round($done / $l['total_items'] * 100) : 0;
+        }
+        unset($l);
+        return $lists;
+    }
+
+    /**
+     * Attach a template to a ticket: copy its title, gate, steps, their
+     * descriptions and whether each asks for a result. Returns the new id, or
+     * null when $skipIfAttached and that template is already on the ticket
+     * (the workflow action's rule).
+     *
+     * @param int $templateId  the checklist_templates row; its scope must be 'ticket' or 'both'
+     * @param bool $skipIfAttached  true: attach nothing when the ticket already has this template
+     */
+    public static function attachTemplateToTicket(PDO $conn, ActorContext $ctx, int $ticketId, int $templateId, bool $skipIfAttached = false): ?int
+    {
+        $tpl = $conn->prepare("SELECT title, closure_mode, scope FROM checklist_templates WHERE id = ?");
+        $tpl->execute([$templateId]);
+        $t = $tpl->fetch(PDO::FETCH_ASSOC);
+        if (!$t) {
+            throw new ServiceError('not_found', 'not_found', 'Checklist not found.');
+        }
+        // NULL scope is an old row from before scopes - it was always offered for tickets.
+        if (!in_array((string)($t['scope'] ?? 'ticket'), ['ticket', 'both', ''], true)) {
+            throw new ServiceError('validation', 'invalid_field', 'That checklist is for tasks only.');
+        }
+        if ($skipIfAttached) {
+            $ex = $conn->prepare("SELECT 1 FROM ticket_checklists WHERE ticket_id = ? AND template_id = ? LIMIT 1");
+            $ex->execute([$ticketId, $templateId]);
+            if ($ex->fetchColumn()) return null;
+        }
+        $cols = self::ticketCols($conn);
+        $own = !$conn->inTransaction();
+        if ($own) $conn->beginTransaction();
+        try {
+            // created_by_id: the analyst, or NULL for automation. The workflow action
+            // wrote 1 here - naming analyst #1, on every install, for every attach.
+            $conn->prepare("INSERT INTO ticket_checklists (ticket_id, template_id, title, closure_mode, created_by_id, created_datetime)
+                            VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())")
+                 ->execute([$ticketId, $templateId, (string)$t['title'], ($t['closure_mode'] ?? '') === 'block' ? 'block' : 'warn',
+                            $ctx->actorId > 0 ? $ctx->actorId : null]);
+            $chkId = (int)$conn->lastInsertId();
+            $ver = $cols['version'] ? self::templateVersionNo($conn, $templateId) : null;
+            if ($ver !== null) {
+                $conn->prepare("UPDATE ticket_checklists SET template_version = ? WHERE id = ?")->execute([$ver, $chkId]);
+            }
+            $steps = $conn->prepare("SELECT title, description, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order"
+                                    . ($cols['result'] ? ', result_mode' : '') . "
+                                       FROM checklist_template_items WHERE template_id = ? ORDER BY sort_order ASC, id ASC");
+            $steps->execute([$templateId]);
+            $ins = $conn->prepare("INSERT INTO ticket_checklist_items
+                                     (ticket_checklist_id, title, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order"
+                                   . ($cols['result'] ? ', result_mode' : '') . ($cols['description'] ? ', description' : '') . ")
+                                   VALUES (?, ?, ?, ?, ?, ?, ?" . ($cols['result'] ? ', ?' : '') . ($cols['description'] ? ', ?' : '') . ")");
+            foreach ($steps->fetchAll(PDO::FETCH_ASSOC) as $i => $s) {
+                $vals = [$chkId, $s['title'], $s['suggested_role'] ?: null, !empty($s['is_mandatory']) ? 1 : 0,
+                         !empty($s['requires_input']) ? 1 : 0, $s['input_placeholder'] ?: null, $s['sort_order'] ?? ($i + 1)];
+                if ($cols['result']) $vals[] = ($s['result_mode'] ?? 'none') === 'pass_fail' ? 'pass_fail' : 'none';
+                if ($cols['description']) $vals[] = ($s['description'] ?? '') !== '' ? $s['description'] : null;
+                $ins->execute($vals);
+            }
+            if ($own) $conn->commit();
+            return $chkId;
+        } catch (Throwable $e) {
+            if ($own && $conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+    }
+
+    /** The ticket a step belongs to, or 0. Callers gate on the ticket. */
+    public static function ticketIdForItem(PDO $conn, int $itemId): int
+    {
+        $st = $conn->prepare("SELECT c.ticket_id FROM ticket_checklist_items i
+                                JOIN ticket_checklists c ON c.id = i.ticket_checklist_id WHERE i.id = ?");
+        $st->execute([$itemId]);
+        return (int)($st->fetchColumn() ?: 0);
+    }
+
+    /** The ticket a checklist is attached to, or 0. */
+    public static function ticketIdForChecklist(PDO $conn, int $checklistId): int
+    {
+        $st = $conn->prepare("SELECT ticket_id FROM ticket_checklists WHERE id = ?");
+        $st->execute([$checklistId]);
+        return (int)($st->fetchColumn() ?: 0);
+    }
+
+    /** A ticket checklist step with its checklist and ticket - or null. */
+    private static function ticketItemRow(PDO $conn, int $itemId): ?array
+    {
+        $extra = self::ticketCols($conn)['result'] ? ', i.result_mode, i.result, i.exception_note' : '';
+        $st = $conn->prepare("SELECT i.id, i.title, i.requires_input, i.response_value, i.is_completed, i.completed_by_id,
+                                     i.completed_by_name, i.completed_datetime{$extra},
+                                     c.id AS checklist_id, c.title AS checklist_title, c.ticket_id
+                                FROM ticket_checklist_items i JOIN ticket_checklists c ON c.id = i.ticket_checklist_id
+                               WHERE i.id = ?");
+        $st->execute([$itemId]);
+        return $st->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    /**
+     * Tick or untick a ticket step - the same rules as toggleTaskItem(): a step
+     * that asks for a value cannot be ticked without one, and a step that asks
+     * for a result is ticked by recording one. Returns the stored row.
+     *
+     * @param bool $completed  true to tick, false to untick (which clears the answer and any result)
+     * @param ?string $value  the answer for a step that asks for one; ignored on other steps
+     */
+    public static function toggleTicketItem(PDO $conn, ActorContext $ctx, int $itemId, bool $completed, ?string $value): array
+    {
+        $row = self::ticketItemRow($conn, $itemId);
+        if (!$row) {
+            throw new ServiceError('not_found', 'not_found', 'Step not found.');
+        }
+        if ($completed && ($row['result_mode'] ?? 'none') === 'pass_fail' && empty($row['result'])) {
+            throw new ServiceError('validation', 'missing_field', 'Record a result for this step - Pass, Fail or Not applicable.');
+        }
+        $value = ((int)$row['requires_input'] === 1 && $value !== null) ? trim($value) : null;
+        if ($completed && (int)$row['requires_input'] === 1 && ($value === null || $value === '')) {
+            throw new ServiceError('validation', 'missing_field', 'This step needs a value before it can be ticked.');
+        }
+        if ($completed) {
+            $conn->prepare("UPDATE ticket_checklist_items
+                               SET is_completed = 1, response_value = ?, completed_by_id = ?,
+                                   completed_by_name = ?, completed_datetime = UTC_TIMESTAMP()
+                             WHERE id = ?")
+                 ->execute([$value !== '' ? $value : null, $ctx->actorId > 0 ? $ctx->actorId : null,
+                            $ctx->actorName !== '' ? $ctx->actorName : null, $itemId]);
+        } else {
+            $conn->prepare("UPDATE ticket_checklist_items
+                               SET is_completed = 0, response_value = NULL, completed_by_id = NULL,
+                                   completed_by_name = NULL, completed_datetime = NULL
+                             WHERE id = ?")
+                 ->execute([$itemId]);
+            if (array_key_exists('result_mode', $row)) {
+                $conn->prepare("UPDATE ticket_checklist_items SET result = NULL, exception_note = NULL WHERE id = ?")->execute([$itemId]);
+            }
+        }
+        $label = '[' . $row['checklist_title'] . '] "' . $row['title'] . '"';
+        self::writeStepNote($conn, $ctx, (int)$row['ticket_id'], $completed
+            ? '✅ Checklist step completed: ' . $label . ($value !== null && $value !== '' ? ' — Response: ' . $value : '')
+            : '↩️ Checklist step reopened: ' . $label . ' was marked incomplete');
+        return self::ticketItemRow($conn, $itemId) ?: [];
+    }
+
+    /**
+     * Record a ticket step's result - Pass, Fail or Not applicable - exactly as
+     * setTaskItemResult() does: it ticks the step, and Fail needs a note on what
+     * went wrong. A failed step does not stop the ticket closing; it is on the
+     * record instead.
+     *
+     * @param string $result  pass, fail or na
+     * @param ?string $note  the exception note - required for fail, kept for the others if given
+     */
+    public static function setTicketItemResult(PDO $conn, ActorContext $ctx, int $itemId, string $result, ?string $note): array
+    {
+        $row = self::ticketItemRow($conn, $itemId);
+        if (!$row) {
+            throw new ServiceError('not_found', 'not_found', 'Step not found.');
+        }
+        if (($row['result_mode'] ?? 'none') !== 'pass_fail') {
+            throw new ServiceError('validation', 'invalid_field', 'This step does not ask for a result.');
+        }
+        if (!in_array($result, ['pass', 'fail', 'na'], true)) {
+            throw new ServiceError('validation', 'invalid_field', 'A result is pass, fail or na.');
+        }
+        $note = $note !== null ? trim($note) : null;
+        if ($result === 'fail' && ($note === null || $note === '')) {
+            throw new ServiceError('validation', 'missing_field', 'Say what failed - a failed step needs an exception note.');
+        }
+        $conn->prepare("UPDATE ticket_checklist_items
+                           SET result = ?, exception_note = ?, is_completed = 1,
+                               completed_by_id = ?, completed_by_name = ?, completed_datetime = UTC_TIMESTAMP()
+                         WHERE id = ?")
+             ->execute([$result, $note !== '' ? $note : null, $ctx->actorId > 0 ? $ctx->actorId : null,
+                        $ctx->actorName !== '' ? $ctx->actorName : null, $itemId]);
+        $label = '[' . $row['checklist_title'] . '] "' . $row['title'] . '"';
+        self::writeStepNote($conn, $ctx, (int)$row['ticket_id'], match ($result) {
+            'pass'  => '✅ Checklist step passed: ' . $label,
+            'fail'  => '❌ Checklist step failed: ' . $label . ' — Exception: ' . $note,
+            default => '➖ Checklist step not applicable: ' . $label,
+        } . ($result !== 'fail' && $note !== null && $note !== '' ? ' — Note: ' . $note : ''));
+        return self::ticketItemRow($conn, $itemId) ?: [];
+    }
+
+    /**
+     * Remove one checklist from a ticket: its steps first (no foreign key to
+     * rely on), then it, in one transaction.
+     */
+    public static function removeTicketChecklist(PDO $conn, int $checklistId): void
+    {
+        $own = !$conn->inTransaction();
+        if ($own) $conn->beginTransaction();
+        try {
+            $conn->prepare("DELETE FROM ticket_checklist_items WHERE ticket_checklist_id = ?")->execute([$checklistId]);
+            $conn->prepare("DELETE FROM ticket_checklists WHERE id = ?")->execute([$checklistId]);
+            if ($own) $conn->commit();
+        } catch (Throwable $e) {
+            if ($own && $conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * A step's history line, as an internal note on the ticket. Never throws:
+     * the step is saved whether or not its note is.
+     *
+     * A person: TicketsService::createNote, as the browser's own note did -
+     * so ticket.note_added still fires for it. No person (a workflow, the
+     * system): a System note, analyst_id NULL (GH #281), with no event.
+     *
+     * @param string $text  the note, e.g. ✅ Checklist step completed: [Onboarding] "Create account"
+     */
+    private static function writeStepNote(PDO $conn, ActorContext $ctx, int $ticketId, string $text): void
+    {
+        try {
+            if ($ctx->actorId > 0) {
+                require_once __DIR__ . '/tickets.php';
+                TicketsService::createNote($conn, $ctx, $ticketId, ['text' => $text, 'is_internal' => true]);
+                return;
+            }
+            $conn->prepare("INSERT INTO ticket_notes (ticket_id, analyst_id, note_text, is_internal, created_datetime)
+                            VALUES (?, NULL, ?, 1, UTC_TIMESTAMP())")->execute([$ticketId, $text]);
+        } catch (Throwable $e) {
+            error_log('[checklists] could not record a step change on ticket ' . $ticketId . ': ' . $e->getMessage());
         }
     }
 }

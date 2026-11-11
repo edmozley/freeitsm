@@ -5777,6 +5777,7 @@ return [
         'closure_mode'     => "ENUM('warn','block') NOT NULL DEFAULT 'warn'",
         'created_by_id'    => 'INT DEFAULT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'template_version' => 'INT NULL',   // GH #271: which template version it was copied from (as tasks, #181)
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer
     ],
     'ticket_checklist_items' => [
@@ -5793,6 +5794,10 @@ return [
         'input_placeholder'   => 'VARCHAR(255) DEFAULT NULL',
         'response_value'      => 'TEXT DEFAULT NULL',
         'sort_order'          => 'INT NOT NULL DEFAULT 1',
+        'description'         => 'TEXT NULL',                             // GH #271: copied from the template step (as tasks, #190)
+        'result_mode'         => "VARCHAR(10) NOT NULL DEFAULT 'none'",   // GH #271: 'pass_fail' asks for a result
+        'result'              => 'VARCHAR(10) NULL',                      // pass, fail or na
+        'exception_note'      => 'TEXT NULL',                             // required for fail
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer
     ],
 

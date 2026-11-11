@@ -41,7 +41,6 @@ return [
         'mandatory' => 'Verplicht',
         'ask_for_value' => 'Om een waarde vragen',
         'ask_for_result' => 'Om een resultaat vragen',
-        'ask_for_result_hint' => 'Bij een taak legt deze stap Geslaagd, Mislukt of Niet van toepassing vast in plaats van een vinkje, en bij Mislukt wordt gevraagd wat er misging. Tickets houden een vinkje.',
         'value_prompt_ph' => 'Waar om gevraagd wordt, bv. Asset-label',
         'remove_step' => 'Stap verwijderen',
         'remove_step_named' => '"{name}" uit deze checklist verwijderen?',

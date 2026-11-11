@@ -41,7 +41,6 @@ return [
         'mandatory' => 'Obbligatorio',
         'ask_for_value' => 'Richiedi un valore',
         'ask_for_result' => 'Richiedi un esito',
-        'ask_for_result_hint' => 'Su un\'attività, questo passaggio registra Superato, Non superato o Non applicabile invece di una spunta, e Non superato chiede cosa è andato storto. I ticket mantengono la spunta.',
         'value_prompt_ph' => 'Cosa richiedere, es. Codice asset',
         'remove_step' => 'Rimuovi passaggio',
         'remove_step_named' => 'Rimuovere "{name}" da questa checklist?',

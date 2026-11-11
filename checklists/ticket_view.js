@@ -263,6 +263,16 @@ function renderTicketChecklistsInline(ticketId) {
                     <span>✓</span> All ${items.length} steps completed
                 </div>
             `;
+        } else if (nextPendingItem && nextPendingItem.result_mode === 'pass_fail') {
+            // A result step is answered with Pass / Fail / Not applicable, never a tick (GH #271).
+            html += `
+                <div style="padding: 2px 0; font-size: 12px;">
+                    <strong style="color: var(--text-muted, #64748b); font-weight: normal; margin-right: 4px;">${escapeHtml(chkT('checklists.panel.next', 'Next:'))}</strong>
+                    ${escapeHtml(nextPendingItem.title)}
+                    <a href="javascript:void(0)" onclick="openChecklistModal(${ticketId})" style="font-size: 11px; color: var(--primary, #2563eb); text-decoration: none; margin-left: 8px;">View all steps &raquo;</a>
+                    ${checklistResultButtonsHtml(ticketId, nextPendingItem, false)}
+                </div>
+            `;
         } else if (nextPendingItem) {
             const isMand = (nextPendingItem.is_mandatory == 1 || nextPendingItem.is_mandatory === true || nextPendingItem.is_mandatory === '1');
             const reqInputBadge = (nextPendingItem.requires_input == 1) ? `<span style="font-size: 10px; background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 3px; margin-left: 6px;">📝 Note required</span>` : '';
@@ -299,6 +309,7 @@ function renderTicketChecklistsInline(ticketId) {
  * tick is saved (the pop-out's rows); false leaves it shut (the inline card's).
  */
 function checklistStepRowHtml(ticketId, it, reopenPopout) {
+    if (it.result_mode === 'pass_fail') return checklistResultStepRowHtml(ticketId, it, reopenPopout);
     const isChecked = (it.is_completed == 1 || it.is_completed === true || it.is_completed === '1');
     const isMand = (it.is_mandatory == 1 || it.is_mandatory === true || it.is_mandatory === '1');
     // `|| it.completed_at` was the client half of the same phantom-column
@@ -320,12 +331,137 @@ function checklistStepRowHtml(ticketId, it, reopenPopout) {
                         ${roleBadge}
                         ${reqBadge}
                     </span>
+                    ${checklistStepDescHtml(it)}
                 </div>
             </label>
             ${responseMeta}
             ${completedMeta}
         </div>
     `;
+}
+
+/** A step's description (GH #190 on tasks, #271 on tickets), as plain text under its title. */
+function checklistStepDescHtml(it) {
+    return it.description
+        ? `<div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 2px; white-space: pre-wrap;">${escapeHtml(it.description)}</div>`
+        : '';
+}
+
+/** The Pass / Fail / Not applicable buttons for a step that asks for a result. */
+function checklistResultButtonsHtml(ticketId, it, reopenPopout) {
+    const isDone = (it.is_completed == 1 || it.is_completed === true || it.is_completed === '1');
+    const names = {
+        pass: chkT('checklists.panel.result_pass', 'Pass'),
+        fail: chkT('checklists.panel.result_fail', 'Fail'),
+        na:   chkT('checklists.panel.result_na', 'Not applicable'),
+    };
+    const colours = { pass: '#16a34a', fail: '#dc2626', na: '#64748b' };
+    const btns = ['pass', 'fail', 'na'].map(r => {
+        const on = it.result === r;
+        return `<button type="button" class="chk-chip" aria-pressed="${on}"
+                    onclick="chooseTicketStepResult(${ticketId}, ${it.id}, '${r}', ${reopenPopout ? 'true' : 'false'})"
+                    style="${on ? `background: ${colours[r]}; color: #fff; border-color: ${colours[r]};` : ''}">${escapeHtml(names[r])}</button>`;
+    }).join('');
+    const clear = isDone
+        ? `<button type="button" class="chk-chip" onclick="executeToggleItem(${ticketId}, ${it.id}, 0, null, '', '', ${reopenPopout ? 'true' : 'false'})">${escapeHtml(chkT('checklists.panel.result_clear', 'Clear'))}</button>`
+        : '';
+    return `<div role="group" aria-label="${escapeHtml(chkT('checklists.panel.result_label', 'Result'))}" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">${btns}${clear}</div>`;
+}
+
+/**
+ * A step that asks for a RESULT (GH #271, as on tasks #181): Pass, Fail or Not
+ * applicable instead of a tick, and Fail asks what went wrong. A failed step
+ * still counts as done - the ticket can close; the failure is on the record.
+ */
+function checklistResultStepRowHtml(ticketId, it, reopenPopout) {
+    const isMand = (it.is_mandatory == 1 || it.is_mandatory === true || it.is_mandatory === '1');
+    const completedDate = formatStepDatetime(it.completed_datetime);
+    const by = it.result && it.completed_by_name
+        ? `<div style="font-size: 11px; color: var(--text-muted, #64748b); margin-top: 4px;">${escapeHtml(chkT('checklists.panel.result_by', 'Recorded by {name}').replace('{name}', it.completed_by_name))}${completedDate ? ' · ' + escapeHtml(completedDate) : ''}</div>`
+        : '';
+    const exception = it.result === 'fail' && it.exception_note
+        ? `<div style="font-size: 12px; color: #991b1b; background: #fef2f2; padding: 4px 8px; border-radius: 4px; margin-top: 4px; border-left: 2px solid #dc2626;">${escapeHtml(chkT('checklists.panel.result_exception', 'What went wrong: {note}').replace('{note}', it.exception_note))}</div>`
+        : '';
+    return `
+        <div style="padding: 4px 0 4px 24px; font-size: 13px; color: var(--text, #1e293b);">
+            <div>
+                ${escapeHtml(it.title)}
+                ${isMand ? '<span style="color: #ef4444; font-weight: bold; margin-left: 2px;" title="Mandatory">*</span>' : ''}
+                ${it.suggested_role ? `<span style="font-size: 10px; background: rgba(13,148,136,0.1); color: #0d9488; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">${escapeHtml(it.suggested_role)}</span>` : ''}
+            </div>
+            ${checklistStepDescHtml(it)}
+            ${checklistResultButtonsHtml(ticketId, it, reopenPopout)}
+            ${exception}
+            ${by}
+        </div>
+    `;
+}
+
+/**
+ * Records a step's result. Pass and Not applicable save at once; Fail first asks
+ * what went wrong, because a failed check with no word on why is not evidence
+ * of anything - the server refuses an empty one too.
+ */
+function chooseTicketStepResult(ticketId, itemId, result, reopenPopout) {
+    if (result !== 'fail') {
+        executeSetResult(ticketId, itemId, result, null, reopenPopout);
+        return;
+    }
+    const info = findChecklistItem(itemId);
+    let modal = document.getElementById('chkDataCaptureModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'chkDataCaptureModal';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 3600; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <div style="background: var(--surface, #ffffff); border-radius: 8px; width: 90%; max-width: 440px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid var(--border, #cbd5e1); color: var(--text, #1e293b); padding: 18px;">
+            <h4 style="margin: 0 0 8px 0; font-size: 15px; font-weight: 600;">${escapeHtml(chkT('checklists.panel.fail_title', 'What went wrong?'))}</h4>
+            <p style="font-size: 12px; color: var(--text-muted, #64748b); margin: 0 0 10px 0;">${escapeHtml(info ? info.item.title : '')}</p>
+            <textarea id="chkFailNote" rows="3" style="width: 100%; box-sizing: border-box; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border, #cbd5e1); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333);"
+                      placeholder="${escapeHtml(chkT('checklists.panel.fail_placeholder', 'Say what failed, so the record shows it'))}"></textarea>
+            <div id="chkFailError" style="display: none; color: #ef4444; font-size: 11px; margin-top: 4px;">${escapeHtml(chkT('checklists.panel.fail_needed', 'A failed step needs a note on what went wrong.'))}</div>
+            <div class="modal-footer" style="border-top: none; padding-right: 0; padding-bottom: 0;">
+                <button class="btn btn-secondary" type="button" onclick="closeDataCaptureModal()">${escapeHtml(chkT('checklists.panel.cancel', 'Cancel'))}</button>
+                <button class="btn btn-primary" type="button" id="chkFailSave">${escapeHtml(chkT('checklists.panel.save', 'Save'))}</button>
+            </div>
+        </div>`;
+    modal.style.display = 'flex';
+    const box = document.getElementById('chkFailNote');
+    box.focus();
+    document.getElementById('chkFailSave').onclick = () => {
+        const note = box.value.trim();
+        if (!note) {
+            document.getElementById('chkFailError').style.display = 'block';
+            box.focus();
+            return;
+        }
+        closeDataCaptureModal();
+        executeSetResult(ticketId, itemId, 'fail', note, reopenPopout);
+    };
+}
+
+/** Saves a step's result, then redraws the checklist and the notes (the server wrote the step's note). */
+async function executeSetResult(ticketId, itemId, result, note, reopenPopout) {
+    try {
+        const res = await fetch(CHK_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'set_result', item_id: itemId, result: result, exception_note: note })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || chkT('checklists.panel.save_failed', 'Could not update the step'), 'error');
+            return;
+        }
+        await loadTicketChecklists(ticketId);
+        if (reopenPopout) openChecklistModal(ticketId);
+        if (typeof loadNotes === 'function') loadNotes(ticketId);
+    } catch (e) {
+        console.error('Error recording a step result:', e);
+        showToast(chkT('checklists.panel.save_failed', 'Could not update the step'), 'error');
+    }
 }
 
 /**
@@ -542,44 +678,15 @@ async function executeToggleItem(ticketId, itemId, completed, responseValue, che
             if (reopenPopout) {
                 openChecklistModal(ticketId);
             }
-            logStepNote(ticketId, checklistTitle, stepTitle, completed, responseValue);
+            // The step's note ("✅ Checklist step completed: ...") is written by the
+            // SERVER now (GH #271) - it used to be posted from here after the fact,
+            // so a tick made anywhere but this panel left no trace. Just show it.
+            if (typeof loadNotes === "function") loadNotes(ticketId);
         } else {
             showToast(data.error || 'Could not update the step', 'error');
         }
     } catch (e) {
         console.error('Error toggling step:', e);
-    }
-}
-
-/**
- * Adds an internal ticket note saying a step was completed (with any recorded value) or reopened, then reloads the notes.
- */
-async function logStepNote(ticketId, checklistTitle, stepTitle, completed, responseValue) {
-    let noteText = "";
-    if (completed) {
-        noteText = `✅ Checklist step completed: [${checklistTitle}] "${stepTitle}"`;
-        if (responseValue) {
-            noteText += ` — Response: ${responseValue}`;
-        }
-    } else {
-        noteText = `↩️ Checklist step reopened: [${checklistTitle}] "${stepTitle}" was marked incomplete`;
-    }
-
-    try {
-        await fetch((window.API_BASE || "../api/tickets/") + "save_note.php", {   // was root-absolute: broke on a subfolder install
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ticket_id: ticketId,
-                note_text: noteText,
-                is_internal: true
-            })
-        });
-        if (typeof loadNotes === "function") {
-            loadNotes(ticketId);
-        }
-    } catch (e) {
-        console.warn("Could not log note for step action:", e);
     }
 }
 

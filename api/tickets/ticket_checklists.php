@@ -82,7 +82,7 @@ if (!$action) {
 
 // The three actions that change data are never run from a GET, which a link on
 // another site can send (csrf.php). The reads stay on GET.
-if (in_array($action, ["attach_template", "toggle_item", "remove_checklist"], true)) {
+if (in_array($action, ["attach_template", "toggle_item", "set_result", "remove_checklist"], true)) {
     csrfRequireWriteMethod();
 }
 
@@ -105,47 +105,11 @@ try {
             // the lock a person sees has to be the lock the server will apply.
             $ticketTenantId = ticketTenantId($conn, $ticketId);   // includes/tenant_settings.php
 
-            $stmt = $conn->prepare("SELECT id, template_id, title, closure_mode, created_datetime
-                                    FROM ticket_checklists
-                                    WHERE ticket_id = ?
-                                    ORDER BY id ASC");
-            $stmt->execute([$ticketId]);
-            $checklists = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            foreach ($checklists as &$chk) {
-                $chk["closure_mode"] = $chk["closure_mode"] ?: "warn";
-                // Resolved server-side and sent down, rather than letting the
-                // browser combine template and company settings itself: the
-                // browser would be a second implementation of the same rule.
-                $chk["effective_closure_mode"] = ChecklistsService::effectiveClosureMode(
-                    $conn, $chk["closure_mode"], $ticketTenantId
-                );
-
-                // Same fix as above: completed_by and completed_at never existed either.
-                $itemStmt = $conn->prepare("SELECT id, title, suggested_role, is_mandatory, requires_input, input_placeholder,
-                                                   response_value, is_completed,
-                                                   completed_by_id, completed_by_name, completed_datetime
-                                             FROM ticket_checklist_items
-                                             WHERE ticket_checklist_id = ?
-                                             ORDER BY sort_order ASC, id ASC");
-                $itemStmt->execute([(int)$chk["id"]]);
-                $chk["items"] = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
-
-                $total = count($chk["items"]);
-                $done = 0;
-                foreach ($chk["items"] as $it) {
-                    if (!empty($it["is_completed"])) $done++;
-                }
-                $chk["total_items"] = $total;
-                $chk["completed_items"] = $done;
-                $chk["percent"] = $total > 0 ? round(($done / $total) * 100) : 0;
-            }
-
-            unset($chk);   // the loop bound it by reference
-
+            // GH #271: the shared engine - steps now carry their description and
+            // whether they ask for a result, exactly as a task's do.
             echo json_encode([
                 "success"            => true,
-                "checklists"         => $checklists,
+                "checklists"         => ChecklistsService::ticketChecklists($conn, $ticketId),
                 "empty_closure_mode" => ticketChecklistEmptyClosureMode($conn, $ticketTenantId),
             ]);
             exit;
@@ -250,33 +214,7 @@ try {
             if ($ticketId <= 0 || $templateId <= 0) throw new Exception("ticket_id and template_id required");
             checklistTicketGate($conn, $ticketId);
 
-            $tplStmt = $conn->prepare("SELECT title, closure_mode FROM checklist_templates WHERE id = ?");
-            $tplStmt->execute([$templateId]);
-            $tpl = $tplStmt->fetch(PDO::FETCH_ASSOC);
-            if (!$tpl) throw new Exception("Template not found");
-
-            $closureMode = (($tpl["closure_mode"] ?? "") === "block") ? "block" : "warn";
-            $ins = $conn->prepare("INSERT INTO ticket_checklists (ticket_id, template_id, title, closure_mode, created_by_id, created_datetime) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())");
-            $ins->execute([$ticketId, $templateId, $tpl["title"], $closureMode, $analystId]);
-            $chkId = $conn->lastInsertId();
-
-            $itemsStmt = $conn->prepare("SELECT title, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order FROM checklist_template_items WHERE template_id = ? ORDER BY sort_order ASC, id ASC");
-            $itemsStmt->execute([$templateId]);
-            $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-            $insItem = $conn->prepare("INSERT INTO ticket_checklist_items (ticket_checklist_id, title, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            foreach ($items as $idx => $item) {
-                $insItem->execute([
-                    $chkId,
-                    $item["title"],
-                    $item['suggested_role'] ?? null,
-                    !empty($item["is_mandatory"]) ? 1 : 0,
-                    !empty($item["requires_input"]) ? 1 : 0,
-                    $item["input_placeholder"] ?? null,
-                    $item["sort_order"] ?? ($idx + 1)
-                ]);
-            }
-
+            $chkId = ChecklistsService::attachTemplateToTicket($conn, ActorContext::fromSession($conn), $ticketId, $templateId);
             echo json_encode(["success" => true, "checklist_id" => $chkId]);
             exit;
 
@@ -288,44 +226,26 @@ try {
             if ($itemId <= 0) throw new Exception("item_id is required");
             checklistTicketGate($conn, checklistTicketForItem($conn, $itemId));
 
-            // 🔴 UTC at rest (GH #126). date() renders the SERVER's wall clock, so a
-            // step ticked at 09:00 in London was stored as 09:00 and then displayed
-            // through the viewer's timezone offset a second time. Every other write
-            // in api/tickets/ uses UTC_TIMESTAMP() - 54 of them against a single NOW().
-            if ($completed) {
-                $stmt = $conn->prepare("UPDATE ticket_checklist_items
-                                        SET is_completed      = 1,
-                                            response_value    = ?,
-                                            completed_by_id   = ?,
-                                            completed_by_name = ?,
-                                            completed_datetime = UTC_TIMESTAMP()
-                                        WHERE id = ?");
-                $stmt->execute([$responseValue, $analystId, $analystName, $itemId]);
-            } else {
-                $stmt = $conn->prepare("UPDATE ticket_checklist_items
-                                        SET is_completed      = 0,
-                                            response_value    = NULL,
-                                            completed_by_id   = NULL,
-                                            completed_by_name = NULL,
-                                            completed_datetime = NULL
-                                        WHERE id = ?");
-                $stmt->execute([$itemId]);
-            }
+            // GH #271: the shared engine. It refuses a tick with an empty required
+            // value or a result step with no result, stores UTC (GH #126), and
+            // writes the step's note on the ticket - which the browser used to do
+            // itself after the fact, so a tick from anywhere else left no trace.
+            $row = ChecklistsService::toggleTicketItem($conn, ActorContext::fromSession($conn), $itemId, (bool)$completed, $responseValue);
+            echo json_encode(["success" => true] + array_intersect_key($row, array_flip([
+                "is_completed", "response_value", "completed_by_id", "completed_by_name", "completed_datetime", "result", "exception_note",
+            ])));
+            exit;
 
-            // Read the stored value back rather than echoing what we think we wrote:
-            // the column is the single source of truth for what the next GET will show.
-            $back = $conn->prepare("SELECT completed_datetime FROM ticket_checklist_items WHERE id = ?");
-            $back->execute([$itemId]);
-            $storedAt = $back->fetchColumn() ?: null;
-
-            echo json_encode([
-                "success"            => true,
-                "is_completed"       => $completed,
-                "response_value"     => $responseValue,
-                "completed_by_id"    => $completed ? $analystId : null,
-                "completed_by_name"  => $completed ? $analystName : null,
-                "completed_datetime" => $storedAt,
-            ]);
+        case "set_result":
+            // GH #271: Pass, Fail (with what went wrong) or Not applicable, as on tasks (#181).
+            $itemId = (int)($_POST["item_id"] ?? 0);
+            if ($itemId <= 0) throw new Exception("item_id is required");
+            checklistTicketGate($conn, checklistTicketForItem($conn, $itemId));
+            $row = ChecklistsService::setTicketItemResult($conn, ActorContext::fromSession($conn), $itemId,
+                (string)($_POST["result"] ?? ""), isset($_POST["exception_note"]) ? (string)$_POST["exception_note"] : null);
+            echo json_encode(["success" => true] + array_intersect_key($row, array_flip([
+                "is_completed", "completed_by_name", "completed_datetime", "result", "exception_note",
+            ])));
             exit;
 
         case "remove_checklist":
@@ -333,24 +253,10 @@ try {
             if ($chkId <= 0) throw new Exception("checklist_id is required");
             checklistTicketGate($conn, checklistTicketForChecklist($conn, $chkId));
 
-            // 🔴 Remove the children EXPLICITLY. There is no foreign key on
-            // ticket_checklist_items.ticket_checklist_id - none of the three schema
-            // definitions declares one, and tables created by Database Verification
-            // never get FKs at all, so a cascade cannot be relied on even where the
-            // fresh-install dump would have provided one. Deleting only the parent
-            // left the steps behind forever; two runs of the review harness stranded
-            // twelve rows. House rule: Database-Integrity, "delete children yourself".
-            $conn->beginTransaction();
-            try {
-                $delItems = $conn->prepare("DELETE FROM ticket_checklist_items WHERE ticket_checklist_id = ?");
-                $delItems->execute([$chkId]);
-                $del = $conn->prepare("DELETE FROM ticket_checklists WHERE id = ?");
-                $del->execute([$chkId]);
-                $conn->commit();
-            } catch (Throwable $e) {
-                $conn->rollBack();
-                throw $e;
-            }
+            // 🔴 The children are removed EXPLICITLY, in ChecklistsService: there is no
+            // foreign key on ticket_checklist_items.ticket_checklist_id to cascade.
+            // House rule: Database-Integrity, "delete children yourself".
+            ChecklistsService::removeTicketChecklist($conn, $chkId);
             echo json_encode(["success" => true]);
             exit;
 

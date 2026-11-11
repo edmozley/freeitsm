@@ -343,11 +343,12 @@ final class CaseReport
     /** The ticket's checklists with each step as it stands - ticket checklists keep no step history. */
     private static function ticketChecklists(PDO $conn, int $ticketId): array
     {
-        $st = $conn->prepare("SELECT id, title, closure_mode, created_datetime FROM ticket_checklists WHERE ticket_id = ? ORDER BY id");
+        // SELECT *: GH #271's result columns (and template_version) when Database
+        // Verification has added them, and nothing missing when it has not.
+        $st = $conn->prepare("SELECT * FROM ticket_checklists WHERE ticket_id = ? ORDER BY id");
         $st->execute([$ticketId]);
         $lists = $st->fetchAll(PDO::FETCH_ASSOC);
-        $it = $conn->prepare("SELECT title, is_mandatory, is_completed, completed_by_name, completed_datetime, requires_input, response_value
-                                FROM ticket_checklist_items WHERE ticket_checklist_id = ? ORDER BY sort_order, id");
+        $it = $conn->prepare("SELECT * FROM ticket_checklist_items WHERE ticket_checklist_id = ? ORDER BY sort_order, id");
         foreach ($lists as &$l) { $it->execute([(int)$l['id']]); $l['items'] = $it->fetchAll(PDO::FETCH_ASSOC); }
         unset($l);
         return $lists;

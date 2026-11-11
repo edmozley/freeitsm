@@ -41,7 +41,6 @@ return [
         'mandatory' => 'Verpligtend',
         'ask_for_value' => 'Vra vir \'n waarde',
         'ask_for_result' => 'Vra vir \'n uitslag',
-        'ask_for_result_hint' => 'Op \'n taak teken hierdie stap Geslaag, Misluk of Nie van toepassing nie aan in plaas van \'n merk, en Misluk vra wat verkeerd gegaan het. Kaartjies hou \'n merk.',
         'value_prompt_ph' => 'Wat om voor te vra, bv. Batemerker',
         'remove_step' => 'Verwyder stap',
         'remove_step_named' => 'Verwyder "{name}" uit hierdie kontrolelys?',

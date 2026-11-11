@@ -204,6 +204,10 @@ $translationNamespaces = ['common', 'checklists'];
                             <h4><?php echo htmlspecialchars(t('checklists.help.steps_input_title')); ?></h4>
                             <p><?php echo t('checklists.help.steps_input_desc'); ?></p>
                         </div>
+                        <div class="help-card">
+                            <h4><?php echo htmlspecialchars(t('checklists.help.steps_result_title')); ?></h4>
+                            <p><?php echo t('checklists.help.steps_result_desc'); ?></p>
+                        </div>
                     </div>
                     <p class="help-note"><?php echo t('checklists.help.steps_delete'); ?></p>
                 </div>
