@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/service_context.php';   // ServiceError, thrown below (GH #288)
 /**
  * Contractors on tasks (3.3.0) - work given to a THIRD PARTY: a supplier from
  * Contracts -> Suppliers, and optionally one of its contacts.

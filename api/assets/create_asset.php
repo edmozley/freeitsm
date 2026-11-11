@@ -15,6 +15,7 @@
  * what is outstanding; a modal is the wrong place to answer eight questions.
  */
 session_start(['read_and_close' => true]);
+require_once __DIR__ . '/../../includes/service_context.php';   // ServiceError, thrown below (GH #288)
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';

@@ -36,6 +36,7 @@
  * ticket behind it, so such a field is skipped for that ticket.
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/../tenant_settings.php';
 require_once __DIR__ . '/ticket_fields.php';   // custom fields required at closing (#179)
 

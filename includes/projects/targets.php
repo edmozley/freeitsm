@@ -24,6 +24,7 @@
  * (projectAutoHealth).
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../entity_links.php';
 

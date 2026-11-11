@@ -51,6 +51,7 @@
  * DATA inside <project_data>; the system prompt says so. Tool results are data too.
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/ai.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/../money.php';

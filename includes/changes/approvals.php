@@ -26,6 +26,7 @@
  * Design: wiki Approvals-and-Evidence-1-Change-Approvals §3.
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/../i18n.php';   // t() for the refusal messages
 
 /** Every stage, in lifecycle order. TRAP: the order is the order shown in Settings. */

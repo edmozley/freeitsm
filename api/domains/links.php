@@ -19,6 +19,7 @@
  * Needs the Domains module (the bootstrap) - from another module's page an
  * analyst without Domains simply gets no domain section at all.
  */
+require_once __DIR__ . '/../../includes/service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/../../includes/domains/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/domains/links.php';
 require_once __DIR__ . '/../../includes/domains/status_link.php';

@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2766 | Change Management | Fix         | Opening a change with **Enforce approvals** on gave "Error loading change" (HTTP 500, *Class "ServiceError" not found*): `includes/changes/approvals.php` threw `ServiceError` without loading `includes/service_context.php`, and the change details endpoint had not loaded it either. Every file that throws `ServiceError` now loads it itself - 26 relied on a caller having done so (changes, projects, assets, tasks, domains, service status, money); `tests/service-error-loaded.php` fails any file that throws it without loading it (GH #288, reported by tudang85). |
 
 
 

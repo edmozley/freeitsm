@@ -17,6 +17,7 @@
  * are removed again (cleanup()), so a failure never leaves a stray project.
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/projects.php';
 require_once __DIR__ . '/../projects/templates.php';
 require_once __DIR__ . '/../projects/milestones.php';

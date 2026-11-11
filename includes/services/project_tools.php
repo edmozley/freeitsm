@@ -15,6 +15,7 @@
  * the work. A row with no A or no R is allowed (a draft) and the screen flags it.
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/projects.php';
 
 class ProjectToolsService

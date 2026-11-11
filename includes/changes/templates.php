@@ -30,6 +30,7 @@
  * templates" (off by default). Off, templates still pre-fill a change; they never approve one.
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/approvals.php';
 require_once __DIR__ . '/../rbac.php';
 

@@ -17,6 +17,7 @@
  * The rules all live in includes/analyst_lifecycle.php; this only adapts them.
  */
 session_start(['read_and_close' => true]);
+require_once __DIR__ . '/../../includes/service_context.php';   // ServiceError, thrown below (GH #288)
 require_once '../../config.php';
 require_once '../../includes/admin_api_guard.php';   // System admins only (issue #34)
 require_once '../../includes/functions.php';

@@ -26,6 +26,7 @@
  *
  * @wiki Asset-Review-Developer-Guide
  */
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/assets.php';
 
 final class AssetReviewService

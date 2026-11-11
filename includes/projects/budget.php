@@ -46,6 +46,7 @@
  *    (the 3.2.0 behaviour, the default) or the forecast.
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/settings.php';
 
 const PROJECT_BUDGET_CATEGORIES = ['hardware', 'software', 'services', 'labour', 'travel', 'other'];

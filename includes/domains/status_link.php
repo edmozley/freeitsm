@@ -30,6 +30,7 @@
  * one raised by hand.
  */
 
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown below (GH #288)
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/links.php';
 require_once __DIR__ . '/../services/service_status.php';

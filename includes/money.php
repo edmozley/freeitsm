@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/service_context.php';   // ServiceError, thrown below (GH #288)
 /**
  * Money - the one place FreeITSM knows about currencies (GH #189).
  *
