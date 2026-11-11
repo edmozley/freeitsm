@@ -78,6 +78,7 @@ $isMsteams = ($providerKey === 'msteams');
  * awkwardly rather than incorrectly.
  */
 $tokenNoun = $isDevOps ? 'personal access token' : 'API token';
+$getToken  = 'Get ' . ($isDevOps ? 'a' : 'an') . ' ' . $tokenNoun;   // "Get an API token", not "Get a API token"
 
 /** The left-nav sections, in order. Single source for nav + scroll-spy. */
 $sections = $isMsteams ? [
@@ -114,7 +115,7 @@ $sections = $isMsteams ? [
     ['id' => 'trouble',   'title' => 'If something is wrong'],
 ] : [
     ['id' => 'overview', 'title' => 'What this does'],
-    ['id' => 'token',    'title' => 'Get a ' . $tokenNoun],
+    ['id' => 'token',    'title' => $getToken],
     ['id' => 'connect',  'title' => 'Add the connection'],
     ['id' => 'schedule', 'title' => 'Schedule the check'],
     ['id' => 'comments', 'title' => 'Let comments come back'],
@@ -207,7 +208,7 @@ $sections = $isMsteams ? [
                 <div class="help-section" id="token">
                     <div class="help-section-header">
                         <span class="help-section-num">2</span>
-                        <h3>Get a <?php echo htmlspecialchars($tokenNoun); ?></h3>
+                        <h3><?php echo htmlspecialchars($getToken); ?></h3>
                     </div>
                     <p>
                         FreeITSM signs in to <?php echo htmlspecialchars($name); ?> as <em>you</em> — or better,
