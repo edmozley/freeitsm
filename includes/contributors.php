@@ -37,10 +37,30 @@ function getContributors(): array
 {
     return [
         [
+            // Public GitHub handle only; asked in the #194 reply how they would like
+            // to be credited - change this if they say otherwise.
+            'name'   => 'Dr4inder',
+            'github' => 'Dr4inder',
+            'date'   => '2026-11-11',
+            'what'   => 'Three pull requests for the REST API, built against an agreed design and each with '
+                      . 'its own tests: custom asset fields on create and update (PR #195), evidence '
+                      . 'attachments on a change with a key that can do nothing else (PR #196), and inventory '
+                      . 'reports from other tools that never touch another source\'s rows (PR #197, 3.12.0), '
+                      . 'and a fix for long forms cut off inside a task\'s Work view, with a browser test '
+                      . 'that fails on the old code (PR #198, 3.13.0). '
+                      . 'Before that, careful reviews of approvals and evidence, repeating tasks, task '
+                      . 'evidence and background job health (#180-#182, #190) that each found a real '
+                      . 'problem - and wrote a reproduction for it. Then six for 5.0.0 (PRs #289-#300): '
+                      . 'Back from a full-screen ticket that keeps your layout and your draft, Hyper-V VMs '
+                      . 'reporting their guest OS, CMDB relationships that read correctly in every language, '
+                      . 'Impact and Risk impact told apart on a change, two preferences templates had left '
+                      . 'out, and software columns that say what they count.',
+        ],
+        [
             // Public GitHub handle - they confirmed it on #235 (2026-11-02).
             'name'   => 'vsc55',
             'github' => 'vsc55',
-            'date'   => '2026-11-08',
+            'date'   => '2026-11-11',
             'what'   => 'Brought Microsoft Entra ID to FreeITSM as a people source (PR #235): people, groups, '
                       . 'nested membership and reporting lines read through Microsoft Graph, so a new starter '
                       . 'exists before they first sign in, with a careful design for matching two different '
@@ -50,7 +70,9 @@ function getContributors(): array
                       . 'deleted and recreated, each directory page saying when the scheduler imports it, '
                       . 'and the import script moved in with the other scheduled tasks. And the organisation '
                       . 'chart in People (PR #242): who reports to whom as a tree or a chart you can export, '
-                      . 'with its follow-up (PR #265) counting everybody under each manager.',
+                      . 'with its follow-up (PR #265) counting everybody under each manager. Then System '
+                      . '-> Maintenance (PR #291, 5.0.0): one place for the tools that find data left behind, '
+                      . 'each card saying how much it has found.',
         ],
         [
             // Name and company as Ed was given them (October 2026). The package
@@ -64,22 +86,6 @@ function getContributors(): array
                       . 'keeps every call on the caller\'s ticket; and service desk alerts reach Teams channels as '
                       . 'cards - all built and run in production, and offered to the project along with six '
                       . 'modules of his own.',
-        ],
-        [
-            // Public GitHub handle only; asked in the #194 reply how they would like
-            // to be credited - change this if they say otherwise.
-            'name'   => 'Dr4inder',
-            'github' => 'Dr4inder',
-            'date'   => '2026-10-19',
-            'what'   => 'Three pull requests for the REST API, built against an agreed design and each with '
-                      . 'its own tests: custom asset fields on create and update (PR #195), evidence '
-                      . 'attachments on a change with a key that can do nothing else (PR #196), and inventory '
-                      . 'reports from other tools that never touch another source\'s rows (PR #197, 3.12.0), '
-                      . 'and a fix for long forms cut off inside a task\'s Work view, with a browser test '
-                      . 'that fails on the old code (PR #198, 3.13.0). '
-                      . 'Before that, careful reviews of approvals and evidence, repeating tasks, task '
-                      . 'evidence and background job health (#180-#182, #190) that each found a real '
-                      . 'problem - and wrote a reproduction for it.',
         ],
         [
             // Public GitHub name; asked in the PR #159 reply how they would like
