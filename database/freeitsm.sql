@@ -49,6 +49,9 @@ CREATE TABLE IF NOT EXISTS `analysts` (
     -- The help assistant (System -> Help assistant): on for this analyst. It also needs
     -- the install-wide switch; see includes/help_assistant.php.
     `help_assistant`            TINYINT(1) NOT NULL DEFAULT 0,
+    -- Record this analyst's name with a question the help assistant could not answer
+    -- (System -> Help assistant -> Record who asked). They are told in the window when it is on.
+    `help_assistant_named`      TINYINT(1) NOT NULL DEFAULT 0,
     -- Force a password change before this analyst can do anything else. Set on the
     -- seeded `admin` account, whose admin/freeitsm credentials were otherwise
     -- permanent — nothing forced, warned about or nagged on the change.
@@ -10590,6 +10593,30 @@ CREATE TABLE IF NOT EXISTS `help_section_vectors` (
     UNIQUE KEY `uq_help_section_vectors` (`section_id`, `model`),
     KEY `idx_help_section_vectors_model` (`model`),
     CONSTRAINT `fk_help_section_vectors_section` FOREIGN KEY (`section_id`) REFERENCES `help_sections` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Questions the help assistant could not answer - the list of help that is
+-- missing, in people's own words. Admins see it on System -> Help assistant and
+-- get a bell notification; the asker never does. analyst_id is only filled in
+-- for an analyst whose name an admin chose to record (help_assistant_named).
+CREATE TABLE IF NOT EXISTS `help_assistant_unanswered` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `question`         VARCHAR(500) NOT NULL,
+    `locale`           VARCHAR(10) NOT NULL,
+    -- The module the asker was in, when the page said.
+    `module`           VARCHAR(50) NULL,
+    -- 'none' (nothing found) or 'weak' (only weak matches).
+    `kind`             VARCHAR(10) NOT NULL,
+    -- The closest section it did find, if any.
+    `best_title`       VARCHAR(255) NULL,
+    `analyst_id`       INT NULL,
+    `dealt_by`         INT NULL,
+    `dealt_datetime`   DATETIME NULL,
+    `created_datetime` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_help_assistant_unanswered_open` (`dealt_datetime`, `id`),
+    CONSTRAINT `fk_help_assistant_unanswered_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_help_assistant_unanswered_dealt_by` FOREIGN KEY (`dealt_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- The help assistant's conversation, one row per message, per analyst - kept

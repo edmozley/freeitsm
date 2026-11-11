@@ -647,5 +647,6 @@ return [
     ['help_sections', 'idx_help_sections_locale_module', 'key', '(`locale`,`module`)'],
     ['help_section_vectors', 'uq_help_section_vectors', 'unique', '(`section_id`,`model`)'],
     ['help_section_vectors', 'idx_help_section_vectors_model', 'key', '(`model`)'],
+    ['help_assistant_unanswered', 'idx_help_assistant_unanswered_open', 'key', '(`dealt_datetime`,`id`)'],
     ['help_assistant_messages', 'idx_help_assistant_messages_analyst', 'key', '(`analyst_id`,`id`)'],
 ];

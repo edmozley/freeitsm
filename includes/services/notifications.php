@@ -225,6 +225,11 @@ class NotificationsService
             'project.approval_stalled'   => ['default' => true,  'entity' => 'project'],
             // 3.3.0: a scheduled report draft is waiting for the project manager.
             'project.report_drafted'     => ['default' => true,  'entity' => 'project'],
+            // The help assistant could not answer a question (wiki Help-Assistant-Design) - to
+            // ADMINISTRATORS, never the asker (rule 1: the asker is the actor). Every one is
+            // keyed to the same entity, so a busy day coalesces into one row with a count.
+            // admin_only: Preferences does not offer it to anyone who could never get it.
+            'help.unanswered'            => ['default' => true,  'entity' => 'help_unanswered', 'admin_only' => true],
         ];
     }
 
@@ -275,7 +280,13 @@ class NotificationsService
     {
         $overrides = self::preferences($conn, $analystId);
         $out = [];
+        $isAdmin = null;
         foreach (self::types() as $key => $meta) {
+            // A type only administrators are ever sent is not offered to anyone else.
+            if (!empty($meta['admin_only'])) {
+                $isAdmin ??= analystIsAdmin($conn, $analystId);
+                if (!$isAdmin) continue;
+            }
             $out[$key] = array_key_exists($key, $overrides)
                 ? (bool)$overrides[$key]
                 : (bool)$meta['default'];

@@ -80,7 +80,9 @@
         form.addEventListener('submit', function (e) { e.preventDefault(); send(); });
         form.append(input, sendBtn);
 
-        panel.append(head, mode, list, form);
+        panel.append(head, mode);
+        if (C.named) panel.appendChild(el('div', 'hlpa-mode hlpa-named', S('named_notice')));
+        panel.append(list, form);
         panel.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePanel(false); });
         document.body.appendChild(panel);
         makeDraggable(head);

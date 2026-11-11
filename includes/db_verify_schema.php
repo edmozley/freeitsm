@@ -67,6 +67,9 @@ return [
         // The help assistant is on for this analyst (it also needs the install-wide
         // switch) - System -> Help assistant, includes/help_assistant.php.
         'help_assistant'         => 'TINYINT(1) NOT NULL DEFAULT 0',
+        // Record this analyst's name with a question the help assistant could not
+        // answer - an admin's choice, per analyst, and the analyst is told.
+        'help_assistant_named'   => 'TINYINT(1) NOT NULL DEFAULT 0',
         // Make this analyst change their password before they can do anything else.
         // Set on the seeded `admin` account, because admin/freeitsm was permanent:
         // there was no column like this and nothing anywhere forced, warned about or
@@ -6921,6 +6924,19 @@ return [
         'source'           => "VARCHAR(20) NOT NULL DEFAULT 'built'",
         'source_version'   => 'VARCHAR(20) NULL',
         'built_datetime'   => 'DATETIME NOT NULL',
+    ],
+    // Questions the help assistant could not answer, for admins (wiki Help-Assistant-Design).
+    'help_assistant_unanswered' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'question'         => 'VARCHAR(500) NOT NULL',
+        'locale'           => 'VARCHAR(10) NOT NULL',
+        'module'           => 'VARCHAR(50) NULL',
+        'kind'             => 'VARCHAR(10) NOT NULL',
+        'best_title'       => 'VARCHAR(255) NULL',
+        'analyst_id'       => 'INT NULL',
+        'dealt_by'         => 'INT NULL',
+        'dealt_datetime'   => 'DATETIME NULL',
+        'created_datetime' => 'DATETIME NOT NULL',
     ],
     // The help assistant's conversation, per analyst, until they click Reset.
     'help_assistant_messages' => [

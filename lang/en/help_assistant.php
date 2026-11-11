@@ -10,6 +10,7 @@ return [
     'greeting' => 'Hi! Ask me how to do something in FreeITSM and I\'ll find the right part of the help.',
     'mode_search' => 'Searching the help pages - no AI is set up, so you get the right pages rather than a written answer.',
     'mode_meaning' => 'Searching the help by meaning - no chat AI is set up, so you get the right pages rather than a written answer.',
+    'named_notice' => 'If the help can\'t answer a question, it\'s shared with your admins with your name.',
     'placeholder' => 'Ask how to do something…',
     'send' => 'Send',
     'reset' => 'Reset',

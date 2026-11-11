@@ -106,6 +106,10 @@ function entityLink(string $type, int $id): ?string {
 
         case 'supplier_contact':
             return 'people/contact.php?id=' . $id;
+
+        // The help assistant's unanswered questions - one list, whatever the id.
+        case 'help_unanswered':
+            return 'system/help-assistant/#unanswered';
     }
 
     return null;
@@ -121,6 +125,6 @@ function entityLinkTypes(): array {
     return [
         'ticket', 'task', 'problem', 'change',
         'asset', 'cmdb_object', 'knowledge_article', 'contract', 'domain', 'project',
-        'person', 'company', 'supplier', 'supplier_contact', 'jml_case',
+        'person', 'company', 'supplier', 'supplier_contact', 'jml_case', 'help_unanswered',
     ];
 }

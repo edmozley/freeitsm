@@ -3346,6 +3346,12 @@ try {
             } catch (Exception $e) {}
         }
     }
+    // An unanswered question outlives its asker and whoever dealt with it - only the names go.
+    foreach (['fk_help_assistant_unanswered_analyst' => 'analyst_id', 'fk_help_assistant_unanswered_dealt_by' => 'dealt_by'] as $fk => $col) {
+        if ($tableExists('help_assistant_unanswered') && !$fkExists('help_assistant_unanswered', $fk)) {
+            try { $conn->exec("ALTER TABLE help_assistant_unanswered ADD CONSTRAINT $fk FOREIGN KEY ($col) REFERENCES analysts (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+    }
     // The help assistant's conversation goes with its analyst (wiki Help-Assistant-Design).
     if ($tableExists('help_assistant_messages') && !$fkExists('help_assistant_messages', 'fk_help_assistant_messages_analyst')) {
         try { $conn->exec("ALTER TABLE help_assistant_messages ADD CONSTRAINT fk_help_assistant_messages_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE CASCADE"); } catch (Exception $e) {}

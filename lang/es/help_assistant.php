@@ -10,6 +10,7 @@ return [
     'greeting' => '¡Hola! Pregúnteme cómo hacer algo en FreeITSM y encontraré la parte adecuada de la ayuda.',
     'mode_search' => 'Se buscan las páginas de ayuda - no hay ninguna IA configurada, así que obtiene las páginas adecuadas en lugar de una respuesta escrita.',
     'mode_meaning' => 'Se busca en la ayuda por significado - no hay ninguna IA de chat configurada, así que obtiene las páginas adecuadas en lugar de una respuesta escrita.',
+    'named_notice' => 'Si la ayuda no puede responder una pregunta, se comparte con sus administradores junto con su nombre.',
     'placeholder' => 'Pregunte cómo hacer algo…',
     'send' => 'Enviar',
     'reset' => 'Reiniciar',

@@ -112,7 +112,25 @@ require __DIR__ . '/_top.php';
     </ul>
 </div>
 
-<!-- 7. Matching by meaning -->
+<!-- 7. Unanswered questions -->
+<div class="help-section" id="unanswered">
+    <div class="help-section-header"><?php echo helpSectionNum('unanswered'); ?>
+        <div>
+            <h3>Unanswered questions</h3>
+            <p>Every question the help could not answer, in the words people used - the best list there is of help worth writing.</p>
+        </div>
+    </div>
+    <p>When the assistant finds nothing, or only weak matches, the question is kept on <strong>System → Help assistant → Unanswered questions</strong>, with the language it was asked in, the module the person was in and the closest section it did find.</p>
+    <ul>
+        <li><strong>Administrators get a bell notification</strong> - one entry with a count, however many come in. <strong>The person who asked never does</strong>, even when they are an administrator themselves. Anyone can turn the notification off in Preferences.</li>
+        <li><strong>It is only kept when the help is really missing.</strong> A question the help answers in a module the asker cannot open is not recorded - the help exists; they just cannot see it.</li>
+        <li><strong>Done</strong> marks a question handled once the help covers it; <strong>Reopen</strong> puts it back. <strong>New</strong>, <strong>Handled</strong> and <strong>All</strong> filter the list.</li>
+    </ul>
+    <h4>Recording who asked</h4>
+    <p>By default a question is kept <strong>without a name</strong> - the list is there to improve the help, not to watch who asked. To follow up with someone, tick <strong>Record who asked</strong> beside them under <strong>Who has it</strong>. Their name is then kept with their unanswered questions, and <strong>their window says so</strong>: <em>"If the help can't answer a question, it's shared with your admins with your name."</em> Recording names silently would cost the trust that makes people willing to ask basic questions.</p>
+</div>
+
+<!-- 8. Matching by meaning -->
 <div class="help-section" id="meaning">
     <div class="help-section-header"><?php echo helpSectionNum('meaning'); ?>
         <div>
@@ -144,7 +162,7 @@ require __DIR__ . '/_top.php';
     </ul>
 </div>
 
-<!-- 8. Coming -->
+<!-- 9. Coming -->
 <div class="help-section" id="coming">
     <div class="help-section-header"><?php echo helpSectionNum('coming'); ?>
         <div>

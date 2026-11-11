@@ -30,6 +30,9 @@ try {
     $reply = helpAssistantAnswer($conn, $analystId, $question, I18n::getLocale(), $module);
     helpAssistantSave($conn, $analystId, 'user', $question);
     helpAssistantSave($conn, $analystId, 'assistant', $reply['text'], ['kind' => $reply['kind'], 'results' => $reply['results']]);
+    // Nothing found, or only weak matches: keep it for the admins (step 6) - the
+    // asker's name only if an admin chose to record it - and ring their bell.
+    helpAssistantRecordUnanswered($conn, $analystId, $question, I18n::getLocale(), $module, $reply);
     echo json_encode(['success' => true, 'reply' => $reply], JSON_UNESCAPED_UNICODE);
 } catch (InvalidArgumentException $e) {
     http_response_code(400);

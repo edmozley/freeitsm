@@ -122,6 +122,10 @@ function analystReferenceRegistry(): array {
         ['domains', 'tech_analyst_id', 'live'],
         ['jml_cases', 'owner_analyst_id', 'live', "status = 'open'"],   // Starters & leavers (4.6.0)
         // ...and the same columns once the item is closed: who had it is history.
+        // Who asked a question the help assistant could not answer (only when an admin
+        // chose to record it), and who dealt with it - the question is kept either way.
+        ['help_assistant_unanswered', 'analyst_id', 'history'],
+        ['help_assistant_unanswered', 'dealt_by', 'history'],
         ['tickets', 'assigned_analyst_id', 'history', "NOT ($openTicket)"],
         ['tickets', 'owner_id', 'history', "NOT ($openTicket)"],
         ['problems', 'assigned_analyst_id', 'history', "status_id IN (SELECT id FROM problem_statuses WHERE is_closed = 1)"],

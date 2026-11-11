@@ -80,6 +80,7 @@ if ($url === '' || !$expected) {
 }
 require_once 'config.php';
 require_once 'includes/functions.php';
+require_once 'includes/entity_links.php';
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 if ($conn->query('SELECT DATABASE()')->fetchColumn() !== $expected) {
@@ -119,6 +120,9 @@ $call = function (array $who, string $path, ?array $post = null) use ($url): arr
 };
 
 try {
+    // Everything this run records (unanswered questions, their bell rows) is after these - for finally.
+    $unansweredMark = [(int)$conn->query("SELECT COALESCE(MAX(id), 0) FROM help_assistant_unanswered")->fetchColumn(),
+                       (int)$conn->query("SELECT COALESCE(MAX(id), 0) FROM notifications")->fetchColumn()];
     $admin = $analyst(true);
     $user = $analyst(false);
     $conn->exec("UPDATE analysts SET help_assistant = 0");
@@ -169,6 +173,64 @@ try {
     [, , $j] = $call($user, 'api/help_assistant/history.php');
     check('...and history is empty', ($j['messages'] ?? null) === []);
 
+    echo "\nUnanswered questions (step 6)\n";
+    // The ZZ administrator was made for this run, so every help.unanswered row of
+    // theirs is from it. The "nothing found" question asked above already rang it
+    // once - so these check how the count MOVES (they coalesce into one row).
+    $firstQ = (int)$conn->query("SELECT COALESCE(MAX(id), 0) FROM help_assistant_unanswered")->fetchColumn();
+    $call($admin, 'api/system/help_assistant.php', ['action' => 'save', 'enabled' => true, 'analysts' => [$user['id'], $admin['id']], 'named' => []]);
+    $bell = function (int $analystId) use ($conn): array {
+        $st = $conn->prepare("SELECT COUNT(*) n_rows, COALESCE(SUM(event_count), 0) n_events FROM notifications WHERE analyst_id = ? AND event_type = 'help.unanswered'");
+        $st->execute([$analystId]);
+        return array_map('intval', $st->fetch(PDO::FETCH_ASSOC));
+    };
+    $b0 = $bell($admin['id']);
+    $call($user, 'api/help_assistant/ask.php', ['question' => 'xyzzy plugh frobnicate']);
+    $row = $conn->query("SELECT * FROM help_assistant_unanswered WHERE id > $firstQ ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC) ?: [];
+    check('a question nothing answers is kept, as asked', ($row['question'] ?? '') === 'xyzzy plugh frobnicate' && ($row['kind'] ?? '') === 'none', json_encode($row));
+    check('...without the asker\'s name - nobody chose to record it', array_key_exists('analyst_id', $row) && $row['analyst_id'] === null);
+    $b = $bell($admin['id']);
+    check('the administrators\' bell rings, linked to the list', $b['n_rows'] === 1 && $b['n_events'] === $b0['n_events'] + 1 && entityLink('help_unanswered', 1) === 'system/help-assistant/#unanswered', json_encode([$b0, $b]));
+    check('...and the asker\'s never does', $bell($user['id'])['n_events'] === 0);
+    $call($user, 'api/help_assistant/ask.php', ['question' => 'qwzx vbnm plkj']);
+    $b = $bell($admin['id']);
+    check('another joins the same notification - one row, the count goes up', $b['n_rows'] === 1 && $b['n_events'] === $b0['n_events'] + 2, json_encode($b));
+    $call($admin, 'api/help_assistant/ask.php', ['question' => 'zzxq wwvq jjkq']);
+    check('an administrator who asks is never told about their own question', $bell($admin['id'])['n_events'] === $b['n_events']);
+    $call($user, 'api/help_assistant/ask.php', ['question' => 'how do I create a ticketing department', 'module' => 'tickets']);
+    check('a question the help answers is not kept', (int)$conn->query("SELECT COUNT(*) FROM help_assistant_unanswered WHERE id > $firstQ")->fetchColumn() === 3);
+    $call($user, 'api/help_assistant/ask.php', ['question' => 'reset an analyst password']);
+    check('...nor one the help answers in a module the asker cannot open - the help is not missing',
+        (int)$conn->query("SELECT COUNT(*) FROM help_assistant_unanswered WHERE id > $firstQ")->fetchColumn() === 3);
+
+    $call($admin, 'api/system/help_assistant.php', ['action' => 'save', 'enabled' => true, 'analysts' => [$user['id'], $admin['id']], 'named' => [$user['id']]]);
+    [, $page] = $call($user, 'tickets/');
+    check('Record who asked on: the analyst\'s window is told', str_contains($page, '"named":true'));
+    [, $page] = $call($admin, 'tickets/');
+    check('...and nobody else\'s is', str_contains($page, '"named":false'));
+    $call($user, 'api/help_assistant/ask.php', ['question' => 'grblx frnkt zzapq']);
+    $named = $conn->query("SELECT analyst_id FROM help_assistant_unanswered WHERE id > $firstQ ORDER BY id DESC LIMIT 1")->fetchColumn();
+    check('...and their name is kept with the question', (int)$named === $user['id']);
+
+    [$code] = $call($user, 'api/system/help_assistant.php', ['action' => 'unanswered']);
+    check('an ordinary analyst cannot read the list', $code === 403 || $code === 401, (string)$code);
+    [, , $j] = $call($admin, 'api/system/help_assistant.php', ['action' => 'unanswered', 'status' => 'new']);
+    $mine = array_values(array_filter($j['items'] ?? [], fn($i) => $i['id'] > $firstQ));
+    check('administrators see them, newest first, with the name only where it was recorded',
+        count($mine) === 4 && $mine[0]['asker'] === "ZZ {$tag}user" && $mine[1]['asker'] === null, json_encode(array_column($mine, 'asker')));
+    $n = (int)$j['count'];
+    [, , $j] = $call($admin, 'api/system/help_assistant.php', ['action' => 'mark', 'id' => $mine[0]['id'], 'dealt' => true]);
+    check('marking one handled takes it off the waiting count', ($j['success'] ?? false) && (int)$j['count'] === $n - 1);
+    [, , $j] = $call($admin, 'api/system/help_assistant.php', ['action' => 'unanswered', 'status' => 'done']);
+    $done = array_values(array_filter($j['items'] ?? [], fn($i) => $i['id'] === $mine[0]['id']));
+    check('...it is listed as handled, by whom', $done && $done[0]['dealt_by'] === "ZZ {$tag}admin");
+    [, , $j] = $call($admin, 'api/system/help_assistant.php', ['action' => 'mark', 'id' => $mine[0]['id'], 'dealt' => false]);
+    check('...and can be reopened', (int)$j['count'] === $n);
+    require_once 'includes/services/notifications.php';
+    check('Preferences offers the notification to administrators only',
+        array_key_exists('help.unanswered', NotificationsService::effectivePreferences($conn, $admin['id']))
+        && !array_key_exists('help.unanswered', NotificationsService::effectivePreferences($conn, $user['id'])));
+
     echo "\nRebuilding the index\n";
     $conn->exec("DELETE FROM system_settings WHERE setting_key = 'help_index_build_state'");
     [$code, , $j] = $call($admin, 'api/system/help_assistant.php', ['action' => 'rebuild']);
@@ -185,6 +247,11 @@ try {
     check('the HTTP checks ran: ' . $e->getMessage(), false);
 } finally {
     foreach ($sessions as $f) @unlink($f);
+    if (isset($unansweredMark)) {
+        [$q0, $n0] = $unansweredMark;
+        $conn->exec("DELETE FROM help_assistant_unanswered WHERE id > " . (int)$q0);
+        $conn->exec("DELETE FROM notifications WHERE event_type = 'help.unanswered' AND id > " . (int)$n0);
+    }
     foreach ($made as $id) {
         $conn->prepare("DELETE FROM help_assistant_messages WHERE analyst_id = ?")->execute([$id]);
         $conn->prepare("DELETE FROM analysts WHERE id = ?")->execute([$id]);

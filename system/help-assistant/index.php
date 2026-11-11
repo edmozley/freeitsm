@@ -105,6 +105,17 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         .hv-model-row { display: flex; gap: 6px; }
         .hv-model-row select { flex: 1; min-width: 0; }
         .hv-status { margin-top: 14px; }
+        .ha-row .ha-named { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted, #666); white-space: nowrap; }
+        .ha-panel > p.ha-named-hint { font-size: 12px; margin: 8px 0 0; }
+        .ha-count-pill { display: inline-block; min-width: 18px; padding: 1px 7px; border-radius: 999px; background: var(--accent, #546e7a); color: var(--on-accent, #fff); font-size: 11.5px; text-transform: none; letter-spacing: 0; vertical-align: 1px; text-align: center; }
+        .hu-filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+        .hu-filter.hu-on { border-color: var(--accent, #546e7a); color: var(--accent, #546e7a); font-weight: 700; }
+        .hu-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border-soft, #eee); border-radius: 6px; margin-bottom: 6px; }
+        .hu-item.hu-done { opacity: .6; }
+        .hu-body { flex: 1; min-width: 0; }
+        .hu-q { font-size: 14px; color: var(--text, #333); overflow-wrap: anywhere; }
+        .hu-meta { font-size: 12px; color: var(--text-muted, #666); margin-top: 3px; line-height: 1.5; }
+        .hu-empty { font-size: 13px; color: var(--text-muted, #666); padding: 8px 0; }
         .hv-status .ha-warnbox { background: var(--warning-bg, #fef3c7); border: 1px solid var(--warning-border, #f0d9a8); color: var(--warning-text, #92400e); border-radius: 8px; padding: 12px 14px; margin: 8px 0; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
@@ -147,6 +158,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
                 <span class="ha-count" id="haCount"></span>
             </div>
             <div class="ha-list" id="haList"></div>
+            <p class="ha-named-hint"><?php echo $h('named_hint'); ?></p>
         </div>
 
         <div style="margin:0 0 26px;">
@@ -193,6 +205,18 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
             <div class="ha-status hv-status" id="hvStatus"></div>
         </div>
 
+        <?php /* Step 6: questions the help could not answer - admins only, like this whole page. */ ?>
+        <div class="ha-panel">
+            <h3 id="unanswered"><?php echo $h('unanswered_heading'); ?> <span class="ha-count-pill" id="huCount" hidden></span></h3>
+            <p><?php echo $h('unanswered_intro'); ?></p>
+            <div class="hu-filters">
+                <button type="button" class="btn btn-secondary hu-filter" data-status="new"><?php echo $h('filter_new'); ?></button>
+                <button type="button" class="btn btn-secondary hu-filter" data-status="done"><?php echo $h('filter_done'); ?></button>
+                <button type="button" class="btn btn-secondary hu-filter" data-status="all"><?php echo $h('filter_all'); ?></button>
+            </div>
+            <div class="hu-list" id="huList"></div>
+        </div>
+
         <div class="ha-panel">
             <h3 id="index"><?php echo $h('index_heading'); ?></h3>
             <p><?php echo $h('index_hint'); ?></p>
@@ -226,7 +250,14 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
                 box.onchange = () => { a.on = box.checked; renderCount(); };
                 const name = document.createElement('span'); name.textContent = a.name || a.username;
                 const user = document.createElement('span'); user.className = 'ha-user'; user.textContent = a.username;
-                row.append(box, name, user);
+                // Record who asked - its own tick (only meaningful when they have the assistant).
+                // Not inside the row's label behaviour: a click here must not tick the row.
+                const namedWrap = document.createElement('span'); namedWrap.className = 'ha-named';
+                const named = document.createElement('input'); named.type = 'checkbox'; named.checked = !!a.named;
+                named.onchange = () => { a.named = named.checked; };
+                namedWrap.addEventListener('click', e => { e.stopPropagation(); if (e.target !== named) { e.preventDefault(); named.checked = !named.checked; a.named = named.checked; } });
+                namedWrap.append(named, document.createTextNode(tr('named_label')));
+                row.append(box, name, user, namedWrap);
                 list.appendChild(row);
             });
             renderCount();
@@ -270,7 +301,54 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
             renderIndex(d.index || {});
             applyVectors(d.vectors || {}, d.index || {});
             document.getElementById('haLevel').textContent = tr(d.level === 'search_meaning' ? 'level_meaning' : 'level_search');
+            showCount(d.unanswered_count || 0);
         }
+
+        // ── Unanswered questions ─────────────────────────────────────────
+        let huStatus = 'new';
+        function showCount(n) { const c = document.getElementById('huCount'); c.hidden = !n; c.textContent = n; }
+        async function loadUnanswered(status) {
+            huStatus = status || huStatus;
+            document.querySelectorAll('.hu-filter').forEach(b => b.classList.toggle('hu-on', b.dataset.status === huStatus));
+            try {
+                const d = await post({ action: 'unanswered', status: huStatus });
+                showCount(d.count);
+                renderUnanswered(d.items || []);
+            } catch (e) { if (typeof showToast === 'function') showToast(e.message, 'error'); }
+        }
+        // textContent throughout - the questions are whatever people typed.
+        function renderUnanswered(items) {
+            const list = document.getElementById('huList');
+            list.textContent = '';
+            if (!items.length) {
+                const e = document.createElement('div'); e.className = 'hu-empty';
+                e.textContent = tr(huStatus === 'new' ? 'empty_new' : 'empty');
+                list.appendChild(e);
+                return;
+            }
+            const when = s => new Date(s.replace(' ', 'T') + 'Z').toLocaleString();
+            items.forEach(it => {
+                const row = document.createElement('div'); row.className = 'hu-item' + (it.dealt_at ? ' hu-done' : '');
+                const body = document.createElement('div'); body.className = 'hu-body';
+                const q = document.createElement('div'); q.className = 'hu-q'; q.textContent = it.question;
+                const bits = [when(it.at), LANGS[it.locale] || it.locale, it.module, tr(it.kind === 'none' ? 'kind_none' : 'kind_weak')];
+                if (it.best_title) bits.push(tr('closest', { title: it.best_title }));
+                bits.push(it.asker ? tr('asked_by', { name: it.asker }) : tr('no_name'));
+                if (it.dealt_at) bits.push(tr('handled_by', { name: it.dealt_by || '-', when: when(it.dealt_at) }));
+                const meta = document.createElement('div'); meta.className = 'hu-meta'; meta.textContent = bits.filter(Boolean).join(' · ');
+                body.append(q, meta);
+                const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn btn-secondary';
+                btn.textContent = tr(it.dealt_at ? 'reopen' : 'mark_done');
+                btn.onclick = async () => {
+                    btn.disabled = true;
+                    try { const d = await post({ action: 'mark', id: it.id, dealt: !it.dealt_at }); showCount(d.count); loadUnanswered(); }
+                    catch (e) { btn.disabled = false; if (typeof showToast === 'function') showToast(e.message, 'error'); }
+                };
+                row.append(body, btn);
+                list.appendChild(row);
+            });
+        }
+        document.querySelectorAll('.hu-filter').forEach(b => b.addEventListener('click', () => loadUnanswered(b.dataset.status)));
 
         // ── Matching by meaning ──────────────────────────────────────────
         const SHIPPED_MODEL = 'text-embedding-3-small';
@@ -399,7 +477,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
             const btn = document.getElementById('haSave');
             btn.disabled = true;
             try {
-                const d = await post({ action: 'save', enabled: document.getElementById('haEnabled').checked, analysts: analysts.filter(a => a.on).map(a => a.id) });
+                const d = await post({ action: 'save', enabled: document.getElementById('haEnabled').checked, analysts: analysts.filter(a => a.on).map(a => a.id), named: analysts.filter(a => a.on && a.named).map(a => a.id) });
                 apply(d);   // show what was STORED
                 const saved = document.getElementById('haSaved');
                 saved.hidden = false;
@@ -418,6 +496,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         }
 
         load();
+        loadUnanswered('new');
     </script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>

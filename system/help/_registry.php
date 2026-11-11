@@ -386,6 +386,7 @@ function getHelpTopics() {
                 ['id' => 'using',       'label' => 'Using it'],
                 ['id' => 'permissions', 'label' => 'What it shows'],
                 ['id' => 'index',       'label' => 'The help index'],
+                ['id' => 'unanswered',  'label' => 'Unanswered questions'],
                 ['id' => 'meaning',     'label' => 'Matching by meaning'],
                 ['id' => 'coming',      'label' => 'What is coming'],
             ],

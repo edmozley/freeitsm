@@ -546,6 +546,10 @@ return [
                 'approval_stalled' => 'Algo de un proyecto sigue esperando su decisión',
                 'report_drafted' => 'Se redactó un informe programado de un proyecto que usted dirige',
             ],
+            // The help assistant (wiki Help-Assistant-Design) - administrators only.
+            'help' => [
+                'unanswered' => 'El asistente de ayuda no pudo responder una pregunta',
+            ],
         ],
         'pref' => [
             'ticket' => [
@@ -593,6 +597,10 @@ return [
                 'tasks_overdue' => 'Un proyecto que dirijo tiene tareas vencidas (semanal o diariamente, según indique Proyectos - Ajustes)',
                 'approval_stalled' => 'Una propuesta, solicitud de cambio, visto bueno o informe que debo decidir lleva días esperando',
                 'report_drafted' => 'Un proyecto que dirijo tiene un informe programado redactado para que lo compruebe',
+            ],
+            // The help assistant (wiki Help-Assistant-Design) - administrators only.
+            'help' => [
+                'unanswered' => 'El asistente de ayuda no puede responder una pregunta que alguien hizo (administradores)',
             ],
         ],
     ],

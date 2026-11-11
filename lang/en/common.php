@@ -558,6 +558,10 @@ return [
                 'approval_stalled'   => 'Something on a project is still waiting for your decision',
                 'report_drafted'     => 'A scheduled report on a project you manage is drafted',
             ],
+            // The help assistant (wiki Help-Assistant-Design) - administrators only.
+            'help' => [
+                'unanswered' => 'The help assistant could not answer a question',
+            ],
         ],
         // Labels for the per-type switches on the Preferences page. Same nesting
         // rule as above, and for the same reason.
@@ -610,6 +614,10 @@ return [
                 'tasks_overdue'      => 'A project I manage has overdue tasks (weekly or daily, as Projects - Settings says)',
                 'approval_stalled'   => 'A proposal, change request, sign-off or report I decide has been waiting for days',
                 'report_drafted'     => 'A project I manage has a scheduled report drafted for me to check',
+            ],
+            // The help assistant (wiki Help-Assistant-Design) - administrators only.
+            'help' => [
+                'unanswered' => 'The help assistant cannot answer a question someone asked (administrators)',
             ],
         ],
     ],

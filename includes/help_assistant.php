@@ -52,9 +52,14 @@ function helpAssistantReady(PDO $conn): bool
     static $ready = null;
     if ($ready !== null) return $ready;
     try {
-        $ready = (bool)$conn->query("SHOW COLUMNS FROM analysts LIKE 'help_assistant'")->fetch()
+        // EVERY table and column the assistant uses - a later step's table missing
+        // (an upgrade not yet followed by Database Verify) made System -> Help
+        // assistant fail with "Something went wrong" instead of saying what to do.
+        $ready = (bool)$conn->query("SHOW COLUMNS FROM analysts LIKE 'help_assistant_named'")->fetch()
               && (bool)$conn->query("SHOW TABLES LIKE 'help_assistant_messages'")->fetch()
-              && (bool)$conn->query("SHOW TABLES LIKE 'help_sections'")->fetch();
+              && (bool)$conn->query("SHOW TABLES LIKE 'help_sections'")->fetch()
+              && (bool)$conn->query("SHOW TABLES LIKE 'help_section_vectors'")->fetch()
+              && (bool)$conn->query("SHOW TABLES LIKE 'help_assistant_unanswered'")->fetch();
     } catch (Throwable $e) {
         $ready = false;
     }
@@ -315,4 +320,132 @@ function helpAssistantStartRebuild(PDO $conn): bool
     helpAssistantSetSetting($conn, 'help_index_build_state', json_encode(['state' => 'running', 'started' => gmdate('Y-m-d H:i:s')]));
     // The worker takes a job id; 0 means "the languages analysts use".
     return intuneSpawnGenericWorker('help_index_build.php', 0, null);
+}
+
+// ─── Unanswered questions (step 6) ──────────────────────────────────────────
+
+/**
+ * Whether a reply means the help could not answer: nothing found, or only weak
+ * matches. (Step 5 adds the AI saying so.)
+ */
+function helpAssistantShouldRecord(string $kind): bool
+{
+    return in_array($kind, ['none', 'weak'], true);
+}
+
+/** Whether an admin chose to record this analyst's name with their unanswered questions. */
+function helpAssistantNamed(PDO $conn, int $analystId): bool
+{
+    try {
+        $st = $conn->prepare("SELECT help_assistant_named FROM analysts WHERE id = ?");
+        $st->execute([$analystId]);
+        return (int)$st->fetchColumn() === 1;
+    } catch (Throwable $e) {
+        return false;   // before Database Verify: never record a name
+    }
+}
+
+/**
+ * Keep a question the help could not answer, and tell the administrators.
+ *
+ * - The asker's name is kept ONLY when an admin turned on Record who asked for
+ *   them (and their window says so); otherwise the question is kept without it.
+ * - The bell goes to every active administrator EXCEPT the asker - rule 1 of
+ *   NotificationsService::notify(), the asker being the actor. Every question is
+ *   keyed to the same entity, so they coalesce into one row with a count.
+ *
+ * Never throws: a failure here must not cost the asker their answer.
+ *
+ * @param array $reply  helpAssistantAnswer()'s result
+ * @return ?int  the new row's id, or null when not recorded
+ */
+function helpAssistantRecordUnanswered(PDO $conn, int $analystId, string $question, string $locale, ?string $module, array $reply): ?int
+{
+    if (!helpAssistantShouldRecord((string)($reply['kind'] ?? ''))) return null;
+    try {
+        // Is the help really missing, or just out of THIS analyst's reach? Asked
+        // again across every module (as an administrator would see it): when that
+        // finds a good answer, the help exists - they cannot open that module - and
+        // it is not "help worth writing". Only on a miss, so it costs nothing usually.
+        $everyone = helpIndexRenderAnalyst($conn);
+        if ($everyone !== null && $everyone !== $analystId) {
+            $wide = helpAssistantAnswer($conn, $everyone, $question, $locale, $module);
+            if (!helpAssistantShouldRecord($wide['kind'])) return null;
+        }
+        $named = helpAssistantNamed($conn, $analystId);
+        $conn->prepare("INSERT INTO help_assistant_unanswered (question, locale, module, kind, best_title, analyst_id, created_datetime)
+                        VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([mb_substr($question, 0, 500), mb_substr($locale, 0, 10), $module !== null ? mb_substr($module, 0, 50) : null,
+                        $reply['kind'], isset($reply['results'][0]['title']) ? mb_substr((string)$reply['results'][0]['title'], 0, 255) : null,
+                        $named ? $analystId : null]);
+        $id = (int)$conn->lastInsertId();
+
+        require_once __DIR__ . '/services/notifications.php';
+        $actorName = null;
+        if ($named) {
+            $n = $conn->prepare("SELECT full_name FROM analysts WHERE id = ?");
+            $n->execute([$analystId]);
+            $actorName = (string)$n->fetchColumn() ?: null;
+        }
+        $admins = $conn->query("SELECT id FROM analysts WHERE is_admin = 1 AND COALESCE(is_active, 1) = 1")->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($admins as $adminId) {
+            NotificationsService::notify($conn, [
+                'analyst_id'  => (int)$adminId,
+                'event_type'  => 'help.unanswered',
+                'entity_type' => 'help_unanswered',
+                'entity_id'   => 1,
+                'title'       => 'Help assistant',
+                'body'        => mb_substr($question, 0, 200),
+                'actor_id'    => $analystId,   // rule 1: never the asker
+                'actor_name'  => $actorName,
+            ]);
+        }
+        return $id;
+    } catch (Throwable $e) {
+        error_log('help assistant: could not record an unanswered question: ' . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * The unanswered questions, newest first, with names where they were recorded.
+ *
+ * @param string $status  'new' (not dealt with), 'done' or 'all'
+ * @return list<array{id:int,question:string,locale:string,module:?string,kind:string,best_title:?string,asker:?string,at:string,dealt_at:?string,dealt_by:?string}>
+ */
+function helpAssistantUnanswered(PDO $conn, string $status = 'new', int $limit = 200): array
+{
+    $where = ['new' => 'u.dealt_datetime IS NULL', 'done' => 'u.dealt_datetime IS NOT NULL'][$status] ?? '1=1';
+    $rows = $conn->query("SELECT u.id, u.question, u.locale, u.module, u.kind, u.best_title, u.created_datetime, u.dealt_datetime,
+                                 a.full_name asker, d.full_name dealt_name
+                            FROM help_assistant_unanswered u
+                            LEFT JOIN analysts a ON a.id = u.analyst_id
+                            LEFT JOIN analysts d ON d.id = u.dealt_by
+                           WHERE $where ORDER BY u.id DESC LIMIT " . max(1, min(500, $limit)))->fetchAll(PDO::FETCH_ASSOC);
+    return array_map(fn($r) => ['id' => (int)$r['id'], 'question' => $r['question'], 'locale' => $r['locale'], 'module' => $r['module'],
+        'kind' => $r['kind'], 'best_title' => $r['best_title'], 'asker' => $r['asker'], 'at' => $r['created_datetime'],
+        'dealt_at' => $r['dealt_datetime'], 'dealt_by' => $r['dealt_name']], $rows);
+}
+
+/** How many are waiting to be dealt with. */
+function helpAssistantUnansweredCount(PDO $conn): int
+{
+    try {
+        return (int)$conn->query("SELECT COUNT(*) FROM help_assistant_unanswered WHERE dealt_datetime IS NULL")->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
+
+/** Mark one dealt with (the help now covers it), or not. */
+function helpAssistantMarkUnanswered(PDO $conn, int $id, bool $dealt, int $byAnalystId): bool
+{
+    if ($dealt) {
+        $st = $conn->prepare("UPDATE help_assistant_unanswered SET dealt_datetime = UTC_TIMESTAMP(), dealt_by = ? WHERE id = ?");
+        $st->execute([$byAnalystId, $id]);
+    } else {
+        $st = $conn->prepare("UPDATE help_assistant_unanswered SET dealt_datetime = NULL, dealt_by = NULL WHERE id = ?");
+        $st->execute([$id]);
+    }
+    return $st->rowCount() > 0;
 }

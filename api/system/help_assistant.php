@@ -18,6 +18,11 @@
  *      -> the provider's embedding models, for the dropdown (a blank key uses the saved one)
  * POST {"action": "test_vectors"}  -> embeds one sentence with the saved settings
  *
+ * Unanswered questions (step 6):
+ * POST {"action": "save", ..., "named": [4]}  -> also who has Record who asked on
+ * POST {"action": "unanswered", "status": "new" | "done" | "all"}  -> the list
+ * POST {"action": "mark", "id": 12, "dealt": true}  -> dealt with (or back to new)
+ *
  * Administrators only, like every System endpoint.
  */
 session_start(['read_and_close' => true]);
@@ -30,12 +35,13 @@ header('Content-Type: application/json');
 /** Everything the page shows. */
 function helpAssistantAdminState(PDO $conn): array
 {
-    $analysts = $conn->query("SELECT id, full_name, username, help_assistant FROM analysts WHERE COALESCE(is_active, 1) = 1 ORDER BY full_name, username")->fetchAll(PDO::FETCH_ASSOC);
+    $analysts = $conn->query("SELECT id, full_name, username, help_assistant, help_assistant_named FROM analysts WHERE COALESCE(is_active, 1) = 1 ORDER BY full_name, username")->fetchAll(PDO::FETCH_ASSOC);
     return [
         'success'  => true,
         'enabled'  => helpAssistantEnabled($conn),
         'level'    => helpAssistantLevel($conn)['level'],
-        'analysts' => array_map(fn($a) => ['id' => (int)$a['id'], 'name' => (string)$a['full_name'], 'username' => (string)$a['username'], 'on' => (bool)$a['help_assistant']], $analysts),
+        'analysts' => array_map(fn($a) => ['id' => (int)$a['id'], 'name' => (string)$a['full_name'], 'username' => (string)$a['username'], 'on' => (bool)$a['help_assistant'], 'named' => (bool)$a['help_assistant_named']], $analysts),
+        'unanswered_count' => helpAssistantUnansweredCount($conn),
         'index'    => helpAssistantIndexStatus($conn),
         'vectors'  => helpVectorsStatus($conn),
     ];
@@ -85,9 +91,14 @@ try {
         $on = array_values(array_unique(array_filter(array_map('intval', (array)($in['analysts'] ?? [])), fn($id) => $id > 0)));
         $conn->beginTransaction();
         helpAssistantSetSetting($conn, 'help_assistant_enabled', !empty($in['enabled']) ? '1' : '0');
-        $conn->exec("UPDATE analysts SET help_assistant = 0 WHERE COALESCE(is_active, 1) = 1");
+        $conn->exec("UPDATE analysts SET help_assistant = 0, help_assistant_named = 0 WHERE COALESCE(is_active, 1) = 1");
         if ($on) {
             $conn->prepare("UPDATE analysts SET help_assistant = 1 WHERE COALESCE(is_active, 1) = 1 AND id IN (" . implode(',', array_fill(0, count($on), '?')) . ")")->execute($on);
+        }
+        // Record who asked: only meaningful for someone who has the assistant.
+        $named = array_values(array_intersect(array_unique(array_map('intval', (array)($in['named'] ?? []))), $on));
+        if ($named) {
+            $conn->prepare("UPDATE analysts SET help_assistant_named = 1 WHERE id IN (" . implode(',', array_fill(0, count($named), '?')) . ")")->execute($named);
         }
         $conn->commit();
         // Switched on with nothing to search yet: build it now rather than leave
@@ -109,6 +120,14 @@ try {
         // The first time: build them now. A CHANGE of model is not started here - the
         // page warns and offers Rebuild, because it may cost money.
         if ($enabled && helpVectorsActiveModel($conn) === null && helpVectorsUsable(helpVectorsConfig($conn))) $started = helpAssistantStartRebuild($conn);
+    } elseif (($in['action'] ?? '') === 'unanswered') {
+        $status = in_array($in['status'] ?? 'new', ['new', 'done', 'all'], true) ? $in['status'] : 'new';
+        echo json_encode(['success' => true, 'items' => helpAssistantUnanswered($conn, $status), 'count' => helpAssistantUnansweredCount($conn)], JSON_UNESCAPED_UNICODE);
+        exit;
+    } elseif (($in['action'] ?? '') === 'mark') {
+        $ok = helpAssistantMarkUnanswered($conn, (int)($in['id'] ?? 0), !empty($in['dealt']), (int)$_SESSION['analyst_id']);
+        echo json_encode(['success' => $ok, 'count' => helpAssistantUnansweredCount($conn)] + ($ok ? [] : ['error' => 'No such question.']));
+        exit;
     } elseif (($in['action'] ?? '') === 'models') {
         $r = aiEmbeddingModels(helpAssistantPostedVectorCfg($conn, $in));
         echo json_encode(['success' => true, 'models' => $r['models'], 'error' => $r['error']]);
