@@ -226,6 +226,7 @@ return [
         'priority_high'   => 'High',
         'priority_critical' => 'Critical',
         'impact'          => 'Impact',
+        'impact_help'     => 'How widely the change affects the business, for example one team or the whole organisation. This classification is separate from risk impact and does not determine the risk score or level.',
         'impact_low'      => 'Low',
         'impact_medium'   => 'Medium',
         'impact_high'     => 'High',
@@ -252,6 +253,7 @@ return [
 
         'risk_likelihood' => 'Risk likelihood',
         'risk_impact'     => 'Risk impact',
+        'risk_impact_help' => 'How serious the consequences would be if something goes wrong. The risk policy combines this with risk likelihood to determine the risk score and level.',
         'risk_score'      => 'Risk score',
         'not_assessed'    => 'Not assessed',
         'rl_1'            => '1 - Very low',
@@ -699,6 +701,7 @@ return [
         'types_intro'      => 'Categories of change request — typically Standard, Normal, Emergency. Exactly one type is the default for new changes.',
         'impacts_heading'  => 'Impacts',
         'impacts_intro'    => 'Impact bands describing how widely a change affects the business. Combines with priority to drive risk scoring.',
+        'impacts_scope_intro' => 'Impact bands describe how widely a change affects the business. They do not determine the risk score or level. Risk is assessed separately using risk likelihood and risk impact under the risk policy.',
         'add'              => 'Add',
 
         'col_name'    => 'Name',

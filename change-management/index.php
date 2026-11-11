@@ -159,12 +159,13 @@ $translationNamespaces = ['common', 'change-management'];
 
                         <div class="cm-field-wrap" data-field-key="impact">
                             <div class="form-group">
-                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.impact')); ?></label>
-                                <select class="form-input" id="changeImpact">
+                                <label class="form-label" for="changeImpact"><?php echo htmlspecialchars(t('change-management.editor.impact')); ?></label>
+                                <select class="form-input" id="changeImpact" aria-describedby="changeImpactHelp">
                                     <option value="Low"><?php echo htmlspecialchars(t('change-management.editor.impact_low')); ?></option>
                                     <option value="Medium" selected><?php echo htmlspecialchars(t('change-management.editor.impact_medium')); ?></option>
                                     <option value="High"><?php echo htmlspecialchars(t('change-management.editor.impact_high')); ?></option>
                                 </select>
+                                <div class="approval-note" id="changeImpactHelp"><?php echo htmlspecialchars(t('change-management.editor.impact_help')); ?></div>
                             </div>
                         </div>
 
@@ -292,9 +293,10 @@ $translationNamespaces = ['common', 'change-management'];
                                         <button type="button" class="cm-risk-help-btn" data-risk-help="impact" aria-expanded="false" aria-controls="riskGuide"
                                                 aria-label="<?php echo htmlspecialchars(t('change-management.editor.risk_help_impact_btn')); ?>" title="<?php echo htmlspecialchars(t('change-management.editor.risk_help_impact_btn')); ?>">?</button>
                                     </div>
-                                    <select class="form-input" id="riskImpactScore" onchange="updateRiskScore()">
+                                    <select class="form-input" id="riskImpactScore" aria-describedby="riskImpactHelp" onchange="updateRiskScore()">
                                         <option value=""><?php echo htmlspecialchars(t('change-management.editor.not_assessed')); ?></option>
                                     </select>
+                                    <div class="approval-note" id="riskImpactHelp"><?php echo htmlspecialchars(t('change-management.editor.risk_impact_help')); ?></div>
                                 </div>
                                 <div class="form-group">
                                     <div class="cm-risk-label"><label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_score')); ?></label></div>
