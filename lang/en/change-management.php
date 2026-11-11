@@ -882,7 +882,7 @@ return [
         'rec_2' => '<strong>Fill in general info</strong> &mdash; title, type (Standard/Normal/Emergency), priority, and impact.',
         'rec_3' => "<strong>Assign people</strong> &mdash; requester (who wants the change), assigned to (who's doing it), and approver.",
         'rec_4' => '<strong>Set the schedule</strong> &mdash; when the work window starts/ends and any expected outage times.',
-        'rec_5' => '<strong>Assess risk</strong> &mdash; pick Likelihood (1&ndash;5) and Impact (1&ndash;5). The risk score auto-calculates. A colour-coded matrix shows where it falls.',
+        'rec_5' => '<strong>Assess risk</strong> &mdash; pick Risk likelihood (1&ndash;5) and Risk impact (1&ndash;5). The risk score auto-calculates from your risk policy. A colour-coded matrix shows where it falls. The Impact field near the top is separate: it says how widely the change reaches, and does not change the score.',
         'rec_6' => '<strong>Write the plans</strong> &mdash; use the tabs to fill in Description, Reason, Risk Evaluation, Test Plan, and Rollback Plan.',
         'rec_7' => '<strong>Save</strong> as Draft. You can come back and edit anytime before submitting for approval.',
         'rec_preview_note' => 'Each ticket linked to a change carries a small <strong>&#9432;</strong> in its actions column. Click it for a card with the ticket&rsquo;s status, priority, who it is with and who raised it &mdash; enough to check that the tickets attached to a change really are the ones it addresses, without opening each in turn. The card is read-only, and <strong>Open</strong> takes you to the ticket itself.',
