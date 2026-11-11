@@ -35,7 +35,7 @@ $items = array_values(array_filter($wl['items'], fn($it) => $it['locale'] === $l
 if (!$items) { fwrite(STDERR, "no chunks for $loc in $out\n"); exit(1); }
 // The same table as i18n_chunk.php; keep the two in step.
 $exp = ['ml' => 2.42, 'gu' => 2.04, 'kn' => 2.40, 'ta' => 2.40, 'te' => 2.40, 'bn' => 2.40, 'pa' => 2.40,
-        'mr' => 2.40, 'hi' => 2.40, 'uk' => 1.64, 'ru' => 1.64, 'ms' => 1.12, 'nb' => 1.04];
+        'mr' => 2.40, 'hi' => 2.40, 'uk' => 1.64, 'ru' => 1.64, 'ms' => 1.12, 'nb' => 1.04, 'el' => 2.18];
 $budget = (int) round(($wl['max_bytes'] ?? 40000) * (1.18 / ($exp[$loc] ?? 1.18)));
 usort($items, fn($a, $b) => strcmp($a['namespace'], $b['namespace']) ?: strcmp($a['section'], $b['section']));
 $bundles = [];

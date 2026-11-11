@@ -103,6 +103,9 @@ const EXPANSION = [
     'kn' => 2.40, 'ta' => 2.40, 'te' => 2.40, 'bn' => 2.40, 'pa' => 2.40,
     'mr' => 2.40, 'hi' => 2.40,
     'uk' => 1.64, 'ru' => 1.64,          // Cyrillic
+    // Greek: measured x2.18 over the whole first translation (2026-11-11, 22,945 strings) -
+    // 2 bytes a character like Cyrillic, and the words run longer than English.
+    'el' => 2.18,
     'ms' => 1.12, 'nb' => 1.04,          // measured Latin
 ];
 

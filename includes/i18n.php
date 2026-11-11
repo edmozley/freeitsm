@@ -67,6 +67,9 @@ class I18n {
         'ml'    => 'മലയാളം',
         'gu'    => 'ગુજરાતી',
         'pa'    => 'ਪੰਜਾਬੀ',
+        // Greek, added 2026-11-11: a new locale, translated from nothing in one pass
+        // with a hand-made glossary (wiki Adding-a-Language-Developer-Guide).
+        'el'    => 'Ελληνικά',
     ];
 
     const DEFAULT_LOCALE  = 'en';
