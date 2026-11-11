@@ -103,6 +103,9 @@ try {
     )->execute([$ticketId]);
     $conn->prepare("DELETE FROM ticket_checklists WHERE ticket_id = ?")->execute([$ticketId]);
 
+    // 6a. Forms the ticket needed (GH #272) - their submissions stay: they are records of work done.
+    try { $conn->prepare("DELETE FROM ticket_forms WHERE ticket_id = ?")->execute([$ticketId]); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
+
     // 6b. Watchers (GH #277) - no foreign key either. Tolerant: no table before Database Verify.
     try { $conn->prepare("DELETE FROM ticket_watchers WHERE ticket_id = ?")->execute([$ticketId]); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
 

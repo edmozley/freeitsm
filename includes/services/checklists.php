@@ -142,6 +142,20 @@ class ChecklistsService
      */
     public static function assertClosureAllowed(PDO $conn, int $ticketId, ?int $tenantId = null): void
     {
+        // GH #272: a required form on the ticket that has no submission, set to block.
+        // First, and independent of the Checklists switch below - forms have their own
+        // ("Forms on tickets"), and TicketForms::outstanding() is empty while it is off.
+        // Same rule as a task's forms: the form's own warn / block, with the company's
+        // "block all" floor (effectiveClosureMode).
+        $formsBlocking = [];
+        foreach (self::ticketFormsOutstanding($conn, $ticketId) as $f) {
+            if (self::effectiveClosureMode($conn, $f['mode'], $tenantId) === 'block') $formsBlocking[] = $f['title'];
+        }
+        if ($formsBlocking) {
+            throw new ServiceError('validation', 'forms_outstanding',
+                'This ticket cannot be closed until its required forms are submitted: ' . implode(', ', $formsBlocking));
+        }
+
         // GH #217. Checklists switched off for the install hold up nothing: nobody
         // can attach the checklist a "block" rule asks for, or tick its steps, so
         // honouring the rule would leave tickets that can never be closed.
@@ -214,6 +228,15 @@ class ChecklistsService
         int $ticketId,
         ?int $tenantId = null
     ): array {
+        // GH #272: required forms it closed without (warn mode - block mode never gets
+        // here) are recorded, as a task completed without its forms is.
+        $forms = self::ticketFormsOutstanding($conn, $ticketId);
+        if ($forms) {
+            self::writeClosureNote($conn, $ctx, $ticketId,
+                "⚠️ Ticket closed with " . count($forms) . " required form(s) not submitted.\n" . self::closedBy($ctx) . "\n\n"
+                . implode("\n", array_map(fn($f) => '  • ' . $f['title'], $forms)));
+        }
+
         // Closed with nothing attached. Only worth a note where the operator
         // asked to be told about it - on an install that allows it, a note on
         // every close is noise that hides the ones that matter.
@@ -251,6 +274,17 @@ class ChecklistsService
         );
 
         return $outstanding;
+    }
+
+    /** Required forms on a ticket with no submission (GH #272) - empty while "Forms on tickets" is off. Never throws. */
+    private static function ticketFormsOutstanding(PDO $conn, int $ticketId): array
+    {
+        try {
+            require_once __DIR__ . '/task_forms.php';
+            return TicketForms::outstanding($conn, $ticketId);
+        } catch (Throwable) {
+            return [];
+        }
     }
 
     /** "Closed by Jane Smith via the web interface." — one phrasing, used by both notes. */

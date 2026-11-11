@@ -6493,11 +6493,17 @@ CREATE TABLE IF NOT EXISTS `form_submissions` (
     `tenant_id`         INT NULL,
     `client_reference`  VARCHAR(64) NULL,
     `superseded_by_id`  INT NULL,
+    -- GH #272: a submission made FOR a ticket (a form on the ticket - ticket_forms), with the
+    -- ticket's company in tenant_id as for a task. NOT ticket_id, which means "the ticket
+    -- raised FROM this submission" (a catalogue request).
+    `for_ticket_id`     INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `idx_form_submissions_user` (`submitted_by_user_id`),
     KEY `idx_form_submissions_task` (`task_id`),
+    KEY `idx_form_submissions_for_ticket` (`for_ticket_id`),
     UNIQUE KEY `uq_form_submissions_task_ref` (`task_id`, `client_reference`),
+    UNIQUE KEY `uq_form_submissions_ticket_ref` (`for_ticket_id`, `client_reference`),
     KEY `idx_form_submissions_ticket` (`ticket_id`),
     KEY `idx_form_submissions_approval` (`approval_status`, `approver_id`),
     KEY `idx_form_submissions_team` (`approval_status`, `approval_team_id`),
@@ -8782,6 +8788,30 @@ CREATE TABLE IF NOT EXISTS `task_checklists` (
 -- `revision` makes every draft save and submit CONDITIONAL on what the saver
 -- last read, so two analysts with the occurrence open get a visible conflict
 -- rather than one silently overwriting the other.
+-- GH #272: forms a TICKET needs - the ticket twin of task_forms, same columns and the
+-- same engine (TaskForms, host-aware; TicketForms is the ticket host). Tickets ->
+-- Settings -> Checklists has "Forms on tickets" on (tickets_forms_enabled).
+CREATE TABLE IF NOT EXISTS `ticket_forms` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `ticket_id` INT NOT NULL,
+    `form_id` INT NOT NULL,                     -- the exact form VERSION this ticket is filled on
+    `title` VARCHAR(255) NOT NULL,
+    `is_required` TINYINT(1) NOT NULL DEFAULT 1,
+    `requirement_mode` ENUM('warn','block') NOT NULL DEFAULT 'block',
+    `submission_id` INT NULL,
+    `draft_json` LONGTEXT NULL,
+    `draft_by_id` INT NULL,
+    `draft_by_name` VARCHAR(150) NULL,
+    `draft_datetime` DATETIME NULL,
+    `revision` INT NOT NULL DEFAULT 0,
+    `sort_order` INT NOT NULL DEFAULT 0,
+    `added_by_id` INT NULL,
+    `added_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ticket_forms_form` (`ticket_id`, `form_id`),
+    KEY `idx_ticket_forms_submission` (`submission_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `task_forms` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `task_id` INT NOT NULL,

@@ -40,6 +40,15 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Take an analyst off a ticket\'s watchers',
             ],
         ],
+        // GH #272. Reading the ANSWERS follows the in-app rule: the key's analyst needs Forms
+        // access or "Read the form answers on tickets you can see".
+        'ticket_forms' => [
+            'label'   => 'Ticket forms',
+            'actions' => [
+                'read'   => 'List the forms a ticket needs, with who submitted them (answers where the key\'s analyst may read them)',
+                'create' => 'Submit a form for a ticket, linked to that ticket (the key\'s analyst needs Forms access)',
+            ],
+        ],
         // GH #273. Writes go through the same rules as the ticket panel and are noted on the ticket "via the API".
         'ticket_checklists' => [
             'label'   => 'Ticket checklists',

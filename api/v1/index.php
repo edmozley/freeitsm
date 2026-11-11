@@ -114,6 +114,7 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /ping', 'GET /tickets', 'POST /tickets', 'GET /tickets/{id}', 'PATCH /tickets/{id}',
             'DELETE /tickets/{id}', 'POST /tickets/{id}/restore', 'GET /tickets/{id}/notes',
             'POST /tickets/{id}/notes', 'GET /tickets/{id}/watchers', 'POST /tickets/{id}/watchers', 'DELETE /tickets/{id}/watchers/{analyst_id}',
+            'GET /tickets/{id}/forms', 'POST /tickets/{id}/forms/{ticket_form_id}/submissions',
             'GET /tickets/{id}/checklists', 'PATCH /tickets/{id}/checklists/steps/{step_id}', 'GET /tickets/{id}/thread', 'GET /tickets/{id}/audit',
             'GET /tickets/{id}/sla', 'GET /tickets/{id}/time-entries', 'POST /tickets/{id}/time-entries',
             'DELETE /tickets/{id}/time-entries/{entry_id}',

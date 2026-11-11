@@ -1845,6 +1845,11 @@ class FormsService
                 $cols .= ', task_id, tenant_id, client_reference';
                 $vals .= ', ?, ?, ?';
                 array_push($args, (int)$link['task_id'], $link['tenant_id'] ?? null, $link['client_reference'] ?? null);
+            } elseif (!empty($link['for_ticket_id'])) {
+                // GH #272: made FOR a ticket (a form on it) - never ticket_id, which is "raised from".
+                $cols .= ', for_ticket_id, tenant_id, client_reference';
+                $vals .= ', ?, ?, ?';
+                array_push($args, (int)$link['for_ticket_id'], $link['tenant_id'] ?? null, $link['client_reference'] ?? null);
             }
             $conn->prepare("INSERT INTO form_submissions ($cols) VALUES ($vals)")->execute($args);
             $submissionId = (int)$conn->lastInsertId();
@@ -1899,6 +1904,7 @@ class FormsService
             ];
             // GH #190: made inside a task occurrence - say which, for a rule that cares.
             if (!empty($link['task_id'])) $payload['task'] = ['id' => (int)$link['task_id']];
+            if (!empty($link['for_ticket_id'])) $payload['for_ticket'] = ['id' => (int)$link['for_ticket_id']];   // GH #272
             // A gated request must NOT fire form.submitted: an admin's create-ticket
             // rule on that event would jump the approval gate and raise the ticket
             // anyway. It fires catalogue_request.submitted instead — the hook to
@@ -2012,6 +2018,32 @@ class FormsService
             }
         } catch (Throwable) {
             return;
+        }
+        // GH #272: the same for a ticket's forms - a submission made for a ticket is its
+        // record, and a form a ticket needs cannot vanish from under it. Its own try: an
+        // install that has the task columns may not have run Database Verify for these.
+        try {
+            $q = $conn->prepare("SELECT COUNT(*) FROM form_submissions WHERE for_ticket_id IS NOT NULL AND $where");
+            $q->execute($args);
+            $ticketLinked = (int)$q->fetchColumn();
+            $ticketNeeded = 0;
+            if (str_starts_with($where, 'form_id')) {
+                $r = $conn->prepare("SELECT COUNT(*) FROM ticket_forms WHERE $where");
+                $r->execute($args);
+                $ticketNeeded = (int)$r->fetchColumn();
+            }
+        } catch (Throwable) {
+            $ticketLinked = $ticketNeeded = 0;
+        }
+        if ($ticketLinked > 0) {
+            throw new ServiceError('conflict', 'ticket_evidence',
+                $ticketLinked === 1 && str_starts_with($where, 'id = ?')
+                    ? 'This submission is the record of a form filled in on a ticket, so it cannot be deleted.'
+                    : 'Submissions of this form were filled in on ' . $ticketLinked . ' ticket(s), so it cannot be deleted. Make it inactive instead.');
+        }
+        if ($ticketNeeded > 0) {
+            throw new ServiceError('conflict', 'ticket_evidence',
+                $ticketNeeded . ' ticket(s) need this form. Take it off those tickets, or make the form inactive instead.');
         }
         if ($linked > 0) {
             throw new ServiceError('conflict', 'task_evidence',

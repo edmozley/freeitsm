@@ -999,5 +999,30 @@ return [
         'done'     => 'Someone has switched their ticket list to Table.',
         'link'     => 'tickets/',
         'check'    => ['sql', "SELECT COUNT(*) FROM user_preferences WHERE preference_key = 'tickets_list_layout' AND preference_value = 'table'"],
+    ],    // GH #272: forms on a ticket, filled in on the ticket and optionally required before it closes.
+    [
+        'id'       => 'tickets.forms_enabled',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Forms on tickets switched on',
+        'what'     => 'Tickets -> Settings -> Checklists -> Forms on tickets, so a ticket can carry forms from the Forms module.',
+        'why'      => 'A request that needs an equipment form or an incident report has it filled in on the ticket itself, and the close can wait until it is.',
+        'done'     => 'Forms on tickets is switched on.',
+        'link'     => 'tickets/settings/?tab=checklists',
+        'check'    => ['setting', 'tickets_forms_enabled', 'eq', '1'],
     ],
+    [
+        'id'       => 'tickets.form_submitted',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'A form submitted on a ticket',
+        'what'     => 'Somebody filled in and submitted a form from a ticket\'s Forms button.',
+        'why'      => 'The answers live with the ticket - in its history, its case report and the REST API - instead of in a separate list nobody links back.',
+        'done'     => 'At least one form has been submitted on a ticket.',
+        'link'     => 'tickets/',
+        'check'    => ['sql', "SELECT COUNT(*) FROM form_submissions WHERE for_ticket_id IS NOT NULL"],
+    ],
+
 ];

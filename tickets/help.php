@@ -411,6 +411,16 @@ try {
                         <li><?php echo t('tickets.help.watch.what'); ?></li>
                     </ul>
                     <p class="help-note"><?php echo t('tickets.help.watch.note'); ?></p>
+
+                    <?php /* GH #272: forms on a ticket. */ ?>
+                    <h4 id="ticket-forms" style="margin-top: 24px;"><?php echo htmlspecialchars(t('tickets.help.forms_on_ticket.heading')); ?></h4>
+                    <p><?php echo t('tickets.help.forms_on_ticket.body'); ?></p>
+                    <ul>
+                        <li><?php echo t('tickets.help.forms_on_ticket.switch'); ?></li>
+                        <li><?php echo t('tickets.help.forms_on_ticket.how'); ?></li>
+                        <li><?php echo t('tickets.help.forms_on_ticket.required'); ?></li>
+                    </ul>
+                    <p class="help-note"><?php echo t('tickets.help.forms_on_ticket.note'); ?></p>
                 </div>
 
                 <!-- Section 4: Working faster — templates, bulk actions, merge & split -->

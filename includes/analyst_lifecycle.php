@@ -222,6 +222,7 @@ function analystReferenceRegistry(): array {
         ['task_events', 'analyst_id', 'history'],
         ['task_recurrence_versions', 'analyst_id', 'history'],
         ['task_forms', 'added_by_id', 'history'],
+        ['ticket_forms', 'added_by_id', 'history'],   // GH #272
         ['task_procedures', 'added_by_id', 'history'],
         ['task_follow_ups', 'created_by_id', 'history'],
         ['task_checklist_item_events', 'analyst_id', 'history'],

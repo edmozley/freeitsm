@@ -491,6 +491,7 @@ return [
         'unsupported_type' => 'Tego pytania nie można tu wyświetlić.',
     ],
     'fill' => [
+        'for_ticket' => 'Dla zgłoszenia „{ticket}"',   // GH #272
         'page_title' => 'Wypełnij formularz',
         'loading' => 'Wczytywanie formularza...',
         'no_id' => 'Nie podano identyfikatora formularza',

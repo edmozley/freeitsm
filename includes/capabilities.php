@@ -316,6 +316,9 @@ enum Cap: string
     // What happens when a ticket is closed with mandatory SOP steps still
     // outstanding — warn and record, or refuse (PR #141).
     case TICKETS_CHECKLISTS      = 'tickets.checklists';
+    // GH #272: read the answers of the forms on tickets you can see WITHOUT access to Forms -
+    // the ticket twin of TASKS_FORM_ANSWERS. Always restricted: an upgrade grants nobody anything.
+    case TICKETS_FORM_ANSWERS    = 'tickets.form_answers';
     // Which ticket fields must be filled before a ticket may close, and what
     // happens when they are not - warn, warn and email, or refuse.
     case TICKETS_MANDATORY_FIELDS = 'tickets.mandatory_fields';

@@ -21,6 +21,9 @@ return [
     ['GET',    '#^/tickets/(\d+)/watchers$#',              ['ticket_watchers', 'read'],       'apiTicketWatchersList'],
     ['POST',   '#^/tickets/(\d+)/watchers$#',              ['ticket_watchers', 'create'],     'apiTicketWatchersAdd'],
     ['DELETE', '#^/tickets/(\d+)/watchers/(\d+)$#',        ['ticket_watchers', 'delete'],     'apiTicketWatchersRemove'],
+    // GH #272: forms on a ticket.
+    ['GET',    '#^/tickets/(\d+)/forms$#',                 ['ticket_forms', 'read'],          'apiTicketFormsList'],
+    ['POST',   '#^/tickets/(\d+)/forms/(\d+)/submissions$#', ['ticket_forms', 'create'],      'apiTicketFormSubmit'],
     // GH #273: checklists, the same shape on tickets and tasks.
     ['GET',    '#^/tickets/(\d+)/checklists$#',            ['ticket_checklists', 'read'],     'apiTicketChecklistsList'],
     ['PATCH',  '#^/tickets/(\d+)/checklists/steps/(\d+)$#', ['ticket_checklists', 'update'], 'apiTicketChecklistStepUpdate'],

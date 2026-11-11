@@ -615,6 +615,7 @@ return [
 
     // ── Fill page (forms/fill.php) ──────────────────────────────────
     'fill' => [
+        'for_ticket' => 'For the ticket "{ticket}"',   // GH #272
         'page_title'       => 'Fill Form',
         'loading'          => 'Loading form...',
         'no_id'            => 'No form ID specified',

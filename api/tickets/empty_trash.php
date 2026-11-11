@@ -83,7 +83,8 @@ try {
     // A table that is not there yet (42S02) is nothing to remove.
     foreach (["DELETE FROM ticket_checklist_items WHERE ticket_checklist_id IN (SELECT id FROM ticket_checklists WHERE ticket_id IN ($place))",
               "DELETE FROM ticket_checklists WHERE ticket_id IN ($place)",
-              "DELETE FROM ticket_watchers WHERE ticket_id IN ($place)"] as $sql) {
+              "DELETE FROM ticket_watchers WHERE ticket_id IN ($place)",
+              "DELETE FROM ticket_forms WHERE ticket_id IN ($place)"] as $sql) {   // GH #272
         try { $conn->prepare($sql)->execute($ids); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
     }
     $conn->prepare("DELETE FROM tickets WHERE id IN ($place)")->execute($ids);

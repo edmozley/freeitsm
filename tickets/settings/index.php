@@ -54,6 +54,9 @@ $activeTabId      = settingsFirstTabId($visibleTabs);
 require_once '../../includes/tenant_settings.php';
 $checklistClosureMode = ticketChecklistClosureMode($conn, null);
 $checklistEmptyClosureMode = function_exists('ticketChecklistEmptyClosureMode') ? ticketChecklistEmptyClosureMode($conn, null) : 'off';
+// GH #272: "Forms on tickets" (off by default). The Forms module must be on as well.
+$ticketFormsEnabled = (function () use ($conn) { try { return (string)$conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'tickets_forms_enabled'")->fetchColumn() === '1'; } catch (Throwable $e) { return false; } })();
+$formsModuleOn = function_exists('moduleIsEnabled') ? moduleIsEnabled($conn, 'forms') : true;
 
 // Mandatory fields at closure — the same reason: the tab opens on what is in force.
 require_once '../../includes/service_context.php';
@@ -991,6 +994,20 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         </div>
                     </label>
                 </div>
+            </div>
+
+            <div style="margin-top: 32px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 24px;">
+                <div class="section-header">
+                    <h2><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_section_title')); ?></h2>
+                </div>
+                <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; max-width: 720px;">
+                    <input type="checkbox" id="chkFormsEnabled" style="margin-top: 3px;"<?php echo $ticketFormsEnabled ? ' checked' : ''; ?>>
+                    <div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_enabled_title')); ?></div>
+                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_enabled_desc')); ?></div>
+                        <?php if (!$formsModuleOn): ?><div style="font-size: 12px; color: #b45309; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.checklists.forms_module_off')); ?></div><?php endif; ?>
+                    </div>
+                </label>
             </div>
 
             <div style="margin-top: 22px;">
@@ -9834,7 +9851,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 mode: picked.value,
-                                empty_mode: (document.querySelector('input[name="chkEmptyClosureMode"]:checked') || {}).value || 'off'
+                                empty_mode: (document.querySelector('input[name="chkEmptyClosureMode"]:checked') || {}).value || 'off',
+                                forms_enabled: !!(document.getElementById('chkFormsEnabled') || {}).checked   // GH #272
                             })
                         });
                         const d = await r.json();

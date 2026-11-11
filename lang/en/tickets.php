@@ -319,6 +319,36 @@ return [
         'many_skipped' => '{n} skipped.',
         'failed' => 'Could not update the watchers.',
     ],
+    // GH #272: forms on a ticket (assets/js/ticket-forms.js).
+    'forms' => [
+        'button' => 'Forms',
+        'button_title' => 'Forms this ticket needs',
+        'title' => 'Forms',
+        'none' => 'No forms on this ticket yet.',
+        'add_label' => 'Add a form…',
+        'add' => 'Add',
+        'close' => 'Close',
+        'fill' => 'Fill',
+        'correct' => 'Correct',
+        'answers' => 'Answers',
+        'remove' => 'Remove',
+        'remove_confirm' => 'Take "{name}" off this ticket? A submission already made is kept in Forms.',
+        'requirement' => 'Requirement',
+        'req_block' => 'Required - blocks closing',
+        'req_warn' => 'Required - warns on closing',
+        'req_optional' => 'Optional',
+        'required_block' => 'Required (blocks)',
+        'required_warn' => 'Required (warns)',
+        'optional' => 'Optional',
+        'submitted_by' => 'Submitted by {name} {when}',
+        'draft_by' => 'Draft in progress ({name})',
+        'not_submitted' => 'Not submitted yet',
+        'form_inactive' => 'This form has been retired.',
+        'exception' => '(exception)',
+        'submitted' => 'Form submitted.',
+        'failed' => 'Could not update the ticket\'s forms.',
+        'explain' => 'A required form must be submitted before the ticket closes: "blocks" refuses the close, "warns" asks and records it. Answers are visible to people with Forms access or the "read form answers on tickets" permission.',
+    ],
     'context' => [
         'change_subject'   => 'Change subject…',
         'link_cmdb'        => 'Link CMDB object…',
@@ -1868,6 +1898,11 @@ return [
             'empty_block_desc'    => 'The ticket cannot reach a closed status until at least one checklist is attached to it.',
 
             'always_recorded'     => 'Either way, closing with steps outstanding writes an internal note naming the skipped steps, who closed it and through which interface. These settings decide whether it is allowed, never whether it is logged.',
+            // GH #272
+            'forms_section_title' => 'Forms on tickets',
+            'forms_enabled_title' => 'Allow forms on tickets',
+            'forms_enabled_desc' => 'Adds a Forms button to each ticket: add a form from the Forms module, fill it in on the ticket, and optionally require it before the ticket closes. Off by default.',
+            'forms_module_off' => 'The Forms module is switched off, so this has no effect until it is switched on.',
         ],
 
         // Custom fields (#179): Tickets -> Settings -> Custom fields.
@@ -3290,6 +3325,15 @@ return [
             'others' => 'The <strong>Watch</strong> button shows who is watching. With write access to Tickets you can <strong>add a colleague</strong> or take someone off; anyone can take themselves off.',
             'what' => '<strong>Tickets &rarr; Settings &rarr; General &rarr; Watching tickets</strong> chooses what watchers hear about - replies, notes, status, priority, reassignment, SLA warnings and breaches - all of them unless an administrator unticks some. A reassignment reaches a watcher as "reassigned", never "assigned to you", and it has its own switch in each person\'s preferences.',
             'note' => 'Only people who can see a ticket can watch it, and if they stop being able to see it they stop hearing about it. Nobody is told about their own change. Merging moves watchers to the surviving ticket.',
+        ],
+        // GH #272: forms on a ticket.
+        'forms_on_ticket' => [
+            'heading' => 'Forms on a ticket',
+            'body' => 'Attach a form from the Forms module to a ticket and fill it in there - a new-starter request that needs its equipment form, or a security incident that needs its report. The answers are kept with the ticket.',
+            'switch' => '<strong>Tickets &rarr; Settings &rarr; Checklists &rarr; Forms on tickets</strong> switches it on (it is off until you do, and the Forms module must be on as well). A <strong>Forms</strong> button then appears on each ticket\'s toolbar, with a count of how many are submitted.',
+            'how' => '<strong>Forms</strong> opens the list: <strong>Add</strong> picks a form (always its newest version), <strong>Fill</strong> opens it in a window, <strong>Save draft</strong> keeps half-finished answers that colleagues can carry on with, and <strong>Correct</strong> replaces a submission while keeping the old one in Forms.',
+            'required' => 'Each form is <strong>Required - blocks closing</strong>, <strong>Required - warns on closing</strong> or <strong>Optional</strong>. A blocking form must be submitted before the ticket can reach a closed status; a warning one asks and records who closed it anyway.',
+            'note' => 'Filling a form needs write access to Forms. Reading the answers needs access to Forms or the <strong>Read the form answers on tickets you can see</strong> permission (a role setting); everyone else sees who submitted it and when, but not what they said. A submission a ticket relies on cannot be deleted from Forms. Answers appear in the ticket\'s case report and in the REST API.',
         ],
         'faster' => [
             'heading' => 'Working faster',

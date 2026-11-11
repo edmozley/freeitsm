@@ -777,6 +777,94 @@
                 },
                 {
                     "m": "GET",
+                    "p": "\/tickets\/{id}\/forms",
+                    "perm": "ticket_forms.read",
+                    "s": "List the forms a ticket needs",
+                    "d": "Each form added to the ticket: whether it is required (block or warn at closure), who submitted it and when, whether a draft is in progress, and its revision. The answers are included only where the key's analyst may read them - access to Forms, or the \"Read the form answers on tickets you can see\" permission - exactly as in the app; otherwise the field is absent. Empty while forms on tickets are switched off (Tickets -> Settings -> Checklists). GH #272.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Tickets",
+                    "slug": "get-tickets-id-forms",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "List a ticket's forms",
+                                "note": "A new-starter request with its equipment form submitted.",
+                                "path": {
+                                    "id": 1042
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/tickets\/{id}\/forms\/{ticket_form_id}\/submissions",
+                    "perm": "ticket_forms.create",
+                    "s": "Submit a ticket's form",
+                    "d": "Submits the form for this ticket, linked to it in the same transaction, with the same validation as the Forms page. Send a client_reference: a retry with the same one returns the submission already made (200, \"replayed\": true) rather than a second. Send revision to make the submit conditional on nobody having saved the form since (409 otherwise). Submitting again replaces the earlier submission on the ticket, which is kept. The key's analyst needs Forms access. GH #272.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        },
+                        {
+                            "name": "ticket_form_id",
+                            "in": "path",
+                            "desc": "The form requirement's id, from GET \/tickets\/{id}\/forms",
+                            "req": true
+                        },
+                        {
+                            "name": "data",
+                            "in": "body",
+                            "desc": "The answers, keyed by form field id",
+                            "req": true
+                        },
+                        {
+                            "name": "client_reference",
+                            "in": "body",
+                            "desc": "Your own id for this submit, up to 64 characters - makes a retry safe",
+                            "req": false
+                        },
+                        {
+                            "name": "revision",
+                            "in": "body",
+                            "desc": "The revision you read; the submit fails with 409 if it has moved",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "data": {
+                            "901": "Laptop",
+                            "902": "2026-11-16"
+                        },
+                        "client_reference": "starter-1042"
+                    },
+                    "section": "Tickets",
+                    "slug": "post-tickets-id-forms-ticket-form-id-submissions",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Submit the equipment form",
+                                "note": "Linked to the ticket automatically.",
+                                "path": {
+                                    "id": 1042,
+                                    "ticket_form_id": 7
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
                     "p": "\/tickets\/{id}\/checklists",
                     "perm": "ticket_checklists.read",
                     "s": "List a ticket's checklists",

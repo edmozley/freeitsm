@@ -22,7 +22,7 @@ if (analystModuleLevel(connectToDatabase(), (int)$_SESSION['analyst_id'], 'forms
 $current_page = 'forms';
 // GH #190 phase 2: ?embed=1 is this page inside a task's Work view - no header, no
 // navigation, only for a task's form. The same page, so filling is never copied.
-$embed = !empty($_GET['embed']) && !empty($_GET['task_form']);
+$embed = !empty($_GET['embed']) && (!empty($_GET['task_form']) || !empty($_GET['ticket_form']));   // GH #272: a ticket's form too
 $path_prefix = '../';
 $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a task's form (GH #190)
 ?>
@@ -396,7 +396,11 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
            - submitting links the submission to the occurrence (TaskForms::submit());
            - a client reference generated here makes a retried submit return the
              submission it already made rather than a second one. */
-        const TASK_FORM_ID = new URLSearchParams(window.location.search).get('task_form');
+        // GH #272: ?ticket_form=N fills a form on a TICKET - the same page and the same rules
+        // (TicketForms is TaskForms with the ticket as host); only the endpoint differs.
+        const HOST_PARAMS = new URLSearchParams(window.location.search);
+        const TASK_FORM_ID = HOST_PARAMS.get('task_form') || HOST_PARAMS.get('ticket_form');
+        const FILL_API = HOST_PARAMS.get('ticket_form') ? '../api/tickets/forms.php' : '../api/tasks/forms.php';
         let taskFill = null;
         let taskRevision = 0;
         const taskClientRef = 'tf-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
@@ -425,7 +429,7 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
 
         /** Posts a task form action. */
         async function postTaskFormAction(payload) {
-            const res = await fetch('../api/tasks/forms.php', {
+            const res = await fetch(FILL_API, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
             });
             return res.json();
@@ -448,7 +452,7 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
             taskRevision = Number(c.revision) || 0;
             document.getElementById('tfMine').onclick = () => { el.className = 'submit-message'; el.textContent = ''; if (taskLastAction) taskLastAction(); };
             document.getElementById('tfTheirs').onclick = async () => {
-                const d = await fetch('../api/tasks/forms.php?task_form_id=' + TASK_FORM_ID).then(r => r.json());
+                const d = await fetch(FILL_API + '?task_form_id=' + TASK_FORM_ID).then(r => r.json());
                 if (d.success) {
                     taskFill = d.fill;
                     taskRevision = d.fill.revision;
@@ -473,7 +477,7 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
             const params = new URLSearchParams(window.location.search);
             let id = params.get('id');
             if (TASK_FORM_ID) {
-                const d = await fetch('../api/tasks/forms.php?task_form_id=' + encodeURIComponent(TASK_FORM_ID)).then(r => r.json()).catch(() => null);
+                const d = await fetch(FILL_API + '?task_form_id=' + encodeURIComponent(TASK_FORM_ID)).then(r => r.json()).catch(() => null);
                 if (!d || !d.success) {
                     document.getElementById('formCard').innerHTML = '<p style="color:var(--danger-text, #c00);text-align:center">' + esc((d && d.error) || window.t('forms.fill.no_id')) + '</p>';
                     return;
@@ -958,11 +962,13 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
                 // Whose work this is: the occurrence, and the day it is for (GH #190).
                 const b = document.createElement('div');
                 b.className = 'fill-task-banner';
-                b.textContent = window.t('tasks.forms.fill_for', { task: taskFill.task.title })
+                b.textContent = (taskFill.host === 'ticket'
+                        ? window.t('forms.fill.for_ticket', { ticket: taskFill.task.title })   // GH #272
+                        : window.t('tasks.forms.fill_for', { task: taskFill.task.title }))
                     + (taskFill.task.scheduled_date ? ' - ' + window.t('tasks.forms.fill_scheduled', { date: taskFill.task.scheduled_date }) : '');
                 card.insertBefore(b, card.firstChild);
                 const cancel = card.querySelector('.form-actions a[href="./"]');
-                if (cancel) cancel.remove();   // the task, not the Forms list, is where this came from
+                if (cancel) cancel.remove();   // the task (or ticket), not the Forms list, is where this came from
             }
 
             // Any answer can be the trigger for a condition, so re-evaluate on every

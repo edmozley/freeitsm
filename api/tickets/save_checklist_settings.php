@@ -71,6 +71,10 @@ try {
     );
     $upsert->execute([SETTING_TICKET_CHECKLIST_CLOSURE, $mode]);
     $upsert->execute([SETTING_TICKET_CHECKLIST_EMPTY_CLOSURE, $emptyMode]);
+    // GH #272: "Forms on tickets". Only written when sent, so an older caller leaves it alone.
+    if (array_key_exists('forms_enabled', $in)) {
+        $upsert->execute(['tickets_forms_enabled', !empty($in['forms_enabled']) ? '1' : '0']);
+    }
 
     // Read them back rather than echoing the input: the stored values are what
     // the next page load will show, and the two must not be able to disagree.
@@ -78,6 +82,7 @@ try {
         'success'    => true,
         'mode'       => ticketChecklistClosureMode($conn, null),
         'empty_mode' => ticketChecklistEmptyClosureMode($conn, null),
+        'forms_enabled' => (string)($conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'tickets_forms_enabled'")->fetchColumn() ?: '0') === '1',
     ]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

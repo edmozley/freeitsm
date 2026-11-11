@@ -466,6 +466,59 @@ function apiTicketWatchersRemove(PDO $conn, array $apiKey, array $params, array 
 }
 
 // ---------------------------------------------------------------------------
+// Forms a ticket needs (GH #272) - the ticket twin of /tasks/{id}/forms
+// ---------------------------------------------------------------------------
+
+/** GET /tickets/{id}/forms - each form the ticket needs, its state, and its answers where the key's analyst may read them. */
+function apiTicketFormsList(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, (int)$params[0]);
+    require_once __DIR__ . '/../../../includes/services/task_forms.php';
+    if (!TicketForms::columnsReady($conn)) apiRespond([]);
+    $actor = (int)($apiKey['analyst_id'] ?? 0);
+    apiRespond(array_map(function ($f) {
+        $out = [
+            'id'            => $f['id'],
+            'form_id'       => $f['form_id'],
+            'title'         => $f['title'],
+            'required'      => $f['is_required'],
+            'requirement'   => $f['is_required'] ? $f['requirement_mode'] : 'optional',
+            'submission_id' => $f['submission_id'],
+            'submitted_by'  => $f['submitted_by'],
+            'submitted_at'  => $f['submitted_utc'] ? apiIsoDate($f['submitted_utc']) : null,
+            'has_draft'     => $f['has_draft'],
+            'revision'      => $f['revision'],
+        ];
+        // The one answers rule, as in the app: absent rather than empty when not allowed.
+        if (array_key_exists('answers', $f)) {
+            $out['answers'] = array_map(fn($a) => ['field_id' => $a['field_id'], 'question' => $a['label'], 'answer' => $a['value'],
+                                                   'exception' => !empty($a['exception'])], $f['answers']);
+        }
+        return $out;
+    }, TicketForms::forTicket($conn, (int)$params[0], $actor, true)));
+}
+
+/**
+ * POST /tickets/{id}/forms/{ticket_form_id}/submissions - submit the form for this ticket.
+ * Body: { data: {field_id: value}, client_reference?, revision? } - the same contract as the task one.
+ */
+function apiTicketFormSubmit(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadTicket($conn, $apiKey, (int)$params[0]);
+    require_once __DIR__ . '/../../../includes/services/task_forms.php';
+    try {
+        if (!TicketForms::enabled($conn) || !TicketForms::columnsReady($conn)) {
+            throw new ServiceError('validation', 'disabled', 'Forms on tickets are switched off (Tickets -> Settings -> Checklists).');
+        }
+        $row = TicketForms::row($conn, (int)$params[1]);
+        if ((int)$row['ticket_id'] !== (int)$params[0]) throw new ServiceError('not_found', 'not_found', 'That form is not on this ticket.');
+        $revision = isset($body['revision']) ? (int)$body['revision'] : (int)$row['revision'];
+        $res = TicketForms::submit($conn, ActorContext::fromApiKey($apiKey), (int)$row['id'], $revision,
+                                   (string)($body['client_reference'] ?? ''), (array)($body['data'] ?? []));
+        apiRespond(['ticket_id' => (int)$params[0], 'ticket_form_id' => (int)$row['id'], 'submission_id' => $res['submission_id'],
+                    'revision' => $res['revision'], 'replayed' => $res['replayed']], $res['replayed'] ? 200 : 201);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+}
+
+// ---------------------------------------------------------------------------
 // Thread (emails / channel messages)
 // ---------------------------------------------------------------------------
 function apiTicketThreadList(PDO $conn, array $apiKey, array $params, array $body): void {

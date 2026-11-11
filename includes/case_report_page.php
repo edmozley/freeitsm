@@ -196,7 +196,7 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
     if (!$isTicket && !in_array('tasks', $printed, true)) array_splice($printed, 1, 0, ['tasks']);
     $num = array_flip($printed);
     $secCount = [
-        'conversation' => count($r['conversation']), 'notes' => count($r['notes']), 'checklists' => count($r['checklists']),
+        'conversation' => count($r['conversation']), 'notes' => count($r['notes']), 'checklists' => count($r['checklists']) + count($r['ticket_forms'] ?? []),
         'tasks' => caseReportCountTasks($r['tasks']),
     ];
     /** A numbered, linkable section heading. */
@@ -389,7 +389,7 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
 <?php if ($isTicket && $on('checklists')): ?>
 <?php $head('checklists', $secCount['checklists']); ?>
 <?php if ($r['checklists']): ?><p class="sub"><?php echo $T('ticket_checklists_note'); ?></p><?php endif; ?>
-<?php if (!$r['checklists'] && empty($r['unavailable']['checklists'])): ?><p><?php echo $T('none'); ?></p><?php endif; ?>
+<?php if (!$r['checklists'] && empty($r['ticket_forms']) && empty($r['unavailable']['checklists'])): ?><p><?php echo $T('none'); ?></p><?php endif; ?>
 <?php foreach ($r['checklists'] as $c): ?>
 <h3><?php echo $e($c['title']); ?><?php if (!empty($c['template_version'])): ?> <span class="sub"><?php echo $T('template_version', ['n' => $c['template_version']]); ?></span><?php endif; ?></h3>
 <table>
@@ -404,6 +404,26 @@ function caseReportPage(?array $r, bool $print, ?string $recordError): void
         <td class="sub"><?php echo $e(trim((string)$it['completed_by_name'] . ' ' . ($it['completed_datetime'] ? TaskEvidence::when($it['completed_datetime']) : ''))); ?></td></tr>
     <?php endforeach; ?>
 </table>
+<?php endforeach; ?>
+
+<?php /* GH #272: forms filled in on the ticket itself - the same layout as a task's forms */ ?>
+<?php foreach (($r['ticket_forms'] ?? []) as $f): ?>
+<h3><?php echo $T('form', ['title' => $f['title']]); ?><?php if ($f['is_required']): ?> <span class="sub">(<?php echo $T('required'); ?>)</span><?php endif; ?></h3>
+<?php if (!$f['submission_id']): ?>
+    <p class="sub"><?php echo $T('form_not_submitted'); ?></p>
+<?php else: ?>
+    <p class="sub"><?php echo $T('form_submitted', ['who' => (string)($f['submitted_by'] ?? '-'), 'when' => TaskEvidence::when($f['submitted_utc'])]); ?>
+        <?php if (($f['revision'] ?? 0) > 1): ?> · <?php echo $T('form_revision', ['n' => $f['revision']]); ?><?php endif; ?></p>
+    <?php if (!$f['may_read']): ?>
+        <p class="sub"><em><?php echo $T('form_answers_hidden'); ?></em></p>
+    <?php elseif (!empty($f['answers'])): ?>
+        <table>
+            <?php foreach ($f['answers'] as $a): ?>
+            <tr><th style="width:35%"><?php echo $e($a['label']); ?></th><td style="white-space:pre-wrap"<?php echo !empty($a['exception']) ? ' class="exception"' : ''; ?>><?php echo $e($a['value']); ?></td></tr>
+            <?php endforeach; ?>
+        </table>
+    <?php endif; ?>
+<?php endif; ?>
 <?php endforeach; ?>
 <?php endif; ?>
 

@@ -3545,6 +3545,7 @@ function displayEmail(email, recordings) {
     loadAiSummary(email.ticket_id);
     if (typeof loadTicketChecklists === "function") loadTicketChecklists(email.ticket_id);
     if (typeof loadTicketWatchers === "function") loadTicketWatchers(email.ticket_id);   // GH #277: the Watch button
+    if (typeof loadTicketForms === "function") loadTicketForms(email.ticket_id);         // GH #272: the Forms button
     // Load full correspondence thread, notes, attachments and linked CMDB objects after rendering
     loadCorrespondenceThread(email.ticket_id);
     loadNotes(email.ticket_id);

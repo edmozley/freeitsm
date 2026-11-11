@@ -98,6 +98,7 @@ return [
             'grant'     => 'Choose whether outstanding mandatory SOP steps block a ticket from closing',
             'setting_keys' => [
                 'ticket_checklist_closure_mode',
+                'tickets_forms_enabled',   // GH #272: "Forms on tickets", off by default
             ],
         ],
         [
@@ -319,6 +320,17 @@ return [
             'id'        => 'row-display',
             'cap'       => null,
             'label_key' => 'tickets.settings.tabs.row_display',
+        ],
+    ],
+
+    // Everyday work - permissions that are not a settings tab.
+    'actions' => [
+        [
+            // GH #272: ticket access alone never reveals form answers (the task rule, #190
+            // decision 4). This grants exactly those on the tickets you can see.
+            'cap'      => capKey(Cap::TICKETS_FORM_ANSWERS),
+            'grant'    => 'Read the form answers on tickets you can see, without access to the Forms module',
+            'restrict' => null,
         ],
     ],
 ];

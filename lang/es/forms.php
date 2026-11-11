@@ -491,6 +491,7 @@ return [
         'unsupported_type' => 'Esta pregunta no se puede mostrar aquí.',
     ],
     'fill' => [
+        'for_ticket' => 'Para el ticket «{ticket}»',   // GH #272
         'page_title' => 'Rellenar formulario',
         'loading' => 'Cargando formulario...',
         'no_id' => 'No se ha especificado ningún ID de formulario',

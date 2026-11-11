@@ -96,6 +96,9 @@ final class CaseReport
         if ($on('conversation')) $r['conversation'] = self::attempt($r, 'conversation', fn() => self::conversation($conn, $ticketId), []);
         if ($on('notes'))        $r['notes'] = self::attempt($r, 'notes', function () use ($conn, $ticketId, $opt, &$r) { return self::notes($conn, $ticketId, $opt['internal'], $r); }, []);
         if ($on('checklists'))   $r['checklists'] = self::attempt($r, 'checklists', fn() => self::ticketChecklists($conn, $ticketId), []);
+        // GH #272: forms on the ticket, beside its checklists. Answers only where TicketForms::mayReadAnswers() says.
+        $r['ticket_forms'] = $on('checklists') && TicketForms::columnsReady($conn)
+            ? self::attempt($r, 'checklists', fn() => TicketForms::forTicket($conn, $ticketId, $viewer, true), []) : [];
         if ($on('history'))      $r['history'] = self::attempt($r, 'history', fn() => self::ticketHistory($conn, $ticketId), []);
 
         // Tasks are read for the evidence index too (their documents), but only shown when chosen.

@@ -2177,6 +2177,8 @@ try {
             'csat_delay_minutes'              => '0',
             // GH #301: one optional reminder for an unanswered emailed survey - off by default.
             'csat_reminder'                   => '0',
+            // GH #272: forms on tickets - off until an administrator switches it on.
+            'tickets_forms_enabled'           => '0',
             'csat_reminder_hours'             => '48',
             // Render the survey UI as 5 stars (⭐⭐⭐⭐⭐) or 5 emojis (😡 🙁 😐 🙂 😀)
             // Same 1-5 data model either way, dashboards/averages work identically.
