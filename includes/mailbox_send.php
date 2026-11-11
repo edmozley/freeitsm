@@ -138,5 +138,20 @@ function mailboxTestResolve(?array $stored, array $form): array
         }
     }
 
+    // Save a copy of sent mail (GH #270): tested with the form's choice. TRAP - the copy
+    // signs in to the IMAP server, so the STORED IMAP password is only used when the IMAP
+    // server and username are the ones it was saved for (the check above is about the
+    // SMTP server only). Otherwise the copy is not tried, and the result says why.
+    if (array_key_exists('save_sent_copy', $form)) {
+        $mb['save_sent_copy'] = !empty($form['save_sent_copy']) ? 1 : 0;
+        $mb['sent_folder'] = trim((string)($form['sent_folder'] ?? ''));
+    }
+    if (!empty($mb['save_sent_copy']) && !$typed($form['imap_password'] ?? '')
+        && !($stored !== null && $same($stored['imap_server'] ?? '', $mb['imap_server'] ?? '')
+             && $same($stored['imap_username'] ?? '', $mb['imap_username'] ?? '') && ($stored['imap_password'] ?? '') !== '')) {
+        $mb['save_sent_copy'] = 0;
+        $mb['sent_copy_not_tried'] = 'The copy for Sent was not tried: type the IMAP password - the saved one is only used with the IMAP server and username it was saved for.';
+    }
+
     return [$mb, null, false];
 }

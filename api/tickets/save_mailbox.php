@@ -248,6 +248,15 @@ try {
         }
     }
 
+    // Save a copy of sent mail (GH #270), Basic IMAP only. Only when sent, and only once
+    // Database Verification has added the columns - an older API client that does not
+    // know them leaves them as they are.
+    if (array_key_exists('save_sent_copy', $data) && $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'save_sent_copy'")->fetch()) {
+        $cols['save_sent_copy'] = !empty($data['save_sent_copy']) ? 1 : 0;
+        $sf = trim((string)($data['sent_folder'] ?? ''));
+        $cols['sent_folder'] = $sf !== '' ? mb_substr($sf, 0, 255) : null;
+    }
+
     $secretProvided   = !(empty($azure_client_secret)  || preg_match('/^\*+/', $azure_client_secret));
     $passwordProvided = !(empty($imap_password_plain)   || preg_match('/^\*+/', $imap_password_plain));
     if ($secretProvided)   $cols['azure_client_secret'] = encryptValue($azure_client_secret);

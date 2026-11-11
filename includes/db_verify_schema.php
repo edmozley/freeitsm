@@ -1391,6 +1391,11 @@ return [
         // #170) - JSON, see includes/attachment_limits.php. NULL = use the defaults
         // in Tickets -> Settings -> Mailboxes.
         'oversize_policy'         => 'TEXT NULL',
+        // Basic IMAP (GH #270): save a copy of each sent email to a folder over IMAP.
+        // Off by default - some SMTP servers file sent mail themselves. sent_folder
+        // NULL/blank = the folder the server marks \Sent. includes/mailbox_imap.php.
+        'save_sent_copy'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'sent_folder'             => 'VARCHAR(255) NULL',
     ],
 
     'emails' => [

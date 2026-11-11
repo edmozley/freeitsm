@@ -308,8 +308,12 @@ function imapHandleAfterProcessing(array $mailbox, int $uid, string $action, ?st
  * @param string $subject  the subject line
  * @param string $htmlBody  the HTML body
  * @param array $parts  attachments and inline images, Graph-shaped - see includes/mime_message.php
+ * @param bool $saveCopy  false for mail that must never be filed in Sent (internal notifications) -
+ *                        the same rule as saveToSentItems on Microsoft 365. A copy is only saved when
+ *                        the mailbox has "Save a copy of sent mail" on (GH #270); see imapSaveSentCopy().
  */
-function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, string $htmlBody, array $parts = []): void {
+function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, string $htmlBody, array $parts = [], bool $saveCopy = true): void {
+    imapSentCopyOutcome(false);   // forget the last send's outcome
     $host = $mailbox['smtp_server'] ?? '';
     $port = (int) ($mailbox['smtp_port'] ?? 587);
     $enc  = strtolower($mailbox['smtp_encryption'] ?? 'tls');
@@ -423,7 +427,9 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
             'parts'    => $parts,
             'envelope' => true,   // nothing downstream adds Date / Message-ID for us
         ]);
-        // Dot-stuff and terminate.
+        // Dot-stuff and terminate. The copy for Sent is the message BEFORE stuffing:
+        // stuffing is SMTP's transport encoding, and APPEND stores the message as it is.
+        $raw = $message;
         $message = preg_replace('/^\./m', '..', $message);
         fwrite($fp, $message . "\r\n.\r\n");
         imapSmtpExpect($fp, [250]);
@@ -432,7 +438,123 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
     } finally {
         fclose($fp);
     }
+
+    // Sent - only now, so a failed send is never filed as sent. Best effort: never throws.
+    if ($saveCopy && !empty($mailbox['save_sent_copy'])) {
+        imapSaveSentCopy($mailbox, $raw, implode(', ', array_merge($toList, $ccList)), $subject);
+    }
 }
+
+/**
+ * What happened to the last send's copy for Sent (GH #270) - for the mailbox Test button,
+ * which reports it. Call with an array to record, false to forget, nothing to read.
+ *
+ * @param array|false|null $set  ['folder' => ?string, 'error' => ?string] to record; false to clear
+ * @return ?array the last outcome, or null when no copy was attempted
+ */
+function imapSentCopyOutcome($set = null): ?array {
+    static $last = null;
+    if ($set === false) {
+        $last = null;
+    } elseif (is_array($set)) {
+        $last = $set;
+    }
+    return $last;
+}
+
+/**
+ * The folder this mailbox's server uses for sent mail: the one LIST marks \Sent
+ * (RFC 6154 SPECIAL-USE - Dovecot, Gmail, Exchange, most hosts), else the first
+ * folder with a common Sent name. Null when there is neither.
+ *
+ * @param ImapClient $client  a signed-in connection
+ */
+function imapFindSentFolder(ImapClient $client): ?string {
+    $folders = $client->listFolders();
+    foreach ($folders as $f) {
+        if (in_array('\\SENT', array_map('strtoupper', $f['flags']), true)) {
+            return $f['name'];
+        }
+    }
+    // No SPECIAL-USE: the names servers actually use, most common first.
+    foreach (['Sent', 'Sent Items', 'Sent Messages', 'Sent Mail', 'INBOX.Sent', 'INBOX/Sent', 'INBOX.Sent Items'] as $want) {
+        foreach ($folders as $f) {
+            if (strcasecmp($f['name'], $want) === 0) {
+                return $f['name'];
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Saves a copy of an email this mailbox has just sent into its Sent folder over IMAP
+ * (GH #270), so people reading the same mailbox in Thunderbird or webmail see what the
+ * service desk sent. Microsoft 365 does this with saveToSentItems; Gmail files sent
+ * mail itself; a Basic IMAP mailbox sends through SMTP, which files nothing.
+ *
+ * The folder is the mailbox's sent_folder (matched to the server's own spelling), or
+ * when that is blank, the one the server marks \Sent. Stored as read (\Seen).
+ *
+ * BEST EFFORT, NEVER THROWS: the email has already gone. A failure is written to the
+ * outbound email log (route 'sent_copy') with the reason, and the send still counts
+ * as sent. A second IMAP connection per send, closed straight away - so attachments
+ * are uploaded twice, which the help says.
+ *
+ * TRAP: off by default, per mailbox (save_sent_copy). Some SMTP servers already file
+ * sent mail themselves (Gmail SMTP, Microsoft 365 SMTP AUTH, some cPanel hosts), and
+ * turning this on there gives two copies of everything.
+ *
+ * @param array $mailbox  the target_mailboxes row, decrypted (imap_* login, sent_folder)
+ * @param string $raw  the message exactly as built, CRLF, not dot-stuffed
+ * @param string $to  the recipients, for the log row if it fails
+ * @param string $subject  the subject, for the log row if it fails
+ * @return array{folder:?string, error:?string}
+ */
+function imapSaveSentCopy(array $mailbox, string $raw, string $to, string $subject): array {
+    $folder = null;
+    try {
+        $client = new ImapClient(
+            (string) ($mailbox['imap_server'] ?? ''),
+            (int) ($mailbox['imap_port'] ?? 993),
+            (string) ($mailbox['imap_encryption'] ?? 'ssl')
+        );
+        $client->connect();
+        try {
+            $client->login((string) ($mailbox['imap_username'] ?? ''), (string) ($mailbox['imap_password'] ?? ''));
+            $want = trim((string) ($mailbox['sent_folder'] ?? ''));
+            if ($want === '') {
+                $folder = imapFindSentFolder($client);
+                if ($folder === null) {
+                    throw new Exception('the server marks no folder as Sent - name the folder in the mailbox settings');
+                }
+            } else {
+                // The server's own spelling, so "sent" finds "Sent" and "Inbox/Sent" finds "INBOX.Sent".
+                $folder = $want;
+                foreach ($client->listFolders() as $f) {
+                    $alt = $f['delimiter'] !== '' ? str_replace($f['delimiter'], '/', $f['name']) : $f['name'];
+                    if (strcasecmp($f['name'], $want) === 0 || strcasecmp($alt, $want) === 0) {
+                        $folder = $f['name'];
+                        break;
+                    }
+                }
+            }
+            $client->append($folder, $raw, ['\\Seen']);
+        } finally {
+            $client->logout();
+        }
+        return imapSentCopyOutcome(['folder' => $folder, 'error' => null]);
+    } catch (Throwable $e) {
+        $why = 'Sent, but the copy could not be saved' . ($folder !== null ? ' to "' . $folder . '"' : '') . ': ' . $e->getMessage();
+        error_log('IMAP sent copy (mailbox ' . ($mailbox['id'] ?? '?') . '): ' . $why);
+        try {
+            require_once __DIR__ . '/email_log.php';
+            emailLogFailed(function_exists('connectToDatabase') ? connectToDatabase() : null, $mailbox, 'sent_copy', $to, $subject, $why);
+        } catch (Throwable) { /* the log must never break a send */ }
+        return imapSentCopyOutcome(['folder' => $folder, 'error' => $why]);
+    }
+}
+
 
 
 /**

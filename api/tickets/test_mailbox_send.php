@@ -81,7 +81,16 @@ try {
         echo json_encode(['success' => false, 'error' => $err, 'used_saved' => $usedSaved]);
         exit;
     }
-    echo json_encode(['success' => true, 'to' => $to, 'used_saved' => $usedSaved]);
+    // GH #270: where the copy went, or why it did not (Basic IMAP with the toggle on).
+    $copy = null;
+    if (strtolower((string)($mailbox['provider'] ?? '')) === 'imap') {
+        if (!empty($mailbox['sent_copy_not_tried'])) {
+            $copy = ['folder' => null, 'error' => (string)$mailbox['sent_copy_not_tried']];
+        } elseif (!empty($mailbox['save_sent_copy']) && function_exists('imapSentCopyOutcome')) {
+            $copy = imapSentCopyOutcome();
+        }
+    }
+    echo json_encode(['success' => true, 'to' => $to, 'used_saved' => $usedSaved, 'sent_copy' => $copy]);
 } catch (Throwable $e) {
     error_log('test_mailbox_send: ' . $e->getMessage());
     echo json_encode(['success' => false, 'error' => 'The test could not run: ' . $e->getMessage()]);

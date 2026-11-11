@@ -723,7 +723,7 @@ function internalTicketEmail(PDO $conn, int $ticketId, array $recipients, string
     foreach ($recipients as $to) {
         try {
             if ($provider === MailboxProvider::Imap) {
-                imapSmtpSend($mailbox, $to, '', $subject, $bodyHtml);
+                imapSmtpSend($mailbox, $to, '', $subject, $bodyHtml, [], false);   // internal notification: never filed in Sent (as saveToSentItems false below)
             } elseif ($provider === MailboxProvider::Google) {
                 gmailSendEmail($accessToken, $to, $subject, $bodyHtml, $mailbox['target_mailbox'] ?? '');
             } else {

@@ -1940,6 +1940,10 @@ CREATE TABLE IF NOT EXISTS `target_mailboxes` (
     -- This mailbox's own rules for emails over the attachment size limits (#170):
     -- JSON (includes/attachment_limits.php). NULL = the defaults in Tickets -> Settings.
     `oversize_policy`       TEXT NULL,
+    -- Basic IMAP (#270): save a copy of each sent email over IMAP. Off by default;
+    -- sent_folder NULL = the folder the server marks \Sent.
+    `save_sent_copy`        TINYINT(1) NOT NULL DEFAULT 0,
+    `sent_folder`           VARCHAR(255) NULL,
     PRIMARY KEY (`id`),
     KEY `ix_target_mailboxes_tenant_id` (`tenant_id`),
     CONSTRAINT `fk_target_mailboxes_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,

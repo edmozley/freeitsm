@@ -60,6 +60,9 @@ const EMAIL_LOG_ROUTES = [
     'task_contractor' => 'Task for a contractor',
     // An approved project report emailed from its Reports tab (3.3.0).
     'project_report' => 'Project report',
+    // A Basic IMAP mailbox's copy of a sent email that could not be saved to its Sent
+    // folder (GH #270). Failures only: the email itself went, and has its own row.
+    'sent_copy'      => 'Copy to Sent folder',
 ];
 
 /**

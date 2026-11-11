@@ -27,6 +27,8 @@ try {
     $sensCol = ticketSensitivityReady($conn) ? 'default_sensitivity,' : "'normal' AS default_sensitivity,";
     // A mailbox's own oversized-email rules (GH #170), once Database Verification has added the column.
     $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'oversize_policy'")->fetch() ? ' oversize_policy,' : ' NULL AS oversize_policy,';
+    // Save a copy of sent mail (GH #270), once Database Verification has added the columns.
+    $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'save_sent_copy'")->fetch() ? ' save_sent_copy, sent_folder,' : ' 0 AS save_sent_copy, NULL AS sent_folder,';
 
     $sql = "SELECT id, name, provider, azure_tenant_id, azure_client_id, azure_client_secret,
                    oauth_redirect_uri, oauth_scopes, imap_server, imap_port, imap_encryption,

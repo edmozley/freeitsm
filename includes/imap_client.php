@@ -389,6 +389,26 @@ class ImapClient
         $this->command($this->hasCapability('UIDPLUS') ? 'UID EXPUNGE ' . $uid : 'EXPUNGE');
     }
 
+    /**
+     * Stores a whole message in a folder (IMAP APPEND) - how a copy of a sent email
+     * reaches the Sent folder (GH #270). No folder needs to be selected.
+     *
+     * The message goes as a synchronising literal: sendCommand() waits for the
+     * server's "+" before sending the bytes, so a server that refuses (no such
+     * folder, over quota) says so before the message is uploaded.
+     *
+     * @param string $folder  the destination folder in UTF-8, e.g. Sent or INBOX.Sent
+     * @param string $message  the complete RFC 5322 message with CRLF line endings, NOT dot-stuffed
+     * @param string[] $flags  system flags to set on it, e.g. ['\Seen']
+     * @throws ImapException with the server's own words, e.g. "[TRYCREATE] Mailbox doesn't exist"
+     */
+    public function append(string $folder, string $message, array $flags = ['\\Seen']): void
+    {
+        $this->command('APPEND ' . imapString(imapFolderEncode($folder))
+            . ($flags ? ' (' . implode(' ', $flags) . ')' : '')
+            . ' {' . strlen($message) . "}\r\n" . $message);
+    }
+
     // ------------------------------------------------------------------ the wire
 
     /**

@@ -14,7 +14,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *       -p 31143:31143 -p 31993:31993 dovecot/dovecot:latest
  *   docker run -d --name freeitsm-imaptest-greenmail \
  *       -e GREENMAIL_OPTS='-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.auth.disabled' \
- *       -p 3143:3143 -p 3993:3993 greenmail/standalone:2.1.3
+ *       -p 3143:3143 -p 3993:3993 -p 3025:3025 greenmail/standalone:2.1.3   (3025 = SMTP, for the round trips)
  *
  * A server that is not running is SKIPPED and named, never counted as a pass.
  * Each run signs in as a brand-new user, so it starts from an empty mailbox and
@@ -296,6 +296,66 @@ if (isset($servers['GreenMail']) && portOpen(3025)) {
     ok('the attachment keeps its real name, not the ASCII fallback', isset($rtAtt['Bericht für Sie.pdf']), array_keys($rtAtt));
     ok('...and its bytes', isset($rtAtt['Bericht für Sie.pdf']) && base64_decode($rtAtt['Bericht für Sie.pdf']['contentBytes']) === $rtPdf);
     ok('the inline image keeps its Content-ID', ($rtAtt['sig.png']['contentId'] ?? '') === 'sig@x' && ($rtAtt['sig.png']['isInline'] ?? false) === true, $rtAtt['sig.png'] ?? null);
+}
+
+// ------------------------------------------------------------------ a copy of sent mail (GH #270)
+// imapSaveSentCopy() against each real server over SSL: the folder it finds, APPEND as
+// a literal, and the message read back byte for byte and marked read.
+foreach ($servers as $serverName => $srv) {
+    echo "\n######## {$serverName}: save a copy of sent mail\n";
+    $user = 'zz-sentcopy-' . bin2hex(random_bytes(3));
+    $mbS = ['id' => 9100, 'imap_server' => $host, 'imap_port' => $srv['ssl'], 'imap_encryption' => 'ssl',
+            'imap_username' => $user, 'imap_password' => $srv['password'], 'save_sent_copy' => 1];
+    $c = new ImapClient($host, $srv['ssl'], 'ssl', 10);
+    $c->connect(); $c->login($user, $srv['password']);
+    try { $c->command('CREATE "Sent"'); } catch (ImapException $e) { /* may exist already */ }
+    $flags = [];
+    foreach ($c->listFolders() as $f) if ($f['name'] === 'Sent') $flags = $f['flags'];
+    echo "        (\"Sent\" is marked \\Sent by SPECIAL-USE: " . (in_array('\\SENT', array_map('strtoupper', $flags), true) ? 'yes' : 'no - found by its name') . ")\n";
+    ok('the Sent folder is found with the folder setting blank', imapFindSentFolder($c) === 'Sent', imapFindSentFolder($c));
+    $raw = "From: Support <help@freeitsm.test>\r\nTo: ann@example.com\r\nSubject: =?UTF-8?Q?Re:_Drucker_=E2=9C=93?=\r\nDate: Wed, 11 Nov 2026 10:00:00 +0000\r\n"
+         . "Message-ID: <zz-sent-" . bin2hex(random_bytes(3)) . "@freeitsm.test>\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n"
+         . "Fixed.\r\n.a line starting with a dot\r\n" . str_repeat("padding line to make a bigger literal\r\n", 300);
+    $out = imapSaveSentCopy($mbS, $raw, 'ann@example.com', 'Re: Drucker');
+    ok('saved, folder blank: no error, into "Sent"', $out['error'] === null && $out['folder'] === 'Sent', $out);
+    $n = $c->select('Sent');
+    $uids = $c->uidSearch('ALL');
+    $got = $uids ? $c->uidFetch(end($uids), '(FLAGS BODY.PEEK[])') : [];
+    $body = '';
+    foreach ($got as $k => $v) if (stripos((string)$k, 'BODY[') === 0) $body = (string)$v;
+    ok('one message in Sent', $n === 1, $n);
+    ok('...byte for byte the message given', $body === $raw, strlen($body) . ' vs ' . strlen($raw));
+    ok('...marked as read', stripos(json_encode($got['FLAGS'] ?? ''), 'Seen') !== false, $got['FLAGS'] ?? null);
+    $out = imapSaveSentCopy(array_merge($mbS, ['sent_folder' => 'sent']), $raw, 'ann@example.com', 'S');
+    ok('a folder typed as "sent" goes to the server\'s "Sent"', $out['error'] === null && $out['folder'] === 'Sent', $out);
+    $out = imapSaveSentCopy(array_merge($mbS, ['sent_folder' => 'No Such Folder']), $raw, 'ann@example.com', 'S');
+    ok('a folder that does not exist: an error naming it, never an exception', $out['error'] !== null && str_contains($out['error'], 'No Such Folder'), $out);
+    $c->logout();
+}
+// The whole thing on GreenMail: SMTP send with the toggle on, then the copy is in Sent.
+if (isset($servers['GreenMail']) && portOpen(3025)) {
+    echo "\n######## Round trip: a reply is sent and filed in Sent (GH #270)\n";
+    $u = 'zz-sentrt-' . bin2hex(random_bytes(3)) . '@freeitsm.test';
+    $mbT = ['id' => 9101, 'name' => 'Support Desk', 'target_mailbox' => $u,
+        'smtp_server' => $host, 'smtp_port' => 3025, 'smtp_encryption' => 'none',
+        'imap_server' => $host, 'imap_port' => 3143, 'imap_encryption' => 'none',
+        'imap_username' => $u, 'imap_password' => 'x', 'email_folder' => 'INBOX', 'save_sent_copy' => 1];
+    $c = new ImapClient($host, 3143, 'none', 10); $c->connect(); $c->login($u, 'x');
+    try { $c->command('CREATE "Sent"'); } catch (ImapException $e) {}
+    imapSmtpSend($mbT, 'customer@example.com', '', 'Re: [#77] Printer – done ✓', '<p>All fixed.</p>', [
+        ['name' => 'Bericht.pdf', 'contentType' => 'application/pdf', 'contentBytes' => base64_encode("%PDF-1.4 x")],
+    ]);
+    ok('the send reports the copy saved to Sent', (imapSentCopyOutcome()['folder'] ?? '') === 'Sent' && imapSentCopyOutcome()['error'] === null, imapSentCopyOutcome());
+    $c->select('Sent');
+    $uids = $c->uidSearch('ALL');
+    $item = $uids ? $c->uidFetch(end($uids), '(ENVELOPE BODYSTRUCTURE)') : [];
+    $env = imapEnvelope($item['ENVELOPE'] ?? null);
+    ok('Sent holds the reply, subject intact', count($uids) === 1 && ($env['subject'] ?? '') === 'Re: [#77] Printer – done ✓', $env);
+    ok('...with its attachment', str_contains(json_encode($item['BODYSTRUCTURE'] ?? ''), 'Bericht.pdf'));
+    imapSmtpSend($mbT, 'customer@example.com', '', 'Internal', '<p>x</p>', [], false);
+    $c->select('Sent');
+    ok('an internal notification (saveCopy false) is not filed', count($c->uidSearch('ALL')) === 1);
+    $c->logout();
 }
 
 echo "\n{$pass} passed, {$fail} failed" . ($skipped ? ' - SKIPPED (not running): ' . implode(', ', $skipped) : '') . "\n";

@@ -2983,6 +2983,30 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <input type="password" id="mailboxSmtpPassword" autocomplete="new-password" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_password_placeholder')); ?>">
                     </div>
 
+                    <!-- Save a copy of sent mail (GH #270). Off by default: some SMTP servers
+                         already file sent mail, and on would mean two copies. The folder row
+                         carries `sent-copy` and NOT `provider-imap` - toggleSentFolder() owns
+                         it (the smtp-creds rule above). -->
+                    <div class="form-group provider-imap" style="grid-column: span 2;">
+                        <label style="display: flex; align-items: center; gap: 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.save_sent_copy')); ?>
+                            <label class="toggle-switch" style="margin: 0;">
+                                <input type="checkbox" id="mailboxSaveSentCopy" onchange="toggleSentFolder()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </label>
+                        <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.save_sent_copy_help')); ?></small>
+                    </div>
+
+                    <div class="form-group sent-copy" id="sentFolderGroup" style="display: none; grid-column: span 2;">
+                        <label for="mailboxSentFolder"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.sent_folder')); ?></label>
+                        <div style="display: flex; gap: 8px; align-items: start;">
+                            <input type="text" id="mailboxSentFolder" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.sent_folder_placeholder')); ?>" style="flex: 1;">
+                            <button type="button" class="btn btn-secondary" id="verifySentFolderBtn" onclick="verifySentFolder()" style="padding: 8px 12px; white-space: nowrap;"><?php echo htmlspecialchars(t('tickets.settings.buttons.verify')); ?></button>
+                        </div>
+                        <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.sent_folder_help')); ?></small>
+                        <small id="verifySentFolderResult" style="display: none; margin-top: 5px;"></small>
+                    </div>
+
                     <!-- Test sending (4.11.0): every provider, so no provider-* class. It
                          sends a short email to the analyst clicking it, through the same
                          route a reply takes (api/tickets/test_mailbox_send.php). Basic IMAP
@@ -6094,6 +6118,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
             setOversizeFields('ovm', ownOversize || Object.assign({}, oversizeDefaults || {}));
             document.getElementById('mailboxImportedAction').value = mailbox ? (mailbox.imported_action || 'delete') : 'delete';
             document.getElementById('mailboxImportedFolder').value = mailbox ? (mailbox.imported_folder || '') : '';
+            document.getElementById('mailboxSaveSentCopy').checked = !!(mailbox && Number(mailbox.save_sent_copy) === 1);
+            document.getElementById('mailboxSentFolder').value = mailbox ? (mailbox.sent_folder || '') : '';
+            document.getElementById('verifySentFolderResult').style.display = 'none';
+            toggleSentFolder();
             toggleImportedFolder();
             document.getElementById('verifyFolderResult').style.display = 'none';
             document.getElementById('verifyIntakeFolderResult').style.display = 'none';
@@ -6197,6 +6225,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             // answer to the "same as the IMAP login" toggle as well as to the
             // provider, so one function owns them rather than two.
             toggleSmtpCredentials();
+            toggleSentFolder();   // GH #270: the Sent folder row answers to its own toggle too
 
             // A hidden `required` input still blocks form submit — toggle required to match
             // visibility so, e.g., an IMAP mailbox can save without OAuth client id/secret.
@@ -6265,6 +6294,16 @@ function renderOversizeFields(string $px, bool $withLimits): void
         // move-to folder and the read-from folder disagree in the first place (GH #77).
         function verifyFolder() {
             return runFolderVerify('mailboxImportedFolder', 'verifyFolderResult', 'verifyFolderBtn');
+        }
+        /** The Sent folder row: only for Basic IMAP with "Save a copy" on (GH #270). */
+        function toggleSentFolder() {
+            const on = document.getElementById('mailboxProvider').value === 'imap'
+                && document.getElementById('mailboxSaveSentCopy').checked;
+            document.getElementById('sentFolderGroup').style.display = on ? '' : 'none';
+        }
+        /** Verify the Sent folder; blank means the server's own Sent folder, which the Test button reports. */
+        function verifySentFolder() {
+            return runFolderVerify('mailboxSentFolder', 'verifySentFolderResult', 'verifySentFolderBtn');
         }
         function verifyIntakeFolder() {
             return runFolderVerify('mailboxFolder', 'verifyIntakeFolderResult', 'verifyIntakeFolderBtn');
@@ -6370,14 +6409,26 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         smtp_encryption: val('mailboxSmtpEncryption'),
                         smtp_same_as_imap: document.getElementById('mailboxSmtpSameAsImap').checked,
                         smtp_username: val('mailboxSmtpUsername'),
-                        smtp_password: val('mailboxSmtpPassword')
+                        smtp_password: val('mailboxSmtpPassword'),
+                        save_sent_copy: document.getElementById('mailboxSaveSentCopy').checked,
+                        sent_folder: val('mailboxSentFolder')
                     })
                 });
                 const data = await res.json();
                 resultEl.style.display = '';
                 if (data.success) {
                     resultEl.style.color = '#155724';
-                    resultEl.textContent = window.t(data.used_saved ? 'tickets.settings.mailbox_test.sent_saved' : 'tickets.settings.mailbox_test.sent', { to: data.to });
+                    let msg = window.t(data.used_saved ? 'tickets.settings.mailbox_test.sent_saved' : 'tickets.settings.mailbox_test.sent', { to: data.to });
+                    // GH #270: where the copy for Sent went - or, amber, why it did not.
+                    if (data.sent_copy) {
+                        if (data.sent_copy.error) {
+                            msg += ' ' + data.sent_copy.error;
+                            resultEl.style.color = '#856404';
+                        } else {
+                            msg += ' ' + window.t('tickets.settings.mailbox_test.copy_saved', { folder: data.sent_copy.folder || '' });
+                        }
+                    }
+                    resultEl.textContent = msg;
                 } else {
                     // The server's message names the step that failed and, for a
                     // port/encryption mismatch, what to change. textContent: no HTML.
@@ -6727,6 +6778,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 rejected_action: document.getElementById('mailboxRejectedAction').value,
                 imported_action: document.getElementById('mailboxImportedAction').value,
                 imported_folder: document.getElementById('mailboxImportedFolder').value || null,
+                save_sent_copy: document.getElementById('mailboxProvider').value === 'imap' && document.getElementById('mailboxSaveSentCopy').checked,
+                sent_folder: document.getElementById('mailboxSentFolder').value.trim() || null,
                 is_active: document.getElementById('mailboxActive').checked,
                 // Multi-tenancy: "" (shared intake) when the picker is hidden/unset → NULL server-side.
                 tenant_id: document.getElementById('mailboxCompany').value || null,
