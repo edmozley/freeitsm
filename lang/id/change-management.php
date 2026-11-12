@@ -648,7 +648,6 @@ return [
         'types_heading' => 'Jenis perubahan',
         'types_intro' => 'Kategori permintaan perubahan — biasanya Standar, Normal, Darurat. Tepat satu jenis menjadi default untuk perubahan baru.',
         'impacts_heading' => 'Dampak',
-        'impacts_intro' => 'Tingkatan dampak yang menggambarkan seberapa luas suatu perubahan memengaruhi bisnis. Dipadukan dengan prioritas untuk menghitung skor risiko.',
         'impacts_scope_intro' => 'Tingkatan dampak menggambarkan seberapa luas suatu perubahan memengaruhi bisnis. Tingkatan ini tidak menentukan skor maupun tingkat risiko. Risiko dinilai terpisah menggunakan kemungkinan risiko dan dampak risiko berdasarkan kebijakan risiko.',
         'add' => 'Tambah',
         'col_name' => 'Nama',

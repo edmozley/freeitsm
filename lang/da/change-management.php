@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Ændringstyper',
         'types_intro' => 'Kategorier af ændringsanmodninger — typisk Standard, Normal, Nødændring. Præcis én type er standard for nye ændringer.',
         'impacts_heading' => 'Konsekvenser',
-        'impacts_intro' => 'Konsekvensniveauer, der beskriver, hvor bredt en ændring påvirker virksomheden. Kombineres med prioritet for at beregne risikoscore.',
         'add' => 'Tilføj',
         'col_name' => 'Navn',
         'col_colour' => 'Farve',

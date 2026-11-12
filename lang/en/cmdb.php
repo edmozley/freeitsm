@@ -508,7 +508,7 @@ return [
         'delete'         => 'Delete',
 
         'rel_types_heading' => 'Relationship types',
-        'rel_types_intro'   => 'Named verbs that link any two objects (separate from the parent/child hierarchy). Each verb has an <strong>inverse</strong> shown when viewing the other side of the link — e.g. <em>"depends on"</em> ↔ <em>"is depended on by"</em>.',
+        'rel_types_intro'   => 'Named verbs that link any two objects (separate from the parent/child hierarchy). An object\'s page shows each link as a sentence naming both ends with the verb - <em>"VM-A runs on HOST-A"</em> - whichever side you are on. Each verb also has an <strong>inverse</strong>, how the same link reads the other way round - e.g. <em>"depends on"</em> ↔ <em>"is depended on by"</em> - used when you add a link from the other end.',
         'col_verb'       => 'Verb',
         'col_inverse_verb' => 'Inverse verb',
         'no_rel_types'   => 'No relationship types yet — click <strong>Add</strong>.',
@@ -615,7 +615,7 @@ return [
         'rel_type_verb_help' => 'How A relates to B. Use plain English (read by AI features).',
         'rel_type_inverse' => 'Inverse verb *',
         'rel_type_inverse_placeholder' => 'e.g. is depended on by',
-        'rel_type_inverse_help' => 'The reciprocal — what B sees when looking back at A.',
+        'rel_type_inverse_help' => 'The same link read the other way round - "B hosts A" for "A runs on B". Used when a link is added from B.',
         'rel_type_description' => 'Description',
         'rel_type_description_placeholder' => 'Short description',
         'rel_type_display_order' => 'Display order',

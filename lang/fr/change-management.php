@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Types de changement',
         'types_intro' => 'Catégories de demande de changement — généralement Standard, Normal, Urgent. Un seul type est celui par défaut des nouveaux changements.',
         'impacts_heading' => 'Impacts',
-        'impacts_intro' => 'Niveaux d\'impact décrivant l\'ampleur avec laquelle un changement affecte l\'entreprise. Se combine avec la priorité pour calculer le score de risque.',
         'add' => 'Ajouter',
         'col_name' => 'Nom',
         'col_colour' => 'Couleur',

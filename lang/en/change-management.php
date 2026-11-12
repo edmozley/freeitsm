@@ -700,7 +700,6 @@ return [
         'types_heading'    => 'Change types',
         'types_intro'      => 'Categories of change request — typically Standard, Normal, Emergency. Exactly one type is the default for new changes.',
         'impacts_heading'  => 'Impacts',
-        'impacts_intro'    => 'Impact bands describing how widely a change affects the business. Combines with priority to drive risk scoring.',
         'impacts_scope_intro' => 'Impact bands describe how widely a change affects the business. They do not determine the risk score or level. Risk is assessed separately using risk likelihood and risk impact under the risk policy.',
         'add'              => 'Add',
 

@@ -649,7 +649,6 @@ return [
         'types_heading' => 'Tipos de cambio',
         'types_intro' => 'Categorías de solicitud de cambio, normalmente Estándar, Normal, Emergencia. Exactamente un tipo es el predeterminado para los nuevos cambios.',
         'impacts_heading' => 'Impactos',
-        'impacts_intro' => 'Bandas de impacto que describen cuán ampliamente un cambio afecta al negocio. Se combina con la prioridad para determinar la puntuación de riesgo.',
         'impacts_scope_intro' => 'Las bandas de impacto describen hasta qué punto un cambio afecta al negocio. No determinan la puntuación ni el nivel de riesgo. El riesgo se evalúa por separado con la probabilidad y el impacto del riesgo, según la política de riesgo.',
         'add' => 'Añadir',
         'col_name' => 'Nombre',

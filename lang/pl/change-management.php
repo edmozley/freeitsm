@@ -648,7 +648,6 @@ return [
         'types_heading' => 'Typy zmian',
         'types_intro' => 'Kategorie żądań zmian — zazwyczaj Standardowa, Normalna, Awaryjna. Dokładnie jeden typ jest domyślny dla nowych zmian.',
         'impacts_heading' => 'Wpływy',
-        'impacts_intro' => 'Przedziały wpływu opisujące, jak szeroko zmiana oddziałuje na działalność firmy. Łączy się z priorytetem, aby wyznaczyć wynik ryzyka.',
         'impacts_scope_intro' => 'Przedziały wpływu opisują, jak szeroko zmiana oddziałuje na działalność firmy. Nie wyznaczają wyniku ani poziomu ryzyka. Ryzyko ocenia się osobno, na podstawie prawdopodobieństwa i wpływu ryzyka, według polityki ryzyka.',
         'add' => 'Dodaj',
         'col_name' => 'Nazwa',

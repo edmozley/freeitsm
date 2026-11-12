@@ -183,7 +183,7 @@ return [
         'name_integration_poll' => 'Odpytywanie systemu zgłoszeń',
         'affects_integration_poll' => 'Statusy i komentarze z Jira i innych systemów na powiązanych zgłoszeniach',
         'name_csat_delayed' => 'Opóźnione ankiety satysfakcji i przypomnienia',
-        'affects_csat_delayed' => 'Ankiety satysfakcji wstrzymane przez „Opóźnienie przed wysłaniem” - nigdy nie zostaną wysłane',
+        'affects_csat_delayed' => 'Ankiety satysfakcji wstrzymane przez „Opóźnienie przed wysłaniem” oraz przypomnienia o ankietach - żadne nie zostanie wysłane',
         'name_task_recurrence' => 'Zadania cykliczne',
         'affects_task_recurrence' => 'Zadania powtarzające się według stałego harmonogramu',
         'name_attachment_extract' => 'Tekst załączników',

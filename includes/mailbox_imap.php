@@ -499,7 +499,7 @@ function imapFindSentFolder(ImapClient $client): ?string {
  * BEST EFFORT, NEVER THROWS: the email has already gone. A failure is written to the
  * outbound email log (route 'sent_copy') with the reason, and the send still counts
  * as sent. A second IMAP connection per send, closed straight away - so attachments
- * are uploaded twice, which the help says.
+ * are uploaded twice (wiki Basic-IMAP-Mailboxes says so; the in-app help does not).
  *
  * TRAP: off by default, per mailbox (save_sent_copy). Some SMTP servers already file
  * sent mail themselves (Gmail SMTP, Microsoft 365 SMTP AUTH, some cPanel hosts), and

@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Tipos de mudança',
         'types_intro' => 'Categorias de solicitação de mudança — normalmente Padrão, Normal, Emergencial. Exatamente um tipo é o padrão para novas mudanças.',
         'impacts_heading' => 'Impactos',
-        'impacts_intro' => 'Faixas de impacto que descrevem o quão amplamente uma mudança afeta o negócio. Combina com a prioridade para definir a pontuação de risco.',
         'add' => 'Adicionar',
         'col_name' => 'Nome',
         'col_colour' => 'Cor',

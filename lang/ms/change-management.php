@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Jenis perubahan',
         'types_intro' => 'Kategori permintaan perubahan — biasanya Standard, Biasa, Kecemasan. Tepat satu jenis menjadi lalai untuk perubahan baharu.',
         'impacts_heading' => 'Impak',
-        'impacts_intro' => 'Kumpulan impak yang menerangkan sejauh mana sesuatu perubahan menjejaskan perniagaan. Digabungkan dengan keutamaan untuk menentukan skor risiko.',
         'add' => 'Tambah',
         'col_name' => 'Nama',
         'col_colour' => 'Warna',

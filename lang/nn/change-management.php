@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Endringstypar',
         'types_intro' => 'Kategoriar av endringsførespurnad — vanlegvis Standard, Normal og Hasteendring. Nøyaktig éin type er standard for nye endringar.',
         'impacts_heading' => 'Påverknader',
-        'impacts_intro' => 'Påverknadsnivå som skildrar kor breitt ei endring påverkar verksemda. Saman med prioriteten styrer dei risikoscoren.',
         'add' => 'Legg til',
         'col_name' => 'Namn',
         'col_colour' => 'Farge',

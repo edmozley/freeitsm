@@ -183,7 +183,7 @@ return [
         'name_integration_poll' => 'Consulta del gestor de incidencias',
         'affects_integration_poll' => 'Estados y comentarios de Jira y otros gestores en los tickets vinculados',
         'name_csat_delayed' => 'Encuestas de satisfacción diferidas y recordatorios',
-        'affects_csat_delayed' => 'Encuestas de satisfacción retenidas por "Retraso antes de enviar": nunca se envían',
+        'affects_csat_delayed' => 'Encuestas de satisfacción retenidas por "Retraso antes de enviar" y recordatorios de encuesta: no se envía ninguno',
         'name_task_recurrence' => 'Tareas repetitivas',
         'affects_task_recurrence' => 'Tareas que se repiten con una programación fija',
         'name_attachment_extract' => 'Texto de los adjuntos',

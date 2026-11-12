@@ -649,7 +649,6 @@ return [
         'types_heading' => 'Change-Typen',
         'types_intro' => 'Kategorien von Change-Anfragen — typischerweise Standard, Normal, Notfall. Genau ein Typ ist der Standard für neue Changes.',
         'impacts_heading' => 'Auswirkungen',
-        'impacts_intro' => 'Auswirkungsstufen, die beschreiben, wie weitreichend ein Change das Unternehmen betrifft. Wird mit der Priorität kombiniert, um die Risikobewertung zu steuern.',
         'impacts_scope_intro' => 'Auswirkungsstufen beschreiben, wie weitreichend ein Change das Unternehmen betrifft. Sie bestimmen weder Risikowert noch Risikostufe. Das Risiko wird getrennt über Risikowahrscheinlichkeit und Risikoauswirkung nach der Risikorichtlinie bewertet.',
         'add' => 'Hinzufügen',
         'col_name' => 'Name',

@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Tipi di cambiamento',
         'types_intro' => 'Categorie di richiesta di cambiamento — tipicamente Standard, Normale, Emergenza. Esattamente un tipo è quello predefinito per i nuovi cambiamenti.',
         'impacts_heading' => 'Impatti',
-        'impacts_intro' => 'Fasce di impatto che descrivono quanto ampiamente un cambiamento influisce sull\'azienda. Si combina con la priorità per determinare il punteggio di rischio.',
         'add' => 'Aggiungi',
         'col_name' => 'Nome',
         'col_colour' => 'Colore',

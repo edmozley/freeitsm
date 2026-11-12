@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Endringstyper',
         'types_intro' => 'Kategorier av endringsforespørsler — vanligvis Standard, Normal og Nødendring. Nøyaktig én type er standard for nye endringer.',
         'impacts_heading' => 'Konsekvenser',
-        'impacts_intro' => 'Konsekvensnivåer som beskriver hvor bredt en endring påvirker virksomheten. Kombineres med prioritet for å beregne risiko.',
         'add' => 'Legg til',
         'col_name' => 'Navn',
         'col_colour' => 'Farge',

@@ -183,7 +183,7 @@ return [
         'name_integration_poll' => 'Polling pelacak masalah',
         'affects_integration_poll' => 'Status dan komentar dari Jira dan pelacak lain pada tiket yang tertaut',
         'name_csat_delayed' => 'Survei kepuasan dan pengingat yang tertunda',
-        'affects_csat_delayed' => 'Survei kepuasan yang ditahan oleh "Delay before sending" - tidak pernah terkirim',
+        'affects_csat_delayed' => 'Survei kepuasan yang ditahan oleh "Jeda sebelum mengirim" dan pengingat survei - keduanya tidak pernah terkirim',
         'name_task_recurrence' => 'Tugas berulang',
         'affects_task_recurrence' => 'Tugas yang berulang sesuai jadwal tetap',
         'name_attachment_extract' => 'Teks lampiran',

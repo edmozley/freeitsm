@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Wijzigingstypes',
         'types_intro' => 'Categorieën van wijzigingsaanvragen — meestal Standaard, Normaal, Noodgeval. Precies één type is de standaard voor nieuwe wijzigingen.',
         'impacts_heading' => 'Impacts',
-        'impacts_intro' => 'Impactbanden die beschrijven hoe breed een wijziging het bedrijf beïnvloedt. Wordt gecombineerd met prioriteit om de risicoscore te bepalen.',
         'add' => 'Toevoegen',
         'col_name' => 'Naam',
         'col_colour' => 'Kleur',

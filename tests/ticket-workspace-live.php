@@ -50,7 +50,7 @@ try {
  const taskLink=document.querySelector('#twTaskList a');
  check('Work opens the native task separately in this contribution',!!taskLink&&new URL(taskLink.href).searchParams.get('task')==='$task'&&taskLink.target==='_blank');
  TicketWorkspace.activate('conversation');
- openNoteModal();document.getElementById('noteText').value='ZZ internal workspace evidence';await saveNote();
+ openNoteModal();document.getElementById('noteText').textContent='ZZ internal workspace evidence';await saveNote(); /* #noteText is an editable box since GH #224 (pictures in notes): .value set nothing, and the note was refused as empty */
  await wait(()=>document.getElementById('notesContainer')?.textContent.includes('ZZ internal workspace evidence'));
  check('native internal note saves in the same ticket',document.getElementById('notesContainer').textContent.includes('ZZ internal workspace evidence'));
  TicketWorkspace.activate('time');await wait(()=>document.getElementById('timeEntryMinutes'));

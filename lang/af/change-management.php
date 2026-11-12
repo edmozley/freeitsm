@@ -574,7 +574,6 @@ return [
         'types_heading' => 'Veranderingstipes',
         'types_intro' => 'Kategorieë van veranderingsversoeke — tipies Standaard, Normaal, Noodgeval. Presies een tipe is die verstek vir nuwe veranderinge.',
         'impacts_heading' => 'Impakte',
-        'impacts_intro' => 'Impakbande wat beskryf hoe wyd \'n verandering die besigheid raak. Word met prioriteit gekombineer om risikotelling te dryf.',
         'add' => 'Voeg by',
         'col_name' => 'Naam',
         'col_colour' => 'Kleur',
