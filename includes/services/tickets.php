@@ -504,6 +504,10 @@ class TicketsService
                 }
                 $updates[] = "$catField = ?";
                 $args[]    = null;
+                // GH #298 follow-up: clearing the category IS a category change, so
+                // ticket.category_changed fires (new_category_id null). Until 5.1.0 only an
+                // explicit category edit did, and a workflow routing by category never heard.
+                if ($catField === 'category_id') $categoryChange = [(int)$catId, null];
                 $audits[]  = [
                     $catField === 'category_id' ? 'Category' : 'Category at Close',
                     ticketCategoryPathLabel($conn, (int)$catId),

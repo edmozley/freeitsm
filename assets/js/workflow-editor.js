@@ -772,7 +772,7 @@ const WFE = (() => {
                 }).join('') +
                 '</div>' +
                 '<small style="display:block; color:var(--text-dim, #888); margin-top:4px;">Tick one for an exact match, or several for an "any of" match.</small>' +
-                (n.field === 'ticket.category_id' ? categoryMatchTip() : '');
+                (['ticket.category_id', 'old_category_id', 'new_category_id'].includes(n.field) ? categoryMatchTip() : '');
             return;
         }
 

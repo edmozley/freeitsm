@@ -1331,7 +1331,15 @@ class WorkflowEngine
         // availableValuesForField(), because "Printer" alone is ambiguous the
         // moment two roots have one.
         'ticket.category_id'         => ['table' => 'ticket_categories', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
+        // GH #298 follow-up (5.1.0): ticket.category_changed's own two ids. As lookups they get
+        // a category pick-list in the editor (they were bare number boxes), the subcategory
+        // rule in conditions, and {{old_category_name}} / {{new_category_name}}.
+        'old_category_id'            => ['table' => 'ticket_categories', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
+        'new_category_id'            => ['table' => 'ticket_categories', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
     ];
+
+    /** Condition fields that hold a ticket category id - one pick-list and one matching rule for all three. */
+    private const CATEGORY_FIELDS = ['ticket.category_id', 'old_category_id', 'new_category_id'];
 
     /**
      * Field-type catalogue for the non-lookup fields. Drives which operators
@@ -1431,7 +1439,7 @@ class WorkflowEngine
     {
         if (!isset(self::FIELD_LOOKUP_TABLES[$fieldPath])) return null;
         $spec = self::FIELD_LOOKUP_TABLES[$fieldPath];
-        if ($fieldPath === 'ticket.category_id') return self::categoryLookupValues();
+        if (in_array($fieldPath, self::CATEGORY_FIELDS, true)) return self::categoryLookupValues();
         try {
             $conn = connectToDatabase();
             $where = isset($spec['where']) ? ' WHERE ' . $spec['where'] : '';
@@ -2273,7 +2281,7 @@ class WorkflowEngine
             // it names, unless Tickets -> Settings -> Categories says exact only.
             $tested = $value;
             $withSubs = false;
-            if ($field === 'ticket.category_id' && in_array($op, ['in', 'not_in'], true) && self::categoryMatchIncludesSubcategories()) {
+            if (in_array($field, self::CATEGORY_FIELDS, true) && in_array($op, ['in', 'not_in'], true) && self::categoryMatchIncludesSubcategories()) {
                 $tested = self::categoryIdsWithDescendants($value);
                 $withSubs = true;
             }

@@ -41,7 +41,7 @@ if (!$expected || $expected !== $db) {
 }
 
 $tag = 'ZZ298-' . bin2hex(random_bytes(3));
-$cats = []; $wfs = []; $tickets = []; $paused = [];
+$cats = []; $wfs = []; $tickets = []; $paused = []; $types = [];
 $oldSetting = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'workflow_category_match'")->fetchColumn();
 $setMatch = function (?string $v) use ($conn) {
     if ($v === null) $conn->exec("DELETE FROM system_settings WHERE setting_key = 'workflow_category_match'");
@@ -122,6 +122,40 @@ try {
     $admin = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 AND is_admin = 1 ORDER BY id LIMIT 1")->fetchColumn();
     TicketsService::createNote($conn, new ActorContext($admin, null, 'ui', 'en', 'ZZ tester'), $t1, ['text' => "$tag a note", 'is_internal' => true]);
     check('a note on a "Laptop" ticket: the engine looks the category up, and the workflow matches', $noted($t1, 'note-hw'));
+
+    echo "
+The category's own two ids (5.1.0)
+";
+    foreach (['old_category_id', 'new_category_id'] as $f) {
+        check("$f is a category pick-list, not a number box", WorkflowEngine::fieldType($f) === 'lookup'
+            && str_contains((string)(array_column(WorkflowEngine::availableValuesForField($f) ?? [], 'label', 'id')[(string)$laptop] ?? ''), "$tag Laptop"));
+    }
+    // A workflow that fires when a ticket LEAVES Hardware (or a subcategory of it).
+    $conn->prepare("INSERT INTO workflows (name, trigger_event, conditions, actions, is_active) VALUES (?, 'ticket.category_changed', ?, ?, 1)")->execute([
+        "$tag left-hw",
+        json_encode([['field' => 'old_category_id', 'op' => 'in', 'value' => [(string)$hw]]]),
+        json_encode([['type' => 'add_ticket_note', 'args' => ['ticket_id' => '{{ticket.id}}', 'note' => "$tag left-hw", 'write_to' => 'note']]]),
+    ]);
+    $wfs[] = (int)$conn->lastInsertId();
+
+    echo "
+Changing the type clears the category - and says so (5.1.0)
+";
+    foreach (['Incident', 'Request'] as $tn) {
+        $conn->prepare("INSERT INTO ticket_types (name, is_active) VALUES (?, 1)")->execute(["$tag $tn"]);
+        $types[] = (int)$conn->lastInsertId();
+    }
+    $conn->exec("UPDATE ticket_categories SET ticket_type_id = {$types[0]} WHERE id = $hw");   // Hardware belongs to Incident; Laptop inherits
+    $t7 = $newTicket(null);
+    TicketsService::updateTicket($conn, $ctx, $t7, ['ticket_type_id' => $types[0], 'category_id' => $laptop], true);
+    $runs = (int)$conn->query("SELECT COUNT(*) FROM workflow_executions WHERE workflow_id = {$wfs[1]}")->fetchColumn();
+    TicketsService::updateTicket($conn, $ctx, $t7, ['ticket_type_id' => $types[1]], true);
+    check('the type change cleared the category', $conn->query("SELECT category_id FROM tickets WHERE id = $t7")->fetchColumn() === null);
+    check('...and fired "A ticket\'s category changes"', (int)$conn->query("SELECT COUNT(*) FROM workflow_executions WHERE workflow_id = {$wfs[1]}")->fetchColumn() === $runs + 1);
+    $run = $conn->query("SELECT trigger_payload FROM workflow_executions WHERE workflow_id = {$wfs[1]} ORDER BY id DESC LIMIT 1")->fetchColumn();
+    $p = json_decode((string)$run, true) ?: [];
+    check('...with the old category and no new one', (int)($p['old_category_id'] ?? 0) === $laptop && array_key_exists('new_category_id', $p) && $p['new_category_id'] === null, (string)$run);
+    check('a workflow on "old category is Hardware" catches a ticket leaving Hardware → Laptop', $noted($t7, 'left-hw'));
 } catch (Throwable $e) {
     check('no exception', false, $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {
@@ -139,6 +173,7 @@ try {
         $conn->exec("DELETE FROM tickets WHERE id IN ($in)");
     }
     foreach ([$cats[1] ?? 0, $cats[0] ?? 0, $cats[2] ?? 0] as $c) if ($c) $conn->exec("DELETE FROM ticket_categories WHERE id = " . (int)$c);   // the subcategory before its parent
+    if ($types) $conn->exec("DELETE FROM ticket_types WHERE id IN (" . implode(',', $types) . ")");
     $setMatch($oldSetting === false ? null : $oldSetting);
 }
 
