@@ -3019,7 +3019,7 @@ Esto no se puede deshacer. ¿Continuar?',
         ],
         'csat' => [
             'heading' => 'Encuestas de satisfacción del cliente (CSAT)',
-            'intro' => 'Envíe por correo una encuesta de satisfacción de 1 a 5 al solicitante cuando un ticket se resuelve, capture la respuesta en una página de destino sin inicio de sesión y siga las tendencias por analista en una página de analítica dedicada.',
+            'intro' => 'Envíe por correo una encuesta de satisfacción de 1 a 5 al solicitante cuando un ticket se cierra, capture la respuesta en una página de destino sin inicio de sesión y siga las tendencias por analista en una página de analítica propia.',
             'modes_heading' => '<strong>Dos modos de activación &mdash; elija uno</strong>',
             'mode_auto' => '<strong>Automático al cerrar</strong> &mdash; la encuesta se pone en cola automáticamente cuando un ticket pasa a cualquier estado de cierre. El analista no tiene que hacer nada &mdash; la resolución activa la encuesta. Con un <strong>retraso</strong> configurado, la encuesta espera ese tiempo y la envía la tarea en segundo plano <em>Encuestas de satisfacción diferidas y recordatorios</em> &mdash; y solo si el ticket sigue cerrado entonces. Opcionalmente, un <strong>recordatorio</strong> puede enviarse una sola vez a quien no haya respondido a una encuesta enviada por correo tras un número de horas, con el mismo enlace - también en el modo manual.',
             'mode_manual' => '<strong>Solo manual</strong> &mdash; el analista hace clic en el botón ⭐ <strong>Comentarios</strong> de la barra de herramientas del ticket cuando quiere pedirla. Útil cuando prefiere decidir ticket por ticket si invita a dar su opinión.',

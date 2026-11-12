@@ -3019,7 +3019,7 @@ Das lässt sich nicht rückgängig machen. Fortfahren?',
         ],
         'csat' => [
             'heading' => 'Kundenzufriedenheitsumfragen (CSAT)',
-            'intro' => 'Senden Sie dem Anfragenden per E-Mail eine 1&ndash;5-Zufriedenheitsumfrage, wenn ein Ticket gelöst wird, erfassen Sie die Antwort auf einer Landingpage ohne Anmeldung, und verfolgen Sie Trends pro Analyst auf einer eigenen Auswertungsseite.',
+            'intro' => 'Senden Sie dem Anfragenden per E-Mail eine 1&ndash;5-Zufriedenheitsumfrage, wenn ein Ticket geschlossen wird, erfassen Sie die Antwort auf einer Landingpage ohne Anmeldung, und verfolgen Sie Trends pro Analyst auf einer eigenen Auswertungsseite.',
             'modes_heading' => '<strong>Zwei Auslösemodi &mdash; wählen Sie einen</strong>',
             'mode_auto' => '<strong>Automatisch beim Schließen</strong> &mdash; die Umfrage wird automatisch eingereiht, sobald ein Ticket in einen geschlossenen Status wechselt. Der Analyst muss nichts tun &mdash; die Lösung löst die Umfrage aus. Mit einer <strong>Verzögerung</strong> wartet die Umfrage so lange und wird vom Hintergrundjob <em>Verzögerte Zufriedenheitsumfragen und Erinnerungen</em> gesendet &mdash; und nur, wenn das Ticket dann noch geschlossen ist. Optional geht einmalig eine <strong>Erinnerung</strong> an alle, die eine per E-Mail verschickte Umfrage nach einer festgelegten Anzahl Stunden nicht beantwortet haben, mit demselben Link - auch im manuellen Modus.',
             'mode_manual' => '<strong>Nur manuell</strong> &mdash; der Analyst klickt bei Bedarf auf die Schaltfläche ⭐ <strong>Rückmeldung</strong> in der Ticket-Symbolleiste. Nützlich, wenn Sie lieber von Fall zu Fall entscheiden möchten, ob eine Rückmeldung angefragt wird.',

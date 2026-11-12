@@ -3015,7 +3015,7 @@ Tej operacji nie da się cofnąć. Kontynuować?',
         ],
         'csat' => [
             'heading' => 'Ankiety satysfakcji klienta (CSAT)',
-            'intro' => 'Wyślij zgłaszającemu e-mailem ankietę satysfakcji w skali 1&ndash;5, gdy zgłoszenie zostanie rozwiązane, zarejestruj odpowiedź na stronie docelowej bez logowania i śledź trendy dla poszczególnych analityków na dedykowanej stronie analitycznej.',
+            'intro' => 'Wyślij zgłaszającemu e-mailem ankietę satysfakcji w skali 1&ndash;5, gdy zgłoszenie zostanie zamknięte, zarejestruj odpowiedź na stronie docelowej bez logowania i śledź trendy dla poszczególnych analityków na dedykowanej stronie analitycznej.',
             'modes_heading' => '<strong>Dwa tryby wyzwalania &mdash; wybierz jeden</strong>',
             'mode_auto' => '<strong>Automatycznie przy zamknięciu</strong> &mdash; ankieta jest kolejkowana automatycznie, gdy zgłoszenie przechodzi w dowolny status zamknięty. Analityk nie musi nic robić &mdash; to rozwiązanie sprawy uruchamia ankietę. Gdy ustawione jest <strong>opóźnienie</strong>, ankieta czeka tyle czasu i wysyła ją zadanie w tle <em>Opóźnione ankiety satysfakcji i przypomnienia</em> &mdash; i tylko wtedy, gdy zgłoszenie jest wciąż zamknięte. Opcjonalne <strong>przypomnienie</strong> może zostać wysłane raz do każdego, kto po ustalonej liczbie godzin nie odpowiedział na ankietę wysłaną e-mailem, z tym samym linkiem - również w trybie ręcznym.',
             'mode_manual' => '<strong>Tylko ręcznie</strong> &mdash; analityk klika przycisk ⭐ <strong>Opinia</strong> na pasku narzędzi zgłoszenia, gdy chce o nią poprosić. Przydatne, gdy wolisz decydować dla każdego zgłoszenia osobno, czy poprosić o opinię.',

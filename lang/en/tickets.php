@@ -3506,7 +3506,7 @@ return [
         ],
         'csat' => [
             'heading' => 'Customer satisfaction surveys (CSAT)',
-            'intro'   => 'Email a 1&ndash;5 satisfaction survey to the requester when a ticket is resolved, capture the response on a no-login landing page, and track per-analyst trends on a dedicated analytics page.',
+            'intro'   => 'Email a 1&ndash;5 satisfaction survey to the requester when a ticket is closed, capture the response on a no-login landing page, and track per-analyst trends on a dedicated analytics page.',
             'modes_heading' => '<strong>Two trigger modes &mdash; pick one</strong>',
             'mode_auto'   => '<strong>Auto on close</strong> &mdash; survey is queued automatically when a ticket transitions into any closed status. The analyst doesn\'t need to do anything &mdash; resolution drives the survey. With a <strong>delay</strong> set, the survey waits that long and is sent by the <em>Delayed satisfaction surveys and reminders</em> background job &mdash; and only if the ticket is still closed by then. An optional <strong>reminder</strong> can go once to anyone who has not answered an emailed survey after a set number of hours, with the same link - in Manual mode too.',
             'mode_manual' => '<strong>Manual only</strong> &mdash; analyst clicks the ⭐ <strong>Feedback</strong> button in the ticket toolbar when they want to ask. Useful when you\'d rather decide ticket-by-ticket whether to invite feedback.',
