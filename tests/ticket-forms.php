@@ -135,8 +135,11 @@ try {
     check('the panel shows who submitted, and the answers to someone with Forms access', ($f['submitted_by'] ?? '') === 'ZZ form filler' && ($f['answers'][0]['value'] ?? '') === 'Laptop', json_encode($f));
 
     echo "\nWho reads the answers\n";
-    $m = new ReflectionMethod('TicketForms', 'answersCap');
-    check('the ticket permission (not the task one) grants the answers', $m->invoke(null) === Cap::TICKETS_FORM_ANSWERS);
+    // Read the override's own source: the ticket class must check the ticket permission.
+    $m = new ReflectionMethod('TicketForms', 'mayActOnAnswers');
+    $src = implode('', array_slice(file($m->getFileName()), $m->getStartLine() - 1, $m->getEndLine() - $m->getStartLine() + 1));
+    check('the ticket permission (not the task one) grants the answers', $m->getDeclaringClass()->getName() === 'TicketForms'
+        && str_contains($src, 'TICKETS_FORM_ANSWERS') && !str_contains($src, 'TASKS_FORM_ANSWERS'));
 
     echo "\nForms keeps the evidence\n";
     $e = null; try { FormsService::deleteSubmission($conn, $ctx, $sid); } catch (ServiceError $x) { $e = $x; }

@@ -44,6 +44,7 @@ $EXEMPT_DIRS = [
 // Single files, each with the reason it is open.
 $EXEMPT = [
     'api/calendar/feed.php'                => 'iCal feed, authenticated by a token in the URL - no session to check',
+    'api/system/pulse.php'                 => 'live updates (GH #267) on every analyst page, not a module: signed-in analysts only, and each topic it answers is module-gated and company-scoped inside (includes/live_pulse.php) - it returns hashes, never records',
     'api/lms/test_public.php'              => 'a candidate sitting a competency test, authenticated by the link token - no session, no modules',
     'api/calendar/graph_notify.php'        => 'Microsoft Graph change notifications, verified by clientState',
     'api/tickets/schedule_feed.php'        => 'iCal feed, authenticated by a token in the URL - no session to check',

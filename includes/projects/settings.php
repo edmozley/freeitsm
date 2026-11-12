@@ -450,6 +450,7 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         try {
             $st = $conn->prepare("SELECT 1 FROM project_members m
                                    LEFT JOIN analyst_teams at ON at.team_id = m.team_id AND at.analyst_id = ?
+                                         AND at.team_id IN (SELECT id FROM teams WHERE COALESCE(is_active, 1) = 1)   -- a retired team is no membership
                                    WHERE m.project_id = ? AND (m.analyst_id = ? OR at.analyst_id IS NOT NULL) LIMIT 1");
             $st->execute([$analystId, (int)$project['id'], $analystId]);
             return (bool)$st->fetchColumn();

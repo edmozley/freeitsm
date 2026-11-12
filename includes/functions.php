@@ -147,7 +147,7 @@ function analystModuleLevel(PDO $conn, int $analystId, string $moduleKey): ?stri
         }
         $t = $conn->prepare(
             "SELECT t.can_access_all_modules, tm.access_level
-               FROM analyst_teams at JOIN teams t ON at.team_id = t.id
+               FROM analyst_teams at JOIN teams t ON at.team_id = t.id AND COALESCE(t.is_active, 1) = 1   -- a retired team grants nothing
                LEFT JOIN team_modules tm ON tm.team_id = t.id AND tm.module_key = ?
               WHERE at.analyst_id = ?"
         );
@@ -301,7 +301,7 @@ function getAnalystAllowedModules($conn, $analyst_id) {
         $t = $conn->prepare(
             "SELECT t.id, t.can_access_all_modules
                FROM analyst_teams at JOIN teams t ON at.team_id = t.id
-              WHERE at.analyst_id = ?");
+              WHERE at.analyst_id = ? AND COALESCE(t.is_active, 1) = 1");   // TRAP: active teams only - a deactivated team used to keep granting its modules
         $t->execute([$analyst_id]);
         foreach ($t->fetchAll(PDO::FETCH_ASSOC) as $team) {
             if ((int) $team['can_access_all_modules'] === 1) {

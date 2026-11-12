@@ -516,10 +516,22 @@ class NetworkMapperService
             return $id === false ? null : (int)$id;
         }
         $relId = (int)$raw;
-        $stmt = $conn->prepare("SELECT 1 FROM cmdb_object_relationships WHERE id = ?");
-        $stmt->execute([$relId]);
+        // TRAP: the relationship must link THIS connector's two objects (either way round).
+        // Existence alone let a connector point at another company's relationship - or at
+        // one between two unrelated objects - and reading the diagram back showed its verbs.
+        // The two nodes' objects have already passed the company check, so this is enough.
+        $stmt = $conn->prepare(
+            "SELECT 1
+             FROM cmdb_object_relationships r
+             JOIN network_diagram_nodes fn ON fn.id = ?
+             JOIN network_diagram_nodes tn ON tn.id = ?
+             WHERE r.id = ?
+               AND ((r.from_object_id = fn.cmdb_object_id AND r.to_object_id = tn.cmdb_object_id)
+                 OR (r.from_object_id = tn.cmdb_object_id AND r.to_object_id = fn.cmdb_object_id))"
+        );
+        $stmt->execute([$fromNodeId, $toNodeId, $relId]);
         if (!$stmt->fetchColumn()) {
-            throw new ServiceError('validation', 'invalid_field', "Unknown cmdb_relationship_id: {$relId}");
+            throw new ServiceError('validation', 'invalid_field', "cmdb_relationship_id {$relId} is not a relationship between these two objects.");
         }
         return $relId;
     }

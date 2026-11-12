@@ -275,9 +275,13 @@ function cmdbImpactEdgesFrom(PDO $conn, array $fromIds, ?int $tenantScope = null
     // before comparing or a single-company estate (every row NULL) matches nothing.
     $tenantSql    = '';
     $tenantParams = [];
+    // TRAP: NULL becomes the DEFAULT company, never the scope. COALESCE(o.tenant_id, scope)
+    // made an object with no company match EVERY company's walk - so another company's blast
+    // radius took in default-company objects it may not see (analystCanAccessCmdbObject()
+    // resolves NULL the same way).
     if ($tenantScope !== null) {
         $tenantSql    = " AND COALESCE(o.tenant_id, ?) = ? ";
-        $tenantParams = [$tenantScope, $tenantScope];
+        $tenantParams = [(int) getDefaultTenantId($conn), $tenantScope];
     }
 
     $rows = [];
@@ -486,7 +490,8 @@ function cmdbImpactGrade(PDO $conn, int $rootId, array &$nodes, ?int $tenantScop
     $membersOf = []; $groupsOf = [];
     if ($memberTypes) {
         $in = implode(',', $memberTypes);
-        $tenantSql = $tenantScope !== null ? ' AND COALESCE(a.tenant_id, ' . (int) $tenantScope . ') = ' . (int) $tenantScope : '';
+        // NULL = the default company (the same TRAP as cmdbImpactEdgesFrom()); `a` is the member object.
+        $tenantSql = $tenantScope !== null ? ' AND COALESCE(a.tenant_id, ' . (int) getDefaultTenantId($conn) . ') = ' . (int) $tenantScope : '';
         foreach ($conn->query("SELECT r.from_object_id, r.to_object_id, rt.impact_direction FROM cmdb_object_relationships r
                 JOIN cmdb_relationship_types rt ON rt.id = r.relationship_type_id
                 JOIN cmdb_objects a ON a.id = r.from_object_id

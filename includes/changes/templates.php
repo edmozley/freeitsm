@@ -231,7 +231,7 @@ final class ChangeTemplates
         if (!$teams) return true;
         if ($analystId <= 0) return false;
         $in = implode(',', array_map('intval', $teams));
-        $s = $conn->prepare("SELECT 1 FROM analyst_teams WHERE analyst_id = ? AND team_id IN ($in) LIMIT 1");
+        $s = $conn->prepare("SELECT 1 FROM analyst_teams at JOIN teams t ON t.id = at.team_id AND COALESCE(t.is_active, 1) = 1 WHERE at.analyst_id = ? AND at.team_id IN ($in) LIMIT 1");
         $s->execute([$analystId]);
         return (bool)$s->fetchColumn();
     }

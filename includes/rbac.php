@@ -68,6 +68,7 @@ function getAnalystCapabilities(PDO $conn, int $analystId): array {
                 UNION
                 SELECT tr.role_id FROM rbac_team_roles tr
                 JOIN analyst_teams at ON at.team_id = tr.team_id
+                JOIN teams t ON t.id = tr.team_id AND COALESCE(t.is_active, 1) = 1   -- a retired team grants no role
                 WHERE at.analyst_id = ?
             )";
     try {

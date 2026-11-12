@@ -35,7 +35,8 @@ function rpViewer(PDO $conn, int $analystId): array
 
     $teams = [];
     try {
-        $s = $conn->prepare("SELECT team_id FROM analyst_teams WHERE analyst_id = ?");
+        // Active teams only: a retired team no longer opens packs shared with it.
+        $s = $conn->prepare("SELECT at.team_id FROM analyst_teams at JOIN teams t ON t.id = at.team_id AND COALESCE(t.is_active, 1) = 1 WHERE at.analyst_id = ?");
         $s->execute([$analystId]);
         $teams = array_map('intval', $s->fetchAll(PDO::FETCH_COLUMN));
     } catch (Exception) { /* no teams table yet: no team shares match */ }

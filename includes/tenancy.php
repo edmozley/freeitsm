@@ -215,7 +215,7 @@ function getAccessibleTenantIds(PDO $conn, int $analystId): array {
         $stmt = $conn->prepare(
             "SELECT 1 FROM analyst_teams at
              JOIN teams t ON at.team_id = t.id
-             WHERE at.analyst_id = ? AND t.can_access_all_tenants = 1 LIMIT 1"
+             WHERE at.analyst_id = ? AND t.can_access_all_tenants = 1 AND COALESCE(t.is_active, 1) = 1 LIMIT 1"
         );
         $stmt->execute([$analystId]);
         if ($stmt->fetchColumn()) {
@@ -231,6 +231,7 @@ function getAccessibleTenantIds(PDO $conn, int $analystId): array {
              UNION
              SELECT tta.tenant_id FROM team_tenant_access tta
                JOIN analyst_teams at ON at.team_id = tta.team_id
+               JOIN teams t ON t.id = tta.team_id AND COALESCE(t.is_active, 1) = 1   -- a retired team grants no company
               WHERE at.analyst_id = :aid"
         );
         $stmt->execute([':aid' => $analystId]);

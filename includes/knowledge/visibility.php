@@ -729,7 +729,8 @@ function knowledgeViewerPrincipals(PDO $conn, KnowledgeViewer $viewer): array
         $memberType = 'analyst';
         $memberId   = $viewer->analystId();
         try {
-            $st = $conn->prepare("SELECT team_id FROM analyst_teams WHERE analyst_id = ?");
+            // Active teams only: a retired team no longer opens articles shared with it.
+            $st = $conn->prepare("SELECT at.team_id FROM analyst_teams at JOIN teams t ON t.id = at.team_id AND COALESCE(t.is_active, 1) = 1 WHERE at.analyst_id = ?");
             $st->execute([$viewer->analystId()]);
             foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $t) $out[] = 'team:' . (int)$t;
         } catch (PDOException) { /* no teams table yet — no team principals */ }

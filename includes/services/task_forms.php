@@ -51,10 +51,15 @@ class TaskForms
     /** The host's name in messages. */
     protected const NOUN = 'task';
 
-    /** The everyday permission that reads answers without Forms access. */
-    protected static function answersCap(): ?Cap
+    /**
+     * Does the analyst hold the everyday permission that reads answers without Forms access?
+     * Each host names its own (TicketForms overrides this). TRAP: the Cap goes straight into
+     * analystMayAct() - tests/cap-enum-usage.php allows a bare Cap::X only as a guard's
+     * argument, so a method RETURNING the Cap (as this used to) fails the guard test.
+     */
+    protected static function mayActOnAnswers(PDO $conn, int $analystId): bool
     {
-        return class_exists('Cap') ? Cap::TASKS_FORM_ANSWERS : null;
+        return function_exists('analystMayAct') && analystMayAct($conn, $analystId, Cap::TASKS_FORM_ANSWERS);
     }
 
     /** The host's company (tenant_id), or null. */
@@ -161,8 +166,7 @@ class TaskForms
     {
         if ($analystId <= 0) return false;
         if (function_exists('analystModuleLevel') && analystModuleLevel($conn, $analystId, 'forms') !== null) return true;
-        $cap = static::answersCap();
-        return $cap !== null && function_exists('analystMayAct') && analystMayAct($conn, $analystId, $cap);
+        return static::mayActOnAnswers($conn, $analystId);
     }
 
     /** May this analyst FILL a form in a task? What filling it on the Forms page needs: Forms, not Read only. */
@@ -643,9 +647,9 @@ class TicketForms extends TaskForms
     protected const SETTING = 'tickets_forms_enabled';
     protected const NOUN    = 'ticket';
 
-    protected static function answersCap(): ?Cap
+    protected static function mayActOnAnswers(PDO $conn, int $analystId): bool
     {
-        return class_exists('Cap') && defined('Cap::TICKETS_FORM_ANSWERS') ? Cap::TICKETS_FORM_ANSWERS : null;
+        return function_exists('analystMayAct') && analystMayAct($conn, $analystId, Cap::TICKETS_FORM_ANSWERS);
     }
 
     protected static function hostTenant(PDO $conn, int $hostId): ?int

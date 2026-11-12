@@ -80,6 +80,7 @@ if (!defined('PROJECT_VISIBILITY_LOADED')) {
         return [" AND ($alias.visibility <> 'members' OR $alias.owner_analyst_id = ? OR $alias.created_by_id = ?
                      OR EXISTS (SELECT 1 FROM project_members vm
                                 LEFT JOIN analyst_teams vat ON vat.team_id = vm.team_id AND vat.analyst_id = ?
+                                      AND vat.team_id IN (SELECT id FROM teams WHERE COALESCE(is_active, 1) = 1)
                                     WHERE vm.project_id = $alias.id AND (vm.analyst_id = ? OR vat.analyst_id IS NOT NULL)))",
                 [$analystId, $analystId, $analystId, $analystId]];
     }
