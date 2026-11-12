@@ -304,12 +304,18 @@ return [
         'conditions_lookup_body'    => 'The value control is a <strong>checkbox list of real values</strong> pulled from the lookup table &mdash; not opaque ids. Tick one for an exact match, tick several for OR semantics (e.g. <em>"priority is Critical OR High"</em>). The operator dropdown collapses to <strong>is / is not / is empty / is not empty</strong> &mdash; the multi-select handles the rest.',
         'conditions_text_heading' => 'Text fields (subject, requester email, title&hellip;)',
         'conditions_text_body'    => 'Plain text input with the full text-operator catalogue: <strong>equals / not equals / is one of / is not one of / contains / does not contain / is empty / is not empty</strong>. <code>gt</code> / <code>lt</code> are <em>not</em> offered &mdash; lexicographic string comparison is a footgun. <strong>Contains</strong> and <strong>does not contain</strong> ignore capitals and any spaces around what you type, so <em>abc.com</em> matches <em>User@ABC.com</em> and <em>urgent</em> matches <em>URGENT</em>.',
+        // GH #298: routing tickets by category.
+        'conditions_cat_heading' => 'Routing tickets by category',
+        'conditions_cat_body'    => '<strong>Category</strong> is a condition on every ticket trigger, so <em>"a new ticket in Hardware"</em> is one condition on <strong>A ticket is created</strong>. Tickets that arrive by email usually have no category until someone triages them, so pair it with the trigger <strong>A ticket\'s category changes</strong> (<code>ticket.category_changed</code>), which fires when someone sets or changes a ticket\'s category - not when the same category is saved again.',
+        'conditions_cat_subs'    => 'Ticking a category also matches its subcategories, so <em>Hardware</em> catches <em>Hardware &rarr; Laptop</em>. To match only the categories you tick, choose <strong>It matches that category only</strong> in <strong>Tickets &rarr; Settings &rarr; Categories &rarr; Categories in workflows</strong>; the tip under a category condition in the editor says which applies and links there. The run history marks a match that included subcategories.',
+        'conditions_cat_example' => '<strong>Example - new Hardware tickets to the Desktop team:</strong> trigger <em>A ticket is created</em>, condition <em>Ticket · Category</em> is <em>Hardware</em>, action <em>Assign ticket to team</em> with the Desktop team. Make a copy with the trigger <em>A ticket\'s category changes</em> to catch tickets categorised at triage.',
+        'conditions_cat_limit'   => 'When changing a ticket\'s type clears a category that belonged to the old type, <strong>A ticket\'s category changes</strong> does not fire - only a category someone sets or changes does.',
         'conditions_num_heading' => 'Numeric fields (ids, durations&hellip;)',
         'conditions_num_body'    => 'Numeric operators: <strong>equals / not equals / is one of / is not one of / greater than / less than / is empty / is not empty</strong>. No <em>contains</em> &mdash; substring search on a number is meaningless.',
 
         // 4. Actions
         'actions_heading' => 'Actions',
-        'actions_intro'   => 'Sixteen handlers ship today - the main ones are below; the others create a project proposal, attach SOP checklists and raise or comment on an issue in an external tracker. Pick an action\'s type from the dropdown and a labelled form appears below with the right widget per arg (text input, textarea, number input, lookup dropdown):',
+        'actions_intro'   => 'Twenty-two handlers ship today - the main ones are below; the others create a project proposal, open a starter, mover or leaver case, attach SOP checklists and raise or comment on an issue in an external tracker. Pick an action\'s type from the dropdown and a labelled form appears below with the right widget per arg (text input, textarea, number input, lookup dropdown):',
         'actions_th_type'     => 'Type',
         'actions_th_does'     => 'What it does',
         'actions_th_args'     => 'Key args',
@@ -321,8 +327,8 @@ return [
         'actions_row3_args' => 'ticket_id, priority_id',
         'actions_row4_does' => 'Sets a ticket\'s owner / assignee. Updates both <code>assigned_analyst_id</code> and <code>owner_id</code> so the right-pane Owner field stays in sync.',
         'actions_row4_args' => 'ticket_id, analyst_id',
-        'actions_row5_does' => 'Adds a note. <strong>A note on the ticket</strong> (the default for a new action) writes a real note in the ticket\'s Notes, by <em>System</em> - internal, unless you tick <strong>Share with the requester</strong>. <strong>History only</strong> writes it to the ticket\'s history instead, as actions saved before 5.0.0 still do. Never emails anyone.',
-        'actions_row5_args' => 'ticket_id, note',
+        'actions_row5_does' => 'Adds a note. <strong>A note on the ticket</strong> (the default for a new action) writes a real note in the ticket\'s Notes, by <em>System</em> - internal, unless you tick <strong>Share the note with the requester</strong>. <strong>History only</strong> writes it to the ticket\'s history instead, as actions saved before 5.0.0 still do. Never emails anyone. A note written this way does not set off <strong>A note is added to a ticket</strong> workflows, so a workflow cannot trigger itself.',
+        'actions_row5_args' => 'ticket_id, note, write_to, shared',
         'actions_row6_does' => 'Sends an email to the ticket\'s requester (or any address) using the ticket\'s mailbox. Subject is prefixed with <code>[SDREF:&hellip;]</code> so replies thread back automatically. <strong>A ticket is now optional</strong> &mdash; choose a mailbox to send from instead, which is how a form acknowledges a submission before any ticket exists. Without a ticket there is nothing for a reply to thread onto, so the &ldquo;reply above this line&rdquo; marker is left off rather than inviting a reply that would go nowhere.',
         'actions_row6_args' => 'ticket_id, to, subject, body',
         'actions_row7_does' => 'Spawns a task. Auto-links to the source ticket if a <code>ticket_id</code> is supplied. Status / priority default to the workspace defaults if blank.',
@@ -363,8 +369,8 @@ return [
         'variables_common'  => 'Common variables for ticket triggers:',
         'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
         'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
-        'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
-        'variables_li4' => 'For <code>ticket.status_changed</code> / <code>ticket.priority_changed</code>: also <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>, <code>{{ticket.category_id}}</code>',
+        'variables_li4' => 'For <code>ticket.status_changed</code> / <code>ticket.priority_changed</code> / <code>ticket.category_changed</code>: also <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>, <code>{{old_category_id}}</code>, <code>{{new_category_id}}</code>',
         'variables_li5' => 'For <code>ticket.assigned</code>: also <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
         'variables_tip' => '<strong>Best practice:</strong> in action <code>ticket_id</code> fields, leave the default <code>{{ticket.id}}</code> rather than typing a specific id &mdash; that way the workflow operates on whichever ticket triggered it, not a fixed one.',
 
@@ -410,7 +416,7 @@ return [
 
         // 8. The trigger catalogue
         'triggers_heading' => 'The trigger catalogue',
-        'triggers_intro'   => 'The catalogue now spans <strong>every module &mdash; 138 triggers and counting</strong>, all wired and live. They come in two kinds:',
+        'triggers_intro'   => 'The catalogue now spans <strong>every module - 195 triggers and counting</strong>, all wired and live. They come in two kinds:',
         'triggers_time_heading' => 'Time-based triggers &mdash; and the cron they need',
         'triggers_time_body'    => 'Most triggers fire from a <strong>write path</strong>: someone saved a ticket, so there is a moment to fire from. Four don\'t. <code>sla.warning</code>, <code>sla.breached</code>, <code>contract.expiring</code> and <code>asset.warranty_expiring</code> aren\'t events at all &mdash; <em>nothing happened, time passed</em> &mdash; so a scheduled job has to go looking for them.',
         'triggers_time_cron'    => '<strong>If those crons aren\'t scheduled, these triggers never fire.</strong> The workflow will sit there, active, doing nothing. SLA events come from the SLA breach-check cron (every 5 minutes); the expiry events from <code>cron/workflow_scheduled.php</code> (hourly is plenty). Setup: <code>docs/workflow-scheduled-cron-setup.md</code>, or <a href="https://github.com/edmozley/freeitsm/wiki/Time-Based-Triggers" target="_blank" rel="noopener noreferrer">Time-Based Triggers on the wiki</a>, which also explains why a still-true condition (a breached SLA stays breached) doesn\'t re-fire every few minutes.',

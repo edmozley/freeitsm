@@ -83,7 +83,7 @@ require __DIR__ . '/_top.php';
         <li><strong>HTTPS with your own certificate authority</strong>: add your CA to the bundle FreeITSM trusts (<code>SSL_CA_BUNDLE</code> in <code>config.php</code>) rather than turning certificate checks off. Plain <code>http://</code> works for a server on your own network.</li>
         <li><strong>Extended thinking</strong> (the switch on this page) has no effect on a custom endpoint, as with Anthropic and OpenAI.</li>
     </ul>
-    <div class="help-note"><strong>Two things do not use these settings.</strong> Knowledge's <em>search by meaning</em> creates embeddings with OpenAI, using the key on Knowledge → Settings → Embeddings; leave that key empty and Knowledge searches by words instead, with nothing sent to OpenAI. The RFP Builder in Contracts has its own AI settings.</div>
+    <div class="help-note"><strong>Three things do not use these settings.</strong> Knowledge's <em>search by meaning</em> creates embeddings with OpenAI, using the key on Knowledge → Settings → AI; leave that key empty and Knowledge searches by words instead, with nothing sent to OpenAI. The help assistant's <em>Matching by meaning</em> has its own embedding settings on System → Help assistant. The RFP Builder in Contracts has its own AI settings.</div>
 </div>
 
 <?php require __DIR__ . '/_bottom.php'; ?>

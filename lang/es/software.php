@@ -318,7 +318,7 @@ return [
         'inventory_heading' => 'Inventario de software',
         'inventory_intro' => 'La página principal de Software presenta cada aplicación descubierta en una tabla ordenable y con búsqueda. Cada fila representa un título de software único, mostrando el editor, la versión más común y el número de equipos donde se encontró.',
         'inventory_s1_b' => 'Explora la lista',
-        'inventory_s1_t' => 'la tabla carga todo el software descubierto, ordenado alfabéticamente por nombre. Usa las cabeceras de columna para ordenar por editor, versión o número de instalaciones en su lugar.',
+        'inventory_s1_t' => 'la tabla carga todo el software descubierto, ordenado alfabéticamente por nombre. Usa las cabeceras de columna para ordenar en su lugar por editor, Instalaciones (cuántos equipos lo tienen) o Puestos de licencia.',
         'inventory_s2_b' => 'Busca y filtra',
         'inventory_s2_t' => 'escribe en el cuadro de búsqueda de la parte superior para filtrar al instante por nombre de software o editor. Los resultados se actualizan a medida que escribes, lo que facilita localizar una aplicación concreta entre cientos de títulos.',
         'inventory_s3_b' => 'Usa las pestañas de vista',

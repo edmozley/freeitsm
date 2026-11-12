@@ -999,6 +999,20 @@ return [
         'done'     => 'Someone has switched their ticket list to Table.',
         'link'     => 'tickets/',
         'check'    => ['sql', "SELECT COUNT(*) FROM user_preferences WHERE preference_key = 'tickets_list_layout' AND preference_value = 'table'"],
+    ],
+    // GH #292: who each ticket is for, as columns of their own in the table.
+    [
+        'id'       => 'tickets.table_requester',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Requester columns in the ticket table',
+        'what'     => 'The Requester and Requester email columns, picked from Columns in the ticket table. Both sort, and both go into the CSV export.',
+        'why'      => 'Who a ticket is for is answered by the table itself - no opening each ticket, and the export carries it.',
+        'done'     => 'Someone shows the Requester or Requester email column in their ticket table.',
+        'link'     => 'tickets/',
+        // data-table.js saves the layout as {"cols":[{"k":"requester_name","v":1},...]} - JSON.stringify, no spaces.
+        'check'    => ['sql', "SELECT COUNT(*) FROM user_preferences WHERE preference_key = 'tickets_table' AND (preference_value LIKE '%\"k\":\"requester\\_name\",\"v\":1%' OR preference_value LIKE '%\"k\":\"requester\\_address\",\"v\":1%')"],
     ],    // GH #272: forms on a ticket, filled in on the ticket and optionally required before it closes.
     [
         'id'       => 'tickets.forms_enabled',

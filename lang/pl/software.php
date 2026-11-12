@@ -318,7 +318,7 @@ return [
         'inventory_heading' => 'Spis oprogramowania',
         'inventory_intro' => 'Główna strona Oprogramowanie przedstawia każdą wykrytą aplikację w sortowalnej i przeszukiwalnej tabeli. Każdy wiersz reprezentuje unikalny tytuł oprogramowania, pokazując wydawcę, najczęstszą wersję oraz liczbę maszyn, na których go znaleziono.',
         'inventory_s1_b' => 'Przeglądaj listę',
-        'inventory_s1_t' => 'tabela ładuje całe wykryte oprogramowanie, posortowane alfabetycznie według nazwy. Użyj nagłówków kolumn, aby zamiast tego sortować według wydawcy, wersji lub liczby instalacji.',
+        'inventory_s1_t' => 'tabela ładuje całe wykryte oprogramowanie, posortowane alfabetycznie według nazwy. Użyj nagłówków kolumn, aby zamiast tego sortować według wydawcy, kolumny Instalacje (na ilu komputerach jest zainstalowane) lub Stanowiska licencji.',
         'inventory_s2_b' => 'Wyszukuj i filtruj',
         'inventory_s2_t' => 'wpisz tekst w polu wyszukiwania u góry, aby natychmiast filtrować według nazwy oprogramowania lub wydawcy. Wyniki aktualizują się w trakcie pisania, ułatwiając znalezienie konkretnej aplikacji wśród setek tytułów.',
         'inventory_s3_b' => 'Użyj zakładek widoku',

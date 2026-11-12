@@ -61,7 +61,7 @@ require __DIR__ . '/_top.php';
     <ul class="help-list">
         <li><strong>Report a bug properly.</strong> A report with the steps to reproduce it is worth a great deal &mdash; several fixes have been diagnosed correctly by the person who reported them.</li>
         <li><strong>Suggest a feature</strong> in <a href="https://github.com/edmozley/freeitsm/discussions" target="_blank" rel="noopener">Discussions</a>, with the problem you are actually trying to solve. The best requests describe the day-to-day annoyance, not the solution.</li>
-        <li><strong>Translate.</strong> FreeITSM ships 24 languages and most are incomplete. A native speaker fixing the register of one module is genuinely useful.</li>
+        <li><strong>Translate.</strong> FreeITSM ships 25 languages and some are still incomplete. A native speaker fixing the register of one module is genuinely useful.</li>
         <li><strong>Send code</strong> as a pull request. Start with a discussion for anything large, so the design can be agreed before the work.</li>
     </ul>
     <p>Start at <a href="https://github.com/edmozley/freeitsm/issues" target="_blank" rel="noopener">github.com/edmozley/freeitsm/issues</a>.</p>

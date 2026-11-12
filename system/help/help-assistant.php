@@ -39,7 +39,7 @@ require __DIR__ . '/_top.php';
         <thead><tr><th>Asked</th><th>A right section in the first five, with no AI</th></tr></thead>
         <tbody>
             <tr><td>A plain question - <em>"how do I create a ticketing department"</em></td><td>About 9 times in 10</td></tr>
-            <tr><td>An exact name - <em>"Warbot"</em>, <em>"Enforce approvals"</em></td><td>Every time, in our tests</td></tr>
+            <tr><td>An exact name - <em>"Warbot"</em>, <em>"Enforce approvals"</em></td><td>Every time, in testing</td></tr>
             <tr><td>Something vague, sharing no words with the help - <em>"my boss wants a weekly PDF"</em></td><td>About 1 in 3</td></tr>
             <tr><td>A language FreeITSM has no help files for</td><td>Rarely</td></tr>
         </tbody>
@@ -72,7 +72,7 @@ require __DIR__ . '/_top.php';
     </div>
     <ul>
         <li><strong>Type the question</strong> and press <strong>Enter</strong> (Shift and Enter for a new line).</li>
-        <li><strong>Click a result</strong> to open that help section. The window stays open on the next page, so you can try another.</li>
+        <li><strong>Click a result</strong> to open that help section. On a computer the window stays open on the next page, so you can try another.</li>
         <li><strong>Drag the window</strong> by its header to wherever it is out of the way; it stays there.</li>
         <li><strong>Reset</strong> clears the conversation. Nothing else does - it is kept as you move around, for you alone.</li>
         <li><strong>The module you are in counts a little.</strong> In Workflows, a question that fits several modules leans towards the Workflows help.</li>
@@ -122,7 +122,7 @@ require __DIR__ . '/_top.php';
     </div>
     <p>When the assistant finds nothing, or only weak matches, the question is kept on <strong>System → Help assistant → Unanswered questions</strong>, with the language it was asked in, the module the person was in and the closest section it did find.</p>
     <ul>
-        <li><strong>Administrators get a bell notification</strong> - one entry with a count, however many come in. <strong>The person who asked never does</strong>, even when they are an administrator themselves. Anyone can turn the notification off in Preferences.</li>
+        <li><strong>Administrators get a bell notification</strong> - one entry with a count, however many come in. <strong>The person who asked never does</strong>, even when they are an administrator themselves. Each administrator can turn the notification off in Preferences.</li>
         <li><strong>It is only kept when the help is really missing.</strong> A question the help answers in a module the asker cannot open is not recorded - the help exists; they just cannot see it.</li>
         <li><strong>Done</strong> marks a question handled once the help covers it; <strong>Reopen</strong> puts it back. <strong>New</strong>, <strong>Handled</strong> and <strong>All</strong> filter the list.</li>
     </ul>
@@ -152,7 +152,7 @@ require __DIR__ . '/_top.php';
     <div class="help-steps">
         <div class="help-step"><div class="help-step-num">1</div><div>On <strong>System → Help assistant</strong>, under <strong>Matching by meaning</strong>, tick <strong>Match questions by meaning</strong>.</div></div>
         <div class="help-step"><div class="help-step-num">2</div><div>Choose the provider - <strong>OpenAI</strong>, <strong>Azure OpenAI</strong> or <strong>your own model server</strong> (Ollama, LM Studio and the like) - enter its key or address, and pick the model from the list. <strong>Test</strong> checks it works.</div></div>
-        <div class="help-step"><div class="help-step-num">3</div><div><strong>Save.</strong> The first time, the help's vectors are built in the background. With OpenAI's <strong>text-embedding-3-small</strong> they come ready-made with each release, so only sections changed on your install are paid for.</div></div>
+        <div class="help-step"><div class="help-step-num">3</div><div><strong>Save.</strong> The first time, the help's vectors are built in the background. With OpenAI's <strong>text-embedding-3-small</strong> they come ready-made with each release, so only sections changed on your install, and the help in other languages your analysts use, are paid for.</div></div>
     </div>
     <ul>
         <li><strong>Its own key</strong>, stored encrypted, so its cost shows separately. Building costs about a penny on OpenAI; each question afterwards a tiny fraction of that.</li>
@@ -179,6 +179,7 @@ require __DIR__ . '/_top.php';
     <ul>
         <li><strong>Measured:</strong> on 65 test questions with Claude Haiku, 46 of 47 plain questions and all 6 asking for a feature by name were answered from the right section, in about three seconds and a third of a penny each.</li>
         <li><strong>Its own key</strong>, stored encrypted, so its cost shows separately. Each question, and the help sections found for it, are sent to that provider - choose your own model server to keep everything on your network.</li>
+        <li><strong>It shows the way there.</strong> When the answer means going somewhere, it gives the path in bold from the module, such as <strong>Tickets &rarr; Settings &rarr; Departments</strong>, built only from the help's own words, in the asker's language.</li>
         <li><strong>Permissions are respected.</strong> Someone asking about a setting they cannot change is told who can - an administrator, or someone with that module's settings access - rather than how.</li>
         <li><strong>Other languages.</strong> The answer comes in the asker's language, with menu names left as they appear on the screen. The System help pages are in English only for now, so a question in another language about System can be answered less well.</li>
         <li><strong>It never makes things worse.</strong> If the AI cannot be reached, or its credit runs out, the assistant replies with the search results instead.</li>
@@ -189,7 +190,7 @@ require __DIR__ . '/_top.php';
 <div class="help-section" id="coming">
     <div class="help-section-header"><?php echo helpSectionNum('coming'); ?>
         <div>
-            <h3>What is coming</h3>
+            <h3>What each step adds</h3>
             <p>The same window, getting better as you give it more - never worse without it.</p>
         </div>
     </div>
@@ -197,8 +198,8 @@ require __DIR__ . '/_top.php';
         <thead><tr><th>Set up</th><th>What it adds</th></tr></thead>
         <tbody>
             <tr><td><strong>Nothing</strong></td><td>Search help - the right sections, instantly, free.</td></tr>
-            <tr><td><strong>An embedding key</strong> (available now)</td><td>Matching by meaning, so <em>"my boss wants a weekly PDF"</em> finds Report packs - see <a href="#meaning">above</a>.</td></tr>
-            <tr><td><strong>A chat AI</strong> (available now)</td><td>A written answer in a sentence or two, in the asker's own language, still linking to the help it used - see <a href="#answers">above</a>.</td></tr>
+            <tr><td><strong>An embedding key</strong></td><td>Matching by meaning, so <em>"my boss wants a weekly PDF"</em> finds Report packs - see <a href="#meaning">above</a>.</td></tr>
+            <tr><td><strong>A chat AI</strong></td><td>A written answer in a sentence or two, in the asker's own language, still linking to the help it used - see <a href="#answers">above</a>.</td></tr>
         </tbody>
     </table></div>
 </div>

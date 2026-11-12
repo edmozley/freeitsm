@@ -389,7 +389,7 @@ function getHelpTopics() {
                 ['id' => 'unanswered',  'label' => 'Unanswered questions'],
                 ['id' => 'meaning',     'label' => 'Matching by meaning'],
                 ['id' => 'answers',     'label' => 'Written answers'],
-                ['id' => 'coming',      'label' => 'What is coming'],
+                ['id' => 'coming',      'label' => 'What each step adds'],
             ],
             'terms' => 'help assistant chat chatbot bot ai question ask how do i learn search help find'
                      . ' rebuild index embedding key no ai key needed per analyst who has it',

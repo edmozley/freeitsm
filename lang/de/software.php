@@ -318,7 +318,7 @@ return [
         'inventory_heading' => 'Software-Inventar',
         'inventory_intro' => 'Die Hauptseite Software zeigt jede entdeckte Anwendung in einer sortierbaren, durchsuchbaren Tabelle. Jede Zeile steht für einen eindeutigen Software-Titel und zeigt den Herausgeber, die häufigste Version und die Anzahl der Rechner, auf denen sie gefunden wurde.',
         'inventory_s1_b' => 'Liste durchsuchen',
-        'inventory_s1_t' => 'Die Tabelle lädt alle entdeckte Software, alphabetisch nach Name sortiert. Verwenden Sie die Spaltenüberschriften, um stattdessen nach Herausgeber, Version oder Installationsanzahl zu sortieren.',
+        'inventory_s1_t' => 'Die Tabelle lädt alle entdeckte Software, alphabetisch nach Name sortiert. Verwenden Sie die Spaltenüberschriften, um stattdessen nach Herausgeber, Installationen (auf wie vielen Rechnern sie installiert ist) oder Lizenzplätze zu sortieren.',
         'inventory_s2_b' => 'Suchen und filtern',
         'inventory_s2_t' => 'Tippen Sie in das Suchfeld oben, um sofort nach Software-Name oder Herausgeber zu filtern. Die Ergebnisse werden bei der Eingabe aktualisiert, sodass Sie eine bestimmte Anwendung unter Hunderten von Titeln leicht finden können.',
         'inventory_s3_b' => 'Ansichtsregisterkarten verwenden',

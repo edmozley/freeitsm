@@ -332,6 +332,7 @@ try {
                         <div><?php echo t('tickets.help.working.rightclick_assign'); ?></div>
                         <div><?php echo t('tickets.help.working.rightclick_cmdb'); ?></div>
                         <div><?php echo t('tickets.help.working.rightclick_time'); ?></div>
+                        <div><?php echo t('tickets.help.working.rightclick_more'); ?></div>
                     </div>
                     <p><?php echo t('tickets.help.working.rightclick_phone'); ?></p>
                     <p class="help-note"><?php echo t('tickets.help.working.rightclick_tip'); ?></p>
@@ -949,6 +950,7 @@ try {
                         <div><?php echo t('tickets.help.settings.cat_rule_portal'); ?></div>
                         <div><?php echo t('tickets.help.settings.cat_rule_retire'); ?></div>
                         <div><?php echo t('tickets.help.settings.cat_rule_report'); ?></div>
+                        <div><?php echo t('tickets.help.settings.cat_rule_workflow'); /* GH #298 */ ?></div>
                     </div>
                     <p class="help-note"><?php echo t('tickets.help.settings.cat_tip'); ?></p>
 
@@ -1340,7 +1342,7 @@ try {
                     <p><?php echo t('tickets.help.workspace.' . $k); ?></p>
                     <?php endforeach; ?>
                     <h4><?php echo htmlspecialchars(t('tickets.help.workspace.tb_title')); ?></h4>
-                    <?php foreach (['tb_what', 'tb_same', 'tb_export'] as $k): ?>
+                    <?php foreach (['tb_what', 'tb_columns', 'tb_same', 'tb_export'] as $k): ?>
                     <p><?php echo t('tickets.help.workspace.' . $k); ?></p>
                     <?php endforeach; ?>
                 </div>

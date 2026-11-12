@@ -175,6 +175,12 @@ $helpMultiCompany = isMultiTenant(connectToDatabase());
             <p><?php echo t('workflow.help.conditions_text_body'); ?></p>
             <h4><?php echo htmlspecialchars(t('workflow.help.conditions_num_heading')); ?></h4>
             <p><?php echo t('workflow.help.conditions_num_body'); ?></p>
+            <?php /* GH #298 */ ?>
+            <h4><?php echo htmlspecialchars(t('workflow.help.conditions_cat_heading')); ?></h4>
+            <p><?php echo t('workflow.help.conditions_cat_body'); ?></p>
+            <p><?php echo t('workflow.help.conditions_cat_subs'); ?></p>
+            <div class="help-note"><?php echo t('workflow.help.conditions_cat_example'); ?></div>
+            <p><?php echo t('workflow.help.conditions_cat_limit'); ?></p>
 
             </div>
 

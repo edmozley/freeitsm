@@ -844,7 +844,7 @@ return [
         'cab_auto_reject' => 'Cualquier miembro requerido rechaza',
         'cab_auto_reject_desc' => 'El estado pasa al estado de rechazo elegido en Ajustes → Aprobaciones (Borrador de forma predeterminada), para que pueda revisarlo y reenviarlo - y el siguiente envío inicia una votación nueva',
         'risk_heading' => 'Evaluación de riesgos',
-        'risk_intro' => 'Todo cambio debe evaluarse en cuanto a riesgo. Elige una puntuación de <strong>Probabilidad</strong> (1&ndash;5) e <strong>Impacto</strong> (1&ndash;5). Se multiplican para dar un nivel de riesgo:',
+        'risk_intro' => 'Todo cambio debe evaluarse en cuanto a riesgo. Elige una puntuación de <strong>Probabilidad del riesgo</strong> (1&ndash;5) e <strong>Impacto del riesgo</strong> (1&ndash;5). Se multiplican para dar un nivel de riesgo:',
         'risk_low' => 'Bajo',
         'risk_medium' => 'Medio',
         'risk_high' => 'Alto',

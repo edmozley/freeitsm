@@ -844,7 +844,7 @@ return [
         'cab_auto_reject' => 'Ein erforderliches Mitglied lehnt ab',
         'cab_auto_reject_desc' => 'Der Status wechselt in den unter Einstellungen → Genehmigungen gewählten Ablehnungsstatus (standardmäßig Entwurf), sodass Sie überarbeiten und erneut einreichen können - und die nächste Einreichung startet eine neue Abstimmung',
         'risk_heading' => 'Risikobewertung',
-        'risk_intro' => 'Jeder Change sollte auf Risiko bewertet werden. Wählen Sie einen Wert für <strong>Eintrittswahrscheinlichkeit</strong> (1&ndash;5) und <strong>Auswirkung</strong> (1&ndash;5). Sie werden multipliziert, um eine Risikostufe zu ergeben:',
+        'risk_intro' => 'Jeder Change sollte auf Risiko bewertet werden. Wählen Sie einen Wert für <strong>Eintrittswahrscheinlichkeit</strong> (1&ndash;5) und <strong>Risikoauswirkung</strong> (1&ndash;5). Sie werden multipliziert, um eine Risikostufe zu ergeben:',
         'risk_low' => 'Niedrig',
         'risk_medium' => 'Mittel',
         'risk_high' => 'Hoch',

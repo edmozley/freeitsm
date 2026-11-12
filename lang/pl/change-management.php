@@ -846,7 +846,7 @@ return [
         'cab_auto_reject' => 'Dowolny wymagany członek odrzuca',
         'cab_auto_reject_desc' => 'Status zmienia się na status odrzucenia wybrany w Ustawienia → Zatwierdzenia (domyślnie Wersja robocza), więc możesz poprawić i wysłać ponownie - a kolejne wysłanie rozpoczyna nowe głosowanie',
         'risk_heading' => 'Ocena ryzyka',
-        'risk_intro' => 'Każda zmiana powinna zostać oceniona pod kątem ryzyka. Wybierz wynik <strong>Prawdopodobieństwa</strong> (1&ndash;5) i <strong>Wpływu</strong> (1&ndash;5). Mnożą się, dając poziom ryzyka:',
+        'risk_intro' => 'Każda zmiana powinna zostać oceniona pod kątem ryzyka. Wybierz wartości pól <strong>Prawdopodobieństwo ryzyka</strong> (1&ndash;5) i <strong>Wpływ ryzyka</strong> (1&ndash;5). Mnożą się, dając poziom ryzyka:',
         'risk_low' => 'Niskie',
         'risk_medium' => 'Średnie',
         'risk_high' => 'Wysokie',

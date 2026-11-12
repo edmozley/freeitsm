@@ -911,7 +911,7 @@ return [
         'cab_auto_reject_desc' => 'Status moves to the rejection status chosen in Settings → Approvals (Draft by default), so you can revise and resubmit - and the next submission starts a fresh vote',
 
         'risk_heading'  => 'Risk assessment',
-        'risk_intro'    => 'Every change should be assessed for risk. Pick a <strong>Likelihood</strong> (1&ndash;5) and <strong>Impact</strong> (1&ndash;5) score. They multiply to give a risk level:',
+        'risk_intro'    => 'Every change should be assessed for risk. Pick a <strong>Risk likelihood</strong> (1&ndash;5) and <strong>Risk impact</strong> (1&ndash;5) score. They multiply to give a risk level:',
         'risk_low'      => 'Low',
         'risk_medium'   => 'Medium',
         'risk_high'     => 'High',

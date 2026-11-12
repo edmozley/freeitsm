@@ -558,4 +558,17 @@ return [
         'link'     => 'workflow/',
         'check'    => ['rows', 'workflows', "$live AND trigger_event LIKE 'task.%' AND (actions LIKE '%task.ticket_id%' OR actions LIKE '%\"type\":\"set_task_status\"%' OR actions LIKE '%\"type\":\"assign_task\"%' OR actions LIKE '%\"type\":\"add_task_comment\"%')"],
     ],
+    // GH #298: route tickets by category - a category condition, or the category-changed trigger.
+    [
+        'id'       => 'workflow.category_routing',
+        'module'   => 'workflow',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'Route tickets by category',
+        'what'     => 'An active workflow that acts on a ticket\'s category - a Category condition on any ticket trigger, or the trigger "A ticket\'s category changes". A category also matches its subcategories unless Tickets -> Settings -> Categories says otherwise.',
+        'why'      => 'New Hardware tickets go to the Desktop team, and a ticket categorised at triage is routed the moment its category is set, without anyone remembering who handles what.',
+        'done'     => 'At least one active workflow has a Category condition or runs when a ticket\'s category changes.',
+        'link'     => 'workflow/',
+        'check'    => ['rows', 'workflows', "$live AND (trigger_event = 'ticket.category_changed' OR conditions LIKE '%ticket.category_id%')"],
+    ],
 ];

@@ -146,6 +146,15 @@ require __DIR__ . '/_top.php';
             <p>Turn on <strong>Close it when I click away</strong> if you would rather it got out of the way on its own. It then closes as soon as you click the folder list, the ticket list or the toolbar. Clicking the ticket you just found — or its properties — leaves it open, so changing something on the ticket the search gave you does not throw the search away.</p>
             <p><strong>Escape always closes it</strong>, whichever way this is set.</p>
         </div>
+        <div class="help-card">
+            <h4>Live updates</h4>
+            <p>How often an open page checks for changes other people make - the ticket list and folder counts, the ticket you have open, the tasks board, an open task and the bell - and catches up on its own: every <strong>15 seconds</strong> (the default), <strong>30 seconds</strong>, <strong>every minute</strong>, or <strong>Off</strong>. It pauses while the tab is in the background and catches up as soon as you come back, and a reply or note you are writing is never thrown away. A new choice applies from the next page you open.</p>
+            <p>With it <strong>Off</strong> you refresh by hand, although the ticket list still checks for new email and chat messages once a minute.</p>
+        </div>
+        <div class="help-card">
+            <h4>My company for new tickets</h4>
+            <p>Shown only when you can reach more than one company. In the all-companies view, <strong>New ticket</strong> asks which company a ticket is for; choose one here to have it chosen for you. You can still change it on the form, and if you can no longer reach that company, nothing is chosen.</p>
+        </div>
     </div>
 </div>
 
@@ -154,7 +163,7 @@ require __DIR__ . '/_top.php';
     <div class="help-section-header"><?php echo helpSectionNum('tasks'); ?>
         <div>
             <h3>Tasks</h3>
-            <p>Three choices about how the Tasks module works for you.</p>
+            <p>Four choices about how the Tasks module works for you.</p>
         </div>
     </div>
     <div class="help-cards">
@@ -169,7 +178,11 @@ require __DIR__ . '/_top.php';
         </div>
         <div class="help-card">
             <h4>Subtasks on the task board</h4>
-            <p>A task's subtasks are listed under its card on the board. Turn on <strong>Hide them once all are complete</strong> to stop listing them when every one is done; the card still shows its count.</p>
+            <p>A task's subtasks are listed under its card on the board. Choose <strong>All subtasks</strong>, <strong>Only the ones still to do</strong>, or <strong>None - just the count</strong>; the card always shows its count, and clicking the count shows or hides that one card's list. The same choice is in the Tasks sidebar.</p>
+        </div>
+        <div class="help-card">
+            <h4>Empty work sections on a task</h4>
+            <p>A task's Work view has Checklists, Forms, Procedures and Follow-ups. <strong>Show them in full</strong> keeps an empty one open with its attach and create controls; <strong>Fold empty ones to a heading</strong> shows it as, say, <em>Checklists (0)</em>, which opens with a click.</p>
         </div>
     </div>
 </div>

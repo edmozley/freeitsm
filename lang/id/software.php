@@ -318,7 +318,7 @@ return [
         'inventory_heading' => 'Inventaris perangkat lunak',
         'inventory_intro' => 'Halaman Perangkat Lunak utama menyajikan setiap aplikasi yang ditemukan dalam tabel yang dapat diurutkan dan dicari. Setiap baris mewakili judul perangkat lunak yang unik, menampilkan penerbit, versi yang paling umum, dan jumlah mesin tempat aplikasi tersebut ditemukan.',
         'inventory_s1_b' => 'Telusuri daftar',
-        'inventory_s1_t' => 'tabel memuat semua perangkat lunak yang ditemukan, diurutkan berdasarkan abjad menurut nama. Gunakan header kolom untuk mengurutkan berdasarkan penerbit, versi, atau jumlah instalasi.',
+        'inventory_s1_t' => 'tabel memuat semua perangkat lunak yang ditemukan, diurutkan berdasarkan abjad menurut nama. Gunakan header kolom untuk mengurutkan berdasarkan penerbit, Instalasi (berapa banyak mesin yang memilikinya), atau Kursi lisensi.',
         'inventory_s2_b' => 'Cari dan saring',
         'inventory_s2_t' => 'ketik di kotak pencarian di bagian atas untuk langsung menyaring berdasarkan nama perangkat lunak atau penerbit. Hasil diperbarui saat Anda mengetik, sehingga mudah menemukan aplikasi tertentu di antara ratusan judul.',
         'inventory_s3_b' => 'Gunakan tab tampilan',

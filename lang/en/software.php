@@ -360,7 +360,7 @@ return [
         'inventory_heading' => 'Software inventory',
         'inventory_intro'   => 'The main Software page presents every discovered application in a sortable, searchable table. Each row represents a unique software title, showing the publisher, the most common version, and the number of machines where it was found.',
         'inventory_s1_b'    => 'Browse the list',
-        'inventory_s1_t'    => 'the table loads all discovered software, sorted alphabetically by name. Use the column headers to sort by publisher, version, or install count instead.',
+        'inventory_s1_t'    => 'the table loads all discovered software, sorted alphabetically by name. Use the column headers to sort by publisher, Installations (how many machines have it) or Licence seats instead.',
         'inventory_s2_b'    => 'Search and filter',
         'inventory_s2_t'    => 'type in the search box at the top to instantly filter by software name or publisher. The results update as you type, making it easy to locate a specific application across hundreds of titles.',
         'inventory_s3_b'    => 'Use the view tabs',

@@ -40,7 +40,7 @@ require __DIR__ . '/_top.php';
     <div class="help-section-header"><?php echo helpSectionNum('permissions'); ?>
         <div>
             <h3>Granular permissions</h3>
-            <p>Keys start with <strong>no permissions</strong>. Each resource has its own actions you grant independently, so a key can, say, create tickets but never read them, or read everything but change nothing.</p>
+            <p>Keys start with <strong>no permissions</strong>. Each resource has its own actions you grant independently, so a key can, say, create tickets but never read them, or read everything but change nothing. The table shows the most-used resources; the key form lists every one, and the <strong>Documentation</strong> button shows which permission each endpoint needs.</p>
         </div>
     </div>
     <div class="help-table"><table>
@@ -48,10 +48,12 @@ require __DIR__ . '/_top.php';
         <tbody>
             <tr><td>Tickets</td><td>read, create, update, delete (trash), restore</td></tr>
             <tr><td>Ticket notes</td><td>read, create</td></tr>
+            <tr><td>Ticket checklists</td><td>read, update</td></tr>
             <tr><td>Ticket conversation</td><td>read</td></tr>
             <tr><td>Ticket audit log</td><td>read</td></tr>
             <tr><td>Ticket SLA</td><td>read</td></tr>
             <tr><td>Time entries</td><td>read, create, delete</td></tr>
+            <tr><td>Task checklists</td><td>read, update</td></tr>
             <tr><td>Requesters</td><td>read, create, update</td></tr>
             <tr><td>Analysts</td><td>read</td></tr>
             <tr><td>Companies</td><td>read</td></tr>

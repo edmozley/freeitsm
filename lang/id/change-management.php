@@ -846,7 +846,7 @@ return [
         'cab_auto_reject' => 'Ada anggota wajib yang menolak',
         'cab_auto_reject_desc' => 'Status berpindah ke status penolakan yang dipilih di Pengaturan → Persetujuan (Draf secara default), sehingga Anda dapat merevisi dan mengirim ulang - dan pengiriman berikutnya memulai pemungutan suara baru',
         'risk_heading' => 'Penilaian risiko',
-        'risk_intro' => 'Setiap perubahan harus dinilai risikonya. Pilih skor <strong>Kemungkinan</strong> (1&ndash;5) dan <strong>Dampak</strong> (1&ndash;5). Keduanya dikalikan untuk menghasilkan tingkat risiko:',
+        'risk_intro' => 'Setiap perubahan harus dinilai risikonya. Pilih skor <strong>Kemungkinan risiko</strong> (1&ndash;5) dan <strong>Dampak risiko</strong> (1&ndash;5). Keduanya dikalikan untuk menghasilkan tingkat risiko:',
         'risk_low' => 'Rendah',
         'risk_medium' => 'Sedang',
         'risk_high' => 'Tinggi',
