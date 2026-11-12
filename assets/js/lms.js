@@ -717,7 +717,7 @@ const LMS = (() => {
             // learner, so this button used to call the drill-down with `null` on
             // exactly the rows the portal push creates.
             const viewBtn = row.status !== 'not_started'
-                ? `<button class="table-action-btn" onclick="LMS.viewLearnerData('${esc(row.learner_key)}', ${row.course_id})" title="${esc(window.t('lms.progress.view'))}">${ICON_VIEW}</button>`
+                ? `<button class="table-action-btn" onclick="LMS.viewLearnerData(${jsArg(row.learner_key)}, ${row.course_id})" title="${esc(window.t('lms.progress.view'))}">${ICON_VIEW}</button>`
                 : '';
 
             return `<tr${trStyle}>

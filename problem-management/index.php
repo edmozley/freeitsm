@@ -28,7 +28,7 @@ $translationNamespaces = ['common', 'problem-management'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('problems')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/record-preview.css?v=1">
     <script src="<?php echo BASE_URL; ?>assets/js/record-preview.js?v=1"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">

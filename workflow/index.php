@@ -35,7 +35,7 @@ $translationNamespaces = ['common', 'workflow'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <style>
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
     </style>
@@ -264,7 +264,7 @@ $translationNamespaces = ['common', 'workflow'];
                         <div><strong>${esc(window.t('workflow.templates.when'))}</strong> ${esc(t.trigger_label)}</div>
                         <div><strong>${esc(window.t('workflow.templates.then'))}</strong> ${t.steps.map(esc).join(', ')}</div>
                     </div>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="WF.useTemplate('${esc(t.key)}', this)">${esc(window.t('workflow.templates.use'))}</button>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="WF.useTemplate(${jsArg(t.key)}, this)">${esc(window.t('workflow.templates.use'))}</button>
                 </div>
             `).join('');
         }

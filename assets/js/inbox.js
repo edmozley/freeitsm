@@ -2131,7 +2131,7 @@ function renderEmailList() {
         const trashActions = inTrash ? `
                 <div style="display:flex;gap:8px;margin-top:7px;">
                     <button onclick="event.stopPropagation(); restoreTicketFromTrash(${ticketId})" style="font-size:11px;padding:3px 9px;border:1px solid #c8d6cf;background:#eefaf2;color:#1b7a43;border-radius:4px;cursor:pointer;">↩ Restore</button>
-                    <button onclick="event.stopPropagation(); permanentlyDeleteFromTrash(${ticketId}, '${escapeHtml(email.ticket_number || '')}')" style="font-size:11px;padding:3px 9px;border:1px solid #e6c4c4;background:#fdeceb;color:#b71c1c;border-radius:4px;cursor:pointer;">✕ Delete forever</button>
+                    <button onclick="event.stopPropagation(); permanentlyDeleteFromTrash(${ticketId}, ${jsArg(email.ticket_number || '')})" style="font-size:11px;padding:3px 9px;border:1px solid #e6c4c4;background:#fdeceb;color:#b71c1c;border-radius:4px;cursor:pointer;">✕ Delete forever</button>
                 </div>` : '';
         // Reserve a slot for the SLA dot; populated asynchronously by loadInboxSlaIndicators()
         // once the batch endpoint responds. Stays empty (and invisible) for tickets without SLA.
@@ -2139,7 +2139,7 @@ function renderEmailList() {
             <div class="email-item ${email.id === selectedEmailId ? 'selected' : ''} ${!email.is_read ? 'unread' : ''}"
                  draggable="true" data-email-id="${email.id}" data-ticket-id="${ticketId}" data-ticket-number="${escapeHtml(email.ticket_number || '')}"
                  onclick="handleEmailRowClick(event, ${email.id})" ondblclick="selectEmailFullScreen(${email.id})"
-                 oncontextmenu="openTicketContextMenu(event, ${ticketId}, '${escapeHtml(email.ticket_number || '')}')">
+                 oncontextmenu="openTicketContextMenu(event, ${ticketId}, ${jsArg(email.ticket_number || '')})">
                 ${inboxRowStripes(email)}${inboxRowBlocks(email)}
                 <div class="email-from">${escapeHtml(email.ticket_number || '')}${rowNameSuffix(email)} ${countBadge}</div>
                 <div class="email-subject">${email.sensitivity === 'confidential' ? confidentialIcon() : ''}${escapeHtml(email.subject)}</div>
@@ -3335,7 +3335,7 @@ function displayEmail(email, recordings) {
             <span style="font-size:18px;">🗑️</span>
             <span style="color:#b71c1c;font-weight:600;flex:1;min-width:180px;">This ticket is in the trash — its actions are disabled until you restore it.</span>
             <button onclick="restoreTicketFromTrash(${email.ticket_id})" style="font-size:12.5px;padding:6px 14px;border:1px solid #c8d6cf;background:#eefaf2;color:#1b7a43;border-radius:5px;cursor:pointer;font-weight:600;">↩ Restore</button>
-            <button onclick="permanentlyDeleteFromTrash(${email.ticket_id}, '${escapeHtml(email.ticket_number || '')}')" style="font-size:12.5px;padding:6px 14px;border:1px solid #e6c4c4;background:#fff;color:#b71c1c;border-radius:5px;cursor:pointer;font-weight:600;">✕ Delete forever</button>
+            <button onclick="permanentlyDeleteFromTrash(${email.ticket_id}, ${jsArg(email.ticket_number || '')})" style="font-size:12.5px;padding:6px 14px;border:1px solid #e6c4c4;background:#fff;color:#b71c1c;border-radius:5px;cursor:pointer;font-weight:600;">✕ Delete forever</button>
         </div>` : '';
 
     const workspace = !!window.TicketWorkspace?.enabled(email);
@@ -3818,7 +3818,7 @@ function buildMergeBanner(email) {
             </div>
             ${undoBtn}
             <button type="button" class="btn btn-secondary merge-banner-btn"
-                    onclick="openTicketByNumber('${escapeHtml(ref).replace(/'/g, "\\'")}')">
+                    onclick="openTicketByNumber(${jsArg(ref)})">
                 ${escapeHtml(t('tickets.merge.banner_go').replace('%s', ref))}
             </button>
         </div>`;
@@ -3836,7 +3836,7 @@ function buildMergeBanner(email) {
                 <span class="merge-banner-refs">${escapeHtml(ref)}</span>
             </div>
             <button type="button" class="btn btn-secondary merge-banner-btn"
-                    onclick="openTicketByNumber('${escapeHtml(ref).replace(/'/g, "\\'")}')">
+                    onclick="openTicketByNumber(${jsArg(ref)})">
                 ${escapeHtml(t('tickets.merge.banner_go').replace('%s', ref))}
             </button>
         </div>`;
@@ -10903,7 +10903,7 @@ function populateContextStatusSubmenu() {
         const swatch = s.colour
             ? `<span class="ctx-status-swatch" style="background: ${escapeHtml(s.colour)};"></span>`
             : '<span class="ctx-status-swatch" style="background:#ddd;"></span>';
-        return `<div class="ticket-context-submenu-item" data-status-name="${escapeHtml(s.name)}" onclick="setStatusFromContext('${escapeHtml(s.name).replace(/'/g, "\\'")}')">
+        return `<div class="ticket-context-submenu-item" data-status-name="${escapeHtml(s.name)}" onclick="setStatusFromContext(${jsArg(s.name)})">
             ${swatch}<span class="ctx-status-name">${escapeHtml(s.name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
         </div>`;
     }).join('');

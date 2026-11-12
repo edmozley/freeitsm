@@ -77,7 +77,7 @@ $choices = [0, 7, 30, 90, 180, 365];
     </style>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
 </head>
 <body data-mobile-module="war-room" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>

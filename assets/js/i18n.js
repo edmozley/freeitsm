@@ -76,7 +76,36 @@
         return (out === key || out === '' || out === undefined) ? interpolate(english, params) : out;
     }
 
+    /**
+     * A value as a JavaScript string argument inside an inline handler:
+     *     `<button onclick="deleteTeam(${id}, ${jsArg(name)})">`   - note: NO quotes around it.
+     *
+     * 🔴 TRAP: never `onclick="fn('${escapeHtml(x)}')"`. The browser HTML-decodes an
+     * attribute BEFORE running it as script, so the &#39; that escapeHtml() makes is a
+     * real ' again by the time the JavaScript is read, and a value like  x');alert(1);//
+     * ends the string and runs. Adding .replace(/'/g, "\\'") after escapeHtml() does
+     * nothing at all - there is no ' left for it to find. Until 5.1.0 fifty-eight
+     * handlers did one or the other (software names from inventory agents among them).
+     *
+     * JSON.stringify() makes a complete string literal, quotes included; entity-encoding
+     * it makes it safe inside the attribute. After the browser decodes the attribute the
+     * script sees exactly the JSON literal. tests/inline-handler-strings.php guards it.
+     * It lives here because i18n.js is loaded on every page that builds these handlers.
+     *
+     * @param {*} value  anything; null and undefined become ""
+     * @returns {string}  e.g. &quot;O&#39;Brien&quot;
+     */
+    function jsArg(value) {
+        return JSON.stringify(value === null || value === undefined ? '' : String(value))
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // Expose globally
     window.t = lookup;
     window.tf = lookupOr;
+    window.jsArg = jsArg;
 })();

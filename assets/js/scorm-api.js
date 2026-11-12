@@ -140,10 +140,13 @@
     /**
      * Stores a CMI element value and marks it for the next save.
      *
-     * A read-only element is refused with error 404 - which doGetErrorString labels "Element Is Write
-     * Only"; 403 is the read-only code.
+     * TRAP: the two standards number "read only" differently - 403 in SCORM 1.2, 404 in SCORM
+     * 2004 (where 403 means "value not initialized"). Until 5.1.0 both APIs answered 404, so a
+     * SCORM 1.2 course was told "Element Is Write Only" for an element it may only read.
+     *
+     * @param {string} version  '1.2' (window.API) or '2004' (window.API_1484_11)
      */
-    function doSetValue(element, value) {
+    function doSetValue(element, value, version) {
         if (!initialized) {
             lastError = '301';
             return 'false';
@@ -155,7 +158,7 @@
 
         // Block read-only elements
         if (isReadOnly(element)) {
-            lastError = '404';
+            lastError = version === '2004' ? '404' : '403';
             return 'false';
         }
 
@@ -192,7 +195,9 @@
      * learner ever sees them. The header block above says the same for
      * Content-Type, which is an HTTP header name.
      */
-    function doGetErrorString(code) {
+    function doGetErrorString(code, version) {
+        // SCORM 2004's own wording for its read-only code; everything else below is the shared table.
+        if (version === '2004' && String(code) === '404') return 'Data Model Element Is Read Only';
         const errors = {
             '0': 'No Error',
             '101': 'General Exception',
@@ -208,8 +213,8 @@
     }
 
     /** Returns the diagnostic text for an error code - the same as its error string. */
-    function doGetDiagnostic(code) {
-        return doGetErrorString(code);
+    function doGetDiagnostic(code, version) {
+        return doGetErrorString(code, version);
     }
 
     // --- Helper: read-only elements ---
@@ -256,15 +261,15 @@
         /** SCORM 1.2: reads a CMI element. */
         LMSGetValue:      function(el) { return doGetValue(el); },
         /** SCORM 1.2: writes a CMI element. */
-        LMSSetValue:      function(el, val) { return doSetValue(el, val); },
+        LMSSetValue:      function(el, val) { return doSetValue(el, val, '1.2'); },
         /** SCORM 1.2: saves changed values now. */
         LMSCommit:        function(p) { return doCommit(); },
         /** SCORM 1.2: the last error code. */
         LMSGetLastError:  function() { return doGetLastError(); },
         /** SCORM 1.2: the text for an error code. */
-        LMSGetErrorString: function(c) { return doGetErrorString(c); },
+        LMSGetErrorString: function(c) { return doGetErrorString(c, '1.2'); },
         /** SCORM 1.2: the diagnostic for an error code. */
-        LMSGetDiagnostic: function(c) { return doGetDiagnostic(c); }
+        LMSGetDiagnostic: function(c) { return doGetDiagnostic(c, '1.2'); }
     };
 
     // --- SCORM 2004 API ---
@@ -277,15 +282,15 @@
         /** SCORM 2004: reads a CMI element. */
         GetValue:         function(el) { return doGetValue(el); },
         /** SCORM 2004: writes a CMI element. */
-        SetValue:         function(el, val) { return doSetValue(el, val); },
+        SetValue:         function(el, val) { return doSetValue(el, val, '2004'); },
         /** SCORM 2004: saves changed values now. */
         Commit:           function(p) { return doCommit(); },
         /** SCORM 2004: the last error code. */
         GetLastError:     function() { return doGetLastError(); },
         /** SCORM 2004: the text for an error code. */
-        GetErrorString:   function(c) { return doGetErrorString(c); },
+        GetErrorString:   function(c) { return doGetErrorString(c, '2004'); },
         /** SCORM 2004: the diagnostic for an error code. */
-        GetDiagnostic:    function(c) { return doGetDiagnostic(c); }
+        GetDiagnostic:    function(c) { return doGetDiagnostic(c, '2004'); }
     };
 
 })();

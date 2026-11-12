@@ -1224,96 +1224,10 @@ function moveDrag(e) {
 }
 
 /**
- * Earlier version of the card drop handler.
- *
- * TRAP: the second endDrag declared below replaces this one when the script loads, so this version
- * never runs - change that one instead.
+ * Card drop handler on the board: reorders within a column, moves to another status,
+ * or (columns by analyst) reassigns. There used to be a second, older endDrag above
+ * this one that never ran - the later declaration always replaced it; removed in 5.1.0.
  */
-async function endDrag(e) {
-    if (!dragState) return;
-
-    // Clean up ghost and indicators
-    dragState.ghost.remove();
-    dragState.card.classList.remove('dragging');
-    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
-    document.querySelectorAll('.board-column.drag-over').forEach(el => el.classList.remove('drag-over'));
-
-    // Find target column
-    const columns = document.querySelectorAll('.board-column');
-    let targetColumn = null;
-    columns.forEach(col => {
-        const r = col.getBoundingClientRect();
-        if (e.clientX >= r.left && e.clientX <= r.right) targetColumn = col;
-    });
-
-    if (!targetColumn) { dragState = null; return; }
-
-    // Columns by analyst: a drop reassigns the task (see dropOnAnalystColumn).
-    if (boardGroup === 'analyst') {
-        const movedId = dragState.taskId;
-        dragState = null;
-        await dropOnAnalystColumn(movedId, targetColumn);
-        return;
-    }
-
-    const newStatus = targetColumn.dataset.status;
-    const container = targetColumn.querySelector('.board-cards');
-
-    // Determine new position order
-    const cards = container.querySelectorAll('.task-card:not(.dragging)');
-    let insertIndex = cards.length;
-    cards.forEach((c, i) => {
-        const r = c.getBoundingClientRect();
-        if (e.clientY < r.top + r.height / 2 && insertIndex === cards.length) {
-            insertIndex = i;
-        }
-    });
-
-    // Build positions array: all cards in target column with new order
-    const positions = [];
-    let pos = 0;
-    const allCards = Array.from(cards);
-    for (let i = 0; i < allCards.length; i++) {
-        if (i === insertIndex) {
-            positions.push({ id: dragState.taskId, board_position: pos++ });
-        }
-        const cardId = parseInt(allCards[i].dataset.id);
-        if (cardId !== dragState.taskId) {
-            positions.push({ id: cardId, board_position: pos++ });
-        }
-    }
-    if (insertIndex >= allCards.length) {
-        positions.push({ id: dragState.taskId, board_position: pos++ });
-    }
-
-    dragState = null;
-
-    // Call API
-    try {
-        await fetch(API_BASE + 'reorder.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task_id: positions.find(p => true).id !== undefined ? positions[0].id : 0, new_status: newStatus, positions, task_id: positions.find(p => p.board_position === insertIndex)?.id || positions[0].id })
-        });
-    } catch (e) { console.error(e); }
-
-    // Send the actual moved task's reorder
-    try {
-        await fetch(API_BASE + 'reorder.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                task_id: parseInt(document.querySelector('.task-card[data-id]')?.dataset.id) || 0,
-                new_status: newStatus,
-                positions
-            })
-        });
-    } catch (e) {}
-
-    loadTasks();
-}
-
-// Fix: simplified endDrag reorder call
 async function endDrag(e) {
     if (!dragState) return;
 

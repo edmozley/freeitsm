@@ -138,12 +138,13 @@ function sla_get_state(PDO $conn, int $ticket_id): array {
     }
 
     // Timeline: array of { start: DateTimeImmutable UTC, status: name, pauses: bool }
-    $timeline = [['start' => $createdAt, 'status' => $defStatus['name'], 'pauses' => (bool)$defStatus['pauses_sla']]];
+    // _is_closed lets sla_compute_resolution() find the close when closed_datetime is empty.
+    $timeline = [['start' => $createdAt, 'status' => $defStatus['name'], 'pauses' => (bool)$defStatus['pauses_sla'], '_is_closed' => false]];
     foreach ($statusChanges as $sc) {
         $changedAt = new DateTimeImmutable($sc['created_datetime'], new DateTimeZone('UTC'));
         $newStatus = $sc['new_value'];
         $flags = $statusFlags[strtolower($newStatus)] ?? ['pauses_sla' => false, 'is_closed' => false];
-        $timeline[] = ['start' => $changedAt, 'status' => $newStatus, 'pauses' => $flags['pauses_sla']];
+        $timeline[] = ['start' => $changedAt, 'status' => $newStatus, 'pauses' => $flags['pauses_sla'], '_is_closed' => $flags['is_closed']];
     }
 
     // --- 6. Response SLA ---
@@ -224,12 +225,13 @@ function sla_compute_resolution(array $ticket, array $priority, array $calendar,
     if (!empty($ticket['closed_datetime'])) {
         $closedAt = new DateTimeImmutable($ticket['closed_datetime'], new DateTimeZone('UTC'));
     } else {
-        // Walk the timeline for the first transition into a closed status
-        foreach ($timeline as $segment) {
-            if (!empty($segment['_is_closed'])) {
-                $closedAt = $segment['start'];
-                break;
-            }
+        // No closed_datetime: if the ticket's LAST status is a closed one, the clock stopped when
+        // that closed run began. TRAP: walk back from the end, never take the first close in the
+        // history - reopening clears closed_datetime, and a reopened ticket's clock must keep running.
+        // (Until 5.1.0 nothing set _is_closed, so this fallback never fired and a ticket closed
+        // without a closed_datetime kept counting forever.)
+        for ($i = count($timeline) - 1; $i >= 0 && !empty($timeline[$i]['_is_closed']); $i--) {
+            $closedAt = $timeline[$i]['start'];
         }
     }
 

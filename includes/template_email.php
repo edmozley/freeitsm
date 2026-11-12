@@ -100,22 +100,17 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
         // property of the template the administrator wrote, not of today's data.
         $bodyIsHtml = strip_tags($template['body_template']) !== $template['body_template'];
 
-        // Caller-supplied values are free-form text — a note body, most of all —
-        // so they are escaped when they are about to land inside HTML. Values
-        // built from the ticket are left as they were: they already render
-        // correctly today and this is not the change to alter them in.
+        // 🔴 Every VALUE is escaped when it lands inside an HTML body - the template is
+        // trusted (an administrator wrote it), the values never are. TRAP: until 5.1.0
+        // only the caller-supplied values were escaped; the ticket's own went in raw, and
+        // [ticket_subject] and [requester_name] come straight from an email a stranger
+        // sent, so their HTML (a link, a fake button) reached the requester - or, for
+        // analyst_assigned, an analyst - inside mail from the service desk's own address.
+        // renderReplyTemplate() has always escaped the same values for the same reason.
         //
-        // When the template is PLAIN text nothing is escaped here, because
-        // buildTemplateEmailBody() escapes the whole body afterwards; escaping
-        // twice would show the customer literal &amp;lt; and &lt;br&gt;.
-        if ($bodyIsHtml) {
-            foreach ($extraMergeData as $k => $v) {
-                $mergeData[$k] = nl2br(htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'));
-            }
-        }
-
+        // The SUBJECT is plain text whichever the body is, so it takes the raw values.
         $subject = resolveMergeCodes($template['subject_template'], $mergeData);
-        $body = resolveMergeCodes($template['body_template'], $mergeData);
+        $body = resolveMergeCodes($template['body_template'], templateBodyMergeData($mergeData, $bodyIsHtml));
 
         // Get the mailbox for this ticket
         $mailbox = templateGetMailboxForTicket($conn, $ticketId);
@@ -430,6 +425,24 @@ function buildTicketMergeData(PDO $conn, int $ticketId): ?array {
         'created_date' => fmt_local($row['created_datetime'] ?? null, 'd M Y H:i'),
         'closed_date' => fmt_local($row['closed_datetime'] ?? null, 'd M Y H:i'),
     ];
+}
+
+/**
+ * The merge values as they go into a template's BODY.
+ *
+ * An HTML body gets every value escaped (newlines become <br>). A plain-text body gets
+ * them as they are, because buildTemplateEmailBody() escapes the whole body afterwards;
+ * escaping twice would show the customer literal &amp;lt; and &lt;br&gt;.
+ *
+ * @param array $mergeData  [code => value] from buildTicketMergeData() plus the caller's extras
+ * @param bool $bodyIsHtml  whether the TEMPLATE is HTML, decided before anything is merged in
+ */
+function templateBodyMergeData(array $mergeData, bool $bodyIsHtml): array {
+    if (!$bodyIsHtml) return $mergeData;
+    foreach ($mergeData as $k => $v) {
+        $mergeData[$k] = nl2br(htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'));
+    }
+    return $mergeData;
 }
 
 /**

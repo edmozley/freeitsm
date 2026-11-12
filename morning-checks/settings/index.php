@@ -42,7 +42,7 @@ $translationNamespaces = ['common', 'morning-checks'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <style>
         body { padding-top: 0; }
         /* Full-width settings page, matching the canonical padding used by
@@ -540,7 +540,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                     </span>
                     <div class="check-actions">
                         <button class="action-btn" onclick="openEditModal(${check.CheckID})" title="${escapeHtmlAttr(window.t('morning-checks.settings.edit'))}">${ICON_EDIT}</button>
-                        <button class="action-btn delete" onclick="deleteCheck(${check.CheckID}, '${escapeHtml(check.CheckName).replace(/'/g, "\\'")}')" title="${escapeHtmlAttr(window.t('morning-checks.settings.delete'))}">${ICON_DELETE}</button>
+                        <button class="action-btn delete" onclick="deleteCheck(${check.CheckID}, ${jsArg(check.CheckName)})" title="${escapeHtmlAttr(window.t('morning-checks.settings.delete'))}">${ICON_DELETE}</button>
                     </div>
                 </div>
             `).join('');

@@ -231,7 +231,7 @@ $emojis = ['', '😡', '🙁', '😐', '🙂', '😀'];
 <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
 <?php echo Tz::scriptTag(); ?>
 <script src="../../assets/js/tz.js?v=5"></script>
-<script src="../../assets/js/i18n.js?v=3"></script>
+<script src="../../assets/js/i18n.js?v=4"></script>
 <style>
 /* Theming: colours use var(--token, #original-light) so light mode is unchanged. */
 body { background: var(--app-bg, #f5f5f5); }

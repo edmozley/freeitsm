@@ -57,7 +57,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <style>
         html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; overflow-x: hidden; margin: 0; padding: 0; background: var(--app-bg, #f8fafc); }
         .ed-shell { display: flex; flex-direction: column; min-height: 100vh; }

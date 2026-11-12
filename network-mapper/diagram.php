@@ -1662,7 +1662,7 @@ $nmCmdb = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
     <script src="../assets/js/pdf-writer.js?v=2"></script>   <!-- the shared PDF writer: PDFKit + bundled fonts (GH #254) -->
     <script src="../assets/js/network-mapper-icons.js"></script>

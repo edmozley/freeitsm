@@ -93,7 +93,7 @@ $translationNamespaces = ['common', 'lms'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
 </head>
 <body data-mobile-module="lms">
     <?php include 'includes/header.php'; ?>
@@ -118,7 +118,7 @@ $translationNamespaces = ['common', 'lms'];
         apiEndpoint: '../api/lms/scorm_data.php'
     };
     </script>
-    <script src="../assets/js/scorm-api.js?v=3"></script>
+    <script src="../assets/js/scorm-api.js?v=4"></script>
 
     <script>
     // Auto-commit on page unload

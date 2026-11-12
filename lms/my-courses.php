@@ -39,7 +39,7 @@ $canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <style>
         body { --accent: var(--lms-accent, #2563eb); }
         .myc-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f6fa); }

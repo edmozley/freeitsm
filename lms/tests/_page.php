@@ -55,7 +55,7 @@ function ctHead(string $title): void
             window.CT_BASE = <?php echo json_encode($b); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo $b; ?>assets/js/tz.js?v=5"></script>
-    <script src="<?php echo $b; ?>assets/js/i18n.js?v=3"></script>
+    <script src="<?php echo $b; ?>assets/js/i18n.js?v=4"></script>
 </head>
 <?php }
 

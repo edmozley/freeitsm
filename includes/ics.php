@@ -36,6 +36,11 @@ function icsEscape($s): string
  * octets, and a subject with an accent or an emoji in it is longer than it
  * looks. Calendar clients are unforgiving about over-long lines.
  *
+ * TRAP: cut with mb_strcut(), never substr(). A byte count can land in the middle of
+ * a multi-byte character; substr() then splits it across the fold and the client
+ * shows two broken characters (until 5.1.0 an accented subject could do this).
+ * mb_strcut() backs off to the character boundary, so a chunk is at most the limit.
+ *
  * @param string $line  one complete content line, e.g. 'SUMMARY:...', already escaped
  */
 function icsFold(string $line): string
@@ -44,9 +49,11 @@ function icsFold(string $line): string
     $out = '';
     $first = true;
     while (strlen($line) > 0) {
-        $take = $first ? 75 : 74;
-        $out .= ($first ? '' : "\r\n ") . substr($line, 0, $take);
-        $line = substr($line, $take);
+        $take  = $first ? 75 : 74;
+        $chunk = mb_strcut($line, 0, $take, 'UTF-8');
+        if ($chunk === '') $chunk = substr($line, 0, $take);   // not UTF-8 at all - cut by bytes
+        $out  .= ($first ? '' : "\r\n ") . $chunk;
+        $line  = substr($line, strlen($chunk));
         $first = false;
     }
     return $out;

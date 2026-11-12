@@ -27,7 +27,7 @@ $translationNamespaces = ['common', 'software'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <style>
@@ -714,10 +714,10 @@ $translationNamespaces = ['common', 'software'];
                     ? `<button type="button" class="sw-row-btn" title="${escapeHtml(window.t('common.edit'))}"
                                onclick="event.stopPropagation(); openAppModal(${app.id})">${ICON_EDIT}</button>
                        <button type="button" class="sw-row-btn danger" title="${escapeHtml(window.t('common.delete'))}"
-                               onclick="event.stopPropagation(); deleteApp(${app.id}, '${escapeHtml(app.display_name).replace(/'/g, "\\'")}')">${ICON_TRASH}</button>`
+                               onclick="event.stopPropagation(); deleteApp(${app.id}, ${jsArg(app.display_name)})">${ICON_TRASH}</button>`
                     : '';
                 return `
-                <tr class="app-row" onclick="showDetail(${app.id}, '${escapeHtml(app.display_name).replace(/'/g, "\\'")}')">
+                <tr class="app-row" onclick="showDetail(${app.id}, ${jsArg(app.display_name)})">
                     <td>${escapeHtml(app.display_name)}${manual ? ` <span class="sw-manual-tag">${escapeHtml(window.t('software.inventory.added_by_hand'))}</span>` : ''}</td>
                     <td>${escapeHtml(app.publisher || '\u2014')}</td>
                     <td><span class="install-count-badge">${app.install_count}</span></td>

@@ -128,7 +128,7 @@ foreach ($templates as $t) {
                 <a class="chk-filter-link active cat-link" onclick="setCategoryFilter('all', this)"><?php echo htmlspecialchars(t('checklists.list.categories_all')); ?></a>
                 <?php foreach ($categories as $cat): ?>
                     <?php $cName = $cat['name']; $cCount = $catCounts[$cName] ?? 0; ?>
-                    <a class="chk-filter-link cat-link" onclick="setCategoryFilter('<?php echo htmlspecialchars(strtolower($cName)); ?>', this)">
+                    <a class="chk-filter-link cat-link" onclick="setCategoryFilter(<?php /* TRAP: a JSON literal, not '...' - see jsArg() in assets/js/i18n.js */ echo htmlspecialchars(json_encode(strtolower($cName)), ENT_QUOTES); ?>, this)">
                         <span><?php echo htmlspecialchars($cName); ?></span>
                         <span class="chk-filter-count"><?php echo $cCount; ?></span>
                     </a>
@@ -144,7 +144,7 @@ foreach ($templates as $t) {
                 <a class="chk-filter-link active role-link" onclick="setRoleFilter('all', this)"><?php echo htmlspecialchars(t('checklists.list.roles_all')); ?></a>
                 <?php foreach ($definedRoles as $r): ?>
                     <?php $rName = $r['name']; $rCount = $roleCounts[$rName] ?? 0; ?>
-                    <a class="chk-filter-link role-link" onclick="setRoleFilter('<?php echo htmlspecialchars(strtolower($rName)); ?>', this)">
+                    <a class="chk-filter-link role-link" onclick="setRoleFilter(<?php /* TRAP: a JSON literal, not '...' - see jsArg() in assets/js/i18n.js */ echo htmlspecialchars(json_encode(strtolower($rName)), ENT_QUOTES); ?>, this)">
                         <span><?php echo htmlspecialchars($rName); ?></span>
                         <span class="chk-filter-count"><?php echo $rCount; ?></span>
                     </a>

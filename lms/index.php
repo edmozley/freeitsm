@@ -42,7 +42,7 @@ $translationNamespaces = ['common', 'lms'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
 </head>
 <body data-mobile-module="lms">
     <?php include 'includes/header.php'; ?>
@@ -309,7 +309,7 @@ $translationNamespaces = ['common', 'lms'];
 
     <!-- Toast -->
     <script>window.API_BASE = '../api/lms/';</script>
-    <script src="../assets/js/lms.js?v=11"></script>
+    <script src="../assets/js/lms.js?v=12"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

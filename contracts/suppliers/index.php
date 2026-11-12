@@ -26,7 +26,7 @@ $translationNamespaces = ['common', 'contracts'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <style>
@@ -477,7 +477,7 @@ $translationNamespaces = ['common', 'contracts'];
                         <button class="action-btn" onclick="editSupplier(${s.id})" title="${escapeHtml(window.t('common.edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteSupplier(${s.id}, '${escapeHtml(s.legal_name).replace(/'/g, "\\'")}')" title="${escapeHtml(window.t('common.delete'))}">
+                        <button class="action-btn delete" onclick="deleteSupplier(${s.id}, ${jsArg(s.legal_name)})" title="${escapeHtml(window.t('common.delete'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>

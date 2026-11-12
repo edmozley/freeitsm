@@ -208,7 +208,7 @@ window.SCORM_CONFIG = {
     apiEndpoint: '../api/lms/scorm_data.php'
 };
 </script>
-<script src="../assets/js/scorm-api.js?v=3"></script>
+<script src="../assets/js/scorm-api.js?v=4"></script>
 <script>
 // Commit before the tab goes, so a half-finished attempt is not lost.
 window.addEventListener('beforeunload', function () {

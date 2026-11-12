@@ -62,7 +62,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <?php echo Money::scriptTag(); ?>
     <script src="../assets/js/money.js?v=1"></script>
     <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
@@ -579,7 +579,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/safe-html.js?v=4"></script>   <!-- article bodies are cleaned before display -->
-    <script src="../assets/js/knowledge.js?v=70"></script>
+    <script src="../assets/js/knowledge.js?v=71"></script>
     <!-- Prism.js for code syntax highlighting when viewing articles -->
     <script src="../assets/js/vendor/prism.min.js?v=1.30.0"></script>
     <script src="../assets/js/vendor/prism-powershell.min.js"></script>

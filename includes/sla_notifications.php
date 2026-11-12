@@ -385,7 +385,7 @@ function sla_build_breach_email_body(array $merge, array $target, string $target
     $statusLine = $trigger === 'breach'
         ? "Over by " . sla_format_minutes(abs((int)$target['remaining_minutes']))
         : sla_format_minutes((int)$target['remaining_minutes']) . " remaining";
-    $assignee = $merge['analyst_name'] ?: '<em>Unassigned</em>';
+    $assignee = $merge['analyst_name'] !== '' ? htmlspecialchars($merge['analyst_name']) : '<em>Unassigned</em>';
 
     return '
 <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5; max-width: 600px;">

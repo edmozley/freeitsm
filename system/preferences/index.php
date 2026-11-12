@@ -485,7 +485,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
         ?>
         <div class="tabs">
             <?php $first = true; foreach ($prefTabs as $tabId => $tabLabel): ?>
-                <button class="tab<?php echo $first ? ' active' : ''; ?>" data-tab="<?php echo htmlspecialchars($tabId); ?>" onclick="switchTab('<?php echo htmlspecialchars($tabId); ?>')"><?php echo htmlspecialchars($tabLabel); ?></button>
+                <button class="tab<?php echo $first ? ' active' : ''; ?>" data-tab="<?php echo htmlspecialchars($tabId); ?>" onclick="switchTab(<?php echo htmlspecialchars(json_encode($tabId), ENT_QUOTES); ?>)"><?php echo htmlspecialchars($tabLabel); ?></button>
             <?php $first = false; endforeach; ?>
         </div>
 
@@ -1218,7 +1218,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
     <?php /* The analyst's own name and email, for the signature live preview (#80). */ ?>
     <script>window.__MY_NAME = <?php echo json_encode($_SESSION['analyst_name'] ?? ''); ?>; window.__MY_EMAIL = <?php echo json_encode($_SESSION['analyst_email'] ?? ''); ?>;</script>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <?php echo Money::scriptTag(); ?>
     <?php
         // The analyst's own money format, and the install's for "follow" (GH #189).

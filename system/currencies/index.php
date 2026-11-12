@@ -212,7 +212,7 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
     <?php echo Tz::scriptTag(); ?>
     <?php echo Money::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <script src="../../assets/js/money.js?v=1"></script>
     <script>
     (function () {

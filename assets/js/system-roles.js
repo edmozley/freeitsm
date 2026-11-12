@@ -69,7 +69,7 @@ const Roles = (() => {
                     : '<span class="status-badge">Inactive</span>'}</td>
                 <td>
                     <button class="table-action-btn" title="Edit" onclick="Roles.openEdit(${r.id})">&#9998;</button>
-                    <button class="table-action-btn delete" title="Delete" onclick="Roles.remove(${r.id}, '${esc(r.name).replace(/'/g, "\\'")}')">&#128465;</button>
+                    <button class="table-action-btn delete" title="Delete" onclick="Roles.remove(${r.id}, ${jsArg(r.name)})">&#128465;</button>
                 </td>
             </tr>`;
         }).join('');

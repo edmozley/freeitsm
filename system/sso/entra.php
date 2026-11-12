@@ -93,7 +93,7 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <script src="../../assets/js/toast.js"></script>
     <script src="../../assets/js/confirm.js"></script>
     <style>
@@ -739,7 +739,7 @@ async function loadRuns() {
             + ['when','mode','result','found','added','changed','left','issues','by'].map(h => '<th>' + esc(window.t('system.sso.hist_' + h) || h) + '</th>').join('')
             + '</tr></thead><tbody>' + d.runs.map(r => {
                 const cls = r.status === 'ok' ? 'ok' : (r.status === 'stopped' ? 'stopped' : 'failed');
-                return `<tr class="clickable" onclick="openRunDetail(${Number(r.id)}, '${esc(r.mode)}', '${esc(r.started_datetime)}', '${esc(r.status)}')">
+                return `<tr class="clickable" onclick="openRunDetail(${Number(r.id)}, ${jsArg(r.mode)}, ${jsArg(r.started_datetime)}, ${jsArg(r.status)})">
                     <td>${esc(fmtDateTime(r.started_datetime))}</td><td>${esc(r.mode)}</td>
                     <td><span class="pill ${cls}">${esc(r.status)}</span></td>
                     <td>${r.seen_count}</td><td>${r.created_count}</td>

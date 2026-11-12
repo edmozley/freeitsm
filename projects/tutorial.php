@@ -34,7 +34,7 @@ $tourStart = !empty($_GET['walk']) ? 'walk' : 'explore';
     <?php // The method filter reads the presets, so it can never disagree with them. ?>
     <script>window.PRJ_TOUR = <?php echo json_encode(['methods' => array_map(fn($m) => $m['tools'], projectMethodologies()), 'labels' => array_map(fn($k) => t('projects.method.' . $k), array_combine(array_keys(projectMethodologies()), array_keys(projectMethodologies())))], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../assets/css/projects.css?v=48">

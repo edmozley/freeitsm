@@ -78,7 +78,7 @@ try {
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <!-- The shared PDF writer for PDF export (PDFKit + bundled fonts, every language - GH #254) -->
     <script src="../assets/js/pdf-writer.js?v=2"></script>
     <?php /* Mobile-friendly opt-in (#937). Last stylesheet so its @media rules

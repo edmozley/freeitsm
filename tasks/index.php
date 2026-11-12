@@ -141,7 +141,7 @@ $translationNamespaces = ['common', 'tasks'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
     <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
@@ -421,7 +421,7 @@ $translationNamespaces = ['common', 'tasks'];
     <!-- The one cleaner for HTML from elsewhere: Knowledge procedure bodies and task instructions in the Work view (GH #190). -->
     <script src="../assets/js/safe-html.js?v=4"></script>
     <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=2"></script><?php endif; ?>
-    <script src="../assets/js/tasks.js?v=77"></script>
+    <script src="../assets/js/tasks.js?v=78"></script>
     <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=86"></script><?php endif; ?>
 
 </body>

@@ -134,7 +134,7 @@ function renderClasses() {
                 <button class="action-btn" title="${escapeHtml(window.t('cmdb.settings.edit'))}" onclick="openClassModal(${c.id})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteClass(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">
+                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteClass(${c.id}, ${jsArg(c.name)})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                 </button>
             </td>
@@ -264,7 +264,7 @@ function renderProps() {
                 <button class="action-btn" title="${escapeHtml(window.t('cmdb.settings.edit'))}" onclick="openPropertyModal(${p.id})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteProperty(${p.id}, '${escapeHtml(p.label).replace(/'/g, "\\'")}')">
+                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteProperty(${p.id}, ${jsArg(p.label)})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/></svg>
                 </button>
             </td>
@@ -444,7 +444,7 @@ function renderRelTypes() {
                 <button class="action-btn" title="${escapeHtml(window.t('cmdb.settings.edit'))}" onclick="openRelTypeModal(${r.id})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteRelType(${r.id}, '${escapeHtml(r.verb).replace(/'/g, "\\'")}')">
+                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteRelType(${r.id}, ${jsArg(r.verb)})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/></svg>
                 </button>
             </td>

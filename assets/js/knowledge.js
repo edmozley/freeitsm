@@ -1497,7 +1497,7 @@ async function openExceptionsModal() {
                 <span class="kb-perm-entry-kind">${escapeHtml(window.t('knowledge.exceptions.' + x.type))}
                     · ${x.entries} ${escapeHtml(window.t('knowledge.exceptions.listed'))}</span>
                 <button type="button" class="btn btn-secondary btn-sm"
-                        onclick="closeExceptionsModal(); openPermModal('${escapeHtml(x.type)}', ${x.id}, ${jsAttr(x.name)})">
+                        onclick="closeExceptionsModal(); openPermModal(${jsArg(x.type)}, ${x.id}, ${jsAttr(x.name)})">
                     ${escapeHtml(window.t('knowledge.perm.manage'))}</button>
             </div>`).join('');
     } catch (e) {
@@ -1742,7 +1742,7 @@ function permSearch() {
             const d = await r.json();
             const rows = (d.results || []);
             box.innerHTML = rows.length
-                ? rows.map(p => `<div class="kb-perm-result" onclick="permAdd('${escapeHtml(p.type)}', ${p.id})">
+                ? rows.map(p => `<div class="kb-perm-result" onclick="permAdd(${jsArg(p.type)}, ${p.id})">
                         <span>${escapeHtml(p.name)}</span><span class="kb-perm-entry-kind">${escapeHtml(p.kind)}</span>
                      </div>`).join('')
                 : '';
@@ -2718,7 +2718,7 @@ async function loadRecycleBin() {
                     <div class="recycle-bin-actions">
                         <button class="btn btn-secondary btn-sm" onclick="viewArchivedArticle(${item.id})">${escapeHtml(window.t('knowledge.recycle.view'))}</button>
                         <button class="btn btn-primary btn-sm" onclick="restoreArticle(${item.id})">${escapeHtml(window.t('knowledge.recycle.restore'))}</button>
-                        <button class="btn btn-danger btn-sm" onclick="hardDeleteArticle(${item.id}, '${escapeHtml(item.title).replace(/'/g, "\\'")}')">${escapeHtml(window.t('knowledge.recycle.delete_forever'))}</button>
+                        <button class="btn btn-danger btn-sm" onclick="hardDeleteArticle(${item.id}, ${jsArg(item.title)})">${escapeHtml(window.t('knowledge.recycle.delete_forever'))}</button>
                     </div>
                 </div>
             `;
@@ -2963,7 +2963,7 @@ function renderSelectedTags() {
     container.innerHTML = selectedTags.map(tag => `
         <span class="selected-tag">
             ${escapeHtml(tag)}
-            <span class="remove-tag" onclick="removeTag('${escapeHtml(tag)}')">&times;</span>
+            <span class="remove-tag" onclick="removeTag(${jsArg(tag)})">&times;</span>
         </span>
     `).join('');
 }
@@ -2980,7 +2980,7 @@ function showTagSuggestions(query) {
     );
 
     let html = matchingTags.map(tag => `
-        <div class="tag-suggestion" onclick="addTag('${escapeHtml(tag.name)}'); document.getElementById('tagInput').value = '';">
+        <div class="tag-suggestion" onclick="addTag(${jsArg(tag.name)}); document.getElementById('tagInput').value = '';">
             ${escapeHtml(tag.name)}
         </div>
     `).join('');
@@ -2989,7 +2989,7 @@ function showTagSuggestions(query) {
     const exactMatch = tags.some(t => t.name.toLowerCase() === query.toLowerCase());
     if (!exactMatch && query.length > 0) {
         html += `
-            <div class="tag-suggestion new-tag" onclick="addTag('${escapeHtml(query)}'); document.getElementById('tagInput').value = '';">
+            <div class="tag-suggestion new-tag" onclick="addTag(${jsArg(query)}); document.getElementById('tagInput').value = '';">
                 ${escapeHtml(window.t('knowledge.editor.create_tag', { name: query }))}
             </div>
         `;

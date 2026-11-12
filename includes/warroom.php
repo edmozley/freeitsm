@@ -378,13 +378,19 @@ function warRoomSetArchived(PDO $conn, int $channelId, bool $archived): bool
  * Rename / re-topic a custom channel. Team and DM names are derived, never stored.
  *
  * @param int $channelId  the warroom_channels id; only a custom channel changes
- * @param string $name  the new name; blank changes nothing; cut to 120 characters
+ * The caller has already checked the channel is custom and the analyst may manage it.
+ *
+ * @param string $name  the new name; cut to 120 characters
  * @param string $topic  the new topic; blank clears it; cut to 255 characters
+ * @return bool  true once saved - also when nothing changed
+ * @throws InvalidArgumentException 'name_required' when the name is blank
  */
 function warRoomUpdateChannel(PDO $conn, int $channelId, string $name, string $topic): bool
 {
     $name = trim(preg_replace('/\s+/u', ' ', $name));
-    if ($name === '') return false;
+    // TRAP: throw, never return false - the endpoint answered success whatever this returned,
+    // so a blank name was silently ignored and the dialog closed as if it had saved.
+    if ($name === '') throw new InvalidArgumentException('name_required');
     $stmt = $conn->prepare(
         "UPDATE warroom_channels SET name = :n, topic = :t
           WHERE id = :id AND kind = '" . WARROOM_KIND_CUSTOM . "'"
@@ -394,7 +400,7 @@ function warRoomUpdateChannel(PDO $conn, int $channelId, string $name, string $t
         ':t'  => ($topic = mb_substr(trim($topic), 0, 255)) === '' ? null : $topic,
         ':id' => $channelId,
     ]);
-    return $stmt->rowCount() >= 0;
+    return true;   // rowCount() is 0 when nothing changed, which is still a success
 }
 
 /**

@@ -91,7 +91,7 @@ foreach ($formActionDefs as $def) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('forms', t('forms.editor.page_title'))); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
     <!-- The builder did NOT load these, which is why it kept its own copy of the

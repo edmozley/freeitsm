@@ -158,7 +158,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../../assets/css/ticket-type-rules.css?v=2">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <script src="../../assets/js/ai-settings.js?v=4"></script>
     <!-- Reply templates are rich text, so this page needs the same editor the reply
          box uses. Loaded for every tab because the tab bar is server-rendered and
@@ -4514,10 +4514,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <button class="action-btn" onclick="editItem('department', ${dept.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn" onclick="openTeamAssignment('department', ${dept.id}, '${escapeHtml(dept.name).replace(/'/g, "\\'")}')" title="${t('tickets.settings.tooltips.assign_teams')}">
+                        <button class="action-btn" onclick="openTeamAssignment('department', ${dept.id}, ${jsArg(dept.name)})" title="${t('tickets.settings.tooltips.assign_teams')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteItem('department', ${dept.id}, '${escapeHtml(dept.name)}')" title="${t('common.delete')}">
+                        <button class="action-btn delete" onclick="deleteItem('department', ${dept.id}, ${jsArg(dept.name)})" title="${t('common.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>
@@ -4542,7 +4542,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <td><span class="status-badge status-${type.is_active ? 'active' : 'inactive'}">${type.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>
                         <button class="action-btn" onclick="editItem('ticket-type', ${type.id})" title="${t('common.edit')}">${TT_EDIT_SVG}</button>
-                        <button class="action-btn delete" onclick="deleteItem('ticket-type', ${type.id}, '${escapeHtml(type.name)}')" title="${t('common.delete')}">${TT_DELETE_SVG}</button>
+                        <button class="action-btn delete" onclick="deleteItem('ticket-type', ${type.id}, ${jsArg(type.name)})" title="${t('common.delete')}">${TT_DELETE_SVG}</button>
                     </td>
                 </tr>`;
         }
@@ -4636,7 +4636,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <td><span class="status-badge status-${origin.is_active ? 'active' : 'inactive'}">${origin.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>
                         <button class="action-btn" onclick="editItem('ticket-origin', ${origin.id})" title="${t('common.edit')}">${TT_EDIT_SVG}</button>
-                        <button class="action-btn delete" onclick="deleteItem('ticket-origin', ${origin.id}, '${escapeHtml(origin.name)}')" title="${t('common.delete')}">${TT_DELETE_SVG}</button>
+                        <button class="action-btn delete" onclick="deleteItem('ticket-origin', ${origin.id}, ${jsArg(origin.name)})" title="${t('common.delete')}">${TT_DELETE_SVG}</button>
                     </td>
                 </tr>`;
         }
@@ -6934,7 +6934,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 // must never help anybody do.
                 const btn = p.dismissible
                     ? `<button type="button" class="btn btn-secondary" style="margin-top:8px;padding:3px 10px;font-size:12px;"
-                         onclick="setMailboxProblemDismissed(${mailboxId}, '${escapeHtml(p.key)}', true)">${escapeHtml(t('tickets.settings.modals.mailbox.problems_dismiss'))}</button>`
+                         onclick="setMailboxProblemDismissed(${mailboxId}, ${jsArg(p.key)}, true)">${escapeHtml(t('tickets.settings.modals.mailbox.problems_dismiss'))}</button>`
                     : '';
                 return `<div style="border-left:3px solid ${colour}; background:${bg}; padding:10px 12px; margin-bottom:10px; border-radius:0 4px 4px 0;">
                     <div style="font-weight:600; color:${colour}; margin-bottom:3px;">${escapeHtml(p.title)}</div>
@@ -6961,7 +6961,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     ${acked.map(p => `<div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
                         <span style="flex:1; font-size:13px; color:var(--text-muted,#666);">${escapeHtml(p.title)}</span>
                         <button type="button" class="btn btn-secondary" style="padding:3px 10px;font-size:12px;"
-                            onclick="setMailboxProblemDismissed(${mailboxId}, '${escapeHtml(p.key)}', false)">${escapeHtml(t('tickets.settings.modals.mailbox.problems_restore'))}</button>
+                            onclick="setMailboxProblemDismissed(${mailboxId}, ${jsArg(p.key)}, false)">${escapeHtml(t('tickets.settings.modals.mailbox.problems_restore'))}</button>
                     </div>`).join('')}
                 </div>`;
             }
@@ -7925,7 +7925,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <button class="action-btn" onclick="editTemplate(${tpl.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteTemplate(${tpl.id}, '${escapeHtml(tpl.name)}')" title="${t('common.delete')}">
+                        <button class="action-btn delete" onclick="deleteTemplate(${tpl.id}, ${jsArg(tpl.name)})" title="${t('common.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         </button>
                     </td>
@@ -8383,7 +8383,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             if (!wrap) return;
             wrap.innerHTML = Object.keys(codes).map(code => `
                 <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;"
-                        onclick="insertReplyTemplateMergeCode('${escapeHtml(code)}')"
+                        onclick="insertReplyTemplateMergeCode(${jsArg(code)})"
                         title="[${escapeHtml(code)}]">${escapeHtml(codes[code])}</button>
             `).join('');
         }
@@ -8577,7 +8577,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <button class="action-btn" onclick="editRotaShift(${s.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteRotaShift(${s.id}, '${escapeHtml(s.name)}')" title="${t('common.delete')}">
+                        <button class="action-btn delete" onclick="deleteRotaShift(${s.id}, ${jsArg(s.name)})" title="${t('common.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>

@@ -46,7 +46,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <style>
         /* Full-width scrolling shell — the canonical settings pattern
            (tickets/settings): a plain flex wrapper pins the header and lets the
@@ -375,16 +375,16 @@ $translationNamespaces = ['common', 'tickets'];
                         <button class="action-btn" onclick="editTeam(${team.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn" onclick="openTeamAssign('departments', ${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="Manage departments">
+                        <button class="action-btn" onclick="openTeamAssign('departments', ${team.id}, ${jsArg(team.name)})" title="Manage departments">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path><path d="M9 7h1M9 11h1M14 7h1M14 11h1M9 15h6"></path></svg>
                         </button>
-                        <button class="action-btn" onclick="openTeamAssign('analysts', ${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="Manage members">
+                        <button class="action-btn" onclick="openTeamAssign('analysts', ${team.id}, ${jsArg(team.name)})" title="Manage members">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         </button>
-                        ${isMultiCompany ? `<button class="action-btn" onclick="openTeamCompanies(${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="Manage company access">
+                        ${isMultiCompany ? `<button class="action-btn" onclick="openTeamCompanies(${team.id}, ${jsArg(team.name)})" title="Manage company access">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M9 8h1M9 12h1M9 16h1M14 8h1M14 12h1M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path></svg>
                         </button>` : ''}
-                        <button class="action-btn delete" onclick="deleteTeam(${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="${t('common.delete')}">
+                        <button class="action-btn delete" onclick="deleteTeam(${team.id}, ${jsArg(team.name)})" title="${t('common.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>

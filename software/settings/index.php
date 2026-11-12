@@ -43,7 +43,7 @@ $translationNamespaces = ['common', 'software'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <style>
@@ -594,7 +594,7 @@ $translationNamespaces = ['common', 'software'];
                     <td>
                         <span class="api-key-value">
                             <span class="api-key-masked">${escapeHtml(masked)}</span>
-                            <button class="copy-btn" onclick="copyKey('${escapeHtml(key.apikey)}')" title="${window.t('software.settings.copy_full')}">
+                            <button class="copy-btn" onclick="copyKey(${jsArg(key.apikey)})" title="${window.t('software.settings.copy_full')}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>

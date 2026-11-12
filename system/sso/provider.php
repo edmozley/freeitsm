@@ -92,7 +92,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <script src="../../assets/js/toast.js"></script>
     <script src="../../assets/js/confirm.js"></script>
     <style>
@@ -1118,7 +1118,7 @@ async function loadRuns() {
                 // Every row opens the same modal the preview does. The history
                 // has listed counts since it was built and never let you see
                 // behind them, which is the half that answers "updated how?".
-                return `<tr class="clickable" onclick="openRunDetail(${Number(r.id)}, '${esc(r.mode)}', '${esc(r.started_datetime)}', '${esc(r.status)}')">
+                return `<tr class="clickable" onclick="openRunDetail(${Number(r.id)}, ${jsArg(r.mode)}, ${jsArg(r.started_datetime)}, ${jsArg(r.status)})">
                     <td>${esc(fmtDateTime(r.started_datetime))}</td>
                     <td>${esc(r.mode)}</td>
                     <td><span class="pill ${cls}">${esc(r.status)}</span></td>

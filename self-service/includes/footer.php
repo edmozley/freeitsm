@@ -29,7 +29,7 @@ $pageData    = $pageData ?? [];
     </div><!-- /.portal-layout -->
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces ?? ['common', 'self-service']), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <!-- Cleans untrusted message bodies; shared with the analyst inbox. -->
     <script src="../assets/js/safe-html.js?v=4"></script>
     <!-- The app-wide toast. Self-contained (injects its own CSS) and falls back

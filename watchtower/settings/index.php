@@ -57,7 +57,7 @@ $translationNamespaces = ['common', 'watchtower'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <script src="../../assets/js/reorder-list.js?v=1"></script>
     <style>
         body { display: block; --accent: var(--wt-accent, #0f766e); }
@@ -326,7 +326,7 @@ function renderCounts() {
             <p class="why">${escapeHtml(window.t(item.nameKey + '_why'))}</p>
             <label class="wt-opt" style="padding-left:0;">
                 <input type="checkbox" data-custom="${escapeHtml(item.key)}" ${cfg.customised ? 'checked' : ''}
-                       onchange="toggleCustom('${escapeHtml(item.key)}', this.checked)">
+                       onchange="toggleCustom(${jsArg(item.key)}, this.checked)">
                 <span>
                     <span class="wt-opt-name">${escapeHtml(window.t('watchtower.settings.choose_specific'))}</span>
                     <span class="wt-opt-desc">${escapeHtml(window.t('watchtower.settings.choose_specific_desc'))}</span>

@@ -34,7 +34,7 @@ $translationNamespaces = ['common', 'reporting'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <style>
         /* Module accent (rust-orange) — tabs, spinner, refresh button, focus. */
         body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-hover, #a5410a); }
@@ -856,7 +856,7 @@ $translationNamespaces = ['common', 'reporting'];
                             <td>${j.last_run ? `<span class="job-pill ${escapeHtml(j.last_run.outcome)}">${escapeHtml(JT('outcome_' + j.last_run.outcome))}</span>
                                 <div class="job-sub">${escapeHtml(JT('trigger_' + j.last_run.trigger))} · ${escapeHtml(fmtUtc(j.last_run.started))}</div>` : '<span class="job-sub">-</span>'}</td>
                             <td class="job-sub">${escapeHtml(intervalText(j.interval))}${j.interval !== j.default_interval ? '<br>' + escapeHtml(JT('changed_from', { d: intervalText(j.default_interval) })) : ''}${scheduleText(d, j)}</td>
-                            ${d.can_configure ? `<td><button class="job-edit-btn" onclick="editJob('${escapeHtml(j.key)}')">${escapeHtml(JT('edit'))}</button></td>` : ''}
+                            ${d.can_configure ? `<td><button class="job-edit-btn" onclick="editJob(${jsArg(j.key)})">${escapeHtml(JT('edit'))}</button></td>` : ''}
                         </tr>`).join('')}
                     </tbody>
                 </table>
@@ -960,7 +960,7 @@ $translationNamespaces = ['common', 'reporting'];
                     <div class="hint">${escapeHtml(JT('not_used_hint'))}</div>
                 </div>`,
                 `<button class="btn btn-secondary" onclick="closeJobModal()">${escapeHtml(JT('cancel'))}</button>
-                 <button class="btn btn-primary" onclick="saveJob('${escapeHtml(key)}')">${escapeHtml(JT('save'))}</button>`);
+                 <button class="btn btn-primary" onclick="saveJob(${jsArg(key)})">${escapeHtml(JT('save'))}</button>`);
         }
 
         // #233: a job FreeITSM runs - its schedule, which is also what health expects of it.
@@ -987,7 +987,7 @@ $translationNamespaces = ['common', 'reporting'];
                     <div class="hint job-mode-footnote">${escapeHtml(JT(sch.running ? 'schedule_hint_running' : 'schedule_hint_cron'))}</div>
                 </div>`,
                 `<button class="btn btn-secondary" onclick="closeJobModal()">${escapeHtml(JT('cancel'))}</button>
-                 <button class="btn btn-primary" onclick="saveJobSchedule('${escapeHtml(j.key)}')">${escapeHtml(JT('save'))}</button>`);
+                 <button class="btn btn-primary" onclick="saveJobSchedule(${jsArg(j.key)})">${escapeHtml(JT('save'))}</button>`);
             jobModeChanged();
         }
 

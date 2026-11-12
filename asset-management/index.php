@@ -56,7 +56,7 @@ $translationNamespaces = ['common', 'asset-management'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
     <?php
@@ -4693,7 +4693,7 @@ $translationNamespaces = ['common', 'asset-management'];
                             const text = r.confirmed_by ? connT('confirmed_by', { name: r.confirmed_by, date: '\u0000' }) : connT('confirmed_anon', { date: '\u0000' });
                             return `<div class="conn-row"><span class="conn-chip manual">${escapeHtml(connSourceName('manual'))}</span>
                                 <span>${escapeHtml(text).split('\u0000').join(when(r.connected_at))}</span>
-                                <button type="button" class="btn btn-outline btn-sm" onclick="disconnectAsset(${r.id}, '${escapeHtml(group.other.hostname || '')}')">${escapeHtml(connT('disconnect'))}</button></div>`;
+                                <button type="button" class="btn btn-outline btn-sm" onclick="disconnectAsset(${r.id}, ${jsArg(group.other.hostname || '')})">${escapeHtml(connT('disconnect'))}</button></div>`;
                         }
                         const ago = r.last_observed_at ? invAgoOrDate(r.last_observed_at) : '';
                         return `<div class="conn-row"><span class="conn-chip">${escapeHtml(connSourceName(r.source))}</span>

@@ -1998,7 +1998,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             <div class="theme-picker">
                 <?php $themePickerActive = Theme::active($theme_module ?? null);
                 foreach (Theme::all() as $themeId => $themeMeta): ?>
-                <button type="button" class="theme-swatch<?php echo $themeId === $themePickerActive ? ' active' : ''; ?>" onclick="setTheme('<?php echo htmlspecialchars($themeId, ENT_QUOTES); ?>')">
+                <button type="button" class="theme-swatch<?php echo $themeId === $themePickerActive ? ' active' : ''; ?>" onclick="setTheme(<?php echo htmlspecialchars(json_encode($themeId), ENT_QUOTES); ?>)">
                     <span class="theme-swatch-dot theme-swatch-<?php echo htmlspecialchars($themeId); ?>"></span>
                     <span><?php echo htmlspecialchars($themeMeta['label']); ?></span>
                     <?php if ($themeId === $themePickerActive): ?><span class="theme-swatch-check">&#10003;</span><?php endif; ?>

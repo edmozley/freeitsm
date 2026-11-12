@@ -288,7 +288,7 @@ $translationNamespaces = ['common', 'network-mapper'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <script>
         const API = '../api/network-mapper/';
         let allDiagrams = [];
@@ -341,7 +341,7 @@ $translationNamespaces = ['common', 'network-mapper'];
                             <span><strong>${d.connector_count}</strong> ${escapeHtml(t('network-mapper.index.connectors'))}</span>
                         </div>
                         <div class="nm-card-actions">
-                            <button class="nm-card-action-btn danger" onclick="event.stopPropagation(); deleteDiagram(${d.id}, '${escapeAttr(d.title)}')">${escapeHtml(t('common.delete'))}</button>
+                            <button class="nm-card-action-btn danger" onclick="event.stopPropagation(); deleteDiagram(${d.id}, ${jsArg(d.title)})">${escapeHtml(t('common.delete'))}</button>
                         </div>
                     </div>
                     <div style="font-size:11px;color:var(--text-faint, #9ca3af);">${escapeHtml(t('network-mapper.index.meta_by', { author: author, date: updated }))}</div>

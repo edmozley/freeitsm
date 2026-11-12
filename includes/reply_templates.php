@@ -20,9 +20,8 @@
  *
  * ...BUT THE ESCAPING IS NOT THE SAME, AND THAT IS THE WHOLE POINT
  * ---------------------------------------------------------------
- * resolveMergeCodes() in template_email.php substitutes raw. That is survivable for
- * an outbound email whose only reader is the requester themselves. It is NOT
- * survivable here: a canned response is merged and then dropped into the analyst's
+ * resolveMergeCodes() in template_email.php substitutes raw; since 5.1.0 its caller,
+ * sendTemplateEmail(), escapes the values first for an HTML body too. Here it matters most: a canned response is merged and then dropped into the analyst's
  * TinyMCE editor and re-rendered in the inbox, and `requester_name` ultimately comes
  * from the From header of an email a stranger sent us. A requester called
  * `<img src=x onerror=...>` would otherwise be running script in the analyst's

@@ -98,7 +98,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     ?>
     <script>window.TICKET_REPLY_TO = <?php echo json_encode($ticketReplyTo); ?>;</script>
     <script>window.TICKET_WORKSPACE = <?php echo json_encode($workspaceConfig); ?>;</script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
     <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
@@ -1172,7 +1172,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=195"></script>
+    <script src="../assets/js/inbox.js?v=196"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>

@@ -28,7 +28,7 @@ $translationNamespaces = ['common', 'system-wiki'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <style>
@@ -349,7 +349,7 @@ $translationNamespaces = ['common', 'system-wiki'];
                 const hasChildren = node.children && node.children.length > 0;
                 const id = 'tree_' + node.path.replace(/[^a-zA-Z0-9]/g, '_');
 
-                html += `<div class="tree-item" style="--depth:${depth}" onclick="selectFolder('${esc(node.path)}', this)" data-path="${esc(node.path)}">`;
+                html += `<div class="tree-item" style="--depth:${depth}" onclick="selectFolder(${jsArg(node.path)}, this)" data-path="${esc(node.path)}">`;
                 html += `<span class="tree-toggle" onclick="event.stopPropagation(); toggleTree('${id}', this)">${hasChildren ? '&#9654;' : ''}</span>`;
                 html += `<span class="tree-icon">${node.name === '(root)' ? '&#128193;' : '&#128194;'}</span>`;
                 html += `<span>${esc(node.name)}</span>`;

@@ -32,7 +32,7 @@ $translationNamespaces = ['common', 'tickets'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
-    <script src="../assets/js/i18n.js?v=3"></script>
+    <script src="../assets/js/i18n.js?v=4"></script>
     <script src="../assets/js/address-book-add.js?v=1"></script>
     <style>
         .users-container {
@@ -1099,7 +1099,7 @@ $translationNamespaces = ['common', 'tickets'];
                         </div>
                         <div><span class="member-kind">${escapeHtml(kindLabels[m.member_type] || m.member_type)}</span></div>
                         <div>${until}</div>
-                        <div>${canManage ? `<button class="btn btn-secondary" onclick="removeMember('${escapeHtml(m.member_type)}', ${m.member_id})">${escapeHtml(t('common.remove'))}</button>` : ''}</div>
+                        <div>${canManage ? `<button class="btn btn-secondary" onclick="removeMember(${jsArg(m.member_type)}, ${m.member_id})">${escapeHtml(t('common.remove'))}</button>` : ''}</div>
                     </div>
                 `;
             }).join('');
@@ -1178,7 +1178,7 @@ $translationNamespaces = ['common', 'tickets'];
                         user:    t('tickets.users.groups.kind_user')
                     };
                     results.innerHTML = d.results.map(p => `
-                        <div class="member-result" onclick="addMember('${escapeHtml(p.member_type)}', ${p.member_id})">
+                        <div class="member-result" onclick="addMember(${jsArg(p.member_type)}, ${p.member_id})">
                             <div class="member-result-name">${escapeHtml(p.name)}</div>
                             <div class="member-result-meta">${escapeHtml(kindLabels[p.member_type] || p.member_type)}${p.secondary ? ' · ' + escapeHtml(p.secondary) : ''}</div>
                         </div>

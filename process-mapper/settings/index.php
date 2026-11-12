@@ -50,7 +50,7 @@ $shapes = include '../includes/shapes.php';
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/i18n.js?v=3"></script>
+    <script src="../../assets/js/i18n.js?v=4"></script>
     <style>
         /* Module accent for the shared .toggle-switch / tabs / buttons (defined
            in inbox.css) — pinned to this module's indigo brand. */
@@ -233,7 +233,7 @@ $shapes = include '../includes/shapes.php';
                     <label><?php echo htmlspecialchars(t('process-mapper.settings.field_shape')); ?></label>
                     <div class="pms-shape-grid" id="pmsShapeGrid">
                         <?php foreach ($shapes as $key => $dim): ?>
-                        <button type="button" class="pms-shape-opt" data-shape-key="<?php echo htmlspecialchars($key); ?>" onclick="PMS.pickShape('<?php echo htmlspecialchars($key); ?>')">
+                        <button type="button" class="pms-shape-opt" data-shape-key="<?php echo htmlspecialchars($key); ?>" onclick="PMS.pickShape(<?php echo htmlspecialchars(json_encode($key), ENT_QUOTES); ?>)">
                             <span class="pm-shape-preview" data-shape="<?php echo htmlspecialchars($key); ?>"></span>
                             <span class="pms-shape-name"><?php echo htmlspecialchars(t('process-mapper.shapes.' . $key)); ?></span>
                         </button>

@@ -89,7 +89,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script>window.translations = <?php echo json_encode(I18n::exportForJs(['common', 'projects']), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=3"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=48">
