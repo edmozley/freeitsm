@@ -14,6 +14,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2861 | i18n              | Improvement | Ukrainian back to 100%: the 3,773 strings added since the last run, across every module - chart of accounts, Starters & leavers, API threat protection, background jobs and the new settings. |
+| 2860 | i18n              | Improvement | French back to 100%: the 3,773 strings added since the last run, across every module - chart of accounts, Starters & leavers, API threat protection, background jobs and the new settings. |
+| 2859 | i18n              | Improvement | Danish back to 100%: the 3,773 strings added since the last run, across every module - chart of accounts, Starters & leavers, API threat protection, background jobs and the new settings. |
 | 2858 | i18n              | Improvement | Indonesian back to 100%: the 317 strings added since the last run - chart of accounts, project accounts and income, API threat protection, notifications and the new settings. |
 | 2857 | i18n              | Improvement | Greek back to 100%: the 317 strings added since the last run - chart of accounts, project accounts and income, API threat protection, notifications and the new settings. |
 | 2856 | i18n              | Improvement | Polish back to 100%: the 317 strings added since the last run - chart of accounts, project accounts and income, API threat protection, notifications and the new settings. |
