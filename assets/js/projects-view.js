@@ -310,6 +310,8 @@
         else if (f === 'methodology') detail = T('history.from_to', { from: T('method.' + h.old_value), to: T('method.' + h.new_value) });
         else if (['start_date', 'target_end_date', 'actual_end_date'].includes(f)) detail = T('history.from_to', { from: h.old_value ? P.fmtDate(h.old_value) : '-', to: h.new_value ? P.fmtDate(h.new_value) : '-' });
         else if (['colour', 'icon', 'tailoring', 'business_case'].includes(f)) detail = '';
+        // #282: "Task title: 70% 3.0.1.0.2, 30% 2.0.3.0.4" (old_value holds the task's title).
+        else if (f === 'task_account') detail = (h.old_value || '') + ': ' + (h.new_value || T('budget.accounts_unset'));
         else if (f === 'item_moscow') detail = (h.new_value || '').replace(/: (must|should|could|wont|-)$/, (m, k) => ': ' + (k === '-' ? T('scope.unsorted') : T('scope.' + k)));
         else if (h.new_value) detail = h.old_value ? T('history.from_to', { from: h.old_value, to: h.new_value }) : h.new_value;
         const when = window.fmtDateTime ? window.fmtDateTime(h.created_datetime) : h.created_datetime;

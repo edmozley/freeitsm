@@ -220,9 +220,9 @@ class AccountsService
     /**
      * Delete one - refused while anything sits below it. Make it inactive instead.
      *
-     * TRAP: when budget lines and tasks start naming accounts (#282 slices 2-3), add
-     * an "is it still used?" check here, as CostCentresService::delete() has - a
-     * deleted account would silently drop out of every project's breakdown.
+     * Nor while anything names it (#282 slice 2: budget lines and project defaults) -
+     * a deleted account would silently drop out of every project's breakdown. TRAP:
+     * when tasks start naming accounts (slice 3), count them in projectAccountUsage().
      *
      * @param ActorContext $actor  who is acting
      * @param int $id  the accounts row to delete
@@ -233,6 +233,14 @@ class AccountsService
         if ((int)$row['child_count'] > 0) {
             throw new ServiceError('conflict', 'conflict',
                 "Account {$row['code']} has " . (int)$row['child_count'] . " account(s) below it. Move or delete those first, or make it inactive instead.");
+        }
+        require_once __DIR__ . '/../projects/accounts.php';
+        $used = projectAccountUsage($conn, (int)$id);
+        if ($used) {
+            $parts = [];
+            foreach ($used as $what => $n) $parts[] = "$n $what";
+            throw new ServiceError('conflict', 'conflict',
+                "Account {$row['code']} is still used by " . implode(', ', $parts) . ". Make it inactive instead, or move those to another account first.");
         }
         $conn->prepare("DELETE FROM accounts WHERE id = ?")->execute([$id]);
     }

@@ -3,6 +3,8 @@
  * GET - download a spreadsheet (3.3.0):
  *   ?what=portfolio&ids=3,1,7&format=csv|xlsx   the projects in the portfolio's view, in its order
  *   ?what=raid&project_id=N&format=csv|xlsx     one project's whole RAID log, open and closed
+ *   ?what=accounts&project_id=N&format=...      one project's costs and income by account (#282)
+ *   ?what=accounts_portfolio&ids=3,1,7&format=  the same added up for the portfolio's projects, one block per currency
  *
  * The portfolio filters and sorts in the browser, so the page sends the ids it
  * is showing; only ids this analyst may see (projectListRows) are written, so
@@ -85,6 +87,35 @@ projectApiRun(function () use ($conn, $ctx, $analystId) {
         }
         $name = 'raid-' . preg_replace('/[^A-Za-z0-9-]+/', '-', (string)projectCode((int)$project['id'])) . '-' . gmdate('Y-m-d');
         $sheet = $T('export.sheet_raid');
+    } elseif ($what === 'accounts' || $what === 'accounts_portfolio') {
+        // #282 slice 5: costs and income by account.
+        require_once __DIR__ . '/../../includes/projects/accounts.php';
+        $B = fn(string $k) => t('projects.budget.' . $k);
+        $head = [$B('ba_kind'), $T('export.code'), $B('ba_account'), $B('planned'), $B('actual'), $B('forecast'), $B('ba_hours')];
+        if ($what === 'accounts') {
+            $project = ProjectsService::loadForActor($conn, $ctx, (int)($_GET['project_id'] ?? 0));   // not found / no access throws
+            $b = projectAccountBreakdown($conn, $project);
+            $head[] = $T('export.currency');
+            $out = array_map(fn($r) => array_merge($r, [$b['currency']]), projectBreakdownSheetRows($b, $B));
+            $name = 'accounts-' . preg_replace('/[^A-Za-z0-9-]+/', '-', (string)projectCode((int)$project['id'])) . '-' . gmdate('Y-m-d');
+        } else {
+            // Only projects this analyst may see (projectListRows), as for the portfolio export.
+            $want = array_values(array_filter(array_map('intval', explode(',', (string)($_GET['ids'] ?? '')))));
+            $byId = [];
+            foreach (projectListRows($conn, $analystId) as $r) $byId[(int)$r['id']] = $r;
+            $ids = isset($_GET['ids']) ? array_values(array_filter($want, fn($i) => isset($byId[$i]))) : array_keys($byId);
+            $rows = [];
+            if ($ids) {
+                $st = $conn->prepare("SELECT * FROM projects WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
+                $st->execute($ids);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+            }
+            $head[] = $T('export.currency');
+            $out = [];
+            foreach (projectAccountPortfolio($conn, $rows) as $cur => $b) foreach (projectBreakdownSheetRows($b, $B) as $r) $out[] = array_merge($r, [$cur]);
+            $name = 'accounts-projects-' . gmdate('Y-m-d');
+        }
+        $sheet = $B('ba_title');
     } else {
         projectApiFail('Unknown export.');
     }

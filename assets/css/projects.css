@@ -655,12 +655,36 @@ body { --accent: var(--prj-accent, #e11d48); --accent-hover: var(--prj-accent-ho
 .prj-budget-table .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .prj-budget-table td.bad { color: #dc2626; }
 .prj-budget-table tr.click { cursor: pointer; }
+/* #282 slice 4: the income totals - a total row, then income less costs. */
+.prj-budget-table tr.prj-total td { border-top: 1px solid var(--border, #e2e8f0); border-bottom: none; background: var(--surface-2, #f8fafc); }
+/* #282 slice 5: the by-account table - a kind heading, its accounts, its subtotal. */
+.prj-acc-table tr.prj-acc-kind td { padding-top: 14px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); border-bottom: 1px solid var(--border, #e2e8f0); }
+.prj-acc-table tr.prj-total.sub td { background: none; font-style: italic; color: var(--text-muted, #555); }
+.prj-acc-export { display: inline-flex; gap: 6px; }
 .prj-budget-table tr.click:hover td { background: var(--surface-hover, #f8fafc); }
 .prj-muted.sm { font-size: 12px; }
 .prj-budget-warn { color: #b45309; font-size: 13px; }
 .prj-budget-rates { margin: 6px 0 10px 18px; padding: 0; font-size: 13.5px; }
 .prj-budget-rates .prj-task-remove { opacity: 1; }
 .prj-budget-rate-add { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+/* #282: accounts on a budget line - one, or a split - and the project's default accounts. */
+.prj-acc-single { display: flex; gap: 8px; align-items: center; }
+.prj-acc-single select { flex: 1; min-width: 0; }
+.prj-acc-split { border: 1px solid var(--border-soft, #e5e7eb); border-radius: 6px; padding: 10px; }
+.prj-acc-mode { display: flex; gap: 16px; font-size: 13px; margin-bottom: 8px; }
+.prj-acc-mode label { display: inline-flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer; }
+.prj-acc-row { display: grid; grid-template-columns: 1fr 110px 28px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.prj-acc-row input { text-align: right; }
+/* The shared × is hidden until its task row is hovered; a split row has no hover to wait for. */
+.prj-acc-row .prj-task-remove { opacity: 1; }
+.prj-acc-row .prj-task-remove:hover { color: var(--danger-accent, #c62828); }
+.prj-acc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
+.prj-acc-total { font-size: 12.5px; color: var(--text-dim, #888); }
+.prj-acc-total.bad { color: var(--danger-accent, #c62828); font-weight: 600; }
+.prj-acc-total.ok { color: var(--success-text, #2e7d32); }
+.prj-budget-accounts { font-size: 13px; color: var(--text-dim, #777); margin: -6px 0 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.prj-budget-accounts strong { color: var(--text, #333); font-weight: 600; }
+.prj-budget-accounts select { max-width: 280px; margin-left: 4px; padding: 5px 8px; border: 1px solid var(--border, #ddd); border-radius: 7px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
 .prj-budget-rate-add input { width: 140px; }
 @media (max-width: 600px) {
     .prj-budget-table { font-size: 13px; }

@@ -547,6 +547,112 @@ function apiProjectRaidDelete(PDO $conn, array $apiKey, array $params, array $bo
 // ---------------------------------------------------------------------------
 // Budget
 // ---------------------------------------------------------------------------
+/**
+ * One income line for the API (#282 slice 4).
+ *
+ * @param array $l  one entry of projectIncome()'s lines
+ */
+function apiSerializeIncomeLine(array $l): array {
+    return [
+        'id' => $l['id'], 'title' => $l['title'], 'planned' => $l['planned'], 'received' => $l['received'],
+        'planned_date' => $l['planned_date'], 'received_date' => $l['received_date'], 'notes' => $l['notes'],
+        'account' => $l['account'] === null ? null : apiAccountRef($l['account']),
+    ];
+}
+
+/**
+ * One income line of a project, or 404.
+ *
+ * @param int $projectId  the project
+ * @param int $lineId  the income line, which must belong to it
+ */
+function apiProjectIncomeLine(PDO $conn, int $projectId, int $lineId): array {
+    require_once dirname(__DIR__, 3) . '/includes/projects/accounts.php';
+    foreach (projectIncome($conn, $projectId)['lines'] as $l) if ($l['id'] === $lineId) return $l;
+    apiError(404, 'not_found', 'Income line not found.');
+    return [];
+}
+
+/** POST /projects/{id}/income-lines - adds an income line (#282 slice 4). */
+function apiProjectIncomeLinesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
+    $pid = (int)$params[0];
+    apiLoadProject($conn, $apiKey, $pid);
+    $in = array_intersect_key($body, array_flip(['title', 'planned', 'received', 'planned_date', 'received_date', 'account_id', 'notes']));
+    $id = apiProjectTry(fn() => ProjectToolsService::saveIncomeLine($conn, apiProjectCtx($apiKey), $pid, $in));
+    apiRespond(apiSerializeIncomeLine(apiProjectIncomeLine($conn, $pid, (int)$id)), 201);
+}
+
+/** PATCH /projects/{id}/income-lines/{lineId} - changes an income line; fields left out keep their values. */
+function apiProjectIncomeLinesUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
+    [$pid, $lid] = [(int)$params[0], (int)$params[1]];
+    apiLoadProject($conn, $apiKey, $pid);
+    $cur = apiProjectIncomeLine($conn, $pid, $lid);
+    $in = array_intersect_key($body, array_flip(['title', 'planned', 'received', 'planned_date', 'received_date', 'account_id', 'notes']));
+    if (!$in) apiError(422, 'missing_field', 'No fields to update.');
+    $merged = $in + ['title' => $cur['title'], 'planned' => $cur['planned'], 'received' => $cur['received'], 'planned_date' => $cur['planned_date'],
+        'received_date' => $cur['received_date'], 'account_id' => $cur['account']['id'] ?? null, 'notes' => $cur['notes']];
+    apiProjectTry(fn() => ProjectToolsService::saveIncomeLine($conn, apiProjectCtx($apiKey), $pid, $merged + ['id' => $lid]));
+    apiRespond(apiSerializeIncomeLine(apiProjectIncomeLine($conn, $pid, $lid)));
+}
+
+/** DELETE /projects/{id}/income-lines/{lineId} */
+function apiProjectIncomeLinesDelete(PDO $conn, array $apiKey, array $params, array $body): void {
+    [$pid, $lid] = [(int)$params[0], (int)$params[1]];
+    apiLoadProject($conn, $apiKey, $pid);
+    apiProjectIncomeLine($conn, $pid, $lid);
+    apiProjectTry(fn() => ProjectToolsService::deleteIncomeLine($conn, apiProjectCtx($apiKey), $pid, $lid));
+    apiRespond(['id' => $lid, 'deleted' => true]);
+}
+
+/**
+ * A by-account breakdown for the API (#282 slice 5): the account on each row as a reference.
+ *
+ * @param array $b  from projectAccountBreakdown() or one currency of projectAccountPortfolio()
+ */
+function apiSerializeBreakdown(array $b): array {
+    $row = fn(array $r) => ['account' => $r['account'] === null ? null : apiAccountRef($r['account']), 'planned' => $r['planned'], 'actual' => $r['actual'], 'forecast' => $r['forecast'], 'minutes' => (int)$r['minutes']];
+    $sections = [];
+    foreach ($b['sections'] as $kind => $s) $sections[$kind] = ['rows' => array_map($row, $s['rows']), 'planned' => $s['planned'], 'actual' => $s['actual'], 'forecast' => $s['forecast'], 'minutes' => (int)$s['minutes']];
+    return ['currency' => $b['currency'], 'sections' => $sections, 'unassigned' => $b['unassigned'] === null ? null : $row($b['unassigned']),
+        'costs' => $b['costs'], 'income' => $b['income'], 'net' => $b['net']] + (isset($b['projects']) ? ['projects' => $b['projects']] : []);
+}
+
+/**
+ * GET /projects/by-account - costs and income by account across the projects this key may
+ * see (#282 slice 5), one breakdown per currency - never added across currencies. Accounts
+ * are matched on code. Optional ?status= (comma-separated) and ?company_id=.
+ */
+function apiProjectsByAccount(PDO $conn, array $apiKey, array $params, array $body): void {
+    require_once dirname(__DIR__, 3) . '/includes/projects/accounts.php';
+    if (!projectAccountsReady($conn) || !projectTaskAccountsReady($conn) || !projectIncomeReady($conn)) apiError(409, 'not_ready', 'Run Database Verification to switch the chart of accounts on.');
+    $where = ['1=1']; $args = [];
+    if (!empty($_GET['status'])) {
+        $statuses = array_values(array_filter(array_map('trim', explode(',', (string)$_GET['status']))));
+        $where[] = 'p.status IN (' . implode(',', array_fill(0, count($statuses), '?')) . ')';
+        $args = array_merge($args, $statuses);
+    }
+    if (isset($_GET['company_id']) && $_GET['company_id'] !== '') {
+        $cid = (int)$_GET['company_id'];
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $cid)) apiError(403, 'forbidden', 'This key cannot access that company.');
+        $where[] = ($cid === getDefaultTenantId($conn)) ? '(p.tenant_id = ? OR p.tenant_id IS NULL)' : 'p.tenant_id = ?';
+        $args[] = $cid;
+    }
+    // The same scope as GET /projects: the key's companies, and members-only projects as its analyst.
+    [$scopeSql, $scopeArgs] = apiKeyTenantFilter($conn, $apiKey, 'p');
+    require_once dirname(__DIR__, 3) . '/includes/projects/visibility.php';
+    [$vSql, $vArgs] = projectVisibleSql($conn, (int)($apiKey['analyst_id'] ?? 0), 'p');
+    $st = $conn->prepare("SELECT p.* FROM projects p WHERE " . implode(' AND ', $where) . $scopeSql . $vSql);
+    $st->execute(array_merge($args, $scopeArgs, $vArgs));
+    $out = [];
+    foreach (projectAccountPortfolio($conn, $st->fetchAll(PDO::FETCH_ASSOC)) as $b) $out[] = apiSerializeBreakdown($b);
+    apiRespond($out);
+}
+
+/** An account in a project answer (#282): id, code, name, kind. */
+function apiAccountRef(array $a): array {
+    return ['id' => $a['id'], 'code' => $a['code'], 'name' => $a['name'], 'kind' => $a['kind']];
+}
+
 // @param array $l  one entry of projectBudgetDetail()'s 'lines' list, already worked out (actual source, contract, forecast)
 function apiSerializeBudgetLine(array $l): array {
     return [
@@ -567,6 +673,9 @@ function apiSerializeBudgetLine(array $l): array {
         'spent_date'      => $l['spent_date'],
         'forecast'        => $l['forecast'],
         'forecast_entered'=> $l['forecast_typed'],
+        // #282: the account(s) it counts in - [] = the project's account for other spending.
+        'accounts'        => array_map(fn($a) => ['id' => $a['id'], 'code' => $a['code'], 'name' => $a['name'], 'kind' => $a['kind'], 'percent' => $a['percent']], $l['accounts'] ?? []),
+        'account_split'   => $l['account_split'] ?? null,
     ];
 }
 
@@ -591,7 +700,61 @@ function apiProjectBudget(PDO $conn, array $apiKey, array $params, array $body):
             'to_come_cost'     => $d['labour_to_come']['counted'] ? $d['labour_to_come']['cost'] : null,
         ],
         'lines'       => array_map('apiSerializeBudgetLine', $d['lines']),
+        // #282: where time and lines without an account count; source = project | install.
+        // #282 slice 5: costs and income by account; the costs add up to planned / actual / forecast.
+        'by_account' => $d['by_account'] === null ? null : apiSerializeBreakdown($d['by_account']),
+        // #282 slice 4: money the project brings in - never in planned / actual above.
+        'income' => $d['income'] === null ? null : [
+            'planned' => $d['income']['planned'], 'received' => $d['income']['received'],
+            'lines' => array_map('apiSerializeIncomeLine', $d['income']['lines']),
+        ],
+        // #282 slice 3: where the logged time counts; account null = not assigned to one.
+        'labour_by_account' => $d['labour_by_account'] === null ? null : array_map(fn($r) => [
+            'account' => $r['account'] === null ? null : apiAccountRef($r['account']), 'minutes' => $r['minutes'], 'cost' => $r['cost'], 'is_default' => $r['default'],
+        ], $d['labour_by_account']),
+        'default_accounts' => $d['default_accounts'] === null ? null : array_map(fn($a) => $a === null ? null : ['id' => $a['id'], 'code' => $a['code'], 'name' => $a['name'], 'kind' => $a['kind'], 'source' => $a['source']], $d['default_accounts']),
     ]);
+}
+
+/**
+ * GET /projects/{id}/tasks/{task_id}/accounts - where a task's time counts (#282 slice 3):
+ * its own split now (null = none of its own), its parent's for a subtask, and its history.
+ */
+function apiProjectTaskAccounts(PDO $conn, array $apiKey, array $params, array $body): void {
+    [$pid, $tid] = [(int)$params[0], (int)$params[1]];
+    apiLoadProject($conn, $apiKey, $pid);
+    require_once dirname(__DIR__, 3) . '/includes/projects/accounts.php';
+    [$taskProject, $task] = apiProjectTry(fn() => ProjectToolsService::taskProject($conn, $tid));
+    if ($taskProject !== $pid) apiError(404, 'not_found', 'That task is not part of this project.');
+    $parentId = (int)($task['parent_task_id'] ?? 0);
+    $v = projectTaskAccountVersions($conn, array_filter([$tid, $parentId]));
+    $shares = fn(array $s) => array_map(fn($a) => apiAccountRef($a) + ['percent' => $a['percent']], $s);
+    $latest = fn(array $vs) => $vs && end($vs)['shares'] ? $shares(end($vs)['shares']) : null;
+    apiRespond([
+        'task_id'  => $tid,
+        'accounts' => $latest($v[$tid] ?? []),
+        'parent_accounts' => $parentId ? $latest($v[$parentId] ?? []) : null,
+        'history'  => array_map(fn($x) => ['from' => $x['from'], 'accounts' => $shares($x['shares'])], $v[$tid] ?? []),
+    ]);
+}
+
+/** PATCH /projects/{id}/tasks/{task_id}/accounts - set where a task's time counts: {accounts: [] | [{account_id}] | [{account_id, percent}, ...]}. */
+function apiProjectTaskAccountsSet(PDO $conn, array $apiKey, array $params, array $body): void {
+    [$pid, $tid] = [(int)$params[0], (int)$params[1]];
+    apiLoadProject($conn, $apiKey, $pid);
+    if (!array_key_exists('accounts', $body)) apiError(422, 'missing_field', "Send 'accounts': [] for none of its own, [{account_id}] for one, or [{account_id, percent}, ...] adding up to 100.");
+    apiProjectTry(fn() => ProjectToolsService::setTaskAccounts($conn, apiProjectCtx($apiKey), $pid, $tid, $body['accounts']));
+    apiProjectTaskAccounts($conn, $apiKey, $params, []);
+}
+
+/** PATCH /projects/{id}/budget - the project's default accounts (#282): labour_account_id, other_account_id (null = the install's default). */
+function apiProjectBudgetUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
+    $pid = (int)$params[0];
+    $p = apiLoadProject($conn, $apiKey, $pid);
+    $in = array_intersect_key($body, array_flip(['labour_account_id', 'other_account_id']));
+    if (!$in) apiError(422, 'missing_field', 'Send labour_account_id and/or other_account_id.');
+    apiProjectTry(fn() => ProjectToolsService::setDefaultAccounts($conn, apiProjectCtx($apiKey), $pid, $in));
+    apiProjectBudget($conn, $apiKey, $params, []);
 }
 
 /**
@@ -611,7 +774,7 @@ function apiProjectBudgetLine(PDO $conn, array $p, int $lineId, int $analystId):
 function apiProjectBudgetLinesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
     $pid = (int)$params[0];
     $p = apiLoadProject($conn, $apiKey, $pid);
-    $in = array_intersect_key($body, array_flip(['title', 'category', 'planned', 'actual', 'contract_id', 'cost_centre_id', 'notes', 'planned_date', 'spent_date', 'forecast']));
+    $in = array_intersect_key($body, array_flip(['title', 'category', 'planned', 'actual', 'contract_id', 'cost_centre_id', 'notes', 'planned_date', 'spent_date', 'forecast', 'accounts', 'account_split']));
     $id = apiProjectTry(fn() => ProjectToolsService::saveBudgetLine($conn, apiProjectCtx($apiKey), $pid, $in));
     apiRespond(apiSerializeBudgetLine(apiProjectBudgetLine($conn, $p, (int)$id, (int)$apiKey['analyst_id'])), 201);
 }
@@ -625,12 +788,13 @@ function apiProjectBudgetLinesUpdate(PDO $conn, array $apiKey, array $params, ar
     [$pid, $lid] = [(int)$params[0], (int)$params[1]];
     $p = apiLoadProject($conn, $apiKey, $pid);
     $cur = apiProjectBudgetLine($conn, $p, $lid, (int)$apiKey['analyst_id']);
-    $in = array_intersect_key($body, array_flip(['title', 'category', 'planned', 'actual', 'contract_id', 'cost_centre_id', 'notes', 'planned_date', 'spent_date', 'forecast']));
+    $in = array_intersect_key($body, array_flip(['title', 'category', 'planned', 'actual', 'contract_id', 'cost_centre_id', 'notes', 'planned_date', 'spent_date', 'forecast', 'accounts', 'account_split']));
     if (!$in) apiError(422, 'missing_field', 'No fields to update.');
     // PATCH: what the body leaves out keeps its stored value.
     $merged = $in + [
         'title' => $cur['title'], 'category' => $cur['category'], 'planned' => $cur['planned'], 'actual' => $cur['actual_typed'],
         'contract_id' => $cur['contract']['id'] ?? null, 'cost_centre_id' => $cur['cost_centre']['id'] ?? null, 'notes' => $cur['notes'],
+        // accounts is deliberately NOT filled in: left out, saveBudgetLine() keeps the line's accounts.
         'planned_date' => $cur['planned_date'], 'spent_date' => $cur['spent_date'], 'forecast' => $cur['forecast_typed'],
     ];
     apiProjectTry(fn() => ProjectToolsService::saveBudgetLine($conn, apiProjectCtx($apiKey), $pid, $merged + ['id' => $lid]));

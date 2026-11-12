@@ -288,3 +288,60 @@ function rpProjectChoices(PDO $conn, int $analystId): array
     $st->execute($tArgs);
     return array_map(fn($r) => ['id' => (int)$r['id'], 'name' => $r['name'] . ' (' . projectCode((int)$r['id']) . ')'], $st->fetchAll(PDO::FETCH_ASSOC));
 }
+
+/**
+ * Project costs and income by chart-of-accounts account (#282 slice 5) - the same
+ * breakdown as each project's Budget tab (projectAccountBreakdown), added up across
+ * the chosen projects ONE CURRENCY AT A TIME: amounts in different currencies are
+ * never added together, so a pack with two currencies shows two sets of rows.
+ * A snapshot of now - budgets have no history to look back on.
+ *
+ * @param array $o  the block's cleaned options: projects (ids; [] for all), scope (live|all), hours
+ * @param array $range  the pack's range (not used - a snapshot)
+ * @param mixed $tenant  the pack's company: 'active', 'all' or a company id
+ */
+function rpProjectsAccounts(PDO $conn, int $analystId, array $o, array $range, $tenant): array
+{
+    require_once __DIR__ . '/../projects/accounts.php';
+    $cols = [
+        ['key' => 'account',  'label' => t('reporting.packs.col.account'),  'w' => 34],
+        ['key' => 'kind',     'label' => t('reporting.packs.col.kind'),     'w' => 14],
+        ['key' => 'planned',  'label' => t('reporting.packs.col.planned'),  'w' => 14, 'align' => 'right'],
+        ['key' => 'actual',   'label' => t('reporting.packs.col.actual'),   'w' => 14, 'align' => 'right'],
+        ['key' => 'forecast', 'label' => t('reporting.packs.col.forecast'), 'w' => 14, 'align' => 'right'],
+    ];
+    if ($o['hours']) $cols[] = ['key' => 'hours', 'label' => t('reporting.packs.col.hours'), 'w' => 10, 'align' => 'right'];
+    $empty = ['kind' => 'table', 'snapshot' => true, 'rows' => [], 'columns' => $cols, 'empty' => t('reporting.packs.empty.accounts')];
+    if (!projectAccountsReady($conn) || !projectTaskAccountsReady($conn) || !projectIncomeReady($conn)) return $empty;
+
+    // The projects this pack may show (company, members-only, the chosen ones), then their full rows.
+    $ids = array_column(rpProjectRows($conn, $analystId, $tenant, $o['projects'], $o['scope'] === 'live'), 'id');
+    if (!$ids) return $empty;
+    $st = $conn->prepare('SELECT * FROM projects WHERE id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')');
+    $st->execute(array_map('intval', $ids));
+    $sets = projectAccountPortfolio($conn, $st->fetchAll(PDO::FETCH_ASSOC));
+
+    $B = fn(string $k, array $p = []) => t('projects.budget.' . $k, $p);
+    $rows = [];
+    foreach ($sets as $cur => $b) {
+        $m = fn($v) => Money::format((float)$v, $cur);
+        $h = fn($min) => $min > 0 ? number_format($min / 60, 1) : '';
+        $line = fn(string $name, string $kind, array $r, bool $total = false) => [
+            'account' => $name, 'kind' => $kind,
+            'planned' => $m($r['planned']), 'actual' => $m($r['actual']), 'forecast' => $m($r['forecast']), 'hours' => $h($r['minutes'] ?? 0)];
+        $mins = 0;
+        foreach (['expense', 'fixed_asset', 'payroll'] as $k) {
+            foreach ($b['sections'][$k]['rows'] as $r) $rows[] = $line($r['account']['code'] . ' ' . $r['account']['name'], $B('kind_' . $k), $r);
+            $mins += $b['sections'][$k]['minutes'];
+        }
+        if ($b['unassigned']) { $rows[] = $line($B('not_assigned'), '', $b['unassigned']); $mins += $b['unassigned']['minutes']; }
+        $label = count($sets) > 1 ? $B('ba_costs') . ' (' . $cur . ')' : $B('ba_costs');
+        $rows[] = $line($label, '', $b['costs'] + ['minutes' => $mins], true);
+        if ($b['sections']['income']['rows']) {
+            foreach ($b['sections']['income']['rows'] as $r) $rows[] = $line($r['account'] ? $r['account']['code'] . ' ' . $r['account']['name'] : $B('not_assigned'), $B('kind_income'), $r);
+            $rows[] = $line($B('ba_income'), '', $b['income'], true);
+            $rows[] = $line($B('income_less_costs'), '', $b['net'], true);
+        }
+    }
+    return ['kind' => 'table', 'snapshot' => true, 'rows' => $rows, 'columns' => $cols, 'empty' => t('reporting.packs.empty.accounts')];
+}

@@ -52,7 +52,7 @@ $row = function (string $label, string $desc, string $control) {
     <script src="../../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/projects.css?v=48">
+    <link rel="stylesheet" href="../../assets/css/projects.css?v=52">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="projects" data-mobile-page="settings">
@@ -179,6 +179,22 @@ $row = function (string $label, string $desc, string $control) {
             // 3.3.0: the forecast.
             $row($tt('cost_basis'), $tt('cost_basis_desc'), '<select data-k="project_cost_basis"><option value="actual">' . $tt('basis_actual') . '</option><option value="forecast">' . $tt('basis_forecast') . '</option></select><div class="dflt" data-d="project_cost_basis"></div>');
             $row($tt('forecast_labour'), $tt('forecast_labour_desc'), '<select data-k="project_forecast_labour"><option value="1">' . htmlspecialchars(t('common.yes')) . '</option><option value="0">' . htmlspecialchars(t('common.no')) . '</option></select><div class="dflt" data-d="project_forecast_labour"></div>');
+            // #282: the default accounts, from the Default company's chart - stored as the CODE,
+            // so the same setting finds the account of that code in every company.
+            $accOpts = '<option value="">' . $tt('account_none') . '</option>';
+            $accAny = false;
+            try {
+                $acc = connectToDatabase();
+                $st = $acc->prepare("SELECT code, name FROM accounts WHERE tenant_id = ? AND is_active = 1 AND kind <> 'income' ORDER BY code");
+                $st->execute([(int)getDefaultTenantId($acc)]);
+                foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $a) { $accAny = true; $accOpts .= '<option value="' . htmlspecialchars($a['code']) . '">' . htmlspecialchars($a['code'] . ' ' . $a['name']) . '</option>'; }
+            } catch (Throwable $e) { /* before Database Verification: no accounts yet */ }
+            if ($accAny) {
+                $row($tt('default_labour_account'), $tt('default_labour_account_desc'), '<select data-k="project_default_labour_account">' . $accOpts . '</select><div class="dflt" data-d="project_default_labour_account"></div>');
+                $row($tt('default_other_account'), $tt('default_other_account_desc'), '<select data-k="project_default_other_account">' . $accOpts . '</select><div class="dflt" data-d="project_default_other_account"></div>');
+                // #282 slice 3 (Ed: a setting, default all hours).
+                $row($tt('account_resplit'), $tt('account_resplit_desc'), '<select data-k="project_account_resplit"><option value="all">' . $tt('resplit_all') . '</option><option value="from_then">' . $tt('resplit_from_then') . '</option></select><div class="dflt" data-d="project_account_resplit"></div>');
+            }
             $row($tt('labour_mode'), $tt('labour_mode_desc'), '<select data-k="project_labour_mode"><option value="hours">' . $tt('labour_hours') . '</option><option value="rate">' . $tt('labour_rate') . '</option><option value="analyst">' . $tt('labour_analyst') . '</option></select><div class="dflt" data-d="project_labour_mode"></div>');
             ?>
             <div class="set-actions"><button type="button" class="btn btn-primary prj-btn" data-save="budget"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
@@ -257,7 +273,7 @@ $row = function (string $label, string $desc, string $control) {
     </div>
 
     <script src="../../assets/js/projects.js?v=11"></script>
-    <script src="../../assets/js/projects-settings.js?v=18"></script>
+    <script src="../../assets/js/projects-settings.js?v=19"></script>
     <script src="../../assets/js/ai-settings.js?v=4"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>

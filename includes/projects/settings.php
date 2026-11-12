@@ -142,6 +142,15 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
             // forecast (priced at today's rate).
             'project_cost_basis'           => ['actual', 'basis',   'budget'],
             'project_forecast_labour'      => ['1',     'bool',     'budget'],
+            // #282: where a project's spending and time count when neither the line nor
+            // the project names an account - an account CODE, because accounts are per
+            // company and the same chart is usually in every company (projects/accounts.php).
+            'project_default_labour_account' => ['',   'account_code', 'budget'],
+            'project_default_other_account'  => ['',   'account_code', 'budget'],
+            // #282 slice 3 (Ed, 2026-11-12: a setting, default all): when a task's account
+            // split changes, do ALL its hours follow the new split, or only hours logged
+            // from then on (each hour by the split in force the day it was logged)?
+            'project_account_resplit'        => ['all', 'resplit', 'budget'],
             // ---- Templates --------------------------------------------------
             // Built-in template keys not offered for new projects. Written only by
             // ProjectTemplatesService::setBuiltinHidden(), never by the settings save.
@@ -224,6 +233,15 @@ if (!defined('PROJECT_SETTINGS_LOADED')) {
         }
         if ($rule === 'bool') {
             return in_array($v, ['1', 'true', 'on'], true) ? '1' : '0';
+        }
+        if ($rule === 'resplit') {
+            if (!in_array($v, ['all', 'from_then'], true)) throw new InvalidArgumentException('Choose all hours or only hours from then on.');
+            return $v;
+        }
+        if ($rule === 'account_code') {
+            // Chosen from a list of the Default company's accounts; blank = none.
+            if (mb_strlen($v) > 50 || preg_match('/[\x00-\x1F\x7F]/', $v)) throw new InvalidArgumentException('Choose an account from the list.');
+            return $v;
         }
         if ($rule === 'labour') {
             if (!in_array($v, ['hours', 'rate', 'analyst'], true)) throw new InvalidArgumentException('Choose how labour is costed.');

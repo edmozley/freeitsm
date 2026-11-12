@@ -334,6 +334,7 @@ $translationNamespaces = ['common', 'tasks'];
                         <div><?php echo t('tasks.help.panel_field_status'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_assignee'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_contractor'); ?></div>
+                        <div><?php echo t('tasks.help.panel_field_account'); /* #282 */ ?></div>
                         <div><?php echo t('tasks.help.panel_field_dates'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_tags'); ?></div>
                         <div><?php echo t('tasks.help.panel_field_desc'); ?></div>

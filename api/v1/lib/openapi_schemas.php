@@ -13627,6 +13627,51 @@ return array (
           'nullable' => true,
           'description' => '3.3.0. The forecast somebody typed, or null.',
         ),
+        'accounts' => 
+        array (
+          'type' => 'array',
+          'description' => '#282. The chart-of-accounts account(s) the line counts in, with the share of each (percent, adding up to 100). Empty = the project\'s account for other spending. Send it on POST/PATCH as [{account_id}] for one account, [{account_id, percent}] for a split, or [{account_id, amount}] with account_split "amount" (amounts must add up to the line\'s planned, else actual, else forecast). Leave it out to keep the line\'s accounts; [] removes them.',
+          'items' => 
+          array (
+            'type' => 'object',
+            'properties' => 
+            array (
+              'id' => 
+              array (
+                'type' => 'integer',
+              ),
+              'code' => 
+              array (
+                'type' => 'string',
+              ),
+              'name' => 
+              array (
+                'type' => 'string',
+              ),
+              'kind' => 
+              array (
+                'type' => 'string',
+                'enum' => 
+                array (
+                  0 => 'expense',
+                  1 => 'fixed_asset',
+                  2 => 'payroll',
+                  3 => 'income',
+                ),
+              ),
+              'percent' => 
+              array (
+                'type' => 'number',
+              ),
+            ),
+          ),
+        ),
+        'account_split' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => '#282. How a split was entered: percent or amount. The shares are always stored as percentages.',
+        ),
       ),
     ),
     'ProjectBudget' => 
@@ -13714,6 +13759,173 @@ return array (
           'items' => 
           array (
             '$ref' => '#/components/schemas/ProjectBudgetLine',
+          ),
+        ),
+        'by_account' => 
+        array (
+          '$ref' => '#/components/schemas/ProjectAccountBreakdown',
+        ),
+        'income' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => '#282. Income: totals and lines (null before Database Verification).',
+          'properties' => 
+          array (
+            'planned' => 
+            array (
+              'type' => 'number',
+            ),
+            'received' => 
+            array (
+              'type' => 'number',
+            ),
+            'lines' => 
+            array (
+              'type' => 'array',
+              'items' => 
+              array (
+                '$ref' => '#/components/schemas/ProjectIncomeLine',
+              ),
+            ),
+          ),
+        ),
+        'labour_by_account' => 
+        array (
+          'type' => 'array',
+          'nullable' => true,
+          'description' => '#282. Where the logged time counts, account by account (null before Database Verification). account null = not assigned to an account. is_default = counted in the project\'s account for time because the task names none. cost null in hours mode.',
+          'items' => 
+          array (
+            'type' => 'object',
+            'properties' => 
+            array (
+              'account' => 
+              array (
+                'type' => 'object',
+                'properties' => 
+                array (
+                  'id' => 
+                  array (
+                    'type' => 'integer',
+                  ),
+                  'code' => 
+                  array (
+                    'type' => 'string',
+                  ),
+                  'name' => 
+                  array (
+                    'type' => 'string',
+                  ),
+                  'kind' => 
+                  array (
+                    'type' => 'string',
+                    'enum' => 
+                    array (
+                      0 => 'expense',
+                      1 => 'fixed_asset',
+                      2 => 'payroll',
+                      3 => 'income',
+                    ),
+                  ),
+                ),
+                'nullable' => true,
+              ),
+              'minutes' => 
+              array (
+                'type' => 'integer',
+              ),
+              'cost' => 
+              array (
+                'type' => 'number',
+                'nullable' => true,
+              ),
+              'is_default' => 
+              array (
+                'type' => 'boolean',
+              ),
+            ),
+          ),
+        ),
+        'default_accounts' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => '#282. Where the project\'s time (labour) and its lines with no account (other) count. Each null when there is none. Change them with PATCH /projects/{id}/budget.',
+          'properties' => 
+          array (
+            'labour' => 
+            array (
+              'type' => 'object',
+              'properties' => 
+              array (
+                'id' => 
+                array (
+                  'type' => 'integer',
+                ),
+                'code' => 
+                array (
+                  'type' => 'string',
+                ),
+                'name' => 
+                array (
+                  'type' => 'string',
+                ),
+                'kind' => 
+                array (
+                  'type' => 'string',
+                  'enum' => 
+                  array (
+                    0 => 'expense',
+                    1 => 'fixed_asset',
+                    2 => 'payroll',
+                    3 => 'income',
+                  ),
+                ),
+                'source' => 
+                array (
+                  'type' => 'string',
+                  'description' => 'project (its own) or install (Projects - Settings - Budget, by code)',
+                ),
+              ),
+              'nullable' => true,
+            ),
+            'other' => 
+            array (
+              'type' => 'object',
+              'properties' => 
+              array (
+                'id' => 
+                array (
+                  'type' => 'integer',
+                ),
+                'code' => 
+                array (
+                  'type' => 'string',
+                ),
+                'name' => 
+                array (
+                  'type' => 'string',
+                ),
+                'kind' => 
+                array (
+                  'type' => 'string',
+                  'enum' => 
+                  array (
+                    0 => 'expense',
+                    1 => 'fixed_asset',
+                    2 => 'payroll',
+                    3 => 'income',
+                  ),
+                ),
+                'source' => 
+                array (
+                  'type' => 'string',
+                  'description' => 'project (its own) or install (Projects - Settings - Budget, by code)',
+                ),
+              ),
+              'nullable' => true,
+            ),
           ),
         ),
       ),
@@ -14214,6 +14426,647 @@ return array (
                   ),
                 ),
               ),
+            ),
+          ),
+        ),
+      ),
+    ),
+    'ProjectTaskAccounts' => 
+    array (
+      'type' => 'object',
+      'description' => '#282. Where a project task\'s logged time counts. accounts null = none of its own (a subtask then follows parent_accounts; a task, the project\'s account for time). Set with PATCH {accounts: [] | [{account_id}] | [{account_id, percent}, ...] adding up to 100}; percentages only. Each change is a version from that day (history); Projects - Settings - Budget decides whether all of a task\'s time follows the latest version or each hour the version in force when it was logged.',
+      'properties' => 
+      array (
+        'task_id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'accounts' => 
+        array (
+          'type' => 'array',
+          'nullable' => true,
+          'items' => 
+          array (
+            'type' => 'object',
+            'properties' => 
+            array (
+              'id' => 
+              array (
+                'type' => 'integer',
+              ),
+              'code' => 
+              array (
+                'type' => 'string',
+              ),
+              'name' => 
+              array (
+                'type' => 'string',
+              ),
+              'kind' => 
+              array (
+                'type' => 'string',
+                'enum' => 
+                array (
+                  0 => 'expense',
+                  1 => 'fixed_asset',
+                  2 => 'payroll',
+                  3 => 'income',
+                ),
+              ),
+              'percent' => 
+              array (
+                'type' => 'number',
+              ),
+            ),
+          ),
+        ),
+        'parent_accounts' => 
+        array (
+          'type' => 'array',
+          'nullable' => true,
+          'items' => 
+          array (
+            'type' => 'object',
+            'properties' => 
+            array (
+              'id' => 
+              array (
+                'type' => 'integer',
+              ),
+              'code' => 
+              array (
+                'type' => 'string',
+              ),
+              'name' => 
+              array (
+                'type' => 'string',
+              ),
+              'kind' => 
+              array (
+                'type' => 'string',
+                'enum' => 
+                array (
+                  0 => 'expense',
+                  1 => 'fixed_asset',
+                  2 => 'payroll',
+                  3 => 'income',
+                ),
+              ),
+              'percent' => 
+              array (
+                'type' => 'number',
+              ),
+            ),
+          ),
+        ),
+        'history' => 
+        array (
+          'type' => 'array',
+          'items' => 
+          array (
+            'type' => 'object',
+            'properties' => 
+            array (
+              'from' => 
+              array (
+                'type' => 'string',
+                'format' => 'date',
+              ),
+              'accounts' => 
+              array (
+                'type' => 'array',
+                'items' => 
+                array (
+                  'type' => 'object',
+                  'properties' => 
+                  array (
+                    'id' => 
+                    array (
+                      'type' => 'integer',
+                    ),
+                    'code' => 
+                    array (
+                      'type' => 'string',
+                    ),
+                    'name' => 
+                    array (
+                      'type' => 'string',
+                    ),
+                    'kind' => 
+                    array (
+                      'type' => 'string',
+                      'enum' => 
+                      array (
+                        0 => 'expense',
+                        1 => 'fixed_asset',
+                        2 => 'payroll',
+                        3 => 'income',
+                      ),
+                    ),
+                    'percent' => 
+                    array (
+                      'type' => 'number',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+    'ProjectIncomeLine' => 
+    array (
+      'type' => 'object',
+      'description' => '#282. Money a project brings in, in its currency. Never part of the budget\'s planned / actual. On POST/PATCH send title (required), planned, received, planned_date, received_date (not in the future), account_id (an active income account of the project\'s company), notes.',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'title' => 
+        array (
+          'type' => 'string',
+        ),
+        'planned' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+        ),
+        'received' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+        ),
+        'planned_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'received_date' => 
+        array (
+          'type' => 'string',
+          'format' => 'date',
+          'nullable' => true,
+        ),
+        'notes' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'account' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'code' => 
+            array (
+              'type' => 'string',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+            'kind' => 
+            array (
+              'type' => 'string',
+            ),
+          ),
+        ),
+      ),
+    ),
+    'ProjectAccountBreakdown' => 
+    array (
+      'type' => 'object',
+      'description' => '#282. Costs and income by chart-of-accounts account, in one currency. The costs equal the budget\'s planned / actual / forecast (the same rules, including "nothing counted twice" for labour); a line or time with no account counts in the project\'s default account, or in unassigned. Income is never netted into costs; net = income less costs.',
+      'properties' => 
+      array (
+        'currency' => 
+        array (
+          'type' => 'string',
+        ),
+        'projects' => 
+        array (
+          'type' => 'integer',
+          'description' => 'GET /projects/by-account only: how many projects are in this currency\'s figures.',
+        ),
+        'sections' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'expense' => 
+            array (
+              'type' => 'object',
+              'properties' => 
+              array (
+                'rows' => 
+                array (
+                  'type' => 'array',
+                  'items' => 
+                  array (
+                    'type' => 'object',
+                    'properties' => 
+                    array (
+                      'account' => 
+                      array (
+                        'type' => 'object',
+                        'nullable' => true,
+                        'properties' => 
+                        array (
+                          'id' => 
+                          array (
+                            'type' => 'integer',
+                          ),
+                          'code' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                          'name' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                          'kind' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                        ),
+                      ),
+                      'planned' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'actual' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'forecast' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'minutes' => 
+                      array (
+                        'type' => 'integer',
+                        'description' => 'Time logged in this account (labour has no money in hours mode).',
+                      ),
+                    ),
+                  ),
+                ),
+                'planned' => 
+                array (
+                  'type' => 'number',
+                ),
+                'actual' => 
+                array (
+                  'type' => 'number',
+                ),
+                'forecast' => 
+                array (
+                  'type' => 'number',
+                ),
+                'minutes' => 
+                array (
+                  'type' => 'integer',
+                ),
+              ),
+            ),
+            'fixed_asset' => 
+            array (
+              'type' => 'object',
+              'properties' => 
+              array (
+                'rows' => 
+                array (
+                  'type' => 'array',
+                  'items' => 
+                  array (
+                    'type' => 'object',
+                    'properties' => 
+                    array (
+                      'account' => 
+                      array (
+                        'type' => 'object',
+                        'nullable' => true,
+                        'properties' => 
+                        array (
+                          'id' => 
+                          array (
+                            'type' => 'integer',
+                          ),
+                          'code' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                          'name' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                          'kind' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                        ),
+                      ),
+                      'planned' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'actual' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'forecast' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'minutes' => 
+                      array (
+                        'type' => 'integer',
+                        'description' => 'Time logged in this account (labour has no money in hours mode).',
+                      ),
+                    ),
+                  ),
+                ),
+                'planned' => 
+                array (
+                  'type' => 'number',
+                ),
+                'actual' => 
+                array (
+                  'type' => 'number',
+                ),
+                'forecast' => 
+                array (
+                  'type' => 'number',
+                ),
+                'minutes' => 
+                array (
+                  'type' => 'integer',
+                ),
+              ),
+            ),
+            'payroll' => 
+            array (
+              'type' => 'object',
+              'properties' => 
+              array (
+                'rows' => 
+                array (
+                  'type' => 'array',
+                  'items' => 
+                  array (
+                    'type' => 'object',
+                    'properties' => 
+                    array (
+                      'account' => 
+                      array (
+                        'type' => 'object',
+                        'nullable' => true,
+                        'properties' => 
+                        array (
+                          'id' => 
+                          array (
+                            'type' => 'integer',
+                          ),
+                          'code' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                          'name' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                          'kind' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                        ),
+                      ),
+                      'planned' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'actual' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'forecast' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'minutes' => 
+                      array (
+                        'type' => 'integer',
+                        'description' => 'Time logged in this account (labour has no money in hours mode).',
+                      ),
+                    ),
+                  ),
+                ),
+                'planned' => 
+                array (
+                  'type' => 'number',
+                ),
+                'actual' => 
+                array (
+                  'type' => 'number',
+                ),
+                'forecast' => 
+                array (
+                  'type' => 'number',
+                ),
+                'minutes' => 
+                array (
+                  'type' => 'integer',
+                ),
+              ),
+            ),
+            'income' => 
+            array (
+              'type' => 'object',
+              'properties' => 
+              array (
+                'rows' => 
+                array (
+                  'type' => 'array',
+                  'items' => 
+                  array (
+                    'type' => 'object',
+                    'properties' => 
+                    array (
+                      'account' => 
+                      array (
+                        'type' => 'object',
+                        'nullable' => true,
+                        'properties' => 
+                        array (
+                          'id' => 
+                          array (
+                            'type' => 'integer',
+                          ),
+                          'code' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                          'name' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                          'kind' => 
+                          array (
+                            'type' => 'string',
+                          ),
+                        ),
+                      ),
+                      'planned' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'actual' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'forecast' => 
+                      array (
+                        'type' => 'number',
+                      ),
+                      'minutes' => 
+                      array (
+                        'type' => 'integer',
+                        'description' => 'Time logged in this account (labour has no money in hours mode).',
+                      ),
+                    ),
+                  ),
+                ),
+                'planned' => 
+                array (
+                  'type' => 'number',
+                ),
+                'actual' => 
+                array (
+                  'type' => 'number',
+                ),
+                'forecast' => 
+                array (
+                  'type' => 'number',
+                ),
+                'minutes' => 
+                array (
+                  'type' => 'integer',
+                ),
+              ),
+            ),
+          ),
+        ),
+        'unassigned' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'account' => 
+            array (
+              'type' => 'object',
+              'nullable' => true,
+              'properties' => 
+              array (
+                'id' => 
+                array (
+                  'type' => 'integer',
+                ),
+                'code' => 
+                array (
+                  'type' => 'string',
+                ),
+                'name' => 
+                array (
+                  'type' => 'string',
+                ),
+                'kind' => 
+                array (
+                  'type' => 'string',
+                ),
+              ),
+            ),
+            'planned' => 
+            array (
+              'type' => 'number',
+            ),
+            'actual' => 
+            array (
+              'type' => 'number',
+            ),
+            'forecast' => 
+            array (
+              'type' => 'number',
+            ),
+            'minutes' => 
+            array (
+              'type' => 'integer',
+              'description' => 'Time logged in this account (labour has no money in hours mode).',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'costs' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'planned' => 
+            array (
+              'type' => 'number',
+            ),
+            'actual' => 
+            array (
+              'type' => 'number',
+            ),
+            'forecast' => 
+            array (
+              'type' => 'number',
+            ),
+          ),
+        ),
+        'income' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'planned' => 
+            array (
+              'type' => 'number',
+            ),
+            'actual' => 
+            array (
+              'type' => 'number',
+            ),
+            'forecast' => 
+            array (
+              'type' => 'number',
+            ),
+          ),
+        ),
+        'net' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'planned' => 
+            array (
+              'type' => 'number',
+            ),
+            'actual' => 
+            array (
+              'type' => 'number',
+            ),
+            'forecast' => 
+            array (
+              'type' => 'number',
             ),
           ),
         ),
@@ -16274,7 +17127,39 @@ return array (
     array (
       '$ref' => '#/components/schemas/DeleteAck',
     ),
+    'GET /projects/by-account' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/ProjectAccountBreakdown',
+      ),
+    ),
     'GET /projects/{id}/budget' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectBudget',
+    ),
+    'POST /projects/{id}/income-lines' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectIncomeLine',
+    ),
+    'PATCH /projects/{id}/income-lines/{line_id}' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectIncomeLine',
+    ),
+    'DELETE /projects/{id}/income-lines/{line_id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
+    'GET /projects/{id}/tasks/{task_id}/accounts' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectTaskAccounts',
+    ),
+    'PATCH /projects/{id}/tasks/{task_id}/accounts' => 
+    array (
+      '$ref' => '#/components/schemas/ProjectTaskAccounts',
+    ),
+    'PATCH /projects/{id}/budget' => 
     array (
       '$ref' => '#/components/schemas/ProjectBudget',
     ),

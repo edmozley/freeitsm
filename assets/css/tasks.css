@@ -927,6 +927,17 @@ body {
 }
 
 .detail-select:focus, .detail-input:focus { outline: none; border-color: var(--tsk-accent, #7c3aed); }
+/* #282: the Account field - where a project task's time counts. */
+.task-acc-value { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text, #333); }
+.task-acc-row { display: grid; grid-template-columns: 1fr 80px 26px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.task-acc-row .detail-input { text-align: right; }
+.task-acc-remove { background: none; border: none; color: var(--text-faint, #aaa); font-size: 18px; line-height: 1; cursor: pointer; }
+.task-acc-remove:hover { color: var(--danger-accent, #c62828); }
+.task-acc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.task-acc-total { font-size: 12px; color: var(--text-dim, #888); }
+.task-acc-total.bad { color: var(--danger-accent, #c62828); font-weight: 600; }
+.task-acc-total.ok { color: var(--success-text, #2e7d32); }
+.task-acc-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 
 .detail-row {
     display: flex;

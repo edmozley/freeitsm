@@ -30,6 +30,11 @@
         const h = (min || 0) / 60;
         return (Math.round(h * 10) / 10).toLocaleString() + ' h';
     }
+    /** "2.0.3.0.4 Software Licences" - with "(inactive)" for one since switched off (#282). */
+    const accLabel = a => a.code + ' ' + a.name + (a.is_active === false ? ' (' + T('inactive') + ')' : '');
+    /** True when this project's company has accounts to choose from, or the budget already names some (#282). */
+    const hasAccounts = b => b.accounts !== null && b.accounts !== undefined
+        && (b.accounts.length > 0 || b.lines.some(l => (l.accounts || []).length) || !!(b.default_accounts && (b.default_accounts.labour || b.default_accounts.other)));
     /** True when the viewer may change this project. */
     const canChange = () => !!(ctx.data.permissions && ctx.data.permissions.can_change);
     /** Posts a budget action to tools.php for the current project. */
@@ -67,6 +72,15 @@
         html += '<div class="prj-budget-cur">' + esc(T('currency_line', { currency: cur }))
             + (b.per_project_currency && canChange() ? ' <button type="button" class="btn btn-secondary sm" data-budget-currency>' + esc(T('change_currency')) + '</button>' : '') + '</div>';
 
+        // #282: where this project's time and other spending count in the chart of accounts.
+        if (hasAccounts(b)) {
+            const d = b.default_accounts || {};
+            /** One default, as a sentence part - with "(the default for every project)" when it comes from Settings. */
+            const part = a => a ? '<strong>' + esc(accLabel(a)) + '</strong>' + (a.source === 'install' ? ' <span class="prj-muted">' + esc(T('accounts_install')) + '</span>' : '') : '<em>' + esc(T('accounts_unset')) + '</em>';
+            html += '<div class="prj-budget-accounts" id="pbAccounts"><span>' + T('accounts_labour', { account: part(d.labour) }) + '; ' + T('accounts_other', { account: part(d.other) }) + '</span>'
+                + (canChange() ? '<button type="button" class="btn btn-secondary sm" data-accounts-change>' + esc(T('accounts_change')) + '</button>' : '') + '</div>';
+        }
+
         // Lines
         html += '<div class="prj-panel"><div class="prj-panel-head"><h3>' + esc(T('lines')) + '</h3>'
             + (canChange() ? '<button type="button" class="btn btn-primary prj-btn sm" data-budget-add>' + esc(T('add')) + '</button>' : '') + '</div>';
@@ -78,6 +92,9 @@
                 const sub = [];
                 if (l.contract) sub.push(T('from_contract', { name: (l.contract.number ? l.contract.number + ' ' : '') + l.contract.title }));
                 if (l.cost_centre) sub.push(l.cost_centre.code + ' ' + l.cost_centre.name);
+                // #282: the account, or the split as "70% 3.0.1.0.2 Professional Services, 30% ...".
+                if ((l.accounts || []).length === 1) sub.push(accLabel(l.accounts[0]));
+                else if ((l.accounts || []).length > 1) sub.push(l.accounts.map(a => T('split_list', { pct: +a.percent.toFixed(2), account: accLabel(a) })).join(', '));
                 if (l.notes) sub.push(l.notes);
                 // 3.3.0: when, and what it is now expected to cost (planned less forecast: negative = dearer than planned).
                 if (l.planned_date) sub.push(T('planned_for', { date: P.fmtDate(l.planned_date) }));
@@ -97,6 +114,43 @@
         }
         html += '</div>';
 
+        // #282 slice 4: income - beside the budget, never added to it.
+        if (b.income) {
+            const inc = b.income;
+            html += '<div class="prj-panel" style="margin-top:16px"><div class="prj-panel-head"><h3>' + esc(T('income')) + '</h3>'
+                + (canChange() ? '<button type="button" class="btn btn-primary prj-btn sm" data-income-add>' + esc(T('income_add')) + '</button>' : '') + '</div>'
+                + '<p class="prj-muted sm" style="margin-top:0">' + esc(T('income_intro')) + '</p>';
+            if (!inc.lines.length) html += '<p class="prj-muted">' + esc(T('income_none')) + '</p>';
+            else {
+                html += '<div class="prj-table-wrap"><table class="prj-budget-table"><thead><tr><th>' + esc(T('col_line')) + '</th><th class="num">' + esc(T('planned')) + '</th><th class="num">' + esc(T('income_received')) + '</th></tr></thead><tbody>'
+                    + inc.lines.map(l => {
+                        const sub = [];
+                        if (l.account) sub.push(accLabel(l.account));
+                        if (l.planned_date) sub.push(T('expected_on', { date: P.fmtDate(l.planned_date) }));
+                        if (l.received_date) sub.push(T('received_on', { date: P.fmtDate(l.received_date) }));
+                        if (l.notes) sub.push(l.notes);
+                        return '<tr' + (canChange() ? ' class="click" data-income-line="' + l.id + '"' : '') + '><td><strong>' + esc(l.title) + '</strong>' + (sub.length ? '<div class="prj-muted sm">' + esc(sub.join(' - ')) + '</div>' : '') + '</td>'
+                            + '<td class="num">' + esc(money(l.planned, cur)) + '</td><td class="num">' + esc(money(l.received, cur)) + '</td></tr>';
+                    }).join('')
+                    + '<tr class="prj-total"><td><strong>' + esc(T('income_total')) + '</strong></td><td class="num"><strong>' + esc(money(inc.planned, cur)) + '</strong></td><td class="num"><strong>' + esc(money(inc.received, cur)) + '</strong></td></tr>'
+                    // Income less costs: planned income against the planned budget, received against the actual spend.
+                    + '<tr class="prj-total"><td title="' + esc(T('income_net_hint')) + '">' + esc(T('income_less_costs')) + '</td>'
+                    + '<td class="num' + (inc.planned - b.planned < 0 ? ' bad' : '') + '">' + esc(money(Math.round((inc.planned - b.planned) * 100) / 100, cur)) + '</td>'
+                    + '<td class="num' + (inc.received - b.actual < 0 ? ' bad' : '') + '">' + esc(money(Math.round((inc.received - b.actual) * 100) / 100, cur)) + '</td></tr>'
+                    + '</tbody></table></div>';
+            }
+            html += '</div>';
+        }
+
+        // #282 slice 5: costs and income by account - shown once anything names an account.
+        if (window.PrjAccounts && b.by_account && (hasAccounts(b) || (b.income && b.income.lines.some(l => l.account))) && window.PrjAccounts.any(b.by_account)) {
+            const ex = f => window.PRJ_BASE + 'api/projects/export.php?what=accounts&project_id=' + ctx.projectId + '&format=' + f;
+            html += '<div class="prj-panel" style="margin-top:16px"><div class="prj-panel-head"><h3>' + esc(T('ba_title')) + '</h3><span class="prj-acc-export">'
+                + '<a class="btn btn-secondary sm" href="' + esc(ex('xlsx')) + '">' + esc(T('ba_export_xlsx')) + '</a> <a class="btn btn-secondary sm" href="' + esc(ex('csv')) + '">CSV</a></span></div>'
+                + '<p class="prj-muted sm" style="margin-top:0">' + esc(T(b.labour_mode === 'hours' ? 'ba_intro_hours' : 'ba_intro')) + '</p>'
+                + window.PrjAccounts.table(b.by_account, { esc, T, money, hours }) + '</div>';
+        }
+
         // Labour
         const lab = b.labour;
         html += '<div class="prj-panel" style="margin-top:16px"><h3>' + esc(T('labour')) + '</h3>';
@@ -110,6 +164,16 @@
                 + (tc.counted ? '' : ' <span class="prj-muted">(' + esc(T('to_come_not_counted')) + ')</span>') + '</p>';
             if (tc.open_unestimated > 0) html += '<p class="prj-muted sm">' + esc(T('to_come_unestimated', { count: tc.open_unestimated })) + '</p>';
             if (tc.unpriced_hours > 0 && b.labour_mode !== 'hours') html += '<p class="prj-budget-warn">' + esc(T('to_come_unpriced', { hours: hours(tc.unpriced_hours * 60) })) + '</p>';
+        }
+        // #282 slice 3: where the time counts, account by account - shown once a task names an account.
+        const lba = b.labour_by_account || [];
+        if (hasAccounts(b) && lba.some(r => r.account && !r.default)) {
+            html += '<h4>' + esc(T('time_by_account')) + '</h4><table class="prj-budget-table prj-time-accounts"><tbody>'
+                + lba.map(r => '<tr><td>' + (r.account ? esc(accLabel(r.account)) : '<em>' + esc(T('not_assigned')) + '</em>')
+                    + (r.default && r.account ? ' <span class="prj-muted sm">' + esc(T('time_default_note')) + '</span>' : '') + '</td>'
+                    + '<td class="num">' + esc(hours(r.minutes)) + '</td>'
+                    + (b.labour_mode !== 'hours' ? '<td class="num">' + esc(money(r.cost, cur)) + '</td>' : '') + '</tr>').join('')
+                + '</tbody></table><p class="prj-muted sm">' + esc(T(b.account_resplit === 'from_then' ? 'time_resplit_from_then' : 'time_resplit_all')) + '</p>';
         }
         if (b.labour_mode === 'rate') {
             html += '<h4>' + esc(T('project_rate')) + '</h4><p class="prj-muted sm">' + esc(T('project_rate_hint', { currency: cur })) + '</p>';
@@ -237,9 +301,180 @@
         document.getElementById('pbCostCentre').innerHTML = '<option value="">' + esc(T('none')) + '</option>'
             + ccs.map(c => '<option value="' + c.id + '"' + (line && line.cost_centre && line.cost_centre.id === c.id ? ' selected' : '') + '>' + esc(c.code + ' ' + c.name) + '</option>').join('');
         document.getElementById('pbNotes').value = line ? (line.notes || '') : '';
+        openAccounts(line);
         document.getElementById('pbDelete').hidden = !line;
         document.getElementById('pbError').hidden = true;
         P.openModal('prjBudgetModal');
+    }
+
+    // ── #282: accounts on a budget line ────────────────────────────────────
+    // One account (a select), or a split (rows of account + percentage or amount).
+    // The server stores percentages; an amount split is shown back as amounts of the
+    // line's base (planned, else actual, else forecast) - see includes/projects/accounts.php.
+    let accChoices = [];   // what the selects offer for the open line
+
+    /** The amount a split by amount must add up to: the planned, else actual, else forecast typed in the dialog. */
+    function splitBase() {
+        for (const id of ['pbPlanned', 'pbActual', 'pbForecast']) {
+            const v = document.getElementById(id).value.replace(/[\s,]/g, '');
+            if (v !== '' && !isNaN(Number(v))) return Number(v);
+        }
+        return null;
+    }
+    /** The split's mode: 'percent' or 'amount'. */
+    const splitMode = () => (document.querySelector('input[name="pbSplitMode"]:checked') || {}).value || 'percent';
+    /** The option list of accounts, with the chosen one selected. */
+    const accOptions = (sel, blank) => (blank !== null ? '<option value="">' + esc(blank) + '</option>' : '')
+        + accChoices.map(a => '<option value="' + a.id + '"' + (a.id === sel ? ' selected' : '') + '>' + esc(accLabel(a)) + '</option>').join('');
+
+    /** Fills the account part of the dialog for a line (null = new). Hidden when the company has no accounts. */
+    function openAccounts(line) {
+        const b = ctx.data.budget;
+        const wrap = document.getElementById('pbAccountWrap');
+        wrap.hidden = !hasAccounts(b);
+        if (wrap.hidden) return;
+        accChoices = b.accounts.slice();
+        (line && line.accounts || []).forEach(a => { if (!accChoices.some(c => c.id === a.id)) accChoices.push(a); });   // keep a switched-off one
+        const other = b.default_accounts && b.default_accounts.other;
+        document.getElementById('pbAccount').innerHTML = accOptions(line && line.accounts && line.accounts.length === 1 ? line.accounts[0].id : null,
+            other ? T('account_default', { account: accLabel(other) }) : T('account_none'));
+        document.getElementById('pbAccountHint').textContent = other ? T('account_hint_default', { account: accLabel(other) }) : T('account_hint_none');
+        const accs = line && line.accounts || [];
+        if (accs.length > 1) {
+            document.querySelector('input[name="pbSplitMode"][value="' + (line.account_split === 'amount' ? 'amount' : 'percent') + '"]').checked = true;
+            const base = line.account_split === 'amount' ? splitBase() : null;
+            showSplit(accs.map(a => ({ id: a.id, v: base !== null ? Math.round(a.percent * base) / 100 : +a.percent.toFixed(4) })));
+        } else {
+            document.querySelector('input[name="pbSplitMode"][value="percent"]').checked = true;
+            showSingle();
+        }
+    }
+    /** Shows the single-account select. */
+    function showSingle() {
+        document.getElementById('pbAccountSingle').hidden = false;
+        document.getElementById('pbSplit').hidden = true;
+        document.getElementById('pbAccountHint').hidden = false;   // "with none chosen..." is about the single select
+    }
+    /** Shows the split with these rows ([{id, v}]). */
+    function showSplit(rows) {
+        document.getElementById('pbAccountSingle').hidden = true;
+        document.getElementById('pbSplit').hidden = false;
+        document.getElementById('pbAccountHint').hidden = true;
+        document.getElementById('pbSplitRows').innerHTML = '';
+        rows.forEach(r => addSplitRow(r.id, r.v));
+        splitTotal();
+    }
+    /** Adds one row to the split. */
+    function addSplitRow(id, v) {
+        const row = document.createElement('div');
+        row.className = 'prj-acc-row';
+        row.innerHTML = '<select aria-label="' + esc(T('account')) + '">' + accOptions(id || null, T('split_choose')) + '</select>'
+            + '<input type="text" inputmode="decimal" aria-label="' + esc(T(splitMode() === 'amount' ? 'split_amount' : 'split_percent')) + '" value="' + esc(v === null || v === undefined ? '' : v) + '">'
+            + '<button type="button" class="prj-task-remove" data-split-remove aria-label="' + esc(T('split_remove')) + '">&times;</button>';
+        document.getElementById('pbSplitRows').appendChild(row);
+    }
+    /** The running total under the split - green when it adds up, red when it does not. */
+    function splitTotal() {
+        const out = document.getElementById('pbSplitTotal');
+        if (document.getElementById('pbSplit').hidden) return;
+        const vals = [...document.querySelectorAll('#pbSplitRows .prj-acc-row input')].map(i => Number(i.value.replace(/[\s,%]/g, '')) || 0);
+        const sum = Math.round(vals.reduce((a, v) => a + v, 0) * 10000) / 10000;
+        if (splitMode() === 'amount') {
+            const base = splitBase();
+            if (base === null) { out.textContent = T('split_no_base'); out.className = 'prj-acc-total bad'; return; }
+            const cur = ctx.data.budget.currency;
+            out.textContent = T('split_total_amount', { total: money(sum, cur), line: money(base, cur) });
+            out.className = 'prj-acc-total ' + (Math.abs(sum - base) < 0.005 ? 'ok' : 'bad');
+        } else {
+            out.textContent = T('split_total_pct', { total: sum });
+            out.className = 'prj-acc-total ' + (Math.abs(sum - 100) < 0.01 ? 'ok' : 'bad');
+        }
+    }
+    /** Switching percentage <-> amount converts what is typed, so nothing has to be entered twice. */
+    function convertSplit(to) {
+        const base = splitBase();
+        document.querySelectorAll('#pbSplitRows .prj-acc-row input').forEach(i => {
+            const v = Number(i.value.replace(/[\s,%]/g, ''));
+            if (i.value === '' || isNaN(v) || base === null || base === 0) return;
+            i.value = to === 'amount' ? String(Math.round(v * base) / 100) : String(Math.round(v / base * 1000000) / 10000);
+            i.setAttribute('aria-label', T(to === 'amount' ? 'split_amount' : 'split_percent'));
+        });
+        splitTotal();
+    }
+    /** What the dialog says about accounts, for the save: {accounts, account_split}, or {} when the part is hidden. */
+    function collectAccounts() {
+        if (document.getElementById('pbAccountWrap').hidden) return {};
+        if (document.getElementById('pbSplit').hidden) {
+            const v = document.getElementById('pbAccount').value;
+            return { accounts: v ? [{ account_id: Number(v) }] : [] };
+        }
+        const mode = splitMode();
+        const rows = [...document.querySelectorAll('#pbSplitRows .prj-acc-row')]
+            .map(r => ({ account_id: Number(r.querySelector('select').value) || 0, v: r.querySelector('input').value.trim() }))
+            .filter(r => r.account_id || r.v !== '');
+        return { account_split: mode, accounts: rows.map(r => ({ account_id: r.account_id, [mode]: r.v.replace(/%/g, '') })) };
+    }
+
+    /** Turns the "Accounts" line into two selects and a Save button: time, and other spending. */
+    function editDefaults() {
+        const b = ctx.data.budget, d = b.default_accounts || {};
+        const box = document.getElementById('pbAccounts');
+        if (!box) return;
+        /** One select: the project's own account, or blank for the default for every project. */
+        const sel = (which, label) => {
+            const cur = d[which] && d[which].source === 'project' ? d[which].id : null;
+            const opts = b.accounts.slice();
+            if (d[which] && d[which].source === 'project' && !opts.some(a => a.id === d[which].id)) opts.push(d[which]);
+            return '<label>' + esc(label) + ' <select data-accounts-pick="' + which + '"><option value="">' + esc(T('accounts_use_default')) + '</option>'
+                + opts.map(a => '<option value="' + a.id + '"' + (a.id === cur ? ' selected' : '') + '>' + esc(accLabel(a)) + '</option>').join('') + '</select></label>';
+        };
+        box.innerHTML = sel('labour', T('accounts_label_labour')) + sel('other', T('accounts_label_other'))
+            + '<button type="button" class="btn btn-primary prj-btn sm" data-accounts-save>' + esc(P.TC('save')) + '</button>';
+    }
+    /** Saves the project's two default accounts and redraws. */
+    async function saveDefaults() {
+        const v = w => document.querySelector('[data-accounts-pick="' + w + '"]').value || null;
+        try { await call({ action: 'budget_accounts', labour_account_id: v('labour'), other_account_id: v('other') }); P.toast(T('saved')); await ctx.refresh(); }
+        catch (e) { P.toast(e.message, 'error'); }
+    }
+
+    // ── #282 slice 4: income lines ─────────────────────────────────────────
+    /** Opens the income dialog filled from a line, or empty for a new one; the account list is the company's income accounts. */
+    function openIncome(line) {
+        const b = ctx.data.budget;
+        document.getElementById('piTitle').textContent = T(line ? 'income_edit' : 'income_new');
+        document.getElementById('piId').value = line ? line.id : '';
+        document.getElementById('piName').value = line ? line.title : '';
+        document.getElementById('piPlanned').value = line && line.planned !== null ? line.planned : '';
+        document.getElementById('piReceived').value = line && line.received !== null ? line.received : '';
+        document.getElementById('piPlannedDate').value = line && line.planned_date ? line.planned_date : '';
+        document.getElementById('piReceivedDate').value = line && line.received_date ? line.received_date : '';
+        document.getElementById('piNotes').value = line ? (line.notes || '') : '';
+        const accs = (b.income_accounts || []).slice();
+        if (line && line.account && !accs.some(a => a.id === line.account.id)) accs.push(line.account);   // keep a switched-off one
+        document.getElementById('piAccountWrap').hidden = !accs.length;
+        document.getElementById('piAccount').innerHTML = '<option value="">' + esc(T('none')) + '</option>'
+            + accs.map(a => '<option value="' + a.id + '"' + (line && line.account && line.account.id === a.id ? ' selected' : '') + '>' + esc(accLabel(a)) + '</option>').join('');
+        document.getElementById('piDelete').hidden = !line;
+        document.getElementById('piError').hidden = true;
+        P.openModal('prjIncomeModal');
+    }
+    /** Saves the income dialog through tools.php and redraws. */
+    async function saveIncome() {
+        const err = document.getElementById('piError');
+        const body = { action: 'income_line_save', id: document.getElementById('piId').value || undefined,
+            title: document.getElementById('piName').value.trim(), planned: document.getElementById('piPlanned').value, received: document.getElementById('piReceived').value,
+            planned_date: document.getElementById('piPlannedDate').value, received_date: document.getElementById('piReceivedDate').value,
+            account_id: document.getElementById('piAccount').value || null, notes: document.getElementById('piNotes').value.trim() };
+        try { await call(body); P.closeModal('prjIncomeModal'); P.toast(T('saved')); await ctx.refresh(); }
+        catch (e) { err.textContent = e.message; err.hidden = false; }
+    }
+    /** Asks, then deletes the income line open in the dialog. */
+    async function deleteIncome() {
+        const ok = await window.showConfirm({ title: T('income_delete_title'), message: T('income_delete_body'), okLabel: P.TC('delete'), okClass: 'danger' });
+        if (!ok) return;
+        try { await call({ action: 'income_line_delete', id: document.getElementById('piId').value }); P.closeModal('prjIncomeModal'); await ctx.refresh(); }
+        catch (e) { P.toast(e.message, 'error'); }
     }
 
     /** Saves the budget line dialog through tools.php and redraws the project. */
@@ -251,6 +486,7 @@
             planned_date: document.getElementById('pbPlannedDate').value, spent_date: document.getElementById('pbSpentDate').value, forecast: document.getElementById('pbForecast').value,
             cost_centre_id: document.getElementById('pbCostCentre').value || null, notes: document.getElementById('pbNotes').value.trim() };
         if (!document.getElementById('pbContractWrap').hidden) body.contract_id = document.getElementById('pbContract').value || null;
+        Object.assign(body, collectAccounts());   // #282
         try { await call(body); P.closeModal('prjBudgetModal'); P.toast(T('saved')); await ctx.refresh(); }
         catch (e) { err.textContent = e.message; err.hidden = false; }
     }
@@ -312,6 +548,39 @@
             const rd = e.target.closest('[data-rate-delete]');
             if (rd) { try { await call({ action: 'budget_rate_delete', from: rd.dataset.rateDelete }); await ctx.refresh(); } catch (err) { P.toast(err.message, 'error'); } }
         });
+        // #282: the split editor in the line dialog.
+        document.getElementById('pbSplitOn').addEventListener('click', () => {
+            const cur = Number(document.getElementById('pbAccount').value) || null;
+            showSplit([{ id: cur, v: cur ? 100 : '' }, { id: null, v: '' }]);
+        });
+        document.getElementById('pbSplitAdd').addEventListener('click', () => { addSplitRow(null, ''); splitTotal(); });
+        document.getElementById('pbSplitRows').addEventListener('click', e => {
+            if (!e.target.closest('[data-split-remove]')) return;
+            e.target.closest('.prj-acc-row').remove();
+            const left = [...document.querySelectorAll('#pbSplitRows .prj-acc-row')];
+            // Down to one account: back to the single select, with that account chosen.
+            if (left.length <= 1) {
+                const id = left.length ? Number(left[0].querySelector('select').value) || '' : '';
+                document.getElementById('pbAccount').value = id ? String(id) : '';
+                showSingle();
+            } else splitTotal();
+        });
+        document.getElementById('pbSplitRows').addEventListener('input', splitTotal);
+        document.querySelectorAll('input[name="pbSplitMode"]').forEach(r => r.addEventListener('change', () => convertSplit(r.value)));
+        ['pbPlanned', 'pbActual', 'pbForecast'].forEach(id => document.getElementById(id).addEventListener('input', splitTotal));
+        // ...and the project's default accounts on the tab.
+        document.getElementById('pvBudget').addEventListener('click', e => {
+            if (e.target.closest('[data-accounts-change]')) editDefaults();
+            else if (e.target.closest('[data-accounts-save]')) saveDefaults();
+            // #282 slice 4: income.
+            else if (e.target.closest('[data-income-add]')) openIncome(null);
+            else {
+                const row = e.target.closest('[data-income-line]');
+                if (row) openIncome(ctx.data.budget.income.lines.find(l => String(l.id) === row.dataset.incomeLine));
+            }
+        });
+        document.getElementById('piSave').addEventListener('click', saveIncome);
+        document.getElementById('piDelete').addEventListener('click', deleteIncome);
         document.getElementById('pbSave').addEventListener('click', saveLine);
         document.getElementById('pbDelete').addEventListener('click', deleteLine);
     }

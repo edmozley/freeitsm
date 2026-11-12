@@ -1865,7 +1865,9 @@ class ProjectToolsService
      * Create (no id) or update a budget line. Returns its id.
      *
      * @param array $in  id (to change one), title (required), category, planned, actual, forecast (amounts), planned_date,
-     *     spent_date, contract_id (linked to the project), cost_centre_id, notes (up to 500)
+     *     spent_date, contract_id (linked to the project), cost_centre_id, notes (up to 500); accounts (#282: [] for none, or
+     *     [{account_id, percent}] / [{account_id, amount}] - see projectValidateLineAccounts()) and account_split
+     *     ('percent' | 'amount'). Leaving accounts out keeps the line's accounts as they are.
      */
     public static function saveBudgetLine(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
     {
@@ -1903,6 +1905,14 @@ class ProjectToolsService
             $keep = $id > 0 ? $conn->prepare("SELECT 1 FROM project_budget_lines WHERE id = ? AND cost_centre_id = ?") : null;
             if (!$keep || !$keep->execute([$id, $ccId]) || !$keep->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'Choose an active cost centre of the project\'s company.');
         }
+        // #282: the line's account(s). Checked before anything is written, so a bad split
+        // saves nothing. Absent = leave them as they are (an older caller, a PATCH without it).
+        $accounts = null;
+        if (array_key_exists('accounts', $in)) {
+            require_once __DIR__ . '/../projects/accounts.php';
+            $base = $planned ?? $actual ?? $forecast;
+            $accounts = projectValidateLineAccounts($conn, $p, $id, $in['accounts'], isset($in['account_split']) ? (string)$in['account_split'] : null, $base);
+        }
         projectStampCurrency($conn, $projectId);
 
         if ($id > 0) {
@@ -1912,6 +1922,7 @@ class ProjectToolsService
             $conn->prepare("UPDATE project_budget_lines SET title = ?, category = ?, planned_amount = ?, actual_amount = ?, contract_id = ?, cost_centre_id = ?, notes = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
                  ->execute([$title, $cat, $planned, $actual, $contractId, $ccId, $notes, $id]);
             self::budgetLineWhen($conn, $id, $plannedDate, $spentDate, $forecast);
+            if ($accounts !== null) projectSaveLineAccounts($conn, $id, $accounts);
             ProjectsService::audit($conn, $projectId, $ctx->actorId, 'budget_line_changed', null, $title, self::src($ctx));
         } else {
             $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_budget_lines WHERE project_id = " . $projectId)->fetchColumn();
@@ -1920,6 +1931,7 @@ class ProjectToolsService
                  ->execute([$projectId, $title, $cat, $planned, $actual, $contractId, $ccId, $notes, $pos, $ctx->actorId > 0 ? $ctx->actorId : null]);
             $id = (int)$conn->lastInsertId();
             self::budgetLineWhen($conn, $id, $plannedDate, $spentDate, $forecast);
+            if ($accounts !== null) projectSaveLineAccounts($conn, $id, $accounts);
             ProjectsService::audit($conn, $projectId, $ctx->actorId, 'budget_line_added', null, $title, self::src($ctx));
         }
         ProjectsService::touchProject($conn, $projectId);
@@ -2021,6 +2033,156 @@ class ProjectToolsService
         $conn->prepare("UPDATE projects SET currency = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$code, $projectId]);
         ProjectsService::audit($conn, $projectId, $ctx->actorId, 'currency', $old, $code, self::src($ctx));
         ProjectsService::afterChange($conn, $projectId);
+    }
+
+    /**
+     * A project's default accounts (#282): where its time counts (labour) and where a
+     * budget line with no account of its own counts (other). Only the keys sent are
+     * changed; 0 / null / '' = none of its own, so the install's default applies.
+     * New choices must be active accounts of the project's company; the account it
+     * already has is kept even if it has since been made inactive.
+     *
+     * @param array $in  labour_account_id and/or other_account_id
+     */
+    public static function setDefaultAccounts(PDO $conn, ActorContext $ctx, int $projectId, array $in): void
+    {
+        require_once __DIR__ . '/../projects/accounts.php';
+        $p = self::changeable($conn, $ctx, $projectId);
+        if (!projectAccountsReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification to add accounts to projects.');
+        $active = array_column(projectCostAccounts($conn, $p), null, 'id');   // never an income account for costs
+        foreach (['labour_account_id' => 'labour_account', 'other_account_id' => 'other_account'] as $col => $auditField) {
+            if (!array_key_exists($col, $in)) continue;
+            $new = (int)($in[$col] ?? 0) ?: null;
+            $old = ($p[$col] ?? null) !== null ? (int)$p[$col] : null;
+            if ($new === $old) continue;
+            if ($new !== null && !isset($active[$new])) throw new ServiceError('validation', 'invalid_field', 'Choose an active account of the project\'s company.');
+            $conn->prepare("UPDATE projects SET $col = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$new, $projectId]);
+            $label = function (?int $id) use ($conn) {
+                if ($id === null) return null;
+                $st = $conn->prepare("SELECT CONCAT(code, ' ', name) FROM accounts WHERE id = ?");
+                $st->execute([$id]);
+                return $st->fetchColumn() ?: null;
+            };
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, $auditField, $label($old), $label($new), self::src($ctx));
+            $p[$col] = $new;
+        }
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    /**
+     * Create (no id) or update an income line (#282, slice 4). Returns its id.
+     *
+     * @param array $in  id (to change one), title (required), planned, received (amounts), planned_date,
+     *     received_date (not in the future), account_id (an active INCOME account of the project's company;
+     *     a line keeps one since made inactive), notes (up to 500)
+     */
+    public static function saveIncomeLine(PDO $conn, ActorContext $ctx, int $projectId, array $in): int
+    {
+        require_once __DIR__ . '/../projects/budget.php';
+        require_once __DIR__ . '/../projects/accounts.php';
+        $p = self::changeable($conn, $ctx, $projectId);
+        if (!projectIncomeReady($conn)) throw new ServiceError('validation', 'not_ready', 'Run System - Database Verification to add income to projects.');
+        $title = trim((string)($in['title'] ?? ''));
+        if ($title === '') throw new ServiceError('validation', 'missing_field', 'Give the income a name.');
+        if (mb_strlen($title) > 200) throw new ServiceError('validation', 'invalid_field', 'The name is too long.');
+        $planned = projectMoney($in['planned'] ?? null);
+        $received = projectMoney($in['received'] ?? null);
+        $plannedDate = self::date($in['planned_date'] ?? null);
+        $receivedDate = self::date($in['received_date'] ?? null);
+        if ($receivedDate !== null && $receivedDate > gmdate('Y-m-d')) throw new ServiceError('validation', 'invalid_field', 'The date it was received cannot be in the future.');
+        $notes = trim((string)($in['notes'] ?? '')) ?: null;
+        if ($notes !== null && mb_strlen($notes) > 500) throw new ServiceError('validation', 'invalid_field', 'The notes are too long.');
+        $id = (int)($in['id'] ?? 0);
+        $accountId = !empty($in['account_id']) ? (int)$in['account_id'] : null;
+        if ($accountId !== null && !in_array($accountId, array_column(projectIncomeAccounts($conn, $p), 'id'), true)) {
+            // An existing line keeps an account that has since been made inactive.
+            $keep = $id > 0 ? $conn->prepare("SELECT 1 FROM project_income_lines WHERE id = ? AND account_id = ?") : null;
+            if (!$keep || !$keep->execute([$id, $accountId]) || !$keep->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'Choose an active income account of the project\'s company.');
+        }
+        projectStampCurrency($conn, $projectId);
+        $vals = [$title, $planned, $received, $plannedDate, $receivedDate, $accountId, $notes];
+        if ($id > 0) {
+            $st = $conn->prepare("SELECT 1 FROM project_income_lines WHERE id = ? AND project_id = ?");
+            $st->execute([$id, $projectId]);
+            if (!$st->fetchColumn()) throw new ServiceError('not_found', 'not_found', 'That income is not part of this project.');
+            $conn->prepare("UPDATE project_income_lines SET title = ?, planned_amount = ?, received_amount = ?, planned_date = ?, received_date = ?, account_id = ?, notes = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute(array_merge($vals, [$id]));
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'income_line_changed', null, $title, self::src($ctx));
+        } else {
+            $pos = (int)$conn->query("SELECT COALESCE(MAX(position), 0) + 1 FROM project_income_lines WHERE project_id = " . $projectId)->fetchColumn();
+            $conn->prepare("INSERT INTO project_income_lines (title, planned_amount, received_amount, planned_date, received_date, account_id, notes, project_id, position, created_datetime, updated_datetime)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+                 ->execute(array_merge($vals, [$projectId, $pos]));
+            $id = (int)$conn->lastInsertId();
+            ProjectsService::audit($conn, $projectId, $ctx->actorId, 'income_line_added', null, $title, self::src($ctx));
+        }
+        ProjectsService::touchProject($conn, $projectId);
+        return $id;
+    }
+
+    /**
+     * Deletes an income line and records it in the project's history.
+     *
+     * @param int $lineId  the income line (project_income_lines.id)
+     */
+    public static function deleteIncomeLine(PDO $conn, ActorContext $ctx, int $projectId, int $lineId): void
+    {
+        self::changeable($conn, $ctx, $projectId);
+        $st = $conn->prepare("SELECT title FROM project_income_lines WHERE id = ? AND project_id = ?");
+        $st->execute([$lineId, $projectId]);
+        $title = $st->fetchColumn();
+        if ($title === false) throw new ServiceError('not_found', 'not_found', 'That income is not part of this project.');
+        $conn->prepare("DELETE FROM project_income_lines WHERE id = ?")->execute([$lineId]);
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'income_line_removed', $title, null, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+    }
+
+    /**
+     * The project a task's time counts for: its own project_id, or - a subtask - its parent's.
+     * [project id, task row]; project id 0 when the task is in no project. Not found when
+     * the task does not exist.
+     *
+     * @param int $taskId  the task (or subtask)
+     */
+    public static function taskProject(PDO $conn, int $taskId): array
+    {
+        $st = $conn->prepare("SELECT t.id, t.title, t.parent_task_id, COALESCE(t.project_id, p.project_id) AS project_id
+                                FROM tasks t LEFT JOIN tasks p ON p.id = t.parent_task_id WHERE t.id = ?");
+        $st->execute([$taskId]);
+        $t = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$t) throw new ServiceError('not_found', 'not_found', 'Task not found.');
+        return [(int)($t['project_id'] ?? 0), $t];
+    }
+
+    /**
+     * The account(s) the time on a task counts in (#282, slice 3): [] = none of its own (a
+     * subtask then follows its parent; a task, the project's account for time),
+     * [{account_id}] = one, or [{account_id, percent}, ...] adding up to 100. Saved as a
+     * version from today (see includes/projects/accounts.php), recorded in the project's
+     * history. Needs the right to change the task's project.
+     *
+     * @param int $taskId  a task of the project, or a subtask of one
+     * @param mixed $accounts  as above
+     * @return bool  whether anything changed
+     */
+    public static function setTaskAccounts(PDO $conn, ActorContext $ctx, int $projectId, int $taskId, $accounts): bool
+    {
+        require_once __DIR__ . '/../projects/accounts.php';
+        $p = self::changeable($conn, $ctx, $projectId);
+        [$taskProject, $task] = self::taskProject($conn, $taskId);
+        if ($taskProject !== $projectId) throw new ServiceError('not_found', 'not_found', 'That task is not part of this project.');
+        $rows = projectValidateTaskAccounts($conn, $p, $taskId, $accounts);
+        if (!projectSaveTaskAccounts($conn, $taskId, $rows)) return false;
+        $label = '';
+        if ($rows) {
+            $names = [];
+            $n = $conn->prepare("SELECT code FROM accounts WHERE id = ?");
+            foreach ($rows as [$aid, $pct]) { $n->execute([$aid]); $names[] = (count($rows) > 1 ? rtrim(rtrim(number_format($pct, 2, '.', ''), '0'), '.') . '% ' : '') . $n->fetchColumn(); }
+            $label = implode(', ', $names);
+        }
+        ProjectsService::audit($conn, $projectId, $ctx->actorId, 'task_account', $task['title'], $label === '' ? null : $label, self::src($ctx));
+        ProjectsService::touchProject($conn, $projectId);
+        return true;
     }
 
     // ======================================================================

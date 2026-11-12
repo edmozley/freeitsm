@@ -277,7 +277,9 @@ class ProjectsService
             try { $conn->prepare("DELETE m FROM project_benefit_measures m JOIN project_benefits b ON b.id = m.benefit_id WHERE b.project_id = ?")->execute([$id]); } catch (Throwable) { /* not created yet */ }
             // RAID actions first (3.3.0): joined to the entries about to go; the tasks stay.
             try { $conn->prepare("DELETE rt FROM project_raid_tasks rt JOIN project_raid r ON r.id = rt.raid_id WHERE r.project_id = ?")->execute([$id]); } catch (Throwable) { /* not created yet */ }
-            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_reports', 'project_milestones', 'project_change_requests', 'project_baselines', 'project_benefits', 'project_gate_items', 'project_task_flow'] as $t) {
+            // A budget line's accounts (#282), before the lines below.
+            try { $conn->prepare("DELETE la FROM project_budget_line_accounts la JOIN project_budget_lines l ON l.id = la.line_id WHERE l.project_id = ?")->execute([$id]); } catch (Throwable) { /* not created yet */ }
+            foreach (['project_raci', 'project_members', 'project_items', 'project_raid', 'project_tolerances', 'project_budget_lines', 'project_income_lines', 'project_reports', 'project_milestones', 'project_change_requests', 'project_baselines', 'project_benefits', 'project_gate_items', 'project_task_flow'] as $t) {
                 try { $conn->prepare("DELETE FROM `$t` WHERE project_id = ?")->execute([$id]); } catch (Throwable) { /* not created yet */ }
             }
             foreach (['project_stages', 'project_audit'] as $t) {

@@ -249,6 +249,8 @@
         const name = id => { const p = ordered.find(x => x.id === id); return p ? short(p.name) : '#' + id; };
         box.innerHTML = '<div class="prj-panel prj-pc"><h3>' + esc(T('portfolio.chart_progress')) + '</h3><div class="prj-pc-progress"></div></div>'
             + '<div class="prj-panel prj-pc"><h3>' + esc(T('portfolio.chart_budget')) + '</h3><p class="prj-muted sm prj-pc-budgetnote"></p><div class="prj-pc-budget"></div></div>'
+            // #282 slice 5: costs and income by account, added up across the projects in view.
+            + '<div class="prj-panel prj-pc prj-pc-accounts" hidden><div class="prj-panel-head"><h3>' + esc(T('budget.ba_title')) + '</h3><span class="prj-acc-export"></span></div><p class="prj-muted sm">' + esc(T('portfolio.ba_note')) + '</p><div class="prj-pc-acc"></div></div>'
             + '<div class="prj-pc-two"><div class="prj-panel prj-pc"><h3>' + esc(T('portfolio.chart_risks')) + '</h3><p class="prj-muted sm">' + esc(T('portfolio.chart_risks_hint')) + '</p><div class="prj-pc-heat"></div></div>'
             + '<div class="prj-panel prj-pc"><h3>' + esc(T('portfolio.chart_milestones')) + '</h3><div class="prj-pc-ms"></div></div></div>';
         const C = window.PrjCharts;
@@ -282,6 +284,22 @@
                 labels: { table: T('portfolio.table'), chart: T('portfolio.chart'), category: T('portfolio.project'), aria: T('portfolio.chart_budget') },
             });
         });
+        // Costs and income by account (#282): the projects in view, one table per currency.
+        const accs = Object.entries(chartData.accounts || {}).map(([id, b]) => Object.assign({ id: Number(id) }, b)).filter(b => inView.has(b.id));
+        const apanel = box.querySelector('.prj-pc-accounts');
+        if (accs.length && window.PrjAccounts) {
+            apanel.hidden = false;
+            const ab = apanel.querySelector('.prj-pc-acc');
+            const acurs = [...new Set(accs.map(b => b.currency))].sort();
+            /** An amount in a currency, for the viewer's locale. */
+            const amoney = (v, c) => { if (v === null || v === undefined) return '-'; if (window.Money) return Money.format(v, c); try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: c }).format(v); } catch (e) { return c + ' ' + Number(v).toFixed(2); } };
+            const ahours = m => (Math.round((m || 0) / 6) / 10).toLocaleString() + ' h';
+            ab.innerHTML = acurs.map(c => (acurs.length > 1 ? '<h4 class="prj-pc-cur">' + esc(c) + '</h4>' : '')
+                + window.PrjAccounts.table(window.PrjAccounts.combine(accs.filter(b => b.currency === c)), { esc, T: (k, p) => T('budget.' + k, p), money: amoney, hours: ahours })).join('');
+            const ids = ordered.map(p => p.id).join(',');
+            const ex = f => window.PRJ_BASE + 'api/projects/export.php?what=accounts_portfolio&ids=' + ids + '&format=' + f;
+            apanel.querySelector('.prj-acc-export').innerHTML = '<a class="btn btn-secondary sm" href="' + esc(ex('xlsx')) + '">' + esc(T('budget.ba_export_xlsx')) + '</a> <a class="btn btn-secondary sm" href="' + esc(ex('csv')) + '">CSV</a>';
+        }
         // Risk heat map of every open risk in view; a cell lists its risks.
         const risks = (chartData.risks || []).filter(r => inView.has(r.project_id));
         /** The heat map colour class for a probability x impact score - high from 15, medium from 8. */

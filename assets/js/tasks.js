@@ -1733,6 +1733,7 @@ async function openDetailPanel(taskId) {
         // question — "who could be added" depends on who is already on it.
         involvedState.ownerId = data.task.assigned_analyst_id ? Number(data.task.assigned_analyst_id) : null;
         loadInvolved(taskId);
+        loadTaskAccounts(taskId);   // #282
         // Back to the top on every open (Ed). Clicking a subtask replaces the
         // panel's contents but not its scroll position, so you arrived at the
         // NEW task already scrolled down to where the subtask list was on the
@@ -1912,6 +1913,8 @@ function renderDetailPanel(task) {
 
         ${!task.parent_task_id ? projectFieldHtml(task) : ''}
         ${contractorFieldHtml(task)}
+        <!-- #282: the account(s) this task's time counts in - filled by loadTaskAccounts(), hidden outside a project. -->
+        <div class="detail-field" id="taskAccountsField" hidden></div>
 
         <!-- Who else is on this task (GH #89). Directly under Assignee, because
              "who owns it" and "who else is on it" are one question asked twice,
@@ -4712,6 +4715,121 @@ function contractorFieldHtml(task) {
             <select class="detail-select" ${task.supplier_id ? '' : 'disabled'} onchange="setTaskContractor(${task.id}, ${task.supplier_id || 'null'}, this.value)">${conOpts}</select>
         </div>
     </div>`;
+}
+
+// ── Account (#282, slice 3) - api/projects/task_accounts.php ─────────────────────
+// Where the time logged on a project task counts in the chart of accounts: one
+// account, or a split by percentage. A subtask follows its parent unless it has its
+// own. Shown only for a task in a project whose company has accounts.
+let taskAccounts = null;   // what the endpoint said about the open task
+
+/** "70% 3.0.1.0.2 Professional Services, 30% 2.0.3.0.4 Software Licences" - or just the one account. */
+function taskSharesText(shares) {
+    const lbl = a => a.code + ' ' + a.name + (a.is_active === false ? ' (' + window.t('tasks.detail.account_inactive') + ')' : '');
+    return shares.length === 1 ? lbl(shares[0]) : shares.map(s => (+Number(s.percent).toFixed(2)) + '% ' + lbl(s)).join(', ');
+}
+
+/** Fetches what the Account field needs for a task, then draws it (or keeps it hidden). */
+async function loadTaskAccounts(taskId) {
+    const box = document.getElementById('taskAccountsField');
+    if (!box) return;
+    taskAccounts = null;
+    try {
+        const d = await fetch(APP_BASE + 'api/projects/task_accounts.php?task_id=' + taskId, { credentials: 'same-origin' }).then(r => r.json());
+        if (selectedTaskId !== taskId || !d.success || !d.in_project) return;
+        // Nothing to show for a company with no accounts and no split already made.
+        if (!d.choices.length && !d.own && !d.parent && !d.labour_default) return;
+        taskAccounts = Object.assign({ taskId }, d);
+        drawTaskAccounts();
+    } catch (e) { /* the field simply stays hidden */ }
+}
+
+/** Draws the Account field: what the time counts in, and Change for those who may. */
+function drawTaskAccounts() {
+    const box = document.getElementById('taskAccountsField');
+    const a = taskAccounts;
+    if (!box || !a) return;
+    let text, note = '';
+    if (a.own) text = esc(taskSharesText(a.own));
+    else if (a.is_subtask && a.parent) text = esc(window.t('tasks.detail.account_from_parent', { accounts: taskSharesText(a.parent) }));
+    else if (a.labour_default) text = esc(window.t('tasks.detail.account_default', { account: taskSharesText([a.labour_default]) }));
+    else text = '<em>' + esc(window.t('tasks.detail.account_none')) + '</em>';
+    if (a.own || a.can_change) note = window.t(a.resplit === 'from_then' ? 'tasks.detail.account_note_from_then' : 'tasks.detail.account_note_all');
+    box.hidden = false;
+    box.innerHTML = `<label>${esc(window.t('tasks.detail.account'))}</label>
+        <div class="task-acc-value"><span>${text}</span>${a.can_change ? `<button type="button" class="btn btn-secondary btn-sm" onclick="editTaskAccounts()">${esc(window.t('tasks.detail.account_change'))}</button>` : ''}</div>
+        ${note ? `<div class="detail-hint">${esc(note)}</div>` : ''}`;
+}
+
+/** Opens the editor: one row per account, with a percentage (blank for a single account). */
+function editTaskAccounts() {
+    const a = taskAccounts;
+    const box = document.getElementById('taskAccountsField');
+    if (!a || !box) return;
+    const start = a.own || [];
+    // Every choice, plus any account the split already uses that has since been made inactive.
+    const choices = a.choices.slice();
+    start.forEach(s => { if (!choices.some(c => c.id === s.id)) choices.push(s); });
+    a._choices = choices;
+    box.innerHTML = `<label>${esc(window.t('tasks.detail.account'))}</label>
+        <div class="task-acc-rows" id="taskAccRows"></div>
+        <div class="task-acc-foot">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addTaskAccountRow()">${esc(window.t('tasks.detail.account_add'))}</button>
+            <span class="task-acc-total" id="taskAccTotal" aria-live="polite"></span>
+        </div>
+        <div class="detail-hint">${esc(window.t(a.is_subtask ? 'tasks.detail.account_edit_hint_sub' : 'tasks.detail.account_edit_hint'))}</div>
+        <div class="task-acc-actions">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="drawTaskAccounts()">${esc(window.t('common.cancel'))}</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="saveTaskAccounts()">${esc(window.t('common.save'))}</button>
+        </div>`;
+    (start.length ? start : [null]).forEach(s => addTaskAccountRow(s ? s.id : null, s && start.length > 1 ? +Number(s.percent).toFixed(4) : ''));
+    document.getElementById('taskAccRows').addEventListener('input', taskAccountTotal);
+}
+
+/** Adds one account row to the editor. */
+function addTaskAccountRow(id, pct) {
+    const rows = document.getElementById('taskAccRows');
+    if (!rows || !taskAccounts) return;
+    const row = document.createElement('div');
+    row.className = 'task-acc-row';
+    row.innerHTML = `<select class="detail-select" aria-label="${escAttr(window.t('tasks.detail.account'))}"><option value="">${esc(window.t('tasks.detail.account_choose'))}</option>`
+        + taskAccounts._choices.map(c => `<option value="${c.id}"${c.id === id ? ' selected' : ''}>${esc(c.code + ' ' + c.name)}</option>`).join('') + `</select>`
+        + `<input type="text" inputmode="decimal" class="detail-input" placeholder="%" aria-label="${escAttr(window.t('tasks.detail.account_percent'))}" value="${escAttr(pct === null || pct === undefined ? '' : String(pct))}">`
+        + `<button type="button" class="task-acc-remove" aria-label="${escAttr(window.t('tasks.detail.account_remove'))}" onclick="this.parentElement.remove(); taskAccountTotal()">&times;</button>`;
+    rows.appendChild(row);
+    taskAccountTotal();
+}
+
+/** The running total under a split - shown only when there is more than one row. */
+function taskAccountTotal() {
+    const out = document.getElementById('taskAccTotal');
+    const rows = [...document.querySelectorAll('#taskAccRows .task-acc-row')];
+    if (!out) return;
+    if (rows.length < 2) { out.textContent = ''; return; }
+    const sum = Math.round(rows.reduce((t, r) => t + (Number(r.querySelector('input').value.replace(/[\s,%]/g, '')) || 0), 0) * 10000) / 10000;
+    out.textContent = window.t('tasks.detail.account_total', { total: sum });
+    out.className = 'task-acc-total ' + (Math.abs(sum - 100) < 0.01 ? 'ok' : 'bad');
+}
+
+/** Saves the editor: no rows = none of its own; one row = that account; several = the split. */
+async function saveTaskAccounts() {
+    const a = taskAccounts;
+    if (!a) return;
+    const rows = [...document.querySelectorAll('#taskAccRows .task-acc-row')]
+        .map(r => ({ account_id: Number(r.querySelector('select').value) || 0, percent: r.querySelector('input').value.trim().replace(/%/g, '') }))
+        .filter(r => r.account_id || r.percent !== '');
+    const accounts = rows.length === 1 && rows[0].percent === '' ? [{ account_id: rows[0].account_id }] : rows;
+    try {
+        const r = await fetch(APP_BASE + 'api/projects/task_accounts.php', {
+            method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_id: a.taskId, accounts }),
+        }).then(x => x.json());
+        if (!r.success) throw new Error(r.error || 'Failed');
+        if (typeof showToast === 'function') showToast(window.t('tasks.detail.account_saved'), 'success');
+        await loadTaskAccounts(a.taskId);
+    } catch (e) {
+        if (typeof showToast === 'function') showToast(e.message, 'error');
+    }
 }
 
 /** Saves a task's contractor and contact, then reloads the board and reopens the task. */

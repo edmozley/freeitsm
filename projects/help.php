@@ -53,7 +53,7 @@ $sections = [
     'calendar'  => 2,
     'alerts'    => 5,
     'announce'  => 2,
-    'budget'    => 6,
+    'budget'    => 10,  // p7-p10: accounts, income and the by-account view (#282)
     'control'   => 3,
     'benefits'  => 3,
     'reports'   => 4,
@@ -92,7 +92,7 @@ $prjHelpIcon = fn(string $paths) => '<svg xmlns="http://www.w3.org/2000/svg" wid
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=48">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/projects.css?v=52">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=6">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
     <style>

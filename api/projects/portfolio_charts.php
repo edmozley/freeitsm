@@ -5,6 +5,8 @@
  *   budgets     {project_id: {planned, actual, forecast, currency}} - never added across currencies
  *   risks       [{project_id, title, probability, impact}] - open risks with both scores
  *   milestones  [{project_id, name, due_date, state}] - every milestone, with its state
+ *   accounts    {project_id: breakdown} - costs and income by account (#282), for the projects
+ *               that have any; the page adds up those in its view, one table per currency
  * Progress comes from list.php's own rows.
  */
 require_once __DIR__ . '/../../includes/projects/api_bootstrap.php';
@@ -45,6 +47,18 @@ projectApiRun(function () use ($conn, $analystId) {
         $today = gmdate('Y-m-d');
         $out['milestones'] = array_map(fn($r) => ['project_id' => (int)$r['project_id'], 'name' => $r['name'], 'due_date' => $r['due_date'],
             'state' => projectMilestoneState($r, $today)], $st->fetchAll(PDO::FETCH_ASSOC));
+    }
+    // #282 slice 5: each project's costs and income by account.
+    require_once __DIR__ . '/../../includes/projects/accounts.php';
+    if (projectAccountsReady($conn) && projectTaskAccountsReady($conn) && projectIncomeReady($conn)) {
+        $st = $conn->prepare("SELECT * FROM projects WHERE id IN ($ph)");
+        $st->execute($ids);
+        $acc = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $proj) {
+            $b = projectAccountBreakdown($conn, $proj);
+            if (projectBreakdownHasRows($b)) $acc[(int)$proj['id']] = $b;
+        }
+        $out['accounts'] = (object)$acc;
     }
     projectApiOk($out);
 });

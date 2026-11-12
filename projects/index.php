@@ -39,7 +39,7 @@ $translationNamespaces = ['common', 'projects'];
     <script src="../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../assets/css/projects.css?v=48">
+    <link rel="stylesheet" href="../assets/css/projects.css?v=52">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-portfolio">
@@ -128,7 +128,8 @@ $translationNamespaces = ['common', 'projects'];
 
     <script src="../assets/js/projects.js?v=11"></script>
     <script src="../assets/js/projects-charts.js?v=9"></script>
-    <script src="../assets/js/projects-portfolio.js?v=14"></script>
+    <script src="../assets/js/projects-accounts.js?v=1"></script>
+    <script src="../assets/js/projects-portfolio.js?v=15"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

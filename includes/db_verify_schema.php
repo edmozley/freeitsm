@@ -6366,6 +6366,9 @@ return [
         'alert_exceptions' => 'VARCHAR(100) NULL',
         // Budget currency, stamped at creation - see includes/projects/budget.php.
         'currency'         => 'CHAR(3) NULL',
+        // #282: the project's default accounts (NULL = the install default by code).
+        'labour_account_id' => 'INT NULL',
+        'other_account_id'  => 'INT NULL',
         // Intake and approval (3.3.0) - includes/projects/intake.php.
         'estimated_cost'     => 'DECIMAL(18,2) NULL',
         'estimated_benefit'  => 'TEXT NULL',
@@ -6585,11 +6588,50 @@ return [
         'planned_date'     => 'DATE NULL',
         'spent_date'       => 'DATE NULL',
         'forecast_amount'  => 'DECIMAL(18,2) NULL',
+        'account_split'    => 'VARCHAR(10) NULL',   // #282: 'percent' | 'amount' - how the editor shows a split
         'position'         => 'INT NOT NULL DEFAULT 0',
         'created_by_id'    => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    // #282 slice 4: money a project brings in - beside the budget lines, never added to them.
+    'project_income_lines' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'project_id'       => 'INT NOT NULL',
+        'title'            => 'VARCHAR(200) NOT NULL',
+        'planned_amount'   => 'DECIMAL(18,2) NULL',
+        'received_amount'  => 'DECIMAL(18,2) NULL',
+        'planned_date'     => 'DATE NULL',
+        'received_date'    => 'DATE NULL',
+        'account_id'       => 'INT NULL',
+        'notes'            => 'VARCHAR(500) NULL',
+        'position'         => 'INT NOT NULL DEFAULT 0',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    // #282 slice 3: the accounts the time on a task counts in, as dated versions.
+    'task_account_versions' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'task_id'          => 'INT NOT NULL',
+        'effective_from'   => 'DATE NOT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'task_account_shares' => [
+        'id'         => 'INT NOT NULL AUTO_INCREMENT',
+        'version_id' => 'INT NOT NULL',
+        'account_id' => 'INT NOT NULL',
+        'percent'    => 'DECIMAL(9,6) NOT NULL',
+        'position'   => 'INT NOT NULL DEFAULT 0',
+    ],
+    // #282 slice 2: the accounts a budget line counts in - percentages adding up to 100.
+    'project_budget_line_accounts' => [
+        'id'         => 'INT NOT NULL AUTO_INCREMENT',
+        'line_id'    => 'INT NOT NULL',
+        'account_id' => 'INT NOT NULL',
+        'percent'    => 'DECIMAL(9,6) NOT NULL',
+        'position'   => 'INT NOT NULL DEFAULT 0',
     ],
     // AI project manager (3.2.0): briefings and reports - see includes/projects/ai.php.
     'project_reports' => [

@@ -3357,6 +3357,18 @@ try {
         ['project_budget_lines', 'fk_pbl_project', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
         ['project_budget_lines', 'fk_pbl_contract', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_contract FOREIGN KEY (contract_id) REFERENCES contracts (id) ON DELETE SET NULL"],
         ['project_budget_lines', 'fk_pbl_cost_centre', "ALTER TABLE project_budget_lines ADD CONSTRAINT fk_pbl_cost_centre FOREIGN KEY (cost_centre_id) REFERENCES cost_centres (id) ON DELETE SET NULL"],
+        // #282 slice 2: a line's accounts go with the line; an account in use cannot go (AccountsService refuses first).
+        ['project_budget_line_accounts', 'fk_pbla_line', "ALTER TABLE project_budget_line_accounts ADD CONSTRAINT fk_pbla_line FOREIGN KEY (line_id) REFERENCES project_budget_lines (id) ON DELETE CASCADE"],
+        ['project_budget_line_accounts', 'fk_pbla_account', "ALTER TABLE project_budget_line_accounts ADD CONSTRAINT fk_pbla_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE RESTRICT"],
+        ['projects', 'fk_projects_labour_account', "ALTER TABLE projects ADD CONSTRAINT fk_projects_labour_account FOREIGN KEY (labour_account_id) REFERENCES accounts (id) ON DELETE SET NULL"],
+        // #282 slice 4: income lines go with their project; an account in use cannot go.
+        ['project_income_lines', 'fk_pil_project', "ALTER TABLE project_income_lines ADD CONSTRAINT fk_pil_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],
+        ['project_income_lines', 'fk_pil_account', "ALTER TABLE project_income_lines ADD CONSTRAINT fk_pil_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE RESTRICT"],
+        // #282 slice 3: a task's account versions go with the task, their shares with the version.
+        ['task_account_versions', 'fk_tav_task', "ALTER TABLE task_account_versions ADD CONSTRAINT fk_tav_task FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE"],
+        ['task_account_shares', 'fk_tas_version', "ALTER TABLE task_account_shares ADD CONSTRAINT fk_tas_version FOREIGN KEY (version_id) REFERENCES task_account_versions (id) ON DELETE CASCADE"],
+        ['task_account_shares', 'fk_tas_account', "ALTER TABLE task_account_shares ADD CONSTRAINT fk_tas_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE RESTRICT"],
+        ['projects', 'fk_projects_other_account', "ALTER TABLE projects ADD CONSTRAINT fk_projects_other_account FOREIGN KEY (other_account_id) REFERENCES accounts (id) ON DELETE SET NULL"],
         // A contractor on a project team (3.3.0): the member goes with its supplier or contact.
         ['project_members', 'fk_pmem_supplier', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE CASCADE"],
         ['project_members', 'fk_pmem_contact', "ALTER TABLE project_members ADD CONSTRAINT fk_pmem_contact FOREIGN KEY (contact_id) REFERENCES contacts (id) ON DELETE CASCADE"],

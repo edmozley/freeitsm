@@ -40,6 +40,9 @@
         if (key === 'project_assistant_memory') return T('settings.memory_' + value);
         if (key === 'project_contractor_email') return T('settings.contractor_email_' + value);
         if (key === 'project_benefit_notify') return T('settings.bnotify_' + value);
+        // #282: the accounts' default is "none" (blank), the re-split one a key.
+        if (key === 'project_default_labour_account' || key === 'project_default_other_account') return value ? value : T('settings.account_none');
+        if (key === 'project_account_resplit') return T('settings.resplit_' + value);
         if (key === 'project_proposal_approval') return T('settings.proposal_' + value);
         if (key === 'project_proposal_approver') return T('settings.approver2_' + value);
         if (key === 'project_proposal_on_approve') return T('settings.onapprove_' + value);

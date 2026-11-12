@@ -216,6 +216,23 @@ function projectAiFacts(PDO $conn, array $project, int $analystId, int $days = 1
                 $e['eac'] !== null ? number_format($e['eac'], 2) : 'not known yet'));
         }
     }
+    // Costs and income by account (#282 slice 5) - when the chart of accounts is in use, so a
+    // report can say where the money went the way finance reports it.
+    require_once __DIR__ . '/accounts.php';
+    if (projectAccountsReady($conn) && projectTaskAccountsReady($conn) && projectIncomeReady($conn)) {
+        $ba = projectAccountBreakdown($conn, $project);
+        if (projectBreakdownHasRows($ba)) {
+            $line(sprintf('Costs and income by account (%s; planned / actual / forecast):', $ba['currency']));
+            foreach (['expense' => 'Expense', 'fixed_asset' => 'Fixed asset', 'payroll' => 'Payroll', 'income' => 'Income'] as $kind => $label) {
+                foreach ($ba['sections'][$kind]['rows'] as $r) {
+                    $line(sprintf('- %s: %s %s - %s / %s / %s%s', $label, $r['account']['code'] ?? '', $r['account']['name'] ?? 'not assigned', number_format($r['planned'], 2),
+                        number_format($r['actual'], 2), number_format($r['forecast'], 2), $r['minutes'] > 0 ? sprintf(' (%.1f hours logged)', $r['minutes'] / 60) : ''));
+                }
+            }
+            if ($ba['unassigned']) $line(sprintf('- Not assigned to an account: %s / %s / %s', number_format($ba['unassigned']['planned'], 2), number_format($ba['unassigned']['actual'], 2), number_format($ba['unassigned']['forecast'], 2)));
+            if ($ba['sections']['income']['rows']) $line(sprintf('Income less costs: %s planned, %s actual, %s forecast.', number_format($ba['net']['planned'], 2), number_format($ba['net']['actual'], 2), number_format($ba['net']['forecast'], 2)));
+        }
+    }
     // Benefits (3.3.0): each with where it started, where it is and where it should get to.
     require_once __DIR__ . '/benefits.php';
     if ($bens = projectBenefits($conn, $pid)) {

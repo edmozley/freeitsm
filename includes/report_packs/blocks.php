@@ -319,6 +319,18 @@ function rpHandlers(): array
                 'plans'    => rpOptBool(t('reporting.packs.opt.risk_plans'), true),
             ],
         ],
+        // #282: costs and income by chart-of-accounts account - the same figures as the Budget tab.
+        'projects.accounts' => [
+            'module' => 'projects', 'kind' => 'table', 'fn' => 'rpProjectsAccounts',
+            'opts' => [
+                'projects' => rpOptMulti(t('reporting.packs.opt.projects'), 'projects'),
+                'scope'    => rpOptSelect(t('reporting.packs.opt.which_projects'), [
+                    'live' => t('reporting.packs.projects.scope_live'),
+                    'all'  => t('reporting.packs.projects.scope_all'),
+                ], 'live'),
+                'hours'    => rpOptBool(t('reporting.packs.opt.col_hours'), true),
+            ],
+        ],
     ];
 }
 
@@ -385,6 +397,7 @@ function rpToolboxItems(): array
         'projects_status'     => ['handler' => 'projects.status',     'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'status highlight report progress health rag board'],
         'projects_milestones' => ['handler' => 'projects.milestones', 'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'milestones stages deadlines dates met missed gates'],
         'projects_risks'      => ['handler' => 'projects.risks',      'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'risks raid top risk register score'],
+        'projects_accounts'   => ['handler' => 'projects.accounts',   'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'accounts chart of accounts nominal ledger gl budget costs income finance capex opex'],
     ];
 }
 

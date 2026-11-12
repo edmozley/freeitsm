@@ -819,6 +819,7 @@ return [
             'col_manager'       => 'Project manager column',
             'health_notes'      => 'Why, under each project',
             'risk_plans'        => 'Response plan under each risk',
+            'col_hours'         => 'Hours column',
         ],
         // Projects blocks (3.2.0) - includes/report_packs/blocks_projects.php.
         'projects' => [
@@ -925,6 +926,12 @@ return [
             'warranty_ends' => 'Warranty ends',
             'lease_ends'    => 'Lease ends',
             'project'       => 'Project',
+            'account'       => 'Account',
+            'kind'          => 'Kind',
+            'planned'       => 'Planned',
+            'actual'        => 'Actual',
+            'forecast'      => 'Forecast',
+            'hours'         => 'Hours',
             'health'        => 'Health',
             'progress'      => 'Progress',
             'stage'         => 'Stage',
@@ -978,6 +985,7 @@ return [
             'projects'   => 'No projects to show.',
             'milestones' => 'No stage ends or target finishes in this period.',
             'risks'      => 'No open risks.',
+            'accounts'   => 'No project costs or income to show by account.',
         ],
 
         'err' => [
@@ -1043,6 +1051,7 @@ return [
             'projects_health'     => ['title' => 'Project health',     'desc' => 'Live projects by health - on track, at risk and off track - in their own colours.'],
             'projects_status'     => ['title' => 'Project status',     'desc' => 'Each project with its health, progress, current stage, target date and project manager, and why it is the colour it is.'],
             'projects_milestones' => ['title' => 'Project milestones', 'desc' => 'Stage ends and target finishes in the period, and whether each was done, missed or is still due.'],
+            'projects_accounts'   => ['title' => 'Project costs by account', 'desc' => 'Planned, actual and forecast costs and income for each chart-of-accounts account, added up across your projects - the same figures as each project\'s Budget tab, one set per currency.'],
             'projects_risks'      => ['title' => 'Top project risks',  'desc' => 'The highest-scoring open risks across your projects, with their owners and response plans.'],
         ],
     ],

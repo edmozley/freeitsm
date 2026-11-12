@@ -9633,6 +9633,11 @@ CREATE TABLE IF NOT EXISTS `projects` (
     -- never derived on read: changing the install's default later must not
     -- relabel a budget that already exists (includes/projects/budget.php).
     `currency`          CHAR(3) NULL,
+    -- The chart of accounts (#282): where this project's spending counts when a
+    -- budget line names no account (other_account_id) and where its time counts
+    -- (labour_account_id). NULL = the install default for its company, by code.
+    `labour_account_id` INT NULL,
+    `other_account_id`  INT NULL,
     -- Intake and approval (3.3.0) - includes/projects/intake.php. The case for
     -- the project is business_case; these are the proposal's own figures, who
     -- proposed it when that was not an analyst (a form), and the approval.
@@ -9657,7 +9662,11 @@ CREATE TABLE IF NOT EXISTS `projects` (
     CONSTRAINT `fk_projects_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_projects_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_projects_approval_by` FOREIGN KEY (`approval_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_projects_submission` FOREIGN KEY (`form_submission_id`) REFERENCES `form_submissions` (`id`) ON DELETE SET NULL
+    KEY `ix_projects_labour_account` (`labour_account_id`),
+    KEY `ix_projects_other_account` (`other_account_id`),
+    CONSTRAINT `fk_projects_submission` FOREIGN KEY (`form_submission_id`) REFERENCES `form_submissions` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_projects_labour_account` FOREIGN KEY (`labour_account_id`) REFERENCES `accounts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_projects_other_account` FOREIGN KEY (`other_account_id`) REFERENCES `accounts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Budget lines (3.2.0) - includes/projects/budget.php. Planned and actual per
@@ -9678,6 +9687,7 @@ CREATE TABLE IF NOT EXISTS `project_budget_lines` (
     `planned_date`     DATE NULL,                              -- 3.3.0: when the money is expected to go out
     `spent_date`       DATE NULL,                              -- 3.3.0: when it went out
     `forecast_amount`  DECIMAL(18,2) NULL,                     -- 3.3.0: expected final cost; NULL = the larger of planned and actual
+    `account_split`    VARCHAR(10) NULL,                       -- #282: how the editor shows a split - 'percent' | 'amount'; the rows always hold percentages
     `position`         INT NOT NULL DEFAULT 0,
     `created_by_id`    INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -9688,6 +9698,79 @@ CREATE TABLE IF NOT EXISTS `project_budget_lines` (
     CONSTRAINT `fk_pbl_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_pbl_contract` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_pbl_cost_centre` FOREIGN KEY (`cost_centre_id`) REFERENCES `cost_centres` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The accounts a budget line counts in (#282, slice 2). One account = one row at
+-- 100; a split = several rows adding up to 100. Always percentages, so planned,
+-- actual and forecast are split the same way; "split by amount" is converted to
+-- percentages of the line when it is saved (project_budget_lines.account_split
+-- remembers which the editor shows). A line with no rows counts in the project's
+-- other_account_id. An account is never deleted while a row names it.
+CREATE TABLE IF NOT EXISTS `project_budget_line_accounts` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `line_id`     INT NOT NULL,
+    `account_id`  INT NOT NULL,
+    `percent`     DECIMAL(9,6) NOT NULL,
+    `position`    INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_pbla_line_account` (`line_id`, `account_id`),
+    KEY `ix_pbla_account` (`account_id`),
+    CONSTRAINT `fk_pbla_line` FOREIGN KEY (`line_id`) REFERENCES `project_budget_lines` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pbla_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The accounts the time on a task counts in (#282, slice 3), as DATED VERSIONS: each
+-- change of a task's split is a version from that day (a second change the same day
+-- replaces it). A version with no shares = "no account" (the project's account for
+-- time). Projects -> Settings -> Budget says whether every hour follows the latest
+-- version (the default) or the one in force on the day it was logged. A subtask with
+-- no versions of its own follows its parent's. Shares are percentages adding up to 100.
+CREATE TABLE IF NOT EXISTS `task_account_versions` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `task_id`          INT NOT NULL,
+    `effective_from`   DATE NOT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tav_task_from` (`task_id`, `effective_from`),
+    CONSTRAINT `fk_tav_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `task_account_shares` (
+    `id`          INT NOT NULL AUTO_INCREMENT,
+    `version_id`  INT NOT NULL,
+    `account_id`  INT NOT NULL,
+    `percent`     DECIMAL(9,6) NOT NULL,
+    `position`    INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tas_version_account` (`version_id`, `account_id`),
+    KEY `ix_tas_account` (`account_id`),
+    CONSTRAINT `fk_tas_version` FOREIGN KEY (`version_id`) REFERENCES `task_account_versions` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_tas_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Money a project brings in (#282, slice 4): a charge back to a client, grant
+-- funding. Beside the budget lines, NEVER added to them - the budget is costs; the
+-- Budget tab shows income on its own and "income less costs". In the project's
+-- currency. account_id: an Income account of the project's company (kind income).
+CREATE TABLE IF NOT EXISTS `project_income_lines` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `project_id`       INT NOT NULL,
+    `title`            VARCHAR(200) NOT NULL,
+    `planned_amount`   DECIMAL(18,2) NULL,
+    `received_amount`  DECIMAL(18,2) NULL,
+    `planned_date`     DATE NULL,
+    `received_date`    DATE NULL,
+    `account_id`       INT NULL,
+    `notes`            VARCHAR(500) NULL,
+    `position`         INT NOT NULL DEFAULT 0,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `ix_pil_project` (`project_id`),
+    KEY `ix_pil_account` (`account_id`),
+    CONSTRAINT `fk_pil_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pil_account` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Project reports (3.2.0) - the AI project manager's drafts and people's own

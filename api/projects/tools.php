@@ -159,6 +159,14 @@ projectApiRun(function () use ($conn, $ctx) {
         case 'budget_rate_delete':
             ProjectToolsService::deleteProjectRate($conn, $ctx, $pid, (string)($in['from'] ?? ''));
             projectApiOk();
+        case 'income_line_save':   // #282 slice 4
+            projectApiOk(['id' => ProjectToolsService::saveIncomeLine($conn, $ctx, $pid, $in)]);
+        case 'income_line_delete':
+            ProjectToolsService::deleteIncomeLine($conn, $ctx, $pid, (int)($in['id'] ?? 0));
+            projectApiOk();
+        case 'budget_accounts':   // #282: the project's default accounts
+            ProjectToolsService::setDefaultAccounts($conn, $ctx, $pid, array_intersect_key($in, array_flip(['labour_account_id', 'other_account_id'])));
+            projectApiOk();
         case 'budget_currency':
             ProjectToolsService::setCurrency($conn, $ctx, $pid, (string)($in['currency'] ?? ''));
             projectApiOk();

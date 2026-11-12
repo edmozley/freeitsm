@@ -125,6 +125,61 @@ function projectRateOn(array $rates, string $scope, int $ref, string $date): ?fl
 }
 
 /**
+ * The hourly rate for one hour of logged time, by the labour mode (#282: shared by
+ * projectLabour() and projectLabourByAccount(), so both price an hour the same way).
+ * null = no rate applies (unpriced), or hours mode.
+ *
+ * @param array $rates  every rate, from projectLabourRates()
+ * @param string $mode  hours | rate | analyst (project_labour_mode)
+ * @param int $projectId  the project the time is for
+ * @param bool $sameCurrency  whether the project's currency is the install's (default and analyst rates are in the install currency)
+ * @param int $analystId  who logged it
+ * @param string $date  the day it was logged, 'Y-m-d'
+ */
+function projectEntryRate(array $rates, string $mode, int $projectId, bool $sameCurrency, int $analystId, string $date): ?float
+{
+    if ($mode === 'rate') {
+        // The project's own rate first (its currency), then the default (install currency).
+        $rate = projectRateOn($rates, 'project', $projectId, $date);
+        if ($rate === null && $sameCurrency) $rate = projectRateOn($rates, 'default', 0, $date);
+        return $rate;
+    }
+    if ($mode === 'analyst' && $sameCurrency) {
+        return projectRateOn($rates, 'analyst', $analystId, $date) ?? projectRateOn($rates, 'default', 0, $date);
+    }
+    return null;
+}
+
+/**
+ * The time logged on projects' tasks AND their subtasks: [[project_id, task_id, parent_task_id, analyst_id, minutes, d], ...].
+ *
+ * TRAP: a subtask carries no project_id of its own - it belongs through its parent.
+ * Until 5.1.0 the budget read only t.project_id, so time logged on SUBTASKS never
+ * reached a project's labour, while the Plan (projects/read.php) counted it.
+ *
+ * @param int[] $projectIds  the projects
+ */
+function projectTimeEntries(PDO $conn, array $projectIds): array
+{
+    $ids = array_values(array_filter(array_map('intval', $projectIds)));
+    if (!$ids) return [];
+    $in = implode(',', array_fill(0, count($ids), '?'));
+    try {
+        $st = $conn->prepare("SELECT COALESCE(t.project_id, p.project_id) AS project_id, t.id AS task_id, t.parent_task_id,
+                                       e.analyst_id, e.time_spent_minutes, DATE(e.entry_datetime) AS d
+                                  FROM task_time_entries e
+                                  JOIN tasks t ON t.id = e.task_id
+                             LEFT JOIN tasks p ON p.id = t.parent_task_id
+                                 WHERE e.is_active = 1
+                                   AND (t.project_id IN ($in) OR (t.project_id IS NULL AND p.project_id IN ($in)))");
+        $st->execute(array_merge($ids, $ids));
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable) {
+        return [];
+    }
+}
+
+/**
  * Labour for projects: time logged on their tasks, and what it cost.
  * @param array $projects id => row (needs id, currency)
  * @param bool $byDay  true to add 'days' => [date => cost] to each project, for the spend chart
@@ -139,29 +194,14 @@ function projectLabour(PDO $conn, array $projects, bool $byDay = false): array
     $install = projectInstallCurrency($conn);
     $rates = projectLabourRates($conn);
     $ids = array_map('intval', array_keys($projects));
-    try {
-        $st = $conn->prepare("SELECT t.project_id, e.analyst_id, e.time_spent_minutes, DATE(e.entry_datetime) AS d
-                                FROM task_time_entries e JOIN tasks t ON t.id = e.task_id
-                               WHERE t.project_id IN (" . implode(',', array_fill(0, count($ids), '?')) . ") AND e.is_active = 1");
-        $st->execute($ids);
-        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Throwable) {
-        return $out;
-    }
+    $rows = projectTimeEntries($conn, $ids);   // tasks and their subtasks (5.1.0)
     foreach ($rows as $r) {
         $pid = (int)$r['project_id'];
         $min = (int)$r['time_spent_minutes'];
         $out[$pid]['minutes'] += $min;
         if ($mode === 'hours') continue;
         $sameCurrency = projectCurrencyOf($conn, $projects[$pid]) === $install;
-        $rate = null;
-        if ($mode === 'rate') {
-            // The project's own rate first (its currency), then the default (install currency).
-            $rate = projectRateOn($rates, 'project', $pid, $r['d']);
-            if ($rate === null && $sameCurrency) $rate = projectRateOn($rates, 'default', 0, $r['d']);
-        } elseif ($mode === 'analyst' && $sameCurrency) {
-            $rate = projectRateOn($rates, 'analyst', (int)$r['analyst_id'], $r['d']) ?? projectRateOn($rates, 'default', 0, $r['d']);
-        }
+        $rate = projectEntryRate($rates, $mode, $pid, $sameCurrency, (int)$r['analyst_id'], $r['d']);
         if ($rate === null) { $out[$pid]['unpriced_minutes'] += $min; continue; }
         $out[$pid]['priced_minutes'] += $min;
         $out[$pid]['cost'] = ($out[$pid]['cost'] ?? 0) + round($min / 60 * $rate, 2);
@@ -470,6 +510,21 @@ function projectBudgetDetail(PDO $conn, array $project, int $analystId): array
             'cost_centre' => $r['cost_centre_id'] ? ['id' => (int)$r['cost_centre_id'], 'code' => $r['cost_centre_code'], 'name' => $r['cost_centre_name']] : null,
         ];
     }
+    // #282: each line's account(s), from the chart of accounts.
+    require_once __DIR__ . '/accounts.php';
+    $accountsReady = projectAccountsReady($conn);
+    $lineAccounts = $accountsReady ? projectLineAccounts($conn, array_column($lines, 'id')) : [];
+    $splitOf = [];
+    if ($accountsReady && $lines) {
+        $sp = $conn->prepare("SELECT id, account_split FROM project_budget_lines WHERE project_id = ?");
+        $sp->execute([$pid]);
+        foreach ($sp->fetchAll(PDO::FETCH_ASSOC) as $r) $splitOf[(int)$r['id']] = $r['account_split'];
+    }
+    foreach ($lines as &$ln) {
+        $ln['accounts'] = $lineAccounts[$ln['id']] ?? [];
+        $ln['account_split'] = $splitOf[$ln['id']] ?? null;
+    }
+    unset($ln);
     $labour = projectLabour($conn, [$pid => $project], true)[$pid];
     if ($labour['cost'] !== null) $actual += $labour['cost'];
     $withToCome = projectSetting($conn, 'project_forecast_labour') !== '0';
@@ -502,6 +557,18 @@ function projectBudgetDetail(PDO $conn, array $project, int $analystId): array
         'earned'        => projectEarnedValue($conn, $pid, $tl, $planned),
         'categories'    => PROJECT_BUDGET_CATEGORIES,
         'cost_centres'  => projectBudgetCostCentres($conn, $project),
+        // #282: the chart of accounts - null before Database Verification; [] when the
+        // project's company has no active accounts (the page then shows nothing about them).
+        'accounts'      => $accountsReady ? projectCostAccounts($conn, $project) : null,   // costs only: income accounts are for income lines
+        'default_accounts' => $accountsReady ? projectDefaultAccounts($conn, $project) : null,
+        // #282 slice 3: where the logged time counts, account by account (null before Verification).
+        'labour_by_account' => $accountsReady && projectTaskAccountsReady($conn) ? projectLabourByAccount($conn, $project) : null,
+        'account_resplit' => projectSetting($conn, 'project_account_resplit') === 'from_then' ? 'from_then' : 'all',
+        // #282 slice 4: money the project brings in - never in planned / actual above.
+        'income'          => projectIncomeReady($conn) ? projectIncome($conn, $pid) : null,
+        'income_accounts' => $accountsReady && projectIncomeReady($conn) ? projectIncomeAccounts($conn, $project) : [],
+        // #282 slice 5: costs and income by account - the costs add up to planned / actual / forecast above.
+        'by_account'      => $accountsReady && projectTaskAccountsReady($conn) && projectIncomeReady($conn) ? projectAccountBreakdown($conn, $project) : null,
         'contracts'     => analystCanAccessModule($conn, $analystId, 'contracts') ? projectBudgetContracts($conn, $pid) : null,
     ];
 }
