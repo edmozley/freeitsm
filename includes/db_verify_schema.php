@@ -1642,6 +1642,8 @@ return [
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'  => 'DATETIME NULL',
         'deleted_datetime'  => 'DATETIME NULL',
+        // GH #287: a REST client's retry reference, unique per uploader.
+        'client_reference'  => 'VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL',
     ],
 
     // What each document is attached to. A ROW, deliberately, not a column on
@@ -1673,6 +1675,9 @@ return [
         'action'            => "VARCHAR(12) NOT NULL DEFAULT 'download'",
         'ip_address'        => 'VARCHAR(45) NULL',
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        // GH #287: the API key (NULL = the app) and the bytes sent - the download guard counts these.
+        'api_key_id'        => 'INT NULL',
+        'bytes'             => 'BIGINT NULL',
     ],
 
     // Per-company answers to settings that otherwise live install-wide in
@@ -4378,6 +4383,23 @@ return [
         'last_used_ip'          => 'VARCHAR(45) NULL',
         'created_by'            => 'INT NULL',
         'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        // GH #287: optional restrictions - NULL = any address / any time / the install's limits.
+        'allowed_ips'           => 'TEXT NULL',
+        'allowed_hours'         => 'TEXT NULL',
+        'download_alert_files'  => 'INT NULL',
+        'download_limit_files'  => 'INT NULL',
+        'download_limit_mb'     => 'INT NULL',
+        'suspended_reason'      => 'VARCHAR(255) NULL',
+    ],
+
+    // GH #287: the API security log (alerts and refusals), System -> API -> Security.
+    'api_key_events' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'api_key_id'       => 'INT NULL',
+        'event'            => 'VARCHAR(30) NOT NULL',
+        'ip_address'       => 'VARCHAR(45) NULL',
+        'detail'           => 'VARCHAR(500) NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     'api_key_rate_limits' => [

@@ -212,6 +212,17 @@ function projectAssistOverview(PDO $conn, array $scope, int $analystId, array $a
         $unapproved = projectUnapprovedChanges($conn, $pid);
         if ($unapproved) $out[] = count($unapproved) . ' linked change(s) not yet approved: ' . implode(', ', array_map(fn($c) => $c['label'] . ' ' . $c['title'], $unapproved)) . '.';
     }
+    // GH #287: the project's documents - TITLES only, never contents, and only those the
+    // asking analyst may see (DocumentsService::listFor() checks the project as they would).
+    try {
+        require_once __DIR__ . '/../services/documents.php';
+        $docs = DocumentsService::listFor($conn, $analystId, modulesWithoutSwitchedOff($conn, getAnalystAllowedModules($conn, $analystId)), 'project', $pid, 0, 20);
+        if ($docs['rows']) {
+            $out[] = 'Documents (' . $docs['total'] . '):';
+            foreach ($docs['rows'] as $d) $out[] = '- ' . $d['title'] . ($d['kind'] === 'link' ? ' (link)' : '') . ', added ' . substr((string)$d['created_datetime'], 0, 10);
+            if ($docs['total'] > 20) $out[] = '- ...and ' . ($docs['total'] - 20) . ' more.';
+        }
+    } catch (Throwable $e) { /* no documents shown is the safe answer */ }
     $h = $conn->prepare("SELECT pa.field_name, pa.old_value, pa.new_value, pa.created_datetime, an.full_name FROM project_audit pa LEFT JOIN analysts an ON an.id = pa.analyst_id
                           WHERE pa.project_id = ? ORDER BY pa.id DESC LIMIT 8");
     $h->execute([$pid]);

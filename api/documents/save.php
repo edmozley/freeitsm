@@ -21,6 +21,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/uploads.php';
 require_once '../../includes/documents.php';
+require_once '../../includes/services/documents.php';   // GH #287: the rules, shared with REST v1
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -59,115 +60,18 @@ if (!documentEntityDef($parentType)) {
 
 try {
     $conn = connectToDatabase();
-
-    // ---- 1. ACCESS FIRST -------------------------------------------------
-    // documentCanWriteParent: seeing the record is not enough - Read only access to its
-    // module (Change Management, Forms, Tasks) attaches and removes nothing (#181).
-    if (!documentCanWriteParent($conn, $analystId, $allowed, $parentType, $parentId)) {
-        // Deliberately the same message whether it does not exist or is not
-        // yours: probing this endpoint should not map out the estate.
-        http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'You do not have access to that record.']);
-        exit;
-    }
-
-    $hasFile = isset($_FILES['document']) && ($_FILES['document']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
-
-    if (!$hasFile && $externalUrl === '') {
-        echo json_encode(['success' => false, 'error' => 'Attach a file, or give a link to one.']);
-        exit;
-    }
-    if ($hasFile && $externalUrl !== '') {
-        echo json_encode(['success' => false, 'error' => 'Give a file or a link, not both.']);
-        exit;
-    }
-
-    // ---- 2. Build the document row --------------------------------------
-    if ($hasFile) {
-        $stored = uploadStoreFile(
-            $_FILES['document'],
-            dirname(__DIR__, 2) . '/uploads/' . DOCUMENT_STORAGE_DIR,
-            attachmentAllowedTypes($conn)
-        );
-        $doc = [
-            'kind'          => DOCUMENT_KIND_FILE,
-            'title'         => $title !== '' ? $title : $stored['original_name'],
-            'storage_key'   => documentStorageKey($stored['stored_name']),
-            'original_name' => $stored['original_name'],
-            'mime_type'     => $stored['mime'],
-            'size_bytes'    => $stored['size'],
-            // Lets the same PDF attached to eleven assets be recognised as one file.
-            'content_hash'  => @hash_file('sha256', $stored['path']) ?: null,
-            'external_url'  => null,
-        ];
-    } else {
-        // Only http(s). A javascript: or file: "link" is not a document, and this
-        // string ends up in an href.
-        if (!preg_match('#^https?://#i', $externalUrl)) {
-            echo json_encode(['success' => false, 'error' => 'A link must start with http:// or https://']);
-            exit;
-        }
-        if (strlen($externalUrl) > 2048) {
-            echo json_encode(['success' => false, 'error' => 'That link is too long.']);
-            exit;
-        }
-        $doc = [
-            'kind'          => DOCUMENT_KIND_LINK,
-            'title'         => $title !== '' ? $title : $externalUrl,
-            'storage_key'   => null,
-            'original_name' => null,
-            'mime_type'     => null,
-            'size_bytes'    => null,
-            'content_hash'  => null,
-            'external_url'  => $externalUrl,
-        ];
-    }
-
-    // ---- 3. Write the document and its first link, together --------------
-    $conn->beginTransaction();
-    try {
-        $ins = $conn->prepare(
-            "INSERT INTO documents
-                (kind, title, description, storage_key, original_name, mime_type,
-                 size_bytes, content_hash, external_url, tenant_id, uploaded_by_id)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?)"
-        );
-        $ins->execute([
-            $doc['kind'], mb_substr($doc['title'], 0, 255), $description !== '' ? $description : null,
-            $doc['storage_key'], $doc['original_name'], $doc['mime_type'],
-            $doc['size_bytes'], $doc['content_hash'], $doc['external_url'],
-            getActiveTenantId($conn, $analystId) ?: null, $analystId,
-        ]);
-        $documentId = (int) $conn->lastInsertId();
-
-        // documentInsertLink() also sets the Help Centre flag for an article (#177).
-        documentInsertLink($conn, $documentId, $parentType, $parentId, $analystId);
-
-        $conn->commit();
-    } catch (Throwable $e) {
-        if ($conn->inTransaction()) $conn->rollBack();
-        // The row failed, so the file on disk is now an orphan nothing points at.
-        if ($hasFile && !empty($stored['path']) && is_file($stored['path'])) @unlink($stored['path']);
-        throw $e;
-    }
-
-    // Queue the text, then index what we already have. Indexing FIRST means the
-    // document is findable by title and description immediately, rather than
-    // being invisible to search until a worker gets round to the file — which on
-    // a bulk upload could be hours.
-    try {
-        require_once dirname(__DIR__, 2) . '/includes/search/documents_index.php';
-        documentTextEnqueue($conn, $documentId, $doc['kind'], $doc['original_name']);
-        searchIndexDocument($conn, $documentId);
-        // Opportunistic: do a little extraction now, bounded, so a quiet install
-        // with no cron still ends up searchable.
-        documentTextDrain($conn, 1, microtime(true) + 4);
-    } catch (Throwable $e) {
-        error_log('[documents/save] indexing: ' . $e->getMessage());   // never fail the upload
-    }
-
-    echo json_encode(['success' => true, 'document_id' => $documentId]);
-
+    // The rules - access first, before any file is written - live in DocumentsService.
+    $result = DocumentsService::add($conn, $analystId, $allowed, $parentType, $parentId, [
+        'file'         => $_FILES['document'] ?? null,
+        'external_url' => $externalUrl,
+        'title'        => $title,
+        'description'  => $description,
+    ]);
+    echo json_encode(['success' => true, 'document_id' => $result['id']]);
+} catch (ServiceError $e) {
+    if ($e->kind === 'forbidden') http_response_code(403);
+    if ($e->kind === 'not_found') http_response_code(404);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

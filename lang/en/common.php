@@ -545,6 +545,9 @@ return [
                 'ssl_expiring' => 'A certificate on your domain is expiring',
                 'changed'      => 'Something changed on a domain you own',
             ],
+            'api' => [
+                'security' => 'An API key needs your attention',
+            ],
             'project' => [
                 'health_changed'     => 'The health of a project you manage changed',
                 'tolerance_breached' => 'A project you manage went beyond a tolerance',
@@ -602,6 +605,9 @@ return [
                 'expiring'     => 'A domain I own is approaching its expiry date',
                 'ssl_expiring' => 'A certificate on a domain I own is approaching expiry',
                 'changed'      => 'Name servers, registrar, locks or mail records change on a domain I own',
+            ],
+            'api' => [
+                'security' => 'An API key downloads a lot of documents, reaches its limit, or is used from a new address or where or when it may not be (administrators)',
             ],
             'project' => [
                 'health_changed'     => 'The health of a project I manage changes',

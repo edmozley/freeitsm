@@ -32,6 +32,7 @@ require_once __DIR__ . '/resources/domain_monitoring.php';   // GH #243
 require_once __DIR__ . '/resources/cost_centres.php';
 require_once __DIR__ . '/resources/accounts.php';
 require_once __DIR__ . '/resources/projects.php';
+require_once __DIR__ . '/resources/project_documents.php';   // GH #287 - needs projects.php
 require_once __DIR__ . '/resources/calendar.php';
 require_once __DIR__ . '/resources/software.php';
 require_once __DIR__ . '/resources/service_status.php';

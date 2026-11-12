@@ -3673,6 +3673,8 @@ try {
     $apiKeyFks = [
         ['api_keys',            'fk_api_keys_analyst',        "ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id)"],
         ['api_keys',            'fk_api_keys_created_by',     "ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_created_by FOREIGN KEY (created_by) REFERENCES analysts (id) ON DELETE SET NULL"],
+        // GH #287: the security log outlives a deleted key (the history is the point).
+        ['api_key_events', 'fk_api_key_events_key', "ALTER TABLE api_key_events ADD CONSTRAINT fk_api_key_events_key FOREIGN KEY (api_key_id) REFERENCES api_keys (id) ON DELETE SET NULL"],
         ['api_key_rate_limits', 'fk_api_key_rate_limits_key', "ALTER TABLE api_key_rate_limits ADD CONSTRAINT fk_api_key_rate_limits_key FOREIGN KEY (api_key_id) REFERENCES api_keys (id) ON DELETE CASCADE"],
     ];
     foreach ($apiKeyFks as [$tbl, $name, $sql]) {

@@ -324,6 +324,12 @@ return [
     ['POST',   '#^/projects/(\d+)/income-lines$#',          ['projects', 'update'],            'apiProjectIncomeLinesCreate'],
     ['PATCH',  '#^/projects/(\d+)/income-lines/(\d+)$#',   ['projects', 'update'],            'apiProjectIncomeLinesUpdate'],
     ['DELETE', '#^/projects/(\d+)/income-lines/(\d+)$#',   ['projects', 'update'],            'apiProjectIncomeLinesDelete'],
+    // GH #287: a project's documents. The content route ALSO needs documents.download (checked in the handler).
+    ['GET',    '#^/projects/(\d+)/documents$#',                          ['projects', 'read'],   'apiProjectDocumentsList'],
+    ['POST',   '#^/projects/(\d+)/documents$#',                          ['projects', 'update'], 'apiProjectDocumentsCreate'],
+    ['POST',   '#^/projects/(\d+)/documents/(\d+)/link$#',              ['projects', 'update'], 'apiProjectDocumentsLink'],
+    ['GET',    '#^/projects/(\d+)/documents/(\d+)/content$#',           ['projects', 'read'],   'apiProjectDocumentContent'],
+    ['DELETE', '#^/projects/(\d+)/documents/(\d+)$#',                   ['projects', 'update'], 'apiProjectDocumentsDelete'],
     ['GET',    '#^/projects/(\d+)/tasks/(\d+)/accounts$#',  ['projects', 'read'],              'apiProjectTaskAccounts'],
     ['PATCH',  '#^/projects/(\d+)/tasks/(\d+)/accounts$#',  ['projects', 'update'],            'apiProjectTaskAccountsSet'],
     ['POST',   '#^/projects/(\d+)/budget-lines$#',         ['projects', 'update'],            'apiProjectBudgetLinesCreate'],

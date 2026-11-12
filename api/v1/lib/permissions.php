@@ -335,6 +335,14 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Delete a project (its tasks are kept, detached) - only where the key\'s analyst may',
             ],
         ],
+        // GH #287: the BYTES of a document - its own permission, in no preset, so a key
+        // made to file paperwork can never take it. Listing documents is the record's read.
+        'documents' => [
+            'label'   => 'Document contents',
+            'actions' => [
+                'download' => 'Download the contents of documents on records the key can read (project documents today) - every download is logged and counted against the key\'s download limits',
+            ],
+        ],
         'contract_terms' => [
             'label'   => 'Contract terms',
             'actions' => [

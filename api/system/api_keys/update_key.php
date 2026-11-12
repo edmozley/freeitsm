@@ -51,6 +51,9 @@ try {
     if (array_key_exists('active', $input)) {
         $updates[] = 'active = ?';
         $args[]    = $input['active'] ? 1 : 0;
+        // GH #287: switching it back on clears why the download guard switched it off.
+        require_once '../../../includes/api_security.php';
+        if ($input['active'] && apiSecurityReady($conn)) $updates[] = 'suspended_reason = NULL';
     }
     if (array_key_exists('analyst_id', $input)) {
         $analystId = (int)$input['analyst_id'];
@@ -111,6 +114,10 @@ try {
         $updates[] = 'rate_limit_per_minute = ?';
         $args[]    = $rateLimit;
     }
+
+    // GH #287: where and when it may be used, and its own download limits.
+    require_once '../../../includes/api_security.php';
+    foreach (apiKeyRestrictionValues($conn, $input) as $col => $val) { $updates[] = "$col = ?"; $args[] = $val; }
 
     if (!$updates) {
         throw new Exception('No updates specified');

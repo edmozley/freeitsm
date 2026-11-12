@@ -3073,7 +3073,11 @@ CREATE TABLE IF NOT EXISTS `documents` (
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NULL,
     `deleted_datetime`  DATETIME NULL,
+    -- GH #287: a REST client's own name for an upload, so a retry whose result was
+    -- uncertain returns the same document instead of a second copy. Per uploader.
+    `client_reference`  VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_documents_client_reference` (`uploaded_by_id`, `client_reference`),
     KEY `idx_documents_hash` (`content_hash`),
     KEY `idx_documents_tenant` (`tenant_id`),
     FULLTEXT KEY `ft_documents` (`title`,`description`)
@@ -3138,8 +3142,13 @@ CREATE TABLE IF NOT EXISTS `document_access_log` (
     `action`            VARCHAR(12) NOT NULL DEFAULT 'download',
     `ip_address`        VARCHAR(45) NULL,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- GH #287: which API key (NULL = in the app) and how many bytes went out - the
+    -- download guard counts a key's last hour from these.
+    `api_key_id`        INT NULL,
+    `bytes`             BIGINT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_document_access_doc` (`document_id`),
+    KEY `idx_document_access_key` (`api_key_id`, `created_datetime`),
     CONSTRAINT `fk_document_access_document` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -5838,12 +5847,35 @@ CREATE TABLE IF NOT EXISTS `api_keys` (
     `expires_at`            DATETIME NULL,
     `last_used_at`          DATETIME NULL,
     `last_used_ip`          VARCHAR(45) NULL,
+    -- GH #287: optional restrictions. NULL = any address / any time / the install's
+    -- download limits (System -> API -> Security).
+    `allowed_ips`           TEXT NULL,          -- one address or range per line
+    `allowed_hours`         TEXT NULL,          -- JSON {"days":[1..7],"from":"07:00","to":"19:00"}
+    `download_alert_files`  INT NULL,
+    `download_limit_files`  INT NULL,
+    `download_limit_mb`     INT NULL,
+    `suspended_reason`      VARCHAR(255) NULL,  -- why the download guard switched it off
     `created_by`            INT NULL,
     `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_api_keys_hash` (`key_hash`),
     CONSTRAINT `fk_api_keys_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`),
     CONSTRAINT `fk_api_keys_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- GH #287: the API security log - one row per alert or refusal (download_alert,
+-- download_limit, key_suspended, ip_refused, outside_hours, new_ip). Shown on
+-- System -> API -> Security, and how alerts are sent once per key per hour.
+CREATE TABLE IF NOT EXISTS `api_key_events` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `api_key_id`       INT NULL,
+    `event`            VARCHAR(30) NOT NULL,
+    `ip_address`       VARCHAR(45) NULL,
+    `detail`           VARCHAR(500) NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_api_key_events_key` (`api_key_id`, `event`, `created_datetime`),
+    CONSTRAINT `fk_api_key_events_key` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `api_key_rate_limits` (

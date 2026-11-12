@@ -267,9 +267,13 @@ function getHelpTopics() {
                 ['id' => 'using',       'label' => 'Using the API'],
                 ['id' => 'docs',        'label' => 'Docs & testing'],
                 ['id' => 'mcp',         'label' => 'AI assistants (MCP)'],
+                ['id' => 'restrict',    'label' => 'Where and when'],
+                ['id' => 'threats',     'label' => 'Threat protection'],
                 ['id' => 'safety',      'label' => 'Good practice'],
             ],
-            'terms' => 'rest json integration token bearer key endpoint curl script automation',
+            'terms' => 'rest json integration token bearer key endpoint curl script automation'
+                     . ' threat protection security stolen key leaked download limit documents download alert suspend switched off'
+                     . ' allowed ip address addresses range allow list whitelist hours office hours time window new address probing enumeration guessing brute force blocked',
         ],
         'webhooks' => [
             'hero' => 'Webhooks',

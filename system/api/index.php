@@ -129,6 +129,29 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .newkey-box code { display: block; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 10px 12px; font-size: 13px; color: var(--text, #333); word-break: break-all; margin: 8px 0; }
         .newkey-warning { font-size: 12px; color: #c62828; font-weight: 600; }
 
+        /* GH #287: tabs, restrictions and Threat protection */
+        .api-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border, #e0e0e0); margin: 0 0 24px 0; }
+        .api-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--text-dim, #888); cursor: pointer; margin-bottom: -1px; }
+        .api-tab.active { color: var(--text, #333); border-bottom-color: var(--sys-accent, #546e7a); }
+        .restrict-box { border: 1px solid var(--border-soft, #eee); border-radius: 6px; padding: 14px; margin-bottom: 16px; }
+        .restrict-box h4 { margin: 0 0 2px; font-size: 13px; color: var(--text, #333); }
+        .restrict-box .hint { font-size: 12px; color: var(--text-faint, #999); margin-bottom: 10px; }
+        .form-field textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: Consolas, Monaco, monospace; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); min-height: 64px; }
+        .day-checks { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 10px; }
+        .day-checks label { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--text-muted, #555); font-weight: 400; }
+        .key-note { display: block; font-size: 11px; color: var(--text-dim, #888); margin-top: 3px; }
+        .key-note.bad { color: #c62828; }
+        .perm-action.sensitive { color: #b45309; font-weight: 600; }
+        .tp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 14px; }
+        .tp-section { border-top: 1px solid var(--border-soft, #eee); padding-top: 16px; margin-top: 16px; }
+        .tp-section:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+        .tp-section h4 { margin: 0 0 2px; font-size: 14px; color: var(--text, #333); }
+        .tp-section p { margin: 0 0 12px; font-size: 12.5px; color: var(--text-dim, #888); line-height: 1.5; }
+        .tp-filters { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .tp-filters select { padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .tp-pager { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+        [data-theme-mode="dark"] .key-note.bad { color: #fca5a5; }
+        [data-theme-mode="dark"] .perm-action.sensitive { color: #fbbf24; }
         /* ---------- Dark mode overrides ----------
            Light values above are deliberately unchanged; these only apply in dark. */
         [data-theme-mode="dark"] .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
@@ -157,6 +180,12 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
     <div class="api-container">
         <h1 class="page-title"><?php echo htmlspecialchars(t('system.api.title')); ?></h1>
         <p class="page-subtitle"><?php echo htmlspecialchars(t('system.api.subtitle')); ?></p>
+        <!-- GH #287: Keys | Threat protection -->
+        <div class="api-tabs" role="tablist">
+            <button class="api-tab active" data-tab="keys" role="tab"><?php echo htmlspecialchars(t('system.api.tab_keys')); ?></button>
+            <button class="api-tab" data-tab="threats" role="tab"><?php echo htmlspecialchars(t('system.api.tab_threats')); ?></button>
+        </div>
+        <div id="tabKeys">
 
         <div class="settings-card">
             <h3 id="base-url"><?php echo htmlspecialchars(t('system.api.base_url')); ?></h3>
@@ -219,6 +248,58 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
                 </tbody>
             </table>
         </div>
+        </div>
+        <!-- GH #287: Threat protection -->
+        <div id="tabThreats" style="display:none;">
+            <div class="info-note" id="tpNotReady" style="display:none; margin-bottom:14px;"><?php echo htmlspecialchars(t('system.api.tp_not_ready')); ?></div>
+            <div class="settings-card">
+                <h3><?php echo htmlspecialchars(t('system.api.tab_threats')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.api.tp_intro')); ?></p>
+                <div class="tp-section">
+                    <h4><?php echo htmlspecialchars(t('system.api.tp_downloads')); ?></h4>
+                    <p><?php echo htmlspecialchars(t('system.api.tp_downloads_desc')); ?></p>
+                    <div class="tp-grid">
+                        <div class="form-field"><label for="tp_api_download_alert_files"><?php echo htmlspecialchars(t('system.api.tp_alert_files')); ?></label><input type="number" min="1" id="tp_api_download_alert_files"></div>
+                        <div class="form-field"><label for="tp_api_download_alert_mb"><?php echo htmlspecialchars(t('system.api.tp_alert_mb')); ?></label><input type="number" min="1" id="tp_api_download_alert_mb"></div>
+                        <div class="form-field"><label for="tp_api_download_limit_files"><?php echo htmlspecialchars(t('system.api.tp_limit_files')); ?></label><input type="number" min="1" id="tp_api_download_limit_files"></div>
+                        <div class="form-field"><label for="tp_api_download_limit_mb"><?php echo htmlspecialchars(t('system.api.tp_limit_mb')); ?></label><input type="number" min="1" id="tp_api_download_limit_mb"></div>
+                    </div>
+                    <div class="form-field"><label for="tp_api_download_limit_action"><?php echo htmlspecialchars(t('system.api.tp_action')); ?></label>
+                        <select id="tp_api_download_limit_action"><option value="refuse"><?php echo htmlspecialchars(t('system.api.tp_action_refuse')); ?></option><option value="suspend"><?php echo htmlspecialchars(t('system.api.tp_action_suspend')); ?></option></select></div>
+                </div>
+                <div class="tp-section">
+                    <h4><?php echo htmlspecialchars(t('system.api.tp_probing')); ?></h4>
+                    <p><?php echo htmlspecialchars(t('system.api.tp_probing_desc')); ?></p>
+                    <div class="tp-grid">
+                        <div class="form-field"><label for="tp_api_refusal_alert"><?php echo htmlspecialchars(t('system.api.tp_refusal_alert')); ?></label><input type="number" min="0" id="tp_api_refusal_alert"></div>
+                        <div class="form-field"><label for="tp_api_refusal_limit"><?php echo htmlspecialchars(t('system.api.tp_refusal_limit')); ?></label><input type="number" min="0" id="tp_api_refusal_limit"></div>
+                    </div>
+                </div>
+                <div class="tp-section">
+                    <h4><?php echo htmlspecialchars(t('system.api.tp_guessing')); ?></h4>
+                    <p><?php echo htmlspecialchars(t('system.api.tp_guessing_desc')); ?></p>
+                    <div class="tp-grid">
+                        <div class="form-field"><label for="tp_api_failed_auth_limit"><?php echo htmlspecialchars(t('system.api.tp_failed_limit')); ?></label><input type="number" min="0" id="tp_api_failed_auth_limit"></div>
+                        <div class="form-field"><label for="tp_api_failed_auth_minutes"><?php echo htmlspecialchars(t('system.api.tp_failed_minutes')); ?></label><input type="number" min="1" id="tp_api_failed_auth_minutes"></div>
+                    </div>
+                </div>
+                <div class="tp-section">
+                    <h4><?php echo htmlspecialchars(t('system.api.tp_new_ip')); ?></h4>
+                    <p><?php echo htmlspecialchars(t('system.api.tp_new_ip_desc')); ?></p>
+                    <div class="form-field" style="max-width:320px;"><label for="tp_api_new_ip_alert"><?php echo htmlspecialchars(t('system.api.tp_new_ip_alert')); ?></label>
+                        <select id="tp_api_new_ip_alert"><option value="bell_email"><?php echo htmlspecialchars(t('system.api.tp_new_ip_both')); ?></option><option value="bell"><?php echo htmlspecialchars(t('system.api.tp_new_ip_bell')); ?></option><option value="off"><?php echo htmlspecialchars(t('system.api.tp_new_ip_off')); ?></option></select></div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px;"><span id="tpSaved" class="card-desc" style="margin:0;"></span><button class="btn btn-primary" id="tpSaveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
+            </div>
+            <div class="settings-card">
+                <h3><?php echo htmlspecialchars(t('system.api.tp_log')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.api.tp_log_desc')); ?></p>
+                <div class="tp-filters"><select id="tpKey"></select><select id="tpEvent"></select></div>
+                <table class="keys"><thead><tr><th><?php echo htmlspecialchars(t('system.api.tp_col_when')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_key')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_event')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_address')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_detail')); ?></th></tr></thead>
+                    <tbody id="tpLogBody"></tbody></table>
+                <div class="tp-pager"><button class="btn btn-secondary" id="tpPrev"><?php echo htmlspecialchars(t('system.api.previous')); ?></button><button class="btn btn-secondary" id="tpNext"><?php echo htmlspecialchars(t('system.api.next')); ?></button></div>
+            </div>
+        </div>
     </div>
 
     <!-- Create / edit modal -->
@@ -266,6 +347,35 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
                         <label><?php echo htmlspecialchars(t('system.api.rate_limit')); ?></label>
                         <div class="hint"><?php echo htmlspecialchars(t('system.api.rate_limit_hint')); ?></div>
                         <input type="number" id="fRateLimit" min="1" placeholder="60">
+                    </div>
+                </div>
+                <!-- GH #287: where and when, and this key's download limits -->
+                <div class="restrict-box">
+                    <h4><?php echo htmlspecialchars(t('system.api.restrict_title')); ?></h4>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.api.restrict_hint')); ?></div>
+                    <div class="form-field">
+                        <label for="fAllowedIps"><?php echo htmlspecialchars(t('system.api.allowed_ips')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.api.allowed_ips_hint')); ?></div>
+                        <textarea id="fAllowedIps" placeholder="203.0.113.7&#10;10.20.0.0/16"></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label><input type="checkbox" id="fHoursOn"> <?php echo htmlspecialchars(t('system.api.hours_on')); ?></label>
+                        <div id="fHoursBox" style="display:none;">
+                            <div class="day-checks" id="fDays"></div>
+                            <div class="form-2col">
+                                <div class="form-field"><label for="fHoursFrom"><?php echo htmlspecialchars(t('system.api.hours_from')); ?></label><input type="text" id="fHoursFrom" placeholder="07:00"></div>
+                                <div class="form-field"><label for="fHoursTo"><?php echo htmlspecialchars(t('system.api.hours_to')); ?></label><input type="text" id="fHoursTo" placeholder="19:00"></div>
+                                <div class="form-field"><label for="fHoursMode"><?php echo htmlspecialchars(t('system.api.hours_mode')); ?></label><select id="fHoursMode"><option value="refuse"><?php echo htmlspecialchars(t('system.api.hours_refuse')); ?></option><option value="alert"><?php echo htmlspecialchars(t('system.api.hours_alert')); ?></option></select></div>
+                            </div>
+                            <div class="hint"><?php echo htmlspecialchars(t('system.api.hours_tz', ['tz' => date_default_timezone_get()])); ?></div>
+                        </div>
+                    </div>
+                    <h4><?php echo htmlspecialchars(t('system.api.dl_title')); ?></h4>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.api.dl_hint')); ?></div>
+                    <div class="form-2col">
+                        <div class="form-field"><label for="fDlAlert"><?php echo htmlspecialchars(t('system.api.dl_alert_files')); ?></label><input type="number" min="1" id="fDlAlert"></div>
+                        <div class="form-field"><label for="fDlLimit"><?php echo htmlspecialchars(t('system.api.dl_limit_files')); ?></label><input type="number" min="1" id="fDlLimit"></div>
+                        <div class="form-field"><label for="fDlMb"><?php echo htmlspecialchars(t('system.api.dl_limit_mb')); ?></label><input type="number" min="1" id="fDlMb"></div>
                     </div>
                 </div>
             </div>
@@ -353,7 +463,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
                 <td>${esc(k.analyst_name || '')}</td>
                 <td><span class="perm-count">${esc(ap('perm_granted', { n: permSummary(k.permissions) }))}</span></td>
                 ${companyCell}
-                <td>${status}</td>
+                <td>${status}${k.suspended_reason && !k.active ? `<span class="key-note bad">${esc(ap('suspended', { reason: k.suspended_reason }))}</span>` : ''}${k.downloads_hour ? `<span class="key-note">${esc(ap('downloads_hour', { n: k.downloads_hour }))}</span>` : ''}${(k.allowed_ips || k.allowed_hours) ? `<span class="key-note">${esc(ap('restricted'))}</span>` : ''}</td>
                 <td>${lastUsed}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     <button class="table-action-btn" onclick="openEdit(${k.id})">${esc(t('common.edit'))}</button>
@@ -370,8 +480,10 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         matrix.innerHTML = Object.entries(catalog).map(([resource, def]) => {
             const actions = Object.entries(def.actions).map(([action, desc]) => {
                 const checked = selected && selected[resource] && selected[resource].includes(action) ? 'checked' : '';
-                return `<label class="perm-action" title="${esc(desc)}">
-                    <input type="checkbox" data-resource="${esc(resource)}" data-action="${esc(action)}" ${checked}> ${esc(action)}
+                // GH #287: downloading documents is never ticked by Select all.
+                const sensitive = resource === 'documents' && action === 'download';
+                return `<label class="perm-action${sensitive ? ' sensitive' : ''}" title="${esc(desc + (sensitive ? ' - ' + ap('sensitive') : ''))}">
+                    <input type="checkbox" data-resource="${esc(resource)}" data-action="${esc(action)}"${sensitive ? ' data-sensitive="1"' : ''} ${checked}> ${esc(action)}
                 </label>`;
             }).join('');
             return `<div class="perm-row"><div class="perm-resource">${esc(def.label)}</div><div class="perm-actions">${actions}</div></div>`;
@@ -413,6 +525,19 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         if (key) sel.value = key.analyst_id;
         buildMatrix(key ? key.permissions : null);
         buildScope(key ? key.company_ids : null);
+        // GH #287: where and when, and its download limits.
+        document.getElementById('fAllowedIps').value = key && key.allowed_ips ? key.allowed_ips : '';
+        const h = key && key.allowed_hours ? key.allowed_hours : null;
+        document.getElementById('fHoursOn').checked = !!h;
+        document.getElementById('fHoursBox').style.display = h ? '' : 'none';
+        const dayNames = (window.DATE_FMT && DATE_FMT.weekdays_short) || ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        document.getElementById('fDays').innerHTML = [1,2,3,4,5,6,7].map(d => `<label><input type="checkbox" value="${d}" ${!h ? (d <= 5 ? 'checked' : '') : (h.days.includes(d) ? 'checked' : '')}> ${esc(dayNames[(d - 1) % 7] || d)}</label>`).join('');
+        document.getElementById('fHoursFrom').value = h ? h.from : '07:00';
+        document.getElementById('fHoursTo').value = h ? h.to : '19:00';
+        document.getElementById('fHoursMode').value = h && h.mode === 'alert' ? 'alert' : 'refuse';
+        document.getElementById('fDlAlert').value = key && key.download_alert_files ? key.download_alert_files : '';
+        document.getElementById('fDlLimit').value = key && key.download_limit_files ? key.download_limit_files : '';
+        document.getElementById('fDlMb').value = key && key.download_limit_mb ? key.download_limit_mb : '';
         document.getElementById('keyModal').classList.add('open');
     }
 
@@ -450,7 +575,17 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
             analyst_id: parseInt(document.getElementById('fAnalyst').value, 10),
             permissions: readMatrix(),
             expires_at: document.getElementById('fExpires').value || null,
-            rate_limit_per_minute: document.getElementById('fRateLimit').value || null
+            rate_limit_per_minute: document.getElementById('fRateLimit').value || null,
+            // GH #287
+            allowed_ips: document.getElementById('fAllowedIps').value,
+            allowed_hours: document.getElementById('fHoursOn').checked ? {
+                days: Array.from(document.querySelectorAll('#fDays input:checked')).map(cb => parseInt(cb.value, 10)),
+                from: document.getElementById('fHoursFrom').value.trim(), to: document.getElementById('fHoursTo').value.trim(),
+                mode: document.getElementById('fHoursMode').value
+            } : null,
+            download_alert_files: document.getElementById('fDlAlert').value || null,
+            download_limit_files: document.getElementById('fDlLimit').value || null,
+            download_limit_mb: document.getElementById('fDlMb').value || null
         };
         if (multiTenant) {
             const specific = document.querySelector('input[name=scope][value=specific]').checked;
@@ -486,7 +621,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
     document.getElementById('addKeyBtn').addEventListener('click', () => openModal(null));
     document.getElementById('cancelBtn').addEventListener('click', closeModal);
     document.getElementById('saveBtn').addEventListener('click', saveKey);
-    document.getElementById('permAll').addEventListener('click', () => document.querySelectorAll('#permMatrix input').forEach(cb => cb.checked = true));
+    document.getElementById('permAll').addEventListener('click', () => document.querySelectorAll('#permMatrix input:not([data-sensitive])').forEach(cb => cb.checked = true));
     document.getElementById('permNone').addEventListener('click', () => document.querySelectorAll('#permMatrix input').forEach(cb => cb.checked = false));
     document.querySelectorAll('input[name=scope]').forEach(r => r.addEventListener('change', () => {
         document.getElementById('companyChecks').style.display =
@@ -515,7 +650,59 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         }
     });
 
-    loadKeys();
+    // ---- GH #287: tabs and Threat protection ----
+    document.getElementById('fHoursOn').addEventListener('change', e => { document.getElementById('fHoursBox').style.display = e.target.checked ? '' : 'none'; });
+    const TP_KEYS = ['api_download_alert_files','api_download_alert_mb','api_download_limit_files','api_download_limit_mb','api_download_limit_action','api_refusal_alert','api_refusal_limit','api_failed_auth_limit','api_failed_auth_minutes','api_new_ip_alert'];
+    const TP_EVENTS = ['download_alert','download_limit','key_suspended','refused','ip_refused','outside_hours','new_ip','auth_failed','address_blocked','alert_not_emailed'];
+    let tpPage = 1, tpLoaded = false;
+    function showTab(name) {
+        document.querySelectorAll('.api-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+        document.getElementById('tabKeys').style.display = name === 'keys' ? '' : 'none';
+        document.getElementById('tabThreats').style.display = name === 'threats' ? '' : 'none';
+        if (name === 'threats' && !tpLoaded) { tpLoaded = true; loadThreats(); }
+        try { history.replaceState(null, '', name === 'threats' ? '?tab=threats' : location.pathname); } catch (e) {}
+    }
+    document.querySelectorAll('.api-tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+    async function loadThreats() {
+        const r = await fetch(API + 'threat_settings.php'); const d = await r.json();
+        if (!d.success) { alert(d.error || ap('save_failed')); return; }
+        document.getElementById('tpNotReady').style.display = d.ready ? 'none' : 'block';
+        TP_KEYS.forEach(k => { const el = document.getElementById('tp_' + k); if (el) el.value = d.settings[k]; });
+        document.getElementById('tpKey').innerHTML = '<option value="">' + esc(ap('tp_all_keys')) + '</option>' + keys.map(k => `<option value="${k.id}">${esc(k.name)}</option>`).join('');
+        document.getElementById('tpEvent').innerHTML = '<option value="">' + esc(ap('tp_all_events')) + '</option>' + TP_EVENTS.map(e => `<option value="${e}">${esc(ap('ev_' + e))}</option>`).join('');
+        loadLog();
+    }
+    async function loadLog() {
+        const q = new URLSearchParams({ page: tpPage });
+        const kk = document.getElementById('tpKey').value, ev = document.getElementById('tpEvent').value;
+        if (kk) q.set('key_id', kk); if (ev) q.set('event', ev);
+        const r = await fetch(API + 'threat_log.php?' + q); const d = await r.json();
+        const body = document.getElementById('tpLogBody');
+        if (!d.success) { body.innerHTML = `<tr class="empty-row"><td colspan="5">${esc(d.error || '')}</td></tr>`; return; }
+        body.innerHTML = d.events.length ? d.events.map(e => {
+            const when = parseUTCDate(e.created_datetime);
+            return `<tr><td style="white-space:nowrap;">${esc(when ? fmtDateTime(when) : e.created_datetime)}</td><td>${esc(e.key_name || ap('tp_no_key'))}</td><td>${esc(ap('ev_' + e.event))}</td><td class="key-prefix">${esc(e.ip_address || '')}</td><td>${esc(e.detail || '')}</td></tr>`;
+        }).join('') : `<tr class="empty-row"><td colspan="5">${esc(ap('tp_no_events'))}</td></tr>`;
+        document.getElementById('tpPrev').disabled = tpPage <= 1;
+        document.getElementById('tpNext').disabled = (d.page * d.per_page) >= d.total;
+    }
+    document.getElementById('tpKey').addEventListener('change', () => { tpPage = 1; loadLog(); });
+    document.getElementById('tpEvent').addEventListener('change', () => { tpPage = 1; loadLog(); });
+    document.getElementById('tpPrev').addEventListener('click', () => { if (tpPage > 1) { tpPage--; loadLog(); } });
+    document.getElementById('tpNext').addEventListener('click', () => { tpPage++; loadLog(); });
+    document.getElementById('tpSaveBtn').addEventListener('click', async () => {
+        const settings = {}; TP_KEYS.forEach(k => { const el = document.getElementById('tp_' + k); if (el) settings[k] = el.value; });
+        const btn = document.getElementById('tpSaveBtn'); btn.disabled = true;
+        try {
+            const r = await fetch(API + 'threat_settings.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ settings }) });
+            const d = await r.json();
+            if (!d.success) { alert(d.error || ap('save_failed')); return; }
+            document.getElementById('tpSaved').textContent = ap('tp_saved');
+            setTimeout(() => { document.getElementById('tpSaved').textContent = ''; }, 2000);
+        } finally { btn.disabled = false; }
+    });
+
+    loadKeys().then(() => { if (new URLSearchParams(location.search).get('tab') === 'threats') showTab('threats'); });
     </script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>

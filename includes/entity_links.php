@@ -58,6 +58,10 @@ function entityLink(string $type, int $id): ?string {
         case 'task':
             return 'tasks/?task=' . $id;
 
+        // GH #287: an API security alert opens System -> API -> Security (administrators).
+        case 'api_key':
+            return 'system/api/?tab=threats';
+
         // Starters & leavers (4.6.0).
         case 'jml_case':
             return 'starters/view.php?id=' . $id;

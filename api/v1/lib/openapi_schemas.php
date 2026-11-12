@@ -19,6 +19,19 @@ return array (
         'matrix' => ['type' => 'array', 'items' => ['type' => 'array', 'items' => ['type' => 'integer']]],
       ],
     ],
+    // GH #287: a project's document - metadata only; the bytes come from content_url (documents.download).
+    'ProjectDocument' => [
+      'type'=>'object',
+      'properties'=>[
+        'id'=>['type'=>'integer'], 'kind'=>['type'=>'string','enum'=>['file','link']],
+        'title'=>['type'=>'string'], 'description'=>['type'=>'string','nullable'=>true],
+        'original_name'=>['type'=>'string','nullable'=>true], 'mime_type'=>['type'=>'string','nullable'=>true],
+        'size_bytes'=>['type'=>'integer','nullable'=>true], 'sha256'=>['type'=>'string','nullable'=>true],
+        'external_url'=>['type'=>'string','nullable'=>true], 'client_reference'=>['type'=>'string','nullable'=>true],
+        'uploaded_by'=>['type'=>'object','nullable'=>true,'properties'=>['id'=>['type'=>'integer'],'name'=>['type'=>'string','nullable'=>true]]],
+        'uploaded_at'=>['type'=>'string','format'=>'date-time','nullable'=>true], 'content_url'=>['type'=>'string'],
+      ],
+    ],
     'ChangeEvidenceAttachment' => [
       'type'=>'object',
       'properties'=>[
@@ -15136,6 +15149,9 @@ return array (
       '$ref' => '#/components/schemas/DeleteAck',
     ),
     'GET /changes/{id}/attachments' => ['type'=>'array','items'=>['$ref'=>'#/components/schemas/ChangeEvidenceAttachment']],
+    'GET /projects/{id}/documents' => ['type'=>'array','items'=>['$ref'=>'#/components/schemas/ProjectDocument']],
+    'POST /projects/{id}/documents' => ['$ref'=>'#/components/schemas/ProjectDocument'],
+    'POST /projects/{id}/documents/{document_id}/link' => ['$ref'=>'#/components/schemas/ProjectDocument'],
     'POST /changes/{id}/attachments' => ['$ref'=>'#/components/schemas/ChangeEvidenceAttachment'],
     'GET /assets/{id}/inventory'=>['type'=>'array','items'=>['$ref'=>'#/components/schemas/AssetInventoryProvenance']],
     'GET /assets/{id}/connections'=>['$ref'=>'#/components/schemas/AssetConnections'],

@@ -74,6 +74,18 @@ return [
         'link'     => 'system/api/',
         'check'    => ['rows', 'api_keys', "company_ids IS NOT NULL AND company_ids <> '' AND company_ids <> '[]'"],
     ],
+    [
+        'id'       => 'system.api_key_locked_down',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'security',
+        'title'    => 'API keys locked to addresses or hours',
+        'what'     => 'A REST API key that only works from the addresses you list (your servers, your network) and, if you like, only in office hours.',
+        'why'      => 'A key that leaks is useless to whoever finds it: they are not on your network, and not at 3am either.',
+        'done'     => 'At least one REST API key has allowed addresses or allowed hours.',
+        'link'     => 'system/api/',
+        'check'    => ['rows', 'api_keys', 'allowed_ips IS NOT NULL OR allowed_hours IS NOT NULL'],
+    ],
 
     // ── Webhooks ────────────────────────────────────────────────────────────
     [

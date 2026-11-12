@@ -18,8 +18,12 @@
  * and company scope). Emits 401/403/429 and stops on failure.
  */
 function apiAuthenticate(PDO $conn): array {
+    // GH #287: an address that keeps sending bad keys is blocked for a while - before anything else.
+    require_once dirname(__DIR__, 3) . '/includes/api_security.php';
+    apiAddressBlockGuard($conn);
     $rawKey = apiExtractKey();
     if ($rawKey === null || $rawKey === '') {
+        apiAuthFailed($conn);
         apiError(401, 'unauthenticated', 'Missing API key. Send it as "Authorization: Bearer <key>".');
     }
 
@@ -37,10 +41,12 @@ function apiAuthenticate(PDO $conn): array {
     }
 
     if (!$key) {
+        apiAuthFailed($conn);
         apiError(401, 'unauthenticated', 'Invalid API key.');
     }
     if (!(int)$key['active']) {
-        apiError(403, 'key_disabled', 'This API key has been disabled.');
+        // GH #287: switched off by the download guard says so.
+        apiError(403, 'key_disabled', !empty($key['suspended_reason']) ? 'This API key has been switched off: ' . $key['suspended_reason'] : 'This API key has been disabled.');
     }
     if ($key['expires_at'] !== null && $key['expires_at'] <= gmdate('Y-m-d H:i:s')) {
         apiError(403, 'key_expired', 'This API key expired on ' . apiIsoDate($key['expires_at']) . '.');
@@ -48,6 +54,11 @@ function apiAuthenticate(PDO $conn): array {
     if ($key['analyst_id'] !== null && isset($key['analyst_active']) && $key['analyst_active'] !== null && !(int)$key['analyst_active']) {
         apiError(403, 'key_disabled', 'The analyst this API key acts as is inactive.');
     }
+
+    // GH #287: where and when this key may be used - before anything else runs, so a
+    // refused request learns nothing. Also raises the new-address alert.
+    require_once dirname(__DIR__, 3) . '/includes/api_security.php';
+    apiKeyRequestGuard($conn, $key);
 
     apiRateLimit($conn, (int)$key['id'], $key['rate_limit_per_minute'] !== null ? (int)$key['rate_limit_per_minute'] : null);
 
@@ -65,6 +76,10 @@ function apiAuthenticate(PDO $conn): array {
     // analyst could open only one - so a key could read data its own analyst could
     // not. Narrowed here, once, so every resource and the MCP server share it.
     $key['company_scope'] = apiEffectiveCompanyScope($conn, (int)$key['analyst_id'], $key['company_scope']);
+
+    // GH #287: from here on a refused request (403/404) counts against this key - see apiError().
+    $GLOBALS['FREEITSM_API_KEY'] = $key;
+    $GLOBALS['FREEITSM_API_CONN'] = $conn;
 
     return $key;
 }

@@ -77,6 +77,10 @@ try {
     // A key can never reach further than its analyst (security review, 2026-10-09).
     apiKeyCheckCompanies($conn, $analystId, $companyIds);
 
+    // GH #287: where and when it may be used, and its own download limits (validated first).
+    require_once '../../../includes/api_security.php';
+    $restrict = apiKeyRestrictionValues($conn, $input);
+
     // fitsm_ + 48 hex chars; only the hash is stored.
     $fullKey   = 'fitsm_' . bin2hex(random_bytes(24));
     $keyPrefix = substr($fullKey, 0, 14);
@@ -99,6 +103,11 @@ try {
         $expiresAt,
         (int)$_SESSION['analyst_id'],
     ]);
+    if ($restrict) {
+        $newId = (int)$conn->lastInsertId();
+        $conn->prepare('UPDATE api_keys SET ' . implode(', ', array_map(fn($c) => "$c = ?", array_keys($restrict))) . ' WHERE id = ?')
+             ->execute(array_merge(array_values($restrict), [$newId]));
+    }
 
     echo json_encode([
         'success' => true,

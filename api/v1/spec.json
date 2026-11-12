@@ -395,7 +395,7 @@
                         {
                             "name": "workspace",
                             "in": "body",
-                            "desc": "Boolean. Mark this ticket as a workspace. Audited as Workspace on/off; changing only this flag does not trigger workflow events. Requires Database Verification. Display still follows the install mode and each analyst's preference.",
+                            "desc": "Boolean. Mark this ticket as a workspace. Audited as Workspace on\/off; changing only this flag does not trigger workflow events. Requires Database Verification. Display still follows the install mode and each analyst's preference.",
                             "type": "boolean",
                             "req": false
                         },
@@ -718,7 +718,7 @@
                                 "path": {
                                     "id": 42
                                 },
-                                "body": {}
+                                "body": []
                             },
                             {
                                 "title": "Add a colleague",
@@ -1827,7 +1827,7 @@
                 },
                 {
                     "m": "GET",
-                    "p": "/assets/{id}/ci-link",
+                    "p": "\/assets\/{id}\/ci-link",
                     "perm": "asset_ci_links.read",
                     "s": "The linked configuration item",
                     "d": "The configuration item this asset is the same equipment as (GH #201), and every earlier period of being linked. current is null when there is no link. Each period says who linked and unlinked it, when and how (ui, api:<key name>), and why it ended: unlinked, replaced, ci_deleted (the CI was deleted - its name and class are kept on the row) or asset_merged. A key without cmdb_objects.read sees the CI end as {\"restricted\": true}, with no id or name - in current and in the history. made_on names the asset a period was made on when that asset has since been merged into this one.",
@@ -1844,7 +1844,7 @@
                 },
                 {
                     "m": "POST",
-                    "p": "/assets/{id}/ci-link",
+                    "p": "\/assets\/{id}\/ci-link",
                     "perm": "asset_ci_links.create",
                     "s": "Link a configuration item",
                     "d": "Links this asset to a configuration item in the same company: \"these two records are the same piece of equipment\". An identity, not a dependency - nothing is added to the CMDB graph and nothing is copied. Safe to retry: the same pair again answers 200 with unchanged true. One live link per asset and per CI: if either already has one, the answer is 409 ci_already_linked or asset_already_linked, naming the other record (or saying it is one the key cannot see), with the live link ids in error.details.conflicts. To replace on purpose, send replace true and replaces_link_ids with exactly those ids; if the links changed since, the answer is 409 link_changed, so a newer link is never displaced silently. Needs only this permission - not assets.update or cmdb_objects.update - and the key's company scope must reach both records. POST rather than PUT because this API takes only GET, POST, PATCH and DELETE.",
@@ -1856,7 +1856,7 @@
                             "req": true
                         },
                         {
-                            "name": "cmdb_object_id / replace / replaces_link_ids",
+                            "name": "cmdb_object_id \/ replace \/ replaces_link_ids",
                             "in": "body",
                             "req": true,
                             "desc": "cmdb_object_id: the CI; replace: true to end the conflicting links; replaces_link_ids (or replaces_link_id): the live link ids from the 409 you are replacing"
@@ -1870,7 +1870,7 @@
                 },
                 {
                     "m": "DELETE",
-                    "p": "/assets/{id}/ci-link",
+                    "p": "\/assets\/{id}\/ci-link",
                     "perm": "asset_ci_links.delete",
                     "s": "Unlink the configuration item",
                     "d": "Ends the live link. Both records are kept, and the period stays in the history with who ended it and how. 404 not_linked when there is no link. Pass ?link_id=N to say which link you mean: if it is no longer the live one, the answer is 409 link_changed.",
@@ -1893,10 +1893,10 @@
                 },
                 {
                     "m": "POST",
-                    "p": "/assets/{id}/ci-link/create-ci",
+                    "p": "\/assets\/{id}\/ci-link\/create-ci",
                     "perm": "asset_ci_links.create",
                     "s": "Create the linked configuration item",
-                    "d": "Creates a configuration item of the class this asset's type is mapped to (Assets -> Settings -> Asset types -> CMDB class) and links it, in one transaction - a linked CI or nothing. Also needs cmdb_objects.create. The name defaults to the asset's; properties must supply the class's required ones, validated as on POST /cmdb/objects. Nothing hardware-shaped is copied: the asset's details are read live through the link. 422 no_class_mapped when the type has no class. 409 possible_matches, with error.details.matches, when unlinked CIs of that class in the company have the asset's name - link one of them instead (POST /assets/{id}/ci-link), or send ignore_matches true to create anyway. Retry-safe: an asset already linked creates nothing and returns its CI with created false (200); a new CI is 201.",
+                    "d": "Creates a configuration item of the class this asset's type is mapped to (Assets -> Settings -> Asset types -> CMDB class) and links it, in one transaction - a linked CI or nothing. Also needs cmdb_objects.create. The name defaults to the asset's; properties must supply the class's required ones, validated as on POST \/cmdb\/objects. Nothing hardware-shaped is copied: the asset's details are read live through the link. 422 no_class_mapped when the type has no class. 409 possible_matches, with error.details.matches, when unlinked CIs of that class in the company have the asset's name - link one of them instead (POST \/assets\/{id}\/ci-link), or send ignore_matches true to create anyway. Retry-safe: an asset already linked creates nothing and returns its CI with created false (200); a new CI is 201.",
                     "params": [
                         {
                             "name": "id",
@@ -1905,7 +1905,7 @@
                             "req": true
                         },
                         {
-                            "name": "name / properties / ignore_matches",
+                            "name": "name \/ properties \/ ignore_matches",
                             "in": "body",
                             "req": false,
                             "desc": "name: the CI's name (default: the asset's); properties: {property_key: value} for the class's required properties; ignore_matches: true to create despite same-name CIs"
@@ -1969,7 +1969,7 @@
                     "p": "\/assets\/{id}\/inventory",
                     "perm": "asset_inventory.create",
                     "s": "Report inventory from your own tool",
-                    "d": "Reports what an external tool (an RMM, Lansweeper, a CMDB export) saw on this asset: software, volumes (disks) and network adapters. The rows go into the same inventory every screen and report reads, tagged with your source, and no other source's rows are touched. The asset's own fields and last_seen (\"the agent reported\") never change. A source name belongs to one analyst per company - the first to write it - so a rotated key for the same analyst keeps it; built-in names (agent, intune, ...) are refused. (source, source_device_ref) links to one asset; naming it on another is a 409 naming the asset. Each section is judged on its own: complete = exactly this list for this source (an empty list removes all of them), partial = added and updated only, omitted = untouched; older than the newest applied = stale, same time and content = replayed, same time and different content = failed (observation_conflict). A section that fails is rolled back alone, named, and recorded as failed beside its last good data (GET .../inventory); the others apply (207). Send the same report again to retry the failed sections - the applied ones answer replayed. Each applied section reports added, updated and removed counts. A connections section (the assets physically connected to this one) also lists, as unmatched, any serial no asset has or several share - kept for review in Assets, never created.",
+                    "d": "Reports what an external tool (an RMM, Lansweeper, a CMDB export) saw on this asset: software, volumes (disks) and network adapters. The rows go into the same inventory every screen and report reads, tagged with your source, and no other source's rows are touched. The asset's own fields and last_seen (\"the agent reported\") never change. A source name belongs to one analyst per company - the first to write it - so a rotated key for the same analyst keeps it; built-in names (agent, intune, ...) are refused. (source, source_device_ref) links to one asset; naming it on another is a 409 naming the asset. Each section is judged on its own: complete = exactly this list for this source (an empty list removes all of them), partial = added and updated only, omitted = untouched; older than the newest applied = stale, same time and content = replayed, same time and different content = failed (observation_conflict). A section that fails is rolled back alone, named, and recorded as failed beside its last good data (GET ...\/inventory); the others apply (207). Send the same report again to retry the failed sections - the applied ones answer replayed. Each applied section reports added, updated and removed counts. A connections section (the assets physically connected to this one) also lists, as unmatched, any serial no asset has or several share - kept for review in Assets, never created.",
                     "params": [
                         {
                             "name": "id",
@@ -2220,10 +2220,10 @@
             "items": [
                 {
                     "m": "POST",
-                    "p": "/virtual-estate/{connection}/reports",
+                    "p": "\/virtual-estate\/{connection}\/reports",
                     "perm": "virtual_estate.create",
                     "s": "Send a collector report",
-                    "d": "What scripts/Invoke-HyperVInventory.ps1 sends: the Hyper-V hosts, Failover Clusters, cluster roles and VMs it read. Accepted ONLY from the key the connection was given, so a key cannot write another estate (403 otherwise). scope names the clusters and standalone hosts the report covers; a report only ever marks objects in its own scope. Each section - clusters, hosts, cluster_roles, vms, vm_disks, vm_networks - is complete (exactly this list: what is missing is marked not_seen_since, never deleted), partial (added and updated only) or left out (untouched). Hosts are identified by hardware UUID (id); a missing, all-zero, all-F or repeated one falls back to the host's name and is marked name-based. VMs are identified by their Get-VM Id. Inside a report, VMs and roles name their host by host name. unreadable lists hosts or clusters that could not be read: everything on them is kept and marked not confirmed. A report older than the newest for the same scope is stale; the same scope, observed_at and content again is replayed (safe to resend); the same scope and observed_at with different content is 409 observation_conflict. Each section applies in its own savepoint: 207 when some failed (send the same report again to retry them), 422 when all did. A VM or host that comes back with a new identity while one of the same name stops being seen is raised for review in Assets -> Settings -> Hyper-V, never merged automatically.",
+                    "d": "What scripts\/Invoke-HyperVInventory.ps1 sends: the Hyper-V hosts, Failover Clusters, cluster roles and VMs it read. Accepted ONLY from the key the connection was given, so a key cannot write another estate (403 otherwise). scope names the clusters and standalone hosts the report covers; a report only ever marks objects in its own scope. Each section - clusters, hosts, cluster_roles, vms, vm_disks, vm_networks - is complete (exactly this list: what is missing is marked not_seen_since, never deleted), partial (added and updated only) or left out (untouched). Hosts are identified by hardware UUID (id); a missing, all-zero, all-F or repeated one falls back to the host's name and is marked name-based. VMs are identified by their Get-VM Id. Inside a report, VMs and roles name their host by host name. unreadable lists hosts or clusters that could not be read: everything on them is kept and marked not confirmed. A report older than the newest for the same scope is stale; the same scope, observed_at and content again is replayed (safe to resend); the same scope and observed_at with different content is 409 observation_conflict. Each section applies in its own savepoint: 207 when some failed (send the same report again to retry them), 422 when all did. A VM or host that comes back with a new identity while one of the same name stops being seen is raised for review in Assets -> Settings -> Hyper-V, never merged automatically.",
                     "params": [
                         {
                             "name": "connection",
@@ -2232,7 +2232,7 @@
                             "req": true
                         },
                         {
-                            "name": "schema_version / observed_at / scope / collector / unreadable / sections",
+                            "name": "schema_version \/ observed_at \/ scope \/ collector \/ unreadable \/ sections",
                             "in": "body",
                             "req": true,
                             "desc": "schema_version 1; observed_at RFC 3339 with timezone; scope [{kind: cluster|host, id, name}]; collector {name, version, powershell, host}; unreadable [{kind, id, name, error}]; sections {name: {complete, items}}"
@@ -2300,7 +2300,7 @@
                 },
                 {
                     "m": "GET",
-                    "p": "/virtual-estate/{connection}",
+                    "p": "\/virtual-estate\/{connection}",
                     "perm": "virtual_estate.read",
                     "s": "Is the collector on time?",
                     "d": "The connection's state, for monitoring: freshness (on_time, late after its expected interval, overdue after the grace as well, never), when the last report arrived and what it was observing, its outcome and summary, the collector that sent it, how many clusters, hosts and VMs are currently seen (and how many VMs are not confirmed because their host could not be read), and how many identity changes wait for review. The key's company scope must cover the connection's company.",
@@ -5840,7 +5840,7 @@
                 },
                 {
                     "m": "GET",
-                    "p": "/cmdb/objects/{id}/asset-link",
+                    "p": "\/cmdb\/objects\/{id}\/asset-link",
                     "perm": "asset_ci_links.read",
                     "s": "The linked asset",
                     "d": "The asset this configuration item is the same equipment as (GH #201), seen from the CI, with every earlier period. With assets.read, current carries the asset card's details, read live from the asset and never stored on the CI (which ones is CMDB -> Settings -> Asset card): type, manufacturer, model, serial, asset tag, status, location and inventory freshness. Without it, the asset end is {\"restricted\": true}, with no id or name.",
@@ -8500,6 +8500,327 @@
             ]
         },
         {
+            "section": "Chart of accounts",
+            "items": [
+                {
+                    "m": "GET",
+                    "p": "\/accounts",
+                    "perm": "accounts.read",
+                    "s": "List \/ search accounts",
+                    "d": "The chart of accounts of the key's companies, ordered by code. A code is text and is returned exactly as stored - \"0010\" stays \"0010\". Each account has a kind: expense, fixed_asset, payroll or income. Inactive ones are included; filter with active=true for the ones that may be used for new entries.",
+                    "params": [
+                        {
+                            "name": "company_id",
+                            "in": "query",
+                            "desc": "Narrow to one company inside the key's scope",
+                            "req": false
+                        },
+                        {
+                            "name": "code",
+                            "in": "query",
+                            "desc": "Exact code, ignoring capitals",
+                            "req": false
+                        },
+                        {
+                            "name": "q",
+                            "in": "query",
+                            "desc": "Search code, name and description",
+                            "req": false
+                        },
+                        {
+                            "name": "kind",
+                            "in": "query",
+                            "desc": "expense, fixed_asset, payroll or income",
+                            "req": false
+                        },
+                        {
+                            "name": "active",
+                            "in": "query",
+                            "desc": "true \/ false",
+                            "req": false
+                        },
+                        {
+                            "name": "parent_id",
+                            "in": "query",
+                            "desc": "Children of this account; 0 = top level only",
+                            "req": false
+                        },
+                        {
+                            "name": "sort",
+                            "in": "query",
+                            "desc": "code (default), name, updated_at, id - prefix \"-\" for descending",
+                            "req": false
+                        },
+                        {
+                            "name": "page \/ per_page",
+                            "in": "query",
+                            "desc": "Pagination (default 1 \/ 25, max per_page 100)",
+                            "req": false
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 400,
+                                "slug": "invalid_parameter",
+                                "when": "'sort', 'kind' or 'active' is not one of the listed values."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "company_id is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Chart of accounts",
+                    "slug": "get-accounts"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/accounts",
+                    "perm": "accounts.create",
+                    "s": "Add an account",
+                    "d": "code, name and kind are required. The code is trimmed and otherwise kept exactly as sent. A code already used in that company (ignoring capitals) is refused with 409. The parent can be given by parent_id or parent_code and must be in the same company.",
+                    "params": [
+                        {
+                            "name": "code",
+                            "in": "body",
+                            "desc": "Up to 50 characters, unique per company ignoring capitals",
+                            "req": true
+                        },
+                        {
+                            "name": "name",
+                            "in": "body",
+                            "desc": "Up to 150 characters",
+                            "req": true
+                        },
+                        {
+                            "name": "kind",
+                            "in": "body",
+                            "desc": "expense, fixed_asset, payroll or income",
+                            "req": true
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "body",
+                            "desc": "Company (default: the key's default company)",
+                            "req": false
+                        },
+                        {
+                            "name": "description",
+                            "in": "body",
+                            "desc": "Up to 500 characters",
+                            "req": false
+                        },
+                        {
+                            "name": "parent_id \/ parent_code",
+                            "in": "body",
+                            "desc": "The parent, in the same company. Omit or null for top level",
+                            "req": false
+                        },
+                        {
+                            "name": "is_active",
+                            "in": "body",
+                            "desc": "true (default) \/ false",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "code": "2.0.3.0.4",
+                        "name": "Software Licences",
+                        "kind": "expense",
+                        "parent_code": "2.0",
+                        "is_active": true
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "The code is already used by an account in that company."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A missing code, name or kind, a value too long, or a parent that is not in the same company."
+                            }
+                        ]
+                    },
+                    "section": "Chart of accounts",
+                    "slug": "post-accounts"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/accounts\/sync",
+                    "perm": "accounts.update",
+                    "s": "Sync a chart from a finance system",
+                    "d": "Bring one company's chart of accounts into line with a list, matched on code (ignoring capitals): new codes are added, existing ones updated, and nothing is duplicated, so the same call can be made every night. Only the fields sent are changed. A new account sent without a kind takes its parent's. Needs accounts.create as well, for the new ones.",
+                    "params": [
+                        {
+                            "name": "accounts",
+                            "in": "body",
+                            "desc": "Array of {code, name, kind, description, parent_code, is_active}. code is required; name is required for a code that is new",
+                            "req": true
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "body",
+                            "desc": "Company (default: the key's default company)",
+                            "req": false
+                        },
+                        {
+                            "name": "deactivate_missing",
+                            "in": "body",
+                            "desc": "true = make active accounts that are not in the list inactive",
+                            "req": false
+                        },
+                        {
+                            "name": "dry_run",
+                            "in": "body",
+                            "desc": "true = report what would change, change nothing",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "company_id": 1,
+                        "deactivate_missing": false,
+                        "accounts": [
+                            {
+                                "code": "2.0",
+                                "name": "Operating expenses",
+                                "kind": "expense"
+                            },
+                            {
+                                "code": "2.0.3.0.4",
+                                "name": "Software Licences",
+                                "parent_code": "2.0"
+                            }
+                        ]
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "invalid_rows",
+                                "when": "One or more items have a problem - a missing code, a new code with no name or kind (and no parent to take it from), the same code twice, a parent that does not exist, or parents that go round in a loop. Nothing was changed; error.details.errors lists every problem with its line."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key lacks accounts.create, or company_id is outside its scope."
+                            }
+                        ]
+                    },
+                    "section": "Chart of accounts",
+                    "slug": "post-accounts-sync"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/accounts\/{id}",
+                    "perm": "accounts.read",
+                    "s": "Get an account",
+                    "d": "One account, with its parent and how many accounts sit below it. 404 when it does not exist or belongs to a company outside the key's scope.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Account id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": []
+                    },
+                    "section": "Chart of accounts",
+                    "slug": "get-accounts-id"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/accounts\/{id}",
+                    "perm": "accounts.update",
+                    "s": "Update an account",
+                    "d": "Only the fields sent are changed. Setting is_active to false retires it: it stays on everything already counted in it but is not offered for anything new. An account cannot move to another company, and cannot be put under itself or anything below it.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Account id",
+                            "req": true
+                        },
+                        {
+                            "name": "code \/ name \/ kind \/ description",
+                            "in": "body",
+                            "desc": "As for create",
+                            "req": false
+                        },
+                        {
+                            "name": "parent_id \/ parent_code",
+                            "in": "body",
+                            "desc": "null or \"\" = top level",
+                            "req": false
+                        },
+                        {
+                            "name": "is_active",
+                            "in": "body",
+                            "desc": "true \/ false",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "is_active": false
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "The new code is already used in that company."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "company_id was sent, the kind is not one of the four, or the parent would make a loop or is in another company."
+                            }
+                        ]
+                    },
+                    "section": "Chart of accounts",
+                    "slug": "patch-accounts-id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/accounts\/{id}",
+                    "perm": "accounts.delete",
+                    "s": "Delete an account",
+                    "d": "Permanently deletes an account that has nothing below it and is not used anywhere - on a budget line, a task, an income line or as a project's default. For one that has simply stopped being used, set is_active to false instead.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Account id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "Other accounts sit below it, or it is in use."
+                            }
+                        ]
+                    },
+                    "section": "Chart of accounts",
+                    "slug": "delete-accounts-id"
+                }
+            ]
+        },
+        {
             "section": "Projects",
             "items": [
                 {
@@ -9789,6 +10110,588 @@
                     },
                     "section": "Projects",
                     "slug": "get-projects-id-history"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/by-account",
+                    "perm": "projects.read",
+                    "s": "Costs and income by account, across projects",
+                    "d": "Costs and income by chart-of-accounts account across every project the key may see - one breakdown per currency, never added across currencies, with accounts in different companies matched on code. Each breakdown has sections (expense, fixed_asset, payroll, income) of rows {account, planned, actual, forecast, minutes}, unassigned, costs, income, net = income less costs, and projects - how many projects are in it. The costs use the same rules as each project's budget.",
+                    "params": [
+                        {
+                            "name": "status",
+                            "in": "query",
+                            "desc": "Comma-separated project statuses to include",
+                            "req": false
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "query",
+                            "desc": "One company inside the key's scope",
+                            "req": false
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "not_ready",
+                                "when": "Database Verification has not run since the chart of accounts was added."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "company_id is outside the key's company scope."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-by-account"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/projects\/{id}\/budget",
+                    "perm": "projects.update",
+                    "s": "Set a project's default accounts",
+                    "d": "The project's own account for time (labour_account_id) and for other spending (other_account_id) - where time with no task account, and a budget line with no account, are counted. null = use the defaults for every project (Projects - Settings - Budget). Only cost accounts of the project's company.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "labour_account_id",
+                            "in": "body",
+                            "desc": "Account id, or null",
+                            "req": false
+                        },
+                        {
+                            "name": "other_account_id",
+                            "in": "body",
+                            "desc": "Account id, or null",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "labour_account_id": 12,
+                        "other_account_id": null
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "Not an active cost account of the project's company."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "patch-projects-id-budget"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/tasks\/{task_id}\/accounts",
+                    "perm": "projects.read",
+                    "s": "Get a task's accounts",
+                    "d": "Where the time logged on a project task counts: accounts with percentages, whether they are the task's own or its parent's (a subtask follows its parent unless it has its own), and the dated history of changes.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "task_id",
+                            "in": "path",
+                            "desc": "Task id (a task of the project, or one of its subtasks)",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or task."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-tasks-task_id-accounts"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/projects\/{id}\/tasks\/{task_id}\/accounts",
+                    "perm": "projects.update",
+                    "s": "Set a task's accounts",
+                    "d": "One account, or several with percentages adding up to 100 (amounts are not allowed on tasks). [] = no accounts of its own: a subtask follows its parent again, a task counts in the project's account for time. Each change is a dated version; Projects - Settings - Budget decides whether all the task's time moves or only time logged from then on. Saving the same split again changes nothing.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "task_id",
+                            "in": "path",
+                            "desc": "Task id",
+                            "req": true
+                        },
+                        {
+                            "name": "accounts",
+                            "in": "body",
+                            "desc": "Array of {account_id, percent}",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "accounts": [
+                            {
+                                "account_id": 7,
+                                "percent": 70
+                            },
+                            {
+                                "account_id": 3,
+                                "percent": 30
+                            }
+                        ]
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "The percentages do not add up to 100, an amount was sent, or an account is not an active cost account of the project's company."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "patch-projects-id-tasks-task_id-accounts"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/income-lines",
+                    "perm": "projects.update",
+                    "s": "Add an income line",
+                    "d": "Money the project brings in - a recharge, grant funding. Never added to the budget's planned or actual: GET \/projects\/{id}\/budget returns it as income, with income less costs. Only an active income account of the project's company.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "title",
+                            "in": "body",
+                            "desc": "What it is",
+                            "req": true
+                        },
+                        {
+                            "name": "planned",
+                            "in": "body",
+                            "desc": "Planned amount, in the project's currency",
+                            "req": false
+                        },
+                        {
+                            "name": "received",
+                            "in": "body",
+                            "desc": "Amount received so far",
+                            "req": false
+                        },
+                        {
+                            "name": "planned_date",
+                            "in": "body",
+                            "desc": "YYYY-MM-DD",
+                            "req": false
+                        },
+                        {
+                            "name": "received_date",
+                            "in": "body",
+                            "desc": "YYYY-MM-DD, not in the future",
+                            "req": false
+                        },
+                        {
+                            "name": "account_id",
+                            "in": "body",
+                            "desc": "An income account",
+                            "req": false
+                        },
+                        {
+                            "name": "notes",
+                            "in": "body",
+                            "desc": "Free text",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "title": "Recharge to Sales",
+                        "planned": 8000,
+                        "received": 4000,
+                        "received_date": "2026-10-30",
+                        "account_id": 11
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A missing title, an amount with more than two decimals, a received date in the future, or an account that is not an active income account."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not change this project."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-income-lines"
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/projects\/{id}\/income-lines\/{line_id}",
+                    "perm": "projects.update",
+                    "s": "Update an income line",
+                    "d": "Only the fields sent are changed.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "line_id",
+                            "in": "path",
+                            "desc": "Income line id",
+                            "req": true
+                        },
+                        {
+                            "name": "(any field from add)",
+                            "in": "body",
+                            "desc": "Only the fields sent are changed",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "received": 8000,
+                        "received_date": "2026-11-12"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or income line."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "patch-projects-id-income-lines-line_id"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/projects\/{id}\/income-lines\/{line_id}",
+                    "perm": "projects.update",
+                    "s": "Delete an income line",
+                    "d": "Removes the income line; recorded in the project's history.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "line_id",
+                            "in": "path",
+                            "desc": "Income line id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project or income line."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "delete-projects-id-income-lines-line_id"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/documents",
+                    "perm": "projects.read",
+                    "s": "List a project's documents",
+                    "d": "The project's documents, newest first - metadata only (never the contents): kind (file or link), title, description, original name, MIME type, size, sha256, external URL, client_reference, who uploaded it and when, and content_url. Only documents the key's analyst can see. Add ?client_reference= to ask whether an upload arrived without sending it again.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "client_reference",
+                            "in": "query",
+                            "desc": "Only the document uploaded with this reference by the key's analyst",
+                            "req": false
+                        },
+                        {
+                            "name": "page \/ per_page",
+                            "in": "query",
+                            "desc": "Pagination (default 1 \/ 25, max per_page 100)",
+                            "req": false
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or the key's analyst cannot see it (a members-only project they are not on, or another company)."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-documents"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/documents",
+                    "perm": "projects.update",
+                    "s": "Add a document to a project",
+                    "d": "Send multipart\/form-data with a file part named file (and optional title, description, client_reference), or JSON with external_url (and optional title, description, client_reference) for a link. The same checks as the Documents panel: access first, before anything is written; the install's allowed file types and size limit; links must be http or https. Returns 201 with the document; 200 for a retry with the same client_reference and the same content; 409 if that reference already names something else. For uploads use a multipart client rather than the JSON request editor.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "file",
+                            "in": "body",
+                            "desc": "Multipart file part (a file document)",
+                            "req": false
+                        },
+                        {
+                            "name": "external_url",
+                            "in": "body",
+                            "desc": "http(s) URL (a link document)",
+                            "req": false
+                        },
+                        {
+                            "name": "title",
+                            "in": "body",
+                            "desc": "Default: the file name or the URL",
+                            "req": false
+                        },
+                        {
+                            "name": "description",
+                            "in": "body",
+                            "desc": "Free text, searchable",
+                            "req": false
+                        },
+                        {
+                            "name": "client_reference",
+                            "in": "body",
+                            "desc": "Case-sensitive retry reference, 1-128 ASCII letters, digits, dots, underscores, colons or hyphens",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "external_url": "https:\/\/sharepoint.example.com\/sites\/it\/network-design.pdf",
+                        "title": "Network design",
+                        "client_reference": "pmtool:doc:4411"
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "reference_conflict",
+                                "when": "client_reference already names a different document."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_file",
+                                "when": "The file type is not allowed, or it is over the size limit."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A link that is not http(s), or a value that is not a string."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not add documents to this project."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-documents"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/documents\/{document_id}\/link",
+                    "perm": "projects.update",
+                    "s": "Attach an existing document",
+                    "d": "Attach a document that is already in FreeITSM - on another project, a contract, an asset - to this project too. The key's analyst must already be able to see it. Attaching twice is harmless (200).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "document_id",
+                            "in": "path",
+                            "desc": "Document id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such document, or the key's analyst cannot see it."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not add documents to this project."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-documents-document_id-link"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/projects\/{id}\/documents\/{document_id}\/content",
+                    "perm": "projects.read",
+                    "s": "Download a project document",
+                    "d": "The file itself, as an attachment - or, for a link, {kind: \"link\", external_url} (never a redirect). Needs documents.download as well as projects.read: no key has it unless an administrator ticks it. Only a document on THIS project. Every download is logged with the key, the address and the bytes, and counted against the key's download limits (System - API - Threat protection): past the alert level administrators are told; at the limit the download is refused (429), or the key is switched off.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "document_id",
+                            "in": "path",
+                            "desc": "Document id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key lacks documents.download."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The document is not on this project, or the key's analyst cannot see it."
+                            },
+                            {
+                                "code": 429,
+                                "slug": "download_limit",
+                                "when": "The key has reached its download limit for the hour."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "key_disabled",
+                                "when": "The download guard switched the key off."
+                            },
+                            {
+                                "code": 410,
+                                "slug": "gone",
+                                "when": "The file is recorded but missing from storage."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "get-projects-id-documents-document_id-content"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/projects\/{id}\/documents\/{document_id}",
+                    "perm": "projects.update",
+                    "s": "Take a document off a project",
+                    "d": "Removes the link between the document and the project, not the document - unless that was its last link, when it is deleted as in the app (document_deleted: true).",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "document_id",
+                            "in": "path",
+                            "desc": "Document id",
+                            "req": true
+                        }
+                    ],
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The document is not on this project."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key's analyst may not remove documents from this project."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "delete-projects-id-documents-document_id"
                 }
             ]
         },
@@ -15723,7 +16626,7 @@
                 },
                 {
                     "title": "With custom fields",
-                    "note": "Custom fields are set by their key (Tickets \u2192 Settings \u2192 Custom fields). A field the type requires when a ticket is logged must be sent, or the call is refused with 422.",
+                    "note": "Custom fields are set by their key (Tickets → Settings → Custom fields). A field the type requires when a ticket is logged must be sent, or the call is refused with 422.",
                     "body": {
                         "subject": "New starter: Alex Morgan",
                         "requester_email": "hr@example.com",

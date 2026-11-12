@@ -194,6 +194,10 @@ class NotificationsService
             // and all three are caused by time or by somebody else, never by you.
             'domain.expiring'         => ['default' => true,  'entity' => 'domain'],
             'domain.ssl_expiring'     => ['default' => true,  'entity' => 'domain'],
+            // GH #287: API security - to ADMINISTRATORS. A key downloading a lot of documents,
+            // reaching its limit, used from a new address or where or when it may not be.
+            // On: this is exactly what a bell is for, and nobody causes it by their own hand.
+            'api.security'            => ['default' => true,  'entity' => 'api_key'],
             'domain.changed'          => ['default' => true,  'entity' => 'domain'],
             // Projects (3.2.0) - to the PROJECT MANAGER (projects.owner_analyst_id).
             // Health and tolerances fire on a change only (includes/projects/alerts.php),

@@ -23,8 +23,14 @@ try {
 
     $keys = [];
     try {
+        // GH #287: the key's restrictions and why it was switched off, once Database Verification has added them.
+        require_once '../../../includes/api_security.php';
+        $sec = apiSecurityReady($conn)
+            ? 'k.allowed_ips, k.allowed_hours, k.download_alert_files, k.download_limit_files, k.download_limit_mb, k.suspended_reason,
+               (SELECT COUNT(*) FROM document_access_log l WHERE l.api_key_id = k.id AND l.action = \'download\' AND l.created_datetime > UTC_TIMESTAMP() - INTERVAL 60 MINUTE) AS downloads_hour,'
+            : 'NULL AS allowed_ips, NULL AS allowed_hours, NULL AS download_alert_files, NULL AS download_limit_files, NULL AS download_limit_mb, NULL AS suspended_reason, 0 AS downloads_hour,';
         $rows = $conn->query(
-            "SELECT k.id, k.name, k.key_prefix, k.analyst_id, k.permissions, k.company_ids,
+            "SELECT k.id, k.name, k.key_prefix, k.analyst_id, k.permissions, k.company_ids, $sec
                     k.rate_limit_per_minute, k.active, k.expires_at, k.last_used_at, k.last_used_ip,
                     k.created_datetime, a.full_name AS analyst_name
              FROM api_keys k
@@ -47,6 +53,13 @@ try {
                 'last_used_at' => $r['last_used_at'],
                 'last_used_ip' => $r['last_used_ip'],
                 'created_at'   => $r['created_datetime'],
+                'allowed_ips'  => $r['allowed_ips'],
+                'allowed_hours' => $r['allowed_hours'] ? json_decode($r['allowed_hours'], true) : null,
+                'download_alert_files' => $r['download_alert_files'] !== null ? (int)$r['download_alert_files'] : null,
+                'download_limit_files' => $r['download_limit_files'] !== null ? (int)$r['download_limit_files'] : null,
+                'download_limit_mb'    => $r['download_limit_mb'] !== null ? (int)$r['download_limit_mb'] : null,
+                'suspended_reason'     => $r['suspended_reason'],
+                'downloads_hour'       => (int)$r['downloads_hour'],
             ];
         }
         $tableReady = true;

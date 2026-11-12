@@ -2323,6 +2323,7 @@ return [
             'intro' => 'For scripts, other systems and AI assistants.',
             'p1'    => 'Projects can be read and changed through the REST API, and read by an AI assistant through the MCP server. Both are set up in **System - API**, and an API key only ever reaches the companies its analyst can see.',
             'p2'    => 'In the **War Room**, Warbot answers questions about projects too - "which projects are off track?", "is any project doing something big this week?" - or use **/projects**, **/project** and **/dates**. It is offered only to people who can open Projects, answers about the projects they can see, and never mentions money: everyone in the channel reads its replies.',
+            'p3'    => 'A project\'s **documents** can be listed, added (a file or a link), attached and removed through the API too - so a report generator or another PM tool can file paperwork on the project. Downloading a document\'s contents needs its own permission, **Document contents: download**, and every download is logged and counted against the key\'s limits (**System - API - Threat protection**). The AI assistant sees document titles only, never their contents.',
         ],
     ],
 

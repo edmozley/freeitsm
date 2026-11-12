@@ -17,6 +17,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/documents.php';
+require_once '../../includes/services/documents.php';   // GH #287: the rules, shared with REST v1
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -43,79 +44,15 @@ if ($documentId <= 0 || !documentEntityDef($parentType) || $parentId <= 0) {
 
 try {
     $conn = connectToDatabase();
-
-    // Must be able to see the record you are detaching from...
-    // documentCanWriteParent: seeing the record is not enough - Read only access to its
-    // module (Change Management, Forms, Tasks) attaches and removes nothing (#181).
-    if (!documentCanWriteParent($conn, $analystId, $allowed, $parentType, $parentId)) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'You do not have access to that record.']);
-        exit;
-    }
-    // ...and the document itself, so a guessed id cannot be used to strip a
-    // document off a record by attaching-then-detaching games.
-    if (!documentCanView($conn, $analystId, $allowed, $documentId)) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Not found.']);
-        exit;
-    }
-
-    $conn->beginTransaction();
-    try {
-        $conn->prepare(
-            "DELETE FROM document_links WHERE document_id = ? AND parent_type = ? AND parent_id = ?"
-        )->execute([$documentId, $parentType, $parentId]);
-
-        $remaining = (int) (function () use ($conn, $documentId) {
-            $st = $conn->prepare("SELECT COUNT(*) FROM document_links WHERE document_id = ?");
-            $st->execute([$documentId]);
-            return $st->fetchColumn();
-        })();
-
-        $orphaned = false;
-        $keyToRemove = null;
-        if ($remaining === 0) {
-            $st = $conn->prepare("SELECT storage_key FROM documents WHERE id = ?");
-            $st->execute([$documentId]);
-            $keyToRemove = $st->fetchColumn() ?: null;
-
-            $conn->prepare("UPDATE documents SET deleted_datetime = UTC_TIMESTAMP() WHERE id = ?")
-                 ->execute([$documentId]);
-            $orphaned = true;
-        }
-        $conn->commit();
-    } catch (Throwable $e) {
-        if ($conn->inTransaction()) $conn->rollBack();
-        throw $e;
-    }
-
-    // Only touch the disk AFTER the transaction committed. A file deleted inside
-    // a transaction that then rolls back leaves a row pointing at nothing.
-    if ($orphaned && $keyToRemove) {
-        // ⚠️ Another document row may legitimately share the same stored file if
-        // dedupe by content_hash is ever turned on. Check before unlinking.
-        $st = $conn->prepare("SELECT COUNT(*) FROM documents WHERE storage_key = ? AND deleted_datetime IS NULL");
-        $st->execute([$keyToRemove]);
-        if ((int) $st->fetchColumn() === 0) {
-            $path = documentStoragePath((string) $keyToRemove);
-            if (is_file($path)) @unlink($path);
-        }
-    }
-
-    // An orphan is soft-deleted, so it must leave the index too — otherwise a
-    // deleted document goes on being findable by its title for ever.
-    if ($orphaned) {
-        try {
-            require_once dirname(__DIR__, 2) . '/includes/search/documents_index.php';
-            searchUnindexDocument($conn, $documentId);
-        } catch (Throwable $e) { error_log('[documents/unlink] ' . $e->getMessage()); }
-    }
-
+    $orphaned = DocumentsService::detach($conn, $analystId, $allowed, $parentType, $parentId, $documentId);
     echo json_encode([
         'success'  => true,
         'orphaned' => $orphaned,   // true = that was its last link, so it is gone
     ]);
-
+} catch (ServiceError $e) {
+    if ($e->kind === 'forbidden') http_response_code(403);
+    if ($e->kind === 'not_found') http_response_code(404);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

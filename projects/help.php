@@ -60,7 +60,7 @@ $sections = [
     'assistant' => 4,   // 3.3.0: Ask AI - the project assistant
     'companies' => 1,
     'settings'  => 1,
-    'api'       => 2,
+    'api'       => 3,   // p3: documents (GH #287)
 ];
 if (!$multi) unset($sections['companies']);
 $after = [

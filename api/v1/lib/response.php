@@ -35,6 +35,10 @@ function apiRespond($data, int $status = 200, ?array $meta = null): void {
  * @param array|null $details  extra structured detail added as error.details; null leaves it out
  */
 function apiError(int $status, string $code, string $message, ?array $details = null): void {
+    // GH #287: a valid key refused again and again is probing (includes/api_security.php).
+    if (($status === 403 || $status === 404) && !empty($GLOBALS['FREEITSM_API_KEY']) && function_exists('apiRefusalRecord')) {
+        apiRefusalRecord($GLOBALS['FREEITSM_API_CONN'], $GLOBALS['FREEITSM_API_KEY'], $status, $code);
+    }
     http_response_code($status);
     $error = ['code' => $code, 'message' => $message];
     if ($details !== null) {
