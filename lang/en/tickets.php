@@ -66,6 +66,8 @@ return [
             'work_end_datetime'   => 'Work ends',
             'snoozed_until'       => 'Snoozed until',
             'company_name'        => 'Company',
+            'requester_name' => 'Requester',
+            'requester_address' => 'Requester email',
         ],
     ],
     // The AI reading aids (#104, ideas 7 and 12).

@@ -54,6 +54,8 @@ return [
             'work_end_datetime' => 'Koniec prac',
             'snoozed_until' => 'Uśpione do',
             'company_name' => 'Firma',
+            'requester_name' => 'Zgłaszający',
+            'requester_address' => 'E-mail zgłaszającego',
         ],
     ],
     'ai' => [

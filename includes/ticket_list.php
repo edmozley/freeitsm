@@ -321,6 +321,8 @@ function ticketListSorts(): array
         'work_start_datetime' => 'work_start_datetime',
         'work_end_datetime'   => 'work_end_datetime',
         'snoozed_until'       => 'snoozed_until',
+        'requester_name'      => 'requester_name',      // GH #292
+        'requester_address'   => 'requester_address',
     ];
 }
 
@@ -345,6 +347,8 @@ function ticketListExportColumns(): array
         'work_end_datetime'   => 'work_end_datetime',
         'snoozed_until'       => 'snoozed_until',
         'company_name'        => 'company_name',
+        'requester_name'      => 'requester_name',      // GH #292
+        'requester_address'   => 'requester_address',
     ];
 }
 

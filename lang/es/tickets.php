@@ -56,6 +56,8 @@ return [
             'work_end_datetime' => 'Fin del trabajo',
             'snoozed_until' => 'Pospuesto hasta',
             'company_name' => 'Empresa',
+            'requester_name' => 'Solicitante',
+            'requester_address' => 'Correo del solicitante',
         ],
     ],
     'ai' => [

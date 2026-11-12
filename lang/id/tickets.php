@@ -54,6 +54,8 @@ return [
             'work_end_datetime' => 'Pekerjaan berakhir',
             'snoozed_until' => 'Ditunda sampai',
             'company_name' => 'Perusahaan',
+            'requester_name' => 'Pemohon',
+            'requester_address' => 'Email pemohon',
         ],
     ],
     'ai' => [

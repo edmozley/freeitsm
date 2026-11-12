@@ -238,6 +238,10 @@ window.TicketTable = (() => {
             ['work_end_datetime',   null,               false, true],
             ['snoozed_until',       null,               false, true],
             ['company_name',        null,               false, false],
+            // GH #292: who the ticket is for, so the table answers it without opening
+            // the ticket. Hidden until an analyst picks them in the column chooser.
+            ['requester_name',      null,               false, true],
+            ['requester_address',   null,               false, true],
         ]
         // GH #218: no Department column when every company on the board hides the
         // field (deptShownAnywhere() is inbox.js's). Built on first use, after the

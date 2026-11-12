@@ -54,6 +54,8 @@ return [
             'work_end_datetime' => 'Λήξη εργασίας',
             'snoozed_until' => 'Σε αναβολή έως',
             'company_name' => 'Εταιρεία',
+            'requester_name' => 'Αιτών',
+            'requester_address' => 'Email αιτούντος',
         ],
     ],
     'ai' => [

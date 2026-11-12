@@ -56,6 +56,8 @@ return [
             'work_end_datetime' => 'Arbeitsende',
             'snoozed_until' => 'Zurückgestellt bis',
             'company_name' => 'Unternehmen',
+            'requester_name' => 'Anfragender',
+            'requester_address' => 'E-Mail des Anfragenden',
         ],
     ],
     'ai' => [

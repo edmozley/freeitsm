@@ -42,6 +42,13 @@ try {
     $schedule=ticketWorkspaceHttp($client,$url.'/api/tickets/table_export.php?columns=work_start_datetime');
     $check('scheduled wall-clock values are not falsely labelled UTC',$schedule['status']===200&&str_contains($schedule['body'],'2026-11-02T10:00:00')&&!str_contains($schedule['body'],'2026-11-02T10:00:00Z'));
     $dates=ticketWorkspaceHttp($client,$url.'/api/tickets/table_export.php?columns=created_datetime');
+    // GH #292: the requester's name and email as their own columns - sortable, exportable.
+    $byReq=$read(['sort'=>'requester_name','dir'=>'asc']);
+    $check('the table sorts by requester and every row carries the requester columns',$byReq['status']===200&&array_key_exists('requester_name',$byReq['json']['rows'][0]??[])&&array_key_exists('requester_address',$byReq['json']['rows'][0]??[]));
+    $check('...and by requester email',$read(['sort'=>'requester_address','dir'=>'desc'])['status']===200);
+    $reqCsv=ticketWorkspaceHttp($client,$url.'/api/tickets/table_export.php?columns=ticket_number,requester_name,requester_address');
+    $reqHead=str_getcsv(strtok(ltrim($reqCsv['body'],"\xEF\xBB\xBF"),"\r\n"));
+    $check('the CSV can include Requester and Requester email',$reqCsv['status']===200&&$reqHead===['Ticket','Requester','Requester email'],json_encode($reqHead));
     $check('CSV timestamps explicitly identify UTC',$dates['status']===200&&preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z/',$dates['body'])===1);
     $conn->prepare('UPDATE tickets SET deleted_datetime=NOW() WHERE id=?')->execute([$ticket]);
     $trash=$read(['view'=>'trash']);$check('trash is a separate permitted queue',($trash['json']['total']??0)===1&&(int)$trash['json']['rows'][0]['ticket_id']===$ticket);
