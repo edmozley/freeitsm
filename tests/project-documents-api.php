@@ -36,13 +36,14 @@ require_once 'includes/tenancy.php';
 require_once 'includes/services/projects.php';
 require_once 'includes/services/documents.php';
 require_once 'includes/api_security.php';
+require_once 'includes/job_registry.php';
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 if ($conn->query('SELECT DATABASE()')->fetchColumn() !== $expected) { echo "(skipped: config.php does not use $expected)\n"; exit(0); }
 if (!apiSecurityReady($conn) || !DocumentsService::referenceReady($conn)) { echo "(skipped: run Database Verification)\n"; exit(1); }
 
 $started = $conn->query("SELECT UTC_TIMESTAMP()")->fetchColumn();
-$made = ['analysts' => [], 'keys' => [], 'projects' => [], 'docs' => []];
+$made = ['analysts' => [], 'keys' => [], 'projects' => [], 'docs' => [], 'zips' => []];
 $settingKeys = array_keys(API_SECURITY_DEFAULTS);
 $oldSettings = [];
 foreach ($settingKeys as $k) { $s = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?"); $s->execute([$k]); $oldSettings[$k] = $s->fetchColumn(); }
@@ -188,6 +189,71 @@ try {
     check('a key refused again and again (trying ids) is switched off', (int)$kb['active'] === 0 && str_contains((string)$kb['suspended_reason'], 'refused'), json_encode($kb));
     $set('api_refusal_alert', null); $set('api_refusal_limit', null);
 
+    echo "Keys that act as an administrator\n";
+    [$keyAdm, $idAdm] = $mkKey($admin, ['projects' => ['read']], 'ZZPD admin key');
+    [$c] = $call($keyAdm, 'GET', '/projects');
+    check('allowed by default (today\'s behaviour)', $c === 200, (string)$c);
+    $set('api_admin_keys', 'require_ips');
+    [$c, $j] = $call($keyAdm, 'GET', '/projects');
+    check('"only with allowed addresses": an admin key with none is refused', $c === 403 && ($j['error']['code'] ?? '') === 'admin_key_unrestricted', "$c " . json_encode($j));
+    $conn->prepare("UPDATE api_keys SET allowed_ips = ? WHERE id = ?")->execute(["127.0.0.0/8\n::1", $idAdm]);
+    [$c] = $call($keyAdm, 'GET', '/projects');
+    check('...and works once it has some', $c === 200, (string)$c);
+    [$c] = $call($keyA, 'GET', "/projects/$p1/documents");
+    check('...while a limited analyst\'s key is unaffected', $c === 200, (string)$c);
+    $set('api_admin_keys', 'forbid');
+    [$c, $j] = $call($keyAdm, 'GET', '/projects');
+    check('"not allowed": an admin key is refused, with or without addresses', $c === 403 && ($j['error']['code'] ?? '') === 'admin_key_not_allowed', "$c " . json_encode($j));
+    $set('api_admin_keys', null);
+
+    echo "The activity log\n";
+    $conn->exec("DELETE FROM api_request_log WHERE api_key_id = $idA");
+    [$c] = $call($keyA, 'GET', "/projects/$p1/documents");
+    [$c2] = $call($keyA, 'GET', '/projects/99999999/documents');
+    $rows = $conn->query("SELECT method, path, status, error_code, duration_ms, bytes_out, channel FROM api_request_log WHERE api_key_id = $idA ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+    check('every call is a row: method, path, status, time taken and size', count($rows) === 2 && $rows[0]['status'] == 200 && $rows[0]['path'] === "/projects/$p1/documents" && $rows[0]['duration_ms'] !== null && (int)$rows[0]['bytes_out'] > 0 && $rows[0]['channel'] === 'rest', json_encode($rows));
+    check('a failure carries its error code', ($rows[1]['status'] ?? 0) == 404 && ($rows[1]['error_code'] ?? '') === 'not_found', json_encode($rows[1] ?? null));
+    $call('fitsm_zzpd_not_a_key_activity', 'GET', '/projects');
+    check('a call with a bad key is recorded with no key', (int)$conn->query("SELECT COUNT(*) FROM api_request_log WHERE api_key_id IS NULL AND status = 401 AND created_datetime >= " . $conn->quote($started))->fetchColumn() >= 1);
+    $set('api_log_successes', '0');
+    $conn->exec("DELETE FROM api_request_log WHERE api_key_id = $idA");
+    $call($keyA, 'GET', "/projects/$p1/documents");
+    $call($keyA, 'GET', '/projects/99999998/documents');
+    check('"failures only": the success is not recorded, the failure is', $conn->query("SELECT GROUP_CONCAT(status) FROM api_request_log WHERE api_key_id = $idA")->fetchColumn() === '404');
+    $set('api_log_successes', null);
+
+    echo "Tidying the log\n";
+    $ins = $conn->prepare("INSERT INTO api_request_log (api_key_id, channel, method, path, status, created_datetime) VALUES (?, 'rest', 'GET', ?, 200, ?)");
+    $old1 = gmdate('Y-m-d', strtotime('-45 days')); $old2 = gmdate('Y-m-d', strtotime('-44 days'));
+    foreach ([[$old1, 3], [$old2, 2]] as [$day, $n]) for ($i = 0; $i < $n; $i++) $ins->execute([$idA, "/zzpd/old/$i", "$day 10:0$i:00"]);
+    $set('api_log_keep_days', '30'); $set('api_log_old_rows', 'archive'); $set('api_log_archive_period', 'day');
+    $r = apiLogTidy($conn);
+    $st1 = str_replace('-', '', $old1); $st2 = str_replace('-', '', $old2);
+    $zip = apiLogArchiveDir() . "/api-log-$st1-$st1.zip";
+    $z = new ZipArchive(); $csv = ($z->open($zip) === true) ? $z->getFromName("api-log-$old1.csv") : ''; if ($csv !== '') $z->close();   // TRAP: Windows will not delete an open zip
+    check('archive: each old day zipped (a CSV inside), then deleted', is_file($zip) && substr_count((string)$csv, '/zzpd/old/') === 3 && in_array("api-log-$st2-$st2.zip", $r['files'], true)
+        && (int)$conn->query("SELECT COUNT(*) FROM api_request_log WHERE path LIKE '/zzpd/old/%'")->fetchColumn() === 0, json_encode($r));
+    check('recent rows are kept', (int)$conn->query("SELECT COUNT(*) FROM api_request_log WHERE api_key_id = $idA AND created_datetime >= " . $conn->quote($started))->fetchColumn() >= 1);
+    $made['zips'] = ["api-log-$st1-$st1.zip", "api-log-$st2-$st2.zip"];
+    foreach ([[$old1, 2]] as [$day, $n]) for ($i = 0; $i < $n; $i++) $ins->execute([$idA, "/zzpd/old2/$i", "$day 11:0$i:00"]);
+    $set('api_log_old_rows', 'delete');
+    $before = filesize($zip);
+    apiLogTidy($conn);
+    check('delete: old rows go, and no archive is touched', (int)$conn->query("SELECT COUNT(*) FROM api_request_log WHERE path LIKE '/zzpd/old2/%'")->fetchColumn() === 0 && filesize($zip) === $before);
+    // A month in one zip, a CSV per day inside, however often the job runs.
+    $set('api_log_old_rows', 'archive'); $set('api_log_archive_period', 'month');
+    $mStart = gmdate('Y-m', strtotime('first day of -3 months'));
+    foreach (['01', '02'] as $dd) { $ins->execute([$idA, "/zzpd/month/$dd-a", "$mStart-$dd 09:00:00"]); apiLogTidy($conn); }   // two runs, two days
+    $mz1 = str_replace('-', '', "$mStart-01"); $mz2 = str_replace('-', '', "$mStart-02");
+    $mzip = apiLogArchiveDir() . "/api-log-$mz1-$mz2.zip"; $made['zips'][] = "api-log-$mz1-$mz2.zip"; $made['zips'][] = "api-log-$mz1-$mz1.zip";
+    $mz = new ZipArchive(); $okZip = $mz->open($mzip) === true;
+    check('"One zip per: Month" - two runs, one zip, a CSV for each day', $okZip && $mz->locateName("api-log-$mStart-01.csv") !== false && $mz->locateName("api-log-$mStart-02.csv") !== false && $mz->numFiles === 2, $okZip ? (string)$mz->numFiles : 'no zip');
+    if ($okZip) $mz->close();
+    check('named by its first and last record, and the one-day name it had after the first run is gone', in_array("api-log-$mz1-$mz2.zip", array_column(apiLogArchives(), 'name'), true) && !is_file(apiLogArchiveDir() . "/api-log-$mz1-$mz1.zip"));
+    $set('api_log_old_rows', null); $set('api_log_archive_period', null);
+    $jobs = jobRegistry();
+    check('the tidy-up is a background job, daily, needed once anything is logged', isset($jobs['api_log_tidy']) && $jobs['api_log_tidy']['interval'] === 1440 && $jobs['api_log_tidy']['needed']($conn) === true);
+    $set('api_log_keep_days', null); $set('api_log_old_rows', null);
     // Last: it blocks this machine's address for a while - the rows are removed in finally.
     $set('api_failed_auth_limit', '3'); $set('api_failed_auth_minutes', '15');
     for ($i = 0; $i < 3; $i++) $call('fitsm_zzpd_not_a_key_' . $i, 'GET', '/projects');
@@ -207,6 +273,8 @@ try {
         try { require_once 'includes/search/documents_index.php'; searchUnindexDocument($conn, (int)$d); } catch (Throwable) {}
         $conn->exec("DELETE FROM documents WHERE id = " . (int)$d);
     }
+    foreach ($made['zips'] as $zf) @unlink(apiLogArchiveDir() . '/' . $zf);
+    $conn->exec("DELETE FROM api_request_log WHERE created_datetime >= " . $conn->quote($started) . " OR path LIKE '/zzpd/%'");
     foreach ($made['keys'] as $k) { $conn->exec("DELETE FROM api_key_events WHERE api_key_id = $k"); $conn->exec("DELETE FROM api_keys WHERE id = $k"); }
     foreach ($made['projects'] as $p) { try { ProjectsService::deleteProject($conn, new ActorContext($admin ?? 1, null, 'ui'), (int)$p); } catch (Throwable $e) { echo "  cleanup project: " . $e->getMessage() . "\n"; } }
     foreach ($made['analysts'] as $a) { $conn->exec("DELETE FROM user_preferences WHERE analyst_id = $a"); $conn->exec("DELETE FROM analysts WHERE id = $a"); }

@@ -140,6 +140,13 @@ function jobRegistry(): array
                                      || (jobSettingStrict($c, 'csat_mode') === 'auto' && (int)jobSettingStrict($c, 'csat_delay_minutes') > 0)
                                      || (jobSettingStrict($c, 'csat_mode') !== 'off' && jobSettingStrict($c, 'csat_reminder') === '1'),
         ],
+        // GH #287: the API activity log's tidy-up - delete, or zip then delete, what is
+        // older than System -> API -> Activity keeps. Needed once anything has been logged.
+        'api_log_tidy' => [
+            'command' => 'php cron/api_log_tidy.php', 'web' => true,
+            'interval' => 1440, 'grace' => 360, 'max_runtime' => 30,
+            'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM api_request_log LIMIT 1"),
+        ],
         'task_recurrence' => [
             'command' => 'php cron/task_recurrence.php', 'web' => true,
             'interval' => 1440, 'grace' => 360, 'max_runtime' => 10,

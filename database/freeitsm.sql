@@ -5878,6 +5878,28 @@ CREATE TABLE IF NOT EXISTS `api_key_events` (
     CONSTRAINT `fk_api_key_events_key` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- GH #287: the API activity log - one row per REST / MCP call: who, what, the answer,
+-- how long it took. Never the request or response contents. Failures always;
+-- successes unless System -> API -> Activity says not. Kept api_log_keep_days, then
+-- deleted or zipped into uploads/api-log-archive/ by the api_log_tidy job.
+CREATE TABLE IF NOT EXISTS `api_request_log` (
+    `id`               BIGINT NOT NULL AUTO_INCREMENT,
+    `api_key_id`       INT NULL,                -- NULL = no valid key (a bad key, or none)
+    `channel`          VARCHAR(8) NOT NULL DEFAULT 'rest',   -- rest | mcp
+    `method`           VARCHAR(8) NOT NULL,
+    `path`             VARCHAR(255) NOT NULL,
+    `status`           SMALLINT NOT NULL,
+    `error_code`       VARCHAR(50) NULL,
+    `duration_ms`      INT NULL,
+    `bytes_out`        BIGINT NULL,
+    `ip_address`       VARCHAR(45) NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_api_request_log_time` (`created_datetime`),
+    KEY `idx_api_request_log_key` (`api_key_id`, `created_datetime`),
+    KEY `idx_api_request_log_status` (`status`, `created_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `api_key_rate_limits` (
     `id`            INT NOT NULL AUTO_INCREMENT,
     `api_key_id`    INT NOT NULL,

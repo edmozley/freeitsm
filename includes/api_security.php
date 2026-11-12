@@ -48,6 +48,11 @@ const API_SECURITY_DEFAULTS = [
     'api_failed_auth_minutes'   => '15',          // ... within this many minutes block it for as long
     'api_refusal_alert'         => '20',          // refusals (403/404) for one key in 10 minutes: tell administrators
     'api_refusal_limit'         => '100',         // ... and switch the key off at this many; 0 = never
+    'api_admin_keys'            => 'allow',       // keys acting as an administrator: allow | require_ips | forbid
+    'api_log_successes'         => '1',           // the activity log records successful calls too (failures always)
+    'api_log_keep_days'         => '30',          // ... for this many days, then
+    'api_log_old_rows'          => 'delete',      // delete | archive (zips in uploads/api-log-archive/, a CSV per day inside)
+    'api_log_archive_period'    => 'month',       // one zip per day | week | month - however often the job runs
 ];
 
 /**
@@ -209,6 +214,23 @@ function apiKeyRequestGuard(PDO $conn, array $key): void
         apiSecurityAlertOnce($conn, $keyId, 'outside_hours', $ip, 'API key "' . $key['name'] . '" was used outside its ' . ($alertOnly ? 'usual' : 'allowed') . ' hours, from ' . ($ip ?: 'an unknown address') . '. ' . ($alertOnly ? 'It was allowed (alert only).' : 'The request was refused.'));
         if (!$alertOnly) apiError(403, 'outside_allowed_hours', 'This API key may not be used at this time.');
     }
+    // Keys that act as an administrator (System -> API -> Threat protection). Checked on
+    // every request, not only on save: an analyst made an administrator AFTER the key
+    // was created must not quietly give an unlocked key administrator reach.
+    $adminRule = apiSecuritySettings($conn)['api_admin_keys'];
+    if ($adminRule !== 'allow' && apiKeyIsAdmin($conn, $key)) {
+        if ($adminRule === 'forbid') {
+            apiSecurityEvent($conn, $keyId, 'admin_key_refused', $ip, 'Keys that act as an administrator are not allowed.');
+            apiSecurityAlertOnce($conn, $keyId, 'admin_key_refused', $ip, 'API key "' . $key['name'] . '" acts as an administrator, which Threat protection does not allow. Its requests are refused.');
+            apiError(403, 'admin_key_not_allowed', 'This API key acts as an administrator, which this install does not allow. Use a key for a limited analyst.');
+        }
+        if ($adminRule === 'require_ips' && !apiAllowedIpsParse((string)($key['allowed_ips'] ?? ''))['ok']) {
+            apiSecurityEvent($conn, $keyId, 'admin_key_refused', $ip, 'An administrator key with no allowed addresses.');
+            apiSecurityAlertOnce($conn, $keyId, 'admin_key_refused', $ip, 'API key "' . $key['name'] . '" acts as an administrator but has no allowed addresses, which Threat protection requires. Its requests are refused until it is given some.');
+            apiError(403, 'admin_key_unrestricted', 'This API key acts as an administrator, so it must be limited to allowed addresses (System - API).');
+        }
+    }
+
     // A new address: not seen for this key in the last 30 days. Never a block.
     if ($ip !== '' && (string)($key['last_used_ip'] ?? '') !== '' && $ip !== (string)$key['last_used_ip']) {
         try {
@@ -436,7 +458,7 @@ function apiSecurityAlertOnce(PDO $conn, int $keyId, string $event, string $ip, 
         apiSecurityEvent($conn, $keyId, $event . '_alerted', $ip, 'Administrators told.');
         $titles = ['download_alert' => 'API key downloading a lot of documents', 'download_limit' => 'API key reached its download limit',
                    'ip_refused' => 'API key used from an address it may not use', 'outside_hours' => 'API key used outside its hours',
-                   'refusals' => 'API key refused again and again'];
+                   'refusals' => 'API key refused again and again', 'admin_key_refused' => 'Administrator API key refused'];
         apiSecurityNotifyAdmins($conn, $keyId, $titles[$event] ?? 'API security alert', $message, true);
     } catch (Throwable $e) { error_log('[api_security] alert: ' . $e->getMessage()); }
 }
@@ -514,3 +536,207 @@ function apiKeyRestrictionValues(PDO $conn, array $input): array
     }
     return $out;
 }
+
+/** Does this key act as an administrator (now - the analyst may have been promoted since)? */
+function apiKeyIsAdmin(PDO $conn, array $key): bool
+{
+    try {
+        $st = $conn->prepare("SELECT is_admin FROM analysts WHERE id = ?");
+        $st->execute([(int)($key['analyst_id'] ?? 0)]);
+        return (int)$st->fetchColumn() === 1;
+    } catch (Throwable) {
+        return false;
+    }
+}
+
+// ── The activity log (System -> API -> Activity) ─────────────────────────────
+
+/** api_request_log exists (Database Verification has run since 5.1.0). */
+function apiActivityReady(PDO $conn): bool
+{
+    static $ok = null;
+    if ($ok !== null) return $ok;
+    try { $conn->query("SELECT id FROM api_request_log LIMIT 0"); return $ok = true; } catch (Throwable) { return $ok = false; }
+}
+
+/**
+ * Start recording this call: one row in api_request_log when the request ends -
+ * however it ends (a response, an error, a download). Call first thing in an entry
+ * point (api/v1/index.php, api/mcp/index.php). Never the contents of the request
+ * or the response; never throws.
+ *
+ * @param string $channel  'rest' or 'mcp'
+ */
+function apiActivityStart(string $channel): void
+{
+    $GLOBALS['FREEITSM_API_STARTED'] = microtime(true);
+    register_shutdown_function(function () use ($channel) {
+        try {
+            $conn = $GLOBALS['FREEITSM_API_CONN'] ?? null;
+            if (!$conn instanceof PDO) $conn = connectToDatabase();
+            if (!apiActivityReady($conn)) return;
+            $status = (int)(http_response_code() ?: 200);
+            if ($status < 400 && apiSecuritySettings($conn)['api_log_successes'] !== '1') return;
+            $key = $GLOBALS['FREEITSM_API_KEY'] ?? null;
+            // Bytes sent: a Content-Length the response set (a download), else what
+            // apiRespond()/apiError() wrote (they note it), else unknown.
+            $bytes = $GLOBALS['FREEITSM_API_BYTES'] ?? null;
+            foreach (headers_list() as $h) if (stripos($h, 'Content-Length:') === 0) $bytes = (int)trim(substr($h, 15));
+            $path = (string)($_GET['path'] ?? parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH));
+            $conn->prepare("INSERT INTO api_request_log (api_key_id, channel, method, path, status, error_code, duration_ms, bytes_out, ip_address)
+                            VALUES (?,?,?,?,?,?,?,?,?)")->execute([
+                is_array($key) ? (int)$key['id'] : null, $channel,
+                substr((string)($_SERVER['REQUEST_METHOD'] ?? ''), 0, 8), mb_substr($path, 0, 255), $status,
+                isset($GLOBALS['FREEITSM_API_ERROR_CODE']) ? substr((string)$GLOBALS['FREEITSM_API_ERROR_CODE'], 0, 50) : null,
+                (int)round((microtime(true) - (float)($GLOBALS['FREEITSM_API_STARTED'] ?? microtime(true))) * 1000),
+                $bytes, substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45),
+            ]);
+        } catch (Throwable $e) {
+            error_log('[api_security] activity: ' . $e->getMessage());   // never fails the call
+        }
+    });
+}
+
+/** Where archived days of the activity log are kept. */
+function apiLogArchiveDir(): string
+{
+    return dirname(__DIR__) . '/uploads/api-log-archive';
+}
+
+/**
+ * The zip a day belongs in, by System -> API -> Activity -> "One zip per":
+ * 2026-11-03 (day), 2026-W45 (ISO week) or 2026-11 (month).
+ *
+ * @param string $day  YYYY-MM-DD
+ * @param string $period  day | week | month
+ */
+function apiLogArchivePeriodKey(string $day, string $period): string
+{
+    $t = strtotime($day . ' 12:00:00 UTC');
+    return match ($period) { 'day' => gmdate('Y-m-d', $t), 'week' => gmdate('o-\WW', $t), default => gmdate('Y-m', $t) };
+}
+
+/**
+ * The api_log_tidy job: rows older than api_log_keep_days are deleted - or, when the
+ * setting says archive, first added to their period's zip (one CSV per day inside) in
+ * uploads/api-log-archive/. The job runs daily, so the log is trimmed to exactly the
+ * days kept; "One zip per" decides how the days are grouped - a month in one zip
+ * however often the job runs. A day is only deleted once the zip holding it is
+ * written and checked. At most $maxDays days per run, oldest first.
+ *
+ * @return array{days:int, rows:int, archived:int, files:string[]}
+ */
+function apiLogTidy(PDO $conn, int $maxDays = 60): array
+{
+    $out = ['days' => 0, 'rows' => 0, 'archived' => 0, 'files' => []];
+    if (!apiActivityReady($conn)) return $out;
+    $s = apiSecuritySettings($conn);
+    $keep = max(1, (int)$s['api_log_keep_days']);
+    $archive = $s['api_log_old_rows'] === 'archive';
+    $period = in_array($s['api_log_archive_period'], ['day', 'week', 'month'], true) ? $s['api_log_archive_period'] : 'month';
+    $cutoff = gmdate('Y-m-d', time() - $keep * 86400) . ' 00:00:00';
+    $days = $conn->prepare("SELECT DISTINCT DATE(created_datetime) AS d FROM api_request_log WHERE created_datetime < ? ORDER BY d LIMIT " . max(1, $maxDays));
+    $days->execute([$cutoff]);
+    foreach ($days->fetchAll(PDO::FETCH_COLUMN) as $day) {
+        $from = $day . ' 00:00:00';
+        $to = gmdate('Y-m-d', strtotime($day . ' 00:00:00 UTC +1 day')) . ' 00:00:00';   // TRAP: UTC - a local +1 day printed in UTC is the same day in summer time
+        if ($archive) {
+            $n = apiLogArchiveDay($conn, $day, $from, $to, apiLogArchivePeriodKey($day, $period), $name, $period);
+            $out['archived'] += $n;
+            if ($name !== '' && !in_array($name, $out['files'], true)) $out['files'][] = $name;
+        }
+        $del = $conn->prepare("DELETE FROM api_request_log WHERE created_datetime >= ? AND created_datetime < ?");
+        $del->execute([$from, $to]);
+        $out['rows'] += $del->rowCount();
+        $out['days']++;
+    }
+    return $out;
+}
+
+/**
+ * Add one day's rows to its period's zip, as api-log-YYYY-MM-DD.csv inside.
+ *
+ * A zip is NAMED by its first and last record: api-log-20261001-20261031.zip. So
+ * the period's zip is found by the period of the first date in its name, and when a
+ * later day is added it is renamed to end on that day.
+ *
+ * Built on a copy and checked before it replaces the zip, so a failure leaves the old
+ * zip intact and nothing deleted. A day already in the zip (archived before, with rows
+ * added since) gets a -2, -3... file beside it rather than overwriting it.
+ *
+ * @param string $periodKey  from apiLogArchivePeriodKey()
+ * @param string $period  day | week | month - to recognise the period's zip
+ * @param ?string $name  set to the zip's (new) file name
+ * @return int the rows written
+ */
+function apiLogArchiveDay(PDO $conn, string $day, string $from, string $to, string $periodKey, ?string &$name, string $period = 'month'): int
+{
+    if (!class_exists('ZipArchive')) throw new RuntimeException('Archiving needs the PHP zip extension - set old rows to Delete, or install it.');
+    $dir = apiLogArchiveDir();
+    // Created with its deny-all guards (.htaccess, web.config), like every upload folder.
+    require_once __DIR__ . '/uploads.php';
+    uploadPrepareDir($dir);
+    $csv = fopen('php://temp', 'w+');
+    fputcsv($csv, ['id', 'time_utc', 'api_key_id', 'key_name', 'channel', 'method', 'path', 'status', 'error_code', 'duration_ms', 'bytes_out', 'ip_address'], ',', '"', '');
+    $rows = $conn->prepare("SELECT l.*, k.name AS key_name FROM api_request_log l LEFT JOIN api_keys k ON k.id = l.api_key_id
+                             WHERE l.created_datetime >= ? AND l.created_datetime < ? ORDER BY l.created_datetime, l.id");
+    $rows->execute([$from, $to]);
+    $n = 0; $first = null; $last = null;
+    while ($r = $rows->fetch(PDO::FETCH_ASSOC)) {
+        fputcsv($csv, [$r['id'], $r['created_datetime'], $r['api_key_id'], $r['key_name'], $r['channel'], $r['method'], $r['path'], $r['status'],
+            $r['error_code'], $r['duration_ms'], $r['bytes_out'], $r['ip_address']], ',', '"', '');
+        $stamp = str_replace('-', '', substr((string)$r['created_datetime'], 0, 10));
+        $first = $first === null ? $stamp : min($first, $stamp);
+        $last  = $last === null ? $stamp : max($last, $stamp);
+        $n++;
+    }
+    rewind($csv);
+    if ($n === 0) { fclose($csv); $name = ''; return 0; }
+
+    // The period's zip so far, if any: the one whose first date falls in this period.
+    $existing = null;
+    foreach (apiLogArchives() as $arc) {
+        if (apiLogArchivePeriodKey(apiLogStampToDay($arc['from']), $period) === $periodKey) { $existing = $arc; break; }
+    }
+    if ($existing) { $first = min($first, $existing['from']); $last = max($last, $existing['to']); }
+    $name = 'api-log-' . $first . '-' . $last . '.zip';
+    $path = $dir . '/' . $name;
+    $oldPath = $existing ? $dir . '/' . $existing['name'] : null;
+    $tmp = $path . '.part';
+    if ($oldPath && !copy($oldPath, $tmp)) throw new RuntimeException('Cannot copy ' . $existing['name']);
+    $zip = new ZipArchive();
+    if ($zip->open($tmp, ZipArchive::CREATE) !== true) throw new RuntimeException("Cannot write $name");
+    $inner = 'api-log-' . $day . '.csv';
+    for ($i = 2; $zip->locateName($inner) !== false; $i++) $inner = 'api-log-' . $day . '-' . $i . '.csv';
+    $zip->addFromString($inner, stream_get_contents($csv));
+    $zip->close();
+    fclose($csv);
+    // Checked before anything is deleted: it opens, and holds this day.
+    $check = new ZipArchive();
+    if ($check->open($tmp) !== true || $check->locateName($inner) === false) { @unlink($tmp); throw new RuntimeException("The archive for $day did not check out - nothing deleted."); }
+    $check->close();
+    if (!rename($tmp, $path)) { @unlink($tmp); throw new RuntimeException("Cannot write $name"); }
+    if ($oldPath && $oldPath !== $path) @unlink($oldPath);   // renamed to its new last date
+    return $n;
+}
+
+/** A name's datestamp (20261031) as a day (2026-10-31). */
+function apiLogStampToDay(string $stamp): string
+{
+    return substr($stamp, 0, 4) . '-' . substr($stamp, 4, 2) . '-' . substr($stamp, 6, 2);
+}
+
+/** The archives, newest first: name, from and to (datestamps of the first and last record), size. */
+function apiLogArchives(): array
+{
+    $out = [];
+    foreach (glob(apiLogArchiveDir() . '/api-log-*.zip') ?: [] as $f) {
+        if (!preg_match(API_LOG_ARCHIVE_NAME, basename($f), $m)) continue;
+        $out[] = ['name' => basename($f), 'from' => $m[1], 'to' => $m[2], 'bytes' => (int)filesize($f)];
+    }
+    usort($out, fn($a, $b) => strcmp($b['from'], $a['from']));
+    return $out;
+}
+
+/** An archive's name: api-log-<first record>-<last record>.zip, each a YYYYMMDD datestamp. */
+const API_LOG_ARCHIVE_NAME = '/^api-log-(\d{8})-(\d{8})\.zip$/';

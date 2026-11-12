@@ -33,8 +33,11 @@ try {
             'api_download_limit_files' => [1, 100000], 'api_download_limit_mb' => [1, 1000000],
             'api_failed_auth_limit'    => [0, 10000],  'api_failed_auth_minutes' => [1, 1440],
             'api_refusal_alert'        => [0, 100000], 'api_refusal_limit' => [0, 100000],
+            'api_log_keep_days'        => [1, 3650],
         ];
-        $choices = ['api_download_limit_action' => ['refuse', 'suspend'], 'api_new_ip_alert' => ['bell_email', 'bell', 'off']];
+        $choices = ['api_download_limit_action' => ['refuse', 'suspend'], 'api_new_ip_alert' => ['bell_email', 'bell', 'off'],
+                    'api_admin_keys' => ['allow', 'require_ips', 'forbid'], 'api_log_successes' => ['1', '0'], 'api_log_old_rows' => ['delete', 'archive'],
+                    'api_log_archive_period' => ['day', 'week', 'month']];
         $save = [];
         foreach ($in as $k => $v) {
             if (isset($ints[$k])) {
@@ -50,6 +53,9 @@ try {
         if ((int)$merged['api_download_alert_files'] > (int)$merged['api_download_limit_files']
             || (int)$merged['api_download_alert_mb'] > (int)$merged['api_download_limit_mb']) {
             throw new Exception('The alert level must not be higher than the limit.');
+        }
+        if ($merged['api_log_old_rows'] === 'archive' && !class_exists('ZipArchive')) {
+            throw new Exception('Archiving needs the PHP zip extension, which this server does not have - choose Delete.');
         }
         if ((int)$merged['api_refusal_limit'] > 0 && (int)$merged['api_refusal_alert'] > (int)$merged['api_refusal_limit']) {
             throw new Exception('The refusal alert must not be higher than the point a key is switched off.');

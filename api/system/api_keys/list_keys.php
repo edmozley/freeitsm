@@ -25,12 +25,17 @@ try {
     try {
         // GH #287: the key's restrictions and why it was switched off, once Database Verification has added them.
         require_once '../../../includes/api_security.php';
+        // ...and today's calls and failures from the activity log.
+        $act = apiActivityReady($conn)
+            ? '(SELECT COUNT(*) FROM api_request_log r WHERE r.api_key_id = k.id AND r.created_datetime >= UTC_DATE()) AS calls_today,
+               (SELECT COUNT(*) FROM api_request_log r WHERE r.api_key_id = k.id AND r.created_datetime >= UTC_DATE() AND r.status >= 400) AS failures_today,'
+            : '0 AS calls_today, 0 AS failures_today,';
         $sec = apiSecurityReady($conn)
             ? 'k.allowed_ips, k.allowed_hours, k.download_alert_files, k.download_limit_files, k.download_limit_mb, k.suspended_reason,
                (SELECT COUNT(*) FROM document_access_log l WHERE l.api_key_id = k.id AND l.action = \'download\' AND l.created_datetime > UTC_TIMESTAMP() - INTERVAL 60 MINUTE) AS downloads_hour,'
             : 'NULL AS allowed_ips, NULL AS allowed_hours, NULL AS download_alert_files, NULL AS download_limit_files, NULL AS download_limit_mb, NULL AS suspended_reason, 0 AS downloads_hour,';
         $rows = $conn->query(
-            "SELECT k.id, k.name, k.key_prefix, k.analyst_id, k.permissions, k.company_ids, $sec
+            "SELECT k.id, k.name, k.key_prefix, k.analyst_id, k.permissions, k.company_ids, $sec $act a.is_admin AS analyst_is_admin,
                     k.rate_limit_per_minute, k.active, k.expires_at, k.last_used_at, k.last_used_ip,
                     k.created_datetime, a.full_name AS analyst_name
              FROM api_keys k
@@ -60,6 +65,9 @@ try {
                 'download_limit_mb'    => $r['download_limit_mb'] !== null ? (int)$r['download_limit_mb'] : null,
                 'suspended_reason'     => $r['suspended_reason'],
                 'downloads_hour'       => (int)$r['downloads_hour'],
+                'calls_today'          => (int)$r['calls_today'],
+                'failures_today'       => (int)$r['failures_today'],
+                'analyst_is_admin'     => (int)$r['analyst_is_admin'] === 1,
             ];
         }
         $tableReady = true;
@@ -69,7 +77,7 @@ try {
     }
 
     $analysts = $conn->query(
-        "SELECT id, full_name FROM analysts WHERE is_active = 1 ORDER BY full_name ASC"
+        "SELECT id, full_name, is_admin FROM analysts WHERE is_active = 1 ORDER BY full_name ASC"
     )->fetchAll(PDO::FETCH_ASSOC);
 
     $companies = array_map(function ($t) {
@@ -82,7 +90,7 @@ try {
         'keys'          => $keys,
         'catalog'       => apiV1PermissionCatalog(),
         'analysts'      => array_map(function ($a) {
-            return ['id' => (int)$a['id'], 'name' => $a['full_name']];
+            return ['id' => (int)$a['id'], 'name' => $a['full_name'], 'is_admin' => (int)$a['is_admin'] === 1];
         }, $analysts),
         'companies'     => $companies,
         'multi_tenant'  => isMultiTenant($conn),

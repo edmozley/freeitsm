@@ -269,6 +269,7 @@ function getHelpTopics() {
                 ['id' => 'mcp',         'label' => 'AI assistants (MCP)'],
                 ['id' => 'restrict',    'label' => 'Where and when'],
                 ['id' => 'threats',     'label' => 'Threat protection'],
+                ['id' => 'activity',    'label' => 'Activity log'],
                 ['id' => 'safety',      'label' => 'Good practice'],
             ],
             'terms' => 'rest json integration token bearer key endpoint curl script automation'

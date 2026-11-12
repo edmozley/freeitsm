@@ -187,6 +187,8 @@ $guarded = [
     // The Files module's default storage root. Every file is a random .bin read
     // only through api/files/download.php, which checks folder permissions first.
     'uploads/files'                => ['_d009probe.txt', 'Files module storage',      'deny'],
+    // GH #287: zipped API activity log, read only through an administrator endpoint.
+    'uploads/api-log-archive'      => ['_d009probe.txt', 'API log archives',          'deny'],
     'lms/content'                  => ['_d009probe.php', 'Course content (no-exec)',  'noexec'],
     'system/uploads/branding'      => ['_d009probe.php', 'Branding uploads (no-exec)','noexec'],
 ];

@@ -95,6 +95,10 @@ if ($method === 'GET' || $method === 'DELETE') {
 }
 if ($method !== 'POST') { header('Allow: POST'); mcpReply(405); }
 
+// GH #287: one row in the API activity log for this call.
+require_once __DIR__ . '/../../includes/api_security.php';
+apiActivityStart('mcp');
+
 // ---- Auth (the REST API's keys) ---------------------------------------------
 // A missing key is answered here with the challenge MCP clients look for; the
 // rest - unknown, disabled, expired, rate-limited - by apiAuthenticate().

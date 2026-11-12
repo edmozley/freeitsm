@@ -63,6 +63,10 @@ if ($method === 'POST' && in_array(strtoupper($override), ['PATCH', 'DELETE'], t
 // [method, pattern, [resource, action] | null, handler]
 $routes = require __DIR__ . '/lib/routes.php';
 
+// GH #287: one row in the API activity log for this call, however it ends.
+require_once __DIR__ . '/../../includes/api_security.php';
+apiActivityStart('rest');
+
 // --- Dispatch ---------------------------------------------------------------
 try {
     $conn = connectToDatabase();

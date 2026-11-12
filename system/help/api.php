@@ -151,11 +151,28 @@ require __DIR__ . '/_top.php';
             <tr><td>Key guessing - an address sending missing or wrong keys</td><td>Block that address from the API for a while, and alert</td><td>50 bad keys in 15 minutes blocks it for 15 minutes</td></tr>
             <tr><td>A key used from an address it has not used in 30 days</td><td>Alert - never a block</td><td>Bell and email</td></tr>
             <tr><td>A key used from an address or at a time it may not</td><td>Refuse (or alert only, for hours), and alert</td><td>Set per key</td></tr>
+            <tr><td>A key that acts as an administrator</td><td>Allowed with a warning, allowed only with allowed addresses, or not allowed - checked on every request, so an analyst made an administrator later is caught too</td><td>Allowed (with a warning)</td></tr>
         </tbody>
     </table></div>
     <p>FreeITSM answers <em>"not yours"</em> and <em>"does not exist"</em> the same way on purpose, so nobody can map what exists - which also means probing and working through ids show up as the same thing: a key refused again and again.</p>
     <p>A key switched off by threat protection says why on the key list. Check the log, then switch it back on (or delete it and issue a new one).</p>
     <div class="help-note"><strong>Downloading documents needs its own permission.</strong> <em>Document contents: download</em> is never ticked by <strong>Select all</strong> and no existing key has it. A key that files paperwork onto projects needs only <em>Projects: update</em> - give <em>download</em> only to a key that genuinely has to take files away. Every download through the API is logged with the key, the address and the size.</div>
+</div>
+
+<!-- Activity log (5.1.0, GH #287) -->
+<div class="help-section" id="activity">
+    <div class="help-section-header"><?php echo helpSectionNum('activity'); ?>
+        <div>
+            <h3>The activity log</h3>
+            <p>The <strong>Activity</strong> tab of System &gt; API has one row per API and MCP call: when, which key (or <em>no valid key</em>), the method and path, the answer and its error code, how long it took, the size and the address. <strong>Never</strong> what was sent or returned. Filter by key, failures only, or part of the path. Each key on the Keys tab also shows its calls and failures today.</p>
+        </div>
+    </div>
+    <ul>
+        <li><strong>Record successful calls</strong> - yes (the default) or failures only, for a very busy install.</li>
+        <li><strong>Keep for (days)</strong> - 30 by default.</li>
+        <li><strong>Older rows</strong> - <strong>delete</strong> them, or <strong>archive them to a zip</strong> and then delete. <strong>One zip per</strong> day, week or month (month by default): each zip holds a CSV per day and is named by its first and last record - <code>api-log-20261001-20261031.zip</code>. Download or delete them under <strong>Archives</strong>.</li>
+    </ul>
+    <p>The tidy-up runs once a day as the background job <strong>API activity log tidy-up</strong>, on <strong>Reporting &gt; System logs &gt; Background jobs</strong> with every other job. A day is only deleted once its zip has been written and checked.</p>
 </div>
 
 <div class="help-section" id="safety">
@@ -170,6 +187,7 @@ require __DIR__ . '/_top.php';
         <li><strong>Make integration keys for a dedicated, limited analyst - never an administrator.</strong> A key can see exactly what its analyst can: their companies, modules, projects and documents. An administrator's key sees everything.</li>
         <li><strong>Lock keys down</strong> with allowed addresses (and hours, where the integration keeps them) - see <em>Where and when</em>.</li>
         <li><strong>Set expiry dates</strong> on keys for temporary work (contractors, migrations) so they clean themselves up.</li>
+        <li><strong>Watch the Activity tab.</strong> Calls and failures today show on each key; a key failing all day, or calling from somewhere unexpected, is worth a look.</li>
         <li><strong>Watch "Last used".</strong> The key list shows when and from which IP each key last authenticated — a key that's never used, or used from somewhere unexpected, is worth investigating.</li>
         <li><strong>Use HTTPS in production.</strong> The key travels in a header; TLS keeps it private.</li>
     </ul>

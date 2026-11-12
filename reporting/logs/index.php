@@ -448,6 +448,9 @@ $translationNamespaces = ['common', 'reporting'];
                 <?php if ($jobsVisible): ?>
                 <button class="log-tab<?php echo $openJobs ? ' active' : ''; ?>" onclick="switchLogType('jobs')"><?php echo htmlspecialchars(t('reporting.jobs.tab')); ?></button>
                 <?php endif; ?>
+                <?php if (sessionIsAdmin()): // GH #287: the API's own log lives on System - API ?>
+                <a class="log-tab" style="text-decoration:none;" href="../../system/api/?tab=activity"><?php echo htmlspecialchars(t('reporting.logs.tab_api_activity')); ?> &rarr;</a>
+                <?php endif; ?>
             </div>
 
             <div class="logs-content">

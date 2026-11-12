@@ -4392,7 +4392,22 @@ return [
         'suspended_reason'      => 'VARCHAR(255) NULL',
     ],
 
-    // GH #287: the API security log (alerts and refusals), System -> API -> Security.
+    // GH #287: the API activity log - one row per call, never the contents.
+    'api_request_log' => [
+        'id'               => 'BIGINT NOT NULL AUTO_INCREMENT',
+        'api_key_id'       => 'INT NULL',
+        'channel'          => "VARCHAR(8) NOT NULL DEFAULT 'rest'",
+        'method'           => 'VARCHAR(8) NOT NULL',
+        'path'             => 'VARCHAR(255) NOT NULL',
+        'status'           => 'SMALLINT NOT NULL',
+        'error_code'       => 'VARCHAR(50) NULL',
+        'duration_ms'      => 'INT NULL',
+        'bytes_out'        => 'BIGINT NULL',
+        'ip_address'       => 'VARCHAR(45) NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // GH #287: the API security log (alerts and refusals), System -> API -> Threat protection.
     'api_key_events' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
         'api_key_id'       => 'INT NULL',

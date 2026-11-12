@@ -1,0 +1,40 @@
+# API activity log archives (GH #287). NEVER executed, and never served directly.
+#
+# Each zip reaches a browser only through api/system/api_keys/activity_archive.php,
+# for administrators. Nothing
+# needs to be fetchable at its own URL, so the whole directory is denied rather
+# than only the extensions that look dangerous — blocking .php while serving .pdf
+# would leave every attached contract, invoice and warranty readable by anyone who
+# learned the URL, which is the entire thing the permission layer exists to stop.
+#
+# The stored filename is random, and that is NOT the protection. A random name is
+# not a permission: it leaks through logs, proxies, referrers and browser history.
+#
+# ⚠️ This file only does anything on Apache, and only where AllowOverride permits
+# it. See web.config beside it for IIS, and deploy/nginx/freeitsm.conf for nginx,
+# which has no in-directory equivalent at all. Run System → Debug Tools → D009
+# "Guarded paths" to find out which of them your server is actually honouring —
+# it asks your own server for a probe file exactly as a stranger would.
+
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>
+
+# Belt and braces for a server that ignores the deny above: even if something is
+# reachable, it must never run.
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .jsp .asp .aspx .shtml
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py
+# TRAP: php_flag / php_value only ever inside <IfModule mod_php*.c>. Unguarded, Apache running PHP through PHP-FPM does not know the command and refuses EVERY file in this folder with a 500 (GH #115).
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php5.c>
+  php_flag engine off
+</IfModule>

@@ -105,6 +105,11 @@ uploads/documents/*
 !uploads/documents/web.config
 # Same shape for asset import files. uploadStoreFile() writes both guards on
 # first use, but a fresh clone must ship them rather than wait for an upload.
+# GH #287: API activity log archives - same shape, so a fresh clone ships the guards.
+!uploads/api-log-archive/
+uploads/api-log-archive/*
+!uploads/api-log-archive/.htaccess
+!uploads/api-log-archive/web.config
 !uploads/asset-imports/
 uploads/asset-imports/*
 !uploads/asset-imports/.htaccess

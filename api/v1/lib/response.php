@@ -22,7 +22,9 @@ function apiRespond($data, int $status = 200, ?array $meta = null): void {
     if ($meta !== null) {
         $body['meta'] = $meta;
     }
-    echo json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $json = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $GLOBALS['FREEITSM_API_BYTES'] = strlen((string)$json);   // GH #287: the activity log
+    echo $json;
     exit;
 }
 
@@ -40,11 +42,14 @@ function apiError(int $status, string $code, string $message, ?array $details = 
         apiRefusalRecord($GLOBALS['FREEITSM_API_CONN'], $GLOBALS['FREEITSM_API_KEY'], $status, $code);
     }
     http_response_code($status);
+    $GLOBALS['FREEITSM_API_ERROR_CODE'] = $code;   // GH #287: the activity log
     $error = ['code' => $code, 'message' => $message];
     if ($details !== null) {
         $error['details'] = $details;
     }
-    echo json_encode(['error' => $error], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $json = json_encode(['error' => $error], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $GLOBALS['FREEITSM_API_BYTES'] = strlen((string)$json);
+    echo $json;
     exit;
 }
 

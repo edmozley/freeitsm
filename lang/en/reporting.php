@@ -46,6 +46,7 @@ return [
         'refresh'  => 'Refresh',
         'tab_login'        => 'User logins',
         'tab_email_import' => 'Email imports',
+        'tab_api_activity' => 'API activity',
 
         'loading'        => 'Loading logs...',
         'no_logs'        => 'No logs found',
@@ -205,6 +206,8 @@ return [
         'affects_integration_poll'   => 'Jira and other tracker statuses and comments on linked tickets',
         'name_csat_delayed' => 'Delayed satisfaction surveys and reminders',
         'affects_csat_delayed' => 'Satisfaction surveys held back by "Delay before sending", and survey reminders - neither is sent',
+        'name_api_log_tidy'          => 'API activity log tidy-up',
+        'affects_api_log_tidy'       => 'Old rows of the API activity log are neither deleted nor archived, so the log keeps growing',
         'name_task_recurrence'       => 'Repeating tasks',
         'affects_task_recurrence'    => 'Tasks that repeat on a fixed schedule',
         'name_attachment_extract'    => 'Attachment text',

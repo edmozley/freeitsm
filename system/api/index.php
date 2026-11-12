@@ -152,6 +152,16 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .tp-pager { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
         [data-theme-mode="dark"] .key-note.bad { color: #fca5a5; }
         [data-theme-mode="dark"] .perm-action.sensitive { color: #fbbf24; }
+        .key-admin { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 10px; font-size: 10.5px; font-weight: 600; background: #fff3e0; color: #b45309; vertical-align: middle; }
+        .admin-warn { display: none; margin-top: 6px; font-size: 12px; color: #b45309; }
+        .ac-status { font-family: Consolas, Monaco, monospace; font-weight: 600; }
+        .ac-status.bad { color: #c62828; }
+        .ac-filters { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+        .ac-filters select, .ac-filters input[type=text] { padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .ac-filters label { font-size: 13px; color: var(--text-muted, #555); display: inline-flex; gap: 6px; align-items: center; }
+        [data-theme-mode="dark"] .key-admin { background: #3a2e12; color: #fcd34d; }
+        [data-theme-mode="dark"] .admin-warn { color: #fbbf24; }
+        [data-theme-mode="dark"] .ac-status.bad { color: #fca5a5; }
         /* ---------- Dark mode overrides ----------
            Light values above are deliberately unchanged; these only apply in dark. */
         [data-theme-mode="dark"] .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
@@ -184,6 +194,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         <div class="api-tabs" role="tablist">
             <button class="api-tab active" data-tab="keys" role="tab"><?php echo htmlspecialchars(t('system.api.tab_keys')); ?></button>
             <button class="api-tab" data-tab="threats" role="tab"><?php echo htmlspecialchars(t('system.api.tab_threats')); ?></button>
+            <button class="api-tab" data-tab="activity" role="tab"><?php echo htmlspecialchars(t('system.api.tab_activity')); ?></button>
         </div>
         <div id="tabKeys">
 
@@ -284,6 +295,11 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
                     </div>
                 </div>
                 <div class="tp-section">
+                    <h4><?php echo htmlspecialchars(t('system.api.tp_admin')); ?></h4>
+                    <p><?php echo htmlspecialchars(t('system.api.tp_admin_desc')); ?></p>
+                    <div class="form-field" style="max-width:360px;"><select id="tp_api_admin_keys" aria-label="<?php echo htmlspecialchars(t('system.api.tp_admin')); ?>"><option value="allow"><?php echo htmlspecialchars(t('system.api.tp_admin_allow')); ?></option><option value="require_ips"><?php echo htmlspecialchars(t('system.api.tp_admin_ips')); ?></option><option value="forbid"><?php echo htmlspecialchars(t('system.api.tp_admin_forbid')); ?></option></select></div>
+                </div>
+                <div class="tp-section">
                     <h4><?php echo htmlspecialchars(t('system.api.tp_new_ip')); ?></h4>
                     <p><?php echo htmlspecialchars(t('system.api.tp_new_ip_desc')); ?></p>
                     <div class="form-field" style="max-width:320px;"><label for="tp_api_new_ip_alert"><?php echo htmlspecialchars(t('system.api.tp_new_ip_alert')); ?></label>
@@ -298,6 +314,33 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
                 <table class="keys"><thead><tr><th><?php echo htmlspecialchars(t('system.api.tp_col_when')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_key')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_event')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_address')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_detail')); ?></th></tr></thead>
                     <tbody id="tpLogBody"></tbody></table>
                 <div class="tp-pager"><button class="btn btn-secondary" id="tpPrev"><?php echo htmlspecialchars(t('system.api.previous')); ?></button><button class="btn btn-secondary" id="tpNext"><?php echo htmlspecialchars(t('system.api.next')); ?></button></div>
+            </div>
+        </div>
+        <!-- GH #287: Activity -->
+        <div id="tabActivity" style="display:none;">
+            <div class="settings-card">
+                <h3><?php echo htmlspecialchars(t('system.api.tab_activity')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.api.ac_intro')); ?> <strong id="acToday"></strong></p>
+                <div class="ac-filters"><select id="acKey"></select><label><input type="checkbox" id="acFailures"> <?php echo htmlspecialchars(t('system.api.ac_failures_only')); ?></label><input type="text" id="acPath" placeholder="<?php echo htmlspecialchars(t('system.api.ac_path_ph')); ?>"></div>
+                <table class="keys"><thead><tr><th><?php echo htmlspecialchars(t('system.api.tp_col_when')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_key')); ?></th><th><?php echo htmlspecialchars(t('system.api.ac_col_call')); ?></th><th><?php echo htmlspecialchars(t('system.api.ac_col_status')); ?></th><th style="text-align:right;"><?php echo htmlspecialchars(t('system.api.ac_col_ms')); ?></th><th style="text-align:right;"><?php echo htmlspecialchars(t('system.api.ac_col_size')); ?></th><th><?php echo htmlspecialchars(t('system.api.tp_col_address')); ?></th></tr></thead>
+                    <tbody id="acBody"></tbody></table>
+                <div class="tp-pager"><button class="btn btn-secondary" id="acPrev"><?php echo htmlspecialchars(t('system.api.previous')); ?></button><button class="btn btn-secondary" id="acNext"><?php echo htmlspecialchars(t('system.api.next')); ?></button></div>
+            </div>
+            <div class="settings-card">
+                <h3><?php echo htmlspecialchars(t('system.api.ac_settings')); ?></h3>
+                <div class="tp-grid">
+                    <div class="form-field"><label for="tp_api_log_successes"><?php echo htmlspecialchars(t('system.api.ac_successes')); ?></label><select id="tp_api_log_successes"><option value="1"><?php echo htmlspecialchars(t('system.api.ac_successes_yes')); ?></option><option value="0"><?php echo htmlspecialchars(t('system.api.ac_successes_no')); ?></option></select></div>
+                    <div class="form-field"><label for="tp_api_log_keep_days"><?php echo htmlspecialchars(t('system.api.ac_keep_days')); ?></label><input type="number" min="1" max="3650" id="tp_api_log_keep_days"></div>
+                    <div class="form-field"><label for="tp_api_log_old_rows"><?php echo htmlspecialchars(t('system.api.ac_old_rows')); ?></label><select id="tp_api_log_old_rows"><option value="delete"><?php echo htmlspecialchars(t('system.api.ac_old_delete')); ?></option><option value="archive"><?php echo htmlspecialchars(t('system.api.ac_old_archive')); ?></option></select></div>
+                    <div class="form-field" id="acPeriodField"><label for="tp_api_log_archive_period"><?php echo htmlspecialchars(t('system.api.ac_period')); ?></label><select id="tp_api_log_archive_period"><option value="day"><?php echo htmlspecialchars(t('system.api.ac_period_day')); ?></option><option value="week"><?php echo htmlspecialchars(t('system.api.ac_period_week')); ?></option><option value="month"><?php echo htmlspecialchars(t('system.api.ac_period_month')); ?></option></select></div>
+                </div>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.api.ac_job_note')); ?></p>
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px;"><span id="acSaved" class="card-desc" style="margin:0;"></span><button class="btn btn-primary" id="acSaveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button></div>
+            </div>
+            <div class="settings-card">
+                <h3><?php echo htmlspecialchars(t('system.api.ac_archives')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.api.ac_archives_desc')); ?></p>
+                <table class="keys"><tbody id="acArchives"></tbody></table>
             </div>
         </div>
     </div>
@@ -318,6 +361,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
                         <label><?php echo htmlspecialchars(t('system.api.col_acts_as')); ?></label>
                         <div class="hint"><?php echo htmlspecialchars(t('system.api.acts_as_hint')); ?></div>
                         <select id="fAnalyst"></select>
+                        <div class="admin-warn" id="fAdminWarn"><?php echo htmlspecialchars(t('system.api.admin_warning')); ?></div>
                     </div>
                 </div>
 
@@ -460,10 +504,10 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
             return `<tr>
                 <td><strong>${esc(k.name)}</strong></td>
                 <td class="key-prefix">${esc(k.key_prefix)}…</td>
-                <td>${esc(k.analyst_name || '')}</td>
+                <td>${esc(k.analyst_name || '')}${k.analyst_is_admin ? `<span class="key-admin">${esc(ap('admin_badge'))}</span>` : ''}</td>
                 <td><span class="perm-count">${esc(ap('perm_granted', { n: permSummary(k.permissions) }))}</span></td>
                 ${companyCell}
-                <td>${status}${k.suspended_reason && !k.active ? `<span class="key-note bad">${esc(ap('suspended', { reason: k.suspended_reason }))}</span>` : ''}${k.downloads_hour ? `<span class="key-note">${esc(ap('downloads_hour', { n: k.downloads_hour }))}</span>` : ''}${(k.allowed_ips || k.allowed_hours) ? `<span class="key-note">${esc(ap('restricted'))}</span>` : ''}</td>
+                <td>${status}${k.suspended_reason && !k.active ? `<span class="key-note bad">${esc(ap('suspended', { reason: k.suspended_reason }))}</span>` : ''}${k.downloads_hour ? `<span class="key-note">${esc(ap('downloads_hour', { n: k.downloads_hour }))}</span>` : ''}${(k.allowed_ips || k.allowed_hours) ? `<span class="key-note">${esc(ap('restricted'))}</span>` : ''}${k.calls_today ? `<span class="key-note${k.failures_today ? ' bad' : ''}">${esc(ap('calls_today', { calls: k.calls_today, failures: k.failures_today }))}</span>` : ''}</td>
                 <td>${lastUsed}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     <button class="table-action-btn" onclick="openEdit(${k.id})">${esc(t('common.edit'))}</button>
@@ -521,8 +565,10 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         document.getElementById('fExpires').value = key && key.expires_at ? key.expires_at.slice(0, 10) : '';
         document.getElementById('fRateLimit').value = key && key.rate_limit_per_minute ? key.rate_limit_per_minute : '';
         const sel = document.getElementById('fAnalyst');
-        sel.innerHTML = analysts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+        sel.innerHTML = analysts.map(a => `<option value="${a.id}">${esc(a.name)}${a.is_admin ? ' (' + esc(ap('admin_badge')) + ')' : ''}</option>`).join('');
         if (key) sel.value = key.analyst_id;
+        const warnAdmin = () => { const a = analysts.find(x => String(x.id) === sel.value); document.getElementById('fAdminWarn').style.display = a && a.is_admin ? 'block' : 'none'; };
+        sel.onchange = warnAdmin; warnAdmin();
         buildMatrix(key ? key.permissions : null);
         buildScope(key ? key.company_ids : null);
         // GH #287: where and when, and its download limits.
@@ -652,15 +698,75 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
 
     // ---- GH #287: tabs and Threat protection ----
     document.getElementById('fHoursOn').addEventListener('change', e => { document.getElementById('fHoursBox').style.display = e.target.checked ? '' : 'none'; });
-    const TP_KEYS = ['api_download_alert_files','api_download_alert_mb','api_download_limit_files','api_download_limit_mb','api_download_limit_action','api_refusal_alert','api_refusal_limit','api_failed_auth_limit','api_failed_auth_minutes','api_new_ip_alert'];
-    const TP_EVENTS = ['download_alert','download_limit','key_suspended','refused','ip_refused','outside_hours','new_ip','auth_failed','address_blocked','alert_not_emailed'];
-    let tpPage = 1, tpLoaded = false;
+    const TP_KEYS = ['api_admin_keys','api_download_alert_files','api_download_alert_mb','api_download_limit_files','api_download_limit_mb','api_download_limit_action','api_refusal_alert','api_refusal_limit','api_failed_auth_limit','api_failed_auth_minutes','api_new_ip_alert'];
+    const TP_EVENTS = ['download_alert','download_limit','key_suspended','refused','ip_refused','outside_hours','admin_key_refused','new_ip','auth_failed','address_blocked','alert_not_emailed'];
+    let tpPage = 1, tpLoaded = false, acPage = 1, acLoaded = false;
+    const AC_KEYS = ['api_log_successes', 'api_log_keep_days', 'api_log_old_rows', 'api_log_archive_period'];
+    // "One zip per" only matters when old rows are archived.
+    const acPeriodShown = () => { document.getElementById('acPeriodField').style.display = document.getElementById('tp_api_log_old_rows').value === 'archive' ? '' : 'none'; };
+    document.getElementById('tp_api_log_old_rows').addEventListener('change', acPeriodShown);
+    async function loadActivitySettings() {
+        const r = await fetch(API + 'threat_settings.php'); const d = await r.json();
+        if (!d.success) return;
+        AC_KEYS.forEach(k => { document.getElementById('tp_' + k).value = d.settings[k]; });
+        acPeriodShown();
+        document.getElementById('acKey').innerHTML = '<option value="">' + esc(ap('tp_all_keys')) + '</option><option value="none">' + esc(ap('ac_no_key')) + '</option>' + keys.map(k => `<option value="${k.id}">${esc(k.name)}</option>`).join('');
+    }
+    async function loadActivity() {
+        const q = new URLSearchParams({ page: acPage });
+        const kk = document.getElementById('acKey').value; if (kk) q.set('key_id', kk);
+        if (document.getElementById('acFailures').checked) q.set('failures', '1');
+        const p = document.getElementById('acPath').value.trim(); if (p) q.set('path', p);
+        const r = await fetch(API + 'activity_log.php?' + q); const d = await r.json();
+        const body = document.getElementById('acBody');
+        if (!d.success) { body.innerHTML = `<tr class="empty-row"><td colspan="7">${esc(d.error || '')}</td></tr>`; return; }
+        if (!d.ready) { body.innerHTML = `<tr class="empty-row"><td colspan="7">${esc(ap('tp_not_ready'))}</td></tr>`; return; }
+        document.getElementById('acToday').textContent = ap('ac_today', { calls: d.summary.calls_today, failures: d.summary.failures_today });
+        const size = b => b === null || b === undefined ? '' : (b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : b >= 1024 ? Math.round(b / 1024) + ' KB' : b + ' B');
+        body.innerHTML = d.rows.length ? d.rows.map(e => {
+            const when = parseUTCDate(e.created_datetime);
+            const bad = Number(e.status) >= 400;
+            return `<tr><td style="white-space:nowrap;">${esc(when ? fmtDateTime(when) : e.created_datetime)}</td><td>${esc(e.key_name || ap('ac_no_key'))}</td><td><span class="key-prefix">${esc(e.method)}</span> ${esc(e.path)}${e.channel === 'mcp' ? ' <span class="key-note" style="display:inline">MCP</span>' : ''}</td><td><span class="ac-status${bad ? ' bad' : ''}">${esc(e.status)}</span>${e.error_code ? ' <span class="key-note" style="display:inline">' + esc(e.error_code) + '</span>' : ''}</td><td style="text-align:right;">${esc(e.duration_ms ?? '')}</td><td style="text-align:right;">${esc(size(e.bytes_out))}</td><td class="key-prefix">${esc(e.ip_address || '')}</td></tr>`;
+        }).join('') : `<tr class="empty-row"><td colspan="7">${esc(ap('ac_empty'))}</td></tr>`;
+        document.getElementById('acPrev').disabled = acPage <= 1;
+        document.getElementById('acNext').disabled = (d.page * d.per_page) >= d.total;
+    }
+    async function loadArchives() {
+        const r = await fetch(API + 'activity_archive.php'); const d = await r.json();
+        const body = document.getElementById('acArchives');
+        if (!d.success || !d.archives.length) { body.innerHTML = `<tr class="empty-row"><td>${esc(ap('ac_no_archives'))}</td></tr>`; return; }
+        body.innerHTML = d.archives.map(a => `<tr><td class="key-prefix">${esc(a.name)}</td><td style="text-align:right;">${esc((a.bytes / 1024).toFixed(1))} KB</td><td style="text-align:right; white-space:nowrap;"><a class="table-action-btn" href="${API}activity_archive.php?download=${encodeURIComponent(a.name)}">${esc(ap('ac_download'))}</a><button class="table-action-btn danger" data-archive="${esc(a.name)}">${esc(t('common.delete'))}</button></td></tr>`).join('');
+        body.querySelectorAll('[data-archive]').forEach(b => b.addEventListener('click', async () => {
+            if (!confirm(ap('ac_confirm_delete', { name: b.dataset.archive }))) return;
+            const rr = await fetch(API + 'activity_archive.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ delete: b.dataset.archive }) });
+            const dd = await rr.json(); if (!dd.success) { alert(dd.error || ap('delete_failed')); return; }
+            loadArchives();
+        }));
+    }
+    document.getElementById('acKey').addEventListener('change', () => { acPage = 1; loadActivity(); });
+    document.getElementById('acFailures').addEventListener('change', () => { acPage = 1; loadActivity(); });
+    let acTimer; document.getElementById('acPath').addEventListener('input', () => { clearTimeout(acTimer); acTimer = setTimeout(() => { acPage = 1; loadActivity(); }, 300); });
+    document.getElementById('acPrev').addEventListener('click', () => { if (acPage > 1) { acPage--; loadActivity(); } });
+    document.getElementById('acNext').addEventListener('click', () => { acPage++; loadActivity(); });
+    document.getElementById('acSaveBtn').addEventListener('click', async () => {
+        const settings = {}; AC_KEYS.forEach(k => { settings[k] = document.getElementById('tp_' + k).value; });
+        const btn = document.getElementById('acSaveBtn'); btn.disabled = true;
+        try {
+            const r = await fetch(API + 'threat_settings.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ settings }) });
+            const d = await r.json();
+            if (!d.success) { alert(d.error || ap('save_failed')); return; }
+            document.getElementById('acSaved').textContent = ap('tp_saved');
+            setTimeout(() => { document.getElementById('acSaved').textContent = ''; }, 2000);
+        } finally { btn.disabled = false; }
+    });
     function showTab(name) {
         document.querySelectorAll('.api-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
         document.getElementById('tabKeys').style.display = name === 'keys' ? '' : 'none';
         document.getElementById('tabThreats').style.display = name === 'threats' ? '' : 'none';
+        document.getElementById('tabActivity').style.display = name === 'activity' ? '' : 'none';
         if (name === 'threats' && !tpLoaded) { tpLoaded = true; loadThreats(); }
-        try { history.replaceState(null, '', name === 'threats' ? '?tab=threats' : location.pathname); } catch (e) {}
+        if (name === 'activity' && !acLoaded) { acLoaded = true; loadActivitySettings(); loadActivity(); loadArchives(); }
+        try { history.replaceState(null, '', name === 'keys' ? location.pathname : '?tab=' + name); } catch (e) {}
     }
     document.querySelectorAll('.api-tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
     async function loadThreats() {
@@ -702,7 +808,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         } finally { btn.disabled = false; }
     });
 
-    loadKeys().then(() => { if (new URLSearchParams(location.search).get('tab') === 'threats') showTab('threats'); });
+    loadKeys().then(() => { const tb = new URLSearchParams(location.search).get('tab'); if (tb === 'threats' || tb === 'activity') showTab(tb); });
     </script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
