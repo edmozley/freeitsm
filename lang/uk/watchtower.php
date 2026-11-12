@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> запусків перервано захистом від циклів за останні 24 год',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook\'ів припинили повторні спроби — повідомлення так і не надійшло',
         'failures' => '{count} збоїв',
+        'attention' => '<span class="wt-attention-bold">{count}</span> запуск(ів) пропустили частину своєї роботи й залишили примітку - останній: {name}',
     ],
     'mc' => [
         'metric_done' => 'Виконано',

@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Udgiver',
         'col_installed' => 'Installeret på',
         'col_seats' => 'Pladser',
+        'col_installations' => 'Installationer',
+        'col_licence_seats' => 'Licenspladser',
         'col_actions' => '',
         'add_app' => 'Tilføj program',
         'new_app' => 'Nyt program',

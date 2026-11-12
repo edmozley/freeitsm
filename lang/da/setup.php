@@ -1,11 +1,15 @@
 <?php
 /**
- * Danish (da) — Setup Verification (first-run installer) strings.
+ * FreeITSM — setup strings (da).
  *
- * Mirrors lang/en/setup.php. Dynamic values (paths, driver names, extension
- * names, raw error messages) arrive through {placeholder} params and are not
- * translated — keep every placeholder exactly as it is in the English file.
+ * Keys mirror lang/en/setup.php exactly. A key absent here falls back to
+ * English at runtime, so this file may be incomplete without breaking
+ * anything. Check coverage with: php scripts/i18n_audit.php da
+ *
+ * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
+ * tokens substitute BY POSITION, so their order must match English.
  */
+
 return [
     'title' => 'FreeITSM-opsætning',
     'heading' => 'Kontrol af opsætning',
@@ -71,6 +75,9 @@ return [
         'extension_loaded' => 'Indlæst',
         'extension_not_loaded' => 'Ikke indlæst — slå den til i php.ini',
         'pdo_mysql_not_loaded' => 'Ikke indlæst — slå pdo_mysql til i php.ini',
+        'ldap_not_loaded' => 'Ikke indlæst — kun nødvendig til LDAP / Active Directory-login og katalogsynkronisering. Aktivér extension=ldap, hvis du bruger dem.',
+        'zip_not_loaded' => 'Ikke indlæst — nødvendig for at uploade LMS-kurser (SCORM), læse Word-filer i RFP Builder og søge i .docx- og .xlsx-vedhæftninger.',
+        'intl_not_loaded' => 'Ikke indlæst — kun nødvendig til internationale domænenavne (som münchen.de) i Domæner.',
         'db_config_not_found_masked' => 'Ikke fundet på den sti, der er sat i config.php',
         'ssl_verified_masked' => 'Slået til og virker — et live HTTPS-kald fik sit certifikat kontrolleret',
         'ssl_broken_masked' => 'Slået til, men serveren kunne ikke kontrollere et certifikat — udgående HTTPS (e-mail, AI, webhooks, login) vil mislykkes. Log ind som administrator for at se fejlen.',

@@ -33,8 +33,17 @@ return [
     ],
     'sidebar' => [
         'new_process' => '+ Ny',
+        'new_process_tip' => 'Ny proces',
         'search_placeholder' => 'Søg efter processer...',
         'no_processes_yet' => 'Ingen processer endnu',
+        'search_key_tip' => 'Tryk på / eller Alt+Shift+O fra hvor som helst på siden for at søge i processer',
+    ],
+    'preview' => [
+        'steps' => 'Trin',
+        'lanes' => 'Baner',
+        'created_by' => 'Oprettet af',
+        'created' => 'Oprettet',
+        'updated' => 'Sidst opdateret',
     ],
     'new_modal' => [
         'title' => 'Ny proces',

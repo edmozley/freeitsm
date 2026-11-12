@@ -49,6 +49,7 @@ return [
     ],
     'modal' => [
         'new_incident' => 'Nouvel incident',
+        'new_incident_tip' => 'Nouvel incident',
         'edit_incident' => 'Modifier l\'incident',
         'title' => 'Titre',
         'title_placeholder' => 'Brève description de l\'incident',

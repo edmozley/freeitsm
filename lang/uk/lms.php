@@ -47,6 +47,7 @@ return [
         'heading' => 'Курси',
         'upload' => 'Завантажити',
         'create' => 'Створити',
+        'new_tip' => 'Новий курс',
         'col_title' => 'Назва',
         'col_version' => 'Версія SCORM',
         'col_uploaded' => 'Завантажено',
@@ -184,6 +185,7 @@ return [
     'groups' => [
         'heading' => 'Навчальні групи',
         'new' => 'Новий',
+        'new_tip' => 'Нова група',
         'col_name' => 'Назва',
         'col_description' => 'Опис',
         'col_members' => 'Учасники',

@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> exécution(s) interrompue(s) par la protection contre les boucles au cours des dernières 24h',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook(s) ont abandonné après plusieurs tentatives — le message n\'est jamais arrivé',
         'failures' => '{count} échec(s)',
+        'attention' => '<span class="wt-attention-bold">{count}</span> exécution(s) ont ignoré une partie de leur travail et laissé une note - la plus récente : {name}',
     ],
     'mc' => [
         'metric_done' => 'Faites',

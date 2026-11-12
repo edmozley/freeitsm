@@ -350,6 +350,7 @@ return [
             'p4' => 'Hver mappe kan slå et **vandmærke** til (Rettigheder -> Vandmærke). Hver fil, der åbnes fra den mappe og mapperne i den, viser så fremviserens navn, tidspunktet og IP-adressen henover siden - så et skærmbillede viser, hvem der tog det. Mapper følger deres overordnede mappe, medmindre andet er indstillet.',
             'p5' => 'Intet af dette stopper en fast besluttet person: alt, hvad en browser kan vise, kan fotograferes eller fanges. Kun-visning og vandmærket gør lækager bevidste og sporbare, ikke umulige.',
             'p6' => 'Hver åbnet fil registreres i revisionssporet, inklusive hvilken version og, for en zip-fil, hvilken fil indeni.',
+            'p7' => 'Et billede eller en PDF tilpasses igen, når du ændrer størrelsen på eller maksimerer dets vindue, indtil du selv zoomer ind eller ud; **Tilpas** giver den kontrollen tilbage. Den samme viser åbner billeder og PDF\'er, der er vedhæftet sager, i et vindue over sagen.',
         ],
         'permissions' => [
             'nav' => 'Rettigheder',

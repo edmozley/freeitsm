@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Видавець',
         'col_installed' => 'Встановлено на',
         'col_seats' => 'Місця',
+        'col_installations' => 'Встановлення',
+        'col_licence_seats' => 'Ліцензійні місця',
         'col_actions' => '',
         'add_app' => 'Додати застосунок',
         'new_app' => 'Новий застосунок',

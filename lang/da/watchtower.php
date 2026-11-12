@@ -107,6 +107,7 @@ return [
         'aborted' => '<span class="wt-attention-bold">{count}</span> kørsel(er) afbrudt af løkkebeskyttelse de sidste 24 timer',
         'dead_webhooks' => '<span class="wt-attention-bold">{count}</span> webhook(s) opgav at prøve igen — beskeden nåede aldrig frem',
         'failures' => '{count} fejl',
+        'attention' => '<span class="wt-attention-bold">{count}</span> kørsel(er) sprang en del af deres opgave over og efterlod en note - seneste: {name}',
     ],
     'mc' => [
         'metric_done' => 'Udført',

@@ -33,8 +33,17 @@ return [
     ],
     'sidebar' => [
         'new_process' => '+ Новий',
+        'new_process_tip' => 'Новий процес',
         'search_placeholder' => 'Пошук процесів...',
         'no_processes_yet' => 'Процесів ще немає',
+        'search_key_tip' => 'Натисніть / або Alt+Shift+O будь-де на сторінці, щоб шукати процеси',
+    ],
+    'preview' => [
+        'steps' => 'Кроки',
+        'lanes' => 'Доріжки',
+        'created_by' => 'Створено',
+        'created' => 'Створено',
+        'updated' => 'Остання зміна',
     ],
     'new_modal' => [
         'title' => 'Новий процес',

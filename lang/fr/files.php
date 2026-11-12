@@ -350,6 +350,7 @@ return [
             'p4' => 'Chaque dossier peut activer un **filigrane** (Permissions -> Filigrane). Chaque fichier ouvert depuis ce dossier, et les dossiers qu\'il contient, affiche alors le nom du lecteur, l\'heure et son adresse IP sur toute la page - une capture d\'écran montre ainsi qui l\'a prise. Les dossiers suivent leur parent sauf réglage contraire.',
             'p5' => 'Rien de cela n\'arrête une personne déterminée : tout ce qu\'un navigateur peut afficher peut être photographié ou capturé. La lecture seule et le filigrane rendent la fuite délibérée et traçable, pas impossible.',
             'p6' => 'Chaque fichier ouvert est enregistré dans la piste d\'audit, avec la version et, pour un zip, le fichier concerné à l\'intérieur.',
+            'p7' => 'Une image ou un PDF se réajuste quand vous redimensionnez ou agrandissez sa fenêtre, jusqu\'à ce que vous zoomiez vous-même ; **Ajuster** lui rend ce réglage. Le même visionneur ouvre les images et les PDF joints aux tickets, dans une fenêtre au-dessus du ticket.',
         ],
         'permissions' => [
             'nav' => 'Permissions',

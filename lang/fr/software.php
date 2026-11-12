@@ -34,6 +34,8 @@ return [
         'col_publisher' => 'Éditeur',
         'col_installed' => 'Installé le',
         'col_seats' => 'Sièges',
+        'col_installations' => 'Installations',
+        'col_licence_seats' => 'Postes sous licence',
         'col_actions' => '',
         'add_app' => 'Ajouter une application',
         'new_app' => 'Nouvelle application',
