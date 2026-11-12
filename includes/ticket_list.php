@@ -199,7 +199,7 @@ function ticketListBase(PDO $conn, int $analystId, array $request, array $extraC
     }
 
     // Multi-tenancy: scope the list to the analyst's active company (no-op at N=1).
-    list($tenantSql, $tenantParams) = ticketTenantFilter($conn, $analystId);
+    list($tenantSql, $tenantParams) = ticketScopeFilter($conn, $analystId);
     $sql .= $tenantSql;
     $params = array_merge($params, $tenantParams);
 

@@ -214,15 +214,17 @@ function apiProblemsGet(PDO $conn, array $apiKey, array $params, array $body): v
     $row = apiLoadProblem($conn, $apiKey, $params[0]);
     $problem = apiSerializeProblem($row);
 
+    // Only the linked tickets this key may see (company and departments).
+    [$tkSql, $tkArgs] = apiKeyTicketFilter($conn, $apiKey, 't');
     $inc = $conn->prepare(
         "SELECT t.id, t.ticket_number, t.subject, ts.name AS status, pt.created_datetime AS linked_at
          FROM problem_tickets pt
          JOIN tickets t ON t.id = pt.ticket_id
          LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
-         WHERE pt.problem_id = ? AND t.deleted_datetime IS NULL
+         WHERE pt.problem_id = ? AND t.deleted_datetime IS NULL" . $tkSql . "
          ORDER BY t.created_datetime DESC"
     );
-    $inc->execute([$params[0]]);
+    $inc->execute(array_merge([$params[0]], $tkArgs));
     $problem['linked_tickets'] = array_map(function ($t) {
         return [
             'id'            => (int)$t['id'],

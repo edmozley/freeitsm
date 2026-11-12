@@ -44,7 +44,7 @@ try {
     // 2. ...and the TICKETS are scoped separately. An asset and a ticket linked
     //    to it should always share a company, but this read must not depend on
     //    that invariant holding.
-    [$tSql, $tArgs] = ticketTenantFilter($conn, $analystId, 't');
+    [$tSql, $tArgs] = ticketScopeFilter($conn, $analystId, 't');
 
     $base =
         "SELECT t.id, t.ticket_number, t.subject,

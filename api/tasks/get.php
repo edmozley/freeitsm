@@ -73,6 +73,10 @@ try {
         echo json_encode(['success' => false, 'error' => 'Task not found']);
         exit;
     }
+    // The linked ticket's number and subject only for someone who may see that ticket.
+    if (!empty($task['ticket_id']) && !analystCanAccessTicket($conn, (int)$_SESSION['analyst_id'], (int)$task['ticket_id'])) {
+        foreach ($task as $k => $v) if ($k !== 'ticket_id' && str_starts_with($k, 'ticket_')) $task[$k] = null;
+    }
 
     // Deep links for the records this task points at (GH #91). Built HERE, from
     // the one resolver, rather than assembled in JavaScript — a second copy of

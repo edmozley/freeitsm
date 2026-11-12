@@ -31,14 +31,17 @@ try {
 
     // Linked incidents go to the AI provider - never a confidential one (#62).
     require_once __DIR__ . '/../../includes/ticket_sensitivity.php';
+    // Only tickets of the analyst's departments (includes/ticket_department_scope.php).
+    require_once __DIR__ . '/../../includes/ticket_department_scope.php';
+    [$dSql, $dParams] = ticketDepartmentScopeSql($conn, (int) $_SESSION['analyst_id'], 't');
     $inc = $conn->prepare(
         "SELECT t.ticket_number, t.subject,
                 (SELECT body_content FROM emails e WHERE e.ticket_id = t.id AND e.direction = 'Inbound'
                  ORDER BY e.is_initial DESC, e.id ASC LIMIT 1) AS body
          FROM problem_tickets pt JOIN tickets t ON t.id = pt.ticket_id
-         WHERE pt.problem_id = ? AND t.deleted_datetime IS NULL" . ticketAiExclusionSql($conn, 't') . " LIMIT 20"
+         WHERE pt.problem_id = ? AND t.deleted_datetime IS NULL" . ticketAiExclusionSql($conn, 't') . $dSql . " LIMIT 20"
     );
-    $inc->execute([$problemId]);
+    $inc->execute(array_merge([$problemId], $dParams));
     $rows = $inc->fetchAll(PDO::FETCH_ASSOC);
     if (!$rows) throw new Exception('Link some incidents to this problem first, then I can analyse them.');
 

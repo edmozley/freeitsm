@@ -6,7 +6,8 @@
 
 require_once __DIR__ . '/tenancy.php';   // knowledgeTenantFilter() for the Knowledge card
 require_once __DIR__ . '/knowledge/visibility.php';   // the Knowledge card reads through the choke point
-require_once __DIR__ . '/watchtower_settings.php';   // which cards show, which statuses count
+require_once __DIR__ . '/watchtower_settings.php';
+require_once __DIR__ . '/ticket_department_scope.php';   // which cards show, which statuses count
 require_once __DIR__ . '/timezone.php';   // naive_now(), for the change-window comparisons (GH #126)
 
 /**
@@ -166,6 +167,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     // reason nobody could see.
     [$tkScopeSql, $tkScopeArgs] = wtScopeClause($conn, $analystId, $scope, 't.assigned_analyst_id');
     [$__c, $__a] = wtCompanyClause($conn, (int)$analystId, 't');   // and the company (wtCompanyClause)
+    [$__d, $__da] = ticketDepartmentScopeSql($conn, (int)$analystId, 't'); $__c .= $__d; $__a = array_merge($__a, $__da);   // and the departments
     $tkScopeSql .= $__c; $tkScopeArgs = array_merge($tkScopeArgs, $__a);
     $tkStatusStmt = $conn->prepare(
         "SELECT ts.id, ts.name AS status, ts.colour, COUNT(t.id) AS cnt
@@ -228,6 +230,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     // unclaimed pile means. It stays a team-wide figure whatever the toggle
     // says, and the card labels it as such.
     [$__c, $__a] = wtCompanyClause($conn, (int)$analystId, 't');
+    [$__d, $__da] = ticketDepartmentScopeSql($conn, (int)$analystId, 't'); $__c .= $__d; $__a = array_merge($__a, $__da);   // and the departments
     $__q = $conn->prepare(
         "SELECT COUNT(*)
          FROM tickets t

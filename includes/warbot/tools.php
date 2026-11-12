@@ -410,6 +410,10 @@ function warbotToolOpenIncidents(PDO $conn, array $args, int $analystId): string
         $where[] = "p.name = :prio";
         $params[':prio'] = $priority;
     }
+    // Only the departments the asking analyst may see (includes/ticket_department_scope.php).
+    require_once __DIR__ . '/../ticket_department_scope.php';
+    [$dSql, $dParams] = ticketDepartmentScopeSql($conn, $analystId, 't', 'tds');
+    if ($dSql !== '') { $where[] = '1 = 1' . $dSql; $params += $dParams; }
     // What the model sees - a confidential ticket counts, but by number only (#62).
     require_once __DIR__ . '/../ticket_sensitivity.php';
     $sql = "SELECT t.ticket_number, " . ticketAiSubjectSql($conn, 't') . " AS subject, p.name AS priority, s.name AS status,
@@ -743,13 +747,17 @@ function warbotToolTicketSpike(PDO $conn, array $args, int $analystId): string
 
     // What they are ABOUT is the actionable half — a spike of one subject is an
     // incident, a spike of twenty different subjects is a bad morning.
+    // Only the departments the asking analyst may see (includes/ticket_department_scope.php).
+    require_once __DIR__ . '/../ticket_department_scope.php';
+    [$dSql, $dParams] = ticketDepartmentScopeSql($conn, $analystId, '', 'tds');
     $subj = $conn->prepare(
         "SELECT " . ticketAiSubjectSql($conn, 'tickets') . " AS subject FROM tickets
           WHERE deleted_datetime IS NULL
-            AND created_datetime >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL :m MINUTE)
+            AND created_datetime >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL :m MINUTE)" . $dSql . "
           ORDER BY id DESC LIMIT 8"
     );
     $subj->bindValue(':m', $mins, PDO::PARAM_INT);
+    foreach ($dParams as $k => $v) $subj->bindValue($k, $v, PDO::PARAM_INT);
     $subj->execute();
     foreach ($subj->fetchAll(PDO::FETCH_COLUMN) as $s) $lines[] = '- ' . $s;
 
@@ -927,10 +935,11 @@ function warbotToolRelatedTickets(PDO $conn, array $args, int $analystId): strin
     $find = $conn->prepare("SELECT id, ticket_number, " . ticketAiSubjectSql($conn, 'tickets') . " AS subject FROM tickets WHERE ticket_number = :r AND deleted_datetime IS NULL LIMIT 1");
     $find->execute([':r' => $ref]);
     $t = $find->fetch(PDO::FETCH_ASSOC);
-    if (!$t) return "No ticket numbered \"$ref\".";
+    require_once __DIR__ . '/../tenancy.php';
+    if (!$t || !analystCanAccessTicket($conn, $analystId, (int)$t['id'])) return "No ticket numbered \"$ref\".";
 
     $stmt = $conn->prepare(
-        "SELECT l.relation_type,
+        "SELECT l.relation_type, o.id,
                 CASE WHEN l.source_ticket_id = :id1 THEN 'to' ELSE 'from' END AS dir,
                 o.ticket_number, " . ticketAiSubjectSql($conn, 'o') . " AS subject, s.name AS state
            FROM ticket_links l
@@ -941,7 +950,7 @@ function warbotToolRelatedTickets(PDO $conn, array $args, int $analystId): strin
     );
     foreach (['id1', 'id2', 'id3', 'id4'] as $p) $stmt->bindValue(':' . $p, (int)$t['id'], PDO::PARAM_INT);
     $stmt->execute();
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rows = array_values(array_filter($stmt->fetchAll(PDO::FETCH_ASSOC), fn($r) => analystCanAccessTicket($conn, $analystId, (int)$r['id'])));
 
     if (!$rows) return sprintf('%s "%s" has no linked tickets.', $t['ticket_number'], $t['subject']);
 

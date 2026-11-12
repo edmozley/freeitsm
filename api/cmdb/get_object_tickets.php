@@ -39,7 +39,7 @@ try {
     //    invariant holding — it's the gap the REST resource already closed and
     //    this endpoint didn't. Also filters deleted tickets, which it never did:
     //    a CI was showing links to tickets sitting in the recycle bin.
-    [$tSql, $tArgs] = ticketTenantFilter($conn, $analystId, 't');
+    [$tSql, $tArgs] = ticketScopeFilter($conn, $analystId, 't');
 
     $base =
         "SELECT t.id, t.ticket_number, t.subject,

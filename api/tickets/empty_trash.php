@@ -35,7 +35,7 @@ try {
     //
     // So this one deliberately does NOT follow the view. It always scopes to the
     // single active company, and the UI tells the analyst which that is.
-    list($ttSql, $ttParams) = ticketTenantFilter($conn, $analystId, 't', true);   // true = one company only
+    list($ttSql, $ttParams) = ticketScopeFilter($conn, $analystId, 't', true);   // true = one company only
     $idStmt = $conn->prepare("SELECT t.id FROM tickets t WHERE t.deleted_datetime IS NOT NULL" . $ttSql);
     $idStmt->execute($ttParams);
     $ids = array_map('intval', $idStmt->fetchAll(PDO::FETCH_COLUMN));

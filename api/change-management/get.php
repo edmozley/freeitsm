@@ -90,15 +90,18 @@ try {
     // because the screen and older callers read it. Degrades to [] if the table isn't present yet.
     $change['incidents'] = [];
     try {
+        // Only tickets of the analyst's departments (includes/ticket_department_scope.php).
+        require_once __DIR__ . '/../../includes/ticket_department_scope.php';
+        [$dSql, $dParams] = ticketDepartmentScopeSql($conn, (int)$_SESSION['analyst_id'], 't');
         $incSql = "SELECT t.id, t.ticket_number, t.subject, ts.name AS status, tt.name AS ticket_type
                    FROM change_tickets ct
                    JOIN tickets t ON t.id = ct.ticket_id
                    LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
                    LEFT JOIN ticket_types tt ON tt.id = t.ticket_type_id
-                   WHERE ct.change_id = ? AND t.deleted_datetime IS NULL
+                   WHERE ct.change_id = ? AND t.deleted_datetime IS NULL" . $dSql . "
                    ORDER BY t.created_datetime DESC";
         $incStmt = $conn->prepare($incSql);
-        $incStmt->execute([$changeId]);
+        $incStmt->execute(array_merge([$changeId], $dParams));
         $change['incidents'] = $incStmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) { /* change_tickets not created yet */ }
 

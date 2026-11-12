@@ -47,6 +47,11 @@ function rpTicketWhere(PDO $conn, int $analystId, string $basis, array $range, $
     [$tSql, $tParams] = rpTenantClause($conn, $analystId, $tenant, 't.tenant_id');
     $w = 'WHERE t.deleted_datetime IS NULL' . $tSql;
     $p = $tParams;
+    // And only the departments the person the pack is built for may see (includes/ticket_department_scope.php).
+    require_once __DIR__ . '/../ticket_department_scope.php';
+    [$dSql, $dParams] = ticketDepartmentScopeSql($conn, $analystId, 't');
+    $w .= $dSql;
+    $p = array_merge($p, $dParams);
     if ($basis === 'closed') {
         $w .= ' AND t.closed_datetime >= ? AND t.closed_datetime < ?';
         array_push($p, $range['from_utc'], $range['to_utc']);

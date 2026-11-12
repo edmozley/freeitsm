@@ -39,7 +39,7 @@ try {
     // Deleted tickets were also being offered — `deleted_datetime` was never
     // consulted, so a task could be linked to a ticket already in the bin.
     if ($type === 'ticket') {
-        [$tenantSql, $tenantParams] = ticketTenantFilter($conn, $analystId, 't');
+        [$tenantSql, $tenantParams] = ticketScopeFilter($conn, $analystId, 't');
         $stmt = $conn->prepare(
             "SELECT t.id, t.ticket_number, t.subject
              FROM tickets t

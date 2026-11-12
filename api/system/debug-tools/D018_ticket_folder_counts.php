@@ -228,7 +228,7 @@ if ($schemaBroken) {
 // one at a time so the step that removes the tickets is visible.
 $tenantOn = false;
 try { $tenantOn = isMultiTenant($conn); } catch (Throwable $e) {}
-list($ttSql, $ttParams) = ticketTenantFilter($conn, $target, 't');
+list($ttSql, $ttParams) = ticketScopeFilter($conn, $target, 't');
 $snoozeSql = snoozeHiddenSql($conn, 't');
 
 $teamIds = $conn->prepare("SELECT team_id FROM analyst_teams WHERE analyst_id = ?");

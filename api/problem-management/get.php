@@ -33,15 +33,18 @@ try {
     if (!$problem) throw new Exception('Problem not found');
 
     // Linked incidents (tickets).
+    // Only tickets of the analyst's departments (includes/ticket_department_scope.php).
+    require_once __DIR__ . '/../../includes/ticket_department_scope.php';
+    [$dSql, $dParams] = ticketDepartmentScopeSql($conn, $analystId, 't');
     $inc = $conn->prepare(
         "SELECT t.id, t.ticket_number, t.subject, ts.name AS status
          FROM problem_tickets pt
          JOIN tickets t ON t.id = pt.ticket_id
          LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
-         WHERE pt.problem_id = ? AND t.deleted_datetime IS NULL
+         WHERE pt.problem_id = ? AND t.deleted_datetime IS NULL" . $dSql . "
          ORDER BY t.created_datetime DESC"
     );
-    $inc->execute([$id]);
+    $inc->execute(array_merge([$id], $dParams));
     $incidents = $inc->fetchAll(PDO::FETCH_ASSOC);
 
     // Linked changes (the fix) — via the shared change_relations table.

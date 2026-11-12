@@ -261,7 +261,10 @@ function apiKeyCanAccessTenantRow(PDO $conn, array $apiKey, string $table, int $
 
 /** May this key access this ticket (by its owning company)? Unknown id => false. */
 function apiKeyCanAccessTicket(PDO $conn, array $apiKey, int $ticketId): bool {
-    return apiKeyCanAccessTenantRow($conn, $apiKey, 'tickets', $ticketId);
+    if (!apiKeyCanAccessTenantRow($conn, $apiKey, 'tickets', $ticketId)) return false;
+    // And the departments of the key's analyst (includes/ticket_department_scope.php).
+    require_once dirname(__DIR__, 3) . '/includes/ticket_department_scope.php';
+    return ticketDepartmentAllows($conn, (int)($apiKey['analyst_id'] ?? 0), $ticketId);
 }
 
 /**
@@ -304,7 +307,11 @@ function apiKeyTenantFilter(PDO $conn, array $apiKey, string $alias): array {
  * @param string $alias  the alias the query gives the tickets table
  */
 function apiKeyTicketFilter(PDO $conn, array $apiKey, string $alias = 't'): array {
-    return apiKeyTenantFilter($conn, $apiKey, $alias);
+    [$tSql, $tArgs] = apiKeyTenantFilter($conn, $apiKey, $alias);
+    // And the departments of the key's analyst (includes/ticket_department_scope.php).
+    require_once dirname(__DIR__, 3) . '/includes/ticket_department_scope.php';
+    [$dSql, $dArgs] = ticketDepartmentScopeSql($conn, (int)($apiKey['analyst_id'] ?? 0), $alias);
+    return [$tSql . $dSql, array_merge($tArgs, $dArgs)];
 }
 
 /**

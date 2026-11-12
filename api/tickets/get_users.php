@@ -29,7 +29,7 @@ try {
     // (no-op at N=1), so it doesn't reveal a requester's activity in other
     // companies (§9). The placeholder sits in the SELECT subquery, so its param
     // must lead the bound list.
-    list($ttSql, $ttParams) = ticketTenantFilter($conn, (int)$_SESSION['analyst_id'], 't');
+    list($ttSql, $ttParams) = ticketScopeFilter($conn, (int)$_SESSION['analyst_id'], 't');
     $ttSql .= " AND t.deleted_datetime IS NULL"; // exclude trashed tickets from the per-user count
 
     // ⚠️ ...and the LIST ITSELF has to be scoped, which it was not.

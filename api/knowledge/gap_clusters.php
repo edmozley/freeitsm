@@ -73,6 +73,9 @@ try {
     if ($clusters) {
         $ids = array_column($clusters, 'id');
         $in  = implode(',', array_fill(0, count($ids), '?'));
+        // Only tickets of the analyst's departments (includes/ticket_department_scope.php).
+        require_once __DIR__ . '/../../includes/ticket_department_scope.php';
+        [$dSql, $dParams] = ticketDepartmentScopeSql($conn, (int)$_SESSION['analyst_id'], 't');
 
         $st = $conn->prepare(
             "SELECT ct.cluster_id, ct.ticket_id, ct.similarity,
@@ -80,10 +83,10 @@ try {
                     COALESCE(NULLIF(t.ticket_number, ''), CONCAT('#', t.id)) AS ticket_ref
                FROM knowledge_gap_cluster_tickets ct
                JOIN tickets t ON t.id = ct.ticket_id
-              WHERE ct.cluster_id IN ($in)
+              WHERE ct.cluster_id IN ($in)" . $dSql . "
            ORDER BY ct.similarity DESC, t.closed_datetime DESC"
         );
-        $st->execute($ids);
+        $st->execute(array_merge($ids, $dParams));
 
         $byCluster = [];
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {

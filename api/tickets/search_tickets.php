@@ -79,7 +79,7 @@ try {
             WHERE ({$whereClause})";
 
     // Multi-tenancy: scope search to the analyst's active company (no-op at N=1).
-    list($ttSql, $ttParams) = ticketTenantFilter($conn, (int)$_SESSION['analyst_id'], 't');
+    list($ttSql, $ttParams) = ticketScopeFilter($conn, (int)$_SESSION['analyst_id'], 't');
     $ttSql .= " AND t.deleted_datetime IS NULL"; // hide trashed tickets
     // "Include closed tickets" (#149). ON unless the panel says otherwise:
     // searching is usually a hunt for an old ticket, and a search that quietly

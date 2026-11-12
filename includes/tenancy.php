@@ -269,6 +269,12 @@ function analystCanAccessTenant(PDO $conn, int $analystId, int $tenantId): bool 
  * @param mixed $ticketId  the ticket id, any form; cast to int, and 0 or less is false
  */
 function analystCanAccessTicket(PDO $conn, int $analystId, $ticketId): bool {
+    // The department rule (team -> departments) applies on EVERY install, single
+    // company included - see includes/ticket_department_scope.php.
+    require_once __DIR__ . '/ticket_department_scope.php';
+    if (!ticketDepartmentAllows($conn, $analystId, $ticketId)) {
+        return false;
+    }
     if (!isMultiTenant($conn)) {
         return true;
     }
@@ -1483,3 +1489,6 @@ function ticketsFollowCompanyMove(PDO $conn, array $ticketIds, ?int $tenantId): 
         error_log('ticketsFollowCompanyMove (search): ' . $e->getMessage());
     }
 }
+
+// The department rule beside the company rule (ticketScopeFilter, analystCanAccessTicket).
+require_once __DIR__ . '/ticket_department_scope.php';

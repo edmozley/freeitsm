@@ -147,6 +147,8 @@ function searchScopeForAnalyst(PDO $conn, int $analystId, array $overrides = [])
         // The grants NOW, not the copy taken at sign-in (analystAllowedModulesNow()).
         // Less any module switched off for the install (GH #217).
         'allowed_modules'   => modulesWithoutSwitchedOff($conn, getAnalystAllowedModules($conn, (int)$analystId)),
+        // The department rule (includes/ticket_department_scope.php): whose departments' tickets.
+        'department_analyst' => (int)$analystId,
     ];
 
     if (function_exists('isMultiTenant') && isMultiTenant($conn)) {
@@ -307,6 +309,15 @@ function searchCorpusQuery(PDO $conn, string $rawQuery, array $scope, array $opt
         $delSql .= " AND (sd.ticket_id IS NULL OR t.tenant_id = ?"
                  . (!empty($scope['include_default']) ? " OR t.tenant_id IS NULL" : '') . ")";
         $liveParams[] = (int)$scope['tenant_id'];
+    }
+    // The department rule, judged on the ticket NOW, like the company above.
+    if (!empty($scope['department_analyst'])) {
+        require_once __DIR__ . '/../ticket_department_scope.php';
+        [$dSql, $dParams] = ticketDepartmentScopeSql($conn, (int)$scope['department_analyst'], 't');
+        if ($dSql !== '') {
+            $delSql .= " AND (sd.ticket_id IS NULL OR (1 = 1" . $dSql . "))";
+            $liveParams = array_merge($liveParams, $dParams);
+        }
     }
 
     $where = "MATCH($cols) AGAINST (? IN BOOLEAN MODE)" . $scopeSql . $delSql;

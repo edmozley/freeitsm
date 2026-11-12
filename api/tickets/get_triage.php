@@ -35,6 +35,9 @@ try {
 
     // The initial inbound email carries the sender we route on. Pick the earliest
     // inbound email per ticket as the "origin" sender.
+    // Only tickets of the analyst's departments (includes/ticket_department_scope.php).
+    require_once __DIR__ . '/../../includes/ticket_department_scope.php';
+    [$dSql, $dParams] = ticketDepartmentScopeSql($conn, (int)$_SESSION['analyst_id'], 't');
     $sql = "SELECT t.id AS ticket_id, t.ticket_number, t.subject, t.created_datetime,
                    e.from_address, e.from_name, e.received_datetime,
                    mb.name AS mailbox_name
@@ -46,10 +49,12 @@ try {
                 LIMIT 1
             )
             LEFT JOIN target_mailboxes mb ON mb.id = e.mailbox_id
-            WHERE t.tenant_id IS NULL
+            WHERE t.tenant_id IS NULL" . $dSql . "
             ORDER BY COALESCE(e.received_datetime, t.created_datetime) DESC";
 
-    $rows = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    $tq = $conn->prepare($sql);
+    $tq->execute($dParams);
+    $rows = $tq->fetchAll(PDO::FETCH_ASSOC);
 
     $tickets = [];
     foreach ($rows as $r) {

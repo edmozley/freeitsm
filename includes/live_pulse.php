@@ -71,7 +71,7 @@ function livePulseOne(PDO $conn, string $sql, array $params): string
 function livePulseTickets(PDO $conn, int $analystId): ?string
 {
     if (!analystCanAccessModule($conn, $analystId, 'tickets')) return null;
-    [$f, $p] = ticketTenantFilter($conn, $analystId, 't');
+    [$f, $p] = ticketScopeFilter($conn, $analystId, 't');
     $parts = [
         // Deleted rows count too: binning a ticket must take it off other lists.
         livePulseOne($conn, "SELECT t.updated_datetime FROM tickets t WHERE 1 = 1{$f} ORDER BY t.updated_datetime DESC LIMIT 1", $p),

@@ -80,7 +80,7 @@ try {
     // company by adding one shared condition here — all widget queries (the
     // categorical, time-series and created-vs-closed paths) derive from $where /
     // $params, so this covers them at once. No-op at N=1.
-    list($ttSql, $ttParams) = ticketTenantFilter($conn, (int)$_SESSION['analyst_id'], 't');
+    list($ttSql, $ttParams) = ticketScopeFilter($conn, (int)$_SESSION['analyst_id'], 't');
     if ($ttSql !== '') {
         $whereClauses[] = preg_replace('/^\s*AND\s+/', '', $ttSql); // drop the leading "AND" — joined with AND below
         $params = array_merge($params, $ttParams);

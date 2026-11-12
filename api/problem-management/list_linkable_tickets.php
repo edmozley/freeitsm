@@ -23,6 +23,10 @@ try {
     // Scope to the problem's own company (matches the same-company rule in link_ticket).
     $where = " WHERE t.deleted_datetime IS NULL AND t.closed_datetime IS NULL";
     $params = [];
+    // Only tickets of the analyst's departments (includes/ticket_department_scope.php).
+    require_once __DIR__ . '/../../includes/ticket_department_scope.php';
+    [$dSql, $dParams] = ticketDepartmentScopeSql($conn, (int)$_SESSION['analyst_id'], 't');
+    $where .= $dSql; $params = array_merge($params, $dParams);
     if (isMultiTenant($conn)) {
         $pt = $conn->prepare("SELECT tenant_id FROM problems WHERE id = ?");
         $pt->execute([$problemId]);

@@ -39,7 +39,7 @@ try {
     // it lands in a WHERE clause or a (LEFT JOIN) ON clause; only the ordering of
     // $ttParams within each execute() differs, because positional placeholders
     // bind in order of appearance — ON-clause placeholders precede WHERE ones.
-    list($ttSql, $ttParams) = ticketTenantFilter($conn, $analystId, 't');
+    list($ttSql, $ttParams) = ticketScopeFilter($conn, $analystId, 't');
     // Hide trashed (soft-deleted) tickets from every count below. No placeholder,
     // so $ttParams is unchanged; appended wherever $ttSql is used (WHERE + ON).
     $ttSql .= " AND t.deleted_datetime IS NULL";
@@ -577,7 +577,7 @@ try {
     }
 
     // Trash count — company-scoped (matches the trash list, which isn't team-filtered).
-    list($trashTtSql, $trashTtParams) = ticketTenantFilter($conn, $analystId, 't');
+    list($trashTtSql, $trashTtParams) = ticketScopeFilter($conn, $analystId, 't');
     $trashStmt = $conn->prepare("SELECT COUNT(*) FROM tickets t WHERE t.deleted_datetime IS NOT NULL" . $trashTtSql);
     $trashStmt->execute($trashTtParams);
     $trashCount = (int)$trashStmt->fetchColumn();
@@ -585,7 +585,7 @@ try {
     // Snoozed count — company-scoped and not team-filtered, matching the Snoozed
     // list (and Trash before it). Trashed tickets are excluded: a ticket that was
     // snoozed and then binned belongs in one place, and that place is the bin.
-    list($snoozeTtSql, $snoozeTtParams) = ticketTenantFilter($conn, $analystId, 't');
+    list($snoozeTtSql, $snoozeTtParams) = ticketScopeFilter($conn, $analystId, 't');
     $snoozeStmt = $conn->prepare(
         "SELECT COUNT(*) FROM tickets t WHERE t.deleted_datetime IS NULL" . $snoozeTtSql . snoozeOnlySql($conn, 't')
     );

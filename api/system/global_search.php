@@ -66,7 +66,7 @@ try {
     // --- Tickets: by reference or subject -------------------------------
     if ($can('tickets')) {
         try {
-            [$tSql, $tArgs] = ticketTenantFilter($conn, $analystId, 't');
+            [$tSql, $tArgs] = ticketScopeFilter($conn, $analystId, 't');
             $sql = "SELECT t.id, t.ticket_number, t.subject
                       FROM tickets t
                      WHERE t.deleted_datetime IS NULL

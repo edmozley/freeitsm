@@ -33,7 +33,7 @@ requireModuleAccessJson('tickets');
 
 try {
     $conn = connectToDatabase();
-    [$ttSql, $ttParams] = ticketTenantFilter($conn, (int)$_SESSION['analyst_id'], 't');
+    [$ttSql, $ttParams] = ticketScopeFilter($conn, (int)$_SESSION['analyst_id'], 't');
     // ORDER BY e.id DESC LIMIT 1 rather than MAX(): it walks the primary key from
     // the newest row and stops at the first visible one, which on a large
     // install is the first row it looks at.

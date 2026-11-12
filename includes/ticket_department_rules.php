@@ -17,7 +17,8 @@
  * Stored values: shown '1' / '0'; default a department id, '0' for an explicit
  * "no default" (distinct from no row, which follows the install-wide value).
  *
- * Departments decide folders, rules and routing - NOT who may open a ticket.
+ * Departments decide folders, rules and routing; which departments an analyst may see is
+ * includes/ticket_department_scope.php.
  *
  * @wiki Form-Fields-Design
  */

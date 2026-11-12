@@ -80,7 +80,7 @@ function documentEntityRegistry(): array {
             'title'  => 'subject',
             'alive'  => 'deleted_datetime IS NULL',
             'can'    => function (PDO $c, int $a, int $id) { return analystCanAccessTicket($c, $a, $id); },
-            'filter' => function (PDO $c, int $a, string $alias) { return ticketTenantFilter($c, $a, $alias); },
+            'filter' => function (PDO $c, int $a, string $alias) { return ticketScopeFilter($c, $a, $alias); },
         ],
         // A note on a ticket (discussion #69). The entity is the NOTE, not the
         // ticket, so a file lands on the note somebody wrote rather than in one
@@ -131,7 +131,7 @@ function documentEntityRegistry(): array {
                 return analystCanAccessTicket($c, $a, $ticketId);
             },
             'filter' => function (PDO $c, int $a, string $alias) {
-                list($tSql, $tParams) = ticketTenantFilter($c, $a, 'dnt');
+                list($tSql, $tParams) = ticketScopeFilter($c, $a, 'dnt');
                 return [
                     " AND EXISTS (SELECT 1 FROM tickets dnt WHERE dnt.id = $alias.ticket_id"
                     . " AND dnt.deleted_datetime IS NULL" . $tSql . ")",

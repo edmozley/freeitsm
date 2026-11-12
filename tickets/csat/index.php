@@ -41,7 +41,7 @@ if (!moduleIsEnabled($conn, 'csat')) {
 // this analyst may see under "All companies". ticketTenantFilter() is the
 // ticket list's own scope; it is empty on a single-company install, where the
 // join to tickets changes nothing (a CSAT row is deleted with its ticket).
-[$ttSql, $ttParams] = ticketTenantFilter($conn, (int)$_SESSION['analyst_id'], 't');
+[$ttSql, $ttParams] = ticketScopeFilter($conn, (int)$_SESSION['analyst_id'], 't');
 
 // ---------------------------------------------------------------------------
 // Filters (GH #157). All of them are plain GET parameters, so a filtered view
