@@ -353,3 +353,22 @@ function aiSettingsSave(PDO $conn, string $ns, array $data): void
         $upsert($keys['api_key'], '');
     }
 }
+
+/**
+ * Is this feature's AI set up? For deciding whether to SHOW an AI button at all
+ * (GH #309) - a button that only says "no API key" after the click is clutter on
+ * an install that does not use AI.
+ *
+ * Uses aiConfigured(), never an empty-key test (a custom endpoint needs no key).
+ * Any failure reading the settings - a part-migrated install - counts as not set up.
+ *
+ * @param string $ns  a registered namespace, e.g. 'knowledge_ai'
+ */
+function aiFeatureReady(PDO $conn, string $ns): bool
+{
+    try {
+        return aiConfigured(aiSettingsLoad($conn, $ns));
+    } catch (Throwable $e) {
+        return false;
+    }
+}

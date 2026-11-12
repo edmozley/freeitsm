@@ -50,7 +50,12 @@ $projectId = (int)($_GET['id'] ?? 0);
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="projects" data-mobile-page="projects-view">
-    <?php $prjAskAi = true; include 'includes/header.php'; ?>
+    <?php
+    // GH #309: the assistant button only when Projects' AI is set up.
+    require_once '../includes/ai_settings.php';
+    $prjAskAi = aiFeatureReady(connectToDatabase(), 'projects_ai');
+    include 'includes/header.php';
+    ?>
 
     <!-- The AI project assistant (3.3.0) - the same slide-in panel as Knowledge's Ask AI; projects-assistant.js -->
     <div class="ai-chat-overlay" id="paOverlay"></div>

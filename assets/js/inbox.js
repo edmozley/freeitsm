@@ -3503,7 +3503,7 @@ function displayEmail(email, recordings) {
                 <span class="action-btn-icon">📅</span>
                 <span>${escapeHtml(t('tickets.actions.schedule'))}</span>
             </button>
-            ${ticketModuleOn('knowledge') ? `<button class="action-btn" onclick="openTicketAiChat()">
+            ${ticketModuleOn('knowledge') && window.TICKET_ASK_AI ? `<button class="action-btn" onclick="openTicketAiChat()">
                 <span class="action-btn-icon">🤖</span>
                 <span>${escapeHtml(t('tickets.actions.ask_ai'))}</span>
             </button>` : ''}

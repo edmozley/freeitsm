@@ -1153,6 +1153,8 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
         // so nothing appears until an administrator asks for it. Emitted rather
         // than fetched so a disabled install never even renders the buttons.
         window.TICKET_AI = <?php echo json_encode(ticketAiSettings(connectToDatabase())); ?>;
+        // GH #309: the toolbar's Ask AI uses Knowledge's AI - shown only when that is set up.
+        window.TICKET_ASK_AI = <?php require_once '../includes/ai_settings.php'; echo json_encode(aiFeatureReady(connectToDatabase(), 'knowledge_ai')); ?>;
         window.INBOX_ROW_DISPLAY = <?php echo json_encode(inboxDisplayForAnalyst(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0))); ?>;
     </script>
     <!-- Must load BEFORE inbox.js: it cleans every untrusted message body. -->
@@ -1172,7 +1174,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=196"></script>
+    <script src="../assets/js/inbox.js?v=197"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>

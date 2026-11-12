@@ -448,10 +448,12 @@ $translationNamespaces = ['common', 'cmdb'];
                 <div class="section-header">
                     <h2 style="font-size: 14px;"><?php echo htmlspecialchars(t('cmdb.settings.props_heading')); ?></h2>
                     <div style="display: flex; gap: 8px;">
+                        <?php require_once '../../includes/ai_settings.php'; if (aiFeatureReady(connectToDatabase(), 'cmdb_ai')): // GH #309 ?>
                         <button class="btn-ai" onclick="openAiSuggestModal()" title="<?php echo htmlspecialchars(t('cmdb.settings.suggest_ai_title')); ?>">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 3l1.9 5.8L20 10l-5 4.5L16.5 21 12 17.8 7.5 21 9 14.5 4 10l6.1-1.2z"/></svg>
                             <?php echo htmlspecialchars(t('cmdb.settings.suggest_ai')); ?>
                         </button>
+                        <?php endif; ?>
                         <button class="add-btn" onclick="openPropertyModal()"><?php echo htmlspecialchars(t('cmdb.settings.add')); ?></button>
                     </div>
                 </div>
