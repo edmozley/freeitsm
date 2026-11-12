@@ -1193,6 +1193,12 @@ return [
             'on'                => 'On',
             'off'               => 'Off',
             'preserved_note'    => 'Turning a switch off never deletes anything. A ticket that already has a category keeps it, and it comes back untouched if you switch the field on again.',
+            'wf_match_heading' => 'Categories in workflows',
+            'wf_match_label' => 'When a workflow condition names a category',
+            'wf_match_tree' => 'It also matches the category\'s subcategories',
+            'wf_match_exact' => 'It matches that category only',
+            'wf_match_help' => 'With subcategories, a workflow for "Hardware" also runs for a ticket in "Hardware → Laptop". Choose "that category only" to make every workflow name each subcategory it wants.',
+            'wf_match_saved' => 'Saved',
 
             // The category list.
             'list_heading'      => 'Categories',

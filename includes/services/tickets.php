@@ -451,6 +451,7 @@ class TicketsService
         // ⚠️ Deliberately NO is_active check. A retired category must stay
         // writable, because reopening a closed ticket and saving it again would
         // otherwise fail on a value the ticket already held.
+        $categoryChange = null;
         foreach ([
             'category_id'         => ['Category',         'category'],
             'closure_category_id' => ['Category at Close', 'category'],
@@ -469,6 +470,7 @@ class TicketsService
             if ($newId === $oldId) {
                 continue;
             }
+            if ($field === 'category_id') $categoryChange = [$oldId, $newId];   // GH #298: ticket.category_changed
             $updates[] = "$field = ?";
             $args[]    = $newId;
             $audits[]  = ($field === 'resolution_code_id')
@@ -835,7 +837,7 @@ class TicketsService
             $rb = $conn->prepare(
                 "SELECT t.id, t.subject, t.priority_id, t.status_id, t.department_id,
                         t.ticket_type_id AS type_id, t.assigned_analyst_id, t.owner_id,
-                        t.origin_id, t.user_id AS created_by, u.email AS requester_email
+                        t.origin_id, t.user_id AS created_by, u.email AS requester_email, t.category_id
                  FROM tickets t LEFT JOIN users u ON u.id = t.user_id WHERE t.id = ?"
             );
             $rb->execute([$ticketId]);
@@ -852,6 +854,7 @@ class TicketsService
                 'origin_id'           => isset($r['origin_id']) ? (int)$r['origin_id'] : null,
                 'created_by'          => isset($r['created_by']) ? (int)$r['created_by'] : null,
                 'requester_email'     => $r['requester_email'] ?? null,
+                'category_id'         => isset($r['category_id']) ? (int)$r['category_id'] : null,   // GH #298
             ];
             $oldStatusId = $current['status_id'] !== null ? (int)$current['status_id'] : null;
             if ($newStatusId !== null && $newStatusId !== $oldStatusId) {
@@ -877,6 +880,13 @@ class TicketsService
             if ($teamChangedTo !== null) {
                 WorkflowEngine::dispatch('ticket.team_assigned', [
                     'ticket' => $payload, 'team_id' => $teamChangedTo, 'analyst_id' => null,
+                ]);
+            }
+            // GH #298. Email tickets get their category at triage, so routing by
+            // category needs to hear about the change, not only about creation.
+            if ($categoryChange !== null) {
+                WorkflowEngine::dispatch('ticket.category_changed', [
+                    'ticket' => $payload, 'old_category_id' => $categoryChange[0], 'new_category_id' => $categoryChange[1],
                 ]);
             }
         } catch (Exception $wfEx) {
@@ -964,6 +974,7 @@ class TicketsService
             'origin_id'           => isset($r['origin_id']) ? (int)$r['origin_id'] : null,
             'created_by'          => isset($r['user_id']) ? (int)$r['user_id'] : null,
             'requester_email'     => $r['requester_email'] ?? null,
+            'category_id'         => isset($r['category_id']) ? (int)$r['category_id'] : null,   // GH #298
         ];
     }
 

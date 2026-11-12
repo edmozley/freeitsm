@@ -771,7 +771,8 @@ const WFE = (() => {
                     </label>`;
                 }).join('') +
                 '</div>' +
-                '<small style="display:block; color:var(--text-dim, #888); margin-top:4px;">Tick one for an exact match, or several for an "any of" match.</small>';
+                '<small style="display:block; color:var(--text-dim, #888); margin-top:4px;">Tick one for an exact match, or several for an "any of" match.</small>' +
+                (n.field === 'ticket.category_id' ? categoryMatchTip() : '');
             return;
         }
 
@@ -790,6 +791,17 @@ const WFE = (() => {
         const valStr = Array.isArray(n.value) ? n.value.join(', ') : String(n.value ?? '');
         host.innerHTML =
             '<input type="text" id="wfCondValue" autocomplete="off" oninput="WFE.updateConditionFromDetail()" value="' + escAttr(valStr) + '">';
+    }
+
+    /**
+     * GH #298. Says whether ticking a category also matches its subcategories, and links
+     * to the setting that decides it (Tickets -> Settings -> Categories).
+     */
+    function categoryMatchTip() {
+        const t = k => window.t('workflow.editor.' + k);
+        return '<div style="margin-top:8px; padding:7px 10px; border-radius:5px; font-size:12px; line-height:1.5; background:var(--info-bg, #eef6ff); color:var(--text, #333);">' +
+            escAttr(t(window.WF_CATEGORY_TREE ? 'category_tip_tree' : 'category_tip_exact')) + ' ' +
+            '<a href="../tickets/settings/#categories" target="_blank" rel="noopener">' + escAttr(t('category_tip_link')) + '</a></div>';
     }
 
     // When a multi-select checkbox toggles, gather every checked value and

@@ -887,6 +887,19 @@ function renderOversizeFields(string $px, bool $withLimits): void
             </div>
 
             <p class="tc-note"><?php echo htmlspecialchars(t('tickets.settings.categories.preserved_note')); ?></p>
+
+            <!-- GH #298: how a workflow condition on a category treats its subcategories.
+                 Saved on change, like the portal field choices. Never saved = 'tree'
+                 (WorkflowEngine::categoryMatchIncludesSubcategories()). -->
+            <h4 class="tc-sub4"><?php echo htmlspecialchars(t('tickets.settings.categories.wf_match_heading')); ?></h4>
+            <div class="form-group" style="max-width: 520px;">
+                <label for="tcWorkflowMatch"><?php echo htmlspecialchars(t('tickets.settings.categories.wf_match_label')); ?></label>
+                <select id="tcWorkflowMatch">
+                    <option value="tree"><?php echo htmlspecialchars(t('tickets.settings.categories.wf_match_tree')); ?></option>
+                    <option value="exact"><?php echo htmlspecialchars(t('tickets.settings.categories.wf_match_exact')); ?></option>
+                </select>
+                <small style="display:block; margin-top:6px; color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.categories.wf_match_help')); ?></small>
+            </div>
             <div style="margin: 12px 0 28px;">
                 <button class="btn btn-primary" id="tcSaveSettingsBtn"><?php echo htmlspecialchars(t('tickets.settings.categories.save')); ?></button>
             </div>
@@ -4022,6 +4035,25 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     })).json();
                     showToast(d.success ? T('saved') : (d.error || 'Failed'), d.success ? 'success' : 'error');
                 } catch (e) { showToast('Failed', 'error'); }
+            });
+        })();
+
+        // GH #298: whether a workflow category condition also matches subcategories.
+        (function () {
+            const sel = document.getElementById('tcWorkflowMatch');
+            if (!sel) return;   // tab not shown to this analyst
+            fetch(API_SETTINGS + 'get_system_settings.php').then(r => r.json()).then(d => {
+                sel.value = d && d.settings && d.settings.workflow_category_match === 'exact' ? 'exact' : 'tree';
+            }).catch(() => {});
+            sel.addEventListener('change', async () => {
+                try {
+                    const d = await (await fetch(API_SETTINGS + 'save_system_settings.php', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ settings: { workflow_category_match: sel.value === 'exact' ? 'exact' : 'tree' } })
+                    })).json();
+                    if (d.success) showToast(window.t('tickets.settings.categories.wf_match_saved'), 'success');
+                    else showToast('Error: ' + d.error, 'error');
+                } catch (e) { showToast('Failed to save settings', 'error'); }
             });
         })();
 

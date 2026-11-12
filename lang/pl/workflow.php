@@ -124,6 +124,9 @@ return [
     'editor' => [
         'new_title' => 'Nowy przepływ pracy',
         'edit_title' => 'Edytuj przepływ pracy',
+        'category_tip_tree' => 'Zaznaczona kategoria obejmuje też swoje podkategorie - „Sprzęt” obejmuje „Sprzęt → Laptop”.',
+        'category_tip_exact' => 'Pasują tylko zaznaczone kategorie - bez ich podkategorii.',
+        'category_tip_link' => 'Zmień to w Zgłoszenia → Ustawienia → Kategorie',
         'name_label' => 'Nazwa',
         'name_placeholder' => 'np. alert o zgłoszeniu P1',
         'description_label' => 'Opis',

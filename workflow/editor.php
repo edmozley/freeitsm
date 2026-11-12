@@ -409,6 +409,9 @@ if ($wfCompanyPicker) {
         // table. Drives the condition value control's dropdown / multi-select.
         // Fields not in this map are free-text and use a plain input.
         window.WF_LOOKUP_VALUES  = <?php echo json_encode($lookupValuesByField); ?>;
+        // GH #298: does a category condition also match subcategories (Tickets -> Settings ->
+        // Categories)? Drives the tip under a category condition.
+        window.WF_CATEGORY_TREE  = <?php echo WorkflowEngine::categoryMatchIncludesSubcategories() ? 'true' : 'false'; ?>;
         // Field path → type ('lookup' / 'numeric' / 'text'). Drives which
         // operators the editor offers for each field — text fields don't
         // get gt/lt, numeric fields don't get contains/not_contains.
@@ -449,7 +452,7 @@ if ($wfCompanyPicker) {
         };
     </script>
     <script src="../checklists/search_scoring.js?v=1"></script>
-    <script src="../assets/js/workflow-editor.js?v=24"></script>
+    <script src="../assets/js/workflow-editor.js?v=25"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

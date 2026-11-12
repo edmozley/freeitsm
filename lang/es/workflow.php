@@ -124,6 +124,9 @@ return [
     'editor' => [
         'new_title' => 'Nuevo flujo de trabajo',
         'edit_title' => 'Editar flujo de trabajo',
+        'category_tip_tree' => 'Marcar una categoría también incluye sus subcategorías: «Hardware» abarca «Hardware → Portátil».',
+        'category_tip_exact' => 'Solo coinciden las categorías marcadas, no sus subcategorías.',
+        'category_tip_link' => 'Cámbielo en Tickets → Configuración → Categorías',
         'name_label' => 'Nombre',
         'name_placeholder' => 'p. ej. alerta de ticket P1',
         'description_label' => 'Descripción',

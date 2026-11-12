@@ -128,6 +128,9 @@ return [
     'editor' => [
         'new_title'       => 'New workflow',
         'edit_title'      => 'Edit workflow',
+        'category_tip_tree' => 'Ticking a category also matches its subcategories - "Hardware" catches "Hardware → Laptop".',
+        'category_tip_exact' => 'Only the categories ticked match - their subcategories are not included.',
+        'category_tip_link' => 'Change this in Tickets → Settings → Categories',
         'name_label'      => 'Name',
         'name_placeholder'=> 'e.g. P1 ticket alert',
         'description_label' => 'Description',

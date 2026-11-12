@@ -53,7 +53,7 @@ function ticketDispatchCreated(PDO $conn, int $ticketId, ?int $createdBy = null,
         // how the payload would start to differ between channels.
         $stmt = $conn->prepare(
             "SELECT t.id, t.subject, t.status_id, t.priority_id, t.department_id,
-                    t.ticket_type_id, t.assigned_analyst_id, t.assigned_team_id, t.user_id,
+                    t.ticket_type_id, t.assigned_analyst_id, t.assigned_team_id, t.user_id, t.category_id,
                     u.email AS user_email
                FROM tickets t
           LEFT JOIN users u ON u.id = t.user_id
@@ -79,6 +79,8 @@ function ticketDispatchCreated(PDO $conn, int $ticketId, ?int $createdBy = null,
                 // ticket form. Without it, "new tickets for the L2 team" could
                 // not be a workflow condition at all.
                 'assigned_team_id'    => $t['assigned_team_id']    !== null ? (int)$t['assigned_team_id']    : null,
+                // GH #298: route a new ticket by its category.
+                'category_id'         => $t['category_id']         !== null ? (int)$t['category_id']         : null,
                 'created_by'          => $createdBy,
                 'requester_email'     => $requesterEmail !== null && $requesterEmail !== ''
                                             ? $requesterEmail

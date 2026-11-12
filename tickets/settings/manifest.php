@@ -87,6 +87,7 @@ return [
                 'ticket_category_enabled',
                 'ticket_closure_category_enabled',
                 'ticket_resolution_code_enabled',
+                'workflow_category_match',   // GH #298: does a workflow category condition match subcategories
             ],
         ],
         [

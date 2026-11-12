@@ -111,6 +111,9 @@ class WorkflowEngine
             'ticket.created'           => 'A ticket is created',
             'ticket.status_changed'    => 'A ticket\'s status changes',
             'ticket.priority_changed'  => 'A ticket\'s priority changes',
+            // GH #298. Email tickets arrive with no category and get one at triage,
+            // so "route by category" needs this as well as ticket.created.
+            'ticket.category_changed'  => 'A ticket\'s category changes',
             'ticket.assigned'          => 'A ticket is assigned to an analyst',
             // #1566. Separate from ticket.assigned because it answers a different
             // question: which QUEUE owns the ticket, not who is working on it.
@@ -413,6 +416,9 @@ class WorkflowEngine
             'ticket.department_id', 'ticket.type_id', 'ticket.assigned_analyst_id',
             'ticket.owner_id', 'ticket.origin_id', 'ticket.created_by',
             'ticket.requester_email',
+            // GH #298. Filled in by withTicketCategory() for every ticket event, so
+            // "a ticket in Hardware" is a condition on any ticket trigger.
+            'ticket.category_id',
         ];
         $jmlFields     = ['jml_case.id', 'jml_case.kind', 'jml_case.person_name', 'jml_case.person_email', 'jml_case.user_id',
                           'jml_case.effective_date', 'jml_case.status', 'jml_case.template_name', 'jml_case.parent_task_id'];
@@ -429,6 +435,7 @@ class WorkflowEngine
             'ticket.team_assigned'    => array_merge($fullTicket, ['team_id']),
             'ticket.status_changed'   => array_merge($fullTicket, ['old_status_id', 'new_status_id']),
             'ticket.priority_changed' => array_merge($fullTicket, ['old_priority_id', 'new_priority_id']),
+            'ticket.category_changed' => array_merge($fullTicket, ['old_category_id', 'new_category_id']),
             'ticket.assigned'         => array_merge($fullTicket, ['analyst_id', 'team_id']),
             'ticket.note_added'       => array_merge($fullTicket, ['note_id', 'is_internal']),
             'ticket.reply_received'   => array_merge($fullTicket, ['source']),
@@ -1918,6 +1925,7 @@ class WorkflowEngine
             // to, is switched off for the install. Below the notifications and the
             // search index on purpose: those are not workflows.
             if (self::moduleOffFor($conn, $event) !== null) return;
+            $payload = self::withTicketCategory($conn, $event, $payload);   // GH #298
             // GH #209. Shared workflows run for every event; a company's own only
             // for that company's. An event that belongs to no company (a supplier
             // saved, a status renamed) runs the shared ones only. Nothing to work
@@ -2261,7 +2269,15 @@ class WorkflowEngine
             $op    = $cond['op']    ?? 'equals';
             $value = $cond['value'] ?? null;
             $actual = self::dotGet($payload, $field);
-            $passed = self::evaluateOperator($op, $actual, $value);
+            // GH #298. A category condition also matches the subcategories of what
+            // it names, unless Tickets -> Settings -> Categories says exact only.
+            $tested = $value;
+            $withSubs = false;
+            if ($field === 'ticket.category_id' && in_array($op, ['in', 'not_in'], true) && self::categoryMatchIncludesSubcategories()) {
+                $tested = self::categoryIdsWithDescendants($value);
+                $withSubs = true;
+            }
+            $passed = self::evaluateOperator($op, $actual, $tested);
             $stepLog[] = [
                 'kind'   => 'condition',
                 'index'  => $i,
@@ -2271,9 +2287,77 @@ class WorkflowEngine
                 'actual' => $actual,
                 'passed' => $passed,
             ];
+            if ($withSubs) $stepLog[array_key_last($stepLog)]['includes_subcategories'] = true;
             if (!$passed) return false;
         }
         return true;
+    }
+
+    /**
+     * Adds ticket.category_id to a ticket event's payload when the caller did not send it (GH #298).
+     *
+     * Ticket events are built in a dozen places; rather than teach each one the field, the
+     * engine reads it once here. Only for ticket.* events with a ticket id, only when absent -
+     * a payload that says category_id (even null) is believed.
+     *
+     * @param string $event  the trigger event key
+     * @param array $payload  the event's payload
+     */
+    private static function withTicketCategory(PDO $conn, string $event, array $payload): array
+    {
+        if (!str_starts_with($event, 'ticket.') || !is_array($payload['ticket'] ?? null)) return $payload;
+        if (array_key_exists('category_id', $payload['ticket'])) return $payload;
+        $id = (int)($payload['ticket']['id'] ?? 0);
+        if ($id <= 0) return $payload;
+        try {
+            $s = $conn->prepare("SELECT category_id FROM tickets WHERE id = ?");
+            $s->execute([$id]);
+            $v = $s->fetchColumn();
+            $payload['ticket']['category_id'] = ($v === false || $v === null) ? null : (int)$v;
+        } catch (Throwable) { /* before Database Verify: no category, condition does not match */ }
+        return $payload;
+    }
+
+    /**
+     * Does a category condition also match subcategories? Tickets -> Settings -> Categories,
+     * 'workflow_category_match': 'tree' (never saved - the default) or 'exact'. GH #298.
+     */
+    public static function categoryMatchIncludesSubcategories(): bool
+    {
+        try {
+            $s = connectToDatabase()->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'workflow_category_match'");
+            $s->execute();
+            return $s->fetchColumn() !== 'exact';
+        } catch (Throwable) {
+            return true;
+        }
+    }
+
+    /**
+     * The categories named, plus every category beneath them (depth is capped at 3, so
+     * two rounds at most). Ids as strings, like the editor saves them. GH #298.
+     *
+     * @param mixed $value  the condition's value: a list of ids, one id, or "1,2"
+     */
+    private static function categoryIdsWithDescendants($value): array
+    {
+        $ids = is_array($value) ? $value : (is_string($value) ? explode(',', $value) : [$value]);
+        $ids = array_values(array_unique(array_filter(array_map(fn($x) => (int)trim((string)$x), $ids))));
+        if (!$ids) return [];
+        try {
+            $conn = connectToDatabase();
+            $all = $ids;
+            $frontier = $ids;
+            for ($round = 0; $frontier && $round < 5; $round++) {
+                $st = $conn->prepare('SELECT id FROM ticket_categories WHERE parent_id IN (' . implode(',', array_fill(0, count($frontier), '?')) . ')');
+                $st->execute($frontier);
+                $frontier = array_values(array_diff(array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)), $all));
+                $all = array_merge($all, $frontier);
+            }
+            return array_map('strval', $all);
+        } catch (Throwable) {
+            return array_map('strval', $ids);
+        }
     }
 
     /**

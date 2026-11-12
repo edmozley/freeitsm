@@ -124,6 +124,9 @@ return [
     'editor' => [
         'new_title' => 'Neuer Workflow',
         'edit_title' => 'Workflow bearbeiten',
+        'category_tip_tree' => 'Eine angehakte Kategorie gilt auch für ihre Unterkategorien - "Hardware" erfasst "Hardware → Laptop".',
+        'category_tip_exact' => 'Nur die angehakten Kategorien gelten - ihre Unterkategorien nicht.',
+        'category_tip_link' => 'Ändern unter Tickets → Einstellungen → Kategorien',
         'name_label' => 'Name',
         'name_placeholder' => 'z. B. P1-Ticket-Warnung',
         'description_label' => 'Beschreibung',

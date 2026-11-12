@@ -124,6 +124,9 @@ return [
     'editor' => [
         'new_title' => 'Workflow baru',
         'edit_title' => 'Edit workflow',
+        'category_tip_tree' => 'Mencentang sebuah kategori juga mencakup subkategorinya - "Perangkat keras" mencakup "Perangkat keras → Laptop".',
+        'category_tip_exact' => 'Hanya kategori yang dicentang yang cocok - subkategorinya tidak.',
+        'category_tip_link' => 'Ubah di Tiket → Pengaturan → Kategori',
         'name_label' => 'Nama',
         'name_placeholder' => 'mis. Peringatan tiket P1',
         'description_label' => 'Deskripsi',
