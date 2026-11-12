@@ -3360,6 +3360,8 @@ try {
         // #282 slice 2: a line's accounts go with the line; an account in use cannot go (AccountsService refuses first).
         ['project_budget_line_accounts', 'fk_pbla_line', "ALTER TABLE project_budget_line_accounts ADD CONSTRAINT fk_pbla_line FOREIGN KEY (line_id) REFERENCES project_budget_lines (id) ON DELETE CASCADE"],
         ['project_budget_line_accounts', 'fk_pbla_account', "ALTER TABLE project_budget_line_accounts ADD CONSTRAINT fk_pbla_account FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE RESTRICT"],
+        // GH #315: a mailbox's department; deleting the department returns the mailbox to the default.
+        ['target_mailboxes', 'fk_target_mailboxes_department', "ALTER TABLE target_mailboxes ADD CONSTRAINT fk_target_mailboxes_department FOREIGN KEY (department_id) REFERENCES departments (id) ON DELETE SET NULL"],
         ['projects', 'fk_projects_labour_account', "ALTER TABLE projects ADD CONSTRAINT fk_projects_labour_account FOREIGN KEY (labour_account_id) REFERENCES accounts (id) ON DELETE SET NULL"],
         // #282 slice 4: income lines go with their project; an account in use cannot go.
         ['project_income_lines', 'fk_pil_project', "ALTER TABLE project_income_lines ADD CONSTRAINT fk_pil_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE"],

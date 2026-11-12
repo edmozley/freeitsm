@@ -356,6 +356,31 @@ function ticketDepartmentForNewTicket(PDO $conn, ?int $tenantId, $explicit): arr
     return [null, "Default department '{$name}' is no longer active, so it was not applied."];
 }
 
+/**
+ * The department a new EMAILED ticket starts in (GH #315): the mailbox's own
+ * department when it has one and it is active, otherwise the company's default
+ * (ticketDepartmentForNewTicket()) - so a mailbox with none behaves exactly as before.
+ *
+ * @return array{0: ?int, 1: ?string} [department id or null, a note for the ticket's history or null]
+ */
+function ticketDepartmentForMailbox(PDO $conn, $mailboxId, ?int $tenantId): array
+{
+    $note = null;
+    if ($mailboxId !== null && $mailboxId !== '' && (int) $mailboxId > 0) {
+        try {
+            $st = $conn->prepare("SELECT d.id, d.name, d.is_active FROM target_mailboxes m JOIN departments d ON d.id = m.department_id WHERE m.id = ?");
+            $st->execute([(int) $mailboxId]);
+            $row = $st->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable) {
+            $row = false;   // column not there yet (before Database Verification)
+        }
+        if ($row && (int) $row['is_active'] === 1) return [(int) $row['id'], null];
+        if ($row) $note = "This mailbox's department '{$row['name']}' is no longer active, so the default department was used.";
+    }
+    [$id, $defaultNote] = ticketDepartmentForNewTicket($conn, $tenantId, null);
+    return [$id, $note ?? $defaultNote];
+}
+
 /** Writes ticketDepartmentForNewTicket()'s note on a new ticket's history. Never throws. */
 function ticketDepartmentNote(PDO $conn, int $ticketId, ?string $note): void
 {

@@ -228,6 +228,25 @@ try {
         $cols['default_sensitivity'] = ticketSensitivityNormalise($data['default_sensitivity']);
     }
 
+    // The department its new tickets start in (GH #315): blank = the company's default.
+    // Only when sent, and only once Database Verification has added the column.
+    if (array_key_exists('department_id', $data) && $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'department_id'")->fetch()) {
+        $deptId = (int) ($data['department_id'] ?? 0) ?: null;
+        if ($deptId !== null) {
+            $dCheck = $conn->prepare("SELECT is_active FROM departments WHERE id = ?");
+            $dCheck->execute([$deptId]);
+            $dActive = $dCheck->fetchColumn();
+            // An inactive department may stay on a mailbox that already has it, never be newly chosen.
+            $kept = false;
+            if ($id) { $k = $conn->prepare("SELECT department_id FROM target_mailboxes WHERE id = ?"); $k->execute([$id]); $kept = (int) $k->fetchColumn() === $deptId; }
+            if ($dActive === false || ((int) $dActive !== 1 && !$kept)) {
+                echo json_encode(['success' => false, 'error' => 'Choose an active department']);
+                exit;
+            }
+        }
+        $cols['department_id'] = $deptId;
+    }
+
     // This mailbox's own oversized-email rules (GH #170): null = use the defaults.
     // Validated through the same function that reads them, and stored in MB.
     // Only once Database Verification has added the column.

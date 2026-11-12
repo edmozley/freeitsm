@@ -1257,12 +1257,12 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
 
         // GH #230: an emailed ticket's type comes from the type rules / default -
         // before the number, which can carry the type.
-        // GH #218: an emailed ticket has no department of its own (a mailbox cannot
-        // set one), so it starts in the company's default department, if any.
+        // GH #218 / #315: an emailed ticket starts in its mailbox's department when the
+        // mailbox has one, otherwise in the company's default department, if any.
         // TRAP: worked out BEFORE the type rules, and passed to them - a rule with a
         // department condition never matched here while this came afterwards (#248).
         require_once __DIR__ . '/../../includes/tenant_settings.php';
-        [$departmentId, $departmentNote] = ticketDepartmentForNewTicket($conn, $ticketTenantId !== null ? (int) $ticketTenantId : null, null);
+        [$departmentId, $departmentNote] = ticketDepartmentForMailbox($conn, $mailboxId, $ticketTenantId !== null ? (int) $ticketTenantId : null);
         require_once __DIR__ . '/../../includes/ticket_type_rules.php';
         $ticketTypePick = ticketTypeAutoPick($conn, $ticketTenantId, [
             'channel' => 'email', 'mailbox_id' => $mailboxId, 'origin_id' => $ticketOriginId,

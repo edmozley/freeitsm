@@ -29,6 +29,8 @@ try {
     $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'oversize_policy'")->fetch() ? ' oversize_policy,' : ' NULL AS oversize_policy,';
     // Save a copy of sent mail (GH #270), once Database Verification has added the columns.
     $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'save_sent_copy'")->fetch() ? ' save_sent_copy, sent_folder,' : ' 0 AS save_sent_copy, NULL AS sent_folder,';
+    // Its department (GH #315), once Database Verification has added the column.
+    $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'department_id'")->fetch() ? ' department_id,' : ' NULL AS department_id,';
 
     $sql = "SELECT id, name, provider, azure_tenant_id, azure_client_id, azure_client_secret,
                    oauth_redirect_uri, oauth_scopes, imap_server, imap_port, imap_encryption,
@@ -68,6 +70,7 @@ try {
         $mailbox['tenant_id'] = ($mailbox['tenant_id'] === null) ? null : (int)$mailbox['tenant_id'];
         // The ticket origin stamped on tickets this mailbox opens (#79).
         $mailbox['default_origin_id'] = ($mailbox['default_origin_id'] === null) ? null : (int)$mailbox['default_origin_id'];
+        $mailbox['department_id'] = ($mailbox['department_id'] === null) ? null : (int)$mailbox['department_id'];
 
         // Convert bit fields to booleans
         $mailbox['is_active'] = (bool)$mailbox['is_active'];

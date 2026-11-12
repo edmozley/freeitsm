@@ -2883,6 +2883,13 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.origin_help')); ?></small>
                     </div>
 
+                    <!-- GH #315: the department new tickets from this mailbox start in. -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="mailboxDepartment"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.department_label')); ?></label>
+                        <select id="mailboxDepartment"></select>
+                        <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.department_help')); ?></small>
+                    </div>
+
                     <!-- Discussion #62: an HR mailbox whose tickets are confidential on arrival. -->
                     <div class="form-group" style="grid-column: span 2;">
                         <label><input type="checkbox" id="mailboxConfidential"> <?php echo htmlspecialchars(t('tickets.settings.mailbox_confidential.label')); ?></label>
@@ -6070,6 +6077,25 @@ function renderOversizeFields(string $px, bool $withLimits): void
         // exist, so the list is never empty — every mailbox can always set one.
         //
         // Re-runs when the company picker changes, since that changes the answer.
+        // GH #315: the department this mailbox's new tickets start in. Active departments,
+        // plus the stored one if it has since been switched off, so it is shown as saved.
+        async function populateMailboxDepartments(selectedId) {
+            const select = document.getElementById('mailboxDepartment');
+            let depts = [];
+            try {
+                const r = await fetch('../../api/tickets/get_departments.php');
+                const d = await r.json();
+                depts = d.success ? (d.departments || []) : [];
+            } catch (e) { depts = []; }
+            let html = '<option value="">' + escapeHtml(t('tickets.settings.modals.mailbox.department_default')) + '</option>';
+            depts.filter(x => Number(x.is_active) === 1 || String(x.id) === String(selectedId ?? '')).forEach(x => {
+                html += '<option value="' + x.id + '">' + escapeHtml(x.name) + '</option>';
+            });
+            select.innerHTML = html;
+            select.value = (selectedId === null || selectedId === undefined) ? '' : String(selectedId);
+            if (select.value !== String(selectedId ?? '')) select.value = '';
+        }
+
         async function populateMailboxOrigins(selectedOriginId, tenantId) {
             const select = document.getElementById('mailboxOrigin');
             let origins = [];
@@ -6160,6 +6186,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             document.getElementById('testMailboxSendResult').style.display = 'none';
             document.getElementById('mailboxActive').checked = mailbox ? mailbox.is_active : true;
             document.getElementById('mailboxConfidential').checked = !!(mailbox && mailbox.default_sensitivity === 'confidential');
+            await populateMailboxDepartments(mailbox ? (mailbox.department_id ?? null) : null);
             await populateMailboxCompanies(mailbox ? (mailbox.tenant_id ?? null) : null);
             await populateMailboxOrigins(
                 mailbox ? (mailbox.default_origin_id ?? null) : null,
@@ -6817,6 +6844,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 tenant_id: document.getElementById('mailboxCompany').value || null,
                 default_origin_id: document.getElementById('mailboxOrigin').value || null,
                 default_sensitivity: document.getElementById('mailboxConfidential').checked ? 'confidential' : 'normal',
+                department_id: document.getElementById('mailboxDepartment').value || null,
                 oversize_policy: document.getElementById('mailboxOversizeUse').value === 'own' ? oversizeFields('ovm') : null
             };
 

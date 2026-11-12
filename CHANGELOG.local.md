@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2848 | Tickets           | Feature     | A department per mailbox (#315): Tickets -> Settings -> Mailboxes -> Department sets the department new emailed tickets start in (blank = the company's default, as before); an inactive one falls back to the default with a history note; worked out before the ticket type rules. target_mailboxes.department_id (FK ON DELETE SET NULL), ticketDepartmentForMailbox(), tests/mailbox-department.php (11). |
 | 2847 | System            | Improvement | Ask AI buttons show only when that feature's AI is set up (#309): Knowledge header Ask AI and the ticket toolbar's Ask AI (knowledge_ai), the Projects assistant (projects_ai) and CMDB Suggest with AI (cmdb_ai), through the new aiFeatureReady() (a keyless custom endpoint counts as set up). |
 | 2846 | Tickets           | Fix         | Access checks tightened in several places. |
 | 2845 | Projects          | Fix         | Chart of accounts settings polish (#282): Projects -> Settings -> Budget showed an empty "Default:" under the two default-account settings and the raw key "all" under When a task's account changes - now "None" and "All of its time moves"; the Budget tab's Change editor selects are styled like the rest of the page. |

@@ -1937,6 +1937,9 @@ CREATE TABLE IF NOT EXISTS `target_mailboxes` (
     `last_checked_datetime` DATETIME NULL,
     -- 'confidential' = every ticket arriving here is confidential (#62).
     `default_sensitivity`   VARCHAR(20) NOT NULL DEFAULT 'normal',
+    -- The department new tickets from this mailbox start in (#315). NULL = the
+    -- company's default department, as before.
+    `department_id`         INT NULL,
     -- This mailbox's own rules for emails over the attachment size limits (#170):
     -- JSON (includes/attachment_limits.php). NULL = the defaults in Tickets -> Settings.
     `oversize_policy`       TEXT NULL,
@@ -1947,7 +1950,8 @@ CREATE TABLE IF NOT EXISTS `target_mailboxes` (
     PRIMARY KEY (`id`),
     KEY `ix_target_mailboxes_tenant_id` (`tenant_id`),
     CONSTRAINT `fk_target_mailboxes_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_target_mailboxes_origin` FOREIGN KEY (`default_origin_id`) REFERENCES `ticket_origins` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_target_mailboxes_origin` FOREIGN KEY (`default_origin_id`) REFERENCES `ticket_origins` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_target_mailboxes_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `emails` (

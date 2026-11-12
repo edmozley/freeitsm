@@ -1387,6 +1387,9 @@ return [
         // Needed on its own: emailed tickets get no department, so an HR mailbox
         // is the only thing that can protect a grievance the moment it lands.
         'default_sensitivity'     => "VARCHAR(20) NOT NULL DEFAULT 'normal'",
+        // The department new tickets from this mailbox start in (GH #315). NULL =
+        // the company's default department, as before.
+        'department_id'           => 'INT NULL',
         // This mailbox's own rules for emails over the attachment size limits (GH
         // #170) - JSON, see includes/attachment_limits.php. NULL = use the defaults
         // in Tickets -> Settings -> Mailboxes.
