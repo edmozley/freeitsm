@@ -568,7 +568,7 @@ return [
     ['domain_status_incidents', 'ix_dsi_incident', 'key', '(`incident_id`)'],
     ['cost_centres', 'uq_cost_centres_code', 'unique', '(`tenant_id`,`code`)'],
     ['cost_centres', 'ix_cost_centres_parent', 'key', '(`parent_id`)'],
-    ['accounts', 'uq_accounts_code', 'unique', '(`tenant_id`,`code`)'],   // GH #282
+    ['accounts', 'uq_accounts_code', 'unique', '(`tenant_id`,`code`)'],
     ['accounts', 'ix_accounts_parent', 'key', '(`parent_id`)'],
     ['leases', 'ix_leases_tenant', 'key', '(`tenant_id`)'],
     ['leases', 'ix_leases_supplier', 'key', '(`supplier_id`)'],
