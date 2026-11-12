@@ -6233,6 +6233,22 @@ return [
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
+    // Chart of accounts (GH #282, slice 1) - built exactly like cost_centres, plus kind
+    // (expense | fixed_asset | payroll | income). Code is TEXT, unique per company ignoring case.
+    'accounts' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'        => 'INT NOT NULL',
+        'code'             => 'VARCHAR(50) NOT NULL',
+        'name'             => 'VARCHAR(150) NOT NULL',
+        'kind'             => "VARCHAR(20) NOT NULL DEFAULT 'expense'",
+        'description'      => 'VARCHAR(500) NULL',
+        'parent_id'        => 'INT NULL',
+        'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+        'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+
     // ---- Preference templates (discussion #124) - includes/preference_templates.php ----
     'preference_templates' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',

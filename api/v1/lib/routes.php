@@ -288,6 +288,13 @@ return [
     ['GET',    '#^/cost-centres/(\d+)$#',                  ['cost_centres', 'read'],          'apiCostCentresGet'],
     ['PATCH',  '#^/cost-centres/(\d+)$#',                  ['cost_centres', 'update'],        'apiCostCentresUpdate'],
     ['DELETE', '#^/cost-centres/(\d+)$#',                  ['cost_centres', 'delete'],        'apiCostCentresDelete'],
+    // Chart of accounts (GH #282) — company-scoped; /sync is what a finance system calls.
+    ['GET',    '#^/accounts$#',                            ['accounts', 'read'],              'apiAccountsList'],
+    ['POST',   '#^/accounts$#',                            ['accounts', 'create'],            'apiAccountsCreate'],
+    ['POST',   '#^/accounts/sync$#',                       ['accounts', 'update'],            'apiAccountsSync'],
+    ['GET',    '#^/accounts/(\d+)$#',                      ['accounts', 'read'],              'apiAccountsGet'],
+    ['PATCH',  '#^/accounts/(\d+)$#',                      ['accounts', 'update'],            'apiAccountsUpdate'],
+    ['DELETE', '#^/accounts/(\d+)$#',                      ['accounts', 'delete'],            'apiAccountsDelete'],
 
     // Projects (3.2.0) — company-scoped; the key acts as its analyst, so the
     // module's own create / change / delete rules apply. Sub-resources are

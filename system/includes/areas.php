@@ -280,6 +280,15 @@ function getSystemAreas() {
             'desc'     => 'system.landing.cost_centres_desc',
             'keywords' => 'system.landing.cost_centres_keywords',
         ],
+        // Chart of accounts (GH #282). Beside Cost Centres: the finance department's
+        // other list - the what of a cost, beside the cost centre's who.
+        [
+            'icon'     => 'accounts',
+            'url'      => 'accounts/',
+            'title'    => 'system.landing.accounts_title',
+            'desc'     => 'system.landing.accounts_desc',
+            'keywords' => 'system.landing.accounts_keywords',
+        ],
         [
             'icon'     => 'topology',
             'url'      => 'topology/',
@@ -416,6 +425,8 @@ function systemAreaIcon($key) {
         // A camera: the Photo Album.
         'photo_album' => '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>',
         'cost_centres' => '<circle cx="12" cy="6" r="4"></circle><path d="M12 4.5v3"></path><path d="M12 10v4"></path><path d="M5 20v-3a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"></path><circle cx="5" cy="20" r="1"></circle><circle cx="19" cy="20" r="1"></circle><circle cx="12" cy="20" r="1"></circle><path d="M12 14v5"></path>',
+        // A ledger: a book with ruled lines and a column - the chart of accounts.
+        'accounts'    => '<rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M9 3v18"></path><path d="M12 8h5"></path><path d="M12 12h5"></path><path d="M12 16h5"></path>',
         'routing_test'=> '<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>',
         'topology'    => '<rect x="9" y="3" width="6" height="5" rx="1"></rect><rect x="3" y="16" width="6" height="5" rx="1"></rect><rect x="15" y="16" width="6" height="5" rx="1"></rect><path d="M12 8v4M6 16v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"></path>',
         // An award ribbon — thanks, not administration. Deliberately not the

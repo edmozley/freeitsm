@@ -3456,6 +3456,9 @@ try {
     $costCentreFks = [
         ['cost_centres', 'fk_cost_centres_parent', "ALTER TABLE cost_centres ADD CONSTRAINT fk_cost_centres_parent FOREIGN KEY (parent_id) REFERENCES cost_centres (id) ON DELETE SET NULL"],
         ['cost_centres', 'fk_cost_centres_tenant', "ALTER TABLE cost_centres ADD CONSTRAINT fk_cost_centres_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"],
+        // Chart of accounts (GH #282) - the same rules as cost centres.
+        ['accounts', 'fk_accounts_parent', "ALTER TABLE accounts ADD CONSTRAINT fk_accounts_parent FOREIGN KEY (parent_id) REFERENCES accounts (id) ON DELETE SET NULL"],
+        ['accounts', 'fk_accounts_tenant', "ALTER TABLE accounts ADD CONSTRAINT fk_accounts_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"],
     ];
     foreach ($costCentreFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;

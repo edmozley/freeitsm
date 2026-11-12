@@ -68,6 +68,7 @@ $DB_VERIFY_MODULE_PREFIXES = [
     'user_preferences' => 'system',
     'user_sso'         => 'system',
     'cost_centre'      => 'system',   // GH #160 - System -> Cost Centres
+    'accounts'         => 'system',   // GH #282 - System -> Chart of Accounts
     'lease'            => 'assets',   // Assets -> Leases (3.5.0): leases, lease_schedules, lease_assets, lease_outcomes
     'photo_album'      => 'system',   // System -> Photo Album
     // --- Tickets (and everything that feeds the inbox) ---

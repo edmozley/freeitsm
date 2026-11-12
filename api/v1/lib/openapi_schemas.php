@@ -14031,6 +14031,194 @@ return array (
         ),
       ),
     ),
+    'Account' => 
+    array (
+      'type' => 'object',
+      'description' => 'A account (GH #160). Always one company\'s. The code is text, returned exactly as stored - "0010" stays "0010".',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'code' => 
+        array (
+          'type' => 'string',
+          'description' => 'Unique per company, ignoring capitals.',
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+        ),
+        'kind' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'expense',
+            1 => 'fixed_asset',
+            2 => 'payroll',
+            3 => 'income',
+          ),
+          'description' => 'Which section of a project\'s By-account breakdown the account is counted in.',
+        ),
+        'description' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'parent' => 
+        array (
+          'type' => 'object',
+          'nullable' => true,
+          'description' => 'null = top level.',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'code' => 
+            array (
+              'type' => 'string',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+          ),
+        ),
+        'is_active' => 
+        array (
+          'type' => 'boolean',
+          'description' => 'false = not offered for new assignments; kept on anything already charged to it.',
+        ),
+        'company' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'id' => 
+            array (
+              'type' => 'integer',
+            ),
+            'name' => 
+            array (
+              'type' => 'string',
+            ),
+          ),
+        ),
+        'child_count' => 
+        array (
+          'type' => 'integer',
+        ),
+        'created_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+        ),
+        'updated_at' => 
+        array (
+          'type' => 'string',
+          'format' => 'date-time',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'AccountSyncResult' => 
+    array (
+      'type' => 'object',
+      'description' => 'What a sync did (or, with dry_run, would do).',
+      'properties' => 
+      array (
+        'company_id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'applied' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'dry_run' => 
+        array (
+          'type' => 'boolean',
+        ),
+        'counts' => 
+        array (
+          'type' => 'object',
+          'properties' => 
+          array (
+            'create' => 
+            array (
+              'type' => 'integer',
+            ),
+            'update' => 
+            array (
+              'type' => 'integer',
+            ),
+            'unchanged' => 
+            array (
+              'type' => 'integer',
+            ),
+            'deactivate' => 
+            array (
+              'type' => 'integer',
+            ),
+          ),
+        ),
+        'changes' => 
+        array (
+          'type' => 'array',
+          'items' => 
+          array (
+            'type' => 'object',
+            'properties' => 
+            array (
+              'line' => 
+              array (
+                'type' => 'integer',
+                'nullable' => true,
+                'description' => '1-based position in accounts; null for one made inactive because it was missing from the list.',
+              ),
+              'code' => 
+              array (
+                'type' => 'string',
+              ),
+              'name' => 
+              array (
+                'type' => 'string',
+              ),
+              'action' => 
+              array (
+                'type' => 'string',
+                'enum' => 
+                array (
+                  0 => 'create',
+                  1 => 'update',
+                  2 => 'deactivate',
+                ),
+              ),
+              'changes' => 
+              array (
+                'type' => 'array',
+                'items' => 
+                array (
+                  'type' => 'string',
+                  'enum' => 
+                  array (
+                    0 => 'code',
+                    1 => 'name',
+                    2 => 'description',
+                    3 => 'is_active',
+                    4 => 'parent',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
   ),
   'responses' => 
   array (
@@ -15099,6 +15287,14 @@ return array (
                     'type' => 'string',
                   ),
                 ),
+                'accounts' =>
+                array (
+                  'type' => 'array',
+                  'items' =>
+                  array (
+                    'type' => 'string',
+                  ),
+                ),
                 'projects' =>
                 array (
                   'type' => 'array',
@@ -16113,6 +16309,34 @@ return array (
       array (
         '$ref' => '#/components/schemas/ProjectHistoryEntry',
       ),
+    ),
+    'DELETE /accounts/{id}' => 
+    array (
+      '$ref' => '#/components/schemas/DeleteAck',
+    ),
+    'GET /accounts' => 
+    array (
+      'type' => 'array',
+      'items' => 
+      array (
+        '$ref' => '#/components/schemas/Account',
+      ),
+    ),
+    'GET /accounts/{id}' => 
+    array (
+      '$ref' => '#/components/schemas/Account',
+    ),
+    'PATCH /accounts/{id}' => 
+    array (
+      '$ref' => '#/components/schemas/Account',
+    ),
+    'POST /accounts' => 
+    array (
+      '$ref' => '#/components/schemas/Account',
+    ),
+    'POST /accounts/sync' => 
+    array (
+      '$ref' => '#/components/schemas/AccountSyncResult',
     ),
     'DELETE /cost-centres/{id}' => 
     array (

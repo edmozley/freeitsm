@@ -362,6 +362,23 @@ function getHelpTopics() {
                      . ' kostenstelle excel xlsx csv import export spreadsheet leading zero zeros 0010 hierarchy parent child'
                      . ' inactive retire sync nightly rest api charge charged asset assets contract contracts person people user users',
         ],
+        // Chart of accounts (GH #282).
+        'accounts' => [
+            'hero' => 'Chart of Accounts',
+            'sub'  => 'Keep your finance department\'s accounts in FreeITSM, for each company - each an expense, fixed asset, payroll or income - by hand, from a spreadsheet, or kept in step with your finance system through the API.',
+            'sections' => [
+                ['id' => 'overview',  'label' => 'What an account is here'],
+                ['id' => 'kinds',     'label' => 'The kind of account'],
+                ['id' => 'codes',     'label' => 'Codes and leading zeros'],
+                ['id' => 'hierarchy', 'label' => 'Building a hierarchy'],
+                ['id' => 'inactive',  'label' => 'Inactive or delete?'],
+                ['id' => 'import',    'label' => 'Importing and exporting'],
+                ['id' => 'api',       'label' => 'Syncing from your finance system'],
+            ],
+            'terms' => 'chart of accounts account accounts code codes general ledger gl nominal ledger expense opex capex fixed asset capitalise capitalize'
+                     . ' payroll salaries income revenue finance accounting erp sap datev sage xero konto kontenplan sachkonto kontoart'
+                     . ' excel xlsx csv import export spreadsheet leading zero hierarchy parent child inactive retire sync nightly rest api kind type',
+        ],
         // Photo Album - just for fun.
         'photo-album' => [
             'hero' => 'Photo Album',

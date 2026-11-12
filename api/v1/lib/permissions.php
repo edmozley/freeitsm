@@ -317,6 +317,15 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Delete a cost centre that has nothing below it',
             ],
         ],
+        'accounts' => [
+            'label'   => 'Chart of accounts',
+            'actions' => [
+                'read'   => 'List and view accounts (company-scoped)',
+                'create' => 'Add accounts (sync needs this as well as update)',
+                'update' => 'Change accounts, and sync a whole chart from a finance system',
+                'delete' => 'Delete an account that has nothing below it',
+            ],
+        ],
         'projects' => [
             'label'   => 'Projects',
             'actions' => [

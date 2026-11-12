@@ -9416,6 +9416,36 @@ CREATE TABLE IF NOT EXISTS `cost_centres` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
+-- Chart of accounts (GH #282) - System -> Chart of Accounts.
+-- The finance department's account codes: the WHAT of a cost, beside the cost
+-- centre's WHO. Built exactly like cost_centres, plus `kind`.
+-- ----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `accounts` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`        INT NOT NULL,
+    -- TEXT, never a number: "2.0.3.0.4" and "0010" are real codes. Unique per
+    -- company, and the unicode_ci collation makes that check ignore case.
+    `code`             VARCHAR(50) NOT NULL,
+    `name`             VARCHAR(150) NOT NULL,
+    -- expense | fixed_asset | payroll | income (AccountsService::KINDS) - which
+    -- section of a project's By-account breakdown the account lands in.
+    `kind`             VARCHAR(20) NOT NULL DEFAULT 'expense',
+    `description`      VARCHAR(500) NULL,
+    -- The hierarchy. NULL = top level. Always in the same company.
+    `parent_id`        INT NULL,
+    -- Inactive = not offered for NEW assignments; whatever already names it keeps it.
+    `is_active`        TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `is_demo`          TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_accounts_code` (`tenant_id`, `code`),
+    KEY `ix_accounts_parent` (`parent_id`),
+    CONSTRAINT `fk_accounts_parent` FOREIGN KEY (`parent_id`) REFERENCES `accounts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_accounts_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
 -- Preference templates (discussion #124) - System -> Preference templates.
 -- A named set of preferences captured from somebody's real ones and given to
 -- people in one go. See includes/preference_templates.php.

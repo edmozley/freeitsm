@@ -29,7 +29,7 @@ const API_V1_RESOURCE_MODULES = [
     'users' => ['tickets'],
     // System (always on)
     'analysts' => ['system'], 'analyst_access' => ['system'], 'companies' => ['system'],
-    'cost_centres' => ['system'], 'job_health' => ['system'], 'mcp' => ['system'],
+    'cost_centres' => ['system'], 'accounts' => ['system'], 'job_health' => ['system'], 'mcp' => ['system'],
     // Assets
     'assets' => ['assets'], 'asset_assignments' => ['assets'], 'asset_history' => ['assets'],
     'asset_inventory' => ['assets'], 'virtual_estate' => ['assets'],

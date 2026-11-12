@@ -761,6 +761,19 @@ return [
         'link'     => 'system/cost-centres/',
         'check'    => ['rows', 'cost_centres', 'is_active = 1 AND is_demo = 0'],
     ],
+    // ───────────────────────── Chart of accounts (GH #282) ─────────────────────────
+    [
+        'id'       => 'system.accounts',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Chart of accounts',
+        'what'     => 'Your finance department\'s accounts, for each company - each an expense, fixed asset, payroll or income - with a hierarchy, kept in step with your finance system by spreadsheet import or the API.',
+        'why'      => 'Beside cost centres (who pays), accounts say what kind of cost it is - so a project\'s spending can be reported the way finance reports it.',
+        'done'     => 'At least one active account exists.',
+        'link'     => 'system/accounts/',
+        'check'    => ['rows', 'accounts', 'is_active = 1 AND is_demo = 0'],
+    ],
     [
         'id'       => 'system.cost_centre_charging',
         'module'   => 'system',

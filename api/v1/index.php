@@ -30,6 +30,7 @@ require_once __DIR__ . '/resources/contracts.php';
 require_once __DIR__ . '/resources/domains.php';
 require_once __DIR__ . '/resources/domain_monitoring.php';   // GH #243
 require_once __DIR__ . '/resources/cost_centres.php';
+require_once __DIR__ . '/resources/accounts.php';
 require_once __DIR__ . '/resources/projects.php';
 require_once __DIR__ . '/resources/calendar.php';
 require_once __DIR__ . '/resources/software.php';
@@ -170,6 +171,8 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /domain-trust-profiles', 'POST /domain-trust-profiles', 'PATCH /domain-trust-profiles/{id}', 'DELETE /domain-trust-profiles/{id}',
             'GET /cost-centres', 'POST /cost-centres', 'POST /cost-centres/sync', 'GET /cost-centres/{id}',
             'PATCH /cost-centres/{id}', 'DELETE /cost-centres/{id}',
+            'GET /accounts', 'POST /accounts', 'POST /accounts/sync', 'GET /accounts/{id}',
+            'PATCH /accounts/{id}', 'DELETE /accounts/{id}',
             'GET /calendar/events', 'POST /calendar/events', 'GET /calendar/events/{id}',
             'PATCH /calendar/events/{id}', 'DELETE /calendar/events/{id}', 'GET /calendar-categories',
             'GET /software/apps', 'GET /software/apps/{id}', 'GET /software/apps/{id}/machines',
