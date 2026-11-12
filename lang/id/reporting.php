@@ -41,6 +41,7 @@ return [
         'refresh' => 'Segarkan',
         'tab_login' => 'Login pengguna',
         'tab_email_import' => 'Impor email',
+        'tab_api_activity' => 'Aktivitas API',
         'loading' => 'Memuat log...',
         'no_logs' => 'Tidak ada log ditemukan',
         'load_error' => 'Gagal memuat log: {error}',
@@ -184,6 +185,8 @@ return [
         'affects_integration_poll' => 'Status dan komentar dari Jira dan pelacak lain pada tiket yang tertaut',
         'name_csat_delayed' => 'Survei kepuasan dan pengingat yang tertunda',
         'affects_csat_delayed' => 'Survei kepuasan yang ditahan oleh "Jeda sebelum mengirim" dan pengingat survei - keduanya tidak pernah terkirim',
+        'name_api_log_tidy' => 'Pembersihan log aktivitas API',
+        'affects_api_log_tidy' => 'Baris lama log aktivitas API tidak dihapus maupun diarsipkan, sehingga log terus membesar',
         'name_task_recurrence' => 'Tugas berulang',
         'affects_task_recurrence' => 'Tugas yang berulang sesuai jadwal tetap',
         'name_attachment_extract' => 'Teks lampiran',
@@ -745,6 +748,7 @@ return [
             'col_manager' => 'Kolom manajer proyek',
             'health_notes' => 'Alasannya, di bawah tiap proyek',
             'risk_plans' => 'Rencana respons di bawah tiap risiko',
+            'col_hours' => 'Kolom jam',
         ],
         'projects' => [
             'scope_live' => 'Diusulkan dan aktif',
@@ -847,6 +851,12 @@ return [
             'warranty_ends' => 'Garansi berakhir',
             'lease_ends' => 'Sewa berakhir',
             'project' => 'Proyek',
+            'account' => 'Akun',
+            'kind' => 'Jenis',
+            'planned' => 'Direncanakan',
+            'actual' => 'Aktual',
+            'forecast' => 'Perkiraan',
+            'hours' => 'Jam',
             'health' => 'Kesehatan',
             'progress' => 'Kemajuan',
             'stage' => 'Tahap',
@@ -898,6 +908,7 @@ return [
             'projects' => 'Tidak ada proyek untuk ditampilkan.',
             'milestones' => 'Tidak ada akhir tahap atau target selesai pada periode ini.',
             'risks' => 'Tidak ada risiko terbuka.',
+            'accounts' => 'Tidak ada biaya atau pendapatan proyek untuk ditampilkan per akun.',
         ],
         'err' => [
             'load' => 'Paket laporan tidak dapat dimuat.',
@@ -1080,6 +1091,10 @@ return [
             'projects_milestones' => [
                 'title' => 'Milestone proyek',
                 'desc' => 'Akhir tahap dan target selesai pada periode, dan apakah masing-masing selesai, terlewat, atau masih jatuh tempo.',
+            ],
+            'projects_accounts' => [
+                'title' => 'Biaya proyek per akun',
+                'desc' => 'Biaya dan pendapatan yang direncanakan, aktual, dan diperkirakan untuk setiap akun dalam bagan akun, dijumlahkan dari seluruh proyek Anda - angka yang sama dengan tab Anggaran setiap proyek, satu set per mata uang.',
             ],
             'projects_risks' => [
                 'title' => 'Risiko proyek teratas',

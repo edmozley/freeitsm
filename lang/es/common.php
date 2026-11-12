@@ -472,7 +472,6 @@ return [
         'hc_show' => 'Mostrar',
         'hc_hide' => 'Ocultar',
     ],
-    // GH #267: live updates (assets/js/live-pulse.js).
     'live' => [
         'updated' => 'Otra persona lo acaba de actualizar.',
         'refresh' => 'Actualizar',
@@ -533,6 +532,9 @@ return [
                 'ssl_expiring' => 'Un certificado de su dominio está a punto de caducar',
                 'changed' => 'Algo cambió en un dominio de su propiedad',
             ],
+            'api' => [
+                'security' => 'Una API key necesita su atención',
+            ],
             'project' => [
                 'health_changed' => 'Cambió el estado de salud de un proyecto que usted dirige',
                 'tolerance_breached' => 'Un proyecto que usted dirige superó una tolerancia',
@@ -552,7 +554,6 @@ return [
                 'approval_stalled' => 'Algo de un proyecto sigue esperando su decisión',
                 'report_drafted' => 'Se redactó un informe programado de un proyecto que usted dirige',
             ],
-            // The help assistant (wiki Help-Assistant-Design) - administrators only.
             'help' => [
                 'unanswered' => 'El asistente de ayuda no pudo responder una pregunta',
             ],
@@ -586,6 +587,9 @@ return [
                 'ssl_expiring' => 'Un certificado de un dominio de mi propiedad se acerca a su caducidad',
                 'changed' => 'Cambian los servidores de nombres, el registrador, los bloqueos o los registros de correo de un dominio de mi propiedad',
             ],
+            'api' => [
+                'security' => 'Una API key descarga muchos documentos, alcanza su límite o se usa desde una dirección nueva o donde o cuando no debería (administradores)',
+            ],
             'project' => [
                 'health_changed' => 'Cambia el estado de salud de un proyecto que dirijo',
                 'tolerance_breached' => 'Un proyecto que dirijo supera una tolerancia de tiempo o de riesgo',
@@ -605,7 +609,6 @@ return [
                 'approval_stalled' => 'Una propuesta, solicitud de cambio, visto bueno o informe que debo decidir lleva días esperando',
                 'report_drafted' => 'Un proyecto que dirijo tiene un informe programado redactado para que lo compruebe',
             ],
-            // The help assistant (wiki Help-Assistant-Design) - administrators only.
             'help' => [
                 'unanswered' => 'El asistente de ayuda no puede responder una pregunta que alguien hizo (administradores)',
             ],

@@ -472,7 +472,6 @@ return [
         'hc_show' => 'Tampilkan',
         'hc_hide' => 'Sembunyikan',
     ],
-    // GH #267: live updates (assets/js/live-pulse.js).
     'live' => [
         'updated' => 'Baru saja diperbarui oleh orang lain.',
         'refresh' => 'Segarkan',
@@ -533,6 +532,9 @@ return [
                 'ssl_expiring' => 'Sertifikat pada domain Anda akan kedaluwarsa',
                 'changed' => 'Ada yang berubah pada domain milik Anda',
             ],
+            'api' => [
+                'security' => 'API key Anda perlu perhatian',
+            ],
             'project' => [
                 'health_changed' => 'Kesehatan proyek yang Anda kelola berubah',
                 'tolerance_breached' => 'Proyek yang Anda kelola melampaui toleransi',
@@ -584,6 +586,9 @@ return [
                 'expiring' => 'Domain milik saya mendekati tanggal kedaluwarsa',
                 'ssl_expiring' => 'Sertifikat pada domain milik saya mendekati kedaluwarsa',
                 'changed' => 'Name server, registrar, kunci, atau catatan email berubah pada domain milik saya',
+            ],
+            'api' => [
+                'security' => 'API key mengunduh banyak dokumen, mencapai batasnya, atau digunakan dari alamat baru atau di tempat atau waktu yang tidak diizinkan (administrator)',
             ],
             'project' => [
                 'health_changed' => 'Kesehatan proyek yang saya kelola berubah',

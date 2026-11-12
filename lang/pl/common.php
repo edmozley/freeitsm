@@ -472,7 +472,6 @@ return [
         'hc_show' => 'Pokaż',
         'hc_hide' => 'Ukryj',
     ],
-    // GH #267: live updates (assets/js/live-pulse.js).
     'live' => [
         'updated' => 'Ktoś inny właśnie to zaktualizował.',
         'refresh' => 'Odśwież',
@@ -533,6 +532,9 @@ return [
                 'ssl_expiring' => 'Certyfikat Twojej domeny wkrótce wygasa',
                 'changed' => 'Coś zmieniło się w domenie, którą posiadasz',
             ],
+            'api' => [
+                'security' => 'Klucz API wymaga Twojej uwagi',
+            ],
             'project' => [
                 'health_changed' => 'Zmienił się stan projektu, którym zarządzasz',
                 'tolerance_breached' => 'Projekt, którym zarządzasz, przekroczył tolerancję',
@@ -584,6 +586,9 @@ return [
                 'expiring' => 'Zbliża się data wygaśnięcia domeny, którą posiadam',
                 'ssl_expiring' => 'Zbliża się wygaśnięcie certyfikatu domeny, którą posiadam',
                 'changed' => 'Zmieniają się serwery nazw, rejestrator, blokady lub rekordy poczty domeny, którą posiadam',
+            ],
+            'api' => [
+                'security' => 'Klucz API pobiera dużo dokumentów, osiąga swój limit albo jest używany z nowego adresu lub z miejsca albo o czasie, w którym nie powinien (administratorzy)',
             ],
             'project' => [
                 'health_changed' => 'Zmienia się stan projektu, którym zarządzam',

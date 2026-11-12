@@ -261,7 +261,6 @@ return [
         'many_skipped' => '{n} dilewati.',
         'failed' => 'Tidak dapat memperbarui pemantau.',
     ],
-    // GH #272: forms on a ticket (assets/js/ticket-forms.js).
     'forms' => [
         'button' => 'Formulir',
         'button_title' => 'Formulir yang diperlukan tiket ini',
@@ -310,7 +309,6 @@ return [
         'checklist_attached_many' => 'Dilampirkan ke %d tiket.',
         'checklist_already' => '%d sudah memilikinya.',
         'checklist_failed' => '%d gagal.',
-        // GH #272: right-click -> Add form
         'add_form' => 'Tambahkan formulir',
         'no_forms' => 'Belum ada formulir aktif',
         'forms_failed' => 'Tidak dapat memuat formulir',
@@ -1291,6 +1289,9 @@ supplier.co.uk',
                 'origin_label' => 'Asal tiket default',
                 'origin_help' => 'Dari mana tiket yang dibuka oleh kotak surat ini dicatat berasal. Diatur per kotak surat, sehingga alamat helpdesk bisa "Email" sementara alamat pemantauan berbeda sama sekali. Biarkan kosong agar tidak mencatat asal.',
                 'origin_none' => 'Tidak ada',
+                'department_label' => 'Departemen',
+                'department_default' => 'Departemen default perusahaan',
+                'department_help' => 'Tiket baru dari kotak surat ini dimulai di departemen ini, sehingga sampai ke tim yang tertaut padanya - dan hanya tim tersebut, ditambah administrator dan analis yang tidak tergabung dalam tim mana pun. Balasan pada tiket yang sudah ada tidak pernah memindahkannya.',
                 'problems_title' => 'Hal yang perlu diperiksa',
                 'problems_tooltip' => 'Ada yang perlu diperhatikan — klik untuk detail',
                 'problems_none' => 'Tidak ada yang perlu dilaporkan pada kotak surat ini.',
@@ -1640,7 +1641,6 @@ Terima kasih telah menghubungi kami...',
             'empty_block_title' => 'Tolak penutupan',
             'empty_block_desc' => 'Tiket tidak dapat mencapai status ditutup sampai setidaknya satu daftar periksa dilampirkan padanya.',
             'always_recorded' => 'Apa pun pilihannya, menutup dengan langkah yang belum selesai akan menulis catatan internal yang menyebut langkah yang dilewati, siapa yang menutupnya dan melalui antarmuka mana. Pengaturan ini menentukan apakah hal itu diizinkan, bukan apakah dicatat.',
-            // GH #272
             'forms_section_title' => 'Formulir pada tiket',
             'forms_enabled_title' => 'Izinkan formulir pada tiket',
             'forms_enabled_desc' => 'Menambahkan tombol Formulir pada setiap tiket: tambahkan formulir dari modul Formulir, isi di tiket, dan jika perlu wajibkan sebelum tiket ditutup. Nonaktif secara default.',
@@ -2860,7 +2860,6 @@ Ini tidak dapat dibatalkan. Lanjutkan?',
             'row_name' => 'Setiap baris menampilkan referensi tiket lalu sebuah nama. Secara default itu adalah <strong>orang yang membuat tiket</strong>, dan tetap sama selama tiket ada. Jika Anda lebih suka melihat pengirim pesan terbaru &mdash; yang menjadi kotak surat Anda sendiri setelah Anda membalas &mdash; ubah <strong>Nama di samping nomor tiket</strong> di <strong>Pengaturan &rarr; Tampilan baris</strong>, tempat Anda juga dapat menyembunyikan nama dan menyisakan referensinya saja. Tab itu adalah pengaturan Anda sendiri: tidak mengubah apa pun bagi orang lain.',
             'tip' => 'Klik tiket mana pun di daftar untuk memuatnya di panel baca. Dari sana Anda dapat memperbarui bidang, menambahkan komentar, membalas lewat email, atau melampirkan berkas &mdash; semuanya tanpa meninggalkan kotak masuk.',
         ],
-        // GH #267: live updates.
         'live' => [
             'heading' => 'Pembaruan langsung',
             'body' => 'FreeITSM menjaga layar Anda tetap selaras dengan semua orang. Saat rekan mengubah tiket - status, prioritas, pemilik atau tim, balasan, catatan - daftar tiket Anda dan tiket yang sedang terbuka menyusul dalam sekitar 15 detik, tanpa menekan segarkan. Papan tugas, tugas yang terbuka, dan lonceng bekerja dengan cara yang sama.',
@@ -2877,7 +2876,6 @@ Ini tidak dapat dibatalkan. Lanjutkan?',
             'leaver' => 'Analis yang dinonaktifkan tidak pernah diberi tahu tentang tiket yang dipantaunya. <strong>Tiket &rarr; Pengaturan &rarr; Umum &rarr; Saat pemantau dinonaktifkan</strong> menentukan apa yang terjadi pada pantauannya: <strong>Berhenti memberi tahu</strong> (bawaan) menyembunyikannya dan memulihkannya jika analis diaktifkan kembali; <strong>Hapus</strong> mengeluarkan analis dari semua tiket yang dipantaunya saat ia dinonaktifkan.',
             'note' => 'Hanya orang yang dapat melihat tiket yang dapat memantaunya, dan jika mereka tidak lagi dapat melihatnya, mereka berhenti diberi tahu. Tidak ada yang diberi tahu tentang perubahan mereka sendiri. Penggabungan memindahkan pemantau ke tiket yang bertahan.',
         ],
-        // GH #272: forms on a ticket.
         'forms_on_ticket' => [
             'heading' => 'Formulir pada tiket',
             'body' => 'Lampirkan formulir dari modul Formulir ke tiket dan isi di sana - permintaan karyawan baru yang membutuhkan formulir perlengkapannya, atau insiden keamanan yang membutuhkan laporannya. Jawaban disimpan bersama tiket.',

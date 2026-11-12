@@ -472,7 +472,6 @@ return [
         'hc_show' => 'Anzeigen',
         'hc_hide' => 'Ausblenden',
     ],
-    // GH #267: live updates (assets/js/live-pulse.js).
     'live' => [
         'updated' => 'Gerade von jemand anderem aktualisiert.',
         'refresh' => 'Aktualisieren',
@@ -533,6 +532,9 @@ return [
                 'ssl_expiring' => 'Ein Zertifikat Ihrer Domäne läuft bald ab',
                 'changed' => 'An einer Ihrer Domänen hat sich etwas geändert',
             ],
+            'api' => [
+                'security' => 'Ein API-Schlüssel braucht Ihre Aufmerksamkeit',
+            ],
             'project' => [
                 'health_changed' => 'Der Zustand eines von Ihnen verwalteten Projekts hat sich geändert',
                 'tolerance_breached' => 'Ein von Ihnen verwaltetes Projekt hat eine Toleranz überschritten',
@@ -552,7 +554,6 @@ return [
                 'approval_stalled' => 'Etwas in einem Projekt wartet noch auf Ihre Entscheidung',
                 'report_drafted' => 'Ein geplanter Bericht zu einem von Ihnen verwalteten Projekt wurde als Entwurf erstellt',
             ],
-            // The help assistant (wiki Help-Assistant-Design) - administrators only.
             'help' => [
                 'unanswered' => 'Der Hilfe-Assistent konnte eine Frage nicht beantworten',
             ],
@@ -586,6 +587,9 @@ return [
                 'ssl_expiring' => 'Ein Zertifikat einer meiner Domänen läuft bald ab',
                 'changed' => 'Nameserver, Registrar, Sperren oder Mail-Einträge einer meiner Domänen ändern sich',
             ],
+            'api' => [
+                'security' => 'Ein API-Schlüssel lädt viele Dokumente herunter, erreicht sein Limit oder wird von einer neuen Adresse oder an einem Ort bzw. zu einer Zeit verwendet, wo dies nicht vorgesehen ist (Administratoren)',
+            ],
             'project' => [
                 'health_changed' => 'Der Zustand eines von mir verwalteten Projekts ändert sich',
                 'tolerance_breached' => 'Ein von mir verwaltetes Projekt überschreitet eine Zeit- oder Risikotoleranz',
@@ -605,7 +609,6 @@ return [
                 'approval_stalled' => 'Ein Vorschlag, Änderungsantrag, eine Freigabe oder ein Bericht, worüber ich entscheide, wartet seit Tagen',
                 'report_drafted' => 'Für ein von mir verwaltetes Projekt wurde ein geplanter Bericht als Entwurf zur Prüfung erstellt',
             ],
-            // The help assistant (wiki Help-Assistant-Design) - administrators only.
             'help' => [
                 'unanswered' => 'Der Hilfe-Assistent kann eine gestellte Frage nicht beantworten (Administratoren)',
             ],

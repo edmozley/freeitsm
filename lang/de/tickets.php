@@ -11,14 +11,12 @@
  */
 
 return [
-    // Tickets -> Settings -> General -> A reply without a ticket number (GH #120); the choices are TicketThreadReplies.
     'thread_replies' => [
         'label' => 'Eine Antwort ohne Ticketnummer',
         'new_ticket' => 'Erstellt ein neues Ticket',
         'same_ticket' => 'Wird dem Ticket ihrer Unterhaltung zugeordnet',
         'help' => 'Jede E-Mail, die FreeITSM sendet, enthält die Ticketnummer, sodass eine Antwort darauf immer ihr Ticket findet. Eine Antwort ohne Nummer - typischerweise jemand, der auf seine eigene erste E-Mail antwortet, um etwas Vergessenes nachzureichen - erstellt ein neues Ticket, es sei denn, diese Einstellung ordnet sie dem Ticket zu, zu dem ihre E-Mail-Unterhaltung im selben Postfach bereits gehört.',
     ],
-    // Tickets -> Settings -> General -> Reply goes to (GH #120); the choices are TicketReplyTo.
     'reply_to' => [
         'label' => 'Antwort geht an',
         'message' => 'Die Person der Nachricht, die Sie gerade lesen',
@@ -243,7 +241,6 @@ return [
         'saved' => 'Betreff aktualisiert',
         'failed' => 'Der Betreff konnte nicht geändert werden',
     ],
-    // GH #277: watching a ticket (assets/js/ticket-watchers.js).
     'watch' => [
         'watch' => 'Beobachten',
         'watching' => 'Beobachtet',
@@ -264,7 +261,6 @@ return [
         'many_skipped' => '{n} übersprungen.',
         'failed' => 'Die Beobachter konnten nicht aktualisiert werden.',
     ],
-    // GH #272: forms on a ticket (assets/js/ticket-forms.js).
     'forms' => [
         'button' => 'Formulare',
         'button_title' => 'Formulare, die dieses Ticket benötigt',
@@ -313,7 +309,6 @@ return [
         'checklist_attached_many' => 'An %d Ticket(s) angehängt.',
         'checklist_already' => '%d hatte(n) sie bereits.',
         'checklist_failed' => '%d fehlgeschlagen.',
-        // GH #272: right-click -> Add form
         'add_form' => 'Formular hinzufügen',
         'no_forms' => 'Noch keine aktiven Formulare',
         'forms_failed' => 'Die Formulare konnten nicht geladen werden',
@@ -1294,6 +1289,9 @@ lieferant.de',
                 'origin_label' => 'Standard-Ticketquelle',
                 'origin_help' => 'Als was Tickets, die über dieses Postfach eröffnet werden, in ihrer Herkunft erfasst werden. Je Postfach einstellbar, sodass eine Helpdesk-Adresse „E-Mail“ sein kann, während eine Überwachungsadresse etwas ganz anderes ist. Leer lassen, um keine Quelle zu erfassen.',
                 'origin_none' => 'Keine',
+                'department_label' => 'Abteilung',
+                'department_default' => 'Die Standardabteilung des Unternehmens',
+                'department_help' => 'Neue Tickets aus diesem Postfach starten in dieser Abteilung und erreichen so die damit verknüpften Teams - und nur diese Teams, dazu Administratoren und Analysten ohne Team. Antworten auf bestehende Tickets verschieben diese nie.',
                 'problems_title' => 'Zu prüfende Punkte',
                 'problems_tooltip' => 'Etwas braucht Aufmerksamkeit — klicken Sie für Details',
                 'problems_none' => 'Bei diesem Postfach gibt es nichts zu melden.',
@@ -1397,7 +1395,7 @@ lieferant.de',
                 'event_new_ticket' => 'Neues Ticket aus E-Mail',
                 'event_note_shared' => 'Notiz für Anfragenden freigegeben',
                 'event_csat_request' => 'CSAT-Umfrage',
-                'event_csat_reminder' => 'CSAT-Erinnerung',   // GH #301
+                'event_csat_reminder' => 'CSAT-Erinnerung',
                 'event_assigned' => 'Ticket zugewiesen',
                 'event_analyst_assigned' => 'Einem Analysten zugewiesen',
                 'event_closed' => 'Ticket geschlossen',
@@ -1643,7 +1641,6 @@ vielen Dank für Ihre Kontaktaufnahme…',
             'empty_block_title' => 'Abschluss verweigern',
             'empty_block_desc' => 'Das Ticket kann keinen geschlossenen Status erreichen, bis mindestens eine Checkliste daran angehängt ist.',
             'always_recorded' => 'In jedem Fall schreibt das Schließen mit offenen Schritten eine interne Notiz, die die übersprungenen Schritte, die schließende Person und die verwendete Schnittstelle nennt. Diese Einstellungen entscheiden, ob es erlaubt ist, nie, ob es protokolliert wird.',
-            // GH #272
             'forms_section_title' => 'Formulare an Tickets',
             'forms_enabled_title' => 'Formulare an Tickets erlauben',
             'forms_enabled_desc' => 'Fügt jedem Ticket eine Schaltfläche Formulare hinzu: ein Formular aus dem Modul Formulare hinzufügen, es am Ticket ausfüllen und es optional vor dem Schließen verlangen. Standardmäßig aus.',
@@ -2863,8 +2860,6 @@ Das lässt sich nicht rückgängig machen. Fortfahren?',
             'row_name' => 'Jede Zeile zeigt die Ticketreferenz und dann einen Namen. Standardmäßig ist das <strong>die Person, die das Ticket gemeldet hat</strong>, und das bleibt für die Lebensdauer des Tickets so. Möchten Sie stattdessen sehen, wer die letzte Nachricht gesendet hat &mdash; was zu Ihrem eigenen Postfach wird, sobald Sie geantwortet haben &mdash;, ändern Sie <strong>Name neben der Ticketnummer</strong> unter <strong>Einstellungen &rarr; Zeilenanzeige</strong>, wo Sie den Namen auch ausblenden und nur die Referenz stehen lassen können. Dieser Tab ist Ihre eigene Einstellung: Sie ändert nichts für andere.',
             'tip' => 'Klicken Sie auf ein Ticket in der Liste, um es im Lesefenster zu laden. Von dort aus können Sie Felder aktualisieren, Kommentare hinzufügen, per E-Mail antworten oder Dateien anhängen &mdash; alles, ohne den Posteingang zu verlassen.',
         ],
-        // GH #277
-        // GH #267: live updates.
         'live' => [
             'heading' => 'Live-Aktualisierung',
             'body' => 'FreeITSM hält Ihren Bildschirm mit allen anderen im Gleichschritt. Ändert ein Kollege ein Ticket - Status, Priorität, Besitzer oder Team, eine Antwort, eine Notiz -, holen Ihre Ticketliste und das geöffnete Ticket das innerhalb von etwa 15 Sekunden nach, ohne dass Sie aktualisieren müssen. Aufgabentafel, geöffnete Aufgabe und Glocke funktionieren genauso.',
@@ -2881,7 +2876,6 @@ Das lässt sich nicht rückgängig machen. Fortfahren?',
             'leaver' => 'Ein deaktivierter Analyst wird über kein Ticket mehr informiert, das er beobachtet. <strong>Tickets &rarr; Einstellungen &rarr; Allgemein &rarr; Wenn ein Beobachter deaktiviert wird</strong> legt fest, was mit seinen Beobachtungen geschieht: <strong>Nicht mehr benachrichtigen</strong> (die Voreinstellung) blendet sie aus und stellt sie wieder her, wenn der Analyst wieder aktiviert wird; <strong>Entfernen</strong> nimmt den Analysten beim Deaktivieren von allen Tickets, die er beobachtet.',
             'note' => 'Nur wer ein Ticket sehen kann, kann es beobachten; wer es nicht mehr sehen kann, wird nicht mehr informiert. Niemand wird über die eigene Änderung informiert. Beim Zusammenführen wandern die Beobachter zum verbleibenden Ticket.',
         ],
-        // GH #272: forms on a ticket.
         'forms_on_ticket' => [
             'heading' => 'Formulare an einem Ticket',
             'body' => 'Hängen Sie ein Formular aus dem Modul Formulare an ein Ticket und füllen Sie es dort aus - eine Anfrage für neue Mitarbeitende mit ihrem Ausstattungsformular oder ein Sicherheitsvorfall mit seinem Bericht. Die Antworten bleiben beim Ticket.',

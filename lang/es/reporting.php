@@ -41,6 +41,7 @@ return [
         'refresh' => 'Actualizar',
         'tab_login' => 'Inicios de sesión de usuarios',
         'tab_email_import' => 'Importaciones de correo',
+        'tab_api_activity' => 'Actividad de la API',
         'loading' => 'Cargando registros...',
         'no_logs' => 'No se han encontrado registros',
         'load_error' => 'Error al cargar los registros: {error}',
@@ -184,6 +185,8 @@ return [
         'affects_integration_poll' => 'Estados y comentarios de Jira y otros gestores en los tickets vinculados',
         'name_csat_delayed' => 'Encuestas de satisfacción diferidas y recordatorios',
         'affects_csat_delayed' => 'Encuestas de satisfacción retenidas por "Retraso antes de enviar" y recordatorios de encuesta: no se envía ninguno',
+        'name_api_log_tidy' => 'Limpieza del registro de actividad de la API',
+        'affects_api_log_tidy' => 'Las filas antiguas del registro de actividad de la API no se eliminan ni se archivan, por lo que el registro sigue creciendo',
         'name_task_recurrence' => 'Tareas repetitivas',
         'affects_task_recurrence' => 'Tareas que se repiten con una programación fija',
         'name_attachment_extract' => 'Texto de los adjuntos',
@@ -745,6 +748,7 @@ return [
             'col_manager' => 'Columna de responsable del proyecto',
             'health_notes' => 'Motivo, bajo cada proyecto',
             'risk_plans' => 'Plan de respuesta bajo cada riesgo',
+            'col_hours' => 'Columna de horas',
         ],
         'projects' => [
             'scope_live' => 'Propuestos y activos',
@@ -847,6 +851,12 @@ return [
             'warranty_ends' => 'Fin de garantía',
             'lease_ends' => 'Fin de arrendamiento',
             'project' => 'Proyecto',
+            'account' => 'Cuenta',
+            'kind' => 'Tipo',
+            'planned' => 'Planificado',
+            'actual' => 'Real',
+            'forecast' => 'Previsión',
+            'hours' => 'Horas',
             'health' => 'Salud',
             'progress' => 'Progreso',
             'stage' => 'Etapa',
@@ -898,6 +908,7 @@ return [
             'projects' => 'No hay proyectos que mostrar.',
             'milestones' => 'Ninguna etapa ni fecha de fin prevista termina en este periodo.',
             'risks' => 'No hay riesgos abiertos.',
+            'accounts' => 'No hay costes ni ingresos de proyectos que mostrar por cuenta.',
         ],
         'err' => [
             'load' => 'No se pudo cargar el paquete de informes.',
@@ -1080,6 +1091,10 @@ return [
             'projects_milestones' => [
                 'title' => 'Hitos de los proyectos',
                 'desc' => 'Fin de etapas y fechas de fin previstas en el periodo, y si cada una se cumplió, se incumplió o sigue pendiente.',
+            ],
+            'projects_accounts' => [
+                'title' => 'Costes de proyectos por cuenta',
+                'desc' => 'Costes e ingresos planificados, reales y previstos de cada cuenta del plan de cuentas, sumados en todos sus proyectos - las mismas cifras que la pestaña Presupuesto de cada proyecto, un conjunto por moneda.',
             ],
             'projects_risks' => [
                 'title' => 'Principales riesgos de los proyectos',

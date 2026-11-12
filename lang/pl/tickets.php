@@ -261,7 +261,6 @@ return [
         'many_skipped' => 'Pominięte: {n}.',
         'failed' => 'Nie udało się zaktualizować obserwujących.',
     ],
-    // GH #272: forms on a ticket (assets/js/ticket-forms.js).
     'forms' => [
         'button' => 'Formularze',
         'button_title' => 'Formularze potrzebne temu zgłoszeniu',
@@ -310,7 +309,6 @@ return [
         'checklist_attached_many' => 'Załączono do zgłoszeń: %d.',
         'checklist_already' => 'Już miało ją: %d.',
         'checklist_failed' => 'Niepowodzenia: %d.',
-        // GH #272: right-click -> Add form
         'add_form' => 'Dodaj formularz',
         'no_forms' => 'Brak aktywnych formularzy',
         'forms_failed' => 'Nie udało się wczytać formularzy',
@@ -1291,6 +1289,9 @@ supplier.co.uk',
                 'origin_label' => 'Domyślne źródło zgłoszenia',
                 'origin_help' => 'Skąd mają pochodzić zgłoszenia otwierane przez tę skrzynkę pocztową. Ustawiane dla każdej skrzynki osobno, więc adres helpdesku może mieć źródło „E-mail”, a adres monitoringu zupełnie inne. Zostaw puste, aby nie zapisywać żadnego źródła.',
                 'origin_none' => 'Brak',
+                'department_label' => 'Dział',
+                'department_default' => 'Domyślny dział firmy',
+                'department_help' => 'Nowe zgłoszenia z tej skrzynki trafiają do tego działu, dzięki czemu docierają do powiązanych z nim zespołów - i tylko do nich, a także do administratorów i analityków bez zespołu. Odpowiedzi do istniejących zgłoszeń nigdy ich nie przenoszą.',
                 'problems_title' => 'Do sprawdzenia',
                 'problems_tooltip' => 'Coś wymaga uwagi — kliknij, aby zobaczyć szczegóły',
                 'problems_none' => 'Brak uwag dotyczących tej skrzynki pocztowej.',
@@ -1640,7 +1641,6 @@ dziękujemy za kontakt…',
             'empty_block_title' => 'Odmów zamknięcia',
             'empty_block_desc' => 'Zgłoszenie nie może przejść w status zamknięty, dopóki nie zostanie do niego dołączona przynajmniej jedna lista kontrolna.',
             'always_recorded' => 'Tak czy inaczej, zamknięcie z niewykonanymi krokami zapisuje notatkę wewnętrzną z nazwami pominiętych kroków, informacją kto zamknął zgłoszenie i przez jaki interfejs. Te ustawienia decydują, czy to jest dozwolone, nigdy czy jest to rejestrowane.',
-            // GH #272
             'forms_section_title' => 'Formularze w zgłoszeniach',
             'forms_enabled_title' => 'Zezwalaj na formularze w zgłoszeniach',
             'forms_enabled_desc' => 'Dodaje do każdego zgłoszenia przycisk Formularze: dodaj formularz z modułu Formularze, wypełnij go w zgłoszeniu i opcjonalnie wymagaj go przed zamknięciem zgłoszenia. Domyślnie wyłączone.',
@@ -2860,7 +2860,6 @@ Tej operacji nie da się cofnąć. Kontynuować?',
             'row_name' => 'Każdy wiersz pokazuje numer zgłoszenia, a potem nazwę. Domyślnie jest to <strong>osoba, która zgłosiła sprawę</strong>, i pozostaje taka sama przez cały czas trwania zgłoszenia. Jeśli wolisz widzieć osobę, która wysłała ostatnią wiadomość &mdash; co po Twojej odpowiedzi staje się Twoją własną skrzynką &mdash; zmień <strong>Nazwa obok numeru zgłoszenia</strong> w <strong>Ustawienia &rarr; Wyświetlanie wierszy</strong>, gdzie możesz też ukryć nazwę i zostawić sam numer. Ta zakładka to Twoje własne ustawienie: nie zmienia niczego u nikogo innego.',
             'tip' => 'Kliknij dowolne zgłoszenie na liście, aby wczytać je w panelu podglądu. Stamtąd możesz aktualizować pola, dodawać notatki, odpowiadać e-mailem lub dołączać pliki &mdash; wszystko bez opuszczania skrzynki odbiorczej.',
         ],
-        // GH #267: live updates.
         'live' => [
             'heading' => 'Aktualizacje na żywo',
             'body' => 'FreeITSM utrzymuje Twój ekran w zgodzie z ekranami innych. Gdy współpracownik zmieni zgłoszenie - status, priorytet, właściciela lub zespół, odpowiedź, notatkę - Twoja lista zgłoszeń i otwarte zgłoszenie nadrabiają to w około 15 sekund, bez odświeżania. Tablica zadań, otwarte zadanie i dzwonek działają tak samo.',
@@ -2877,7 +2876,6 @@ Tej operacji nie da się cofnąć. Kontynuować?',
             'leaver' => 'Dezaktywowany analityk nigdy nie dostaje powiadomień o obserwowanym zgłoszeniu. <strong>Zgłoszenia &rarr; Ustawienia &rarr; Ogólne &rarr; Gdy obserwujący zostanie dezaktywowany</strong> decyduje, co dzieje się z jego obserwacjami: <strong>Przestań powiadamiać</strong> (domyślnie) ukrywa je i przywraca, gdy analityk znów stanie się aktywny; <strong>Usuń</strong> zdejmuje analityka ze wszystkich obserwowanych zgłoszeń w chwili dezaktywacji.',
             'note' => 'Zgłoszenie mogą obserwować tylko osoby, które je widzą, a jeśli przestaną je widzieć, przestają o nim słyszeć. Nikt nie jest informowany o własnej zmianie. Scalanie przenosi obserwujących do zgłoszenia, które zostaje.',
         ],
-        // GH #272: forms on a ticket.
         'forms_on_ticket' => [
             'heading' => 'Formularze w zgłoszeniu',
             'body' => 'Dołącz formularz z modułu Formularze do zgłoszenia i wypełnij go tam - prośbę o nowego pracownika z formularzem sprzętu albo incydent bezpieczeństwa z raportem. Odpowiedzi zostają przy zgłoszeniu.',

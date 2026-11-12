@@ -41,6 +41,7 @@ return [
         'refresh' => 'Odśwież',
         'tab_login' => 'Logowania użytkowników',
         'tab_email_import' => 'Importy e-mail',
+        'tab_api_activity' => 'Aktywność API',
         'loading' => 'Ładowanie dzienników...',
         'no_logs' => 'Nie znaleziono dzienników',
         'load_error' => 'Błąd ładowania dzienników: {error}',
@@ -184,6 +185,8 @@ return [
         'affects_integration_poll' => 'Statusy i komentarze z Jira i innych systemów na powiązanych zgłoszeniach',
         'name_csat_delayed' => 'Opóźnione ankiety satysfakcji i przypomnienia',
         'affects_csat_delayed' => 'Ankiety satysfakcji wstrzymane przez „Opóźnienie przed wysłaniem” oraz przypomnienia o ankietach - żadne nie zostanie wysłane',
+        'name_api_log_tidy' => 'Porządkowanie dziennika aktywności API',
+        'affects_api_log_tidy' => 'Stare wiersze dziennika aktywności API nie są ani usuwane, ani archiwizowane, więc dziennik stale rośnie',
         'name_task_recurrence' => 'Zadania cykliczne',
         'affects_task_recurrence' => 'Zadania powtarzające się według stałego harmonogramu',
         'name_attachment_extract' => 'Tekst załączników',
@@ -745,6 +748,7 @@ return [
             'col_manager' => 'Kolumna kierownika projektu',
             'health_notes' => 'Uzasadnienie pod każdym projektem',
             'risk_plans' => 'Plan reakcji pod każdym ryzykiem',
+            'col_hours' => 'Kolumna godzin',
         ],
         'projects' => [
             'scope_live' => 'Proponowane i aktywne',
@@ -847,6 +851,12 @@ return [
             'warranty_ends' => 'Koniec gwarancji',
             'lease_ends' => 'Koniec leasingu',
             'project' => 'Projekt',
+            'account' => 'Konto',
+            'kind' => 'Rodzaj',
+            'planned' => 'Planowane',
+            'actual' => 'Rzeczywiste',
+            'forecast' => 'Prognoza',
+            'hours' => 'Godziny',
             'health' => 'Kondycja',
             'progress' => 'Postęp',
             'stage' => 'Etap',
@@ -898,6 +908,7 @@ return [
             'projects' => 'Brak projektów do wyświetlenia.',
             'milestones' => 'Brak zakończeń etapów ani docelowych terminów w tym okresie.',
             'risks' => 'Brak otwartych ryzyk.',
+            'accounts' => 'Brak kosztów lub przychodów projektów do pokazania według kont.',
         ],
         'err' => [
             'load' => 'Nie udało się wczytać pakietu raportów.',
@@ -1080,6 +1091,10 @@ return [
             'projects_milestones' => [
                 'title' => 'Kamienie milowe projektów',
                 'desc' => 'Zakończenia etapów i docelowe terminy w okresie oraz informacja, czy każdy został ukończony, pominięty, czy jeszcze oczekuje.',
+            ],
+            'projects_accounts' => [
+                'title' => 'Koszty projektów według kont',
+                'desc' => 'Planowane, rzeczywiste i prognozowane koszty oraz przychody dla każdego konta z planu kont, zsumowane we wszystkich projektach - te same liczby co na karcie Budżet każdego projektu, jeden zestaw na walutę.',
             ],
             'projects_risks' => [
                 'title' => 'Najważniejsze ryzyka projektów',

@@ -41,6 +41,7 @@ return [
         'refresh' => 'Aktualisieren',
         'tab_login' => 'Benutzeranmeldungen',
         'tab_email_import' => 'E-Mail-Importe',
+        'tab_api_activity' => 'API-Aktivität',
         'loading' => 'Protokolle werden geladen...',
         'no_logs' => 'Keine Protokolle gefunden',
         'load_error' => 'Fehler beim Laden der Protokolle: {error}',
@@ -184,6 +185,8 @@ return [
         'affects_integration_poll' => 'Status und Kommentare von Jira und anderen Trackern an verknüpften Tickets',
         'name_csat_delayed' => 'Verzögerte Zufriedenheitsumfragen und Erinnerungen',
         'affects_csat_delayed' => 'Durch "Verzögerung vor dem Senden" zurückgehaltene Zufriedenheitsumfragen und Umfrage-Erinnerungen - beides wird nie gesendet',
+        'name_api_log_tidy' => 'Aufräumen des API-Aktivitätsprotokolls',
+        'affects_api_log_tidy' => 'Alte Zeilen des API-Aktivitätsprotokolls werden weder gelöscht noch archiviert, daher wächst das Protokoll weiter',
         'name_task_recurrence' => 'Wiederkehrende Aufgaben',
         'affects_task_recurrence' => 'Aufgaben, die nach einem festen Zeitplan wiederkehren',
         'name_attachment_extract' => 'Anhangstext',
@@ -745,6 +748,7 @@ return [
             'col_manager' => 'Spalte Projektleitung',
             'health_notes' => 'Begründung unter jedem Projekt',
             'risk_plans' => 'Maßnahmenplan unter jedem Risiko',
+            'col_hours' => 'Spalte „Stunden“',
         ],
         'projects' => [
             'scope_live' => 'Vorgeschlagen und aktiv',
@@ -847,6 +851,12 @@ return [
             'warranty_ends' => 'Garantie endet',
             'lease_ends' => 'Leasing endet',
             'project' => 'Projekt',
+            'account' => 'Konto',
+            'kind' => 'Art',
+            'planned' => 'Geplant',
+            'actual' => 'Ist',
+            'forecast' => 'Prognose',
+            'hours' => 'Stunden',
             'health' => 'Zustand',
             'progress' => 'Fortschritt',
             'stage' => 'Phase',
@@ -898,6 +908,7 @@ return [
             'projects' => 'Keine Projekte anzuzeigen.',
             'milestones' => 'Keine Phasenenden oder Zieltermine in diesem Zeitraum.',
             'risks' => 'Keine offenen Risiken.',
+            'accounts' => 'Keine Projektkosten oder Einnahmen nach Konto anzuzeigen.',
         ],
         'err' => [
             'load' => 'Das Berichtspaket konnte nicht geladen werden.',
@@ -1080,6 +1091,10 @@ return [
             'projects_milestones' => [
                 'title' => 'Projekt-Meilensteine',
                 'desc' => 'Phasenenden und Zieltermine im Zeitraum und ob sie erledigt, verpasst oder noch fällig sind.',
+            ],
+            'projects_accounts' => [
+                'title' => 'Projektkosten nach Konto',
+                'desc' => 'Geplante, tatsächliche und prognostizierte Kosten und Einnahmen für jedes Konto des Kontenplans, über Ihre Projekte summiert - dieselben Zahlen wie auf dem Tab „Budget“ jedes Projekts, ein Satz pro Währung.',
             ],
             'projects_risks' => [
                 'title' => 'Wichtigste Projektrisiken',

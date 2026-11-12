@@ -11,14 +11,12 @@
  */
 
 return [
-    // Tickets -> Settings -> General -> A reply without a ticket number (GH #120); the choices are TicketThreadReplies.
     'thread_replies' => [
         'label' => 'Una respuesta sin número de ticket',
         'new_ticket' => 'Crea un ticket nuevo',
         'same_ticket' => 'Se une al ticket de su conversación',
         'help' => 'Cada correo que envía FreeITSM lleva el número del ticket, así que una respuesta a él siempre encuentra su ticket. Una respuesta sin número - normalmente alguien que responde a su propio primer correo para añadir algo que olvidó - crea un ticket nuevo, salvo que esta opción la una al ticket al que ya pertenece su conversación de correo, en el mismo buzón.',
     ],
-    // Tickets -> Settings -> General -> Reply goes to (GH #120); the choices are TicketReplyTo.
     'reply_to' => [
         'label' => 'La respuesta va a',
         'message' => 'La persona del mensaje que está leyendo',
@@ -243,7 +241,6 @@ return [
         'saved' => 'Asunto actualizado',
         'failed' => 'No se pudo cambiar el asunto',
     ],
-    // GH #277: watching a ticket (assets/js/ticket-watchers.js).
     'watch' => [
         'watch' => 'Seguir',
         'watching' => 'Siguiendo',
@@ -264,7 +261,6 @@ return [
         'many_skipped' => '{n} omitidos.',
         'failed' => 'No se pudieron actualizar los seguidores.',
     ],
-    // GH #272: forms on a ticket (assets/js/ticket-forms.js).
     'forms' => [
         'button' => 'Formularios',
         'button_title' => 'Formularios que necesita este ticket',
@@ -313,7 +309,6 @@ return [
         'checklist_attached_many' => 'Adjuntada a %d ticket(s).',
         'checklist_already' => '%d ya la tenía(n).',
         'checklist_failed' => '%d fallaron.',
-        // GH #272: right-click -> Add form
         'add_form' => 'Añadir formulario',
         'no_forms' => 'Aún no hay formularios activos',
         'forms_failed' => 'No se pudieron cargar los formularios',
@@ -1294,6 +1289,9 @@ proveedor.es',
                 'origin_label' => 'Origen predeterminado del ticket',
                 'origin_help' => 'De dónde se registra que provienen los tickets abiertos por este buzón. Se establece por buzón, de modo que una dirección de soporte puede ser «Correo» mientras que una dirección de monitorización es algo totalmente distinto. Déjelo en blanco para no registrar ningún origen.',
                 'origin_none' => 'Ninguno',
+                'department_label' => 'Departamento',
+                'department_default' => 'El departamento predeterminado de la empresa',
+                'department_help' => 'Los tickets nuevos de este buzón empiezan en este departamento, de modo que llegan a los equipos vinculados a él - y solo a esos equipos, además de a los administradores y a los analistas sin equipo. Las respuestas a tickets existentes nunca los mueven.',
                 'problems_title' => 'Cosas que revisar',
                 'problems_tooltip' => 'Algo necesita atención — haga clic para ver los detalles',
                 'problems_none' => 'Nada que reportar en este buzón.',
@@ -1397,7 +1395,7 @@ proveedor.es',
                 'event_new_ticket' => 'Nuevo ticket desde correo',
                 'event_note_shared' => 'Nota compartida con el solicitante',
                 'event_csat_request' => 'Encuesta CSAT',
-                'event_csat_reminder' => 'Recordatorio CSAT',   // GH #301
+                'event_csat_reminder' => 'Recordatorio CSAT',
                 'event_assigned' => 'Ticket asignado',
                 'event_analyst_assigned' => 'Asignado a un analista',
                 'event_closed' => 'Ticket cerrado',
@@ -1643,7 +1641,6 @@ Gracias por ponerse en contacto con nosotros…',
             'empty_block_title' => 'Rechazar el cierre',
             'empty_block_desc' => 'El ticket no puede llegar a un estado cerrado hasta que se le adjunte al menos una lista de comprobación.',
             'always_recorded' => 'En cualquier caso, cerrar con pasos pendientes escribe una nota interna que indica los pasos omitidos, quién cerró el ticket y desde qué interfaz. Estas opciones deciden si se permite, nunca si se registra.',
-            // GH #272
             'forms_section_title' => 'Formularios en tickets',
             'forms_enabled_title' => 'Permitir formularios en tickets',
             'forms_enabled_desc' => 'Añade un botón Formularios a cada ticket: añadir un formulario del módulo Formularios, rellenarlo en el ticket y, si se quiere, exigirlo antes de cerrar el ticket. Desactivado por defecto.',
@@ -2863,8 +2860,6 @@ Esto no se puede deshacer. ¿Continuar?',
             'row_name' => 'Cada fila muestra la referencia del ticket y luego un nombre. De forma predeterminada es <strong>la persona que creó el ticket</strong>, y se mantiene igual durante toda la vida del ticket. Si prefiere ver a quien envió el mensaje más reciente &mdash; que se convierte en su propio buzón en cuanto responda &mdash; cambie <strong>Nombre junto al número de ticket</strong> en <strong>Configuración &rarr; Visualización de filas</strong>, donde también puede ocultar el nombre y dejar solo la referencia. Esa pestaña es su propio ajuste: no cambia nada para nadie más.',
             'tip' => 'Haga clic en cualquier ticket de la lista para cargarlo en el panel de lectura. Desde allí puede actualizar campos, añadir comentarios, responder por correo o adjuntar archivos &mdash; todo sin salir de la bandeja de entrada.',
         ],
-        // GH #277
-        // GH #267: live updates.
         'live' => [
             'heading' => 'Actualizaciones en vivo',
             'body' => 'FreeITSM mantiene tu pantalla al día con la de todos los demás. Cuando un compañero cambia un ticket - su estado, prioridad, propietario o equipo, una respuesta, una nota -, tu lista de tickets y el ticket que tienes abierto se ponen al día en unos 15 segundos, sin pulsar actualizar. El tablero de tareas, una tarea abierta y la campana funcionan igual.',
@@ -2881,7 +2876,6 @@ Esto no se puede deshacer. ¿Continuar?',
             'leaver' => 'Un analista desactivado nunca recibe avisos de un ticket que sigue. <strong>Tickets &rarr; Configuración &rarr; General &rarr; Cuando se desactiva a un seguidor</strong> decide qué pasa con sus seguimientos: <strong>Dejar de avisarle</strong> (la opción predeterminada) los oculta y los recupera si el analista vuelve a estar activo; <strong>Quitarlo</strong> lo retira de todos los tickets que sigue en el momento en que se desactiva.',
             'note' => 'Solo quien puede ver un ticket puede seguirlo, y si deja de verlo deja de recibir avisos. Nadie recibe avisos de su propio cambio. Al fusionar, los seguidores pasan al ticket que permanece.',
         ],
-        // GH #272: forms on a ticket.
         'forms_on_ticket' => [
             'heading' => 'Formularios en un ticket',
             'body' => 'Adjunta un formulario del módulo Formularios a un ticket y rellénalo allí: una solicitud de alta que necesita su formulario de equipo, o un incidente de seguridad que necesita su informe. Las respuestas se guardan con el ticket.',
