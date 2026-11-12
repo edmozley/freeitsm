@@ -149,6 +149,16 @@ try {
     ok('multipart upload round-trips', @hash_file('sha256', $tmp . '.big') === $want && $mp->size($big) === 12 * 1024 * 1024);
     @unlink($tmp . '.big');
 
+    // listKeys, including pagination (page size forced to 2)
+    file_put_contents($tmp, 'x');
+    $lk = ['zzlist/1.txt', 'zzlist/2.txt', 'zzlist/3.txt'];
+    foreach ($lk as $k) { $d->putFile($k, $tmp); $made[] = $k; }
+    ok('listKeys returns the keys under a prefix', $d->listKeys('zzlist/') === $lk, json_encode($d->listKeys('zzlist/')));
+    $paged = new S3Driver($cfg, 'files');
+    $paged->listPageSize = 2;
+    ok('listKeys follows continuation pages', $paged->listKeys('zzlist/') === $lk, json_encode($paged->listKeys('zzlist/')));
+    ok('listKeys of an unused prefix is empty', $d->listKeys('zz-none/') === []);
+
     $bad = new S3Driver(['secret' => 'wrong-' . $cfg['secret']] + $cfg, 'files');
     $threw = null;
     try { $bad->size($big); } catch (Throwable $e) { $threw = $e; }

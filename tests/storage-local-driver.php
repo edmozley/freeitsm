@@ -76,6 +76,16 @@ try {
 
     ok('label names the folder', str_contains($d->label(), $root));
 
+    // listKeys (backups prune by listing what the target holds)
+    file_put_contents($tmp, 'x');
+    foreach (['a/1.txt', 'a/2.txt', 'b/3.txt'] as $k) $d->putFile($k, $tmp);
+    ok('listKeys returns the keys under a prefix, sorted', $d->listKeys('a/') === ['a/1.txt', 'a/2.txt'], json_encode($d->listKeys('a/')));
+    ok('listKeys of an unused prefix is empty', $d->listKeys('zz/') === []);
+    ok('listKeys with an empty prefix lists everything', count(array_intersect(['a/1.txt', 'a/2.txt', 'b/3.txt'], $d->listKeys(''))) === 3);
+    ok('listKeys of a folder that does not exist yet is empty',
+       (new LocalDriver($root . '/never-made'))->listKeys('') === []);
+    foreach (['a/1.txt', 'a/2.txt', 'b/3.txt'] as $k) $d->delete($k);
+
     if (is_writable('/dev/full')) {   // Linux: every write fails with "no space left"
         file_put_contents($tmp, 'abc');
         $d->putFile($key, $tmp);

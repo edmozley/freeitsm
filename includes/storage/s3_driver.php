@@ -14,7 +14,7 @@
 
 require_once __DIR__ . '/s3_sign.php';
 
-final class S3Driver implements StorageDriver
+final class S3Driver implements StorageDriver, StorageLister
 {
     private const EMPTY_SHA = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
     private const MIB = 1048576;
@@ -23,6 +23,8 @@ final class S3Driver implements StorageDriver
     private string $base;     // <prefix><store>/
     private int $threshold;
     private int $firstByteTimeout;
+    /** Keys per ListObjectsV2 page (tests lower it to exercise paging). */
+    public int $listPageSize = 1000;
 
     /**
      * @param array  $cfg        endpoint, region, bucket, access_key_id, secret, prefix, path_style
@@ -137,6 +139,24 @@ final class S3Driver implements StorageDriver
         } catch (StorageNotFound) {
             // already gone
         }
+    }
+
+    public function listKeys(string $prefix): array
+    {
+        $keys  = [];
+        $token = null;
+        do {
+            $q = ['list-type' => '2', 'max-keys' => (string)$this->listPageSize, 'prefix' => $this->base . $prefix];
+            if ($token !== null) $q['continuation-token'] = $token;
+            $r = $this->call('GET', '', $q);
+            $page = s3ParseListObjects((string)$r['body']);
+            foreach ($page['keys'] as $k) {
+                if (str_starts_with($k, $this->base)) $keys[] = substr($k, strlen($this->base));
+            }
+            $token = $page['next'];
+        } while ($token !== null);
+        sort($keys, SORT_STRING);
+        return $keys;
     }
 
     private function putMultipart(string $objectKey, string $localPath, int $size): void
@@ -342,4 +362,32 @@ final class S3Driver implements StorageDriver
         $what = trim($code . ($msg !== '' ? ': ' . $msg : ''));
         return 'Storage refused the request (HTTP ' . $status . ($what !== '' ? ', ' . $what : '') . ').';
     }
+}
+
+/**
+ * One ListObjectsV2 page: its keys and the continuation token (null on the last
+ * page). Anything that is not a listing throws - never read as "empty".
+ *
+ * @return array{keys: string[], next: ?string}
+ */
+function s3ParseListObjects(string $xml): array
+{
+    $prev = libxml_use_internal_errors(true);
+    try {
+        $doc = simplexml_load_string($xml);
+    } finally {
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+    }
+    if ($doc === false || $doc->getName() !== 'ListBucketResult') {
+        throw new StorageUnavailable('Storage sent an unreadable listing.');
+    }
+    $keys = [];
+    foreach ($doc->children() as $node) {
+        if ($node->getName() === 'Contents') $keys[] = (string)$node->Key;
+    }
+    $truncated = strtolower(trim((string)$doc->IsTruncated)) === 'true';
+    $next = $truncated ? trim((string)$doc->NextContinuationToken) : '';
+    if ($truncated && $next === '') throw new StorageUnavailable('Storage sent a truncated listing without a continuation token.');
+    return ['keys' => $keys, 'next' => $truncated ? $next : null];
 }

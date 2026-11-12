@@ -6,7 +6,7 @@
 
 require_once __DIR__ . '/../uploads.php';
 
-final class LocalDriver implements StorageDriver
+final class LocalDriver implements StorageDriver, StorageLister
 {
     private string $root;
     private bool $prepared = false;
@@ -81,6 +81,24 @@ final class LocalDriver implements StorageDriver
         // Windows refuses to delete a file something still has open (a download in
         // progress): say so, so the caller does not record it as gone.
         if (is_file($p)) throw new RuntimeException('The stored file could not be deleted (is it still open?).');
+    }
+
+    public function listKeys(string $prefix): array
+    {
+        if (!is_dir($this->root)) return [];
+        $keys = [];
+        try {
+            $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->root, FilesystemIterator::SKIP_DOTS));
+            foreach ($it as $f) {
+                if (!$f->isFile()) continue;
+                $key = substr(str_replace(DIRECTORY_SEPARATOR, '/', $f->getPathname()), strlen($this->root) + 1);
+                if ($prefix === '' || str_starts_with($key, $prefix)) $keys[] = $key;
+            }
+        } catch (UnexpectedValueException $e) {
+            throw new StorageUnavailable('The storage folder could not be read.');
+        }
+        sort($keys, SORT_STRING);
+        return $keys;
     }
 
     public function label(): string

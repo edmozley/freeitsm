@@ -21,6 +21,21 @@ class StorageUnavailable extends RuntimeException {}
 /** The object does not exist in the store. */
 class StorageNotFound extends RuntimeException {}
 
+/**
+ * A store that can say what it holds. Separate from StorageDriver so a driver
+ * (or a test stand-in) that cannot list still satisfies StorageDriver.
+ */
+interface StorageLister
+{
+    /**
+     * Every key starting with $prefix (keys as given to putFile), sorted. Never a
+     * partial list: a page that cannot be read throws StorageUnavailable.
+     *
+     * @return string[]
+     */
+    public function listKeys(string $prefix): array;
+}
+
 interface StorageDriver
 {
     /**
