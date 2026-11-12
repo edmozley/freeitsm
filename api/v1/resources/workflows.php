@@ -586,7 +586,11 @@ function apiWorkflowTriggersList(PDO $conn, array $apiKey, array $params, array 
 }
 
 // GET /workflow-actions — every action type with its args spec (labels,
-// required flags, lookup sources, template-variable support).
+// required flags, lookup sources, template-variable support, fixed choices).
+// TRAP: a client that builds actions from this needs options (a select's choices -
+// without them it cannot know what to send) and new_default (GH #268: the value a
+// NEWLY added action starts with, which can differ from default). Both were missing
+// until 5.1.0. The engine never fills a missing arg in at run time - send it.
 function apiWorkflowActionsList(PDO $conn, array $apiKey, array $params, array $body): void {
     $out = [];
     foreach (WorkflowEngine::availableActions() as $key => $spec) {
@@ -600,6 +604,9 @@ function apiWorkflowActionsList(PDO $conn, array $apiKey, array $params, array $
                 'default'       => $argSpec['default'] ?? null,
                 'supports_vars' => (bool)($argSpec['supports_vars'] ?? false),
                 'lookup'        => $argSpec['lookup'] ?? null,
+                'new_default'   => $argSpec['new_default'] ?? null,
+                'options'       => isset($argSpec['options']) && is_array($argSpec['options']) ? array_values($argSpec['options']) : null,
+                'show_when'     => $argSpec['show_when'] ?? null,
             ];
         }
         $out[] = [

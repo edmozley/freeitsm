@@ -935,7 +935,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                     <td><span class="status-badge status-${s.IsActive ? 'active' : 'inactive'}">${s.IsActive ? escapeHtml(window.t('morning-checks.settings.status_active')) : escapeHtml(window.t('morning-checks.settings.status_inactive'))}</span></td>
                     <td>
                         <button class="action-btn" onclick="openEditStatusModal(${s.StatusID})" title="${escapeHtmlAttr(window.t('morning-checks.settings.edit'))}">${ICON_EDIT_S}</button>
-                        <button class="action-btn delete" onclick="deleteStatus(${s.StatusID}, '${escapeJsString(s.Label)}')" title="${escapeHtmlAttr(window.t('morning-checks.settings.delete'))}">${ICON_DELETE_S}</button>
+                        <button class="action-btn delete" onclick="deleteStatus(${s.StatusID}, ${jsArg(s.Label)})" title="${escapeHtmlAttr(window.t('morning-checks.settings.delete'))}">${ICON_DELETE_S}</button>
                     </td>
                 </tr>
             `).join('');
@@ -1120,7 +1120,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                     <td><span class="status-badge status-${Number(g.IsActive) ? 'active' : 'inactive'}">${Number(g.IsActive) ? escapeHtml(window.t('morning-checks.settings.active')) : escapeHtml(window.t('morning-checks.settings.inactive'))}</span></td>
                     <td>
                         <button class="action-btn" onclick="openGroupModal(${g.GroupID})" title="${escapeHtmlAttr(window.t('morning-checks.settings.edit'))}">${ICON_EDIT_S}</button>
-                        <button class="action-btn delete" onclick="deleteGroup(${g.GroupID}, '${escapeJsString(g.GroupName)}', ${Number(g.CheckCount) || 0})" title="${escapeHtmlAttr(window.t('morning-checks.settings.delete'))}">${ICON_DELETE_S}</button>
+                        <button class="action-btn delete" onclick="deleteGroup(${g.GroupID}, ${jsArg(g.GroupName)}, ${Number(g.CheckCount) || 0})" title="${escapeHtmlAttr(window.t('morning-checks.settings.delete'))}">${ICON_DELETE_S}</button>
                     </td>
                 </tr>`;
             }).join('');

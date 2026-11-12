@@ -1123,10 +1123,30 @@ foreach ($formActionDefs as $def) {
 
         // Adding the first action to a section is what turns it from "never
         // configured" (null) into a real list.
+        /**
+         * A new action's starting args, from the engine's spec: new_default first (GH #268 -
+         * it applies only to a NEWLY added action), then default. The same rule as the
+         * Workflows canvas (argDefault in workflow-editor.js).
+         *
+         * TRAP: the engine does NOT fill in a missing arg from its spec at run time. Until
+         * 5.1.0 this editor added actions with empty args and only SHOWED the defaults, so
+         * a form's "Add a note" saved as History only, and a Ticket ID box showing
+         * {{ticket.id}} saved nothing at all.
+         */
+        function faNewArgs(type) {
+            const def = window.FA_ACTION_DEFS[type] || {};
+            const args = {};
+            Object.entries(def.args || {}).forEach(([name, spec]) => {
+                const v = (spec && spec.new_default != null) ? spec.new_default : (spec ? spec.default : undefined);
+                if (v !== undefined && v !== null) args[name] = v;
+            });
+            return args;
+        }
+
         function faAddAction(when) {
             if (!faActions[when]) faActions[when] = [];
             const firstType = Object.keys(window.FA_ACTION_DEFS)[0];
-            faActions[when].push({ type: firstType, args: {} });
+            faActions[when].push({ type: firstType, args: faNewArgs(firstType) });
             faRenderSection(when);
             markDirty();
         }
@@ -1156,8 +1176,9 @@ foreach ($formActionDefs as $def) {
         function faSetType(when, index, type) {
             // Args belong to the action they were written for, so changing the
             // type clears them rather than leaving values under names the new
-            // handler has never heard of.
-            faActions[when][index] = { type: type, args: {} };
+            // handler has never heard of. A new type is a new action, so it starts
+            // from that type's own starting values.
+            faActions[when][index] = { type: type, args: faNewArgs(type) };
             faRenderSection(when);
             markDirty();
         }
@@ -1195,11 +1216,14 @@ foreach ($formActionDefs as $def) {
                 control = `<select id="${id}" onchange="${onInput}">${opts}</select>`;
             } else if (spec.type === 'textarea') {
                 control = `<textarea id="${id}" rows="3" oninput="${onInput}">${faEsc(value)}</textarea>`;
-            } else if (spec.type === 'number') {
+            } else if (spec.type === 'number' || spec.type === 'numeric') {
                 control = `<input type="number" id="${id}" value="${faEsc(value)}" oninput="${onInput}">`;
-            } else if (spec.type === 'checkbox') {
-                const checked = (value === true || value === '1' || value === 1) ? ' checked' : '';
-                control = `<input type="checkbox" id="${id}"${checked} onchange="faSetArg('${when}',${index},'${faEsc(argName)}',this.checked ? '1' : '')">`;
+            } else if (spec.type === 'checkbox' || spec.type === 'bool') {
+                // TRAP: the engine's tick-box args are type 'bool' (argBool() reads a real
+                // true/false); this read only 'checkbox' until 5.1.0, so they fell through
+                // to a text box holding the word "false".
+                const checked = (value === true || value === '1' || value === 1 || value === 'true') ? ' checked' : '';
+                control = `<input type="checkbox" id="${id}"${checked} onchange="faSetArg('${when}',${index},${jsArg(argName)},this.checked)">`;
             } else {
                 control = `<input type="text" id="${id}" value="${faEsc(value)}" oninput="${onInput}">`;
             }
@@ -1225,6 +1249,14 @@ foreach ($formActionDefs as $def) {
 
             host.innerHTML = list.map((action, i) => {
                 const def = window.FA_ACTION_DEFS[action.type] || {};
+                // What is shown is what is saved: an arg with a `default` but no saved value
+                // gets the default stored, as the Workflows canvas does when it draws an
+                // action. Never new_default - that is for a NEW action only (GH #268), and
+                // a saved one's missing value keeps meaning what it always meant.
+                action.args = action.args || {};
+                Object.entries(def.args || {}).forEach(([name, spec]) => {
+                    if (!(name in action.args) && spec && spec.default !== undefined && spec.default !== null) action.args[name] = spec.default;
+                });
                 const typeOpts = Object.keys(window.FA_ACTION_DEFS).map(k =>
                     `<option value="${faEsc(k)}"${k === action.type ? ' selected' : ''}>${faEsc(window.FA_ACTION_DEFS[k].label || k)}</option>`
                 ).join('');

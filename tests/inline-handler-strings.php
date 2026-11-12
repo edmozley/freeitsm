@@ -31,7 +31,7 @@ function check(string $what, bool $ok, string $detail = ''): void {
 }
 
 /** Escape helpers that end in &#39; - any of them, quoted inside a handler, is the bug. */
-const HELPERS = '(?:escapeHtml|escHtml|esc|escapeAttr|escAttr|escapeHtmlAttr|wfEsc|_esc|escapeHTML|htmlEsc)';
+const HELPERS = '(?:[A-Za-z_$]*[Ee]sc[A-Za-z_$]*|h)';   // any helper with esc in its name (esc, escapeHtml, faEsc, kbEscAttr...)
 
 /**
  * Lines that put an escaped value inside quotes inside an inline handler.

@@ -12148,6 +12148,39 @@ return array (
           'nullable' => true,
           'description' => 'Reference-data source to populate this arg from (e.g. "statuses"), if applicable.',
         ),
+        'new_default' => 
+        array (
+          'nullable' => true,
+          'type' => 'string',
+          'description' => 'The value a NEWLY added action starts with, when it differs from default (a saved action missing the arg keeps meaning what it always meant). Send it when you create an action: the engine does not fill in a missing arg.',
+        ),
+        'options' => 
+        array (
+          'nullable' => true,
+          'type' => 'array',
+          'description' => 'For type select: the fixed choices. Send the value.',
+          'items' => 
+          array (
+            'type' => 'object',
+            'properties' => 
+            array (
+              'value' => 
+              array (
+                'type' => 'string',
+              ),
+              'label' => 
+              array (
+                'type' => 'string',
+              ),
+            ),
+          ),
+        ),
+        'show_when' => 
+        array (
+          'nullable' => true,
+          'type' => 'object',
+          'description' => 'Only relevant when another arg of this action has one of the listed values, e.g. {"preset": ["custom"]}.',
+        ),
       ),
     ),
     'WorkflowActionStep' => 

@@ -671,7 +671,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                 // wrong" but a poor one for "I want to follow this up" — a green
                 // check can still warrant a task to go and look at something.
                 const raiseBtn = `<button class="mc-icon-btn" title="${escapeHtmlAttr(window.t('morning-checks.checklist.raise_title'))}"
-                        onclick="openRaiseModal(${check.CheckID}, ${check.ResultID === null ? 'null' : check.ResultID}, '${escapeJsString(check.CheckName)}', '${escapeJsString(check.CheckDescription || '')}', '${escapeJsString(check.Status || '')}', '${escapeJsString(check.Notes || '')}')">
+                        onclick="openRaiseModal(${check.CheckID}, ${check.ResultID === null ? 'null' : check.ResultID}, ${jsArg(check.CheckName)}, ${jsArg(check.CheckDescription || '')}, ${jsArg(check.Status || '')}, ${jsArg(check.Notes || '')})">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </button>`;
 
@@ -689,7 +689,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                 const canClear = (check.ResultID !== null);
                 const clearBtn = `<button class="mc-icon-btn mc-icon-clear"${canClear ? '' : ' disabled'}
                             title="${escapeHtmlAttr(window.t(canClear ? 'morning-checks.checklist.clear_title' : 'morning-checks.checklist.clear_title_none'))}"
-                            onclick="clearCheckResult(${check.CheckID}, '${escapeJsString(check.CheckName)}')">
+                            onclick="clearCheckResult(${check.CheckID}, ${jsArg(check.CheckName)})">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M3.51 13a9 9 0 1 0 2.13-9.36L3 7"></path></svg>
                         </button>`;
 
@@ -704,7 +704,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                     const styleVars = '--c: ' + s.Colour + '; --tc: ' + textColour + ';';
                     return `<button class="status-btn${isActive ? ' active' : ''}"
                                     style="${styleVars}"
-                                    onclick="handleStatusClick(${check.CheckID}, ${s.StatusID}, '${escapeJsString(check.Notes || '')}')">${escapeHtml(s.Label)}</button>`;
+                                    onclick="handleStatusClick(${check.CheckID}, ${s.StatusID}, ${jsArg(check.Notes || '')})">${escapeHtml(s.Label)}</button>`;
                 }).join('');
 
                 // Inline orphan badge — flags rows whose Status label

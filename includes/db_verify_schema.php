@@ -5792,6 +5792,8 @@ return [
         'sort_order'        => 'INT NOT NULL DEFAULT 1',
         'requires_input'    => 'TINYINT(1) NOT NULL DEFAULT 0',
         'input_placeholder' => 'VARCHAR(255) DEFAULT NULL',
+        // Unused: arrived with the module (Sep 2026) but nothing has ever read or written it -
+        // there is no editor field and no save path. Kept so existing installs still verify.
         'default_value'     => 'VARCHAR(255) DEFAULT NULL',
         'result_mode'       => "VARCHAR(10) NOT NULL DEFAULT 'none'",   // #181: 'pass_fail' asks for a result on tasks
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',

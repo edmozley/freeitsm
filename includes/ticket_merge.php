@@ -206,6 +206,9 @@ function unmergeTicket(PDO $conn, int $actorId, int $mergeId): array {
 
     $related = json_decode((string)$merge['moved_related'], true);
     if (!is_array($related)) $related = [];
+    // Whole rows the merge deleted as duplicates (see mergeOneTicket) - not ids to move.
+    $dropped = is_array($related['_dropped'] ?? null) ? $related['_dropped'] : [];
+    unset($related['_dropped']);
 
     $conn->beginTransaction();
     try {
@@ -221,6 +224,24 @@ function unmergeTicket(PDO $conn, int $actorId, int $mergeId): array {
             try {
                 $conn->exec("UPDATE `$table` SET ticket_id = $sourceId WHERE id IN (" . implode(',', $ids) . ") AND ticket_id = $targetId");
             } catch (Exception) { /* table absent on a part-upgraded install */ }
+        }
+
+        // Put back the source's rows the merge deleted because the survivor had the same
+        // one (a watcher on both tickets, the same CMDB object linked to both...). The
+        // survivor keeps its own; INSERT IGNORE skips a row somebody has re-added since.
+        foreach ($dropped as $table => $rows) {
+            if (!isset(MERGE_MOVE_DEDUPE[$table]) || !is_array($rows)) continue;   // only tables the merge dedupes
+            foreach ($rows as $row) {
+                if (!is_array($row)) continue;
+                $row['ticket_id'] = $sourceId;
+                $cols = array_values(array_filter(array_keys($row), fn($c) => is_string($c) && preg_match('/^[a-z_]+$/', $c)));
+                if (!$cols) continue;
+                try {
+                    $conn->prepare(
+                        "INSERT IGNORE INTO `$table` (`" . implode('`, `', $cols) . "`) VALUES (" . implode(', ', array_fill(0, count($cols), '?')) . ")"
+                    )->execute(array_map(fn($c) => $row[$c], $cols));
+                } catch (Exception) { /* a column has gone since the merge - leave that row */ }
+            }
         }
 
         // The HTML snapshot the merge attached to the survivor describes a merge that
@@ -530,8 +551,24 @@ function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, a
 
     // Dedupe-on-move: linking the same CMDB object or problem twice would show the
     // analyst a duplicate row for no reason.
+    //
+    // TRAP: the source's duplicate rows are DELETED, so an unmerge cannot move them back -
+    // until 5.1.0 a watcher (or CMDB link, asset, problem, change, form) that was on BOTH
+    // tickets was simply gone from the source after Undo merge. The whole rows are kept
+    // in moved_related['_dropped'] first, and unmergeTicket() puts them back. Merges made
+    // before 5.1.0 have no such record and cannot get those rows back.
+    $droppedRows = [];
     foreach (MERGE_MOVE_DEDUPE as $table => $col) {
         try {
+            $dq = $conn->prepare(
+                "SELECT * FROM `$table`
+                  WHERE ticket_id = ?
+                    AND `$col` IN (SELECT * FROM (SELECT `$col` FROM `$table` WHERE ticket_id = ?) x)"
+            );
+            $dq->execute([$sourceId, $targetId]);
+            $dupes = $dq->fetchAll(PDO::FETCH_ASSOC);
+            if ($dupes) $droppedRows[$table] = $dupes;
+
             // Note the ordering: the de-dupe DELETE runs first, so what is recorded
             // afterwards is exactly the set that actually moves. Recording before the
             // delete would promise an unmerge rows that no longer exist.
@@ -549,6 +586,8 @@ function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, a
             $conn->prepare("UPDATE `$table` SET ticket_id = ? WHERE ticket_id = ?")->execute([$targetId, $sourceId]);
         } catch (Exception) { /* absent */ }
     }
+
+    if ($droppedRows) $movedRelated['_dropped'] = $droppedRows;
 
     // Ticket-to-ticket links: re-point at the target, then drop self-links and any
     // duplicate pair the re-point just created.
