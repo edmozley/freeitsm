@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2822 | CMDB              | Fix         | CMDB relationships read the right way round in the AI summary and in Network Mapper too (the bug PR #297 fixed on the object page): the summary told the AI "VM - hosts this" under "What depends on this object", so it could write a VM hosting its host - every link is now a sentence naming both ends with the forward verb, and the AI is told never to reverse one; Network Mapper's related-objects picker labelled an incoming link with the inverse, and the connector it drew (VM to host) read "hosts" - it now reads "runs on". The prompt-building moved to includes/cmdb_summary_prompt.php so a test can read it; tests/cmdb-relationship-direction.php (8). |
 
 
 

@@ -88,10 +88,13 @@ try {
     }
 
     // ---- Incoming relationships (other → this object) ----
-    // Use inverse_verb so the row reads naturally from the source object's POV:
-    // "X is hosted by this" → label = "is hosted by"
+    // TRAP: the FORWARD verb. The row sits under "Others -> this object" and, once added,
+    // its connector is drawn other -> this (network-mapper.js) with this label on it - so
+    // "VM-A -> HOST-A" must say "runs on". The inverse ("hosts") read "VM-A hosts
+    // HOST-A", backwards (the PR #297 bug, here). The REST API's expand suggestions keep
+    // the inverse on purpose: each reads from the object being expanded.
     $inStmt = $conn->prepare(
-        "SELECT r.id AS relationship_id, rt.inverse_verb AS label,
+        "SELECT r.id AS relationship_id, rt.verb AS label,
                 o.id AS object_id, o.name, o.is_planned,
                 c.id AS class_id, c.name AS class_name, i.icon_key AS class_icon
            FROM cmdb_object_relationships r
@@ -100,7 +103,7 @@ try {
            JOIN cmdb_classes c ON c.id = o.class_id
       LEFT JOIN cmdb_icons   i ON i.id = c.icon_id
           WHERE r.to_object_id = ?" . $tOther . "
-       ORDER BY rt.display_order, rt.inverse_verb, o.name"
+       ORDER BY rt.display_order, rt.verb, o.name"
     );
     $inStmt->execute(array_merge([$id], $aOther));
     foreach ($inStmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
