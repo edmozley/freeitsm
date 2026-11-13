@@ -47,7 +47,7 @@ requireModuleAccessJson('tickets');
 
 $emailId   = 0;
 $emailDir  = null;
-$storedAbs = null;
+$storedKey = null;
 
 try {
     $ticketId = (int) ($_POST['ticket_id'] ?? 0);
@@ -138,12 +138,12 @@ try {
     // ⚠️ PR #159 stored into sys_get_temp_dir() and renamed afterwards. That made
     // uploadStoreFile() drop its .htaccess / web.config guard into the OS temp
     // folder, and created the final folder by hand with mkdir(), skipping the guard.
-    $subDir   = (int) floor($emailId / 1000);
-    $emailDir = dirname(dirname(__DIR__)) . '/tickets/attachments/' . $subDir . '/' . $emailId;
-    $stored   = uploadStoreFile($_FILES['file'], $emailDir, attachmentAllowedTypes($conn));
-    $storedAbs = $stored['path'];
+    // Into the tickets store (a server folder or S3, System -> Storage), same layout.
+    require_once dirname(__DIR__, 2) . '/includes/storage/stores.php';
+    $stored    = storeSaveUpload($conn, 'tickets', storeTicketDir($emailId), $_FILES['file'], attachmentAllowedTypes($conn));
+    $storedKey = $stored['key'];
 
-    $filePath = $subDir . '/' . $emailId . '/' . $stored['stored_name'];
+    $filePath = $storedKey;
     $conn->prepare(
         "INSERT INTO email_attachments (email_id, exchange_attachment_id, filename, content_type, content_id, file_path, file_size, is_inline)
          VALUES (?, NULL, ?, ?, NULL, ?, ?, 0)"
@@ -153,15 +153,22 @@ try {
     // Now actually send it: the local path for a provider that uploads bytes
     // (Meta, Telegram), a short-lived signed URL to the same file for one that
     // fetches it (Twilio), and the ORIGINAL name for the recipient to see.
+    // A provider that uploads bytes needs a file on this server: the stored one, or a
+    // temporary copy when the store is in S3 (removed once sent).
     $provider = messagingProvider($channel);
-    $providerMsgId = $provider->sendMedia(
-        $recipient,
-        $storedAbs,
-        $stored['mime'],
-        $caption,
-        messagingOutboundMediaUrl($conn, $attachmentId),
-        $stored['original_name']
-    );
+    $local = storeLocalPath($conn, 'tickets', $storedKey);
+    try {
+        $providerMsgId = $provider->sendMedia(
+            $recipient,
+            $local['path'],
+            $stored['mime'],
+            $caption,
+            messagingOutboundMediaUrl($conn, $attachmentId),
+            $stored['original_name']
+        );
+    } finally {
+        storeReleaseLocal($local);
+    }
 
     if ($providerMsgId !== '') {
         $conn->prepare("UPDATE emails SET exchange_message_id = ? WHERE id = ?")->execute([$providerMsgId, $emailId]);
@@ -180,8 +187,8 @@ try {
             $conn->prepare("DELETE FROM email_attachments WHERE email_id = ?")->execute([$emailId]);
             $conn->prepare("DELETE FROM emails WHERE id = ?")->execute([$emailId]);
         } catch (Exception $ignored) { /* best effort */ }
-        if ($storedAbs !== null && is_file($storedAbs)) {
-            @unlink($storedAbs);
+        if ($storedKey !== null) {
+            storeDelete($conn, 'tickets', $storedKey);
         }
     }
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

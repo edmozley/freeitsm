@@ -87,25 +87,21 @@ try {
         exit('Attachment not found');
     }
 
-    // file_path is a relative path we generated ourselves ({subdir}/{email_id}/
-    // {sanitised name}), but it is still concatenated into a filesystem path, so
-    // confirm the resolved file really sits under the attachments directory
-    // before reading it.
-    $baseDir  = realpath(dirname(dirname(__DIR__)) . '/tickets/attachments');
-    $filePath = realpath($baseDir . '/' . $attachment['file_path']);
-
-    // ⚠️ Compare against the base plus a separator, not the bare prefix. A plain
-    // strpos($file, $base) === 0 also accepts a SIBLING whose name merely starts the
-    // same way — `tickets/attachments-old`, `tickets/attachmentsX` — because the
-    // prefix matches before the path component ends. Harmless here today only because
-    // no such directory exists; the check should not depend on that staying true.
-    if ($baseDir === false || $filePath === false || !is_file($filePath)
-        || strncmp($filePath, $baseDir . DIRECTORY_SEPARATOR, strlen($baseDir) + 1) !== 0) {
+    // The bytes are in the tickets store (a server folder or S3, System -> Storage).
+    // The store refuses a key that could leave it and, on a server folder, a file
+    // that resolves outside it - the containment this endpoint used to check here.
+    require_once __DIR__ . '/../../includes/storage/stores.php';
+    $key = (string)$attachment['file_path'];
+    try {
+        $actual = storeSize($conn, 'tickets', $key);
+    } catch (StorageUnavailable $e) {
+        http_response_code(503);
+        exit('Storage cannot be reached right now. Try again in a few minutes.');
+    }
+    if ($actual === null) {
         http_response_code(404);
         exit('Attachment file not found');
     }
-
-    header('Cache-Control: private, max-age=86400');
 
     // ⚠️ Same fix as api/tickets/get_attachment.php, and it matters more here:
     // anyone can email the service desk, and this serves the result back into the
@@ -113,9 +109,14 @@ try {
     // our own map, never from the sender-supplied content_type — which let
     // `image/svg+xml` through the old inline test and made a planted SVG run script
     // on our origin. See includes/uploads.php.
-    attachmentSendHeaders((string)$attachment['filename'], (int)$attachment['file_size']);
-
-    readfile($filePath);
+    $code = storeServe($conn, 'tickets', $key, 0, max(0, $actual - 1), function () use ($attachment) {
+        header('Cache-Control: private, max-age=86400');
+        attachmentSendHeaders((string)$attachment['filename'], (int)$attachment['file_size']);
+    });
+    if ($code !== 0) {
+        http_response_code($code === 503 ? 503 : 404);
+        exit($code === 503 ? 'Storage cannot be reached right now.' : 'Attachment file not found');
+    }
 
 } catch (Exception $e) {
     http_response_code(500);

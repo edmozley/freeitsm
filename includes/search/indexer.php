@@ -172,9 +172,8 @@ function searchIndexTicketAttachments(PDO $conn, int $ticketId, ?int $tenantId, 
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     if (!$rows) return 0;
 
-    // Same base directory the download endpoint serves from.
-    $baseDir  = dirname(__DIR__, 2) . '/tickets/attachments';
-    $realBase = realpath($baseDir);
+    // The tickets store, the one the download endpoint serves from (a server folder or S3).
+    require_once dirname(__DIR__) . '/storage/stores.php';
     $written  = 0;
 
     foreach ($rows as $r) {
@@ -214,23 +213,32 @@ function searchIndexTicketAttachments(PDO $conn, int $ticketId, ?int $tenantId, 
                 $status = ATT_TEXT_UNSUPPORTED;
                 $text   = '';
             } else {
-                // ⚠️ Containment, copied from api/tickets/get_attachment.php: the
-                // resolved file must sit INSIDE the attachments directory. The
-                // stored path is not attacker-supplied today, but a row written
-                // before the upload rules existed — or by anyone with a foothold
-                // in the database — must not be able to make the indexer read
-                // config.php and put it in a searchable table. realpath() both
-                // sides, because comparing a resolved path against an unresolved
-                // prefix fails on Windows.
-                //
-                // It matters twice over now: without it, tier 2 would happily
-                // POST the contents of that file to an external service.
-                $full     = $baseDir . '/' . $r['file_path'];
-                $realFile = realpath($full);
-                if ($realBase === false || $realFile === false
-                    || strncmp($realFile, $realBase . DIRECTORY_SEPARATOR, strlen($realBase) + 1) !== 0) {
-                    error_log('[searchIndexTicketAttachments] refused a path outside the attachments '
-                              . 'directory — attachment ' . $attId . ', stored path ' . (string)$r['file_path']);
+                // ⚠️ Containment: the stored path is not attacker-supplied today,
+                // but a row written before the upload rules existed — or by anyone
+                // with a foothold in the database — must not be able to make the
+                // indexer read config.php and put it in a searchable table (or,
+                // through tier 2, POST it to an external service). The tickets
+                // store refuses a key that could leave it and, on a server folder,
+                // a file that resolves outside it.
+                $local = null;
+                $storeDown = false;
+                if ((int)$r['file_size'] <= ATT_TEXT_MAX_FILE_BYTES) {
+                    try {
+                        $local = storeLocalPath($conn, 'tickets', (string)$r['file_path']);
+                    } catch (StorageUnavailable $e) {
+                        $storeDown = true;
+                    } catch (Throwable $e) {
+                        $local = null;
+                    }
+                }
+                $realFile = $local['path'] ?? null;
+                if ($storeDown) {
+                    // The store cannot be reached: still owed, like a service that is down.
+                    $status = ATT_TEXT_PENDING;
+                    $text   = '';
+                } elseif ((int)$r['file_size'] <= ATT_TEXT_MAX_FILE_BYTES && $realFile === null) {
+                    error_log('[searchIndexTicketAttachments] could not read attachment ' . $attId
+                              . ' (stored path ' . (string)$r['file_path'] . ')');
                     $status = ATT_TEXT_FAILED;
                     $text   = '';
                 } elseif ((int)$r['file_size'] > ATT_TEXT_MAX_FILE_BYTES) {
@@ -265,6 +273,7 @@ function searchIndexTicketAttachments(PDO $conn, int $ticketId, ?int $tenantId, 
                         error_log('[tika] could not read attachment ' . $attId . ': ' . $res['error']);
                     }
                 }
+                storeReleaseLocal($local);   // a temporary copy when the store is in S3
             }
 
             try {

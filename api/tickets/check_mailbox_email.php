@@ -1029,19 +1029,20 @@ function saveAttachment($conn, $dbEmailId, $attachment, ?int $maxBytes = null) {
 
     $fileData = base64_decode($contentBytes);
 
-    $attachmentsDir = dirname(dirname(__DIR__)) . '/tickets/attachments';
-    $subDir   = floor($dbEmailId / 1000);
-    $emailDir = $attachmentsDir . '/' . $subDir . '/' . $dbEmailId;
+    // The tickets store: a server folder or S3 (System -> Storage); same layout either way.
+    require_once dirname(__DIR__, 2) . '/includes/storage/stores.php';
 
     // ⚠️ This is the least authenticated path in the application — anyone who can
     // send an email reaches it. It used to write the sender's own filename into the
     // web root after only stripping the characters that make a path separator, so
     // shell.php survived intact. uploadStoreBytes() applies the extension and
     // content checks and, crucially, names the file itself.
-    $stored = uploadStoreBytes(
+    $stored = storeSaveBytes(
+        $conn,
+        'tickets',
+        storeTicketDir((int) $dbEmailId),
         $fileData,
         $filename,
-        $emailDir,
         attachmentRejectPolicy($conn),
         attachmentAllowedTypes($conn),
         $maxBytes   // the mailbox's own limit when it has one; null = the install's
@@ -1059,7 +1060,7 @@ function saveAttachment($conn, $dbEmailId, $attachment, ?int $maxBytes = null) {
         ];
     }
 
-    $filePath = $subDir . '/' . $dbEmailId . '/' . $stored['stored_name'];
+    $filePath = $stored['key'];
 
     $sql = "INSERT INTO email_attachments (
         email_id, exchange_attachment_id, filename, content_type,

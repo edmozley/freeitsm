@@ -736,11 +736,7 @@ const INTEGRATION_ATTACH_MAX_BYTES = 10485760;   // 10 MB
 /** Most files one escalation will push, newest first. */
 const INTEGRATION_ATTACH_MAX_FILES = 10;
 
-/** Where ticket attachments live on disk, relative to the app root. */
-function integrationsAttachmentRoot(): string
-{
-    return dirname(__DIR__, 2) . '/tickets/attachments/';
-}
+require_once dirname(__DIR__) . '/storage/stores.php';   // ticket attachments: a server folder or S3
 
 /**
  * The attachments on a ticket that are worth sending to a tracker.
@@ -783,11 +779,16 @@ function integrationsTicketAttachments(PDO $conn, int $ticketId, int $maxFiles =
     $out = [];
     $taken = 0;
     foreach ($rows as $r) {
-        $path   = integrationsAttachmentRoot() . $r['file_path'];
+        $key    = (string)$r['file_path'];
         $size   = (int)$r['file_size'];
         $reason = null;
+        try {
+            $there = storeSize($conn, 'tickets', $key) !== null;   // a server folder or S3
+        } catch (StorageUnavailable $e) {
+            $there = true;   // cannot tell now: the send says so if it really cannot read it
+        }
 
-        if (!is_file($path)) {
+        if (!$there) {
             // The row outlived the file — a restored database, a pruned disk.
             $reason = 'missing_on_disk';
         } elseif ($size > INTEGRATION_ATTACH_MAX_BYTES) {
@@ -803,7 +804,7 @@ function integrationsTicketAttachments(PDO $conn, int $ticketId, int $maxFiles =
             'filename'     => (string)$r['filename'],
             'content_type' => (string)($r['content_type'] ?: 'application/octet-stream'),
             'size'         => $size,
-            'path'         => $path,
+            'key'          => $key,
             'skip_reason'  => $reason,
         ];
     }
@@ -856,8 +857,11 @@ function integrationsSendAttachments(PDO $conn, array $connection, array $link, 
             continue;
         }
         try {
-            $data = @file_get_contents($a['path']);
-            if ($data === false) throw new Exception('could not read the file');
+            try {
+                $data = storeGetString($conn, 'tickets', (string)$a['key']);
+            } catch (Throwable $e) {
+                throw new Exception('could not read the file');
+            }
             $provider->addAttachment((string)$link['external_id'], [
                 'data'         => $data,
                 'filename'     => $a['filename'],

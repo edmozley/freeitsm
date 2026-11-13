@@ -70,10 +70,14 @@ try {
     // Best-effort removal of the now-orphaned attachment files.
     $filesRemoved = 0;
     if ($hasFiles && $deleted > 0) {
-        $base = dirname(dirname(__DIR__)) . '/tickets/attachments/';
+        require_once __DIR__ . '/../../includes/storage/stores.php';   // the tickets store: a server folder or S3
         foreach ($orphanFiles as $rel) {
-            $full = $base . $rel;
-            if (is_file($full) && @unlink($full)) {
+            try {
+                $there = storeSize($conn, 'tickets', (string)$rel) !== null;
+            } catch (Throwable $e) {
+                $there = false;
+            }
+            if ($there && storeDelete($conn, 'tickets', (string)$rel)) {
                 $filesRemoved++;
             }
         }

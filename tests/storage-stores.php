@@ -162,6 +162,24 @@ try {
         }
     }
 
+    section('Containment on a server folder');
+    storeSaveSetting($conn, 'storage_tickets_location', null);
+    storeReset();
+    if (DIRECTORY_SEPARATOR === '/' && function_exists('symlink')) {
+        @mkdir("$work/local-tickets/9/9", 0777, true);
+        file_put_contents("$work/outside.txt", 'secret outside the store');
+        symlink("$work/outside.txt", "$work/local-tickets/9/9/planted.pdf");
+        $threw = null;
+        try { storeGetString($conn, 'tickets', '9/9/planted.pdf'); } catch (Throwable $e) { $threw = $e; }
+        ok('a symlink planted in the folder that leads outside it is "not found"', $threw instanceof StorageNotFound, $threw ? get_class($threw) : 'read it');
+        ob_start();
+        $code = storeServe($conn, 'tickets', '9/9/planted.pdf', 0, 10, function () { echo 'H'; });
+        $out = ob_get_clean();
+        ok('...and is not served', $code === 410 && $out === '', json_encode([$code, $out]));
+    } else {
+        echo "  SKIP symlink containment (needs a POSIX filesystem)\n";
+    }
+
     section('While a store is moving (server folder -> S3)');
     storeReset();
     $fake = new ZzStoreFakeS3("$work/s3-docs");

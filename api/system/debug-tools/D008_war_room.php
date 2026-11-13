@@ -224,15 +224,24 @@ foreach (['.htaccess' => 'Apache', 'web.config' => 'IIS'] as $guard => $server) 
     if (!$ok) $problems[] = "$guard is missing from the attachments folder, so on $server the uploaded files may be fetchable directly instead of only through the authorising endpoint.";
 }
 
-if (is_dir($dir)) {
+// The files themselves: the war-room store's own listing - this folder, or S3 when
+// System -> Storage keeps the store there (the folder then only stages uploads).
+require_once __DIR__ . '/../../../includes/storage/stores.php';
+$stored = null;
+try {
+    $lines[] = 'Stored in: ' . (storeLocation($conn, 'warroom') === 's3' ? 'S3-compatible storage' : 'this folder')
+             . (storePrevious($conn, 'warroom') !== null ? ' (a move is running)' : '');
+    $stored = storeList($conn, 'warroom');
+} catch (Throwable $e) {
+    $lines[] = 'Stored files: could not be listed - ' . $e->getMessage();
+    $problems[] = 'The war-room store cannot be listed (' . $e->getMessage() . '), so attachments cannot be checked.';
+}
+if ($stored !== null) {
     $known = [];
     foreach ($conn->query("SELECT stored_name FROM warroom_attachments") as $r) $known[$r['stored_name']] = true;
     $onDisk = 0; $orphans = 0; $bytes = 0;
-    foreach ((array) scandir($dir) as $f) {
-        if ($f === '.' || $f === '..' || $f === '.htaccess' || $f === 'web.config') continue;
-        $p = $dir . DIRECTORY_SEPARATOR . $f;
-        if (!is_file($p)) continue;
-        $onDisk++; $bytes += (int) filesize($p);
+    foreach ($stored as $f => $o) {
+        $onDisk++; $bytes += (int) $o['size'];
         if (!isset($known[$f])) $orphans++;
     }
     $lines[] = sprintf('Files on disk: %d (%s)   Rows in the database: %d', $onDisk, warroomD008Bytes($bytes), count($known));
@@ -242,7 +251,7 @@ if (is_dir($dir)) {
     if ($orphans > 20) $problems[] = "$orphans attachment files have no database row. The sweep runs when a message is sent, so a quiet war room will accumulate them; they are safe to delete.";
 
     $missingFiles = 0;
-    foreach (array_keys($known) as $n) if (!is_file($dir . DIRECTORY_SEPARATOR . $n)) $missingFiles++;
+    foreach (array_keys($known) as $n) if (!isset($stored[$n])) $missingFiles++;
     $lines[] = 'Rows with no file: ' . $missingFiles;
     if ($missingFiles > 0) $problems[] = "$missingFiles attachment(s) are recorded in the database but the file is gone from disk — those will 404 when somebody clicks them.";
 }

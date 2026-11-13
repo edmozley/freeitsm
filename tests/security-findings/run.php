@@ -935,8 +935,12 @@ if ($conn === null) {
 heading('S9  The remainder');
 
 $tm = code("$APP/includes/ticket_merge.php");
+$stores = code("$APP/includes/storage/stores.php");
+// Through uploads.php directly, or through the tickets store, whose storeSaveBytes()
+// is uploadStoreBytes() into the same folder (or its staging area for S3).
 check("the merge snapshot is written through uploads.php, not by hand",
-      str_contains($tm, 'uploadStoreBytes') && !str_contains($tm, 'file_put_contents'),
+      (str_contains($tm, 'uploadStoreBytes') || (str_contains($tm, 'storeSaveBytes') && str_contains($stores, 'uploadStoreBytes(')))
+      && !str_contains($tm, 'file_put_contents'),
       'it hand-wrote a .html into the web root');
 
 $sb = code("$APP/api/system/save_branding.php");
@@ -977,13 +981,24 @@ check("the generator no longer writes <handlers><clear/> either",
       !str_contains(code("$APP/includes/uploads.php"), '<handlers>'),
       'directories created at runtime would otherwise reintroduce it');
 
-// S9e — containment, and the sibling-prefix trap in the comparison itself.
+// S9e — containment, and the sibling-prefix trap in the comparison itself. The
+// download endpoints serve through the tickets store (#284), which does the check
+// once for every store: a key that could leave it is refused, and on a server folder
+// the file must RESOLVE inside it - compared with the separator, so a sibling such
+// as attachments-old cannot pass on a bare prefix.
 foreach (['api/tickets/get_attachment.php', 'api/self-service/get_attachment.php'] as $ga) {
     $src = code("$APP/$ga");
     check("$ga contains the resolved path to the attachments directory",
-          str_contains($src, 'realpath') && str_contains($src, 'strncmp'),
+          (str_contains($src, 'realpath') && str_contains($src, 'strncmp'))
+          || (str_contains($src, "storeServe(\$conn, 'tickets'") && !str_contains($src, 'readfile(')),
           'a bare strpos prefix also matches a sibling like attachments-old');
 }
+$contained = '';
+if (preg_match('/function storeCheckContained\b.*?\n}/s', $stores, $m)) $contained = $m[0];
+check("the stores layer resolves a file inside its folder, with the separator",
+      str_contains($contained, 'realpath') && str_contains($contained, "strncmp(\$realFile, \$realRoot . DIRECTORY_SEPARATOR")
+      && str_contains($stores, 'storeCheckContained($d, $store, $key)'),
+      'without it a symlink planted in a store folder, or a sibling prefix, would be followed');
 
 heading('F10  Database Verification tells the truth about what it does');
 

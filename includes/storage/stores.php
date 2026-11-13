@@ -211,13 +211,41 @@ function storeHolder(PDO $conn, string $store, string $key): StorageDriver
     storeCheckKey($key);
     $active = storeActive($conn, $store);
     $prev = storePrevious($conn, $store);
-    if ($prev === null) return $active;
-    if ($active->size($key) !== null) return $active;
-    if ($prev->size($key) !== null) return $prev;
-    throw new StorageNotFound('Stored file not found.');
+    $d = $active;
+    if ($prev !== null && $active->size($key) === null) {
+        if ($prev->size($key) === null) throw new StorageNotFound('Stored file not found.');
+        $d = $prev;
+    }
+    storeCheckContained($d, $store, $key);
+    return $d;
+}
+
+/**
+ * On the store's own folder, the file must RESOLVE inside it: realpath() follows a
+ * symlink planted in the folder, which the key check alone cannot see. (What the
+ * download endpoints each checked by hand before.) A file that escapes is "not there".
+ */
+function storeCheckContained(StorageDriver $d, string $store, string $key): void
+{
+    if (!storeIsOwnFolder($d, $store)) return;
+    $file = storeLocalRoot($store) . '/' . $key;
+    if (!file_exists($file)) return;
+    $realRoot = realpath(storeLocalRoot($store));
+    $realFile = realpath($file);
+    if ($realRoot === false || $realFile === false
+        || strncmp($realFile, $realRoot . DIRECTORY_SEPARATOR, strlen($realRoot) + 1) !== 0) {
+        error_log("storage: refused {$store}/{$key}: it resolves outside the store's folder");
+        throw new StorageNotFound('Stored file not found.');
+    }
 }
 
 // ── Writing ──────────────────────────────────────────────────────────────────
+
+/** The folder inside the tickets store for an email's attachments: {floor(id/1000)}/{id}. */
+function storeTicketDir(int $emailId): string
+{
+    return intdiv($emailId, 1000) . '/' . $emailId;
+}
 
 /** "dir/name", or "name" for a flat store. */
 function storeJoinKey(string $dir, string $name): string

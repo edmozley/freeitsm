@@ -2370,16 +2370,16 @@ try {
             $risky = $conn->query("SELECT id, file_path FROM email_attachments WHERE file_path REGEXP '$riskyExt'")->fetchAll(PDO::FETCH_ASSOC);
             $renamed = 0;
             $missing = 0;
-            $attachRoot = dirname(dirname(__DIR__)) . '/tickets/attachments/';
+            // The tickets store (a server folder or S3): renamed there, whichever it is.
+            require_once dirname(__DIR__, 2) . '/includes/storage/stores.php';
+            $there = fn(string $k): bool => storeSize($conn, 'tickets', $k) !== null;
             $updPath = $conn->prepare("UPDATE email_attachments SET file_path = ? WHERE id = ?");
             foreach ($risky as $att) {
                 $rel = (string)$att['file_path'];
                 $newRel = preg_replace('/\.[^.\/\\\\]+$/', '.' . ATTACHMENT_QUARANTINE_EXT, $rel);
                 if ($newRel === null || $newRel === $rel) continue;
 
-                $oldAbs = $attachRoot . $rel;
-                $newAbs = $attachRoot . $newRel;
-                if (!file_exists($oldAbs)) {
+                if (!$there($rel)) {
                     // Row points at a file that is already gone — still worth
                     // correcting the path so nothing re-derives an extension from it.
                     $updPath->execute([$newRel, $att['id']]);
@@ -2394,21 +2394,23 @@ try {
                 // rare, and unrecoverable when it landed. Find a free name instead. The
                 // displayed filename is a separate column, so the suffix is never seen by
                 // anyone; it exists only to keep the two files apart.
-                if (file_exists($newAbs)) {
+                if ($there($newRel)) {
                     $base = preg_replace('/\.[^.\/\\\\]+$/', '', $newRel);
                     $suffix = 1;
                     do {
                         $candidate = $base . '-' . $suffix . '.' . ATTACHMENT_QUARANTINE_EXT;
                         $suffix++;
-                    } while ($suffix < 1000 && file_exists($attachRoot . $candidate));
-                    if (file_exists($attachRoot . $candidate)) continue;   // gave up; leave it alone
+                    } while ($suffix < 1000 && $there($candidate));
+                    if ($there($candidate)) continue;   // gave up; leave it alone
                     $newRel = $candidate;
-                    $newAbs = $attachRoot . $newRel;
                 }
 
-                if (@rename($oldAbs, $newAbs)) {
+                try {
+                    storeRename($conn, 'tickets', $rel, $newRel);
                     $updPath->execute([$newRel, $att['id']]);
                     $renamed++;
+                } catch (Throwable $e) {
+                    // left as it is; the next verification tries again
                 }
             }
             if ($renamed > 0 || $missing > 0) {

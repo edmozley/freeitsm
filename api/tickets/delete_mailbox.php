@@ -152,12 +152,9 @@ try {
 
     $conn->commit();
 
-    $attachBase = dirname(dirname(__DIR__)) . '/tickets/attachments/';
+    require_once __DIR__ . '/../../includes/storage/stores.php';   // the tickets store: a server folder or S3
     foreach ($attachmentPaths as $rel) {
-        $full = $attachBase . $rel;
-        if (is_file($full)) {
-            @unlink($full);
-        }
+        storeDelete($conn, 'tickets', (string)$rel);
     }
 
     echo json_encode([

@@ -83,17 +83,18 @@ if (!$row) {
     mediaFail(404);
 }
 
-$fullPath = dirname(dirname(__DIR__)) . '/tickets/attachments/' . ltrim((string) $row['file_path'], '/\\');
-$real = realpath($fullPath);
-$attachmentsRoot = realpath(dirname(dirname(__DIR__)) . '/tickets/attachments');
-// ⚠️ Confirms the resolved path is still INSIDE the attachments root. file_path
-// is built by this app, never taken from the request, so this is defence in
-// depth rather than the primary guard — but it costs nothing and a future
-// change to how file_path is formed should not be able to reopen a traversal.
-// The trailing separator matters: without it a sibling folder whose name merely
-// STARTS with "attachments" would pass a prefix check.
-if ($real === false || $attachmentsRoot === false
-    || !str_starts_with($real, $attachmentsRoot . DIRECTORY_SEPARATOR) || !is_file($real)) {
+// The bytes are in the tickets store (a server folder or S3). The store refuses a
+// key that could leave it and, on a server folder, a file that resolves outside it:
+// the containment this file checked by hand. file_path is built by this app, never
+// taken from the request, so this is defence in depth rather than the primary guard.
+require_once dirname(__DIR__, 2) . '/includes/storage/stores.php';
+$key = ltrim((string) $row['file_path'], '/\\');
+try {
+    $size = storeSize($conn, 'tickets', $key);
+} catch (StorageUnavailable $e) {
+    mediaFail(503);
+}
+if ($size === null) {
     mediaFail(404);
 }
 
@@ -102,8 +103,12 @@ if ($real === false || $attachmentsRoot === false
 // the stored content_type, plus nosniff and a header-safe name. PR #159 set these
 // by hand from content_type; the shared helper is what every other attachment
 // download uses, so a fix to it reaches this one too.
-attachmentSendHeaders((string) $row['filename'], (int) filesize($real));
-// This URL is single-purpose and expires on its own (checked above) — caching
-// it anywhere beyond the fetch that's about to happen serves no one.
-header('Cache-Control: no-store');
-readfile($real);
+$code = storeServe($conn, 'tickets', $key, 0, max(0, $size - 1), function () use ($row, $size) {
+    attachmentSendHeaders((string) $row['filename'], $size);
+    // This URL is single-purpose and expires on its own (checked above) — caching
+    // it anywhere beyond the fetch that's about to happen serves no one.
+    header('Cache-Control: no-store');
+});
+if ($code !== 0) {
+    mediaFail($code === 503 ? 503 : 404);
+}
