@@ -52,8 +52,18 @@ try {
         exit;
     }
 
-    $path = documentStoragePath((string) $doc['storage_key']);
-    if (!is_file($path)) {
+    // The documents store (a server folder or S3, System -> Storage). It refuses a key
+    // that could leave it and, on a server folder, a file that resolves outside it.
+    require_once __DIR__ . '/../../includes/storage/stores.php';
+    $key = (string) $doc['storage_key'];
+    try {
+        $size = $key === '' ? null : storeSize($conn, 'documents', $key);
+    } catch (StorageUnavailable $e) {
+        http_response_code(503);
+        header('Content-Type: text/plain; charset=utf-8');
+        exit("Storage cannot be reached right now. Try again in a few minutes.\n");
+    }
+    if ($size === null) {
         http_response_code(410);
         header('Content-Type: text/plain; charset=utf-8');
         exit("That file is recorded but missing from storage.\n");
@@ -62,9 +72,16 @@ try {
     // The shared serving rules decide inline-versus-download (an HTML or SVG
     // shown inline on our own origin would run as us) and clean the file name.
     $name = (string) ($doc['original_name'] ?: $doc['title']);
-    attachmentSendHeaders($name, (int) filesize($path));
-    header('Cache-Control: private, no-store');
-    readfile($path);
+    $code = storeServe($conn, 'documents', $key, 0, max(0, $size - 1), function () use ($name, $size) {
+        attachmentSendHeaders($name, $size);
+        header('Cache-Control: private, no-store');
+    });
+    if ($code !== 0) {
+        http_response_code($code === 503 ? 503 : 410);
+        header('Content-Type: text/plain; charset=utf-8');
+        exit($code === 503 ? "Storage cannot be reached right now.\n" : "That file is recorded but missing from storage.\n");
+    }
+
 
 } catch (Exception $e) {
     http_response_code(500);

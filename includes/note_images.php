@@ -76,11 +76,11 @@ function noteImagesStore(PDO $conn, int $analystId, array $images, ?int $tenantI
     if (count($images) > NOTE_IMAGE_MAX) {
         throw new Exception('A note can hold at most ' . NOTE_IMAGE_MAX . ' pictures.');
     }
-    $dir = dirname(__DIR__) . '/uploads/' . DOCUMENT_STORAGE_DIR;
+    require_once __DIR__ . '/storage/stores.php';   // the documents store: a server folder or S3
     $stored = [];
     try {
         foreach ($images as $key => $file) {
-            $s = uploadStoreFile($file, $dir, attachmentAllowedTypes($conn));
+            $s = storeSaveUpload($conn, 'documents', '', $file, attachmentAllowedTypes($conn));
             $stored[$key] = $s;
             if (!in_array($s['mime'], NOTE_IMAGE_MIMES, true)) {
                 throw new Exception($s['original_name'] . ' is not a picture.');
@@ -95,7 +95,7 @@ function noteImagesStore(PDO $conn, int $analystId, array $images, ?int $tenantI
         foreach ($stored as $key => $s) {
             $ins->execute([
                 DOCUMENT_KIND_FILE, mb_substr($s['original_name'], 0, 255), documentStorageKey($s['stored_name']),
-                $s['original_name'], $s['mime'], $s['size'], @hash_file('sha256', $s['path']) ?: null,
+                $s['original_name'], $s['mime'], $s['size'], $s['sha256'] ?: null,
                 $tenantId, $analystId,
             ]);
             $ids[$key] = (int) $conn->lastInsertId();
@@ -104,7 +104,7 @@ function noteImagesStore(PDO $conn, int $analystId, array $images, ?int $tenantI
     } catch (Throwable $e) {
         if (!empty($ids)) noteImagesDiscard($conn, $ids);
         foreach ($stored as $s) {
-            if (is_file($s['path'])) @unlink($s['path']);
+            storeDelete($conn, 'documents', $s['key']);
         }
         throw $e;
     }
@@ -119,9 +119,9 @@ function noteImagesDiscard(PDO $conn, array $docIds): void
     $q->execute(array_values($docIds));
     $keys = $q->fetchAll(PDO::FETCH_COLUMN);
     $conn->prepare("DELETE FROM documents WHERE id IN ($in)")->execute(array_values($docIds));
+    require_once __DIR__ . '/storage/stores.php';
     foreach ($keys as $k) {
-        $p = documentStoragePath((string) $k);
-        if (is_file($p)) @unlink($p);
+        storeDelete($conn, 'documents', (string) $k);
     }
 }
 

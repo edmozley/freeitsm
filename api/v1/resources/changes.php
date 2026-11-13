@@ -42,17 +42,23 @@ function apiChangeAttachmentContent(PDO $conn, array $apiKey, array $params, arr
     $stmt=$conn->prepare('SELECT file_path,file_name FROM change_attachments WHERE id=? AND change_id=?');
     $stmt->execute([$params[1],$params[0]]); $row=$stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) { apiError(404,'not_found','Attachment not found.'); }
-    $root=realpath(dirname(__DIR__,3) . '/change-management/attachments');
-    $path=$root ? realpath($root . '/' . $row['file_path']) : false;
-    if (!$path || !str_starts_with($path,$root . DIRECTORY_SEPARATOR) || !is_file($path)) {
-        apiError(404,'not_found','Attachment file not found.');
-    }
+    // The changes store (a server folder or S3): it refuses a key that could leave it
+    // and, on a server folder, a file that resolves outside it.
+    require_once dirname(__DIR__, 3) . '/includes/storage/stores.php';
+    $key=(string)$row['file_path'];
+    try { $size=storeSize($conn,'changes',$key); }
+    catch (StorageUnavailable $e) { apiError(503,'storage_unavailable','Storage cannot be reached right now. Try again later.'); }
+    if ($size===null) { apiError(404,'not_found','Attachment file not found.'); }
     $name=str_replace(['"',"\r","\n"],'',$row['file_name']) ?: 'attachment';
-    header('Content-Type: application/octet-stream');
-    header('X-Content-Type-Options: nosniff');
-    header('Content-Disposition: attachment; filename="' . $name . '"; filename*=UTF-8\'\'' . rawurlencode($name));
-    header('Content-Length: ' . filesize($path)); header('Cache-Control: private, no-store');
-    readfile($path); exit;
+    $code=storeServe($conn,'changes',$key,0,max(0,$size-1),function () use ($name,$size) {
+        header('Content-Type: application/octet-stream');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Disposition: attachment; filename="' . $name . '"; filename*=UTF-8\'\'' . rawurlencode($name));
+        header('Content-Length: ' . $size); header('Cache-Control: private, no-store');
+    });
+    if ($code===503) { apiError(503,'storage_unavailable','Storage cannot be reached right now. Try again later.'); }
+    if ($code!==0) { apiError(404,'not_found','Attachment file not found.'); }
+    exit;
 }
 
 /**

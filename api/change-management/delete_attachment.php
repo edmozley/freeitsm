@@ -59,11 +59,9 @@ try {
         (string)$attachment['file_name'], $attachment['sha256'] ?? null);
     $conn->commit();
 
-    // Delete file from disk
-    $filePath = dirname(dirname(__DIR__)) . '/change-management/attachments/' . $attachment['file_path'];
-    if (file_exists($filePath)) {
-        unlink($filePath);
-    }
+    // Delete the file (the changes store: a server folder or S3)
+    require_once __DIR__ . '/../../includes/storage/stores.php';
+    storeDelete($conn, 'changes', (string)$attachment['file_path']);
 
     echo json_encode(['success' => true, 'message' => 'Attachment deleted']);
 

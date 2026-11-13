@@ -142,20 +142,29 @@ function apiProjectDocumentContent(PDO $conn, array $apiKey, array $params, arra
         apiDownloadRecord($conn, $apiKey, $did, 'follow', 0);
         apiRespond(['kind' => 'link', 'external_url' => $doc['external_url']]);
     }
-    $path = documentStoragePath((string)$doc['storage_key']);
-    if (!is_file($path)) apiError(410, 'gone', 'That file is recorded but missing from storage.');
-    $size = (int)filesize($path);
+    // The documents store (a server folder or S3); it refuses keys that could leave it.
+    require_once dirname(__DIR__, 3) . '/includes/storage/stores.php';
+    $key = (string)$doc['storage_key'];
+    try {
+        $size = $key === '' ? null : storeSize($conn, 'documents', $key);
+    } catch (StorageUnavailable $e) {
+        apiError(503, 'storage_unavailable', 'Storage cannot be reached right now. Try again later.');
+    }
+    if ($size === null) apiError(410, 'gone', 'That file is recorded but missing from storage.');
     // 🔴 The guard BEFORE a byte is read: refuses (429), or switches the key off, at the limit.
     apiDownloadGuard($conn, $apiKey, $size, $did);
     apiDownloadRecord($conn, $apiKey, $did, 'download', $size);
 
     $name = str_replace(['"', "\r", "\n"], '', (string)($doc['original_name'] ?: $doc['title'])) ?: 'document';
-    header('Content-Type: application/octet-stream');
-    header('X-Content-Type-Options: nosniff');
-    header('Content-Disposition: attachment; filename="' . $name . '"; filename*=UTF-8\'\'' . rawurlencode($name));
-    header('Content-Length: ' . $size);
-    header('Cache-Control: private, no-store');
-    readfile($path);
+    $code = storeServe($conn, 'documents', $key, 0, max(0, $size - 1), function () use ($name, $size) {
+        header('Content-Type: application/octet-stream');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Disposition: attachment; filename="' . $name . '"; filename*=UTF-8\'\'' . rawurlencode($name));
+        header('Content-Length: ' . $size);
+        header('Cache-Control: private, no-store');
+    });
+    if ($code === 503) apiError(503, 'storage_unavailable', 'Storage cannot be reached right now. Try again later.');
+    if ($code !== 0) apiError(410, 'gone', 'That file is recorded but missing from storage.');
     exit;
 }
 

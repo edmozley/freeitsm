@@ -742,8 +742,13 @@ function documentsCollectOrphans(PDO $conn, int $limit = 200): array
                 $chk = $conn->prepare("SELECT COUNT(*) FROM documents WHERE storage_key = ? AND deleted_datetime IS NULL");
                 $chk->execute([$key]);
                 if ((int) $chk->fetchColumn() === 0) {
-                    $path = documentStoragePath($key);
-                    if (is_file($path) && @unlink($path)) $out['files_removed']++;
+                    require_once __DIR__ . '/storage/stores.php';   // the documents store: a server folder or S3
+                    try {
+                        $there = storeSize($conn, 'documents', $key) !== null;
+                    } catch (Throwable $e) {
+                        $there = false;
+                    }
+                    if ($there && storeDelete($conn, 'documents', $key)) $out['files_removed']++;
                 }
             }
         }

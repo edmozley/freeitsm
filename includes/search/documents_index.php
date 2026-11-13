@@ -210,20 +210,29 @@ function documentTextDrain(PDO $conn, int $limit = 5, float $deadline = 0): arra
             $claim->execute([ATT_TEXT_EXTRACTING, $id, ATT_TEXT_PENDING]);
             if ($claim->rowCount() === 0) continue;
 
-            $path     = documentStoragePath((string) $r['storage_key']);
             $filename = (string) ($r['original_name'] ?: $r['storage_key']);
 
             // ⚠️ CONTAINMENT, as the ticket indexer does it. The storage key is
             // ours today, but a row written by anyone with a foothold in the
             // database must not be able to make this read config.php — and, with
-            // tier 2, POST it to an extraction service. realpath() both sides,
-            // because comparing a resolved path to an unresolved prefix fails on
-            // Windows.
-            $realBase = realpath(dirname(__DIR__, 2) . '/uploads/' . DOCUMENT_STORAGE_DIR);
-            $realFile = realpath($path);
-            if ($realBase === false || $realFile === false
-                || strncmp($realFile, $realBase . DIRECTORY_SEPARATOR, strlen($realBase) + 1) !== 0) {
-                error_log('[documentTextDrain] refused a path outside the documents directory — document ' . $id);
+            // tier 2, POST it to an extraction service. The documents store
+            // refuses a key that could leave it and, on a server folder, a file
+            // that resolves outside it. In S3 the file is read from a temporary copy.
+            require_once dirname(__DIR__) . '/storage/stores.php';
+            $local = null;
+            $storeDown = false;
+            try {
+                $local = storeLocalPath($conn, 'documents', (string) $r['storage_key']);
+            } catch (StorageUnavailable $e) {
+                $storeDown = true;
+            } catch (Throwable $e) {
+                $local = null;
+            }
+            $realFile = $local['path'] ?? null;
+            if ($storeDown) {
+                $status = ATT_TEXT_PENDING; $text = ''; $extractor = 'builtin';   // still owed: storage is down
+            } elseif ($realFile === null) {
+                error_log('[documentTextDrain] could not read document ' . $id . ' from the documents store');
                 $status = ATT_TEXT_FAILED; $text = ''; $extractor = 'builtin';
             } elseif (attTextSupports($filename)) {
                 $res = attTextExtractFile($realFile, $filename);           // tier 1
@@ -247,6 +256,7 @@ function documentTextDrain(PDO $conn, int $limit = 5, float $deadline = 0): arra
                     error_log('[tika] could not read document ' . $id . ': ' . $res['error']);
                 }
             }
+            storeReleaseLocal($local);   // a temporary copy when the store is in S3
 
             $conn->prepare(
                 "UPDATE document_text

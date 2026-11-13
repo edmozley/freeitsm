@@ -280,7 +280,7 @@ function storeFinishStaged(PDO $conn, string $store, string $key, string $path):
 /**
  * uploadStoreFile() into a store. $dir is the folder inside the store ('' for a flat store).
  *
- * @return array uploadStoreFile()'s result plus 'key'; 'path' is the file on the server when
+ * @return array uploadStoreFile()'s result plus 'key' and 'sha256'; 'path' is the file on the server when
  *               the store is a server folder, and null when it went to S3
  * @throws Exception as uploadStoreFile does; StorageUnavailable when S3 cannot be reached
  */
@@ -290,8 +290,8 @@ function storeSaveUpload(PDO $conn, string $store, string $dir, array $file, arr
     $r = uploadStoreFile($file, storeWorkDir($conn, $store, $dir), $allowed, $maxBytes);
     $r['key'] = storeJoinKey($dir, $r['stored_name']);
     storeCheckKey($r['key']);
+    $r['sha256'] = hash_file('sha256', $r['path']);   // callers record it; read before the file can leave
     if (!$local) {
-        $r['sha256'] = hash_file('sha256', $r['path']);
         storeFinishStaged($conn, $store, $r['key'], $r['path']);
         $r['path'] = null;
     }

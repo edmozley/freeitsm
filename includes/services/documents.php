@@ -67,8 +67,11 @@ class DocumentsService
         // 2. Build the document row.
         $stored = null;
         if ($hasFile) {
+            require_once __DIR__ . '/../storage/stores.php';   // the documents store: a server folder or S3
             try {
-                $stored = uploadStoreFile($file, dirname(__DIR__, 2) . '/uploads/' . DOCUMENT_STORAGE_DIR, attachmentAllowedTypes($conn));
+                $stored = storeSaveUpload($conn, 'documents', '', $file, attachmentAllowedTypes($conn));
+            } catch (StorageUnavailable $e) {
+                throw $e;   // not the file's fault: storage cannot be reached
             } catch (Exception $e) {
                 throw new ServiceError('validation', 'invalid_file', $e->getMessage());
             }
@@ -80,7 +83,7 @@ class DocumentsService
                 'mime_type'     => $stored['mime'],
                 'size_bytes'    => $stored['size'],
                 // Lets the same PDF attached to eleven assets be recognised as one file.
-                'content_hash'  => @hash_file('sha256', $stored['path']) ?: null,
+                'content_hash'  => $stored['sha256'] ?: null,
                 'external_url'  => null,
             ];
         } else {
@@ -106,7 +109,7 @@ class DocumentsService
                     && ($doc['kind'] === DOCUMENT_KIND_FILE
                         ? ($existing['original_name'] === $doc['original_name'] && $existing['content_hash'] === $doc['content_hash'])
                         : $existing['external_url'] === $doc['external_url']);
-                if ($stored && is_file($stored['path'])) @unlink($stored['path']);   // the copy just written is not needed
+                if ($stored) storeDelete($conn, 'documents', $stored['key']);   // the copy just written is not needed
                 if (!$same) throw new ServiceError('conflict', 'reference_conflict', 'This client_reference already names a different document.');
                 return ['id' => (int)$existing['id'], 'replayed' => true];
             }
@@ -131,7 +134,7 @@ class DocumentsService
         } catch (Throwable $e) {
             if ($conn->inTransaction()) $conn->rollBack();
             // The row failed, so the file on disk is now an orphan nothing points at.
-            if ($stored && is_file($stored['path'])) @unlink($stored['path']);
+            if ($stored) storeDelete($conn, 'documents', $stored['key']);
             throw $e;
         }
 
@@ -224,8 +227,8 @@ class DocumentsService
             $st = $conn->prepare("SELECT COUNT(*) FROM documents WHERE storage_key = ? AND deleted_datetime IS NULL");
             $st->execute([$keyToRemove]);
             if ((int)$st->fetchColumn() === 0) {
-                $path = documentStoragePath((string)$keyToRemove);
-                if (is_file($path)) @unlink($path);
+                require_once __DIR__ . '/../storage/stores.php';   // the documents store: a server folder or S3
+                storeDelete($conn, 'documents', (string)$keyToRemove);
             }
         }
         // An orphan is soft-deleted, so it must leave the index too.

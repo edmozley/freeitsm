@@ -43,15 +43,20 @@ try {
         exit;
     }
 
-    $root     = dirname(dirname(__DIR__)) . '/change-management/attachments';
-    $filePath = $root . '/' . $attachment['file_path'];
-
-    // ⚠️ file_path comes from a database row this endpoint does not write, so
-    // resolve it and confirm it is genuinely INSIDE the attachments folder. A
-    // stored value of "../../config.php" would otherwise be served happily.
-    $realRoot = realpath($root);
-    $realFile = realpath($filePath);
-    if ($realRoot === false || $realFile === false || !str_starts_with($realFile, $realRoot . DIRECTORY_SEPARATOR)) {
+    // The bytes are in the changes store (a server folder or S3, System -> Storage).
+    // ⚠️ file_path comes from a database row this endpoint does not write: the store
+    // refuses a key that could leave it and, on a server folder, a file that resolves
+    // outside it. A stored value of "../../config.php" is "not found".
+    require_once __DIR__ . '/../../includes/storage/stores.php';
+    $key = (string)$attachment['file_path'];
+    try {
+        $size = storeSize($conn, 'changes', $key);
+    } catch (StorageUnavailable $e) {
+        http_response_code(503);
+        echo 'Storage cannot be reached right now. Try again in a few minutes.';
+        exit;
+    }
+    if ($size === null) {
         http_response_code(404);
         echo 'File not found';
         exit;
@@ -64,13 +69,17 @@ try {
     $safeName = str_replace(['"', "\r", "\n"], '', (string)$attachment['file_name']);
     if ($safeName === '') $safeName = 'attachment';
 
-    header('Content-Type: application/octet-stream');
-    header('X-Content-Type-Options: nosniff');
-    header('Content-Disposition: attachment; filename="' . $safeName . '"; filename*=UTF-8\'\'' . rawurlencode($safeName));
-    header('Content-Length: ' . filesize($realFile));
-    header('Cache-Control: no-cache');
-
-    readfile($realFile);
+    $code = storeServe($conn, 'changes', $key, 0, max(0, $size - 1), function () use ($safeName, $size) {
+        header('Content-Type: application/octet-stream');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Disposition: attachment; filename="' . $safeName . '"; filename*=UTF-8\'\'' . rawurlencode($safeName));
+        header('Content-Length: ' . $size);
+        header('Cache-Control: no-cache');
+    });
+    if ($code !== 0) {
+        http_response_code($code === 503 ? 503 : 404);
+        echo $code === 503 ? 'Storage cannot be reached right now.' : 'File not found';
+    }
     exit;
 
 } catch (Exception $e) {
