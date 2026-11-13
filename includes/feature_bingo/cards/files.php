@@ -91,4 +91,16 @@ return [
         'link'     => 'system/companies/',
         'check'    => ['rows', 'tenants', 'logo_path IS NOT NULL'],
     ],
+    [
+        'id'       => 'files.s3_storage',
+        'module'   => 'files',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Files kept in S3-compatible storage',
+        'what'     => 'Files -> Settings -> Storage keeps the files in a private bucket at AWS S3, Backblaze B2, Wasabi, Cloudflare R2 or MinIO, with the files already stored moved there safely in the background.',
+        'why'      => 'Storage that grows without filling the server\'s disk, kept off the server - while every download still goes through FreeITSM\'s permission check.',
+        'done'     => 'Files are stored in S3-compatible storage.',
+        'link'     => 'files/settings/',
+        'check'    => ['rows', 'system_settings', "setting_key = 'files_storage_driver' AND setting_value = 's3'"],
+    ],
 ];
