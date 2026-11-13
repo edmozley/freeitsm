@@ -105,6 +105,15 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .pill           { background: #1e2b3d; color: #93c5fd; }
         [data-theme-mode="dark"] .pill-all       { background: #2b2440; color: #c4b5fd; }
         [data-theme-mode="dark"] .all-note       { color: #c4b5fd; }
+        /* The header is taller than the 48px inbox.css assumes (calc(100vh - 48px)), which put the
+           bottom of this page below the window. As the tickets inbox does: the body is a column,
+           the header takes its real height and the page fills the rest. Desktop only;
+           mobile.css has its own layout. */
+        @media (min-width: 769px) {
+            body { display: flex; flex-direction: column; }
+            body > .header { flex-shrink: 0; }
+            body > .main-container { height: auto; flex: 1 1 auto; min-height: 0; }
+        }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">

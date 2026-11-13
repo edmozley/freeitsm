@@ -178,6 +178,16 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         [data-theme-mode="dark"] .form-error { color: #fca5a5; }
         [data-theme-mode="dark"] .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
         [data-theme-mode="dark"] .steps a:not(.btn) { color: var(--sys-accent, #90a4ae); }
+        /* The header is taller than the 48px inbox.css assumes (calc(100vh - 48px)), which put the
+           bottom of this page below the window. As the tickets inbox does: the body is a column,
+           the header takes its real height and the page fills the rest. Block, not flex, so the
+           bottom padding scrolls into view. Desktop only;
+           mobile.css has its own layout. */
+        @media (min-width: 769px) {
+            body { display: flex; flex-direction: column; }
+            body > .header { flex-shrink: 0; }
+            body > .main-container { display: block; height: auto; flex: 1 1 auto; min-height: 0; }
+        }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
