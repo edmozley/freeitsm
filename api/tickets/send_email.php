@@ -92,6 +92,16 @@ try {
         throw new Exception('Ticket not found');
     }
 
+    // GH #306: the subject is editable in the dialog. Whatever was typed, this ticket's
+    // [SDREF] stays (added back if removed, another ticket's taken out), so replies thread.
+    require_once '../../includes/email_threading.php';
+    $numStmt = $conn->prepare("SELECT ticket_number FROM tickets WHERE id = ?");
+    $numStmt->execute([$ticketId]);
+    $ticketNumberForSubject = (string)$numStmt->fetchColumn();
+    if ($ticketNumberForSubject !== '') {
+        $subject = ticketOutboundSubject((string)$subject, $ticketNumberForSubject);
+    }
+
     // Get the mailbox for this ticket
     $mailbox = getMailboxForTicket($conn, $ticketId);
 

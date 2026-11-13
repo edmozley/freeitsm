@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=85">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=87">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=4">
@@ -309,7 +309,13 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                         <input type="text" class="form-input" id="emailCc" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.reply_modal.cc_placeholder')); ?>">
                     </div>
                 </div>
-                <input type="hidden" id="emailSubject">
+                <?php /* GH #306: the subject is shown and can be changed - an outside provider adds its
+                         own number to it, and a follow-up must keep that number. The server keeps this
+                         ticket's [SDREF] whatever is typed (ticketOutboundSubject()). */ ?>
+                <div class="form-group reply-subject">
+                    <label class="form-label" for="emailSubject"><?php echo htmlspecialchars(t('tickets.reply_modal.subject')); ?></label>
+                    <input type="text" class="form-input" id="emailSubject" maxlength="255" autocomplete="off">
+                </div>
                 <?php /* ⚠️ Keep #emailBody in a form-group of its own: mobile.css finds the
                          editor's block with .form-group:has(#emailBody) to stretch it to fill
                          the sheet on a phone. */ ?>
@@ -1174,7 +1180,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=197"></script>
+    <script src="../assets/js/inbox.js?v=198"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>

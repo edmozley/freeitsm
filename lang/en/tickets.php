@@ -625,6 +625,13 @@ return [
 
     // Splitting a ticket (#914). Note "newer", never "after": the thread is shown
     // newest-first, so later-in-time messages appear ABOVE the chosen one.
+    // Reply / Forward from one message in the thread (GH #306).
+    'thread' => [
+        'reply'              => 'Reply',
+        'reply_this_title'   => 'Reply to this message - starts from its subject',
+        'forward'            => 'Forward',
+        'forward_this_title' => 'Forward this message - starts from its subject',
+    ],
     'split' => [
         'from_here'         => 'Split',
         'from_here_title'   => 'Split this message into a new ticket',
@@ -733,6 +740,7 @@ return [
     'reply_modal' => [
         'to'             => 'To',
         'cc'             => 'Cc',
+        'subject'        => 'Subject',
         'to_placeholder' => 'recipient@example.com',
         'cc_placeholder' => 'cc@example.com (separate multiple with semicolons)',
         'message'        => 'Message',
@@ -3483,6 +3491,7 @@ return [
             'step1' => '<strong>Open the ticket</strong> &mdash; click any ticket in the inbox to load its reading pane. Scroll down to see the full activity trail and the comment box at the bottom.',
             'step2' => '<strong>Write your note</strong> &mdash; use the Add Note button to open the comment editor. Notes are internal by default, visible only to analysts on the service desk.',
             'step3' => '<strong>Reply or forward by email</strong> &mdash; use the Reply or Forward actions to send a message to the end user or a third party. The email is logged in the activity trail alongside the outbound message content.',
+            'subject_note'  => '<strong>The subject</strong> &mdash; Reply and Forward show the subject and you can change it. When you forward a ticket to an outside provider and their reply adds their own number to the subject (for example <em>#TCK89633 - FW: &hellip;</em>), use <strong>Reply</strong> or <strong>Forward</strong> on <em>that</em> message in the conversation: it starts from its subject, so your follow-up keeps their number and lands on their ticket. Each message shows its own subject under the sender. The ticket&rsquo;s reference in square brackets is always kept &mdash; if you take it out, it is put back when you send, so replies still come back to this ticket.',
             'files_heading' => '<strong>File attachments</strong>',
             'files_body'    => 'Attach screenshots, logs, documents, or any supporting file directly to a ticket. Files can be dragged into the attachment drop zone or selected using the file browser. Attachments are stored on the server and linked to the ticket\'s activity trail so nothing gets lost.',
             'audit_heading' => '<strong>Audit logging</strong>',

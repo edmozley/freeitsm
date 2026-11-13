@@ -507,6 +507,8 @@ try {
                             </div>
                         </div>
                     </div>
+                    <?php /* GH #306 */ ?>
+                    <p class="help-note" style="margin-top: 12px;"><?php echo t('tickets.help.comments.subject_note'); ?></p>
 
                     <p style="margin-top: 16px;"><?php echo t('tickets.help.comments.files_heading'); ?></p>
                     <p><?php echo t('tickets.help.comments.files_body'); ?></p>

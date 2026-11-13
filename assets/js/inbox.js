@@ -4748,6 +4748,7 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
         if (data.success && data.emails && data.emails.length > 0) {
             // Reverse so most recent email is at the top
             const emails = [...data.emails].reverse();
+            window.__threadEmails = emails.map(x => ({ id: x.id, subject: x.subject || '', direction: x.direction, from_address: x.from_address || '' }));
             container.innerHTML = emails.map((e, index) => {
                 const isOutbound = e.direction === 'Outbound';
                 return `
@@ -4765,12 +4766,24 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                               message — not in the toolbar, where you would first have to
                               say which one. Revealed on hover: it is an occasional action
                               and eleven of them would shout over the conversation. */''}
+                        ${/* GH #306: Reply / Forward FROM this message - starts from its subject, so a
+                              provider's own number ("#TCK89633 - FW: ...") carries into the follow-up. */''}
+                        ${(e.channel || 'email') === 'email' ? `
+                        <button type="button" class="thread-split-btn" title="${escapeHtml(t('tickets.thread.reply_this_title'))}" onclick="replyFromThread(${e.id}, 'reply')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                            <span>${escapeHtml(t('tickets.thread.reply'))}</span>
+                        </button>
+                        <button type="button" class="thread-split-btn" title="${escapeHtml(t('tickets.thread.forward_this_title'))}" onclick="replyFromThread(${e.id}, 'forward')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>
+                            <span>${escapeHtml(t('tickets.thread.forward'))}</span>
+                        </button>` : ''}
                         <button type="button" class="thread-split-btn" title="${escapeHtml(t('tickets.split.from_here_title'))}"
                                 onclick="openSplitModal(${ticketId}, ${e.id})">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a3 3 0 0 0 3 3h6"/><path d="M6 21v-6"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/></svg>
                             <span>${escapeHtml(t('tickets.split.from_here'))}</span>
                         </button>
                     </div>
+                    ${e.subject && (e.channel || 'email') === 'email' ? `<div class="thread-subject">${escapeHtml(e.subject)}</div>` : ''}
                     ${e.same_kind && MC.flag_duplicates ? `<div class="dup-note">${escapeHtml(
                         e.same_kind === 'identical'
                             ? t('tickets.reading.same_as_identical').replace('{time}', formatFullDateTime(e.same_as_time))
@@ -7567,7 +7580,7 @@ function outboundToStaffOnly(recipients) {
  *
  * Channel tickets (WhatsApp and the like) are sent to the inline channel composer instead. Also applies the default signature, shows the AI Cleanup button and marks the analyst as composing for the collision warning.
  */
-function openReplyModal() {
+function openReplyModal(fromEmail) {
     // Channel tickets (WhatsApp etc.) reply via the inline composer, not email.
     if (currentTicketChannel && currentTicketChannel !== 'email') {
         window.TicketWorkspace?.activate('conversation');
@@ -7587,7 +7600,9 @@ function openReplyModal() {
     // handed to Graph/Gmail/SMTP as a recipient. Fall back to the requester's
     // address if the payload has one, else leave it empty so the send is
     // refused rather than sent somewhere meaningless.
-    const replyTo = replyAddress(currentEmail, window.TICKET_REPLY_TO);
+    // GH #306: Reply on a message in the thread answers its sender, when they wrote to us.
+    const fromInbound = fromEmail && fromEmail.direction !== 'Outbound' && fromEmail.from_address;
+    const replyTo = fromInbound ? fromEmail.from_address : replyAddress(currentEmail, window.TICKET_REPLY_TO);
     document.getElementById('emailTo').value = replyTo;
     document.getElementById('emailCc').value = '';
     if (!replyTo) {
@@ -7596,15 +7611,7 @@ function openReplyModal() {
         // portal.
         showToast('This person has no email address on file — add a recipient, or share a note on the ticket instead.', 'warning');
     }
-    // Add ticket reference to subject if not already present
-    let subject = currentEmail.subject;
-    const ticketRef = `[SDREF:${currentEmail.ticket_number}]`;
-    if (!subject.includes(ticketRef)) {
-        subject = `RE: ${subject} ${ticketRef}`;
-    } else {
-        subject = `RE: ${subject}`;
-    }
-    document.getElementById('emailSubject').value = subject;
+    document.getElementById('emailSubject').value = composeSubject('RE', (fromEmail && fromEmail.subject) || currentEmail.subject, currentEmail.ticket_number);
 
     // Empty editor - server will assemble the full thread when sending
     if (emailEditor) {
@@ -7619,20 +7626,37 @@ function openReplyModal() {
     renderComposerCollisionWarning();
 }
 
+/**
+ * The subject Reply or Forward starts with (GH #306): RE: / FW: and the subject, with the
+ * ticket's [SDREF:...] - the prefix not doubled when the subject already starts with one
+ * ("RE: RE: ..."). Shown, and editable, in the dialog; the server keeps the reference
+ * whatever is typed (ticketOutboundSubject()).
+ *
+ * @param {string} prefix  'RE' or 'FW'
+ * @param {string} base  the subject to start from - the ticket's, or a message's in the thread
+ * @param {string} ticketNumber  the ticket's number, for [SDREF:...]
+ */
+function composeSubject(prefix, base, ticketNumber) {
+    let s = String(base || '').trim();
+    const ref = `[SDREF:${ticketNumber}]`;
+    if (!new RegExp('^' + prefix + '\\s*:', 'i').test(s)) s = `${prefix}: ${s}`;
+    if (!s.toLowerCase().includes(ref.toLowerCase())) s = `${s} ${ref}`;
+    return s;
+}
+
+/** Reply / Forward from one message in the thread (GH #306) - starts from that message's subject. */
+function replyFromThread(emailId, mode) {
+    const e = (window.__threadEmails || []).find(x => x.id === emailId);
+    if (!e) return;
+    mode === 'forward' ? openForwardModal(e) : openReplyModal(e);
+}
+
 // Open forward modal
-function openForwardModal() {
+function openForwardModal(fromEmail) {
     composeMode = 'forward';
     document.getElementById('emailTo').value = '';
     document.getElementById('emailCc').value = '';
-    // Add ticket reference to subject if not already present
-    let subject = currentEmail.subject;
-    const ticketRef = `[SDREF:${currentEmail.ticket_number}]`;
-    if (!subject.includes(ticketRef)) {
-        subject = `FW: ${subject} ${ticketRef}`;
-    } else {
-        subject = `FW: ${subject}`;
-    }
-    document.getElementById('emailSubject').value = subject;
+    document.getElementById('emailSubject').value = composeSubject('FW', (fromEmail && fromEmail.subject) || currentEmail.subject, currentEmail.ticket_number);
 
     // Empty editor - server will assemble the full thread when sending
     if (emailEditor) {

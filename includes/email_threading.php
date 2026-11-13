@@ -106,3 +106,35 @@ function emailThreadTicket(PDO $conn, int $mailboxId, ?string $threadKey, ?strin
     require_once __DIR__ . '/ticket_merge.php';
     return resolveMergedTicket($conn, (int)$ticketId);
 }
+
+/**
+ * The subject an analyst's reply or forward goes out with (GH #306). The subject is
+ * editable in the email dialog - an outside provider adds its own number to it
+ * ("#TCK89633 - FW: Printer [SDREF:ABC-1]"), and a follow-up must keep that number,
+ * or the provider opens a new ticket on their side. Whatever the analyst typed:
+ *
+ *   - line breaks and other control characters go (they would break the header);
+ *   - a reference to ANOTHER ticket is taken out (a reply would thread into that one);
+ *   - this ticket's [SDREF:...] is added at the end if it is missing, so replies thread;
+ *   - the result fits emails.subject (255), shortening the words, never the reference;
+ *   - an empty subject becomes just the reference.
+ *
+ * TRAP: never send an analyst-typed subject without this - a removed or foreign
+ * [SDREF] silently breaks threading, and a reply lands as a new ticket.
+ */
+function ticketOutboundSubject(string $subject, string $ticketNumber): string
+{
+    require_once __DIR__ . '/ticket_numbering.php';
+    $subject = trim(preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $subject) ?? '');
+    $ref = '[SDREF:' . $ticketNumber . ']';
+    $hasOurs = false;
+    $subject = preg_replace_callback(TicketNumbering::REF_PATTERN, function ($m) use ($ticketNumber, &$hasOurs) {
+        if (strcasecmp(trim($m[1]), $ticketNumber) === 0) { $hasOurs = true; return $m[0]; }
+        return '';
+    }, $subject) ?? $subject;
+    $subject = trim(preg_replace('/\s{2,}/u', ' ', $subject) ?? $subject);
+    if ($hasOurs) return mb_substr($subject, 0, 255);
+    $room = 255 - mb_strlen($ref) - 1;
+    $words = $room > 0 ? rtrim(mb_substr($subject, 0, $room)) : '';
+    return $words === '' ? $ref : $words . ' ' . $ref;
+}

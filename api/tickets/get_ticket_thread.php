@@ -36,7 +36,7 @@ try {
 
     // body_type matters to the renderer: chat channels store the sender's message
     // verbatim as 'text', so it must be ESCAPED rather than parsed as markup.
-    $sql = "SELECT id, from_address, from_name, to_recipients, received_datetime,
+    $sql = "SELECT id, from_address, from_name, to_recipients, received_datetime, subject,
                    body_content, body_type, direction, channel
             FROM emails
             WHERE ticket_id = ?

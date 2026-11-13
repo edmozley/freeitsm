@@ -4074,6 +4074,10 @@ body .tox-tinymce-aux {
 }
 #emailModal .reply-addr .form-label { margin: 0; flex-shrink: 0; min-width: 22px; }
 #emailModal .reply-addr .form-input { flex: 1; min-width: 0; }
+/* Subject (GH #306): its own line under To / Cc, label beside the box like them. */
+#emailModal .reply-subject { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+#emailModal .reply-subject .form-label { margin: 0; flex-shrink: 0; }
+#emailModal .reply-subject .form-input { flex: 1; min-width: 0; }
 /* Templates and Signature, bottom left of the footer; Cancel / Cleanup / Send
    stay right. Their menus open UPWARDS from here, or they would drop off the
    bottom of the window. */
@@ -4449,6 +4453,10 @@ body .tox-tinymce-aux {
 }
 /* Keyboard users never hover, so focus must reveal it too. */
 .thread-split-btn:focus-visible { opacity: 1; outline: 2px solid var(--accent, #0078d4); }
+/* Reply / Forward / Split side by side on a message (GH #306). */
+.thread-split-btn + .thread-split-btn { margin-left: 4px; }
+/* Each message's own subject, under its sender line - a provider's number (#TCK89633) shows here. */
+.thread-subject { font-size: 12px; color: var(--text-muted, #666); margin: -2px 0 8px; overflow-wrap: anywhere; }
 
 /* The dialog's list of what will move. */
 .split-preview {
