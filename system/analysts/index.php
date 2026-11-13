@@ -346,8 +346,8 @@ $translationNamespaces = ['common', 'tickets'];
                 </div>
 
                 <div class="form-group">
-                    <label for="analystEmail"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.email')); ?></label>
-                    <input type="email" id="analystEmail" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.email_placeholder')); ?>">
+                    <label for="analystEmail"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.email')); ?> *</label>
+                    <input type="email" id="analystEmail" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.email_placeholder')); ?>">
                 </div>
 
                 <div class="form-group" id="analystPasswordGroup">

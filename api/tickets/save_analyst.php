@@ -59,6 +59,13 @@ if (empty($fullName)) {
     exit;
 }
 
+// analysts.email is NOT NULL (password reset and SSO matching use it): say so here
+// rather than let the INSERT/UPDATE fail with a raw database error.
+if ($email === null) {
+    echo json_encode(['success' => false, 'error' => 'Email is required']);
+    exit;
+}
+
 // Password required for new analysts
 if (empty($id) && empty($password)) {
     echo json_encode(['success' => false, 'error' => 'Password is required for new analysts']);
