@@ -41,7 +41,7 @@ function apiTicketRelated(PDO $conn, int $ticketId, ?array $apiKey): array
             $st = $conn->prepare($sql);
             $st->execute(array_fill(0, substr_count($sql, '?'), $ticketId));
             return (int)$st->fetchColumn();
-        } catch (Throwable) {
+        } catch (Throwable $e) {
             return 0;   // a table not yet created by Database Verify counts as none
         }
     };
@@ -55,14 +55,14 @@ function apiTicketRelated(PDO $conn, int $ticketId, ?array $apiKey): array
         try {
             require_once dirname(__DIR__, 3) . '/includes/services/task_forms.php';
             $counts['forms'] = TicketForms::columnsReady($conn) ? count(TicketForms::forTicket($conn, $ticketId, 0, false)) : 0;
-        } catch (Throwable) { $counts['forms'] = 0; }
+        } catch (Throwable $e) { $counts['forms'] = 0; }
     }
     if ($can('ticket_checklists')) $counts['checklists'] = $scalar("SELECT COUNT(*) FROM ticket_checklists WHERE ticket_id = ?");
     if ($can('ticket_watchers')) {
         try {
             require_once dirname(__DIR__, 3) . '/includes/services/ticket_watchers.php';
             $counts['watchers'] = count(TicketWatchers::list($conn, $ticketId));
-        } catch (Throwable) { $counts['watchers'] = 0; }
+        } catch (Throwable $e) { $counts['watchers'] = 0; }
     }
     if ($can('ticket_time_entries')) $counts['time_entries'] = $scalar("SELECT COUNT(*) FROM ticket_time_entries WHERE ticket_id = ? AND is_active = 1");
 
@@ -92,7 +92,7 @@ function apiTicketRelated(PDO $conn, int $ticketId, ?array $apiKey): array
                 $link['name'] = $r['name'];
                 $links[] = $link;
             }
-        } catch (Throwable) { /* a module's tables not created yet - nothing linked */ }
+        } catch (Throwable $e) { /* a module's tables not created yet - nothing linked */ }
     }
 
     // Linked tickets, from THIS ticket's point of view (includes/ticket_links.php), plus
@@ -108,7 +108,7 @@ function apiTicketRelated(PDO $conn, int $ticketId, ?array $apiKey): array
             if ($g['duplicate_of'] && $okTicket($g['duplicate_of']['ticket_id'])) $links[] = $one($g['duplicate_of'], 'duplicate_of');
             foreach ($g['duplicates'] as $t) if ($okTicket($t['ticket_id']))       $links[] = $one($t, 'duplicated_by');
             foreach ($g['related'] as $t)    if ($okTicket($t['ticket_id']))       $links[] = $one($t, 'related');
-        } catch (Throwable) { /* ticket_links not created yet */ }
+        } catch (Throwable $e) { /* ticket_links not created yet */ }
         try {
             // A merged ticket keeps its row (in the trash) - its id still answers GET /tickets/{id}?deleted.
             $st = $conn->prepare("SELECT source_ticket_id, source_ticket_number FROM ticket_merges WHERE target_ticket_id = ? ORDER BY id");
@@ -117,7 +117,7 @@ function apiTicketRelated(PDO $conn, int $ticketId, ?array $apiKey): array
                 if (!$okTicket((int)$m['source_ticket_id'])) continue;
                 $links[] = ['type' => 'ticket', 'id' => (int)$m['source_ticket_id'], 'reference' => $m['source_ticket_number'], 'relation' => 'merged_into_this'];
             }
-        } catch (Throwable) { /* ticket_merges not created yet */ }
+        } catch (Throwable $e) { /* ticket_merges not created yet */ }
 
         // An issue in an external tracker (Jira, GitHub, ...) - its key and its address there.
         try {
@@ -130,7 +130,7 @@ function apiTicketRelated(PDO $conn, int $ticketId, ?array $apiKey): array
                 $links[] = ['type' => 'external_issue', 'provider' => $x['provider'], 'reference' => $x['external_key'] ?: $x['external_id'],
                             'url' => $x['external_url'], 'status' => $x['status_name']];
             }
-        } catch (Throwable) { /* integrations not set up */ }
+        } catch (Throwable $e) { /* integrations not set up */ }
     }
 
     // (object): an empty counts must still be {} in JSON, not [] - it is an object, keyed by name.
@@ -164,7 +164,7 @@ function apiTicketAttachments(PDO $conn, int $ticketId): array
                       'name' => $a['filename'], 'content_type' => $a['content_type'], 'size_bytes' => (int)$a['file_size'],
                       'created_at' => apiIsoDate($a['created_datetime'])];
         }
-    } catch (Throwable) { /* no mail tables */ }
+    } catch (Throwable $e) { /* no mail tables */ }
     try {
         $st = $conn->prepare(
             "SELECT d.id, d.kind, d.title, d.original_name, d.mime_type, d.size_bytes, d.external_url, dl.parent_id AS note_id, dl.created_datetime
@@ -184,7 +184,7 @@ function apiTicketAttachments(PDO $conn, int $ticketId): array
             $row['created_at'] = apiIsoDate($d['created_datetime']);
             $out[] = $row;
         }
-    } catch (Throwable) { /* documents not set up */ }
+    } catch (Throwable $e) { /* documents not set up */ }
     return $out;
 }
 
