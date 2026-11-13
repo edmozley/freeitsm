@@ -541,11 +541,15 @@ function storeList(PDO $conn, string $store): array
     return $out;
 }
 
-/** False for guard files, anything starting with a dot, the staging area and probes. */
+/**
+ * False for the guard files the app writes into every upload folder (.htaccess, web.config),
+ * the staging area and probes. Any other name - one starting with a dot included - is a
+ * stored file (older attachments kept the sender's own name).
+ */
 function storeListedKeyIsFile(string $key): bool
 {
     $name = basename($key);
-    if ($name === '' || $name[0] === '.' || strcasecmp($name, 'web.config') === 0) return false;
+    if ($name === '' || strcasecmp($name, '.htaccess') === 0 || strcasecmp($name, 'web.config') === 0) return false;
     $first = explode('/', $key, 2)[0];
     return !in_array($first, [STORAGE_STAGING_DIR, '_freeitsm_probe', '_freeitsm_test'], true) && storeKeyIsValid($key);
 }

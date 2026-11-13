@@ -132,6 +132,7 @@ final class StorageService
     {
         if (!isset(STORAGE_STORES[$store])) throw new InvalidArgumentException('Unknown store.');
         if ($to === 's3' && !extension_loaded('curl')) throw new InvalidArgumentException('S3-compatible storage needs the PHP curl extension, which this server does not have.');
+        if ($to === 's3') self::adoptFilesConnection($conn);
         try {
             return storeMoveStart($conn, $store, $to, $by);
         } catch (StorageUnavailable $e) {
@@ -144,6 +145,29 @@ final class StorageService
     {
         if (!isset(STORAGE_STORES[$store])) throw new InvalidArgumentException('Unknown store.');
         storeMoveAction($conn, $store, $action, $by);
+    }
+
+    /**
+     * A store going to S3 on the connection Files was given (#283) makes it the shared one,
+     * as saving it here would: from then on the Files tab shows it read-only and its place is
+     * locked while in use - the Files tab can no longer point the stores at another bucket.
+     * The values are copied as stored (the secret stays encrypted).
+     */
+    private static function adoptFilesConnection(PDO $conn): void
+    {
+        if (storeSetting($conn, 'storage_s3_bucket') !== '' || storeSetting($conn, 'files_s3_bucket') === '') return;
+        $keys = ['endpoint', 'region', 'bucket', 'access_key_id', 'secret', 'prefix', 'path_style'];
+        $conn->beginTransaction();
+        try {
+            foreach ($keys as $k) storeSaveSetting($conn, "storage_s3_$k", storeSetting($conn, "files_s3_$k"));
+            foreach ($keys as $k) storeSaveSetting($conn, "files_s3_$k", null);
+            $conn->commit();
+        } catch (Throwable $e) {
+            $conn->rollBack();
+            throw $e;
+        }
+        storeReset();
+        filesStorageReset();
     }
 
     /** True while Files or any store keeps files in the bucket, or is moving. */

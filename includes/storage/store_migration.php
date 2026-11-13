@@ -140,7 +140,16 @@ function storeMoveBatch(PDO $conn, string $store, int $deadlineUnix, int $limit 
         try {
             if (!storeKeyIsValid($key)) throw new RuntimeException('Not a valid stored-file key.');
             $tmp = tempnam(storeMoveTempDir($store), 'smv');
-            $prev->readTo($key, $tmp);
+            try {
+                $prev->readTo($key, $tmp);
+            } catch (StorageNotFound $gone) {
+                // Deleted since it was listed (a delete during a move removes both copies):
+                // nothing to copy, and nothing an administrator needs to look at.
+                $there = $active->size($key);
+                $mark("UPDATE storage_migration_items SET state = ?, size_bytes = COALESCE(?, size_bytes), last_error = NULL, updated_datetime = UTC_TIMESTAMP() WHERE id = ?",
+                      [$there === null ? 'skipped' : 'verified', $there, $row['id']]);
+                continue;
+            }
             clearstatcache(true, $tmp);
             $size = (int)filesize($tmp);
             if ($size !== (int)$row['size_bytes']) {

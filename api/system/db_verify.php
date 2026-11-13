@@ -447,28 +447,33 @@ try {
         // Non-fatal — everyone with an address is unaffected either way.
     }
 
-    // `storage_migration_items.object_key` was VARCHAR(255): enough for Files keys.
-    // Moving ticket attachments (#284) queues email_attachments.file_path, which is
-    // VARCHAR(500) - an older row can carry the sender's own long file name. Same
-    // probe-then-MODIFY shape as below; widening a VARCHAR cannot invalidate a row,
-    // and the (store, object_key) unique index still fits.
-    try {
-        $okCol = $conn->prepare(
-            "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns
-             WHERE table_schema = ? AND table_name = 'storage_migration_items' AND column_name = 'object_key'"
-        );
-        $okCol->execute([$dbName]);
-        $okLen = $okCol->fetchColumn();
-        if ($okLen !== false && (int)$okLen < 500) {
-            $conn->exec("ALTER TABLE `storage_migration_items` MODIFY `object_key` VARCHAR(500) NOT NULL");
-            $results[] = [
-                'table'   => 'storage_migration_items',
-                'status'  => 'updated',
-                'details' => ['object_key: VARCHAR(' . (int)$okLen . ') → VARCHAR(500) (ticket attachment paths can be that long)'],
-            ];
+    // `object_key` of storage_migration_items (was VARCHAR(255), enough for Files keys):
+    // VARCHAR(500) with a BINARY collation. Moving ticket attachments
+    // (#284) queues email_attachments.file_path - VARCHAR(500), and an older row can carry the
+    // sender's own name - and the default collation would treat "Report.pdf" and "report.pdf"
+    // (or "resume" and "résumé") as one key, so one of the two would never be copied. Same
+    // probe-then-MODIFY shape as below; widening a VARCHAR, or a stricter collation, cannot
+    // invalidate a row, and the (store, object_key) keys still fit.
+    foreach (['storage_migration_items'] as $okTable) {
+        try {
+            $okCol = $conn->prepare(
+                "SELECT CHARACTER_MAXIMUM_LENGTH, COLLATION_NAME FROM information_schema.columns
+                 WHERE table_schema = ? AND table_name = ? AND column_name = 'object_key'"
+            );
+            $okCol->execute([$dbName, $okTable]);
+            $ok = $okCol->fetch(PDO::FETCH_ASSOC);
+            if ($ok && ((int)$ok['CHARACTER_MAXIMUM_LENGTH'] < 500 || $ok['COLLATION_NAME'] !== 'utf8mb4_bin')) {
+                $conn->exec("ALTER TABLE `$okTable` MODIFY `object_key` VARCHAR(500) COLLATE utf8mb4_bin NOT NULL");
+                $results[] = [
+                    'table'   => $okTable,
+                    'status'  => 'updated',
+                    'details' => ['object_key: VARCHAR(' . (int)$ok['CHARACTER_MAXIMUM_LENGTH'] . ') ' . $ok['COLLATION_NAME']
+                                  . ' → VARCHAR(500) utf8mb4_bin (long attachment names; names differing only by case or accent are different files)'],
+                ];
+            }
+        } catch (Exception $e) {
+            // Non-fatal — only a long key, or a second spelling of a name, would fail to queue.
         }
-    } catch (Exception $e) {
-        // Non-fatal — only a key longer than the old width would fail to queue.
     }
 
     // `changes.risk_level` was VARCHAR(20), wide enough for the built-in words

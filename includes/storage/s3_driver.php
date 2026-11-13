@@ -50,8 +50,13 @@ final class S3Driver implements StorageDriver, StorageLister
 
     private function objectKey(string $key): string
     {
-        if ($key === '' || str_contains($key, '..') || str_contains($key, '\\') || $key[0] === '/' || str_contains($key, "\0")) {
+        // Checked by segment: ".." INSIDE a name ("report..final.pdf", an older attachment) is a
+        // name; as a whole segment (or ".", or an empty one) it is refused.
+        if ($key === '' || str_contains($key, '\\') || $key[0] === '/' || str_contains($key, "\0")) {
             throw new InvalidArgumentException('Bad storage key.');
+        }
+        foreach (explode('/', $key) as $seg) {
+            if ($seg === '' || $seg === '.' || $seg === '..') throw new InvalidArgumentException('Bad storage key.');
         }
         return $this->base . $key;
     }

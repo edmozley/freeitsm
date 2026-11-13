@@ -60,6 +60,19 @@ $threw = false;
 try { $ld->size('../x'); } catch (InvalidArgumentException $e) { $threw = true; }
 ok('...and refuses it as a segment', $threw);
 ok('the local driver says its folder', $ld->root() === str_replace('\\', '/', $tmpd));
+// The S3 driver checks keys the same way (an older attachment named "report..final.pdf").
+require_once "$root/includes/storage/s3_driver.php";
+$s3d = new S3Driver(['endpoint' => 'http://zz.invalid', 'region' => 'us-east-1', 'bucket' => 'zz', 'access_key_id' => 'k', 'secret' => 's', 'prefix' => '', 'path_style' => true], 'tickets');
+$ok3 = new ReflectionMethod($s3d, 'objectKey');
+$ok3->setAccessible(true);
+$r = null;
+try { $r = $ok3->invoke($s3d, '0/42/report..final.pdf'); } catch (InvalidArgumentException $e) {}
+ok('the S3 driver accepts ".." inside a name', $r === 'tickets/0/42/report..final.pdf', (string)$r);
+foreach (['../x', 'a/../b', 'a/./b', 'a//b', '/a', 'a\\b'] as $k) {
+    $threw = false;
+    try { $ok3->invoke($s3d, $k); } catch (InvalidArgumentException $e) { $threw = true; }
+    ok('...and refuses ' . json_encode($k), $threw);
+}
 array_map('unlink', glob("$tmpd/*")); @rmdir($tmpd);
 
 section('Registry');

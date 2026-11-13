@@ -57,7 +57,7 @@ if (getenv('FREEITSM_TEST_DATABASE') !== $dbName) {
 }
 $work = sys_get_temp_dir() . '/zz-mv-' . bin2hex(random_bytes(4));
 mkdir($work);
-$snap = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key LIKE 'storage\\_%'")->fetchAll(PDO::FETCH_KEY_PAIR);
+$snap = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key LIKE 'storage\\_%' OR setting_key LIKE 'files\\_s3\\_%'")->fetchAll(PDO::FETCH_KEY_PAIR);
 $admin = (int)$conn->query('SELECT id FROM analysts ORDER BY id LIMIT 1')->fetchColumn();
 $rm = function (string $d) use (&$rm) {
     foreach (glob("$d/{,.}*", GLOB_BRACE) ?: [] as $f) {
@@ -189,11 +189,54 @@ try {
     storeReset();
     try { storeMoveStart($conn, 'documents', 's3', $admin); } catch (InvalidArgumentException $e) { $threw = $e; }
     ok('to S3 with no connection saved: refused', $threw !== null && storeLocation($conn, 'documents') === 'local');
+
+    section('Names that differ only by case or accent, dot names, a file deleted during the move');
+    storeSaveSetting($conn, 'storage_s3_bucket', 'zz');
+    storeSaveSetting($conn, 'storage_recordings_location', null);   // an earlier section left it on S3 (empty)
+    storeReset();
+    $odd = ['r/Resume.pdf' => 'one', "r/r\u{e9}sum\u{e9}.pdf" => 'two', 'r/Report.PDF' => 'three', 'r/report.pdf' => 'four', 'r/.profile.pdf' => 'five'];
+    foreach ($odd as $k => $v) $mk('recordings', $k, $v);
+    $mk('recordings', 'r/gone.pdf', 'deleted during the move');
+    $mk('recordings', 'r/.htaccess', 'Require all denied');
+    $mk('recordings', 'r/web.config', '<configuration/>');
+    storeMoveStart($conn, 'recordings', 's3', $admin);
+    $q = $items('recordings');
+    $want = array_merge(array_keys($odd), ['r/gone.pdf']);
+    ok('every file is queued, each spelling its own row; guard files are not', count(array_intersect($want, array_keys($q))) === 6
+       && !isset($q['r/.htaccess']) && !isset($q['r/web.config']), json_encode(array_keys($q)));
+    storeDelete($conn, 'recordings', 'r/gone.pdf');
+    $batch('recordings');
+    $st = $items('recordings');
+    ok('a file deleted during the move is skipped, not failed', ($st['r/gone.pdf'] ?? '') === 'skipped', json_encode($st));
+    $sum = storeMoveSummary($conn, 'recordings');
+    ok('...so nothing blocks the end of the move', $sum['failed'] === 0 && $sum['pending'] === 0 && $sum['skipped'] === 1, json_encode($sum));
+    $all = true;
+    foreach ($odd as $k => $v) if (@file_get_contents("$work/s3-recordings/$k") !== $v) $all = false;
+    ok('names that differ only by case or accent are all copied, and dot names', $all);
+    try { storeMoveAction($conn, 'recordings', 'remove_old', $admin); } catch (InvalidArgumentException $e) {}
+    $batch('recordings');
+    storeReset();
+    $all = true;
+    foreach ($odd as $k => $v) if (storeGetString($conn, 'recordings', $k) !== $v) $all = false;
+    ok('...and each reads back as itself after the move', $all && storeMoveSummary($conn, 'recordings') === null);
+
+    section('A store moved to S3 on the connection Files was given');
+    require_once "$root/includes/services/storage.php";
+    foreach (['endpoint', 'region', 'bucket', 'access_key_id', 'secret', 'prefix', 'path_style'] as $k) storeSaveSetting($conn, "storage_s3_$k", null);
+    foreach (['endpoint' => 'http://zz-fake.invalid', 'bucket' => 'zzf', 'access_key_id' => 'k', 'secret' => encryptValue('s'), 'prefix' => 'p/', 'path_style' => '1', 'region' => 'us-east-1'] as $k => $v) {
+        storeSaveSetting($conn, "files_s3_$k", $v);
+    }
+    storeReset();
+    StorageService::setLocation($conn, 'documents', 's3', $admin);
+    storeReset();
+    ok('it becomes the shared connection (so the Files tab cannot move it away)', storeSetting($conn, 'storage_s3_bucket') === 'zzf'
+       && storeSetting($conn, 'storage_s3_prefix') === 'p/' && decryptValue(storeSetting($conn, 'storage_s3_secret')) === 's'
+       && storeSetting($conn, 'files_s3_bucket') === '' && storeLocation($conn, 'documents') === 's3');
 } catch (Throwable $e) {
     ok('no unexpected error', false, get_class($e) . ': ' . $e->getMessage() . ' @' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {
     $conn->exec("DELETE FROM storage_migration_items WHERE store IN ('tickets','changes','documents','recordings','warroom')");
-    $conn->exec("DELETE FROM system_settings WHERE setting_key LIKE 'storage\\_%'");
+    $conn->exec("DELETE FROM system_settings WHERE setting_key LIKE 'storage\\_%' OR setting_key LIKE 'files\\_s3\\_%'");
     $i = $conn->prepare('INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)');
     foreach ($snap as $k => $v) $i->execute([$k, $v]);
     StoreCache::$roots = [];
