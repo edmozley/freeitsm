@@ -665,6 +665,7 @@ class WorkflowEngine
     public const FULL_OBJECT_KEYS = [
         'ticket', 'change', 'problem', 'task', 'asset', 'article',
         'contract', 'supplier', 'calendar_event', 'software_licence', 'incident',
+        'submission',   // GH #326/#327 - form.submitted and catalogue_request.*
     ];
 
     // -----------------------------------------------------------------
@@ -4255,7 +4256,7 @@ class WorkflowEngine
                 if (is_array($v) && isset($v['full']) && is_array($v['full'])) { $full = $v['full']; break; }
             }
             if ($full === null) {
-                throw new Exception('the full-record format needs a trigger that carries a record with a full object (ticket, change, problem, task, asset, knowledge, contract, supplier, calendar event, software licence, or service-status incident events)');
+                throw new Exception('the full-record format needs a trigger that carries a record with a full object (ticket, change, problem, task, asset, knowledge, contract, supplier, calendar event, software licence, service-status incident, form submission or catalogue request events)');
             }
             $bodyJson = json_encode($full, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         } elseif (isset(self::webhookFormats()[$preset])) {
@@ -4361,6 +4362,12 @@ class WorkflowEngine
             'calendar_event'   => $one('calendar.php',        'apiCalendarEventSelect',  ' WHERE e.id = ? LIMIT 1',  fn($c, $r) => apiSerializeCalendarEvent($r)),
             'software_licence' => $one('software.php',        'apiSoftwareLicenceSelect', ' WHERE l.id = ? LIMIT 1', fn($c, $r) => apiSerializeLicence($r)),
             'incident'         => $one('service_status.php',  'apiServiceIncidentSelect', ' WHERE si.id = ? LIMIT 1', fn($c, $r) => apiSerializeIncident($c, $r)),
+            // GH #326/#327: a form submission, exactly as GET /forms/{id}/submissions/{id} returns it -
+            // every answer beside its field, checkboxes as lists, a table as rows with its columns.
+            // form.submitted and the three catalogue_request.* events all carry `submission`. Until
+            // 5.2.0 it was missing here, so Full record failed on every form event - in a workflow
+            // with this error, and in a form's own What happens next with nothing to show for it.
+            'submission'       => $one('forms.php',           'apiFormSubmissionsSelect', ' WHERE s.id = ? LIMIT 1', fn($c, $r) => apiSerializeFormSubmission($c, $r)),
         ];
     }
 
