@@ -88,15 +88,9 @@ final class FilesStorageService
             // Of those, what only deleted files use - purging the recycle bin frees it.
             'recycle'        => self::recycleUsage($conn),
             'free_bytes'     => $driver === 'local' ? (@disk_free_space(is_dir($root) ? $root : dirname($root)) ?: null) : null,
-            's3'             => [
-                'endpoint'      => filesSetting($conn, 'files_s3_endpoint'),
-                'region'        => filesSetting($conn, 'files_s3_region', 'us-east-1'),
-                'bucket'        => filesSetting($conn, 'files_s3_bucket'),
-                'access_key_id' => filesSetting($conn, 'files_s3_access_key_id'),
-                'prefix'        => filesSetting($conn, 'files_s3_prefix'),
-                'path_style'    => filesSetting($conn, 'files_s3_path_style', '0') === '1',
-                'secret_set'    => filesSetting($conn, 'files_s3_secret') !== '',
-            ],
+            's3'             => self::s3ForTab($conn),
+            // Saved on System -> Storage (#284): the tab shows it read-only and links there.
+            'connection_shared' => self::sharedConnection($conn) !== null,
             'migration'      => (function () use ($conn) {
                 try { return self::migrationSummary($conn); }
                 catch (StorageUnavailable $e) { return ['error' => $e->getMessage(), 'pending' => 0, 'verified' => 0, 'failed' => 0, 'removed' => 0, 'skipped' => 0, 'total' => 0, 'from_label' => '']; }
@@ -168,7 +162,13 @@ final class FilesStorageService
         $rootAbs = $root === '' ? filesDefaultStorageRoot() : $root;
 
         $s3 = null;
-        if ($driver === 's3') {
+        $shared = $driver === 's3' ? self::sharedConnection($conn) : null;
+        if ($shared !== null) {
+            // The install's one connection (System -> Storage): whatever the form sent.
+            $s3 = $shared;
+            $t = self::test($s3);
+            if (!$t['ok']) throw new InvalidArgumentException('The S3 connection saved on System -> Storage did not work (failed at ' . $t['step'] . '): ' . $t['error']);
+        } elseif ($driver === 's3') {
             if (!extension_loaded('curl')) throw new InvalidArgumentException('S3-compatible storage needs the PHP curl extension, which this server does not have.');
             $s = (array)($in['s3'] ?? []);
             $secret = (string)($s['secret'] ?? '');
@@ -215,7 +215,7 @@ final class FilesStorageService
             filesSaveSetting($conn, 'files_storage_driver', $driver);
             filesSaveSetting($conn, 'files_storage_root', $root === '' ? null : $root);
             filesSaveSetting($conn, 'files_max_upload_mb', (string)$mb);
-            if ($s3 !== null) {
+            if ($s3 !== null && $shared === null) {
                 filesSaveSetting($conn, 'files_s3_endpoint', $s3['endpoint']);
                 filesSaveSetting($conn, 'files_s3_region', $s3['region']);
                 filesSaveSetting($conn, 'files_s3_bucket', $s3['bucket']);
@@ -319,6 +319,32 @@ final class FilesStorageService
             ? (string)$conn->query("SELECT last_error FROM storage_migration_items WHERE store = 'files' AND state = 'failed' ORDER BY updated_datetime DESC LIMIT 1")->fetchColumn()
             : null;
         return $m;
+    }
+
+    /** The connection saved on System -> Storage (#284), or null when none is saved there yet. */
+    private static function sharedConnection(PDO $conn): ?array
+    {
+        require_once __DIR__ . '/../storage/stores.php';
+        return storeSetting($conn, 'storage_s3_bucket') !== '' ? storageS3Connection($conn) : null;
+    }
+
+    /** The S3 fields the tab shows: the shared connection when there is one, else Files' own. */
+    private static function s3ForTab(PDO $conn): array
+    {
+        $c = self::sharedConnection($conn);
+        if ($c !== null) {
+            return ['endpoint' => $c['endpoint'], 'region' => $c['region'], 'bucket' => $c['bucket'], 'access_key_id' => $c['access_key_id'],
+                    'prefix' => $c['prefix'], 'path_style' => $c['path_style'], 'secret_set' => $c['secret'] !== ''];
+        }
+        return [
+            'endpoint'      => filesSetting($conn, 'files_s3_endpoint'),
+            'region'        => filesSetting($conn, 'files_s3_region', 'us-east-1'),
+            'bucket'        => filesSetting($conn, 'files_s3_bucket'),
+            'access_key_id' => filesSetting($conn, 'files_s3_access_key_id'),
+            'prefix'        => filesSetting($conn, 'files_s3_prefix'),
+            'path_style'    => filesSetting($conn, 'files_s3_path_style', '0') === '1',
+            'secret_set'    => filesSetting($conn, 'files_s3_secret') !== '',
+        ];
     }
 
     /** What identifies a location: moving between two different ones moves the files. */

@@ -226,6 +226,12 @@
                     $('s3Secret').value = r.s3.secret_set ? '********' : '';
                     $('s3Prefix').value = r.s3.prefix;
                     $('s3PathStyle').checked = !!r.s3.path_style;
+                    // The install's one connection lives on System -> Storage once saved there:
+                    // shown here read-only, with a link.
+                    var shared = !!r.connection_shared;
+                    $('s3Shared').hidden = !shared;
+                    ['s3Endpoint', 's3Region', 's3Bucket', 's3Key', 's3Secret', 's3Prefix', 's3PathStyle'].forEach(function (id) { $(id).disabled = shared; });
+                    $('s3Test').hidden = shared;
                     showType();
                 }
                 render(r);

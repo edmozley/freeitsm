@@ -130,6 +130,8 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
             <div class="set-row"><div><div class="lbl" id="stoRootLbl"><?php echo $tt('storage_root'); ?></div><div class="desc" id="stoRootDesc"><?php echo $tt('storage_root_desc'); ?></div></div>
                 <div><input type="text" id="stoRoot" spellcheck="false"><div class="dflt" id="stoRootDefault"></div></div></div>
             <div id="stoS3" hidden>
+                <div class="set-row" id="s3Shared" hidden><div><div class="lbl"><?php echo $tt('s3_shared'); ?></div>
+                    <div class="desc"><?php echo $tt('s3_shared_desc'); ?> <a href="../../system/storage/"><?php echo $tt('s3_shared_link'); ?></a></div></div><div></div></div>
                 <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_endpoint'); ?></div><div class="desc"><?php echo $tt('s3_endpoint_desc'); ?></div></div>
                     <div><input type="text" id="s3Endpoint" spellcheck="false" placeholder="https://s3.us-east-1.amazonaws.com"></div></div>
                 <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_region'); ?></div></div>
@@ -203,7 +205,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         <?php endif; ?>
     </div>
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
-    <script src="../../assets/js/files-settings.js?v=12"></script>
+    <script src="../../assets/js/files-settings.js?v=13"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

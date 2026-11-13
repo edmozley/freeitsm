@@ -47,6 +47,15 @@ function getSystemAreas() {
             'desc'     => 'system.landing.encryption_desc',
             'keywords' => 'system.landing.encryption_keywords',
         ],
+        // Storage (#284): the one S3 connection, and where each store keeps its files.
+        [
+            'icon'     => 'storage',
+            'url'      => 'storage/',
+            'group'    => 'health',
+            'title'    => 'system.landing.storage_title',
+            'desc'     => 'system.landing.storage_desc',
+            'keywords' => 'system.landing.storage_keywords',
+        ],
         // HTTPS for the container. Only shown inside Docker: anywhere else the
         // web server belongs to whoever runs it and nothing here could reach it.
         [
@@ -490,6 +499,7 @@ function systemAreaIcon($key) {
         'self_service' => '<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M2 9h20"></path><path d="M13.5 14.5 16 12l2.5 2.5L16 17z"></path><path d="M6 13h4"></path><path d="M6 16h3"></path>',
         'portal_profile' => '<circle cx="9" cy="7" r="4"></circle><path d="M2 21v-2a4 4 0 0 1 4-4h5"></path><path d="M18.4 12.6a1.9 1.9 0 0 1 2.7 2.7L15 21.4l-3.6.9.9-3.6z"></path>',
         'encryption'  => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
+        'storage'     => '<line x1="22" y1="12" x2="2" y2="12"></line><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" y1="16" x2="6.01" y2="16"></line><line x1="10" y1="16" x2="10.01" y2="16"></line>',
         // A shipping container with a padlock on its door - "HTTPS for the container".
         'docker'      => '<path d="M2 7l10-4 10 4v10l-10 4-10-4z"></path><path d="M2 7l10 4 10-4"></path><path d="M12 11v10"></path><rect x="15" y="12" width="4" height="3.5" rx="0.5"></rect><path d="M15.8 12v-1a1.2 1.2 0 0 1 2.4 0v1"></path>',
         'modules'     => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
