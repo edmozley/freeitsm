@@ -7143,13 +7143,18 @@ async function sendAttachmentToTracker(btn) {
     }
 }
 
-// Open an attachment. A picture or a PDF opens in the Files viewer, in a floating
-// window over the ticket (GH #226 follow-up, as a note's file does); anything else
-// opens in a new tab, which downloads it or lets the browser show it.
+// Open an attachment. Anything the Files viewer can show - pictures, PDFs, Word,
+// spreadsheets and CSV, text and code (as text, never as markup), audio and video -
+// opens in it, in a floating window over the ticket (GH #303, from pappas81: "a
+// window appears inside the browser with the preview and the ability to download");
+// anything else opens in a new tab, which downloads it. Not zip files: the viewer's
+// zip browser reports each entry to Files' audit, which an email attachment is not
+// part of. The address is get_attachment.php, so the ticket's access check is unchanged.
+const ATTACHMENT_NO_VIEWER_RE = /\.(zip|svg)$/i;
 function openAttachment(attachmentId) {
     const url = `${API_BASE}get_attachment.php?id=${attachmentId}`;
     const att = (ticketAttachments || []).find(a => Number(a.id) === Number(attachmentId));
-    if (att && VIEWER_FILE_RE.test(att.filename || '') && window.FilesViewer && window.FilesViewer.openUrl) {
+    if (att && !ATTACHMENT_NO_VIEWER_RE.test(att.filename || '') && window.FilesViewer && window.FilesViewer.openUrl) {
         // openUrl decides by the file NAME (and never shows SVG); null = not a kind it shows.
         if (window.FilesViewer.openUrl({ name: att.filename, src: url, downloadUrl: url, size: att.file_size || 0 })) return;
     }
