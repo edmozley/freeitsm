@@ -563,6 +563,7 @@ try {
                     </div>
 
                     <p class="help-note"><?php echo t('tickets.help.csat.switch_note'); ?></p>
+                    <p class="help-note"><?php echo t('tickets.help.csat.starters_note'); ?></p>   <?php /* GH #316 */ ?>
 
                     <p><?php echo t('tickets.help.csat.modes_heading'); ?></p>
                     <div class="help-list">
