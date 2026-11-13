@@ -35,7 +35,10 @@ function documentsPanelAssets(string $pathPrefix = '../'): void
     if ($emitted) return;
     $emitted = true;
     echo '<link rel="stylesheet" href="' . htmlspecialchars($pathPrefix) . 'assets/css/documents.css?v=6">' . "\n";
-    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/documents.js?v=9"></script>' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/documents.js?v=10"></script>' . "\n";
+    // GH #303: Save to Files, for a stored document
+    echo '<link rel="stylesheet" href="' . htmlspecialchars($pathPrefix) . 'assets/css/save-to-files.css?v=1">' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/save-to-files.js?v=1"></script>' . "\n";
 }
 
 /**

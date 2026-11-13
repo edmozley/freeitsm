@@ -270,6 +270,7 @@ return [
         'attach_col_from'     => 'From',
         'attach_col_datetime' => 'Date/Time',
         'attach_col_filename' => 'Filename',
+        'attach_save_to_files' => 'Save to Files',   // GH #303
         'attach_col_size'     => 'Size',
         'attach_col_type'     => 'Type',
         'attach_inline_badge' => 'Inline',

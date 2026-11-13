@@ -38,15 +38,20 @@
     var shrBox = document.getElementById('shrModes');
     if (shrBox) {
         var shrMsg = document.getElementById('shrMsg');
+        var shrFolder = document.getElementById('shrSaveFolder'), shrTicket = document.getElementById('shrTicketFolder');
         api('settings.php?tab=sharing').then(function (r) {
             var on = shrBox.querySelector('input[value="' + r.mode + '"]');
             if (on) on.checked = true;
+            shrFolder.innerHTML = '<option value="0">' + esc(L('settings.save_folder_none', 'None - choose each time')) + '</option>' +
+                r.folders.map(function (f) { return '<option value="' + f.id + '">' + esc(f.path) + '</option>'; }).join('');
+            shrFolder.value = String(r.default_folder || 0);
+            shrTicket.checked = !!r.ticket_folder;
         }).catch(function (e) { shrMsg.textContent = e.message; });
         document.getElementById('shrSave').addEventListener('click', function () {
             var picked = shrBox.querySelector('input:checked');
             shrMsg.style.color = '';
             shrMsg.textContent = '';
-            api('settings.php', { tab: 'sharing', mode: picked ? picked.value : '' })
+            api('settings.php', { tab: 'sharing', mode: picked ? picked.value : '', save_folder: parseInt(shrFolder.value, 10) || 0, save_ticket_folder: shrTicket.checked })
                 .then(function () { shrMsg.style.color = 'var(--success-text, #166534)'; shrMsg.textContent = L('settings.saved', 'Saved'); })
                 .catch(function (e) { shrMsg.style.color = 'var(--danger-text, #991b1b)'; shrMsg.textContent = e.message; });
         });

@@ -12,7 +12,7 @@
  *        one, and how many versions are kept (GH #303)
  *   POST {tab: versions, choices: [...], default, keep}
  *   GET  ?tab=sharing   Cap::FILES_SHARING  how Attach from Files works: link | copy | both (GH #303)
- *   POST {tab: sharing, mode}
+ *   POST {tab: sharing, mode, save_folder?: id|0, save_ticket_folder?: bool}  (Save to Files defaults)
  *   GET  ?tab=folders   Cap::FILES_FOLDERS  EVERY folder that exists, including
  *        ones the caller cannot open - names, paths and how many entries each has,
  *        never their files. This is "admins can see a folder exists" (Ed's
@@ -69,9 +69,19 @@ filesApiRun(function () use ($conn, $analystId) {
 
     if ($tab === 'sharing') {
         requireCapabilityJson(Cap::FILES_SHARING, $conn);
-        if ($isGet) filesApiOk(['mode' => FilesAttach::mode($conn)]);
+        require_once __DIR__ . '/../../includes/services/files_save.php';
+        // The default-folder list is the folders THIS person can save into: the tab must not
+        // reveal folder names the Folders tab keeps to its own permission.
+        if ($isGet) filesApiOk(['mode' => FilesAttach::mode($conn)] + FilesSave::targets($conn, $analystId));
         try {
             FilesAttach::saveMode($conn, $analystId, (string)($in['mode'] ?? ''));
+            if (array_key_exists('save_folder', $in)) {
+                $fid = (int)$in['save_folder'];
+                if ($fid > 0 && !in_array($fid, array_column(FilesSave::targets($conn, $analystId)['folders'], 'id'), true)) {
+                    throw new InvalidArgumentException('Choose a folder you can save into.');
+                }
+                FilesSave::saveDefaults($conn, $analystId, $fid, !empty($in['save_ticket_folder']));
+            }
             filesApiOk(['mode' => FilesAttach::mode($conn)]);
         } catch (InvalidArgumentException $e) {
             filesApiFail($e->getMessage());

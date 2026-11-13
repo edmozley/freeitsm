@@ -159,6 +159,11 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
                     <?php endforeach; ?>
                     <div class="dflt"><?php echo $tt('attach_default'); ?></div>
                 </div></div>
+            <h3 style="margin:18px 0 4px;font-size:15px"><?php echo $tt('save_title'); ?></h3>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('save_folder'); ?></div><div class="desc"><?php echo $tt('save_folder_desc'); ?></div></div>
+                <div><select id="shrSaveFolder"></select></div></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('save_ticket_folder'); ?></div><div class="desc"><?php echo $tt('save_ticket_folder_desc'); ?></div></div>
+                <div><label><input type="checkbox" id="shrTicketFolder"> <?php echo $tt('save_ticket_folder_on'); ?></label></div></div>
             <div class="set-actions"><button type="button" class="fil-btn primary" id="shrSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="shrMsg" style="font-size:13px"></span></div>
         </div>
         <?php endif; ?>
@@ -183,7 +188,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         <?php endif; ?>
     </div>
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
-    <script src="../../assets/js/files-settings.js?v=7"></script>
+    <script src="../../assets/js/files-settings.js?v=8"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

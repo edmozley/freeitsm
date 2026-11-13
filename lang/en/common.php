@@ -420,6 +420,26 @@ return [
 
     // The documents panel, shared by every module that attaches files or links
     // to a record. Lives in `common` because it belongs to no single module.
+    // Save to Files (GH #303) - assets/js/save-to-files.js
+    'save_to_files' => [
+        'title'          => 'Save to Files',
+        'loading'        => 'Loading...',
+        'folder'         => 'Folder',
+        'filter'         => 'Type to narrow the list',
+        'ticket_folder'  => 'In a folder for this ticket',
+        'save'           => 'Save',
+        'cancel'         => 'Cancel',
+        'close'          => 'Close',
+        'saving'         => 'Saving...',
+        'saved'          => 'Saved as "{name}".',
+        'open'           => 'Open in Files',
+        'conflict'       => 'This folder already has a file called "{name}".',
+        'no_folders'     => 'There is no folder in Files you can save into. Ask for Upload on a folder.',
+        'choice_version' => 'New version',
+        'choice_rename'  => 'Keep both',
+        'choice_overwrite' => 'Overwrite',
+        'choice_skip'    => 'Skip',
+    ],
     'documents' => [
         'heading'        => 'Documents',
         'count_one'      => '1 document',
@@ -470,6 +490,7 @@ return [
         'kind_files'        => 'In Files',
         'files_no_access'   => 'A file in Files you do not have access to',
         'files_gone'        => 'A file that has been deleted from Files',
+        'save_to_files'     => 'Save to Files',
         // Shown against each candidate, because attaching WIDENS who can read it.
         'currently_on'    => 'currently on {where}',
         // The Help Centre - knowledge articles only (GH #177).

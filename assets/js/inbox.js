@@ -6951,6 +6951,8 @@ function showAttachmentList() {
     // escalation: they are signatures and tracking pixels, not evidence.
     const trackerLink = (currentEmail && (currentEmail.tracker_links || [])[0]) || null;
     const canSend = !!trackerLink;
+    // GH #303: Save to Files on each attachment (not inline images - signatures and pixels)
+    const canSave = !!window.TICKET_SAVE_TO_FILES && !!window.SaveToFiles;
 
     const tableHtml = `
         <table class="attachment-modal-table">
@@ -6962,6 +6964,7 @@ function showAttachmentList() {
                     <th>${escapeHtml(t('tickets.reading_pane.attach_col_size'))}</th>
                     <th>${escapeHtml(t('tickets.reading_pane.attach_col_type'))}</th>
                     ${canSend ? `<th></th>` : ''}
+                    ${canSave ? `<th></th>` : ''}
                 </tr>
             </thead>
             <tbody>
@@ -6982,6 +6985,9 @@ function showAttachmentList() {
                                      onclick="sendAttachmentToTracker(this)">${
                                 escapeHtml(t('tickets.tracker.attach_send_btn').replace('{issue}', trackerLink.external_key || ''))
                             }</button>`
+                        }</td>` : ''}
+                        ${canSave ? `<td style="text-align:right;white-space:nowrap;">${att.is_inline ? '' :
+                            `<button type="button" class="stf-save-btn" onclick="event.stopPropagation(); window.SaveToFiles.open({ source: 'email_attachment', id: ${att.id}, name: ${jsArg(att.filename)}, ticket: true })">${escapeHtml(t('tickets.reading_pane.attach_save_to_files'))}</button>`
                         }</td>` : ''}
                     </tr>
                 `).join('')}

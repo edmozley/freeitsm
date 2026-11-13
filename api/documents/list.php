@@ -128,6 +128,8 @@ try {
         'offset'    => $offset,
         'limit'     => $limit,
         'documents' => $rows,
+        // GH #303: whether this person can use Save to Files at all (the folder is checked on save)
+        'can_save_to_files' => analystCanAccessModule($conn, $analystId, 'files'),
     ];
     // What the panel says about the Help Centre, for the WHOLE article rather
     // than this page of it: can customers read the article at all, and how many

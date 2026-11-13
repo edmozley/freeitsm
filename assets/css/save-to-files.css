@@ -1,0 +1,19 @@
+/* Save to Files (GH #303) - assets/js/save-to-files.js */
+.stf-overlay { position: fixed; inset: 0; z-index: 100000; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.stf-box { background: var(--surface, #fff); color: var(--text, #333); border-radius: 8px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); width: 460px; max-width: 100%; max-height: 90vh; display: flex; flex-direction: column; }
+.stf-head { padding: 14px 18px; font-weight: 600; font-size: 16px; border-bottom: 1px solid var(--border, #e0e0e0); }
+.stf-body { padding: 14px 18px; overflow-y: auto; }
+.stf-file { font-weight: 600; margin-bottom: 10px; overflow-wrap: anywhere; }
+.stf-label { display: block; font-size: 12px; color: var(--text-muted, #666); margin-bottom: 4px; }
+.stf-filter, .stf-select { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--border, #ccc); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); font: inherit; }
+.stf-filter { margin-bottom: 6px; }
+.stf-select { min-height: 150px; }
+.stf-check { display: block; margin-top: 10px; font-size: 13px; }
+.stf-msg { margin-top: 10px; font-size: 13px; min-height: 1em; }
+.stf-msg a { color: var(--accent, #0078d4); }
+.stf-err { color: var(--danger-text, #991b1b); }
+.stf-foot { padding: 12px 18px; border-top: 1px solid var(--border, #e0e0e0); display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.stf-btn { padding: 6px 14px; border: 1px solid var(--border, #ccc); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); cursor: pointer; font: inherit; }
+.stf-btn.stf-primary { background: var(--accent, #0078d4); border-color: var(--accent, #0078d4); color: var(--on-accent, #fff); }
+.stf-save-btn { padding: 2px 8px; font-size: 11px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: none; color: var(--accent, #0078d4); cursor: pointer; white-space: nowrap; }
+.stf-save-btn:hover { background: var(--surface-2, #f5f5f5); }

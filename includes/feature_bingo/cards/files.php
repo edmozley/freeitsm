@@ -127,4 +127,16 @@ return [
         'link'     => 'files/',
         'check'    => ['rows', 'documents', "kind = 'files' OR description LIKE 'Copied from Files:%'"],
     ],
+    [
+        'id'       => 'files.save_to_files',
+        'module'   => 'files',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Ticket attachments saved into Files',
+        'what'     => 'Save to Files on an email attachment or a document copies it into a Files folder - into a folder for that ticket if you like.',
+        'why'      => 'The signed quote that arrived by email ends up filed where everyone looks for it, not left inside one ticket.',
+        'done'     => 'A file has been saved into Files from FreeITSM.',
+        'link'     => 'files/',
+        'check'    => ['rows', 'files_audit', "detail LIKE '%saved_from%'"],
+    ],
 ];

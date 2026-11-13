@@ -63,6 +63,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=87">
+    <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
     <link rel="stylesheet" href="../assets/css/reading-pane.css?v=4">
@@ -1161,6 +1162,8 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
         window.TICKET_AI = <?php echo json_encode(ticketAiSettings(connectToDatabase())); ?>;
         // GH #309: the toolbar's Ask AI uses Knowledge's AI - shown only when that is set up.
         window.TICKET_ASK_AI = <?php require_once '../includes/ai_settings.php'; echo json_encode(aiFeatureReady(connectToDatabase(), 'knowledge_ai')); ?>;
+        // GH #303: Save to Files on email attachments - only for someone who can open Files.
+        window.TICKET_SAVE_TO_FILES = <?php echo json_encode(analystCanAccessModule(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0), 'files')); ?>;
         window.INBOX_ROW_DISPLAY = <?php echo json_encode(inboxDisplayForAnalyst(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0))); ?>;
     </script>
     <!-- Must load BEFORE inbox.js: it cleans every untrusted message body. -->
@@ -1180,7 +1183,8 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-icons.js?v=2"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=198"></script>
+    <script src="../assets/js/save-to-files.js?v=1"></script>
+    <script src="../assets/js/inbox.js?v=199"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>

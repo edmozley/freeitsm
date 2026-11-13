@@ -197,6 +197,13 @@ return [
         'attach_both' => 'Either - chosen when attaching',
         'attach_both_desc' => 'the person attaching picks Link or Copy each time',
         'attach_default' => 'Default: a link.',
+        'save_title' => 'Save to Files',
+        'save_folder' => 'Suggested folder',
+        'save_folder_desc' => 'Where Save to Files starts, on a ticket\'s email attachments and on documents. People can still pick any folder they can upload to. Only folders you can upload to are listed here.',
+        'save_folder_none' => 'None - choose each time',
+        'save_ticket_folder' => 'A folder for each ticket',
+        'save_ticket_folder_desc' => 'Saving from a ticket puts the file in a folder named after it - "ABC-123 - Printer jammed" - inside the chosen folder, made the first time and reused after. People can untick it when saving.',
+        'save_ticket_folder_on' => 'Tick "In a folder for this ticket" to start with',
         // Versions tab (GH #303)
         'tab_versions' => 'Versions',
         'versions_title' => 'Versions',
@@ -411,6 +418,7 @@ return [
             'p1' => 'On any record with Documents - a task, ticket, asset, project - start typing a file\'s name in **attach a document already in FreeITSM**. Files from Files appear under **In Files**, but only those in folders you can open.',
             'p2' => '**Link** keeps Files in charge: opening it goes through Files, so the folder\'s permissions, View only and the watermark still apply, and it is always the latest version. Someone who cannot open the folder sees that a file is attached, but not its name. A link never appears in the portal. **Copy** attaches a copy of the current version as an ordinary document that everyone who can see the record can read - it needs Download on the folder and is recorded in the audit.',
             'p3' => 'Files -> Settings -> **Sharing** decides which are offered: a link (the default), a copy, or either, chosen each time.',
+            'p4' => 'The other way: **Save to Files** on a ticket\'s email attachments (in the attachment list) and on documents copies the file into a folder you can upload to. From a ticket, **In a folder for this ticket** puts it in a folder named after the ticket, made the first time and reused after. A file of the same name gets the same choices as an upload. Sharing can set the folder it starts in.',
         ],
         'versions' => [
             'nav' => 'Versions',

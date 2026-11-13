@@ -68,6 +68,7 @@
         kind_files:   'In Files',
         files_no_access: 'A file in Files you do not have access to',
         files_gone:   'A file that has been deleted from Files',
+        save_to_files: 'Save to Files',
         currently_on: 'currently on {where}',
         // The Help Centre - knowledge articles only (GH #177).
         hc_customer:  'Customers who can read this article in the Help Centre can download the documents marked Shown.',
@@ -232,6 +233,8 @@
         this.$list.addEventListener('click', function (e) {
             var rm = e.target.closest('[data-remove]');
             if (rm) { self.remove(parseInt(rm.getAttribute('data-remove'), 10), rm.getAttribute('data-name')); return; }
+            var stf = e.target.closest('[data-stf]');
+            if (stf) { window.SaveToFiles.open({ source: 'document', id: parseInt(stf.getAttribute('data-stf'), 10), name: stf.getAttribute('data-name'), ticket: self.parentType === 'ticket' }); return; }
             var hc = e.target.closest('[data-hc]');
             if (hc) { self.setHelpCentre(parseInt(hc.getAttribute('data-hc'), 10), hc.getAttribute('data-show') === '1'); return; }
             var nfo = e.target.closest('[data-info]');
@@ -290,6 +293,7 @@
                 self.clearFail();
                 self.total  = d.total;
                 self.helpCentre = d.help_centre || null;
+                self.canSave = !!d.can_save_to_files && !!window.SaveToFiles;   // GH #303
                 self.items  = self.items.concat(d.documents || []);
                 self.offset = self.items.length;
                 self.paint();
@@ -372,9 +376,13 @@
                 '<div class="fd-actions">' +
                     '<button type="button" class="fd-btn fd-info" data-info="' + d.id +
                         '" title="' + esc(t('info_title')) + '" aria-label="' + esc(t('info_title')) + '">i</button>' +
-                    '<a class="fd-btn" href="' + esc(href) + '"' +
-                        (isLink ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' +
-                        esc(isLink ? t('open') : t('download')) + '</a>' +
+                    (href === null ? '' : '<a class="fd-btn" href="' + esc(href) + '"' +
+                        (isLink || isFiles ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' +
+                        esc(isLink || isFiles ? t('open') : t('download')) + '</a>') +
+                    // GH #303: Save to Files - a stored file only (a web link or a Files link has no bytes here)
+                    (self.canSave && d.kind === 'file'
+                        ? '<button type="button" class="fd-btn" data-stf="' + d.id + '" data-name="' + esc(d.title) + '">' + esc(t('save_to_files')) + '</button>'
+                        : '') +
                     (self.canEdit && hcRows
                         ? '<button type="button" class="fd-btn" data-hc="' + d.id + '" data-show="' +
                           (d.show_in_help_centre ? '0' : '1') + '">' +
