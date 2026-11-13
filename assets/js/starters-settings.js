@@ -139,6 +139,8 @@
         $('jmlTplMatch').innerHTML = questions.length ? ruleControls(match, T('settings.match_none')) : '';
         $('jmlTplChips').innerHTML = questions.length
             ? '<span class="jml-dim">' + esc(T('settings.chips')) + '</span> ' + questions.map(q => '<button type="button" class="jml-chip" data-chip="' + esc(q.label) + '">{' + esc(q.label) + '}</button>').join('')
+              // GH #317: how to work a value out - {First name|initial|upper} - with the full list in Help.
+              + '<div class="jml-dim jml-chips-hint">' + esc(T('settings.chips_hint')) + '</div>'
             : '';
         drawSteps(steps || (editing && editing.steps.length ? editing.steps : [{}]));
     }

@@ -67,4 +67,16 @@ return [
         'link'     => 'reporting/packs/',
         'check'    => ['rows', 'report_packs', "design LIKE '%\"handler\":\"starters.%'"],
     ],
+    [
+        'id'       => 'starters.worked_out_values',
+        'module'   => 'starters',
+        'tier'     => 'extra',
+        'category' => 'automation',
+        'title'    => 'Usernames and PC names worked out for you',
+        'what'     => 'A step\'s words can work a value out from the answers: ORG-{First name|initial|upper}{Last name|upper} gives ORG-JSMITH, {First name|initial|lower}{Last name|lower} gives jsmith.',
+        'why'      => 'Nobody works out a username or a PC name by hand, so two analysts never work it out two ways.',
+        'done'     => 'A template step works a value out from an answer.',
+        'link'     => 'starters/settings/',
+        'check'    => ['rows', 'jml_template_steps', "title LIKE '%{%|%}%' OR description LIKE '%{%|%}%'"],
+    ],
 ];

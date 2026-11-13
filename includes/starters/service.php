@@ -466,20 +466,20 @@ final class StartersService
 
     /**
      * Fill {Question} in a step's words from the answers (case-insensitive), then
-     * {name}, {email}, {job title} and {date} from the case. An unknown name is
-     * left as written, so a typo shows rather than vanishing.
+     * {name}, {email}, {job title} and {date} from the case. Each can be worked on
+     * on the way in - {First name|initial|upper}, {Last name|lower|nospace} - with
+     * the transforms in includes/text_transforms.php (GH #317). An unknown name or
+     * transform is left as written, so a typo shows rather than vanishing.
      */
     public static function fillAnswers(string $text, array $answers, array $case): string
     {
         if (!str_contains($text, '{')) return $text;
+        require_once __DIR__ . '/../text_transforms.php';
         $map = [];
         foreach ($answers as $a) $map[mb_strtolower(trim((string)$a['label']))] = (string)$a['value'];
         $map += ['name' => (string)$case['person_name'], 'email' => (string)($case['person_email'] ?? ''),
                  'job title' => (string)($case['job_title'] ?? ''), 'date' => date('j M Y', strtotime((string)$case['effective_date']))];
-        return preg_replace_callback('/\{([^{}]{1,120})\}/u', function ($m) use ($map) {
-            $k = mb_strtolower(trim($m[1]));
-            return array_key_exists($k, $map) ? $map[$k] : $m[0];
-        }, $text);
+        return textFillPlaceholders($text, $map);
     }
 
     /**
