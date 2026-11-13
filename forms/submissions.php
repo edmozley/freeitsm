@@ -783,12 +783,12 @@ $translationNamespaces = ['common', 'forms'];
            property of the page.
            ------------------------------------------------------------------ */
         const cleanForFileName = (v) => FormPdf.cleanForFileName(v);
-        const submissionFileName = (sub) => FormPdf.submissionFileName(formData, sub);
-        const loadBrandLogo = () => FormPdf.loadBrandLogo(LOGO_URL);
-        const drawSubmission = (doc, sub, idx, logo) =>
-            FormPdf.drawSubmission(doc, formData, sub, filteredSubmissions.length - idx, logo);
-        const stampFooters = (doc) => FormPdf.stampFooters(doc);
-        const newPdfDoc = () => FormPdf.newDoc();
+        /* What FormPdf's exports take for one row: the form, the submission and the
+           number shown on the document ("#3"). TRAP: export through FormPdf.exportOne /
+           exportBundle / exportSeparate, never FormPdf.newDoc() here - the PDF writer is
+           asynchronous (it loads PDFKit and the fonts the text needs, GH #254), so a
+           document made without await is a Promise and every Download PDF failed (GH #325). */
+        const pdfItem = (sub, idx) => ({ form: formData, sub: sub, num: filteredSubmissions.length - idx });
 
         /* Ticked rows, held by submission id rather than by index: an index is a
            position in the CURRENT filter and means something different the moment
@@ -841,11 +841,6 @@ $translationNamespaces = ['common', 'forms'];
                 .filter(r => selectedIds.has(r.sub.id));
         }
 
-        /* "Software Request - 6 submissions - 19.09.2026.pdf" - the same shape as
-           a single export, and the same sanitising, because a form title can carry
-           anything a filesystem refuses. */
-        const bundleFileName = (n) => FormPdf.bundleFileName(formData.title, n);
-
         async function exportSelected(mode) {
             const rows = selectedSubmissions();
             if (!rows.length || !formData) return;
@@ -858,30 +853,11 @@ $translationNamespaces = ['common', 'forms'];
             const bar = document.getElementById('selBar');
             if (bar) bar.querySelectorAll('button').forEach(b => { b.disabled = true; });
             try {
-                const logo = await loadBrandLogo();
-
-                if (mode === 'bundle') {
-                    const doc = newPdfDoc();
-                    rows.forEach((r, i) => {
-                        // Each record starts its own page. The first one is the
-                        // page the document already has.
-                        if (i > 0) doc.addPage();
-                        drawSubmission(doc, r.sub, r.idx, logo);
-                    });
-                    stampFooters(doc);
-                    doc.save(bundleFileName(rows.length));
-                } else {
-                    for (const r of rows) {
-                        const doc = newPdfDoc();
-                        drawSubmission(doc, r.sub, r.idx, logo);
-                        stampFooters(doc);
-                        doc.save(submissionFileName(r.sub));
-                        /* A beat between saves. Fired back to back, browsers drop
-                           all but the first few - the downloads are queued by the
-                           page, not by the click. */
-                        await new Promise(res => setTimeout(res, 150));
-                    }
-                }
+                const items = rows.map(r => pdfItem(r.sub, r.idx));
+                // One file with a page per record, or one file each (with a beat
+                // between saves - FormPdf.exportSeparate explains why).
+                if (mode === 'bundle') await FormPdf.exportBundle(items, formData.title, LOGO_URL);
+                else await FormPdf.exportSeparate(items, LOGO_URL);
             } catch (e) {
                 console.error(e);
                 if (typeof showToast === 'function') showToast(window.t('forms.subs.pdf_error'), 'error');
@@ -899,10 +875,8 @@ $translationNamespaces = ['common', 'forms'];
             const fromPanel = (idx === currentDetailIndex) && document.getElementById('detailOverlay').classList.contains('open');
             if (btn && fromPanel) btn.disabled = true;
             try {
-                const doc = newPdfDoc();
-                drawSubmission(doc, sub, idx, await loadBrandLogo());
-                stampFooters(doc);
-                doc.save(submissionFileName(sub));
+                const it = pdfItem(sub, idx);
+                await FormPdf.exportOne(it.form, it.sub, it.num, LOGO_URL);
             } catch (e) {
                 console.error(e);
                 if (typeof showToast === 'function') showToast(window.t('forms.subs.pdf_error'), 'error');
