@@ -34,7 +34,7 @@
  *      budget_line_delete {id}
  *      budget_rate_add {rate, from?}      the project's own hourly rate (labour mode 'rate')
  *      budget_rate_delete {from}
- *      budget_currency {currency}         relabel - only when projects may choose
+ *      budget_currency {currency}         relabel - any when projects may choose, else only the install's
  *      milestone_save {id?, name?, due_date?, stage_id?, notes?, done?, done_date?}   (3.3.0)
  *      milestone_delete {id}
  *      task_dates     {task_id, start_date?, due_date?}   the Timeline moving a bar (3.3.0)

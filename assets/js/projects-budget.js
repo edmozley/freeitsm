@@ -70,7 +70,9 @@
 
         // Currency
         html += '<div class="prj-budget-cur">' + esc(T('currency_line', { currency: cur }))
-            + (b.per_project_currency && canChange() ? ' <button type="button" class="btn btn-secondary sm" data-budget-currency>' + esc(T('change_currency')) + '</button>' : '') + '</div>';
+            + (b.per_project_currency && canChange() ? ' <button type="button" class="btn btn-secondary sm" data-budget-currency>' + esc(T('change_currency')) + '</button>' : '')
+            // One currency for every project, but this one was created under an earlier default: offer the current one.
+            + (!b.per_project_currency && canChange() && b.install_currency && b.currency !== b.install_currency ? ' <button type="button" class="btn btn-secondary sm" data-budget-currency-install>' + esc(T('use_install_currency', { currency: b.install_currency })) + '</button>' : '') + '</div>';
 
         // #282: where this project's time and other spending count in the chart of accounts.
         if (hasAccounts(b)) {
@@ -538,6 +540,7 @@
         document.getElementById('pvBudget').addEventListener('click', async e => {
             if (e.target.closest('[data-budget-add]')) { openLine(null); return; }
             if (e.target.closest('[data-budget-currency]')) { pickCurrency(); return; }
+            if (e.target.closest('[data-budget-currency-install]')) { changeCurrency(ctx.data.budget.install_currency); return; }
             const row = e.target.closest('[data-budget-line]');
             if (row) { openLine(ctx.data.budget.lines.find(l => String(l.id) === row.dataset.budgetLine)); return; }
             if (e.target.closest('[data-rate-add]')) {

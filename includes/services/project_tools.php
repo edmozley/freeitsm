@@ -2016,8 +2016,9 @@ class ProjectToolsService
 
     /**
      * Change the project's currency - a RELABEL: amounts are not converted, and
-     * the page says so before anyone presses Save. Only when Projects -> Settings
-     * -> Budget lets projects choose.
+     * the page says so before anyone presses Save. Any currency when Projects ->
+     * Settings -> Budget lets projects choose; otherwise only the install's, so a
+     * project created under an earlier default can be brought onto the current one.
      *
      * @param string $code  a three-letter currency code such as GBP (any case)
      */
@@ -2025,8 +2026,8 @@ class ProjectToolsService
     {
         require_once __DIR__ . '/../projects/budget.php';
         $p = self::changeable($conn, $ctx, $projectId);
-        if (projectSetting($conn, 'project_currency_per_project') !== '1') throw new ServiceError('forbidden', 'forbidden', 'Every project uses the install\'s currency (Projects - Settings - Budget).');
         $code = strtoupper(trim($code));
+        if (projectSetting($conn, 'project_currency_per_project') !== '1' && $code !== projectInstallCurrency($conn)) throw new ServiceError('forbidden', 'forbidden', 'Every project uses the install\'s currency (Projects - Settings - Budget).');
         if (!projectValidCurrency($code)) throw new ServiceError('validation', 'invalid_field', "'$code' is not a currency FreeITSM recognises. Use a three-letter ISO 4217 code, such as GBP, EUR or USD.");
         $old = projectCurrencyOf($conn, $p);
         if ($old === $code) return;
