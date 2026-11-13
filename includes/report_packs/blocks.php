@@ -37,6 +37,7 @@ require_once __DIR__ . '/blocks_assets.php';
 require_once __DIR__ . '/blocks_projects.php';
 require_once __DIR__ . '/blocks_changes.php';   // Change Management
 require_once __DIR__ . '/blocks_starters.php';  // Starters & leavers (GH #324)
+require_once __DIR__ . '/blocks_asset_tickets.php';   // assets and their tickets (GH #310)
 require_once __DIR__ . '/../asset_retirement.php';   // retired assets leave the estate figures
 
 const RP_CHART_TYPES = ['bar', 'hbar', 'line', 'doughnut', 'pie'];
@@ -252,6 +253,39 @@ function rpHandlers(): array
             'module' => 'assets', 'kind' => 'table', 'fn' => 'rpAssetsRetired',
             'opts' => ['limit' => rpOptInt(t('reporting.packs.opt.rows'), 10, 2000, 500)],
         ],
+        // GH #310: which assets cause the most tickets. Need Tickets too (checked in the functions).
+        'assets.tickets_kpis' => [
+            'module' => 'assets', 'kind' => 'kpi', 'fn' => 'rpAssetTicketsKpis',
+            'opts' => ['basis' => rpOptSelect(t('reporting.packs.opt.basis'), $basis, 'created')],
+        ],
+        'assets.tickets_list' => [
+            'module' => 'assets', 'kind' => 'table', 'fn' => 'rpAssetTicketsList',
+            'opts' => [
+                'basis'    => rpOptSelect(t('reporting.packs.opt.basis'), $basis, 'created'),
+                'sort'     => rpOptSelect(t('reporting.packs.asset_tickets.opt_sort'), [
+                    'count' => t('reporting.packs.asset_tickets.sort_count'),
+                    'name'  => t('reporting.packs.asset_tickets.sort_name'),
+                ], 'count'),
+                'model'    => rpOptBool(t('reporting.packs.asset_tickets.opt_model'), true),
+                'location' => rpOptBool(t('reporting.packs.asset_tickets.opt_location'), true),
+                'limit'    => rpOptInt(t('reporting.packs.opt.rows'), 1, 2000, 10),
+            ],
+        ],
+        'assets.tickets_breakdown' => [
+            'module' => 'assets', 'kind' => 'chart', 'fn' => 'rpAssetTicketsBreakdown',
+            'opts' => [
+                'by'    => rpOptSelect(t('reporting.packs.opt.by'), [
+                    'model'        => t('reporting.packs.asset_tickets.by_model'),
+                    'type'         => t('reporting.packs.asset_tickets.by_type'),
+                    'manufacturer' => t('reporting.packs.asset_tickets.by_manufacturer'),
+                    'location'     => t('reporting.packs.asset_tickets.by_location'),
+                    'category'     => t('reporting.packs.asset_tickets.by_category'),
+                ], 'model'),
+                'basis' => rpOptSelect(t('reporting.packs.opt.basis'), $basis, 'created'),
+                'chart' => rpChartOpt('hbar'),
+                'limit' => rpOptInt(t('reporting.packs.opt.limit'), 3, 50, 10),
+            ],
+        ],
 
         // ── Change Management ───────────────────────────────────────────
         'changes.breakdown' => [
@@ -417,6 +451,13 @@ function rpToolboxItems(): array
         'assets_by_status'   => ['handler' => 'assets.breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'status', 'chart' => 'pie'], 'kw' => 'status in use stock'],
         'assets_expiring'    => ['handler' => 'assets.expiring',  'area' => 'assets', 'span' => 12, 'opts' => [], 'kw' => 'warranty lease expiring expiry renewals'],
         'assets_retired'     => ['handler' => 'assets.retired',   'area' => 'assets', 'span' => 12, 'opts' => [], 'kw' => 'retired disposed decommissioned transferred removed serial'],
+        // GH #310: assets and their tickets
+        'assets_tickets_kpis'        => ['handler' => 'assets.tickets_kpis',      'area' => 'assets', 'span' => 12, 'opts' => [], 'kw' => 'tickets per asset devices faults incidents summary busiest'],
+        'assets_tickets_top'         => ['handler' => 'assets.tickets_list',      'area' => 'assets', 'span' => 12, 'opts' => ['sort' => 'count', 'limit' => 10], 'kw' => 'top most tickets problem devices faulty assets worst'],
+        'assets_tickets_all'         => ['handler' => 'assets.tickets_list',      'area' => 'assets', 'span' => 12, 'opts' => ['sort' => 'name', 'limit' => 500], 'kw' => 'every asset with tickets list devices faults'],
+        'assets_tickets_by_model'    => ['handler' => 'assets.tickets_breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'model', 'chart' => 'hbar'], 'kw' => 'tickets by model manufacturer laptop faulty'],
+        'assets_tickets_by_type'     => ['handler' => 'assets.tickets_breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'type', 'chart' => 'doughnut'], 'kw' => 'tickets by asset type category devices'],
+        'assets_tickets_by_category' => ['handler' => 'assets.tickets_breakdown', 'area' => 'assets', 'span' => 6,  'opts' => ['by' => 'category', 'chart' => 'hbar'], 'kw' => 'asset tickets by ticket category what goes wrong hardware'],
 
         // Change Management
         'changes_by_status'  => ['handler' => 'changes.breakdown', 'area' => 'changes', 'span' => 6,  'opts' => ['by' => 'status', 'chart' => 'doughnut'], 'kw' => 'change status cab'],

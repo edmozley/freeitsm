@@ -666,4 +666,16 @@ return [
         'link'     => 'asset-management/help.php#retired',
         'check'    => ['rows', 'assets', 'retired_datetime IS NOT NULL AND is_demo = 0'],
     ],
+    [
+        'id'       => 'assets.tickets_report_pack',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Which assets cause the most tickets',
+        'what'     => 'Report Packs blocks for assets and their tickets: the assets with the most tickets in the period, every asset with tickets, and those tickets by model, asset type, manufacturer, location or ticket category.',
+        'why'      => 'The laptop model that keeps failing, or the printer that eats a day a month, shows up in the monthly pack - so the replacement case makes itself.',
+        'done'     => 'A report pack has an assets-and-tickets block.',
+        'link'     => 'reporting/packs/',
+        'check'    => ['rows', 'report_packs', "design LIKE '%\"handler\":\"assets.tickets_%'"],
+    ],
 ];
