@@ -7,6 +7,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';   // GH #307: tenancyColumnExists()
 
 header('Content-Type: application/json');
 
@@ -20,7 +21,7 @@ try {
     $conn = connectToDatabase();
 
     $sql = "SELECT s.id, s.legal_name, s.trading_name,
-                   s.reg_number, s.vat_number,
+                   s.reg_number, s.vat_number," . (tenancyColumnExists($conn, 'suppliers', 'ticket_email') ? ' s.ticket_email,' : ' NULL AS ticket_email,') . "
                    s.supplier_type_id, st.name AS supplier_type_name,
                    s.supplier_status_id, ss.name AS supplier_status_name,
                    s.address_line_1, s.address_line_2, s.city, s.county, s.postcode, s.country,

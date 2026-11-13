@@ -6770,6 +6770,7 @@ CREATE TABLE IF NOT EXISTS `suppliers` (
     `trading_name`                  VARCHAR(255) NULL,
     `reg_number`                    VARCHAR(50) NULL,
     `vat_number`                    VARCHAR(50) NULL,
+    `ticket_email`                  VARCHAR(255) NULL,   -- GH #307: the address their service desk takes tickets on
     `supplier_type_id`              INT NULL,
     `supplier_status_id`            INT NULL,
     `address_line_1`                VARCHAR(255) NULL,

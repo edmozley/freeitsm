@@ -7764,6 +7764,22 @@ function replyFromThread(emailId, mode) {
 }
 
 // Open forward modal
+/**
+ * GH #307: suggestions as you type in To and Cc - supplier service desks, supplier contacts,
+ * people of the ticket's company and addresses recently emailed from its tickets.
+ * Attached once; each lookup asks about the ticket open at that moment.
+ */
+(function initAddressSuggest() {
+    if (!window.AddressSuggest) return;
+    const lookup = q => {
+        const id = currentEmail && currentEmail.ticket_id;
+        if (!id) return Promise.resolve([]);
+        return fetch(API_BASE + 'address_suggest.php?ticket_id=' + encodeURIComponent(id) + '&q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+            .then(r => r.json()).then(j => (j && j.success ? j.suggestions : []));
+    };
+    ['emailTo', 'emailCc'].forEach(id => window.AddressSuggest.attach(document.getElementById(id), { fetch: lookup }));
+})();
+
 function openForwardModal(fromEmail) {
     composeMode = 'forward';
     document.getElementById('emailTo').value = '';

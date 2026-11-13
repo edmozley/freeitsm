@@ -753,6 +753,15 @@ return [
         'label_delete'     => 'Deleting',
     ],
 
+    // GH #307: suggestions under To and Cc (assets/js/address-suggest.js).
+    'address_suggest' => [
+        'service_desk'    => 'Service desk',
+        'service_desk_of' => '{name} service desk',
+        'contact'         => 'Supplier contact',
+        'person'          => 'Person',
+        'recent'          => 'Recently emailed',
+    ],
+
     'reply_modal' => [
         'to'             => 'To',
         'cc'             => 'Cc',
@@ -3508,6 +3517,7 @@ return [
             'step2' => '<strong>Write your note</strong> &mdash; use the Add Note button to open the comment editor. Notes are internal by default, visible only to analysts on the service desk.',
             'step3' => '<strong>Reply or forward by email</strong> &mdash; use the Reply or Forward actions to send a message to the end user or a third party. The email is logged in the activity trail alongside the outbound message content.',
             'subject_note'  => '<strong>The subject</strong> &mdash; Reply and Forward show the subject and you can change it. When you forward a ticket to an outside provider and their reply adds their own number to the subject (for example <em>#TCK89633 - FW: &hellip;</em>), use <strong>Reply</strong> or <strong>Forward</strong> on <em>that</em> message in the conversation: it starts from its subject, so your follow-up keeps their number and lands on their ticket. Each message shows its own subject under the sender. The ticket&rsquo;s reference in square brackets is always kept &mdash; if you take it out, it is put back when you send, so replies still come back to this ticket.',
+            'addresses_note' => '<strong>Addresses as you type</strong> &mdash; start typing in <strong>To</strong> or <strong>Cc</strong> and FreeITSM suggests addresses: a supplier&rsquo;s <strong>service desk</strong> first (set it on the supplier in Contracts), then supplier contacts, people of the ticket&rsquo;s company, and addresses recently emailed from that company&rsquo;s tickets. Use the arrow keys and Enter, or click; pick as many as you like, or keep typing your own. An address from one company&rsquo;s tickets is never suggested on another company&rsquo;s, and who a confidential ticket was emailed to is never suggested at all.',
             'attachments_note' => '<strong>Email attachments</strong> &mdash; in the attachment list, clicking one opens it in a window over the ticket where the file type allows: pictures, PDFs, Word documents, spreadsheets and CSV files, text, audio and video, with a download button. Anything else downloads. <strong>Save to Files</strong> beside each one - and beside each file on a note - copies it into a folder in Files. To put a file that is already in Files on the ticket, use <strong>From Files</strong> in the <strong>Add note</strong> window (<strong>From Computer</strong> is the button beside it) - a window like a file dialog opens, with folders on the left and their files on the right - as a link (opened through Files, under its folder\'s permissions, never shown in the portal) or a copy, as Files &rarr; Settings &rarr; Sharing allows.',
             'files_heading' => '<strong>File attachments</strong>',
             'files_body'    => 'Attach screenshots, logs, documents, or any supporting file directly to a ticket. Files can be dragged into the attachment drop zone or selected using the file browser. Attachments are stored on the server and linked to the ticket\'s activity trail so nothing gets lost.',

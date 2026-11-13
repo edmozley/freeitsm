@@ -27,6 +27,7 @@ require_once __DIR__ . '/../money.php';   // GH #189: currencies are checked aga
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 require_once __DIR__ . '/../contract_party.php';   // supplier or customer, and who may see a customer contract (#153)
 require_once __DIR__ . '/../cost_centre_assign.php';   // GH #160: the cost centre it is charged to
+require_once __DIR__ . '/../tenancy.php';   // GH #307: tenancyColumnExists() for suppliers.ticket_email
 
 class ContractsService
 {
@@ -198,6 +199,12 @@ class ContractsService
             $v = trim((string)($get($key) ?? ''));
             return $v !== '' ? $v : null;
         };
+        // GH #307: the address their service desk takes tickets on - suggested first in a ticket's To / Cc.
+        $ticketEmail = $str('ticket_email');
+        if ($ticketEmail !== null && !filter_var($ticketEmail, FILTER_VALIDATE_EMAIL)) {
+            throw new ServiceError('validation', 'invalid_value', "'ticket_email' is not a valid email address.");
+        }
+        $hasTicketEmail = tenancyColumnExists($conn, 'suppliers', 'ticket_email');   // before Database Verification: not saved, nothing breaks
         $isActive = $get('is_active', 1) ? 1 : 0;
         $suppliesAssets = (int)(bool)$get('supplies_assets', $current['supplies_assets'] ?? 0);
 
@@ -207,13 +214,15 @@ class ContractsService
             $str('address_line_1'), $str('address_line_2'), $str('city'), $str('county'), $str('postcode'), $str('country'),
             $qIssued, $qReceived, $str('comments'), $isActive, $suppliesAssets,
         ];
+        if ($hasTicketEmail) $fields[] = $ticketEmail;
 
         if ($id !== null) {
             $conn->prepare(
                 "UPDATE suppliers SET legal_name=?, trading_name=?, reg_number=?, vat_number=?,
                     supplier_type_id=?, supplier_status_id=?,
                     address_line_1=?, address_line_2=?, city=?, county=?, postcode=?, country=?,
-                    questionnaire_date_issued=?, questionnaire_date_received=?, comments=?, is_active=?, supplies_assets=?
+                    questionnaire_date_issued=?, questionnaire_date_received=?, comments=?, is_active=?, supplies_assets=?"
+                 . ($hasTicketEmail ? ', ticket_email=?' : '') . "
                  WHERE id=?"
             )->execute(array_merge($fields, [$id]));
             WorkflowEngine::dispatch('supplier.updated', ['supplier' => ['id' => $id, 'name' => $legalName, 'status_id' => $statusId, 'type_id' => $typeId]]);
@@ -223,8 +232,9 @@ class ContractsService
             "INSERT INTO suppliers (legal_name, trading_name, reg_number, vat_number,
                 supplier_type_id, supplier_status_id,
                 address_line_1, address_line_2, city, county, postcode, country,
-                questionnaire_date_issued, questionnaire_date_received, comments, is_active, supplies_assets, created_datetime)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
+                questionnaire_date_issued, questionnaire_date_received, comments, is_active, supplies_assets"
+             . ($hasTicketEmail ? ', ticket_email' : '') . ", created_datetime)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" . ($hasTicketEmail ? ', ?' : '') . ", UTC_TIMESTAMP())"
         )->execute($fields);
         $newId = (int)$conn->lastInsertId();
         WorkflowEngine::dispatch('supplier.created', ['supplier' => ['id' => $newId, 'name' => $legalName, 'status_id' => $statusId, 'type_id' => $typeId]]);

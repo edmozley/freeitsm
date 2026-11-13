@@ -9959,6 +9959,7 @@ return array (
           'type' => 'string',
           'nullable' => true,
         ),
+        'ticket_email' => ['type' => 'string', 'nullable' => true, 'description' => 'The address their service desk takes tickets on (GH #307)'],
         'type' => 
         array (
           'type' => 'object',
@@ -10217,6 +10218,7 @@ return array (
               'type' => 'string',
               'nullable' => true,
             ),
+            'ticket_email' => ['type' => 'string', 'nullable' => true],   // GH #307
             'type' => 
             array (
               'type' => 'object',

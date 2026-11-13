@@ -1,0 +1,22 @@
+/* Address suggestions under To / Cc (GH #307) - assets/js/address-suggest.js. */
+.addr-suggest {
+    position: absolute; left: 0; right: 0; top: 100%; z-index: 50;
+    margin-top: 2px; max-height: 280px; overflow-y: auto;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    box-shadow: 0 6px 20px var(--shadow);
+}
+.addr-suggest-item {
+    display: flex; align-items: center; gap: 10px; padding: 7px 10px; cursor: pointer;
+    border-bottom: 1px solid var(--border-soft);
+}
+.addr-suggest-item:last-child { border-bottom: none; }
+.addr-suggest-item.on, .addr-suggest-item:hover { background: var(--surface-hover); }
+.addr-suggest-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.addr-suggest-name { color: var(--text); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.addr-suggest-sub { color: var(--text-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.addr-suggest-tag {
+    flex-shrink: 0; font-size: 11px; padding: 1px 7px; border-radius: 10px;
+    background: var(--surface-2); color: var(--text-muted);
+}
+.addr-suggest-tag.addr-suggest-service_desk { background: var(--info-bg); color: var(--info-text); }
+.addr-suggest-tag.addr-suggest-contact { background: var(--accent-soft); color: var(--accent); }

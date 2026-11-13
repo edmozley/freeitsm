@@ -19,6 +19,18 @@ $companyOn = function (string $key): array {
 
 return [
     [
+        'id'       => 'tickets.supplier_service_desk',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Suppliers\' service desk addresses',
+        'what'     => 'A supplier\'s service desk address, set on the supplier in Contracts, offered first as you type in To or Cc when you email from a ticket - with supplier contacts, people and recently emailed addresses.',
+        'why'      => 'Escalating to an outside provider means typing their ticket address every time. Type the first letters of their name instead.',
+        'done'     => 'At least one supplier has a service desk address.',
+        'link'     => 'contracts/suppliers/',
+        'check'    => ['rows', 'suppliers', "ticket_email IS NOT NULL AND ticket_email <> ''"],
+    ],
+    [
         'id'       => 'tickets.reply_to_requester',
         'module'   => 'tickets',
         'tier'     => 'extra',

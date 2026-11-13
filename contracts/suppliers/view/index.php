@@ -282,6 +282,10 @@ if ($showDomains) $translationNamespaces[] = 'domains';
                         <input type="text" id="vatNumber">
                     </div>
                     <div class="form-group">
+                        <label for="ticketEmail"><?php echo htmlspecialchars(t('contracts.suppliers.ticket_email')); ?></label>
+                        <input type="email" id="ticketEmail" placeholder="<?php echo htmlspecialchars(t('contracts.suppliers.ticket_email_ph')); ?>" title="<?php echo htmlspecialchars(t('contracts.suppliers.ticket_email_hint')); ?>">
+                    </div>
+                    <div class="form-group">
                         <label for="supplierTypeId"><?php echo htmlspecialchars(t('contracts.suppliers.supplier_type')); ?></label>
                         <select id="supplierTypeId">
                             <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
@@ -504,6 +508,10 @@ if ($showDomains) $translationNamespaces[] = 'domains';
                         ${val(s.vat_number)}
                     </div>
                     <div class="view-field">
+                        <label>${escapeHtml(window.t('contracts.suppliers.ticket_email'))}</label>
+                        ${val(s.ticket_email)}
+                    </div>
+                    <div class="view-field">
                         <label>${escapeHtml(window.t('contracts.suppliers.supplier_type'))}</label>
                         ${val(s.supplier_type_name)}
                     </div>
@@ -597,6 +605,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             document.getElementById('tradingName').value = supplier.trading_name || '';
             document.getElementById('regNumber').value = supplier.reg_number || '';
             document.getElementById('vatNumber').value = supplier.vat_number || '';
+            document.getElementById('ticketEmail').value = supplier.ticket_email || '';
             document.getElementById('supplierTypeId').value = supplier.supplier_type_id || '';
             document.getElementById('supplierStatusId').value = supplier.supplier_status_id || '';
             document.getElementById('addressLine1').value = supplier.address_line_1 || '';
@@ -623,6 +632,7 @@ if ($showDomains) $translationNamespaces[] = 'domains';
                 trading_name: document.getElementById('tradingName').value.trim(),
                 reg_number: document.getElementById('regNumber').value.trim(),
                 vat_number: document.getElementById('vatNumber').value.trim(),
+                ticket_email: document.getElementById('ticketEmail').value.trim(),
                 supplier_type_id: document.getElementById('supplierTypeId').value || null,
                 supplier_status_id: document.getElementById('supplierStatusId').value || null,
                 address_line_1: document.getElementById('addressLine1').value.trim(),

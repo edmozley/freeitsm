@@ -277,6 +277,10 @@ $translationNamespaces = ['common', 'contracts'];
                         <input type="text" id="vatNumber">
                     </div>
                     <div class="form-group">
+                        <label for="ticketEmail"><?php echo htmlspecialchars(t('contracts.suppliers.ticket_email')); ?></label>
+                        <input type="email" id="ticketEmail" placeholder="<?php echo htmlspecialchars(t('contracts.suppliers.ticket_email_ph')); ?>" title="<?php echo htmlspecialchars(t('contracts.suppliers.ticket_email_hint')); ?>">
+                    </div>
+                    <div class="form-group">
                         <label for="supplierTypeId"><?php echo htmlspecialchars(t('contracts.suppliers.supplier_type')); ?></label>
                         <select id="supplierTypeId">
                             <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
@@ -492,6 +496,7 @@ $translationNamespaces = ['common', 'contracts'];
             document.getElementById('tradingName').value = supplier ? (supplier.trading_name || '') : '';
             document.getElementById('regNumber').value = supplier ? (supplier.reg_number || '') : '';
             document.getElementById('vatNumber').value = supplier ? (supplier.vat_number || '') : '';
+            document.getElementById('ticketEmail').value = supplier ? (supplier.ticket_email || '') : '';
             document.getElementById('supplierTypeId').value = supplier ? (supplier.supplier_type_id || '') : '';
             document.getElementById('supplierStatusId').value = supplier ? (supplier.supplier_status_id || '') : '';
             document.getElementById('addressLine1').value = supplier ? (supplier.address_line_1 || '') : '';
@@ -535,6 +540,7 @@ $translationNamespaces = ['common', 'contracts'];
                 trading_name: document.getElementById('tradingName').value.trim(),
                 reg_number: document.getElementById('regNumber').value.trim(),
                 vat_number: document.getElementById('vatNumber').value.trim(),
+                ticket_email: document.getElementById('ticketEmail').value.trim(),
                 supplier_type_id: document.getElementById('supplierTypeId').value || null,
                 supplier_status_id: document.getElementById('supplierStatusId').value || null,
                 address_line_1: document.getElementById('addressLine1').value.trim(),

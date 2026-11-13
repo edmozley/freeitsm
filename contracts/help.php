@@ -290,6 +290,10 @@ $translationNamespaces = ['common', 'contracts'];
                             <strong><?php echo htmlspecialchars(t('contracts.help.suppliers_reg_number')); ?></strong>
                             <span><?php echo htmlspecialchars(t('contracts.help.suppliers_reg_number_desc')); ?></span>
                         </div>
+                        <div class="help-card">   <?php /* GH #307 */ ?>
+                            <strong><?php echo htmlspecialchars(t('contracts.help.suppliers_ticket_email')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('contracts.help.suppliers_ticket_email_desc')); ?></span>
+                        </div>
                         <div class="help-card">
                             <strong><?php echo htmlspecialchars(t('contracts.help.suppliers_address')); ?></strong>
                             <span><?php echo htmlspecialchars(t('contracts.help.suppliers_address_desc')); ?></span>
