@@ -3,6 +3,44 @@
  * People module (#153 step 2) — English.
  */
 return [
+    // GH #308: a person's other email addresses and history (people/person.php, assets/js/people-emails.js)
+    'emails' => [
+        'title'        => 'Email addresses',
+        'history'      => 'History',
+        'main'         => 'main',
+        'none'         => 'No other addresses.',
+        'via_analyst'  => 'linked by {who}',
+        'via_portal'   => 'added by them in the portal',
+        'via_merge'    => 'from a merged person',
+        'via_requester'=> 'linked by {who}',
+        'remove'       => 'Remove',
+        'link'         => 'Link',
+        'placeholder'  => 'another address, e.g. a private one',
+        'hint'         => 'Mail from a linked address is this person\'s: a new ticket from it is theirs and shows in their portal. Replies still go where they wrote from. It never signs them in. You vouch for it - it is recorded below.',
+        'linked'       => '{email} linked.',
+        'removed'      => 'Removed. Tickets already raised from it stay where they are.',
+        'failed'       => 'That did not work. Please try again.',
+        'system'       => 'System',
+        'history_none' => 'Nothing yet.',
+        'merge_title'  => '{name} is a separate person',
+        'merge_body'   => 'That is the main address of {name} ({email}), who has {n} tickets - probably made when they first wrote from it. Merge them into {into}? Their tickets move here, each one\'s history saying so, and the address becomes one of {into}\'s.',
+        'merge_delete' => '{name} is then removed: nothing else refers to them.',
+        'merge_keep'   => 'Something else still refers to them, so they are switched off instead of removed.',
+        'merge_ok'     => 'Merge',
+        'merged_deleted'      => 'Merged: {n} tickets moved, and the duplicate removed.',
+        'merged_switched_off' => 'Merged: {n} tickets moved, and the duplicate switched off.',
+        'merge_no_other_company' => '{name} belongs to another company, so they cannot be merged.',
+        'merge_no_has_login'     => '{name} signs in to the portal with that address, so they are a real account. Sort it out by hand.',
+        'merge_no_directory'     => 'A directory keeps {name} up to date, so removing them would only bring them back.',
+        'merge_no_same'          => 'That is this person.',
+        'merge_no_not_found'     => 'That address belongs to someone else.',
+        'h_email_linked'   => 'linked {new} ({old})',
+        'h_email_unlinked' => 'removed {old}',
+        'h_email_released' => 'lost {old} - it became a main address in the {new}',
+        'h_merged'         => 'merged in {old} ({new} tickets)',
+        'h_merged_into'    => 'merged into {new} - {old} moved with them',
+    ],
+
     'title' => 'People',
 
     'nav' => [
@@ -438,6 +476,7 @@ return [
             'sec_forms_d'     => 'Forms they submitted, with any approval and the ticket a submission raised.',
             'sec_projects'  => 'Projects',
             'sec_projects_d'  => 'Projects they are a member of, with their role, how far along each is and its health.',
+            'p4'    => '**Email addresses** lists their main address and any **linked** ones - other addresses that are theirs, like a private one they write from when they cannot get into their work account. Mail from a linked address is theirs: a new ticket from it is raised for them and shows in their portal, and replies still go where they wrote from. A linked address never signs them in. They can add one themselves in the portal (it is linked when they open a link emailed to it), or anyone who can edit people can **Link** one here - you vouch for it, and **History** records who did what. If the address is already somebody else\'s main address - usually a duplicate made the first time they wrote from it - you are offered to **merge** that person in: their tickets move here, each ticket\'s history saying so, the address becomes one of this person\'s, and the duplicate is removed (or switched off when something else still refers to them). Someone who signs in, someone a directory keeps up to date, and someone in another company are never merged.',
             'p3'    => 'Each section shows ten rows, with **Show all** for the rest. A section with a great deal in it shows the latest 50 and says so - the module itself has the full list.',
         ],
         'org' => [

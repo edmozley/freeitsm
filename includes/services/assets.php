@@ -476,8 +476,9 @@ class AssetsService
             $u = $conn->prepare("SELECT id, display_name FROM users WHERE id = ?");
             $u->execute([(int)$in['user_id']]);
         } elseif (isset($in['user_email']) && trim((string)$in['user_email']) !== '') {
-            $u = $conn->prepare("SELECT id, display_name FROM users WHERE email = ?");
-            $u->execute([strtolower(trim((string)$in['user_email']))]);
+            require_once __DIR__ . '/../user_emails.php';   // GH #308: a linked address finds its person too
+            $u = $conn->prepare("SELECT id, display_name FROM users WHERE id = ?");
+            $u->execute([(int)(userIdForEmail($conn, (string)$in['user_email']) ?? 0)]);
         } else {
             throw new ServiceError('validation', 'missing_field', "Provide 'user_id' or 'user_email'.");
         }

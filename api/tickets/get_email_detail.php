@@ -92,6 +92,7 @@ try {
                 t.tenant_id,
                 t.user_id,
                 u.email AS requester_email,
+                u.display_name AS requester_name,   -- GH #308: shown when it is not the sender
                 u.phone AS requester_phone,
                 u.mobile AS requester_mobile,
                 t.created_datetime as ticket_created,

@@ -44,6 +44,18 @@ if ($token !== '' && preg_match('/^[0-9a-f]{64}$/i', $token)) {
             if ($existing && !empty($existing['password_hash'])) {
                 $heading = 'Already confirmed';
                 $message = 'This account is already set up. Please sign in.';
+            } elseif (!$existing && (function () use ($conn, $email) {
+                require_once __DIR__ . '/../includes/user_emails.php';
+                $o = userEmailOwner($conn, $email);
+                return $o && $o['kind'] === 'linked';
+            })()) {
+                // GH #308: the address is linked to an existing account, as one of its OTHER
+                // addresses - it cannot become a second account of its own (one owner per
+                // address). Only the mailbox's owner reaches this page, so saying so reveals
+                // nothing to anyone else. Linked addresses never sign in (mail only).
+                $conn->prepare("DELETE FROM user_verification_tokens WHERE email = ?")->execute([$email]);
+                $heading = 'Use your main account';
+                $message = 'This address is already linked to an account here as one of its other addresses. Please sign in with that account\'s main address.';
             } elseif ($existing && userSignsInElsewhere($conn, $existing['auth_provider_id'] ?? 0)) {
                 // The same guard register.php applies, repeated here because the
                 // token may have been issued BEFORE the account was linked to a

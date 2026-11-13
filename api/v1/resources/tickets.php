@@ -336,9 +336,8 @@ function apiTicketsCreate(PDO $conn, array $apiKey, array $params, array $body):
             apiError(422, 'invalid_field', 'That requester no longer exists.');   // same words as a missing id
         }
     } else {
-        $known = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $known->execute([$requesterEmail]);
-        if ($known->fetchColumn() === false) {
+        require_once dirname(__DIR__, 3) . '/includes/user_emails.php';
+        if (userIdForEmail($conn, $requesterEmail) === null) {   // GH #308: a linked address is somebody's too
             $newTenant = resolveTenantForNewUser($conn, $requesterEmail);
             if ($newTenant !== null && !apiKeyCanAccessTenant($conn, $apiKey, (int)$newTenant)) {
                 apiError(403, 'forbidden', "This address belongs to a company this API key cannot reach, so the requester cannot be created.");

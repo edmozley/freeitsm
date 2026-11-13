@@ -1162,6 +1162,19 @@ function resolveTicketTenantForEmail(PDO $conn, $mailboxId, string $fromAddress)
         } catch (Exception) {
             // tenant_sender_addresses missing → fall through to domain routing.
         }
+        // (3a') GH #308: an address LINKED to a person reaches the company through that
+        // person - a private jane@gmail.com, linked to Jane, files with Jane's company.
+        // Only a linked address: a person's main address is routed by its domain as always.
+        try {
+            require_once __DIR__ . '/user_emails.php';
+            $owner = userEmailOwner($conn, $addr);
+            if ($owner && $owner['kind'] === 'linked') {
+                $stmt = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
+                $stmt->execute([$owner['user_id']]);
+                $val = $stmt->fetchColumn();
+                if ($val !== false && $val !== null) return (int) $val;
+            }
+        } catch (Throwable) { /* no linked addresses yet - domain routing as before */ }
     }
 
     // (3b) Shared intake → route by the sender's domain.

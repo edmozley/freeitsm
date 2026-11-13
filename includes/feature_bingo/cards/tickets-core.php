@@ -19,6 +19,18 @@ $companyOn = function (string $key): array {
 
 return [
     [
+        'id'       => 'people.linked_email',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Other addresses linked to a person',
+        'what'     => 'A private or second address linked to a person - by them in the portal (with a confirmation link) or by an analyst on their People page - so mail from it is theirs.',
+        'why'      => 'People write from a personal address exactly when they cannot get into their work account. Their ticket then lands under them and shows in their portal, instead of under a stranger with the same name.',
+        'done'     => 'At least one person has a linked email address.',
+        'link'     => 'people/',
+        'check'    => ['rows', 'user_email_addresses', '1=1'],
+    ],
+    [
         'id'       => 'tickets.supplier_service_desk',
         'module'   => 'tickets',
         'tier'     => 'extra',

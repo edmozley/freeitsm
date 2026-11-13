@@ -3841,8 +3841,10 @@ class WorkflowEngine
             $userId = null;
             $userTenant = null;
             if ($fromEmail !== '') {
-                $uLookup = $conn->prepare('SELECT id, tenant_id FROM users WHERE email = ? LIMIT 1');
-                $uLookup->execute([$fromEmail]);
+                // GH #308: the person whose main or linked address it is.
+                require_once dirname(__DIR__, 2) . '/includes/user_emails.php';
+                $uLookup = $conn->prepare('SELECT id, tenant_id FROM users WHERE id = ? LIMIT 1');
+                $uLookup->execute([(int)(userIdForEmail($conn, $fromEmail) ?? 0)]);
                 $found = $uLookup->fetch(PDO::FETCH_ASSOC);
                 if ($found && self::companyGuardOn($conn)) {
                     // GH #209: a company's workflow raises tickets for its own people.

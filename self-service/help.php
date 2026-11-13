@@ -196,6 +196,7 @@ if ($ssHelpIsManager) array_splice($helpNav, array_search('s7', $helpNav, true),
                 <li><?php echo t('self-service.help.s2_li3'); ?></li>
             </ol>
             <p class="help-note"><?php echo t('self-service.help.s2_tip'); ?></p>
+            <p class="help-note"><?php echo t('self-service.help.s2_addresses'); ?></p>   <?php /* GH #308 */ ?>
         </div>
 
         <!-- Finding an answer yourself. Deliberately BEFORE "raising a ticket":

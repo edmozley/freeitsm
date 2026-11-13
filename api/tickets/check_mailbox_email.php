@@ -946,11 +946,14 @@ function getOrCreateUser($conn, $email, $displayName) {
     // Normalize email to lowercase
     $email = strtolower(trim($email));
 
-    // Check if user already exists
-    $sql = "SELECT id FROM users WHERE email = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$email]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Check if user already exists - by their main address, or one linked to them (GH #308):
+    // mail from a person's private address is theirs, so the ticket shows in their portal.
+    require_once __DIR__ . '/../../includes/user_emails.php';
+    $owner = userEmailOwner($conn, $email);
+    if ($owner && $owner['kind'] === 'linked') {
+        return $owner['user_id'];   // the name on a private address is not news about the person
+    }
+    $result = $owner ? ['id' => $owner['user_id']] : null;
 
     if ($result) {
         // Update display name if it changed (and we have a new one)

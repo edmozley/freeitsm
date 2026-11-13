@@ -993,6 +993,55 @@ CREATE TABLE IF NOT EXISTS `user_verification_tokens` (
     KEY `ix_uvt_expires` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- GH #308: a person's OTHER email addresses - mail from one belongs to them (a ticket raised
+-- from a private address shows in their portal). Never used to sign in. One owner per address:
+-- unique here, and never another person's users.email (includes/user_emails.php checks it).
+CREATE TABLE IF NOT EXISTS `user_email_addresses` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `user_id`             INT NOT NULL,
+    `email`               VARCHAR(255) NOT NULL,       -- lower case
+    `added_via`           VARCHAR(20) NOT NULL DEFAULT 'analyst',   -- analyst | portal | merge | requester
+    `added_by_analyst_id` INT NULL,
+    `created_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_user_email_addresses_email` (`email`),
+    KEY `idx_user_email_addresses_user` (`user_id`),
+    CONSTRAINT `fk_uea_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_uea_analyst` FOREIGN KEY (`added_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- GH #308: an address a person added in the portal, waiting for the confirmation link
+-- emailed to it (24 hours, single use, stored hashed). Not unique by address: a claim
+-- proves nothing until confirmed, so it must never block or reveal anything.
+CREATE TABLE IF NOT EXISTS `user_email_claims` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `user_id`          INT NOT NULL,
+    `email`            VARCHAR(255) NOT NULL,
+    `token_hash`       CHAR(64) NOT NULL,
+    `expires_at`       DATETIME NOT NULL,
+    `created_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_user_email_claims_token` (`token_hash`),
+    KEY `idx_user_email_claims_user` (`user_id`),
+    CONSTRAINT `fk_uec_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- GH #308: a person's history - addresses linked and removed, people merged into them,
+-- a directory taking an address back. analyst_id NULL = the person in the portal, or the system.
+CREATE TABLE IF NOT EXISTS `user_audit` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `user_id`          INT NOT NULL,
+    `analyst_id`       INT NULL,
+    `field_name`       VARCHAR(100) NOT NULL,
+    `old_value`        VARCHAR(1000) NULL,
+    `new_value`        VARCHAR(1000) NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_user_audit_user` (`user_id`, `created_datetime`),
+    CONSTRAINT `fk_user_audit_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_user_audit_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Password reset for SELF-SERVICE PORTAL users (GH #134).
 --
 -- Deliberately a SEPARATE table from `password_reset_tokens`, which is the

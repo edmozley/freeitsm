@@ -410,6 +410,12 @@
                             "in": "body",
                             "desc": "Move the ticket to another company (key must be scoped to both)",
                             "req": false
+                        },
+                        {
+                            "name": "user_id",
+                            "in": "body",
+                            "desc": "Change the requester (5.2.0, #308): a person the key's analyst can see, in the ticket's company. Always written to the ticket's history.",
+                            "req": false
                         }
                     ],
                     "body": {

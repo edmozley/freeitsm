@@ -438,6 +438,21 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
                 <button class="ss-btn ss-btn-primary" id="ssNameSaveBtn" onclick="ssSavePreferredName()"><?php echo htmlspecialchars(t('self-service.account.save')); ?></button>
             </div>
 
+            <?php /* GH #308: other addresses - mail from them files under this account. Each is
+                     linked only once the link emailed to it is opened (confirm-address.php).
+                     Hidden until the server says the feature is there. */ ?>
+            <div id="ssAddrBlock" style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px; margin-bottom:24px;" hidden>
+                <div style="font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:6px;"><?php echo htmlspecialchars(t('self-service.account.addr_title')); ?></div>
+                <div class="ss-form-hint" style="margin-bottom:12px;"><?php echo htmlspecialchars(t('self-service.account.addr_intro')); ?></div>
+                <div id="ssAddrMsg" class="ss-msg"></div>
+                <div id="ssAddrList" style="margin-bottom:12px;"></div>
+                <div style="display:flex;gap:8px;">
+                    <input type="email" class="ss-form-input" id="ssAddrNew" maxlength="255" placeholder="<?php echo htmlspecialchars(t('self-service.account.addr_placeholder')); ?>" autocomplete="off" style="flex:1;">
+                    <button class="ss-btn ss-btn-primary" id="ssAddrAddBtn" onclick="ssAddAddress()"><?php echo htmlspecialchars(t('self-service.account.addr_add')); ?></button>
+                </div>
+                <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.addr_hint')); ?></div>
+            </div>
+
             <!-- Appearance. Analysts pick a palette from the waffle menu; portal
                  users have no waffle menu, so their picker lives here. Saves and
                  applies immediately — no page reload, because the whole portal is
@@ -558,6 +573,51 @@ function ssOpenAccountModal() {
     document.getElementById('ssPwConfirm').value = '';
     document.getElementById('ssAccountModal').classList.add('active');
     ssLoadProfile();
+    ssLoadAddresses();
+}
+
+/* ---- GH #308: other email addresses -------------------------------------------------- */
+function ssAddrEsc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function ssAddrMsg(text, kind) { const m = document.getElementById('ssAddrMsg'); m.textContent = text || ''; m.className = 'ss-msg' + (text ? ' ' + (kind || 'success') : ''); }
+/** The person's main address, linked ones (with Remove) and ones waiting for their confirmation link. */
+async function ssLoadAddresses() {
+    const block = document.getElementById('ssAddrBlock');
+    try {
+        const data = await (await fetch(_ssApi + 'addresses.php')).json();
+        if (!data.success || !data.ready) { block.hidden = true; return; }
+        block.hidden = false;
+        const row = (email, note, removable) => '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border-soft, #eee);">'
+            + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">' + ssAddrEsc(email) + '</span>'
+            + '<span class="ss-form-hint" style="margin:0;">' + ssAddrEsc(note) + '</span>'
+            + (removable ? '<button class="ss-btn ss-btn-secondary" style="padding:4px 10px;" data-addr="' + ssAddrEsc(email) + '" onclick="ssRemoveAddress(this.dataset.addr)">' + ssAddrEsc(window.t('self-service.account.addr_remove')) + '</button>' : '')
+            + '</div>';
+        document.getElementById('ssAddrList').innerHTML =
+            (data.main ? row(data.main, window.t('self-service.account.addr_main'), false) : '')
+            + (data.linked || []).map(a => row(a.email, window.t('self-service.account.addr_linked'), true)).join('')
+            + (data.pending || []).map(a => row(a.email, window.t('self-service.account.addr_pending'), true)).join('');
+    } catch (e) { block.hidden = true; }
+}
+/** Adds an address: a confirmation link is emailed to it, and it is linked when that is opened. */
+async function ssAddAddress() {
+    const input = document.getElementById('ssAddrNew'), btn = document.getElementById('ssAddrAddBtn');
+    const email = input.value.trim();
+    if (!email) return;
+    btn.disabled = true;
+    try {
+        const data = await (await fetch(_ssApi + 'addresses.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', email }) })).json();
+        if (data.success) { input.value = ''; ssAddrMsg(window.t('self-service.account.addr_sent', { email })); }
+        else ssAddrMsg(window.t('self-service.account.' + (data.error || 'addr_err_failed')), 'error');
+    } catch (e) { ssAddrMsg(window.t('self-service.account.addr_err_failed'), 'error'); }
+    btn.disabled = false;
+    ssLoadAddresses();
+}
+/** Removes a linked address (or cancels one waiting). Tickets already raised from it stay where they are. */
+async function ssRemoveAddress(email) {
+    try {
+        await fetch(_ssApi + 'addresses.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'remove', email }) });
+        ssAddrMsg(window.t('self-service.account.addr_removed'));
+    } catch (e) { ssAddrMsg(window.t('self-service.account.addr_err_failed'), 'error'); }
+    ssLoadAddresses();
 }
 
 function ssCloseAccountModal() {

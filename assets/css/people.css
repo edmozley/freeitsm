@@ -590,3 +590,13 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
 .ppl-org-keys-k { width: 48%; white-space: nowrap; color: var(--text-dim, #888); }
 .ppl-org-keys kbd { display: inline-block; min-width: 18px; padding: 1px 6px; font: inherit; font-size: 12px; text-align: center; color: var(--text, #333);
     background: var(--surface-hover, #f6f6f6); border: 1px solid var(--border, #ccc); border-bottom-width: 2px; border-radius: 4px; }
+
+/* GH #308: a person's email addresses and history */
+.ppl-addrs { padding: 10px 14px 14px; font-size: 13px; }
+.ppl-addr { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border-soft); }
+.ppl-addr-e { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.ppl-addr .ppl-dim { font-size: 11px; }
+.ppl-btn-sm { padding: 2px 8px; font-size: 11px; }
+.ppl-addr-add { display: flex; gap: 6px; margin: 10px 0 4px; }
+.ppl-addr-add input { flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); }
+.ppl-hist { padding: 4px 0; border-bottom: 1px solid var(--border-soft); line-height: 1.4; }

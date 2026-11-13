@@ -874,6 +874,12 @@ function dsyncApplyToExisting(PDO $conn, array $provider, array $existing, array
     if ($p['username'] !== '') { $sets[] = 'directory_username = ?'; $args[] = $p['username']; }
 
     if (!$preview) {
+        // GH #308: the directory is the authority on work addresses - if this one is linked to
+        // somebody else as one of their OTHER addresses, it is taken off them (their history says so).
+        if ($p['email'] !== null && in_array('email = ?', $sets, true)) {
+            require_once __DIR__ . '/user_emails.php';
+            userReleaseEmailForMain($conn, $p['email'], 'directory', (int)$existing['id']);
+        }
         $args[] = (int)$existing['id'];
         $conn->prepare("UPDATE users SET " . implode(', ', $sets) . " WHERE id = ?")->execute($args);
         dsyncLinkIdentity($conn, (int)$provider['id'], (int)$existing['id'], $p);
@@ -892,6 +898,9 @@ function dsyncApplyToExisting(PDO $conn, array $provider, array $existing, array
 function dsyncCreate(PDO $conn, array $provider, array $p, bool $preview): ?int
 {
     if ($preview) return 0;
+    // GH #308: the directory wins an address somebody else has linked.
+    require_once __DIR__ . '/user_emails.php';
+    userReleaseEmailForMain($conn, $p['email'], 'directory');
     try {
         $conn->prepare(
             "INSERT INTO users

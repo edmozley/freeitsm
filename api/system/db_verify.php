@@ -3416,6 +3416,18 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // GH #308: a person's other addresses, portal claims and history go with the person.
+    foreach ([
+        ['user_email_addresses', 'fk_uea_user',           "ALTER TABLE user_email_addresses ADD CONSTRAINT fk_uea_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE"],
+        ['user_email_addresses', 'fk_uea_analyst',        "ALTER TABLE user_email_addresses ADD CONSTRAINT fk_uea_analyst FOREIGN KEY (added_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['user_email_claims',    'fk_uec_user',           "ALTER TABLE user_email_claims ADD CONSTRAINT fk_uec_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE"],
+        ['user_audit',           'fk_user_audit_user',    "ALTER TABLE user_audit ADD CONSTRAINT fk_user_audit_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE"],
+        ['user_audit',           'fk_user_audit_analyst', "ALTER TABLE user_audit ADD CONSTRAINT fk_user_audit_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+    ] as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // The help assistant's vectors go with their section (wiki Help-Assistant-Design).
     if ($tableExists('help_section_vectors') && !$fkExists('help_section_vectors', 'fk_help_section_vectors_section')) {
         try { $conn->exec("ALTER TABLE help_section_vectors ADD CONSTRAINT fk_help_section_vectors_section FOREIGN KEY (section_id) REFERENCES help_sections (id) ON DELETE CASCADE"); } catch (Exception $e) {}

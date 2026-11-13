@@ -697,6 +697,33 @@ return [
         'created_at'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // GH #308: a person's other addresses, portal claims waiting for confirmation, and their history - see freeitsm.sql.
+    'user_email_addresses' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'user_id'             => 'INT NOT NULL',
+        'email'               => 'VARCHAR(255) NOT NULL',
+        'added_via'           => "VARCHAR(20) NOT NULL DEFAULT 'analyst'",
+        'added_by_analyst_id' => 'INT NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'user_email_claims' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'user_id'          => 'INT NOT NULL',
+        'email'            => 'VARCHAR(255) NOT NULL',
+        'token_hash'       => 'CHAR(64) NOT NULL',
+        'expires_at'       => 'DATETIME NOT NULL',
+        'created_at'       => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'user_audit' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'user_id'          => 'INT NOT NULL',
+        'analyst_id'       => 'INT NULL',
+        'field_name'       => 'VARCHAR(100) NOT NULL',
+        'old_value'        => 'VARCHAR(1000) NULL',
+        'new_value'        => 'VARCHAR(1000) NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     // Password reset for SELF-SERVICE PORTAL users (GH #134). Separate from
     // `password_reset_tokens`, which is the analyst one and is hard-wired to
     // analyst_id — see the note beside this table in database/freeitsm.sql for
