@@ -111,6 +111,9 @@ final class FilesAttach
         $tenant = getActiveTenantId($conn, $analystId) ?: null;
 
         if ($how === 'link') {
+            if (!DocumentsService::filesLinkReady($conn)) {
+                throw new ServiceError('validation', 'not_ready', 'Attaching as a link needs System -> Database Verification to be run first. A copy works now.');
+            }
             $own = !$conn->inTransaction();   // join a caller's transaction rather than fail
             if ($own) $conn->beginTransaction();
             try {

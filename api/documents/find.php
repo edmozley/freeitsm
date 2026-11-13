@@ -89,7 +89,10 @@ try {
     // GH #303: files in Files the person can open, to attach as a link or a copy
     // (Files -> Settings -> Sharing says which).
     require_once '../../includes/services/files_attach.php';
-    $files = DocumentsService::filesLinkReady($conn) ? FilesAttach::search($conn, $analystId, $q) : [];
+    // Always searched: only attaching as a LINK needs documents.files_item_id, and attach()
+    // says so then. Hiding the results until Database Verification ran looked like
+    // "no files match" with no reason given (Ed, 2026-11-13).
+    $files = FilesAttach::search($conn, $analystId, $q);
     echo json_encode(['success' => true, 'documents' => $rows, 'files' => $files, 'files_mode' => FilesAttach::mode($conn)]);
 
 } catch (Exception $e) {
