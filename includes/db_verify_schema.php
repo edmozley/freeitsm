@@ -7225,7 +7225,7 @@ return [
     'storage_migration_items' => [
         'id'                  => 'BIGINT NOT NULL AUTO_INCREMENT',
         'store'               => 'VARCHAR(20) NOT NULL',
-        'object_key'          => 'VARCHAR(255) NOT NULL',
+        'object_key'          => 'VARCHAR(500) NOT NULL',
         'size_bytes'          => 'BIGINT NOT NULL',
         'sha256'              => 'CHAR(64) NULL',
         'state'               => "VARCHAR(10) NOT NULL DEFAULT 'pending'",

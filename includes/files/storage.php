@@ -59,6 +59,7 @@ function filesStorageReset(): void
 {
     FilesStorageCache::$settings = [];
     FilesStorageCache::$drivers = [];
+    if (function_exists('storeReset')) storeReset();   // the shared S3 connection is cached there
 }
 
 /**
@@ -72,6 +73,11 @@ function filesStorageConfig(PDO $conn): array
     if (filesSetting($conn, 'files_storage_driver', 'local') !== 's3') {
         return ['driver' => 'local', 'root' => filesStorageRoot($conn)];
     }
+    // The install's one S3 connection, kept on System -> Storage (#284) - which reads the
+    // files_s3_* settings below until it has been saved there.
+    require_once __DIR__ . '/../storage/stores.php';
+    $shared = storageS3Connection($conn);
+    if ($shared !== null) return $shared;
     return [
         'driver'        => 's3',
         'endpoint'      => filesSetting($conn, 'files_s3_endpoint'),

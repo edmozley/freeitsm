@@ -10969,7 +10969,7 @@ CREATE TABLE IF NOT EXISTS `files_uploads` (
 CREATE TABLE IF NOT EXISTS `storage_migration_items` (
     `id`                    BIGINT NOT NULL AUTO_INCREMENT,
     `store`                 VARCHAR(20) NOT NULL,                   -- files
-    `object_key`            VARCHAR(255) NOT NULL,
+    `object_key`            VARCHAR(500) NOT NULL,                  -- ticket attachment keys can be long (#284)
     `size_bytes`            BIGINT NOT NULL,
     `sha256`                CHAR(64) NULL,
     `state`                 VARCHAR(10) NOT NULL DEFAULT 'pending', -- pending | verified | failed | removed | skipped

@@ -48,6 +48,14 @@ final class StoreCache
     public static array $drivers = [];
     /** Test hook: store id => local folder to use instead of the app's. */
     public static array $roots = [];
+    /** Test hook: fn(array $cfg, string $store): StorageDriver - instead of storageDriver(). */
+    public static ?Closure $factory = null;
+}
+
+/** The driver for a store's configuration (storageDriver(), or the test hook). */
+function storeMakeDriver(array $cfg, string $store): StorageDriver
+{
+    return StoreCache::$factory ? (StoreCache::$factory)($cfg, $store) : storageDriver($cfg, $store);
 }
 
 function storeReset(): void
@@ -178,14 +186,14 @@ function storePreviousConfig(PDO $conn, string $store): ?array
 
 function storeActive(PDO $conn, string $store): StorageDriver
 {
-    return StoreCache::$drivers[$store]['active'] ??= storageDriver(storeConfig($conn, $store), $store);
+    return StoreCache::$drivers[$store]['active'] ??= storeMakeDriver(storeConfig($conn, $store), $store);
 }
 
 function storePrevious(PDO $conn, string $store): ?StorageDriver
 {
     if (!array_key_exists('previous', StoreCache::$drivers[$store] ?? [])) {
         $cfg = storePreviousConfig($conn, $store);
-        StoreCache::$drivers[$store]['previous'] = $cfg ? storageDriver($cfg, $store) : null;
+        StoreCache::$drivers[$store]['previous'] = $cfg ? storeMakeDriver($cfg, $store) : null;
     }
     return StoreCache::$drivers[$store]['previous'];
 }

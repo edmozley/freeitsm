@@ -26,6 +26,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/job_runs.php';
 require_once __DIR__ . '/../includes/module_availability.php';
 require_once __DIR__ . '/../includes/files/storage_migration.php';
+require_once __DIR__ . '/../includes/storage/store_migration.php';   // the other stores (System -> Storage)
 
 try {
     $conn = connectToDatabase();
@@ -35,30 +36,42 @@ try {
 }
 
 $trigger = JobRun::scheduledTrigger();
-if (cronModuleSwitchedOff($conn, 'files', 'storage_migrate', $trigger)) exit(0);
+// Files switched off: its own move waits, but the other stores still move.
+$filesOff = !moduleIsEnabled($conn, 'files');
+$stores = storesMoving($conn);
+if ($filesOff && !$stores && cronModuleSwitchedOff($conn, 'files', 'storage_migrate', $trigger)) exit(0);
 if (!JobRun::lock($conn, 'storage_migrate', $trigger)) exit(0);
 
 $runId = JobRun::start($conn, 'storage_migrate', $trigger);
 try {
-    $r = ['copied' => 0, 'failed' => 0, 'removed' => 0, 'done' => false];
+    $r = ['copied' => 0, 'failed' => 0, 'removed' => 0, 'done' => true];
     $deadline = time() + 8 * 60;
-    do {
-        $b = storageMigrateBatch($conn, $deadline);
-        foreach (['copied', 'failed', 'removed'] as $k) $r[$k] += $b[$k];
-        $r['done'] = $b['done'];
-        $unavailable = !empty($b['unavailable']);
-        $didWork = $b['copied'] + $b['removed'] > 0;
-    } while (!$r['done'] && $didWork && !$unavailable && time() < $deadline);
+    $unavailable = false;
+    // Files first (its own engine), then each store that is moving, each in turn.
+    $movers = [];
+    if (!$filesOff) $movers['files'] = fn() => storageMigrateBatch($conn, $deadline);
+    foreach ($stores as $s) $movers[$s] = fn() => storeMoveBatch($conn, $s, $deadline);
+    foreach ($movers as $name => $run) {
+        do {
+            $b = $run();
+            foreach (['copied', 'failed', 'removed'] as $k) $r[$k] += $b[$k];
+            $thisDown = !empty($b['unavailable']);
+            $didWork = $b['copied'] + $b['removed'] > 0;
+        } while (!$b['done'] && $didWork && !$thisDown && time() < $deadline);
+        if (!$b['done']) $r['done'] = false;
+        if ($thisDown) $unavailable = true;
+        if (time() >= $deadline) break;
+    }
 
     $summary = sprintf('%d copied, %d removed, %d failed attempts%s.', $r['copied'], $r['removed'], $r['failed'],
                        $unavailable ? ' - storage could not be reached, the next run tries again'
                                     : ($r['done'] ? '' : ' (more to do: the next run carries on)'));
     JobRun::finish($conn, $runId, ($r['failed'] === 0 && !$unavailable) ? 'ok' : ($r['copied'] + $r['removed'] > 0 ? 'partial' : 'failed'),
                    ['copied' => $r['copied'], 'removed' => $r['removed'], 'failed' => $r['failed']], $summary);
-    echo "Files storage move: $summary\n";
+    echo "Storage move: $summary\n";
 } catch (Throwable $e) {
     JobRun::fail($conn, $runId, $e);
-    fwrite(STDERR, 'Files storage move failed: ' . $e->getMessage() . "\n");
+    fwrite(STDERR, 'Storage move failed: ' . $e->getMessage() . "\n");
     exit(1);
 } finally {
     JobRun::unlock($conn, 'storage_migrate');
