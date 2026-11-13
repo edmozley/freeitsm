@@ -10638,7 +10638,7 @@ CREATE TABLE IF NOT EXISTS `storage_migration_items` (
     `object_key`            VARCHAR(255) NOT NULL,
     `size_bytes`            BIGINT NOT NULL,
     `sha256`                CHAR(64) NULL,
-    `state`                 VARCHAR(10) NOT NULL DEFAULT 'pending', -- pending | verified | failed | removed
+    `state`                 VARCHAR(10) NOT NULL DEFAULT 'pending', -- pending | verified | failed | removed | skipped
     `attempts`              INT NOT NULL DEFAULT 0,
     `last_error`            VARCHAR(500) NULL,
     `updated_datetime`      DATETIME NULL,

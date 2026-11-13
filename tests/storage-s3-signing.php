@@ -75,5 +75,30 @@ ok('path style keeps the bucket in the path, with query', $u === 'http://minio:9
 $u = s3ObjectUrl(['endpoint' => 'http://minio:9000', 'bucket' => 'b', 'path_style' => true], 'a b/c+d');
 ok('key segments are encoded', $u === 'http://minio:9000/b/a%20b/c%2Bd', $u);
 
+// ── Addresses (fix made when merging PR #318): every request checks the host it really
+// goes to - IPv4 and IPv6, the bucket's own host name too - and pins what it checked.
+echo "\nStorage addresses\n";
+require_once dirname(__DIR__) . '/includes/storage/driver.php';
+require_once dirname(__DIR__) . '/includes/storage/s3_driver.php';
+foreach (['169.254.169.254', '169.254.0.1', '0.0.0.0', 'fe80::1', 'fd00:ec2::254', '::ffff:169.254.169.254', '::'] as $ip) {
+    ok("refused: $ip", storageAddressRefusal($ip) !== null);
+}
+foreach (['127.0.0.1', '10.1.2.3', '192.168.1.5', '::1', '52.95.110.1'] as $ip) {
+    ok("allowed: $ip (a MinIO on this box or the LAN, or a real cloud address)", storageAddressRefusal($ip) === null);
+}
+$why = '';
+try { storageCheckedAddress('169.254.169.254'); } catch (StorageUnavailable $e) { $why = $e->getMessage(); }
+ok('a metadata address is refused before any connection is made', str_contains($why, 'not allowed'), $why);
+// The request itself refuses it - path style, so the host is the endpoint's; it never connects.
+$d = new S3Driver(['endpoint' => 'http://169.254.169.254', 'bucket' => 'b', 'access_key_id' => 'k', 'secret' => 's', 'path_style' => true], 'files');
+$why = '';
+try { $d->size('2026/01/01/' . str_repeat('a', 32) . '.bin'); } catch (StorageUnavailable $e) { $why = $e->getMessage(); }
+ok('an S3 request to a metadata address is refused by the driver itself', str_contains($why, 'not allowed'), $why);
+// Virtual-hosted: the bucket becomes part of the host, and that is what gets checked.
+$d = new S3Driver(['endpoint' => 'http://localhost', 'bucket' => 'zz-no-such-host-' . bin2hex(random_bytes(3)), 'access_key_id' => 'k', 'secret' => 's', 'path_style' => false], 'files');
+$why = '';
+try { $d->size('2026/01/01/' . str_repeat('a', 32) . '.bin'); } catch (StorageUnavailable $e) { $why = $e->getMessage(); }
+ok('a virtual-hosted request checks <bucket>.<host>, not only the endpoint', str_contains($why, '.localhost') && str_contains($why, 'does not resolve'), $why);
+
 echo "\n$pass passed, $fail failed\n";
 exit($fail ? 1 : 0);

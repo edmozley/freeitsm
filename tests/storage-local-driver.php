@@ -32,7 +32,7 @@ function rmTree(string $d): void {
 }
 
 echo "\nLocal storage driver\n" . str_repeat('=', 72) . "\n";
-$root = sys_get_temp_dir() . '/zz-storage-' . bin2hex(random_bytes(4));
+$root = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-storage-' . bin2hex(random_bytes(4));
 $tmp  = sys_get_temp_dir() . '/zz-src-' . bin2hex(random_bytes(4));
 try {
     $d = storageDriver(['driver' => 'local', 'root' => $root], 'files');

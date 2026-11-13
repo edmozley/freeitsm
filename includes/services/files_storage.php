@@ -21,6 +21,7 @@
 
 require_once __DIR__ . '/../files/storage.php';
 require_once __DIR__ . '/../files/audit.php';
+require_once __DIR__ . '/../files/storage_migration.php';   // storageMigrateEnd()
 require_once __DIR__ . '/../storage/s3_driver.php';
 require_once __DIR__ . '/../job_scheduler.php';
 
@@ -46,18 +47,13 @@ final class FilesStorageService
      */
     private static function endpointRefusal(string $endpoint): ?string
     {
-        $host = (string)parse_url($endpoint, PHP_URL_HOST);
-        $host = trim($host, '[]');
-        $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : (gethostbynamel($host) ?: []);
-        foreach ($ips as $ip) {
-            $bin = @inet_pton($ip);
-            if ($bin === false) continue;
-            $linkLocal = strlen($bin) === 4
-                ? ($bin[0] === "\xA9" && $bin[1] === "\xFE") || $bin[0] === "\x00"            // 169.254/16, 0/8
-                : (ord($bin[0]) === 0xFE && (ord($bin[1]) & 0xC0) === 0x80)                     // fe80::/10
-                  || $bin === inet_pton('fd00:ec2::254')                                        // AWS metadata (IPv6)
-                  || (str_starts_with($bin, str_repeat("\0", 10) . "\xFF\xFF") && substr($bin, 12, 2) === "\xA9\xFE");
-            if ($linkLocal) return 'That endpoint is not allowed: ' . $ip . ' is a link-local (cloud metadata) address.';
+        // A quick answer for the person typing. The real guard is in every request
+        // (S3Driver::once -> storageCheckedAddress), which also sees the bucket's own
+        // host name and IPv6, and pins the address it checked.
+        $host = trim((string)parse_url($endpoint, PHP_URL_HOST), '[]');
+        if ($host === '') return null;
+        try { storageCheckedAddress($host); } catch (StorageUnavailable $e) {
+            return str_contains($e->getMessage(), 'not allowed') ? $e->getMessage() : null;   // not resolving is Test's job to report
         }
         return null;
     }
@@ -88,7 +84,10 @@ final class FilesStorageService
                 'path_style'    => filesSetting($conn, 'files_s3_path_style', '0') === '1',
                 'secret_set'    => filesSetting($conn, 'files_s3_secret') !== '',
             ],
-            'migration'      => self::migrationSummary($conn),
+            'migration'      => (function () use ($conn) {
+                try { return self::migrationSummary($conn); }
+                catch (StorageUnavailable $e) { return ['error' => $e->getMessage(), 'pending' => 0, 'verified' => 0, 'failed' => 0, 'removed' => 0, 'skipped' => 0, 'total' => 0, 'from_label' => '']; }
+            })(),
             // A move only progresses when background jobs run; without the scheduler it
             // would sit at "0 of N" with no hint why. null = could not tell (a failed
             // lookup is not a "no": the page then says nothing rather than something false).
@@ -184,7 +183,7 @@ final class FilesStorageService
         $moving  = self::locationKey($current) !== self::locationKey($next)
                    // Different settings, same place (another spelling of one folder or bucket):
                    // nothing to move - and a "move" onto itself must never reach cleanup.
-                   && !storageSameLocation(storageDriver($next, 'files'), storageDriver($current, 'files'));
+                   && storageLocationRelation(storageDriver($next, 'files'), storageDriver($current, 'files')) !== 'same';
         if ($moving && filesPreviousStorageConfig($conn) !== null) {
             throw new InvalidArgumentException('A move between storage locations is still running. Wait for it to finish (or remove the old copies) before changing again.');
         }
@@ -283,9 +282,7 @@ final class FilesStorageService
             filesSaveSetting($conn, 'files_storage_cleanup', '1');
         } elseif ($action === 'finish_keep') {
             if (!$copiedAll) throw new InvalidArgumentException('The move can only be finished once every file has been copied.');
-            filesSaveSetting($conn, 'files_storage_previous', null);
-            filesSaveSetting($conn, 'files_storage_cleanup', null);
-            $conn->exec("DELETE FROM storage_migration_items WHERE store = 'files'");
+            storageMigrateEnd($conn, 'finished_kept_old_copies', $m['from_label']);
         } else {
             throw new InvalidArgumentException('Unknown action.');
         }

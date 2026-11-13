@@ -234,8 +234,17 @@ final class S3Driver implements StorageDriver
         $status = 0;
         $respHeaders = [];
         $buffer = '';
+        // The host this request really goes to - with a virtual-hosted bucket that is
+        // <bucket>.<endpoint host>, which the endpoint check alone never sees. Checked
+        // (IPv4 and IPv6) and pinned, so it cannot resolve somewhere else in between.
+        $port = (int)($p['port'] ?? (($p['scheme'] ?? 'https') === 'http' ? 80 : 443));
+        $ip   = storageCheckedAddress((string)$p['host']);
+        $pin  = trim((string)$p['host'], '[]') . ':' . $port . ':' . (str_contains($ip, ':') ? '[' . $ip . ']' : $ip);
+
         $ch = curl_init($url);
         $opts = [
+            CURLOPT_RESOLVE        => [$pin],
+            CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             CURLOPT_CUSTOMREQUEST  => $method,
             CURLOPT_HTTPHEADER     => $out,
             CURLOPT_CONNECTTIMEOUT => 5,

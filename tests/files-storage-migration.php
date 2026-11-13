@@ -60,8 +60,8 @@ if (getenv('FREEITSM_TEST_DATABASE') !== $dbName) {
 }
 
 echo "\nFiles storage migration\n" . str_repeat('=', 72) . "\n";
-$new = sys_get_temp_dir() . '/zz-new-' . bin2hex(random_bytes(4));
-$old = sys_get_temp_dir() . '/zz-old-' . bin2hex(random_bytes(4));
+$new = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-new-' . bin2hex(random_bytes(4));
+$old = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-old-' . bin2hex(random_bytes(4));
 mkdir($new); mkdir($old);
 $conn->beginTransaction();
 try {
@@ -149,6 +149,67 @@ try {
     FilesStorageService::migrationAction($conn, 0, 'finish_keep');
     ok('finish_keep ends the move and deletes nothing', filesPreviousStorageConfig($conn) === null && is_file("$old/$k8")
         && (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE store = 'files'")->fetchColumn() === 0);
+
+    // ── Fixes made when merging PR #318 ────────────────────────────────────────
+    $startMove = function (string $prevRoot) use ($conn) {
+        setSetting($conn, 'files_storage_previous', encryptValue(json_encode(['driver' => 'local', 'root' => $prevRoot])));
+        setSetting($conn, 'files_storage_cleanup', null);
+        $conn->exec("DELETE FROM storage_migration_items WHERE store = 'files'");
+    };
+    $verified = function (string $key) use ($conn) {
+        $conn->prepare("INSERT INTO storage_migration_items (store, object_key, size_bytes, sha256, state) VALUES ('files', ?, 5, NULL, 'verified')")->execute([$key]);
+    };
+
+    // The probe proves "different", and anything it cannot prove is "unknown".
+    $notAFolder = "$old/not-a-folder.txt";
+    file_put_contents($notAFolder, 'x');
+    ok('probe: two folders are different', storageLocationRelation(new LocalDriver($new), new LocalDriver($old)) === 'different');
+    ok('probe: one folder spelt two ways is the same', storageLocationRelation(new LocalDriver($new), new LocalDriver("$new/.")) === 'same');
+    ok('probe: a location that cannot be written is unknown, never "different"', storageLocationRelation(new LocalDriver($new), new LocalDriver($notAFolder)) === 'unknown');
+
+    // Cleanup with an old location it cannot check: deletes nothing, ends nothing, tries again.
+    $k9 = $k('9');
+    put($new, $k9, 'nine!');
+    $startMove($notAFolder);
+    $verified($k9);
+    setSetting($conn, 'files_storage_cleanup', '1');
+    $r = storageMigrateBatch($conn, time() + 60);
+    ok('cleanup refuses when it cannot prove old and new are different places', !empty($r['unavailable']) && $r['removed'] === 0
+        && stateOf($conn, $k9) === 'verified/0' && filesPreviousStorageConfig($conn) !== null && is_file("$new/$k9"), json_encode($r));
+
+    // Cleanup checks each new copy before deleting the old one.
+    $k10 = $k('a');
+    put($old, $k10, 'ten!!');                       // only the OLD copy exists, though the row says verified
+    $startMove($old);
+    $verified($k10);
+    setSetting($conn, 'files_storage_cleanup', '1');
+    $r = storageMigrateBatch($conn, time() + 60);
+    ok('cleanup keeps an old copy whose new copy is missing, and queues it to copy again', is_file("$old/$k10") && stateOf($conn, $k10) === 'pending/0' && !$r['done'], stateOf($conn, $k10) . ' ' . json_encode($r));
+    $r = storageMigrateBatch($conn, time() + 60);   // copies it (pending first), then...
+    $r = storageMigrateBatch($conn, time() + 60);   // ...removes the old copy and ends the move
+    ok('then copies it, and only then removes the old copy', is_file("$new/$k10") && !is_file("$old/$k10") && filesPreviousStorageConfig($conn) === null && $r['done'], json_encode($r));
+
+    // An upload queued while old copies are being removed is copied, never dropped.
+    $k11 = $k('b'); $k12 = $k('c');
+    put($old, $k11, 'elevn'); put($old, $k12, 'twelv'); put($new, $k12, 'twelv');
+    $startMove($old);
+    $verified($k12);
+    setSetting($conn, 'files_storage_cleanup', '1');
+    queue($conn, $k11, 5, hash('sha256', 'elevn'));   // what queueIfMoved() writes
+    $r = storageMigrateBatch($conn, time() + 60);
+    ok('a file queued during cleanup is copied first, and no old copy is removed meanwhile', stateOf($conn, $k11) === 'verified/0' && is_file("$new/$k11")
+        && is_file("$old/$k12") && $r['removed'] === 0 && !$r['done'], json_encode($r));
+    $r = storageMigrateBatch($conn, time() + 60);
+    ok('then both old copies go and the move ends', !is_file("$old/$k11") && !is_file("$old/$k12") && is_file("$new/$k11") && $r['done'] && filesPreviousStorageConfig($conn) === null, json_encode($r));
+
+    // Ending a move keeps any row that is not finished.
+    $k13 = $k('d');
+    put($old, $k13, 'thrtn');
+    $startMove($old);
+    queue($conn, $k13, 5, null);
+    storageMigrateEnd($conn, 'finished_kept_old_copies', 'test');
+    ok('ending a move with a file still to copy keeps its row and the move', stateOf($conn, $k13) === 'pending/0' && filesPreviousStorageConfig($conn) !== null
+        && filesStoreFor($conn, $k13)->label() === $old);
 } catch (Throwable $e) {
     ok('no unexpected error', false, get_class($e) . ': ' . $e->getMessage() . ' @' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {

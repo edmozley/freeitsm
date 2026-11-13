@@ -53,8 +53,8 @@ if (getenv('FREEITSM_TEST_DATABASE') !== $dbName) {
 }
 
 echo "\nFiles storage backend\n" . str_repeat('=', 72) . "\n";
-$a = sys_get_temp_dir() . '/zz-active-' . bin2hex(random_bytes(4));
-$b = sys_get_temp_dir() . '/zz-previous-' . bin2hex(random_bytes(4));
+$a = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-active-' . bin2hex(random_bytes(4));
+$b = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-previous-' . bin2hex(random_bytes(4));
 mkdir($a); mkdir($b);
 $conn->beginTransaction();
 try {

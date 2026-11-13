@@ -177,8 +177,8 @@
             }).catch(function (e) { $('stoState').textContent = e.message; });
         };
         /** Asks first (in the app's dialog when there is one), then runs go(). */
-        var confirmThen = function (title, msg, ok, go) {
-            if (window.showConfirm) window.showConfirm({ title: title, message: msg, okLabel: ok, onConfirm: go });
+        var confirmThen = function (title, msg, ok, go, danger) {
+            if (window.showConfirm) window.showConfirm({ title: title, message: msg, okLabel: ok, okClass: danger ? 'danger' : undefined, onConfirm: go });
             else if (confirm(msg)) go();
         };
 
@@ -241,7 +241,7 @@
                 L('settings.remove_old', 'Remove old copies'), function () {
                     api('settings.php', { tab: 'storage_migration', action: 'remove_old' }).then(function () { return load(false); })
                         .catch(function (e) { alert(e.message); });
-                });
+                }, true);   // deletes for good: the red button
         });
 
         load(true);

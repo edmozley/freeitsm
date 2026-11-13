@@ -53,8 +53,8 @@ $s3 = ['endpoint' => $ep, 'region' => 'us-east-1', 'bucket' => getenv('FREEITSM_
        'prefix' => 'zz-' . bin2hex(random_bytes(4)), 'path_style' => true];
 
 echo "\nFiles storage settings\n" . str_repeat('=', 72) . "\n";
-$a = sys_get_temp_dir() . '/zz-a-' . bin2hex(random_bytes(4));
-$b = sys_get_temp_dir() . '/zz-b-' . bin2hex(random_bytes(4));
+$a = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-a-' . bin2hex(random_bytes(4));
+$b = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-b-' . bin2hex(random_bytes(4));
 mkdir($a); mkdir($b);
 $conn->beginTransaction();
 try {
@@ -135,7 +135,7 @@ try {
     FilesStorageService::save($conn, $analystId, ['driver' => 'local', 'storage_root' => $b, 'max_upload_mb' => 123]);
     FilesStorageService::queueIfMoved($conn, $used, $kx, 5, hash('sha256', 'race!'));
     $st = $conn->query("SELECT state FROM storage_migration_items WHERE store = 'files' AND object_key = '$kx'")->fetchColumn();
-    ok('an upload that raced a save is queued and still readable', $st === 'pending' && filesStoreFor($conn, $kx)->label() === realpath($a), "state $st, reads from " . filesStoreFor($conn, $kx)->label());
+    ok('an upload that raced a save is queued and still readable', $st === 'pending' && filesStoreFor($conn, $kx)->label() === str_replace('\\', '/', (string)realpath($a)), "state $st, reads from " . filesStoreFor($conn, $kx)->label());
     FilesStorageService::queueIfMoved($conn, filesStorageConfig($conn), '2026/11/08/' . str_repeat('9', 32) . '.bin', 1, null);
     ok('control: an upload to the current location is not queued', (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE object_key LIKE '%9999.bin'")->fetchColumn() === 0);
     setSetting($conn, 'files_storage_previous', null);
