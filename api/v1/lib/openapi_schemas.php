@@ -6004,6 +6004,7 @@ return array (
       'type' => 'object',
       'properties' => 
       array (
+        'config' => ['type' => 'object', 'nullable' => true, 'additionalProperties' => true, 'description' => 'The field type\'s own settings (options, date_mode, a table\'s columns...) - keys depend on the type'],   // 5.2.0 docs tidy
         'id' => 
         array (
           'type' => 'integer',
@@ -10341,6 +10342,9 @@ return array (
       ),
       'properties' => 
       array (
+        'collaborators' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => [   // 5.2.0 docs tidy
+          'id' => ['type' => 'integer'], 'name' => ['type' => 'string', 'nullable' => true],
+          'is_completed' => ['type' => 'boolean'], 'completed_at' => ['type' => 'string', 'nullable' => true]]]],
         'id' => 
         array (
           'type' => 'integer',
@@ -11175,6 +11179,7 @@ return array (
       'type' => 'object',
       'properties' => 
       array (
+        'sensitivity' => ['type' => 'string', 'enum' => ['normal', 'confidential']],   // 5.2.0 docs tidy
         'related' => ['$ref' => '#/components/schemas/TicketRelated'],   // GH #328: only with ?include=related on the list; always on GET /tickets/{id}
         'id' => 
         array (
@@ -12179,9 +12184,7 @@ return array (
         ),
         'default' => 
         array (
-          'nullable' => true,
-          'description' => 'The arg\'s default value; shape depends on its type, or null if none.',
-          'type' => 'string',
+          'description' => 'The arg\'s default value; shape depends on its type (text, a number, true/false...), or null if none.',
         ),
         'supports_vars' => 
         array (
@@ -12395,7 +12398,8 @@ return array (
         array (
           'type' => 'object',
           'nullable' => true,
-          'description' => 'Event payload snapshot (dynamic).',
+          'description' => 'Event payload snapshot (dynamic - its keys depend on the event).',
+          'additionalProperties' => true,
           'properties' => 
           array (
             'ticket' => 
@@ -12493,24 +12497,14 @@ return array (
                 'type' => 'string',
                 'nullable' => true,
               ),
-              'value' => 
-              array (
-                'type' => 'array',
-                'items' => 
-                array (
-                  'type' => 'string',
-                  'nullable' => true,
-                ),
-              ),
-              'actual' => 
-              array (
-                'type' => 'integer',
-              ),
+              'value' => ['description' => 'What the condition compared against - any type'],
+              'actual' => ['description' => 'The value the record had - any type'],
               'passed' => 
               array (
                 'type' => 'boolean',
               ),
             ),
+            'additionalProperties' => true,   // a condition step and an action step carry different keys
           ),
           'description' => 'Per-step results (dynamic).',
         ),

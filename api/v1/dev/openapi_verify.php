@@ -65,7 +65,24 @@ function oav_validate($data, $schema, $components, $path = 'data', $depth = 0) {
     if ($depth > 40) return $errs;
     $schema = oav_resolveRef($schema, $components);
     if (!$schema) return $errs;
-    if (isset($schema['allOf'])) { foreach ($schema['allOf'] as $s) $errs = array_merge($errs, oav_validate($data, $s, $components, $path, $depth+1)); return $errs; }
+    if (isset($schema['allOf'])) {
+        // An allOf of objects (TicketDetail = Ticket + the detail-only fields) is ONE object: merge the
+        // parts and check it once. Checked part by part, every field documented in the other part
+        // was reported as undocumented (GH #328 tidy).
+        $parts = array_map(fn($p) => oav_resolveRef($p, $components), $schema['allOf']);
+        if ($parts && !array_filter($parts, fn($p) => !$p || ($p['type'] ?? 'object') !== 'object' || isset($p['allOf']))) {
+            $merged = ['type' => 'object', 'properties' => [], 'required' => []];
+            foreach ($parts as $p) {
+                $merged['properties'] = array_merge($merged['properties'], $p['properties'] ?? []);
+                $merged['required'] = array_merge($merged['required'], $p['required'] ?? []);
+                if (!empty($p['nullable'])) $merged['nullable'] = true;
+                if (isset($p['additionalProperties'])) $merged['additionalProperties'] = $p['additionalProperties'];
+            }
+            return oav_validate($data, $merged, $components, $path, $depth+1);
+        }
+        foreach ($schema['allOf'] as $s) $errs = array_merge($errs, oav_validate($data, $s, $components, $path, $depth+1));
+        return $errs;
+    }
     if ($data === null) {
         if (!empty($schema['nullable']) || !isset($schema['type'])) return $errs;
         return ["$path: got null but schema is not nullable"];
@@ -87,7 +104,14 @@ function oav_validate($data, $schema, $components, $path = 'data', $depth = 0) {
                 if (array_key_exists($k, $data)) $errs = array_merge($errs, oav_validate($data[$k], $psub, $components, "$path.$k", $depth+1));
                 elseif (in_array($k, $schema['required'] ?? [], true)) $errs[] = "$path.$k: required property missing from response";
             }
-            if ($props) foreach ($data as $k => $_) if (!isset($props[$k])) $errs[] = "$path.$k: response field NOT documented in schema";
+            // additionalProperties: a map (permissions by resource, custom fields by key, an event payload) -
+            // other keys ARE documented; a schema there is what each must match.
+            $extra = $schema['additionalProperties'] ?? null;
+            foreach ($data as $k => $v) {
+                if (isset($props[$k])) continue;
+                if (is_array($extra)) $errs = array_merge($errs, oav_validate($v, $extra, $components, "$path.$k", $depth+1));
+                elseif ($extra !== true && $props) $errs[] = "$path.$k: response field NOT documented in schema";
+            }
             break;
     }
     return $errs;
