@@ -59,7 +59,9 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         .set-row:last-of-type { border-bottom: none; }
         .set-row .lbl { font-weight: 600; font-size: 14px; color: var(--text); }
         .set-row .desc { font-size: 12.5px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
-        .set-row input[type="text"], .set-row input[type="number"] {
+        .container [hidden] { display: none !important; }   /* .fil-btn's inline-flex would otherwise beat [hidden] */
+        .sto-type label { display: inline-flex; align-items: center; gap: 6px; margin-right: 18px; font-size: 14px; cursor: pointer; }
+        .set-row input[type="text"], .set-row input[type="number"], .set-row input[type="password"] {
             padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; width: 100%; max-width: 520px;
             background: var(--surface); color: var(--text); box-sizing: border-box; font-family: inherit;
         }
@@ -105,17 +107,49 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         <div class="tab-content<?php echo $activeTabId === 'storage' ? ' active' : ''; ?>" id="storage-tab" data-capability="<?php echo capKey(Cap::FILES_STORAGE); ?>">
             <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('storage_title'); ?></h2>
             <div class="set-box" id="stoState"></div>
-            <div class="set-row"><div><div class="lbl"><?php echo $tt('storage_root'); ?></div><div class="desc"><?php echo $tt('storage_root_desc'); ?></div></div>
+            <div class="set-box" id="stoMove" hidden>
+                <div id="stoMoveText"></div>
+                <div class="set-actions" style="margin-top:10px">
+                    <button type="button" class="fil-btn" id="stoRetry" hidden><?php echo $tt('retry_failed'); ?></button>
+                    <button type="button" class="fil-btn" id="stoSkip" hidden><?php echo $tt('skip_missing'); ?></button>
+                    <button type="button" class="fil-btn" id="stoRemoveOld" hidden><?php echo $tt('remove_old'); ?></button>
+                    <button type="button" class="fil-btn" id="stoFinishKeep" hidden><?php echo $tt('finish_keep'); ?></button>
+                </div>
+            </div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('storage_type'); ?></div><div class="desc"><?php echo $tt('storage_type_desc'); ?></div></div>
+                <div class="sto-type">
+                    <label><input type="radio" name="stoType" value="local"> <?php echo $tt('type_local'); ?></label>
+                    <label><input type="radio" name="stoType" value="s3"> <?php echo $tt('type_s3'); ?></label>
+                    <div class="dflt" id="stoLocked" hidden><?php echo $tt('move_locked'); ?></div>
+                </div></div>
+            <div class="set-row"><div><div class="lbl" id="stoRootLbl"><?php echo $tt('storage_root'); ?></div><div class="desc" id="stoRootDesc"><?php echo $tt('storage_root_desc'); ?></div></div>
                 <div><input type="text" id="stoRoot" spellcheck="false"><div class="dflt" id="stoRootDefault"></div></div></div>
+            <div id="stoS3" hidden>
+                <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_endpoint'); ?></div><div class="desc"><?php echo $tt('s3_endpoint_desc'); ?></div></div>
+                    <div><input type="text" id="s3Endpoint" spellcheck="false" placeholder="https://s3.us-east-1.amazonaws.com"></div></div>
+                <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_region'); ?></div></div>
+                    <div><input type="text" id="s3Region" spellcheck="false" placeholder="us-east-1"></div></div>
+                <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_bucket'); ?></div><div class="desc"><?php echo $tt('s3_bucket_desc'); ?></div></div>
+                    <div><input type="text" id="s3Bucket" spellcheck="false"></div></div>
+                <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_key'); ?></div></div>
+                    <div><input type="text" id="s3Key" spellcheck="false" autocomplete="off"></div></div>
+                <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_secret'); ?></div><div class="desc"><?php echo $tt('s3_secret_desc'); ?></div></div>
+                    <div><input type="password" id="s3Secret" spellcheck="false" autocomplete="new-password"></div></div>
+                <div class="set-row"><div><div class="lbl"><?php echo $tt('s3_prefix'); ?></div><div class="desc"><?php echo $tt('s3_prefix_desc'); ?></div></div>
+                    <div><input type="text" id="s3Prefix" spellcheck="false" placeholder="freeitsm/">
+                        <div style="margin-top:10px"><label><input type="checkbox" id="s3PathStyle"> <?php echo $tt('s3_path_style'); ?></label></div>
+                        <div class="set-actions" style="margin-top:12px"><button type="button" class="fil-btn" id="s3Test"><?php echo $tt('test'); ?></button><span id="s3TestMsg" style="font-size:13px"></span></div>
+                    </div></div>
+            </div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('max_upload'); ?></div><div class="desc"><?php echo $tt('max_upload_desc'); ?></div></div>
                 <div><input type="number" id="stoMax" min="1" style="width:160px"> MB<div class="dflt"><?php echo $tt('max_upload_default'); ?></div></div></div>
-            <div class="set-box warn"><?php echo $tt('storage_move_warning'); ?></div>
+            <div class="set-box warn"><?php echo $tt('storage_move_note'); ?></div>
             <div class="set-actions"><button type="button" class="fil-btn primary" id="stoSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="stoMsg" style="font-size:13px"></span></div>
         </div>
         <?php endif; ?>
     </div>
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
-    <script src="../../assets/js/files-settings.js?v=1"></script>
+    <script src="../../assets/js/files-settings.js?v=4"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

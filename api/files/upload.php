@@ -18,6 +18,7 @@
  * never touches the filesystem.
  */
 require_once __DIR__ . '/../../includes/files/api_bootstrap.php';
+require_once __DIR__ . '/../../includes/services/files_storage.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -121,11 +122,23 @@ filesApiRun(function () use ($conn, $analystId) {
         $size = is_file($part) ? filesize($part) : -1;
         if ($size !== (int)$up['size_bytes']) filesApiFail('The file did not arrive in full. Please try again.');
 
-        $rel = filesNewStoragePath($conn);
-        $abs = filesStorageRoot($conn) . '/' . $rel;
-        $sha = hash_file('sha256', $part);
-        if (!@rename($part, $abs)) filesApiFail('The server could not store the file.');
-        $mime = filesDetectMime($abs, $up['file_name']);
+        // Storing a multi-GB file in S3 takes as long as it takes: PHP's time limit must
+        // not cut it off half way (leaving a broken upload), nor a closed tab.
+        @set_time_limit(0);
+        ignore_user_abort(true);
+
+        $rel  = filesNewStoragePath($conn);
+        $sha  = hash_file('sha256', $part);
+        $mime = filesDetectMime($part, $up['file_name']);   // before the put, which may move the .part away
+        $usedCfg = filesStorageConfig($conn);
+        $store = filesActiveStore($conn);
+        try {
+            $store->putFile($rel, $part, true);
+        } catch (StorageUnavailable $e) {
+            // The .part stays where it is, so finishing again works once the store is back.
+            error_log('files upload: ' . $e->getMessage());
+            filesApiFail($store instanceof LocalDriver ? 'The server could not store the file.' : filesStoreUnavailableMessage());
+        }
 
         $conn->beginTransaction();
         $itemId = $up['item_id'] !== null ? (int)$up['item_id'] : null;
@@ -154,6 +167,8 @@ filesApiRun(function () use ($conn, $analystId) {
                        " WHERE id = ?")->execute([$versionId, $size, $mime, $itemId]);
         $conn->prepare("DELETE FROM files_uploads WHERE id = ?")->execute([$up['id']]);
         $conn->commit();
+        // Someone may have saved a new storage location while this file was being stored.
+        FilesStorageService::queueIfMoved($conn, $usedCfg, $rel, $size, $sha);
 
         filesAudit($conn, $analystId, $isNew ? 'upload' : 'new_version',
                    ['folder_id' => $folderId, 'item_id' => $itemId, 'version_id' => $versionId, 'item_name' => $name],

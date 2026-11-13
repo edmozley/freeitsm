@@ -37,12 +37,8 @@ try {
     $v = $st->fetch(PDO::FETCH_ASSOC);
     if (!$v) $fail(404, 'File not found.');
 
-    $abs = filesAbsolutePath($conn, $v['storage_path']);
-    if ($abs === null || !is_file($abs)) {
-        error_log("files download: stored bytes missing for version {$v['id']} ({$v['storage_path']})");
-        $fail(410, 'The stored copy of this file is missing from the server. Tell your administrator.');
-    }
-    $size = filesize($abs);
+    // The size we recorded at upload: no round trip to the store before the first byte.
+    $size = (int)$v['size_bytes'];
 
     // Range: bytes=start-end (one range only, which is all browsers send for this).
     $start = 0;
@@ -59,39 +55,36 @@ try {
         $partial = true;
     }
 
-    // One audit row per download, not per range request: a resumed or seeking
-    // download sends many, and only the one starting at 0 is a new download.
-    if ($start === 0) {
-        filesAudit($conn, $analystId, 'download',
-                   ['folder_id' => (int)$it['folder_id'], 'item_id' => $id, 'version_id' => (int)$v['id'], 'item_name' => $it['name']],
-                   ['version' => (int)$v['version_no'], 'size' => $size]);
-    }
-
     while (ob_get_level()) ob_end_clean();
     @set_time_limit(0);
-    $safe = str_replace(['"', "\r", "\n"], '', $it['name']) ?: 'file';
-    header('Content-Type: application/octet-stream');
-    header('X-Content-Type-Options: nosniff');
-    header('Content-Disposition: attachment; filename="' . $safe . "\"; filename*=UTF-8''" . rawurlencode($safe));
-    header('Accept-Ranges: bytes');
-    header('Cache-Control: private, no-store');
-    if ($partial) {
-        http_response_code(206);
-        header("Content-Range: bytes $start-$end/$size");
+    // Headers go out only once the store has answered, so a store that cannot be
+    // reached is a 503 with a message rather than a broken download.
+    $begin = function () use ($conn, $analystId, $it, $id, $v, $size, $start, $end, $partial) {
+        // One audit row per download, not per range request: a resumed or seeking
+        // download sends many, and only the one starting at 0 is a new download.
+        if ($start === 0) {
+            filesAudit($conn, $analystId, 'download',
+                       ['folder_id' => (int)$it['folder_id'], 'item_id' => $id, 'version_id' => (int)$v['id'], 'item_name' => $it['name']],
+                       ['version' => (int)$v['version_no'], 'size' => $size]);
+        }
+        $safe = str_replace(['"', "\r", "\n"], '', $it['name']) ?: 'file';
+        header('Content-Type: application/octet-stream');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Disposition: attachment; filename="' . $safe . "\"; filename*=UTF-8''" . rawurlencode($safe));
+        header('Accept-Ranges: bytes');
+        header('Cache-Control: private, no-store');
+        if ($partial) {
+            http_response_code(206);
+            header("Content-Range: bytes $start-$end/$size");
+        }
+        header('Content-Length: ' . ($end - $start + 1));
+    };
+    $status = $size === 0 ? ($begin() ?? 0) : filesServeBytes($conn, $v, $start, $end, $begin);
+    if ($status === 404 || $status === 410) {
+        error_log("files download: stored bytes missing for version {$v['id']} ({$v['storage_path']})");
+        $fail(410, 'The stored copy of this file is missing from the server. Tell your administrator.');
     }
-    header('Content-Length: ' . ($end - $start + 1));
-
-    $fh = fopen($abs, 'rb');
-    fseek($fh, $start);
-    $left = $end - $start + 1;
-    while ($left > 0 && !feof($fh) && !connection_aborted()) {
-        $buf = fread($fh, (int)min(1024 * 1024, $left));
-        if ($buf === false) break;
-        echo $buf;
-        flush();
-        $left -= strlen($buf);
-    }
-    fclose($fh);
+    if ($status === 503) $fail(503, filesStoreUnavailableMessage());
 } catch (Throwable $e) {
     error_log('files download: ' . $e->getMessage());
     if (!headers_sent()) $fail(500, 'The file could not be sent.');

@@ -2,60 +2,51 @@
 /**
  * Files -> Settings.
  *
- *   GET  ?tab=storage   Cap::FILES_STORAGE  the storage root, size limit, usage
- *   POST {tab: storage, storage_root, max_upload_mb}
+ *   GET  ?tab=storage   Cap::FILES_STORAGE  where files are stored (a folder or
+ *        S3-compatible storage), size limit, usage, and any move in progress.
+ *        Never the S3 secret: only whether one is set.
+ *   POST {tab: storage, driver, storage_root, max_upload_mb, s3: {...}}
+ *   POST {tab: storage_test, s3: {...}}        write/read/delete a test file
+ *   POST {tab: storage_migration, action: retry_failed|remove_old}
  *   GET  ?tab=folders   Cap::FILES_FOLDERS  EVERY folder that exists, including
  *        ones the caller cannot open - names, paths and how many entries each has,
  *        never their files. This is "admins can see a folder exists" (Ed's
  *        rule): the way back into an orphaned folder is Take ownership, which is
  *        permissions.php and is audited.
  *
- * ⚠️ Changing the storage root does NOT move anything. Stored paths are relative
- * (yyyy/mm/dd/x.bin), so the operator copies the old root's contents to the new
- * one first; the page says so. Moving gigabytes inside a web request is not
- * something to attempt.
+ * Changing WHERE files are stored moves them: the files are copied in the
+ * background by the storage_migrate job (never inside this request) and read
+ * from the old location until each copy is verified. The rules are in
+ * includes/services/files_storage.php.
  */
 require_once __DIR__ . '/../../includes/files/api_bootstrap.php';
+require_once __DIR__ . '/../../includes/services/files_storage.php';
 
 filesApiRun(function () use ($conn, $analystId) {
     $isGet = $_SERVER['REQUEST_METHOD'] === 'GET';
     $in  = $isGet ? [] : filesApiBody();
     $tab = $isGet ? (string)($_GET['tab'] ?? '') : (string)($in['tab'] ?? '');
 
-    if ($tab === 'storage') {
+    if (in_array($tab, ['storage', 'storage_test', 'storage_migration'], true)) {
         requireCapabilityJson(Cap::FILES_STORAGE, $conn);
-        if ($isGet) {
-            $root = rtrim(str_replace('\\', '/', filesSetting($conn, 'files_storage_root', filesDefaultStorageRoot())), '/');
-            $usage = $conn->query("SELECT COUNT(DISTINCT storage_path) AS n, COALESCE(SUM(size_bytes), 0) AS bytes
-                                     FROM (SELECT storage_path, MAX(size_bytes) AS size_bytes FROM files_versions GROUP BY storage_path) s")->fetch(PDO::FETCH_ASSOC);
-            filesApiOk([
-                'storage_root'   => $root,
-                'default_root'   => filesDefaultStorageRoot(),
-                'is_default'     => filesSetting($conn, 'files_storage_root', '') === '',
-                'writable'       => is_dir($root) ? is_writable($root) : is_writable(dirname($root)),
-                'max_upload_mb'  => (int)filesSetting($conn, 'files_max_upload_mb', (string)FILES_DEFAULT_MAX_UPLOAD_MB),
-                'stored_files'   => (int)$usage['n'],
-                'stored_bytes'   => (int)$usage['bytes'],
-                'free_bytes'     => @disk_free_space(is_dir($root) ? $root : dirname($root)) ?: null,
-            ]);
+        if ($tab === 'storage' && $isGet) filesApiOk(FilesStorageService::describe($conn));
+        if ($isGet) filesApiFail('Unknown settings tab.');
+        try {
+            if ($tab === 'storage_test') {
+                $s = (array)($in['s3'] ?? []);
+                $stored = settingGetDecrypted($conn, 'files_s3_secret');
+                if (FilesStorageService::secretUnchanged((string)($s['secret'] ?? ''), $stored)) $s['secret'] = $stored;
+                filesApiOk(FilesStorageService::test($s));
+            }
+            if ($tab === 'storage_migration') {
+                FilesStorageService::migrationAction($conn, $analystId, (string)($in['action'] ?? ''));
+                filesApiOk();
+            }
+            FilesStorageService::save($conn, $analystId, $in);
+            filesApiOk();
+        } catch (InvalidArgumentException $e) {
+            filesApiFail($e->getMessage());
         }
-        $root = trim(str_replace('\\', '/', (string)($in['storage_root'] ?? '')));
-        $mb   = (int)($in['max_upload_mb'] ?? 0);
-        if ($mb < 1 || $mb > 1024 * 1024) filesApiFail('The largest upload must be between 1 MB and 1 TB.');
-        $was = filesSetting($conn, 'files_storage_root', '');
-        if ($root === '' || rtrim($root, '/') === filesDefaultStorageRoot()) {
-            $root = '';
-        } else {
-            if (str_contains($root, '..')) filesApiFail('Give the folder as a full path, without "..".');
-            if (!is_dir($root)) filesApiFail('That folder does not exist on the server. Create it first, then save.');
-            if (!is_writable($root)) filesApiFail('The web server cannot write to that folder.');
-            $root = rtrim($root, '/');
-        }
-        filesSaveSetting($conn, 'files_storage_root', $root === '' ? null : $root);
-        filesSaveSetting($conn, 'files_max_upload_mb', (string)$mb);
-        filesAudit($conn, $analystId, 'settings', ['path' => '(Settings: storage)'],
-                   ['storage_root' => $root ?: '(default)', 'storage_root_was' => $was ?: '(default)', 'max_upload_mb' => $mb]);
-        filesApiOk();
     }
 
     if ($tab === 'folders' && $isGet) {

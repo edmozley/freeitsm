@@ -664,6 +664,8 @@ return [
     ['files_shortcuts', 'ix_files_shortcuts_analyst', 'key', '(`analyst_id`)'],
     ['files_shortcuts', 'ix_files_shortcuts_target', 'key', '(`target_type`,`target_id`)'],
     ['files_uploads', 'uq_files_uploads_token', 'unique', '(`token`)'],
+    ['storage_migration_items', 'uq_storage_migration_key', 'unique', '(`store`,`object_key`)'],
+    ['storage_migration_items', 'ix_storage_migration_state', 'key', '(`store`,`state`)'],
     ['jml_templates', 'idx_jml_templates_kind', 'key', '(`kind`,`is_active`)'],
     ['jml_template_steps', 'idx_jml_template_steps_template', 'key', '(`template_id`,`display_order`)'],
     ['jml_cases', 'idx_jml_cases_status_date', 'key', '(`status`,`effective_date`)'],

@@ -10628,6 +10628,24 @@ CREATE TABLE IF NOT EXISTS `files_uploads` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_files_uploads_token` (`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Moving stored bytes between storage locations (a folder, S3-compatible storage).
+-- One row per stored object to copy; reads fall back to the previous location until
+-- its row is 'verified'. See includes/files/storage_migration.php.
+CREATE TABLE IF NOT EXISTS `storage_migration_items` (
+    `id`                    BIGINT NOT NULL AUTO_INCREMENT,
+    `store`                 VARCHAR(20) NOT NULL,                   -- files
+    `object_key`            VARCHAR(255) NOT NULL,
+    `size_bytes`            BIGINT NOT NULL,
+    `sha256`                CHAR(64) NULL,
+    `state`                 VARCHAR(10) NOT NULL DEFAULT 'pending', -- pending | verified | failed | removed
+    `attempts`              INT NOT NULL DEFAULT 0,
+    `last_error`            VARCHAR(500) NULL,
+    `updated_datetime`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_storage_migration_key` (`store`, `object_key`),
+    KEY `ix_storage_migration_state` (`store`, `state`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Seed: the project roles a fresh install starts with (PRINCE2-style, in our

@@ -172,6 +172,13 @@ function jobRegistry(): array
             'interval' => 60, 'grace' => 120, 'max_runtime' => 10,
             'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM domains WHERE monitoring_enabled = 1 LIMIT 1"),
         ],
+        // Moving Files' stored bytes to a new location (Files -> Settings -> Storage).
+        // Only needed while a move is running; each run works for up to 8 minutes.
+        'storage_migrate' => [
+            'command' => 'php cron/storage_migrate.php', 'web' => false,
+            'interval' => 1, 'grace' => 10, 'max_runtime' => 15,
+            'needed'  => fn(PDO $c) => jobSettingStrict($c, 'files_storage_previous') !== '',
+        ],
         'lms_reminders' => [
             'command' => 'php cron/lms_reminders.php', 'web' => true,
             'interval' => 1440, 'grace' => 360, 'max_runtime' => 10,
