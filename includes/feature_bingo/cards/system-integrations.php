@@ -87,6 +87,19 @@ return [
         'check'    => ['rows', 'api_keys', 'allowed_ips IS NOT NULL OR allowed_hours IS NOT NULL'],
     ],
 
+    [
+        'id'       => 'system.api_ticket_related',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'integrations',
+        'title'    => 'A ticket\'s attachments over the API',
+        'what'     => 'A REST API key that can list what is attached to a ticket. Every ticket the API returns also says what is on it (notes, messages, attachments, forms...) and what it is linked to (tasks, problems, changes, assets, other tickets, Jira issues).',
+        'why'      => 'An integration knows from one call which of a ticket\'s details are worth fetching, instead of asking five times and getting four empty answers.',
+        'done'     => 'At least one REST API key can read ticket attachments.',
+        'link'     => 'system/api/',
+        'check'    => ['rows', 'api_keys', "active = 1 AND permissions LIKE '%\"ticket_attachments\"%'"],
+    ],
+
     // ── Webhooks ────────────────────────────────────────────────────────────
     [
         'id'       => 'system.webhook_worker',

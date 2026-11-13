@@ -7,6 +7,37 @@
 return array (
   'schemas' => 
   array (
+    // GH #328: what hangs off a ticket - on GET /tickets/{id}, GET /tickets?include=related and the Full record webhook.
+    'TicketRelated' => [
+      'type' => 'object',
+      'description' => 'Counts of what is on the ticket (only those whose sub-endpoint the key may read) and links to what it is linked with (only records the key may read).',
+      'properties' => [
+        'counts' => ['type' => 'object', 'properties' => [
+          'notes' => ['type' => 'integer'], 'messages' => ['type' => 'integer'], 'attachments' => ['type' => 'integer'], 'forms' => ['type' => 'integer'],
+          'checklists' => ['type' => 'integer'], 'watchers' => ['type' => 'integer'], 'time_entries' => ['type' => 'integer'],
+        ]],
+        'links' => ['type' => 'array', 'items' => ['type' => 'object', 'required' => ['type'], 'properties' => [
+          'type' => ['type' => 'string', 'enum' => ['task', 'problem', 'change', 'project', 'asset', 'cmdb_object', 'ticket', 'external_issue']],
+          'id' => ['type' => 'integer', 'description' => 'Not on external_issue'],
+          'reference' => ['type' => 'string', 'nullable' => true, 'description' => 'A ticket or problem number, or an external issue key'],
+          'name' => ['type' => 'string', 'nullable' => true, 'description' => 'Not on ticket links - a linked ticket may be confidential'],
+          'relation' => ['type' => 'string', 'enum' => ['parent_of', 'child_of', 'duplicate_of', 'duplicated_by', 'related', 'merged_into_this'], 'description' => 'ticket links only, from this ticket\'s point of view'],
+          'provider' => ['type' => 'string', 'description' => 'external_issue only, e.g. jira'],
+          'url' => ['type' => 'string', 'nullable' => true, 'description' => 'external_issue only'],
+          'status' => ['type' => 'string', 'nullable' => true, 'description' => 'external_issue only - its status in the tracker'],
+        ]]],
+      ],
+    ],
+    // GH #328: GET /tickets/{id}/attachments
+    'TicketAttachment' => [
+      'type' => 'object',
+      'properties' => [
+        'source' => ['type' => 'string', 'enum' => ['message', 'note']], 'source_id' => ['type' => 'integer'], 'id' => ['type' => 'integer'],
+        'kind' => ['type' => 'string', 'enum' => ['file', 'link', 'files']], 'name' => ['type' => 'string', 'nullable' => true],
+        'content_type' => ['type' => 'string', 'nullable' => true], 'size_bytes' => ['type' => 'integer', 'nullable' => true],
+        'url' => ['type' => 'string', 'nullable' => true], 'created_at' => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
+      ],
+    ],
     // GET /change-risk-policy (#246)
     'ChangeRiskPolicy' => [
       'type' => 'object',
@@ -11144,6 +11175,7 @@ return array (
       'type' => 'object',
       'properties' => 
       array (
+        'related' => ['$ref' => '#/components/schemas/TicketRelated'],   // GH #328: only with ?include=related on the list; always on GET /tickets/{id}
         'id' => 
         array (
           'type' => 'integer',
@@ -11309,6 +11341,7 @@ return array (
           'type' => 'object',
           'properties' => 
           array (
+            'related' => ['$ref' => '#/components/schemas/TicketRelated'],   // GH #328
             'description_html' => 
             array (
               'type' => 'string',
@@ -16635,6 +16668,8 @@ return array (
         '$ref' => '#/components/schemas/Ticket',
       ),
     ),
+    // GH #328
+    'GET /tickets/{id}/attachments' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/TicketAttachment']],
     'GET /tickets/{id}' => 
     array (
       '$ref' => '#/components/schemas/TicketDetail',

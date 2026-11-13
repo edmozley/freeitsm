@@ -63,6 +63,13 @@ function apiV1PermissionCatalog(): array {
                 'read' => 'Read the message thread on a ticket (emails / channel messages)',
             ],
         ],
+        // GH #328. Files on the ticket's messages and documents on its notes - names, types and sizes.
+        'ticket_attachments' => [
+            'label'   => 'Ticket attachments',
+            'actions' => [
+                'read' => 'List what is attached to a ticket: files on its messages and documents on its notes',
+            ],
+        ],
         'ticket_audit' => [
             'label'   => 'Ticket audit log',
             'actions' => [

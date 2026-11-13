@@ -4351,7 +4351,8 @@ class WorkflowEngine
             };
         };
         return [
-            'ticket'           => $one('tickets.php',        'apiTicketSelect',         ' WHERE t.id = ? LIMIT 1',  fn($c, $r) => apiSerializeTicket($r)),
+            // GH #328: with `related` (counts and links), as GET /tickets/{id} has it
+            'ticket'           => $one('tickets.php',        'apiTicketSelect',         ' WHERE t.id = ? LIMIT 1',  fn($c, $r) => apiSerializeTicket($r) + ['related' => apiTicketRelated($c, (int)$r['id'], null)]),
             'change'           => $one('changes.php',        'apiChangeSelect',         ' WHERE c.id = ? LIMIT 1',  fn($c, $r) => apiSerializeChange($r)),
             'problem'          => $one('problems.php',        'apiProblemSelect',        ' WHERE p.id = ? LIMIT 1',  fn($c, $r) => apiSerializeProblem($r)),
             'task'             => $one('tasks.php',          'apiTaskSelect',           ' WHERE t.id = ? LIMIT 1',  fn($c, $r) => apiSerializeTask($c, $r)),
