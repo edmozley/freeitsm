@@ -183,7 +183,7 @@ if (isset($_SESSION['analyst_id'])) {
         const btn = document.getElementById('submitBtn');
 
         msgEl.className = 'msg';
-        msgEl.style.display = 'none';
+        // No inline display here: it would beat the .msg.error / .msg.success rules, and no message could show again.
 
         if (!identifier) {
             msgEl.className = 'msg error';

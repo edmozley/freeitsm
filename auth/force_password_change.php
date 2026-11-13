@@ -184,7 +184,7 @@ $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
         const msgEl = document.getElementById('msg');
         const btn = document.getElementById('submitBtn');
         msgEl.className = 'msg';
-        msgEl.style.display = 'none';
+        // No inline display here: it would beat the .msg.error / .msg.success rules, and no message could show again.
 
         const current = document.getElementById('currentPw').value;
         const newPw = document.getElementById('newPw').value;

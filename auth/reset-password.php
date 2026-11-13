@@ -195,7 +195,7 @@ $token = $_GET['token'] ?? '';
                 const btn = document.getElementById('submitBtn');
 
                 msgEl.className = 'msg';
-                msgEl.style.display = 'none';
+                // No inline display here: it would beat the .msg.error / .msg.success rules, and no message could show again.
 
                 if (!newPw || !confirmPw) {
                     msgEl.className = 'msg error';
