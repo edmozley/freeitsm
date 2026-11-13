@@ -14,6 +14,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2864 | System            | Fix         | System pages (the landing page, Debug tools, Maintenance, Modules, Docker, Encryption) scrolled a few pixels past the bottom of the window, cutting off the scrollbar and the page's bottom padding: the header is about 58px but inbox.css sizes .main-container as 100vh - 48px. On desktop the body is now a column and the page fills what the header leaves (GH #323, fix by @cloudcogsio). |
+| 2863 | System            | Fix         | System -> Analysts: saving an analyst with no email showed a raw database error (analysts.email is NOT NULL); Email is now marked required on the form and save_analyst.php says "Email is required" (GH #322, fix by @cloudcogsio). |
+| 2862 | Auth              | Fix         | The Password expired, Forgot password and Reset password pages never showed an error or success message after the first click - an inline display:none beat the .msg.error / .msg.success rules (GH #321, fix by @cloudcogsio). |
 
 
 
