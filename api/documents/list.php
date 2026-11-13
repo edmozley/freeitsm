@@ -102,6 +102,7 @@ try {
             $r['files_gone']   = $fv['gone'];
             $r['open_url']     = $fv['open_url'];
             if (!$fv['access']) { $r['title'] = ''; $r['description'] = null; }
+            else $r['files_item_id_open'] = (int) $r['files_item_id'];   // to open it in the viewer here
         }
         unset($r['files_item_id']);
         $r['also_on']    = [];
@@ -130,6 +131,7 @@ try {
         'documents' => $rows,
         // GH #303: whether this person can use Save to Files at all (the folder is checked on save)
         'can_save_to_files' => analystCanAccessModule($conn, $analystId, 'files'),
+        'files_attach_mode' => (function () use ($conn) { require_once '../../includes/services/files_attach.php'; return FilesAttach::mode($conn); })(),
     ];
     // What the panel says about the Help Centre, for the WHOLE article rather
     // than this page of it: can customers read the article at all, and how many

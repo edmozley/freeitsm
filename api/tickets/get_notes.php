@@ -120,6 +120,7 @@ try {
                     $d['files_access'] = $fv['access'];
                     $d['files_gone']   = $fv['gone'];
                     if (!$fv['access']) { $d['title'] = ''; $d['original_name'] = null; }
+                    else $d['files_item_id_open'] = (int) ($d['files_item_id'] ?? 0);   // to open it in the viewer
                 }
                 unset($d['files_item_id']);
                 $noteDocs[$nid][] = $d;

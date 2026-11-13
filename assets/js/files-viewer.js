@@ -32,6 +32,8 @@
  */
 (function () {
     'use strict';
+    // Loaded once: the Documents panel brings it to any page, and a page may also load it itself.
+    if (window.FilesViewer) return;
 
     // On the Files desktop: FILES_BOOT and FilesWM. Anywhere else (openUrl - a
     // ticket note's image, GH #226) neither exists: the window is FloatWin.page()'s
@@ -755,5 +757,31 @@
         return w;
     }
 
-    window.FilesViewer = { open: open, openUrl: openUrl, sanitise: sanitise };
+    /**
+     * Open a FILES item in a floating window on any page (GH #303) - how a Files link on
+     * a task, a ticket's note or any Documents panel opens, instead of leaving for the
+     * Files module. The bytes come through view.php's token exactly as on the Files
+     * desktop, so the folder's permission, View only (no download, no copying) and the
+     * watermark all apply; the view is audited by view.php. A phone gets the full-screen
+     * viewer. Rejects (e.g. no access) - the caller can then fall back to files/?item=.
+     */
+    function openItem(id) {
+        return api({ action: 'open', id: id, version: 0 }).then(function (info) {
+            info.id = id;
+            if (window.innerWidth <= 768) return openPhone(info);
+            var w = window.FloatWin.page().open({
+                kind: 'viewer', key: 'v' + info.version_id, single: true,
+                title: info.name, icon: FI ? FI.file(info.name, 16) : '',
+                width: 900, height: 640, x: 140, y: 60,
+                /** Tears down the viewer (PDF tasks, media, blob URLs) when its window closes. */
+                onClose: function () { if (w.viewer) w.viewer.destroy(); }
+            });
+            if (!w.viewer) w.viewer = renderInto(w.body, info, {});
+            var stage = w.body.querySelector('.fdv-stage');
+            if (stage) stage.focus({ preventScroll: true });
+            return w;
+        });
+    }
+
+    window.FilesViewer = { open: open, openUrl: openUrl, openItem: openItem, sanitise: sanitise };
 })();

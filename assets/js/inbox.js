@@ -7220,7 +7220,7 @@ function renderNotes() {
                 // (the Files viewer) - followed as a plain link a picture REPLACED the
                 // Tickets page, with no way back but Back, which left the ticket too.
                 const inViewer = d.kind === 'file' && VIEWER_FILE_RE.test(name);
-                return `<span class="note-file-wrap"><a class="note-file" href="${escapeHtml(href)}"
+                return `<span class="note-file-wrap"><a class="note-file" href="${escapeHtml(href)}" ${d.kind === 'files' && d.files_item_id_open ? `data-open-files="${Number(d.files_item_id_open)}"` : ''}
                            ${d.kind === 'link' || d.kind === 'files' ? 'target="_blank" rel="noopener noreferrer"' : ''}
                            ${inViewer ? `data-view-file="${escapeHtml(name)}" data-size="${Number(d.size_bytes) || 0}"` : ''}
                            title="${escapeHtml(name)}">
@@ -7280,6 +7280,14 @@ const VIEWER_FILE_RE = /\.(png|jpe?g|gif|webp|bmp|pdf)$/i;
 // link stays a real link, so Ctrl/middle-click still opens it in a new tab, and
 // the address is the same download.php, so the permission check is unchanged.
 function openNoteFile(ev) {
+    // GH #303: a file in Files opens in the page, through view.php (its permissions, View only, watermark)
+    const fl = ev.target.closest('a.note-file[data-open-files]');
+    if (fl && ev.button === 0 && !(ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) && window.FilesViewer && window.FilesViewer.openItem) {
+        ev.preventDefault();
+        const href = fl.getAttribute('href');
+        window.FilesViewer.openItem(Number(fl.dataset.openFiles)).catch(() => window.open(href, '_blank'));
+        return;
+    }
     const a = ev.target.closest('a.note-file[data-view-file], a.note-inline-image[data-view-file]');
     if (!a || ev.button !== 0 || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
     if (!window.FilesViewer || !window.FilesViewer.openUrl) return;

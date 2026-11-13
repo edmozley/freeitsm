@@ -511,6 +511,7 @@ return [
         'files_no_access'   => 'A file in Files you do not have access to',
         'files_gone'        => 'A file that has been deleted from Files',
         'save_to_files'     => 'Save to Files',
+        'from_files'        => 'From Files',
         // Shown against each candidate, because attaching WIDENS who can read it.
         'currently_on'    => 'currently on {where}',
         // The Help Centre - knowledge articles only (GH #177).

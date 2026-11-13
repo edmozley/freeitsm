@@ -116,10 +116,10 @@ $capStorage = $hasCap(Cap::FILES_STORAGE);
     ];
     ?>
     <script>window.FILES_BOOT = <?php echo json_encode($boot, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/files-icons.js?v=2"></script>
-    <script src="../assets/js/float-window.js?v=1"></script>
+    <script src="../assets/js/files-icons.js?v=3"></script>
+    <script src="../assets/js/float-window.js?v=2"></script>
     <script src="../assets/js/files-wm.js?v=5"></script>
-    <script src="../assets/js/files-viewer.js?v=8"></script>
+    <script src="../assets/js/files-viewer.js?v=9"></script>
     <script src="../assets/js/files-desktop.js?v=15"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

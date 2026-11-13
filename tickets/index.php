@@ -1185,13 +1185,13 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/ticket-workspace.js?v=6"></script>
     <script src="../assets/js/data-table.js?v=10"></script>
     <!-- Note images open in the Files viewer, in a floating window (GH #226). -->
-    <script src="../assets/js/float-window.js?v=1"></script>
-    <script src="../assets/js/files-icons.js?v=2"></script>
-    <script src="../assets/js/files-viewer.js?v=8"></script>
+    <script src="../assets/js/float-window.js?v=2"></script>
+    <script src="../assets/js/files-icons.js?v=3"></script>
+    <script src="../assets/js/files-viewer.js?v=9"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
-    <script src="../assets/js/save-to-files.js?v=1"></script>
-    <script src="../assets/js/files-picker.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=202"></script>
+    <script src="../assets/js/save-to-files.js?v=2"></script>
+    <script src="../assets/js/files-picker.js?v=2"></script>
+    <script src="../assets/js/inbox.js?v=203"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>

@@ -69,6 +69,7 @@
         files_no_access: 'A file in Files you do not have access to',
         files_gone:   'A file that has been deleted from Files',
         save_to_files: 'Save to Files',
+        from_files:   'From Files',
         currently_on: 'currently on {where}',
         // The Help Centre - knowledge articles only (GH #177).
         hc_customer:  'Customers who can read this article in the Help Centre can download the documents marked Shown.',
@@ -177,6 +178,9 @@
                   // table. Without this, one warranty on eleven laptops means
                   // eleven uploads of the same file.
                   '<div class="fd-existing">' +
+                      // GH #303: From Files - a file-dialog window (files-picker.js); shown once the
+                      // list says this person can open Files.
+                      '<button type="button" class="fd-btn fd-fromfiles" hidden>' + esc(t('from_files')) + '</button>' +
                       '<input type="text" class="fd-find" placeholder="' + esc(t('find_existing')) + '">' +
                       '<div class="fd-findresults" hidden></div>' +
                   '</div>'
@@ -213,6 +217,13 @@
             });
             this.el.querySelector('.fd-addlink').addEventListener('click', function () { self.addLink(); });
 
+            var fromFiles = this.el.querySelector('.fd-fromfiles');
+            if (fromFiles) fromFiles.addEventListener('click', function () {
+                window.FilesPicker.open({
+                    mode: self.attachMode || 'link', parentType: self.parentType, parentId: self.parentId,
+                    onPick: function (itemId, how) { self.attachFromFiles(itemId, how); }
+                });
+            });
             var find = this.el.querySelector('.fd-find');
             var findTimer = null;
             find.addEventListener('input', function () {
@@ -233,6 +244,20 @@
         this.$list.addEventListener('click', function (e) {
             var rm = e.target.closest('[data-remove]');
             if (rm) { self.remove(parseInt(rm.getAttribute('data-remove'), 10), rm.getAttribute('data-name')); return; }
+            // GH #303: open in the page - a Files link through view.php (permissions, View
+            // only, watermark), an uploaded file the viewer can show from download.php.
+            // Ctrl / middle-click still follow the link to a new tab.
+            var vw = e.target.closest('[data-open-files], [data-open-doc]');
+            if (vw && window.FilesViewer && !(e.ctrlKey || e.metaKey || e.shiftKey || e.button)) {
+                if (vw.hasAttribute('data-open-files')) {
+                    e.preventDefault();
+                    var href = vw.getAttribute('href');
+                    window.FilesViewer.openItem(parseInt(vw.getAttribute('data-open-files'), 10)).catch(function () { window.open(href, '_blank'); });
+                    return;
+                }
+                var w = window.FilesViewer.openUrl({ name: vw.getAttribute('data-name'), src: vw.getAttribute('href'), downloadUrl: vw.getAttribute('href'), size: parseInt(vw.getAttribute('data-size'), 10) || 0, key: 'doc' + vw.getAttribute('data-open-doc') });
+                if (w) { e.preventDefault(); return; }
+            }
             var stf = e.target.closest('[data-stf]');
             if (stf) { window.SaveToFiles.open({ source: 'document', id: parseInt(stf.getAttribute('data-stf'), 10), name: stf.getAttribute('data-name'), ticket: self.parentType === 'ticket' }); return; }
             var hc = e.target.closest('[data-hc]');
@@ -294,6 +319,9 @@
                 self.total  = d.total;
                 self.helpCentre = d.help_centre || null;
                 self.canSave = !!d.can_save_to_files && !!window.SaveToFiles;   // GH #303
+                self.attachMode = d.files_attach_mode || 'link';
+                var ff = self.el.querySelector('.fd-fromfiles');
+                if (ff) ff.hidden = !(d.can_save_to_files && window.FilesPicker && self.canEdit);
                 self.items  = self.items.concat(d.documents || []);
                 self.offset = self.items.length;
                 self.paint();
@@ -346,6 +374,9 @@
                                 : self.api + 'download.php?id=' + d.id;
             var title  = d.title;
             if (isFiles && !d.files_access) { href = null; title = d.files_gone ? t('files_gone') : t('files_no_access'); }
+            // GH #303: what lets a click open it in the page instead of leaving it
+            var viewAttrs = isFiles && d.files_item_id_open ? ' data-open-files="' + d.files_item_id_open + '"'
+                : (d.kind === 'file' ? ' data-open-doc="' + d.id + '" data-name="' + esc(d.original_name || d.title) + '" data-size="' + (d.size_bytes || 0) + '"' : '');
             var meta = [];
             if (isFiles) meta.push(esc(t('kind_files')));
             if (!isLink && !isFiles && d.size_bytes) meta.push(bytes(d.size_bytes));
@@ -362,7 +393,7 @@
                 '<span class="fd-icon">' + icon(d.kind) + '</span>' +
                 '<div class="fd-body">' +
                     '<div class="fd-title">' + (href === null ? '<span class="fd-muted">' + esc(title) + '</span>'
-                        : '<a href="' + esc(href) + '"' +
+                        : '<a href="' + esc(href) + '"' + viewAttrs +
                         (isLink || isFiles ? ' target="_blank" rel="noopener noreferrer"' : '') +
                         '>' + esc(title) + '</a>') + '</div>' +
                     (d.description ? '<div class="fd-desc">' + esc(d.description) + '</div>' : '') +
@@ -376,7 +407,7 @@
                 '<div class="fd-actions">' +
                     '<button type="button" class="fd-btn fd-info" data-info="' + d.id +
                         '" title="' + esc(t('info_title')) + '" aria-label="' + esc(t('info_title')) + '">i</button>' +
-                    (href === null ? '' : '<a class="fd-btn" href="' + esc(href) + '"' +
+                    (href === null ? '' : '<a class="fd-btn" href="' + esc(href) + '"' + viewAttrs +
                         (isLink || isFiles ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' +
                         esc(isLink || isFiles ? t('open') : t('download')) + '</a>') +
                     // GH #303: Save to Files - a stored file only (a web link or a Files link has no bytes here)
