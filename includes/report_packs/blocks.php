@@ -36,6 +36,7 @@ require_once __DIR__ . '/blocks_software.php';
 require_once __DIR__ . '/blocks_assets.php';
 require_once __DIR__ . '/blocks_projects.php';
 require_once __DIR__ . '/blocks_changes.php';   // Change Management
+require_once __DIR__ . '/blocks_starters.php';  // Starters & leavers (GH #324)
 require_once __DIR__ . '/../asset_retirement.php';   // retired assets leave the estate figures
 
 const RP_CHART_TYPES = ['bar', 'hbar', 'line', 'doughnut', 'pie'];
@@ -331,6 +332,42 @@ function rpHandlers(): array
                 'hours'    => rpOptBool(t('reporting.packs.opt.col_hours'), true),
             ],
         ],
+
+        // ── Starters & leavers (GH #324) ───────────────────────────────
+        'starters.kpis' => [
+            'module' => 'starters', 'kind' => 'kpi', 'fn' => 'rpStartersKpis', 'opts' => [],
+        ],
+        'starters.breakdown' => [
+            'module' => 'starters', 'kind' => 'chart', 'fn' => 'rpStartersBreakdown',
+            'opts' => [
+                'by'    => rpOptSelect(t('reporting.packs.opt.by'), [
+                    'kind'     => t('reporting.packs.starters.by_kind'),
+                    'status'   => t('reporting.packs.starters.by_status'),
+                    'template' => t('reporting.packs.starters.by_template'),
+                ], 'kind'),
+                'chart' => rpChartOpt('doughnut'),
+                'limit' => rpOptInt(t('reporting.packs.opt.limit'), 3, 50, 12),
+            ],
+        ],
+        'starters.list' => [
+            'module' => 'starters', 'kind' => 'table', 'fn' => 'rpStartersList',
+            'opts' => [
+                'kind'   => rpOptSelect(t('reporting.packs.starters.opt_kind'), rpStartersKindChoices(), 'all'),
+                'status' => rpOptSelect(t('reporting.packs.starters.opt_status'), [
+                    'all'  => t('reporting.packs.starters.status_all'),
+                    'open' => t('reporting.packs.starters.status_open'),
+                ], 'all'),
+                'owner'  => rpOptBool(t('reporting.packs.starters.opt_owner'), true),
+                'limit'  => rpOptInt(t('reporting.packs.opt.rows'), 10, 2000, 200),
+            ],
+        ],
+        'starters.overdue' => [
+            'module' => 'starters', 'kind' => 'table', 'fn' => 'rpStartersOverdue',
+            'opts' => [
+                'kind'  => rpOptSelect(t('reporting.packs.starters.opt_kind'), rpStartersKindChoices(), 'all'),
+                'limit' => rpOptInt(t('reporting.packs.opt.rows'), 10, 2000, 200),
+            ],
+        ],
     ];
 }
 
@@ -398,6 +435,12 @@ function rpToolboxItems(): array
         'projects_milestones' => ['handler' => 'projects.milestones', 'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'milestones stages deadlines dates met missed gates'],
         'projects_risks'      => ['handler' => 'projects.risks',      'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'risks raid top risk register score'],
         'projects_accounts'   => ['handler' => 'projects.accounts',   'area' => 'projects', 'span' => 12, 'opts' => [], 'kw' => 'accounts chart of accounts nominal ledger gl budget costs income finance capex opex'],
+
+        // Starters & leavers (GH #324)
+        'starters_kpis'     => ['handler' => 'starters.kpis',      'area' => 'starters', 'span' => 12, 'opts' => [], 'kw' => 'summary joiners starters movers leavers onboarding offboarding ready on time overdue hr'],
+        'starters_by_kind'  => ['handler' => 'starters.breakdown', 'area' => 'starters', 'span' => 6,  'opts' => ['by' => 'kind', 'chart' => 'doughnut'], 'kw' => 'joiners movers leavers onboarding offboarding chart'],
+        'starters_list'     => ['handler' => 'starters.list',      'area' => 'starters', 'span' => 12, 'opts' => [], 'kw' => 'cases list joiners new starters leavers onboarding offboarding progress hr'],
+        'starters_overdue'  => ['handler' => 'starters.overdue',   'area' => 'starters', 'span' => 12, 'opts' => [], 'kw' => 'overdue late steps onboarding offboarding behind'],
     ];
 }
 

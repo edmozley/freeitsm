@@ -55,4 +55,16 @@ return [
         'link'     => 'workflow/',
         'check'    => ['rows', 'workflows', "is_active = 1 AND is_demo = 0 AND trigger_event LIKE 'jml.%'"],
     ],
+    [
+        'id'       => 'starters.report_pack',
+        'module'   => 'starters',
+        'tier'     => 'extra',
+        'category' => 'insight',
+        'title'    => 'Starters and leavers in a report pack',
+        'what'     => 'Report Packs blocks for Starters & leavers: who joined, moved and left in the period, how many were ready on the day, the cases with their progress, and the steps that are overdue.',
+        'why'      => 'HR and the IT manager see in the monthly pack whether new starters had everything on their first day, without counting it up by hand.',
+        'done'     => 'A report pack has a Starters & leavers block.',
+        'link'     => 'reporting/packs/',
+        'check'    => ['rows', 'report_packs', "design LIKE '%\"handler\":\"starters.%'"],
+    ],
 ];
