@@ -37,6 +37,7 @@
  */
 
 require_once __DIR__ . '/uploads.php';
+require_once __DIR__ . '/storage/stores.php';   // the war-room store: a server folder or S3 (System -> Storage)
 
 /** How long since a poll before we stop calling someone "here". */
 const WARROOM_PRESENCE_WINDOW_SECONDS = 90;
@@ -648,8 +649,7 @@ function warRoomDeleteMessage(PDO $conn, int $analystId, int $messageId, bool $m
     $at = $conn->prepare("SELECT stored_name FROM warroom_attachments WHERE message_id = :m");
     $at->execute([':m' => $messageId]);
     foreach ($at->fetchAll(PDO::FETCH_ASSOC) as $a) {
-        $path = rtrim(WARROOM_ATTACH_DIR, '/\\') . DIRECTORY_SEPARATOR . $a['stored_name'];
-        if (is_file($path)) @unlink($path);
+        storeDelete($conn, 'warroom', (string) $a['stored_name']);
     }
     $conn->prepare("DELETE FROM warroom_attachments WHERE message_id = :m")->execute([':m' => $messageId]);
     $conn->prepare("DELETE FROM warroom_mentions WHERE message_id = :m")->execute([':m' => $messageId]);
@@ -964,7 +964,7 @@ function warRoomMentionCounts(PDO $conn, int $analystId): array
  */
 function warRoomStoreAttachment(PDO $conn, int $messageId, array $file): array
 {
-    $stored = uploadStoreFile($file, WARROOM_ATTACH_DIR);
+    $stored = storeSaveUpload($conn, 'warroom', '', $file);
 
     $stmt = $conn->prepare(
         "INSERT INTO warroom_attachments (message_id, stored_name, original_name, size_bytes, created_datetime)
@@ -1009,8 +1009,7 @@ function warRoomAttachmentFor(PDO $conn, int $analystId, int $attachmentId): ?ar
     if ($row === false) return null;
     if (!warRoomCanAccessChannel($conn, $analystId, (int) $row['channel_id'])) return null;
 
-    $row['path'] = rtrim(WARROOM_ATTACH_DIR, '/\\') . DIRECTORY_SEPARATOR . $row['stored_name'];
-    return $row;
+    return $row;   // the bytes: storeServe($conn, 'warroom', $row['stored_name'], ...)
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1285,8 +1284,7 @@ function warRoomPrune(PDO $conn): void
             $still = $conn->prepare("SELECT 1 FROM warroom_attachments WHERE stored_name = :s LIMIT 1");
             $still->execute([':s' => $name]);
             if ($still->fetchColumn()) continue;
-            $path = rtrim(WARROOM_ATTACH_DIR, '/\\') . DIRECTORY_SEPARATOR . $name;
-            if (is_file($path)) @unlink($path);
+            storeDelete($conn, 'warroom', (string) $name);
         }
     } catch (Throwable) {
         // Retention is housekeeping — never let it break posting a message.
@@ -1317,23 +1315,17 @@ function warRoomSweepOrphanFiles(PDO $conn): void
              ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)"
         )->execute([':v' => (string) $now]);
 
-        $dir = rtrim(WARROOM_ATTACH_DIR, '/\\');
-        if (!is_dir($dir)) return;
-
         $known = [];
         foreach ($conn->query("SELECT stored_name FROM warroom_attachments") as $r) {
             $known[$r['stored_name']] = true;
         }
 
-        foreach ((array) scandir($dir) as $name) {
-            if ($name === '.' || $name === '..') continue;
-            // The directory's own guards are not uploads and must never be swept.
-            if ($name === '.htaccess' || $name === 'web.config') continue;
+        // The store's own listing (a server folder or S3); its guard files are not files.
+        foreach (storeList($conn, 'warroom') as $name => $o) {
             if (isset($known[$name])) continue;
-            $path = $dir . DIRECTORY_SEPARATOR . $name;
             // Give an in-flight upload a minute's grace: the file lands before its
             // row is written, and deleting it in that window would lose it.
-            if (is_file($path) && ($now - (int) filemtime($path)) > 60) @unlink($path);
+            if (($now - (int) $o['mtime']) > 60) storeDelete($conn, 'warroom', (string) $name);
         }
     } catch (Throwable) {
         // Housekeeping. Never let it break posting a message.

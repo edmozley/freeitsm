@@ -77,14 +77,21 @@ try {
         }
     }
 
-    $appRoot = realpath(__DIR__ . '/../../');
-    $absPath = $appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rec['file_path']);
-    if (!is_file($absPath)) {
+    // The bytes are in the recordings store (a server folder or S3), under the row's
+    // path without its "recordings/" folder name.
+    require_once __DIR__ . '/../../includes/ticket_recordings.php';
+    $key = recordingStoreKey((string)$rec['file_path']);
+    try {
+        $size = $key === null ? null : storeSize($conn, 'recordings', $key);
+    } catch (StorageUnavailable $e) {
+        http_response_code(503);
+        exit('Storage cannot be reached right now');
+    }
+    if ($size === null) {
         http_response_code(404);
         exit('File missing');
     }
 
-    $size = filesize($absPath);
     $contentType = $rec['content_type'] ?: 'application/octet-stream';
 
     // Range-aware streaming so <video> can seek
@@ -104,30 +111,23 @@ try {
 
     $length = $end - $start + 1;
 
-    if ($isPartial) {
-        http_response_code(206);
-        header("Content-Range: bytes $start-$end/$size");
+    // Headers only once the store has answered, so a store that cannot be reached
+    // still gets a proper status rather than half a 206.
+    $code = storeServe($conn, 'recordings', $key, $start, $end, function () use ($isPartial, $start, $end, $size, $contentType, $length) {
+        if ($isPartial) {
+            http_response_code(206);
+            header("Content-Range: bytes $start-$end/$size");
+        }
+        header("Content-Type: $contentType");
+        header("X-Content-Type-Options: nosniff");   // a video is played, never sniffed into something else
+        header("Accept-Ranges: bytes");
+        header("Content-Length: $length");
+        header('Cache-Control: private, max-age=600');
+    });
+    if ($code !== 0) {
+        http_response_code($code === 503 ? 503 : 404);
+        exit($code === 503 ? 'Storage cannot be reached right now' : 'File missing');
     }
-    header("Content-Type: $contentType");
-    header("X-Content-Type-Options: nosniff");   // a video is played, never sniffed into something else
-    header("Accept-Ranges: bytes");
-    header("Content-Length: $length");
-    header('Cache-Control: private, max-age=600');
-
-    $fp = fopen($absPath, 'rb');
-    if (!$fp) { http_response_code(500); exit; }
-    fseek($fp, $start);
-    $remaining = $length;
-    while ($remaining > 0 && !feof($fp)) {
-        $chunk = fread($fp, min(8192, $remaining));
-        if ($chunk === false) break;
-        echo $chunk;
-        $remaining -= strlen($chunk);
-        if (connection_aborted()) break;
-        @ob_flush();
-        @flush();
-    }
-    fclose($fp);
 } catch (Exception $e) {
     error_log('get_recording.php: ' . $e->getMessage());
     http_response_code(500);

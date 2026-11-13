@@ -46,12 +46,16 @@ $hasAudio   = !empty($_POST['has_audio']) ? 1 : 0;
 // screen-recording-<stamp>.mp4|webm, so genuine recordings pass unchanged.
 // Reported privately, October 2026.
 require_once '../../includes/uploads.php';
-$appRoot = realpath(__DIR__ . '/../../');
-$pendingDir = $appRoot . DIRECTORY_SEPARATOR . 'recordings' . DIRECTORY_SEPARATOR . 'pending';
+require_once '../../includes/storage/stores.php';   // the recordings store: a server folder or S3
 try {
-    $stored = uploadStoreFile($_FILES['file'], $pendingDir,
+    $conn = connectToDatabase();
+    $stored = storeSaveUpload($conn, 'recordings', 'pending', $_FILES['file'],
         ['mp4' => UPLOAD_TYPES_VIDEO['mp4'], 'webm' => UPLOAD_TYPES_VIDEO['webm']],
         50 * 1024 * 1024);   // 50MB: keeps the on-disk footprint sane
+} catch (StorageUnavailable $e) {
+    error_log('upload_recording.php: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Storage cannot be reached right now. Try again in a few minutes.']);
+    exit;
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     exit;
@@ -66,7 +70,6 @@ $mime       = substr($storedName, -4) === '.mp4' ? 'video/mp4' : 'video/webm';
 $relativePath = 'recordings/pending/' . $storedName;
 
 try {
-    $conn = connectToDatabase();
     $stmt = $conn->prepare("INSERT INTO ticket_recordings
         (ticket_id, recorded_by_user_id, filename, original_filename, content_type, file_path, file_size, duration_seconds, has_audio, created_at)
         VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())");
@@ -83,7 +86,7 @@ try {
     $recordingId = (int)$conn->lastInsertId();
     echo json_encode(['success' => true, 'recording_id' => $recordingId]);
 } catch (Exception $e) {
-    @unlink($destPath);
+    storeDelete($conn, 'recordings', $stored['key']);   // no row will ever point at it
     echo json_encode(['success' => false, 'error' => 'Database error']);
     error_log('upload_recording.php: ' . $e->getMessage());
 }

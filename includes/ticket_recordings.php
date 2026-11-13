@@ -25,6 +25,8 @@
  * @wiki Self-Service-Developer-Guide
  */
 
+require_once __DIR__ . '/storage/stores.php';   // the recordings store: a server folder or S3 (System -> Storage)
+
 /**
  * Move pending recordings onto a ticket and (optionally) a specific message.
  *
@@ -39,17 +41,24 @@
  *                            recording behaved before replies could carry one
  * @return int how many rows were actually claimed
  */
+/**
+ * The recordings store's key for a ticket_recordings.file_path: the row keeps the
+ * folder name ("recordings/pending/<name>", "recordings/<ticket>/<name>"); the store
+ * does not. Null for anything that is not a path under recordings/.
+ */
+function recordingStoreKey(string $filePath): ?string
+{
+    $p = str_replace('\\', '/', $filePath);
+    if (!str_starts_with($p, 'recordings/')) return null;
+    $key = substr($p, strlen('recordings/'));
+    return storeKeyIsValid($key) ? $key : null;
+}
+
 function claimPendingRecordings(PDO $conn, array $recordingIds, int $ticketId, int $userId, ?int $emailId = null): int
 {
     $recordingIds = array_values(array_filter(array_map('intval', $recordingIds)));
     if (empty($recordingIds)) {
         return 0;
-    }
-
-    $appRoot   = realpath(__DIR__ . '/../');
-    $ticketDir = $appRoot . DIRECTORY_SEPARATOR . 'recordings' . DIRECTORY_SEPARATOR . $ticketId;
-    if (!is_dir($ticketDir)) {
-        @mkdir($ticketDir, 0755, true);
     }
 
     // See THE GUARD above. Applied in the query, so an id belonging to somebody
@@ -69,18 +78,26 @@ function claimPendingRecordings(PDO $conn, array $recordingIds, int $ticketId, i
 
     $claimed = 0;
     foreach ($pending as $rec) {
-        $srcAbs = $appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rec['file_path']);
-        $dstAbs = $ticketDir . DIRECTORY_SEPARATOR . $rec['filename'];
-        $dstRel = 'recordings/' . $ticketId . '/' . $rec['filename'];
+        $srcKey = recordingStoreKey((string) $rec['file_path']);
+        $dstKey = $ticketId . '/' . $rec['filename'];
 
-        if (is_file($srcAbs) && @rename($srcAbs, $dstAbs)) {
-            $updStmt->execute([$ticketId, $emailId, $dstRel, (int) $rec['id']]);
+        $moved = false;
+        if ($srcKey !== null) {
+            try {
+                storeRename($conn, 'recordings', $srcKey, $dstKey);
+                $moved = true;
+            } catch (Throwable $e) {
+                error_log('claimPendingRecordings: ' . $e->getMessage());
+            }
+        }
+        if ($moved) {
+            $updStmt->execute([$ticketId, $emailId, 'recordings/' . $dstKey, (int) $rec['id']]);
         } else {
             // The move failed, but still claim the row: associating a broken
             // recording with its ticket is recoverable and visible, whereas
             // leaving it orphaned in pending/ means nobody ever finds it.
             $updStmt->execute([$ticketId, $emailId, $rec['file_path'], (int) $rec['id']]);
-            error_log('claimPendingRecordings: failed to move recording ' . $rec['id'] . ' from ' . $srcAbs);
+            error_log('claimPendingRecordings: failed to move recording ' . $rec['id'] . ' from ' . $rec['file_path']);
         }
         $claimed++;
     }
