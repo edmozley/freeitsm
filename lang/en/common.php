@@ -420,6 +420,26 @@ return [
 
     // The documents panel, shared by every module that attaches files or links
     // to a record. Lives in `common` because it belongs to no single module.
+    // Pick a file from Files (GH #303) - assets/js/files-picker.js
+    'files_picker' => [
+        'title'         => 'Choose a file from Files',
+        'search'        => 'Search all of Files',
+        'documents'     => 'Documents',
+        'col_name'      => 'Name',
+        'col_size'      => 'Size',
+        'col_modified'  => 'Modified',
+        'link'          => 'Link',
+        'copy'          => 'Copy',
+        'cancel'        => 'Cancel',
+        'link_tip'      => 'A link: opened through Files, under its folder\'s permissions, always the latest version',
+        'copy_tip'      => 'A copy of the current version, readable by everyone who can see it',
+        'none_selected' => 'Choose a file',
+        'empty'         => 'This folder has no files.',
+        'no_match'      => 'No files match that you can open.',
+        'no_folders'    => 'There is no folder in Files you can open.',
+        'pick_folder'   => 'Open a folder on the left, or search.',
+        'results_for'   => 'Results for "{q}"',
+    ],
     // Save to Files (GH #303) - assets/js/save-to-files.js
     'save_to_files' => [
         'title'          => 'Save to Files',

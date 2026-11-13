@@ -7349,12 +7349,18 @@ function renderPendingNoteFiles() {
 let pendingNoteFromFiles = [];
 let noteFromFilesTimer = null;
 
-/** Shows or hides the From Files search in the note window. */
+/**
+ * From Files: a draggable window like a file dialog - folders on the left, files on the
+ * right, a search, Link / Copy (assets/js/files-picker.js). The pick joins the note's files
+ * and is attached when the note is saved.
+ */
 function toggleNoteFromFiles() {
-    const box = document.getElementById('noteFromFiles');
-    if (!box) return;
-    box.hidden = !box.hidden;
-    if (!box.hidden) document.getElementById('noteFromFilesQ').focus();
+    if (!window.FilesPicker || !currentEmail) return;
+    window.FilesPicker.open({
+        mode: window.TICKET_FILES_ATTACH_MODE || 'link',
+        parentType: 'ticket', parentId: Number(currentEmail.ticket_id),
+        onPick: (itemId, how, name) => addNoteFromFiles(itemId, how, name)
+    });
 }
 
 /** Searches Files for the From Files box (two letters or more). */

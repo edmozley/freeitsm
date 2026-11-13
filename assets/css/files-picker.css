@@ -1,0 +1,31 @@
+/* Pick a file from Files (GH #303) - assets/js/files-picker.js, inside a FloatWin window */
+.fpk { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; }
+.fpk-bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--border, #e0e0e0); }
+.fpk-path { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.fpk-search { flex: 0 1 260px; min-width: 120px; padding: 5px 8px; border: 1px solid var(--border, #ccc); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); font: inherit; }
+.fpk-main { flex: 1 1 auto; display: flex; min-height: 0; }
+.fpk-tree { flex: 0 0 220px; overflow: auto; border-right: 1px solid var(--border, #e0e0e0); padding: 6px 0; }
+.fpk-tree ul { list-style: none; margin: 0; padding: 0 0 0 14px; }
+.fpk-tree > ul { padding-left: 4px; }
+.fpk-node { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+.fpk-node:hover { background: var(--surface-2, #f3f4f6); }
+.fpk-node.fpk-cur { background: var(--accent-soft, #e8f1fb); }
+.fpk-twist { width: 12px; flex: 0 0 12px; text-align: center; color: var(--text-muted, #666); font-size: 11px; }
+.fpk-name { overflow: hidden; text-overflow: ellipsis; }
+.fpk-ic { display: inline-flex; vertical-align: middle; margin-right: 6px; }
+.fpk-list { flex: 1 1 auto; overflow: auto; min-width: 0; }
+.fpk-list table { width: 100%; border-collapse: collapse; }
+.fpk-list th { position: sticky; top: 0; background: var(--surface-3, #f8f9fa); text-align: left; font-weight: 600; font-size: 12px; padding: 6px 10px; border-bottom: 1px solid var(--border, #e0e0e0); }
+.fpk-list td { padding: 5px 10px; border-bottom: 1px solid var(--border, #f0f0f0); vertical-align: top; }
+.fpk-list tr { cursor: default; }
+.fpk-list tbody tr:hover { background: var(--surface-2, #f3f4f6); }
+.fpk-list tr.fpk-on { background: var(--accent-soft, #e8f1fb); }
+.fpk-num { text-align: right; white-space: nowrap; }
+.fpk-sub { font-size: 11px; color: var(--text-muted, #666); margin-left: 22px; }
+.fpk-empty { padding: 14px; color: var(--text-muted, #666); }
+.fpk-foot { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--border, #e0e0e0); }
+.fpk-sel { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted, #666); }
+.fpk-grow { flex: 1 1 auto; }
+.fpk-btn { padding: 5px 14px; border: 1px solid var(--border, #ccc); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); cursor: pointer; font: inherit; }
+.fpk-btn.fpk-primary { background: var(--accent, #0078d4); border-color: var(--accent, #0078d4); color: var(--on-accent, #fff); }
+.fpk-btn:disabled { opacity: 0.5; cursor: default; }
