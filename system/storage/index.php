@@ -31,6 +31,15 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
     <style>
         body { --accent: var(--sys-accent, #546e7a); --accent-hover: var(--sys-accent-hover, #37474f); --on-accent: var(--sys-on-accent, #fff); }
         .main-container { flex: 1; background: var(--app-bg, #f5f7fa); overflow-y: auto; }
+        /* The header is taller than the 48px inbox.css assumes (calc(100vh - 48px)), which put the
+           bottom of this page below the window. As the tickets inbox does: the body is a column,
+           the header takes its real height and this fills the rest. Block, not flex, so the page's
+           bottom padding scrolls into view. Desktop only; mobile.css has its own layout. */
+        @media (min-width: 769px) {
+            body { display: flex; flex-direction: column; }
+            body > .header { flex-shrink: 0; }
+            body > .main-container { display: block; height: auto; flex: 1 1 auto; min-height: 0; }
+        }
         .st-container { max-width: 980px; margin: 0 auto; padding: 30px 20px; }
         .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
         .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 24px 0; }
