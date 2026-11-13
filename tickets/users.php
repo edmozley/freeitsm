@@ -187,7 +187,8 @@ $translationNamespaces = ['common', 'tickets'];
             overflow: hidden;
         }
 
-        .tickets-header {
+        /* :not(.header) - the module header bar is ALSO .tickets-header; this made it 7px taller on this page only (GH #303). */
+        .tickets-header:not(.header) {
             padding: 15px 20px;
             border-bottom: 1px solid var(--border, #e0e0e0);
             background-color: var(--surface-3, #f8f9fa);

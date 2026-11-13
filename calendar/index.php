@@ -26,7 +26,7 @@ $translationNamespaces = ['common', 'calendar'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../assets/css/calendar-grid.css?v=1">
-    <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=8">
+    <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=9">
     <link rel="stylesheet" href="../assets/css/subscribe.css?v=1">
     <style>
         /* Pin the shared accent to the module orange so canonical components

@@ -74,7 +74,7 @@ foreach ($templates as $t) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('checklists')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=86">
     <style>
         body { margin: 0; padding: 0; background: var(--app-bg, #f8fafc); }
         .chk-layout { display: flex; height: calc(100vh - 48px); width: 100%; overflow: hidden; }

@@ -51,12 +51,20 @@ header {
 /* TRAP: never a bare `nav` here. These rules predate the module sidebar
    (includes/app_sidebar.php), which is a <nav> too - `nav a`'s 20px side
    padding squeezed its 42px icons to nothing on this page only. */
-nav:not(.app-sidebar) {
+/* The module header uses the shared font and line height, so it is the same height as
+   every other module's - this page's body line-height of 1.6 made it 0.8px taller (GH #303). */
+body > .header {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: normal;
+}
+
+/* :not(.header-nav) - the module header's nav takes the shared .nav-btn look, like every module (GH #303). */
+nav:not(.app-sidebar):not(.header-nav) {
     display: flex;
     gap: 10px;
 }
 
-nav:not(.app-sidebar) a {
+nav:not(.app-sidebar):not(.header-nav) a {
     padding: 8px 20px;
     text-decoration: none;
     color: var(--text-muted, #5a6c7d);
@@ -65,12 +73,12 @@ nav:not(.app-sidebar) a {
     font-weight: 500;
 }
 
-nav:not(.app-sidebar) a:hover {
+nav:not(.app-sidebar):not(.header-nav) a:hover {
     background-color: var(--surface-hover, #f0f2f5);
     color: var(--text, #2c3e50);
 }
 
-nav:not(.app-sidebar) a.active {
+nav:not(.app-sidebar):not(.header-nav) a.active {
     background-color: var(--accent, #007bff);
     color: white;
 }

@@ -91,7 +91,9 @@
 }
 
 /* Calendar header */
-.calendar-header {
+/* :not(.header) - the module header bar is ALSO .calendar-header (calendar/includes/header.php),
+   and this 15px padding made it 7px taller than every other module's (GH #303). */
+.calendar-header:not(.header) {
     display: flex;
     justify-content: space-between;
     align-items: center;

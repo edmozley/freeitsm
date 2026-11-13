@@ -27,6 +27,13 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Every module's header is 62px on desktop - the height a row of nav buttons makes -
+   so a page with no nav (the System landing) does not shift the page by 4px (GH #303).
+   Phones keep mobile.css's own header. */
+@media (min-width: 769px) {
+    .header { min-height: 62px; }
+}
+
 .header h1 {
     font-size: 20px;
     font-weight: 600;
@@ -110,6 +117,7 @@ body {
 .assets-header .header-nav,
 .calendar-header .header-nav,
 .changes-header .header-nav,
+.checklists-header .header-nav,
 .cmdb-header .header-nav,
 .contracts-header .header-nav,
 .domains-header .header-nav,
@@ -141,6 +149,7 @@ body {
    Modules with many buttons (tickets, system) use the lower end so the
    nav doesn't overflow on standard laptop widths. */
 .changes-header .header-nav .nav-btn,
+.checklists-header .header-nav .nav-btn,
 .domains-header .header-nav .nav-btn,
 .projects-header .header-nav .nav-btn,
 .starters-header .header-nav .nav-btn,
