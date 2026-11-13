@@ -5,7 +5,9 @@
  * Takes a picture with the webcam and turns it into ASCII art, live, as you
  * move. Three styles: Braille (each character is a 2x4 grid of dots, so eight
  * times the detail of ordinary ASCII), Classic (a 70-step character ramp) and
- * Blocks (shade characters). Four screens: green, amber, paper, and colour.
+ * Blocks (shade characters). Seven screens: green, amber, paper, colour, and the
+ * old PC palettes CGA (4 colours), EGA (16) and VGA (256) - colour, snapped to the
+ * nearest colour the card could show.
  *
  * 🔑 No AI and no server work: the conversion is plain arithmetic in the
  * browser (brightness -> character, with error-diffusion dithering). The PHOTO
@@ -184,6 +186,9 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
                         <option value="amber"><?php echo htmlspecialchars($paT('palette_amber')); ?></option>
                         <option value="paper"><?php echo htmlspecialchars($paT('palette_paper')); ?></option>
                         <option value="colour"><?php echo htmlspecialchars($paT('palette_colour')); ?></option>
+                        <option value="cga"><?php echo htmlspecialchars($paT('palette_cga')); ?></option>
+                        <option value="ega"><?php echo htmlspecialchars($paT('palette_ega')); ?></option>
+                        <option value="vga"><?php echo htmlspecialchars($paT('palette_vga')); ?></option>
                     </select>
                 </div>
                 <div class="pa-group">
@@ -285,7 +290,57 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
             amber:  { bg: '#0d0700', fg: '#ffb000', dark: true },
             paper:  { bg: '#fbfaf6', fg: '#1d1d1d', dark: false },
             colour: { bg: '#000000', fg: '#ffffff', dark: true },
+            // The old PC colour cards: Colour, with each character snapped to the nearest colour the card had.
+            cga:    { bg: '#000000', fg: '#ffffff', dark: true, snap: 'cga' },
+            ega:    { bg: '#000000', fg: '#ffffff', dark: true, snap: 'ega' },
+            vga:    { bg: '#000000', fg: '#ffffff', dark: true, snap: 'vga' },
         };
+
+        // ══ CGA, EGA and VGA ════════════════════════════════════════════
+        // CGA: palette 1, high intensity - black, cyan, magenta, white (the one everybody remembers).
+        // EGA: the 16 colours. VGA: mode 13h's default 256 - the 16 EGA colours, 16 greys, then
+        // 24 hues at 3 saturations and 3 brightnesses, built here exactly as the BIOS loaded them
+        // (6-bit DAC values, x 255/63), and 8 blacks to fill the table.
+        const EGA16 = [[0,0,0],[0,0,170],[0,170,0],[0,170,170],[170,0,0],[170,0,170],[170,85,0],[170,170,170],
+                       [85,85,85],[85,85,255],[85,255,85],[85,255,255],[255,85,85],[255,85,255],[255,255,85],[255,255,255]];
+        const SNAP = { cga: [[0,0,0],[85,255,255],[255,85,255],[255,255,255]], ega: EGA16, vga: (function () {
+            const dac = v => Math.round(v * 255 / 63);
+            const out = EGA16.slice();
+            [0,5,8,11,14,17,20,24,28,32,36,40,45,50,56,63].forEach(g => out.push([g, g, g]));   // 6-bit, scaled with the rest below
+            const levels = [[0,16,31,47,63],[31,39,47,55,63],[45,49,54,58,63],
+                            [0,7,14,21,28],[14,17,21,24,28],[20,22,24,26,28],
+                            [0,4,8,12,16],[8,10,12,14,16],[11,12,13,15,16]];
+            levels.forEach(a => {
+                // round the colour wheel: blue -> magenta -> red -> yellow -> green -> cyan -> blue
+                const lo = a[0], hi = a[4];
+                for (let i = 0; i < 4; i++) out.push([a[i], lo, hi]);
+                for (let i = 4; i > 0; i--) out.push([hi, lo, a[i]]);
+                for (let i = 0; i < 4; i++) out.push([hi, a[i], lo]);
+                for (let i = 4; i > 0; i--) out.push([a[i], hi, lo]);
+                for (let i = 0; i < 4; i++) out.push([lo, hi, a[i]]);
+                for (let i = 4; i > 0; i--) out.push([lo, a[i], hi]);
+            });
+            for (let i = 0; i < 8; i++) out.push([0, 0, 0]);
+            return out.map((c, i) => i < 16 ? c : c.map(dac));
+        })() };
+        // Nearest colour by weighted distance (green counts most, as the eye sees it). Live video asks
+        // the same few thousand colours again and again, so answers are kept, keyed to 5 bits a channel.
+        const snapCache = { cga: new Map(), ega: new Map(), vga: new Map() };
+        function snapColour(name, r, g, b) {
+            const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+            const cache = snapCache[name];
+            let hit = cache.get(key);
+            if (hit === undefined) {
+                let best = 0, bestD = Infinity;
+                SNAP[name].forEach((c, i) => {
+                    const dr = c[0] - r, dg = c[1] - g, db = c[2] - b;
+                    const d = 2 * dr * dr + 4 * dg * dg + 3 * db * db;
+                    if (d < bestD) { bestD = d; best = i; }
+                });
+                cache.set(key, hit = best);
+            }
+            return SNAP[name][hit];
+        }
         const GLYPH = { braille: '⣿', classic: 'M', blocks: '█' };
         const BLANK = { braille: '⠀', classic: ' ', blocks: ' ' };
 
@@ -338,7 +393,8 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
                         : toRamp(L, cols, rows, s.style === 'blocks' ? RAMP_BLOCKS : RAMP_CLASSIC, s.dither);
 
             let colours = null;
-            if (s.palette === 'colour') {
+            const snap = PALETTES[s.palette].snap || null;
+            if (s.palette === 'colour' || snap) {
                 const cp = drawScaled(tintCtx, tint, src, sw, sh, cols, rows, s.mirror);
                 colours = new Uint8Array(cols * rows * 3);
                 for (let i = 0, p = 0, o = 0; i < cols * rows; i++, p += 4, o += 3) {
@@ -346,6 +402,7 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
                         const v = ((cp[p + k] / 255 - 0.5) * contrast + 0.5 + bright) * 255;
                         colours[o + k] = v < 0 ? 0 : v > 255 ? 255 : v;
                     }
+                    if (snap) { const c = snapColour(snap, colours[o], colours[o + 1], colours[o + 2]); colours[o] = c[0]; colours[o + 1] = c[1]; colours[o + 2] = c[2]; }
                 }
             }
             return { style: s.style, palette: s.palette, cols, rows, lines, colours };
