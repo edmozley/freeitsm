@@ -602,7 +602,22 @@ return [
         'wake_failed'   => 'Could not wake',
     ],
 
+    // A note's files that live in Files (GH #303)
+    'notes' => [
+        'files_no_access' => 'A file in Files you do not have access to',
+        'files_gone'      => 'A file that has been deleted from Files',
+        'in_files'        => 'In Files',
+    ],
     'note_modal' => [
+        // From Files (GH #303)
+        'from_files_btn'     => 'From Files',
+        'from_files_ph'      => 'Search Files by name',
+        'from_files_link'    => 'Link',
+        'from_files_copy'    => 'Copy',
+        'from_files_none'    => 'No files match that you can open.',
+        'from_files_as_link' => 'link from Files',
+        'from_files_as_copy' => 'copy from Files',
+        'from_files_failed'  => 'The note is saved, but these files from Files were not attached: {names}.',
         'title'       => 'Add note',
         'note_label'  => 'Note',
         'placeholder' => 'Enter your note here...',
@@ -3493,7 +3508,7 @@ return [
             'step2' => '<strong>Write your note</strong> &mdash; use the Add Note button to open the comment editor. Notes are internal by default, visible only to analysts on the service desk.',
             'step3' => '<strong>Reply or forward by email</strong> &mdash; use the Reply or Forward actions to send a message to the end user or a third party. The email is logged in the activity trail alongside the outbound message content.',
             'subject_note'  => '<strong>The subject</strong> &mdash; Reply and Forward show the subject and you can change it. When you forward a ticket to an outside provider and their reply adds their own number to the subject (for example <em>#TCK89633 - FW: &hellip;</em>), use <strong>Reply</strong> or <strong>Forward</strong> on <em>that</em> message in the conversation: it starts from its subject, so your follow-up keeps their number and lands on their ticket. Each message shows its own subject under the sender. The ticket&rsquo;s reference in square brackets is always kept &mdash; if you take it out, it is put back when you send, so replies still come back to this ticket.',
-            'attachments_note' => '<strong>Email attachments</strong> &mdash; in the attachment list, clicking one opens it in a window over the ticket where the file type allows: pictures, PDFs, Word documents, spreadsheets and CSV files, text, audio and video, with a download button. Anything else downloads. <strong>Save to Files</strong> beside each one copies it into a folder in Files.',
+            'attachments_note' => '<strong>Email attachments</strong> &mdash; in the attachment list, clicking one opens it in a window over the ticket where the file type allows: pictures, PDFs, Word documents, spreadsheets and CSV files, text, audio and video, with a download button. Anything else downloads. <strong>Save to Files</strong> beside each one - and beside each file on a note - copies it into a folder in Files. To put a file that is already in Files on the ticket, use <strong>From Files</strong> in the <strong>Add note</strong> window: as a link (opened through Files, under its folder\'s permissions, never shown in the portal) or a copy, as Files &rarr; Settings &rarr; Sharing allows.',
             'files_heading' => '<strong>File attachments</strong>',
             'files_body'    => 'Attach screenshots, logs, documents, or any supporting file directly to a ticket. Files can be dragged into the attachment drop zone or selected using the file browser. Attachments are stored on the server and linked to the ticket\'s activity trail so nothing gets lost.',
             'audit_heading' => '<strong>Audit logging</strong>',

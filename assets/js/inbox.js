@@ -7201,23 +7201,32 @@ function renderNotes() {
         let files = '';
         if (listed.length) {
             files = '<div class="note-file-list">' + listed.map(d => {
+                // GH #303: a file in Files - no link and no name for someone who cannot open its
+                // folder; for anyone else it opens through Files (download.php sends it to files/?item=).
+                if (d.kind === 'files' && !d.files_access) {
+                    return `<span class="note-file note-file-noaccess">${escapeHtml(t(d.files_gone ? 'tickets.notes.files_gone' : 'tickets.notes.files_no_access'))}</span>`;
+                }
                 const href = d.kind === 'link'
                     ? safeExternalUrl(d.external_url)
                     : '../api/documents/download.php?id=' + encodeURIComponent(d.id);
                 if (!href) return '';
                 const name = d.original_name || d.title || '';
-                const size = d.kind === 'link' ? '' : noteFileSize(d.size_bytes);
+                // GH #303: Save to Files on a stored file (not a web link, not a Files link)
+                const saveBtn = d.kind === 'file' && window.TICKET_SAVE_TO_FILES && window.SaveToFiles
+                    ? `<button type="button" class="stf-save-btn" onclick="event.preventDefault(); event.stopPropagation(); window.SaveToFiles.open({ source: 'document', id: ${Number(d.id)}, name: ${jsArg(name)}, ticket: true })">${escapeHtml(t('tickets.reading_pane.attach_save_to_files'))}</button>`
+                    : '';
+                const size = d.kind === 'file' ? noteFileSize(d.size_bytes) : '';
                 // GH #226: a picture or PDF opens in a floating window over the ticket
                 // (the Files viewer) - followed as a plain link a picture REPLACED the
                 // Tickets page, with no way back but Back, which left the ticket too.
-                const inViewer = d.kind !== 'link' && VIEWER_FILE_RE.test(name);
-                return `<a class="note-file" href="${escapeHtml(href)}"
-                           ${d.kind === 'link' ? 'target="_blank" rel="noopener noreferrer"' : ''}
+                const inViewer = d.kind === 'file' && VIEWER_FILE_RE.test(name);
+                return `<span class="note-file-wrap"><a class="note-file" href="${escapeHtml(href)}"
+                           ${d.kind === 'link' || d.kind === 'files' ? 'target="_blank" rel="noopener noreferrer"' : ''}
                            ${inViewer ? `data-view-file="${escapeHtml(name)}" data-size="${Number(d.size_bytes) || 0}"` : ''}
                            title="${escapeHtml(name)}">
                             <span class="note-file-name">${escapeHtml(name)}</span>
-                            <span class="note-file-size">${escapeHtml(size)}</span>
-                        </a>`;
+                            <span class="note-file-size">${escapeHtml(d.kind === 'files' ? t('tickets.notes.in_files') : size)}</span>
+                        </a>${saveBtn}</span>`;
             }).join('') + '</div>';
         }
 
@@ -7320,7 +7329,59 @@ function renderPendingNoteFiles() {
                     title="${escapeHtml(t('tickets.note_modal.remove_file'))}"
                     aria-label="${escapeHtml(t('tickets.note_modal.remove_file'))}">&times;</button>
         </span>
+    `).join('') + pendingNoteFromFiles.map((f, i) => `
+        <span class="note-file">
+            <span class="note-file-name">${escapeHtml(f.name)}</span>
+            <span class="note-file-size">${escapeHtml(t(f.how === 'copy' ? 'tickets.note_modal.from_files_as_copy' : 'tickets.note_modal.from_files_as_link'))}</span>
+            <button type="button" class="note-file-remove" data-fidx="${i}"
+                    title="${escapeHtml(t('tickets.note_modal.remove_file'))}"
+                    aria-label="${escapeHtml(t('tickets.note_modal.remove_file'))}">&times;</button>
+        </span>
     `).join('');
+}
+
+// ===== From Files on a note (GH #303) =======================================
+// A file already in Files, attached to the note once it is saved - as a link (opened
+// through Files, under its folder's permissions, never shown in the portal) or a copy,
+// as Files -> Settings -> Sharing allows. Searched with the Documents panel's own
+// find.php (which only returns files in folders the person can open); attached with
+// its attach.php, which checks everything again.
+let pendingNoteFromFiles = [];
+let noteFromFilesTimer = null;
+
+/** Shows or hides the From Files search in the note window. */
+function toggleNoteFromFiles() {
+    const box = document.getElementById('noteFromFiles');
+    if (!box) return;
+    box.hidden = !box.hidden;
+    if (!box.hidden) document.getElementById('noteFromFilesQ').focus();
+}
+
+/** Searches Files for the From Files box (two letters or more). */
+function searchNoteFromFiles(q) {
+    const out = document.getElementById('noteFromFilesResults');
+    if (!out || !currentEmail) return;
+    if (q.trim().length < 2) { out.innerHTML = ''; return; }
+    fetch(`../api/documents/find.php?q=${encodeURIComponent(q)}&parent_type=ticket&parent_id=${Number(currentEmail.ticket_id)}`, { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(d => {
+            const files = (d && d.files) || [];
+            if (!files.length) { out.innerHTML = `<div class="note-from-files-none">${escapeHtml(t('tickets.note_modal.from_files_none'))}</div>`; return; }
+            out.innerHTML = files.map(f => `
+                <div class="note-from-files-row">
+                    <span class="note-from-files-name">${escapeHtml(f.name)}</span>
+                    <span class="note-from-files-path">${escapeHtml(f.path)}</span>
+                    ${f.can_link ? `<button type="button" class="stf-save-btn" onclick="addNoteFromFiles(${Number(f.item_id)}, 'link', ${jsArg(f.name)})">${escapeHtml(t('tickets.note_modal.from_files_link'))}</button>` : ''}
+                    ${f.can_copy ? `<button type="button" class="stf-save-btn" onclick="addNoteFromFiles(${Number(f.item_id)}, 'copy', ${jsArg(f.name)})">${escapeHtml(t('tickets.note_modal.from_files_copy'))}</button>` : ''}
+                </div>`).join('');
+        })
+        .catch(() => { out.innerHTML = ''; });
+}
+
+/** Adds a Files pick to the note's files - attached when the note is saved. */
+function addNoteFromFiles(itemId, how, name) {
+    if (!pendingNoteFromFiles.some(f => f.item_id === itemId && f.how === how)) pendingNoteFromFiles.push({ item_id: itemId, how: how, name: name });
+    renderPendingNoteFiles();
 }
 
 // Files on a note work whether or not the note is shared. They did NOT before
@@ -7334,9 +7395,19 @@ function renderPendingNoteFiles() {
 function openNoteModal() {
     noteEditor().clear();
     pendingNoteFiles = [];
+    pendingNoteFromFiles = [];   // GH #303
     renderPendingNoteFiles();
+    const fromBtn = document.getElementById('noteFromFilesBtn');
+    if (fromBtn) fromBtn.hidden = !window.TICKET_SAVE_TO_FILES;
+    const fromBox = document.getElementById('noteFromFiles');
+    if (fromBox) { fromBox.hidden = true; document.getElementById('noteFromFilesQ').value = ''; document.getElementById('noteFromFilesResults').innerHTML = ''; }
     const fileInput = document.getElementById('noteFileInput');
     if (fileInput) fileInput.value = '';
+    const fromQ = document.getElementById('noteFromFilesQ');
+    if (fromQ && !fromQ.dataset.wired) {   // GH #303: wired once, the first time the window opens
+        fromQ.dataset.wired = '1';
+        fromQ.addEventListener('input', () => { clearTimeout(noteFromFilesTimer); noteFromFilesTimer = setTimeout(() => searchNoteFromFiles(fromQ.value), 250); });
+    }
 
     // Always reset to INTERNAL. Leaving it ticked from a previous note is how
     // somebody shares an internal remark with a customer by accident.
@@ -7399,7 +7470,8 @@ document.addEventListener('DOMContentLoaded', function () {
         list.addEventListener('click', function (e) {
             const btn = e.target.closest('.note-file-remove');
             if (!btn) return;
-            pendingNoteFiles.splice(parseInt(btn.dataset.idx, 10), 1);
+            if (btn.dataset.fidx !== undefined) pendingNoteFromFiles.splice(parseInt(btn.dataset.fidx, 10), 1);   // GH #303
+            else pendingNoteFiles.splice(parseInt(btn.dataset.idx, 10), 1);
             renderPendingNoteFiles();
         });
     }
@@ -7500,6 +7572,21 @@ async function saveNoteNow() {
                     }), 'error');
                 }
             }
+            // GH #303: the From Files picks, now the note has an id. Say which failed and why.
+            if (pendingNoteFromFiles.length && data.note_id) {
+                const failed = [];
+                for (const f of pendingNoteFromFiles) {
+                    try {
+                        const r = await fetch('../api/documents/attach.php', {
+                            method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ files_item_id: f.item_id, how: f.how, parent_type: 'ticket_note', parent_id: data.note_id })
+                        }).then(x => x.json());
+                        if (!r.success) failed.push(f.name + ' - ' + String(r.error || '').replace(/\s*\.\s*$/, ''));
+                    } catch (e) { failed.push(f.name); }
+                }
+                if (failed.length) showToast(t('tickets.note_modal.from_files_failed', { names: failed.join('; ') }), 'error');
+            }
+            pendingNoteFromFiles = [];
             pendingNoteFiles = [];
             noteEditor().clear();
             closeNoteModal();

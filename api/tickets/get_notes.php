@@ -94,9 +94,12 @@ try {
         try {
             $ids = array_column($notes, 'id');
             $in  = implode(',', array_fill(0, count($ids), '?'));
+            require_once __DIR__ . '/../../includes/services/files_attach.php';
+            $filesReady = DocumentsService::filesLinkReady($conn);   // GH #303
             $dStmt = $conn->prepare(
                 "SELECT dl.parent_id AS note_id, d.id, d.kind, d.title,
-                        d.original_name, d.mime_type, d.size_bytes, d.external_url
+                        d.original_name, d.mime_type, d.size_bytes, d.external_url" .
+                        ($filesReady ? ', d.files_item_id' : '') . "
                    FROM document_links dl
                    JOIN documents d ON d.id = dl.document_id
                   WHERE dl.parent_type = 'ticket_note'
@@ -110,6 +113,15 @@ try {
                 unset($d['note_id']);
                 $d['id']          = (int) $d['id'];
                 $d['size_bytes']  = $d['size_bytes'] === null ? null : (int) $d['size_bytes'];
+                // GH #303: a file in Files - its name and a way in only for someone who can
+                // open its folder ("hidden means not found"); for anyone else, only that one exists.
+                if ($d['kind'] === 'files') {
+                    $fv = FilesAttach::viewFor($conn, (int) $_SESSION['analyst_id'], (int) ($d['files_item_id'] ?? 0));
+                    $d['files_access'] = $fv['access'];
+                    $d['files_gone']   = $fv['gone'];
+                    if (!$fv['access']) { $d['title'] = ''; $d['original_name'] = null; }
+                }
+                unset($d['files_item_id']);
                 $noteDocs[$nid][] = $d;
             }
         } catch (Exception $e) {
