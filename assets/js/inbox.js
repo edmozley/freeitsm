@@ -3982,6 +3982,14 @@ function buildLinksSection(email, workspace = false) {
     (L.duplicates || []).forEach(d => pills.push(tp(d, 'Duplicate:')));
     (L.related || []).forEach(r => pills.push(tp(r, 'Related:')));
 
+    // GH #316: the Starters & leavers case that raised this ticket - who it is for, and the way back to the case.
+    if (email.jml_case) {
+        const jc = email.jml_case;
+        pills.push(`<a class="pm-ticket-badge" href="../starters/view.php?id=${jc.id}" target="_blank" title="${escapeHtml(t('tickets.jml_case_tip'))}">
+            🧳 <span class="pill-text">${escapeHtml(t('tickets.jml_case_' + jc.kind, { name: jc.person_name }))}</span>
+        </a>`);
+    }
+
     // External issue trackers (#950). A Jira issue IS a link, so it belongs in
     // this strip rather than in a panel of its own — an analyst already looks
     // here for "what else is this connected to".

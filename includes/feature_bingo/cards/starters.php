@@ -8,6 +8,18 @@
 
 return [
     [
+        'id'       => 'starters.step_as_ticket',
+        'module'   => 'starters',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Starter steps as tickets',
+        'what'     => 'Template steps raised as tickets in the teams\' queues instead of tasks - steps with the same ticket name become one ticket with a checklist, linked to the case and counted in its progress.',
+        'why'      => 'A service desk that works from the ticket queue sees starter and leaver work where it sees everything else, split the way your teams are.',
+        'done'     => 'At least one template step is raised as a ticket.',
+        'link'     => 'starters/settings/',
+        'check'    => ['rows', 'jml_template_steps', "raise_as = 'ticket'"],
+    ],
+    [
         'id'       => 'starters.templates',
         'module'   => 'starters',
         'tier'     => 'recommended',

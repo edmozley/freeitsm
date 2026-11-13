@@ -10724,12 +10724,17 @@ CREATE TABLE IF NOT EXISTS `jml_templates` (
     -- op, value}]} against the answers, by question LABEL so a new form version
     -- keeps working. NULL = the template to use when no other one matches.
     `match_rule`        TEXT NULL,
+    -- GH #316: for steps raised as TICKETS - the ticket type they get (NULL = the usual
+    -- default), and whether their requester gets the automatic emails and survey.
+    `ticket_type_id`    INT NULL,
+    `email_requester`   TINYINT(1) NOT NULL DEFAULT 0,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_jml_templates_kind` (`kind`, `is_active`),
     CONSTRAINT `fk_jml_templates_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_jml_templates_form` FOREIGN KEY (`form_id`) REFERENCES `forms` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_jml_templates_form` FOREIGN KEY (`form_id`) REFERENCES `forms` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_jml_templates_ticket_type` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_types` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One step of a template. Becomes a subtask of the case's task, due
@@ -10747,6 +10752,11 @@ CREATE TABLE IF NOT EXISTS `jml_template_steps` (
     -- Only if: JSON {match, rules:[{question, op, value}]} against the case's
     -- answers (same operators as a form's show/hide rules). NULL = always.
     `condition_rule`         TEXT NULL,
+    -- GH #316: raised as a 'task' (a subtask of the case, as always) or a 'ticket'.
+    -- Ticket steps with the same ticket_name become ONE ticket, each step an item of
+    -- its checklist. Blank = a ticket of its own.
+    `raise_as`               VARCHAR(10) NOT NULL DEFAULT 'task',
+    `ticket_name`            VARCHAR(100) NULL,
     `display_order`          INT NOT NULL DEFAULT 0,
     `is_demo`                TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
@@ -10797,6 +10807,24 @@ CREATE TABLE IF NOT EXISTS `jml_cases` (
     CONSTRAINT `fk_jml_cases_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_jml_cases_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_jml_cases_submission` FOREIGN KEY (`form_submission_id`) REFERENCES `form_submissions` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- GH #316: the tickets a case raised (template steps raised as tickets). Progress
+-- counts each as one step, done when the ticket is closed. mute_requester is the
+-- template's "email the requester" when the ticket was raised, kept here so a later
+-- change to the template does not change tickets already out (includes/ticket_requester_mute.php).
+CREATE TABLE IF NOT EXISTS `jml_case_tickets` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `case_id`          INT NOT NULL,
+    `ticket_id`        INT NOT NULL,
+    `ticket_name`      VARCHAR(100) NULL,
+    `mute_requester`   TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_jml_case_ticket` (`case_id`, `ticket_id`),
+    KEY `idx_jml_case_tickets_ticket` (`ticket_id`),
+    CONSTRAINT `fk_jml_ct_case` FOREIGN KEY (`case_id`) REFERENCES `jml_cases` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_jml_ct_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- A case's history, the same shape as project_audit.

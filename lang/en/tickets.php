@@ -753,6 +753,12 @@ return [
         'label_delete'     => 'Deleting',
     ],
 
+    // GH #316: the pill on a ticket raised by a Starters & leavers case.
+    'jml_case_starter' => 'Starter: {name}',
+    'jml_case_mover'   => 'Mover: {name}',
+    'jml_case_leaver'  => 'Leaver: {name}',
+    'jml_case_tip'     => 'The Starters & leavers case this ticket was raised for',
+
     // GH #307: suggestions under To and Cc (assets/js/address-suggest.js).
     'address_suggest' => [
         'service_desk'    => 'Service desk',

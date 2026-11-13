@@ -426,6 +426,9 @@ function sendCsatSurvey(PDO $conn, int $ticketId, ?int $analystId, bool $force =
  */
 function csatAutoOnClose(PDO $conn, int $ticketId, ?int $analystId): void {
     if (csatGetSetting($conn, 'csat_mode', 'off') !== 'auto') return;
+    // GH #316: a Starters & leavers ticket whose template does not email the requester - no survey either.
+    require_once __DIR__ . '/ticket_requester_mute.php';
+    if (ticketRequesterEmailsMuted($conn, $ticketId)) return;
     $delay = max(0, (int)csatGetSetting($conn, 'csat_delay_minutes', '0'));
     if ($delay > 0) {
         try {

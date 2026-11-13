@@ -289,3 +289,9 @@ a.jml-step-title:hover { color: var(--jml-accent, #a16207); text-decoration: und
 /* Inside the steps table the rule's boxes size to their words, not the column. */
 .jml-steps-edit .jml-rule select, .jml-steps-edit .jml-rule input { width: auto; min-width: 110px; max-width: 240px; }
 .jml-rule [hidden] { display: none !important; }
+
+/* GH #316: Raise as / Ticket in the template editor */
+.jml-steps-edit td.jml-raise select { width: 90px; }
+.jml-steps-edit td.jml-raise input[type="text"] { margin-top: 4px; width: 140px; }
+.jml-warn { margin-top: 6px; font-size: 12px; color: var(--warning-text); background: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: 6px; padding: 6px 8px; }
+.jml-tickets td .jml-dim { font-size: 12px; }

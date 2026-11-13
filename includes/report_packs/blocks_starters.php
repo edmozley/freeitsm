@@ -32,12 +32,39 @@ const RP_STARTERS_DIMENSIONS = [
 const RP_STARTERS_KIND_COLOURS   = ['starter' => '#16a34a', 'mover' => '#2563eb', 'leaver' => '#f59e0b'];
 const RP_STARTERS_STATUS_COLOURS = ['open' => '#2563eb', 'done' => '#16a34a', 'cancelled' => '#94a3b8'];
 
-/** Steps done and total for a case, as SQL columns on alias c. */
-function rpStartersProgressCols(): string
+/** Steps done and total for a case, as SQL columns on alias c - the Starters register's own definition (tasks and, GH #316, tickets). */
+function rpStartersProgressCols(PDO $conn): string
 {
-    return "(SELECT COUNT(*) FROM tasks s WHERE s.parent_task_id = c.parent_task_id) AS steps_total,
-            (SELECT COUNT(*) FROM tasks s JOIN task_statuses ss ON ss.id = s.status_id
-              WHERE s.parent_task_id = c.parent_task_id AND ss.is_closed = 1) AS steps_done";
+    return StartersService::progressSql($conn);
+}
+
+/**
+ * GH #316: a case's open work that is past due, as one derived table with the columns the
+ * overdue count and list read - person_name, kind, effective_date, title, due_date,
+ * analyst_name, team_name, case_status, tenant_id. Its subtasks, and its tickets (due =
+ * the day they are scheduled on; a ticket in the trash is not work).
+ */
+function rpStartersOpenWorkSql(PDO $conn): string
+{
+    $tasks = "SELECT c.person_name, c.kind, c.effective_date, s.title, s.due_date, a.full_name AS analyst_name, tm.name AS team_name,
+                     c.status AS case_status, c.tenant_id, s.id AS sort_id
+                FROM jml_cases c
+                JOIN tasks s ON s.parent_task_id = c.parent_task_id
+           LEFT JOIN task_statuses ss ON ss.id = s.status_id
+           LEFT JOIN analysts a ON a.id = s.assigned_analyst_id
+           LEFT JOIN teams tm ON tm.id = s.assigned_team_id
+               WHERE COALESCE(ss.is_closed, 0) = 0 AND s.due_date IS NOT NULL";
+    if (!StartersService::ticketsReady($conn)) return "($tasks)";
+    $tickets = "SELECT c.person_name, c.kind, c.effective_date, CONCAT(tk.ticket_number, ' ', COALESCE(ct.ticket_name, tk.subject)), DATE(tk.work_start_datetime),
+                       a.full_name, tm.name, c.status, c.tenant_id, tk.id
+                  FROM jml_cases c
+                  JOIN jml_case_tickets ct ON ct.case_id = c.id
+                  JOIN tickets tk ON tk.id = ct.ticket_id
+             LEFT JOIN ticket_statuses ts ON ts.id = tk.status_id
+             LEFT JOIN analysts a ON a.id = tk.assigned_analyst_id
+             LEFT JOIN teams tm ON tm.id = tk.assigned_team_id
+                 WHERE COALESCE(ts.is_closed, 0) = 0 AND tk.deleted_datetime IS NULL AND tk.work_start_datetime IS NOT NULL";
+    return "($tasks UNION ALL $tickets)";
 }
 
 /**
@@ -92,11 +119,8 @@ function rpStartersKpis(PDO $conn, int $analystId, array $o, array $range, $tena
     $st->execute($tArgs);
     $open = (int)$st->fetchColumn();
     $st = $conn->prepare(
-        "SELECT COUNT(*) FROM jml_cases c
-           JOIN tasks s ON s.parent_task_id = c.parent_task_id
-      LEFT JOIN task_statuses ss ON ss.id = s.status_id
-          WHERE c.status = 'open' AND COALESCE(ss.is_closed, 0) = 0
-            AND s.due_date IS NOT NULL AND s.due_date < ? $tSql");
+        "SELECT COUNT(*) FROM " . rpStartersOpenWorkSql($conn) . " c
+          WHERE c.case_status = 'open' AND c.due_date < ? $tSql");
     $st->execute(array_merge([gmdate('Y-m-d')], $tArgs));
     $overdue = (int)$st->fetchColumn();
 
@@ -123,6 +147,7 @@ function rpStartersKpis(PDO $conn, int $analystId, array $o, array $range, $tena
 function rpStartersReadyCounts(PDO $conn, int $analystId, array $range, $tenant): array
 {
     [$where, $args] = rpStartersWhere($conn, $analystId, $range, $tenant);
+    $tk = StartersService::ticketsReady($conn);   // GH #316: a ticket counts as a step, closed by the end of the day
     // A step counts as done in time when its status is closed and it was completed
     // before the day after the case's date. completed_datetime is UTC; the date is
     // the organisation's calendar day - close enough for a monthly figure.
@@ -133,10 +158,17 @@ function rpStartersReadyCounts(PDO $conn, int $analystId, array $range, $tenant)
                          WHERE s.parent_task_id = c.parent_task_id
                            AND (COALESCE(ss.is_closed, 0) = 0 OR s.completed_datetime IS NULL
                                 OR s.completed_datetime >= DATE_ADD(c.effective_date, INTERVAL 1 DAY))
-                    ) THEN 1 ELSE 0 END) AS ready
+                    )" . ($tk ? "
+                    AND NOT EXISTS (
+                        SELECT 1 FROM jml_case_tickets ct JOIN tickets tk ON tk.id = ct.ticket_id LEFT JOIN ticket_statuses ts ON ts.id = tk.status_id
+                         WHERE ct.case_id = c.id AND tk.deleted_datetime IS NULL
+                           AND (COALESCE(ts.is_closed, 0) = 0 OR tk.closed_datetime IS NULL
+                                OR tk.closed_datetime >= DATE_ADD(c.effective_date, INTERVAL 1 DAY))
+                    )" : '') . " THEN 1 ELSE 0 END) AS ready
            FROM jml_cases c
          $where AND c.effective_date <= ?
-            AND EXISTS (SELECT 1 FROM tasks s2 WHERE s2.parent_task_id = c.parent_task_id)");
+            AND (EXISTS (SELECT 1 FROM tasks s2 WHERE s2.parent_task_id = c.parent_task_id)"
+            . ($tk ? " OR EXISTS (SELECT 1 FROM jml_case_tickets ct2 WHERE ct2.case_id = c.id)" : '') . ")");
     $st->execute(array_merge($args, [gmdate('Y-m-d')]));
     $r = $st->fetch(PDO::FETCH_ASSOC) ?: [];
     return ['ready' => (int)($r['ready'] ?? 0), 'total' => (int)($r['total'] ?? 0)];
@@ -184,7 +216,7 @@ function rpStartersList(PDO $conn, int $analystId, array $o, array $range, $tena
     if ($o['status'] === 'open') $where .= " AND c.status = 'open'";
     $st = $conn->prepare(
         "SELECT c.id, c.kind, c.person_name, c.job_title, c.effective_date, c.status,
-                tp.name AS template_name, own.full_name AS owner_name, " . rpStartersProgressCols() . "
+                tp.name AS template_name, own.full_name AS owner_name, " . rpStartersProgressCols($conn) . "
            FROM jml_cases c
       LEFT JOIN jml_templates tp ON tp.id = c.template_id
       LEFT JOIN analysts own ON own.id = c.owner_analyst_id
@@ -238,16 +270,10 @@ function rpStartersOverdue(PDO $conn, int $analystId, array $o, array $range, $t
     if ($o['kind'] !== 'all' && JmlKind::tryFrom($o['kind'])) { $kindSql = ' AND c.kind = ?'; $kindArgs[] = $o['kind']; }
     $today = gmdate('Y-m-d');
     $st = $conn->prepare(
-        "SELECT c.person_name, c.kind, c.effective_date, s.title, s.due_date,
-                a.full_name AS analyst_name, tm.name AS team_name
-           FROM jml_cases c
-           JOIN tasks s ON s.parent_task_id = c.parent_task_id
-      LEFT JOIN task_statuses ss ON ss.id = s.status_id
-      LEFT JOIN analysts a ON a.id = s.assigned_analyst_id
-      LEFT JOIN teams tm ON tm.id = s.assigned_team_id
-          WHERE c.status = 'open' AND COALESCE(ss.is_closed, 0) = 0
-            AND s.due_date IS NOT NULL AND s.due_date < ? $kindSql $tSql
-       ORDER BY s.due_date ASC, c.effective_date ASC, s.id ASC
+        "SELECT c.person_name, c.kind, c.effective_date, c.title, c.due_date, c.analyst_name, c.team_name
+           FROM " . rpStartersOpenWorkSql($conn) . " c
+          WHERE c.case_status = 'open' AND c.due_date < ? $kindSql $tSql
+       ORDER BY c.due_date ASC, c.effective_date ASC, c.sort_id ASC
           LIMIT " . ((int)$o['limit'] + 1));
     $st->execute(array_merge([$today], $kindArgs, $tArgs));
     $rows = $st->fetchAll(PDO::FETCH_ASSOC);

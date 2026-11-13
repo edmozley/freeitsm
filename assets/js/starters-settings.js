@@ -99,12 +99,18 @@
             + '<td><select data-f="assigned_analyst_id">' + opts(look.analysts, s.assigned_analyst_id, T('settings.step_none')) + '</select></td>'
             + '<td><input type="number" data-f="due_offset_days" min="-365" max="365" value="' + (s.due_offset_days || 0) + '" title="' + esc(T('settings.step_days_tip')) + '"></td>'
             + '<td><select data-f="checklist_template_id">' + opts(look.checklists, s.checklist_template_id, T('settings.step_none')) + '</select></td>'
+            // GH #316: a task (as always) or a ticket; ticket steps with the same name are one ticket.
+            + '<td class="jml-raise"><select data-f="raise_as"' + (look.tickets_ready ? '' : ' disabled title="' + esc(T('settings.tickets_not_ready')) + '"') + '>'
+            +   '<option value="task"' + (s.raise_as !== 'ticket' ? ' selected' : '') + '>' + esc(T('settings.raise_task')) + '</option>'
+            +   '<option value="ticket"' + (s.raise_as === 'ticket' ? ' selected' : '') + '>' + esc(T('settings.raise_ticket')) + '</option></select>'
+            + '<input type="text" data-f="ticket_name" list="jmlTplTicketNames" maxlength="100" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore'
+            +   ' value="' + esc(s.ticket_name || '') + '" placeholder="' + esc(T('settings.ticket_name_ph')) + '" title="' + esc(T('settings.ticket_name_tip')) + '"' + (s.raise_as === 'ticket' ? '' : ' hidden') + '></td>'
             + '<td class="ops">'
             + '<button type="button" class="jml-icon-btn" data-op="up" title="' + esc(T('settings.step_up')) + '">' + icon('<path d="M18 15l-6-6-6 6"/>') + '</button>'
             + '<button type="button" class="jml-icon-btn" data-op="down" title="' + esc(T('settings.step_down')) + '">' + icon('<path d="M6 9l6 6 6-6"/>') + '</button>'
             + '<button type="button" class="jml-icon-btn danger" data-op="remove" title="' + esc(T('settings.step_remove')) + '">' + icon('<path d="M18 6L6 18M6 6l12 12"/>') + '</button>'
             + '</td></tr>'
-            + (questions.length ? '<tr class="jml-cond"><td colspan="6"><div class="jml-rule"><span class="jml-dim">' + esc(T('settings.only_if')) + '</span>'
+            + (questions.length ? '<tr class="jml-cond"><td colspan="7"><div class="jml-rule"><span class="jml-dim">' + esc(T('settings.only_if')) + '</span>'
                 + ruleControls(s.condition_rule, T('settings.always')) + '</div></td></tr>' : '')
             + '</tbody>';
     }
@@ -123,6 +129,31 @@
         const table = $('jmlTplStepsTable');
         table.querySelectorAll('.jml-step-group').forEach(g => g.remove());
         table.insertAdjacentHTML('beforeend', steps.map(stepGroup).join(''));
+        ticketBits();
+    }
+
+    /**
+     * GH #316: keeps the ticket parts of the dialog in step with the steps - the name box only
+     * on ticket steps, the names already used offered as suggestions (so one ticket is not typed
+     * two ways), and a warning when the steps of one ticket name different teams (the ticket
+     * goes to the first step's team).
+     */
+    function ticketBits() {
+        const groups = {};
+        document.querySelectorAll('#jmlTplStepsTable .jml-step-group').forEach(g => {
+            const raise = g.querySelector('[data-f="raise_as"]'), name = g.querySelector('[data-f="ticket_name"]');
+            if (!raise || !name) return;
+            name.hidden = raise.value !== 'ticket';
+            const n = name.value.trim();
+            if (raise.value === 'ticket' && n) {
+                const key = n.toLowerCase();
+                (groups[key] = groups[key] || { name: n, teams: new Set() }).teams.add(g.querySelector('[data-f="assigned_team_id"]').value);
+            }
+        });
+        $('jmlTplTicketNames').innerHTML = Object.values(groups).map(x => '<option value="' + esc(x.name) + '">').join('');
+        const mixed = Object.values(groups).filter(x => x.teams.size > 1).map(x => x.name);
+        $('jmlTplTicketWarn').hidden = !mixed.length;
+        $('jmlTplTicketWarn').textContent = mixed.length ? T('settings.ticket_teams_differ', { names: mixed.join(', ') }) : '';
     }
 
     // ---- the form ----------------------------------------------------------------
@@ -151,6 +182,12 @@
         $('jmlTplKind').value = t ? t.kind : 'starter';
         $('jmlTplDesc').value = t ? (t.description || '') : '';
         $('jmlTplActive').checked = t ? t.is_active : true;
+        // GH #316: what ticket steps get.
+        $('jmlTplTicketType').innerHTML = '<option value="">' + esc(T('settings.ticket_type_default')) + '</option>'
+            + (look.ticket_types || []).map(x => '<option value="' + x.id + '">' + esc(x.name) + '</option>').join('');
+        $('jmlTplTicketType').value = t && t.ticket_type_id ? String(t.ticket_type_id) : '';
+        $('jmlTplEmailReq').checked = !!(t && t.email_requester);
+        $('jmlTplTicketBits').hidden = !look.tickets_ready;
         $('jmlTplDelete').hidden = !t;
         $('jmlTplError').hidden = true;
         const sel = $('jmlTplForm');
@@ -173,6 +210,7 @@
                 id: editing ? editing.id : null, name: $('jmlTplName').value, kind: $('jmlTplKind').value,
                 description: $('jmlTplDesc').value, is_active: $('jmlTplActive').checked,
                 form_id: $('jmlTplForm').value || null, match_rule: readRule($('jmlTplMatch')), steps: readSteps(),
+                ticket_type_id: $('jmlTplTicketType').value || null, email_requester: $('jmlTplEmailReq').checked,
             } });
             m.close();
             window.showToast && showToast(T('settings.saved'), 'success');
@@ -241,6 +279,9 @@
             else if (b.dataset.op === 'down' && i < steps.length - 1) [steps[i + 1], steps[i]] = [steps[i], steps[i + 1]];
             drawSteps(steps.length ? steps : [{}]);
         });
+        // GH #316: Raise as, a ticket name or a team changed - the name box, the suggestions and the team warning follow.
+        $('jmlTplStepsTable').addEventListener('change', e => { if (e.target.matches('[data-f="raise_as"], [data-f="assigned_team_id"], [data-f="ticket_name"]')) ticketBits(); });
+        $('jmlTplStepsTable').addEventListener('input', e => { if (e.target.matches('[data-f="ticket_name"]')) ticketBits(); });
         try { await load(); } catch (e) { $('jmlTplList').innerHTML = '<p class="jml-error">' + esc(e.message) + '</p>'; return; }
         // ?template=<id> - a case page's link straight to the template it used.
         const want = new URLSearchParams(location.search).get('template');

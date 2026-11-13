@@ -88,6 +88,8 @@ final class StartersService
             $t['is_active'] = (bool)(int)$t['is_active'];
             $t['form_id'] = $t['form_id'] !== null ? (int)$t['form_id'] : null;
             $t['match_rule'] = $t['match_rule'] ? json_decode($t['match_rule'], true) : null;
+            $t['ticket_type_id'] = isset($t['ticket_type_id']) && $t['ticket_type_id'] !== null ? (int)$t['ticket_type_id'] : null;   // GH #316
+            $t['email_requester'] = !empty($t['email_requester']);
             $t['steps'] = self::steps($conn, $t['id']);
             $out[] = $t;
         }
@@ -162,6 +164,15 @@ final class StartersService
         }
         // Rules and "only if" need answers to test - without a form they are dropped.
         $match = $formId ? self::cleanRule($in['match_rule'] ?? null) : null;
+        // GH #316: what ticket steps get. Saved only once Database Verification has added the columns.
+        $tkCols = self::ticketsReady($conn);
+        $ticketTypeId = !empty($in['ticket_type_id']) ? (int)$in['ticket_type_id'] : null;
+        if ($ticketTypeId) {
+            $tt = $conn->prepare("SELECT 1 FROM ticket_types WHERE id = ?");
+            $tt->execute([$ticketTypeId]);
+            if (!$tt->fetchColumn()) throw new ServiceError('validation', 'invalid_field', 'That ticket type no longer exists.');
+        }
+        $emailRequester = !empty($in['email_requester']) ? 1 : 0;
         $steps = is_array($in['steps'] ?? null) ? $in['steps'] : [];
         $clean = [];
         foreach ($steps as $s) {
@@ -175,6 +186,9 @@ final class StartersService
                 'offset'  => max(-365, min(365, (int)($s['due_offset_days'] ?? 0))),
                 'list'    => !empty($s['checklist_template_id']) ? (int)$s['checklist_template_id'] : null,
                 'rule'    => $formId ? self::cleanRule($s['condition_rule'] ?? null) : null,
+                // GH #316: a task (a subtask of the case, as always) or a ticket; ticket steps with the same name are one ticket.
+                'raise'   => ($s['raise_as'] ?? '') === 'ticket' ? 'ticket' : 'task',
+                'tname'   => ($s['raise_as'] ?? '') === 'ticket' ? (mb_substr(trim((string)($s['ticket_name'] ?? '')), 0, 100) ?: null) : null,
             ];
         }
 
@@ -186,16 +200,21 @@ final class StartersService
             if ($id) {
                 $conn->prepare("UPDATE jml_templates SET kind = ?, name = ?, description = ?, is_active = ?, form_id = ?, match_rule = ? WHERE id = ?")
                      ->execute([$kind->value, mb_substr($name, 0, 150), $desc, !empty($in['is_active']) ? 1 : 0, $formId, $match, $id]);
+                if ($tkCols) $conn->prepare("UPDATE jml_templates SET ticket_type_id = ?, email_requester = ? WHERE id = ?")->execute([$ticketTypeId, $emailRequester, $id]);
                 $conn->prepare("DELETE FROM jml_template_steps WHERE template_id = ?")->execute([$id]);
             } else {
                 $conn->prepare("INSERT INTO jml_templates (kind, name, description, is_active, form_id, match_rule) VALUES (?, ?, ?, ?, ?, ?)")
                      ->execute([$kind->value, mb_substr($name, 0, 150), $desc, array_key_exists('is_active', $in) && empty($in['is_active']) ? 0 : 1, $formId, $match]);
                 $id = (int)$conn->lastInsertId();
+                if ($tkCols) $conn->prepare("UPDATE jml_templates SET ticket_type_id = ?, email_requester = ? WHERE id = ?")->execute([$ticketTypeId, $emailRequester, $id]);
             }
-            $ins = $conn->prepare("INSERT INTO jml_template_steps (template_id, title, description, assigned_team_id, assigned_analyst_id, due_offset_days, checklist_template_id, condition_rule, display_order)
-                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $ins = $conn->prepare("INSERT INTO jml_template_steps (template_id, title, description, assigned_team_id, assigned_analyst_id, due_offset_days, checklist_template_id, condition_rule, display_order"
+                                   . ($tkCols ? ', raise_as, ticket_name' : '') . ")
+                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?" . ($tkCols ? ', ?, ?' : '') . ")");
             foreach ($clean as $i => $s) {
-                $ins->execute([$id, $s['title'], $s['desc'], $s['team'], $s['analyst'], $s['offset'], $s['list'], $s['rule'], $i]);
+                $vals = [$id, $s['title'], $s['desc'], $s['team'], $s['analyst'], $s['offset'], $s['list'], $s['rule'], $i];
+                if ($tkCols) { $vals[] = $s['raise']; $vals[] = $s['tname']; }
+                $ins->execute($vals);
             }
             if ($own) $conn->commit();
             return $id;
@@ -356,8 +375,36 @@ final class StartersService
         $raw = $submissionId ? self::rawAnswers($conn, $submissionId) : [];
         $fill = fn(?string $text) => $text === null ? null : self::fillAnswers($text, $answers, $c);
         $added = 0; $skipped = 0;
+        $ticketGroups = [];   // GH #316: ticket name (or one step's own key) => its steps, in template order
+        $canTicket = self::ticketsReady($conn);
         foreach (self::steps($conn, (int)$template['id']) as $step) {
             if (!self::ruleMet($step['condition_rule'], $raw)) { $skipped++; continue; }
+            if ($canTicket && ($step['raise_as'] ?? 'task') === 'ticket') {
+                $key = trim((string)($step['ticket_name'] ?? '')) !== '' ? 'n:' . mb_strtolower(trim((string)$step['ticket_name'])) : 's:' . $step['id'];
+                $ticketGroups[$key][] = $step;
+                continue;
+            }
+            if (self::addTaskStep($conn, $ctx, $c, $caseId, $step, $fill, $warnings)) $added++;
+        }
+        foreach ($ticketGroups as $group) {
+            $added += self::raiseTicket($conn, $ctx, $c, $caseId, $template, $group, $fill, $answers, $warnings);
+        }
+        $conn->prepare("UPDATE jml_cases SET steps_pending = 0 WHERE id = ?")->execute([$caseId]);
+        if ($answers) {
+            TasksService::saveTask($conn, $ctx, ['id' => (int)$c['parent_task_id'], 'description' => self::taskDescription($caseId, $answers, self::writeLocale($conn, $ctx, $c['owner_analyst_id'] ? (int)$c['owner_analyst_id'] : null))]);
+        }
+        self::audit($conn, $caseId, $ctx, 'steps_added', $skipped ? (string)$skipped : null, (string)$added);
+    }
+
+    /**
+     * One template step as a subtask of the case's task - due its offset from the date, its
+     * checklist attached. A failure is written to the case's history and to $warnings.
+     *
+     * @param callable $fill  fills {Question} and the case's own codes in a step's text
+     * @return bool  whether the task was made
+     */
+    private static function addTaskStep(PDO $conn, ActorContext $ctx, array $c, int $caseId, array $step, callable $fill, array &$warnings): bool
+    {
             try {
                 $due = (new DateTimeImmutable($c['effective_date']))->modify(sprintf('%+d days', $step['due_offset_days']))->format('Y-m-d');
                 $sub = TasksService::saveTask($conn, $ctx, array_filter([
@@ -371,17 +418,229 @@ final class StartersService
                 if ($step['checklist_template_id']) {
                     ChecklistsService::attachTemplateToTask($conn, $ctx, (int)$sub['id'], $step['checklist_template_id']);
                 }
-                $added++;
+                return true;
             } catch (ServiceError $e) {
                 self::audit($conn, $caseId, $ctx, 'step_failed', $step['title'], $e->getMessage());
                 $warnings[] = I18n::tFor($ctx->locale, 'starters.written.step_failed', ['step' => $step['title'], 'error' => $e->getMessage()]);
+                return false;
             }
+    }
+
+    // ======================================================================
+    //  Steps raised as tickets (GH #316)
+    // ======================================================================
+
+    /** Are the GH #316 columns and table there yet (Database Verification)? Cached per request. */
+    public static function ticketsReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready !== null) return $ready;
+        try {
+            $conn->query("SELECT raise_as, ticket_name FROM jml_template_steps LIMIT 0");
+            $conn->query("SELECT ticket_type_id, email_requester FROM jml_templates LIMIT 0");
+            $conn->query("SELECT mute_requester FROM jml_case_tickets LIMIT 0");
+            return $ready = true;
+        } catch (Throwable $e) {
+            return $ready = false;
         }
-        $conn->prepare("UPDATE jml_cases SET steps_pending = 0 WHERE id = ?")->execute([$caseId]);
-        if ($answers) {
-            TasksService::saveTask($conn, $ctx, ['id' => (int)$c['parent_task_id'], 'description' => self::taskDescription($caseId, $answers, self::writeLocale($conn, $ctx, $c['owner_analyst_id'] ? (int)$c['owner_analyst_id'] : null))]);
+    }
+
+    /**
+     * Who a case's tickets are raised for. A ticket must have a requester, so: whoever
+     * asked for the case - the person who submitted its form in the portal - else the
+     * case's manager, else the person themselves once they are in Users. Null when none
+     * of them exists; the steps are then added as tasks instead.
+     */
+    private static function ticketRequester(PDO $conn, array $c): ?int
+    {
+        $ids = [];
+        if (!empty($c['form_submission_id'])) {
+            try {
+                $st = $conn->prepare("SELECT submitted_by_user_id FROM form_submissions WHERE id = ?");
+                $st->execute([(int)$c['form_submission_id']]);
+                $ids[] = (int)($st->fetchColumn() ?: 0);
+            } catch (Throwable $e) { /* no portal submitter column on an old install */ }
         }
-        self::audit($conn, $caseId, $ctx, 'steps_added', $skipped ? (string)$skipped : null, (string)$added);
+        $ids[] = (int)($c['manager_user_id'] ?? 0);
+        $ids[] = (int)($c['user_id'] ?? 0);
+        $chk = $conn->prepare("SELECT 1 FROM users WHERE id = ?");
+        foreach ($ids as $id) {
+            if ($id <= 0) continue;
+            $chk->execute([$id]);
+            if ($chk->fetchColumn()) return $id;
+        }
+        return null;
+    }
+
+    /** The one department a team belongs to, or null (none, or several - then the company's default applies). */
+    private static function teamDepartment(PDO $conn, ?int $teamId): ?int
+    {
+        if (!$teamId) return null;
+        try {
+            $st = $conn->prepare("SELECT department_id FROM department_teams WHERE team_id = ?");
+            $st->execute([$teamId]);
+            $d = $st->fetchAll(PDO::FETCH_COLUMN);
+            return count($d) === 1 ? (int)$d[0] : null;
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Raise ONE ticket for a group of ticket steps (the steps of the template sharing a
+     * ticket name, or one step on its own) and link it to the case.
+     *
+     *  - subject: the ticket name (or the step's title), the person and the due date;
+     *  - text: what it is for, a link to the case, each step and its description, the answers;
+     *  - team and analyst: the first step's; department: that team's, when it has exactly one;
+     *  - company: the case's; type: the template's ticket type, if it names one;
+     *  - requester: ticketRequester(); none -> the steps become tasks, and the history says why;
+     *  - scheduled (all day) on the earliest due date of its steps, so it is on the Calendar;
+     *  - a checklist with one item per step, plus each step's own checklist template;
+     *  - jml_case_tickets row, with the template's "email the requester" at this moment.
+     *
+     * Never stops the case opening: a ticket that cannot be raised is a warning and a
+     * line in the history, like a task step that fails.
+     *
+     * @param array $group  the template steps of this ticket, in order
+     * @param callable $fill  fills {Question} and the case's own codes in a step's text
+     * @return int  the number of steps now in the case (the steps, if it fell back to tasks; 1 for the ticket)
+     */
+    private static function raiseTicket(PDO $conn, ActorContext $ctx, array $c, int $caseId, array $template, array $group, callable $fill, array $answers, array &$warnings): int
+    {
+        require_once __DIR__ . '/../services/tickets.php';
+        $first = $group[0];
+        $name = trim((string)($first['ticket_name'] ?? '')) !== '' ? trim((string)$first['ticket_name']) : (string)$fill($first['title']);
+        $requester = self::ticketRequester($conn, $c);
+        if ($requester === null) {
+            // Nobody to raise it for: do the work as tasks, so it is not lost.
+            self::audit($conn, $caseId, $ctx, 'ticket_no_requester', $name, null);
+            $warnings[] = I18n::tFor($ctx->locale, 'starters.written.ticket_no_requester', ['ticket' => $name]);
+            $n = 0;
+            foreach ($group as $step) if (self::addTaskStep($conn, $ctx, $c, $caseId, $step, $fill, $warnings)) $n++;
+            return $n;
+        }
+        $loc = self::writeLocale($conn, $ctx, $c['owner_analyst_id'] ? (int)$c['owner_analyst_id'] : null);
+        $due = null;
+        foreach ($group as $step) {
+            $d = (new DateTimeImmutable($c['effective_date']))->modify(sprintf('%+d days', $step['due_offset_days']))->format('Y-m-d');
+            if ($due === null || $d < $due) $due = $d;
+        }
+        $kind = JmlKind::tryFrom((string)$c['kind']) ?? JmlKind::Starter;
+        $subject = I18n::tFor($loc, 'starters.written.ticket_subject', ['ticket' => $name, 'name' => $c['person_name'], 'date' => self::shownDate($due, $loc)]);
+
+        require_once __DIR__ . '/../entity_links.php';
+        $lines = [I18n::tFor($loc, 'starters.written.ticket_intro', [
+                     'kind' => I18n::tFor($loc, 'starters.kind.' . $kind->value), 'name' => $c['person_name'], 'date' => self::shownDate((string)$c['effective_date'], $loc)]),
+                  I18n::tFor($loc, 'starters.written.ticket_case', ['url' => (defined('BASE_URL') ? BASE_URL : '') . entityLink('jml_case', $caseId)]),
+                  ''];
+        foreach ($group as $step) {
+            $lines[] = '- ' . $fill($step['title']);
+            $d = trim((string)$fill($step['description']));
+            if ($d !== '') $lines[] = '  ' . str_replace("\n", "\n  ", $d);
+        }
+        $rows = array_filter($answers, fn($a) => trim((string)$a['value']) !== '');
+        if ($rows) {
+            $lines[] = '';
+            foreach ($rows as $a) $lines[] = $a['label'] . ': ' . $a['value'];
+        }
+
+        try {
+            $tenantId = $c['tenant_id'] !== null ? (int)$c['tenant_id'] : getDefaultTenantId($conn);
+            $in = array_filter([
+                'subject'             => mb_substr($subject, 0, 255),
+                'description'         => implode("\n", $lines),
+                'user_id'             => $requester,
+                'assigned_team_id'    => $first['assigned_team_id'],
+                'assigned_analyst_id' => $first['assigned_analyst_id'],
+                'department_id'       => self::teamDepartment($conn, $first['assigned_team_id']),
+                'ticket_type_id'      => !empty($template['ticket_type_id']) ? (int)$template['ticket_type_id'] : null,
+            ], fn($v) => $v !== null);
+            $ticketId = TicketsService::createTicket($conn, $ctx, $tenantId, $in, null, 'Raised by Starters & leavers case #' . $caseId);
+        } catch (Throwable $e) {
+            self::audit($conn, $caseId, $ctx, 'step_failed', $name, $e->getMessage());
+            $warnings[] = I18n::tFor($ctx->locale, 'starters.written.step_failed', ['step' => $name, 'error' => $e->getMessage()]);
+            return 0;
+        }
+        // The link first: from here on, everything the ticket does knows it belongs to a case
+        // (and whether its requester is to be emailed).
+        $conn->prepare("INSERT INTO jml_case_tickets (case_id, ticket_id, ticket_name, mute_requester) VALUES (?, ?, ?, ?)")
+             ->execute([$caseId, $ticketId, mb_substr($name, 0, 100), empty($template['email_requester']) ? 1 : 0]);
+        // Each of the rest is worth having and none is worth losing the ticket over.
+        try {
+            TicketsService::updateTicket($conn, $ctx, $ticketId, ['work_start_at' => $due . ' 00:00:00', 'work_all_day' => 1], false);
+        } catch (Throwable $e) { $warnings[] = $name . ': ' . $e->getMessage(); }
+        try {
+            ChecklistsService::addTicketChecklist($conn, $ctx, $ticketId, $name, array_map(fn($s) => [
+                'title' => (string)$fill($s['title']), 'description' => $fill($s['description']),
+            ], $group));
+            foreach ($group as $step) {
+                if ($step['checklist_template_id']) ChecklistsService::attachTemplateToTicket($conn, $ctx, $ticketId, (int)$step['checklist_template_id'], true);
+            }
+        } catch (Throwable $e) { $warnings[] = $name . ': ' . $e->getMessage(); }
+        $num = $conn->prepare("SELECT ticket_number FROM tickets WHERE id = ?");
+        $num->execute([$ticketId]);
+        self::audit($conn, $caseId, $ctx, 'ticket_raised', $name, (string)($num->fetchColumn() ?: $ticketId));
+        return 1;
+    }
+
+    /** A date as the case's language writes it - ISO where intl is not installed. */
+    private static function shownDate(string $date, string $locale): string
+    {
+        $ts = strtotime($date);
+        // TRAP: intl is not on every install (slim Docker builds) - an ISO date reads the same in every language.
+        $shown = class_exists('IntlDateFormatter')
+            ? (string)(new IntlDateFormatter($locale === 'en' ? 'en_GB' : str_replace('-', '_', $locale), IntlDateFormatter::MEDIUM, IntlDateFormatter::NONE, date_default_timezone_get()))->format($ts)
+            : '';
+        return $shown ?: date('Y-m-d', $ts);
+    }
+
+    /**
+     * The progress columns for a query on jml_cases aliased c: steps_total and steps_done,
+     * counting the case's subtasks AND (GH #316) its tickets - a ticket in the trash is not
+     * counted; a closed one is done. One definition for the list, the People page and Report
+     * Packs, so they can never disagree.
+     */
+    public static function progressSql(PDO $conn): string
+    {
+        $tasksTotal = "(SELECT COUNT(*) FROM tasks s WHERE s.parent_task_id = c.parent_task_id)";
+        $tasksDone  = "(SELECT COUNT(*) FROM tasks s JOIN task_statuses ss ON ss.id = s.status_id
+                         WHERE s.parent_task_id = c.parent_task_id AND ss.is_closed = 1)";
+        if (!self::ticketsReady($conn)) return "$tasksTotal AS steps_total, $tasksDone AS steps_done";
+        $ticketsTotal = "(SELECT COUNT(*) FROM jml_case_tickets ct JOIN tickets tk ON tk.id = ct.ticket_id
+                           WHERE ct.case_id = c.id AND tk.deleted_datetime IS NULL)";
+        $ticketsDone  = "(SELECT COUNT(*) FROM jml_case_tickets ct JOIN tickets tk ON tk.id = ct.ticket_id
+                           JOIN ticket_statuses ts ON ts.id = tk.status_id
+                           WHERE ct.case_id = c.id AND tk.deleted_datetime IS NULL AND ts.is_closed = 1)";
+        return "($tasksTotal + $ticketsTotal) AS steps_total, ($tasksDone + $ticketsDone) AS steps_done";
+    }
+
+    /** A case's tickets for its page: number, name, team, status, schedule, checklist progress. */
+    private static function caseTickets(PDO $conn, int $caseId): array
+    {
+        if (!self::ticketsReady($conn)) return [];
+        $st = $conn->prepare(
+            "SELECT tk.id, tk.ticket_number, tk.subject, ct.ticket_name, tk.work_start_datetime AS due_date,
+                    tk.deleted_datetime, ts.name AS status_name, COALESCE(ts.is_closed, 0) AS is_closed,
+                    tm.name AS team_name, a.full_name AS analyst_name,
+                    (SELECT COUNT(*) FROM ticket_checklist_items i JOIN ticket_checklists l ON l.id = i.ticket_checklist_id WHERE l.ticket_id = tk.id) AS items_total,
+                    (SELECT COUNT(*) FROM ticket_checklist_items i JOIN ticket_checklists l ON l.id = i.ticket_checklist_id WHERE l.ticket_id = tk.id AND i.is_completed = 1) AS items_done
+               FROM jml_case_tickets ct
+               JOIN tickets tk ON tk.id = ct.ticket_id
+          LEFT JOIN ticket_statuses ts ON ts.id = tk.status_id
+          LEFT JOIN teams tm ON tm.id = tk.assigned_team_id
+          LEFT JOIN analysts a ON a.id = tk.assigned_analyst_id
+              WHERE ct.case_id = ?
+           ORDER BY ct.id");
+        $st->execute([$caseId]);
+        return array_map(function ($r) {
+            foreach (['id', 'items_total', 'items_done'] as $k) $r[$k] = (int)$r[$k];
+            $r['is_closed'] = (bool)(int)$r['is_closed'];
+            $r['in_trash'] = $r['deleted_datetime'] !== null;
+            $r['due_date'] = $r['due_date'] ? substr((string)$r['due_date'], 0, 10) : null;
+            unset($r['deleted_datetime']);
+            return $r;
+        }, $st->fetchAll(PDO::FETCH_ASSOC));
     }
 
     /**
@@ -702,7 +961,8 @@ final class StartersService
     {
         $c = self::loadForActor($conn, $ctx, $id);
         $c['steps'] = self::caseSteps($conn, $c['parent_task_id'] ? (int)$c['parent_task_id'] : 0);
-        $c['progress'] = self::progressOf($c['steps']);
+        $c['tickets'] = self::caseTickets($conn, $id);   // GH #316
+        $c['progress'] = self::progressOf(array_merge($c['steps'], array_filter($c['tickets'], fn($t) => !$t['in_trash'])));
         $c['person'] = null;
         $c['kit'] = [];
         if ($c['user_id']) {
@@ -779,9 +1039,7 @@ final class StartersService
         $st = $conn->prepare(
             "SELECT c.id, c.kind, c.person_name, c.person_email, c.user_id, c.effective_date, c.status, c.tenant_id, c.steps_pending,
                     tn.name AS company_name, tp.name AS template_name, own.full_name AS owner_name,
-                    (SELECT COUNT(*) FROM tasks s WHERE s.parent_task_id = c.parent_task_id) AS steps_total,
-                    (SELECT COUNT(*) FROM tasks s JOIN task_statuses ss ON ss.id = s.status_id
-                      WHERE s.parent_task_id = c.parent_task_id AND ss.is_closed = 1) AS steps_done
+                    " . self::progressSql($conn) . "
                FROM jml_cases c
           LEFT JOIN tenants tn ON tn.id = c.tenant_id
           LEFT JOIN jml_templates tp ON tp.id = c.template_id
@@ -928,9 +1186,7 @@ final class StartersService
         [$tSql, $tArgs] = activeTenantFilter($conn, $analystId, 'c');
         $st = $conn->prepare(
             "SELECT c.id, c.kind, c.effective_date, c.status, tp.name AS template,
-                    (SELECT COUNT(*) FROM tasks s WHERE s.parent_task_id = c.parent_task_id) AS steps_total,
-                    (SELECT COUNT(*) FROM tasks s JOIN task_statuses ss ON ss.id = s.status_id
-                      WHERE s.parent_task_id = c.parent_task_id AND ss.is_closed = 1) AS steps_done
+                    " . self::progressSql($conn) . "   -- GH #316: tickets count too
                FROM jml_cases c
           LEFT JOIN jml_templates tp ON tp.id = c.template_id
               WHERE c.user_id = ?" . $tSql . "

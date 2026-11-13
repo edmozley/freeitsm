@@ -7021,6 +7021,8 @@ return [
         'display_order'     => 'INT NOT NULL DEFAULT 0',
         'form_id'           => 'INT NULL',
         'match_rule'        => 'TEXT NULL',
+        'ticket_type_id'    => 'INT NULL',                       // GH #316: ticket steps' type
+        'email_requester'   => 'TINYINT(1) NOT NULL DEFAULT 0',  // GH #316: their requester gets the automatic emails
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
@@ -7034,6 +7036,8 @@ return [
         'due_offset_days'        => 'INT NOT NULL DEFAULT 0',
         'checklist_template_id'  => 'INT NULL',
         'condition_rule'         => 'TEXT NULL',
+        'raise_as'               => "VARCHAR(10) NOT NULL DEFAULT 'task'",   // GH #316: task | ticket
+        'ticket_name'            => 'VARCHAR(100) NULL',                      // GH #316: same name = one ticket
         'display_order'          => 'INT NOT NULL DEFAULT 0',
         'is_demo'                => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
@@ -7058,6 +7062,15 @@ return [
         'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'completed_datetime'  => 'DATETIME NULL',
         'is_demo'             => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    // GH #316: the tickets a case raised - see freeitsm.sql.
+    'jml_case_tickets' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'case_id'          => 'INT NOT NULL',
+        'ticket_id'        => 'INT NOT NULL',
+        'ticket_name'      => 'VARCHAR(100) NULL',
+        'mute_requester'   => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
     'jml_audit' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',

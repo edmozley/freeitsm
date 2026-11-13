@@ -3406,6 +3406,10 @@ try {
         ['jml_templates',      'fk_jml_templates_form',    "ALTER TABLE jml_templates ADD CONSTRAINT fk_jml_templates_form FOREIGN KEY (form_id) REFERENCES forms (id) ON DELETE SET NULL"],
         ['jml_cases',          'fk_jml_cases_submission',  "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_submission FOREIGN KEY (form_submission_id) REFERENCES form_submissions (id) ON DELETE SET NULL"],
         ['jml_audit',          'fk_jml_audit_case',        "ALTER TABLE jml_audit ADD CONSTRAINT fk_jml_audit_case FOREIGN KEY (case_id) REFERENCES jml_cases (id) ON DELETE CASCADE"],
+        // GH #316
+        ['jml_templates',      'fk_jml_templates_ticket_type', "ALTER TABLE jml_templates ADD CONSTRAINT fk_jml_templates_ticket_type FOREIGN KEY (ticket_type_id) REFERENCES ticket_types (id) ON DELETE SET NULL"],
+        ['jml_case_tickets',   'fk_jml_ct_case',           "ALTER TABLE jml_case_tickets ADD CONSTRAINT fk_jml_ct_case FOREIGN KEY (case_id) REFERENCES jml_cases (id) ON DELETE CASCADE"],
+        ['jml_case_tickets',   'fk_jml_ct_ticket',         "ALTER TABLE jml_case_tickets ADD CONSTRAINT fk_jml_ct_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"],
     ];
     foreach ($jmlFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;

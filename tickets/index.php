@@ -1193,7 +1193,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/save-to-files.js?v=2"></script>
     <script src="../assets/js/files-picker.js?v=2"></script>
     <script src="../assets/js/address-suggest.js?v=1"></script>   <!-- GH #307: before inbox.js, which attaches it to To and Cc -->
-    <script src="../assets/js/inbox.js?v=204"></script>
+    <script src="../assets/js/inbox.js?v=205"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>

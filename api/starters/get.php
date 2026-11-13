@@ -23,6 +23,10 @@ startersApiRun(function () use ($conn, $ctx, $analystId) {
     unset($s);
     foreach ($case['kit'] as &$a) $a['url'] = entityLink('asset', (int)$a['id']);
     unset($a);
+    // GH #316: a ticket opens only for an analyst with Tickets who can see it (its department / company).
+    $canTickets = analystCanAccessModule($conn, $analystId, 'tickets');
+    foreach ($case['tickets'] as &$tk) $tk['url'] = $canTickets && analystCanAccessTicket($conn, $analystId, (int)$tk['id']) ? entityLink('ticket', (int)$tk['id']) : null;
+    unset($tk);
     startersApiOk([
         'case'  => $case,
         'links' => [
