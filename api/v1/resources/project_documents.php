@@ -135,6 +135,9 @@ function apiProjectDocumentContent(PDO $conn, array $apiKey, array $params, arra
     $doc = apiProjectDocumentRow($conn, $pid, $did);
     if (!documentCanView($conn, (int)$apiKey['analyst_id'], apiDocAllowedModules($conn, $apiKey), $did)) apiError(404, 'not_found', 'Document not found on this project.');
 
+    if ($doc['kind'] === DOCUMENT_KIND_FILES) {   // GH #303: lives in Files, under Files' own permissions
+        apiError(409, 'in_files', 'This document is a link to a file in Files; it is not served through the API.');
+    }
     if ($doc['kind'] === DOCUMENT_KIND_LINK) {
         apiDownloadRecord($conn, $apiKey, $did, 'follow', 0);
         apiRespond(['kind' => 'link', 'external_url' => $doc['external_url']]);

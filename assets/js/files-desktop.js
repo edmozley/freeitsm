@@ -2150,5 +2150,11 @@
     // Uploads finishing refresh the phone list too.
     explorers.push({ onChanged: function () { if (phone.matches) Mobile.load(Mobile.current()); }, markCut: function () {} });
 
+    // GH #303: files/?item=ID opens that file in the viewer - how a Files link on a task or
+    // ticket opens. The viewer asks the server, so the folder's permissions, View only and
+    // the watermark apply exactly as when it is opened from a folder.
+    var deepItem = parseInt(new URLSearchParams(window.location.search).get('item') || '', 10);
+    if (deepItem > 0) viewFile(deepItem);
+
     window.FilesDesktop = { explorer: function (id) { return new Explorer(id || 0); }, uploads: Uploads };
 })();

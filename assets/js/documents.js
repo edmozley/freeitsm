@@ -59,6 +59,15 @@
         idx_failed:   'Its contents could not be read.',
         find_existing:'Or attach a document already in FreeITSM — start typing its name',
         find_none:    'No documents match, that you can see and that are not already here.',
+        // GH #303: files from Files
+        from_files:   'In Files',
+        attach_link:  'Link',
+        attach_copy:  'Copy',
+        attach_link_title: 'Attach a link - opened through Files, under its folder permissions',
+        attach_copy_title: 'Attach a copy of the current version - readable by everyone who can see this',
+        kind_files:   'In Files',
+        files_no_access: 'A file in Files you do not have access to',
+        files_gone:   'A file that has been deleted from Files',
         currently_on: 'currently on {where}',
         // The Help Centre - knowledge articles only (GH #177).
         hc_customer:  'Customers who can read this article in the Help Centre can download the documents marked Shown.',
@@ -111,6 +120,7 @@
 
     /** The inline SVG icon for a document row - a chain link for a DMS link, a page for an uploaded file. */
     function icon(kind) {
+        if (kind === 'files') return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
         return kind === 'link'
             ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>'
             : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
@@ -209,6 +219,8 @@
                 findTimer = setTimeout(function () { self.findExisting(find.value.trim()); }, 250);
             });
             this.el.querySelector('.fd-findresults').addEventListener('click', function (e) {
+                var fromFiles = e.target.closest('[data-files]');
+                if (fromFiles) { self.attachFromFiles(parseInt(fromFiles.getAttribute('data-files'), 10), fromFiles.getAttribute('data-how')); return; }
                 var pick = e.target.closest('[data-attach]');
                 if (pick) self.attachExisting(parseInt(pick.getAttribute('data-attach'), 10));
             });
@@ -323,10 +335,16 @@
         var self = this;
         this.$list.innerHTML = this.items.map(function (d) {
             var isLink = d.kind === 'link';
+            // GH #303: a file in Files opens THROUGH Files (download.php sends it to files/?item=),
+            // and someone who cannot open its folder sees neither a link nor its name.
+            var isFiles = d.kind === 'files';
             var href   = isLink ? safeHref(d.external_url)
                                 : self.api + 'download.php?id=' + d.id;
+            var title  = d.title;
+            if (isFiles && !d.files_access) { href = null; title = d.files_gone ? t('files_gone') : t('files_no_access'); }
             var meta = [];
-            if (!isLink && d.size_bytes) meta.push(bytes(d.size_bytes));
+            if (isFiles) meta.push(esc(t('kind_files')));
+            if (!isLink && !isFiles && d.size_bytes) meta.push(bytes(d.size_bytes));
             if (d.uploaded_by_name)      meta.push(t('by', { name: d.uploaded_by_name }));
             if (d.created_datetime)      meta.push(esc(d.created_datetime));
 
@@ -339,13 +357,14 @@
             return '<div class="fd-item">' +
                 '<span class="fd-icon">' + icon(d.kind) + '</span>' +
                 '<div class="fd-body">' +
-                    '<div class="fd-title"><a href="' + esc(href) + '"' +
-                        (isLink ? ' target="_blank" rel="noopener noreferrer"' : '') +
-                        '>' + esc(d.title) + '</a></div>' +
+                    '<div class="fd-title">' + (href === null ? '<span class="fd-muted">' + esc(title) + '</span>'
+                        : '<a href="' + esc(href) + '"' +
+                        (isLink || isFiles ? ' target="_blank" rel="noopener noreferrer"' : '') +
+                        '>' + esc(title) + '</a>') + '</div>' +
                     (d.description ? '<div class="fd-desc">' + esc(d.description) + '</div>' : '') +
                     (meta.length ? '<div class="fd-meta">' + meta.join(' · ') + '</div>' : '') +
                     (also ? '<div class="fd-also">' + also + '</div>' : '') +
-                    (hcRows
+                    (hcRows && !isFiles
                         ? '<span class="fd-hc-tag' + (d.show_in_help_centre ? '' : ' fd-hc-hidden') + '">' +
                           esc(d.show_in_help_centre ? t('hc_shown') : t('hc_hidden')) + '</span>'
                         : '') +
@@ -459,11 +478,24 @@
             .then(function (d) {
                 if (!d.success) { self.fail(d.error); return; }
                 box.hidden = false;
-                if (!d.documents.length) {
+                var files = d.files || [];
+                if (!d.documents.length && !files.length) {
                     box.innerHTML = '<div class="fd-findempty">' + esc(t('find_none')) + '</div>';
                     return;
                 }
-                box.innerHTML = d.documents.map(function (x) {
+                // GH #303: files in Files the person can open - as a link, a copy, or either
+                // (Files -> Settings -> Sharing). The server enforces it; this only offers it.
+                var filesHtml = files.length ? '<div class="fd-findhead">' + esc(t('from_files')) + '</div>' + files.map(function (f) {
+                    var btn = function (how) {
+                        return '<button type="button" class="fd-findhow" data-files="' + f.item_id + '" data-how="' + how + '" title="' + esc(t('attach_' + how + '_title')) + '">' + esc(t('attach_' + how)) + '</button>';
+                    };
+                    return '<div class="fd-findrow fd-findfile">' +
+                        '<span class="fd-findtitle">' + esc(f.name) + '</span>' +
+                        '<span class="fd-findwhere">' + esc(f.path) + '</span>' +
+                        '<span class="fd-findhows">' + (f.can_link ? btn('link') : '') + (f.can_copy ? btn('copy') : '') + '</span>' +
+                    '</div>';
+                }).join('') : '';
+                box.innerHTML = filesHtml + d.documents.map(function (x) {
                     // Say where it already is. Attaching WIDENS who can read it,
                     // so the person doing it should be able to see that first.
                     var where = (x.also_on || []).map(function (a) {
@@ -476,6 +508,24 @@
                 }).join('');
             })
             .catch(function () { self.fail(); });
+    };
+
+    /** GH #303: attach a file from Files, as a link or a copy (attach.php -> FilesAttach::attach). */
+    Panel.prototype.attachFromFiles = function (itemId, how) {
+        var self = this;
+        fetch(this.api + 'attach.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ files_item_id: itemId, how: how, parent_type: this.parentType, parent_id: this.parentId })
+        }).then(function (r) { return r.json(); })
+          .then(function (d) {
+              if (!d.success) { self.fail(d.error); return; }
+              self.el.querySelector('.fd-find').value = '';
+              self.el.querySelector('.fd-findresults').hidden = true;
+              self.load(true);
+          })
+          .catch(function () { self.fail(); });
     };
 
     Panel.prototype.attachExisting = function (documentId) {

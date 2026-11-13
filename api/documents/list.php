@@ -67,11 +67,13 @@ try {
     $isArticle  = $parentType === 'knowledge_article';
     $helpCentre = $isArticle && documentHelpCentreReady($conn);
     $hcCol      = $helpCentre ? ', dl.show_in_help_centre' : '';
+    require_once '../../includes/services/documents.php';
+    $filesCol   = DocumentsService::filesLinkReady($conn) ? ', d.files_item_id' : '';   // GH #303
 
     $st = $conn->prepare(
         "SELECT d.id, d.kind, d.title, d.description, d.original_name, d.mime_type,
                 d.size_bytes, d.external_url, d.created_datetime,
-                a.full_name AS uploaded_by_name$hcCol
+                a.full_name AS uploaded_by_name$hcCol$filesCol
            FROM document_links dl
            JOIN documents d ON d.id = dl.document_id
       LEFT JOIN analysts a ON a.id = d.uploaded_by_id
@@ -91,6 +93,17 @@ try {
         $r['id']         = (int) $r['id'];
         $r['size_bytes'] = $r['size_bytes'] !== null ? (int) $r['size_bytes'] : null;
         if ($helpCentre) $r['show_in_help_centre'] = (int) $r['show_in_help_centre'] === 1;
+        // GH #303: a file in Files - its name and a way in only for someone who can open
+        // its folder; for anyone else, only that one exists (Files' "hidden means not found").
+        if ($r['kind'] === DOCUMENT_KIND_FILES) {
+            require_once '../../includes/services/files_attach.php';
+            $fv = FilesAttach::viewFor($conn, $analystId, (int) ($r['files_item_id'] ?? 0));
+            $r['files_access'] = $fv['access'];
+            $r['files_gone']   = $fv['gone'];
+            $r['open_url']     = $fv['open_url'];
+            if (!$fv['access']) { $r['title'] = ''; $r['description'] = null; }
+        }
+        unset($r['files_item_id']);
         $r['also_on']    = [];
         $otherSt->execute([$r['id'], $parentType, $parentId]);
         foreach ($otherSt->fetchAll(PDO::FETCH_ASSOC) as $o) {

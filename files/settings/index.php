@@ -148,6 +148,21 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         </div>
         <?php endif; ?>
 
+        <?php if (settingsTabVisible($visibleTabs, 'sharing')): /* GH #303 */ ?>
+        <div class="tab-content<?php echo $activeTabId === 'sharing' ? ' active' : ''; ?>" id="sharing-tab" data-capability="<?php echo capKey(Cap::FILES_SHARING); ?>">
+            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('sharing_title'); ?></h2>
+            <div class="set-box"><?php echo $tt('sharing_intro'); ?></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('attach_mode'); ?></div><div class="desc"><?php echo $tt('attach_mode_desc'); ?></div></div>
+                <div id="shrModes">
+                    <?php foreach (['link', 'copy', 'both'] as $m): ?>
+                    <label style="display:block;margin:6px 0"><input type="radio" name="shrMode" value="<?php echo $m; ?>"> <strong><?php echo $tt('attach_' . $m); ?></strong> - <span class="desc"><?php echo $tt('attach_' . $m . '_desc'); ?></span></label>
+                    <?php endforeach; ?>
+                    <div class="dflt"><?php echo $tt('attach_default'); ?></div>
+                </div></div>
+            <div class="set-actions"><button type="button" class="fil-btn primary" id="shrSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="shrMsg" style="font-size:13px"></span></div>
+        </div>
+        <?php endif; ?>
+
         <?php if (settingsTabVisible($visibleTabs, 'versions')): /* GH #303 */ ?>
         <div class="tab-content<?php echo $activeTabId === 'versions' ? ' active' : ''; ?>" id="versions-tab" data-capability="<?php echo capKey(Cap::FILES_VERSIONS); ?>">
             <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('versions_title'); ?></h2>
@@ -168,7 +183,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
         <?php endif; ?>
     </div>
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
-    <script src="../../assets/js/files-settings.js?v=6"></script>
+    <script src="../../assets/js/files-settings.js?v=7"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

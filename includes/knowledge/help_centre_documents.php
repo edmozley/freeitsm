@@ -58,7 +58,7 @@ function helpCentreArticleDocuments(PDO $conn, int $articleId): array {
     $st = $conn->prepare(
         "SELECT d.id, d.kind, d.title, d.description, d.original_name, d.size_bytes, d.external_url
            FROM document_links dl
-           JOIN documents d ON d.id = dl.document_id AND d.deleted_datetime IS NULL
+           JOIN documents d ON d.id = dl.document_id AND d.deleted_datetime IS NULL AND d.kind <> 'files'   -- GH #303
           WHERE dl.parent_type = 'knowledge_article' AND dl.parent_id = ?
             AND dl.show_in_help_centre = 1
        ORDER BY d.created_datetime DESC, d.id DESC"
@@ -89,7 +89,7 @@ function helpCentreDocumentCounts(PDO $conn, array $articleIds): array {
     $st = $conn->prepare(
         "SELECT dl.parent_id, COUNT(*) AS n
            FROM document_links dl
-           JOIN documents d ON d.id = dl.document_id AND d.deleted_datetime IS NULL
+           JOIN documents d ON d.id = dl.document_id AND d.deleted_datetime IS NULL AND d.kind <> 'files'   -- GH #303
           WHERE dl.parent_type = 'knowledge_article' AND dl.show_in_help_centre = 1
             AND dl.parent_id IN ($marks)
        GROUP BY dl.parent_id"
@@ -121,7 +121,7 @@ function helpCentreDocumentForPortalUser(PDO $conn, int $userId, int $documentId
            JOIN document_links dl ON dl.document_id = d.id
                                  AND dl.parent_type = 'knowledge_article'
                                  AND dl.show_in_help_centre = 1
-          WHERE d.id = ? AND d.deleted_datetime IS NULL"
+          WHERE d.id = ? AND d.deleted_datetime IS NULL AND d.kind <> 'files'"   // GH #303
     );
     $st->execute([$documentId]);
     foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $row) {

@@ -46,6 +46,8 @@ const DOCUMENT_STORAGE_DIR = 'documents';
 /** A document is either a file we hold, or a link to somewhere else. */
 const DOCUMENT_KIND_FILE = 'file';
 const DOCUMENT_KIND_LINK = 'link';
+/** GH #303: a link to a Files item - opened through Files (files/?item=ID), never served or sent from here. */
+const DOCUMENT_KIND_FILES = 'files';
 
 /**
  * Every kind of thing a document can be attached to.

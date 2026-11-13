@@ -34,6 +34,24 @@
 
     var LEVELS = { 0: L('settings.no_access', 'None'), 1: L('level.view', 'View'), 2: L('level.download', 'Download'), 3: L('level.upload', 'Upload'), 4: L('level.modify', 'Modify'), 5: L('level.full', 'Full control') };
 
+    // ── Sharing (GH #303) ──────────────────────────────────────────────────
+    var shrBox = document.getElementById('shrModes');
+    if (shrBox) {
+        var shrMsg = document.getElementById('shrMsg');
+        api('settings.php?tab=sharing').then(function (r) {
+            var on = shrBox.querySelector('input[value="' + r.mode + '"]');
+            if (on) on.checked = true;
+        }).catch(function (e) { shrMsg.textContent = e.message; });
+        document.getElementById('shrSave').addEventListener('click', function () {
+            var picked = shrBox.querySelector('input:checked');
+            shrMsg.style.color = '';
+            shrMsg.textContent = '';
+            api('settings.php', { tab: 'sharing', mode: picked ? picked.value : '' })
+                .then(function () { shrMsg.style.color = 'var(--success-text, #166534)'; shrMsg.textContent = L('settings.saved', 'Saved'); })
+                .catch(function (e) { shrMsg.style.color = 'var(--danger-text, #991b1b)'; shrMsg.textContent = e.message; });
+        });
+    }
+
     // ── Versions (GH #303) ─────────────────────────────────────────────────
     var verBox = document.getElementById('verChoices');
     if (verBox) {

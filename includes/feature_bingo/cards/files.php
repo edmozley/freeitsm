@@ -115,4 +115,16 @@ return [
         'link'     => 'files/',
         'check'    => ['rows', 'files_versions', 'restored_from_no IS NOT NULL OR note IS NOT NULL'],
     ],
+    [
+        'id'       => 'files.attach_from_files',
+        'module'   => 'files',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Files attached to tickets and tasks',
+        'what'     => 'A file in Files attached to a ticket, task or any record - as a link that keeps Files\' folder permissions, or as a copy.',
+        'why'      => 'The contract, the quote or the network diagram is on the ticket where it is needed, without a second copy drifting out of date or opening it up to everyone.',
+        'done'     => 'A file from Files is attached to a record.',
+        'link'     => 'files/',
+        'check'    => ['rows', 'documents', "kind = 'files' OR description LIKE 'Copied from Files:%'"],
+    ],
 ];

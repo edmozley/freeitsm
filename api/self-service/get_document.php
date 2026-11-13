@@ -70,6 +70,7 @@ try {
            JOIN tickets t         ON t.id = n.ticket_id
           WHERE d.id = ?
             AND d.deleted_datetime IS NULL
+            AND d.kind <> 'files'   -- GH #303: a Files link is for analysts, under the Files permissions
             AND t.deleted_datetime IS NULL"
     );
     $stmt->execute([$documentId]);

@@ -63,8 +63,8 @@ function documentTextReadable(PDO $conn, string $filename): bool
 function documentTextEnqueue(PDO $conn, int $documentId, string $kind, ?string $filename): void
 {
     $status = ATT_TEXT_PENDING;
-    if ($kind === DOCUMENT_KIND_LINK) {
-        $status = ATT_TEXT_UNSUPPORTED;              // a URL is not a document
+    if ($kind === DOCUMENT_KIND_LINK || $kind === DOCUMENT_KIND_FILES) {
+        $status = ATT_TEXT_UNSUPPORTED;              // a URL, or a file whose bytes live in Files
     } elseif ($filename !== null && !documentTextReadable($conn, $filename)) {
         $status = ATT_TEXT_UNSUPPORTED;
     }
@@ -121,7 +121,9 @@ function searchIndexDocument(PDO $conn, int $documentId): void
 
     // Gone, or soft-deleted as an orphan: it must leave the index too, or a
     // deleted document goes on being findable by its title.
-    if (!$d || $d['deleted_datetime'] !== null) {
+    // GH #303: a link to a file in Files is never indexed - global search would show its
+    // name to people who cannot open its folder. Files' own search finds it for those who can.
+    if (!$d || $d['deleted_datetime'] !== null || $d['kind'] === DOCUMENT_KIND_FILES) {
         searchCorpusDelete($conn, SEARCH_SOURCE_DOCUMENT, $documentId);
         return;
     }

@@ -224,6 +224,7 @@ try {
                     d.original_name, d.size_bytes, d.external_url
                FROM document_links dl
                JOIN documents d ON d.id = dl.document_id AND d.deleted_datetime IS NULL
+                                AND d.kind <> 'files'   -- GH #303: a Files link is for analysts only
               WHERE dl.parent_type = 'ticket_note' AND dl.parent_id IN ($in)
               ORDER BY d.id ASC"
         );

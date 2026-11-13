@@ -530,7 +530,7 @@ if ($kindAvailable['Document']) {
             // A link is not a stored file. download.php returns JSON for these, so
             // there is nothing on disk to verify and reporting one as missing would
             // be a false alarm.
-            if ($r['kind'] === 'link') {
+            if ($r['kind'] === 'link' || $r['kind'] === 'files') {   // GH #303: a Files link's bytes live in Files
                 $items[] = [
                     'kind' => $label, 'id' => (int) $r['id'], 'name' => d012_trim($r['title'], 60),
                     'stored' => '(none — external link)', 'abs' => null, 'base' => null, 'contained' => false,

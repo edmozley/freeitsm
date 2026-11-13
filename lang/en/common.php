@@ -461,6 +461,15 @@ return [
         // Attaching an existing document: the other half of the join table.
         'find_existing'   => 'Or attach a document already in FreeITSM — start typing its name',
         'find_none'       => 'No documents match, that you can see and that are not already here.',
+        // GH #303: files from Files
+        'from_files'        => 'In Files',
+        'attach_link'       => 'Link',
+        'attach_copy'       => 'Copy',
+        'attach_link_title' => 'Attach a link - opened through Files, under its folder permissions',
+        'attach_copy_title' => 'Attach a copy of the current version - readable by everyone who can see this',
+        'kind_files'        => 'In Files',
+        'files_no_access'   => 'A file in Files you do not have access to',
+        'files_gone'        => 'A file that has been deleted from Files',
         // Shown against each candidate, because attaching WIDENS who can read it.
         'currently_on'    => 'currently on {where}',
         // The Help Centre - knowledge articles only (GH #177).

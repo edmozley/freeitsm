@@ -35,6 +35,21 @@ $documentId = (int) ($in['document_id'] ?? 0);
 $parentType = trim((string) ($in['parent_type'] ?? ''));
 $parentId   = (int) ($in['parent_id'] ?? 0);
 
+// GH #303: a file from Files, as a link or a copy - FilesAttach::attach() has the rules.
+if ((int)($in['files_item_id'] ?? 0) > 0) {
+    require_once '../../includes/services/files_attach.php';
+    try {
+        $conn = connectToDatabase();
+        $docId = FilesAttach::attach($conn, $analystId, $allowed, $parentType, $parentId, (int)$in['files_item_id'], (string)($in['how'] ?? ''));
+        echo json_encode(['success' => true, 'document_id' => $docId]);
+    } catch (ServiceError $e) {
+        if ($e->kind === 'forbidden') http_response_code(403);
+        if ($e->kind === 'not_found') http_response_code(404);
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 if ($documentId <= 0 || !documentEntityDef($parentType) || $parentId <= 0) {
     echo json_encode(['success' => false, 'error' => 'A document_id, parent_type and parent_id are required.']);
     exit;

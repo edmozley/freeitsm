@@ -255,3 +255,13 @@
    sentence somebody should read before clicking. */
 .fd-findwhere { display: block; font-size: 11px; color: var(--warning-text, #92400e); margin-top: 2px; }
 .fd-findempty { padding: 10px 11px; font-size: 12px; color: var(--text-dim, #999); }
+
+/* GH #303: files from Files in the "attach something already in FreeITSM" box */
+.fd-findhead { padding: 6px 10px 2px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #666); }
+.fd-findfile { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; cursor: default; }
+.fd-findfile .fd-findtitle { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.fd-findfile .fd-findwhere { flex: 1 1 100%; order: 3; }
+.fd-findhows { display: inline-flex; gap: 6px; }
+.fd-findhow { padding: 2px 10px; font-size: 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--accent, #0078d4); cursor: pointer; }
+.fd-findhow:hover { background: var(--surface-2, #f5f5f5); }
+.fd-title .fd-muted { color: var(--text-muted, #666); font-style: italic; }

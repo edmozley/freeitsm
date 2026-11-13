@@ -52,7 +52,7 @@ try {
     }
 
     $st = $conn->prepare(
-        "SELECT id, kind, title, storage_key, original_name, mime_type, size_bytes, external_url
+        "SELECT id, kind, title, storage_key, original_name, mime_type, size_bytes, external_url, files_item_id
            FROM documents WHERE id = ? AND deleted_datetime IS NULL"
     );
     $st->execute([$documentId]);
@@ -71,6 +71,18 @@ try {
             substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45),
         ]);
     } catch (Throwable $e) { /* never fail a download because the log did */ }
+
+    // GH #303: a file in Files is opened THROUGH Files, so its folder permissions, View
+    // only and the watermark still apply. Someone who cannot open that folder gets the
+    // same 404 as for a document that does not exist. A redirect only ever to our own
+    // files/?item=, never to anything the document holds.
+    if ($doc['kind'] === DOCUMENT_KIND_FILES) {
+        require_once '../../includes/services/files_attach.php';
+        $view = FilesAttach::viewFor($conn, $analystId, (int)$doc['files_item_id']);
+        if (!$view['access']) documentDenied();
+        header('Location: ' . $view['open_url'], true, 302);
+        exit;
+    }
 
     // A link is not ours to serve — hand back where it lives and let the caller
     // decide. Deliberately NOT a redirect: this endpoint would then become an

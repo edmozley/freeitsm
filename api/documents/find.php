@@ -20,6 +20,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/documents.php';
+require_once '../../includes/services/documents.php';
 
 header('Content-Type: application/json');
 
@@ -60,6 +61,8 @@ try {
     $sql = "SELECT d.id, d.kind, d.title, d.original_name, d.mime_type, d.size_bytes, d.external_url
               FROM documents d
              WHERE d.deleted_datetime IS NULL
+               -- GH #303: a Files link name is for Files to show; it is found under In Files.
+               AND d.kind <> 'files'
                AND (d.title LIKE ? OR d.original_name LIKE ? OR d.description LIKE ?)
                -- Already on this record: offering it again would only produce a
                -- duplicate-key error the person cannot act on.
@@ -83,7 +86,11 @@ try {
     }
     unset($r);
 
-    echo json_encode(['success' => true, 'documents' => $rows]);
+    // GH #303: files in Files the person can open, to attach as a link or a copy
+    // (Files -> Settings -> Sharing says which).
+    require_once '../../includes/services/files_attach.php';
+    $files = DocumentsService::filesLinkReady($conn) ? FilesAttach::search($conn, $analystId, $q) : [];
+    echo json_encode(['success' => true, 'documents' => $rows, 'files' => $files, 'files_mode' => FilesAttach::mode($conn)]);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

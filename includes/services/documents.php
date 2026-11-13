@@ -263,7 +263,8 @@ class DocumentsService
         $refCol = self::referenceReady($conn) ? 'd.client_reference' : 'NULL AS client_reference';
         $st = $conn->prepare(
             "SELECT d.id, d.kind, d.title, d.description, d.original_name, d.mime_type, d.size_bytes, d.content_hash,
-                    d.external_url, d.created_datetime, d.uploaded_by_id, a.full_name AS uploaded_by_name, $refCol
+                    d.external_url, d.created_datetime, d.uploaded_by_id, a.full_name AS uploaded_by_name, $refCol,
+                    " . (self::filesLinkReady($conn) ? 'd.files_item_id' : 'NULL AS files_item_id') . "
                FROM document_links dl
                JOIN documents d ON d.id = dl.document_id
           LEFT JOIN analysts a ON a.id = d.uploaded_by_id
@@ -271,7 +272,31 @@ class DocumentsService
            ORDER BY d.created_datetime DESC, d.id DESC
               LIMIT " . max(1, min(200, $limit)) . " OFFSET " . max(0, $offset));
         $st->execute($args);
-        return ['total' => $total, 'rows' => $st->fetchAll(PDO::FETCH_ASSOC)];
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        // GH #303: a file in Files - its name and a way in only for someone who can open
+        // its folder (Files' "hidden means not found"); for anyone else, that one exists.
+        foreach ($rows as &$r) {
+            if ($r['kind'] !== DOCUMENT_KIND_FILES) continue;
+            require_once __DIR__ . '/files_attach.php';
+            $v = FilesAttach::viewFor($conn, $analystId, (int)$r['files_item_id']);
+            $r['files_access'] = $v['access'];
+            $r['files_gone']   = $v['gone'];
+            $r['open_url']     = $v['open_url'];
+            if (!$v['access']) { $r['title'] = ''; $r['description'] = null; }
+            unset($r['files_item_id']);
+        }
+        unset($r);
+        return ['total' => $total, 'rows' => $rows];
+    }
+
+    /** True once Database Verification has added documents.files_item_id (GH #303). */
+    public static function filesLinkReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $ready = (bool)$conn->query("SHOW COLUMNS FROM documents LIKE 'files_item_id'")->fetch(); } catch (Throwable) { $ready = false; }
+        }
+        return $ready;
     }
 
     /** Is the document on this record? (A document is only ever served through its record.) */

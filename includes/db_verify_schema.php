@@ -1644,6 +1644,7 @@ return [
         'deleted_datetime'  => 'DATETIME NULL',
         // GH #287: a REST client's retry reference, unique per uploader.
         'client_reference'  => 'VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL',
+        'files_item_id'     => 'INT NULL',   // GH #303: kind 'files'
     ],
 
     // What each document is attached to. A ROW, deliberately, not a column on

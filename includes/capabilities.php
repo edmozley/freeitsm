@@ -277,6 +277,9 @@ enum Cap: string
     // VERSIONS decides what a same-name upload offers - including Overwrite, which
     // deletes the old file - and how many versions are kept: sensitive (GH #303).
     case FILES_VERSIONS = 'files.versions';
+    // SHARING decides how a file in Files is attached to a task or ticket - a link that
+    // keeps Files' rules, or a copy everyone on the record can read: sensitive (GH #303).
+    case FILES_SHARING = 'files.sharing';
 
     // ---- Projects (3.2.0) --------------------------------------------------
     // GENERAL decides who may create and change projects - the module's own

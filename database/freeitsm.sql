@@ -3076,6 +3076,9 @@ CREATE TABLE IF NOT EXISTS `documents` (
     -- GH #287: a REST client's own name for an upload, so a retry whose result was
     -- uncertain returns the same document instead of a second copy. Per uploader.
     `client_reference`  VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    -- GH #303: kind 'files' = a link to this Files item; opened through Files and its
+    -- folder permissions (files/?item=ID), never served or sent from here.
+    `files_item_id`     INT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_documents_client_reference` (`uploaded_by_id`, `client_reference`),
     KEY `idx_documents_hash` (`content_hash`),

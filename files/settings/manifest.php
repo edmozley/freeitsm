@@ -48,5 +48,12 @@ return [
             'grant'     => 'Choose what is offered when a file of the same name is uploaded (including Overwrite, which deletes the old file) and how many versions of each file are kept',
             'sensitive' => true,   // can switch on Overwrite, and delete old versions
         ],
+        [
+            'id'        => 'sharing',
+            'cap'       => capKey(Cap::FILES_SHARING),
+            'label_key' => 'files.settings.tab_sharing',
+            'grant'     => 'Choose how a file in Files is attached to a task, ticket or other record - as a link that keeps Files\' folder permissions, as a copy everyone on that record can read, or either',
+            'sensitive' => true,   // Copy lets a file be read outside its folder's permissions
+        ],
     ],
 ];
