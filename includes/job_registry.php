@@ -174,6 +174,12 @@ function jobRegistry(): array
         ],
         // Moving Files' stored bytes to a new location (Files -> Settings -> Storage).
         // Only needed while a move is running; each run works for up to 8 minutes.
+        // GH #303: keep only the newest N versions of each file (Files -> Settings -> Versions).
+        'files_versions_tidy' => [
+            'command' => 'php cron/files_versions_tidy.php', 'web' => false,
+            'interval' => 1440, 'grace' => 360, 'max_runtime' => 30,
+            'needed'  => fn(PDO $c) => (int)jobSettingStrict($c, 'files_keep_versions') > 0,
+        ],
         'storage_migrate' => [
             'command' => 'php cron/storage_migrate.php', 'web' => false,
             'interval' => 1, 'grace' => 10, 'max_runtime' => 15,

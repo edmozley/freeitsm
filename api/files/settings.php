@@ -8,6 +8,9 @@
  *   POST {tab: storage, driver, storage_root, max_upload_mb, s3: {...}}
  *   POST {tab: storage_test, s3: {...}}        write/read/delete a test file
  *   POST {tab: storage_migration, action: retry_failed|remove_old}
+ *   GET  ?tab=versions  Cap::FILES_VERSIONS  the same-name choices offered, the highlighted
+ *        one, and how many versions are kept (GH #303)
+ *   POST {tab: versions, choices: [...], default, keep}
  *   GET  ?tab=folders   Cap::FILES_FOLDERS  EVERY folder that exists, including
  *        ones the caller cannot open - names, paths and how many entries each has,
  *        never their files. This is "admins can see a folder exists" (Ed's
@@ -21,6 +24,7 @@
  */
 require_once __DIR__ . '/../../includes/files/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/files_storage.php';
+require_once __DIR__ . '/../../includes/services/files_versions.php';
 
 filesApiRun(function () use ($conn, $analystId) {
     $isGet = $_SERVER['REQUEST_METHOD'] === 'GET';
@@ -44,6 +48,17 @@ filesApiRun(function () use ($conn, $analystId) {
             }
             FilesStorageService::save($conn, $analystId, $in);
             filesApiOk();
+        } catch (InvalidArgumentException $e) {
+            filesApiFail($e->getMessage());
+        }
+    }
+
+    if ($tab === 'versions') {
+        requireCapabilityJson(Cap::FILES_VERSIONS, $conn);
+        if ($isGet) filesApiOk(FilesVersionsService::settings($conn) + ['keep_choices' => FILES_KEEP_VERSIONS_CHOICES]);
+        try {
+            FilesVersionsService::saveSettings($conn, $analystId, $in);
+            filesApiOk(FilesVersionsService::settings($conn));
         } catch (InvalidArgumentException $e) {
             filesApiFail($e->getMessage());
         }

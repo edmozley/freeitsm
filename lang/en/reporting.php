@@ -216,6 +216,8 @@ return [
         'affects_calendar_sync_pull' => 'Changes made in analysts\' own calendars reaching FreeITSM',
         'name_domains'               => 'Domains',
         'affects_domains'            => 'Domain lookups, checks and expiry alerts',
+        'name_files_versions_tidy'   => 'Files versions tidy-up',
+        'affects_files_versions_tidy' => 'Files keep more old versions than Files -> Settings -> Versions allows, so they use more storage',
         'name_storage_migrate'       => 'Files storage move',
         'affects_storage_migrate'    => 'Copying files to a new storage location (files not copied yet are read from the old one)',
         'name_lms_reminders'         => 'Training reminders',

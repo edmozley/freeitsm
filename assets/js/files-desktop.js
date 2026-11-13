@@ -541,7 +541,8 @@
                     '<div class="fx-ic">' + icon + '</div><div class="fx-name">' + esc(e.name) + '</div></div>';
             } else {
                 html += '<div class="' + cls + '" data-key="' + e.key + '" draggable="' + drag + '" title="' + esc(tip) + '">' +
-                    '<div class="fx-c fx-c-name"><span class="fx-ic">' + icon + '</span><span class="fx-name">' + esc(e.name) + '</span></div>' +
+                    '<div class="fx-c fx-c-name"><span class="fx-ic">' + icon + '</span><span class="fx-name">' + esc(e.name) + '</span>' +
+                    (e.type === 'item' && e.versions > 1 ? '<span class="fx-ver" title="' + esc(L('ex.versions_n', '{n} versions - right-click for Version history', { n: e.versions })) + '">v' + e.versions + '</span>' : '') + '</div>' +
                     '<div class="fx-c">' + esc(fmtWhen(e.modified)) + '</div>' +
                     '<div class="fx-c">' + esc(e.type === 'folder' ? L('type.folder', 'File folder') : e.type === 'shortcut' ? L('type.shortcut', 'Shortcut') : typeName(e.name)) + '</div>' +
                     '<div class="fx-c fx-c-size">' + esc(e.type === 'item' ? fmtSize(e.size) : '') + '</div></div>';
@@ -774,6 +775,9 @@
             { label: L('ex.open', 'Open'), icon: IC.open, action: function () { self.open(e); }, disabled: many },
             e.type === 'folder' ? { label: L('ex.open_new', 'Open in new window'), action: function () { self.open(e, true); }, disabled: many } : null,
             e.type === 'item' ? { label: L('ex.download', 'Download'), icon: IC.download, action: function () { self.command('download'); }, disabled: !c.download } : null,
+            // GH #303
+            e.type === 'item' ? { label: L('ex.new_version', 'Upload new version'), icon: IC.upload || null, action: function () { Uploads.newVersion(e, self.data.folder.id); }, disabled: many || e.level < LV.UPLOAD } : null,
+            e.type === 'item' ? { label: L('ex.version_history', 'Version history'), action: function () { openProperties('item', e.id, true); }, disabled: many } : null,
             { sep: true },
             { label: L('ex.cut', 'Cut'), icon: IC.cut, shortcut: 'Ctrl+X', action: function () { self.command('cut'); }, disabled: !c.cut },
             { label: L('ex.copy', 'Copy'), icon: IC.copy, shortcut: 'Ctrl+C', action: function () { self.command('copy'); }, disabled: !c.copy },
@@ -1162,15 +1166,17 @@
         /**
          * Queues files for upload into a folder (refusing any over the size limit or with no folder), opens Transfers and starts the queue.
          */
-        function add(files, folderId) {
+        function add(files, folderId, opts) {
             if (!folderId) { WM.notify(L('up.need_folder', 'Open a folder first - files go inside folders.'), 'error'); return; }
             conflictAll = null;
+            opts = opts || {};
             files.forEach(function (f) {
                 if (f.size > B.maxUpload) {
                     WM.notify(L('up.too_big', '"{name}" is larger than the {max} limit.', { name: f.name, max: fmtSize(B.maxUpload) }), 'error');
                     return;
                 }
-                queue.push({ id: ++seqId, file: f, folder: folderId, name: f.name, size: f.size, sent: 0, status: 'queued', error: '' });
+                // opts.itemId: Upload new version of that file (GH #303), with opts.note.
+                queue.push({ id: ++seqId, file: f, folder: folderId, name: opts.itemName || f.name, size: f.size, sent: 0, status: 'queued', error: '', itemId: opts.itemId || 0, note: opts.note || '' });
             });
             openWindow(true);
             pump();
@@ -1193,18 +1199,21 @@
          *
          * @return Promise  'version', 'rename' or 'skip'
          */
-        function askConflict(u, name) {
+        function askConflict(u, name, offer) {
             if (conflictAll) return Promise.resolve(conflictAll);
             var more = queue.filter(function (x) { return x.status === 'queued'; }).length > 0;
+            // GH #303: the choices Files -> Settings -> Versions offers, and which is highlighted.
+            var choices = (offer && offer.choices) || ['version', 'rename', 'skip'];
+            var dflt = (offer && offer.default) || 'version';
+            var LABEL = { version: L('up.new_version', 'New version'), rename: L('up.keep_both', 'Keep both'), overwrite: L('up.overwrite', 'Overwrite'), skip: L('up.skip', 'Skip') };
+            var says = choices.filter(function (c) { return c !== 'skip'; }).map(function (c) { return L('up.explain_' + c, ''); }).filter(Boolean).join(' ');
+            var buttons = choices.map(function (c) { return { label: LABEL[c], value: c, primary: c === dflt, cancel: c === 'skip' }; });
+            if (choices.indexOf('skip') < 0) buttons.push({ label: L('btn.cancel', 'Cancel'), value: 'skip', cancel: true });
             return WM.dialog({
-                title: L('up.conflict_title', 'Replace or keep both?'),
-                message: L('up.conflict_msg', 'This folder already has a file called "{name}".', { name: name }),
+                title: L('up.conflict_title_v', 'A file with this name is already here'),
+                message: L('up.conflict_msg', 'This folder already has a file called "{name}".', { name: name }) + (says ? '\n\n' + says : ''),
                 check: more ? L('up.do_for_all', 'Do this for every clash in this upload') : null,
-                buttons: [
-                    { label: L('up.replace', 'Replace'), value: 'version', primary: true },
-                    { label: L('up.keep_both', 'Keep both'), value: 'rename' },
-                    { label: L('up.skip', 'Skip'), value: 'skip', cancel: true }
-                ]
+                buttons: buttons
             }).then(function (r) {
                 var v = r && typeof r === 'object' ? r.button : r;
                 if (r && r.checked) conflictAll = v;
@@ -1218,10 +1227,10 @@
          * On failure the upload is marked as an error and the server's half-finished upload is cancelled.
          */
         function run(u, onConflict) {
-            return api('upload.php?action=start', { folder_id: u.folder, name: u.name, size: u.size, on_conflict: onConflict || 'ask' })
+            return api('upload.php?action=start', { folder_id: u.folder, name: u.name, size: u.size, on_conflict: onConflict || 'ask', item_id: u.itemId || 0, note: u.note || '' })
                 .then(function (r) {
                     if (r.conflict) {
-                        return askConflict(u, r.name).then(function (choice) {
+                        return askConflict(u, r.name, r).then(function (choice) {
                             if (choice === 'skip') { u.status = 'skipped'; return; }
                             return run(u, choice);
                         });
@@ -1370,7 +1379,30 @@
             tray.title = L('up.tray', '{n} uploading', { n: active.length });
         }
 
-        return { pick: pick, add: add, open: openWindow };
+        /**
+         * Upload new version (GH #303): pick one file from the computer, ask for an optional
+         * note, and upload it as the given file's next version - whatever it is called.
+         */
+        function newVersion(item, folderId) {
+            var pickOne = document.createElement('input');
+            pickOne.type = 'file';
+            pickOne.addEventListener('change', function () {
+                var f = pickOne.files && pickOne.files[0];
+                if (!f) return;
+                WM.dialog({
+                    title: L('up.new_version_title', 'New version of {name}', { name: item.name }),
+                    message: L('up.new_version_note', 'What changed? (optional - shown in the version history)'),
+                    input: { value: '' },
+                    buttons: [{ label: L('btn.upload', 'Upload'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }]
+                }).then(function (r) {
+                    if (!r || !r.button) return;
+                    add([f], folderId, { itemId: item.id, itemName: item.name, note: r.value || '' });
+                });
+            });
+            pickOne.click();
+        }
+
+        return { pick: pick, add: add, open: openWindow, newVersion: newVersion };
     })();
 
     // ════════════════════════════════════════════════════════════════════════
@@ -1551,7 +1583,7 @@
     // ════════════════════════════════════════════════════════════════════════
     //  PROPERTIES
     // ════════════════════════════════════════════════════════════════════════
-    function openProperties(type, id) {
+    function openProperties(type, id, atVersions) {
         var w = WM.open({ kind: 'props', key: type + id, single: true, title: L('props.title', 'Properties'),
             icon: FI.app('properties', 16), width: 480, height: 500, geometry: geoFor('props') });
         if (w.loaded) return;
@@ -1596,10 +1628,16 @@
                     p.versions.map(function (v) {
                         return '<tr><td>' + v.version_no + (v.id === p.current_version_id ? ' <span class="fd-badge">' + esc(L('props.current', 'Current')) + '</span>' : '') + '</td>' +
                             '<td>' + esc(fmtWhen(v.uploaded)) + '<div class="fd-muted">' + esc(v.uploaded_by || '') + '</div>' +
+                            (v.restored_from ? '<div class="fd-muted">' + esc(L('props.restored_from', 'Restored from version {n}', { n: v.restored_from })) + '</div>' : '') +
+                            (v.note ? '<div class="fd-ver-note">' + esc(v.note) + '</div>' : '') +
                             '<div class="fd-sha" title="SHA-256">' + esc(v.sha256 || '') + '</div></td>' +
                             '<td>' + esc(fmtSize(v.size)) + '</td>' +
                             '<td class="fd-nowrap"><button type="button" class="fd-iconbtn" data-view="' + v.id + '" title="' + esc(L('ex.open', 'Open')) + '">' + IC.open + '</button>' +
-                            (p.level >= LV.DOWNLOAD ? '<button type="button" class="fd-iconbtn" data-v="' + v.id + '" title="' + esc(L('ex.download', 'Download')) + '">' + IC.download + '</button>' : '') + '</td></tr>';
+                            (p.level >= LV.DOWNLOAD ? '<button type="button" class="fd-iconbtn" data-v="' + v.id + '" title="' + esc(L('ex.download', 'Download')) + '">' + IC.download + '</button>' : '') +
+                            // GH #303: Restore (Upload) and Delete (Modify) - never on the current version
+                            (v.id !== p.current_version_id && p.level >= LV.UPLOAD ? '<button type="button" class="fd-btn fd-btn-sm" data-restore="' + v.id + '">' + esc(L('props.restore', 'Restore')) + '</button>' : '') +
+                            (v.id !== p.current_version_id && p.level >= LV.MODIFY ? '<button type="button" class="fd-btn fd-btn-sm" data-delv="' + v.id + '" data-no="' + v.version_no + '">' + esc(L('btn.delete', 'Delete')) + '</button>' : '') +
+                            '</td></tr>';
                     }).join('') + '</tbody></table></div>';
             }
             w.body.innerHTML = head + '<table class="fd-kv">' + general + '</table>' + versions +
@@ -1607,7 +1645,28 @@
                     : '<button type="button" class="fd-btn" data-act="view">' + esc(L('ex.open', 'Open')) + '</button>') +
                 '<button type="button" class="fd-btn fd-btn-primary" data-act="close">' + esc(L('btn.close', 'Close')) + '</button></div>';
             w.body.querySelector('.fd-props-name').textContent = p.name;
+            if (atVersions) { var vs = w.body.querySelector('.fd-props-versions'); if (vs) vs.scrollIntoView({ block: 'start' }); }
+            /** After a restore or delete: refresh the folder, and reopen Properties at the versions. */
+            var again = function () { changed([]); w.close(); openProperties(type, id, true); };
             w.body.addEventListener('click', function (ev) {
+                var rs = ev.target.closest('[data-restore]');
+                if (rs) {
+                    api('item.php', { action: 'restore_version', id: id, version_id: +rs.dataset.restore })
+                        .then(function (r2) { WM.notify(L('props.restored', 'Restored - it is now version {n}.', { n: r2.version_no })); again(); }).catch(fail);
+                    return;
+                }
+                var dv = ev.target.closest('[data-delv]');
+                if (dv) {
+                    WM.dialog({
+                        title: L('props.delete_version', 'Delete version {n}?', { n: dv.dataset.no }),
+                        message: L('props.delete_version_msg', 'This version is deleted for good. The current version and the others are not touched.'),
+                        buttons: [{ label: L('btn.delete', 'Delete'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }]
+                    }).then(function (ok) {
+                        if (!ok) return;
+                        api('item.php', { action: 'delete_version', id: id, version_id: +dv.dataset.delv }).then(again).catch(fail);
+                    });
+                    return;
+                }
                 var v = ev.target.closest('[data-v]');
                 if (v) { download(id, +v.dataset.v); return; }
                 var vw = ev.target.closest('[data-view]');

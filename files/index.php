@@ -53,7 +53,7 @@ $capStorage = $hasCap(Cap::FILES_STORAGE);
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
-    <link rel="stylesheet" href="../assets/css/files.css?v=12">
+    <link rel="stylesheet" href="../assets/css/files.css?v=13">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
 </head>
 <body class="fd-body" data-navbar="<?php echo htmlspecialchars($prefs['navbar']); ?>" data-mobile-module="files" data-mobile-page="files-desktop">
@@ -120,7 +120,7 @@ $capStorage = $hasCap(Cap::FILES_STORAGE);
     <script src="../assets/js/float-window.js?v=1"></script>
     <script src="../assets/js/files-wm.js?v=5"></script>
     <script src="../assets/js/files-viewer.js?v=8"></script>
-    <script src="../assets/js/files-desktop.js?v=13"></script>
+    <script src="../assets/js/files-desktop.js?v=14"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

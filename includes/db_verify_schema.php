@@ -6942,6 +6942,8 @@ return [
         'sha256'              => 'CHAR(64) NULL',
         'uploaded_by'         => 'INT NULL',
         'uploaded_datetime'   => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'note'                => 'VARCHAR(255) NULL',     // GH #303
+        'restored_from_no'    => 'INT NULL',
     ],
     // Grants only, no Deny. level 1 View .. 5 Full control (FilesAcl::LEVEL_*).
     'files_permissions' => [
@@ -6986,6 +6988,8 @@ return [
         'analyst_id'          => 'INT NOT NULL',
         'folder_id'           => 'INT NOT NULL',
         'item_id'             => 'INT NULL',
+        'replace_mode'        => 'VARCHAR(10) NULL',      // GH #303
+        'version_note'        => 'VARCHAR(255) NULL',
         'file_name'           => 'VARCHAR(255) NOT NULL',
         'size_bytes'          => 'BIGINT NOT NULL DEFAULT 0',
         'received_bytes'      => 'BIGINT NOT NULL DEFAULT 0',

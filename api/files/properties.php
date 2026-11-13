@@ -43,7 +43,7 @@ filesApiRun(function () use ($conn, $analystId) {
 
     $it = filesNeedItem($conn, $analystId, $id, FilesAcl::VIEW);
     $lvl = FilesAcl::level($conn, $analystId, (int)$it['folder_id']);
-    $st = $conn->prepare("SELECT v.id, v.version_no, v.size_bytes, v.mime_type, v.sha256, v.uploaded_datetime, a.full_name AS uploaded_by
+    $st = $conn->prepare("SELECT v.id, v.version_no, v.size_bytes, v.mime_type, v.sha256, v.uploaded_datetime, v.note, v.restored_from_no, a.full_name AS uploaded_by
                             FROM files_versions v LEFT JOIN analysts a ON a.id = v.uploaded_by
                            WHERE v.item_id = ? ORDER BY v.version_no DESC");
     $st->execute([$id]);
@@ -62,6 +62,7 @@ filesApiRun(function () use ($conn, $analystId) {
         'versions'   => array_map(fn($v) => [
             'id' => (int)$v['id'], 'version_no' => (int)$v['version_no'], 'size' => (int)$v['size_bytes'],
             'sha256' => $v['sha256'], 'uploaded' => $v['uploaded_datetime'], 'uploaded_by' => $v['uploaded_by'],
+            'note' => $v['note'], 'restored_from' => $v['restored_from_no'] === null ? null : (int)$v['restored_from_no'],
         ], $st->fetchAll(PDO::FETCH_ASSOC)),
         'current_version_id' => (int)$it['current_version_id'],
         'level'      => $lvl,

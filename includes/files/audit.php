@@ -23,6 +23,7 @@ const FILES_AUDIT_ACTIONS = [
     'browse', 'search', 'view', 'download', 'upload', 'new_version',
     'create_folder', 'rename', 'move', 'copy', 'delete',
     'permissions', 'inheritance', 'watermark', 'shortcut', 'take_ownership', 'denied', 'settings',
+    'restore_version', 'delete_version', 'overwrite',   // GH #303 - includes/services/files_versions.php
 ];
 
 /**

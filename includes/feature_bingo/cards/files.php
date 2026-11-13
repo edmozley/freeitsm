@@ -103,4 +103,16 @@ return [
         'link'     => 'files/settings/',
         'check'    => ['rows', 'system_settings', "setting_key = 'files_storage_driver' AND setting_value = 's3'"],
     ],
+    [
+        'id'       => 'files.version_history',
+        'module'   => 'files',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Files with a version history',
+        'what'     => 'Upload new version with a note, Version history on any file, Restore an earlier version as the current one, and choose how many versions each file keeps.',
+        'why'      => 'The wrong file uploaded over the right one is a two-click fix, and "which copy did we send?" has an answer, with who changed it and why.',
+        'done'     => 'A version has been restored, or uploaded with a note.',
+        'link'     => 'files/',
+        'check'    => ['rows', 'files_versions', 'restored_from_no IS NOT NULL OR note IS NOT NULL'],
+    ],
 ];

@@ -10548,6 +10548,8 @@ CREATE TABLE IF NOT EXISTS `files_versions` (
     `sha256`                CHAR(64) NULL,
     `uploaded_by`           INT NULL,
     `uploaded_datetime`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `note`                  VARCHAR(255) NULL,                      -- what changed, typed with Upload new version (GH #303)
+    `restored_from_no`      INT NULL,                               -- set = this version is a restore of version N (shares its bytes)
     PRIMARY KEY (`id`),
     KEY `ix_files_versions_item` (`item_id`, `version_no`),
     KEY `ix_files_versions_path` (`storage_path`),
@@ -10620,6 +10622,8 @@ CREATE TABLE IF NOT EXISTS `files_uploads` (
     `analyst_id`            INT NOT NULL,
     `folder_id`             INT NOT NULL,
     `item_id`               INT NULL,                               -- set = a new version of this file
+    `replace_mode`          VARCHAR(10) NULL,                       -- 'overwrite' = the file's earlier versions are deleted on finish (GH #303)
+    `version_note`          VARCHAR(255) NULL,                      -- the note for the new version
     `file_name`             VARCHAR(255) NOT NULL,
     `size_bytes`            BIGINT NOT NULL DEFAULT 0,
     `received_bytes`        BIGINT NOT NULL DEFAULT 0,

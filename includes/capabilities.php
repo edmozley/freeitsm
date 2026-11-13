@@ -274,6 +274,9 @@ enum Cap: string
     case FILES_MANAGE  = 'files.manage';    // umbrella
     case FILES_FOLDERS = 'files.folders';
     case FILES_STORAGE = 'files.storage';
+    // VERSIONS decides what a same-name upload offers - including Overwrite, which
+    // deletes the old file - and how many versions are kept: sensitive (GH #303).
+    case FILES_VERSIONS = 'files.versions';
 
     // ---- Projects (3.2.0) --------------------------------------------------
     // GENERAL decides who may create and change projects - the module's own

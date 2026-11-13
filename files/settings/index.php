@@ -147,9 +147,28 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
             <div class="set-actions"><button type="button" class="fil-btn primary" id="stoSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="stoMsg" style="font-size:13px"></span></div>
         </div>
         <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'versions')): /* GH #303 */ ?>
+        <div class="tab-content<?php echo $activeTabId === 'versions' ? ' active' : ''; ?>" id="versions-tab" data-capability="<?php echo capKey(Cap::FILES_VERSIONS); ?>">
+            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('versions_title'); ?></h2>
+            <div class="set-box"><?php echo $tt('versions_intro'); ?></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('conflict_choices'); ?></div><div class="desc"><?php echo $tt('conflict_choices_desc'); ?></div></div>
+                <div id="verChoices">
+                    <?php foreach (['version', 'rename', 'overwrite', 'skip'] as $c): ?>
+                    <label style="display:block;margin:4px 0"><input type="checkbox" value="<?php echo $c; ?>"> <strong><?php echo $tt('choice_' . $c); ?></strong> - <span class="desc"><?php echo $tt('choice_' . $c . '_desc'); ?></span></label>
+                    <?php endforeach; ?>
+                    <div class="dflt"><?php echo $tt('conflict_choices_default'); ?></div>
+                </div></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('conflict_default'); ?></div><div class="desc"><?php echo $tt('conflict_default_desc'); ?></div></div>
+                <div><select id="verDefault"></select></div></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('keep_versions'); ?></div><div class="desc"><?php echo $tt('keep_versions_desc'); ?></div></div>
+                <div><select id="verKeep"></select><div class="dflt"><?php echo $tt('keep_versions_default'); ?></div></div></div>
+            <div class="set-actions"><button type="button" class="fil-btn primary" id="verSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="verMsg" style="font-size:13px"></span></div>
+        </div>
+        <?php endif; ?>
     </div>
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
-    <script src="../../assets/js/files-settings.js?v=5"></script>
+    <script src="../../assets/js/files-settings.js?v=6"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

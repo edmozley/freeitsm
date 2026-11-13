@@ -34,6 +34,7 @@ $sections = [
     'desktop'     => 5,
     'explorer'    => 7,
     'uploading'   => 4,
+    'versions'    => 4,   // GH #303
     'upload_errors' => 7,
     'viewing'     => 7,
     'permissions' => 6,

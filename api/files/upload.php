@@ -3,7 +3,10 @@
  * Chunked uploads - how a 2 GB .exe gets in past PHP's upload limits and any
  * proxy's body limit: the browser sends it in FILES_CHUNK_BYTES pieces.
  *
- *   POST ?action=start   {folder_id, name, size, on_conflict?: ask|version|rename}
+ *   POST ?action=start   {folder_id, name, size, on_conflict?: ask|version|rename|overwrite,
+ *                         item_id?: upload a new version of THIS file (Upload new version), note?}
+ *        on_conflict is refused unless Files -> Settings -> Versions offers it; overwrite also
+ *        needs Modify, since it deletes the file's earlier versions (GH #303).
  *        -> {token, chunk}                       or {conflict: true, item_id, name}
  *   POST ?action=chunk&token=&offset=   raw bytes as the body (NOT multipart -
  *        upload_max_filesize does not apply; each piece is far under post_max_size)
@@ -19,6 +22,7 @@
  */
 require_once __DIR__ . '/../../includes/files/api_bootstrap.php';
 require_once __DIR__ . '/../../includes/services/files_storage.php';
+require_once __DIR__ . '/../../includes/services/files_versions.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -32,6 +36,8 @@ filesApiRun(function () use ($conn, $analystId) {
         $name     = filesCleanName((string)($in['name'] ?? ''));
         $size     = (int)($in['size'] ?? -1);
         $conflict = (string)($in['on_conflict'] ?? 'ask');
+        $target   = (int)($in['item_id'] ?? 0);                    // Upload new version of this file
+        $note     = mb_substr(trim(preg_replace('/[\x00-\x1F\x7F]+/u', ' ', (string)($in['note'] ?? ''))), 0, 255);
 
         if ($folderId <= 0) filesApiFail('Files go inside a folder - open or create one first.');
         filesNeed($conn, $analystId, $folderId, FilesAcl::UPLOAD, 'upload');
@@ -41,18 +47,35 @@ filesApiRun(function () use ($conn, $analystId) {
             filesApiFail('That file is larger than the ' . uploadFormatBytes($max) . ' limit set in Files settings.');
         }
 
+        // Only the choices Files -> Settings -> Versions offers (GH #303). Upload new version
+        // on a chosen file is its own action and always allowed with Upload.
+        $vs = FilesVersionsService::settings($conn);
+        if ($conflict !== 'ask' && !in_array($conflict, $vs['choices'], true) && !($target > 0 && $conflict === 'version')) {
+            filesApiFail('That choice is not offered here - see Files -> Settings -> Versions.');
+        }
+        if ($conflict === 'overwrite') filesNeed($conn, $analystId, $folderId, FilesAcl::MODIFY, 'overwrite');
+        $mode = $conflict === 'overwrite' ? 'overwrite' : null;
+
         $itemId = null;
-        $st = $conn->prepare("SELECT id, name FROM files_items WHERE folder_id = ? AND deleted_datetime IS NULL AND LOWER(name) = LOWER(?)");
-        $st->execute([$folderId, $name]);
-        $existing = $st->fetch(PDO::FETCH_ASSOC);
+        if ($target > 0) {
+            $t = filesItem($conn, $target);
+            if (!$t || (int)$t['folder_id'] !== $folderId) filesApiFail('File not found.');
+            $existing = ['id' => (int)$t['id'], 'name' => $t['name']];
+            if ($conflict === 'ask') $conflict = 'version';
+        } else {
+            $st = $conn->prepare("SELECT id, name FROM files_items WHERE folder_id = ? AND deleted_datetime IS NULL AND LOWER(name) = LOWER(?)");
+            $st->execute([$folderId, $name]);
+            $existing = $st->fetch(PDO::FETCH_ASSOC);
+        }
         if ($existing) {
-            if ($conflict === 'version') {
+            if ($conflict === 'version' || $conflict === 'overwrite') {
                 $itemId = (int)$existing['id'];
                 $name   = $existing['name'];
             } elseif ($conflict === 'rename') {
                 $name = filesFreeName($conn, $folderId, $name);
             } else {
-                filesApiOk(['conflict' => true, 'item_id' => (int)$existing['id'], 'name' => $existing['name']]);
+                filesApiOk(['conflict' => true, 'item_id' => (int)$existing['id'], 'name' => $existing['name'],
+                            'choices' => $vs['choices'], 'default' => $vs['default']]);
             }
         } elseif (filesNameTaken($conn, $folderId, $name)) {
             $name = filesFreeName($conn, $folderId, $name);   // a folder already has the name
@@ -72,9 +95,9 @@ filesApiRun(function () use ($conn, $analystId) {
         $token = bin2hex(random_bytes(16));
         $path  = filesIncomingPath($conn, $token);
         if (@file_put_contents($path, '') === false) filesApiFail('The server could not start writing the file.');
-        $conn->prepare("INSERT INTO files_uploads (token, analyst_id, folder_id, item_id, file_name, size_bytes, created_datetime)
-                        VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
-             ->execute([$token, $analystId, $folderId, $itemId, $name, $size]);
+        $conn->prepare("INSERT INTO files_uploads (token, analyst_id, folder_id, item_id, replace_mode, version_note, file_name, size_bytes, created_datetime)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$token, $analystId, $folderId, $itemId, $itemId ? $mode : null, $note !== '' ? $note : null, $name, $size]);
         filesApiOk(['token' => $token, 'chunk' => FILES_CHUNK_BYTES, 'name' => $name]);
     }
 
@@ -158,9 +181,9 @@ filesApiRun(function () use ($conn, $analystId) {
             $name = $it['name'];
             $versionNo = 1 + (int)$conn->query("SELECT COALESCE(MAX(version_no), 0) FROM files_versions WHERE item_id = " . (int)$itemId)->fetchColumn();
         }
-        $conn->prepare("INSERT INTO files_versions (item_id, version_no, storage_path, size_bytes, mime_type, sha256, uploaded_by, uploaded_datetime)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())")
-             ->execute([$itemId, $versionNo, $rel, $size, $mime, $sha, $analystId]);
+        $conn->prepare("INSERT INTO files_versions (item_id, version_no, storage_path, size_bytes, mime_type, sha256, uploaded_by, uploaded_datetime, note)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?)")
+             ->execute([$itemId, $versionNo, $rel, $size, $mime, $sha, $analystId, $up['version_note'] ?? null]);
         $versionId = (int)$conn->lastInsertId();
         $conn->prepare("UPDATE files_items SET current_version_id = ?, size_bytes = ?, mime_type = ?" .
                        ($isNew ? "" : ", updated_by = " . (int)$analystId . ", updated_datetime = UTC_TIMESTAMP()") .
@@ -173,6 +196,19 @@ filesApiRun(function () use ($conn, $analystId) {
         filesAudit($conn, $analystId, $isNew ? 'upload' : 'new_version',
                    ['folder_id' => $folderId, 'item_id' => $itemId, 'version_id' => $versionId, 'item_name' => $name],
                    ['size' => $size, 'sha256' => $sha, 'version' => $versionNo]);
+        // GH #303: Overwrite deletes the file's earlier versions (Modify was checked at start,
+        // and again here); otherwise keep only the newest N if the setting says so.
+        if (!$isNew) {
+            $itemRow = filesItem($conn, $itemId);
+            if ($itemRow && ($up['replace_mode'] ?? null) === 'overwrite'
+                && FilesAcl::level($conn, $analystId, $folderId) >= FilesAcl::MODIFY) {
+                FilesVersionsService::overwrite($conn, $analystId, $itemRow, $versionId);
+                $conn->prepare("UPDATE files_versions SET version_no = 1 WHERE id = ?")->execute([$versionId]);
+                $versionNo = 1;
+            } else {
+                FilesVersionsService::applyKeep($conn, $itemId);
+            }
+        }
         filesApiOk(['item_id' => $itemId, 'version_no' => $versionNo, 'name' => $name]);
     }
 

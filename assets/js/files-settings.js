@@ -34,6 +34,37 @@
 
     var LEVELS = { 0: L('settings.no_access', 'None'), 1: L('level.view', 'View'), 2: L('level.download', 'Download'), 3: L('level.upload', 'Upload'), 4: L('level.modify', 'Modify'), 5: L('level.full', 'Full control') };
 
+    // ── Versions (GH #303) ─────────────────────────────────────────────────
+    var verBox = document.getElementById('verChoices');
+    if (verBox) {
+        var verDefault = document.getElementById('verDefault'), verKeep = document.getElementById('verKeep'), verMsg = document.getElementById('verMsg');
+        var CHOICE = { version: L('settings.choice_version', 'New version'), rename: L('settings.choice_rename', 'Keep both'), overwrite: L('settings.choice_overwrite', 'Overwrite') };
+        /** Fills the highlighted-choice dropdown from the ticked choices (never Skip), keeping the current pick where it is still ticked. */
+        var fillDefault = function (want) {
+            var ticked = Array.prototype.filter.call(verBox.querySelectorAll('input'), function (i) { return i.checked && i.value !== 'skip'; }).map(function (i) { return i.value; });
+            var keep = want || verDefault.value;
+            verDefault.innerHTML = ticked.map(function (c) { return '<option value="' + esc(c) + '">' + esc(CHOICE[c]) + '</option>'; }).join('');
+            if (ticked.indexOf(keep) >= 0) verDefault.value = keep;
+        };
+        verBox.addEventListener('change', function () { fillDefault(); });
+        api('settings.php?tab=versions').then(function (r) {
+            verBox.querySelectorAll('input').forEach(function (i) { i.checked = r.choices.indexOf(i.value) >= 0; });
+            fillDefault(r.default);
+            verKeep.innerHTML = r.keep_choices.map(function (n) {
+                return '<option value="' + n + '">' + esc(n === 0 ? L('settings.keep_all', 'Every version') : L('settings.keep_n', 'The newest {n}', { n: n })) + '</option>';
+            }).join('');
+            verKeep.value = String(r.keep);
+        }).catch(function (e) { verMsg.textContent = e.message; });
+        document.getElementById('verSave').addEventListener('click', function () {
+            var choices = Array.prototype.filter.call(verBox.querySelectorAll('input'), function (i) { return i.checked; }).map(function (i) { return i.value; });
+            verMsg.style.color = '';
+            verMsg.textContent = '';
+            api('settings.php', { tab: 'versions', choices: choices, default: verDefault.value, keep: parseInt(verKeep.value, 10) })
+                .then(function () { verMsg.style.color = 'var(--success-text, #166534)'; verMsg.textContent = L('settings.saved', 'Saved'); })
+                .catch(function (e) { verMsg.style.color = 'var(--danger-text, #991b1b)'; verMsg.textContent = e.message; });
+        });
+    }
+
     // ── Folders ────────────────────────────────────────────────────────────
     var folBody = document.getElementById('folBody');
     var folders = [];
