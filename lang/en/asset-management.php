@@ -455,6 +455,8 @@ return [
 
     // Split-pane left list
     'list' => [
+        'group_by_type'      => 'Group by type',
+        'group_no_type'      => 'No type',
         'search_placeholder' => 'Search name, serial, tag, location or contract...',
         'no_assets'          => 'No assets found',
         'count'              => '{count} assets',

@@ -912,6 +912,10 @@ $translationNamespaces = ['common', 'asset-management'];
                             <div><strong>Search</strong><br>The asset list search checks hostnames. On the Servers tab, it also searches IP, host, cluster, and guest OS.</div>
                         </div>
                         <div class="help-card row">
+                            <div class="help-card-icon">&#128194;</div>
+                            <div><strong>Group by type</strong><br>Tick <strong>Group by type</strong> above the list for a heading per asset type, with how many there are, and <em>No type</em> last. Click a heading to close or open it. Search and Show retired work within the groups, and this browser remembers both the switch and which groups are closed.</div>
+                        </div>
+                        <div class="help-card row">
                             <div class="help-card-icon">&#128203;</div>
                             <div><strong>History</strong><br>Click "View History" on any asset to see every change &mdash; who updated a field, what the old and new values were, and when.</div>
                         </div>
