@@ -72,6 +72,7 @@ function workflowEventRecordTables(): array
         'article'        => ['knowledge_articles', 'shared'],
         // Settings that are per company (a company's own type or origin); a shared one is no company's.
         'ticket_type'    => ['ticket_types',       'shared'],
+        'ticket_priority'=> ['ticket_priorities',  'shared'],
         'ticket_origin'  => ['ticket_origins',     'shared'],
         'ticket_category'=> ['ticket_categories',  'shared'],
         'asset_type'     => ['asset_types',        'shared'],

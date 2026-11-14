@@ -1278,7 +1278,7 @@ class WorkflowEngine
             'where'     => 'is_active = 1 AND id NOT IN (SELECT parent_form_id FROM forms WHERE parent_form_id IS NOT NULL)',
             'order'     => 'title',
         ],
-        'ticket.priority_id'         => ['table' => 'ticket_priorities', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
+        'ticket.priority_id'         => ['table' => 'ticket_priorities', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name', 'company' => true],
         'ticket.status_id'           => ['table' => 'ticket_statuses',   'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
         'ticket.department_id'       => ['table' => 'departments',       'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
         'ticket.type_id'             => ['table' => 'ticket_types',      'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
@@ -1298,8 +1298,8 @@ class WorkflowEngine
         'ticket.origin_id'           => ['table' => 'ticket_origins',    'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
         'old_status_id'              => ['table' => 'ticket_statuses',   'label_col' => 'name',      'order' => 'display_order, name'],
         'new_status_id'              => ['table' => 'ticket_statuses',   'label_col' => 'name',      'order' => 'display_order, name'],
-        'old_priority_id'            => ['table' => 'ticket_priorities', 'label_col' => 'name',      'order' => 'display_order, name'],
-        'new_priority_id'            => ['table' => 'ticket_priorities', 'label_col' => 'name',      'order' => 'display_order, name'],
+        'old_priority_id'            => ['table' => 'ticket_priorities', 'label_col' => 'name',      'order' => 'display_order, name', 'company' => true],
+        'new_priority_id'            => ['table' => 'ticket_priorities', 'label_col' => 'name',      'order' => 'display_order, name', 'company' => true],
         'analyst_id'                 => ['table' => 'analysts',          'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
         'team_id'                    => ['table' => 'teams',             'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
         'task.priority_id'           => ['table' => 'task_priorities',   'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
@@ -1444,9 +1444,13 @@ class WorkflowEngine
             $conn = connectToDatabase();
             $where = isset($spec['where']) ? ' WHERE ' . $spec['where'] : '';
             $order = isset($spec['order']) ? ' ORDER BY ' . $spec['order'] : '';
+            // 'company': a per-company list, where a company's own row is labelled with its company's name,
+            // so a shared workflow's author can tell Acme's "P1" from Globex's.
+            $byCompany = !empty($spec['company']) && isMultiTenant($conn);
             $sql = sprintf(
-                'SELECT id AS id, %s AS label FROM `%s`%s%s',
+                'SELECT id AS id, %s AS label%s FROM `%s`%s%s',
                 $spec['label_col'],
+                $byCompany ? ', tenant_id' : '',
                 $spec['table'],
                 $where,
                 $order
@@ -1456,7 +1460,8 @@ class WorkflowEngine
             // Stringify ids so the editor's form values (always strings)
             // compare cleanly without type juggling.
             return array_map(
-                fn($r) => ['id' => (string)$r['id'], 'label' => (string)$r['label']],
+                fn($r) => ['id' => (string)$r['id'], 'label' => (string)$r['label']
+                    . ($byCompany && $r['tenant_id'] !== null ? ' (' . workflowCompanyName($conn, (int)$r['tenant_id']) . ')' : '')],
                 $rows
             );
         } catch (Exception) {
@@ -3224,6 +3229,15 @@ class WorkflowEngine
         $pLookup->execute([$priorityId]);
         $pRow = $pLookup->fetch(PDO::FETCH_ASSOC);
         if (!$pRow) throw new Exception("Unknown priority_id: {$priorityId}");
+        // The ticket's company's priorities (#320): its own and the shared ones it has not hidden.
+        require_once dirname(__DIR__, 2) . '/includes/ticket_priorities.php';
+        $t = $conn->prepare('SELECT tenant_id FROM tickets WHERE id = ?');
+        $t->execute([$ticketId]);
+        $tenant = $t->fetchColumn();
+        $usable = array_column(ticketPrioritiesFor($conn, $tenant === false || $tenant === null ? null : (int)$tenant, false), 'id');
+        if (!in_array($priorityId, $usable, true)) {
+            throw new Exception("Priority {$priorityId} is not one this ticket can have - it belongs to another company or is hidden.");
+        }
         $conn->prepare('UPDATE tickets SET priority_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?')
              ->execute([$priorityId, $ticketId]);
         return ['ticket_id' => $ticketId, 'priority_id' => $priorityId, 'priority_name' => $pRow['name']];

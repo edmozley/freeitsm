@@ -11,7 +11,12 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *          a company's own rows and the shared ones it has not hidden,
  *          triage on the shared list, the default fallbacks, the same name in two companies, and calendars.
  *
- * Each part runs inside a transaction that is always rolled back, so nothing it makes - companies included - is ever committed.
+ * PART 3 - workflows, in a child process: "Set ticket priority" refuses another company's priority or a hidden one,
+ *          a company's own priority is labelled with its company in the editor's lists, and its events are filed under it.
+ *
+ * Parts 1 and 2 run inside a transaction that is always rolled back, so nothing they make - companies included - is ever committed.
+ * Part 3 cannot: a workflow action opens its own connection, which would not see uncommitted rows.
+ * So it commits, names everything ZZ320 WF, and removes it all at the end, pass or fail.
  */
 
 require_once __DIR__ . '/../config.php';
@@ -164,6 +169,54 @@ if (($argv[1] ?? '') === '--multi') {
 }
 
 // ---------------------------------------------------------------------------
+// Child: PART 3. Committed, then removed in the finally - see the header.
+// ---------------------------------------------------------------------------
+if (($argv[1] ?? '') === '--workflow') {
+    echo "\nPART 3 - workflows\n";
+    require_once __DIR__ . '/../workflow/includes/engine.php';
+    $ins = $conn->prepare("INSERT INTO tenants (name, is_default, is_active) VALUES (?, 0, 1)");
+    $ins->execute(['ZZ320 WF A']); $A = (int)$conn->lastInsertId();
+    $ins->execute(['ZZ320 WF B']); $B = (int)$conn->lastInsertId();
+    try {
+        ok('control: this process sees more than one company', isMultiTenant($conn));
+        $aOwn    = zzPriority($conn, 'ZZ320 WF P1', $A);
+        $bOwn    = zzPriority($conn, 'ZZ320 WF P1', $B);
+        $shared  = zzPriority($conn, 'ZZ320 WF shared', null);
+        $aHidden = zzPriority($conn, 'ZZ320 WF hidden by A', null);
+        zzHide($conn, $A, 'ticket_priority', $aHidden);
+        $status = (int)$conn->query("SELECT id FROM ticket_statuses ORDER BY id LIMIT 1")->fetchColumn();
+        $conn->prepare("INSERT INTO tickets (ticket_number, subject, tenant_id, priority_id, status_id, created_datetime) VALUES ('ZZ320-WF', 'ZZ320 WF', ?, NULL, ?, UTC_TIMESTAMP())")
+             ->execute([$A, $status]);
+        $t = (int)$conn->lastInsertId();
+        $set = function (int $priority) use ($conn, $t): ?int {
+            WorkflowEngine::runActionList('ZZ320 WF', 'zz.test', [['type' => 'set_ticket_priority', 'args' => ['ticket_id' => (string)$t, 'priority_id' => (string)$priority]]], ['ticket' => ['id' => $t]]);
+            $now = $conn->query("SELECT priority_id FROM tickets WHERE id = $t")->fetchColumn();
+            return $now === null ? null : (int)$now;
+        };
+        ok('"Set ticket priority" sets the ticket\'s company\'s own priority', $set($aOwn) === $aOwn);
+        ok('...and a shared one it can see', $set($shared) === $shared);
+        ok('...but not another company\'s', $set($bOwn) === $shared);
+        ok('...nor a shared one the company hides', $set($aHidden) === $shared);
+
+        $labels = array_column(WorkflowEngine::availableValuesForField('ticket.priority_id'), 'label', 'id');
+        ok('the condition list names a company\'s own priority\'s company', ($labels[(string)$aOwn] ?? '') === 'ZZ320 WF P1 (ZZ320 WF A)' && ($labels[(string)$bOwn] ?? '') === 'ZZ320 WF P1 (ZZ320 WF B)');
+        ok('...and leaves a shared one as it is', ($labels[(string)$shared] ?? '') === 'ZZ320 WF shared');
+        $actionLabels = array_column(WorkflowEngine::availableActionLookup('ticket_priority'), 'label', 'id');
+        ok('the action\'s list does the same', ($actionLabels[(string)$aOwn] ?? '') === 'ZZ320 WF P1 (ZZ320 WF A)');
+
+        ok('a company\'s own priority\'s events are filed under it', workflowEventTenantId($conn, ['ticket_priority' => ['id' => $aOwn]]) === $A);
+        ok('...and a shared one\'s under no company', workflowEventTenantId($conn, ['ticket_priority' => ['id' => $shared]]) === null);
+    } finally {
+        $conn->exec("DELETE FROM workflow_executions WHERE workflow_name = 'ZZ320 WF'");
+        $conn->exec("DELETE FROM tickets WHERE ticket_number = 'ZZ320-WF'");
+        $conn->exec("DELETE FROM tenant_config_hidden WHERE tenant_id IN ($A, $B)");
+        $conn->exec("DELETE FROM ticket_priorities WHERE name LIKE 'ZZ320 WF%'");
+        $conn->exec("DELETE FROM tenants WHERE id IN ($A, $B)");
+    }
+    done();
+}
+
+// ---------------------------------------------------------------------------
 echo "PART 1 - one company\n";
 if ((int)$conn->query("SELECT COUNT(*) FROM tenants")->fetchColumn() > 1) {
     echo "  SKIP  the database has more than one company\n";
@@ -189,5 +242,7 @@ if ((int)$conn->query("SELECT COUNT(*) FROM tenants")->fetchColumn() > 1) {
 }
 
 passthru(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --multi', $childExit);
+if ($childExit !== 0) $fail++;
+passthru(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' --workflow', $childExit);
 if ($childExit !== 0) $fail++;
 done();
