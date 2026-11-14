@@ -476,6 +476,17 @@ return [
         'choice_overwrite' => 'Nadpisz',
         'choice_skip' => 'Pomiń',
     ],
+    'email_report' => [
+        'sent' => 'Wysłano e-mailem na adres {email}.',
+        'not_signed_in' => 'Nie jesteś już zalogowany. Zaloguj się ponownie i spróbuj jeszcze raz.',
+        'bad_request' => 'Nie udało się wysłać raportu.',
+        'not_pdf' => 'W ten sposób można wysłać e-mailem tylko plik PDF.',
+        'too_large' => 'Raport jest zbyt duży, aby wysłać go e-mailem (limit to 3 MB). Pobierz go zamiast tego.',
+        'no_email' => 'Twoje konto nie ma prawidłowego adresu e-mail. Dodaj go w sekcji Moje konto lub pobierz raport.',
+        'no_mailbox' => 'Poczta e-mail nie jest skonfigurowana w tym systemie. Pobierz raport.',
+        'send_failed' => 'Nie udało się wysłać e-maila. Przyczyna znajduje się w dzienniku wysyłki e-maili.',
+        'network' => 'Nie udało się wysłać raportu - serwer nie odpowiedział.',
+    ],
     'documents' => [
         'heading' => 'Dokumenty',
         'count_one' => '1 dokument',

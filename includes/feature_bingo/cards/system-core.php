@@ -552,6 +552,22 @@ return [
         'link'     => 'system/sso/',
         'check'    => ['rows', 'directory_sync_runs', "mode = 'live' AND triggered_by_analyst_id IS NULL"],
     ],
+    [
+        // GH #261, PR #264 by vsc55: a person is managed only while their source exists.
+        'id'       => 'system.imported_people',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Imported people looked after',
+        'what'     => 'System -> Maintenance -> Imported people: the people whose source was deleted, the ones a source no longer brings in, and an import undone - each with a "what if" preview that can be saved as a PDF or emailed to yourself before anything changes.',
+        'why'      => 'People a directory stops sending do not tidy themselves away: they sit in pickers and counts as if they still worked here. Deciding about them, with the full effect shown first, keeps the people list true.',
+        'done'     => 'People have been imported from a directory or address book, and nobody is left marked as imported by a source that no longer exists.',
+        'link'     => 'system/directory-maintenance/',
+        'check'    => ['all', [
+            ['rows', 'directory_sync_runs', "mode = 'live'"],
+            ['sql', 'SELECT CASE WHEN COUNT(*) = 0 THEN 1 ELSE 0 END FROM users u WHERE u.is_managed = 1 AND NOT EXISTS (SELECT 1 FROM auth_providers p WHERE p.id = u.auth_provider_id)'],
+        ]],
+    ],
 
     // ───────────────────────── CardDAV address books ─────────────────────────
     [
@@ -1078,5 +1094,20 @@ return [
         'done'     => 'At least one active analyst has live updates on.',
         'link'     => 'system/preferences/#live-updates',
         'check'    => ['sql', "SELECT COUNT(*) FROM analysts a WHERE a.is_active = 1 AND NOT EXISTS (SELECT 1 FROM user_preferences p WHERE p.analyst_id = a.id AND p.preference_key = 'live_updates' AND p.preference_value = '0')"],
+    ],
+
+    // ───────────────────────── Emailed reports (5.3.0) ─────────────────────────
+    [
+        // Asked on GH #261: a report emailed to yourself, the file itself where nothing outside can reach the install.
+        'id'       => 'system.emailed_reports',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Reports emailed to yourself',
+        'what'     => 'An Email button beside PDF on a report sends it to your own address - in the body, attached, or as a download link only you can open - as System -> Emailed reports is set.',
+        'why'      => 'A report to read later, or to pass to whoever has to agree first, without saving and attaching a file by hand. The attachment works even where FreeITSM cannot be reached from outside.',
+        'done'     => 'At least one report has been emailed to the analyst who made it.',
+        'link'     => 'system/emailed-reports/',
+        'check'    => ['rows', 'email_send_log', "route = 'report_to_self' AND status = 'sent'"],
     ],
 ];

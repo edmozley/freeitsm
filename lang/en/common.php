@@ -475,6 +475,18 @@ return [
         'choice_overwrite' => 'Overwrite',
         'choice_skip'    => 'Skip',
     ],
+    // Email a report to yourself (5.3.0) - assets/js/email-report.js
+    'email_report' => [
+        'sent'          => 'Emailed to {email}.',
+        'not_signed_in' => 'You are no longer signed in. Sign in again and retry.',
+        'bad_request'   => 'The report could not be sent.',
+        'not_pdf'       => 'Only a PDF can be emailed this way.',
+        'too_large'     => 'The report is too large to email (the limit is 3 MB). Download it instead.',
+        'no_email'      => 'Your account has no valid email address. Add one in My Account, or download the report instead.',
+        'no_mailbox'    => 'Email is not set up on this system. Download the report instead.',
+        'send_failed'   => 'The email could not be sent. The reason is in the email send log.',
+        'network'       => 'The report could not be sent - the server did not answer.',
+    ],
     'documents' => [
         'heading'        => 'Documents',
         'count_one'      => '1 document',

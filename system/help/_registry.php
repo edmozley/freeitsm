@@ -229,6 +229,7 @@ function getHelpTopics() {
                 ['id' => 'entra-fields',   'label' => 'What Entra imports'],
                 ['id' => 'entra-schedule', 'label' => 'Entra safety & scheduling'],
                 ['id' => 'entra-faq',      'label' => 'Entra troubleshooting'],
+                ['id' => 'directory-maintenance', 'label' => 'Looking after imported people'],
                 ['id' => 'experience', 'label' => 'What people see'],
                 ['id' => 'breakglass', 'label' => 'Break-glass & safety'],
                 ['id' => 'faq',        'label' => 'Troubleshooting'],
@@ -618,6 +619,32 @@ function getHelpTopics() {
                 ['id' => 'notes',    'label' => 'Good to know'],
             ],
             'terms' => 'missing lost hidden stuck invisible disappeared deleted department cannot find ticket reassign fix broken',
+        ],
+        'directory-maintenance' => [
+            'hero' => 'Imported people',
+            'sub'  => 'People imported from a directory sometimes need a decision: their source was deleted, it no longer brings them in, or they should never have been imported. This page lists them, for every kind of source.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'orphans',  'label' => 'Source deleted'],
+                ['id' => 'stale',    'label' => 'No longer brought in'],
+                ['id' => 'remove',   'label' => 'Remove imported people'],
+                ['id' => 'whatif',   'label' => 'What if: the full effect first'],
+            ],
+            'terms' => 'orphaned people users imported directory ldap carddav entra source deleted removed missing stale leavers undo import remove cleanup maintenance'
+                     . ' preview what if report pdf before deleting',
+        ],
+        'emailed-reports' => [
+            'hero' => 'Emailed reports',
+            'sub'  => 'When somebody emails themselves a report - the "what if" before deleting a directory source, for one - this decides what the email carries: the report in the body, the PDF attached, a download link, or any mix.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'ways',     'label' => 'The three ways'],
+                ['id' => 'choosing', 'label' => 'Which to choose'],
+                ['id' => 'links',    'label' => 'Download links'],
+                ['id' => 'activity', 'label' => 'Revoking and activity'],
+            ],
+            'terms' => 'email report pdf attachment attach download link links revoke expire expiry send mail inbox body'
+                     . ' not internet facing internal network intranet audit who downloaded 3 mb too large',
         ],
         'email-routing-test' => [
             'hero' => 'Email routing test',

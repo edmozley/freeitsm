@@ -197,6 +197,8 @@ return [
         'affects_domains' => 'Consultas, comprobaciones y alertas de caducidad de dominios',
         'name_files_versions_tidy' => 'Limpieza de versiones de Archivos',
         'affects_files_versions_tidy' => 'Los archivos conservan más versiones antiguas de las que permite Archivos -> Ajustes -> Versiones, por lo que usan más almacenamiento',
+        'name_report_downloads_tidy' => 'Limpieza de enlaces de informes enviados por correo',
+        'affects_report_downloads_tidy' => 'Los informes de enlaces de descarga caducados o revocados permanecen en el disco',
         'name_storage_migrate' => 'Traslado del almacenamiento de Archivos',
         'affects_storage_migrate' => 'Copia de archivos a una nueva ubicación de almacenamiento (los archivos aún no copiados se leen de la antigua)',
         'name_lms_reminders' => 'Recordatorios de formación',

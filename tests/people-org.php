@@ -67,10 +67,14 @@ try {
     check('the restricted analyst sees company A only (setup)', getAccessibleTenantIds($conn, $r) === [$a], json_encode(getAccessibleTenantIds($conn, $r)));
 
     $n = 0;
-    $mk = function (int $tenant, string $name, ?int $manager = null, bool $active = true, bool $managed = true) use ($conn, $tag, &$n): int {
+    // A person a directory keeps up to date has a source that exists - since #261,
+    // `is_managed` with no source is nobody's, and is not counted as managed.
+    $conn->prepare("INSERT INTO auth_providers (protocol, display_name, issuer_url, client_id, enabled, sync_enabled) VALUES ('ldap', ?, '', '', 1, 1)")->execute(["$tag directory"]);
+    $dir = (int)$conn->lastInsertId();
+    $mk = function (int $tenant, string $name, ?int $manager = null, bool $active = true, bool $managed = true) use ($conn, $tag, $dir, &$n): int {
         $n++;
-        $conn->prepare("INSERT INTO users (email, display_name, tenant_id, manager_id, is_active, is_managed) VALUES (?, ?, ?, ?, ?, ?)")
-             ->execute(["$tag-$n@example.invalid", "$tag $name", $tenant, $manager, $active ? 1 : 0, $managed ? 1 : 0]);
+        $conn->prepare("INSERT INTO users (email, display_name, tenant_id, manager_id, is_active, is_managed, auth_provider_id) VALUES (?, ?, ?, ?, ?, ?, ?)")
+             ->execute(["$tag-$n@example.invalid", "$tag $name", $tenant, $manager, $active ? 1 : 0, $managed ? 1 : 0, $managed ? $dir : null]);
         return (int)$conn->lastInsertId();
     };
     $boss      = $mk($a, 'Boss');

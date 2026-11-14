@@ -24,6 +24,7 @@
  */
 
 require_once __DIR__ . '/tenancy.php';
+require_once __DIR__ . '/users.php';   // userManagedSql()
 
 /** An address as stored: trimmed, lower case. */
 function userEmailNorm(?string $email): string
@@ -208,9 +209,14 @@ function userHasLogin(PDO $conn, int $userId): bool
  */
 function userReferences(PDO $conn, int $userId): array
 {
-    $skip = ['users.id', 'tickets.user_id', 'user_email_addresses.user_id', 'user_email_claims.user_id', 'user_audit.user_id'];
-    $cols = [];
-    try {
+    $skip = ['users.id', 'tickets.user_id', 'user_email_addresses.user_id', 'user_email_claims.user_id', 'user_audit.user_id',
+             // A VARCHAR holding Entra's object id, not users.id: compared with a number it can match by accident.
+             'intune_devices.user_id'];
+    // The columns, found once per request: the directory maintenance tools ask this for
+    // hundreds of people at a time (userDeleteBlockedByRecords()).
+    static $found = null;
+    $cols = $found ?? [];
+    if ($found === null) try {
         foreach ($conn->query("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
                                 WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME = 'users'")->fetchAll(PDO::FETCH_NUM) as [$t, $c]) {
             $cols["$t.$c"] = [$t, $c];
@@ -221,6 +227,7 @@ function userReferences(PDO $conn, int $userId): array
                                   AND (c.COLUMN_NAME = 'user_id' OR c.COLUMN_NAME LIKE '%\\_user\\_id' OR (c.TABLE_NAME = 'users' AND c.COLUMN_NAME = 'manager_id'))")->fetchAll(PDO::FETCH_NUM) as [$t, $c]) {
             $cols["$t.$c"] = [$t, $c];
         }
+        $found = $cols;
     } catch (Throwable $e) {
         return ['(could not be checked)' => 1];   // unknown means "do not delete"
     }
@@ -245,7 +252,8 @@ function userReferences(PDO $conn, int $userId): array
 function userMergePreview(PDO $conn, int $analystId, int $fromId, int $toId): array
 {
     $load = function (int $id) use ($conn): ?array {
-        $st = $conn->prepare("SELECT id, email, display_name, tenant_id, is_managed FROM users WHERE id = ?");
+        // Managed only while the source exists (userManagedSql()): a deleted source's people merge like anybody.
+        $st = $conn->prepare("SELECT id, email, display_name, tenant_id, " . userManagedSql('users') . " AS is_managed FROM users WHERE id = ?");
         $st->execute([$id]);
         return $st->fetch(PDO::FETCH_ASSOC) ?: null;
     };

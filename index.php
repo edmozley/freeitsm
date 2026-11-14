@@ -37,6 +37,19 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// Signed in on the way to an emailed report's download link (5.3.0): the link set
+// this cookie before sending them to sign in, so take them back to it. Only a
+// 64-hex token is accepted, and the destination is fixed - the cookie cannot send
+// anyone anywhere else. The link itself still checks it is theirs.
+if (isset($_COOKIE['freeitsm_report_return'])) {
+    $reportReturn = (string)$_COOKIE['freeitsm_report_return'];
+    setcookie('freeitsm_report_return', '', ['expires' => time() - 3600, 'path' => defined('BASE_URL') ? BASE_URL : '/']);
+    if (preg_match('/^[0-9a-f]{64}$/', $reportReturn)) {
+        header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'api/system/report_download.php?t=' . $reportReturn);
+        exit;
+    }
+}
+
 require_once 'includes/waffle-menu.php';
 
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';

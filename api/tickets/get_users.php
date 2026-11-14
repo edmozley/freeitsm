@@ -82,7 +82,8 @@ try {
                 -- refuses to accept them. Without this column the form would assume
                 -- unmanaged, post them, and the save would fail with an error the
                 -- analyst did nothing to deserve.
-                u.is_managed,
+                -- And only while the source exists: one rule for every source (userManagedSql(), #261).
+                " . userManagedSql() . " AS is_managed,
                 -- WHICH directory, not just whether. An address book owns a job
                 -- title and a phone number but has nowhere to keep a payroll
                 -- number or a reporting line, so those two stay editable on a

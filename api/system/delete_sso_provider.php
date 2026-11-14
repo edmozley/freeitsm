@@ -1,16 +1,23 @@
 <?php
 /**
  * API: Delete an SSO / OIDC identity provider.
- * POST JSON { id }
+ * POST JSON { id, people: 'keep' | 'left' }
  *
- * Linked rows in analyst_sso_identities are removed by the ON DELETE CASCADE
- * foreign key; any analyst whose auth_provider_id pointed here is reset to
- * local (ON DELETE SET NULL).
+ * The people a source imported stay, as ordinary people - or as leavers, with
+ * people: 'left' - and nothing points at the source any more: see
+ * DirectoryMaintenance::releaseSource() (issue #261).
+ *
+ * All or nothing, in one transaction. Everything that names it goes with it - sign-in links, group mappings, imported
+ * groups, the CardDAV write log - removed here rather than left to foreign keys a
+ * verified install does not have; analysts and teams that signed in with it are
+ * reset. ?action=preview_delete on api/system/directory_maintenance.php lists all
+ * of it first.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/admin_api_guard.php'; // System admins only (issue #34)
 require_once '../../includes/functions.php';
+require_once '../../includes/services/directory_maintenance.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -31,6 +38,19 @@ if ($id <= 0) {
 
 try {
     $conn = connectToDatabase();
+    $actor = ActorContext::fromSession($conn);
+
+    // ALL OR NOTHING (#261): the people, the links and the source go together, or
+    // none of them does. The people first, while the row still says who they
+    // belong to: kept as ordinary people, or marked as left when asked, never
+    // left half-managed - and refused, before anything changes, for an analyst
+    // who cannot access every company its people are in.
+    $conn->beginTransaction();
+
+    $name = $conn->prepare("SELECT display_name FROM auth_providers WHERE id = ?");
+    $name->execute([$id]);
+    $released = DirectoryMaintenance::releaseSource($conn, $actor, $id,
+        (string)$name->fetchColumn(), ($data['people'] ?? 'keep') === 'left');
 
     // ⚠️ Delete the write log EXPLICITLY rather than relying on the foreign key.
     // `carddav_write_log` declares ON DELETE CASCADE in database/freeitsm.sql, but
@@ -43,18 +63,25 @@ try {
     //
     // 🔑 Doing it here is correct EITHER WAY: with the constraint present the rows
     // are already gone and this deletes nothing, and without it they go now.
-    try {
-        $conn->prepare("DELETE FROM carddav_write_log WHERE provider_id = ?")->execute([$id]);
-    } catch (Throwable $e) {
-        // An install predating the table. Not a reason to refuse the delete.
-        error_log('[sso] write log cleanup skipped: ' . $e->getMessage());
-    }
-    // Same reasoning for groups imported from Entra, members first.
-    try {
-        $conn->prepare("DELETE m FROM directory_group_members m JOIN directory_groups g ON g.id = m.group_id WHERE g.provider_id = ?")->execute([$id]);
-        $conn->prepare("DELETE FROM directory_groups WHERE provider_id = ?")->execute([$id]);
-    } catch (Throwable $e) {
-        error_log('[sso] directory group cleanup skipped: ' . $e->getMessage());
+    //
+    // Each cleanup tolerates a table this install has not got (an install that
+    // predates it): a failed statement inside a transaction undoes only itself.
+    // Same reasoning for groups imported from Entra, members first; and for the
+    // sign-in links, group -> team mappings and the groups seen at sign-in - the
+    // preview (#261) says they go.
+    foreach (["DELETE FROM carddav_write_log WHERE provider_id = ?",
+              "DELETE m FROM directory_group_members m JOIN directory_groups g ON g.id = m.group_id WHERE g.provider_id = ?",
+              "DELETE FROM directory_groups WHERE provider_id = ?",
+              "DELETE FROM user_sso_identities WHERE provider_id = ?",
+              "DELETE FROM analyst_sso_identities WHERE provider_id = ?",
+              "DELETE FROM sso_group_teams WHERE provider_id = ?",
+              "DELETE FROM sso_groups_seen WHERE provider_id = ?"] as $sql) {
+        try {
+            $conn->prepare($sql)->execute([$id]);
+        } catch (PDOException $e) {
+            if (!in_array($e->getCode(), ['42S02', '42S22'], true)) throw $e;
+            error_log('[sso] cleanup skipped: ' . $e->getMessage());
+        }
     }
 
     $stmt = $conn->prepare("DELETE FROM auth_providers WHERE id = ?");
@@ -71,11 +98,20 @@ try {
         // between someone's teams (GH #41).
         require_once __DIR__ . '/../../includes/analyst_signin.php';
         analystSignInApplyMany($conn, analystSignInFollowerIds($conn));
-    } catch (Throwable $e) {
+    } catch (PDOException $e) {
         // An install whose Database Verification has not added the team columns yet.
+        if (!in_array($e->getCode(), ['42S02', '42S22'], true)) throw $e;
         error_log('[sso] team sign-in cleanup skipped: ' . $e->getMessage());
     }
-    echo json_encode(['success' => true]);
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    $conn->commit();
+    echo json_encode(['success' => true, 'released' => $released]);
+} catch (ServiceError $e) {
+    // Refused before anything changed (the company check): its own words.
+    if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+    echo json_encode(['success' => false, 'error' => $e->getMessage(), 'code' => $e->errorCode]);
+} catch (Throwable $e) {
+    if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+    // Never the exception's own text: it can carry SQL and column names.
+    error_log('delete_sso_provider: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The provider could not be deleted.']);
 }

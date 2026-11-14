@@ -187,6 +187,8 @@ return [
         'gap_no_manager_d' => 'Aktuelle Personen, die aus einem Verzeichnis aktuell gehalten werden, dort keine vorgesetzte Person haben und selbst niemanden führen. Von Hand eingegebene Personen sind ausgenommen: Bei ihnen ist eine fehlende vorgesetzte Person normal.',
         'gap_left' => 'Ausgeschiedene, denen noch Personen unterstellt sind',
         'gap_left_d' => 'Als ausgeschieden markiert, aber noch mit aktuellen Personen, die ihnen unterstellt sind.',
+        'gap_no_source' => 'Von einer gelöschten Quelle importiert',
+        'gap_no_source_d' => 'Nichts aktualisiert sie mehr. Ein Administrator entscheidet unter System → Wartung → Importierte Personen, ob sie behalten werden.',
         'gap_reports' => '{n} noch unterstellt',
         'gap_none' => 'Keine.',
         'gap_more' => 'Die ersten {n} von {total} werden angezeigt.',
@@ -330,7 +332,7 @@ return [
     'company' => [
         'not_found' => 'Unternehmen nicht gefunden.',
         'ticket_code' => 'Ticketcode',
-        'external_ref' => 'Externe Referenz',   // GH #279
+        'external_ref' => 'Externe Referenz',
         'tax_id' => 'Steuer-ID',
         'email_domains' => 'E-Mail-Domänen',
         'people' => 'Personen',
@@ -474,6 +476,7 @@ return [
             'p2_v2' => '**Baum** zeigt die gesamte Organisation. Er beginnt mit den Personen ganz oben - denen, die jemanden führen und niemanden über sich haben -, und jeder Zweig öffnet sich Ebene für Ebene, als **Karten**, als **Kompakt**-Liste mit Position und Abteilung in Spalten oder als **Spalten**: eine Spalte pro Ebene, darüber ein Pfad, der jede Ebene nennt, und rechts die gewählte Person. **Person suchen** öffnet den Baum bis zu ihr. Jede Abteilung hat ihre eigene Farbe. Jede Person zeigt, wie viele ihr unterstellt sind, und nach einem Punkt, wie viele insgesamt unter ihr sind - in Kompakt die zweite Zahl in Klammern. **Diagramm** zeichnet ihn als Kästchen und Linien: die gesamte Organisation von oben oder, wenn eine Person ausgewählt ist, **In der Organisation** - die Linie von oben bis zu ihr, mit dem Team jeder vorgesetzten Person daneben und ihrem eigenen Team darunter - oder nur **Ihr Bereich**, drei Ebenen tief, sofern **Ebenen** nichts anderes sagt (einige zur Auswahl, **Alle** oder eine eigene Zahl bis 32, wobei 0 alle bedeutet), und höchstens 150 Personen, mit dem Hinweis, wo Personen weggelassen wurden. **Kompakt** stapelt die Personen ohne eigenes Team unter ihrer vorgesetzten Person, und **Von links nach rechts** dreht es zur Seite, was für ein Bild oft besser passt. Das Mausrad scrollt das Diagramm, und Umschalt mit dem Mausrad scrollt es seitwärts; Strg mit dem Mausrad (Cmd auf einem Mac) oder ein Zusammenziehen auf dem Trackpad zoomt rund um den Mauszeiger hinein und heraus, und durch Ziehen verschieben Sie es. Die Größe steht zwischen **-** und **+**, und ein Klick darauf setzt sie auf 100 % zurück. Klicken Sie im Diagramm auf eine Person, um im Bereich daneben zu sehen, wer sie ist und wer zu ihrem Team gehört; ein Doppelklick oder **Ab hier zeichnen** zeichnet das Diagramm ab ihr; **Vorgesetzte Person** geht eine Ebene nach oben und **Die gesamte Organisation** zurück an die Spitze. Im Baum öffnen und schließen **Alle aufklappen** und **Alle zuklappen** jeden Zweig, und beim Wechsel zwischen Karten und Kompakt bleibt Geöffnetes offen. Im Diagramm hat die ausgewählte Person einen Balken am unteren Rand und die Markierung **Ausgewählt**, und **Andere abblenden** blendet alle anderen ab. Der Bereich neben den Spalten und dem Diagramm zeigt, wie die Person erreichbar ist; der des Diagramms lässt sich mit dem Pfeil oben einklappen. Ist die Seite auf eine Person geöffnet, zeigt die Seitenleiste das an: Das Kreuz neben ihrem Namen kehrt zu allen zurück. **Exportieren** speichert, was das Diagramm zeigt, als Bild (PNG, SVG oder PDF) oder als Daten (CSV, JSON oder XML).',
             'p3' => 'Ausgeschiedene sind ausgeblendet, sofern Sie nicht **Ausgeschiedene anzeigen** ankreuzen - außer Ausgeschiedenen, denen noch Personen unterstellt sind: Sie werden immer angezeigt und markiert. **Lücken** listet sie auf, ebenso die Personen, die ein Verzeichnis aktuell hält und die dort keine vorgesetzte Person haben. Beides sollte im Verzeichnis behoben werden.',
             'p4' => 'Sie sehen nur Personen in den Unternehmen, auf die Sie Zugriff haben. Eine vorgesetzte Person in einem Unternehmen ohne Ihren Zugriff wird nie genannt: Die ihr unterstellten Personen beginnen einen eigenen Zweig, als hätten sie keine vorgesetzte Person.',
+            'p5' => 'Wenn eine Verzeichnisquelle gelöscht wird, bleiben die von ihr importierten Personen als gewöhnliche Personen bestehen. **Lücken** listet alle Personen auf, die noch als von einer nicht mehr vorhandenen Quelle importiert markiert sind, damit ein Administrator unter System → Wartung → Importierte Personen entscheiden kann, ob sie behalten, als ausgeschieden markiert oder gelöscht werden.',
         ],
         'companies' => [
             'nav' => 'Unternehmen',

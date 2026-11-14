@@ -197,6 +197,8 @@ return [
         'affects_domains' => 'Domæneopslag, tjek og udløbsalarmer',
         'name_files_versions_tidy' => 'Oprydning af Filer-versioner',
         'affects_files_versions_tidy' => 'Filer beholder flere gamle versioner, end Filer -> Indstillinger -> Versioner tillader, så de bruger mere lager',
+        'name_report_downloads_tidy' => 'Oprydning af links til rapporter på e-mail',
+        'affects_report_downloads_tidy' => 'Rapporter bag udløbne eller tilbagekaldte downloadlinks bliver liggende på disken',
         'name_storage_migrate' => 'Flytning af Filer-lager',
         'affects_storage_migrate' => 'Kopiering af filer til en ny lagerplacering (filer, der endnu ikke er kopieret, læses fra den gamle)',
         'name_lms_reminders' => 'Påmindelser om undervisning',

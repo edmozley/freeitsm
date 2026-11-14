@@ -94,6 +94,7 @@ function analystReferenceRegistry(): array {
         ['project_ai_threads', 'analyst_id', 'personal'],
         ['lms_learning_group_members', 'analyst_id', 'personal'],
         ['files_shortcuts', 'analyst_id', 'personal'],
+        ['report_downloads', 'analyst_id', 'personal'],   // 5.3.0: their own emailed report links - only they can download them
         ['files_uploads', 'analyst_id', 'personal'],
         ['form_drafts', 'owner_id', 'personal', "owner_kind = 'analyst'"],
         ['knowledge_acl', 'principal_id', 'personal', "principal_type = 'analyst'"],
@@ -360,6 +361,7 @@ function analystReferenceRegistry(): array {
         ['files_permissions', 'granted_by', 'history'],
         ['files_audit', 'analyst_id', 'history'],
         ['files_shortcuts', 'created_by', 'history'],
+        ['report_downloads', 'revoked_by', 'history'],   // 5.3.0: the admin who revoked a report link
     ];
 }
 

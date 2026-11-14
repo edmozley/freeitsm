@@ -40,6 +40,16 @@ function getMaintenanceTools(): array
             'keywords' => 'system.landing.orphaned_keywords',
             'count'    => 'maintenanceCountOrphanedTickets',
         ],
+        // Imported people (#261): counts the people whose directory source was
+        // deleted - the list that needs a decision whatever the sources are.
+        [
+            'url'      => 'directory-maintenance/',
+            'icon'     => 'imported_people',
+            'title'    => 'system.landing.imported_people_title',
+            'desc'     => 'system.landing.imported_people_desc',
+            'keywords' => 'system.landing.imported_people_keywords',
+            'count'    => 'maintenanceCountImportedPeople',
+        ],
     ];
 }
 
@@ -59,6 +69,16 @@ function maintenanceToolCount(PDO $conn, array $tool): ?int
     } catch (Throwable $e) {
         return null;
     }
+}
+
+/**
+ * Imported people: still flagged as imported by a directory source that no
+ * longer exists - DirectoryMaintenance's orphans, across every company.
+ */
+function maintenanceCountImportedPeople(PDO $conn): int
+{
+    require_once __DIR__ . '/../../../includes/services/directory_maintenance.php';
+    return DirectoryMaintenance::orphanCount($conn);
 }
 
 /**

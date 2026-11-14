@@ -688,4 +688,7 @@ return [
     ['help_section_vectors', 'idx_help_section_vectors_model', 'key', '(`model`)'],
     ['help_assistant_unanswered', 'idx_help_assistant_unanswered_open', 'key', '(`dealt_datetime`,`id`)'],
     ['help_assistant_messages', 'idx_help_assistant_messages_analyst', 'key', '(`analyst_id`,`id`)'],
+    ['report_downloads', 'uq_report_downloads_token', 'unique', '(`token_hash`)'],
+    ['report_downloads', 'idx_report_downloads_analyst', 'key', '(`analyst_id`,`id`)'],
+    ['report_downloads', 'idx_report_downloads_expires', 'key', '(`expires_at`)'],
 ];

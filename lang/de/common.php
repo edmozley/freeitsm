@@ -476,6 +476,17 @@ return [
         'choice_overwrite' => 'Überschreiben',
         'choice_skip' => 'Überspringen',
     ],
+    'email_report' => [
+        'sent' => 'An {email} gesendet.',
+        'not_signed_in' => 'Sie sind nicht mehr angemeldet. Melden Sie sich erneut an und versuchen Sie es noch einmal.',
+        'bad_request' => 'Der Bericht konnte nicht gesendet werden.',
+        'not_pdf' => 'Auf diesem Weg kann nur ein PDF per E-Mail gesendet werden.',
+        'too_large' => 'Der Bericht ist zu groß für den E-Mail-Versand (Limit: 3 MB). Laden Sie ihn stattdessen herunter.',
+        'no_email' => 'Ihr Konto hat keine gültige E-Mail-Adresse. Fügen Sie unter „Mein Konto“ eine hinzu oder laden Sie den Bericht herunter.',
+        'no_mailbox' => 'E-Mail ist auf diesem System nicht eingerichtet. Laden Sie den Bericht stattdessen herunter.',
+        'send_failed' => 'Die E-Mail konnte nicht gesendet werden. Den Grund finden Sie im E-Mail-Sendeprotokoll.',
+        'network' => 'Der Bericht konnte nicht gesendet werden - der Server hat nicht geantwortet.',
+    ],
     'documents' => [
         'heading' => 'Dokumente',
         'count_one' => '1 Dokument',

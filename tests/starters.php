@@ -52,7 +52,7 @@ echo "\nStarters & leavers\n" . str_repeat('=', 72) . "\n";
 $admin = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 ORDER BY id LIMIT 1")->fetchColumn();
 $ctx = new ActorContext(actorId: $admin, companyScope: null, source: 'ui', actorName: 'test');
 $tag = bin2hex(random_bytes(3));
-$made = ['templates' => [], 'cases' => [], 'users' => [], 'assets' => [], 'statuses' => [], 'forms' => [], 'submissions' => []];
+$made = ['templates' => [], 'cases' => [], 'users' => [], 'assets' => [], 'statuses' => [], 'forms' => [], 'submissions' => [], 'providers' => []];
 $sid = 'zzjml' . bin2hex(random_bytes(4));
 $csrf = bin2hex(random_bytes(32));
 $sessFile = rtrim(ini_get('session.save_path') ?: 'c:/wamp64/tmp', "/\\") . '/sess_' . $sid;
@@ -164,7 +164,10 @@ try {
     ok('Left switches them off in Users, with the date (userActiveSets)', (int)$u['is_active'] === 0 && $u['deactivated_datetime'] !== null, json_encode($u));
     ok('only a leaver can be marked as left', refused(fn() => StartersService::markLeft($conn, $ctx, $case)) !== '');
 
-    $conn->prepare("INSERT INTO users (email, display_name, is_active, is_managed) VALUES (?, ?, 1, 1)")->execute(["zzjml-dir-$tag@example.test", "ZZ-JML Dir $tag"]);
+    // Kept from a directory that exists: since #261 a flag with no source is nobody's.
+    $conn->prepare("INSERT INTO auth_providers (protocol, display_name, issuer_url, client_id, enabled, sync_enabled) VALUES ('ldap', ?, '', '', 1, 1)")->execute(["ZZ-JML Dir source $tag"]);
+    $dirSource = (int)$conn->lastInsertId(); $made['providers'][] = $dirSource;
+    $conn->prepare("INSERT INTO users (email, display_name, is_active, is_managed, auth_provider_id) VALUES (?, ?, 1, 1, ?)")->execute(["zzjml-dir-$tag@example.test", "ZZ-JML Dir $tag", $dirSource]);
     $dir = (int)$conn->lastInsertId(); $made['users'][] = $dir;
     $dirCase = StartersService::createCase($conn, $ctx, ['kind' => 'leaver', 'user_id' => $dir, 'effective_date' => date('Y-m-d')]);
     $made['cases'][] = $dirCase;
@@ -296,6 +299,7 @@ try {
     }
     foreach ($made['statuses'] as $id) $conn->exec("DELETE FROM asset_status_types WHERE id = $id");
     foreach ($made['users'] as $id) { try { $conn->exec("DELETE FROM users_assets WHERE user_id = $id"); } catch (Throwable $e) {} $conn->exec("DELETE FROM users WHERE id = $id"); }
+    foreach ($made['providers'] as $id) $conn->exec("DELETE FROM auth_providers WHERE id = $id");
     @unlink($sessFile);
 }
 

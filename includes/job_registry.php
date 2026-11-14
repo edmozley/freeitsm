@@ -180,6 +180,13 @@ function jobRegistry(): array
             'interval' => 1440, 'grace' => 360, 'max_runtime' => 30,
             'needed'  => fn(PDO $c) => (int)jobSettingStrict($c, 'files_keep_versions') > 0,
         ],
+        // 5.3.0: emailed reports' download links - delete the files of expired and
+        // revoked links, and old rows (includes/report_downloads.php).
+        'report_downloads_tidy' => [
+            'command' => 'php cron/report_downloads_tidy.php', 'web' => false,
+            'interval' => 1440, 'grace' => 360, 'max_runtime' => 10,
+            'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM report_downloads WHERE file_deleted_at IS NULL LIMIT 1"),
+        ],
         'storage_migrate' => [
             'command' => 'php cron/storage_migrate.php', 'web' => false,
             'interval' => 1, 'grace' => 10, 'max_runtime' => 15,

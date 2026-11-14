@@ -1135,7 +1135,7 @@ class AssetsService
         $limit = max(1, min($limit, 1000));
         $sql = "SELECT u.id, u.email, u.username, u.display_name, u.preferred_name,
                        u.job_title, u.department, u.office, u.phone, u.mobile,
-                       u.employee_id, u.manager_id, u.is_active, u.is_managed,
+                       u.employee_id, u.manager_id, u.is_active, " . userManagedSql() . " AS is_managed,
                        u.directory_username, u.last_seen_in_source, u.deactivated_datetime,
                        u.tenant_id, ap.protocol AS managed_protocol, ap.carddav_write_back AS managed_write_back,
                        ap.id AS source_id, ap.display_name AS source_name,
@@ -1208,7 +1208,7 @@ class AssetsService
         $u = $conn->prepare(
             "SELECT u.id, u.email, u.username, u.display_name, u.preferred_name,
                     u.job_title, u.department, u.office, u.phone, u.mobile,
-                    u.employee_id, u.manager_id, u.is_active, u.is_managed,
+                    u.employee_id, u.manager_id, u.is_active, " . userManagedSql() . " AS is_managed,
                     u.directory_username, u.deactivated_datetime,
                     ap.protocol AS managed_protocol, ap.carddav_write_back AS managed_write_back,
                     ap.id AS source_id, ap.display_name AS source_name,

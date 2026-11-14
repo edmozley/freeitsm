@@ -190,7 +190,7 @@ $seg = function (string $label, string $attr, array $options) {
         'levelsMax'     => PEOPLE_ORG_CHART_LEVELS_MAX,
     ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/people-org.js?v=7"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/people-org.js?v=8"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/pdf-writer.js?v=2"></script>   <!-- the shared PDF writer (GH #254) -->
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>

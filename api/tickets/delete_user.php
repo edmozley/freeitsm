@@ -65,35 +65,21 @@ try {
         exit;
     }
 
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM tickets WHERE user_id = ?");
-    $stmt->execute([$id]);
-    $ticketCount = (int)$stmt->fetchColumn();
-
-    if ($ticketCount > 0) {
-        echo json_encode([
-            'success' => false,
-            'error'   => "Cannot delete: this user is the requester on $ticketCount ticket(s). Reassign or close those tickets first."
-        ]);
+    // Somebody with tickets or equipment is never deleted: the same rule the
+    // directory maintenance tools follow (userDeleteBlockedByHistory()).
+    if ($blocked = userDeleteBlockedByHistory($conn, $id)) {
+        echo json_encode(['success' => false, 'error' => $blocked]);
         exit;
     }
 
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM users_assets WHERE user_id = ?");
-    $stmt->execute([$id]);
-    $assetCount = (int)$stmt->fetchColumn();
-
-    if ($assetCount > 0) {
-        echo json_encode([
-            'success' => false,
-            'error'   => "Cannot delete: this user has $assetCount asset assignment(s). Unassign those assets first."
-        ]);
-        exit;
-    }
-
-    $del = $conn->prepare("DELETE FROM users WHERE id = ?");
-    $del->execute([$id]);
+    // With what is theirs, and letting go of them where a record outlives them -
+    // by hand, because a verified install has no foreign keys (userDeletePerson()).
+    userDeletePerson($conn, $id);
 
     echo json_encode(['success' => true, 'message' => 'User deleted']);
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    // Never the exception's own text: it can carry SQL and column names.
+    error_log('delete_user: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The person could not be deleted.']);
 }

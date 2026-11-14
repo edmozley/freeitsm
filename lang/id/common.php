@@ -476,6 +476,17 @@ return [
         'choice_overwrite' => 'Timpa',
         'choice_skip' => 'Lewati',
     ],
+    'email_report' => [
+        'sent' => 'Dikirim ke {email}.',
+        'not_signed_in' => 'Anda sudah tidak masuk. Masuk lagi lalu coba kembali.',
+        'bad_request' => 'Laporan tidak dapat dikirim.',
+        'not_pdf' => 'Hanya PDF yang dapat dikirim lewat email dengan cara ini.',
+        'too_large' => 'Laporan terlalu besar untuk dikirim lewat email (batasnya 3 MB). Unduh laporan sebagai gantinya.',
+        'no_email' => 'Akun Anda tidak memiliki alamat email yang valid. Tambahkan di Akun Saya, atau unduh laporan sebagai gantinya.',
+        'no_mailbox' => 'Email belum disiapkan di sistem ini. Unduh laporan sebagai gantinya.',
+        'send_failed' => 'Email tidak dapat dikirim. Alasannya ada di log pengiriman email.',
+        'network' => 'Laporan tidak dapat dikirim - server tidak merespons.',
+    ],
     'documents' => [
         'heading' => 'Dokumen',
         'count_one' => '1 dokumen',

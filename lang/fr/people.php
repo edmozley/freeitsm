@@ -187,6 +187,8 @@ return [
         'gap_no_manager_d' => 'Personnes actuelles tenues à jour depuis un annuaire qui n\'y ont aucun responsable et n\'en dirigent aucune. Les personnes saisies à la main sont exclues : pour elles, l\'absence de responsable est normale.',
         'gap_left' => 'Partants qui dirigent encore des personnes',
         'gap_left_d' => 'Marqués comme partis, avec des personnes actuelles qui leur rendent encore compte.',
+        'gap_no_source' => 'Importées par une source supprimée',
+        'gap_no_source_d' => 'Plus rien ne les met à jour. Un administrateur décide s\'il faut les conserver, dans Système → Maintenance → Personnes importées.',
         'gap_reports' => '{n} lui rendent encore compte',
         'gap_none' => 'Aucun.',
         'gap_more' => 'Affichage des {n} premiers sur {total}.',
@@ -330,7 +332,7 @@ return [
     'company' => [
         'not_found' => 'Entreprise introuvable.',
         'ticket_code' => 'Code de ticket',
-        'external_ref' => 'Référence externe',   // GH #279
+        'external_ref' => 'Référence externe',
         'tax_id' => 'Numéro fiscal',
         'email_domains' => 'Domaines e-mail',
         'people' => 'Personnes',
@@ -474,6 +476,7 @@ return [
             'p2_v2' => '**Arborescence** affiche toute l\'organisation. Elle commence par les personnes au sommet - celles qui dirigent quelqu\'un et n\'ont personne au-dessus - et chaque branche s\'ouvre un niveau à la fois, en **Cartes**, en liste **Compact** avec l\'intitulé du poste et le département en colonnes, ou en **Colonnes** : une colonne par niveau, avec un chemin au-dessus nommant chaque niveau et la personne que vous avez choisie à droite. **Trouver quelqu\'un** l\'ouvre jusqu\'à cette personne. Chaque département a sa propre couleur. Chaque personne indique combien de personnes lui rendent compte et, après un point, combien se trouvent sous sa responsabilité au total - en Compact, le second nombre entre parenthèses. **Graphique** la trace en cases et en lignes : toute l\'organisation depuis le sommet ou, avec quelqu\'un de choisi, **Dans l\'organisation** - la ligne du sommet jusqu\'à la personne avec l\'équipe de chaque responsable à côté, et sa propre équipe en dessous - ou seulement **Sa branche**, sur trois niveaux sauf indication contraire de **Niveaux** (quelques choix proposés, **Tous**, ou un nombre de votre choix jusqu\'à 32, où 0 signifie tous) et 150 personnes au maximum, en indiquant où des personnes ont été omises. **Compact** empile sous leur responsable les personnes sans équipe propre, et **De gauche à droite** tourne le graphique sur le côté, ce qui convient souvent mieux à une image. La molette de la souris fait défiler le graphique, et Maj avec la molette le fait défiler sur le côté ; Ctrl avec la molette (Cmd sur un Mac), ou un pincement sur un pavé tactile, zoome et dézoome autour du pointeur, et le glisser le déplace. La taille s\'affiche entre **-** et **+**, et un clic dessus revient à 100 %. Cliquez sur quelqu\'un dans le graphique pour voir qui il est et son équipe dans le panneau à côté ; double-cliquez dessus, ou sur **Tracer à partir d\'ici**, pour tracer à partir de lui ; **Rend compte à** monte d\'un niveau et **Toute l\'organisation** revient au sommet. Dans l\'arborescence, **Tout développer** et **Tout réduire** ouvrent et ferment chaque branche, et passer de Cartes à Compact conserve ce qui est ouvert. Dans le graphique, la personne choisie a une barre en bas et une étiquette **Choisi**, et **Estomper les autres** atténue tous les autres. Le panneau à côté des colonnes et du graphique indique comment atteindre la personne ; celui du graphique se replie avec la flèche en haut. Quand la page est ouverte sur quelqu\'un, la barre latérale l\'indique : la croix à côté de son nom revient à tout le monde. **Exporter** enregistre ce que montre le graphique sous forme d\'image (PNG, SVG ou PDF) ou de données (CSV, JSON ou XML).',
             'p3' => 'Les partants sont masqués sauf si vous cochez **Afficher les partants** - hormis un partant qui a encore des personnes qui lui rendent compte, toujours affiché, avec une marque. **Lacunes** les liste, ainsi que les personnes qu\'un annuaire tient à jour et qui n\'y ont aucun responsable. Les deux méritent d\'être corrigés dans l\'annuaire.',
             'p4' => 'Vous ne voyez que les personnes des entreprises auxquelles vous avez accès. Un responsable d\'une entreprise à laquelle vous n\'avez pas accès n\'est jamais nommé : les personnes sous sa responsabilité forment une branche à part, comme si elles n\'avaient pas de responsable.',
+            'p5' => 'Lorsqu\'une source d\'annuaire est supprimée, les personnes qu\'elle a importées restent des personnes ordinaires. **Écarts** liste toute personne encore marquée comme importée par une source qui n\'existe plus, afin qu\'un administrateur décide dans Système → Maintenance → Personnes importées s\'il faut les conserver, les marquer comme partantes ou les supprimer.',
         ],
         'companies' => [
             'nav' => 'Entreprises',

@@ -63,6 +63,9 @@ const EMAIL_LOG_ROUTES = [
     // A Basic IMAP mailbox's copy of a sent email that could not be saved to its Sent
     // folder (GH #270). Failures only: the email itself went, and has its own row.
     'sent_copy'      => 'Copy to Sent folder',
+    // A report an analyst built in the browser and emailed to THEMSELVES, the file
+    // attached (5.3.0, api/system/email_report.php).
+    'report_to_self' => 'Report emailed to self',
 ];
 
 /**

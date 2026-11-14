@@ -197,6 +197,8 @@ return [
         'affects_domains' => 'Domainabfragen, Prüfungen und Ablaufwarnungen',
         'name_files_versions_tidy' => 'Aufräumen der Dateiversionen',
         'affects_files_versions_tidy' => 'Dateien behalten mehr alte Versionen, als Dateien -> Einstellungen -> Versionen erlaubt, und belegen daher mehr Speicher',
+        'name_report_downloads_tidy' => 'Aufräumen der Links zu E-Mail-Berichten',
+        'affects_report_downloads_tidy' => 'Berichte hinter abgelaufenen oder widerrufenen Download-Links bleiben auf dem Datenträger',
         'name_storage_migrate' => 'Verschieben des Dateispeichers',
         'affects_storage_migrate' => 'Kopieren von Dateien an einen neuen Speicherort (noch nicht kopierte Dateien werden vom alten gelesen)',
         'name_lms_reminders' => 'Schulungserinnerungen',

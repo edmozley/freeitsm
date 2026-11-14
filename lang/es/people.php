@@ -187,6 +187,8 @@ return [
         'gap_no_manager_d' => 'Personas actuales que se mantienen actualizadas desde un directorio, que no tienen responsable en él y no tienen a nadie a su cargo. Se excluyen las personas introducidas a mano: para ellas es normal no tener responsable.',
         'gap_left' => 'Bajas que todavía tienen personas a su cargo',
         'gap_left_d' => 'Marcadas como baja, con personas actuales que todavía dependen de ellas.',
+        'gap_no_source' => 'Importadas por un origen que se eliminó',
+        'gap_no_source_d' => 'Ya nada las actualiza. Un administrador decide si conservarlas, en Sistema → Mantenimiento → Personas importadas.',
         'gap_reports' => '{n} todavía a su cargo',
         'gap_none' => 'Ninguna.',
         'gap_more' => 'Se muestran las primeras {n} de {total}.',
@@ -330,7 +332,7 @@ return [
     'company' => [
         'not_found' => 'Empresa no encontrada.',
         'ticket_code' => 'Código de ticket',
-        'external_ref' => 'Referencia externa',   // GH #279
+        'external_ref' => 'Referencia externa',
         'tax_id' => 'Identificación fiscal',
         'email_domains' => 'Dominios de correo',
         'people' => 'Personas',
@@ -474,6 +476,7 @@ return [
             'p2_v2' => '**Árbol** es toda la organización. Empieza por las personas de la parte superior - las que tienen a alguien a su cargo y a nadie por encima - y cada rama se abre de nivel en nivel, como **Tarjetas**, como una lista **Compacto** con el puesto y el departamento en columnas, o como **Columnas**: una columna por nivel, con una ruta encima que nombra cada nivel y la persona elegida a la derecha. **Buscar a alguien** lo abre hasta esa persona. Cada departamento tiene su propio color. Cada persona muestra cuántas tiene a su cargo y, tras un punto, cuántas hay en total por debajo - en Compacto, el segundo número entre paréntesis. **Gráfico** lo dibuja como cuadros y líneas: toda la organización desde arriba o, con alguien elegido, **En la organización** - la línea desde arriba hasta esa persona con el equipo de cada responsable a su lado, y su propio equipo debajo - o solo **Su parte**, tres niveles hacia abajo salvo que **Niveles** indique otra cosa (unas cuantas opciones, **Todos**, o un número propio de hasta 32, donde 0 son todos) y 150 personas como máximo, indicando dónde ha dejado fuera a personas. **Compacto** apila a las personas sin equipo propio bajo su responsable, y **De izquierda a derecha** lo gira de lado, lo que a menudo queda mejor en una imagen. La rueda del ratón desplaza el gráfico, y Mayús con la rueda lo desplaza de lado; Ctrl con la rueda (Cmd en un Mac), o pellizcar en un trackpad, acerca y aleja alrededor del puntero, y arrastrar lo mueve. El tamaño se muestra entre **-** y **+**, y al hacer clic en él se vuelve al 100%. Haga clic en alguien del gráfico para ver quién es y su equipo en el panel lateral; haga doble clic, o use **Dibujar desde aquí**, para dibujar desde esa persona; **Depende de** sube un nivel y **Toda la organización** vuelve a la parte superior. En el árbol, **Expandir todo** y **Contraer todo** abren y cierran todas las ramas, y cambiar entre Tarjetas y Compacto mantiene lo que está abierto. En el gráfico, la persona elegida tiene una barra en la parte inferior y una etiqueta **Elegido**, y **Atenuar el resto** atenúa a todos los demás. El panel junto a las columnas y al gráfico indica cómo contactar con la persona; el del gráfico se pliega con la flecha de su parte superior. Cuando la página está abierta en alguien, la barra lateral lo indica: la cruz junto a su nombre vuelve a mostrar a todos. **Exportar** guarda lo que muestra el gráfico como imagen (PNG, SVG o PDF) o como datos (CSV, JSON o XML).',
             'p3' => 'Las bajas están ocultas a menos que marque **Mostrar bajas**, salvo una baja que todavía tenga personas a su cargo, que siempre se muestra, marcada. **Carencias** las enumera, junto con las personas que un directorio mantiene actualizadas y que no tienen responsable en él. Conviene corregir ambas cosas en el directorio.',
             'p4' => 'Solo ve a las personas de las empresas a las que tiene acceso. Nunca se nombra a un responsable de una empresa a la que usted no tiene acceso: las personas que dependen de él empiezan una rama propia, como si no tuvieran responsable.',
+            'p5' => 'Cuando se elimina un origen de directorio, las personas que importó se quedan como personas normales. **Lagunas** enumera a quienes siguen marcados como importados por un origen que ya no existe, para que un administrador decida en Sistema → Mantenimiento → Personas importadas si conservarlos, marcarlos como baja o eliminarlos.',
         ],
         'companies' => [
             'nav' => 'Empresas',

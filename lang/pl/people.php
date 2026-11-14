@@ -187,6 +187,8 @@ return [
         'gap_no_manager_d' => 'Bieżące osoby aktualizowane z katalogu, które nie mają tam przełożonego i nikim nie kierują. Osoby wpisane ręcznie są pomijane: dla nich brak przełożonego jest normalny.',
         'gap_left' => 'Odchodzący, którzy nadal kierują ludźmi',
         'gap_left_d' => 'Oznaczeni jako odeszli, a nadal podlegają im bieżące osoby.',
+        'gap_no_source' => 'Zaimportowane przez usunięte źródło',
+        'gap_no_source_d' => 'Nic już ich nie aktualizuje. Administrator decyduje, czy je zachować, w System → Konserwacja → Zaimportowane osoby.',
         'gap_reports' => 'Nadal podlega mu: {n}',
         'gap_none' => 'Brak.',
         'gap_more' => 'Pokazano pierwsze {n} z {total}.',
@@ -330,7 +332,7 @@ return [
     'company' => [
         'not_found' => 'Nie znaleziono firmy.',
         'ticket_code' => 'Kod zgłoszeń',
-        'external_ref' => 'Referencja zewnętrzna',   // GH #279
+        'external_ref' => 'Referencja zewnętrzna',
         'tax_id' => 'NIP',
         'email_domains' => 'Domeny e-mail',
         'people' => 'Osoby',
@@ -474,6 +476,7 @@ return [
             'p2_v2' => '**Drzewo** to cała organizacja. Zaczyna się od osób na szczycie - tych, które kimś kierują i nie mają nikogo nad sobą - a każda gałąź otwiera się o jeden poziom naraz, jako **Karty**, jako lista **Zwarty** ze stanowiskiem i działem w kolumnach albo jako **Kolumny**: jedna kolumna na poziom, ze ścieżką nad nimi nazywającą każdy poziom i wybraną osobą po prawej. **Znajdź kogoś** rozwija drzewo aż do niej. Każdy dział ma własny kolor. Każda osoba pokazuje, ilu osobom przewodzi bezpośrednio, a po kropce, ile osób jest pod nią łącznie - w Zwartym druga liczba jest w nawiasie. **Schemat** rysuje to jako pola i linie: całą organizację od góry lub, gdy ktoś jest wybrany, **W organizacji** - linię od góry do tej osoby z zespołem każdego przełożonego obok niej i jej własnym zespołem poniżej - albo tylko **Jej część**, trzy poziomy w dół, chyba że **Poziomy** mówią inaczej (kilka do wyboru, **Wszystkie** lub własna liczba do 32, gdzie 0 oznacza wszystkie) i najwyżej 150 osób, z informacją, gdzie kogoś pominięto. **Zwarty** układa osoby bez własnego zespołu pod ich przełożonym, a **Od lewej do prawej** obraca schemat w bok, co często lepiej pasuje do obrazu. Kółko myszy przewija schemat, a Shift z kółkiem przewija go w bok; Ctrl z kółkiem (Cmd na Macu) lub szczypnięcie gładzika powiększa i pomniejsza wokół wskaźnika, a przeciąganie go przesuwa. Rozmiar widać między **-** a **+**, a kliknięcie go wraca do 100%. Kliknij kogoś na schemacie, aby zobaczyć, kim jest, i jego zespół w panelu obok; kliknij go dwukrotnie lub **Rysuj od tej osoby**, aby rysować od niej; **Podlega** idzie o poziom w górę, a **Cała organizacja** wraca na szczyt. W drzewie **Rozwiń wszystko** i **Zwiń wszystko** otwierają i zamykają każdą gałąź, a przełączanie między Kartami i Zwartym zachowuje to, co otwarte. Na schemacie wybrana osoba ma pasek na dole i znacznik **Wybrana**, a **Przyciemnij pozostałych** wyblakuje wszystkich innych. Panel obok kolumn i schematu mówi, jak dotrzeć do osoby; ten przy schemacie składa się strzałką u góry. Gdy strona jest otwarta na kimś, pasek boczny to mówi: krzyżyk obok nazwiska wraca do wszystkich. **Eksportuj** zapisuje to, co pokazuje schemat, jako obraz (PNG, SVG lub PDF) albo jako dane (CSV, JSON lub XML).',
             'p3' => 'Odchodzący są ukryci, chyba że zaznaczysz **Pokaż odchodzących** - z wyjątkiem odchodzącego, któremu nadal ktoś podlega: ten jest zawsze pokazany, z oznaczeniem. **Luki** wymieniają ich oraz osoby aktualizowane z katalogu, które nie mają tam przełożonego. Jedno i drugie warto poprawić w katalogu.',
             'p4' => 'Widzisz tylko osoby z firm, do których masz dostęp. Przełożony z firmy, do której nie masz dostępu, nigdy nie jest wymieniony: osoby pod nim zaczynają własną gałąź, jakby nie miały przełożonego.',
+            'p5' => 'Gdy źródło katalogu zostanie usunięte, osoby, które zaimportowało, pozostają jako zwykłe osoby. **Luki** wyświetlają każdego, kto nadal jest oznaczony jako zaimportowany przez nieistniejące już źródło, aby administrator mógł w System → Konserwacja → Zaimportowane osoby zdecydować, czy je zachować, oznaczyć jako odchodzące, czy usunąć.',
         ],
         'companies' => [
             'nav' => 'Firmy',

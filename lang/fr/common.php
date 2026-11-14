@@ -476,6 +476,17 @@ return [
         'choice_overwrite' => 'Écraser',
         'choice_skip' => 'Ignorer',
     ],
+    'email_report' => [
+        'sent' => 'Envoyé par e-mail à {email}.',
+        'not_signed_in' => 'Vous n\'êtes plus connecté. Reconnectez-vous et réessayez.',
+        'bad_request' => 'Le rapport n\'a pas pu être envoyé.',
+        'not_pdf' => 'Seul un PDF peut être envoyé par e-mail de cette façon.',
+        'too_large' => 'Le rapport est trop volumineux pour être envoyé par e-mail (la limite est de 3 Mo). Téléchargez-le plutôt.',
+        'no_email' => 'Votre compte n\'a pas d\'adresse e-mail valide. Ajoutez-en une dans Mon compte, ou téléchargez le rapport.',
+        'no_mailbox' => 'L\'e-mail n\'est pas configuré sur ce système. Téléchargez le rapport.',
+        'send_failed' => 'L\'e-mail n\'a pas pu être envoyé. Le motif figure dans le journal d\'envoi des e-mails.',
+        'network' => 'Le rapport n\'a pas pu être envoyé - le serveur n\'a pas répondu.',
+    ],
     'documents' => [
         'heading' => 'Documents',
         'count_one' => '1 document',

@@ -9,7 +9,8 @@
  *
  * Part 1 needs no database. Part 2 runs only when FREEITSM_TEST_DATABASE names
  * the database config.php points at: it makes a ticket in a department that does
- * not exist, inside a transaction that is rolled back, so it leaves nothing.
+ * not exist, and a person whose directory source does not exist, inside a
+ * transaction that is rolled back, so it leaves nothing.
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 chdir(dirname(__DIR__));
@@ -89,6 +90,20 @@ if (!$expected || $conn->query('SELECT DATABASE()')->fetchColumn() !== $expected
         $conn->exec("SET FOREIGN_KEY_CHECKS = 1");
         check('a ticket in a department that does not exist is counted; a binned one is not', maintenanceCountOrphanedTickets($conn), $before + 1);
         check('the card shows that count', maintenanceToolCount($conn, $tools[0]), $before + 1);
+
+        // Imported people: somebody still flagged as imported by a source that is gone.
+        $tool = array_column($tools, null, 'url')['directory-maintenance/'];
+        $beforeP = maintenanceToolCount($conn, $tool);
+        $noSource = (int)$conn->query("SELECT COALESCE(MAX(id), 0) + 1000 FROM auth_providers")->fetchColumn();
+        $tenant = $conn->query("SELECT MIN(id) FROM tenants")->fetchColumn();
+        $u = $conn->prepare("INSERT INTO users (email, display_name, tenant_id, is_active, is_managed, auth_provider_id) VALUES (?, ?, ?, 1, ?, ?)");
+        // An install that went through Database Verification has no foreign key to stop
+        // this - which is how people end up here; this database may have one.
+        $conn->exec("SET FOREIGN_KEY_CHECKS = 0");
+        $u->execute(['zz-maint-1@example.invalid', 'ZZ no source', $tenant, 1, $noSource]);
+        $u->execute(['zz-maint-2@example.invalid', 'ZZ not imported', $tenant, 0, $noSource]);
+        $conn->exec("SET FOREIGN_KEY_CHECKS = 1");
+        check('Imported people counts somebody whose source is gone, not somebody never imported', maintenanceToolCount($conn, $tool), $beforeP + 1);
     } finally {
         $conn->rollBack();
         $conn->exec("SET FOREIGN_KEY_CHECKS = 1");

@@ -37,7 +37,9 @@ try {
     $stmt = $conn->prepare(
         "SELECT u.id, u.email, u.username, u.display_name, u.preferred_name,
                 u.tenant_id, u.job_title, u.department, u.office, u.phone, u.mobile,
-                u.employee_id, u.manager_id, u.is_active, u.is_managed
+                u.employee_id, u.manager_id, u.is_active,
+                -- Managed only while the source exists (userManagedSql(), #261).
+                " . userManagedSql() . " AS is_managed
                 " . costCentreSelectSql($conn, 'users', 'u') . ",
                 ap.protocol AS managed_protocol, ap.carddav_write_back AS managed_write_back,
                 ap.display_name AS source_name

@@ -187,6 +187,8 @@ return [
         'gap_no_manager_d' => 'Aktuelle personer, der holdes opdateret fra et katalog, og som ikke har en leder dér og ikke leder nogen. Personer, der er skrevet ind manuelt, er udeladt: for dem er det normalt at mangle en leder.',
         'gap_left' => 'Fratrådte, der stadig leder personer',
         'gap_left_d' => 'Markeret som fratrådt, med aktuelle personer, der stadig rapporterer til dem.',
+        'gap_no_source' => 'Importeret af en kilde, der er slettet',
+        'gap_no_source_d' => 'Intet opdaterer dem længere. En administrator beslutter, om de skal beholdes, under System → Vedligeholdelse → Importerede personer.',
         'gap_reports' => '{n} rapporterer stadig til dem',
         'gap_none' => 'Ingen.',
         'gap_more' => 'Viser de første {n} af {total}.',
@@ -330,7 +332,7 @@ return [
     'company' => [
         'not_found' => 'Virksomheden blev ikke fundet.',
         'ticket_code' => 'Sagskode',
-        'external_ref' => 'Ekstern reference',   // GH #279
+        'external_ref' => 'Ekstern reference',
         'tax_id' => 'Skatte-ID',
         'email_domains' => 'E-maildomæner',
         'people' => 'Personer',
@@ -474,6 +476,7 @@ return [
             'p2_v2' => '**Træ** er hele organisationen. Det starter med personerne øverst - dem, der leder nogen og ikke har nogen over sig - og hver gren åbnes ét niveau ad gangen, som **Kort**, som en **Kompakt** liste med jobtitel og afdeling i kolonner eller som **Kolonner**: én kolonne pr. niveau, med en sti ovenfor, der navngiver hvert niveau, og den valgte person til højre. **Find en person** åbner det ned til vedkommende. Hver afdeling har sin egen farve. Hver person viser, hvor mange der rapporterer til vedkommende, og efter en prik, hvor mange der er under vedkommende i alt - i Kompakt står det andet tal i parentes. **Diagram** tegner det som bokse og linjer: hele organisationen fra toppen eller, med en person valgt, **I organisationen** - linjen fra toppen og ned til vedkommende med hver leders team ved siden af og vedkommendes eget team nedenunder - eller kun **Deres del**, tre niveauer ned, medmindre **Niveauer** siger andet (nogle få at vælge imellem, **Alle** eller et tal efter eget valg op til 32, hvor 0 er dem alle) og højst 150 personer, med besked om, hvor personer er udeladt. **Kompakt** stabler personer uden eget team under deres leder, og **Fra venstre mod højre** vender det om på siden, hvilket ofte passer bedre til et billede. Musehjulet ruller diagrammet, og Shift med hjulet ruller det til siden; Ctrl med hjulet (Cmd på en Mac) eller at knibe på en pegeplade zoomer ind og ud omkring markøren, og træk flytter det. Størrelsen vises mellem **-** og **+**, og et klik på den går tilbage til 100 %. Klik på en person i diagrammet for at se, hvem de er, og deres team i panelet ved siden af; dobbeltklik på dem, eller **Tegn herfra**, for at tegne ud fra dem; **Rapporterer til** går et niveau op og **Hele organisationen** tilbage til toppen. I træet åbner og lukker **Udvid alle** og **Skjul alle** hver gren, og skift mellem Kort og Kompakt bevarer det, der er åbent. I diagrammet har den valgte person en bjælke langs bunden og et mærke **Valgt**, og **Dæmp de andre** toner alle andre ned. Panelet ved siden af kolonnerne og diagrammet fortæller, hvordan man når personen; diagrammets foldes væk med pilen øverst. Når siden er åben på en person, står det i sidepanelet: krydset ved siden af vedkommendes navn går tilbage til alle. **Eksportér** gemmer det, diagrammet viser, som et billede (PNG, SVG eller PDF) eller som data (CSV, JSON eller XML).',
             'p3' => 'Fratrådte er skjult, medmindre du sætter hak ved **Vis fratrådte** - undtagen en fratrådt, der stadig har personer rapporterende til sig, som altid vises, markeret. **Huller** viser dem og de personer, et katalog holder opdateret, som ikke har en leder dér. Begge dele er værd at rette i kataloget.',
             'p4' => 'Du ser kun personer i de virksomheder, du har adgang til. En leder i en virksomhed, du ikke har adgang til, nævnes aldrig: personerne under vedkommende starter en gren for sig, som om de ikke havde nogen leder.',
+            'p5' => 'Når en katalogkilde slettes, forbliver de personer, den importerede, som almindelige personer. **Huller** viser alle, der stadig er markeret som importeret af en kilde, der ikke længere findes, så en administrator under System → Vedligeholdelse → Importerede personer kan beslutte, om de skal beholdes, markeres som fratrådt eller slettes.',
         ],
         'companies' => [
             'nav' => 'Virksomheder',

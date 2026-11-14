@@ -317,6 +317,14 @@ function getSystemAreas() {
             'keywords' => 'system.landing.maintenance_keywords',
             'tools'    => 'maintenance',
         ],
+        // Emailed reports (5.3.0): body / attachment / download link, and the links sent.
+        [
+            'icon'     => 'emailed_reports',
+            'url'      => 'emailed-reports/',
+            'title'    => 'system.landing.emailed_reports_title',
+            'desc'     => 'system.landing.emailed_reports_desc',
+            'keywords' => 'system.landing.emailed_reports_keywords',
+        ],
         [
             'icon'     => 'routing_test',
             'url'      => 'email-routing-test/',
@@ -444,8 +452,12 @@ function systemAreaIcon($key) {
         // same star used inside the cards, so the tile is not just a smaller
         // copy of what it opens.
         'contributors' => '<circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>',
+        // An envelope with a page in it: a report sent by email.
+        'emailed_reports' => '<rect x="2" y="9" width="20" height="13" rx="2"></rect><path d="m2 11 10 6 10-6"></path><path d="M6 12V3h9l3 3v6"></path>',
         // A wrench: Maintenance.
         'maintenance' => '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>',
+        // A person crossed out: Imported people, under Maintenance (#261).
+        'imported_people' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="17" y1="8" x2="22" y2="13"></line><line x1="22" y1="8" x2="17" y2="13"></line>',
         'orphaned'    => '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
         'search'      => '<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>',
     ];

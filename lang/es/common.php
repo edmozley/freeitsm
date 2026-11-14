@@ -476,6 +476,17 @@ return [
         'choice_overwrite' => 'Sobrescribir',
         'choice_skip' => 'Omitir',
     ],
+    'email_report' => [
+        'sent' => 'Enviado por correo a {email}.',
+        'not_signed_in' => 'Ya no tiene la sesión iniciada. Inicie sesión de nuevo y vuelva a intentarlo.',
+        'bad_request' => 'No se pudo enviar el informe.',
+        'not_pdf' => 'De esta forma solo se puede enviar un PDF por correo.',
+        'too_large' => 'El informe es demasiado grande para enviarlo por correo (el límite es de 3 MB). Descárguelo en su lugar.',
+        'no_email' => 'Su cuenta no tiene una dirección de correo electrónico válida. Añada una en Mi cuenta o descargue el informe.',
+        'no_mailbox' => 'El correo electrónico no está configurado en este sistema. Descargue el informe.',
+        'send_failed' => 'No se pudo enviar el correo. El motivo figura en el registro de envío de correo.',
+        'network' => 'No se pudo enviar el informe: el servidor no respondió.',
+    ],
     'documents' => [
         'heading' => 'Documentos',
         'count_one' => '1 documento',

@@ -924,17 +924,22 @@
             // A refresh redraws these: the ones that were open stay open.
             var wasOpen = {};
             $('orgGaps').querySelectorAll('details[open]').forEach(function (el) { wasOpen[el.dataset.gap] = true; });
-            var block = function (key, g, extra) {
+            // page: link to the person's page rather than finding them in the
+            // chart - somebody with no source may have no place in it.
+            var block = function (key, g, extra, page) {
+                if (!g) return '';
                 return '<details class="ppl-org-gap" data-gap="' + key + '"' + (wasOpen[key] ? ' open' : '') + '><summary><span>' + esc(T('org.gap_' + key)) + '</span> <span class="ppl-count">' + g.total + '</span></summary>'
                     + '<p class="ppl-dim ppl-org-small">' + esc(T('org.gap_' + key + '_d')) + '</p>'
                     + (g.people.length ? '<ul>' + g.people.map(function (p) {
-                        return '<li><a href="#" data-find="' + p.id + '">' + esc(p.name) + '</a>' + (extra ? ' <span class="ppl-dim">' + esc(extra(p)) + '</span>' : '') + '</li>';
+                        return '<li><a href="' + (page ? 'person.php?id=' + p.id : '#') + '"' + (page ? '' : ' data-find="' + p.id + '"') + '>' + esc(p.name) + '</a>' + (extra ? ' <span class="ppl-dim">' + esc(extra(p)) + '</span>' : '') + '</li>';
                     }).join('') + '</ul>' : '<p class="ppl-dim ppl-org-small">' + esc(T('org.gap_none')) + '</p>')
                     + (g.total > g.people.length ? '<p class="ppl-dim ppl-org-small">' + esc(T('org.gap_more', { n: g.people.length, total: g.total })) + '</p>' : '')
                     + '</details>';
             };
             $('orgGaps').innerHTML = block('no_manager', d.gaps.no_manager)
-                + block('left', d.gaps.left_with_reports, function (p) { return T('org.gap_reports', { n: p.reports }); });
+                + block('left', d.gaps.left_with_reports, function (p) { return T('org.gap_reports', { n: p.reports }); })
+                // Only when there is somebody: on most installs there never will be.
+                + (d.gaps.no_source && d.gaps.no_source.total ? block('no_source', d.gaps.no_source, null, true) : '');
         }).catch(function () {});
     }
     $('orgGaps').addEventListener('click', function (e) {

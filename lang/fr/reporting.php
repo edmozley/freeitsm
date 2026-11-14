@@ -197,6 +197,8 @@ return [
         'affects_domains' => 'Recherches, vérifications et alertes d\'expiration des domaines',
         'name_files_versions_tidy' => 'Nettoyage des versions de Fichiers',
         'affects_files_versions_tidy' => 'Fichiers conserve plus d\'anciennes versions que ne l\'autorise Fichiers -> Paramètres -> Versions, et utilise donc plus de stockage',
+        'name_report_downloads_tidy' => 'Nettoyage des liens de rapports envoyés par e-mail',
+        'affects_report_downloads_tidy' => 'Les rapports derrière des liens de téléchargement expirés ou révoqués restent sur le disque',
         'name_storage_migrate' => 'Déplacement du stockage de Fichiers',
         'affects_storage_migrate' => 'Copie des fichiers vers un nouvel emplacement de stockage (les fichiers pas encore copiés sont lus depuis l\'ancien)',
         'name_lms_reminders' => 'Rappels de formation',

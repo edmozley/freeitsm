@@ -476,6 +476,17 @@ return [
         'choice_overwrite' => 'Overskriv',
         'choice_skip' => 'Spring over',
     ],
+    'email_report' => [
+        'sent' => 'Sendt på e-mail til {email}.',
+        'not_signed_in' => 'Du er ikke længere logget ind. Log ind igen, og prøv igen.',
+        'bad_request' => 'Rapporten kunne ikke sendes.',
+        'not_pdf' => 'Kun en PDF kan sendes på e-mail på denne måde.',
+        'too_large' => 'Rapporten er for stor til at sende på e-mail (grænsen er 3 MB). Download den i stedet.',
+        'no_email' => 'Din konto har ingen gyldig e-mailadresse. Tilføj en under Min konto, eller download rapporten i stedet.',
+        'no_mailbox' => 'E-mail er ikke sat op på dette system. Download rapporten i stedet.',
+        'send_failed' => 'E-mailen kunne ikke sendes. Årsagen står i e-mailens afsendelseslog.',
+        'network' => 'Rapporten kunne ikke sendes - serveren svarede ikke.',
+    ],
     'documents' => [
         'heading' => 'Dokumenter',
         'count_one' => '1 dokument',

@@ -187,6 +187,8 @@ return [
         'gap_no_manager_d' => 'Orang aktif yang dijaga tetap mutakhir dari direktori, yang tidak memiliki manajer di sana dan tidak mengelola siapa pun. Orang yang diketik manual tidak disertakan: bagi mereka tidak adanya manajer adalah hal normal.',
         'gap_left' => 'Yang sudah keluar tetapi masih mengelola orang',
         'gap_left_d' => 'Ditandai sudah keluar, dengan orang aktif yang masih melapor kepada mereka.',
+        'gap_no_source' => 'Diimpor oleh sumber yang sudah dihapus',
+        'gap_no_source_d' => 'Tidak ada lagi yang memperbaruinya. Administrator menentukan apakah akan mempertahankannya, di Sistem → Pemeliharaan → Orang yang diimpor.',
         'gap_reports' => '{n} masih melapor kepadanya',
         'gap_none' => 'Tidak ada.',
         'gap_more' => 'Menampilkan {n} pertama dari {total}.',
@@ -330,7 +332,7 @@ return [
     'company' => [
         'not_found' => 'Perusahaan tidak ditemukan.',
         'ticket_code' => 'Kode tiket',
-        'external_ref' => 'Referensi eksternal',   // GH #279
+        'external_ref' => 'Referensi eksternal',
         'tax_id' => 'Nomor pajak',
         'email_domains' => 'Domain email',
         'people' => 'Orang',
@@ -474,6 +476,7 @@ return [
             'p2_v2' => '**Pohon** adalah seluruh organisasi. Dimulai dari orang-orang di puncak - mereka yang mengelola seseorang dan tidak memiliki atasan - dan setiap cabang terbuka satu tingkat demi satu tingkat, sebagai **Kartu**, sebagai daftar **Ringkas** dengan jabatan dan departemen dalam kolom, atau sebagai **Kolom**: satu kolom per tingkat, dengan jalur di atas yang menyebutkan setiap tingkat dan orang yang Anda pilih di sebelah kanan. **Cari seseorang** membukanya sampai ke orang itu. Setiap departemen memiliki warnanya sendiri. Setiap orang menampilkan berapa banyak yang melapor kepadanya dan, setelah titik, berapa banyak yang berada di bawahnya secara keseluruhan - di Ringkas, angka kedua dalam tanda kurung. **Bagan** menggambarnya sebagai kotak dan garis: seluruh organisasi dari atas atau, dengan seseorang terpilih, **Dalam organisasi** - garis dari atas sampai ke orang itu dengan tim setiap manajer di sampingnya, dan tim orang itu sendiri di bawah - atau hanya **Bagian mereka**, tiga tingkat ke bawah kecuali **Tingkat** menyatakan lain (beberapa pilihan, **Semua**, atau angka Anda sendiri hingga 32, dengan 0 berarti semuanya) dan paling banyak 150 orang, dengan keterangan di mana orang dilewati. **Ringkas** menumpuk orang yang tidak memiliki tim sendiri di bawah manajernya, dan **Kiri ke kanan** memutarnya ke samping, yang sering lebih cocok untuk gambar. Roda mouse menggulir bagan, dan Shift dengan roda menggulirnya ke samping; Ctrl dengan roda (Cmd di Mac), atau mencubit trackpad, memperbesar dan memperkecil di sekitar penunjuk, dan menyeret menggesernya. Ukuran tampil di antara **-** dan **+**, dan mengkliknya mengembalikan ke 100%. Klik seseorang di bagan untuk melihat siapa orang itu dan timnya di panel di sampingnya; klik dua kali orang itu, atau **Gambar dari sini**, untuk menggambar dari orang itu; **Melapor kepada** naik satu tingkat dan **Seluruh organisasi** kembali ke puncak. Di pohon, **Buka semua** dan **Ciutkan semua** membuka dan menutup setiap cabang, dan berpindah antara Kartu dan Ringkas mempertahankan yang terbuka. Di bagan, orang yang dipilih memiliki bilah di sepanjang bagian bawah dan tag **Dipilih**, dan **Redupkan yang lain** meredupkan semua orang lainnya. Panel di samping kolom dan bagan menjelaskan cara menjangkau orang itu; panel bagan dilipat dengan panah di bagian atasnya. Saat halaman terbuka pada seseorang, bilah samping menyatakannya: tanda silang di samping nama mereka kembali ke semua orang. **Ekspor** menyimpan yang ditampilkan bagan sebagai gambar (PNG, SVG, atau PDF) atau sebagai data (CSV, JSON, atau XML).',
             'p3' => 'Orang yang sudah keluar disembunyikan kecuali Anda mencentang **Tampilkan yang sudah keluar** - kecuali orang yang sudah keluar tetapi masih memiliki orang yang melapor kepadanya, yang selalu ditampilkan, dengan tanda. **Celah** mencantumkan mereka, dan orang yang dijaga tetap mutakhir oleh direktori yang tidak memiliki manajer di sana. Keduanya layak diperbaiki di direktori.',
             'p4' => 'Anda hanya melihat orang di perusahaan yang dapat Anda akses. Manajer di perusahaan yang tidak dapat Anda akses tidak pernah disebutkan namanya: orang di bawahnya memulai cabang sendiri, seolah tanpa manajer.',
+            'p5' => 'Saat sumber direktori dihapus, orang yang diimpornya tetap ada sebagai orang biasa. **Celah** mencantumkan siapa pun yang masih ditandai sebagai diimpor oleh sumber yang sudah tidak ada, sehingga administrator dapat memutuskan di Sistem → Pemeliharaan → Orang yang diimpor apakah akan mempertahankan, menandai sebagai keluar, atau menghapus mereka.',
         ],
         'companies' => [
             'nav' => 'Perusahaan',

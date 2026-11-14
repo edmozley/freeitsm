@@ -11001,6 +11001,33 @@ CREATE TABLE IF NOT EXISTS `help_assistant_messages` (
     CONSTRAINT `fk_help_assistant_messages_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Emailed reports sent as a download link (5.3.0, includes/report_downloads.php).
+-- Only the SHA-256 of the link's token is stored, never the token. The PDF lives
+-- in uploads/report-downloads/ (denied to the web) and is read only by
+-- api/system/report_download.php, which lets nobody but the owner have it.
+-- Every create, download and refusal is in system_logs as 'report_download'.
+-- file_deleted_at: the scheduled tidy-up removed the file (the row is kept).
+CREATE TABLE IF NOT EXISTS `report_downloads` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `token_hash`          CHAR(64) NOT NULL,
+    `analyst_id`          INT NOT NULL,
+    `filename`            VARCHAR(255) NOT NULL,
+    `mime`                VARCHAR(100) NOT NULL DEFAULT 'application/pdf',
+    `size_bytes`          INT NOT NULL DEFAULT 0,
+    `storage_path`        VARCHAR(100) NOT NULL,
+    `created_at`          DATETIME NOT NULL,
+    `expires_at`          DATETIME NOT NULL,
+    `revoked_at`          DATETIME NULL,
+    `revoked_by`          INT NULL,
+    `download_count`      INT NOT NULL DEFAULT 0,
+    `last_downloaded_at`  DATETIME NULL,
+    `file_deleted_at`     DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_report_downloads_token` (`token_hash`),
+    KEY `idx_report_downloads_analyst` (`analyst_id`, `id`),
+    KEY `idx_report_downloads_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ----------------------------------------------------------
 -- Seed: Default admin account

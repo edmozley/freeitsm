@@ -197,6 +197,8 @@ return [
         'affects_domains' => 'Wyszukiwania domen, kontrole i alerty o wygaśnięciu',
         'name_files_versions_tidy' => 'Porządkowanie wersji Plików',
         'affects_files_versions_tidy' => 'Pliki przechowują więcej starych wersji, niż dopuszcza Pliki -> Ustawienia -> Wersje, więc zajmują więcej miejsca w magazynie',
+        'name_report_downloads_tidy' => 'Porządkowanie linków do raportów wysyłanych e-mailem',
+        'affects_report_downloads_tidy' => 'Raporty ukryte za wygasłymi lub unieważnionymi linkami pozostają na dysku',
         'name_storage_migrate' => 'Przenoszenie magazynu Plików',
         'affects_storage_migrate' => 'Kopiowanie plików do nowej lokalizacji magazynu (pliki jeszcze nieskopiowane są odczytywane ze starej)',
         'name_lms_reminders' => 'Przypomnienia o szkoleniach',

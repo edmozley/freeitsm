@@ -341,6 +341,23 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
                 </tbody>
             </table>
         </div>
+
+        <?php
+        // People whose source is gone (#261): said here only when there are some,
+        // with the way to Imported people (System -> Maintenance), where they are looked after.
+        require_once __DIR__ . '/../../includes/services/directory_maintenance.php';
+        $orphanCount = 0;
+        try {
+            $orphanConn = $ssoAdminConn ?? connectToDatabase();
+            $orphanCount = DirectoryMaintenance::orphans($orphanConn, ActorContext::fromSession($orphanConn))['total'];
+        }
+        catch (Throwable $e) { error_log('[sso] orphan count: ' . $e->getMessage()); }
+        if ($orphanCount > 0): ?>
+        <div class="settings-card" id="orphans">
+            <p class="card-desc" style="margin:0;"><?php echo htmlspecialchars(t('system.sso.maint_orphans_notice', ['n' => $orphanCount])); ?>
+                <a href="../directory-maintenance/"><?php echo htmlspecialchars(t('system.sso.maint_orphans_review')); ?></a></p>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Add/Edit modal -->
@@ -734,6 +751,8 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
+    <?php /* The "what if" before a source is deleted (#261): DirectoryMaintenance.previewDelete(). */ ?>
+    <script src="../../assets/js/directory-maintenance.js?v=5"></script>
     <script>
     const API = '<?php echo $path_prefix; ?>api/';
     const MULTI_TENANT = <?php echo $ssoMultiTenant ? 'true' : 'false'; ?>;
@@ -1524,22 +1543,44 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
         // broken — which is a good way for a bug to survive a long time.
         //
         // Pre-dates the icon change that made it visible: identical at v1.7.0.
+        //
+        // The people it imported stay (#261): as ordinary people, or as leavers if
+        // that box is ticked. Said here, because deleting a source used to leave
+        // them locked for good and nobody was told.
+        const count = p ? (p.people_count || 0) : 0;
+        let markLeft = false;
+        // The "what if" (#261): everything the delete would do, in full, with the
+        // keep / mark-as-left choice and a PDF - and Delete, so it is the question.
+        if (window.DirectoryMaintenance && window.HTMLDialogElement) {
+            const answer = await DirectoryMaintenance.previewDelete({ provider: id });
+            if (!answer) return;
+            return doDeleteProvider(id, answer.markLeft);
+        }
         const ok = window.showConfirm
             ? await showConfirm({
                   title:    window.t('system.sso.delete'),
-                  message:  msg,
+                  message:  msg + (count ? '\n\n' + window.t('system.sso.maint_delete_people', { n: count }) : ''),
                   okLabel:  window.t('system.sso.delete'),
-                  okClass:  'danger'
+                  okClass:  'danger',
+                  checkbox: count ? { label: window.t('system.sso.maint_delete_mark_left'), checked: false } : undefined,
+                  onConfirm: res => { markLeft = !!(res && res.checked); }
               })
             : confirm(msg);
         if (!ok) return;
+        return doDeleteProvider(id, markLeft);
+    }
+
+    async function doDeleteProvider(id, markLeft) {
         try {
             const r = await fetch(API + 'system/delete_sso_provider.php', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
+                body: JSON.stringify({ id, people: markLeft ? 'left' : 'keep' })
             });
             const d = await r.json();
-            if (d.success) { showToast(window.t('system.sso.provider_deleted'), 'success'); loadProviders(); }
+            if (d.success) {
+                showToast(d.released ? window.t('system.sso.maint_deleted_released', { n: d.released }) : window.t('system.sso.provider_deleted'), 'success');
+                loadProviders();
+            }
             else showToast(window.t('system.sso.error', { error: d.error }), 'error');
         } catch (e) { showToast(window.t('system.sso.delete_failed'), 'error'); }
     }
@@ -1547,6 +1588,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
     loadGlobal();
     loadProviders();
     </script>
+
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

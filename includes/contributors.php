@@ -84,7 +84,11 @@ function getContributors(): array
                       . 'with its follow-up (PR #265) counting everybody under each manager. Then System '
                       . '-> Maintenance (PR #291, 5.0.0): one place for the tools that find data left behind, '
                       . 'each card saying how much it has found. And assets that reach their Intune primary '
-                      . 'user whichever of the two syncs runs first (PR #334, 5.3.0).',
+                      . 'user whichever of the two syncs runs first (PR #334, 5.3.0). And one rule for every '
+                      . 'directory source - a person is kept up to date by LDAP, an address book or Entra only '
+                      . 'while that source exists - with Imported people in System -> Maintenance to decide '
+                      . 'about the people a source left behind, and a full "what if" before a source or an '
+                      . 'import is undone (PR #264, 5.3.0).',
         ],
         [
             // Name and company as Ed was given them (October 2026). The package

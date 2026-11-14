@@ -51,7 +51,9 @@ try {
                 p.ldap_group_base_dn, p.ldap_group_filter, p.ldap_analyst_group, p.ldap_user_group,
                 p.carddav_url, p.carddav_username, p.carddav_password,
                 p.carddav_addressbook, p.carddav_auth,
-                p.carddav_scope, p.carddav_scope_value, p.carddav_write_back
+                p.carddav_scope, p.carddav_scope_value, p.carddav_write_back,
+                -- What deleting it would release: the people it still manages (#261).
+                (SELECT COUNT(*) FROM users pu WHERE pu.auth_provider_id = p.id AND pu.is_managed = 1) AS people_count
            FROM auth_providers p
            LEFT JOIN tenants t ON t.id = p.tenant_id
           ORDER BY p.sort_order, p.display_name"
@@ -121,6 +123,7 @@ try {
             // value is selected above only so this flag can be computed — it
             // must not be added to the response, here or later.
             'has_carddav_password' => ($r['carddav_password'] !== null && $r['carddav_password'] !== ''),
+            'people_count'         => (int)$r['people_count'],
         ];
     }
 
