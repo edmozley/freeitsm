@@ -59,7 +59,7 @@ return [
         'what'     => 'A tree of places your equipment lives - country, site, building, room - nested as deep as you need.',
         'why'      => 'When a machine fails or goes missing you need to know where it physically is. It also lets you count what is in each office before a move or a refresh.',
         'done'     => 'At least one location exists.',
-        'link'     => 'asset-management/settings/?tab=locations',
+        'link'     => 'system/locations/',
         'check'    => ['rows', 'asset_locations'],
     ],
     [
@@ -71,7 +71,7 @@ return [
         'what'     => 'A location every company on the install can pick, such as a shared data centre or head office.',
         'why'      => 'If you look after several companies from one building, recording that building once saves keeping a copy of it per company that drifts apart.',
         'done'     => 'At least one location is marked as shared.',
-        'link'     => 'asset-management/settings/?tab=locations',
+        'link'     => 'system/locations/',
         'check'    => ['rows', 'asset_locations', 'is_shared = 1'],
     ],
     [

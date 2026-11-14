@@ -122,6 +122,18 @@ return [
         'check'    => ['rows', 'form_fields', "field_type = 'lookup' AND is_deleted = 0 AND is_demo = 0"],
     ],
     [
+        'id'       => 'forms.location_lookup',
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Ask which office',
+        'what'     => 'A lookup question that searches your Locations (System -> Locations), so a form asks "which site, building or room?" and gets a real location, shown as its full path.',
+        'why'      => '"The London office" typed into a box could be any of three buildings. A picked location is exact, and two rooms called Floor 2 cannot be confused.',
+        'done'     => 'At least one form has a lookup question that searches Locations.',
+        'link'     => 'forms/',
+        'check'    => ['rows', 'form_fields', "field_type = 'lookup' AND config LIKE '%\"lookup_source\":\"location\"%' AND is_deleted = 0 AND is_demo = 0"],
+    ],
+    [
         'id'       => 'forms.portal_lookups',
         'module'   => 'forms',
         'tier'     => 'extra',

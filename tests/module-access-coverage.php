@@ -27,7 +27,7 @@ $root = dirname(__DIR__);
 // What counts as a guard: the helpers themselves, the other authorisation gates,
 // and the two includes that guard at the top of every file that loads them.
 $GUARD = '/requireModuleAccessJson|requireAnyModuleAccessJson|requireAdminJson|analystIsAdmin|analystCanAccessModule'
-       . '|requireCapability|requireAiNamespaceJson|requireLmsCourseAccessJson'
+       . '|requireCapability|requireAiNamespaceJson|requireLmsCourseAccessJson|locationsRequireAccessJson'
        . '|admin_api_guard\.php|domains\/api_bootstrap\.php|projects\/api_bootstrap\.php|starters\/api_bootstrap\.php|files\/api_bootstrap\.php/';
 
 // Whole folders with their own audience.
@@ -152,7 +152,7 @@ foreach ($READ_ONLY_DIRS as $module => $dir) {
         if (basename($abs)[0] === '_') continue;
         $src = file_get_contents($abs);
         if (!preg_match($writeShaped, $src)) continue;                        // a read
-        if (preg_match('/requireCapabilityJson|admin_api_guard/', $src) || str_contains(basename($abs), 'settings')) continue;   // a settings tab: its own permission
+        if (preg_match('/requireCapabilityJson|locationsRequireAccessJson|admin_api_guard/', $src) || str_contains(basename($abs), 'settings')) continue;   // a settings tab: its own permission
         if (isset($WRITE_EXEMPT[$rel])) continue;
         $checked++;
         if (strpos($src, "requireModuleWriteJson('{$module}')") === false) $holes[] = $rel;

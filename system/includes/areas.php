@@ -271,6 +271,16 @@ function getSystemAreas() {
             'desc'     => 'system.landing.companies_desc',
             'keywords' => 'system.landing.companies_keywords',
         ],
+        // Locations (GH #311): the organisation's sites, buildings and rooms. Moved
+        // up from Assets because forms (and later people and tickets) use them too;
+        // Assets -> Settings -> Locations still edits the same list.
+        [
+            'icon'     => 'locations',
+            'url'      => 'locations/',
+            'title'    => 'system.landing.locations_title',
+            'desc'     => 'system.landing.locations_desc',
+            'keywords' => 'system.landing.locations_keywords',
+        ],
         // Cost centres (GH #160). Beside Companies: every cost centre belongs to
         // one, and both are the organisation's own shape rather than a setting.
         [
@@ -424,6 +434,7 @@ function systemAreaIcon($key) {
         // A coin over a branching line: money, split into a hierarchy.
         // A camera: the Photo Album.
         'photo_album' => '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>',
+        'locations' => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>',
         'cost_centres' => '<circle cx="12" cy="6" r="4"></circle><path d="M12 4.5v3"></path><path d="M12 10v4"></path><path d="M5 20v-3a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"></path><circle cx="5" cy="20" r="1"></circle><circle cx="19" cy="20" r="1"></circle><circle cx="12" cy="20" r="1"></circle><path d="M12 14v5"></path>',
         // A ledger: a book with ruled lines and a column - the chart of accounts.
         'accounts'    => '<rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M9 3v18"></path><path d="M12 8h5"></path><path d="M12 12h5"></path><path d="M12 16h5"></path>',

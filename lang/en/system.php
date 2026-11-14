@@ -198,6 +198,10 @@ return [
         'cost_centres_title'    => 'Cost Centres',
         'cost_centres_desc'     => 'The cost centres your finance department charges things to, per company - with a hierarchy, and import from your accounting system.',
         'cost_centres_keywords' => 'cost centres cost centers cost centre cost center nominal codes nominal code finance accounting erp budget charge code department code kostenstelle import export excel csv hierarchy',
+        // GH #311
+        'locations_title' => 'Locations',
+        'locations_desc' => 'Your sites, buildings, floors and rooms, per company - the one list that assets, forms and more pick from.',
+        'locations_keywords' => 'locations location sites site buildings building floors floor rooms room offices office campus branch data centre datacenter hierarchy shared',
         'accounts_title'        => 'Chart of Accounts',
         'accounts_desc'         => 'The accounts your finance department reports costs and income by, per company - each an expense, fixed asset, payroll or income, with import from your accounting system.',
         'accounts_keywords'     => 'chart of accounts accounts account codes general ledger gl nominal ledger ledger codes expense opex capex fixed asset capitalise payroll income revenue finance accounting erp konto kontenplan sachkonto import export excel csv hierarchy',
@@ -3065,6 +3069,11 @@ return [
         'people_required'=> 'Choose at least one person.',
         'not_found'      => 'That template no longer exists.',
         'failed'         => 'Something went wrong - nothing was changed.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Locations',
+        'uses' => 'Used by <strong>Assets</strong> (where each asset is) and <strong>Forms</strong> (a Location lookup field). It is the same list as <strong>Assets &rarr; Settings &rarr; Locations</strong>, where asset managers can keep it too - a change in either place shows in both.',
     ],
     'cost_centres' => [
         'title'         => 'Cost Centres',

@@ -174,6 +174,10 @@ return [
         'cost_centres_title' => 'Centres de coûts',
         'cost_centres_desc' => 'Les centres de coûts auxquels votre service financier impute les dépenses, par entreprise - avec une hiérarchie, et un import depuis votre logiciel de comptabilité.',
         'cost_centres_keywords' => 'centres de coûts centre de coûts cost centres cost centers cost centre cost center codes comptables code comptable finance comptabilité erp budget code d\'imputation code département kostenstelle import export excel csv hiérarchie',
+        // GH #311
+        'locations_title' => 'Emplacements',
+        'locations_desc' => 'Vos sites, bâtiments, étages et salles, par entreprise - la liste unique dans laquelle choisissent les actifs, les formulaires et plus encore.',
+        'locations_keywords' => 'emplacements emplacement sites site bâtiments bâtiment étages étage salles salle bureaux bureau agence centre de données hiérarchie partagé locations',
         'accounts_title' => 'Plan comptable',
         'accounts_desc' => 'Les comptes par lesquels votre service financier rend compte des coûts et des revenus, par entreprise - chacun étant une charge, une immobilisation, la paie ou un produit, avec import depuis votre système comptable.',
         'accounts_keywords' => 'plan comptable comptes numéros de compte grand livre comptabilité générale codes comptables charge opex capex immobilisation immobiliser paie produit revenu finance comptabilité erp konto kontenplan sachkonto import export excel csv hiérarchie',
@@ -2682,6 +2686,11 @@ return [
         'people_required' => 'Choisissez au moins une personne.',
         'not_found' => 'Ce modèle n\'existe plus.',
         'failed' => 'Une erreur s\'est produite - rien n\'a été modifié.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Emplacements',
+        'uses' => 'Utilisée par <strong>Actifs</strong> (où se trouve chaque actif) et <strong>Formulaires</strong> (un champ de recherche d\'emplacement). C\'est la même liste que <strong>Actifs &rarr; Paramètres &rarr; Emplacements</strong>, où les gestionnaires d\'actifs peuvent aussi la tenir à jour - une modification à un endroit apparaît aux deux.',
     ],
     'cost_centres' => [
         'title' => 'Centres de coûts',

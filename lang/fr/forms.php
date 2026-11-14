@@ -256,6 +256,7 @@ return [
         'lookup_src_user' => 'Personnes',
         'lookup_src_cmdb' => 'Objets CMDB',
         'lookup_src_asset' => 'Actifs',
+        'lookup_src_location' => 'Emplacements',   // GH #311
         'lookup_pick' => 'Choisir…',
         'lookup_source' => 'Rechercher dans quels enregistrements',
         'options_dropdown' => 'Options de la liste déroulante',
@@ -766,6 +767,8 @@ return [
         'lookup_cmdb_body' => 'Serveurs, services, applications et bases de données de votre CMDB. Utilisez-le pour « quel système est concerné ? ».',
         'lookup_user_title' => 'Personnes',
         'lookup_user_body' => 'Votre annuaire du personnel. Utilisez-le pour « qui est le responsable du nouvel arrivant ? ». Réservé au personnel, jamais disponible sur le portail libre-service.',
+        'lookup_location_title' => 'Emplacements',   // GH #311
+        'lookup_location_body' => 'Vos sites, bâtiments, étages et salles de Système → Emplacements, affichés avec le chemin complet, par exemple « UK > London > Étage 2 ». Pour « dans quel bureau êtes-vous ? ».',
         'lookup_stored' => 'Le nom et le lien vers l\'enregistrement sont tous deux conservés. Renommez une machine plus tard, et une ancienne soumission affiche toujours ce qu\'elle indiquait à l\'époque, tandis que la réponse continue de pointer vers le bon enregistrement.',
         'lookup_portal_title' => 'Les clients ne voient que les leurs',
         'lookup_portal' => 'Une recherche n\'est proposée sur le portail libre-service que si vous la cochez pour ce champ, et un client ne voit jamais que les enregistrements appartenant à sa propre entreprise. L\'annuaire du personnel n\'est jamais proposé aux clients, quoi que vous cochiez.',

@@ -1453,6 +1453,9 @@ return [
 
         // Locations
         'locations_intro' => 'Build a location hierarchy that fits your organisation &mdash; nest it as deep or as shallow as you like, and each branch can differ. For example <code>UK &rsaquo; London &rsaquo; Office 1</code> alongside a simple <code>Datacentre</code>. Use <strong>+</strong> on any location to add a sub-location.',
+        // GH #311: the signpost to System -> Locations
+        'locations_system_note' => 'These locations are used across FreeITSM, not only by Assets - forms can ask for one too. Administrators also find this same list under <strong>System &rarr; Locations</strong>; a change in either place shows in both.',
+        'locations_open_system' => 'Open System → Locations',
         'add_location'           => 'Add location',
         'edit_location'          => 'Edit location',
         'parent_location'        => 'Parent location',
@@ -2189,6 +2192,9 @@ return [
         'card_servers_desc'    => 'Connect to VMware vCenter and sync your entire virtual estate. View VM details, host placement, storage, and network configuration.',
         'card_assignment_title'=> 'User assignment',
         'card_assignment_desc' => 'Assign users to assets so you always know who has which device. Reassignments are logged in the audit trail.',
+        // GH #311: the note on where Locations went
+        'locations_lead' => 'Where are Locations?',
+        'locations_body' => 'Locations are now kept on <strong>System &rarr; Locations</strong>, because forms (and, in time, people and tickets) use them as well as assets. It is the same list, and every asset kept its location. <strong>Settings &rarr; Locations</strong> here still shows and edits the same tree, so asset managers who are not administrators can look after it as before - a change in either place shows in both.',
 
         'inventory_script_heading' => 'The inventory script',
     ],

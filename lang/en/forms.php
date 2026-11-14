@@ -298,6 +298,7 @@ return [
         'lookup_src_user' => 'People',
         'lookup_src_cmdb' => 'CMDB objects',
         'lookup_src_asset' => 'Assets',
+        'lookup_src_location' => 'Locations',   // GH #311
         'lookup_pick' => 'Choose…',
         'lookup_source' => 'Search which records',
         'options_dropdown'  => 'Dropdown options',
@@ -938,6 +939,8 @@ return [
         'lookup_cmdb_body'   => 'Servers, services, applications and databases from your CMDB. Use it for "which system is affected?".',
         'lookup_user_title'  => 'People',
         'lookup_user_body'   => 'Your staff directory. Use it for "who is the new starter\'s manager?". Staff only, never available on the customer portal.',
+        'lookup_location_title' => 'Locations',   // GH #311
+        'lookup_location_body' => 'Your sites, buildings, floors and rooms from System → Locations, shown as a full path such as "UK > London > Floor 2". Use it for "which office are you in?".',
         'lookup_stored'      => 'Both the name and the link to the record are kept. Rename a machine later and an old submission still says what it said at the time, while the answer still points at the right record.',
         'lookup_portal_title' => 'Customers only see their own',
         'lookup_portal'      => 'A lookup is not offered on the self-service portal unless you tick it for that field, and a customer only ever sees records belonging to their own company. The staff directory is never offered to customers, whatever you tick.',

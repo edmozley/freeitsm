@@ -73,6 +73,7 @@ $translationNamespaces = ['common', 'asset-management'];
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.nav.settings'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="../../assets/css/locations-tree.css?v=1">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
@@ -226,60 +227,7 @@ $translationNamespaces = ['common', 'asset-management'];
         /* Modal form CSS now lives entirely in inbox.css. */
         .modal-actions { margin-top: 20px; }
 
-        /* ── Location tree ─────────────────────────────────────────── */
-        .loc-tree {
-            background: var(--surface, #fff);
-            border: 1px solid var(--border, #e0e0e0);
-            border-radius: 8px;
-            padding: 8px 4px;
-            max-width: 760px;
-        }
-        .loc-tree ul { list-style: none; margin: 0; padding: 0; }
-        /* Children indent + a guide line down the branch. */
-        .loc-children { margin-left: 22px; border-left: 1px solid var(--border-soft, #eee); padding-left: 4px; }
-        .loc-children.collapsed { display: none; }
-
-        .loc-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 8px;
-            border-radius: 5px;
-        }
-        .loc-row:hover { background: var(--surface-hover, #f6f8f6); }
-
-        .loc-caret {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-dim, #888);
-            border-radius: 3px;
-            user-select: none;
-            font-size: 11px;
-            transition: transform 0.12s;
-        }
-        .loc-caret:hover { background: var(--surface-hover, #e8efe8); color: var(--text, #333); }
-        .loc-caret.collapsed { transform: rotate(-90deg); }
-        .loc-caret.leaf { cursor: default; visibility: hidden; }
-
-        .loc-name { flex: 1; font-size: 14px; color: var(--text, #222); }
-        .loc-name .loc-count { color: var(--text-faint, #999); font-size: 12px; margin-left: 6px; }
-        /* 2.6.0 shared locations */
-        .loc-shared {
-            margin-left: 8px; padding: 1px 7px; border-radius: 9px;
-            font-size: 11px; font-weight: 600;
-            background: var(--accent-soft, #e8f0f8); color: var(--accent, #0078d4);
-        }
-        .loc-actions-locked .action-btn:not(:first-child) { display: none; }
-
-        .loc-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.12s; }
-        .loc-row:hover .loc-actions { opacity: 1; }
-
-        .loc-empty { color: var(--text-faint, #999); padding: 16px 12px; }
+        /* Location tree: assets/css/locations-tree.css (GH #311, shared with System -> Locations). */
 
         /* ── Custom fields tab ─────────────────────────────────────── */
         .cf-notice {
@@ -929,11 +877,23 @@ $translationNamespaces = ['common', 'asset-management'];
         <div class="tab-content<?php echo $activeTabId === 'locations' ? ' active' : ''; ?>" id="locations-tab" data-capability="<?php echo capKey(Cap::ASSETS_LOCATIONS); ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('asset-management.settings.tab_locations')); ?></h2>
-                <button class="add-btn" onclick="openAddLocation(null)"><?php echo htmlspecialchars(t('asset-management.common.add')); ?></button>
+                <button class="add-btn" onclick="locationsTree && locationsTree.add()"><?php echo htmlspecialchars(t('asset-management.common.add')); ?></button>
             </div>
             <p class="settings-description" style="margin-bottom: 18px;">
                 <?php echo t('asset-management.settings.locations_intro'); ?>
             </p>
+            <?php /* GH #311: locations are the organisation's now, kept under System -> Locations too.
+                     Same list, so asset managers who are not administrators keep editing it here;
+                     administrators get the link. */ ?>
+            <div class="loc-signpost">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <div>
+                    <?php echo t('asset-management.settings.locations_system_note'); ?>
+                    <?php if (analystIsAdmin(connectToDatabase(), (int)$_SESSION['analyst_id'])): ?>
+                    <a href="../../system/locations/"><?php echo htmlspecialchars(t('asset-management.settings.locations_open_system')); ?></a>
+                    <?php endif; ?>
+                </div>
+            </div>
             <div id="locations-tree" class="loc-tree">
                 <div style="color:#999; padding: 12px;"><?php echo htmlspecialchars(t('asset-management.common.loading')); ?></div>
             </div>
@@ -2105,44 +2065,6 @@ $translationNamespaces = ['common', 'asset-management'];
         </div>
     </div>
 
-    <!-- Location Add/Edit Modal -->
-    <div class="modal" id="locationModal">
-        <div class="modal-content">
-            <div class="modal-header" id="locationModalTitle"><?php echo htmlspecialchars(t('asset-management.settings.add_location')); ?></div>
-            <form id="locationForm">
-                <input type="hidden" id="locationId">
-                <div class="form-group">
-                    <label for="locationName"><?php echo htmlspecialchars(t('asset-management.settings.col_name')); ?></label>
-                    <input type="text" id="locationName" required autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label for="locationParent"><?php echo htmlspecialchars(t('asset-management.settings.parent_location')); ?></label>
-                    <select id="locationParent">
-                        <option value=""><?php echo htmlspecialchars(t('asset-management.settings.none_top_level')); ?></option>
-                    </select>
-                    <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.parent_location_hint')); ?></div>
-                </div>
-                <?php /* 2.6.0. Only for someone who can reach every company (the
-                         list endpoint says so as can_share); the save endpoint
-                         enforces the same rule whatever this shows. */ ?>
-                <div class="form-group" id="locationSharedGroup" hidden>
-                    <label class="toggle-label">
-                        <span class="toggle-switch">
-                            <input type="checkbox" id="locationShared">
-                            <span class="toggle-slider"></span>
-                        </span>
-                        <?php echo htmlspecialchars(t('asset-management.settings.location_shared')); ?>
-                    </label>
-                    <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.location_shared_hint')); ?></div>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeLocationModal()"><?php echo htmlspecialchars(t('asset-management.common.cancel')); ?></button>
-                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <?php /* ── Custom fields: field editor ──────────────────────────────
              The "kind of information" row rewrites the rows beneath it, so a
              number offers a unit and a dropdown offers its choices — rather
@@ -2355,7 +2277,7 @@ $translationNamespaces = ['common', 'asset-management'];
             loadItems('asset-type').then(() => { cfLoad(); impInit(); });
             loadItems('asset-status');
             if (document.getElementById('lease-outcomes-list')) loadItems('lease-outcome');
-            loadLocations();
+            if (document.getElementById('locations-tree')) locationsTree = LocationsTree.mount(document.getElementById('locations-tree'), { apiBase: API_BASE });
             loadSuppliers();
             loadIntegrationSettings();
             loadAssetTagSettings();
@@ -3683,189 +3605,9 @@ $translationNamespaces = ['common', 'asset-management'];
             }
         }
 
-        // ─── Locations (arbitrary-depth tree) ───────────────────────────────
-        let allLocations = [];
-        let canShareLocations = false;   // 2.6.0 — from get_asset_locations.php
-        const collapsedLocations = new Set();
-
-        async function loadLocations() {
-            const tree = document.getElementById('locations-tree');
-            try {
-                const res = await fetch(API_BASE + 'get_asset_locations.php');
-                const data = await res.json();
-                if (!data.success) {
-                    tree.innerHTML = `<div class="loc-empty" style="color:#d13438;">${window.t('asset-management.toast.error', { error: escapeHtml(data.error) })}</div>`;
-                    return;
-                }
-                allLocations = data.locations || [];
-                canShareLocations = !!data.can_share;
-                renderLocationTree();
-            } catch (e) {
-                console.error('Error loading locations:', e);
-                tree.innerHTML = `<div class="loc-empty" style="color:#d13438;">${window.t('asset-management.settings.locations_load_failed')}</div>`;
-            }
-        }
-
-        function locationChildren(parentId) {
-            return allLocations.filter(l => l.parent_id === parentId);
-        }
-
-        function renderLocationTree() {
-            const tree = document.getElementById('locations-tree');
-            if (allLocations.length === 0) {
-                tree.innerHTML = `<div class="loc-empty">${window.t('asset-management.settings.no_locations')}</div>`;
-                return;
-            }
-            const roots = locationChildren(null);
-            tree.innerHTML = '<ul>' + roots.map(r => renderLocationNode(r)).join('') + '</ul>';
-        }
-
-        function renderLocationNode(loc) {
-            const kids = locationChildren(loc.id);
-            const hasKids = kids.length > 0;
-            const collapsed = collapsedLocations.has(loc.id);
-            const caretClass = hasKids ? (collapsed ? 'collapsed' : '') : 'leaf';
-            const count = hasKids ? `<span class="loc-count">${kids.length}</span>` : '';
-            // 2.6.0. A shared location is every company's, so someone who
-            // cannot reach them all may add inside it but not change or remove
-            // it: the buttons would only lead to a refusal.
-            const shared = loc.is_shared
-                ? `<span class="loc-shared" title="${escapeHtml(window.t('asset-management.settings.location_shared_hint'))}">${escapeHtml(window.t('asset-management.settings.location_shared_badge'))}</span>` : '';
-            const locked = loc.is_shared && !canShareLocations;
-            const row = `
-                <div class="loc-row">
-                    <span class="loc-caret ${caretClass}" onclick="toggleLocation(${loc.id})">&#9662;</span>
-                    <span class="loc-name">${escapeHtml(loc.name)}${shared}${count}</span>
-                    <span class="loc-actions${locked ? ' loc-actions-locked' : ''}">
-                        <button class="action-btn" title="${window.t('asset-management.settings.add_sublocation')}" onclick="openAddLocation(${loc.id})">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        </button>
-                        <button class="action-btn" title="${window.t('asset-management.common.edit')}" onclick="editLocation(${loc.id})">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button class="action-btn delete" title="${window.t('asset-management.common.delete')}" onclick="deleteLocation(${loc.id})">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </span>
-                </div>`;
-            const childrenHtml = hasKids
-                ? `<div class="loc-children ${collapsed ? 'collapsed' : ''}"><ul>${kids.map(k => renderLocationNode(k)).join('')}</ul></div>`
-                : '';
-            return `<li class="loc-node">${row}${childrenHtml}</li>`;
-        }
-
-        function toggleLocation(id) {
-            if (collapsedLocations.has(id)) collapsedLocations.delete(id);
-            else collapsedLocations.add(id);
-            renderLocationTree();
-        }
-
-        // Indented <option>s for the parent select. When editing, exclude the
-        // node itself and its whole subtree (a node can't sit under itself).
-        function buildParentOptions(excludeId) {
-            const exclude = new Set();
-            if (excludeId != null) {
-                const stack = [excludeId];
-                while (stack.length) {
-                    const cur = stack.pop();
-                    exclude.add(cur);
-                    locationChildren(cur).forEach(c => stack.push(c.id));
-                }
-            }
-            const opts = [`<option value="">${window.t('asset-management.settings.none_top_level')}</option>`];
-            const walk = (parentId, depth) => {
-                locationChildren(parentId).forEach(loc => {
-                    if (!exclude.has(loc.id)) {
-                        opts.push(`<option value="${loc.id}">${'   '.repeat(depth)}${escapeHtml(loc.name)}</option>`);
-                        walk(loc.id, depth + 1);
-                    }
-                });
-            };
-            walk(null, 0);
-            return opts.join('');
-        }
-
-        function openAddLocation(parentId) {
-            document.getElementById('locationModalTitle').textContent = window.t('asset-management.settings.add_location');
-            document.getElementById('locationId').value = '';
-            document.getElementById('locationName').value = '';
-            const sel = document.getElementById('locationParent');
-            sel.innerHTML = buildParentOptions(null);
-            sel.value = parentId != null ? String(parentId) : '';
-            setLocationSharedField(false);
-            document.getElementById('locationModal').classList.add('active');
-            setTimeout(() => document.getElementById('locationName').focus(), 50);
-        }
-
-        // The Shared tick (2.6.0): shown only to someone who may use it, and
-        // pre-set on edit — the save sends it every time, so leaving it unset on
-        // a shared location would unshare it on an unrelated rename.
-        function setLocationSharedField(isShared) {
-            document.getElementById('locationSharedGroup').hidden = !canShareLocations;
-            document.getElementById('locationShared').checked = !!isShared;
-        }
-
-        function editLocation(id) {
-            const loc = allLocations.find(l => l.id === id);
-            if (!loc) return;
-            document.getElementById('locationModalTitle').textContent = window.t('asset-management.settings.edit_location');
-            document.getElementById('locationId').value = loc.id;
-            document.getElementById('locationName').value = loc.name;
-            const sel = document.getElementById('locationParent');
-            sel.innerHTML = buildParentOptions(loc.id);
-            sel.value = loc.parent_id != null ? String(loc.parent_id) : '';
-            setLocationSharedField(loc.is_shared);
-            document.getElementById('locationModal').classList.add('active');
-            setTimeout(() => document.getElementById('locationName').focus(), 50);
-        }
-
-        function closeLocationModal() {
-            document.getElementById('locationModal').classList.remove('active');
-        }
-
-        async function deleteLocation(id) {
-            const loc = allLocations.find(l => l.id === id);
-            if (!loc) return;
-            if (locationChildren(id).length > 0) {
-                showToast(window.t('asset-management.settings.location_has_children'), 'error');
-                return;
-            }
-            if (!(await showConfirm({ title: window.t('asset-management.common.delete'), message: window.t('asset-management.settings.delete_location_confirm', { name: loc.name }), okLabel: window.t('asset-management.common.delete'), okClass: 'danger' }))) return;
-            try {
-                const res = await fetch(API_BASE + 'delete_asset_location.php', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id })
-                });
-                const data = await res.json();
-                if (data.success) { showToast(window.t('asset-management.toast.deleted'), 'success'); loadLocations(); }
-                else showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
-            } catch (e) { showToast(window.t('asset-management.settings.delete_location_failed'), 'error'); }
-        }
-
-        document.getElementById('locationForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('locationId').value;
-            const payload = {
-                name: document.getElementById('locationName').value.trim(),
-                parent_id: document.getElementById('locationParent').value || null
-            };
-            if (canShareLocations) payload.is_shared = document.getElementById('locationShared').checked;
-            if (!payload.name) { showToast(window.t('asset-management.settings.name_required'), 'error'); return; }
-            if (id) payload.id = parseInt(id);
-            try {
-                const res = await fetch(API_BASE + 'save_asset_location.php', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (data.success) { closeLocationModal(); showToast(window.t('asset-management.toast.saved'), 'success'); loadLocations(); }
-                else showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
-            } catch (e) { showToast(window.t('asset-management.settings.save_location_failed'), 'error'); }
-        });
-
-        let locationMouseDownTarget = null;
-        document.getElementById('locationModal').addEventListener('mousedown', function(e) { locationMouseDownTarget = e.target; });
-        document.getElementById('locationModal').addEventListener('click', function(e) {
-            if (e.target === this && locationMouseDownTarget === this) closeLocationModal();
-        });
+        // ─── Locations: assets/js/locations-tree.js (GH #311) ───────────────
+        // The same editor as System -> Locations; it builds its own modal.
+        let locationsTree = null;
 
         // ─── Suppliers (shared registry, flagged for assets) ────────────────
         let allSuppliers = [];
@@ -5592,6 +5334,7 @@ $translationNamespaces = ['common', 'asset-management'];
 
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
     <script>window.assetTypeIcons = <?php echo json_encode($assetTypeIcons, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/locations-tree.js?v=1"></script>
     <script src="../../assets/js/proxmox-settings.js?v=2"></script>
     <script src="../../assets/js/vcloud-settings.js?v=2"></script>
     <script src="../../assets/js/network-mapper-icons.js?v=3"></script>

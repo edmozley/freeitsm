@@ -236,7 +236,7 @@ $translationNamespaces = ['common', 'forms'];
                     <p><strong><?php echo htmlspecialchars(t('forms.help.lookup_title')); ?></strong>
                        &mdash; <?php echo htmlspecialchars(t('forms.help.lookup_body')); ?></p>
 
-                    <div class="help-cards cols-3">
+                    <div class="help-cards cols-4">
                         <div class="help-card">
                             <strong><?php echo htmlspecialchars(t('forms.help.lookup_asset_title')); ?></strong>
                             <span><?php echo htmlspecialchars(t('forms.help.lookup_asset_body')); ?></span>
@@ -248,6 +248,10 @@ $translationNamespaces = ['common', 'forms'];
                         <div class="help-card">
                             <strong><?php echo htmlspecialchars(t('forms.help.lookup_user_title')); ?></strong>
                             <span><?php echo htmlspecialchars(t('forms.help.lookup_user_body')); ?></span>
+                        </div>
+                        <div class="help-card">
+                            <strong><?php echo htmlspecialchars(t('forms.help.lookup_location_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('forms.help.lookup_location_body')); ?></span>
                         </div>
                     </div>
 

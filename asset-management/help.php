@@ -201,6 +201,12 @@ $translationNamespaces = ['common', 'asset-management'];
                         <?php echo t('asset-management.help.overview_cf_body'); ?>
                         <a href="help-custom-fields.php"><?php echo htmlspecialchars(t('asset-management.help.cf_link')); ?> &rarr;</a>
                     </div>
+                    <?php /* GH #311: locations moved up to System, so say where they are from
+                             the page people arrive at, not only from the Settings tab. */ ?>
+                    <div class="help-note" id="locations" style="margin-top: 12px;">
+                        <strong><?php echo htmlspecialchars(t('asset-management.help.locations_lead')); ?></strong>
+                        <?php echo t('asset-management.help.locations_body'); ?>
+                    </div>
                 </div>
 
                 <!-- Section 2: Asset Detail View -->

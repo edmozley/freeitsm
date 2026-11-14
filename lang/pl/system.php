@@ -174,6 +174,10 @@ return [
         'cost_centres_title' => 'Centra kosztów',
         'cost_centres_desc' => 'Centra kosztów, na które dział finansów księguje wydatki, osobno dla każdej firmy - z hierarchią i importem z systemu księgowego.',
         'cost_centres_keywords' => 'centra kosztów centrum kosztów mpk kody księgowe kod księgowy finanse księgowość erp budżet kod obciążenia kod działu kostenstelle import eksport excel csv hierarchia',
+        // GH #311
+        'locations_title' => 'Lokalizacje',
+        'locations_desc' => 'Wasze siedziby, budynki, piętra i pomieszczenia, dla każdej firmy - jedna lista, z której wybierają zasoby, formularze i inne.',
+        'locations_keywords' => 'lokalizacje lokalizacja siedziby siedziba budynki budynek piętra piętro pomieszczenia pokój biura biuro oddział centrum danych hierarchia wspólna locations',
         'accounts_title' => 'Plan kont',
         'accounts_desc' => 'Konta, według których Twój dział finansów raportuje koszty i przychody, dla każdej firmy - każde jako wydatek, środek trwały, wynagrodzenia lub przychód, z importem z systemu księgowego.',
         'accounts_keywords' => 'plan kont konta konto kody kont księga główna gl ledger kody księgowe wydatek opex capex środek trwały kapitalizacja wynagrodzenia przychód dochód finanse księgowość erp konto kontenplan sachkonto import eksport excel csv hierarchia',
@@ -2682,6 +2686,11 @@ return [
         'people_required' => 'Wybierz co najmniej jedną osobę.',
         'not_found' => 'Ten szablon już nie istnieje.',
         'failed' => 'Coś poszło nie tak - nic nie zostało zmienione.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Lokalizacje',
+        'uses' => 'Używana przez <strong>Zasoby</strong> (gdzie jest każdy zasób) i <strong>Formularze</strong> (pole wyszukiwania lokalizacji). To ta sama lista co w <strong>Zasoby &rarr; Ustawienia &rarr; Lokalizacje</strong>, gdzie opiekunowie zasobów także mogą ją prowadzić - zmianę w jednym miejscu widać w obu.',
     ],
     'cost_centres' => [
         'title' => 'Centra kosztów',

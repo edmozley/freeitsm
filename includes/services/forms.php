@@ -281,6 +281,21 @@ class FormsService
             'tenant_col'  => 'tenant_id',
             'portal_safe' => true,
         ],
+        // GH #311: the organisation's locations (sites, buildings, rooms) - the same
+        // list as System -> Locations. A company's own locations, plus the SHARED ones
+        // every company sees (`shared_col`). The label is the full path - "UK > London >
+        // Floor 2" - because a bare "Floor 2" exists in every building (`path_parent_col`).
+        'location' => [
+            'table'           => 'asset_locations',
+            'id_col'          => 'id',
+            'label_col'       => 'name',
+            'search_cols'     => ['name'],
+            'tenant_col'      => 'tenant_id',
+            'shared_col'      => 'is_shared',
+            'path_parent_col' => 'parent_id',
+            // Place names - a customer saying which office they are in needs them.
+            'portal_safe'     => true,
+        ],
         'user' => [
             'table'       => 'users',
             'id_col'      => 'id',
@@ -365,7 +380,58 @@ class FormsService
         if (in_array(getDefaultTenantId($conn), array_map('intval', $tenantIds), true)) {
             $clause = "($clause OR $col IS NULL)";
         }
+        // A source whose rows can be shared by every company (locations, GH #311):
+        // a shared row is in scope for anyone. Only once Database Verification has
+        // added the column - before that there are no shared rows to include.
+        if (!empty($meta['shared_col']) && self::lookupColumnExists($conn, $meta['table'], $meta['shared_col'])) {
+            $clause = "($clause OR `{$meta['shared_col']}` = 1)";
+        }
         return [$clause, array_map('intval', $tenantIds)];
+    }
+
+    /** Does this table have this column? (A source's optional extras may predate Database Verification.) */
+    private static function lookupColumnExists(PDO $conn, string $table, string $col): bool
+    {
+        static $seen = [];
+        $k = "$table.$col";
+        if (!isset($seen[$k])) {
+            try {
+                $st = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?");
+                $st->execute([$table, $col]);
+                $seen[$k] = (bool)$st->fetchColumn();
+            } catch (Throwable $e) {
+                $seen[$k] = false;
+            }
+        }
+        return $seen[$k];
+    }
+
+    /**
+     * Full-path labels for a tree source (`path_parent_col`, GH #311): "UK > London >
+     * Floor 2" rather than "Floor 2". Walks up from each id; a cycle or a missing
+     * parent just ends the path there.
+     *
+     * @param int[] $ids  record ids already allowed for the person asking
+     * @return array<int,string>  id => path label
+     */
+    private static function lookupPathLabels(PDO $conn, array $meta, array $ids): array
+    {
+        if (!$ids || empty($meta['path_parent_col'])) return [];
+        // The whole table: a locations tree is small, and one query beats one per level.
+        $rows = $conn->query("SELECT `{$meta['id_col']}` AS id, `{$meta['label_col']}` AS label, `{$meta['path_parent_col']}` AS parent FROM `{$meta['table']}`")->fetchAll(PDO::FETCH_ASSOC);
+        $by = [];
+        foreach ($rows as $r) $by[(int)$r['id']] = $r;
+        $out = [];
+        foreach ($ids as $id) {
+            $parts = []; $seen = []; $cur = (int)$id;
+            while ($cur && isset($by[$cur]) && !isset($seen[$cur])) {
+                $seen[$cur] = true;
+                array_unshift($parts, (string)$by[$cur]['label']);
+                $cur = (int)$by[$cur]['parent'];
+            }
+            if ($parts) $out[(int)$id] = implode(' > ', $parts);
+        }
+        return $out;
     }
 
     /**
@@ -439,7 +505,17 @@ class FormsService
             return [];
         }
 
-        return array_map(fn($r) => ['id' => (int)$r['id'], 'label' => (string)$r['label']], $rows);
+        $rows = array_map(fn($r) => ['id' => (int)$r['id'], 'label' => (string)$r['label']], $rows);
+        if (!empty($s['path_parent_col'])) {
+            try {
+                $paths = self::lookupPathLabels($conn, $s, array_column($rows, 'id'));
+                foreach ($rows as &$r) $r['label'] = $paths[$r['id']] ?? $r['label'];
+                unset($r);
+            } catch (Throwable $e) {
+                error_log('FormsService::lookupSearch paths: ' . $e->getMessage());
+            }
+        }
+        return $rows;
     }
 
     /**
@@ -516,6 +592,9 @@ class FormsService
         $stmt = $conn->prepare("SELECT `{$s['label_col']}` FROM `{$s['table']}` WHERE `{$s['id_col']}` = ?");
         $stmt->execute([$id]);
         $label = trim((string)$stmt->fetchColumn());
+        if ($label !== '' && !empty($s['path_parent_col'])) {
+            try { $label = self::lookupPathLabels($conn, $s, [$id])[$id] ?? $label; } catch (Throwable $e) { /* the bare name will do */ }
+        }
         return $label !== '' ? $label : null;
     }
 

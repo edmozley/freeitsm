@@ -174,6 +174,10 @@ return [
         'cost_centres_title' => 'Pusat Biaya',
         'cost_centres_desc' => 'Pusat biaya tempat departemen keuangan Anda membebankan sesuatu, per perusahaan - dengan hierarki, dan impor dari sistem akuntansi Anda.',
         'cost_centres_keywords' => 'cost centres cost centers cost centre cost center nominal codes nominal code finance accounting erp budget charge code department code kostenstelle import export excel csv hierarchy pusat biaya kode akun keuangan akuntansi anggaran kode biaya departemen impor ekspor hierarki',
+        // GH #311
+        'locations_title' => 'Lokasi',
+        'locations_desc' => 'Situs, gedung, lantai, dan ruangan Anda per perusahaan - satu daftar yang dipakai aset, formulir, dan lainnya untuk memilih.',
+        'locations_keywords' => 'lokasi situs gedung lantai ruangan ruang kantor cabang pusat data hierarki bersama locations',
         'accounts_title' => 'Bagan Akun',
         'accounts_desc' => 'Akun yang menjadi dasar departemen keuangan Anda melaporkan biaya dan pendapatan, per perusahaan - masing-masing berupa beban, aset tetap, penggajian, atau pendapatan, dengan impor dari sistem akuntansi Anda.',
         'accounts_keywords' => 'bagan akun akun kode akun buku besar gl ledger kode beban opex capex aset tetap kapitalisasi penggajian pendapatan keuangan akuntansi erp chart of accounts accounts account codes general ledger nominal ledger expense fixed asset capitalise payroll income revenue finance accounting konto kontenplan sachkonto import export excel csv hierarchy hierarki',
@@ -2680,6 +2684,11 @@ return [
         'people_required' => 'Pilih setidaknya satu orang.',
         'not_found' => 'Templat itu sudah tidak ada.',
         'failed' => 'Terjadi kesalahan - tidak ada yang diubah.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Lokasi',
+        'uses' => 'Dipakai oleh <strong>Aset</strong> (letak setiap aset) dan <strong>Formulir</strong> (kolom pencarian lokasi). Ini daftar yang sama dengan <strong>Aset &rarr; Pengaturan &rarr; Lokasi</strong>, tempat pengelola aset juga dapat memeliharanya - perubahan di satu tempat terlihat di keduanya.',
     ],
     'cost_centres' => [
         'title' => 'Pusat Biaya',

@@ -174,6 +174,10 @@ return [
         'cost_centres_title' => 'Omkostningssteder',
         'cost_centres_desc' => 'De omkostningssteder, jeres økonomiafdeling bogfører på, pr. virksomhed - med et hierarki og import fra jeres regnskabssystem.',
         'cost_centres_keywords' => 'cost centres cost centers cost centre cost center nominal codes nominal code finance accounting erp budget charge code department code kostenstelle import export excel csv hierarchy omkostningssted økonomi regnskab konteringskode hierarki',
+        // GH #311
+        'locations_title' => 'Lokationer',
+        'locations_desc' => 'Jeres steder, bygninger, etager og lokaler pr. virksomhed - den ene liste, som aktiver, formularer og mere vælger fra.',
+        'locations_keywords' => 'lokationer lokation steder sted bygninger bygning etager etage lokaler lokale kontorer kontor afdeling datacenter hierarki delt locations',
         'accounts_title' => 'Kontoplan',
         'accounts_desc' => 'De konti, som din økonomiafdeling rapporterer omkostninger og indtægter efter, pr. virksomhed - hver en udgift, et anlægsaktiv, løn eller indtægt, med import fra dit regnskabssystem.',
         'accounts_keywords' => 'kontoplan konti kontokoder finansbog hovedbog udgift opex capex anlægsaktiv aktivér løn indtægt omsætning økonomi regnskab erp konto kontenplan sachkonto import eksport excel csv hierarki chart of accounts general ledger gl nominal ledger',
@@ -2682,6 +2686,11 @@ return [
         'people_required' => 'Vælg mindst én person.',
         'not_found' => 'Den skabelon findes ikke længere.',
         'failed' => 'Noget gik galt - intet blev ændret.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Lokationer',
+        'uses' => 'Bruges af <strong>Aktiver</strong> (hvor hvert aktiv står) og <strong>Formularer</strong> (et opslagsfelt til lokation). Det er den samme liste som <strong>Aktiver &rarr; Indstillinger &rarr; Lokationer</strong>, hvor aktivansvarlige også kan vedligeholde den - en ændring det ene sted ses begge steder.',
     ],
     'cost_centres' => [
         'title' => 'Omkostningssteder',

@@ -256,6 +256,7 @@ return [
         'lookup_src_user' => 'Personer',
         'lookup_src_cmdb' => 'CMDB-objekter',
         'lookup_src_asset' => 'Aktiver',
+        'lookup_src_location' => 'Lokationer',   // GH #311
         'lookup_pick' => 'Vælg…',
         'lookup_source' => 'Søg i hvilke poster',
         'options_dropdown' => 'Dropdown-valgmuligheder',
@@ -766,6 +767,8 @@ return [
         'lookup_cmdb_body' => 'Servere, tjenester, applikationer og databaser fra din CMDB. Brug det til "hvilket system er berørt?".',
         'lookup_user_title' => 'Personer',
         'lookup_user_body' => 'Din medarbejderoversigt. Brug det til "hvem er den nye medarbejders leder?". Kun for medarbejdere, aldrig tilgængeligt på kundeportalen.',
+        'lookup_location_title' => 'Lokationer',   // GH #311
+        'lookup_location_body' => 'Jeres steder, bygninger, etager og lokaler fra System → Lokationer, vist med hele stien, fx "UK > London > Etage 2". Brug det til "hvilket kontor sidder du på?".',
         'lookup_stored' => 'Både navnet og linket til posten bevares. Omdøber du en maskine senere, viser en gammel besvarelse stadig, hvad den viste dengang, mens svaret stadig peger på den rigtige post.',
         'lookup_portal_title' => 'Kunder ser kun deres egne',
         'lookup_portal' => 'Et opslag tilbydes ikke på selvbetjeningsportalen, medmindre du afkrydser det for feltet, og en kunde ser kun poster, der tilhører deres egen virksomhed. Medarbejderoversigten tilbydes aldrig til kunder, uanset hvad du afkrydser.',

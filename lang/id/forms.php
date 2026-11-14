@@ -256,6 +256,7 @@ return [
         'lookup_src_user' => 'Orang',
         'lookup_src_cmdb' => 'Objek CMDB',
         'lookup_src_asset' => 'Aset',
+        'lookup_src_location' => 'Lokasi',   // GH #311
         'lookup_pick' => 'Pilih…',
         'lookup_source' => 'Cari rekaman yang mana',
         'options_dropdown' => 'Opsi dropdown',
@@ -766,6 +767,8 @@ return [
         'lookup_cmdb_body' => 'Server, layanan, aplikasi, dan database dari CMDB Anda. Gunakan untuk "sistem mana yang terdampak?".',
         'lookup_user_title' => 'Orang',
         'lookup_user_body' => 'Direktori staf Anda. Gunakan untuk "siapa manajer karyawan baru?". Hanya staf, tidak pernah tersedia di portal pelanggan.',
+        'lookup_location_title' => 'Lokasi',   // GH #311
+        'lookup_location_body' => 'Situs, gedung, lantai, dan ruangan Anda dari Sistem → Lokasi, ditampilkan dengan jalur lengkap seperti "UK > London > Lantai 2". Gunakan untuk "Anda di kantor mana?".',
         'lookup_stored' => 'Nama dan tautan ke rekaman sama-sama disimpan. Ganti nama mesin di kemudian hari dan kiriman lama tetap menyebutkan apa yang tertulis saat itu, sementara jawabannya tetap menunjuk ke rekaman yang benar.',
         'lookup_portal_title' => 'Pelanggan hanya melihat milik mereka sendiri',
         'lookup_portal' => 'Bidang pencarian tidak ditawarkan di portal swalayan kecuali Anda mencentangnya untuk bidang itu, dan pelanggan hanya melihat rekaman milik perusahaannya sendiri. Direktori staf tidak pernah ditawarkan kepada pelanggan, apa pun yang Anda centang.',

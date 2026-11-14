@@ -256,6 +256,7 @@ return [
         'lookup_src_user' => 'Personen',
         'lookup_src_cmdb' => 'CMDB-Objekte',
         'lookup_src_asset' => 'Assets',
+        'lookup_src_location' => 'Standorte',   // GH #311
         'lookup_pick' => 'Auswählen…',
         'lookup_source' => 'Welche Datensätze durchsuchen',
         'options_dropdown' => 'Dropdown-Optionen',
@@ -766,6 +767,8 @@ return [
         'lookup_cmdb_body' => 'Server, Dienste, Anwendungen und Datenbanken aus Ihrer CMDB. Verwenden Sie es für „welches System ist betroffen?“.',
         'lookup_user_title' => 'Personen',
         'lookup_user_body' => 'Ihr Mitarbeiterverzeichnis. Verwenden Sie es für „wer ist der Vorgesetzte des neuen Mitarbeiters?“. Nur für Mitarbeitende, nie im Self-Service-Portal verfügbar.',
+        'lookup_location_title' => 'Standorte',   // GH #311
+        'lookup_location_body' => 'Ihre Standorte, Gebäude, Etagen und Räume aus System → Standorte, mit vollem Pfad angezeigt, etwa „UK > London > Etage 2". Für Fragen wie „In welchem Büro sind Sie?".',
         'lookup_stored' => 'Sowohl der Name als auch die Verknüpfung zum Datensatz werden gespeichert. Wird ein Gerät später umbenannt, zeigt eine alte Einreichung weiterhin das, was zum damaligen Zeitpunkt galt, während die Antwort trotzdem auf den richtigen Datensatz verweist.',
         'lookup_portal_title' => 'Kunden sehen nur ihre eigenen',
         'lookup_portal' => 'Ein Suchfeld wird im Self-Service-Portal nur angeboten, wenn Sie es für dieses Feld aktivieren, und ein Kunde sieht dabei stets nur Datensätze, die zu seinem eigenen Unternehmen gehören. Das Mitarbeiterverzeichnis wird Kunden nie angeboten, unabhängig davon, was Sie ankreuzen.',

@@ -174,6 +174,10 @@ return [
         'cost_centres_title' => 'Kostenstellen',
         'cost_centres_desc' => 'Die Kostenstellen, denen Ihre Finanzabteilung Aufwände zuordnet, je Unternehmen - mit Hierarchie und Import aus Ihrem Buchhaltungssystem.',
         'cost_centres_keywords' => 'cost centres cost centers cost centre cost center nominal codes nominal code finance accounting erp budget charge code department code kostenstelle import export excel csv hierarchy',
+        // GH #311
+        'locations_title' => 'Standorte',
+        'locations_desc' => 'Ihre Standorte, Gebäude, Etagen und Räume je Unternehmen - die eine Liste, aus der Assets, Formulare und mehr auswählen.',
+        'locations_keywords' => 'standorte standort gebäude etagen etage räume raum büros büro niederlassung rechenzentrum hierarchie gemeinsam locations',
         'accounts_title' => 'Kontenplan',
         'accounts_desc' => 'Die Konten, nach denen Ihre Finanzabteilung Kosten und Einnahmen berichtet, pro Unternehmen - jeweils ein Aufwand, Anlagevermögen, Personalkosten oder Ertrag, mit Import aus Ihrem Buchhaltungssystem.',
         'accounts_keywords' => 'kontenplan konten konto kontonummer sachkonto hauptbuch buchhaltung aufwand opex capex anlagevermögen aktivieren personalkosten ertrag einnahmen finanzen erp import export excel csv hierarchie chart of accounts accounts account codes general ledger gl nominal ledger ledger codes expense fixed asset capitalise payroll income revenue finance accounting konto',
@@ -2680,6 +2684,11 @@ return [
         'people_required' => 'Wählen Sie mindestens eine Person aus.',
         'not_found' => 'Diese Vorlage existiert nicht mehr.',
         'failed' => 'Etwas ist schiefgelaufen – es wurde nichts geändert.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Standorte',
+        'uses' => 'Verwendet von <strong>Assets</strong> (wo sich ein Asset befindet) und <strong>Formulare</strong> (ein Nachschlagefeld für den Standort). Es ist dieselbe Liste wie unter <strong>Assets &rarr; Einstellungen &rarr; Standorte</strong>, wo Asset-Verantwortliche sie ebenfalls pflegen können - eine Änderung an einer Stelle erscheint an beiden.',
     ],
     'cost_centres' => [
         'title' => 'Kostenstellen',

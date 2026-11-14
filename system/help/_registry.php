@@ -350,6 +350,20 @@ function getHelpTopics() {
             'terms' => 'tenant msp client customer multi-tenancy separate organisation domain logo files desktop'
                      . ' supports support provider outsourced raise with wrong company warning looks like dismiss',
         ],
+        // Locations (GH #311).
+        'locations' => [
+            'hero' => 'Locations',
+            'sub'  => 'Your organisation\'s sites, buildings, floors and rooms as one tree, for each company - the list that assets and forms pick from.',
+            'sections' => [
+                ['id' => 'overview',  'label' => 'What a location is here'],
+                ['id' => 'tree',      'label' => 'Building the tree'],
+                ['id' => 'companies', 'label' => 'Companies and shared locations'],
+                ['id' => 'used',      'label' => 'Where locations are used'],
+                ['id' => 'assets',    'label' => 'The same list in Assets'],
+            ],
+            'terms' => 'location locations site sites building buildings floor floors room rooms office offices campus branch data centre datacenter'
+                     . ' hierarchy tree parent child sub-location shared every company form forms lookup portal asset assets moved where',
+        ],
         // Cost centres (GH #160).
         'cost-centres' => [
             'hero' => 'Cost Centres',

@@ -1250,6 +1250,9 @@ Hay dos formas de evitarlo: cambie también el nombre en la hoja de cálculo, o 
         'save_item_failed' => 'No se pudo guardar el elemento',
         'saving' => 'Guardando...',
         'locations_intro' => 'Construya una jerarquía de ubicaciones que se ajuste a su organización &mdash; anídela tan profunda o tan superficial como desee, y cada rama puede ser distinta. Por ejemplo <code>ES &rsaquo; Madrid &rsaquo; Oficina 1</code> junto a un simple <code>Centro de datos</code>. Use <strong>+</strong> en cualquier ubicación para añadir una sububicación.',
+        // GH #311: the signpost to System -> Locations
+        'locations_system_note' => 'Estas ubicaciones se usan en todo FreeITSM, no solo en Activos: los formularios también pueden pedir una. Los administradores encuentran esta misma lista en <strong>Sistema &rarr; Ubicaciones</strong>; un cambio en un sitio se ve en los dos.',
+        'locations_open_system' => 'Abrir Sistema → Ubicaciones',
         'add_location' => 'Añadir ubicación',
         'edit_location' => 'Editar ubicación',
         'parent_location' => 'Ubicación principal',
@@ -1936,6 +1939,9 @@ Hay dos formas de evitarlo: cambie también el nombre en la hoja de cálculo, o 
         'card_servers_desc' => 'Conéctese a VMware vCenter y sincronice todo su parque virtual. Vea los detalles de las VM, la ubicación del host, el almacenamiento y la configuración de red.',
         'card_assignment_title' => 'Asignación de usuarios',
         'card_assignment_desc' => 'Asigne usuarios a los activos para saber siempre quién tiene qué dispositivo. Las reasignaciones se registran en el registro de auditoría.',
+        // GH #311: the note on where Locations went
+        'locations_lead' => '¿Dónde están las Ubicaciones?',
+        'locations_body' => 'Las ubicaciones se mantienen ahora en <strong>Sistema &rarr; Ubicaciones</strong>, porque además de los activos las usan los formularios (y, con el tiempo, las personas y los tickets). Es la misma lista y cada activo conserva su ubicación. <strong>Ajustes &rarr; Ubicaciones</strong> aquí sigue mostrando y editando el mismo árbol, para que los responsables de activos que no son administradores puedan mantenerlo como antes: un cambio en un sitio se ve en los dos.',
         'inventory_script_heading' => 'El script de inventario',
     ],
     'leases' => [

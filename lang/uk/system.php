@@ -174,6 +174,10 @@ return [
         'cost_centres_title' => 'Центри витрат',
         'cost_centres_desc' => 'Центри витрат, на які ваш фінансовий відділ відносить витрати, для кожної компанії - з ієрархією та імпортом із вашої облікової системи.',
         'cost_centres_keywords' => 'cost centres cost centers cost centre cost center nominal codes nominal code finance accounting erp budget charge code department code kostenstelle import export excel csv hierarchy центр витрат центри витрат фінанси бухгалтерія бюджет код відділу імпорт експорт ієрархія',
+        // GH #311
+        'locations_title' => 'Розташування',
+        'locations_desc' => 'Ваші майданчики, будівлі, поверхи та приміщення для кожної компанії - єдиний список, з якого вибирають активи, форми тощо.',
+        'locations_keywords' => 'розташування майданчики будівлі будівля поверхи поверх приміщення кімната офіси офіс філія центр обробки даних ієрархія спільне locations',
         'accounts_title' => 'План рахунків',
         'accounts_desc' => 'Рахунки, за якими ваш фінансовий відділ звітує про витрати й доходи, для кожної компанії - кожен є витратою, основним засобом, заробітною платою або доходом, з імпортом із вашої облікової системи.',
         'accounts_keywords' => 'план рахунків рахунки коди рахунків головна книга книга обліку коди книги витрати opex capex основні засоби капіталізувати заробітна плата дохід виручка фінанси бухгалтерія erp konto kontenplan sachkonto імпорт експорт excel csv ієрархія chart of accounts accounts account codes general ledger gl nominal ledger ledger codes expense fixed asset capitalise payroll income revenue finance accounting import export hierarchy',
@@ -2682,6 +2686,11 @@ return [
         'people_required' => 'Виберіть принаймні одну особу.',
         'not_found' => 'Цього шаблону більше не існує.',
         'failed' => 'Щось пішло не так - нічого не змінено.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Розташування',
+        'uses' => 'Використовується в <strong>Активах</strong> (де знаходиться кожен актив) і <strong>Формах</strong> (поле пошуку розташування). Це той самий список, що й у <strong>Активи &rarr; Налаштування &rarr; Розташування</strong>, де його також можуть вести відповідальні за активи - зміна в одному місці видна в обох.',
     ],
     'cost_centres' => [
         'title' => 'Центри витрат',

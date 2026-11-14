@@ -28,8 +28,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
-requireModuleAccessJson('assets');
-requireCapabilityJson(Cap::ASSETS_LOCATIONS);   // settings write — see docs/design/rbac.md
+// GH #311: an administrator (System -> Locations), or Assets plus the assets.locations
+// permission (Assets -> Settings -> Locations) - see includes/asset_locations.php.
+locationsRequireAccessJson(true);
 
 try {
     $data = json_decode(file_get_contents('php://input'), true);

@@ -256,6 +256,7 @@ return [
         'lookup_src_user' => 'Osoby',
         'lookup_src_cmdb' => 'Obiekty CMDB',
         'lookup_src_asset' => 'Zasoby',
+        'lookup_src_location' => 'Lokalizacje',   // GH #311
         'lookup_pick' => 'Wybierz…',
         'lookup_source' => 'Przeszukiwane rekordy',
         'options_dropdown' => 'Opcje listy rozwijanej',
@@ -766,6 +767,8 @@ return [
         'lookup_cmdb_body' => 'Serwery, usługi, aplikacje i bazy danych z Twojego CMDB. Użyj go dla pytania „którego systemu to dotyczy?”.',
         'lookup_user_title' => 'Osoby',
         'lookup_user_body' => 'Twój katalog pracowników. Użyj go dla pytania „kto jest przełożonym nowego pracownika?”. Tylko dla pracowników, nigdy niedostępne w portalu klienta.',
+        'lookup_location_title' => 'Lokalizacje',   // GH #311
+        'lookup_location_body' => 'Wasze siedziby, budynki, piętra i pomieszczenia z System → Lokalizacje, pokazane z pełną ścieżką, np. „UK > London > Piętro 2". Do pytań typu „W którym biurze jesteś?".',
         'lookup_stored' => 'Zachowywana jest zarówno nazwa, jak i odnośnik do rekordu. Zmień później nazwę urządzenia, a stare zgłoszenie nadal będzie mówić to, co mówiło wtedy, podczas gdy odpowiedź nadal wskazuje właściwy rekord.',
         'lookup_portal_title' => 'Klienci widzą tylko swoje',
         'lookup_portal' => 'Wyszukiwanie nie jest oferowane w portalu samoobsługowym, chyba że zaznaczysz to dla danego pola, a klient zawsze widzi wyłącznie rekordy należące do jego własnej firmy. Katalog pracowników nigdy nie jest oferowany klientom, niezależnie od tego, co zaznaczysz.',

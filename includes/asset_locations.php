@@ -30,6 +30,42 @@
 
 require_once __DIR__ . '/tenancy.php';
 
+/**
+ * Who may read or change the locations list (GH #311).
+ *
+ * Locations live in two places since #311: System -> Locations, for administrators,
+ * and Assets -> Settings -> Locations, for the asset managers who have always kept
+ * them. Both use these same endpoints, so the gate has to let either in:
+ *
+ *  - an ADMINISTRATOR always - including when the Assets module is switched off,
+ *    because the list now serves forms (and later people and tickets) as well;
+ *  - anyone else needs Assets, and to change the list, the assets.locations
+ *    permission (exactly the rule before #311).
+ *
+ * Exits with the usual JSON refusal; returns only when access is allowed.
+ *
+ * @param bool $manage  true for create / change / delete, false for reading the list
+ */
+function locationsRequireAccessJson(bool $manage): void
+{
+    if (!isset($_SESSION['analyst_id'])) {
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+        exit;
+    }
+    try {
+        if (analystIsAdmin(connectToDatabase(), (int)$_SESSION['analyst_id'])) return;
+    } catch (Throwable $e) {
+        // fall through to the ordinary checks, which fail closed
+    }
+    requireModuleAccessJson('assets');
+    if ($manage) {
+        require_once __DIR__ . '/rbac.php';
+        requireCapabilityJson(Cap::ASSETS_LOCATIONS);   // settings write - see docs/design/rbac.md
+    }
+}
+
 /** Has Database Verification added asset_locations.is_shared yet? */
 function assetLocationsSharedReady(PDO $conn): bool {
     return tenancyColumnExists($conn, 'asset_locations', 'is_shared');

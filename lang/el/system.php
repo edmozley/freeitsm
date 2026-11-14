@@ -174,6 +174,10 @@ return [
         'cost_centres_title' => 'Κέντρα κόστους',
         'cost_centres_desc' => 'Τα κέντρα κόστους στα οποία χρεώνει διάφορα το οικονομικό σας τμήμα, ανά εταιρεία - με ιεραρχία και εισαγωγή από το λογιστικό σας σύστημα.',
         'cost_centres_keywords' => 'κέντρα κόστους κέντρο κόστους λογαριασμοί κωδικοί οικονομικά λογιστική erp προϋπολογισμός κωδικός χρέωσης κωδικός τμήματος kostenstelle εισαγωγή εξαγωγή excel csv ιεραρχία cost centres cost centers cost centre cost center nominal codes nominal code finance accounting budget charge code department code import export hierarchy',
+        // GH #311
+        'locations_title' => 'Τοποθεσίες',
+        'locations_desc' => 'Οι εγκαταστάσεις, τα κτίρια, οι όροφοι και οι χώροι σας ανά εταιρεία - η μία λίστα από την οποία επιλέγουν τα πάγια, οι φόρμες και άλλα.',
+        'locations_keywords' => 'τοποθεσίες τοποθεσία εγκαταστάσεις κτίρια κτίριο όροφοι όροφος χώροι αίθουσα γραφεία γραφείο υποκατάστημα κέντρο δεδομένων ιεραρχία κοινόχρηστη locations',
         'accounts_title' => 'Λογιστικό σχέδιο',
         'accounts_desc' => 'Οι λογαριασμοί με τους οποίους το οικονομικό σας τμήμα αναφέρει κόστη και έσοδα, ανά εταιρεία - καθένας δαπάνη, πάγιο, μισθοδοσία ή έσοδα, με εισαγωγή από το λογιστικό σας σύστημα.',
         'accounts_keywords' => 'λογιστικό σχέδιο λογαριασμοί κωδικοί λογαριασμών γενική λογιστική καθολικό δαπάνη πάγιο κεφαλαιοποίηση μισθοδοσία έσοδα οικονομικά λογιστική εισαγωγή εξαγωγή ιεραρχία chart of accounts accounts account codes general ledger gl nominal ledger ledger codes expense opex capex fixed asset capitalise payroll income revenue finance accounting erp konto kontenplan sachkonto import export excel csv hierarchy',
@@ -2680,6 +2684,11 @@ return [
         'people_required' => 'Επιλέξτε τουλάχιστον ένα άτομο.',
         'not_found' => 'Αυτό το πρότυπο δεν υπάρχει πλέον.',
         'failed' => 'Κάτι πήγε στραβά - δεν άλλαξε τίποτα.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Τοποθεσίες',
+        'uses' => 'Χρησιμοποιείται από τα <strong>Πάγια</strong> (πού βρίσκεται κάθε πάγιο) και τις <strong>Φόρμες</strong> (ένα πεδίο αναζήτησης τοποθεσίας). Είναι η ίδια λίστα με το <strong>Πάγια &rarr; Ρυθμίσεις &rarr; Τοποθεσίες</strong>, όπου μπορούν να τη διαχειρίζονται και οι υπεύθυνοι παγίων - μια αλλαγή στο ένα σημείο φαίνεται και στα δύο.',
     ],
     'cost_centres' => [
         'title' => 'Κέντρα κόστους',

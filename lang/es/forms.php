@@ -256,6 +256,7 @@ return [
         'lookup_src_user' => 'Personas',
         'lookup_src_cmdb' => 'Objetos de la CMDB',
         'lookup_src_asset' => 'Activos',
+        'lookup_src_location' => 'Ubicaciones',   // GH #311
         'lookup_pick' => 'Elige…',
         'lookup_source' => 'Buscar en qué registros',
         'options_dropdown' => 'Opciones del desplegable',
@@ -766,6 +767,8 @@ return [
         'lookup_cmdb_body' => 'Servidores, servicios, aplicaciones y bases de datos de tu CMDB. Úsalo para "¿qué sistema está afectado?".',
         'lookup_user_title' => 'Personas',
         'lookup_user_body' => 'Tu directorio de personal. Úsalo para "¿quién es el responsable del nuevo empleado?". Solo para personal, nunca disponible en el portal de clientes.',
+        'lookup_location_title' => 'Ubicaciones',   // GH #311
+        'lookup_location_body' => 'Sus sedes, edificios, plantas y salas de Sistema → Ubicaciones, con la ruta completa, como «UK > London > Planta 2». Úselo para «¿en qué oficina está?».',
         'lookup_stored' => 'Se conservan tanto el nombre como el enlace al registro. Si renombras una máquina más tarde, un envío antiguo sigue diciendo lo que decía en su momento, mientras la respuesta sigue apuntando al registro correcto.',
         'lookup_portal_title' => 'Los clientes solo ven lo suyo',
         'lookup_portal' => 'Una búsqueda no se ofrece en el portal de autoservicio a menos que la marques para ese campo, y un cliente solo ve registros de su propia empresa. El directorio de personal nunca se ofrece a los clientes, se marque lo que se marque.',

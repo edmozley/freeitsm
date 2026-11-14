@@ -1,0 +1,74 @@
+/* Locations editor (GH #311) - shared by System -> Locations and Assets -> Settings -> Locations.
+   Moved out of the Assets settings page unchanged, so both places look the same. */
+/* ── Location tree ─────────────────────────────────────────── */
+.loc-tree {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 8px;
+    padding: 8px 4px;
+    max-width: 760px;
+}
+.loc-tree ul { list-style: none; margin: 0; padding: 0; }
+/* Children indent + a guide line down the branch. */
+.loc-children { margin-left: 22px; border-left: 1px solid var(--border-soft, #eee); padding-left: 4px; }
+.loc-children.collapsed { display: none; }
+
+.loc-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 5px;
+}
+.loc-row:hover { background: var(--surface-hover, #f6f8f6); }
+
+.loc-caret {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-dim, #888);
+    border-radius: 3px;
+    user-select: none;
+    font-size: 11px;
+    transition: transform 0.12s;
+}
+.loc-caret:hover { background: var(--surface-hover, #e8efe8); color: var(--text, #333); }
+.loc-caret.collapsed { transform: rotate(-90deg); }
+.loc-caret.leaf { cursor: default; visibility: hidden; }
+
+.loc-name { flex: 1; font-size: 14px; color: var(--text, #222); }
+.loc-name .loc-count { color: var(--text-faint, #999); font-size: 12px; margin-left: 6px; }
+/* 2.6.0 shared locations */
+.loc-shared {
+    margin-left: 8px; padding: 1px 7px; border-radius: 9px;
+    font-size: 11px; font-weight: 600;
+    background: var(--accent-soft, #e8f0f8); color: var(--accent, #0078d4);
+}
+.loc-actions-locked .action-btn:not(:first-child) { display: none; }
+
+.loc-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.12s; }
+.loc-row:hover .loc-actions { opacity: 1; }
+
+.loc-empty { color: var(--text-faint, #999); padding: 16px 12px; }
+.loc-empty.loc-error { color: var(--danger-text, #d13438); }
+.loc-modal-actions { margin-top: 20px; }
+/* GH #311: the note on Assets -> Settings -> Locations that the list is also System -> Locations. */
+.loc-signpost { display: flex; gap: 10px; align-items: flex-start; max-width: 760px; box-sizing: border-box; margin: 0 0 16px; padding: 12px 14px;
+    border-radius: 8px; font-size: 13px; line-height: 1.5; background: var(--accent-soft, #e8f0f8); color: var(--text, #333); border: 1px solid var(--border, #e0e0e0); }
+.loc-signpost svg { flex-shrink: 0; margin-top: 1px; color: var(--accent, #0078d4); }
+.loc-signpost a { font-weight: 600; white-space: nowrap; }
+/* The row's icon buttons. Scoped: inbox.css's bare .action-btn is a big toolbar
+   button, and the System page has no .tab-content rule to shrink it as Assets does.
+   The hover takes the page's own accent (Assets green, System slate). */
+.loc-tree .action-btn { background: none; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); cursor: pointer;
+    padding: 6px; margin: 0 4px 0 0; min-width: 0; height: auto; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.loc-tree .action-btn:hover { background: var(--surface-hover, #f0f0f0); border-color: var(--accent, #107c10); color: var(--accent, #107c10); }
+.loc-tree .action-btn.delete { color: var(--danger-accent, #d13438); }
+.loc-tree .action-btn.delete:hover { background: var(--danger-bg, #fdf3f3); border-color: var(--danger-accent, #d13438); color: var(--danger-text, #a00); }
+.loc-tree .action-btn svg { width: 16px; height: 16px; }
+/* Touch screens have no hover: show the buttons. */
+@media (hover: none) { .loc-actions { opacity: 1; } }

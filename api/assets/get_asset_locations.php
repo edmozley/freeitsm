@@ -24,7 +24,8 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
-requireModuleAccessJson('assets');
+// GH #311: an administrator (System -> Locations) or anyone with Assets.
+locationsRequireAccessJson(false);
 
 try {
     $conn = connectToDatabase();

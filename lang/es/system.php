@@ -174,6 +174,10 @@ return [
         'cost_centres_title' => 'Centros de coste',
         'cost_centres_desc' => 'Los centros de coste a los que su departamento de finanzas imputa los gastos, por empresa, con una jerarquía y con importación desde su sistema de contabilidad.',
         'cost_centres_keywords' => 'cost centres cost centers cost centre cost center centros de coste centro de coste códigos nominales código nominal finanzas contabilidad erp presupuesto código de imputación código de departamento kostenstelle importar exportar excel csv jerarquía',
+        // GH #311
+        'locations_title' => 'Ubicaciones',
+        'locations_desc' => 'Sus sedes, edificios, plantas y salas, por empresa: la única lista de la que eligen los activos, los formularios y más.',
+        'locations_keywords' => 'ubicaciones ubicación sedes sede edificios edificio plantas planta salas sala oficinas oficina sucursal centro de datos jerarquía compartida locations',
         'accounts_title' => 'Plan de cuentas',
         'accounts_desc' => 'Las cuentas por las que su departamento de finanzas informa de costes e ingresos, por empresa - cada una un gasto, un activo fijo, nómina o ingresos, con importación desde su sistema de contabilidad.',
         'accounts_keywords' => 'plan de cuentas cuentas códigos de cuenta libro mayor contabilidad gasto opex capex activo fijo capitalizar nómina ingresos finanzas erp konto kontenplan sachkonto importar exportar excel csv jerarquía chart of accounts accounts account codes general ledger gl nominal ledger ledger codes expense fixed asset capitalise payroll income revenue finance accounting import export hierarchy',
@@ -2680,6 +2684,11 @@ return [
         'people_required' => 'Elija al menos una persona.',
         'not_found' => 'Esa plantilla ya no existe.',
         'failed' => 'Algo salió mal: no se cambió nada.',
+    ],
+    // System -> Locations (GH #311)
+    'locations' => [
+        'title' => 'Ubicaciones',
+        'uses' => 'La usan <strong>Activos</strong> (dónde está cada activo) y <strong>Formularios</strong> (un campo de búsqueda de ubicación). Es la misma lista que <strong>Activos &rarr; Ajustes &rarr; Ubicaciones</strong>, donde los responsables de activos también pueden mantenerla: un cambio en un sitio se ve en los dos.',
     ],
     'cost_centres' => [
         'title' => 'Centros de coste',
