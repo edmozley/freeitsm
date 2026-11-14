@@ -72,10 +72,6 @@ function maintenanceToolCount(PDO $conn, array $tool): ?int
 }
 
 /**
- * Orphaned tickets: a department_id with no department behind it, binned
- * tickets aside - the same rule as api/system/get_orphaned_tickets.php.
- */
-/**
  * Imported people: still flagged as imported by a directory source that no
  * longer exists - DirectoryMaintenance's orphans, across every company.
  */
@@ -85,6 +81,10 @@ function maintenanceCountImportedPeople(PDO $conn): int
     return DirectoryMaintenance::orphanCount($conn);
 }
 
+/**
+ * Orphaned tickets: a department_id with no department behind it, binned
+ * tickets aside - the same rule as api/system/get_orphaned_tickets.php.
+ */
 function maintenanceCountOrphanedTickets(PDO $conn): int
 {
     return (int)$conn->query(
