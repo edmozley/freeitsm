@@ -830,6 +830,15 @@ $translationNamespaces = ['common', 'reporting'];
             }
         }
 
+        // Who started a run, for the audit (#343): the analyst when there is one; a
+        // schedule, the fallback or a token address is System; a manual run with no
+        // analyst (recorded before who pressed it was kept) says so rather than
+        // passing for System.
+        function runBy(trigger, name) {
+            if (name) return name;
+            return trigger === 'manual' ? JT('by_unknown') : JT('by_system');
+        }
+
         // Run now: the job starts at once, in the background; the list shows it running.
         async function runJobNow(key, btn) {
             const say = (m, type) => (typeof showToast === 'function' ? showToast(m, type) : alert(m));
@@ -876,7 +885,7 @@ $translationNamespaces = ['common', 'reporting'];
                                 ${j.refused ? `<div class="job-sub">${escapeHtml(JT('refused', { reason: j.refused.reason, when: fmtUtc(j.refused.at) }))}</div>` : ''}</td>
                             <td class="log-datetime">${escapeHtml(fmtUtc(j.last_scheduled_success))}</td>
                             <td>${j.last_run ? `<span class="job-pill ${escapeHtml(j.last_run.outcome)}">${escapeHtml(JT('outcome_' + j.last_run.outcome))}</span>
-                                <div class="job-sub">${escapeHtml(JT('trigger_' + j.last_run.trigger))} · ${escapeHtml(fmtUtc(j.last_run.started))}</div>` : '<span class="job-sub">-</span>'}</td>
+                                <div class="job-sub">${escapeHtml(JT('trigger_' + j.last_run.trigger))} · ${escapeHtml(runBy(j.last_run.trigger, j.last_run.analyst_name))} · ${escapeHtml(fmtUtc(j.last_run.started))}</div>` : '<span class="job-sub">-</span>'}</td>
                             <td class="job-sub">${escapeHtml(intervalText(j.interval))}${j.interval !== j.default_interval ? '<br>' + escapeHtml(JT('changed_from', { d: intervalText(j.default_interval) })) : ''}${scheduleText(d, j)}</td>
                             ${d.can_configure ? `<td><button class="job-edit-btn" onclick="editJob(${jsArg(j.key)})">${escapeHtml(JT('edit'))}</button>${
                                 /^php (cron|scripts)\//.test(j.command || '') ? ` <button class="job-edit-btn" onclick="runJobNow(${jsArg(j.key)}, this)">${escapeHtml(JT('run_now'))}</button>` : ''}</td>` : ''}
@@ -924,7 +933,7 @@ $translationNamespaces = ['common', 'reporting'];
                         <tr class="job-row-clickable" onclick="showJobRun(${r.id})" title="${escapeHtml(JT('row_title'))}">
                             <td class="log-datetime">${escapeHtml(fmtUtc(r.started_datetime))}</td>
                             <td>${escapeHtml(r.job_name)}</td>
-                            <td class="job-sub">${escapeHtml(JT('trigger_' + r.trigger_kind))}${r.analyst_name ? '<br>' + escapeHtml(r.analyst_name) : ''}</td>
+                            <td class="job-sub">${escapeHtml(JT('trigger_' + r.trigger_kind))}<br>${escapeHtml(runBy(r.trigger_kind, r.analyst_name))}</td>
                             <td><span class="job-pill ${escapeHtml(r.outcome)}">${escapeHtml(JT('outcome_' + r.outcome))}</span>${+r.failed_sources ? '<div class="job-sub">' + escapeHtml(JT('failed_sources', { n: r.failed_sources })) + '</div>' : ''}</td>
                             <td class="job-sub">${r.duration_ms !== null ? escapeHtml(JT('ms', { n: r.duration_ms })) : '-'}</td>
                             <td class="log-details">${escapeHtml(r.summary || '')}</td>
@@ -959,7 +968,7 @@ $translationNamespaces = ['common', 'reporting'];
             openJobModal(name + ' #' + r.id, `
                 <dl>
                     <dt>${escapeHtml(JT('col_outcome'))}</dt><dd><span class="job-pill ${escapeHtml(r.outcome)}">${escapeHtml(JT('outcome_' + r.outcome))}</span></dd>
-                    <dt>${escapeHtml(JT('col_trigger'))}</dt><dd>${escapeHtml(JT('trigger_' + r.trigger_kind))}${r.analyst_name ? ' - ' + escapeHtml(r.analyst_name) : ''}</dd>
+                    <dt>${escapeHtml(JT('col_trigger'))}</dt><dd>${escapeHtml(JT('trigger_' + r.trigger_kind))} - ${escapeHtml(runBy(r.trigger_kind, r.analyst_name))}</dd>
                     <dt>${escapeHtml(JT('col_started'))}</dt><dd>${escapeHtml(fmtUtc(r.started_datetime))}</dd>
                     <dt>${escapeHtml(JT('col_finished'))}</dt><dd>${escapeHtml(fmtUtc(r.finished_datetime))}</dd>
                     <dt>${escapeHtml(JT('col_summary'))}</dt><dd>${escapeHtml(r.summary || '-')}</dd>

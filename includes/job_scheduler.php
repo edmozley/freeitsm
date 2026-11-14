@@ -286,6 +286,25 @@ function jobRunNow(PDO $conn, string $job, int $analystId, ?callable $spawn = nu
 {
     $def = jobRegistry()[$job] ?? null;
     if ($def === null) return 'unknown';
+    $result = jobRunNowStart($conn, $job, $def, $analystId, $spawn);
+    // Every press is on the record (#343): a refused one as a skipped run, by
+    // whoever pressed it, with the reason - so nothing pressed goes unseen.
+    $why = [
+        'not_needed'      => 'Run now refused: not needed here - not set up, or its module is switched off.',
+        'running'         => 'Run now refused: it was running already.',
+        'bad_command'     => 'Run now refused: it cannot be started from here.',
+        'failed_to_start' => 'Run now failed: PHP could not start a process on this server.',
+    ];
+    if (isset($why[$result])) {
+        require_once __DIR__ . '/job_runs.php';
+        JobRun::skipped($conn, $job, 'manual', $why[$result], $analystId);
+    }
+    return $result;
+}
+
+/** jobRunNow() without the record: whether, and how, the job was started. */
+function jobRunNowStart(PDO $conn, string $job, array $def, int $analystId, ?callable $spawn): string
+{
     try {
         if (!(bool)$def['needed']($conn)) return 'not_needed';
     } catch (Throwable) {

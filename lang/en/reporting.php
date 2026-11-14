@@ -230,6 +230,8 @@ return [
         'name_pushed_sources'        => 'Pushed sources',
         'affects_pushed_sources'     => 'Whether Hyper-V collectors are reporting on time',
         'run_now'                    => 'Run now',
+        'by_system'                  => 'System',
+        'by_unknown'                 => 'Not recorded',
         'run_now_started'            => 'Started. It runs in the background - its run appears here in a moment.',
         'run_now_running'            => 'It is running already.',
         'run_now_not_needed'         => 'Not needed here: what it works on is not set up, or its module is switched off.',

@@ -60,9 +60,20 @@ if (!$expected || $conn->query('SELECT DATABASE()')->fetchColumn() !== $expected
     };
     $conn->beginTransaction();
     try {
+        $lastRun = function (string $job) use ($conn) {
+            $s = $conn->prepare("SELECT trigger_kind, outcome, analyst_id, summary FROM job_runs WHERE job_key = ? ORDER BY id DESC LIMIT 1");
+            $s->execute([$job]);
+            return $s->fetch(PDO::FETCH_ASSOC) ?: null;
+        };
         check('an unknown job is refused', jobRunNow($conn, 'zz-no-such-job', 7, $spawn) === 'unknown' && !$calls);
-        if ($notNeeded) check("a job not needed here is refused ($notNeeded)", jobRunNow($conn, $notNeeded, 7, $spawn) === 'not_needed' && !$calls);
-        else echo "  skip  every scheduled job is needed on this database\n";
+        if ($notNeeded) {
+            check("a job not needed here is refused ($notNeeded)", jobRunNow($conn, $notNeeded, 7, $spawn) === 'not_needed' && !$calls);
+            $r = $lastRun($notNeeded);
+            check('...and the refused press is on the record: skipped, Run now, by whom, why', $r && $r['trigger_kind'] === 'manual'
+                && $r['outcome'] === 'skipped' && (int)$r['analyst_id'] === 7 && str_contains((string)$r['summary'], 'not needed'), json_encode($r));
+        } else {
+            echo "  skip  every scheduled job is needed on this database\n";
+        }
 
         if ($needed) {
             $def = jobRegistry()[$needed];
@@ -89,6 +100,8 @@ if (!$expected || $conn->query('SELECT DATABASE()')->fetchColumn() !== $expected
             $failing = fn() => false;
             $conn->prepare("UPDATE job_runs SET outcome = 'ok' WHERE id = ?")->execute([$runId]);
             check('a process PHP could not start is said so', jobRunNow($conn, $needed, 7, $failing) === 'failed_to_start');
+            $r = $lastRun($needed);
+            check('...and recorded, by whom', $r && $r['outcome'] === 'skipped' && (int)$r['analyst_id'] === 7 && str_contains((string)$r['summary'], 'could not start'), json_encode($r));
 
             $s = $conn->prepare("SELECT next_due_at FROM job_schedules WHERE job_key = ?");
             $s->execute([$needed]);
