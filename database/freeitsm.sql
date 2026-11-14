@@ -1104,17 +1104,18 @@ CREATE TABLE IF NOT EXISTS `ticket_priorities` (
     `sla_response_minutes`    INT NULL,
     `sla_resolution_minutes`  INT NULL,
     `sla_calendar_id`         INT NULL,
+    `tenant_id`               INT NULL,
     `created_datetime`        DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_ticket_priorities_name` (`name`)
+    UNIQUE KEY `uq_ticket_priorities_tenant_name` (`tenant_id`, `name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO `ticket_priorities` (`name`, `colour`, `is_default`, `display_order`) VALUES
-    ('Low',      '#16a34a', 0, 10),
-    ('Normal',   '#2563eb', 1, 20),
-    ('High',     '#f59e0b', 0, 30),
-    ('Critical', '#dc2626', 0, 40),
-    ('Urgent',   '#b91c1c', 0, 50);
+INSERT IGNORE INTO `ticket_priorities` (`id`, `name`, `colour`, `is_default`, `display_order`) VALUES
+    (1, 'Low',      '#16a34a', 0, 10),
+    (2, 'Normal',   '#2563eb', 1, 20),
+    (3, 'High',     '#f59e0b', 0, 30),
+    (4, 'Critical', '#dc2626', 0, 40),
+    (5, 'Urgent',   '#b91c1c', 0, 50);
 
 -- ----------------------------------------------------------
 -- SLA (Service Level Agreements) — see docs/sla.md for design
@@ -1126,10 +1127,11 @@ CREATE TABLE IF NOT EXISTS `sla_calendars` (
     `timezone`          VARCHAR(50) NOT NULL DEFAULT 'Europe/London',
     `is_default`        TINYINT(1) NOT NULL DEFAULT 0,
     `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `tenant_id`         INT NULL,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_sla_calendars_name` (`name`)
+    UNIQUE KEY `uq_sla_calendars_tenant_name` (`tenant_id`, `name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Weekly working-hours pattern for a calendar. One row per (calendar, weekday).

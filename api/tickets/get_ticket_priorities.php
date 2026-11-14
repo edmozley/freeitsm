@@ -1,10 +1,22 @@
 <?php
 /**
  * API Endpoint: Get ticket priorities
+ *
+ * `priorities` is the active company's list: its own priorities plus the shared ones it has not hidden.
+ * On a single-company install that is every priority.
+ *
+ * In the consolidated view `by_company` adds each company's list, so a ticket can be offered its own company's priorities rather than the page's.
+ *
+ * ?manage=1 is the settings screen.
+ * In a client company's context it adds `scoped`: the company's own priorities and every shared one with whether this company hides it.
+ * In the default company's context and the All companies view, `priorities` is the shared list.
+ * The All companies view adds `company_priorities`, each company's own, for the companies the analyst can access.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
+require_once '../../includes/ticket_priorities.php';
 
 header('Content-Type: application/json');
 
@@ -16,26 +28,65 @@ requireModuleAccessJson('tickets');
 
 try {
     $conn = connectToDatabase();
+    $analystId = (int)$_SESSION['analyst_id'];
+    $manage    = !empty($_GET['manage']);
 
-    $sql = "SELECT id, name, colour, is_default, display_order, is_active, created_datetime
-            FROM ticket_priorities
-            ORDER BY display_order, name";
+    $ctx      = ticketPriorityScopeContext($conn, $analystId);
+    $activeId = getActiveTenantId($conn, $analystId);
 
-    $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    $priorities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $resp = [
+        'success'      => true,
+        'priorities'   => ticketPrioritiesFor($conn, $activeId, false),
+        'multi_tenant' => $ctx['multi'],
+    ];
 
-    foreach ($priorities as &$p) {
-        $p['is_default'] = (bool)$p['is_default'];
-        $p['is_active']  = (bool)$p['is_active'];
+    if (!$manage && isActiveTenantAll($conn)) {
+        $byCompany = [];
+        foreach (getAccessibleTenantIds($conn, $analystId) as $tid) {
+            $byCompany[(int)$tid] = ticketPrioritiesFor($conn, (int)$tid, false);
+        }
+        $resp['by_company']    = $byCompany;
+        $resp['all_companies'] = true;
     }
 
-    echo json_encode([
-        'success' => true,
-        'priorities' => $priorities
-    ]);
+    if ($manage) {
+        $resp['can_share'] = $ctx['can_share'];
+        $resp['companies'] = $ctx['companies'];
+    }
+
+    if ($manage && $ctx['company'] === null) {
+        $resp['priorities'] = ticketPrioritiesShared($conn);
+    }
+
+    if ($manage && $ctx['multi'] && isActiveTenantAll($conn)) {
+        $resp['company_priorities'] = [];
+        foreach ($ctx['companies'] as $company) {
+            $rows = ticketPrioritiesOwn($conn, $company['id']);
+            if ($rows) {
+                $resp['company_priorities'][] = ['company' => $company, 'priorities' => $rows];
+            }
+        }
+    }
+
+    if ($manage && $ctx['company'] !== null) {
+        $hidden = $conn->prepare("SELECT entity_id FROM tenant_config_hidden WHERE tenant_id = ? AND entity_type = 'ticket_priority'");
+        $hidden->execute([$ctx['company']]);
+        $hiddenIds = array_map('intval', $hidden->fetchAll(PDO::FETCH_COLUMN));
+
+        $company = getTenantById($conn, $ctx['company']);
+        $resp['scoped'] = [
+            'is_default' => false,
+            'company'    => ['id' => $ctx['company'], 'name' => $company['name'] ?? ''],
+            'own'        => array_values(array_filter($resp['priorities'], fn(array $p): bool => $p['tenant_id'] === $ctx['company'])),
+            'globals'    => array_map(
+                fn(array $p): array => $p + ['hidden' => in_array($p['id'], $hiddenIds, true)],
+                ticketPrioritiesShared($conn),
+            ),
+        ];
+    }
+
+    echo json_encode($resp);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>

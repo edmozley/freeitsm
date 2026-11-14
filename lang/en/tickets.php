@@ -2210,6 +2210,47 @@ return [
             'mismatch_body'  => 'You signed in with a different account than the target mailbox, so this would read the wrong inbox. Sign in again as the target mailbox, or switch this mailbox to app-only authentication.',
         ],
 
+        // Priorities tab: a company's own priorities and the shared ones it can hide.
+        'priorities' => [
+            'own_heading'         => '{company}\'s own priorities',
+            'own_empty'           => 'None yet. Use Add to create a priority just for this company.',
+            'shared_heading'      => 'Shared priorities',
+            'shared_hint'         => 'inherited by {company}',
+            'hidden_here'         => 'Hidden here',
+            'hide_title'          => 'Visible to this company. Click to hide',
+            'show_title'          => 'Hidden from this company. Click to show',
+            'hidden_toast'        => 'Hidden from this company',
+            'shown_toast'         => 'Shown for this company',
+            'update_failed'       => 'Could not update',
+            'name_exists'         => 'A priority with that name already exists here.',
+            'name_exists_company' => 'A company already has its own priority with that name, so it cannot be shared.',
+            'not_found'           => 'Priority not found.',
+            'hide_client_only'    => 'Switch to a client company to hide a shared priority from it.',
+            'hide_shared_only'    => 'Only shared priorities can be hidden. Delete a company\'s own priority instead.',
+            'hide_in_use'         => 'Open tickets in this company use this priority. Change or close them first.',
+            'show_name_clash'     => 'This company has its own priority with the same name. Rename or delete it before showing the shared one.',
+            'shared_needs_all'    => 'Only someone with access to every company can change shared priorities.',
+            'scope_label'         => 'Company',
+            'scope_shared'        => 'Shared (every company)',
+            'shared'              => 'Shared',
+            'company_not_allowed' => 'You cannot change priorities for that company.',
+            'none_found'          => 'No priorities found',
+            'status_active'       => 'Active',
+            'status_inactive'     => 'Inactive',
+        ],
+
+        // SLA calendars: shared, and each company's own.
+        'sla_calendars' => [
+            'not_found'           => 'Calendar not found.',
+            'name_exists'         => 'A calendar with that name already exists here.',
+            'name_exists_company' => 'A company already has its own calendar with that name, so it cannot be shared.',
+            'shared_needs_all'    => 'Only someone with access to every company can change shared calendars.',
+            'company_not_allowed' => 'You cannot change calendars for that company.',
+            'not_for_priority'    => 'That calendar is not one this priority\'s company can use.',
+            'not_for_shared'      => 'A shared priority can only use shared calendars.',
+            'not_for_widget'      => 'That calendar is not one this widget\'s company can use.',
+        ],
+
         // SLA tab — see docs/sla.md. Headings, intros, labels, radio/checkbox
         // option text, table headers and notes. Values with intended HTML are
         // echoed raw.
@@ -2250,6 +2291,9 @@ return [
             'col_hours'              => 'Hours',
             'col_holidays'           => 'Holidays',
             'col_default'            => 'Default',
+            'default_badge'          => 'Default',
+            'no_active_priorities'   => 'No active priorities - add some on the Priorities tab.',
+            'no_calendars'           => 'No calendars defined yet. Add one above.',
             'col_actions'            => 'Actions',
             'notifs_heading'         => 'Breach notifications',
             'notifs_info'            => '<strong style="display:block;margin-bottom:6px;font-size:14px;">How notification rules work</strong>'
@@ -3911,6 +3955,11 @@ return [
             'cutoff_heading'=> '4. Enforcement Cutoff (<code>Enforce SLAs from</code>)',
             'cutoff_p1'   => 'The single most important global setting. Until you set a datetime here, SLA tracking is disabled entirely &mdash; no clocks run, no pills show on the inbox, no breach emails fire. Setting it to a past datetime turns SLAs on retroactively from that point. Setting it to a future datetime schedules a switch-on.',
             'cutoff_p2'   => 'Most teams set this to "now" when they first enable SLAs &mdash; existing tickets keep their pre-SLA state, new tickets from that moment onward are tracked.',
+            // GH #320, PR #331
+            'company_heading' => 'Each client its own priorities and hours',
+            'company_p1' => 'On an install serving several companies, a priority or a business calendar can be <strong>shared</strong> by every company or belong to <strong>one company</strong> - choose in the <strong>Company</strong> field when you add it. A company sees its own priorities plus the shared ones it has not hidden, and starts new tickets on its own default (else the shared default). Every priority picker follows the ticket\'s company, and every channel that opens a ticket starts it on that company\'s default.',
+            'company_p2' => 'The clock runs on the priority\'s own calendar; if it has none, on the company\'s default calendar; then the shared default. A shared priority can only use shared calendars. Moving a ticket to a company that cannot use its priority switches it to that company\'s default, on the ticket\'s history.',
+            'company_note' => 'Changing a <strong>shared</strong> priority or calendar changes it for every company, so it needs access to every company. A company\'s own needs access to that company. On a single-company install all of this is invisible - everything is shared.',
         ],
         'behaviour' => [
             'heading' => 'Behaviour settings',

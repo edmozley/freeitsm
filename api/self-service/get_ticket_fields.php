@@ -18,6 +18,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/services/ticket_fields.php';
 require_once '../../includes/self_service_ticket_types.php';
+require_once '../../includes/ticket_priorities.php';
 
 header('Content-Type: application/json');
 if (!isset($_SESSION['ss_user_id'])) { echo json_encode(['success' => false, 'error' => 'Not authenticated']); exit; }
@@ -40,6 +41,9 @@ try {
         'success' => true,
         'types'   => selfServiceTicketTypeMatters($conn, $tenantId) ? array_values($types) : [],
         'fields'  => $fields,
+        // The company's priorities, for the Priority picker when "Raise with" changes it.
+        'priorities'          => array_map(fn(array $p): array => ['id' => $p['id'], 'name' => $p['name']], ticketPrioritiesFor($conn, $tenantId)),
+        'default_priority_id' => ticketPriorityDefaultId($conn, $tenantId),
     ]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => 'Could not load the form']);

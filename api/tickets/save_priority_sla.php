@@ -8,11 +8,17 @@
  * Doesn't touch the other ticket_priorities columns (name, colour, etc.) — that's
  * a different endpoint. Pass nulls for minutes to clear targets; pass null
  * sla_calendar_id to detach the calendar.
+ *
+ * A shared priority needs access to every company, a company's own needs access to that company.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
+require_once '../../includes/i18n.php';
+require_once '../../includes/ticket_priorities.php';
+I18n::initFromSession();
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -38,11 +44,15 @@ try {
 
     $conn = connectToDatabase();
 
-    // Validate calendar exists if one was passed (FK will catch it too but a friendly error reads better)
-    if ($calendarId !== null) {
-        $check = $conn->prepare("SELECT COUNT(*) FROM sla_calendars WHERE id = ? AND is_active = 1");
-        $check->execute([$calendarId]);
-        if ((int)$check->fetchColumn() === 0) throw new Exception('Calendar not found');
+    $owner = $conn->prepare("SELECT " . ticketPriorityTenantCol($conn) . " AS tenant_id FROM ticket_priorities WHERE id = ?");
+    $owner->execute([$id]);
+    $row = $owner->fetch(PDO::FETCH_ASSOC);
+    if (!$row) throw new Exception(t('tickets.settings.priorities.not_found'));
+    ticketPriorityRequireAccess(ticketPriorityScopeContext($conn, (int)$_SESSION['analyst_id']), $row['tenant_id'] === null ? null : (int)$row['tenant_id']);
+
+    // A shared priority runs on shared calendars only; a company's, on the ones that company can use.
+    if ($calendarId !== null && !in_array($calendarId, slaCalendarOptionIds($conn, $row['tenant_id'] === null ? null : (int)$row['tenant_id']), true)) {
+        throw new Exception(t($row['tenant_id'] === null ? 'tickets.settings.sla_calendars.not_for_shared' : 'tickets.settings.sla_calendars.not_for_priority'));
     }
 
     $stmt = $conn->prepare("UPDATE ticket_priorities

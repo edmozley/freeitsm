@@ -967,6 +967,21 @@ let attachments = [];
         loadTicketFields();
     }
 
+    // The chosen company's priorities, keeping the requester's choice when that company has it too.
+    function fillPriorities(priorities, defaultId) {
+        const sel = document.getElementById('priority');
+        if (!sel || !Array.isArray(priorities)) return;
+        const kept = sel.value;
+        sel.innerHTML = '';
+        priorities.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.name;
+            sel.appendChild(opt);
+        });
+        sel.value = priorities.some(p => String(p.id) === kept) ? kept : String(defaultId ?? '');
+    }
+
     async function loadMailboxes() {
         const select = document.getElementById('mailbox');
         // Shown again on every load: a company change can bring mailboxes back.
@@ -1049,6 +1064,7 @@ let attachments = [];
                 });
                 document.getElementById('ticketTypeGroup').hidden = false;
             }
+            fillPriorities(data.priorities, data.default_priority_id);
             ticketFieldDefs = data.fields || [];
             box.innerHTML = TicketFields.render(ticketFieldDefs, { variant: 'form', required: true });
             // Answers already given survive a change of type, for the fields it still has.
@@ -1104,7 +1120,7 @@ let attachments = [];
                     // Discussion #62 - raise-only, see api/self-service/create_ticket.php.
                     confidential: document.getElementById('confidential').checked ? 1 : 0,
                     subject: document.getElementById('subject').value.trim(),
-                    priority: document.getElementById('priority').value,
+                    priority_id: document.getElementById('priority').value || null,
                     // Optional. Re-validated server-side against the portal-visible
                     // list - a narrowed dropdown is not a check.
                     category_id: (document.getElementById('ticketCategory') || {}).value || null,
@@ -1259,24 +1275,23 @@ $ssQuestions = function () { ?>
                     <label for="priority"><?php echo htmlspecialchars(t('self-service.new_ticket.priority')); ?></label>
                     <select id="priority">
                         <?php
-                        // Populate from the configured active priorities (consistent
-                        // with the analyst New Ticket form, #40) rather than a fixed
-                        // Low/Normal/High list. Requesters can pick any priority; the
-                        // analyst re-triages if it's not appropriate.
+                        // The configured active priorities (#40) of the company this ticket goes to (#320).
+                        // Requesters can pick any of them; the analyst re-triages if it's not appropriate.
+                        // An empty list leaves the choice to the server, which gives the company's default.
                         try {
-                            $ssPrioConn = connectToDatabase();
-                            $ssPrios = $ssPrioConn->query("SELECT name, is_default FROM ticket_priorities WHERE is_active = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC);
-                        } catch (Exception $e) { $ssPrios = []; }
-                        if (!$ssPrios) {
-                            // Fallback keeps the form usable if the table isn't reachable.
-                            $ssPrios = [['name' => 'Low', 'is_default' => 0], ['name' => 'Normal', 'is_default' => 1], ['name' => 'High', 'is_default' => 0]];
+                            require_once __DIR__ . '/../includes/self_service_ticket_types.php';
+                            require_once __DIR__ . '/../includes/ticket_priorities.php';
+                            $ssPrioConn   = connectToDatabase();
+                            $ssPrioTenant = selfServiceTicketTenant($ssPrioConn, (int)$_SESSION['ss_user_id']);
+                            $ssPrios      = ticketPrioritiesFor($ssPrioConn, $ssPrioTenant);
+                            $ssPrioDefault = ticketPriorityDefaultId($ssPrioConn, $ssPrioTenant);
+                        } catch (Exception $e) {
+                            $ssPrios = [];
+                            $ssPrioDefault = null;
                         }
-                        $ssHasDefault = false;
-                        foreach ($ssPrios as $p) { if ((int)$p['is_default'] === 1) { $ssHasDefault = true; break; } }
                         foreach ($ssPrios as $p):
-                            $sel = ((int)$p['is_default'] === 1) || (!$ssHasDefault && $p['name'] === 'Normal');
                         ?>
-                        <option value="<?php echo htmlspecialchars($p['name']); ?>"<?php echo $sel ? ' selected' : ''; ?>><?php echo htmlspecialchars($p['name']); ?></option>
+                        <option value="<?php echo (int)$p['id']; ?>"<?php echo $p['id'] === $ssPrioDefault ? ' selected' : ''; ?>><?php echo htmlspecialchars($p['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

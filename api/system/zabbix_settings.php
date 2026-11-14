@@ -104,7 +104,9 @@ try {
         // The media type's parameters, from the one list the import file uses too.
         // The endpoint value is filled in by the page from its (editable) address field.
         'parameters' => zabbixMediaTypeParameters('', zabbixToken($conn)),
-        'priorities' => $conn->query("SELECT id, name FROM ticket_priorities WHERE is_active = 1 ORDER BY display_order, id")->fetchAll(PDO::FETCH_ASSOC),
+        // Shared priorities only: the map is install-wide, so a company's own priority is no choice here (#320).
+        'priorities' => array_map(fn(array $p): array => ['id' => $p['id'], 'name' => $p['name']],
+            array_values(array_filter(ticketPrioritiesShared($conn), fn(array $p): bool => $p['is_active']))),
         'statuses'   => $conn->query("SELECT id, name, is_closed FROM ticket_statuses WHERE is_active = 1 ORDER BY display_order, id")->fetchAll(PDO::FETCH_ASSOC),
         'teams'      => $conn->query("SELECT id, name FROM teams WHERE COALESCE(is_active, 1) = 1 ORDER BY name")->fetchAll(PDO::FETCH_ASSOC),
         'origins'    => $conn->query("SELECT id, name FROM ticket_origins WHERE COALESCE(is_active, 1) = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC),

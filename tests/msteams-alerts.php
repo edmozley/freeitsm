@@ -170,7 +170,8 @@ try {
     file_put_contents($router, '<?php $b = file_get_contents("php://input"); file_put_contents(' . var_export($serverLog, true) . ', $b);'
         . ' if (strpos($_SERVER["REQUEST_URI"], "refuse") !== false) { http_response_code(400); echo "BadRequest: no attachments"; exit; }'
         . ' http_response_code(202);');
-    $server = proc_open([PHP_BINARY, '-S', "127.0.0.1:$port", $router], [['pipe', 'r'], ['file', 'NUL', 'w'], ['file', 'NUL', 'w']], $pipes);
+    $devNull = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+    $server = proc_open([PHP_BINARY, '-S', "127.0.0.1:$port", $router], [['pipe', 'r'], ['file', $devNull, 'w'], ['file', $devNull, 'w']], $pipes);
     usleep(600000);
     $conn->prepare("UPDATE msteams_channels SET webhook_url = ? WHERE id = ?")->execute([encryptValue("http://127.0.0.1:$port/hook"), $ch]);
     $t = msteamsSendTest($conn, $ch, 'ZZ tester');

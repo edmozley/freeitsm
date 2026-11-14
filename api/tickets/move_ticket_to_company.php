@@ -64,15 +64,17 @@ try {
 
     $conn->prepare("UPDATE tickets SET tenant_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
          ->execute([$targetId, $ticketId]);
-    ticketsFollowCompanyMove($conn, [$ticketId], $targetId);   // its tasks and search entries
 
     // Audit (server-side so old/new company names are recorded accurately).
+    // Before the follow-up below, so a priority reset by the move is listed after it.
     try {
         $conn->prepare(
             "INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
              VALUES (?, ?, 'Company', ?, ?, UTC_TIMESTAMP())"
         )->execute([$ticketId, $analystId, $oldName, $target['name']]);
     } catch (Exception $e) { /* audit is best-effort */ }
+
+    ticketsFollowCompanyMove($conn, [$ticketId], $targetId);   // its tasks, priority and search entries
 
     echo json_encode(['success' => true, 'message' => 'Ticket moved to ' . $target['name'], 'company_name' => $target['name']]);
 

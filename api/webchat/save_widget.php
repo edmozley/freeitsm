@@ -18,6 +18,9 @@ require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/webchat/webchat.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/i18n.php';
+require_once '../../includes/ticket_priorities.php';
+I18n::initFromSession();
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -102,6 +105,11 @@ try {
     // failing — a widget is embedded on one client's website.
     if (!analystCanAssignTenant($conn, (int) $_SESSION['analyst_id'], $tenantId)) {
         echo json_encode(['success' => false, 'error' => 'You do not have access to that company']);
+        exit;
+    }
+    // The business hours must be a calendar the widget's company can use: shared, or its own.
+    if ($calendarId !== null && !in_array($calendarId, array_column(slaCalendarsFor($conn, $tenantId), 'id'), true)) {
+        echo json_encode(['success' => false, 'error' => t('tickets.settings.sla_calendars.not_for_widget')]);
         exit;
     }
 

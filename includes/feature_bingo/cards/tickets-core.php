@@ -460,6 +460,22 @@ return [
         'link'     => 'tickets/settings/#sla',
         'check'    => ['rows', 'sla_calendars', 'is_active = 1', 2],
     ],
+    // Per-company priorities and calendars (GH #320, PR #331 by nebev).
+    [
+        'id'       => 'tickets.sla_per_company',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Each client its own SLAs',
+        'what'     => 'On an install serving several companies, a company with its own priorities and SLA targets, or its own business hours, beside the shared ones.',
+        'why'      => 'A client on a premium contract can have tighter targets and its own hours, measured on its own tickets, without changing anyone else\'s.',
+        'done'     => 'At least one company has its own priority or business calendar.',
+        'link'     => 'tickets/settings/#sla',
+        'check'    => ['any', [
+            ['rows', 'ticket_priorities', 'tenant_id IS NOT NULL'],
+            ['rows', 'sla_calendars', 'tenant_id IS NOT NULL'],
+        ]],
+    ],
     [
         'id'       => 'tickets.sla_notification_rules',
         'module'   => 'tickets',

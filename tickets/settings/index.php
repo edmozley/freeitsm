@@ -155,7 +155,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.settings'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=80">
     <link rel="stylesheet" href="../../assets/css/ticket-type-rules.css?v=2">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=4"></script>
@@ -1299,6 +1299,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <thead>
                         <tr>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_priority')); ?></th>
+                            <th id="slaTargetsCompanyCol" hidden><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_response_mins')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_resolution_mins')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_calendar')); ?></th>
@@ -1324,6 +1325,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <thead>
                         <tr>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_name')); ?></th>
+                            <th id="slaCalendarsCompanyCol" hidden><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_timezone')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_hours')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_holidays')); ?></th>
@@ -2593,6 +2595,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <textarea id="itemDescription"></textarea>
                 </div>
 
+                <div class="form-group" id="itemScopeGroup" style="display: none;">
+                    <label for="itemScope"><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></label>
+                    <select id="itemScope"></select>
+                </div>
+
                 <div class="form-group" id="itemColourGroup" style="display: none;">
                     <label for="itemColour"><?php echo htmlspecialchars(t('tickets.settings.columns.colour')); ?></label>
                     <input type="color" id="itemColour" value="#2563eb" style="width: 60px; height: 32px; padding: 2px;">
@@ -3374,7 +3381,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <!-- Multi-tenancy: only shown when more than one company exists (populated by JS). -->
                     <div class="form-group" id="widgetCompanyGroup" style="display:none; grid-column: span 2;">
                         <label for="widgetCompany"><?php echo htmlspecialchars(t('tickets.settings.webchat.company')); ?></label>
-                        <select id="widgetCompany"></select>
+                        <select id="widgetCompany" onchange="fillWidgetCalendars()"></select>
                         <small style="color:var(--text-muted, #666); display:block; margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.webchat.company_help')); ?></small>
                     </div>
 
@@ -3841,6 +3848,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         </div>
                     </div>
 
+                    <div class="form-group" id="slaCalendarCompanyGroup" hidden>
+                        <label for="slaCalendarCompany"><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></label>
+                        <select id="slaCalendarCompany"></select>
+                    </div>
+
                     <div class="form-group">
                         <label class="toggle-label">
                             <span class="toggle-switch">
@@ -3951,6 +3963,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tab + '-tab').classList.add('active');
+
+            // So a reload (switching company reloads the page) opens this tab again.
+            history.replaceState(null, '', '#' + encodeURIComponent(tab));
         }
 
         // Load departments
@@ -4320,11 +4335,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 const swatch = s.colour
                     ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(s.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(s.colour)}</code>`
                     : '<span style="color:var(--text-faint, #999);">—</span>';
-                const closed  = s.is_closed  ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
-                const def     = s.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
+                const closed  = s.is_closed  ? '<span class="status-badge status-active">' + escapeHtml(t('common.yes')) + '</span>' : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>';
+                const def     = s.is_default ? '<span class="status-badge status-active">' + escapeHtml(t('common.yes')) + '</span>' : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>';
                 const pauseCell = s.pauses_sla
                     ? '<span class="status-badge status-active" title="SLA clock pauses while a ticket is in this status">&#9208; Yes</span>'
-                    : '<span style="color:var(--text-faint, #999);">No</span>';
+                    : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>';
                 return `
                 <tr>
                     <td><strong>${escapeHtml(s.name)}</strong></td>
@@ -4333,7 +4348,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <td class="sla-only">${pauseCell}</td>
                     <td>${def}</td>
                     <td>${s.display_order}</td>
-                    <td><span class="status-badge status-${s.is_active ? 'active' : 'inactive'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge status-${s.is_active ? 'active' : 'inactive'}">${escapeHtml(t(s.is_active ? 'tickets.settings.priorities.status_active' : 'tickets.settings.priorities.status_inactive'))}</span></td>
                     <td>
                         <button class="action-btn" onclick="editItem('status', ${s.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -4348,13 +4363,20 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
         // Load ticket priorities
         let ticketPrioritiesCache = [];
+        let priorityScopeCache = null;
         async function loadTicketPriorities() {
             try {
-                const response = await fetch(API_BASE + 'get_ticket_priorities.php');
+                const response = await fetch(API_BASE + 'get_ticket_priorities.php?manage=1');
                 const data = await response.json();
                 if (data.success) {
                     ticketPrioritiesCache = data.priorities;
-                    renderTicketPriorities(data.priorities);
+                    priorityScopeCache = {
+                        multi: !!data.multi_tenant,
+                        company: data.scoped ? data.scoped.company : null,
+                        canShare: !!data.can_share,
+                        companies: data.companies || [],
+                    };
+                    renderTicketPriorities(data);
                 } else {
                     showToast('Error loading priorities: ' + data.error, 'error');
                 }
@@ -4363,35 +4385,111 @@ function renderOversizeFields(string $px, bool $withLimits): void
             }
         }
 
-        function renderTicketPriorities(priorities) {
-            const tbody = document.getElementById('priorities-list');
-            if (!priorities || priorities.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No priorities found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = priorities.map(p => {
-                const safeName = escapeHtml(p.name).replace(/'/g, "\\'");
-                const swatch = p.colour
-                    ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(p.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(p.colour)}</code>`
-                    : '<span style="color:var(--text-faint, #999);">—</span>';
-                const def = p.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
-                return `
+        function priorityColourSwatch(colour) {
+            return colour
+                ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(colour)}</code>`
+                : '<span style="color:var(--text-faint, #999);">—</span>';
+        }
+
+        function priorityRowEditable(p) {
+            const swatch = priorityColourSwatch(p.colour);
+            const def = p.is_default ? '<span class="status-badge status-active">' + escapeHtml(t('common.yes')) + '</span>' : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>';
+            return `
                 <tr>
                     <td><strong>${escapeHtml(p.name)}</strong></td>
                     <td>${swatch}</td>
                     <td>${def}</td>
                     <td>${p.display_order}</td>
-                    <td><span class="status-badge status-${p.is_active ? 'active' : 'inactive'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge status-${p.is_active ? 'active' : 'inactive'}">${escapeHtml(t(p.is_active ? 'tickets.settings.priorities.status_active' : 'tickets.settings.priorities.status_inactive'))}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editItem('priority', ${p.id})" title="${t('common.edit')}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button class="action-btn delete" onclick="deleteItem('priority', ${p.id}, '${safeName}')" title="${t('common.delete')}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
+                        <button class="action-btn" onclick="editItem('priority', ${p.id})" title="${t('common.edit')}">${TT_EDIT_SVG}</button>
+                        <button class="action-btn delete" onclick="deleteItem('priority', ${p.id}, ${jsArg(p.name)})" title="${t('common.delete')}">${TT_DELETE_SVG}</button>
                     </td>
                 </tr>`;
+        }
+
+        function renderTicketPriorities(data) {
+            const tbody = document.getElementById('priorities-list');
+
+            if (data.scoped && data.scoped.is_default === false) {
+                renderTicketPrioritiesScoped(tbody, data.scoped);
+                return;
+            }
+
+            const priorities = data.priorities || [];
+            if (priorities.length === 0 && !data.company_priorities?.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">' + escapeHtml(t('tickets.settings.priorities.none_found')) + '</td></tr>';
+                return;
+            }
+            if (!data.company_priorities) {
+                tbody.innerHTML = priorities.map(priorityRowEditable).join('');
+                return;
+            }
+
+            // All companies: the shared priorities, then each company's own.
+            let html = priorityGroupRow(t('tickets.settings.priorities.shared_heading'));
+            html += priorities.map(priorityRowEditable).join('');
+            for (const group of data.company_priorities) {
+                html += priorityGroupRow(t('tickets.settings.priorities.own_heading', { company: group.company.name }));
+                html += group.priorities.map(priorityRowEditable).join('');
+            }
+            tbody.innerHTML = html;
+        }
+
+        function priorityGroupRow(label, hint = '') {
+            return `<tr class="tt-group-row"><td colspan="6" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:12px;font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
+        }
+
+        // A client company's view: its own priorities, then the shared ones with a hide/show toggle.
+        function renderTicketPrioritiesScoped(tbody, scoped) {
+            const company = scoped.company.name;
+            // The company's own default replaces the shared one for its tickets.
+            const ownDefault = scoped.own.some(p => p.is_default);
+
+            let html = priorityGroupRow(t('tickets.settings.priorities.own_heading', { company }));
+            html += scoped.own.length
+                ? scoped.own.map(priorityRowEditable).join('')
+                : `<tr><td colspan="6" style="color:#aaa;font-style:italic;padding:10px;">${escapeHtml(t('tickets.settings.priorities.own_empty'))}</td></tr>`;
+
+            html += priorityGroupRow(t('tickets.settings.priorities.shared_heading'), t('tickets.settings.priorities.shared_hint', { company }));
+            html += scoped.globals.map(p => {
+                const status = p.hidden
+                    ? `<span class="status-badge status-inactive">${escapeHtml(t('tickets.settings.priorities.hidden_here'))}</span>`
+                    : `<span class="status-badge status-${p.is_active ? 'active' : 'inactive'}">${escapeHtml(t(p.is_active ? 'tickets.settings.priorities.status_active' : 'tickets.settings.priorities.status_inactive'))}</span>`;
+                const toggle = p.hidden
+                    ? `<button class="action-btn" onclick="toggleTicketPriorityHidden(${p.id}, false)" title="${escapeHtml(t('tickets.settings.priorities.show_title'))}">${TT_EYE_OFF_SVG}</button>`
+                    : `<button class="action-btn" onclick="toggleTicketPriorityHidden(${p.id}, true)" title="${escapeHtml(t('tickets.settings.priorities.hide_title'))}">${TT_EYE_SVG}</button>`;
+                return `
+                    <tr style="${p.hidden ? 'opacity:0.5;' : ''}">
+                        <td><strong>${escapeHtml(p.name)}</strong></td>
+                        <td>${priorityColourSwatch(p.colour)}</td>
+                        <td>${p.is_default && !ownDefault ? '<span class="status-badge status-active">' + escapeHtml(t('common.yes')) + '</span>' : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>'}</td>
+                        <td>${p.display_order}</td>
+                        <td>${status}</td>
+                        <td>${toggle}</td>
+                    </tr>`;
             }).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        async function toggleTicketPriorityHidden(id, hidden) {
+            try {
+                const response = await fetch(API_BASE + 'set_ticket_priority_hidden.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ priority_id: id, hidden: hidden })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(t(hidden ? 'tickets.settings.priorities.hidden_toast' : 'tickets.settings.priorities.shown_toast'), 'success');
+                    loadTicketPriorities();
+                } else {
+                    showToast(data.error || t('tickets.settings.priorities.update_failed'), 'error');
+                }
+            } catch (error) {
+                showToast(t('tickets.settings.priorities.update_failed'), 'error');
+            }
         }
 
         // Load rota locations
@@ -4422,14 +4520,14 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 const swatch = l.colour
                     ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(l.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(l.colour)}</code>`
                     : '<span style="color:var(--text-faint, #999);">—</span>';
-                const def = l.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
+                const def = l.is_default ? '<span class="status-badge status-active">' + escapeHtml(t('common.yes')) + '</span>' : '<span class="status-badge status-neutral">' + escapeHtml(t('common.no')) + '</span>';
                 return `
                 <tr>
                     <td><strong>${escapeHtml(l.name)}</strong></td>
                     <td>${swatch}</td>
                     <td>${def}</td>
                     <td>${l.display_order}</td>
-                    <td><span class="status-badge status-${l.is_active ? 'active' : 'inactive'}">${l.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge status-${l.is_active ? 'active' : 'inactive'}">${escapeHtml(t(l.is_active ? 'tickets.settings.priorities.status_active' : 'tickets.settings.priorities.status_inactive'))}</span></td>
                     <td>
                         <button class="action-btn" onclick="editItem('rota-location', ${l.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -4443,7 +4541,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         }
 
         // Configure modal field visibility for the entity being edited
-        function configureModalFields(type) {
+        function configureModalFields(type, item = null) {
             const isStatus       = type === 'status';
             const isPriority     = type === 'priority';
             const isRotaLocation = type === 'rota-location';
@@ -4454,6 +4552,31 @@ function renderOversizeFields(string $px, bool $withLimits): void
             document.getElementById('itemPausesSlaGroup').style.display   = isStatus && !document.body.classList.contains('sla-off') ? '' : 'none';   // GH #217
             document.getElementById('itemConfidentialGroup').style.display = type === 'department' ? '' : 'none';
             document.getElementById('itemDefaultGroup').style.display     = isColouredLookup ? '' : 'none';
+            configurePriorityScope(isPriority, item);
+        }
+
+        // Which company a priority belongs to, on a multi-company install:
+        //   Shared (only for someone who may change shared priorities) or a company the analyst can access.
+        // Fixed once saved.
+        function configurePriorityScope(isPriority, item) {
+            const group = document.getElementById('itemScopeGroup');
+            const scope = priorityScopeCache;
+            if (!isPriority || !scope || !scope.multi) {
+                group.style.display = 'none';
+                return;
+            }
+            const select = document.getElementById('itemScope');
+            const option = (value, label) => `<option value="${value}">${escapeHtml(label)}</option>`;
+            const shared = option('', t('tickets.settings.priorities.scope_shared'));
+            if (item) {
+                const owner = scope.companies.find(c => c.id === item.tenant_id);
+                select.innerHTML = item.tenant_id === null ? shared : option(item.tenant_id, owner ? owner.name : '');
+            } else {
+                select.innerHTML = (scope.canShare ? shared : '') + scope.companies.map(c => option(c.id, c.name)).join('');
+                select.value = scope.company ? String(scope.company.id) : (scope.canShare ? '' : select.value);
+            }
+            select.disabled = !!item || select.options.length < 2;
+            group.style.display = '';
         }
 
         // Load teams
@@ -4811,7 +4934,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 'ticket-origin': API_BASE + 'get_ticket_origins.php',
                 'team': API_BASE + 'get_teams.php',
                 'status': API_BASE + 'get_ticket_statuses.php',
-                'priority': API_BASE + 'get_ticket_priorities.php',
+                'priority': API_BASE + 'get_ticket_priorities.php?manage=1',
                 'rota-location': API_BASE + 'get_rota_locations.php'
             };
             const titles = {
@@ -4836,7 +4959,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     else if (type === 'ticket-origin') items = data.origins;
                     else if (type === 'team') items = data.teams;
                     else if (type === 'status') items = data.statuses;
-                    else if (type === 'priority') items = data.priorities;
+                    else if (type === 'priority') items = data.priorities.concat(...(data.company_priorities || []).map(g => g.priorities));
                     else if (type === 'rota-location') items = data.locations;
 
                     const item = items.find(i => i.id == id);
@@ -4854,7 +4977,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         document.getElementById('itemPausesSla').checked = !!item.pauses_sla;
                         document.getElementById('itemConfidential').checked = item.default_sensitivity === 'confidential';
                         document.getElementById('itemDefault').checked = !!item.is_default;
-                        configureModalFields(type);
+                        configureModalFields(type, item);
                         document.getElementById('editModal').classList.add('active');
                     }
                 }
@@ -5065,6 +5188,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     display_order: parseInt(document.getElementById('itemOrder').value),
                     is_active: document.getElementById('itemActive').checked ? 1 : 0
                 };
+                if (type === 'priority') formData.tenant_id = parseInt(document.getElementById('itemScope').value) || null;
             } else {
                 formData = {
                     id: id || null,
@@ -5600,14 +5724,6 @@ function renderOversizeFields(string $px, bool $withLimits): void
             document.getElementById('widgetRequireEmail').checked = widget ? !!widget.require_email : true;
             document.getElementById('widgetActive').checked = widget ? !!widget.is_active : true;
 
-            // Availability calendar dropdown.
-            const calSel = document.getElementById('widgetCalendar');
-            let calOpts = '<option value="">' + escapeHtml(t('tickets.settings.webchat.always_open')) + '</option>';
-            webchatCalendars.forEach(c => {
-                const sel = widget && String(widget.business_calendar_id) === String(c.id) ? ' selected' : '';
-                calOpts += '<option value="' + c.id + '"' + sel + '>' + escapeHtml(c.name) + '</option>';
-            });
-            calSel.innerHTML = calOpts;
 
             // Email + AI controls.
             document.getElementById('widgetEmailWhenAway').checked = widget ? !!widget.email_when_away : false;
@@ -5628,7 +5744,20 @@ function renderOversizeFields(string $px, bool $withLimits): void
             }
 
             populateWidgetCompanies(widget ? widget.tenant_id : null);
+            fillWidgetCalendars(widget ? widget.business_calendar_id : null);
             document.getElementById('widgetModal').classList.add('active');
+        }
+
+        // The availability calendars the widget's company can use: the shared ones and its own.
+        // Keeps the current choice when the company still can; otherwise back to "Always open".
+        function fillWidgetCalendars(selectedId) {
+            const calSel = document.getElementById('widgetCalendar');
+            const keep = selectedId !== undefined ? selectedId : calSel.value;
+            const company = document.getElementById('widgetCompany').value;
+            const usable = webchatCalendars.filter(c => c.tenant_id == null || String(c.tenant_id) === company);
+            calSel.innerHTML = '<option value="">' + escapeHtml(t('tickets.settings.webchat.always_open')) + '</option>'
+                + usable.map(c => '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>').join('');
+            calSel.value = usable.some(c => String(c.id) === String(keep)) ? String(keep) : '';
         }
 
         function toggleWidgetAiFields() {
@@ -8767,7 +8896,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 const res = await fetch(API_BASE + 'get_sla_settings.php');
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'load failed');
-                slaData = { settings: data.settings || {}, priorities: data.priorities || [], calendars: data.calendars || [] };
+                slaData = {
+                    settings: data.settings || {}, priorities: data.priorities || [], calendars: data.calendars || [],
+                    multi: !!data.multi_tenant, canShare: !!data.can_share, companies: data.companies || [], company: data.company || null,
+                };
                 // SLA switched off for the install (GH #217): only the calendars are on the tab.
                 if (document.body.classList.contains('sla-off')) { renderSlaCalendars(); return; }
                 renderSlaGlobalSettings();
@@ -8828,27 +8960,38 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
         function renderSlaTargets() {
             const tbody = document.getElementById('slaTargetsList');
+            const multi = slaData.multi;
+            document.getElementById('slaTargetsCompanyCol').hidden = !multi;
             if (slaData.priorities.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-faint, #999);">No active priorities — add some on the Priorities tab.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${multi ? 6 : 5}" style="text-align:center;color:var(--text-faint, #999);">${escapeHtml(t('tickets.settings.sla.no_active_priorities'))}</td></tr>`;
                 return;
             }
-            const calOptions = slaData.calendars.map(c =>
-                `<option value="${c.id}">${escapeHtml(c.name)}</option>`
-            ).join('');
-            tbody.innerHTML = slaData.priorities.map(p => `
-                <tr>
+            tbody.innerHTML = slaData.priorities.map(p => {
+                const calOptions = slaData.calendars
+                    .filter(c => (p.calendar_options || []).includes(c.id))
+                    .map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+                    .join('');
+                // A shared priority the analyst may not change: its targets are shown, not editable.
+                const off = p.editable ? '' : ' disabled';
+                const company = multi ? `<td>${escapeHtml(p.company ?? t('tickets.settings.priorities.shared'))}</td>` : '';
+                const save = p.editable
+                    ? `<button type="button" class="btn btn-secondary" style="padding:4px 12px;" onclick="savePrioritySla(${p.id})">${escapeHtml(t('common.save'))}</button>`
+                    : '';
+                return `
+                <tr${p.editable ? '' : ` title="${escapeHtml(t('tickets.settings.priorities.shared_needs_all'))}"`}>
                     <td><strong style="color:${escapeHtml(p.colour || '#333')};">${escapeHtml(p.name)}</strong></td>
-                    <td><input type="number" min="0" value="${p.sla_response_minutes || ''}" data-pid="${p.id}" data-field="response" style="width:90px;padding:4px 8px;"></td>
-                    <td><input type="number" min="0" value="${p.sla_resolution_minutes || ''}" data-pid="${p.id}" data-field="resolution" style="width:90px;padding:4px 8px;"></td>
+                    ${company}
+                    <td><input type="number" min="0" value="${p.sla_response_minutes || ''}" data-pid="${p.id}" data-field="response" style="width:90px;padding:4px 8px;"${off}></td>
+                    <td><input type="number" min="0" value="${p.sla_resolution_minutes || ''}" data-pid="${p.id}" data-field="resolution" style="width:90px;padding:4px 8px;"${off}></td>
                     <td>
-                        <select data-pid="${p.id}" data-field="calendar" style="padding:4px 8px;">
+                        <select data-pid="${p.id}" data-field="calendar" style="padding:4px 8px;"${off}>
                             <option value="">— None —</option>
                             ${calOptions.replace(`value="${p.sla_calendar_id}"`, `value="${p.sla_calendar_id}" selected`)}
                         </select>
                     </td>
-                    <td><button type="button" class="btn btn-secondary" style="padding:4px 12px;" onclick="savePrioritySla(${p.id})">Save</button></td>
-                </tr>
-            `).join('');
+                    <td>${save}</td>
+                </tr>`;
+            }).join('');
         }
 
         async function savePrioritySla(priorityId) {
@@ -8875,30 +9018,55 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
         function renderSlaCalendars() {
             const tbody = document.getElementById('slaCalendarsList');
+            const multi = slaData.multi;
+            document.getElementById('slaCalendarsCompanyCol').hidden = !multi;
             if (slaData.calendars.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-faint, #999);">No calendars defined yet. Add one above.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${multi ? 7 : 6}" style="text-align:center;color:var(--text-faint, #999);">${escapeHtml(t('tickets.settings.sla.no_calendars'))}</td></tr>`;
                 return;
             }
+            // With one company selected, its own default replaces the shared one.
+            const ownDefault = slaData.company !== null && slaData.calendars.some(c => c.tenant_id !== null && c.is_default);
             tbody.innerHTML = slaData.calendars.map(c => {
                 const openDays = (c.hours || []).length;
                 const hoursLabel = openDays > 0
                     ? `${openDays} open day${openDays === 1 ? '' : 's'}`
                     : '<span style="color:#c62828;">No hours set</span>';
+                const isDefault = c.is_default && !(c.tenant_id === null && ownDefault);
+                const defaultCell = isDefault ? '<span class="status-badge status-active">' + escapeHtml(t('tickets.settings.sla.default_badge')) + '</span>' : '';
+                const edit = c.editable
+                    ? `<button class="action-btn" onclick="openSlaCalendarModal(${c.id})" title="${escapeHtml(t('common.edit'))}">${TT_EDIT_SVG}</button>`
+                    : '';
                 return `
                     <tr>
                         <td><strong>${escapeHtml(c.name)}</strong></td>
+                        ${multi ? `<td>${escapeHtml(c.company ?? t('tickets.settings.priorities.shared'))}</td>` : ''}
                         <td><code style="font-size:12px;">${escapeHtml(c.timezone)}</code></td>
                         <td>${hoursLabel}</td>
                         <td>${c.holiday_count || 0}</td>
-                        <td>${c.is_default ? '<span class="status-badge status-active">Default</span>' : ''}</td>
-                        <td>
-                            <button class="action-btn" onclick="openSlaCalendarModal(${c.id})" title="${escapeHtml(t('common.edit'))}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            </button>
-                        </td>
+                        <td>${defaultCell}</td>
+                        <td>${edit}</td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        // Which company a calendar belongs to, on a multi-company install: Shared (only for someone who may change shared calendars) or a company the analyst can access.
+        // Fixed once saved.
+        function configureSlaCalendarCompany(calendar) {
+            const group = document.getElementById('slaCalendarCompanyGroup');
+            group.hidden = !slaData.multi;
+            if (!slaData.multi) return;
+            const select = document.getElementById('slaCalendarCompany');
+            const option = (value, label) => `<option value="${value}">${escapeHtml(label)}</option>`;
+            const shared = option('', t('tickets.settings.priorities.scope_shared'));
+            if (calendar) {
+                const owner = slaData.companies.find(c => c.id === calendar.tenant_id);
+                select.innerHTML = calendar.tenant_id === null ? shared : option(calendar.tenant_id, owner ? owner.name : '');
+            } else {
+                select.innerHTML = (slaData.canShare ? shared : '') + slaData.companies.map(c => option(c.id, c.name)).join('');
+                if (slaData.company) select.value = String(slaData.company.id);
+            }
+            select.disabled = !!calendar || select.options.length < 2;
         }
 
         // ---------- Calendar modal ----------
@@ -8952,7 +9120,18 @@ function renderOversizeFields(string $px, bool $withLimits): void
             const reset = () => {
                 document.getElementById('slaCalendarId').value = '';
                 document.getElementById('slaCalendarName').value = '';
-                tzSelect.value = 'Europe/London';
+                // The browser's own timezone, when the list has it.
+                // Some browsers still report a few zones by their old names, which the list has under the current ones.
+                const oldTzNames = {
+                    'Asia/Calcutta': 'Asia/Kolkata', 'Asia/Saigon': 'Asia/Ho_Chi_Minh', 'Asia/Katmandu': 'Asia/Kathmandu',
+                    'Asia/Rangoon': 'Asia/Yangon', 'Europe/Kiev': 'Europe/Kyiv', 'Atlantic/Faeroe': 'Atlantic/Faroe',
+                    'America/Godthab': 'America/Nuuk', 'America/Buenos_Aires': 'America/Argentina/Buenos_Aires',
+                    'America/Indianapolis': 'America/Indiana/Indianapolis', 'America/Louisville': 'America/Kentucky/Louisville',
+                    'Pacific/Truk': 'Pacific/Chuuk', 'Pacific/Ponape': 'Pacific/Pohnpei', 'Africa/Asmera': 'Africa/Asmara',
+                };
+                const reported = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const browserTz = oldTzNames[reported] || reported;
+                tzSelect.value = [...tzSelect.options].some(o => o.value === browserTz) ? browserTz : 'Europe/London';
                 document.getElementById('slaCalendarIsDefault').checked = false;
                 slaModalHolidays = [];
                 // Default: Mon-Fri 09:00-17:00 open, Sat/Sun closed
@@ -8966,6 +9145,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 });
                 document.getElementById('slaCalendarModalTitle').textContent = 'Add business calendar';
                 document.getElementById('slaCalendarDeleteBtn').style.display = 'none';
+                configureSlaCalendarCompany(null);
             };
             reset();
 
@@ -8979,6 +9159,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     document.getElementById('slaCalendarName').value = c.name;
                     tzSelect.value = c.timezone;
                     document.getElementById('slaCalendarIsDefault').checked = c.is_default;
+                    configureSlaCalendarCompany(c);
                     document.getElementById('slaCalendarModalTitle').textContent = 'Edit business calendar';
                     document.getElementById('slaCalendarDeleteBtn').style.display = '';
                     // Reset all days closed first, then apply
@@ -9072,6 +9253,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     holidays:   slaModalHolidays,
                 };
                 if (idRaw) payload.id = parseInt(idRaw, 10);
+                else if (slaData.multi) payload.tenant_id = parseInt(document.getElementById('slaCalendarCompany').value) || null;
 
                 try {
                     const res = await fetch(API_BASE + 'save_sla_calendar.php', {

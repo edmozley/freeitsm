@@ -43,6 +43,7 @@ require_once __DIR__ . '/checklists.php';              // mandatory SOP steps at
 require_once __DIR__ . '/mandatory_fields.php';        // mandatory ticket fields at closure
 require_once __DIR__ . '/ticket_fields.php';           // custom ticket fields (#179)
 require_once __DIR__ . '/../ticket_sensitivity.php';   // Normal / Confidential (discussion #62)
+require_once __DIR__ . '/../ticket_priorities.php';
 require_once __DIR__ . '/../ticket_workspace.php';
 
 class TicketsService
@@ -124,10 +125,10 @@ class TicketsService
             $row = $conn->query("SELECT id, name, is_closed FROM ticket_statuses WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1")->fetch(PDO::FETCH_ASSOC);
             return $row ? [(int)$row['id'], $row['name'], (int)$row['is_closed']] : [null, null, 0];
         })();
-        $priorityRes = self::resolvePriority($conn, $in);
+        $priorityRes = self::resolvePriority($conn, $in, $tenantId);
         if ($priorityRes === null) {
-            $row = $conn->query("SELECT id, name FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-            $priorityRes = $row ? [(int)$row['id'], $row['name']] : [null, null];
+            $defaultId = ticketPriorityDefaultId($conn, $tenantId);
+            $priorityRes = [$defaultId, array_column(ticketPrioritiesFor($conn, $tenantId), 'name', 'id')[$defaultId] ?? null];
         }
 
         $departmentId = isset($in['department_id']) && $in['department_id'] !== '' ? (int)$in['department_id'] : null;
@@ -449,7 +450,21 @@ class TicketsService
         }
 
         $priorityChanged = false;
-        $priorityRes = self::resolvePriority($conn, $in);
+        // Checked against the company the ticket will be in, when this update also moves it.
+        $priorityTenant = !empty($in['company_id']) ? (int)$in['company_id']
+            : ($current['tenant_id'] !== null ? (int)$current['tenant_id'] : null);
+        // TRAP: a client that resends the ticket's CURRENT priority (a REST PATCH of the whole record) must not get a 422
+        // because the company now hides it, or it is inactive - a reopened ticket keeps the priority it had.
+        // Unchanged, in the same company, is no change: nothing to check. A move to another company is still checked.
+        $currentPriorityId = $current['priority_id'] !== null ? (int)$current['priority_id'] : null;
+        $keepsCompany = empty($in['company_id'])
+            || (int)$in['company_id'] === ($current['tenant_id'] !== null ? (int)$current['tenant_id'] : null);
+        $resendsCurrent = $currentPriorityId !== null && (
+            array_key_exists('priority_id', $in)
+                ? ($in['priority_id'] !== '' && $in['priority_id'] !== null && (int)$in['priority_id'] === $currentPriorityId)
+                : (isset($in['priority']) && strcasecmp(trim((string)$in['priority']), (string)$current['priority_name']) === 0)
+        );
+        $priorityRes = ($keepsCompany && $resendsCurrent) ? null : self::resolvePriority($conn, $in, $priorityTenant);
         if ($priorityRes !== null) {
             [$newPriorityId, $newPriorityName] = $priorityRes;
             if ($newPriorityId !== ($current['priority_id'] !== null ? (int)$current['priority_id'] : null)) {
@@ -997,6 +1012,22 @@ class TicketsService
     }
 
     /**
+     * The canonical ticket workflow payload for a ticket, read from the database.
+     * For a change made outside updateTicket(), such as the priority a company move resets.
+     */
+    public static function workflowPayload(PDO $conn, int $ticketId): array
+    {
+        $stmt = $conn->prepare(
+            "SELECT t.id, t.subject, t.priority_id, t.status_id, t.department_id, t.ticket_type_id,
+                    t.assigned_analyst_id, t.owner_id, t.origin_id, t.user_id, u.email AS requester_email, t.category_id
+             FROM tickets t LEFT JOIN users u ON u.id = t.user_id WHERE t.id = ?"
+        );
+        $stmt->execute([$ticketId]);
+
+        return self::eventTicket($stmt->fetch(PDO::FETCH_ASSOC) ?: ['id' => $ticketId]);
+    }
+
+    /**
      * The canonical ticket workflow payload, built from a loaded (joined) row.
      *
      * @param array $r  the ticket row, as loaded by loadTicket() or rowAfterUpdates()
@@ -1363,29 +1394,28 @@ class TicketsService
     }
 
     /**
-     * Resolve a priority by name or id. Empty string/null id = clear.
+     * Resolve a priority by name or id, among the ones the ticket's company can see. Empty string/null id = clear.
+     * Another company's priority, or a shared one this company hides, is unknown here.
      *
      * @param array $in  the request: priority_id (null or '' clears) wins over priority (a name); neither gives null
+     * @param ?int $tenantId  the ticket's company; null = triage
      */
-    private static function resolvePriority(PDO $conn, array $in): ?array
+    private static function resolvePriority(PDO $conn, array $in, ?int $tenantId): ?array
     {
         if (array_key_exists('priority_id', $in)) {
             if ($in['priority_id'] === '' || $in['priority_id'] === null) {
                 return [null, null];
             }
-            $stmt = $conn->prepare("SELECT id, name FROM ticket_priorities WHERE id = ? LIMIT 1");
-            $stmt->execute([(int)$in['priority_id']]);
+            $match = fn(array $p): bool => $p['id'] === (int)$in['priority_id'];
         } elseif (isset($in['priority']) && trim((string)$in['priority']) !== '') {
-            $stmt = $conn->prepare("SELECT id, name FROM ticket_priorities WHERE name = ? LIMIT 1");
-            $stmt->execute([trim((string)$in['priority'])]);
+            $match = fn(array $p): bool => strcasecmp($p['name'], trim((string)$in['priority'])) === 0;
         } else {
             return null;
         }
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$row) {
-            throw new ServiceError('validation', 'invalid_field', 'Unknown priority: ' . ($in['priority'] ?? $in['priority_id']));
+        foreach (ticketPrioritiesFor($conn, $tenantId, false) as $p) {
+            if ($match($p)) return [$p['id'], $p['name']];
         }
-        return [(int)$row['id'], $row['name']];
+        throw new ServiceError('validation', 'invalid_field', 'Unknown priority: ' . ($in['priority'] ?? $in['priority_id']));
     }
 
     /** Validate a simple lookup id (returns the row name); 422 on unknown id. Null/'' -> null. */

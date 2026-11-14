@@ -1741,18 +1741,24 @@ try {
             try { $conn->exec("ALTER TABLE tenant_config_hidden ADD CONSTRAINT fk_tenant_config_hidden_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
-    if ($tableExists('ticket_types') && $tableExists('tenants') && $colExists('ticket_types', 'tenant_id')) {
-        if (!$fkExists('ticket_types', 'fk_ticket_types_tenant')) {
-            try { $conn->exec("ALTER TABLE ticket_types ADD CONSTRAINT fk_ticket_types_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
-        }
-        // Widen name-uniqueness from global to per-scope so a company can hold a
-        // type whose name matches a global default. (Global-name dedup is enforced
-        // in the API — NULL tenant_id rows aren't de-duped by a unique key.)
-        if ($idxExists('ticket_types', 'uq_ticket_types_name')) {
-            try { $conn->exec("ALTER TABLE ticket_types DROP INDEX uq_ticket_types_name"); } catch (Exception $e) {}
-        }
-        if (!$idxExists('ticket_types', 'uq_ticket_types_tenant_name')) {
-            try { $conn->exec("ALTER TABLE ticket_types ADD UNIQUE KEY uq_ticket_types_tenant_name (tenant_id, name)"); } catch (Exception $e) {}
+    foreach ([
+        ['ticket_types',      'fk_ticket_types_tenant',      'uq_ticket_types_name',      'uq_ticket_types_tenant_name'],
+        ['ticket_priorities', 'fk_ticket_priorities_tenant', 'uq_ticket_priorities_name', 'uq_ticket_priorities_tenant_name'],
+        ['sla_calendars',     'fk_sla_calendars_tenant',     'uq_sla_calendars_name',     'uq_sla_calendars_tenant_name'],
+    ] as [$tbl, $fk, $oldIdx, $newIdx]) {
+        if ($tableExists($tbl) && $tableExists('tenants') && $colExists($tbl, 'tenant_id')) {
+            if (!$fkExists($tbl, $fk)) {
+                try { $conn->exec("ALTER TABLE $tbl ADD CONSTRAINT $fk FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+            }
+            // Widen name-uniqueness from global to per-scope so a company can hold an
+            // entry whose name matches a global default. (Global-name dedup is enforced
+            // in the API — NULL tenant_id rows aren't de-duped by a unique key.)
+            if ($idxExists($tbl, $oldIdx)) {
+                try { $conn->exec("ALTER TABLE $tbl DROP INDEX $oldIdx"); } catch (Exception $e) {}
+            }
+            if (!$idxExists($tbl, $newIdx)) {
+                try { $conn->exec("ALTER TABLE $tbl ADD UNIQUE KEY $newIdx (tenant_id, name)"); } catch (Exception $e) {}
+            }
         }
     }
 
@@ -2503,9 +2509,26 @@ try {
         }
     }
     if ($tableExists('tickets') && $colExists('tickets', 'priority_id')) {
-        $upd = $conn->exec("UPDATE tickets
-                               SET priority_id = (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1)
-                             WHERE priority_id IS NULL");
+        if ($colExists('ticket_priorities', 'tenant_id') && $colExists('tickets', 'tenant_id')) {
+            // Each ticket gets its own company's default (GH #320): with a default per company,
+            // the first is_default row could be another company's.
+            require_once __DIR__ . '/../../includes/ticket_priorities.php';
+            ticketPriorityTenancyReady($conn, true);   // the columns were added earlier in this run; re-check, never a cached "no"
+            $upd = 0;
+            $fill = $conn->prepare("UPDATE tickets SET priority_id = ? WHERE priority_id IS NULL AND tenant_id <=> ?");
+            foreach ($conn->query("SELECT DISTINCT tenant_id FROM tickets WHERE priority_id IS NULL")->fetchAll(PDO::FETCH_COLUMN) as $tid) {
+                $tid = $tid === null ? null : (int)$tid;
+                $defaultId = ticketPriorityDefaultId($conn, $tid);
+                if ($defaultId !== null) {
+                    $fill->execute([$defaultId, $tid]);
+                    $upd += $fill->rowCount();
+                }
+            }
+        } else {
+            $upd = $conn->exec("UPDATE tickets
+                                   SET priority_id = (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1)
+                                 WHERE priority_id IS NULL");
+        }
         if ($upd > 0) {
             $results[] = ['table' => 'tickets', 'status' => 'migrated',
                           'details' => ["Set the default priority on $upd ticket(s) that had none"]];

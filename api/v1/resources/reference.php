@@ -5,6 +5,8 @@
  * departments), plus the analysts list. Companies are in companies.php.
  */
 
+require_once __DIR__ . '/../../../includes/ticket_priorities.php';
+
 // GET /analysts — active analysts (assignment targets).
 // 3.5.0 (PR #174): ?email= finds one by address (case-insensitive) and
 // ?include_inactive=1 adds deactivated ones, so a provisioning client can find
@@ -51,11 +53,19 @@ function apiStatusesList(PDO $conn, array $apiKey, array $params, array $body): 
     }, $rows));
 }
 
-// GET /priorities
+// GET /priorities (?company_id= gives that company's: its own and the shared ones it has not hidden)
 function apiPrioritiesList(PDO $conn, array $apiKey, array $params, array $body): void {
-    $rows = $conn->query(
-        "SELECT id, name, sla_response_minutes, sla_resolution_minutes FROM ticket_priorities ORDER BY display_order, name"
-    )->fetchAll(PDO::FETCH_ASSOC);
+    if (isset($_GET['company_id']) && $_GET['company_id'] !== '') {
+        $cid = (int)$_GET['company_id'];
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $cid)) {
+            apiError(403, 'forbidden', 'This API key is not scoped to that company.');
+        }
+        $rows = ticketPrioritiesFor($conn, $cid, false);
+    } else {
+        $rows = $conn->query(
+            "SELECT id, name, sla_response_minutes, sla_resolution_minutes FROM ticket_priorities ORDER BY display_order, name"
+        )->fetchAll(PDO::FETCH_ASSOC);
+    }
     apiRespond(array_map(function ($p) {
         return [
             'id'                     => (int)$p['id'],

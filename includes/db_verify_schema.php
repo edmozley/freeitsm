@@ -759,6 +759,7 @@ return [
         'sla_response_minutes'    => 'INT NULL',
         'sla_resolution_minutes'  => 'INT NULL',
         'sla_calendar_id'         => 'INT NULL',
+        'tenant_id'               => 'INT NULL',
         'created_datetime'        => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
@@ -768,6 +769,7 @@ return [
         'timezone'          => "VARCHAR(50) NOT NULL DEFAULT 'Europe/London'",
         'is_default'        => 'TINYINT(1) NOT NULL DEFAULT 0',
         'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'tenant_id'         => 'INT NULL',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
     ],

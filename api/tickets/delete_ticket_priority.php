@@ -2,11 +2,17 @@
 /**
  * API Endpoint: Delete ticket priority
  * Refuses if the priority is in use by any ticket, or if it's the default.
+ *
+ * A shared priority needs access to every company, a company's own needs access to that company.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
+require_once '../../includes/ticket_priorities.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -29,9 +35,17 @@ try {
     }
 
     $conn = connectToDatabase();
+    $ctx = ticketPriorityScopeContext($conn, (int)$_SESSION['analyst_id']);
 
-    $isDefault = (int) $conn->query("SELECT is_default FROM ticket_priorities WHERE id = " . (int)$id)->fetchColumn();
-    if ($isDefault === 1) {
+    $cur = $conn->prepare("SELECT " . ticketPriorityTenantCol($conn) . " AS tenant_id, is_default FROM ticket_priorities WHERE id = ?");
+    $cur->execute([$id]);
+    $row = $cur->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        throw new Exception(t('tickets.settings.priorities.not_found'));
+    }
+    ticketPriorityRequireAccess($ctx, $row['tenant_id'] === null ? null : (int)$row['tenant_id']);
+
+    if ((int)$row['is_default'] === 1) {
         throw new Exception('Cannot delete the default priority. Set another priority as default first.');
     }
 

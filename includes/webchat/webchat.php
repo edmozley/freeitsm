@@ -243,11 +243,12 @@ function webchatOpenTicket(PDO $conn, array $conversation, array $channel, strin
             ) VALUES (
                 ?, ?,
                 (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
-                (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
+                ?,
                 UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP(),
                 ?, ?, ?, ?, ?
             )";
-    $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId, $typePick['type_id'] ?? null, $departmentId]);
+    require_once __DIR__ . '/../ticket_priorities.php';
+    $conn->prepare($sql)->execute([$ticketNumber, $subject, ticketPriorityDefaultId($conn, $tenantId), $userId, $tenantId, $originId, $typePick['type_id'] ?? null, $departmentId]);
     $ticketId = (int) $conn->lastInsertId();
     ticketDepartmentNote($conn, $ticketId, $departmentNote);
     ticketTypeAutoRecord($conn, $ticketId, $typePick);

@@ -16,6 +16,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/admin_api_guard.php';   // administrators only
 require_once '../../includes/integrations/msteams.php';
+require_once '../../includes/ticket_priorities.php';
 
 header('Content-Type: application/json');
 
@@ -55,7 +56,8 @@ try {
         'ready'      => $ready,
         'channels'   => $ready ? msteamsChannels($conn) : [],
         'alerts'     => array_map(fn($k, $a) => ['key' => $k, 'needs' => $a['needs']], array_keys(MSTEAMS_ALERTS), MSTEAMS_ALERTS),
-        'priorities' => $conn->query("SELECT id, name FROM ticket_priorities WHERE is_active = 1 ORDER BY display_order DESC, id")->fetchAll(PDO::FETCH_ASSOC),
+        // Shared priorities only: a channel's threshold is install-wide, so a company's own priority is no choice here (#320).
+        'priorities' => $conn->query("SELECT id, name FROM ticket_priorities WHERE is_active = 1 AND " . ticketPriorityTenantCol($conn) . " IS NULL ORDER BY display_order DESC, id")->fetchAll(PDO::FETCH_ASSOC),
         'teams'      => $conn->query("SELECT id, name FROM teams WHERE COALESCE(is_active, 1) = 1 ORDER BY name")->fetchAll(PDO::FETCH_ASSOC),
         'bots'       => $bots,
     ]);

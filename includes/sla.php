@@ -19,6 +19,8 @@
  * calendar's timezone for day-walking. The DB stores everything in UTC.
  */
 
+require_once __DIR__ . '/ticket_priorities.php';
+
 /**
  * Compute the SLA state of a single ticket. Returns:
  *   [
@@ -47,7 +49,7 @@ function sla_get_state(PDO $conn, int $ticket_id): array {
 
     // --- 1. Load ticket ---
     $stmt = $conn->prepare("SELECT t.id, t.ticket_number, t.created_datetime, t.priority_id, t.status_id,
-                                   t.closed_datetime, ts.name AS current_status_name
+                                   t.closed_datetime, t.tenant_id, ts.name AS current_status_name
                             FROM tickets t
                             LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
                             WHERE t.id = ?");
@@ -99,13 +101,9 @@ function sla_get_state(PDO $conn, int $ticket_id): array {
         return $state;
     }
 
-    // --- 4. Load calendar (priority's calendar, or default if NULL) ---
-    $calId = $priority['sla_calendar_id'];
-    if (!$calId) {
-        $defStmt = $conn->query("SELECT id FROM sla_calendars WHERE is_default = 1 AND is_active = 1 LIMIT 1");
-        $row = $defStmt->fetch(PDO::FETCH_ASSOC);
-        if ($row) $calId = (int)$row['id'];
-    }
+    // --- 4. Load calendar: the priority's, else the ticket's company's default, else the shared default ---
+    $calId = $priority['sla_calendar_id']
+        ?: slaDefaultCalendarId($conn, $ticket['tenant_id'] === null ? null : (int)$ticket['tenant_id']);
     if (!$calId) {
         $state['reason_disabled'] = 'No SLA calendar set on priority and no default calendar exists';
         return $state;

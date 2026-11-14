@@ -37,6 +37,17 @@ function getContributors(): array
 {
     return [
         [
+            // Public GitHub handle, as on their own PR (#331, 2026-11-14).
+            'name'   => 'nebev',
+            'github' => 'nebev',
+            'date'   => '2026-11-14',
+            'what'   => 'Priorities and SLA calendars per company (PR #331, 5.3.0): each client can have its '
+                      . 'own priorities, SLA targets and business hours beside the shared ones, with every '
+                      . 'priority picker and every channel that opens a ticket following the ticket\'s company - '
+                      . 'a first contribution that came with screenshots of every screen, 56 tests and a '
+                      . 'clear note of each decision made.',
+        ],
+        [
             // Public GitHub handle only; asked in the #194 reply how they would like
             // to be credited - change this if they say otherwise.
             'name'   => 'Dr4inder',

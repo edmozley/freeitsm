@@ -1477,7 +1477,7 @@ function getTenantConfigRows(PDO $conn, string $table, string $entityType, int $
 
 /**
  * What has to follow a ticket when it changes company: the tasks raised from it
- * (and their subtasks), and its search entries.
+ * (and their subtasks), its priority if the new company cannot use it, and its search entries.
  *
  * 🔴 Moving a ticket, or routing it out of triage, wrote tickets.tenant_id and
  * nothing else. Its tasks stayed in the old company - visible there, disagreeing
@@ -1512,6 +1512,12 @@ function ticketsFollowCompanyMove(PDO $conn, array $ticketIds, ?int $tenantId): 
         }
     } catch (Exception $e) {
         error_log('ticketsFollowCompanyMove (tasks): ' . $e->getMessage());
+    }
+    try {
+        require_once __DIR__ . '/ticket_priorities.php';
+        ticketPriorityFollowCompanyMove($conn, $ticketIds, $tenantId);
+    } catch (Throwable $e) {
+        error_log('ticketsFollowCompanyMove (priority): ' . $e->getMessage());
     }
     try {
         require_once __DIR__ . '/search/indexer.php';

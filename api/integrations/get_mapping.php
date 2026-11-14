@@ -12,6 +12,7 @@ require_once '../../config.php';
 require_once '../../includes/admin_api_guard.php';
 require_once '../../includes/encryption.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/ticket_priorities.php';
 require_once '../../includes/integrations/integrations.php';
 
 header('Content-Type: application/json');
@@ -68,7 +69,14 @@ try {
               LEFT JOIN tenants t ON t.id = tt.tenant_id
                   WHERE tt.is_active = 1
                ORDER BY tt.tenant_id IS NOT NULL, tt.display_order, tt.name"),
-            'priorities'   => mappingList($conn, "SELECT id, name FROM ticket_priorities WHERE is_active = 1 ORDER BY display_order, name"),
+            // Priorities are company-scoped too since #320, and every company's are mapped the same way as types.
+            // No tenant_id before Database Verification adds it (ticketPriorityTenancyReady()): every priority is shared.
+            'priorities'   => mappingList($conn,
+                "SELECT tp.id, tp.name, t.name AS tenant_name
+                   FROM ticket_priorities tp
+              LEFT JOIN tenants t ON t.id = " . (ticketPriorityTenancyReady($conn) ? 'tp.tenant_id' : 'NULL') . "
+                  WHERE tp.is_active = 1
+               ORDER BY " . (ticketPriorityTenancyReady($conn) ? 'tp.tenant_id' : 'NULL') . " IS NOT NULL, tp.display_order, tp.name"),
         ],
     ]);
 } catch (Exception $e) {

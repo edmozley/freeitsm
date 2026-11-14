@@ -581,7 +581,8 @@ function renderMapping(local) {
     // would mark a dev team's whole backlog urgent. An unmapped priority simply
     // travels as text in the description, as it always did.
     let priRows = (local.priorities || [])
-        .map(p => mapRow('priority', String(p.id), p.name, mapOptions.priorities, false)).join('');
+        // A company's own priority (#320) says whose it is, as a type does.
+        .map(p => mapRow('priority', String(p.id), (MULTI && p.tenant_name) ? p.name + ' (' + p.tenant_name + ')' : p.name, mapOptions.priorities, false)).join('');
     if (!priRows) priRows = '<div class="map-empty">' + esc(T.mapNone) + '</div>';
 
     $('mapBody').innerHTML =

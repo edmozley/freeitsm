@@ -189,7 +189,7 @@
             '<div class="body"></div>' +
             escBarHtml() +
             '<div class="foot"><form>' +
-            '  <textarea rows="1" placeholder="Type a message…" maxlength="5000"></textarea>' +
+            '  <textarea rows="1" placeholder="Type a message\u2026" maxlength="5000"></textarea>' +
             '  <button type="submit" class="send">Send</button>' +
             '</form></div>';
         var form = el('.foot form');
@@ -273,7 +273,7 @@
             poll();           // pulls the server's confirmation note from the transcript
         }).catch(function () {
             if (ea) { ea.disabled = false; } if (ee) { ee.disabled = false; }
-            addMessage({ kind: 'system', body: 'Network error — please try again.' });
+            addMessage({ kind: 'system', body: 'Network error \u2014 please try again.' });
         });
     }
 
@@ -317,7 +317,7 @@
             renderChatShell();
             startPolling();
         }).catch(function () {
-            if (errEl) { errEl.textContent = 'Network error — please try again.'; }
+            if (errEl) { errEl.textContent = 'Network error \u2014 please try again.'; }
             if (btn) { btn.disabled = false; }
         });
     }
@@ -366,7 +366,7 @@
             if (btn) { btn.disabled = false; }
             sendInFlight = false;
             hideTyping();
-            addMessage({ from: 'agent', name: '', body: 'Network error — message not sent.' });
+            addMessage({ from: 'agent', name: '', body: 'Network error \u2014 message not sent.' });
         });
     }
 

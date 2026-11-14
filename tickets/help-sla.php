@@ -155,6 +155,12 @@ $translationNamespaces = ['common', 'tickets'];
                 <h4><?php echo t('tickets.help_sla.blocks.cutoff_heading'); ?></h4>
                 <p><?php echo t('tickets.help_sla.blocks.cutoff_p1'); ?></p>
                 <p><?php echo t('tickets.help_sla.blocks.cutoff_p2'); ?></p>
+
+                <?php /* GH #320, PR #331 by nebev */ ?>
+                <h4 id="per-company"><?php echo t('tickets.help_sla.blocks.company_heading'); ?></h4>
+                <p><?php echo t('tickets.help_sla.blocks.company_p1'); ?></p>
+                <p><?php echo t('tickets.help_sla.blocks.company_p2'); ?></p>
+                <p class="help-note"><?php echo t('tickets.help_sla.blocks.company_note'); ?></p>
             </div>
 
             <!-- 3. Behaviour settings -->
