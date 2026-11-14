@@ -43,6 +43,7 @@ require_once __DIR__ . '/checklists.php';              // mandatory SOP steps at
 require_once __DIR__ . '/mandatory_fields.php';        // mandatory ticket fields at closure
 require_once __DIR__ . '/ticket_fields.php';           // custom ticket fields (#179)
 require_once __DIR__ . '/../ticket_sensitivity.php';   // Normal / Confidential (discussion #62)
+require_once __DIR__ . '/../ticket_priorities.php';
 require_once __DIR__ . '/../ticket_workspace.php';
 
 class TicketsService
@@ -126,8 +127,8 @@ class TicketsService
         })();
         $priorityRes = self::resolvePriority($conn, $in);
         if ($priorityRes === null) {
-            $row = $conn->query("SELECT id, name FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-            $priorityRes = $row ? [(int)$row['id'], $row['name']] : [null, null];
+            $defaultId = ticketPriorityDefaultId($conn, $tenantId);
+            $priorityRes = [$defaultId, array_column(ticketPrioritiesFor($conn, $tenantId), 'name', 'id')[$defaultId] ?? null];
         }
 
         $departmentId = isset($in['department_id']) && $in['department_id'] !== '' ? (int)$in['department_id'] : null;

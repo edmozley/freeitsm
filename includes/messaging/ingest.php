@@ -19,6 +19,7 @@ require_once __DIR__ . '/../uploads.php';   // uploadStoreBytes() — see F1
 require_once __DIR__ . '/../csat.php';      // csatPendingRequestForChat(), rating helpers
 require_once __DIR__ . '/../i18n.php';      // I18n::tFor() — Telegram bot replies in the customer's own language_code
 require_once __DIR__ . '/../ticket_numbering.php';
+require_once __DIR__ . '/../ticket_priorities.php';
 
 /**
  * Ingest one normalised inbound message for a (decrypted) channel row.
@@ -173,11 +174,11 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
                 ) VALUES (
                     ?, ?,
                     (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
-                    (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
+                    ?,
                     UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP(),
                     ?, ?, ?, ?, ?
                 )";
-        $conn->prepare($sql)->execute([$ticketNumber, $subject, $userId, $tenantId, $originId, $typePick['type_id'] ?? null, $departmentId]);
+        $conn->prepare($sql)->execute([$ticketNumber, $subject, ticketPriorityDefaultId($conn, $tenantId), $userId, $tenantId, $originId, $typePick['type_id'] ?? null, $departmentId]);
         $ticketId = (int) $conn->lastInsertId();
         ticketDepartmentNote($conn, $ticketId, $departmentNote);
         ticketTypeAutoRecord($conn, $ticketId, $typePick);

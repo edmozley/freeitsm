@@ -32,6 +32,7 @@ require_once __DIR__ . '/../encryption.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../services/tickets.php';
+require_once __DIR__ . '/../ticket_priorities.php';
 
 /** Zabbix's own severity names, by number ({EVENT.NSEVERITY}). */
 const ZABBIX_SEVERITIES = [0 => 'Not classified', 1 => 'Information', 2 => 'Warning', 3 => 'Average', 4 => 'High', 5 => 'Disaster'];
@@ -337,7 +338,8 @@ function zabbixHandleEvent(PDO $conn, array $p): array
             'requester_email' => $cfg['requester_email'],
             'requester_name'  => $cfg['requester_name'],
         ];
-        if (!empty($cfg['priority_map'][$e['severity']])) $in['priority_id'] = $cfg['priority_map'][$e['severity']];
+        // The mapped priority when the incident's company can use it, else that company's default.
+        $in['priority_id'] = ticketPriorityForNewTicket($conn, $tenantId, !empty($cfg['priority_map'][$e['severity']]) ? (int)$cfg['priority_map'][$e['severity']] : null);
         if ($cfg['team_id'])   $in['assigned_team_id'] = $cfg['team_id'];
         if ($cfg['origin_id']) $in['origin_id'] = $cfg['origin_id'];
         $ticketId = TicketsService::createTicket($conn, $ctx, $tenantId, $in, null, 'Created from a Zabbix alert', 'monitoring');

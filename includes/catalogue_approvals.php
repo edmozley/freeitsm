@@ -26,6 +26,7 @@
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/tenancy.php';
 require_once __DIR__ . '/ticket_numbering.php';
+require_once __DIR__ . '/ticket_priorities.php';
 
 // The workflow engine powers the outcome notifications. Load it if nothing else has;
 // dispatch is always guarded, so a missing engine degrades to "no notification", never
@@ -632,7 +633,7 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
 
     // --- routing ------------------------------------------------------------
     $statusId   = catalogueOverrideOrDefault($conn, $overrides, 'status_id',   'ticket_statuses');
-    $priorityId = catalogueOverrideOrDefault($conn, $overrides, 'priority_id', 'ticket_priorities');
+    $priorityId = ticketPriorityForNewTicket($conn, $tenantId !== null ? (int)$tenantId : null, !empty($overrides['priority_id']) ? (int)$overrides['priority_id'] : null);
     $departmentId = isset($overrides['department_id'])       && $overrides['department_id']       ? (int)$overrides['department_id']       : null;
     $typeId       = isset($overrides['ticket_type_id'])      && $overrides['ticket_type_id']      ? (int)$overrides['ticket_type_id']      : null;
     $analystId    = isset($overrides['assigned_analyst_id']) && $overrides['assigned_analyst_id'] ? (int)$overrides['assigned_analyst_id'] : null;

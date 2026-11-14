@@ -1281,13 +1281,15 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId, ?array $pr
         ) VALUES (
             ?, ?,
             (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
-            (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
+            ?,
             ?, UTC_TIMESTAMP(), ?, ?, ?, ?, ?
         )";
 
+        require_once __DIR__ . '/../../includes/ticket_priorities.php';
         $ticketStmt = $conn->prepare($ticketSql);
         $ticketStmt->execute([
-            $ticketNumber, $subject, $receivedDateTime, $userId, $ticketTenantId, $ticketOriginId, $ticketTypeId, $departmentId
+            $ticketNumber, $subject, ticketPriorityDefaultId($conn, $ticketTenantId !== null ? (int) $ticketTenantId : null),
+            $receivedDateTime, $userId, $ticketTenantId, $ticketOriginId, $ticketTypeId, $departmentId
         ]);
 
         $ticketId = $conn->lastInsertId();

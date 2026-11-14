@@ -94,6 +94,20 @@ if (($argv[1] ?? '') === '--multi') {
         $first = ids(ticketPrioritiesFor($conn, $B))[0] ?? null;
         ok('a company that hid the shared default gets its first priority', $first !== null && ticketPriorityDefaultId($conn, $B) === $first);
 
+        ok('a new ticket with no priority asked for gets its company\'s default', ticketPriorityForNewTicket($conn, $A) === $aOwn);
+        ok('...the one asked for when its company can use it', ticketPriorityForNewTicket($conn, $A, $sharedHid) === $sharedHid);
+        ok('...and its company\'s default when it cannot', ticketPriorityForNewTicket($conn, $A, $bOwn) === $aOwn
+            && ticketPriorityForNewTicket($conn, $B, $sharedHid) === ticketPriorityDefaultId($conn, $B));
+
+        // A real channel: web chat creates its ticket without a transaction of its own.
+        require_once __DIR__ . '/../includes/webchat/webchat.php';
+        $chatPriority = function (?int $tenant) use ($conn): int {
+            $id = webchatOpenTicket($conn, ['id' => 0, 'visitor_email' => 'zz320chat@example.invalid', 'visitor_name' => 'ZZ320 chat'], ['tenant_id' => $tenant], 'ZZ320 chat');
+            return (int)$conn->query("SELECT priority_id FROM tickets WHERE id = $id")->fetchColumn();
+        };
+        ok('a web chat ticket starts on its company\'s default priority', $chatPriority($A) === $aOwn);
+        ok('...and one with no company on the shared default', $chatPriority(null) === ticketPriorityDefaultId($conn, null));
+
         ok('a company may use its own priority', ticketPriorityAllowed($conn, $aOwn, $A));
         ok('...not another company\'s', !ticketPriorityAllowed($conn, $aOwn, $B) && !ticketPriorityAllowed($conn, $aOwn, null));
         ok('...not a shared one it hid', !ticketPriorityAllowed($conn, $sharedHid, $B) && ticketPriorityAllowed($conn, $sharedHid, $A));

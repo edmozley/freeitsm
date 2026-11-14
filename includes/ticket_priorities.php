@@ -198,6 +198,21 @@ function ticketPriorityDefaultId(PDO $conn, ?int $tenantId): ?int
 }
 
 /**
+ * The priority a new ticket in this company starts with: the one asked for when the company can use it, else the company's default.
+ * On a single-company install, the one asked for whenever there is one.
+ *
+ * @param ?int $tenantId  the ticket's company; null = triage
+ * @param ?int $requested  a priority chosen by the channel (a form, a workflow step, an alert's severity); null = none
+ */
+function ticketPriorityForNewTicket(PDO $conn, ?int $tenantId, ?int $requested = null): ?int
+{
+    if ($requested !== null && (!isMultiTenant($conn) || ticketPriorityAllowed($conn, $requested, $tenantId))) {
+        return $requested;
+    }
+    return ticketPriorityDefaultId($conn, $tenantId);
+}
+
+/**
  * May a ticket in this company be given this priority? Active ones only.
  *
  * @param ?int $tenantId  the ticket's company; null = triage
