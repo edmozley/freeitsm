@@ -4450,6 +4450,7 @@ CREATE TABLE IF NOT EXISTS `intune_devices` (
     `managed_device_owner_type`     VARCHAR(32) NULL,
     `device_enrollment_type`        VARCHAR(64) NULL,
     `device_registration_state`     VARCHAR(32) NULL,
+    `chassis_type`                  VARCHAR(32) NULL,   -- Graph's chassisType (GH #336)
     `enrolled_datetime`             DATETIME NULL,
     `last_sync_datetime`            DATETIME NULL,
     `model`                         VARCHAR(128) NULL,
@@ -7830,6 +7831,8 @@ INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`) VALUES
     ('intune_assign_primary_user', '0'),
     -- GH #335: moving an asset when its device's primary user changes - OFF everywhere too.
     ('intune_follow_primary_user', '0'),
+    -- GH #336: which asset type each kind of Intune device gets - nothing until somebody maps it.
+    ('intune_type_map', ''),
     -- PR #166: a new install asks chat customers in their chat (an upgrade gets '0').
     ('csat_in_channel', '1'),
     ('asset_reconciliation_ignored_serials', 'TO BE FILLED BY O.E.M.\nDEFAULT STRING\nNONE\nSYSTEM SERIAL NUMBER\nNOT SPECIFIED\n123456789');

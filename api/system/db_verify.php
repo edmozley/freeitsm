@@ -2289,6 +2289,8 @@ try {
             // GH #335: moving an asset when its device's primary user changes in
             // Intune - OFF on upgrade and on a new install, as assigning is.
             'intune_follow_primary_user'        => '0',
+            // GH #336: kind of Intune device -> asset type, as JSON. Empty maps nothing.
+            'intune_type_map'                   => '',
             'asset_reconciliation_ignored_serials' => "TO BE FILLED BY O.E.M.\nDEFAULT STRING\nNONE\nSYSTEM SERIAL NUMBER\nNOT SPECIFIED\n123456789",
             // Asset tags (PR #164): off until somebody switches them on.
             'asset_tag_autogen_enabled'          => '0',

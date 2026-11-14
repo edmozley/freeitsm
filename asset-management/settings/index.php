@@ -1900,6 +1900,19 @@ $translationNamespaces = ['common', 'asset-management'];
                             </label>
                             <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_follow_primary_user_hint')); ?></div>
                         </div>
+                        <?php /* GH #336: which of this install's asset types each kind of Intune device gets. */ ?>
+                        <div class="form-group">
+                            <label class="form-label"><?php echo htmlspecialchars(t('asset-management.settings.intune_types_label')); ?></label>
+                            <div class="form-hint" style="margin-bottom:8px;"><?php echo htmlspecialchars(t('asset-management.settings.intune_types_hint')); ?></div>
+                            <table id="intuneTypeMap" style="border-collapse:collapse;font-size:13px;">
+                                <?php foreach (['laptop', 'desktop', 'server', 'phone', 'tablet', 'other_mobile'] as $kind): ?>
+                                <tr>
+                                    <td style="padding:4px 14px 4px 0;"><?php echo htmlspecialchars(t('asset-management.settings.intune_kind_' . $kind)); ?></td>
+                                    <td style="padding:4px 0;"><select class="form-input" data-intune-kind="<?php echo $kind; ?>" style="min-width:200px;"></select></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </table>
+                        </div>
                         <div class="form-group">
                             <label class="form-label" for="intuneAppBatchSize"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_label')); ?></label>
                             <input type="number" class="form-input" id="intuneAppBatchSize" min="1" max="500" value="30" style="max-width: 140px;">
@@ -3095,6 +3108,31 @@ $translationNamespaces = ['common', 'asset-management'];
         // the placeholder tells the user one is already saved. The save endpoint
         // treats blank/asterisk values as "keep existing", so leaving them
         // alone preserves the stored secret.
+        // GH #336: the kind -> asset type mapping. The selects list the active
+        // types; a mapping to a type since deleted shows as nothing.
+        async function fillIntuneTypeMap(raw) {
+            let map = {};
+            try { map = raw ? JSON.parse(raw) : {}; } catch (e) { map = {}; }
+            let types = [];
+            try {
+                const r = await fetch(API_BASE + 'get_asset_types.php');
+                const d = await r.json();
+                types = (d.asset_types || []).filter(t => t.is_active == 1 || t.is_active === true);
+            } catch (e) { /* the selects keep "No type" only */ }
+            document.querySelectorAll('#intuneTypeMap select[data-intune-kind]').forEach(sel => {
+                const want = String(map[sel.dataset.intuneKind] || '');
+                sel.innerHTML = `<option value="">${escapeHtml(window.t('asset-management.settings.intune_type_none'))}</option>`
+                    + types.map(t => `<option value="${t.id}"${String(t.id) === want ? ' selected' : ''}>${escapeHtml(t.name)}</option>`).join('');
+            });
+        }
+        function readIntuneTypeMap() {
+            const map = {};
+            document.querySelectorAll('#intuneTypeMap select[data-intune-kind]').forEach(sel => {
+                if (sel.value) map[sel.dataset.intuneKind] = parseInt(sel.value, 10);
+            });
+            return Object.keys(map).length ? JSON.stringify(map) : '';
+        }
+
         async function loadIntegrationSettings() {
             try {
                 const response = await fetch(API_SETTINGS + 'get_system_settings.php');
@@ -3124,6 +3162,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     document.getElementById('intuneSyncHostnames').checked = data.settings.intune_sync_hostnames === '1';
                     document.getElementById('intuneAssignPrimaryUser').checked = data.settings.intune_assign_primary_user === '1';
                     document.getElementById('intuneFollowPrimaryUser').checked = data.settings.intune_follow_primary_user === '1';
+                    fillIntuneTypeMap(data.settings.intune_type_map || '');
                     if (document.getElementById('reconIgnoredSerials')) {
                         document.getElementById('reconIgnoredSerials').value = data.settings.asset_reconciliation_ignored_serials || '';
                     }
@@ -3293,7 +3332,8 @@ $translationNamespaces = ['common', 'asset-management'];
                             intune_company_id: document.getElementById('intuneCompanyId') ? document.getElementById('intuneCompanyId').value.trim() : '',
                             intune_sync_hostnames: document.getElementById('intuneSyncHostnames').checked ? '1' : '0',
                             intune_assign_primary_user: document.getElementById('intuneAssignPrimaryUser').checked ? '1' : '0',
-                            intune_follow_primary_user: document.getElementById('intuneFollowPrimaryUser').checked ? '1' : '0'
+                            intune_follow_primary_user: document.getElementById('intuneFollowPrimaryUser').checked ? '1' : '0',
+                            intune_type_map: readIntuneTypeMap()
                         }
                     })
                 });

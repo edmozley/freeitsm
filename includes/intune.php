@@ -10,6 +10,7 @@
 require_once __DIR__ . '/asset_retirement.php';   // retired assets are not renamed
 require_once __DIR__ . '/encryption.php';
 require_once __DIR__ . '/intune_user_history.php';   // every primary user a device has had (GH #335)
+require_once __DIR__ . '/intune_asset_type.php';     // a type for each asset from what its device is (GH #336)
 
 /**
  * Load the InTune connection settings from system_settings, decrypting
@@ -266,6 +267,8 @@ function intuneUpsertDevice(PDO $conn, array $d): void {
 
     // Who had it before is about to be gone from the row: keep it (GH #335).
     intuneRecordUserChange($conn, $d);
+    // What the device is, for its asset's type (GH #336).
+    intuneRecordChassis($conn, $d);
 }
 
 /**
@@ -644,6 +647,11 @@ function intuneRunSync(PDO $conn, int $jobId): void {
         $linkResult = intuneLinkDevicesToAssets($conn);
         $log("linking done: linked={$linkResult['linked']}, stubs_created={$linkResult['stubs_created']}");
 
+        // GH #336: an asset with no type gets the one its device's kind is mapped to.
+        $setProgress($processed, $processed, 'running', 'Giving assets their type...', false);
+        $types = intuneApplyAssetTypes($conn);
+        $log("asset types done: typed={$types['typed']}, failed={$types['failed']}");
+
         $holders = ['assigned' => 0, 'failed' => 0];
         if (!empty($settings['assign_primary_user'])) {
             $setProgress($processed, $processed, 'running', 'Assigning assets to their primary users...', false);
@@ -670,6 +678,8 @@ function intuneRunSync(PDO $conn, int $jobId): void {
             $msg .= " {$holders['assigned']} asset(s) assigned to their primary user.";
             if ($holders['failed'] > 0) $msg .= " {$holders['failed']} could not be assigned — see the PHP error log.";
         }
+        if ($types['typed'] > 0) $msg .= " {$types['typed']} asset(s) given a type from Intune.";
+        if ($types['failed'] > 0) $msg .= " {$types['failed']} could not be given one — see the PHP error log.";
         if ($follow) {
             $msg .= " {$followed['moved']} asset(s) moved to their device's new primary user.";
             if ($followed['failed'] > 0) $msg .= " {$followed['failed']} could not be moved — see the PHP error log.";
