@@ -1928,6 +1928,9 @@ $translationNamespaces = ['common', 'asset-management'];
                             <button type="button" class="btn btn-secondary" id="intuneSyncBtn" onclick="startIntuneSync()"><?php echo htmlspecialchars(t('asset-management.settings.sync')); ?></button>
                             <span id="intuneLastSync" class="form-hint" style="margin-left: auto;"></span>
                         </div>
+                        <?php /* #2896: both syncs are scheduled jobs now (cron/intune_sync.php, cron/intune_app_sync.php). */ ?>
+                        <div class="form-hint" style="margin-top:6px;"><?php echo htmlspecialchars(t('asset-management.settings.intune_schedule_hint')); ?>
+                            <a href="<?php echo BASE_URL; ?>reporting/logs/?tab=jobs"><?php echo htmlspecialchars(t('asset-management.settings.intune_schedule_link')); ?></a></div>
                         <div id="intuneSyncProgress" class="intune-progress" style="display: none;">
                             <div class="intune-progress-bar"><div class="intune-progress-fill" id="intuneProgressFill"></div></div>
                             <div class="intune-progress-meta" id="intuneProgressMeta"><?php echo htmlspecialchars(t('asset-management.settings.starting')); ?></div>

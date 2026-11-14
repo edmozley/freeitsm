@@ -203,6 +203,19 @@ function jobRegistry(): array
             'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM proxmox_connections WHERE is_active = 1 LIMIT 1"),
             'sources' => fn(PDO $c) => jobSourceKeys($c, 'server:', "SELECT id FROM proxmox_connections WHERE is_active = 1"),
         ],
+        // Intune (#2896): the device sync and the software sync ran only from the
+        // buttons on Assets -> Settings -> Intune. Two jobs, so each has its own
+        // schedule: devices are cheap, software is one Graph call per device.
+        'intune_sync' => [
+            'command' => 'php cron/intune_sync.php', 'web' => false,
+            'interval' => 360, 'grace' => 360, 'max_runtime' => 60,
+            'needed'  => fn(PDO $c) => jobSettingStrict($c, 'intune_tenant_id') !== '' && jobSettingStrict($c, 'intune_client_id') !== '',
+        ],
+        'intune_app_sync' => [
+            'command' => 'php cron/intune_app_sync.php', 'web' => false,
+            'interval' => 1440, 'grace' => 720, 'max_runtime' => 120,
+            'needed'  => fn(PDO $c) => jobSettingStrict($c, 'intune_tenant_id') !== '' && jobSettingStrict($c, 'intune_client_id') !== '',
+        ],
         'vcloud_sync' => [
             'command' => 'php cron/vcloud_sync.php', 'web' => false,
             'interval' => 15, 'grace' => 30, 'max_runtime' => 30,
@@ -230,6 +243,7 @@ function jobRegistry(): array
     $jobModules = [
         'lms_reminders' => 'lms', 'domains' => 'domains', 'task_recurrence' => 'tasks',
         'webhook_deliveries' => 'workflow', 'proxmox_sync' => 'assets', 'vcloud_sync' => 'assets',
+        'intune_sync' => 'assets', 'intune_app_sync' => 'assets',
         'sla_breach' => 'sla',   // a Tickets feature (slice 2)
         'csat_delayed' => 'csat',   // GH #301
     ];

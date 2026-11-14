@@ -696,6 +696,34 @@ function intuneRunSync(PDO $conn, int $jobId): void {
 }
 
 /**
+ * Claim a device sync: the intune_sync_jobs row it reports into, or null when one
+ * is already running. Shared by Sync on the settings tab (api/intune/sync.php)
+ * and the scheduled job (cron/intune_sync.php), so the two can never run at once.
+ *
+ * A "running" row older than 2 minutes that has processed nothing is a worker
+ * that died before reporting: it is marked as failed first, so it does not block.
+ */
+function intuneClaimDeviceSyncJob(PDO $conn): ?int {
+    $conn->exec(
+        "UPDATE intune_sync_jobs
+            SET status = 'error',
+                message = 'Auto-failed: worker did not start within 2 minutes',
+                finished_datetime = UTC_TIMESTAMP()
+          WHERE status = 'running'
+            AND processed = 0
+            AND started_datetime < (UTC_TIMESTAMP() - INTERVAL 2 MINUTE)"
+    );
+    if ($conn->query("SELECT id FROM intune_sync_jobs WHERE status = 'running' ORDER BY id DESC LIMIT 1")->fetchColumn()) {
+        return null;
+    }
+    $conn->prepare(
+        "INSERT INTO intune_sync_jobs (started_datetime, status, total, processed, message)
+         VALUES (UTC_TIMESTAMP(), 'running', 0, 0, 'Starting...')"
+    )->execute();
+    return (int)$conn->lastInsertId();
+}
+
+/**
  * Locate a usable PHP CLI binary so the web request can spawn a worker.
  * Tries: explicit setting → PHP_BINARY's directory → known WAMP layout → 'php' from PATH.
  * Returns the path or throws if nothing works.
