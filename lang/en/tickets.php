@@ -2208,6 +2208,7 @@ return [
             'company_not_allowed' => 'You cannot change calendars for that company.',
             'not_for_priority'    => 'That calendar is not one this priority\'s company can use.',
             'not_for_shared'      => 'A shared priority can only use shared calendars.',
+            'not_for_widget'      => 'That calendar is not one this widget\'s company can use.',
         ],
 
         // SLA tab — see docs/sla.md. Headings, intros, labels, radio/checkbox

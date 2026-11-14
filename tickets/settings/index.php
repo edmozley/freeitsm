@@ -3381,7 +3381,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <!-- Multi-tenancy: only shown when more than one company exists (populated by JS). -->
                     <div class="form-group" id="widgetCompanyGroup" style="display:none; grid-column: span 2;">
                         <label for="widgetCompany"><?php echo htmlspecialchars(t('tickets.settings.webchat.company')); ?></label>
-                        <select id="widgetCompany"></select>
+                        <select id="widgetCompany" onchange="fillWidgetCalendars()"></select>
                         <small style="color:var(--text-muted, #666); display:block; margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.webchat.company_help')); ?></small>
                     </div>
 
@@ -5724,14 +5724,6 @@ function renderOversizeFields(string $px, bool $withLimits): void
             document.getElementById('widgetRequireEmail').checked = widget ? !!widget.require_email : true;
             document.getElementById('widgetActive').checked = widget ? !!widget.is_active : true;
 
-            // Availability calendar dropdown.
-            const calSel = document.getElementById('widgetCalendar');
-            let calOpts = '<option value="">' + escapeHtml(t('tickets.settings.webchat.always_open')) + '</option>';
-            webchatCalendars.forEach(c => {
-                const sel = widget && String(widget.business_calendar_id) === String(c.id) ? ' selected' : '';
-                calOpts += '<option value="' + c.id + '"' + sel + '>' + escapeHtml(c.name) + '</option>';
-            });
-            calSel.innerHTML = calOpts;
 
             // Email + AI controls.
             document.getElementById('widgetEmailWhenAway').checked = widget ? !!widget.email_when_away : false;
@@ -5752,7 +5744,20 @@ function renderOversizeFields(string $px, bool $withLimits): void
             }
 
             populateWidgetCompanies(widget ? widget.tenant_id : null);
+            fillWidgetCalendars(widget ? widget.business_calendar_id : null);
             document.getElementById('widgetModal').classList.add('active');
+        }
+
+        // The availability calendars the widget's company can use: the shared ones and its own.
+        // Keeps the current choice when the company still can; otherwise back to "Always open".
+        function fillWidgetCalendars(selectedId) {
+            const calSel = document.getElementById('widgetCalendar');
+            const keep = selectedId !== undefined ? selectedId : calSel.value;
+            const company = document.getElementById('widgetCompany').value;
+            const usable = webchatCalendars.filter(c => c.tenant_id == null || String(c.tenant_id) === company);
+            calSel.innerHTML = '<option value="">' + escapeHtml(t('tickets.settings.webchat.always_open')) + '</option>'
+                + usable.map(c => '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>').join('');
+            calSel.value = usable.some(c => String(c.id) === String(keep)) ? String(keep) : '';
         }
 
         function toggleWidgetAiFields() {

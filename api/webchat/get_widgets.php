@@ -11,6 +11,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/webchat/webchat.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -38,14 +39,18 @@ try {
          ORDER BY c.name ASC"
     )->fetchAll(PDO::FETCH_ASSOC);
 
-    // Business-hours calendars offered in the widget's Availability dropdown.
+    // Business-hours calendars offered in the widget's Availability dropdown: the shared ones and
+    // those of companies this analyst can reach, each with its company so the dropdown can follow the widget's.
     $calendars = [];
     try {
+        $accessible = isMultiTenant($conn) ? array_map('intval', getAccessibleTenantIds($conn, (int)$_SESSION['analyst_id'])) : null;
         $calendars = $conn->query(
-            "SELECT id, name FROM sla_calendars WHERE is_active = 1 ORDER BY is_default DESC, name ASC"
+            "SELECT id, name, tenant_id FROM sla_calendars WHERE is_active = 1 ORDER BY is_default DESC, name ASC"
         )->fetchAll(PDO::FETCH_ASSOC);
+        $calendars = array_values(array_filter($calendars, fn(array $c): bool =>
+            $accessible === null || $c['tenant_id'] === null || in_array((int) $c['tenant_id'], $accessible, true)));
         $calendars = array_map(function ($c) {
-            return ['id' => (int) $c['id'], 'name' => $c['name']];
+            return ['id' => (int) $c['id'], 'name' => $c['name'], 'tenant_id' => $c['tenant_id'] !== null ? (int) $c['tenant_id'] : null];
         }, $calendars);
     } catch (Exception $e) { /* table missing → no calendars offered */ }
 

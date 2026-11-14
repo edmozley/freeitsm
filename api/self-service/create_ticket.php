@@ -14,6 +14,7 @@ require_once '../../includes/uploads.php';   // uploadStoreBytes() — see F1
 require_once '../../includes/service_context.php';
 require_once '../../includes/services/ticket_fields.php';   // custom fields (#179)
 require_once '../../includes/self_service_ticket_types.php';
+require_once '../../includes/ticket_priorities.php';
 
 header('Content-Type: application/json');
 
@@ -32,7 +33,8 @@ $input = json_decode(file_get_contents('php://input'), true);
 
 $subject = trim($input['subject'] ?? '');
 $description = trim($input['description'] ?? '');
-$priority = $input['priority'] ?? 'Normal';
+$wantedPriorityId   = !empty($input['priority_id']) ? (int)$input['priority_id'] : null;
+$wantedPriorityName = trim((string)($input['priority'] ?? ''));   // a form loaded before priorities were sent by id
 $mailboxId = !empty($input['mailbox_id']) ? (int)$input['mailbox_id'] : null;
 // The requester's own "Confidential" tick (discussion #62). They can only ever
 // raise a ticket's sensitivity, never lower one - see includes/ticket_sensitivity.php.
@@ -57,18 +59,6 @@ try {
     if ($wantsConfidential && !ticketSensitivityReady($conn)) {
         echo json_encode(['success' => false, 'error' => 'Confidential tickets are not available on this service desk yet. Please untick it, or contact the service desk directly.']);
         exit;
-    }
-
-    // Validate the submitted priority against the CONFIGURED active priorities
-    // (not a hardcoded Low/Normal/High list) so custom priorities like
-    // Urgent/Critical are accepted (#40). Fall back to the default priority,
-    // then Normal, then the first available, if the submitted one isn't valid.
-    $activePrios = $conn->query("SELECT name, is_default FROM ticket_priorities WHERE is_active = 1")->fetchAll(PDO::FETCH_ASSOC);
-    $prioNames = array_column($activePrios, 'name');
-    if (!in_array($priority, $prioNames, true)) {
-        $default = '';
-        foreach ($activePrios as $p) { if ((int)$p['is_default'] === 1) { $default = $p['name']; break; } }
-        $priority = $default !== '' ? $default : (in_array('Normal', $prioNames, true) ? 'Normal' : ($prioNames[0] ?? 'Normal'));
     }
 
     $conn->beginTransaction();
@@ -98,6 +88,17 @@ try {
     // one under "Raise with" - selfServiceTicketTenant() re-checks it, and an id
     // they were not offered falls back to their own company.
     $ticketTenantId = selfServiceTicketTenant($conn, $userId, $wantedTenant);
+
+    // The priority, among the ones this company's tickets can have (#40, #320): chosen by id, or by name from an older form.
+    // Anything else - another company's, one it hides, an inactive one - gets the company's default.
+    $priorityId = null;
+    foreach (ticketPrioritiesFor($conn, $ticketTenantId) as $p) {
+        if ($wantedPriorityId !== null ? $p['id'] === $wantedPriorityId : strcasecmp($p['name'], $wantedPriorityName) === 0) {
+            $priorityId = $p['id'];
+            break;
+        }
+    }
+    $priorityId ??= ticketPriorityDefaultId($conn, $ticketTenantId);
 
     // The mailbox (GH #172). ⚠️ RE-CHECKED HERE, like the category below: the
     // dropdown only offers this user's company's mailboxes and shared ones, but
@@ -154,7 +155,7 @@ try {
 
     // Create ticket. The status resolves to the CONFIGURED default rather than the
     // literal name 'Open', which an admin may rename or translate (#79). The
-    // priority was already validated against the active list above.
+    // priority was already resolved for this company above.
     // Category (#1540). NULL unless the field is switched on for this company AND
     // the id posted is genuinely one this requester was entitled to pick.
     //
@@ -182,7 +183,7 @@ try {
     ) VALUES (
         ?, ?,
         (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
-        (SELECT id FROM ticket_priorities WHERE name = ? LIMIT 1),
+        ?,
         ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP()
     )";
 
@@ -190,7 +191,7 @@ try {
     $ticketStmt->execute([
         $ticketNumber,
         $subject,
-        $priority,
+        $priorityId,
         $categoryId,
         $ticketTypeId,
         $userId,
