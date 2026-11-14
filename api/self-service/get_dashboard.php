@@ -124,7 +124,17 @@ try {
     $statusOn = moduleIsEnabled($conn, 'service-status');
     $services = $statusOn ? $svcStmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
-    // Catalogue requests the user has submitted that carry an approval state (#928).
+    // Catalogue requests the user has submitted (#928). Every one, not only those
+    // that wait for an approval (GH #348): a request with no approval was saved and
+    // then shown nowhere, so the person who asked for something never saw it again.
+    // A form filled in on one of their tickets (GH #272) is not a request, and stays out.
+    $reqForTicket = '';
+    try {
+        $c = $conn->query("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE()
+                            AND table_name = 'form_submissions' AND column_name = 'for_ticket_id'");
+        if ((int)$c->fetchColumn() > 0) $reqForTicket = ' AND s.for_ticket_id IS NULL';
+    } catch (Exception $e) { /* the column check is a refinement, not the list */ }
+    // (Before GH #348: only those that carry an approval state.)
     // A pending request is NOT a ticket yet, so without this the requester has no way
     // to see it — it would just vanish until (and unless) it is approved. Guarded so a
     // pre-upgrade install without the approval columns degrades to "no requests"
@@ -137,8 +147,7 @@ try {
                FROM form_submissions s
                JOIN forms f       ON f.id = s.form_id
                LEFT JOIN tickets t ON t.id = s.ticket_id AND t.deleted_datetime IS NULL
-              WHERE s.submitted_by_user_id = ?
-                AND s.approval_status IN ('pending','approved','rejected')
+              WHERE s.submitted_by_user_id = ?" . $reqForTicket . "
            ORDER BY s.submitted_date DESC
               LIMIT 15"
         );

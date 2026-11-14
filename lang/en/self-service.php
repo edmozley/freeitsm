@@ -212,6 +212,7 @@ return [
         'req_pending'        => 'Awaiting approval',
         'req_approved'       => 'Approved',
         'req_rejected'       => 'Declined',
+        'req_sent'           => 'Sent',
         'system_status'      => 'System Status',
         'loading_tickets'    => 'Loading tickets...',
         'loading_status'     => 'Loading status...',

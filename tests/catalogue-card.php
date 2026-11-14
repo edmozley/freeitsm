@@ -18,7 +18,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *     analyst's own submission keeps none; changing the price later changes no request;
  *   - the price as read: "a month", Free, nothing for no price;
  *   - the approvals inbox, the requester's list and the ticket body show the price;
- *   - an item that asks nothing (a mouse at a price) is saved, requested and approved.
+ *   - an item that asks nothing (a mouse at a price) is saved, requested and approved;
+ *   - with no approval there is no ticket: one is raised only when a request is approved.
  *
  * Writes, so it runs only when FREEITSM_TEST_DATABASE names the database config.php
  * points at. Everything is named ZZCARD and removed at the end.
@@ -169,6 +170,11 @@ try {
         && str_contains($body, htmlspecialchars(Money::format('12.50', 'GBP'), ENT_QUOTES, 'UTF-8')), $body);
     $res = catalogueApprovalDecide($conn, $admin, $sm, 'approved');
     check('...approving it raises the ticket', $res['decision'] === 'approved' && !empty($res['ticket_id']));
+
+    // ---- 8. No approval, no ticket: a ticket is raised only when a request is approved ----
+    $tk = fn(int $sid) => $row('form_submissions', $sid)['ticket_id'];
+    check('a request for an item with no approval raises no ticket, and is kept as sent',
+        empty($tk($s1)) && $row('form_submissions', $s1)['approval_status'] === 'not_required');
 } catch (Throwable $e) {
     check('no unexpected error', false, $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {

@@ -222,6 +222,11 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                     statusCell = `<span class="req-pill approved">${escapeHtml(window.t('self-service.dashboard.req_approved'))}</span>${link}`;
                 } else if (r.approval_status === 'rejected') {
                     statusCell = `<span class="req-pill rejected">${escapeHtml(window.t('self-service.dashboard.req_rejected'))}</span>`;
+                } else if (r.approval_status === 'not_required') {
+                    // GH #348: a request with no approval - sent, and its ticket once there is one.
+                    const link = r.ticket_number
+                        ? ` <a href="tickets.php?id=${r.ticket_id}" class="ticket-link">${escapeHtml(r.ticket_number)}</a>` : '';
+                    statusCell = `<span class="req-pill sent">${escapeHtml(window.t('self-service.dashboard.req_sent'))}</span>${link}`;
                 } else {
                     statusCell = `<span class="req-pill pending">${escapeHtml(window.t('self-service.dashboard.req_pending'))}</span>`;
                 }
@@ -630,6 +635,7 @@ require __DIR__ . "/includes/header.php";
             .req-pill.pending  { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
             .req-pill.approved { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
             .req-pill.rejected { background: var(--danger-bg, #fee2e2);  color: var(--danger-text, #991b1b); }
+            .req-pill.sent     { background: var(--info-bg, #e0f2fe);    color: var(--info-text, #075985); }
         </style>
         <div class="portal-section" id="requestsSection" style="display:none;">
             <div class="section-header">
