@@ -326,6 +326,27 @@ return [
         'slack_blurb' => 'Turn a message in a Slack channel into a ticket, and answer it from the inbox without leaving the thread.',
 
         // A signpost: the page itself is under Authentication, with the sign-in it extends.
+        // Microsoft 365 (GH #263): Entra ID importing and Intune, in one entry.
+        'ms365_blurb'          => 'People, groups and managers from Entra ID, and devices with their users and apps from Intune - what FreeITSM reads from your Microsoft tenant.',
+        'ms365_subtitle'       => 'What FreeITSM reads from your Microsoft tenant. Entra ID and Intune are separate connections - often to the same app registration in Entra.',
+        'ms365_entra_heading'  => 'Entra ID - people, groups and managers',
+        'ms365_entra_intro'    => 'Imports people, their groups and who manages whom, before anybody signs in. Each Entra ID sign-in has its own import.',
+        'ms365_entra_none'     => 'No Entra ID sign-in is set up yet. Importing people comes with it: add Microsoft Entra ID under Authentication first.',
+        'ms365_importing'      => 'Importing people',
+        'ms365_not_importing'  => 'Not importing',
+        'ms365_signin_on'      => 'Sign-in on',
+        'ms365_signin_off'     => 'Sign-in off',
+        'ms365_last_import'    => 'Last import {when}: {count} people',
+        'ms365_never_imported' => 'Never imported',
+        'ms365_open_import'    => 'Importing people',
+        'ms365_open_signin'    => 'Sign-in (Authentication)',
+        'ms365_signin_note'    => 'Signing in with Entra ID stays under System -> Authentication, with the other sign-in methods.',
+        'ms365_intune_heading' => 'Intune - devices, their primary users and apps',
+        'ms365_intune_intro'   => 'Devices in Intune become assets, held by their primary user, with their installed apps. Set up here; it was Assets -> Settings -> Intune.',
+        'ms365_job_last'       => '{job}: {when}, {outcome}',
+        'ms365_job_never'      => '{job}: never run',
+        'ms365_open_intune'    => 'Intune settings',
+        'ms365_intune_subtitle'=> 'The connection that brings devices from Intune in as assets, with their primary users and installed apps.',
         'entra_blurb' => 'Import people, groups and who manages whom from Microsoft Entra ID, before anybody signs in. Set up under Authentication.',
 
         // ── Zabbix ───────────────────────────────────────────────────────────

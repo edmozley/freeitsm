@@ -22,8 +22,13 @@ if (!isset($_SESSION['analyst_id'])) {
 // (Hard enforcement still lives on each System API via requireAdminJson(); this
 // page gate is the UX layer so non-admins never see the admin screens.)
 if (($current_page ?? '') !== 'preferences' && !sessionIsAdmin()) {
-    header('Location: ' . BASE_URL);
-    exit;
+    // A page that moved here from a module keeps the people who could use it there
+    // (GH #263) - the same rule page_gate.php applies, asked the same way.
+    require_once __DIR__ . '/page_access.php';
+    if (!systemPageAllowed(connectToDatabase(), (int)$_SESSION['analyst_id'], $current_page ?? '', $system_page_grant ?? null)) {
+        header('Location: ' . BASE_URL);
+        exit;
+    }
 }
 
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';

@@ -106,7 +106,29 @@ function settingsTabVisible(array $visibleTabs, string $tabId): bool
  */
 function settingsFirstTabId(array $visibleTabs): ?string
 {
-    return $visibleTabs[0]['id'] ?? null;
+    // A tab that moved to another page (GH #263) has no panel here to open.
+    foreach ($visibleTabs as $tab) {
+        if (empty($tab['moved_to'])) return $tab['id'];
+    }
+    return null;
+}
+
+/**
+ * Where a tab that moved to another page lives now (GH #263: Intune, to System ->
+ * Integrations -> Microsoft 365) - or null. The tab stays in its manifest, because
+ * the manifest is what grants its capability and owns its setting keys; only its
+ * page moved. Its old link is redirected there, and the tab bar links to it.
+ *
+ * @param array  $visibleTabs  the tabs from settingsVisibleTabs()
+ * @param string $tabId        the tab asked for
+ * @return ?string  the path from the install root, or null
+ */
+function settingsMovedTo(array $visibleTabs, string $tabId): ?string
+{
+    foreach ($visibleTabs as $tab) {
+        if ($tab['id'] === $tabId && !empty($tab['moved_to'])) return (string)$tab['moved_to'];
+    }
+    return null;
 }
 
 /**
@@ -146,6 +168,18 @@ function renderSettingsTabBar(array $visibleTabs, ?string $activeId, string $onc
         // label. Problem Management's tab bar is hardcoded English today, and half
         // translating it here would be worse than being honest about it.
         $label = isset($tab['label_key']) ? t($tab['label_key']) : ($tab['label'] ?? $id);
+
+        // A tab that moved to another page (GH #263) is a link to it, marked as leaving.
+        if (!empty($tab['moved_to'])) {
+            printf(
+                '            <a class="tab" href="%s" data-tab="%s" data-capability="%s" style="text-decoration:none;color:inherit;">%s &#8599;</a>' . "\n",
+                htmlspecialchars((defined('BASE_URL') ? BASE_URL : '/') . $tab['moved_to']),
+                htmlspecialchars($id),
+                htmlspecialchars($cap ?? 'none'),
+                htmlspecialchars($label)
+            );
+            continue;
+        }
 
         printf(
             '            <button class="tab%s" data-tab="%s" data-capability="%s" onclick="%s(\'%s\')">%s</button>' . "\n",

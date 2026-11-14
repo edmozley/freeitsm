@@ -186,7 +186,7 @@ return [
         'what'     => 'An Azure AD app registration (tenant ID, client ID and secret) that lets FreeITSM read managed devices through Microsoft Graph.',
         'why'      => 'If your laptops and phones are enrolled in Intune, it already knows their serials, owners, compliance and encryption state - there is no need to deploy a script to learn it again.',
         'done'     => 'An Intune tenant ID, client ID and client secret have all been saved.',
-        'link'     => 'asset-management/settings/?tab=intune',
+        'link'     => 'system/integrations/microsoft365/intune.php',   // GH #263
         'check'    => ['all', [
             ['setting', 'intune_tenant_id', 'nonempty'],
             ['setting', 'intune_client_id', 'nonempty'],
@@ -202,7 +202,7 @@ return [
         'what'     => 'A device sync from Intune, creating or matching an asset for each managed device.',
         'why'      => 'Phones and tablets never run the Windows script, so a sync is the only way they arrive automatically - with their serial number and who they belong to.',
         'done'     => 'At least one device has been synced from Intune.',
-        'link'     => 'asset-management/settings/?tab=intune',
+        'link'     => 'system/integrations/microsoft365/intune.php',   // GH #263
         'check'    => ['rows', 'intune_devices'],
     ],
     [
@@ -214,7 +214,7 @@ return [
         'what'     => 'A batch job that pulls each Intune device\'s detected applications from Microsoft Graph into the software inventory.',
         'why'      => 'Machines managed by Intune can feed the Software module and its licence counts without running the inventory script as well.',
         'done'     => 'At least one Intune software-sync job has been queued.',
-        'link'     => 'asset-management/settings/?tab=intune',
+        'link'     => 'system/integrations/microsoft365/intune.php',   // GH #263
         'check'    => ['rows', 'intune_app_sync_jobs'],
     ],
     [
@@ -226,7 +226,7 @@ return [
         'what'     => 'When a device is renamed or reassigned in Intune, its asset takes the new name at the next sync, with the change in its history.',
         'why'      => 'Asset names drift from reality every time a laptop is re-issued. Off after upgrading, so it renames nothing until you choose.',
         'done'     => 'Renaming assets from Intune is switched on.',
-        'link'     => 'asset-management/settings/?tab=intune',
+        'link'     => 'system/integrations/microsoft365/intune.php',   // GH #263
         'check'    => ['setting', 'intune_sync_hostnames', 'eq', '1'],
     ],
     [
@@ -238,7 +238,7 @@ return [
         'what'     => 'An asset nobody holds is given to the primary user of its device in Intune, matched exactly by Entra object id against people imported from Microsoft Entra ID.',
         'why'      => 'Hundreds of laptops arrive from Intune with nobody holding them; this fills in who has each one without anybody typing it, and never overrides a holder a person set.',
         'done'     => 'Assigning assets to their Intune primary user is switched on.',
-        'link'     => 'asset-management/settings/?tab=intune',
+        'link'     => 'system/integrations/microsoft365/intune.php',   // GH #263
         'check'    => ['setting', 'intune_assign_primary_user', 'eq', '1'],
     ],
     [
@@ -251,7 +251,7 @@ return [
         'what'     => 'When a device\'s primary user changes in Intune, an asset Intune gave to somebody moves to the new person at the next sync - in the custody trail like any handover. A holder chosen in FreeITSM is never moved.',
         'why'      => 'A laptop handed on in Intune used to stay with its first holder here for good. Every change is kept on the asset\'s Intune tab either way, and System, Maintenance lists the assets where the two disagree.',
         'done'     => 'Assigning assets to their Intune primary user and following changes of primary user are both switched on.',
-        'link'     => 'asset-management/settings/?tab=intune',
+        'link'     => 'system/integrations/microsoft365/intune.php',   // GH #263
         'check'    => ['all', [
             ['setting', 'intune_assign_primary_user', 'eq', '1'],
             ['setting', 'intune_follow_primary_user', 'eq', '1'],
@@ -267,7 +267,7 @@ return [
         'what'     => 'Each kind of Intune device - laptop, desktop, server, phone, tablet, other mobile - mapped to one of your asset types, so every Intune asset with no type gets the right one at each sync.',
         'why'      => 'Assets Intune creates arrive with no type: no icon, nothing to group or report on. A type somebody chose is never changed.',
         'done'     => 'At least one kind of Intune device is mapped to an asset type.',
-        'link'     => 'asset-management/settings/?tab=intune',
+        'link'     => 'system/integrations/microsoft365/intune.php',   // GH #263
         'check'    => ['setting', 'intune_type_map', 'nonempty'],
     ],
     [
@@ -279,7 +279,7 @@ return [
         'what'     => 'How many devices one Intune software-sync job covers, from 1 to 500. The default is 30.',
         'why'      => 'A large estate needs a lot of clicks at 30 devices a time; a larger batch covers it sooner if your server copes with the longer job.',
         'done'     => 'The batch size has been saved as something other than the default of 30.',
-        'link'     => 'asset-management/settings/?tab=intune',
+        'link'     => 'system/integrations/microsoft365/intune.php',   // GH #263
         'check'    => ['setting', 'intune_app_batch_size', 'neq', '30'],
     ],
 
