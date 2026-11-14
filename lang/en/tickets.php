@@ -762,7 +762,7 @@ return [
         'none'      => 'Nobody matches.',
         'save'      => 'Change',
         'merge'     => 'Also merge {name} ({email}) into {into} - probably the same person writing from another address. Their {n} other tickets move too, and their address becomes one of {into}\'s, so their next email lands there.',
-        'merge_only' => 'Also merge {name} ({email}) into {into} - probably the same person writing from another address. Their address becomes one of {into}\x27s, so their next email lands there.',
+        'merge_only' => 'Also merge {name} ({email}) into {into} - probably the same person writing from another address. Their address becomes one of {into}\'s, so their next email lands there.',
         'merge_delete' => '{name} is then removed: nothing else refers to them.',
         'merge_keep'   => 'Something else still refers to them, so they are switched off instead of removed.',
         'no_merge_has_login'     => '{name} signs in to the portal, so they are a real account and are not merged.',
