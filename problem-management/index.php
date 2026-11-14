@@ -258,7 +258,7 @@ $translationNamespaces = ['common', 'problem-management'];
     </div>
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js?v=7"></script>
     <script>window.PM_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>;
     // GH #217: no Fix (linked change) section or Link change while Changes is SWITCHED OFF. moduleIsEnabled, not
     // access: linking a change has only ever needed Problems (api/problem-management/link_change.php).

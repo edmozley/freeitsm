@@ -102,6 +102,20 @@ final class TypedFields
     }
 
     /**
+     * The schema `columns` slot a ref definition is stored in: 'ref' unless the
+     * definition names another with `ref_slot` (GH #312 - the CMDB keeps CI links
+     * and links to other records in different columns, because everything that
+     * reads its CI-link column assumes the id there is a CI).
+     *
+     * @param array $def  a canonical ref definition
+     */
+    public static function refSlot(array $def): string
+    {
+        $slot = $def['ref_slot'] ?? 'ref';
+        return (is_string($slot) && $slot !== '') ? $slot : 'ref';
+    }
+
+    /**
      * True when $type is one of the field types in TYPES.
      *
      * @param string $type  the field type to check
@@ -304,7 +318,10 @@ final class TypedFields
                         "Property '{$def['label']}' can't reference its own object.");
                 }
                 self::validateRef($conn, $def, $refId);
-                $out['ref'] = $refId;
+                // A definition may keep its reference in another slot of the schema's
+                // `columns` (ref_slot) - the CMDB keeps CI links in value_object_id
+                // and links to people, teams and so on in value_ref_id (GH #312).
+                $out[self::refSlot($def)] = $refId;
                 return $out;
 
             default:
@@ -396,7 +413,7 @@ final class TypedFields
                 continue;   // a value for a field no longer attached here
             }
             $def   = $byId[$defId];
-            $class = self::storageClass($def['type']);
+            $class = $def['type'] === 'ref' ? self::refSlot($def) : self::storageClass($def['type']);
             $raw   = $row[$cols[$class] ?? ''] ?? null;
             if ($raw === null) {
                 continue;

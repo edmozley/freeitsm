@@ -100,7 +100,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
     <script src="../../assets/js/toast.js"></script>
-    <script src="../../assets/js/confirm.js"></script>
+    <script src="../../assets/js/confirm.js?v=7"></script>
     <style>
         body {
             --accent: var(--sys-accent, #546e7a);

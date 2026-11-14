@@ -5334,7 +5334,8 @@ $translationNamespaces = ['common', 'asset-management'];
 
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
     <script>window.assetTypeIcons = <?php echo json_encode($assetTypeIcons, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../../assets/js/locations-tree.js?v=3"></script>
+    <script src="../../assets/js/cmdb-ref-summary.js?v=1"></script>
+    <script src="../../assets/js/locations-tree.js?v=4"></script>
     <script src="../../assets/js/proxmox-settings.js?v=2"></script>
     <script src="../../assets/js/vcloud-settings.js?v=2"></script>
     <script src="../../assets/js/network-mapper-icons.js?v=3"></script>

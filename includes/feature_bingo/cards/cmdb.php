@@ -62,6 +62,18 @@ return [
         'check'    => ['rows', 'cmdb_class_properties', "property_type = 'object_ref' AND is_demo = 0"],
     ],
     [
+        'id'       => 'cmdb.record_references',
+        'module'   => 'cmdb',
+        'tier'     => 'recommended',
+        'category' => 'organisation',
+        'title'    => 'Owners, teams and sites that are the real thing',
+        'what'     => 'A property such as "Owner", "Support team" or "Location" that points at the real person, team, location, company, supplier or contract FreeITSM already holds, rather than a copy kept as a CMDB object.',
+        'why'      => 'There is one of each person and site to keep up to date. When someone leaves, their CIs show up in the leaving checks; when a site is deleted, the CIs that named it say so.',
+        'done'     => 'At least one property points at a person, analyst, team, location, company, supplier or contract (demo data not counted).',
+        'link'     => 'cmdb/settings/',
+        'check'    => ['rows', 'cmdb_class_properties', "property_type IN ('person','analyst','team','location','company','supplier','contract') AND is_demo = 0"],
+    ],
+    [
         'id'       => 'cmdb.dependency_properties',
         'module'   => 'cmdb',
         'tier'     => 'recommended',

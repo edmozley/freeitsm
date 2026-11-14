@@ -174,6 +174,15 @@ return [
     'confirm_dialog' => [
         'title' => 'Confirmar',
     ],
+    'cmdb_refs' => [
+        'points_one' => '1 elemento de configuración apunta a este registro.',
+        'points_other' => '{count} elementos de configuración apuntan a este registro.',
+        'more' => 'y {count} más',
+        'hidden_one' => '1 de ellos está en una empresa que no puedes ver.',
+        'hidden_other' => '{count} de ellos están en empresas que no puedes ver.',
+        'removed_one' => 'Tras la eliminación, ese elemento mostrará "(eliminado)" en su lugar.',
+        'removed_other' => 'Tras la eliminación, esos elementos mostrarán "(eliminado)" en su lugar.',
+    ],
     'palette' => [
         'aria_dialog' => 'Paleta de comandos',
         'search_ph' => 'Buscar tickets, activos, elementos — o saltar a un módulo…',

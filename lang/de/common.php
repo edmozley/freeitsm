@@ -174,6 +174,15 @@ return [
     'confirm_dialog' => [
         'title' => 'Bestätigen',
     ],
+    'cmdb_refs' => [
+        'points_one' => '1 Konfigurationselement verweist auf diesen Datensatz.',
+        'points_other' => '{count} Konfigurationselemente verweisen auf diesen Datensatz.',
+        'more' => 'und {count} weitere',
+        'hidden_one' => '1 davon gehört zu einem Unternehmen, das Sie nicht sehen können.',
+        'hidden_other' => '{count} davon gehören zu Unternehmen, die Sie nicht sehen können.',
+        'removed_one' => 'Nach dem Löschen zeigt dieses Element stattdessen "(entfernt)".',
+        'removed_other' => 'Nach dem Löschen zeigen diese Elemente stattdessen "(entfernt)".',
+    ],
     'palette' => [
         'aria_dialog' => 'Befehlspalette',
         'search_ph' => 'Tickets, Assets, Einträge suchen — oder zu einem Modul springen…',

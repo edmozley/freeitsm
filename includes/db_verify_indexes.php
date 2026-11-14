@@ -486,6 +486,7 @@ return [
     ['cmdb_objects', 'ix_cmdb_objects_tenant_id', 'key', '(`tenant_id`)'],
     ['cmdb_object_properties', 'uq_cmdb_op_obj_prop', 'unique', '(`object_id`,`property_id`)'],
     ['cmdb_object_properties', 'ix_cmdb_op_value_object_id', 'key', '(`value_object_id`)'],
+    ['cmdb_object_properties', 'ix_cmdb_op_value_ref_id', 'key', '(`value_ref_id`)'],
     ['cmdb_relationship_types', 'uq_cmdb_rel_type_verb', 'unique', '(`verb`)'],
     ['cmdb_object_relationships', 'uq_cmdb_or_triple', 'unique', '(`from_object_id`,`to_object_id`,`relationship_type_id`)'],
     ['cmdb_object_relationships', 'ix_cmdb_or_to_object_id', 'key', '(`to_object_id`)'],

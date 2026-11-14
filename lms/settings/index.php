@@ -215,7 +215,7 @@ $translationNamespaces = ['common', 'lms'];
     </div><!-- /.settings-shell -->
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js?v=7"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/ai-settings.js?v=4"></script>
     <script>
     /* The page had one tab and therefore no tab switching at all. */

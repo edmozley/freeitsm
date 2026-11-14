@@ -37,6 +37,7 @@
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../typed_fields.php';
+require_once __DIR__ . '/../cmdb_record_refs.php';   // GH #312: person / team / location ... properties
 require_once __DIR__ . '/asset_ci_links.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
@@ -182,7 +183,9 @@ class CmdbService
             if (!$d['required']) { continue; }
             $out[] = ['key' => $key, 'label' => $d['label'], 'type' => $d['type'],
                 'options' => $d['type'] === 'dropdown' ? self::propertyOptionValues($conn, $d['id']) : [],
-                'ref_class_id' => $d['ref_target']];
+                'ref_class_id' => $d['ref_target'],
+                // GH #312: person / team / location ... - picked from records, not CIs
+                'record_type' => $d['record_type'] ?? null];
         }
         return $out;
     }
@@ -245,6 +248,7 @@ class CmdbService
         $values = self::normaliseProperties($conn, $classId, $in);
         self::checkRequired($conn, $classId, $values, true);
         self::assertObjectRefsInCompany($conn, $ctx, $classId, $values, $storeTenant);
+        self::assertRecordRefsAllowed($conn, $ctx, $classId, $values, $storeTenant, null);
 
         $own = !$conn->inTransaction();
         if ($own) $conn->beginTransaction();
@@ -315,6 +319,8 @@ class CmdbService
         self::checkRequired($conn, $classId, $values, false);
         self::assertObjectRefsInCompany($conn, $ctx, $classId, $values,
             $current['tenant_id'] !== null ? (int)$current['tenant_id'] : null);
+        self::assertRecordRefsAllowed($conn, $ctx, $classId, $values,
+            $current['tenant_id'] !== null ? (int)$current['tenant_id'] : null, $objectId);
 
         $conn->beginTransaction();
         try {
@@ -566,6 +572,52 @@ class CmdbService
     }
 
     /**
+     * GH #312: a record property (person, team, location ...) may point only at a
+     * record this CI may hold - see cmdbRecordAllowed(): a person, location or
+     * contract of the CI's own company (or a shared location), a company the
+     * person editing can reach, an active team / analyst / supplier. Runs on every
+     * install, not only multi-company ones, because "not inactive" applies to all.
+     *
+     * The value already stored is allowed even if its record has since been made
+     * inactive, so re-saving a CI never fails over an untouched retired supplier.
+     *
+     * @param ?int $ownTenant  the CI's company as stored - null for the Default company
+     * @param ?int $objectId   the CI being updated, null on create
+     */
+    private static function assertRecordRefsAllowed(
+        PDO $conn, ActorContext $ctx, int $classId, array $values, ?int $ownTenant, ?int $objectId): void
+    {
+        if (!$values) {
+            return;
+        }
+        $own = ($ownTenant === null) ? (int)getDefaultTenantId($conn) : $ownTenant;
+        foreach (self::classDefs($conn, $classId) as $key => $def) {
+            if (empty($def['record_type']) || !array_key_exists($key, $values)) {
+                continue;
+            }
+            $refId = $values[$key];
+            if ($refId === null || $refId === '' || (int)$refId <= 0) {
+                continue;
+            }
+            $refId = (int)$refId;
+            if (!cmdbRecordRefsReady()) {
+                throw new ServiceError('validation', 'invalid_field',
+                    "'{$def['label']}' needs a database update: run System -> Database Verification.");
+            }
+            $stored = false;
+            if ($objectId !== null) {
+                $st = $conn->prepare("SELECT value_ref_id FROM cmdb_object_properties WHERE object_id = ? AND property_id = ?");
+                $st->execute([$objectId, $def['id']]);
+                $stored = ((int)$st->fetchColumn() === $refId);
+            }
+            if (!cmdbRecordAllowed($conn, $def['record_type'], $refId, $own, $ctx->companyScope, $stored)) {
+                throw new ServiceError('validation', 'invalid_field',
+                    "'{$def['label']}' can't point at that record: it doesn't exist, is no longer in use, or belongs to another company.");
+            }
+        }
+    }
+
+    /**
      * Loads one CI with its class name and key; throws not found when it does not exist.
      *
      * @param int $id  the cmdb_objects id to load
@@ -606,17 +658,24 @@ class CmdbService
         );
         $stmt->execute([$classId]);
         $defs = [];
+        $records = cmdbRecordTypes();
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $d) {
             $isRef = ($d['property_type'] === 'object_ref');
+            // GH #312: a person / analyst / team / location / company / supplier /
+            // contract property is a ref too, of that record's kind, kept in the
+            // 'record' slot (value_ref_id) - never beside the CI links.
+            $record = $records[$d['property_type']] ?? null;
             $defs[$d['property_key']] = [
                 'id'         => (int)$d['id'],
                 'key'        => $d['property_key'],
                 'label'      => $d['label'],
-                'type'       => $isRef ? 'ref' : $d['property_type'],
+                'type'       => ($isRef || $record) ? 'ref' : $d['property_type'],
                 'required'   => ((int)$d['is_required'] === 1),
                 'config'     => [],
-                'ref_kind'   => $isRef ? 'cmdb_object' : null,
+                'ref_kind'   => $isRef ? 'cmdb_object' : ($record ? $record['kind'] : null),
                 'ref_target' => ($isRef && $d['target_class_id'] !== null) ? (int)$d['target_class_id'] : null,
+                'ref_slot'   => $record ? 'record' : 'ref',
+                'record_type'=> $record ? $d['property_type'] : null,
             ];
         }
         return $defs;
@@ -633,17 +692,24 @@ class CmdbService
      */
     private static function valueSchema(int $classId): array
     {
+        $columns = [
+            'text'    => 'value_text',
+            'number'  => 'value_number',
+            'date'    => 'value_date',
+            'boolean' => 'value_boolean',
+            'ref'     => 'value_object_id',
+        ];
+        // GH #312. Only once Database Verification has added it: an install that has
+        // pulled the update but not run it must still read and save every other
+        // property (it cannot have record properties until it runs it anyway).
+        if (cmdbRecordRefsReady()) {
+            $columns['record'] = 'value_ref_id';
+        }
         return [
             'value_table'  => 'cmdb_object_properties',
             'owner_column' => 'object_id',
             'def_column'   => 'property_id',
-            'columns'      => [
-                'text'    => 'value_text',
-                'number'  => 'value_number',
-                'date'    => 'value_date',
-                'boolean' => 'value_boolean',
-                'ref'     => 'value_object_id',
-            ],
+            'columns'      => $columns,
             'self_kind'    => 'cmdb_object',
             // A closure, not [self::class, ...]: the method is private, and a
             // closure created in class scope keeps access to it.

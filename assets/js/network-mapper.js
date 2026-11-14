@@ -1345,8 +1345,16 @@
                     (ref.class_name ? '<span class="nm-prop-ref-class">' + escapeHtml(ref.class_name) + '</span>' : '') +
                 '</a>';
             }
-            case 'text':
-            default: {
+            default:
+                // GH #312: a person / team / location ... property - the record's name
+                // (get_object.php resolves it; a removed or other-company record has none).
+                if (p.value_record) {
+                    const r = p.value_record;
+                    if (!r.name) return '<span class="nm-prop-value">&mdash;</span>';
+                    return '<span class="nm-prop-value">' + escapeHtml(r.name) + '</span>';
+                }
+                // fall through: plain text
+            case 'text': {
                 // Linkify URLs in plain text — common case for properties like
                 // "Documentation" or "Repo". Anything else renders as-is.
                 const s = String(p.value);

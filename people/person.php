@@ -127,7 +127,7 @@ $multi = isMultiTenant($conn);
     <?php endif; ?>
     </main>
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js?v=7"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/people-emails.js?v=1"></script>   <!-- GH #308 -->
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>

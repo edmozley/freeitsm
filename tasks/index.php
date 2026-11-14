@@ -314,7 +314,7 @@ $translationNamespaces = ['common', 'tasks'];
         documentsPanelAssets(BASE_URL);
     ?>
     <script src="../assets/js/toast.js"></script>
-    <script src="../assets/js/confirm.js?v=6"></script>
+    <script src="../assets/js/confirm.js?v=7"></script>
     <?php endif; ?>
 
     <?php require_once __DIR__.'/includes/detail-shell.php'; renderTaskDetailShell(); ?>

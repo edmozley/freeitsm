@@ -174,6 +174,15 @@ return [
     'confirm_dialog' => [
         'title' => 'Konfirmasi',
     ],
+    'cmdb_refs' => [
+        'points_one' => '1 item konfigurasi menunjuk ke catatan ini.',
+        'points_other' => '{count} item konfigurasi menunjuk ke catatan ini.',
+        'more' => 'dan {count} lainnya',
+        'hidden_one' => '1 di antaranya berada di perusahaan yang tidak dapat Anda lihat.',
+        'hidden_other' => '{count} di antaranya berada di perusahaan yang tidak dapat Anda lihat.',
+        'removed_one' => 'Setelah dihapus, item itu akan menampilkan "(dihapus)" sebagai gantinya.',
+        'removed_other' => 'Setelah dihapus, item-item itu akan menampilkan "(dihapus)" sebagai gantinya.',
+    ],
     'palette' => [
         'aria_dialog' => 'Palet perintah',
         'search_ph' => 'Cari tiket, aset, item — atau lompat ke modul…',

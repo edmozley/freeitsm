@@ -8147,10 +8147,17 @@ CREATE TABLE IF NOT EXISTS `cmdb_object_properties` (
     `value_date`        DATETIME NULL,
     `value_boolean`     TINYINT(1) NULL,
     `value_object_id`   INT NULL,
+    -- GH #312: a person, analyst, team, location, company, supplier or contract,
+    -- for the record-reference property types. Which table it names is the
+    -- property's type; there is no FK (one column, seven tables), and a removed
+    -- record leaves the id here so the CI can say "(removed)". NEVER put these in
+    -- value_object_id - everything reading that column assumes it is a CI.
+    `value_ref_id`      INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_cmdb_op_obj_prop` (`object_id`, `property_id`),
     KEY `ix_cmdb_op_value_object_id` (`value_object_id`),
+    KEY `ix_cmdb_op_value_ref_id` (`value_ref_id`),
     CONSTRAINT `fk_cmdb_op_object` FOREIGN KEY (`object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_cmdb_op_property` FOREIGN KEY (`property_id`) REFERENCES `cmdb_class_properties` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_cmdb_op_value_object` FOREIGN KEY (`value_object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE SET NULL

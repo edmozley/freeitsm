@@ -5507,6 +5507,9 @@ return [
         'value_date'        => 'DATETIME NULL',
         'value_boolean'     => 'TINYINT(1) NULL',
         'value_object_id'   => 'INT NULL',
+        // GH #312: the id for a person / analyst / team / location / company /
+        // supplier / contract property (which table = the property's type). No FK.
+        'value_ref_id'      => 'INT NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 

@@ -215,6 +215,21 @@ return [
         'title' => 'Confirm',
     ],
 
+    // ── CMDB references in delete dialogs (assets/js/cmdb-ref-summary.js, GH #312)
+    // Shown inside the confirm dialog before deleting a person, team, location,
+    // supplier or contract that CMDB items point at. Each sentence is its own
+    // line; the item names ("Web01 (Owner), DB02 (Owner)") go on the line
+    // after points_*, with `more` on the end when there are too many to list.
+    'cmdb_refs' => [
+        'points_one'    => '1 configuration item points at this record.',
+        'points_other'  => '{count} configuration items point at this record.',
+        'more'          => 'and {count} more',
+        'hidden_one'    => '1 of them is in a company you cannot see.',
+        'hidden_other'  => '{count} of them are in companies you cannot see.',
+        'removed_one'   => 'After the delete, that item will show "(removed)" instead.',
+        'removed_other' => 'After the delete, those items will show "(removed)" instead.',
+    ],
+
     // ── Command palette (assets/js/command-palette.js) ──────────────────
     // Loaded from the waffle menu on every in-app page, so it uses tf() and
     // carries its own English: not every one of those pages exports

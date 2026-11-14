@@ -5441,7 +5441,7 @@ $translationNamespaces = ['common', 'asset-management'];
     window.ASSET_MODULE_ON = <?php echo json_encode(['software' => moduleIsEnabled(connectToDatabase(), 'software'), 'contracts' => moduleIsEnabled(connectToDatabase(), 'contracts'), 'cmdb' => moduleIsEnabled(connectToDatabase(), 'cmdb')]); ?>;
     window.APP_BASE = window.APP_BASE || <?php echo json_encode(BASE_URL); ?>;</script>
     <script src="../assets/js/project-links.js?v=1"></script>
-    <script src="../assets/js/ci-asset-link.js?v=5"></script>
+    <script src="../assets/js/ci-asset-link.js?v=6"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

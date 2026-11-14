@@ -3055,6 +3055,13 @@ return array (
             3 => 'boolean',
             4 => 'dropdown',
             5 => 'object_ref',
+            6 => 'person',
+            7 => 'analyst',
+            8 => 'team',
+            9 => 'location',
+            10 => 'company',
+            11 => 'supplier',
+            12 => 'contract',
           ),
         ),
         'is_required' => 
@@ -3505,6 +3512,13 @@ return array (
             3 => 'boolean',
             4 => 'dropdown',
             5 => 'object_ref',
+            6 => 'person',
+            7 => 'analyst',
+            8 => 'team',
+            9 => 'location',
+            10 => 'company',
+            11 => 'supplier',
+            12 => 'contract',
           ),
         ),
         'is_required' => 
@@ -3527,6 +3541,62 @@ return array (
           ),
           'nullable' => true,
           'description' => 'Only populated when type is object_ref and a value is set — the referenced object\'s id/name/class_name.',
+        ),
+        'value_record' => 
+        array (
+          'type' => 'object',
+          'allOf' => 
+          array (
+            0 => 
+            array (
+              '$ref' => '#/components/schemas/CmdbRecordRef',
+            ),
+          ),
+          'nullable' => true,
+          'description' => 'Only populated when type is person, analyst, team, location, company, supplier or contract and a value is set - the record\'s id, type, live name and state (ok, inactive, removed - no longer exists, hidden - in a company this key cannot reach). value carries the same id.',
+        ),
+      ),
+    ),
+    'CmdbRecordRef' => 
+    array (
+      'type' => 'object',
+      'description' => 'A CMDB property\'s reference to a FreeITSM record (GH #312). To write one, send the record\'s integer id as the property value.',
+      'properties' => 
+      array (
+        'id' => 
+        array (
+          'type' => 'integer',
+        ),
+        'type' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'person',
+            1 => 'analyst',
+            2 => 'team',
+            3 => 'location',
+            4 => 'company',
+            5 => 'supplier',
+            6 => 'contract',
+          ),
+        ),
+        'name' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'Null when state is removed or hidden.',
+        ),
+        'state' => 
+        array (
+          'type' => 'string',
+          'enum' => 
+          array (
+            0 => 'ok',
+            1 => 'inactive',
+            2 => 'removed',
+            3 => 'hidden',
+          ),
         ),
       ),
     ),
@@ -7934,6 +8004,13 @@ return array (
             3 => 'date',
             4 => 'boolean',
             5 => 'object_ref',
+            6 => 'person',
+            7 => 'analyst',
+            8 => 'team',
+            9 => 'location',
+            10 => 'company',
+            11 => 'supplier',
+            12 => 'contract',
           ),
         ),
         'value' => 

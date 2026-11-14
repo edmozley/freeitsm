@@ -174,6 +174,15 @@ return [
     'confirm_dialog' => [
         'title' => 'Bekræft',
     ],
+    'cmdb_refs' => [
+        'points_one' => '1 konfigurationselement peger på denne post.',
+        'points_other' => '{count} konfigurationselementer peger på denne post.',
+        'more' => 'og {count} mere',
+        'hidden_one' => '1 af dem er i en virksomhed, du ikke kan se.',
+        'hidden_other' => '{count} af dem er i virksomheder, du ikke kan se.',
+        'removed_one' => 'Efter sletningen vil elementet i stedet vise "(fjernet)".',
+        'removed_other' => 'Efter sletningen vil disse elementer i stedet vise "(fjernet)".',
+    ],
     'palette' => [
         'aria_dialog' => 'Kommandopalet',
         'search_ph' => 'Søg i sager, aktiver, poster — eller hop til et modul…',

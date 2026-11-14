@@ -42,6 +42,7 @@ function cmdbRunAudit(PDO $conn, int $analystId): array {
     $checks = [
         cmdbAuditRequiredMissing($conn, $analystId),
         cmdbAuditBrokenReferences($conn, $analystId),
+        cmdbAuditRemovedRecords($conn, $analystId),
         cmdbAuditDependencyBlank($conn, $analystId),
         cmdbAuditDisconnected($conn, $analystId),
         cmdbAuditStale($conn, $analystId),
@@ -133,6 +134,45 @@ function cmdbAuditBrokenReferences(PDO $conn, int $analystId): array {
     $st->execute($tArgs);
 
     return cmdbAuditResult('broken_reference', 'error', $count, cmdbAuditRows($st));
+}
+
+/**
+ * GH #312: a person / team / location ... property whose record has been deleted.
+ *
+ * Deleting a record a CI points at is allowed on purpose (the delete dialog says
+ * which CIs point at it first), and the CI keeps the id and shows "(removed)".
+ * This is where those are found and fixed. A warning, not an error: the CI's own
+ * data is intact - it just names something that is gone.
+ */
+function cmdbAuditRemovedRecords(PDO $conn, int $analystId): array {
+    require_once __DIR__ . '/cmdb_record_refs.php';
+    if (!cmdbRecordRefsReady($conn)) {
+        return cmdbAuditResult('record_removed', 'warning', 0, []);
+    }
+    [$tSql, $tArgs] = activeTenantFilter($conn, $analystId, 'o');
+    $count = 0;
+    $items = [];
+    foreach (cmdbRecordTypes() as $type => $t) {
+        $from = "FROM cmdb_object_properties op
+                 JOIN cmdb_class_properties p ON p.id = op.property_id AND p.property_type = ?
+                 JOIN cmdb_objects o ON o.id = op.object_id
+                 JOIN cmdb_classes c ON c.id = o.class_id
+            LEFT JOIN `{$t['table']}` r ON r.id = op.value_ref_id
+                WHERE op.value_ref_id IS NOT NULL AND r.id IS NULL $tSql";
+        $st = $conn->prepare("SELECT COUNT(*) $from");
+        $st->execute(array_merge([$type], $tArgs));
+        $n = (int)$st->fetchColumn();
+        if (!$n) continue;
+        $count += $n;
+        $room = CMDB_AUDIT_MAX_ITEMS - count($items);
+        if ($room > 0) {
+            $st = $conn->prepare("SELECT o.id AS object_id, o.name AS object_name, c.name AS class_name,
+                                         p.label AS detail $from ORDER BY c.name, o.name LIMIT " . (int)$room);
+            $st->execute(array_merge([$type], $tArgs));
+            $items = array_merge($items, cmdbAuditRows($st));
+        }
+    }
+    return cmdbAuditResult('record_removed', 'warning', $count, $items);
 }
 
 /**

@@ -262,7 +262,7 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
     </div>
 
     <script src="../../assets/js/toast.js"></script>
-    <script src="../../assets/js/confirm.js"></script>
+    <script src="../../assets/js/confirm.js?v=7"></script>
     <script>
     (function () {
         'use strict';

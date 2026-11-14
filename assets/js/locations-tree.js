@@ -151,7 +151,10 @@
 
         async function remove(loc) {
             if (children(loc.id).length > 0) { toast(T('settings.location_has_children'), 'error'); return; }
-            var ok = await window.showConfirm({ title: T('common.delete'), message: T('settings.delete_location_confirm', { name: loc.name }), okLabel: T('common.delete'), okClass: 'danger' });
+            // GH #312: say first which CMDB items point at this location
+            // (cmdb-ref-summary.js; optional, so a page without it just skips it).
+            var cmdbNote = window.cmdbRefSummary ? await window.cmdbRefSummary('location', loc.id) : '';
+            var ok = await window.showConfirm({ title: T('common.delete'), message: T('settings.delete_location_confirm', { name: loc.name }), detailHtml: cmdbNote, okLabel: T('common.delete'), okClass: 'danger' });
             if (!ok) return;
             try {
                 var res = await fetch(apiBase + 'delete_asset_location.php', {

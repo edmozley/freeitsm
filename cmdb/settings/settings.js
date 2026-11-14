@@ -256,7 +256,7 @@ function renderProps() {
         <tr>
             <td><strong>${escapeHtml(p.label)}</strong></td>
             <td><span class="key-hint">${escapeHtml(p.property_key)}</span></td>
-            <td><span class="badge type">${escapeHtml(p.property_type)}</span></td>
+            <td><span class="badge type">${escapeHtml(propTypeLabel(p.property_type))}</span></td>
             <td>${escapeHtml(p.target_class_name || '')}</td>
             <td>${p.is_required ? `<span class="badge active">${escapeHtml(window.t('cmdb.settings.required_badge'))}</span>` : ''}</td>
             <td>${p.display_order}</td>
@@ -698,6 +698,13 @@ async function aiPrimaryAction() {
     }
 }
 
+/** A property type as the type dropdown names it - "Person", not "person" (GH #312). */
+function propTypeLabel(type) {
+    const sel = document.getElementById('propertyType');
+    const o = sel && [...sel.options].find(x => x.value === type);
+    return o ? o.textContent.trim() : type;
+}
+
 /**
  * Draws the suggested properties as ticked checkboxes with type, required flag, options count, target class and the AI's reason.
  */
@@ -705,7 +712,7 @@ function renderAiSuggestions() {
     const list = document.getElementById('aiSuggestionsList');
     list.innerHTML = aiSuggestSuggestions.map((p, i) => {
         const meta = [];
-        meta.push(`${escapeHtml(window.t('cmdb.ai_suggest.type'))} <strong>${escapeHtml(p.property_type)}</strong>`);
+        meta.push(`${escapeHtml(window.t('cmdb.ai_suggest.type'))} <strong>${escapeHtml(propTypeLabel(p.property_type))}</strong>`);
         if (p.is_required) meta.push(`<span style="color: #be185d; font-weight: 500;">${escapeHtml(window.t('cmdb.ai_suggest.required'))}</span>`);
         if (p.property_type === 'dropdown' && p.options) meta.push(escapeHtml(window.t('cmdb.ai_suggest.options_count', { count: p.options.length })));
         if (p.property_type === 'object_ref' && p.target_class_hint) meta.push(`${escapeHtml(window.t('cmdb.ai_suggest.refers_to'))} <em>${escapeHtml(p.target_class_hint)}</em>`);

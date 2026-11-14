@@ -21,7 +21,27 @@ if (!isset($_SESSION['analyst_id'])) {
 requireModuleAccessJson('cmdb');
 requireCapabilityJson(Cap::CMDB_CLASSES);   // settings tab — see docs/design/rbac.md
 
-const VALID_PROPERTY_TYPES = ['text', 'number', 'date', 'boolean', 'dropdown', 'object_ref'];
+require_once '../../includes/cmdb_record_refs.php';
+
+// GH #312: plus the record types - person, analyst, team, location, company,
+// supplier, contract (cmdbRecordTypes(), the one list).
+define('VALID_PROPERTY_TYPES', array_merge(['text', 'number', 'date', 'boolean', 'dropdown', 'object_ref'], array_keys(cmdbRecordTypes())));
+
+/**
+ * Where a property type keeps its value: a type change that moves to another
+ * place - or keeps the id but changes what it names (a person id read as a
+ * team) - would strand or misread every value already stored.
+ */
+function propertyValueHome(string $type): string {
+    if (cmdbIsRecordType($type)) return 'record:' . $type;
+    switch ($type) {
+        case 'number': return 'number';
+        case 'date': return 'date';
+        case 'boolean': return 'boolean';
+        case 'object_ref': return 'object';
+        default: return 'text';   // text, dropdown
+    }
+}
 
 /**
  * Turns a property name into a lower-case key of letters, digits and underscores,
@@ -91,6 +111,19 @@ try {
         $stmt->execute([$classId, $key, $label, $type, $targetClassId, $isRequired, $spreadsImpact, $displayOrder]);
         $newId = (int)$conn->lastInsertId();
     } else {
+        // GH #312: refuse a type change that would misread the values already
+        // stored (text -> dropdown keeps its text and is fine; person -> team is not).
+        $cur = $conn->prepare("SELECT property_type FROM cmdb_class_properties WHERE id = ? AND class_id = ?");
+        $cur->execute([$id, $classId]);
+        $oldType = (string)$cur->fetchColumn();
+        if ($oldType !== '' && propertyValueHome($oldType) !== propertyValueHome($type)) {
+            $used = $conn->prepare("SELECT COUNT(*) FROM cmdb_object_properties WHERE property_id = ?");
+            $used->execute([$id]);
+            if ((int)$used->fetchColumn() > 0) {
+                throw new Exception('This property already has values, so its type cannot change to one that stores them differently. Add a new property instead.');
+            }
+        }
+
         // Refuse a key change that would collide
         $check = $conn->prepare("SELECT id FROM cmdb_class_properties WHERE class_id = ? AND property_key = ? AND id <> ?");
         $check->execute([$classId, $key, $id]);

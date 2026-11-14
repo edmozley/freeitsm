@@ -33,6 +33,7 @@ $translationNamespaces = ['common', 'tickets'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=4"></script>
+    <script src="../assets/js/cmdb-ref-summary.js?v=1"></script>
     <script src="../assets/js/address-book-add.js?v=1"></script>
     <style>
         .users-container {
@@ -932,7 +933,9 @@ $translationNamespaces = ['common', 'tickets'];
         async function deleteUser(userId) {
             const user = users.find(u => u.id == userId);
             const label = user?.display_name || user?.email || `#${userId}`;
-            if (!(await showConfirm({ title: 'Confirm', message: t('tickets.users.modal.confirm_delete', { name: label }), okLabel: 'OK', okClass: 'primary' }))) return;
+            // GH #312: say first which CMDB items point at this person.
+            const cmdbNote = window.cmdbRefSummary ? await window.cmdbRefSummary('person', userId) : '';
+            if (!(await showConfirm({ title: 'Confirm', message: t('tickets.users.modal.confirm_delete', { name: label }), detailHtml: cmdbNote, okLabel: 'OK', okClass: 'primary' }))) return;
 
             try {
                 const response = await fetch(`${API_BASE}delete_user.php`, {

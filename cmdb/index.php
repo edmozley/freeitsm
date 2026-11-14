@@ -2,7 +2,8 @@
 /**
  * CMDB - Browse page
  * Sidebar = class list with object counts. Main = table of objects in the
- * selected class. Click a row to open the object detail page.
+ * selected class, with property filters (chips) and up to three property
+ * columns, all kept in the URL. Click a row to open the object detail page.
  */
 session_start();
 require_once '../config.php';
@@ -236,6 +237,73 @@ $translationNamespaces = ['common', 'cmdb'];
         .ac-result .ac-class { color: var(--text-dim, #9ca3af); font-size: 11px; }
         .ac-empty { padding: 8px; color: var(--text-dim, #9ca3af); font-size: 12px; text-align: center; }
 
+        /* Property filters (GH #312 follow-up): one strip above the table with the
+           active filters as chips, and the builder row when Filter is pressed. */
+        .filter-bar {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+            padding: 10px 16px;
+            background: var(--surface, #ffffff);
+            border-bottom: 1px solid var(--border, #e5e7eb);
+            flex-shrink: 0;
+        }
+        .filter-bar[hidden] { display: none; }
+        .flt-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 4px 4px 12px;
+            border: 1px solid var(--cmdb-accent, #be185d);
+            border-radius: 999px;
+            background: #fdf2f8;
+            color: var(--text, #374151);
+            font-size: 13px;
+        }
+        .flt-chip strong { font-weight: 600; color: var(--text, #111827); }
+        .flt-chip-x {
+            border: 0; background: transparent; cursor: pointer;
+            width: 22px; height: 22px; border-radius: 50%;
+            color: var(--cmdb-accent, #be185d); font-size: 16px; line-height: 1;
+        }
+        .flt-chip-x:hover { background: rgba(190, 24, 93, 0.12); }
+        .flt-link {
+            border: 0; background: transparent; cursor: pointer; padding: 4px 6px;
+            color: var(--cmdb-accent, #be185d); font-size: 13px; font-weight: 500;
+        }
+        .flt-link:hover { text-decoration: underline; }
+        .flt-builder { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+        .flt-builder select, .flt-builder input {
+            padding: 6px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 4px;
+            font: inherit; font-size: 13px; background: var(--surface, #ffffff); color: var(--text, #111827);
+            max-width: 220px;
+        }
+        .flt-builder select:focus, .flt-builder input:focus { outline: none; border-color: var(--cmdb-accent, #be185d); }
+        .flt-value { display: inline-flex; }
+        .flt-pick { display: inline-block; }
+        .flt-pick input { width: 220px; }
+        .flt-pick .ac-results { min-width: 220px; }
+        .flt-btn {
+            padding: 6px 14px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+            border: 1px solid var(--border, #d1d5db); background: var(--surface, #ffffff); color: var(--text, #374151);
+        }
+        .flt-btn-primary { background: var(--cmdb-accent, #be185d); border-color: var(--cmdb-accent, #be185d); color: var(--cmdb-on-accent, #ffffff); }
+        .flt-btn-primary:hover { background: var(--cmdb-accent-hover, #9d174d); }
+        /* Filter / Columns while something is applied. */
+        .action-row-btn.is-on { border-color: var(--cmdb-accent, #be185d); color: var(--cmdb-accent, #be185d); }
+
+        .col-menu {
+            position: fixed; z-index: 50; width: 260px; max-height: 320px; overflow-y: auto;
+            background: var(--surface, #ffffff); border: 1px solid var(--border, #e5e7eb); border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 6px 0;
+        }
+        .col-menu[hidden] { display: none; }
+        .col-menu-head { padding: 6px 14px 8px; font-size: 12px; color: var(--text-muted, #6b7280); }
+        .col-menu-item { display: flex; align-items: center; gap: 10px; padding: 7px 14px; font-size: 13px; cursor: pointer; color: var(--text, #374151); }
+        .col-menu-item:hover { background: #fdf2f8; }
+        .col-menu-item.is-off { color: var(--text-dim, #9ca3af); cursor: not-allowed; }
+        .col-menu-item input { margin: 0; accent-color: var(--cmdb-accent, #be185d); }
+        .col-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; color: #ffffff; font-size: 12px; font-weight: 600; }
+        .col-gone { color: var(--text-dim, #9ca3af); font-style: italic; font-size: 13px; }
+        [data-theme-mode="dark"] .flt-chip { background: rgba(190, 24, 93, 0.15); }
+        [data-theme-mode="dark"] .col-menu-item:hover { background: rgba(190, 24, 93, 0.15); }
+
         /* Dark-mode tints for the pink hover/selected states. The light-mode
            pink washes (#fdf2f8 hover vs #fce7f3 selected) would glare on the
            dark sidebar/menu surfaces, so swap them for translucent accent tints
@@ -260,8 +328,15 @@ $translationNamespaces = ['common', 'cmdb'];
           renderActionRow(t('cmdb.list.select_class'),
               [array_merge(actionRowNew('openNewObjectModal()', t('cmdb.list.new_object'), false, 'newObjectBtn'), ['disabled' => true])],
               ['title_id' => 'mainTitle',
+               // Filter and Columns (GH #312 follow-up) stay hidden until the picked
+               // class turns out to have properties to filter on.
                'extra' => '<input type="text" class="action-row-search" id="searchInput" placeholder="'
-                        . htmlspecialchars(t('cmdb.list.filter_placeholder')) . '" oninput="onSearchInput(event)">']); ?>
+                        . htmlspecialchars(t('cmdb.list.search_placeholder')) . '" oninput="onSearchInput(event)">'
+                        . '<button type="button" class="action-row-btn" id="filterBtn" hidden onclick="openFilterBuilder()" title="'
+                        . htmlspecialchars(t('cmdb.list.filter_title')) . '">' . htmlspecialchars(t('cmdb.list.filter_button')) . '</button>'
+                        . '<button type="button" class="action-row-btn" id="columnsBtn" hidden onclick="toggleColumnsMenu(event)" title="'
+                        . htmlspecialchars(t('cmdb.list.columns_title')) . '">' . htmlspecialchars(t('cmdb.list.columns_button')) . '</button>']); ?>
+    <div class="col-menu" id="columnsMenu" hidden></div>
 
     <div class="browse-container">
         <aside class="browse-sidebar">
@@ -272,6 +347,7 @@ $translationNamespaces = ['common', 'cmdb'];
         </aside>
 
         <main class="browse-main">
+            <div class="filter-bar" id="filterBar" hidden></div>
             <div class="object-list" id="objectList">
                 <div class="empty-state">
                     <?php /* 🔴 "Pick a class ON THE LEFT" stops being true on a phone:
@@ -325,7 +401,8 @@ $translationNamespaces = ['common', 'cmdb'];
         </div>
     </div>
 
-    <script src="browse.js?v=5"></script>
+    <script>window.CMDB_RECORD_TYPES = <?php require_once __DIR__ . '/../includes/cmdb_record_refs.php'; echo json_encode(array_keys(cmdbRecordTypes())); ?>;</script>
+    <script src="browse.js?v=7"></script>
     <!-- The mobile layer's JS. Without it the module nav has no hamburger and
          sits off-screen — a CSS-only opt-in is not an opt-in (Techniques §25). -->
     <script src="../assets/js/mobile.js?v=83"></script>

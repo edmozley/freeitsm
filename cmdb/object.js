@@ -12,6 +12,8 @@
 
 const API = '../api/cmdb/';
 const OBJECT_ID = window.OBJECT_ID;
+// GH #312: person, analyst, team, location, company, supplier, contract.
+const RECORD_TYPES = new Set(window.CMDB_RECORD_TYPES || []);
 
 let obj = null;
 let impact = null;            // {descendants, referenced_by_property, referenced_by_relationship}
@@ -768,6 +770,7 @@ function propCard(p) {
  * Returns a property value for display - a linked object, Yes/No, a coloured drop-down pill, a number, a date without time, or text.
  */
 function propValueHtml(p) {
+    if (RECORD_TYPES.has(p.property_type)) return recordValueHtml(p);
     if (p.property_type === 'object_ref') {
         if (!p.value_object) return esc(p.value);
         return '<a class="o2-ref" href="object.php?id=' + p.value_object.id + '">' +
@@ -787,6 +790,22 @@ function propValueHtml(p) {
     // 00:00:00 tail, which reads as spurious precision on a date-only field.
     if (p.property_type === 'date') return esc(dateOnly(p.value));
     return esc(p.value);
+}
+
+/**
+ * GH #312: a person / team / location ... value - its live name, a link when the
+ * record has a page, and "(inactive)", "(removed)" or "(another company)" when
+ * that is the truth. A removed record keeps its id on purpose (Data quality lists it).
+ */
+function recordValueHtml(p) {
+    const v = p.value_record;
+    if (!v) return esc(p.value);
+    if (v.state === 'removed') return '<span class="o2-rec-gone">' + esc(window.t('cmdb.record.removed')) + '</span>';
+    if (v.state === 'hidden') return '<span class="o2-rec-gone">' + esc(window.t('cmdb.record.hidden')) + '</span>';
+    const name = v.url
+        ? '<a class="o2-rec" href="../' + esc(v.url) + '">' + esc(v.name) + '</a>'
+        : '<span class="o2-rec">' + esc(v.name) + '</span>';
+    return name + (v.state === 'inactive' ? ' <span class="o2-rec-gone">' + esc(window.t('cmdb.record.inactive')) + '</span>' : '');
 }
 
 /** Shows or hides the empty properties, then re-renders. */
@@ -907,6 +926,7 @@ function beginEdit(cell) {
     const p = (obj.properties || []).find(x => x.property_id === pid);
     if (!p) return;
     if (p.property_type === 'object_ref') { beginEditObjectRef(cell, p); return; }
+    if (RECORD_TYPES.has(p.property_type)) { beginEditRecordRef(cell, p); return; }
 
     let editor;
     if (p.property_type === 'dropdown') {
@@ -1074,6 +1094,43 @@ function beginEditObjectRef(cell, p) {
     });
 }
 
+/* ---------------- record editing (GH #312) ---------------- */
+
+/* A person / team / location ... picked by name. The search offers only what this
+   CI may point at (its own company's people, locations and contracts, companies
+   you can reach); the save checks the same again. */
+function beginEditRecordRef(cell, p) {
+    const before = cell.innerHTML;
+    const cur = p.value_record && p.value_record.state !== 'removed' && p.value_record.state !== 'hidden' ? p.value_record.name : '';
+    cell.innerHTML =
+        '<div class="autocomplete-wrap">' +
+            '<input type="text" id="o2ref_' + p.property_id + '" autocomplete="off" ' +
+                'placeholder="' + esc(window.t('cmdb.record.search_placeholder', { type: window.t('cmdb.record.type_' + p.property_type) })) + '" ' +
+                'value="' + esc(cur || '') + '">' +
+            '<div class="autocomplete-results" id="o2refres_' + p.property_id + '"></div>' +
+        '</div>';
+    const input = document.getElementById('o2ref_' + p.property_id);
+    const results = document.getElementById('o2refres_' + p.property_id);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = async raw => { if (done) return; done = true; await saveProperty(p, raw, cell, before); };
+    const cancel = () => { if (done) return; done = true; cell.innerHTML = before; wireProps(); };
+    wireAutocomplete(input, results, { record_type: p.property_type, object_id: obj.id }, picked => {
+        input.value = picked.name;
+        results.classList.remove('active');
+        finish(picked.id);
+    });
+    input.addEventListener('keydown', e => { if (e.key === 'Escape') cancel(); });
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            if (done) return;
+            if (input.value.trim() === '') finish(null);   // emptied = cleared
+            else cancel();
+        }, 200);
+    });
+}
+
 /* ---------------- shared autocomplete ---------------- */
 
 /**
@@ -1092,7 +1149,10 @@ function wireAutocomplete(inputEl, resultsEl, params, onPick) {
         if (q === '') { resultsEl.classList.remove('active'); return; }
         acTimer = setTimeout(async () => {
             try {
-                const url = API + 'search_objects.php?q=' + encodeURIComponent(q) +
+                // GH #312: a record property searches records, not CIs.
+                const url = params.record_type
+                    ? API + 'search_records.php?type=' + encodeURIComponent(params.record_type) + '&object_id=' + params.object_id + '&q=' + encodeURIComponent(q)
+                    : API + 'search_objects.php?q=' + encodeURIComponent(q) +
                     (params.class_id ? '&class_id=' + params.class_id : '') +
                     (params.exclude_id ? '&exclude_id=' + params.exclude_id : '');
                 const data = await (await fetch(url)).json();
@@ -1121,7 +1181,7 @@ function wireAutocomplete(inputEl, resultsEl, params, onPick) {
         }
         resultsEl.innerHTML = current.map((r, i) =>
             '<div class="ac-result' + (i === acHighlightedIdx ? ' highlighted' : '') + '" data-idx="' + i + '">' +
-                '<span>' + esc(r.name) + '</span><span class="ac-class">' + esc(r.class_name) + '</span>' +
+                '<span>' + esc(r.name) + '</span><span class="ac-class">' + esc(r.class_name || '') + '</span>' +
             '</div>').join('');
         resultsEl.classList.add('active');
         resultsEl.querySelectorAll('.ac-result').forEach(el => {

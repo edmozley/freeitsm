@@ -17,6 +17,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/cmdb_record_refs.php';   // GH #312
 
 header('Content-Type: application/json');
 
@@ -94,7 +95,7 @@ try {
     // Property definitions for this class
     $propStmt = $conn->prepare(
         "SELECT p.id, p.property_key, p.label, p.property_type, p.target_class_id, p.is_required, p.display_order,
-                tc.name AS target_class_name
+                p.spreads_impact, tc.name AS target_class_name
            FROM cmdb_class_properties p
       LEFT JOIN cmdb_classes tc ON tc.id = p.target_class_id
           WHERE p.class_id = ?
@@ -106,7 +107,7 @@ try {
     // Existing values for this object — keyed by property_id
     $valStmt = $conn->prepare(
         "SELECT op.property_id, op.value_text, op.value_number, op.value_date,
-                op.value_boolean, op.value_object_id,
+                op.value_boolean, op.value_object_id, " . (cmdbRecordRefsReady($conn) ? 'op.value_ref_id' : 'NULL AS value_ref_id') . ",
                 refo.name AS value_object_name, refoc.name AS value_object_class_name
            FROM cmdb_object_properties op
       LEFT JOIN cmdb_objects refo ON refo.id = op.value_object_id" . $tRef . "
@@ -139,6 +140,22 @@ try {
         ];
     }
 
+    // GH #312: names and states for the record properties (person, team ...),
+    // one query per type. A record in a company this analyst cannot reach is
+    // 'hidden' - the CI says so without naming it.
+    $recordIds = [];
+    foreach ($propDefs as $def) {
+        $v = $valuesByProp[(int)$def['id']] ?? null;
+        if ($v && cmdbIsRecordType($def['property_type']) && $v['value_ref_id'] !== null) {
+            $recordIds[$def['property_type']][] = (int)$v['value_ref_id'];
+        }
+    }
+    $reach = analystHasAllTenantAccess($conn, (int)$_SESSION['analyst_id']) ? null : getAccessibleTenantIds($conn, (int)$_SESSION['analyst_id']);
+    $recordInfo = [];
+    foreach ($recordIds as $rType => $ids) {
+        $recordInfo[$rType] = cmdbRecordResolve($conn, $rType, $ids, $reach);
+    }
+
     $properties = [];
     foreach ($propDefs as $def) {
         $pid = (int)$def['id'];
@@ -155,6 +172,11 @@ try {
             'display_order'      => (int)$def['display_order'],
             'value'              => null,
             'value_object'       => null,
+            // GH #312: {id, name, state: ok|inactive|removed|hidden, url} for a record property
+            'value_record'       => null,
+            // Returned so the property-definition cog keeps it: without this the
+            // cog's tick read as off and saving the definition cleared it.
+            'spreads_impact'     => (int)($def['spreads_impact'] ?? 0) === 1,
             'options'            => $optionsByProp[$pid] ?? [],
         ];
 
@@ -173,6 +195,13 @@ try {
                             'name' => $val['value_object_name'],
                             'class_name' => $val['value_object_class_name'],
                         ];
+                    }
+                    break;
+                default:
+                    if (cmdbIsRecordType($def['property_type']) && $val['value_ref_id'] !== null) {
+                        $rid = (int)$val['value_ref_id'];
+                        $entry['value'] = $rid;
+                        $entry['value_record'] = ['id' => $rid] + ($recordInfo[$def['property_type']][$rid] ?? ['name' => null, 'state' => 'removed', 'url' => null]);
                     }
                     break;
             }

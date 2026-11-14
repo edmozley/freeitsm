@@ -27,6 +27,7 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
+    <script src="../../assets/js/cmdb-ref-summary.js?v=1"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <style>
@@ -520,7 +521,9 @@ $translationNamespaces = ['common', 'contracts'];
         }
 
         async function deleteSupplier(id, name) {
-            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.suppliers.delete_confirm', { name: name }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
+            // GH #312: say first which CMDB items point at this supplier.
+            const cmdbNote = window.cmdbRefSummary ? await window.cmdbRefSummary('supplier', id) : '';
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.suppliers.delete_confirm', { name: name }), detailHtml: cmdbNote, okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const response = await fetch(API_BASE + 'delete_supplier.php', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },

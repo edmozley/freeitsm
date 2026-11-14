@@ -638,6 +638,14 @@ function apiNmObjectProperties(PDO $conn, array $nodeRows): array {
                     case 'boolean':    $value = $v['value_boolean'] !== null ? ((int)$v['value_boolean'] === 1) : null; break;
                     case 'object_ref': $value = $v['value_object_id'] !== null
                         ? ['id' => (int)$v['value_object_id'], 'name' => $v['ref_name']] : null; break;
+                    // GH #312: a person / team / location ... property - its id and type only.
+                    // No name here: this helper has no API key to judge which companies'
+                    // records may be named (GET /cmdb/objects/{id} gives value_record).
+                    default:
+                        if (cmdbIsRecordType($def['property_type']) && ($v['value_ref_id'] ?? null) !== null) {
+                            $value = ['id' => (int)$v['value_ref_id'], 'type' => $def['property_type']];
+                        }
+                        break;
                 }
             }
             $props[] = ['property_key' => $key, 'label' => $def['label'], 'type' => $def['property_type'], 'value' => $value];

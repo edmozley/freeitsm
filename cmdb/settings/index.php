@@ -507,6 +507,12 @@ $translationNamespaces = ['common', 'cmdb'];
                                 <option value="boolean"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_boolean')); ?></option>
                                 <option value="dropdown"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_dropdown')); ?></option>
                                 <option value="object_ref"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_object_ref')); ?></option>
+                                <?php /* GH #312: properties that point at a real record. The list is cmdbRecordTypes(). */ ?>
+                                <optgroup label="<?php echo htmlspecialchars(t('cmdb.record.group')); ?>">
+                                <?php require_once __DIR__ . '/../../includes/cmdb_record_refs.php'; foreach (array_keys(cmdbRecordTypes()) as $rt): ?>
+                                    <option value="<?php echo $rt; ?>"><?php echo htmlspecialchars(t('cmdb.record.type_' . $rt)); ?></option>
+                                <?php endforeach; ?>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="form-group">
@@ -681,7 +687,7 @@ $translationNamespaces = ['common', 'cmdb'];
 
     <script src="../../assets/js/ai-settings.js?v=4"></script>
     <script src="../options-editor.js?v=3"></script>
-    <script src="settings.js?v=11"></script>
+    <script src="settings.js?v=12"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

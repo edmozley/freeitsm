@@ -176,7 +176,7 @@ require_once __DIR__ . '/includes/header.php';
    not "simplify" the player to call init() at parse time: it would come up with
    every label rendered as its translation key. */
 ?>
-<script src="../assets/js/confirm.js"></script>
+<script src="../assets/js/confirm.js?v=7"></script>
 <script>
     window.API_BASE     = '../api/lms/';
     window.COURSE_ID    = <?php echo (int)$courseId; ?>;

@@ -218,6 +218,7 @@
                 let input;
                 if (r.type === 'dropdown') input = '<select data-cil-prop="' + esc(r.key) + '"><option value=""></option>' + r.options.map(v => '<option>' + esc(v) + '</option>').join('') + '</select>';
                 else if (r.type === 'boolean') input = '<input type="checkbox" data-cil-prop="' + esc(r.key) + '" data-cil-bool>';
+                else if (r.type === 'ref' && r.record_type) input = '<select data-cil-prop="' + esc(r.key) + '" data-cil-record="' + esc(r.record_type) + '"><option value="">' + esc(L('loading', 'Loading...')) + '</option></select>';
                 else if (r.type === 'ref') input = '<select data-cil-prop="' + esc(r.key) + '" data-cil-ref="' + Number(r.ref_class_id || 0) + '"><option value="">' + esc(L('loading', 'Loading...')) + '</option></select>';
                 else input = '<input type="' + (r.type === 'number' ? 'number' : r.type === 'date' ? 'date' : 'text') + '" data-cil-prop="' + esc(r.key) + '">';
                 h += '<label class="cil-field"><span>' + esc(r.label) + ' *</span>' + input + '</label>';
@@ -229,6 +230,15 @@
 
         /** A required reference property: the CIs it may point at, in the asset's company. */
         function fillRefSelects() {
+            // GH #312: a required person / team / location ... - the records the new CI
+            // may point at (the asset's company decides which people and locations).
+            host.querySelectorAll('select[data-cil-record]').forEach(async sel => {
+                try {
+                    const res = await fetch(base + 'api/cmdb/search_records.php?type=' + encodeURIComponent(sel.dataset.cilRecord) + '&asset_id=' + encodeURIComponent(o.id) + '&limit=50');
+                    const d = await res.json();
+                    sel.innerHTML = '<option value=""></option>' + ((d.results || []).map(r => '<option value="' + r.id + '">' + esc(r.name) + '</option>').join(''));
+                } catch (e) { sel.innerHTML = '<option value=""></option>'; }
+            });
             host.querySelectorAll('select[data-cil-ref]').forEach(async sel => {
                 const cls = Number(sel.dataset.cilRef);
                 try {

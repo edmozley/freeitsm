@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/cmdb_record_refs.php';   // GH #312: person / team / location ... names
+
 /**
  * The user message for a CMDB object's AI summary: the object, its properties, children,
  * relationships, property references and tickets - only what is in the data.
@@ -36,6 +38,7 @@ function cmdbObjectSummaryMessage(PDO $conn, int $id): string
     $propStmt = $conn->prepare(
         "SELECT p.label, p.property_type,
                 op.value_text, op.value_number, op.value_date, op.value_boolean,
+                " . (cmdbRecordRefsReady($conn) ? 'op.value_ref_id' : 'NULL AS value_ref_id') . ",
                 refo.name AS value_object_name, refoc.name AS value_object_class
            FROM cmdb_class_properties p
       LEFT JOIN cmdb_object_properties op ON op.property_id = p.id AND op.object_id = ?
@@ -46,8 +49,26 @@ function cmdbObjectSummaryMessage(PDO $conn, int $id): string
     );
     $propStmt->execute([$id, $id]);
     $propLines = [];
-    foreach ($propStmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+    // GH #312: person / team / location ... names, as the person asking may see
+    // them (a company they cannot reach is left out, never named to the AI).
+    $sumRows = $propStmt->fetchAll(PDO::FETCH_ASSOC);
+    $sumReach = null;
+    if (!empty($_SESSION['analyst_id']) && !analystHasAllTenantAccess($conn, (int)$_SESSION['analyst_id'])) {
+        $sumReach = getAccessibleTenantIds($conn, (int)$_SESSION['analyst_id']);
+    }
+    $sumRecords = [];
+    foreach ($sumRows as $r) {
+        if (cmdbIsRecordType($r['property_type']) && $r['value_ref_id'] !== null) $sumRecords[$r['property_type']][] = (int)$r['value_ref_id'];
+    }
+    foreach ($sumRecords as $rt => $ids) $sumRecords[$rt] = cmdbRecordResolve($conn, $rt, $ids, $sumReach);
+    foreach ($sumRows as $r) {
         $val = null;
+        if (cmdbIsRecordType($r['property_type'])) {
+            $info = $r['value_ref_id'] !== null ? ($sumRecords[$r['property_type']][(int)$r['value_ref_id']] ?? null) : null;
+            if ($info && $info['name'] !== null) {
+                $val = $info['name'] . ($info['state'] === 'inactive' ? ' (no longer active)' : '');
+            }
+        }
         switch ($r['property_type']) {
             case 'text':       $val = $r['value_text']; break;
             case 'dropdown':   $val = $r['value_text']; break;

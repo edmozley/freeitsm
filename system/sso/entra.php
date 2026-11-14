@@ -95,7 +95,7 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
     <script src="../../assets/js/toast.js"></script>
-    <script src="../../assets/js/confirm.js"></script>
+    <script src="../../assets/js/confirm.js?v=7"></script>
     <style>
         /* The layout, fields, buttons, results, history table and run modal are
            provider.php's, so the three people-source pages look and behave as one. */

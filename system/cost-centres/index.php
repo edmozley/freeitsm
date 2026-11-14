@@ -259,7 +259,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
     </div>
 
     <script src="../../assets/js/toast.js"></script>
-    <script src="../../assets/js/confirm.js"></script>
+    <script src="../../assets/js/confirm.js?v=7"></script>
     <script>
     (function () {
         const API = '../../api/system/cost_centres.php';

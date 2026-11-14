@@ -174,6 +174,15 @@ return [
     'confirm_dialog' => [
         'title' => 'Potwierdź',
     ],
+    'cmdb_refs' => [
+        'points_one' => '1 element konfiguracji wskazuje ten rekord.',
+        'points_other' => 'Elementy konfiguracji wskazujące ten rekord: {count}.',
+        'more' => 'i jeszcze {count}',
+        'hidden_one' => '1 z nich należy do firmy, której nie widzisz.',
+        'hidden_other' => 'Liczba z nich należących do firm, których nie widzisz: {count}.',
+        'removed_one' => 'Po usunięciu ten element będzie zamiast tego pokazywać "(usunięto)".',
+        'removed_other' => 'Po usunięciu te elementy będą zamiast tego pokazywać "(usunięto)".',
+    ],
     'palette' => [
         'aria_dialog' => 'Paleta poleceń',
         'search_ph' => 'Szukaj zgłoszeń, zasobów, pozycji — albo przejdź do modułu…',

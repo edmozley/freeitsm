@@ -12,6 +12,7 @@ const AUDIT_API = '../api/cmdb/get_audit.php';
 const CHECK_ORDER = [
     'no_impact_edges',
     'broken_reference',
+    'record_removed',
     'required_missing',
     'dependency_blank',
     'disconnected',

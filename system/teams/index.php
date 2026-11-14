@@ -47,6 +47,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=4"></script>
+    <script src="../../assets/js/cmdb-ref-summary.js?v=1"></script>
     <style>
         /* Full-width scrolling shell — the canonical settings pattern
            (tickets/settings): a plain flex wrapper pins the header and lets the
@@ -581,9 +582,12 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         async function deleteTeam(id, name) {
+            // GH #312: say first which CMDB items point at this team.
+            const cmdbNote = window.cmdbRefSummary ? await window.cmdbRefSummary('team', id) : '';
             const ok = await showConfirm({
                 title: 'Delete team',
                 message: `Are you sure you want to delete the team "${name}"?`,
+                detailHtml: cmdbNote,
                 okLabel: 'Delete',
                 okClass: 'danger'
             });

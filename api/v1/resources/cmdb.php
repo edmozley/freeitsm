@@ -321,12 +321,28 @@ function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body)
         $valuesByProp[(int)$v['property_id']] = $v;
     }
 
+    // GH #312: names and states for record properties (person, team ...), with the
+    // KEY's company reach - a record in a company the key cannot see is 'hidden'.
+    $defsForRecords = apiCmdbClassDefs($conn, (int)$r['class_id']);
+    $recordIds = [];
+    foreach ($defsForRecords as $def) {
+        $v = $valuesByProp[(int)$def['id']] ?? null;
+        if ($v && cmdbIsRecordType($def['property_type']) && ($v['value_ref_id'] ?? null) !== null) {
+            $recordIds[$def['property_type']][] = (int)$v['value_ref_id'];
+        }
+    }
+    $recordInfo = [];
+    foreach ($recordIds as $rType => $ids) {
+        $recordInfo[$rType] = cmdbRecordResolve($conn, $rType, $ids, $apiKey['company_scope'] ?? null);
+    }
+
     $obj['properties'] = [];
-    foreach (apiCmdbClassDefs($conn, (int)$r['class_id']) as $key => $def) {
+    foreach ($defsForRecords as $key => $def) {
         $pid = (int)$def['id'];
         $v = $valuesByProp[$pid] ?? null;
         $value = null;
         $valueObject = null;
+        $valueRecord = null;
         if ($v) {
             switch ($def['property_type']) {
                 case 'text':
@@ -340,6 +356,13 @@ function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body)
                         $valueObject = ['id' => $value, 'name' => $v['ref_name'], 'class_name' => $v['ref_class_name']];
                     }
                     break;
+                default:
+                    if (cmdbIsRecordType($def['property_type']) && ($v['value_ref_id'] ?? null) !== null) {
+                        $value = (int)$v['value_ref_id'];
+                        $info = $recordInfo[$def['property_type']][$value] ?? ['name' => null, 'state' => 'removed'];
+                        $valueRecord = ['id' => $value, 'type' => $def['property_type'], 'name' => $info['name'], 'state' => $info['state']];
+                    }
+                    break;
             }
         }
         $obj['properties'][] = [
@@ -349,6 +372,9 @@ function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body)
             'is_required'  => (bool)$def['is_required'],
             'value'        => $value,
             'value_object' => $valueObject,
+            // GH #312: {id, type, name, state: ok|inactive|removed|hidden} for person,
+            // analyst, team, location, company, supplier and contract properties.
+            'value_record' => $valueRecord,
         ];
     }
 

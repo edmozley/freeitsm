@@ -527,6 +527,11 @@ if ($showDomains) $translationNamespaces[] = 'domains';
             font-size: 14px; font-weight: 600;
         }
         .o2-ref:hover { text-decoration: underline; }
+        /* GH #312: a person / team / location ... - the record's live name */
+        .o2-rec { color: var(--text, #111827); font-size: 14px; font-weight: 600; text-decoration: none; }
+        a.o2-rec { color: var(--cmdb-accent, #be185d); }
+        a.o2-rec:hover { text-decoration: underline; }
+        .o2-rec-gone { color: var(--text-dim, #6b7280); font-size: 13px; font-style: italic; font-weight: 400; }
 
         .o2-blanks {
             margin-top: 12px;
@@ -905,6 +910,12 @@ if ($showDomains) $translationNamespaces[] = 'domains';
                             <option value="boolean"><?php echo htmlspecialchars(t('cmdb.prop_def.type_boolean')); ?></option>
                             <option value="dropdown"><?php echo htmlspecialchars(t('cmdb.prop_def.type_dropdown')); ?></option>
                             <option value="object_ref"><?php echo htmlspecialchars(t('cmdb.prop_def.type_object_ref')); ?></option>
+                            <?php /* GH #312: properties that point at a real record. The list is cmdbRecordTypes(). */ ?>
+                            <optgroup label="<?php echo htmlspecialchars(t('cmdb.record.group')); ?>">
+                            <?php require_once __DIR__ . '/../includes/cmdb_record_refs.php'; foreach (array_keys(cmdbRecordTypes()) as $rt): ?>
+                                <option value="<?php echo $rt; ?>"><?php echo htmlspecialchars(t('cmdb.record.type_' . $rt)); ?></option>
+                            <?php endforeach; ?>
+                            </optgroup>
                         </select>
                     </div>
                     <div class="o2-field">
@@ -938,6 +949,8 @@ if ($showDomains) $translationNamespaces[] = 'domains';
 
     <script>
         window.OBJECT_ID = <?php echo isset($_GET['id']) ? (int)$_GET['id'] : 0; ?>;
+        // GH #312: the property types that point at a real record (cmdbRecordTypes()).
+        window.CMDB_RECORD_TYPES = <?php require_once __DIR__ . '/../includes/cmdb_record_refs.php'; echo json_encode(array_keys(cmdbRecordTypes())); ?>;
         window.CAN_MAKE_DIAGRAM = <?php echo $canMakeDiagram ? 'true' : 'false'; ?>;
         window.SHOW_DOMAINS = <?php echo $showDomains ? 'true' : 'false'; ?>;
         // Projects (3.2.0): the projects this CI is part of, for analysts who can open Projects.
@@ -951,8 +964,8 @@ if ($showDomains) $translationNamespaces[] = 'domains';
     <script src="options-editor.js?v=3"></script>
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
-    <script src="../assets/js/ci-asset-link.js?v=5"></script>
-    <script src="object.js?v=19"></script>
+    <script src="../assets/js/ci-asset-link.js?v=6"></script>
+    <script src="object.js?v=20"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

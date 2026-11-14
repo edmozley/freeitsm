@@ -113,7 +113,7 @@ $path_prefix = '../../';
     </div>
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js?v=7"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/ai-settings.js?v=4"></script>
     <script>
     const PMS_API = '../../api/problem-management/';

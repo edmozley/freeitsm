@@ -28,6 +28,11 @@
  * Options:
  *   title       - Modal heading text. Default: 'Confirm'.
  *   message     - Body text (plain text, not HTML).
+ *   detailHtml  - Optional extra block under the message, as HTML. TRUSTED: the
+ *                 caller must have escaped every value in it. Made for
+ *                 assets/js/cmdb-ref-summary.js (GH #312 - "3 configuration items
+ *                 point at this record ..."). Omit it or pass '' and the dialog
+ *                 is exactly as it always was.
  *   okLabel     - Label for the OK button. Default: 'OK'.
  *   okClass     - 'primary' | 'danger'. Drives the OK button colour. Default: 'primary'.
  *   cancelLabel - Label for the Cancel button. Default: 'Cancel'.
@@ -76,6 +81,11 @@
         '.fitsm-confirm-header h3{margin:0;font-size:18px;font-weight:600;color:var(--text,#333)}' +
         '.fitsm-confirm-body{padding:20px;color:var(--text-muted,#555);font-size:14px;line-height:1.5}' +
         '.fitsm-confirm-body p{margin:0;white-space:pre-wrap}' +
+        // The optional detail block (GH #312): a warning under the question.
+        '.fitsm-confirm-detail{margin-top:12px;padding:10px 12px;border-radius:4px;font-size:13px;' +
+            'line-height:1.45;background:var(--warning-bg,#fff8e1);color:var(--warning-text,#7a5300);' +
+            'border:1px solid var(--warning-border,#ffe08a);overflow-wrap:anywhere}' +
+        '.fitsm-confirm-detail[hidden]{display:none}' +
         '.fitsm-confirm-footer{padding:15px 20px;border-top:1px solid var(--border,#e0e0e0);display:flex;' +
             'justify-content:flex-end;gap:10px}' +
         '.fitsm-confirm-btn{padding:8px 16px;border-radius:4px;font-size:13px;cursor:pointer;' +
@@ -109,6 +119,7 @@
     var overlay = null;
     var titleEl = null;
     var bodyEl = null;
+    var detailEl = null;
     var cancelBtn = null;
     var okBtn = null;
     var checkWrap = null;
@@ -144,6 +155,11 @@
         body.className = 'fitsm-confirm-body';
         bodyEl = document.createElement('p');
         body.appendChild(bodyEl);
+
+        detailEl = document.createElement('div');
+        detailEl.className = 'fitsm-confirm-detail';
+        detailEl.hidden = true;
+        body.appendChild(detailEl);
 
         checkWrap = document.createElement('label');
         checkWrap.className = 'fitsm-confirm-check';
@@ -248,6 +264,10 @@
 
         titleEl.textContent = opts.title || cd('common.confirm_dialog.title', 'Confirm');
         bodyEl.textContent = opts.message || '';
+        // Reset every time: one reused element, so a warning from a previous
+        // question must not appear on an unrelated one.
+        detailEl.innerHTML = opts.detailHtml || '';
+        detailEl.hidden = !opts.detailHtml;
         okBtn.textContent = opts.okLabel || cd('common.ok', 'OK');
         cancelBtn.textContent = opts.cancelLabel || cd('common.cancel', 'Cancel');
 

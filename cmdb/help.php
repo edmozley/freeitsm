@@ -244,6 +244,11 @@ $translationNamespaces = ['common', 'cmdb'];
                         <?php echo t('cmdb.help.classes_tip1'); ?>
                     </div>
 
+                    <?php /* GH #312: properties that point at real records */ ?>
+                    <div class="help-note" id="record-properties">
+                        <?php echo t('cmdb.help.classes_tip_records'); ?>
+                    </div>
+
                     <div class="help-note">
                         <?php echo t('cmdb.help.classes_tip2'); ?>
                     </div>
@@ -312,6 +317,10 @@ $translationNamespaces = ['common', 'cmdb'];
 
                     <div class="help-note">
                         <?php echo t('cmdb.help.objects_tip'); ?>
+                    </div>
+
+                    <div class="help-note">
+                        <?php echo t('cmdb.help.objects_find'); ?>
                     </div>
                 </div>
 

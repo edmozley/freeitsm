@@ -201,7 +201,7 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
         window.RBAC_TEAMS    = <?php echo json_encode(array_map(fn($t) => ['id' => (int)$t['id'], 'name' => $t['name']], $teams), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
     </script>
     <script src="../../assets/js/toast.js"></script>
-    <script src="../../assets/js/confirm.js"></script>
+    <script src="../../assets/js/confirm.js?v=7"></script>
     <script src="../../assets/js/system-roles.js?v=5"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>

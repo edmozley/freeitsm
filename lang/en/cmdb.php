@@ -47,6 +47,9 @@ return [
         'check_broken_reference' => 'Broken object references',
         'why_broken_reference'   => 'A property pointing at an object that no longer exists. The dependency it recorded is gone, so it can never be followed.',
         'clean_broken_reference' => 'Every object reference points at something real.',
+        'check_record_removed'   => 'References to removed records',
+        'why_record_removed'     => 'A property such as Owner or Location that names a person, team, location, company, supplier or contract that has since been deleted. The object still says what it named, but there is nothing to follow - pick the current one.',
+        'clean_record_removed'   => 'Every person, team, location and other record a property names still exists.',
 
         'check_required_missing' => 'Required fields left empty',
         'why_required_missing'   => 'The class says this property is required, but the object has no value. Usually means the property was made required after these objects were created.',
@@ -88,6 +91,34 @@ return [
         'planned_pill' => 'PLANNED',
         'planned_title'=> 'This object doesn\'t physically exist yet',
         'error_prefix' => 'Error: {message}',
+        // Property filters and columns on the list (GH #312 follow-up).
+        'search_placeholder' => 'Search names and text values…',
+        'filter_button'      => 'Filter',
+        'filter_title'       => 'Filter this list by a property',
+        'filter_property'    => 'Property',
+        'filter_operator'    => 'Condition',
+        'filter_value'       => 'Value',
+        'filter_add'         => 'Add',
+        'filter_remove'      => 'Remove this filter',
+        'filter_clear'       => 'Clear',
+        'filter_pick_placeholder' => 'Type to search…',
+        'filter_pick_one'    => 'Pick one from the list first.',
+        'filter_need_value'  => 'Enter a value first.',
+        'filter_dropped'     => '{n} filter(s) no longer apply to this class and were removed.',
+        'op_contains'        => 'contains',
+        'op_is'              => 'is',
+        'op_equals'          => 'equals',
+        'op_at_least'        => 'is at least',
+        'op_at_most'         => 'is at most',
+        'op_on_or_before'    => 'is on or before',
+        'op_on_or_after'     => 'is on or after',
+        'op_is_set'          => 'is set',
+        'op_is_empty'        => 'is empty',
+        'columns_button'     => 'Columns',
+        'columns_title'      => 'Show property values as columns',
+        'columns_hint'       => 'Show up to {n} properties as columns.',
+        'no_match_heading'   => 'Nothing matches.',
+        'no_match_hint'      => 'Try a different search, or remove a filter.',
     ],
 
     'new_object' => [
@@ -749,7 +780,7 @@ return [
         'concept_object_name' => 'Object',
         'concept_object_desc' => 'An <em>instance</em> of a class. <em>SQLSVR01</em> is an object whose class is <em>Server</em>. You create objects from the browse page.',
         'concept_property_name' => 'Property',
-        'concept_property_desc' => 'A field on a class. Properties can be text, number, date, Yes/No, dropdown, or a <em>reference to another object</em>. Once a class has properties, every object of that class gets the same set of fields to fill in.',
+        'concept_property_desc' => 'A field on a class. Properties can be text, number, date, Yes/No, dropdown, a <em>reference to another object</em>, or a person, analyst, team, location, company, supplier or contract that FreeITSM already holds. Once a class has properties, every object of that class gets the same set of fields to fill in.',
         'concept_hierarchy_name' => 'Hierarchy (parent &amp; children)',
         'concept_hierarchy_desc' => 'A strict tree. Each object has 0 or 1 parent and any number of children. <em>Parent</em> means <strong>"this thing can\'t exist without it"</strong> &mdash; if you delete the parent, the children go too.',
         'concept_relationship_name' => 'Relationship',
@@ -764,6 +795,7 @@ return [
         'classes_step3'    => 'Click that property-count badge to open the per-class properties manager.',
         'classes_step4'    => 'Either click <strong>Add Property</strong> for each one manually, or use <strong>&#x2728; Suggest with AI</strong> &mdash; covered in the next section.',
         'classes_tip1'     => '<strong>Property types:</strong> Text, Number, Date, Yes/No, Dropdown (with optional per-option colours that render as tinted pills on the object detail page), and Object Reference (points at another object &mdash; pick the target class so the picker is scoped). The label is freely editable; the underlying <em>property key</em> is immutable so renaming the label never breaks stored values.',
+        'classes_tip_records' => '<strong>Pointing at real records:</strong> a property can be a <strong>Person</strong>, <strong>Analyst</strong>, <strong>Team</strong>, <strong>Location</strong>, <strong>Company</strong>, <strong>Supplier</strong> or <strong>Contract</strong>. It holds the real record, shows its current name (with a link where it has a page), and never needs a copy kept as a CMDB object. People, locations and contracts come from the object\'s own company (and locations shared by every company); a Company can be any company you can reach, and someone who cannot reach it sees <em>(another company)</em>. If the record is later deleted the object says <em>(removed)</em> and <strong>Data quality</strong> lists it; the delete warns first which objects point at it. An Analyst property also shows up when that analyst leaves.',
         'classes_tip2'     => '<strong>Editing properties from anywhere:</strong> Every property row on the object detail page has a small &#9881; cog next to its type tag &mdash; click it to open a draggable floating modal that edits the property\'s full definition (including its dropdown options and colours) without leaving the page.',
 
         // 4. AI Suggest Properties
@@ -772,7 +804,7 @@ return [
         'ai_suggest_lead'    => 'When you click <strong>&#x2728; Suggest with AI</strong> in the per-class properties manager, the wizard runs in two stages:',
         'ai_suggest_step1'   => '<strong>Clarifying questions.</strong> Claude asks 3-5 short questions about your specific environment &mdash; for <em>Database</em> that might be "What kind &mdash; SQL Server / Postgres / Mongo / Redis?", "Do you track schemas separately?". Skip any you\'re not sure about.',
         'ai_suggest_step2'   => '<strong>Suggestions.</strong> Based on your answers, Claude proposes 6-12 properties tailored to <em>your</em> stack &mdash; with type, key, required flag, and a one-line "why". Untick anything you don\'t want, click <strong>Add Selected</strong>.',
-        'ai_suggest_step3'   => '<strong>Auto-create missing classes.</strong> If a suggestion is an Object Reference (e.g. <em>Owner &rarr; Person</em>) and you don\'t have a Person class yet, the CMDB creates it on the fly so the link works straight away. The Result panel lists exactly what was added and what was created.',
+        'ai_suggest_step3'   => '<strong>Real records first.</strong> An owner, support team, site or vendor is suggested as a Person, Team, Location or Supplier property that points at the real record. A reference to another object (e.g. <em>Host &rarr; Server</em>) still needs a class: if you don\'t have one yet, the CMDB creates it on the fly so the link works straight away. The Result panel lists exactly what was added and what was created.',
         'ai_suggest_tip'     => 'Re-running the wizard later is safe &mdash; suggestions whose label or key already exist on the class are filtered out, so you can run it again after adding a few properties manually and only get new ideas.',
 
         // 5. Adding objects
@@ -781,8 +813,9 @@ return [
         'objects_step1'    => 'From the CMDB browse page, pick the class in the left sidebar (it shows the object count beside each class).',
         'objects_step2'    => 'Click <strong>New</strong> at the top right. The modal asks for a name. If the class has any required properties, those appear as fields below the name input &mdash; fill them and click <strong>Create &amp; open</strong>.',
         'objects_step3'    => 'You\'re taken straight to the object detail page. Click any property value to edit it in place. Saves on <kbd>Enter</kbd> or blur. Press <kbd>Escape</kbd> to cancel.',
-        'objects_step4'    => 'Object Reference properties open an autocomplete scoped to the target class &mdash; type a few characters to find the linked object.',
+        'objects_step4'    => 'Object Reference properties open an autocomplete scoped to the target class &mdash; type a few characters to find the linked object. Person, team, location and the other record properties work the same way, offering only what that object may point at.',
         'objects_tip'      => 'The detail page leads with a hero band: the class icon, the name (click to edit), and chips for the class, how critical it is, whether it is in service or only planned, and its parent. Fields live in <strong>Details</strong> as cards &mdash; only the ones with a value are shown, and empty ones collapse behind a single line you can expand.',
+        'objects_find'     => '<strong>Finding objects.</strong> The search box matches names and any text or drop-down value of the class. <strong>Filter</strong> narrows the list by a property: pick the property, a condition (contains, is, at least, on or before, is set, is empty...) and a value - for a person, a location or another object you search and pick one. Add as many as you need; an object must match them all. Each filter shows as a chip you can remove. <strong>Columns</strong> adds up to three property values to the table. The address bar keeps the search, filters and columns, so you can bookmark a list or send the link to someone.',
 
         // 6. Hierarchy
         'hierarchy_heading' => 'Parent &amp; children &mdash; the hierarchy',
@@ -887,5 +920,20 @@ return [
         'companies_links'   => 'There are <strong>no shared configuration items</strong> &mdash; a client\'s servers and services are entirely their own. That means a configuration item\'s <strong>parent</strong>, its <strong>relationships</strong> and any <strong>linked-object property</strong> must all stay inside one company, and linking one to a ticket checks both sides. This holds even for staff who can access every company: without it, two clients\' estates could be joined together. A configuration item\'s ticket list shows only tickets from its own company.',
         'companies_shared'  => '<strong>Classes, their properties, relationship types and icons stay shared</strong> across every company. They describe how you <em>model</em> your estate rather than whose equipment it is &mdash; the same reasoning that keeps ticket statuses and priorities global.',
         'companies_move'    => 'A configuration item <strong>cannot currently be moved</strong> between companies. Unlike a ticket, it sits in a tree with relationships hanging off it, so a move would have to decide what happens to its parent, its children and every link. For now, file it in the right company when you create it; if one ends up in the wrong place, delete it and recreate it.',
+    ],
+    // GH #312: properties that point at a real record (person, team, location ...)
+    'record' => [
+        'group'              => 'Points at a record',
+        'type_person'        => 'Person',
+        'type_analyst'       => 'Analyst',
+        'type_team'          => 'Team',
+        'type_location'      => 'Location',
+        'type_company'       => 'Company',
+        'type_supplier'      => 'Supplier',
+        'type_contract'      => 'Contract',
+        'removed'            => '(removed)',
+        'inactive'           => '(inactive)',
+        'hidden'             => '(another company)',
+        'search_placeholder' => 'Type a name to search',
     ],
 ];

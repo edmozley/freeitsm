@@ -40,7 +40,7 @@ $translationNamespaces = ['common', 'asset-management'];
          so it needed neither a toast nor a confirmation. Both self-guard against
          being loaded twice. -->
     <script src="../assets/js/toast.js"></script>
-    <script src="../assets/js/confirm.js"></script>
+    <script src="../assets/js/confirm.js?v=7"></script>
     <style>
         /* ⚠️ --app-bg, not --bg. There is no --bg token in theme.css, so the
            fallback applied on every theme and the page kept a light background

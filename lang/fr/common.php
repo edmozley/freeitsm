@@ -174,6 +174,15 @@ return [
     'confirm_dialog' => [
         'title' => 'Confirmer',
     ],
+    'cmdb_refs' => [
+        'points_one' => '1 élément de configuration désigne cet enregistrement.',
+        'points_other' => '{count} éléments de configuration désignent cet enregistrement.',
+        'more' => 'et {count} de plus',
+        'hidden_one' => '1 d\'entre eux est dans une entreprise que vous ne pouvez pas voir.',
+        'hidden_other' => '{count} d\'entre eux sont dans des entreprises que vous ne pouvez pas voir.',
+        'removed_one' => 'Après la suppression, cet élément affichera "(supprimé)" à la place.',
+        'removed_other' => 'Après la suppression, ces éléments afficheront "(supprimé)" à la place.',
+    ],
     'palette' => [
         'aria_dialog' => 'Palette de commandes',
         'search_ph' => 'Rechercher des tickets, des actifs, des éléments — ou aller à un module…',

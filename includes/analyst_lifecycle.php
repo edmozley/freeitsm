@@ -147,6 +147,10 @@ function analystReferenceRegistry(): array {
         ['users_assets', 'analyst_id', 'setup'],
         ['knowledge_folders', 'owner_id', 'setup'],
         ['report_packs', 'owner_id', 'setup'],
+        // GH #312: a CMDB property of type 'analyst' (e.g. "Technical owner") names them.
+        // value_ref_id is polymorphic - the property's type says which table - so
+        // only the analyst-typed properties count. Someone has to pick a new owner.
+        ['cmdb_object_properties', 'value_ref_id', 'setup', "property_id IN (SELECT cp.id FROM cmdb_class_properties cp WHERE cp.property_type = 'analyst')"],
         ['domain_registrar_accounts', 'owner_analyst_id', 'setup'],
         ['project_raid', 'owner_analyst_id', 'setup', "closed_datetime IS NULL"],
         ['project_benefits', 'owner_analyst_id', 'setup'],

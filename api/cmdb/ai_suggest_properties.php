@@ -73,7 +73,8 @@ Rules:
   - is_required: true ONLY if the property is essential (rare — most should be false)
   - why: one short sentence explaining why this matters in plain English
 - For property_type "dropdown", include an "options" array of 3-8 likely values based on the admin's answers.
-- For property_type "object_ref", include "target_class_hint" — a short string suggesting what kind of object this should reference (e.g. "Person", "Server"). The admin will pick the actual class in the UI.
+- For property_type "object_ref", include "target_class_hint" — a short string suggesting what kind of CMDB object this should reference (e.g. "Server", "Database", "Application"). object_ref is ONLY for pointing at another configuration item.
+- For people, teams, places, companies, suppliers and contracts use the matching record type, NEVER object_ref: "person" (an end user / staff member in the directory, e.g. Owner, Business owner, Primary user), "analyst" (an IT staff member who supports it, e.g. Technical owner), "team" (e.g. Support team, Resolver group), "location" (site, building, room, data centre), "company" (e.g. Maintained by, Client), "supplier" (vendor, manufacturer, reseller), "contract" (support or maintenance contract). These point at the real records FreeITSM already holds.
 - Lean towards properties an analyst will actually USE on a daily basis (status, owner, criticality, version, location, environment, lifecycle dates) over exhaustive low-value detail.
 - Use the admin's answers to tailor suggestions — don't suggest SQL Server-specific properties if they said MongoDB.
 - Do NOT suggest properties that already exist (listed below if any).
