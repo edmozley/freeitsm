@@ -54,7 +54,9 @@ final class JobRun
     public static function scheduledTrigger(): string
     {
         if (PHP_SAPI !== 'cli') return 'web';
-        return getenv('FREEITSM_JOB_TRIGGER') === 'page' ? 'page' : 'cron';
+        // Run now on Background jobs starts the job the same way, with 'manual' (jobRunNow()).
+        $t = getenv('FREEITSM_JOB_TRIGGER');
+        return $t === 'page' || $t === 'manual' ? $t : 'cron';
     }
 
     /**
@@ -121,6 +123,10 @@ final class JobRun
     public static function start(PDO $conn, string $job, string $trigger, ?int $analystId = null): ?int
     {
         if (!in_array($trigger, self::TRIGGERS, true)) $trigger = 'manual';
+        // Started by Run now (jobRunNow()): who pressed it came with the process.
+        if ($analystId === null && $trigger === 'manual' && (int)getenv('FREEITSM_JOB_ANALYST') > 0) {
+            $analystId = (int)getenv('FREEITSM_JOB_ANALYST');
+        }
         try {
             $conn->prepare("INSERT INTO job_runs (job_key, trigger_kind, outcome, started_datetime, analyst_id)
                             VALUES (?, ?, 'running', UTC_TIMESTAMP(), ?)")

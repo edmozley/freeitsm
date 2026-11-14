@@ -163,8 +163,11 @@ function jobHealthJudge(PDO $conn, array $def, array $cfg, string $key, int $int
                         WHERE job_key = ? AND outcome IN ('ok','partial') ORDER BY id DESC LIMIT 1", [$key]);
     $lastReal  = $row("SELECT id, trigger_kind, outcome, started_datetime, finished_datetime, summary FROM job_runs
                         WHERE job_key = ? AND outcome IN ('ok','partial','failed') ORDER BY id DESC LIMIT 1", [$key]);
-    $lastRun   = $row("SELECT id, trigger_kind, outcome, started_datetime, finished_datetime, summary, counts_json FROM job_runs
-                        WHERE job_key = ? ORDER BY id DESC LIMIT 1", [$key]);
+    // Who started it, for the audit (#343): an analyst for Run now; nobody - System - for a schedule.
+    $lastRun   = $row("SELECT r.id, r.trigger_kind, r.outcome, r.started_datetime, r.finished_datetime, r.summary, r.counts_json,
+                               a.full_name AS analyst_name
+                          FROM job_runs r LEFT JOIN analysts a ON a.id = r.analyst_id
+                         WHERE r.job_key = ? ORDER BY r.id DESC LIMIT 1", [$key]);
     $running   = $row("SELECT id, started_datetime, trigger_kind FROM job_runs
                         WHERE job_key = ? AND outcome = 'running' ORDER BY id DESC LIMIT 1", [$key]);
 
@@ -213,6 +216,7 @@ function jobHealthJudge(PDO $conn, array $def, array $cfg, string $key, int $int
             'id' => (int)$lastRun['id'], 'trigger' => $lastRun['trigger_kind'], 'outcome' => $lastRun['outcome'],
             'started' => $lastRun['started_datetime'], 'finished' => $lastRun['finished_datetime'],
             'summary' => $lastRun['summary'], 'counts' => $lastRun['counts_json'] ? (json_decode($lastRun['counts_json'], true) ?: []) : [],
+            'analyst_name' => $lastRun['analyst_name'],
         ] : null,
         'failing_sources'        => $failing,
         'refused'                => $refused,

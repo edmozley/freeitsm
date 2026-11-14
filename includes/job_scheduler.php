@@ -193,14 +193,29 @@ function jobSchedulerCommand(string $command): ?array
  * @param string $phpExe  the PHP command-line binary
  * @param string $script  the script's full path
  * @param array<int,string> $args  its --flag arguments
+ * @param array<string,string> $env  variables for the new process only, on top of this one's
+ *     (Run now: FREEITSM_JOB_TRIGGER, FREEITSM_JOB_ANALYST). Given to proc_open() rather than
+ *     putenv(): putenv() changes the whole process, and in a threaded server (Apache's mpm_winnt,
+ *     a ZTS build) another request running at that moment would start its jobs as somebody's Run now.
+ * @return bool  false when the process could not be started - also when the server's
+ *     disable_functions has removed popen / proc_open (PHP 8 throws calling one, so it is checked first)
  */
-function jobSchedulerSpawn(string $phpExe, string $script, array $args): bool
+function jobSchedulerSpawn(string $phpExe, string $script, array $args, array $env = []): bool
 {
+    if (!function_exists($env ? 'proc_open' : 'popen')) return false;
     if (PHP_OS_FAMILY === 'Windows') {
         $cmd = sprintf('start /B "" "%s" "%s"%s > NUL 2>&1', $phpExe, $script, $args ? ' ' . implode(' ', $args) : '');
     } else {
         $cmd = sprintf('nohup %s %s%s > /dev/null 2>&1 &', escapeshellarg($phpExe), escapeshellarg($script),
             $args ? ' ' . implode(' ', array_map('escapeshellarg', $args)) : '');
+    }
+    if ($env) {
+        $null = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+        $p = @proc_open($cmd, [0 => ['file', $null, 'r'], 1 => ['file', $null, 'w'], 2 => ['file', $null, 'w']],
+                        $pipes, null, array_merge(getenv(), array_map('strval', $env)));
+        if (!is_resource($p)) return false;
+        proc_close($p);   // the shell returns at once; the job carries on in the background
+        return true;
     }
     $h = @popen($cmd, 'r');
     if ($h === false) return false;
@@ -265,6 +280,67 @@ function jobSchedulerFallbackDue(PDO $conn): bool
     if ($beat !== '' && strtotime($beat . ' UTC') > time() - JOB_SCHEDULER_STALE) return false;
     $next = (string)($v[JOB_SCHEDULER_FALLBACK_NEXT] ?? '');
     return $next === '' || strtotime($next . ' UTC') <= time();
+}
+
+/**
+ * Run now, from Background jobs: starts one scheduled job at once, as its own process,
+ * exactly as the scheduler would - the registry's command, validated by
+ * jobSchedulerCommand(), never anything from the request. The run is recorded as
+ * 'manual', with who pressed it (FREEITSM_JOB_TRIGGER / FREEITSM_JOB_ANALYST, which
+ * JobRun reads), and the job's schedule is left as it was.
+ *
+ * Refused, with the reason, when the job is not a scheduled one, is not needed here
+ * (its feature is not set up, or its module is off), or is running already - its run
+ * lock would turn a second one away anyway, but saying so beats a silent nothing.
+ *
+ * Run now runs a job whatever its schedule says - even one whose schedule is Off: the
+ * person pressing it is asking for that run. The schedule itself is left as it was.
+ *
+ * @param int $analystId  who pressed it
+ * @param ?callable $spawn  fn(string $php, string $script, array $args, array $env): bool - for tests; jobSchedulerSpawn() by default
+ * @return string  started, unknown, not_needed, running, bad_command or failed_to_start
+ */
+function jobRunNow(PDO $conn, string $job, int $analystId, ?callable $spawn = null): string
+{
+    $def = jobRegistry()[$job] ?? null;
+    if ($def === null) return 'unknown';
+    $result = jobRunNowStart($conn, $job, $def, $analystId, $spawn);
+    // Every press is on the record (#343): a refused one as a skipped run, by
+    // whoever pressed it, with the reason - so nothing pressed goes unseen.
+    $why = [
+        'not_needed'      => 'Run now refused: not needed here - not set up, or its module is switched off.',
+        'running'         => 'Run now refused: it was running already.',
+        'bad_command'     => 'Run now refused: it cannot be started from here.',
+        'failed_to_start' => 'Run now failed: PHP could not start a process on this server.',
+    ];
+    if (isset($why[$result])) {
+        require_once __DIR__ . '/job_runs.php';
+        JobRun::skipped($conn, $job, 'manual', $why[$result], $analystId);
+    }
+    return $result;
+}
+
+/** jobRunNow() without the record: whether, and how, the job was started. */
+function jobRunNowStart(PDO $conn, string $job, array $def, int $analystId, ?callable $spawn): string
+{
+    try {
+        if (!(bool)$def['needed']($conn)) return 'not_needed';
+    } catch (Throwable) {
+        // Could not tell: let the job decide for itself, as the scheduler does.
+    }
+    $cmd = jobSchedulerCommand($def['command']);
+    if ($cmd === null) return 'bad_command';
+    $running = $conn->prepare("SELECT 1 FROM job_runs WHERE job_key = ? AND outcome = 'running'
+                                 AND started_datetime > UTC_TIMESTAMP() - INTERVAL ? MINUTE LIMIT 1");
+    $running->execute([$job, max(1, (int)($def['max_runtime'] ?? 60))]);
+    if ($running->fetchColumn()) return 'running';
+
+    require_once __DIR__ . '/intune.php';   // intuneFindPhpExe(): the same PHP the fallback starts jobs with
+    $php = intuneFindPhpExe(jobSetting($conn, 'intune_php_exe') ?: null);
+    // Only the new process is told it is Run now, and by whom - never this one
+    // (see jobSchedulerSpawn(): putenv() would reach other requests in a threaded server).
+    $ok = ($spawn ?? 'jobSchedulerSpawn')($php, $cmd[0], $cmd[1], ['FREEITSM_JOB_TRIGGER' => 'manual', 'FREEITSM_JOB_ANALYST' => (string)$analystId]);
+    return $ok ? 'started' : 'failed_to_start';
 }
 
 /**

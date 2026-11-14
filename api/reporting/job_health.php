@@ -57,10 +57,18 @@ try {
 
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $in = json_decode(file_get_contents('php://input'), true) ?: [];
-        if (!in_array($in['action'] ?? '', ['config', 'fallback'], true)) throw new InvalidArgumentException('Unknown action.');
+        if (!in_array($in['action'] ?? '', ['config', 'fallback', 'run_now'], true)) throw new InvalidArgumentException('Unknown action.');
         if (!jobHealthMayConfigure($conn, $analystId)) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => t('reporting.jobs.no_config_permission'), 'code' => 'forbidden']);
+            exit;
+        }
+        if ($in['action'] === 'run_now') {
+            // Run now: start one scheduled job at once, recorded as manual with who pressed it.
+            require_once '../../includes/job_scheduler.php';
+            $result = jobRunNow($conn, (string)($in['job'] ?? ''), $analystId);
+            echo json_encode(['success' => $result === 'started', 'result' => $result,
+                              'error' => $result === 'started' ? null : t('reporting.jobs.run_now_' . $result)]);
             exit;
         }
         if ($in['action'] === 'fallback') {
@@ -199,6 +207,11 @@ try {
     }
 
     throw new InvalidArgumentException('Unknown view.');
-} catch (Throwable $e) {
+} catch (InvalidArgumentException $e) {
+    // Written here, for the caller: "Unknown job.", "Run not found." - nothing from the database.
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    // Never the exception's own text: it can carry SQL, table names or paths.
+    error_log('job_health: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Background job health could not be read or saved.']);
 }

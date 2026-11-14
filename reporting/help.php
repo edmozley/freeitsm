@@ -283,6 +283,7 @@ $translationNamespaces = ['common', 'reporting'];
                     <p><?php echo htmlspecialchars(t('reporting.help.s3_jobs_rules')); ?></p>
                     <p><?php echo htmlspecialchars(t('reporting.help.s3_jobs_told')); ?></p>
                     <p class="help-note"><?php echo htmlspecialchars(t('reporting.help.s3_jobs_edit')); ?></p>
+                    <p class="help-note"><?php echo htmlspecialchars(t('reporting.help.s3_jobs_run_now')); ?></p>
                 </div>
 
                 <!-- Section 5: Understanding the Data (highlighted) -->
