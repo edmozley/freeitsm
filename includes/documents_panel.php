@@ -42,7 +42,7 @@ function documentsPanelAssets(string $pathPrefix = '../'): void
     echo '<link rel="stylesheet" href="' . htmlspecialchars($pathPrefix) . 'assets/css/files-picker.css?v=1">' . "\n";
     echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/float-window.js?v=2"></script>' . "\n";
     echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/files-icons.js?v=3"></script>' . "\n";
-    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/files-viewer.js?v=9"></script>' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/files-viewer.js?v=10"></script>' . "\n";
     echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/files-picker.js?v=2"></script>' . "\n";
     // GH #303: Save to Files, for a stored document
     echo '<link rel="stylesheet" href="' . htmlspecialchars($pathPrefix) . 'assets/css/save-to-files.css?v=1">' . "\n";

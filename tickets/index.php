@@ -1188,12 +1188,12 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <!-- Note images open in the Files viewer, in a floating window (GH #226). -->
     <script src="../assets/js/float-window.js?v=2"></script>
     <script src="../assets/js/files-icons.js?v=3"></script>
-    <script src="../assets/js/files-viewer.js?v=9"></script>
+    <script src="../assets/js/files-viewer.js?v=10"></script>
     <script src="../assets/js/note-images.js?v=1"></script>
     <script src="../assets/js/save-to-files.js?v=2"></script>
     <script src="../assets/js/files-picker.js?v=2"></script>
     <script src="../assets/js/address-suggest.js?v=1"></script>   <!-- GH #307: before inbox.js, which attaches it to To and Cc -->
-    <script src="../assets/js/inbox.js?v=206"></script>
+    <script src="../assets/js/inbox.js?v=207"></script>
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>

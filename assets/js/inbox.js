@@ -7233,7 +7233,10 @@ function renderNotes() {
                 // GH #226: a picture or PDF opens in a floating window over the ticket
                 // (the Files viewer) - followed as a plain link a picture REPLACED the
                 // Tickets page, with no way back but Back, which left the ticket too.
-                const inViewer = d.kind === 'file' && VIEWER_FILE_RE.test(name);
+                // GH #333: the same rule as the ticket's attachments (ATTACHMENT_NO_VIEWER_RE) - a
+                // note's Word file, spreadsheet or text file previews too; the viewer still decides
+                // by name, and anything it cannot show downloads as before.
+                const inViewer = d.kind === 'file' && !ATTACHMENT_NO_VIEWER_RE.test(name);
                 return `<span class="note-file-wrap"><a class="note-file" href="${escapeHtml(href)}" ${d.kind === 'files' && d.files_item_id_open ? `data-open-files="${Number(d.files_item_id_open)}"` : ''}
                            ${d.kind === 'link' || d.kind === 'files' ? 'target="_blank" rel="noopener noreferrer"' : ''}
                            ${inViewer ? `data-view-file="${escapeHtml(name)}" data-size="${Number(d.size_bytes) || 0}"` : ''}
@@ -7284,12 +7287,13 @@ function renderNotes() {
     if (typeof styleSopResponsesInNotes === 'function') styleSopResponsesInNotes();
 }
 
-// The files Tickets opens in the Files viewer: pictures and PDFs. The viewer can show
-// more (Word, spreadsheets, zips...) - Ed chose these two. SVG is deliberately absent:
-// it can carry script.
-const VIEWER_FILE_RE = /\.(png|jpe?g|gif|webp|bmp|pdf)$/i;
+// TRAP: a note's files and the ticket's attachments must open by the SAME rule. Notes
+// stayed on pictures and PDFs (GH #226) after #303 widened attachments to everything the
+// viewer shows, so a CSV attached to a note downloaded while the same CSV as an attachment
+// previewed (GH #333). Both use ATTACHMENT_NO_VIEWER_RE now (not zip, not svg - SVG can
+// carry script).
 
-// A click on a note's picture or PDF (GH #226): open it in a floating window - drag
+// A click on a note's file (GH #226, #333): open it in a floating window - drag
 // it, resize it, close it with Close or Escape - instead of following the link. The
 // link stays a real link, so Ctrl/middle-click still opens it in a new tab, and
 // the address is the same download.php, so the permission check is unchanged.

@@ -119,7 +119,7 @@ $capStorage = $hasCap(Cap::FILES_STORAGE);
     <script src="../assets/js/files-icons.js?v=3"></script>
     <script src="../assets/js/float-window.js?v=2"></script>
     <script src="../assets/js/files-wm.js?v=5"></script>
-    <script src="../assets/js/files-viewer.js?v=9"></script>
+    <script src="../assets/js/files-viewer.js?v=10"></script>
     <script src="../assets/js/files-desktop.js?v=15"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

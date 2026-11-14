@@ -45,9 +45,19 @@
     // out from this file's own URL.
     var selfBase = (document.currentScript && document.currentScript.src || '').replace(/assets\/js\/files-viewer\.js.*$/, '');
     var B   = window.FILES_BOOT || { base: selfBase, api: selfBase + 'api/files/' };
-    var WM  = window.FilesWM || null;
+    // TRAP: never capture window.FilesWM once, here. Since #303 the page header loads
+    // this file on EVERY page (documents open in place), and on the Files desktop that
+    // copy runs BEFORE files-wm.js - so a captured WM was null for good, the page's own
+    // later copy returned early ("already loaded"), and opening any file from the Files
+    // desktop failed with "Cannot read properties of null (reading 'open')" (GH #332).
+    // Ask for it when it is needed instead.
+    function wm() { return window.FilesWM || null; }
     var FI  = window.FilesIcons;
-    var L   = WM ? WM.L : function (key, english, params) { return window.tf ? window.tf('files.' + key, english, params) : english; };
+    var L   = function (key, english, params) {
+        var m = wm();
+        if (m && m.L) return m.L(key, english, params);
+        return window.tf ? window.tf('files.' + key, english, params) : english;
+    };
     var esc = window.FloatWin.esc;
     var V   = B.base + 'assets/js/vendor/';
     var MAX_PARSE_BYTES = 60 * 1024 * 1024;   // docx / spreadsheets are parsed in the browser
@@ -698,7 +708,10 @@
         return api({ action: 'open', id: id, version: versionId || 0 }).then(function (info) {
             info.id = id;
             if (opts.phone) return openPhone(info, opts);
-            var w = WM.open({
+            var WM = wm();
+            // Not on the Files desktop (or it is not set up): the page's floating window, as openItem does.
+            var host = WM || window.FloatWin.page();
+            var w = host.open({
                 kind: 'viewer', key: 'v' + info.version_id, single: true,
                 title: info.name + (info.is_current ? '' : ' - ' + L('viewer.version', 'Version {n}', { n: info.version_no })),
                 icon: FI.file(info.name, 16), width: 920, height: 680, geometry: opts.geometry || null,
