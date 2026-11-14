@@ -128,6 +128,21 @@ if (($argv[1] ?? '') === '--multi') {
         ok('a ticket moved with a shared priority the new company hid gets its default', $move($ticket($A, $sharedHid), $B) === ticketPriorityDefaultId($conn, $B));
         ok('a ticket moved with a shared priority both can use keeps it', $move($ticket($A, $everyone), $B) === $everyone);
         ok('a ticket keeps an inactive shared priority the new company can see', $move($ticket($A, $retired), $B) === $retired);
+
+        // The SLA engine: a priority with no calendar of its own runs on the ticket's company's default.
+        require_once __DIR__ . '/../includes/sla.php';
+        $conn->exec("INSERT INTO system_settings (setting_key, setting_value) VALUES ('sla_enforce_from', '2000-01-01 00:00:00')
+                     ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        $conn->prepare("UPDATE ticket_priorities SET sla_response_minutes = 60, sla_calendar_id = NULL WHERE id = ?")->execute([$everyone]);
+        $slaCalendar = fn(int $ticketId): ?int => sla_get_state($conn, $ticketId)['calendar']['id'] ?? null;
+        $conn->prepare("INSERT INTO tickets (ticket_number, subject, tenant_id, priority_id, status_id, created_datetime) VALUES ('ZZ320-triage', 'ZZ320 move', NULL, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$everyone, $status]);
+        $triage = (int)$conn->lastInsertId();
+        ok('a ticket in a company with its own default calendar runs on it', $slaCalendar($ticket($A, $everyone)) === $calA);
+        ok('a ticket in a company without one runs on the shared default', $slaCalendar($ticket($B, $everyone)) === $calShared);
+        ok('a triage ticket runs on the shared default', $slaCalendar($triage) === $calShared);
+        $conn->prepare("UPDATE ticket_priorities SET sla_calendar_id = ? WHERE id = ?")->execute([$calShared, $everyone]);
+        ok('a priority\'s own calendar wins over the company\'s default', $slaCalendar($ticket($A, $everyone)) === $calShared);
     } finally {
         $conn->rollBack();
     }
