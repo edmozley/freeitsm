@@ -72,7 +72,8 @@ function getContributors(): array
                       . 'chart in People (PR #242): who reports to whom as a tree or a chart you can export, '
                       . 'with its follow-up (PR #265) counting everybody under each manager. Then System '
                       . '-> Maintenance (PR #291, 5.0.0): one place for the tools that find data left behind, '
-                      . 'each card saying how much it has found.',
+                      . 'each card saying how much it has found. And assets that reach their Intune primary '
+                      . 'user whichever of the two syncs runs first (PR #334, 5.3.0).',
         ],
         [
             // Name and company as Ed was given them (October 2026). The package

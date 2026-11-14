@@ -1886,7 +1886,8 @@ $translationNamespaces = ['common', 'asset-management'];
                                 </label>
                                 <span><?php echo htmlspecialchars(t('asset-management.settings.intune_assign_primary_user_label')); ?></span>
                             </label>
-                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_assign_primary_user_hint')); ?></div>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_assign_primary_user_hint')); ?>
+                                <?php /* PR #334 */ echo htmlspecialchars(t('asset-management.settings.intune_assign_primary_user_when')); ?></div>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="intuneAppBatchSize"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_label')); ?></label>

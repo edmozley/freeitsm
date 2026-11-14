@@ -1138,6 +1138,19 @@ function entraSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int $a
             }
         }
 
+        // --- assets ------------------------------------------------------------
+        // Intune names each device's primary user by Entra object id, and this
+        // import is what gives people one. Assigning only at the end of an Intune
+        // sync left everybody imported after it waiting for the next one, so the
+        // order the two ran in decided whether assets got a holder.
+        if (!$preview) {
+            require_once __DIR__ . '/intune.php';
+            $holders = intuneAssignAfterDirectoryImport($conn);
+            if ($holders && $holders['assigned'] > 0) {
+                $message .= sprintf(' Assets given to their Intune primary user: %d.', $holders['assigned']);
+            }
+        }
+
         if (!$preview) {
             $conn->prepare("UPDATE auth_providers SET sync_last_run_datetime = UTC_TIMESTAMP(), sync_last_count = ? WHERE id = ?")
                  ->execute([$counts['seen'], $pid]);

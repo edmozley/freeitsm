@@ -15,7 +15,9 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   - a leaver is never made a holder;
  *   - two devices naming two different people for one asset is left alone;
  *   - an object id nobody imported assigns nothing (no guessing by name);
- *   - on a multi-company install, never a holder from another company.
+ *   - on a multi-company install, never a holder from another company;
+ *   - after an Entra import (intuneAssignAfterDirectoryImport()) the same, but
+ *     only while intune_assign_primary_user is on.
  *
  * Written after the first version wrote assigned_by_analyst_id = 0 for the
  * system actor, which fk_users_assets_analyst refuses: the "assigned" case is
@@ -104,7 +106,17 @@ try {
     $aOther    = $other ? $asset('ZZ-IP-OTHERCO', $other) : 0;
     if ($aOther) $device($aOther, $anaOid);   // Ana is in the Default company
 
-    $r = intuneAssignPrimaryUsers($conn);
+    // After an Entra import: nothing while the setting is off...
+    $setting = function (string $v) use ($conn): void {
+        $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('intune_assign_primary_user', ?)
+                        ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$v]);
+    };
+    $setting('0');
+    ok('after an Entra import, with the setting off: nothing is assigned', intuneAssignAfterDirectoryImport($conn) === null && $holders($aFree) === []);
+    $setting('1');
+
+    $r = intuneAssignAfterDirectoryImport($conn);
+    ok('after an Entra import, with it on: the same assignment runs (it no longer waits for the next Intune sync)', is_array($r), json_encode($r));
     ok('it returns how many were assigned and how many failed', isset($r['assigned'], $r['failed']), json_encode($r));
     ok('nothing failed', $r['failed'] === 0, json_encode($r));
 

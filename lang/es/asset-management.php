@@ -1336,6 +1336,7 @@ Hay dos formas de evitarlo: cambie también el nombre en la hoja de cálculo, o 
         'intune_sync_hostnames_hint' => 'Un dispositivo renombrado o reasignado en Intune conserva su vínculo con su activo; con esto activado, el activo toma el nuevo nombre en la siguiente sincronización y el cambio queda en su historial. Desactivado tras actualizar, así que no se renombra nada hasta que usted lo elija.',
         'intune_assign_primary_user_label' => 'Asignar los activos a su usuario principal en Intune',
         'intune_assign_primary_user_hint' => 'Un activo que nadie tiene asignado se asigna al usuario principal de su dispositivo en Intune, emparejado por el ID de objeto de Entra, lo que requiere que las personas se importen desde Microsoft Entra ID (Sistema → Autenticación). Un activo que ya está asignado a alguien nunca se cambia, y no se desasigna nada. Desactivado hasta que usted lo elija.',
+        'intune_assign_primary_user_when' => 'Se hace después de cada sincronización de Intune y de cada importación de Entra, así que da igual cuál de las dos se ejecute primero.',   // PR #334
         'tab_asset_tags' => 'Etiquetas de activo',
         'asset_tags_heading' => 'Etiquetas de activo automáticas',
         'asset_tags_intro' => 'Asigne a cada activo nuevo la siguiente etiqueta de la secuencia, ya se añada a mano, con el agente de inventario o con Intune. Una etiqueta escrita a mano se conserva siempre, y nada cambia hasta que lo active.',
@@ -1881,6 +1882,7 @@ Hay dos formas de evitarlo: cambie también el nombre en la hoja de cálculo, o 
             'intune_text' => 'Un dispositivo que Intune ha vinculado a un activo sigue vinculado, incluso después de mover el activo a otra empresa. Los dispositivos nuevos se asocian por número de serie y luego por nombre antes de crear un activo nuevo. <strong>Ajustes &rarr; Intune</strong> elige en qué empresa se asocian y crean los dispositivos nuevos, y si se renombra un activo cuando se renombra su dispositivo en Intune - desactivado tras actualizar, así que no se renombra nada hasta que usted lo elija.',
             'intune_holder_strong' => 'Asignaciones desde Intune',
             'intune_holder_text' => '<strong>Ajustes &rarr; Intune</strong> también puede asignar cada activo que nadie tiene asignado al usuario principal de su dispositivo, emparejado exactamente por el ID de objeto de Entra una vez que las personas se han importado desde Microsoft Entra ID. Un activo que ya está asignado a alguien nunca se cambia, y está desactivado hasta que usted lo active.',
+            'intune_holder_when' => 'Se hace después de cada sincronización de Intune y de cada importación de Entra, así que da igual cuál de las dos se ejecute primero.',   // PR #334
             'companies_strong' => 'Varias empresas',
             'companies_text' => 'El agente de inventario solo asocia dentro de la empresa de su clave, de modo que dos empresas con el mismo nombre de equipo o número de serie nunca se confunden.',
         ],

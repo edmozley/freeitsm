@@ -392,6 +392,13 @@ function intuneLinkDevicesToAssets(PDO $conn, ?int $companyId = null): array {
  * it writes assignments, custody rows and history, and fires asset.assigned
  * workflows, so it is the administrator's to switch on.
  *
+ * ⚠️ RUN FROM BOTH SIDES. The join needs the device (an Intune sync) AND the
+ * person's object id (an Entra import). Run only at the end of an Intune sync,
+ * a person imported or adopted by Entra AFTER it waited, unassigned, for the
+ * next one - so the order the two syncs ran in decided whether assets got a
+ * holder. The Entra import now runs it too, through
+ * intuneAssignAfterDirectoryImport().
+ *
  * @return array  ['assigned' => assets given a holder, 'failed' => assets that could not be, each logged]
  *
  * @wiki Asset-Reconciliation-Developer-Guide
@@ -438,6 +445,30 @@ function intuneAssignPrimaryUsers(PDO $conn): array {
     return ['assigned' => $assigned, 'failed' => $failed];
 }
 
+
+/**
+ * After an Entra import: give unheld assets to the people it has just imported
+ * or adopted, if the administrator has switched intune_assign_primary_user on.
+ *
+ * Reads only the setting - not the Intune credentials - because the work is all
+ * local: intune_devices already holds each device's primary user from the last
+ * Intune sync. Never throws: a directory import must not fail, or report
+ * itself failed, over assets.
+ *
+ * @return array|null  intuneAssignPrimaryUsers()'s counts, or null when switched off
+ *                     (or Intune has never been set up on this install)
+ */
+function intuneAssignAfterDirectoryImport(PDO $conn): ?array {
+    try {
+        $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'intune_assign_primary_user'");
+        $st->execute();
+        if ((string)$st->fetchColumn() !== '1') return null;
+        return intuneAssignPrimaryUsers($conn);
+    } catch (Throwable $e) {
+        error_log('[intune] assign primary users after a directory import: ' . $e->getMessage());
+        return null;
+    }
+}
 
 /**
  * Map an Intune operating_system string to a sensible "drive" label for
