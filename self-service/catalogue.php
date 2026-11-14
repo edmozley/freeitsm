@@ -417,6 +417,8 @@ document.addEventListener('DOMContentLoaded', function () {
                form laid out as designed, not a portal-specific guess. */
             }, form.layout);
 
+            // Whether there is anything to answer - an item may ask nothing (GH #348).
+            const hasQuestions = (form.fields || []).some(f => FormLogic.isAnswerable(f.field_type));
             container.innerHTML = backBtn()
                 + '<div class="cat-form">'
                 +   '<h1>' + esc(form.title || '') + '</h1>'
@@ -433,8 +435,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 +   '<div class="cat-actions">'
                 +     '<button type="button" class="btn btn-primary" id="catSubmit" onclick="submitForm(' + form.id + ')">'
                 +       esc(window.t('self-service.catalogue.submit')) + '</button>'
-                +     '<button type="button" class="btn btn-secondary" onclick="saveCatDraft(' + form.id + ')">'
-                +       esc(window.t('forms.draft.save')) + '</button>'
+                /* An item that asks nothing (GH #348 - a mouse at a price) has no
+                   answers to keep, and the draft endpoint refuses it: no draft button. */
+                +     (hasQuestions ? '<button type="button" class="btn btn-secondary" onclick="saveCatDraft(' + form.id + ')">'
+                +       esc(window.t('forms.draft.save')) + '</button>' : '')
                 +   '</div>'
                 + '</div>';
 
@@ -449,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function () {
             FormLogic.attachLookups(formEl, '../api/forms/lookup_search.php');
 
             applyVisibility();
-            restoreCatDraft(form.id);
+            if (hasQuestions) restoreCatDraft(form.id);
         }
 
         /* ══ Drafts ═════════════════════════════════════════════════════════

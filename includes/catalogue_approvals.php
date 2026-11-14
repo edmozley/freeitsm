@@ -937,6 +937,8 @@ function catalogueSubmissionBodyHtml(PDO $conn, int $submissionId, string $formT
     require_once __DIR__ . '/catalogue_card.php';
     $price = catalogueRequestPriceLabels($conn, [$submissionId])[$submissionId] ?? '';
     if ($price !== '') $html .= '<p><strong>' . $esc(t('common.catalogue_price.label')) . ':</strong> ' . $esc($price) . '</p>';
+    // An item that asks nothing (GH #348) has no answers: no empty table.
+    if (!$rows) return $html;
     $html .= '<table style="border-collapse:collapse;">';
     foreach ($rows as $r) {
         $val = catalogueAnswerText($r['field_value'], $r['field_type'], $r);

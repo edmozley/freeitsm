@@ -484,6 +484,7 @@ return [
     'save' => [
         'need_title'  => 'Please enter a form title',
         'need_field'  => 'Please add at least one field with a label',
+        'need_field_or_item' => 'Add at least one question - or, for an item people just request (a mouse, a licence), give it a price, a picture or a short description in the Catalogue tab.',
     ],
 
     // ── AI Assist modal (forms/edit/index.php) ──────────────────────

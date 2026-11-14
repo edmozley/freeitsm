@@ -2777,12 +2777,17 @@ foreach ($formActionDefs as $def) {
             const title = document.getElementById('formTitle').value.trim();
             if (!title) { showToast(window.t('forms.save.need_title'), 'error'); return false; }
             const validFields = fields.filter(f => f.label.trim());
-            if (validFields.length === 0) {
-                showToast(window.t('forms.save.need_field'), 'error');
+            // The catalogue card (GH #348).
+            const cardOut = cardPayload();
+            // A catalogue item - a mouse at a price - may ask nothing: requesting it IS
+            // the request. A form that is not an item still needs a question, so an
+            // empty form is not saved by mistake.
+            const isItem = !!cardOut && (cardOut.catalogue_price !== '' || cardOut.catalogue_summary !== '' || cardOut.catalogue_image_path !== '');
+            if (validFields.length === 0 && !isItem) {
+                showToast(window.t(CARD_READY ? 'forms.save.need_field_or_item' : 'forms.save.need_field'), 'error');
                 return false;
             }
-            // The catalogue card (GH #348) - a price the server would refuse, said here.
-            const cardOut = cardPayload();
+            // A price the server would refuse, said here.
             if (cardOut && cardOut.catalogue_price !== '' && (isNaN(Number(cardOut.catalogue_price)) || Number(cardOut.catalogue_price) < 0)) {
                 switchFormTab('catalogue');
                 showToast(window.t('forms.card.price_invalid'), 'error');

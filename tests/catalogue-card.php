@@ -17,7 +17,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   - a portal request keeps the price as it was, with the currency fixed then; an
  *     analyst's own submission keeps none; changing the price later changes no request;
  *   - the price as read: "a month", Free, nothing for no price;
- *   - the approvals inbox, the requester's list and the ticket body show the price.
+ *   - the approvals inbox, the requester's list and the ticket body show the price;
+ *   - an item that asks nothing (a mouse at a price) is saved, requested and approved.
  *
  * Writes, so it runs only when FREEITSM_TEST_DATABASE names the database config.php
  * points at. Everything is named ZZCARD and removed at the end.
@@ -154,6 +155,20 @@ try {
     $body = catalogueSubmissionBodyHtml($conn, $sg, 'ZZCARD form');
     check('the ticket an approval raises says the price', str_contains($body, htmlspecialchars(Money::format('35', 'GBP'), ENT_QUOTES, 'UTF-8')), $body);
     check("...and a request with no price adds no line", !str_contains(catalogueSubmissionBodyHtml($conn, $s, 'ZZCARD form'), t('common.catalogue_price.label')));
+
+    // ---- 7. An item that asks nothing: a mouse at a price ----
+    $mouse = $made['forms'][] = (int)FormsService::saveForm($conn, $ctx, ['title' => 'ZZCARD form', 'is_portal_visible' => 1,
+        'requires_approval' => 1, 'approver_id' => $admin, 'catalogue_price' => '12.50', 'catalogue_currency' => 'GBP', 'fields' => []])['id'];
+    check('an item with no questions can be saved', $mouse > 0 && (int)$conn->query("SELECT COUNT(*) FROM form_fields WHERE form_id = $mouse")->fetchColumn() === 0);
+    $sm = FormsService::submitForm($conn, new ActorContext(actorId: 0, source: 'portal'), $mouse, [], $uma);
+    $q = $row('form_submissions', $sm);
+    check('...requested from the portal with no answers, waiting for approval, at its price',
+        $q['approval_status'] === 'pending' && $q['catalogue_price'] === '12.50', json_encode([$q['approval_status'], $q['catalogue_price']]));
+    $body = catalogueSubmissionBodyHtml($conn, $sm, 'ZZCARD form');
+    check('...and its ticket says what and the price, with no empty answer table', !str_contains($body, '<table') && str_contains($body, 'ZZCARD form')
+        && str_contains($body, htmlspecialchars(Money::format('12.50', 'GBP'), ENT_QUOTES, 'UTF-8')), $body);
+    $res = catalogueApprovalDecide($conn, $admin, $sm, 'approved');
+    check('...approving it raises the ticket', $res['decision'] === 'approved' && !empty($res['ticket_id']));
 } catch (Throwable $e) {
     check('no unexpected error', false, $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {
