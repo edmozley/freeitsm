@@ -62,12 +62,43 @@ This covers:
 
 ---
 
+## Per-company SLAs (GH #320)
+
+On a multi-company install, priorities and calendars can belong to one company, so each client can have its own SLA targets and business hours.
+On a single-company install nothing here applies: every priority and calendar is shared, and the screens look as they always have.
+
+**Shared and company rows.** `ticket_priorities.tenant_id` and `sla_calendars.tenant_id` follow the same rule as `ticket_types`: NULL is shared by every company, a set value is that company's own.
+The Default company has no rows of its own; its list is the shared list.
+
+**What a company sees.** Its own priorities plus the shared ones it has not hidden (`tenant_config_hidden`, `entity_type = 'ticket_priority'`).
+Its calendars are its own plus every shared one; calendars are not hidden per company.
+A ticket with no company yet (triage) sees the shared list.
+All of this goes through `includes/ticket_priorities.php` (`ticketPrioritiesFor()`, `slaCalendarsFor()` and friends), never a raw query.
+
+**Defaults.** `is_default` is per scope: one shared default, and at most one per company.
+- A new ticket's priority: the company's own default, else the shared default, else its first priority (`ticketPriorityDefaultId()`).
+- A ticket's calendar when its priority names none: the company's own default calendar, else the shared default, else no SLA (`slaDefaultCalendarId()`, used by `sla_get_state()`).
+
+**Which calendar a priority may use.** A shared priority applies to every company, so it can only use shared calendars.
+A company's own priority can use the shared calendars and that company's own.
+
+**Choosing a priority.** Every picker offers the ticket's company's list: the ticket view, right-click, bulk edit (across several companies, only the shared priorities none of them hides), New Ticket, the portal and the REST API.
+`TicketsService` resolves a priority id or name among that company's priorities and refuses anything else with the usual 422.
+The portal and the channels that choose a priority for themselves (a form, a workflow step, a Zabbix severity map) fall back to the company's default instead (`ticketPriorityForNewTicket()`).
+
+**Moving a ticket to another company.** If the new company cannot use its priority, the ticket gets that company's default, recorded on its history and raised as `ticket.priority_changed` (`ticketPriorityFollowCompanyMove()`, called from `ticketsFollowCompanyMove()`).
+
+**Who can change what.** A shared priority or calendar affects every company, so changing one needs access to every company (`analystHasAllTenantAccess()`).
+A company's own needs access to that company.
+
+---
+
 ## v1 settings UI scope
 
 A new **SLA** tab on the Tickets settings page. Six sections:
 
 ### 1. Business Calendars
-List of calendars showing name / timezone / weekly hours / holiday count. Add / edit / delete via modal. One marked as default.
+List of calendars showing name / timezone / weekly hours / holiday count. Add / edit / delete via modal. One marked as default (one shared, and one per company on a multi-company install).
 
 The calendar editor exposes:
 - **Name** + **Timezone** (IANA zone name, e.g. `Europe/London`)
@@ -122,7 +153,7 @@ Radio button, one of:
 
 These all have legitimate demand but expand the data model substantially. Deferring lets us ship and learn:
 
-- **Per-contract SLA overrides** — some customers have premium contracts with tighter SLAs. Needs a Contracts↔SLA link table and a resolution rule for "which SLA applies to this ticket".
+- **Per-contract SLA overrides** — some customers have premium contracts with tighter SLAs. Needs a Contracts↔SLA link table and a resolution rule for "which SLA applies to this ticket". Per-company priorities and calendars (above) cover the common case of different SLAs per customer.
 - **Per-department / per-team SLA overrides** — same shape as above.
 - **Service hours vs. support hours distinction** — some tools split "the system is available" from "you can call the help desk".
 - **Multi-stage SLA** — separate clocks for response / next-update / resolution, each with their own target and pause rules.
@@ -152,7 +183,7 @@ Three new tables:
 
 | Table | Purpose |
 |---|---|
-| `sla_calendars` | name, timezone (IANA), is_default, audit timestamps |
+| `sla_calendars` | name, timezone (IANA), is_default, tenant_id (NULL = shared), audit timestamps |
 | `sla_calendar_hours` | calendar_id, weekday (0-6), start_time, end_time, is_closed |
 | `sla_calendar_holidays` | calendar_id, holiday_date, name |
 
@@ -160,7 +191,7 @@ Plus columns on existing tables:
 
 | Table | New columns |
 |---|---|
-| `ticket_priorities` | `sla_response_minutes`, `sla_resolution_minutes` (nullable), `sla_calendar_id` (FK) |
+| `ticket_priorities` | `sla_response_minutes`, `sla_resolution_minutes` (nullable), `sla_calendar_id` (FK), `tenant_id` (NULL = shared) |
 | `ticket_statuses` | `pauses_sla` TINYINT(1) DEFAULT 0 |
 
 Plus a `system_settings` group for the global toggles:
@@ -198,3 +229,6 @@ For posterity / future-Ed-or-me wondering why we did things this way:
 - **Pauses-SLA flag** lives on the `ticket_statuses` row (boolean column). Multiple statuses can be flagged; all pause the clock. Decided over an SLA-tab multi-select widget because the data belongs naturally to the status and the existing Statuses settings tab can grow a column without a new screen.
 - **Pre-existing tickets** are handled by the `sla_enforce_from` datetime (section 7). Admin-controlled cutoff: NULL disables everything; setting it makes the engine skip any ticket created before that point. Picked over a launch-flag baked into deployment because it's predictable and re-configurable.
 - **First-response definition** is an admin choice (section 8), with the recommended default being "either outbound email or status change — whichever happens first". Picked over a hardcoded definition because different desks have different conventions.
+- **Per-company priorities and calendars** (GH #320) reuse the shared-plus-own model ticket types already had, rather than a new SLA-policy table. Per-contract overrides stay out of scope: they would need a contract on the ticket before a priority could be chosen.
+- **Calendars are not hidden per company**, unlike priorities. Calendars are only seen in settings, a company's own default already beats the shared one, and hiding the shared default would only leave a company with no calendar and silently no SLA.
+- **The Default company has no priorities or calendars of its own.** In its context Settings manages the shared rows, as for ticket types.

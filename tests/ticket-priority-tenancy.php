@@ -10,6 +10,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * PART 2 - three companies, in a child process (the company count is cached per process):
  *          a company's own rows and the shared ones it has not hidden,
  *          triage on the shared list, the default fallbacks, the same name in two companies, and calendars.
+ *          New tickets (including a real web chat), company moves, the SLA engine's calendar,
+ *          who may change shared rows, and the ticket service resolving a priority by id or name.
  *
  * PART 3 - workflows, in a child process: "Set ticket priority" refuses another company's priority or a hidden one,
  *          a company's own priority is labelled with its company in the editor's lists, and its events are filed under it.
@@ -162,6 +164,31 @@ if (($argv[1] ?? '') === '--multi') {
         ok('a triage ticket runs on the shared default', $slaCalendar($triage) === $calShared);
         $conn->prepare("UPDATE ticket_priorities SET sla_calendar_id = ? WHERE id = ?")->execute([$calShared, $everyone]);
         ok('a priority\'s own calendar wins over the company\'s default', $slaCalendar($ticket($A, $everyone)) === $calShared);
+        ok('a shared priority may only use shared calendars', !in_array($calA, slaCalendarOptionIds($conn, null), true) && in_array($calShared, slaCalendarOptionIds($conn, null), true));
+        ok('...a company\'s own, its own and the shared ones', in_array($calA, slaCalendarOptionIds($conn, $A), true) && in_array($calShared, slaCalendarOptionIds($conn, $A), true)
+            && !in_array($calA, slaCalendarOptionIds($conn, $B), true));
+
+        // Who may change a priority or calendar: shared needs every company, a company's own needs that company.
+        $refused = function (array $ctx, ?int $tenant): bool {
+            try { tenantScopeRequireAccess($ctx, $tenant, 'tickets.settings.priorities'); return false; } catch (Exception) { return true; }
+        };
+        $someone = ['multi' => true, 'can_share' => false, 'companies' => [['id' => $A, 'name' => 'A']]];
+        $everyCompany = ['multi' => true, 'can_share' => true, 'companies' => [['id' => $A, 'name' => 'A'], ['id' => $B, 'name' => 'B']]];
+        ok('changing a shared priority needs access to every company', $refused($someone, null) && !$refused($everyCompany, null));
+        ok('...a company\'s own, access to that company', !$refused($someone, $A) && $refused($someone, $B));
+
+        // The ticket service: a priority is resolved among the ticket's company's, by id or name.
+        require_once __DIR__ . '/../includes/services/tickets.php';
+        $actor = new ActorContext(0, null, 'api', 'en', 'ZZ320');
+        $tA = $ticket($A, $everyone);
+        $priorityOf = fn(int $id): int => (int)$conn->query("SELECT priority_id FROM tickets WHERE id = $id")->fetchColumn();
+        TicketsService::updateTicket($conn, $actor, $tA, ['priority' => 'zz320 p1'], false);
+        ok('a priority named on a ticket is that company\'s, though another has the same name', $priorityOf($tA) === $aOwn);
+        $unknown = false;
+        try { TicketsService::updateTicket($conn, $actor, $tA, ['priority_id' => $bOwn], false); } catch (ServiceError $e) { $unknown = $e->getMessage(); }
+        ok('...another company\'s is refused as unknown', $unknown !== false && str_starts_with($unknown, 'Unknown priority') && $priorityOf($tA) === $aOwn);
+        TicketsService::updateTicket($conn, $actor, $tA, ['company_id' => $B, 'priority_id' => $bOwn], false);
+        ok('...and moving it checks the priority against the new company', $priorityOf($tA) === $bOwn);
     } finally {
         $conn->rollBack();
     }
