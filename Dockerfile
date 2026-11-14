@@ -80,10 +80,20 @@ COPY docker/apache-proxy.conf /etc/apache2/freeitsm-proxy.conf.available
 RUN sed -i 's#^\(\s*\)DocumentRoot .*#&\n\1IncludeOptional /etc/apache2/freeitsm-proxy.conf#' /etc/apache2/sites-available/000-default.conf \
     && grep -q freeitsm-proxy.conf /etc/apache2/sites-available/000-default.conf
 
-# Create directories for uploads, attachments, encryption keys and certificates
+# Create directories for uploads, attachments, encryption keys and certificates.
+# Every folder docker-compose.yml puts a volume on is made here, so it exists and
+# is www-data's in the image - a new volume copies both, and one on a folder the
+# image lacks would be root's, which PHP cannot write to.
 RUN mkdir -p /var/www/html/tickets/attachments \
     /var/www/html/change-management/attachments \
     /var/www/html/uploads/files \
+    /var/www/html/recordings \
+    /var/www/html/lms/content \
+    /var/www/html/contracts/rfp-builder/uploads \
+    /var/www/html/system/uploads/branding \
+    /var/www/html/system/uploads/label-fonts \
+    /var/www/html/war-room/attachments \
+    /var/www/html/forms/images \
     /var/www/encryption_keys \
     /var/www/tls \
     && chown -R www-data:www-data /var/www/html /var/www/encryption_keys /var/www/tls \

@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2932 | Docker            | Fix         | **A Docker rebuild no longer deletes stored files.** docker-compose.yml put a volume on three folders of the eleven the application stores files in, so on a default install every `docker compose up -d --build` deleted the documents attached to tickets, notes, assets and articles, screen recordings, course content, RFP files, logos, war-room files, pictures on forms and label fonts. It now mounts them all (uploads, recordings, lms/content, contracts/rfp-builder/uploads, system/uploads/branding, system/uploads/label-fonts, war-room/attachments, forms/images), named as System -> Setup's docker-compose.override.yml names them, so an install that followed that advice keeps the same volumes; the Dockerfile creates each as www-data's. forms/images and system/uploads/label-fonts were also missing from storagePersistenceDirectories(), so the Setup warning and D013 never mentioned them; they are listed now. An install already running with files in these folders copies them out first, as Setup and D013 say, before rebuilding. tests/docker-storage-volumes.php (54 checks) keeps the list, the compose file and the Dockerfile in step, and scans the code for any folder uploads are stored in that the list lacks. Contributed by @vsc55. |
 
 
 

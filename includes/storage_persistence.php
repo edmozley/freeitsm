@@ -163,6 +163,11 @@ function storagePersistenceDirectories(): array
         ['rel' => 'contracts/rfp-builder/uploads',    'label' => 'Files uploaded to an RFP'],
         ['rel' => 'system/uploads/branding',          'label' => 'Your logo and other branding images'],
         ['rel' => 'war-room/attachments',             'label' => 'Files shared in a war room'],
+        // Missing until now, so a rebuild deleted them without a word (both write
+        // through includes/uploads.php like the rest). tests/docker-storage-volumes.php
+        // keeps this list, docker-compose.yml and the Dockerfile in step.
+        ['rel' => 'forms/images',                     'label' => 'Pictures placed on forms, and the pictures of catalogue items'],
+        ['rel' => 'system/uploads/label-fonts',       'label' => 'Fonts uploaded for asset label designs'],
     ];
 
     $out = [];
