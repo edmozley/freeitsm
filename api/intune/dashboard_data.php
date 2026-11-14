@@ -187,7 +187,10 @@ try {
                 SUM(CASE WHEN is_encrypted = 0 OR is_encrypted IS NULL THEN 1 ELSE 0 END) AS not_encrypted
            FROM intune_devices
        GROUP BY os
-       ORDER BY (encrypted + not_encrypted) DESC
+       -- COUNT(*), not (encrypted + not_encrypted): MySQL refuses an expression over
+       -- the aliases of aggregates in ORDER BY (error 1247), so the dashboard failed
+       -- on every install with an Intune device. The two add up to the count anyway.
+       ORDER BY COUNT(*) DESC
           LIMIT 8"
     );
     $encByOsLabels = [];
@@ -237,6 +240,8 @@ try {
         'last_sync_job' => $lastSyncJob,
     ]);
 
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    // Never the exception's own text: it can carry SQL and column names.
+    error_log('intune dashboard_data: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The Intune dashboard could not be loaded.']);
 }
