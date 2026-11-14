@@ -100,11 +100,10 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         /* Modals - namespaced so inbox.css's global .modal rules stay out of it. */
         .cc-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 2100; align-items: center; justify-content: center; }
         .cc-overlay.open { display: flex; }
-        .cc-modal { background: var(--surface, #fff); border-radius: 10px; width: 520px; max-width: 94vw; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
-        .cc-modal.wide { width: 820px; }
-        .cc-modal-head { padding: 18px 22px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); }
-        .cc-modal-body { padding: 18px 22px; overflow-y: auto; }
-        .cc-modal-foot { padding: 14px 22px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; }
+        /* The dialog box, head, body and foot are the shared .sys-modal (system-page.css). */
+        /* TRAP: any author `display` on .btn beats the browser's own [hidden] rule, so the
+           import footer's hidden Back / Import buttons showed on step 1. Hidden means hidden. */
+        .cc-modal-foot .btn[hidden] { display: none; }
         .cc-field { margin-bottom: 14px; }
         .cc-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
         .cc-field .hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; line-height: 1.45; }
@@ -190,9 +189,9 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
 
     <!-- Add / edit -->
     <div class="cc-overlay" id="ccEdit">
-        <div class="cc-modal" role="dialog" aria-modal="true" aria-labelledby="ccEditTitle">
-            <div class="cc-modal-head" id="ccEditTitle"></div>
-            <div class="cc-modal-body">
+        <div class="cc-modal sys-modal" role="dialog" aria-modal="true" aria-labelledby="ccEditTitle">
+            <div class="cc-modal-head sys-modal-head" id="ccEditTitle"></div>
+            <div class="cc-modal-body sys-modal-body">
                 <div class="cc-field" id="ccCompanyField" hidden>
                     <label for="ccCompany"><?php echo htmlspecialchars($ccT('company')); ?></label>
                     <select id="ccCompany"></select>
@@ -220,7 +219,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                     <label class="toggle-switch"><input type="checkbox" id="ccActive"><span class="toggle-slider"></span></label>
                 </div>
             </div>
-            <div class="cc-modal-foot">
+            <div class="cc-modal-foot sys-modal-foot">
                 <button type="button" class="btn btn-secondary" data-close><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary" id="ccSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
@@ -229,9 +228,9 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
 
     <!-- Import -->
     <div class="cc-overlay" id="ccImport">
-        <div class="cc-modal wide" role="dialog" aria-modal="true" aria-labelledby="ccImportTitle">
-            <div class="cc-modal-head" id="ccImportTitle"><?php echo htmlspecialchars($ccT('import_title')); ?></div>
-            <div class="cc-modal-body">
+        <div class="cc-modal wide sys-modal sys-modal-wide" role="dialog" aria-modal="true" aria-labelledby="ccImportTitle">
+            <div class="cc-modal-head sys-modal-head" id="ccImportTitle"><?php echo htmlspecialchars($ccT('import_title')); ?></div>
+            <div class="cc-modal-body sys-modal-body">
                 <div id="ccImportStep1">
                     <div class="cc-note"><?php echo $ccT('import_help_html'); ?></div>
                     <div class="cc-note"><?php echo $ccT('import_zeros_html'); ?></div>
@@ -250,7 +249,7 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
                 </div>
                 <div id="ccImportStep2" hidden></div>
             </div>
-            <div class="cc-modal-foot">
+            <div class="cc-modal-foot sys-modal-foot">
                 <button type="button" class="btn btn-secondary" id="ccImportBack" hidden><?php echo htmlspecialchars($ccT('back')); ?></button>
                 <button type="button" class="btn btn-secondary" data-close id="ccImportClose"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary" id="ccPreview"><?php echo htmlspecialchars($ccT('preview')); ?></button>

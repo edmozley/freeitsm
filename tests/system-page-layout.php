@@ -13,6 +13,9 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   1. the page has a .sys-page container spanning the width it is given;
  *   2. its .sys-title sits on the standard gutter (32px) at the standard size;
  *   3. the page ends inside the window: no second scrollbar, the bottom reachable;
+ *   6. (below) every dialog on the page, opened, is the standard System modal: .sys-modal
+ *      with head/body(/foot), 520/820/1000 wide, 8px corners, an 18px/600 title and
+ *      content 24px in from the edges;
  *   4. nothing inside is capped: no visible block 400px+ wide that a max-width
  *      holds narrower than the page. Controls are allowed caps (inputs, selects,
  *      search boxes, table cells, images); anything else that genuinely needs one
@@ -72,7 +75,7 @@ for(const e of page.querySelectorAll('*')){if(e.closest('[data-sys-cap],.modal,[
  if(/search|input|field|select|chip|badge|pill|toolbar|btn/i.test(String(e.className)))continue;
  const r=e.getBoundingClientRect();if(r.width<400||r.height<1)continue;
  if(r.width<inner-40)caps.push(e.tagName.toLowerCase()+'.'+String(e.className).split(' ').filter(Boolean).join('.')+' max-width:'+cs.maxWidth);}
-o.caps=caps.slice(0,5);o.docOver=d.scrollingElement.scrollHeight-w.innerHeight;let sc=page;while(sc&&sc!==d.body){const ov=w.getComputedStyle(sc).overflowY;if(ov==='auto'||ov==='scroll')break;sc=sc.parentElement;}o.bottom=(sc&&sc!==d.body)?Math.round(sc.getBoundingClientRect().bottom-w.innerHeight):0;return o;})()
+o.caps=caps.slice(0,5);o.docOver=d.scrollingElement.scrollHeight-w.innerHeight;let sc=page;while(sc&&sc!==d.body){const ov=w.getComputedStyle(sc).overflowY;if(ov==='auto'||ov==='scroll')break;sc=sc.parentElement;}o.bottom=(sc&&sc!==d.body)?Math.round(sc.getBoundingClientRect().bottom-w.innerHeight):0;const roots=[...d.querySelectorAll('body *')].filter(e=>{if(e.closest('.header,[id^=waffle],[class*=waffle]'))return false;const cs=w.getComputedStyle(e);return cs.position==='fixed'&&/modal|overlay|backdrop|dialog/i.test(String(e.className)+' '+e.id)});o.modals=[];for(const r of roots.filter(r=>!roots.some(x=>x!==r&&x.contains(r)))){const hid=r.hidden;r.hidden=false;r.classList.add('active','open','show');r.style.setProperty('display','flex','important');r.style.setProperty('visibility','visible','important');r.style.setProperty('opacity','1','important');const m={id:r.id||String(r.className).split(' ')[0]};const box=r.querySelector('.sys-modal');if(!box){m.noSys=1;}else{box.style.setProperty('transition','none','important');box.style.setProperty('transform','none','important');const bb=box.getBoundingClientRect(),bcs=w.getComputedStyle(box);m.w=Math.round(bb.width);m.rad=bcs.borderRadius;const h=box.querySelector('.sys-modal-head');if(h){const hcs=w.getComputedStyle(h);const rg=d.createRange();rg.selectNodeContents(h);m.hFs=hcs.fontSize;m.hFw=hcs.fontWeight;m.hL=Math.round(h.getBoundingClientRect().left-bb.left+parseFloat(hcs.paddingLeft));}const b=box.querySelector('.sys-modal-body');if(b){let mn=1e9,mx=1e9;for(const e of b.querySelectorAll('label,input,select,textarea,button,p,h3,h4,table,pre')){const q=e.getBoundingClientRect(),c2=w.getComputedStyle(e);if(q.width<1||q.height<1||c2.display==='none'||e.closest('[hidden]'))continue;mn=Math.min(mn,q.left-bb.left);mx=Math.min(mx,bb.right-q.right);}m.bL=mn===1e9?null:Math.round(mn);m.bR=mx===1e9?null:Math.round(mx);}const ft=box.querySelector('.sys-modal-foot');if(ft){const bt=[...ft.querySelectorAll('button,a.btn')].filter(x=>x.getBoundingClientRect().width>0);const lb=bt[bt.length-1];m.fR=lb?Math.round(bb.right-lb.getBoundingClientRect().right):null;m.btns=[...new Set(bt.map(x=>{const c=w.getComputedStyle(x);return (x.classList.contains('btn')?'':'no .btn ')+c.paddingTop+' '+c.paddingRight+'|'+c.borderTopLeftRadius+'|'+c.fontSize+'|'+c.fontWeight;}))];}m.head=!!h;m.body=!!b;m.foot=!!ft;box.style.removeProperty('transform');box.style.removeProperty('transition');}o.modals.push(m);r.hidden=hid;r.classList.remove('active','open','show');r.style.removeProperty('display');r.style.removeProperty('visibility');r.style.removeProperty('opacity');}return o;})()
 JS;
 $probe = str_replace("\n", ' ', $probe);
 
@@ -135,6 +138,22 @@ try {
             isset($j['titleX']) ? "x={$j['titleX']} {$j['titleFs']}/{$j['titleFw']}" : 'no .sys-title');
         check('nothing capped narrower than the page', !$j['caps'], implode('; ', $j['caps']));
         check('the page ends inside the window (no second scrollbar, bottom reachable)', $j['docOver'] <= 0 && $j['bottom'] <= 0, "page runs {$j['docOver']}px past, scroll box {$j['bottom']}px");
+        // 6. Every dialog on the page: the System modal (system-page.css), measured open.
+        foreach ($j['modals'] ?? [] as $md) {
+            $bad = [];
+            if (!empty($md['noSys'])) { $bad[] = 'not a .sys-modal'; }
+            else {
+                if (!$md['head'] || !$md['body']) $bad[] = 'needs .sys-modal-head and .sys-modal-body';
+                if (!in_array($md['w'], [520, 820, 1000], true)) $bad[] = "width {$md['w']} (520, 820 or 1000)";
+                if ($md['rad'] !== '8px') $bad[] = "corners {$md['rad']}";
+                if ($md['head'] && ($md['hFs'] !== '18px' || $md['hFw'] !== '600' || $md['hL'] !== 24)) $bad[] = "title {$md['hFs']}/{$md['hFw']} at {$md['hL']}px";
+                if ($md['body'] && $md['bL'] !== null && ($md['bL'] < 24 || $md['bR'] < 24)) $bad[] = "body content {$md['bL']}px / {$md['bR']}px from the edges (24+)";
+                if ($md['foot'] && $md['fR'] !== null && $md['fR'] !== 24) $bad[] = "footer button {$md['fR']}px from the right (24)";
+                // The app's standard button (inbox.css .btn): 10px 20px, 4px corners, 14px / 500.
+                foreach ($md['btns'] ?? [] as $bs) if ($bs !== '10px 20px|4px|14px|500') $bad[] = "footer button is not the standard button ({$bs})";
+            }
+            check("dialog #{$md['id']} is the standard System modal", !$bad, implode('; ', $bad));
+        }
     }
 } finally {
     foreach ($made as $id) { try { $conn->exec("DELETE FROM auth_providers WHERE id = " . (int)$id); } catch (Throwable $e) { echo "  (could not remove ZZ provider $id)\n"; } }

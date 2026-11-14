@@ -85,24 +85,28 @@ $b = fn(string $k) => t('system.bingo.' . $k);
         .fb-tag.nfu { background: var(--surface-3, #eee); }
         .fb-empty { padding: 40px 0; text-align: center; color: var(--text-muted, #666); font-size: 14px; }
         /* The explainer */
-        #fbModal .modal-content { max-width: 620px; padding: 22px 24px 16px; box-sizing: border-box; max-height: 90vh; overflow-y: auto; }
-        .fbm-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+        /* Box, head, body and footer: the System modal (system-page.css). The head
+           here carries the star beside the title, so it starts from the left. */
+        .sys-modal-head.fbm-head { gap: 14px; align-items: flex-start; justify-content: flex-start; }
         .fbm-star { flex: 0 0 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px;
             background: var(--surface-2, #f4f4f4); color: var(--border, #bbb); border: 1px solid var(--border, #e0e0e0); }
         .fbm-star.lit { background: var(--star-soft); color: var(--star); border-color: rgba(245, 179, 1, .5); }
-        .fbm-head h3 { margin: 0 0 4px; font-size: 19px; color: var(--text, #333); }
+        .fbm-head h3 { margin: 0 0 4px; font-size: inherit; font-weight: inherit; color: var(--text, #333); }
         .fbm-meta { font-size: 12px; color: var(--text-muted, #666); }
         .fbm-state { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 10px; }
         .fbm-state.lit { background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
         .fbm-state.unlit { background: var(--surface-2, #f4f4f4); color: var(--text-muted, #666); }
         .fbm-state.dismissed { background: var(--surface-3, #eee); color: var(--text-muted, #666); }
         .fbm-sec { margin: 12px 0 0; }
+        .fbm-sec:first-child { margin-top: 0; }
         .fbm-sec h4 { margin: 0 0 3px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #888); }
         .fbm-sec p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text, #333); }
         .fbm-done { margin-top: 14px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;
             background: var(--info-bg, #e3f2fd); color: var(--info-text, #0d47a1); border: 1px solid var(--info-border, #90caf9); }
-        .fbm-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
-        .fbm-actions .fb-btn { padding: 8px 14px; font-size: 13px; }
+        .fbm-actions { gap: 8px; flex-wrap: wrap; }
+        /* .sys-modal .btn is display:inline-flex, which beats the [hidden] the
+           script sets on "Not for us" / "Take me there" - put it back. */
+        .fbm-actions .btn[hidden] { display: none; }
         .fbm-actions .fbm-grow { margin-right: auto; }
         @media (max-width: 700px) { .fb-score { min-width: 0; width: 100%; } }
     </style>
@@ -152,8 +156,8 @@ $b = fn(string $k) => t('system.bingo.' . $k);
     </div>
 
     <div class="modal" id="fbModal" role="dialog" aria-modal="true" aria-labelledby="fbmTitle">
-        <div class="modal-content">
-            <div class="fbm-head">
+        <div class="modal-content sys-modal">
+            <div class="fbm-head sys-modal-head">
                 <div class="fbm-star" id="fbmStar">&#9733;</div>
                 <div>
                     <h3 id="fbmTitle"></h3>
@@ -161,13 +165,15 @@ $b = fn(string $k) => t('system.bingo.' . $k);
                     <span class="fbm-state" id="fbmState"></span>
                 </div>
             </div>
-            <div class="fbm-sec"><h4><?php echo htmlspecialchars($b('what')); ?></h4><p id="fbmWhat"></p></div>
-            <div class="fbm-sec"><h4><?php echo htmlspecialchars($b('why')); ?></h4><p id="fbmWhy"></p></div>
-            <div class="fbm-done"><strong><?php echo htmlspecialchars($b('lights_when')); ?></strong> <span id="fbmDone"></span></div>
-            <div class="fbm-actions">
-                <button type="button" class="fb-btn fbm-grow" id="fbmNfu"></button>
-                <button type="button" class="fb-btn" id="fbmClose"><?php echo htmlspecialchars(t('common.close')); ?></button>
-                <a class="fb-btn primary" id="fbmGo" href="#"><?php echo htmlspecialchars($b('take_me_there')); ?></a>
+            <div class="sys-modal-body">
+                <div class="fbm-sec"><h4><?php echo htmlspecialchars($b('what')); ?></h4><p id="fbmWhat"></p></div>
+                <div class="fbm-sec"><h4><?php echo htmlspecialchars($b('why')); ?></h4><p id="fbmWhy"></p></div>
+                <div class="fbm-done"><strong><?php echo htmlspecialchars($b('lights_when')); ?></strong> <span id="fbmDone"></span></div>
+            </div>
+            <div class="fbm-actions sys-modal-foot">
+                <button type="button" class="btn btn-secondary fbm-grow sys-modal-foot-left" id="fbmNfu"></button>
+                <button type="button" class="btn btn-secondary" id="fbmClose"><?php echo htmlspecialchars(t('common.close')); ?></button>
+                <a class="btn btn-primary" id="fbmGo" href="#"><?php echo htmlspecialchars($b('take_me_there')); ?></a>
             </div>
         </div>
     </div>

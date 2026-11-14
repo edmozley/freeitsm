@@ -96,9 +96,8 @@ $translationNamespaces = ['common', 'tickets'];
         .settings-scroll .action-btn.delete:hover { background: var(--danger-bg, #fdf3f3); border-color: var(--danger-accent, #d13438); color: var(--danger-text, #a00); }
         .settings-scroll .action-btn svg { width: 16px; height: 16px; }
 
-        /* Canonical settings-modal overrides (match tickets/settings). */
-        .modal-content { padding: 20px; max-width: 500px; }
-        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
+        /* Every dialog on this page is the System modal (system-page.css):
+           .sys-modal box, .sys-modal-head / -body / -foot. */
 
         /* Native controls don't inherit a theme — inbox.css sets only border/size,
            so without these the inputs stay white-on-black in dark mode. */
@@ -150,9 +149,10 @@ $translationNamespaces = ['common', 'tickets'];
 
     <!-- Team add/edit modal -->
     <div class="modal" id="teamModal">
-        <div class="modal-content">
-            <div class="modal-header" id="teamModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.add.team')); ?></div>
-            <form id="teamForm">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head" id="teamModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.add.team')); ?></div>
+            <form id="teamForm" class="sys-modal-form">
+                <div class="sys-modal-body">
                 <input type="hidden" id="teamId">
                 <div class="form-group">
                     <label for="teamName"><?php echo htmlspecialchars(t('tickets.settings.columns.name')); ?> *</label>
@@ -203,7 +203,8 @@ $translationNamespaces = ['common', 'tickets'];
                     </select>
                     <small style="display:block;color:var(--text-muted,#666);margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.team_signin.team_help')); ?></small>
                 </div>
-                <div class="modal-actions">
+                </div>
+                <div class="modal-actions sys-modal-foot">
                     <button type="button" class="btn btn-secondary" onclick="closeTeamModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
@@ -213,16 +214,18 @@ $translationNamespaces = ['common', 'tickets'];
 
     <!-- Team → departments / members assignment modal (shared by both pickers) -->
     <div class="modal" id="teamAssignModal">
-        <div class="modal-content">
-            <div class="modal-header" id="teamAssignTitle"></div>
-            <form id="teamAssignForm">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head" id="teamAssignTitle"></div>
+            <form id="teamAssignForm" class="sys-modal-form">
+                <div class="sys-modal-body">
                 <input type="hidden" id="assignTeamId">
                 <input type="hidden" id="assignKind">
                 <p style="margin-bottom: 15px; color: var(--text-muted, #666);" id="teamAssignDesc"></p>
                 <div id="teamAssignList" style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border, #ddd); border-radius: 4px;">
                     <div style="padding: 15px; text-align: center; color: var(--text-faint, #999);">Loading…</div>
                 </div>
-                <div class="modal-actions" style="margin-top: 20px;">
+                </div>
+                <div class="modal-actions sys-modal-foot">
                     <button type="button" class="btn btn-secondary" onclick="closeTeamAssign()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
@@ -232,9 +235,10 @@ $translationNamespaces = ['common', 'tickets'];
 
     <!-- Team company-access modal (multi-company installs only) -->
     <div class="modal" id="teamCompaniesModal">
-        <div class="modal-content">
-            <div class="modal-header" id="teamCompaniesTitle">Company access</div>
-            <form id="teamCompaniesForm">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head" id="teamCompaniesTitle">Company access</div>
+            <form id="teamCompaniesForm" class="sys-modal-form">
+                <div class="sys-modal-body">
                 <input type="hidden" id="companiesTeamId">
                 <p style="margin-bottom: 15px; color: var(--text-muted, #666);">Choose which companies this team can access. It's <strong>added to</strong> each member's own access — it never removes access they already have.</p>
                 <div class="form-group">
@@ -248,7 +252,8 @@ $translationNamespaces = ['common', 'tickets'];
                     <small style="color: var(--text-muted, #666); display:block; margin-top:4px;">On = members can access every company (now and any added later). Off = only the companies you tick below.</small>
                 </div>
                 <div id="teamCompanyList" style="max-height: 260px; overflow-y: auto; border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 8px;"></div>
-                <div class="modal-actions" style="margin-top: 20px;">
+                </div>
+                <div class="modal-actions sys-modal-foot">
                     <button type="button" class="btn btn-secondary" onclick="closeTeamCompanies()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>

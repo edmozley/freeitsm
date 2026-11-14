@@ -39,13 +39,17 @@
         var collapsed = new Set();
 
         // The modal is built here rather than in each page, so both pages get
-        // exactly the same form. Classes are inbox.css's shared modal.
+        // exactly the same form. The app's canonical header / body / footer modal
+        // (inbox.css), plus the System modal classes (system-page.css), which
+        // System -> Locations loads and Assets -> Settings does not - the two
+        // describe the same look.
         var modal = document.createElement('div');
         modal.className = 'modal';
         modal.innerHTML =
-            '<div class="modal-content">' +
-              '<div class="modal-header" data-role="title"></div>' +
-              '<form data-role="form">' +
+            '<div class="modal-content sys-modal loc-modal" role="dialog" aria-modal="true">' +
+              '<div class="modal-header sys-modal-head" data-role="title"></div>' +
+              '<form data-role="form" class="sys-modal-form">' +
+                '<div class="modal-body sys-modal-body">' +
                 '<div class="form-group"><label>' + esc(T('settings.col_name')) + '</label>' +
                   '<input type="text" data-role="name" required autocomplete="off"></div>' +
                 '<div class="form-group"><label>' + esc(T('settings.parent_location')) + '</label>' +
@@ -58,7 +62,8 @@
                   '<label class="toggle-label"><span class="toggle-switch"><input type="checkbox" data-role="shared">' +
                   '<span class="toggle-slider"></span></span> ' + esc(T('settings.location_shared')) + '</label>' +
                   '<div class="form-hint">' + esc(T('settings.location_shared_hint')) + '</div></div>' +
-                '<div class="modal-actions loc-modal-actions">' +
+                '</div>' +
+                '<div class="modal-footer sys-modal-foot">' +
                   '<button type="button" class="btn btn-secondary" data-role="cancel">' + esc(T('common.cancel')) + '</button>' +
                   '<button type="submit" class="btn btn-primary">' + esc(T('common.save')) + '</button>' +
                 '</div>' +
@@ -72,7 +77,7 @@
 
         function render() {
             if (all.length === 0) {
-                container.innerHTML = '<div class="loc-empty">' + esc(T('settings.no_locations')) + '</div>';
+                container.innerHTML = '<div class="loc-empty">' + T('settings.no_locations') /* translation with markup, as before the move - not user data */ + '</div>';
                 return;
             }
             container.innerHTML = '<ul>' + children(null).map(node).join('') + '</ul>';

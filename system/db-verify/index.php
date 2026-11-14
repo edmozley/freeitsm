@@ -453,38 +453,12 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             overflow-y: auto;
         }
         .detail-overlay.open { display: flex; }
-        .detail-modal {
-            background: var(--surface, #fff);
-            color: var(--text, #333);
-            border-radius: 10px;
-            width: 100%;
-            max-width: 660px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        .detail-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border, #e0e0e0);
-            background: var(--surface-3, #f8f9fa);
-        }
+        /* The box, head, close and body are the shared .sys-modal (system-page.css). */
         .detail-title {
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 15px;
-            font-weight: 700;
             word-break: break-word;
         }
         .detail-head-meta { display: flex; align-items: center; gap: 10px; }
-        .detail-close {
-            background: none; border: none; cursor: pointer;
-            font-size: 22px; line-height: 1; color: var(--text-muted, #666);
-            padding: 2px 6px; border-radius: 5px;
-        }
-        .detail-close:hover { background: var(--border-soft, #f0f0f0); color: var(--text, #333); }
-        .detail-body { padding: 16px 20px; max-height: 68vh; overflow-y: auto; }
         .detail-section { margin-bottom: 22px; }
         .detail-section:last-child { margin-bottom: 0; }
         .detail-section h4 {
@@ -600,15 +574,15 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
 
     <!-- Table detail modal (live structure, populated on card click) -->
     <div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
-        <div class="detail-modal" role="dialog" aria-modal="true">
-            <div class="detail-head">
+        <div class="detail-modal sys-modal sys-modal-wide" role="dialog" aria-modal="true">
+            <div class="detail-head sys-modal-head">
                 <span class="detail-title" id="detailTitle"></span>
                 <div class="detail-head-meta">
                     <span id="detailStatus"></span>
-                    <button class="detail-close" onclick="closeDetail()" aria-label="Close">&times;</button>
+                    <button class="detail-close sys-modal-x" onclick="closeDetail()" aria-label="Close">&times;</button>
                 </div>
             </div>
-            <div class="detail-body" id="detailBody"></div>
+            <div class="detail-body sys-modal-body" id="detailBody"></div>
         </div>
     </div>
 

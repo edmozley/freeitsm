@@ -105,11 +105,10 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
         /* Modals - namespaced so inbox.css's global .modal rules stay out of it. */
         .ac-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 2100; align-items: center; justify-content: center; }
         .ac-overlay.open { display: flex; }
-        .ac-modal { background: var(--surface, #fff); border-radius: 10px; width: 520px; max-width: 94vw; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
-        .ac-modal.wide { width: 820px; }
-        .ac-modal-head { padding: 18px 22px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); }
-        .ac-modal-body { padding: 18px 22px; overflow-y: auto; }
-        .ac-modal-foot { padding: 14px 22px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; }
+        /* The dialog box, head, body and foot are the shared .sys-modal (system-page.css). */
+        /* TRAP: any author `display` on .btn beats the browser's own [hidden] rule, so the
+           import footer's hidden Back / Import buttons showed on step 1. Hidden means hidden. */
+        .ac-modal-foot .btn[hidden] { display: none; }
         .ac-field { margin-bottom: 14px; }
         .ac-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
         .ac-field .hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; line-height: 1.45; }
@@ -204,9 +203,9 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
 
     <!-- Add / edit -->
     <div class="ac-overlay" id="acEdit">
-        <div class="ac-modal" role="dialog" aria-modal="true" aria-labelledby="acEditTitle">
-            <div class="ac-modal-head" id="acEditTitle"></div>
-            <div class="ac-modal-body">
+        <div class="ac-modal sys-modal" role="dialog" aria-modal="true" aria-labelledby="acEditTitle">
+            <div class="ac-modal-head sys-modal-head" id="acEditTitle"></div>
+            <div class="ac-modal-body sys-modal-body">
                 <div class="ac-field" id="acCompanyField" hidden>
                     <label for="acCompany"><?php echo htmlspecialchars($acT('company')); ?></label>
                     <select id="acCompany"></select>
@@ -241,7 +240,7 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
                     <label class="toggle-switch"><input type="checkbox" id="acActive"><span class="toggle-slider"></span></label>
                 </div>
             </div>
-            <div class="ac-modal-foot">
+            <div class="ac-modal-foot sys-modal-foot">
                 <button type="button" class="btn btn-secondary" data-close><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary" id="acSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
@@ -250,9 +249,9 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
 
     <!-- Import -->
     <div class="ac-overlay" id="acImport">
-        <div class="ac-modal wide" role="dialog" aria-modal="true" aria-labelledby="acImportTitle">
-            <div class="ac-modal-head" id="acImportTitle"><?php echo htmlspecialchars($acT('import_title')); ?></div>
-            <div class="ac-modal-body">
+        <div class="ac-modal wide sys-modal sys-modal-wide" role="dialog" aria-modal="true" aria-labelledby="acImportTitle">
+            <div class="ac-modal-head sys-modal-head" id="acImportTitle"><?php echo htmlspecialchars($acT('import_title')); ?></div>
+            <div class="ac-modal-body sys-modal-body">
                 <div id="acImportStep1">
                     <div class="ac-note"><?php echo $acT('import_help_html'); ?></div>
                     <div class="ac-note"><?php echo $acT('import_zeros_html'); ?></div>
@@ -271,7 +270,7 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
                 </div>
                 <div id="acImportStep2" hidden></div>
             </div>
-            <div class="ac-modal-foot">
+            <div class="ac-modal-foot sys-modal-foot">
                 <button type="button" class="btn btn-secondary" id="acImportBack" hidden><?php echo htmlspecialchars($acT('back')); ?></button>
                 <button type="button" class="btn btn-secondary" data-close id="acImportClose"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary" id="acPreview"><?php echo htmlspecialchars($acT('preview')); ?></button>

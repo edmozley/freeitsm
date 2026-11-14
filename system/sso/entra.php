@@ -170,13 +170,12 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         tr.members td { background: var(--app-bg, #f8f8f8); }
         .sso-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2100; align-items: center; justify-content: center; }
         .sso-modal-overlay.open { display: flex; }
-        .sso-modal { background: var(--surface, #fff); border-radius: 10px; width: 1100px; max-width: 94vw; max-height: 86vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
-        .sso-modal-header { padding: 18px 24px 14px; border-bottom: 1px solid var(--border-soft, #eee); }
-        .sso-modal-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
+        /* The run dialog box is the standard System modal (.sys-modal in system-page.css). */
+        .sso-modal-header h2 { margin: 0; font: inherit; color: inherit; }
         .sso-modal-header .sub { font-size: 12.5px; color: var(--text-dim, #888); margin-top: 3px; }
-        .sso-modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-        .sso-modal-footer { padding: 14px 24px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .run-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px 24px; border-bottom: 1px solid var(--border-soft, #f0f0f0); position: sticky; top: 0; background: var(--surface, #fff); z-index: 2; }
+        /* Full-bleed sticky bar: the negative margin undoes the standard body's
+           24px padding so the bar still runs edge to edge and sticks to the top. */
+        .run-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: -24px -24px 0; padding: 12px 24px; border-bottom: 1px solid var(--border-soft, #f0f0f0); position: sticky; top: -24px; background: var(--surface, #fff); z-index: 2; }
         .chip { border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text-muted, #555); border-radius: 20px; padding: 5px 13px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .chip.on { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border-color: var(--sys-accent, #546e7a); }
         .chip .n { opacity: .7; margin-left: 5px; font-weight: 400; }
@@ -430,18 +429,20 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
 </div>
 
 <div class="sso-modal-overlay" id="runModal">
-    <div class="sso-modal">
-        <div class="sso-modal-header">
-            <h2 id="runModalTitle"></h2>
-            <div class="sub" id="runModalSub"></div>
+    <div class="sso-modal sys-modal sys-modal-xl" role="dialog" aria-modal="true" aria-labelledby="runModalTitle">
+        <div class="sso-modal-header sys-modal-head">
+            <div>
+                <h2 id="runModalTitle"></h2>
+                <div class="sub" id="runModalSub"></div>
+            </div>
         </div>
         <div class="preview-banner" id="runPreviewBanner" style="display:none;"><?php echo et('sync_preview_prefix'); ?></div>
-        <div class="sso-modal-body">
+        <div class="sso-modal-body sys-modal-body">
             <div class="run-filters" id="runFilters"></div>
             <div id="runPeople"></div>
         </div>
-        <div class="sso-modal-footer">
-            <span class="hint" id="runFooterNote"></span>
+        <div class="sso-modal-footer sys-modal-foot">
+            <span class="hint sys-modal-foot-left" id="runFooterNote"></span>
             <button class="btn btn-primary" type="button" onclick="closeRunModal()"><?php echo htmlspecialchars(t('common.close')); ?></button>
         </div>
     </div>

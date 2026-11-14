@@ -95,10 +95,7 @@ $translationNamespaces = ['common', 'system'];
            framework, whose .modal rule sets opacity:0/visibility:hidden by default. */
         .co-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2100; align-items: center; justify-content: center; }
         .co-modal-overlay.open { display: flex; }
-        .co-modal { background: var(--surface, #fff); border-radius: 10px; width: 480px; max-width: 92vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .co-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); }
-        .co-modal-body { padding: 20px 24px; }
-        .co-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; }
+        /* The dialog box, head, body and foot are the shared .sys-modal (system-page.css). */
         .form-field { margin-bottom: 16px; }
         .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
         .form-field .hint { font-size: 12px; color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
@@ -222,9 +219,9 @@ $translationNamespaces = ['common', 'system'];
 
     <!-- Add/Edit modal -->
     <div class="co-modal-overlay" id="companyModal">
-        <div class="co-modal">
-            <div class="co-modal-header" id="modalTitle"><?php echo htmlspecialchars(t('system.companies.modal_add_title')); ?></div>
-            <div class="co-modal-body">
+        <div class="co-modal sys-modal" role="dialog" aria-modal="true">
+            <div class="co-modal-header sys-modal-head" id="modalTitle"><?php echo htmlspecialchars(t('system.companies.modal_add_title')); ?></div>
+            <div class="co-modal-body sys-modal-body">
                 <input type="hidden" id="companyId">
                 <div class="form-field">
                     <label><?php echo htmlspecialchars(t('system.companies.field_name')); ?></label>
@@ -301,7 +298,7 @@ $translationNamespaces = ['common', 'system'];
                     <div id="supportList"></div>
                 </div>
             </div>
-            <div class="co-modal-footer">
+            <div class="co-modal-footer sys-modal-foot">
                 <button class="btn btn-secondary" id="cancelModalBtn" type="button"><?php echo htmlspecialchars(t('system.companies.cancel')); ?></button>
                 <button class="btn btn-primary" id="saveCompanyBtn" type="button"><?php echo htmlspecialchars(t('system.companies.save')); ?></button>
             </div>

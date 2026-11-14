@@ -66,16 +66,18 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.integrations.title'), $meta['name'])); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/integrations.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/integrations.css?v=3">
     <style>
         /* Only what this page alone draws. The container, cards, table, fields,
            buttons and modal all come from integrations.css — see that file for
            why they are not repeated here. */
 
-        /* Mapping screen. Wider than the connection modal because every row is a
-           pair — "our thing" on the left, "their thing" on the right — and that
-           reads badly squeezed. */
-        .map-box { width: 820px; }
+        /* Both dialogs are the standard System modal (.sys-modal in
+           system-page.css). integrations.css's shared .modal-box adds a border,
+           a 50px top margin and an `h3` margin/size that would push the title
+           and buttons 1px off the 24px grid - cancelled here for these boxes. */
+        .modal-box.sys-modal { border: 0; margin: auto 0; }
+        .modal-box .sys-modal-head { margin: 0; font-size: 18px; }
         .map-section { margin-bottom: 26px; }
         .map-section h4 {
             margin: 0 0 4px; font-size: 15px; color: var(--text); font-weight: 600;
@@ -161,8 +163,9 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
 
     <!-- Add / edit connection -->
     <div class="modal-backdrop" id="connModal">
-        <div class="modal-box">
-            <h3 id="modalTitle"><?php echo htmlspecialchars(t('system.integrations.add_heading')); ?></h3>
+        <div class="modal-box sys-modal sys-modal-wide" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <h3 class="sys-modal-head" id="modalTitle"><?php echo htmlspecialchars(t('system.integrations.add_heading')); ?></h3>
+            <div class="sys-modal-body">
             <input type="hidden" id="connId" value="">
 
             <div class="int-field">
@@ -248,11 +251,12 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
             <div class="hint" style="margin:-10px 0 15px 26px;">
                 <?php echo htmlspecialchars(t('system.integrations.attach_hint')); ?>
             </div>
+            </div>
 
-            <div class="modal-actions">
-                <button class="btn-secondary" id="cancelBtn"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                <button class="btn-secondary" id="testBtn"><?php echo htmlspecialchars(t('system.integrations.test')); ?></button>
-                <button class="btn-primary"   id="saveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            <div class="modal-actions sys-modal-foot">
+                <button class="btn btn-secondary" id="cancelBtn"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-secondary" id="testBtn"><?php echo htmlspecialchars(t('system.integrations.test')); ?></button>
+                <button class="btn btn-primary"   id="saveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -263,9 +267,10 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
              API. Putting it in the same modal would mean a half-created
              connection showing empty dropdowns it cannot explain. */ ?>
     <div class="modal-backdrop" id="mapModal">
-        <div class="modal-box map-box">
-            <h3 id="mapTitle"><?php echo htmlspecialchars(t('system.integrations.mapping_title')); ?></h3>
-            <div class="hint" style="margin:-8px 0 20px;">
+        <div class="modal-box map-box sys-modal sys-modal-wide" role="dialog" aria-modal="true" aria-labelledby="mapTitle">
+            <h3 class="sys-modal-head" id="mapTitle"><?php echo htmlspecialchars(t('system.integrations.mapping_title')); ?></h3>
+            <div class="sys-modal-body">
+            <div class="hint" style="margin:0 0 20px;">
                 <?php echo htmlspecialchars(t('system.integrations.mapping_intro', ['name' => $meta['name']])); ?>
                 <?php /* Deep-linked to the mapping step: this modal is precisely
                          where somebody who does not know the tracker's vocabulary
@@ -277,10 +282,11 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
             </div>
 
             <div id="mapBody"><div class="map-empty"><?php echo htmlspecialchars(t('common.loading')); ?></div></div>
+            </div>
 
-            <div class="modal-actions">
-                <button class="btn-secondary" id="mapCancelBtn"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                <button class="btn-primary"   id="mapSaveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            <div class="modal-actions sys-modal-foot">
+                <button class="btn btn-secondary" id="mapCancelBtn"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary"   id="mapSaveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>

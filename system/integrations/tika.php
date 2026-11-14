@@ -42,7 +42,7 @@ $meta = integrationsProviderMeta('tika');
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.integrations.title'), 'Apache Tika')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/integrations.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/integrations.css?v=3">
     <style>
         body {
             --accent: var(--sys-accent, #546e7a);

@@ -141,13 +141,14 @@ $translationNamespaces = ['common', 'tickets'];
         .signin-conflict-badge:hover, .signin-conflict-badge:focus-visible { filter: brightness(0.96); outline: 2px solid var(--warning-border, #ffcc80); outline-offset: 1px; }
         .signin-conflict-badge svg { width: 12px; height: 12px; }
 
-        #signinConflictModal .modal-content { max-width: 600px; padding-bottom: 0; }
-        .sc-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
+        /* Box, head, body and footer: the System modal (system-page.css). The head
+           here carries the warning icon beside the title, so it starts from the left. */
+        .sys-modal-head.sc-head { gap: 14px; align-items: flex-start; justify-content: flex-start; }
         .sc-head-icon { flex: 0 0 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             background: var(--warning-bg, #fff3e0); color: var(--warning-text, #e65100); border: 1px solid var(--warning-border, #ffcc80); }
         .sc-head-icon svg { width: 22px; height: 22px; }
-        .sc-head h3 { margin: 0 0 4px; font-size: 19px; color: var(--text, #333); }
-        .sc-head p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted, #666); }
+        .sc-head h3 { margin: 0 0 4px; font-size: inherit; font-weight: inherit; color: var(--text, #333); }
+        .sc-head p { margin: 0; font-size: 13px; font-weight: 400; line-height: 1.5; color: var(--text-muted, #666); }
 
         /* The picture: analyst on top, a branch down to each team. */
         .sc-tree { background: var(--surface-2, #f7f9fa); border: 1px solid var(--border-soft, #eee); border-radius: 10px; padding: 16px 12px 14px; margin-bottom: 16px; }
@@ -184,28 +185,14 @@ $translationNamespaces = ['common', 'tickets'];
             background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); border: 1px solid var(--success-border, #a5d6a7); }
         .sc-fix-text { flex: 1; font-size: 13px; line-height: 1.4; color: var(--text-muted, #666); }
         .sc-fix-text strong { display: block; color: var(--text, #333); }
-        .sc-fix .btn { flex: 0 0 auto; padding: 6px 14px; font-size: 13px; }
+        .sc-fix .btn { flex: 0 0 auto; }
         @media (max-width: 520px) {
             .sc-fix { flex-wrap: wrap; }
             .sc-fix .btn { margin-left: 38px; }
         }
 
-        /* Canonical settings-modal overrides (match tickets/settings). */
-        .modal-content { padding: 20px 20px 0; max-width: 500px; }
-        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
-        /* The Save/Cancel bar is sticky; make it a full-width opaque strip flush to
-           the modal's bottom (bleeding over the modal-content side/bottom padding),
-           so once a modal grows tall enough to scroll, fields never show through or
-           beneath the pinned buttons. */
-        .modal-actions {
-            position: sticky;
-            bottom: 0;
-            margin: 16px -20px 0;
-            padding: 14px 20px;
-            background: var(--surface, #fff);
-            border-top: 1px solid var(--border, #e0e0e0);
-            z-index: 2;
-        }
+        /* Every dialog on this page is the System modal (system-page.css):
+           .sys-modal box, .sys-modal-head / -body / -foot. */
 
         /* Native controls don't inherit a theme — inbox.css sets only border/size,
            so without these the inputs stay white-on-black in dark mode. */
@@ -223,7 +210,6 @@ $translationNamespaces = ['common', 'tickets'];
            .btn-danger is page-local, the same rule calendar.css carries. */
         .btn.btn-danger { background: var(--danger-accent, #d13438); color: #fff; border: none; }
         .btn.btn-danger:hover { filter: brightness(1.08); }
-        #leaveModal .modal-content { max-width: 640px; }
         .lv-section { margin-bottom: 20px; }
         .lv-section h4 { font-size: 14px; font-weight: 600; color: var(--text, #333); margin: 0 0 8px; }
         .lv-muted { font-size: 13px; color: var(--text-muted, #666); line-height: 1.5; }
@@ -332,9 +318,10 @@ $translationNamespaces = ['common', 'tickets'];
 
     <!-- Analyst add/edit modal -->
     <div class="modal" id="analystModal">
-        <div class="modal-content">
-            <div class="modal-header" id="analystModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.add_title')); ?></div>
-            <form id="analystForm">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head" id="analystModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.add_title')); ?></div>
+            <form id="analystForm" class="sys-modal-form">
+                <div class="sys-modal-body">
                 <input type="hidden" id="analystId">
 
                 <div class="form-group">
@@ -427,8 +414,9 @@ $translationNamespaces = ['common', 'tickets'];
                     </label>
                     <small style="display:block;color:var(--text-muted,#666);margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.all_modules_help')); ?></small>
                 </div>
+                </div>
 
-                <div class="modal-actions">
+                <div class="modal-actions sys-modal-foot">
                     <button type="button" class="btn btn-secondary" onclick="closeAnalystModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
@@ -438,9 +426,10 @@ $translationNamespaces = ['common', 'tickets'];
 
     <!-- Password Reset Modal -->
     <div class="modal" id="passwordResetModal">
-        <div class="modal-content">
-            <div class="modal-header"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.title')); ?></div>
-            <form id="passwordResetForm">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.title')); ?></div>
+            <form id="passwordResetForm" class="sys-modal-form">
+                <div class="sys-modal-body">
                 <input type="hidden" id="resetAnalystId">
 
                 <p style="margin-bottom: 20px;"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.resetting_for')); ?> <strong id="resetAnalystName"></strong></p>
@@ -454,8 +443,9 @@ $translationNamespaces = ['common', 'tickets'];
                     <label for="confirmPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.confirm_password')); ?> *</label>
                     <input type="password" id="confirmPassword" required minlength="8" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.confirm_password_placeholder')); ?>">
                 </div>
+                </div>
 
-                <div class="modal-actions">
+                <div class="modal-actions sys-modal-foot">
                     <button type="button" class="btn btn-secondary" onclick="closePasswordResetModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.submit')); ?></button>
                 </div>
@@ -466,10 +456,10 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- When someone leaves (GH #178): what they hold, who takes it, and
          Deactivate / Anonymise / Delete. Filled in by openLeaveModal(). -->
     <div class="modal" id="leaveModal" role="dialog" aria-modal="true" aria-labelledby="lvTitle">
-        <div class="modal-content">
-            <div class="modal-header" id="lvTitle">When someone leaves</div>
-            <div class="modal-body" id="lvBody"><p class="lv-muted">Loading…</p></div>
-            <div class="modal-footer">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head" id="lvTitle">When someone leaves</div>
+            <div class="modal-body sys-modal-body" id="lvBody"><p class="lv-muted">Loading…</p></div>
+            <div class="modal-footer sys-modal-foot">
                 <button type="button" class="btn btn-secondary" onclick="closeLeaveModal()">Cancel</button>
                 <button type="button" class="btn btn-primary" id="lvGo" onclick="runLeaveAction()" disabled>Deactivate</button>
             </div>
@@ -479,8 +469,8 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Team Assignment Modal (analyst → teams) -->
     <!-- Sign-in conflict explanation (GH #41) - filled in by openSigninConflict() -->
     <div class="modal" id="signinConflictModal" role="dialog" aria-modal="true" aria-labelledby="scTitle">
-        <div class="modal-content">
-            <div class="sc-head">
+        <div class="modal-content sys-modal">
+            <div class="sc-head sys-modal-head">
                 <div class="sc-head-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
                 <div>
                     <h3 id="scTitle"><?php echo htmlspecialchars(t('tickets.settings.team_signin.cx_title')); ?></h3>
@@ -488,6 +478,7 @@ $translationNamespaces = ['common', 'tickets'];
                 </div>
             </div>
 
+            <div class="sys-modal-body">
             <div class="sc-tree">
                 <div class="sc-tree-label" id="scTreeLabel"></div>
                 <div class="sc-person">
@@ -520,17 +511,19 @@ $translationNamespaces = ['common', 'tickets'];
                 <div class="sc-fix-text"><strong><?php echo htmlspecialchars(t('tickets.settings.team_signin.cx_fix_member_title')); ?></strong><span id="scFixMember"></span></div>
                 <button type="button" class="btn btn-secondary" id="scBtnChange"><?php echo htmlspecialchars(t('tickets.settings.team_signin.cx_btn_change')); ?></button>
             </div>
+            </div>
 
-            <div class="modal-actions" style="margin-top: 16px;">
+            <div class="modal-actions sys-modal-foot">
                 <button type="button" class="btn btn-secondary" onclick="closeSigninConflict()"><?php echo htmlspecialchars(t('common.close')); ?></button>
             </div>
         </div>
     </div>
 
     <div class="modal" id="teamAssignmentModal">
-        <div class="modal-content">
-            <div class="modal-header" id="teamAssignmentTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.title')); ?></div>
-            <form id="teamAssignmentForm">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head" id="teamAssignmentTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.title')); ?></div>
+            <form id="teamAssignmentForm" class="sys-modal-form">
+                <div class="sys-modal-body">
                 <input type="hidden" id="assignmentEntityType">
                 <input type="hidden" id="assignmentEntityId">
 
@@ -539,8 +532,9 @@ $translationNamespaces = ['common', 'tickets'];
                 <div id="teamAssignmentList" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border, #ddd); border-radius: 4px;">
                     <div style="padding: 15px; text-align: center; color: var(--text-faint, #999);"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.loading')); ?></div>
                 </div>
+                </div>
 
-                <div class="modal-actions" style="margin-top: 20px;">
+                <div class="modal-actions sys-modal-foot">
                     <button type="button" class="btn btn-secondary" onclick="closeTeamAssignmentModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>

@@ -106,20 +106,19 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
         /* Modals - namespaced so inbox.css's global .modal rules stay out of it. */
         .pa-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 2100; align-items: center; justify-content: center; }
         .pa-overlay.open { display: flex; }
-        .pa-modal { background: var(--surface, #fff); border-radius: 10px; width: 440px; max-width: 94vw; max-height: 92vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
-        .pa-modal.wide { width: 1100px; }
-        .pa-modal-head { padding: 16px 20px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); }
+        /* The dialog boxes are the standard System modal (.sys-modal in system-page.css);
+           only what sits inside them is styled here. */
         .pa-modal-head small { display: block; font-size: 12px; font-weight: 400; color: var(--text-dim, #888); margin-top: 2px; }
-        .pa-modal-body { padding: 16px 20px; overflow: auto; }
-        .pa-modal-foot { padding: 12px 20px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
         .pa-modal-foot .spacer { flex: 1; }
         .pa-modal-body label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
         .pa-modal-body input[type=text] { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
         .pa-viewer { border-radius: 8px; display: flex; justify-content: center; }
         .pa-viewer canvas { display: block; max-width: 100%; height: auto; }
         .pa-modal-foot .pa-menu { bottom: calc(100% + 4px); }
-        .pa-modal-foot .btn-danger { background: none; border: 1px solid var(--danger-accent, #d13438); color: var(--danger-accent, #d13438); }
-        .pa-modal-foot .btn-danger:hover { background: var(--danger-bg, #fdf3f3); color: var(--danger-text, #a00); }
+        /* .btn.btn-danger: system-page.css's `.sys-modal .btn { border: none }` would
+           otherwise strip the outline (same weight, loaded later). */
+        .pa-modal-foot .btn.btn-danger { background: none; border: 1px solid var(--danger-accent, #d13438); color: var(--danger-accent, #d13438); }
+        .pa-modal-foot .btn.btn-danger:hover { background: var(--danger-bg, #fdf3f3); color: var(--danger-text, #a00); }
 
         [data-theme-mode="dark"] .pa-verify { background: #3a2e12; border-color: #6b5417; color: #fcd34d; }
 
@@ -228,13 +227,13 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
 
     <!-- Save -->
     <div class="pa-overlay" id="paSaveModal">
-        <div class="pa-modal" role="dialog" aria-modal="true" aria-labelledby="paSaveTitle">
-            <div class="pa-modal-head" id="paSaveTitle"><?php echo htmlspecialchars($paT('save_title')); ?></div>
-            <div class="pa-modal-body">
+        <div class="pa-modal sys-modal" role="dialog" aria-modal="true" aria-labelledby="paSaveTitle">
+            <div class="pa-modal-head sys-modal-head" id="paSaveTitle"><?php echo htmlspecialchars($paT('save_title')); ?></div>
+            <div class="pa-modal-body sys-modal-body">
                 <label for="paTitle"><?php echo htmlspecialchars($paT('field_title')); ?></label>
                 <input type="text" id="paTitle" maxlength="150" autocomplete="off">
             </div>
-            <div class="pa-modal-foot">
+            <div class="pa-modal-foot sys-modal-foot">
                 <button type="button" class="btn btn-secondary" data-close><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button type="button" class="btn btn-primary" id="paSaveConfirm"><?php echo htmlspecialchars($paT('save')); ?></button>
             </div>
@@ -243,10 +242,10 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
 
     <!-- View a saved picture -->
     <div class="pa-overlay" id="paViewModal">
-        <div class="pa-modal wide" role="dialog" aria-modal="true" aria-labelledby="paViewTitle">
-            <div class="pa-modal-head" id="paViewTitle"><span id="paViewName"></span><small id="paViewMeta"></small></div>
-            <div class="pa-modal-body"><div class="pa-viewer" id="paViewer"><canvas id="paViewArt"></canvas></div></div>
-            <div class="pa-modal-foot">
+        <div class="pa-modal wide sys-modal sys-modal-xl" role="dialog" aria-modal="true" aria-labelledby="paViewTitle">
+            <div class="pa-modal-head sys-modal-head" id="paViewTitle"><div><span id="paViewName"></span><small id="paViewMeta"></small></div></div>
+            <div class="pa-modal-body sys-modal-body"><div class="pa-viewer" id="paViewer"><canvas id="paViewArt"></canvas></div></div>
+            <div class="pa-modal-foot sys-modal-foot">
                 <button type="button" class="btn btn-danger" id="paViewDelete"><?php echo htmlspecialchars($paT('delete')); ?></button>
                 <span class="spacer"></span>
                 <button type="button" class="btn btn-secondary" id="paViewCopy"><?php echo htmlspecialchars($paT('copy')); ?></button>

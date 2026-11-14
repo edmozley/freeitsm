@@ -54,12 +54,14 @@
 
 .loc-empty { color: var(--text-faint, #999); padding: 16px 12px; }
 .loc-empty.loc-error { color: var(--danger-text, #d13438); }
-.loc-modal-actions { margin-top: 20px; }
+/* The Edit location dialog: the canonical modal at the standard 520px (inbox.css's default is 900px). */
+.loc-modal { width: 520px; max-width: 94vw; }
+.loc-modal .sys-modal-form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 /* GH #311: the note on Assets -> Settings -> Locations that the list is also System -> Locations. */
 .loc-signpost { display: flex; gap: 10px; align-items: flex-start; box-sizing: border-box; margin: 0 0 16px; padding: 12px 14px;
     border-radius: 8px; font-size: 13px; line-height: 1.5; background: var(--accent-soft, #e8f0f8); color: var(--text, #333); border: 1px solid var(--border, #e0e0e0); }
 .loc-signpost svg { flex-shrink: 0; margin-top: 1px; color: var(--accent, #0078d4); }
-.loc-signpost a { font-weight: 600; white-space: nowrap; }
+.loc-signpost a { font-weight: 600; white-space: nowrap; color: inherit; text-decoration: underline; }
 /* The row's icon buttons. Scoped: inbox.css's bare .action-btn is a big toolbar
    button, and the System page has no .tab-content rule to shrink it as Assets does.
    The hover takes the page's own accent (Assets green, System slate). */

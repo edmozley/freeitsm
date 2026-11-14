@@ -39,7 +39,7 @@ $lT = fn(string $k) => t('system.locations.' . $k);
     <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/locations-tree.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/locations-tree.css?v=4">
     <style>
         body {
             --accent: var(--sys-accent, #546e7a);
@@ -76,7 +76,7 @@ $lT = fn(string $k) => t('system.locations.' . $k);
 
     <script src="../../assets/js/toast.js"></script>
     <script src="../../assets/js/confirm.js"></script>
-    <script src="../../assets/js/locations-tree.js?v=1"></script>
+    <script src="../../assets/js/locations-tree.js?v=3"></script>
     <script>
     (function () {
         var tree = LocationsTree.mount(document.getElementById('locations-tree'), { apiBase: '../../api/assets/' });

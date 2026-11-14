@@ -176,12 +176,10 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
            header and footer are rigid flex items, and the body takes the slack
            with `min-height: 0` so it is allowed to shrink below its content and
            scroll. `overflow: hidden` on the box keeps the corners clean. */
-        /* 3.5.0: near full-screen - a provider has a lot to set (Ed). */
-        .sso-modal { background: var(--surface, #fff); border-radius: 10px; width: 1000px; max-width: 96vw; height: 90vh; max-height: 90vh;
-            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .sso-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); flex: 0 0 auto; }
-        .sso-modal-body { padding: 20px 24px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-        .sso-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; flex: 0 0 auto; }
+        /* 3.5.0: near full-screen - a provider has a lot to set (Ed). The box,
+           head, body and foot are the shared .sys-modal (system-page.css, xl
+           width); only the fixed full height is this page's own. */
+        .sso-modal { height: 90vh; }
         .sso-tabs { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--border-soft, #eee); flex: 0 0 auto; overflow-x: auto; }
         .sso-tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 12px 14px; cursor: pointer; font-size: 14px; color: var(--text-muted, #666); white-space: nowrap; }
         .sso-tabs button.active { color: var(--accent, #0078d4); border-bottom-color: var(--accent, #0078d4); font-weight: 600; }
@@ -347,15 +345,15 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
 
     <!-- Add/Edit modal -->
     <div class="sso-modal-overlay" id="providerModal">
-        <div class="sso-modal">
-            <div class="sso-modal-header" id="modalTitle"><?php echo htmlspecialchars(t('system.sso.modal_add_title')); ?></div>
+        <div class="sso-modal sys-modal sys-modal-xl" role="dialog" aria-modal="true">
+            <div class="sso-modal-header sys-modal-head" id="modalTitle"><?php echo htmlspecialchars(t('system.sso.modal_add_title')); ?></div>
             <div class="sso-tabs" id="ssoTabs" role="tablist">
                 <button type="button" data-tab="connection" class="active"><?php echo htmlspecialchars(t('system.sso.tab_connection')); ?></button>
                 <button type="button" data-tab="signin"><?php echo htmlspecialchars(t('system.sso.tab_signin')); ?></button>
                 <button type="button" data-tab="groups"><?php echo htmlspecialchars(t('system.sso.tab_groups')); ?></button>
                 <button type="button" data-tab="portal"><?php echo htmlspecialchars(t('system.sso.tab_portal')); ?></button>
             </div>
-            <div class="sso-modal-body">
+            <div class="sso-modal-body sys-modal-body">
                 <input type="hidden" id="providerId">
                 <?php /* 3.5.0: four tab panels. An OIDC provider shows one at a time
                          (ssoApplyTabs()); LDAP and CardDAV, which use few of them,
@@ -725,7 +723,7 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
                 <?php endif; ?>
                 </div><!-- /portal -->
             </div>
-            <div class="sso-modal-footer">
+            <div class="sso-modal-footer sys-modal-foot">
                 <button class="btn btn-secondary" id="cancelModalBtn" type="button"><?php echo htmlspecialchars(t('system.sso.cancel')); ?></button>
                 <button class="btn btn-primary" id="saveProviderBtn" type="button"><?php echo htmlspecialchars(t('system.sso.save')); ?></button>
             </div>

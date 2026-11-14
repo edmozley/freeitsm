@@ -91,10 +91,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
            .modal framework (opacity:0/visibility:hidden by default). */
         .apik-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2100; align-items: center; justify-content: center; }
         .apik-modal-overlay.open { display: flex; }
-        .apik-modal { background: var(--surface, #fff); border-radius: 10px; width: 640px; max-width: 92vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .apik-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); }
-        .apik-modal-body { padding: 20px 24px; }
-        .apik-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; }
+        /* The dialog box, head, body and foot are the shared .sys-modal (system-page.css). */
         .form-field { margin-bottom: 16px; }
         .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
         .form-field .hint { font-size: 12px; color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
@@ -348,9 +345,9 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
 
     <!-- Create / edit modal -->
     <div class="apik-modal-overlay" id="keyModal">
-        <div class="apik-modal">
-            <div class="apik-modal-header" id="modalTitle"><?php echo htmlspecialchars(t('system.api.new_key')); ?></div>
-            <div class="apik-modal-body">
+        <div class="apik-modal sys-modal" role="dialog" aria-modal="true">
+            <div class="apik-modal-header sys-modal-head" id="modalTitle"><?php echo htmlspecialchars(t('system.api.new_key')); ?></div>
+            <div class="apik-modal-body sys-modal-body">
                 <input type="hidden" id="fKeyId">
                 <div class="form-2col">
                     <div class="form-field">
@@ -424,7 +421,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
                     </div>
                 </div>
             </div>
-            <div class="apik-modal-footer">
+            <div class="apik-modal-footer sys-modal-foot">
                 <button class="btn btn-secondary" id="cancelBtn"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                 <button class="btn btn-primary" id="saveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
@@ -433,16 +430,16 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
 
     <!-- New-key reveal modal -->
     <div class="apik-modal-overlay" id="revealModal">
-        <div class="apik-modal">
-            <div class="apik-modal-header"><?php echo htmlspecialchars(t('system.api.created')); ?></div>
-            <div class="apik-modal-body">
+        <div class="apik-modal sys-modal" role="dialog" aria-modal="true">
+            <div class="apik-modal-header sys-modal-head"><?php echo htmlspecialchars(t('system.api.created')); ?></div>
+            <div class="apik-modal-body sys-modal-body">
                 <div class="newkey-box">
                     <?php echo htmlspecialchars(t('system.api.your_new_key')); ?>
                     <code id="newKeyValue"></code>
                     <div class="newkey-warning"><?php echo htmlspecialchars(t('system.api.copy_now')); ?></div>
                 </div>
             </div>
-            <div class="apik-modal-footer">
+            <div class="apik-modal-footer sys-modal-foot">
                 <button class="btn btn-secondary" id="copyKeyBtn"><?php echo htmlspecialchars(t('common.copy')); ?></button>
                 <button class="btn btn-primary" id="revealCloseBtn"><?php echo htmlspecialchars(t('common.close')); ?></button>
             </div>

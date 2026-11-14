@@ -665,9 +665,9 @@ function whAgo($s) {
 
     <!-- Payload modal -->
     <div class="modal" id="payloadModal" style="display:none;">
-        <div class="modal-content" style="max-width: 640px;">
-            <div class="modal-header"><h3 id="pmTitle"><?php echo htmlspecialchars(t('system.webhooks.modal_title')); ?></h3><button class="modal-close" id="pmClose" type="button">&times;</button></div>
-            <div class="modal-body" id="pmBody"></div>
+        <div class="modal-content sys-modal" role="dialog" aria-modal="true">
+            <div class="modal-header sys-modal-head"><span id="pmTitle"><?php echo htmlspecialchars(t('system.webhooks.modal_title')); ?></span><button class="modal-close sys-modal-x" id="pmClose" type="button">&times;</button></div>
+            <div class="modal-body sys-modal-body" id="pmBody"></div>
         </div>
     </div>
 
@@ -748,7 +748,10 @@ function whAgo($s) {
             // The raw cURL error says what broke, not what to do about it. Where the
             // server recognised the cause, show the plain-English version + the fix.
             + (r.diagnosis ? diagnosisHtml(r.diagnosis) : '');
+        // TRAP: inbox.css's .modal is opacity:0 / visibility:hidden until it has
+        // .active - display:flex alone opens an invisible dialog (View did nothing).
         document.getElementById('payloadModal').style.display = 'flex';
+        document.getElementById('payloadModal').classList.add('active');
     }
 
     /**
@@ -834,8 +837,8 @@ function whAgo($s) {
         copyToClipboard(t).then(ok => { const o = b.textContent; b.textContent = ok ? t('common.copied') : wh('copy_failed'); setTimeout(() => b.textContent = o, 1600); });
     });
     document.getElementById('refreshBtn').onclick = load;
-    document.getElementById('pmClose').onclick = () => document.getElementById('payloadModal').style.display = 'none';
-    document.getElementById('payloadModal').onclick = e => { if (e.target.id === 'payloadModal') e.target.style.display = 'none'; };
+    document.getElementById('pmClose').onclick = () => { const m = document.getElementById('payloadModal'); m.classList.remove('active'); m.style.display = 'none'; };
+    document.getElementById('payloadModal').onclick = e => { if (e.target.id === 'payloadModal') { e.target.classList.remove('active'); e.target.style.display = 'none'; } };
     load();
     </script>
     <script src="../../assets/js/mobile.js?v=83"></script>

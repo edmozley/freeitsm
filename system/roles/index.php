@@ -69,8 +69,8 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
         .roles-chip { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11.5px; background: var(--surface-3, #eef2f7); color: var(--text-muted, #6b7280); }
         .roles-empty { padding: 40px; text-align: center; color: var(--text-muted, #6b7280); }
 
-        /* Capability + assignment pickers inside the modal */
-        .rl-modal-body { padding: 18px 22px; max-height: 70vh; overflow-y: auto; }
+        /* Capability + assignment pickers inside the modal. Box, head, body and
+           footer: the System modal (system-page.css). */
         .rl-section { margin-top: 18px; }
         .rl-section > h4 { margin: 0 0 4px; font-size: 13px; }
         .rl-section > p { margin: 0 0 10px; font-size: 12px; color: var(--text-muted, #6b7280); line-height: 1.5; }
@@ -129,9 +129,10 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
 
     <!-- Create modal (name only; capabilities/assignments set on edit) -->
     <div class="modal" id="createModal">
-        <div class="modal-content" style="max-width: 460px;">
-            <div class="modal-header">Add role</div>
-            <form id="createForm" style="padding: 20px 24px;">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head">Add role</div>
+            <form id="createForm" class="sys-modal-form">
+                <div class="sys-modal-body">
                 <div class="form-group">
                     <label>Name *</label>
                     <input type="text" id="cName" required placeholder="e.g. LMS Manager">
@@ -140,7 +141,8 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
                     <label>Description</label>
                     <input type="text" id="cDescription" placeholder="What is this role for?">
                 </div>
-                <div class="modal-actions">
+                </div>
+                <div class="modal-actions sys-modal-foot">
                     <button type="button" class="btn btn-secondary" onclick="Roles.close('createModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary">Create</button>
                 </div>
@@ -150,11 +152,11 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
 
     <!-- Edit modal (identity + capabilities + assignments, saved as a unit) -->
     <div class="modal" id="editModal">
-        <div class="modal-content" style="max-width: 640px;">
-            <div class="modal-header" id="editTitle">Edit role</div>
-            <form id="editForm">
+        <div class="modal-content sys-modal">
+            <div class="modal-header sys-modal-head" id="editTitle">Edit role</div>
+            <form id="editForm" class="sys-modal-form">
                 <input type="hidden" id="eId">
-                <div class="rl-modal-body">
+                <div class="rl-modal-body sys-modal-body">
                     <div class="form-group">
                         <label>Name *</label>
                         <input type="text" id="eName" required>
@@ -185,7 +187,7 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
                         <div class="rl-picker" id="teamPicker"></div>
                     </div>
                 </div>
-                <div class="modal-actions" style="padding: 14px 22px;">
+                <div class="modal-actions sys-modal-foot">
                     <button type="button" class="btn btn-secondary" onclick="Roles.close('editModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </div>

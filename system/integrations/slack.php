@@ -59,9 +59,16 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.integrations.title'), 'Slack')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/integrations.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/integrations.css?v=3">
     <style>
         /* Only what this page alone draws — everything else is integrations.css. */
+
+        /* The three dialogs are the standard System modal (.sys-modal in
+           system-page.css). integrations.css's shared .modal-box adds a border,
+           a 50px top margin and an `h3` margin/size that would push the title
+           and buttons 1px off the 24px grid - cancelled here for these boxes. */
+        .modal-box.sys-modal { border: 0; margin: auto 0; }
+        .modal-box .sys-modal-head { margin: 0; font-size: 18px; }
 
         /* The setup steps. Numbered because the order genuinely matters: the
            manifest cannot exist before the connection does. */
@@ -200,8 +207,9 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
 
     <!-- Add / edit a workspace -->
     <div class="modal-backdrop" id="editModal">
-        <div class="modal-box">
-            <h3 id="editTitle"><?php echo htmlspecialchars(t('system.integrations.slack_add_title')); ?></h3>
+        <div class="modal-box sys-modal sys-modal-wide" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+            <h3 class="sys-modal-head" id="editTitle"><?php echo htmlspecialchars(t('system.integrations.slack_add_title')); ?></h3>
+            <div class="sys-modal-body">
             <input type="hidden" id="fId">
 
             <div class="int-field">
@@ -213,7 +221,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
             <div class="int-field">
                 <label for="fBotToken"><?php echo htmlspecialchars(t('system.integrations.slack_bot_token')); ?></label>
                 <input type="password" id="fBotToken" autocomplete="off" placeholder="xoxb-…">
-                <div class="hint"><?php echo htmlspecialchars(t('system.integrations.slack_bot_token_hint')); ?></div>
+                <div class="hint"><?php echo htmlspecialchars(t('system.integrations.slack_bot_token_hint'), ENT_QUOTES, 'UTF-8', false) /* the string carries &amp; (OAuth &amp; Permissions): do not encode it twice */; ?></div>
             </div>
 
             <div class="int-field">
@@ -245,31 +253,35 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
                 <input type="checkbox" id="fActive" checked>
                 <label for="fActive" style="margin:0;"><?php echo htmlspecialchars(t('system.integrations.active_label')); ?></label>
             </div>
+            </div>
 
-            <div class="modal-actions">
-                <button class="btn-secondary" id="editCancel"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                <button class="btn-primary" id="editSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            <div class="modal-actions sys-modal-foot">
+                <button class="btn btn-secondary" id="editCancel"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="editSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
 
     <!-- Health check -->
     <div class="modal-backdrop" id="diagModal">
-        <div class="modal-box map-box">
-            <h3><?php echo htmlspecialchars(t('system.integrations.slack_diag_title')); ?></h3>
+        <div class="modal-box map-box sys-modal sys-modal-wide" role="dialog" aria-modal="true">
+            <h3 class="sys-modal-head"><?php echo htmlspecialchars(t('system.integrations.slack_diag_title')); ?></h3>
+            <div class="sys-modal-body">
             <p class="card-desc"><?php echo htmlspecialchars(t('system.integrations.slack_diag_desc')); ?></p>
             <div id="diagBody"><div class="diag-running"><?php echo htmlspecialchars(t('common.loading')); ?></div></div>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="diagRerun"><?php echo htmlspecialchars(t('system.integrations.slack_diag_rerun')); ?></button>
-                <button class="btn-primary" id="diagClose"><?php echo htmlspecialchars(t('common.close')); ?></button>
+            </div>
+            <div class="modal-actions sys-modal-foot">
+                <button class="btn btn-secondary" id="diagRerun"><?php echo htmlspecialchars(t('system.integrations.slack_diag_rerun')); ?></button>
+                <button class="btn btn-primary" id="diagClose"><?php echo htmlspecialchars(t('common.close')); ?></button>
             </div>
         </div>
     </div>
 
     <!-- The Slack app: manifest, webhook URL, scopes -->
     <div class="modal-backdrop" id="appModal">
-        <div class="modal-box map-box">
-            <h3><?php echo htmlspecialchars(t('system.integrations.slack_app_title')); ?></h3>
+        <div class="modal-box map-box sys-modal sys-modal-wide" role="dialog" aria-modal="true">
+            <h3 class="sys-modal-head"><?php echo htmlspecialchars(t('system.integrations.slack_app_title')); ?></h3>
+            <div class="sys-modal-body">
 
             <div id="urlProblem" class="setup-warning" style="display:none;"></div>
 
@@ -302,9 +314,10 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
                     <li><code><?php echo htmlspecialchars($scope); ?></code> — <?php echo htmlspecialchars($why); ?></li>
                 <?php endforeach; ?>
             </ul>
+            </div>
 
-            <div class="modal-actions">
-                <button class="btn-secondary" id="appClose"><?php echo htmlspecialchars(t('common.close')); ?></button>
+            <div class="modal-actions sys-modal-foot">
+                <button class="btn btn-secondary" id="appClose"><?php echo htmlspecialchars(t('common.close')); ?></button>
             </div>
         </div>
     </div>

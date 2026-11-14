@@ -196,7 +196,7 @@ table.int-table td {
     margin-bottom: 5px;
     white-space: nowrap;
 }
-.int-field .hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+.int-field .hint, .modal-box .hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
 .int-field input[type=text],
 .int-field input[type=password],
 .int-field select,

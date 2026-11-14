@@ -242,21 +242,15 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            here would open invisibly. */
         .sso-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2100; align-items: center; justify-content: center; }
         .sso-modal-overlay.open { display: flex; }
-        /* Wider and taller than the config modal on the list page: this one holds
-           a table of people, and a cramped list of names is the thing it exists
-           to replace. Flex column so the table body scrolls and the header,
-           filters and footer stay put. */
-        /* height:auto with a cap, NOT a fixed 82vh: a preview with three rows in
-           it should be three rows tall. A fixed height left most of the dialog
-           as empty grey, which reads as "something failed to load". */
-        .sso-modal { background: var(--surface, #fff); border-radius: 10px; width: 1100px; max-width: 94vw; height: auto; max-height: 86vh;
-            display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
-        .sso-modal-header { padding: 18px 24px 14px; border-bottom: 1px solid var(--border-soft, #eee); }
-        .sso-modal-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
+        /* The box is the standard System modal, extra wide (.sys-modal-xl in
+           system-page.css): it holds a table of people, and a cramped list of
+           names is the thing it exists to replace. Its height is auto with a cap,
+           NOT fixed: a preview with three rows in it should be three rows tall. */
+        .sso-modal-header h2 { margin: 0; font: inherit; color: inherit; }
         .sso-modal-header .sub { font-size: 12.5px; color: var(--text-dim, #888); margin-top: 3px; }
-        .sso-modal-body { padding: 0; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-        .sso-modal-footer { padding: 14px 24px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .run-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px 24px; border-bottom: 1px solid var(--border-soft, #f0f0f0); position: sticky; top: 0; background: var(--surface, #fff); z-index: 2; }
+        /* Full-bleed sticky bar: the negative margin undoes the standard body's
+           24px padding so the bar still runs edge to edge and sticks to the top. */
+        .run-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: -24px -24px 0; padding: 12px 24px; border-bottom: 1px solid var(--border-soft, #f0f0f0); position: sticky; top: -24px; background: var(--surface, #fff); z-index: 2; }
         /* A filter chip carries its own count, so "nothing to see here" is
            readable without clicking into each one in turn. */
         .chip { border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text-muted, #555);
@@ -267,8 +261,8 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
             border-radius: 6px; background: var(--surface, #fff); color: var(--text, #333); }
         table.people { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         table.people th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888);
-            font-weight: 600; padding: 10px 24px; border-bottom: 1px solid var(--border, #e6e6e6); }
-        table.people td { padding: 9px 24px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); vertical-align: top; word-break: break-word; }
+            font-weight: 600; padding: 10px; border-bottom: 1px solid var(--border, #e6e6e6); }
+        table.people td { padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); vertical-align: top; word-break: break-word; }
         table.people tr.hide { display: none; }
         .who { font-weight: 600; }
         .who small { display: block; font-weight: 400; font-size: 11.5px; color: var(--text-dim, #999); font-family: ui-monospace, Consolas, monospace; }
@@ -590,18 +584,20 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
      written; nothing ever displayed them. This is that display, opened
      automatically after a preview and from any row of the history. -->
 <div class="sso-modal-overlay" id="runModal">
-    <div class="sso-modal">
-        <div class="sso-modal-header">
-            <h2 id="runModalTitle"></h2>
-            <div class="sub" id="runModalSub"></div>
+    <div class="sso-modal sys-modal sys-modal-xl" role="dialog" aria-modal="true" aria-labelledby="runModalTitle">
+        <div class="sso-modal-header sys-modal-head">
+            <div>
+                <h2 id="runModalTitle"></h2>
+                <div class="sub" id="runModalSub"></div>
+            </div>
         </div>
         <div class="preview-banner" id="runPreviewBanner" style="display:none;"><?php echo htmlspecialchars(t('system.sso.sync_preview_prefix')); ?></div>
-        <div class="sso-modal-body">
+        <div class="sso-modal-body sys-modal-body">
             <div class="run-filters" id="runFilters"></div>
             <div id="runPeople"></div>
         </div>
-        <div class="sso-modal-footer">
-            <span class="hint" id="runFooterNote"></span>
+        <div class="sso-modal-footer sys-modal-foot">
+            <span class="hint sys-modal-foot-left" id="runFooterNote"></span>
             <button class="btn btn-primary" type="button" onclick="closeRunModal()"><?php echo htmlspecialchars(t('common.close')); ?></button>
         </div>
     </div>

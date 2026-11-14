@@ -74,10 +74,7 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
 
         .pt-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 2100; align-items: center; justify-content: center; }
         .pt-overlay.open { display: flex; }
-        .pt-modal { background: var(--surface, #fff); border-radius: 10px; width: 620px; max-width: 94vw; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
-        .pt-modal-head { padding: 18px 22px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); }
-        .pt-modal-body { padding: 18px 22px; overflow-y: auto; }
-        .pt-modal-foot { padding: 14px 22px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; }
+        /* The dialog boxes are the standard System modal (.sys-modal in system-page.css). */
         .pt-field { margin-bottom: 16px; }
         .pt-field > label, .pt-field .pt-label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
         .pt-field .hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; line-height: 1.45; }
@@ -86,7 +83,7 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
         .pt-label-row { display: flex; align-items: baseline; gap: 10px; }
         .pt-label-row .pt-label { margin: 0; }
         .pt-label-row button { background: none; border: none; padding: 0; font-size: 12px; color: var(--accent, #546e7a); cursor: pointer; }
-        .pt-sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 14px; margin-top: 6px; }
+        .pt-sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 14px; margin-top: 6px; }
         .pt-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text, #444); padding: 3px 0; cursor: pointer; }
         .pt-check input:disabled + span { color: var(--text-faint, #aaa); }
         .pt-warn { margin: 0 0 12px; padding: 10px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
@@ -128,9 +125,9 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
 
     <!-- New / edit -->
     <div class="pt-overlay" id="ptEdit">
-        <div class="pt-modal" role="dialog" aria-modal="true" aria-labelledby="ptEditTitle">
-            <div class="pt-modal-head" id="ptEditTitle"></div>
-            <div class="pt-modal-body">
+        <div class="pt-modal sys-modal" role="dialog" aria-modal="true" aria-labelledby="ptEditTitle">
+            <div class="pt-modal-head sys-modal-head" id="ptEditTitle"></div>
+            <div class="pt-modal-body sys-modal-body">
                 <div class="pt-field">
                     <label for="ptName"><?php echo htmlspecialchars($ptT('name')); ?></label>
                     <input type="text" id="ptName" maxlength="100" placeholder="<?php echo htmlspecialchars($ptT('name_ph')); ?>">
@@ -158,7 +155,7 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
                     <div class="hint"><?php echo htmlspecialchars($ptT('for_new_hint')); ?></div>
                 </div>
             </div>
-            <div class="pt-modal-foot">
+            <div class="pt-modal-foot sys-modal-foot">
                 <button type="button" class="btn btn-secondary" data-close><?php echo htmlspecialchars($ptT('cancel')); ?></button>
                 <button type="button" class="btn btn-primary" id="ptSave"><?php echo htmlspecialchars($ptT('save')); ?></button>
             </div>
@@ -167,9 +164,9 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
 
     <!-- Apply -->
     <div class="pt-overlay" id="ptApply">
-        <div class="pt-modal" role="dialog" aria-modal="true" aria-labelledby="ptApplyTitle">
-            <div class="pt-modal-head" id="ptApplyTitle"></div>
-            <div class="pt-modal-body">
+        <div class="pt-modal sys-modal" role="dialog" aria-modal="true" aria-labelledby="ptApplyTitle">
+            <div class="pt-modal-head sys-modal-head" id="ptApplyTitle"></div>
+            <div class="pt-modal-body sys-modal-body">
                 <p class="pt-field" id="ptApplyIntro" style="margin:0 0 8px;font-size:13px;color:var(--text,#444)"></p>
                 <div class="pt-chips" id="ptApplySections" style="margin-bottom:14px"></div>
                 <p class="pt-warn"><?php echo htmlspecialchars($ptT('apply_warn')); ?></p>
@@ -183,7 +180,7 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
                     <div class="pt-count" id="ptPeopleCount"></div>
                 </div>
             </div>
-            <div class="pt-modal-foot">
+            <div class="pt-modal-foot sys-modal-foot">
                 <button type="button" class="btn btn-secondary" data-close><?php echo htmlspecialchars($ptT('cancel')); ?></button>
                 <button type="button" class="btn btn-primary" id="ptApplyGo"><?php echo htmlspecialchars($ptT('apply_go')); ?></button>
             </div>

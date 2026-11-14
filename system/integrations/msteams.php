@@ -40,7 +40,7 @@ $t = fn(string $k) => htmlspecialchars(t('system.integrations.' . $k));
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.integrations.title'), 'Microsoft Teams')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/integrations.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/integrations.css?v=3">
     <style>
         body { --accent: var(--sys-accent, #546e7a); --accent-hover: var(--sys-accent-hover, #37474f); --on-accent: var(--sys-on-accent, #fff); }
         /* Gutter, width and title come from .sys-page (assets/css/system-page.css). */
