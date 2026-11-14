@@ -77,6 +77,15 @@ $moved = (string)file_get_contents($root . '/system/integrations/microsoft365/in
 check('the new page has everything the tab had', str_contains($moved, 'function saveIntuneSettings') && str_contains($moved, 'id="intuneTypeMap"')
     && str_contains($moved, 'function startAppSync') && str_contains($moved, 'function loadIntuneFreshness') && str_contains($moved, "Cap::ASSETS_INTUNE"));
 
+// ── the hub: Entra, Intune, and the map of the rest ─────────────────────────
+$hub = (string)file_get_contents($root . '/system/integrations/microsoft365/index.php');
+check('Microsoft 365 lists everything else that talks to Microsoft, and where it is set up',
+    str_contains($hub, "tickets/settings/#mailboxes") && str_contains($hub, "'../../calendar-sync/'")
+    && str_contains($hub, "'../msteams'") && str_contains($hub, "tickets/settings/#messaging") && str_contains($hub, 'mailboxAuthenticatedSql()'));
+check('...to administrators only', (bool)preg_match('~\$more = \[\];\s*if \(\$isAdmin\)~', $hub));
+check('the Integrations card opens it, in place of the Entra signpost',
+    str_contains((string)file_get_contents($root . '/system/integrations/index.php'), 'href="microsoft365/"'));
+
 // ── nothing links to the old tab ─────────────────────────────────────────────
 $stale = [];
 $it = new RecursiveIteratorIterator(new RecursiveCallbackFilterIterator(

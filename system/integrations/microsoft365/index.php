@@ -15,8 +15,17 @@
  * apart so nobody's settings had to be migrated. This page says how each stands and
  * opens it.
  *
+ * Also from Microsoft (administrators): everything else in FreeITSM that talks to
+ * Microsoft 365, listed with how it stands and a button to where it is set up - it
+ * stays where it belongs (its module, its permissions); this page is the map.
+ *   Microsoft 365 mailboxes - Tickets -> Settings -> Mailboxes (ticket email in and
+ *                             out, and the system's own email)
+ *   Outlook calendars       - System -> Calendar sync
+ *   Teams channel alerts    - System -> Integrations -> Microsoft Teams
+ *   Teams chat              - Tickets -> Settings -> Messaging
+ *
  * Who may open it: an administrator; or an analyst who may configure Intune
- * (Cap::ASSETS_INTUNE), who sees the Intune half only - Entra is administration.
+ * (Cap::ASSETS_INTUNE), who sees the Intune half only - the rest is administration.
  */
 session_start();
 require_once '../../../config.php';
@@ -73,6 +82,46 @@ try {
     // Reads as not set up.
 }
 $translationNamespaces[] = 'reporting';   // the jobs' names and outcomes
+
+// Also from Microsoft: how each stands, counted where it is kept. Each guarded on
+// its own, so one table an install has not verified yet costs only its own row.
+$more = [];
+if ($isAdmin) {
+    $count = function (string $sql) use ($conn): ?array {
+        try { return $conn->query($sql)->fetch(PDO::FETCH_NUM) ?: null; } catch (Throwable $e) { return null; }
+    };
+    // A mailbox with no provider is Microsoft - MailboxProvider::fromValue().
+    require_once '../../../includes/mailbox_auth.php';
+    $mb = $count("SELECT COUNT(*), COALESCE(SUM(" . mailboxAuthenticatedSql() . "), 0) FROM target_mailboxes
+                   WHERE is_active = 1 AND (provider = 'microsoft' OR provider IS NULL OR provider = '')");
+    $more[] = ['name' => t('system.integrations.ms365_mail_name'),
+               'on'   => $mb && (int)$mb[0] > 0,
+               'meta' => $mb && (int)$mb[0] > 0 ? t('system.integrations.ms365_mail_meta', ['n' => (int)$mb[0], 'a' => (int)$mb[1]]) : t('system.integrations.ms365_mail_none'),
+               'where'=> t('system.integrations.ms365_mail_where'),
+               'url'  => BASE_URL . 'tickets/settings/#mailboxes'];
+    $cal = $count("SELECT COUNT(*) FROM calendar_connections WHERE is_active = 1 AND provider = 'microsoft'");
+    $more[] = ['name' => t('system.integrations.ms365_cal_name'),
+               'on'   => $cal && (int)$cal[0] > 0,
+               'meta' => $cal && (int)$cal[0] > 0 ? t('system.integrations.ms365_cal_meta', ['n' => (int)$cal[0]]) : t('system.integrations.ms365_cal_none'),
+               'where'=> t('system.integrations.ms365_cal_where'),
+               'url'  => '../../calendar-sync/'];
+    $alerts = null;
+    try {
+        require_once '../../../includes/integrations/msteams.php';
+        $alerts = msteamsChannelCount($conn);   // as its card on Integrations counts them
+    } catch (Throwable $e) { $alerts = null; }
+    $more[] = ['name' => t('system.integrations.ms365_alerts_name'),
+               'on'   => (int)$alerts > 0,
+               'meta' => (int)$alerts > 0 ? t('system.integrations.ms365_alerts_meta', ['n' => (int)$alerts]) : t('system.integrations.ms365_alerts_none'),
+               'where'=> t('system.integrations.ms365_alerts_where'),
+               'url'  => '../msteams'];
+    $bot = $count("SELECT COUNT(*) FROM messaging_channels WHERE is_active = 1 AND channel_type = 'teams'");
+    $more[] = ['name' => t('system.integrations.ms365_chat_name'),
+               'on'   => $bot && (int)$bot[0] > 0,
+               'meta' => $bot && (int)$bot[0] > 0 ? t('system.integrations.ms365_chat_meta', ['n' => (int)$bot[0]]) : t('system.integrations.ms365_chat_none'),
+               'where'=> t('system.integrations.ms365_chat_where'),
+               'url'  => BASE_URL . 'tickets/settings/#messaging'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -175,6 +224,27 @@ $translationNamespaces[] = 'reporting';   // the jobs' names and outcomes
                 <div class="ms-actions"><a class="btn btn-primary" href="intune.php"><?php echo htmlspecialchars(t('system.integrations.ms365_open_intune')); ?></a></div>
             </div>
         </section>
+
+        <?php if ($more): ?>
+        <?php /* Also from Microsoft: set up where each belongs; this is the map. */ ?>
+        <section class="ms-panel">
+            <h2><?php echo htmlspecialchars(t('system.integrations.ms365_more_heading')); ?></h2>
+            <p><?php echo htmlspecialchars(t('system.integrations.ms365_more_intro')); ?></p>
+            <?php foreach ($more as $m): ?>
+                <div class="ms-row">
+                    <div>
+                        <div class="ms-name"><?php echo htmlspecialchars($m['name']); ?></div>
+                        <div class="ms-meta">
+                            <span class="ms-pill<?php echo $m['on'] ? ' on' : ''; ?>"><?php echo htmlspecialchars(t($m['on'] ? 'system.integrations.configured' : 'system.integrations.not_configured')); ?></span>
+                            <?php echo htmlspecialchars($m['meta']); ?>
+                        </div>
+                        <div class="ms-meta"><?php echo htmlspecialchars($m['where']); ?></div>
+                    </div>
+                    <div class="ms-actions"><a class="btn btn-secondary" href="<?php echo htmlspecialchars($m['url']); ?>"><?php echo htmlspecialchars(t('system.integrations.ms365_open')); ?></a></div>
+                </div>
+            <?php endforeach; ?>
+        </section>
+        <?php endif; ?>
     </div>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
