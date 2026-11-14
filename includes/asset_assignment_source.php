@@ -50,6 +50,21 @@ enum AssetAssignmentSource: string
 }
 
 /**
+ * Fills users_assets.assigned_source in for the rows Intune made before the column
+ * existed - its note, no analyst - and returns how many. Run by Database
+ * Verification on every verify; a new row always has its source, so this only
+ * ever finds rows from before. Every other old row stays NULL ("from before the
+ * column"), which Intune never moves.
+ */
+function assetAssignmentSourceBackfill(PDO $conn): int
+{
+    $st = $conn->prepare("UPDATE users_assets SET assigned_source = ?
+                           WHERE assigned_source IS NULL AND assigned_by_analyst_id IS NULL AND notes = ?");
+    $st->execute([AssetAssignmentSource::Intune->value, AssetAssignmentSource::INTUNE_NOTE]);
+    return $st->rowCount();
+}
+
+/**
  * SQL: this users_assets row was put there by Intune - by its column, or, for a
  * row from before the column, by the note and the missing analyst.
  *

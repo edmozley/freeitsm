@@ -166,6 +166,18 @@ try {
     intuneFollowPrimaryUsers($conn);
     ok('an Intune assignment from before the column moves too (by its note)', $holders($a3) === [$ben]);
 
+    // Database Verification fills the column in for rows from before it: only the
+    // ones Intune made (its note, no analyst), never somebody else's.
+    $aOld = $asset('ZZ-UH-OLD');
+    $conn->prepare("INSERT INTO users_assets (asset_id, user_id, notes, assigned_source) VALUES (?, ?, ?, NULL), (?, ?, 'Given by hand', NULL)")
+         ->execute([$aOld, $ana, AssetAssignmentSource::INTUNE_NOTE, $aOld, $ben]);
+    assetAssignmentSourceBackfill($conn);
+    $s = $conn->prepare("SELECT user_id, assigned_source FROM users_assets WHERE asset_id = ? ORDER BY user_id");
+    $s->execute([$aOld]);
+    $rows = $s->fetchAll(PDO::FETCH_KEY_PAIR);
+    ok('Database Verification marks an old Intune assignment as made by Intune, and leaves a hand-made one alone',
+        ($rows[$ana] ?? null) === 'intune' && array_key_exists($ben, $rows) && $rows[$ben] === null, json_encode($rows));
+
     // Never to a leaver, nor to somebody nobody imported.
     $d4 = 'zz-uh-' . bin2hex(random_bytes(6));
     $a4 = $asset('ZZ-UH-LEAVER');

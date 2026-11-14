@@ -1942,6 +1942,24 @@ try {
         } catch (Exception $e) {}
     }
 
+    // users_assets.assigned_source (GH #335): where an assignment came from, which
+    // decides the holders Intune may move. A row from before the column was told
+    // apart by the note intuneAssignPrimaryUsers() writes and no analyst - so those
+    // are filled in as 'intune'. Safe on every verify: a new row always has its
+    // source, so this only ever finds rows from before. The rest stay NULL ("from
+    // before the column"), which nothing ever moves.
+    if ($tableExists('users_assets') && $colExists('users_assets', 'assigned_source')) {
+        try {
+            require_once __DIR__ . '/../../includes/asset_assignment_source.php';
+            if (($n = assetAssignmentSourceBackfill($conn)) > 0) {
+                $results[] = ['table' => 'users_assets', 'status' => 'updated',
+                              'details' => ["assigned_source: $n assignment(s) made by Intune marked as such"]];
+            }
+        } catch (Exception $e) {
+            // Non-fatal: such a row is still recognised by its note.
+        }
+    }
+
     // tickets.tenant_id — index + FK + a ONE-TIME backfill of existing tickets to
     // the Default company. Like target_mailboxes (and unlike a naive sweep), we
     // backfill ONLY when the column was just added ($ticketsTenantColWasMissing):
