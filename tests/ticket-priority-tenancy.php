@@ -6,14 +6,12 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * Ticket priorities and SLA calendars per company (GH #320).
  *
  * PART 1 - one company (only when the database has just the one):
- *          every active priority offered, the default priority and calendar, and
- *          no calendar when none is the default.
+ *          every active priority offered, the default priority and calendar, and no calendar when none is the default.
  * PART 2 - three companies, in a child process (the company count is cached per process):
  *          a company's own rows and the shared ones it has not hidden,
  *          triage on the shared list, the default fallbacks, the same name in two companies, and calendars.
  *
- * Each part runs inside a transaction that is always rolled back, so nothing it
- * makes - companies included - is ever committed.
+ * Each part runs inside a transaction that is always rolled back, so nothing it makes - companies included - is ever committed.
  */
 
 require_once __DIR__ . '/../config.php';

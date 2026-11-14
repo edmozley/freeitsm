@@ -2945,6 +2945,11 @@ body .tox-tinymce-aux {
     color: var(--danger-text, #721c24);
 }
 
+.status-neutral {
+    background: var(--border-soft, #eeeeee);
+    color: var(--text-muted, #666666);
+}
+
 /* Form Elements (Additional) */
 .form-group label:not(.toggle-label):not(.toggle-group):not(.toggle-row) {
     display: block;
@@ -3203,6 +3208,9 @@ body .tox-tinymce-aux {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+}
+.modal .form-row[hidden] {
+    display: none;
 }
 
 /* Exchange/Integration Status Boxes */

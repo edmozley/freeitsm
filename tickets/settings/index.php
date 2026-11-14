@@ -2593,6 +2593,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <textarea id="itemDescription"></textarea>
                 </div>
 
+                <div class="form-group" id="itemScopeGroup" style="display: none;">
+                    <label for="itemScope"><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></label>
+                    <select id="itemScope"></select>
+                </div>
+
                 <div class="form-group" id="itemColourGroup" style="display: none;">
                     <label for="itemColour"><?php echo htmlspecialchars(t('tickets.settings.columns.colour')); ?></label>
                     <input type="color" id="itemColour" value="#2563eb" style="width: 60px; height: 32px; padding: 2px;">
@@ -3951,6 +3956,9 @@ function renderOversizeFields(string $px, bool $withLimits): void
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tab + '-tab').classList.add('active');
+
+            // So a reload (switching company reloads the page) opens this tab again.
+            history.replaceState(null, '', '#' + encodeURIComponent(tab));
         }
 
         // Load departments
@@ -4320,11 +4328,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 const swatch = s.colour
                     ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(s.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(s.colour)}</code>`
                     : '<span style="color:var(--text-faint, #999);">—</span>';
-                const closed  = s.is_closed  ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
-                const def     = s.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
+                const closed  = s.is_closed  ? '<span class="status-badge status-active">Yes</span>' : '<span class="status-badge status-neutral">No</span>';
+                const def     = s.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span class="status-badge status-neutral">No</span>';
                 const pauseCell = s.pauses_sla
                     ? '<span class="status-badge status-active" title="SLA clock pauses while a ticket is in this status">&#9208; Yes</span>'
-                    : '<span style="color:var(--text-faint, #999);">No</span>';
+                    : '<span class="status-badge status-neutral">No</span>';
                 return `
                 <tr>
                     <td><strong>${escapeHtml(s.name)}</strong></td>
@@ -4348,13 +4356,20 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
         // Load ticket priorities
         let ticketPrioritiesCache = [];
+        let priorityScopeCache = null;
         async function loadTicketPriorities() {
             try {
-                const response = await fetch(API_BASE + 'get_ticket_priorities.php');
+                const response = await fetch(API_BASE + 'get_ticket_priorities.php?manage=1');
                 const data = await response.json();
                 if (data.success) {
                     ticketPrioritiesCache = data.priorities;
-                    renderTicketPriorities(data.priorities);
+                    priorityScopeCache = {
+                        multi: !!data.multi_tenant,
+                        company: data.scoped ? data.scoped.company : null,
+                        canShare: !!data.can_share,
+                        companies: data.companies || [],
+                    };
+                    renderTicketPriorities(data);
                 } else {
                     showToast('Error loading priorities: ' + data.error, 'error');
                 }
@@ -4363,19 +4378,16 @@ function renderOversizeFields(string $px, bool $withLimits): void
             }
         }
 
-        function renderTicketPriorities(priorities) {
-            const tbody = document.getElementById('priorities-list');
-            if (!priorities || priorities.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No priorities found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = priorities.map(p => {
-                const safeName = escapeHtml(p.name).replace(/'/g, "\\'");
-                const swatch = p.colour
-                    ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(p.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(p.colour)}</code>`
-                    : '<span style="color:var(--text-faint, #999);">—</span>';
-                const def = p.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
-                return `
+        function priorityColourSwatch(colour) {
+            return colour
+                ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(colour)}</code>`
+                : '<span style="color:var(--text-faint, #999);">—</span>';
+        }
+
+        function priorityRowEditable(p) {
+            const swatch = priorityColourSwatch(p.colour);
+            const def = p.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span class="status-badge status-neutral">No</span>';
+            return `
                 <tr>
                     <td><strong>${escapeHtml(p.name)}</strong></td>
                     <td>${swatch}</td>
@@ -4383,15 +4395,94 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <td>${p.display_order}</td>
                     <td><span class="status-badge status-${p.is_active ? 'active' : 'inactive'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editItem('priority', ${p.id})" title="${t('common.edit')}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button class="action-btn delete" onclick="deleteItem('priority', ${p.id}, '${safeName}')" title="${t('common.delete')}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
+                        <button class="action-btn" onclick="editItem('priority', ${p.id})" title="${t('common.edit')}">${TT_EDIT_SVG}</button>
+                        <button class="action-btn delete" onclick="deleteItem('priority', ${p.id}, ${jsArg(p.name)})" title="${t('common.delete')}">${TT_DELETE_SVG}</button>
                     </td>
                 </tr>`;
+        }
+
+        function renderTicketPriorities(data) {
+            const tbody = document.getElementById('priorities-list');
+
+            if (data.scoped && data.scoped.is_default === false) {
+                renderTicketPrioritiesScoped(tbody, data.scoped);
+                return;
+            }
+
+            const priorities = data.priorities || [];
+            if (priorities.length === 0 && !data.company_priorities?.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No priorities found</td></tr>';
+                return;
+            }
+            if (!data.company_priorities) {
+                tbody.innerHTML = priorities.map(priorityRowEditable).join('');
+                return;
+            }
+
+            // All companies: the shared priorities, then each company's own.
+            let html = priorityGroupRow(t('tickets.settings.priorities.shared_heading'));
+            html += priorities.map(priorityRowEditable).join('');
+            for (const group of data.company_priorities) {
+                html += priorityGroupRow(t('tickets.settings.priorities.own_heading', { company: group.company.name }));
+                html += group.priorities.map(priorityRowEditable).join('');
+            }
+            tbody.innerHTML = html;
+        }
+
+        function priorityGroupRow(label, hint = '') {
+            return `<tr class="tt-group-row"><td colspan="6" style="background:var(--surface-2, #f7f9fa);border-top:1px solid var(--border, #e3e8ea);font-size:12px;font-weight:600;color:var(--text-muted, #455a64);padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:var(--text-faint, #90a4ae);">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
+        }
+
+        // A client company's view: its own priorities, then the shared ones with a hide/show toggle.
+        function renderTicketPrioritiesScoped(tbody, scoped) {
+            const company = scoped.company.name;
+            // The company's own default replaces the shared one for its tickets.
+            const ownDefault = scoped.own.some(p => p.is_default);
+
+            let html = priorityGroupRow(t('tickets.settings.priorities.own_heading', { company }));
+            html += scoped.own.length
+                ? scoped.own.map(priorityRowEditable).join('')
+                : `<tr><td colspan="6" style="color:#aaa;font-style:italic;padding:10px;">${escapeHtml(t('tickets.settings.priorities.own_empty'))}</td></tr>`;
+
+            html += priorityGroupRow(t('tickets.settings.priorities.shared_heading'), t('tickets.settings.priorities.shared_hint', { company }));
+            html += scoped.globals.map(p => {
+                const status = p.hidden
+                    ? `<span class="status-badge status-inactive">${escapeHtml(t('tickets.settings.priorities.hidden_here'))}</span>`
+                    : `<span class="status-badge status-${p.is_active ? 'active' : 'inactive'}">${p.is_active ? 'Active' : 'Inactive'}</span>`;
+                const toggle = p.hidden
+                    ? `<button class="action-btn" onclick="toggleTicketPriorityHidden(${p.id}, false)" title="${escapeHtml(t('tickets.settings.priorities.show_title'))}">${TT_EYE_OFF_SVG}</button>`
+                    : `<button class="action-btn" onclick="toggleTicketPriorityHidden(${p.id}, true)" title="${escapeHtml(t('tickets.settings.priorities.hide_title'))}">${TT_EYE_SVG}</button>`;
+                return `
+                    <tr style="${p.hidden ? 'opacity:0.5;' : ''}">
+                        <td><strong>${escapeHtml(p.name)}</strong></td>
+                        <td>${priorityColourSwatch(p.colour)}</td>
+                        <td>${p.is_default && !ownDefault ? '<span class="status-badge status-active">Yes</span>' : '<span class="status-badge status-neutral">No</span>'}</td>
+                        <td>${p.display_order}</td>
+                        <td>${status}</td>
+                        <td>${toggle}</td>
+                    </tr>`;
             }).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        async function toggleTicketPriorityHidden(id, hidden) {
+            try {
+                const response = await fetch(API_BASE + 'set_ticket_priority_hidden.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ priority_id: id, hidden: hidden })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(t(hidden ? 'tickets.settings.priorities.hidden_toast' : 'tickets.settings.priorities.shown_toast'), 'success');
+                    loadTicketPriorities();
+                } else {
+                    showToast(data.error || t('tickets.settings.priorities.update_failed'), 'error');
+                }
+            } catch (error) {
+                showToast(t('tickets.settings.priorities.update_failed'), 'error');
+            }
         }
 
         // Load rota locations
@@ -4422,7 +4513,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 const swatch = l.colour
                     ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(l.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(l.colour)}</code>`
                     : '<span style="color:var(--text-faint, #999);">—</span>';
-                const def = l.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
+                const def = l.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span class="status-badge status-neutral">No</span>';
                 return `
                 <tr>
                     <td><strong>${escapeHtml(l.name)}</strong></td>
@@ -4443,7 +4534,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
         }
 
         // Configure modal field visibility for the entity being edited
-        function configureModalFields(type) {
+        function configureModalFields(type, item = null) {
             const isStatus       = type === 'status';
             const isPriority     = type === 'priority';
             const isRotaLocation = type === 'rota-location';
@@ -4454,6 +4545,31 @@ function renderOversizeFields(string $px, bool $withLimits): void
             document.getElementById('itemPausesSlaGroup').style.display   = isStatus && !document.body.classList.contains('sla-off') ? '' : 'none';   // GH #217
             document.getElementById('itemConfidentialGroup').style.display = type === 'department' ? '' : 'none';
             document.getElementById('itemDefaultGroup').style.display     = isColouredLookup ? '' : 'none';
+            configurePriorityScope(isPriority, item);
+        }
+
+        // Which company a priority belongs to, on a multi-company install:
+        //   Shared (only for someone who may change shared priorities) or a company the analyst can access.
+        // Fixed once saved.
+        function configurePriorityScope(isPriority, item) {
+            const group = document.getElementById('itemScopeGroup');
+            const scope = priorityScopeCache;
+            if (!isPriority || !scope || !scope.multi) {
+                group.style.display = 'none';
+                return;
+            }
+            const select = document.getElementById('itemScope');
+            const option = (value, label) => `<option value="${value}">${escapeHtml(label)}</option>`;
+            const shared = option('', t('tickets.settings.priorities.scope_shared'));
+            if (item) {
+                const owner = scope.companies.find(c => c.id === item.tenant_id);
+                select.innerHTML = item.tenant_id === null ? shared : option(item.tenant_id, owner ? owner.name : '');
+            } else {
+                select.innerHTML = (scope.canShare ? shared : '') + scope.companies.map(c => option(c.id, c.name)).join('');
+                select.value = scope.company ? String(scope.company.id) : (scope.canShare ? '' : select.value);
+            }
+            select.disabled = !!item || select.options.length < 2;
+            group.style.display = '';
         }
 
         // Load teams
@@ -4811,7 +4927,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 'ticket-origin': API_BASE + 'get_ticket_origins.php',
                 'team': API_BASE + 'get_teams.php',
                 'status': API_BASE + 'get_ticket_statuses.php',
-                'priority': API_BASE + 'get_ticket_priorities.php',
+                'priority': API_BASE + 'get_ticket_priorities.php?manage=1',
                 'rota-location': API_BASE + 'get_rota_locations.php'
             };
             const titles = {
@@ -4836,7 +4952,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     else if (type === 'ticket-origin') items = data.origins;
                     else if (type === 'team') items = data.teams;
                     else if (type === 'status') items = data.statuses;
-                    else if (type === 'priority') items = data.priorities;
+                    else if (type === 'priority') items = data.priorities.concat(...(data.company_priorities || []).map(g => g.priorities));
                     else if (type === 'rota-location') items = data.locations;
 
                     const item = items.find(i => i.id == id);
@@ -4854,7 +4970,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         document.getElementById('itemPausesSla').checked = !!item.pauses_sla;
                         document.getElementById('itemConfidential').checked = item.default_sensitivity === 'confidential';
                         document.getElementById('itemDefault').checked = !!item.is_default;
-                        configureModalFields(type);
+                        configureModalFields(type, item);
                         document.getElementById('editModal').classList.add('active');
                     }
                 }
@@ -5065,6 +5181,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     display_order: parseInt(document.getElementById('itemOrder').value),
                     is_active: document.getElementById('itemActive').checked ? 1 : 0
                 };
+                if (type === 'priority') formData.tenant_id = parseInt(document.getElementById('itemScope').value) || null;
             } else {
                 formData = {
                     id: id || null,

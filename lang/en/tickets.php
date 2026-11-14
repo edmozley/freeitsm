@@ -2174,6 +2174,30 @@ return [
             'mismatch_body'  => 'You signed in with a different account than the target mailbox, so this would read the wrong inbox. Sign in again as the target mailbox, or switch this mailbox to app-only authentication.',
         ],
 
+        // Priorities tab: a company's own priorities and the shared ones it can hide.
+        'priorities' => [
+            'own_heading'         => '{company}\'s own priorities',
+            'own_empty'           => 'None yet. Use Add to create a priority just for this company.',
+            'shared_heading'      => 'Shared priorities',
+            'shared_hint'         => 'inherited by {company}',
+            'hidden_here'         => 'Hidden here',
+            'hide_title'          => 'Visible to this company. Click to hide',
+            'show_title'          => 'Hidden from this company. Click to show',
+            'hidden_toast'        => 'Hidden from this company',
+            'shown_toast'         => 'Shown for this company',
+            'update_failed'       => 'Could not update',
+            'name_exists'         => 'A priority with that name already exists here.',
+            'name_exists_company' => 'A company already has its own priority with that name, so it cannot be shared.',
+            'not_found'           => 'Priority not found.',
+            'hide_client_only'    => 'Switch to a client company to hide a shared priority from it.',
+            'hide_shared_only'    => 'Only shared priorities can be hidden. Delete a company\'s own priority instead.',
+            'hide_in_use'         => 'Open tickets in this company use this priority. Change or close them first.',
+            'shared_needs_all'    => 'Only someone with access to every company can change shared priorities.',
+            'scope_label'         => 'Company',
+            'scope_shared'        => 'Shared (every company)',
+            'company_not_allowed' => 'You cannot change priorities for that company.',
+        ],
+
         // SLA tab — see docs/sla.md. Headings, intros, labels, radio/checkbox
         // option text, table headers and notes. Values with intended HTML are
         // echoed raw.
