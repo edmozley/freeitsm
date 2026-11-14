@@ -63,11 +63,10 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
             --accent-hover: var(--sys-accent-hover, #37474f);
             --on-accent: var(--sys-on-accent, #fff);
         }
-        .ium-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f7fa); padding: 24px 28px 60px; box-sizing: border-box; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page on .ium-wrap). */
+        .ium-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f7fa); }
         .ium-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
         .ium-back:hover { text-decoration: underline; }
-        .ium-wrap h2 { font-size: 22px; color: var(--text, #333); margin: 0 0 6px; }
-        .ium-sub { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 18px; max-width: 820px; line-height: 1.5; }
         table.ium { width: 100%; border-collapse: collapse; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; overflow: hidden; }
         table.ium th, table.ium td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft, #f2f2f2); font-size: 13px; color: var(--text, #444); vertical-align: top; }
         table.ium th { background: var(--surface-3, #f9fafb); font-weight: 600; font-size: 12px; }
@@ -85,10 +84,12 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
 <body data-mobile-module="system" data-mobile-page="intune-user-mismatch">
     <?php include '../includes/header.php'; ?>
 
-    <div class="ium-wrap">
+    <div class="ium-wrap sys-page">
         <a class="ium-back" href="../maintenance/">&larr; <?php echo htmlspecialchars(t('system.maintenance.back')); ?></a>
-        <h2><?php echo $e('heading'); ?></h2>
-        <p class="ium-sub"><?php echo $e('intro'); ?></p>
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo $e('heading'); ?></h1>
+            <p class="sys-subtitle"><?php echo $e('intro'); ?></p>
+        </div></div>
 
         <?php if ($failed): ?>
             <p class="ium-error"><?php echo $e('load_failed'); ?></p>
