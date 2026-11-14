@@ -76,6 +76,19 @@ return [
         'check'    => ['rows', 'job_schedules', "mode = 'daily'"],
     ],
     [
+        // GH #343 (PR #345): the registry's command only, recorded as manual with who pressed it.
+        'id'       => 'reporting.jobs_run_now',
+        'module'   => 'reporting',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Run a background job now',
+        'what'     => 'Run now, beside Edit on a background job, starts it at once in the background, exactly as the scheduler would, and leaves its schedule as it was.',
+        'why'      => 'Check a fix, or sync now rather than in six hours, without a command line on the server. Every press is in the run history with who pressed it.',
+        'done'     => 'At least one background job has been started by hand by an analyst - Run now, or a module\'s own Sync now or Run.',
+        'link'     => 'reporting/logs/?tab=jobs',
+        'check'    => ['rows', 'job_runs', "trigger_kind = 'manual' AND analyst_id IS NOT NULL AND outcome <> 'skipped'"],
+    ],
+    [
         'id'       => 'reporting.job_health_monitor',
         'module'   => 'reporting',
         'tier'     => 'extra',

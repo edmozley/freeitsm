@@ -88,7 +88,13 @@ function getContributors(): array
                       . 'directory source - a person is kept up to date by LDAP, an address book or Entra only '
                       . 'while that source exists - with Imported people in System -> Maintenance to decide '
                       . 'about the people a source left behind, and a full "what if" before a source or an '
-                      . 'import is undone (PR #264, 5.3.0).',
+                      . 'import is undone (PR #264, 5.3.0). And six more in 5.3.0: every primary user an '
+                      . 'Intune device has had, with assets that follow a handover - only ever a holder '
+                      . 'Intune put there - and a list of the ones whose Intune user differs (PR #338); a type '
+                      . 'for each Intune asset from what its device is (PR #339); the asset list grouped by '
+                      . 'type (PR #340); both Intune syncs running on their own as scheduled jobs (PR #344); '
+                      . 'Run now on Background jobs, with who ran what for the audit (PR #345); and the '
+                      . 'System cards by topic, with a heading per group, or A-Z (PR #347).',
         ],
         [
             // Name and company as Ed was given them (October 2026). The package

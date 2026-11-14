@@ -242,6 +242,35 @@ return [
         'check'    => ['setting', 'intune_assign_primary_user', 'eq', '1'],
     ],
     [
+        // GH #335 (PR #338): only a holder Intune put there is ever moved.
+        'id'       => 'assets.intune_follow_user',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'integrations',
+        'title'    => 'Assets follow a handover in Intune',
+        'what'     => 'When a device\'s primary user changes in Intune, an asset Intune gave to somebody moves to the new person at the next sync - in the custody trail like any handover. A holder chosen in FreeITSM is never moved.',
+        'why'      => 'A laptop handed on in Intune used to stay with its first holder here for good. Every change is kept on the asset\'s Intune tab either way, and System, Maintenance lists the assets where the two disagree.',
+        'done'     => 'Assigning assets to their Intune primary user and following changes of primary user are both switched on.',
+        'link'     => 'asset-management/settings/?tab=intune',
+        'check'    => ['all', [
+            ['setting', 'intune_assign_primary_user', 'eq', '1'],
+            ['setting', 'intune_follow_primary_user', 'eq', '1'],
+        ]],
+    ],
+    [
+        // GH #336 (PR #339): fills an empty type, never changes a chosen one.
+        'id'       => 'assets.intune_asset_types',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'integrations',
+        'title'    => 'Asset types from Intune',
+        'what'     => 'Each kind of Intune device - laptop, desktop, server, phone, tablet, other mobile - mapped to one of your asset types, so every Intune asset with no type gets the right one at each sync.',
+        'why'      => 'Assets Intune creates arrive with no type: no icon, nothing to group or report on. A type somebody chose is never changed.',
+        'done'     => 'At least one kind of Intune device is mapped to an asset type.',
+        'link'     => 'asset-management/settings/?tab=intune',
+        'check'    => ['setting', 'intune_type_map', 'nonempty'],
+    ],
+    [
         'id'       => 'assets.intune_batch_size',
         'module'   => 'assets',
         'tier'     => 'extra',
