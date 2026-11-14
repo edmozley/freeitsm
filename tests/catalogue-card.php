@@ -19,7 +19,9 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   - the price as read: "a month", Free, nothing for no price;
  *   - the approvals inbox, the requester's list and the ticket body show the price;
  *   - an item that asks nothing (a mouse at a price) is saved, requested and approved;
- *   - with no approval there is no ticket: one is raised only when a request is approved.
+ *   - with no approval there is no ticket: one is raised only when a request is approved;
+ *   - the requester cancels their own request, with a reason, while it waits or before it
+ *     has a ticket - nobody else's, never once approved - and it leaves the approvers' inbox.
  *
  * Writes, so it runs only when FREEITSM_TEST_DATABASE names the database config.php
  * points at. Everything is named ZZCARD and removed at the end.
@@ -175,6 +177,31 @@ try {
     $tk = fn(int $sid) => $row('form_submissions', $sid)['ticket_id'];
     check('a request for an item with no approval raises no ticket, and is kept as sent',
         empty($tk($s1)) && $row('form_submissions', $s1)['approval_status'] === 'not_required');
+
+    // ---- 9. The requester cancels a request ----
+    $conn->prepare("INSERT INTO users (email, display_name, created_at) VALUES (?, 'ZZCARD Otto', UTC_TIMESTAMP())")
+         ->execute([$tag . 'otto@example.invalid']);
+    $otto = $made['users'][] = (int)$conn->lastInsertId();
+    $sc = $submit($g, $uma);   // waits for approval
+    check("somebody else cannot cancel it - it is 'not found', never 'not yours'",
+        str_contains(refused(fn() => catalogueCancelRequest($conn, $otto, $sc, 'mine now')), 'not found'));
+    check('a cancel without a reason is refused', str_contains(refused(fn() => catalogueCancelRequest($conn, $uma, $sc, '   ')), 'Say why'));
+    catalogueCancelRequest($conn, $uma, $sc, "Asked for it
+ by mistake");
+    $q = $row('form_submissions', $sc);
+    check('the requester cancels it while it waits: cancelled, with the reason, kept - not deleted',
+        $q && $q['approval_status'] === 'cancelled' && $q['approval_comment'] === 'Asked for it by mistake' && $q['approval_decided_datetime'] !== null
+        && $q['approval_decided_by_id'] === null, json_encode($q));
+    check('...it can no longer be approved', str_contains(refused(fn() => catalogueApprovalDecide($conn, $admin, $sc, 'approved')), 'not awaiting approval'));
+    $ids = array_map(fn($i) => (int)$i['id'], catalogueApprovalsList($conn, $admin, 'all')['items'] ?? []);
+    check("...and has left the approvers' inbox", !in_array($sc, $ids, true));
+    check('...cancelling it again says it already is', str_contains(refused(fn() => catalogueCancelRequest($conn, $uma, $sc, 'again')), 'already cancelled'));
+    check('a request sent with no approval and no ticket can be cancelled too',
+        refused(fn() => catalogueCancelRequest($conn, $uma, $s1, 'not needed')) === '' && $row('form_submissions', $s1)['approval_status'] === 'cancelled');
+    check('an approved request - its ticket raised - can no longer be cancelled',
+        str_contains(refused(fn() => catalogueCancelRequest($conn, $uma, $sm, 'too late')), 'can no longer'));
+    check("an analyst's own submission is not a request to cancel", catalogueRequestCancellable($row('form_submissions', $s3)) === false
+        || $row('form_submissions', $s3)['submitted_by_user_id'] === null);
 } catch (Throwable $e) {
     check('no unexpected error', false, $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {

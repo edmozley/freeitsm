@@ -142,7 +142,7 @@ try {
     $requests = [];
     if (moduleIsEnabled($conn, 'forms')) try {   // GH #217
         $reqStmt = $conn->prepare(
-            "SELECT s.id, s.approval_status, s.submitted_date, s.ticket_id,
+            "SELECT s.id, s.approval_status, s.submitted_date, s.ticket_id, s.approval_comment,
                     f.title AS form_title, t.ticket_number
                FROM form_submissions s
                JOIN forms f       ON f.id = s.form_id
@@ -156,7 +156,13 @@ try {
         // GH #348: the price each was requested at.
         require_once __DIR__ . '/../../includes/catalogue_card.php';
         $prices = catalogueRequestPriceLabels($conn, array_column($requests, 'id'));
-        foreach ($requests as &$r) $r['price_label'] = $prices[(int)$r['id']] ?? '';
+        require_once __DIR__ . '/../../includes/catalogue_approvals.php';
+        foreach ($requests as &$r) {
+            $r['price_label'] = $prices[(int)$r['id']] ?? '';
+            // Whether the person may still cancel it (GH #348); the reason shows only on a cancelled one.
+            $r['can_cancel'] = catalogueRequestCancellable($r);
+            if ($r['approval_status'] !== 'cancelled') $r['approval_comment'] = null;
+        }
         unset($r);
     } catch (Exception $e) {
         $requests = [];

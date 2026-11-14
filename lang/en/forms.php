@@ -154,6 +154,7 @@ return [
         'reject'           => 'Reject',
         'status_approved'  => 'Approved',
         'status_rejected'  => 'Rejected',
+        'status_cancelled' => 'Cancelled by the requester',
         'approved_toast'   => 'Approved — raised ticket {ref}',
         'rejected_toast'   => 'Request rejected',
         'decide_failed'    => 'Could not record that decision',

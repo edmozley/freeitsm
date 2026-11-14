@@ -396,6 +396,67 @@ function catalogueLockSubmission(PDO $conn, int $submissionId): array {
     return $sub;
 }
 
+/**
+ * May the requester still cancel this request (GH #348)? While it waits for an approval,
+ * or was sent with no approval and no ticket has come of it. Once there is a ticket, the
+ * ticket is where to say so. Only a catalogue request - not a form filled in on a ticket
+ * (GH #272) or in a task.
+ *
+ * @param array $sub  the form_submissions row
+ */
+function catalogueRequestCancellable(array $sub): bool
+{
+    if (!empty($sub['for_ticket_id']) || !empty($sub['task_id'])) return false;
+    if (($sub['approval_status'] ?? '') === 'pending') return true;
+    return ($sub['approval_status'] ?? '') === 'not_required' && empty($sub['ticket_id']);
+}
+
+/**
+ * The requester cancels their own request (GH #348) - asked for by mistake, or no longer
+ * needed - with the reason, which the approver sees. The request is kept, marked
+ * 'cancelled', never deleted: it leaves the approvers' inbox, and can no longer be decided.
+ *
+ * Locked FOR UPDATE, as a decision is, so a cancel and an approval at the same moment
+ * cannot both win: whichever comes second finds it no longer pending.
+ *
+ * @param int    $userId        the portal user cancelling - must be who made the request
+ * @param int    $submissionId  form_submissions.id
+ * @param string $reason        why - required
+ * @throws ServiceError  not_found (not theirs, or not a request), validation (no reason), conflict (too late)
+ */
+function catalogueCancelRequest(PDO $conn, int $userId, int $submissionId, string $reason): void
+{
+    require_once __DIR__ . '/service_context.php';   // ServiceError
+    $reason = trim(preg_replace('/\s+/u', ' ', $reason));
+    if ($reason === '') throw new ServiceError('validation', 'missing_field', 'Say why you are cancelling this request.');
+    if (mb_strlen($reason) > 1000) throw new ServiceError('validation', 'invalid_field', 'Keep the reason under 1000 characters.');
+
+    $conn->beginTransaction();
+    try {
+        $st = $conn->prepare('SELECT * FROM form_submissions WHERE id = ? FOR UPDATE');
+        $st->execute([$submissionId]);
+        $sub = $st->fetch(PDO::FETCH_ASSOC);
+        // Somebody else's request is "not found", never "not yours".
+        if (!$sub || (int)$sub['submitted_by_user_id'] !== $userId || !empty($sub['for_ticket_id']) || !empty($sub['task_id'])) {
+            throw new ServiceError('not_found', 'not_found', 'That request was not found.');
+        }
+        if (!catalogueRequestCancellable($sub)) {
+            throw new ServiceError('conflict', 'conflict', $sub['approval_status'] === 'cancelled'
+                ? 'This request is already cancelled.'
+                : 'This request can no longer be cancelled - it has been decided, or a ticket has been raised for it.');
+        }
+        // approval_decided_by_id names an ANALYST; the requester is submitted_by_user_id.
+        $conn->prepare(
+            "UPDATE form_submissions SET approval_status = 'cancelled', approval_decided_by_id = NULL,
+                    approval_decided_datetime = UTC_TIMESTAMP(), approval_comment = ? WHERE id = ?"
+        )->execute([$reason, $submissionId]);
+        $conn->commit();
+    } catch (Throwable $e) {
+        if ($conn->inTransaction()) $conn->rollBack();
+        throw $e;
+    }
+}
+
 /** "Team: Finance (2 approvals)" or "Priya Shah" - what a request is waiting on, for the record. */
 function catalogueRoutingLabel(PDO $conn, array $sub): string {
     $p = catalogueApprovalPolicy($sub);
