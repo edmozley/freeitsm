@@ -76,7 +76,10 @@ try {
                           AND id NOT IN (SELECT entity_id FROM tenant_config_hidden
                                          WHERE tenant_id = " . (int)$scopeTenant . " AND entity_type = 'ticket_priority') ) )";
     $clashParams = [$name];
-    if ($id) { $clashSql .= " AND id <> ?"; $clashParams[] = $id; }
+    if ($id) {
+        $clashSql .= " AND id <> ?";
+        $clashParams[] = $id;
+    }
     $clash = $conn->prepare($clashSql);
     $clash->execute($clashParams);
     $clashRow = $clash->fetch(PDO::FETCH_ASSOC);

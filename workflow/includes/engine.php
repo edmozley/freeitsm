@@ -3902,9 +3902,12 @@ class WorkflowEngine
             $statusId = $conn->query("SELECT id FROM ticket_statuses WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1")->fetchColumn();
             $statusId = $statusId ? (int)$statusId : null;
 
-            // The step's priority when the ticket's company can use it, else that company's default.
-            require_once dirname(__DIR__, 2) . '/includes/ticket_priorities.php';
-            $priorityId = ticketPriorityForNewTicket($conn, $ticketTenant !== null ? (int)$ticketTenant : null, $priorityId ?: null);
+            // A step that names a priority gets it when the ticket's company can use it, else that company's default.
+            // A step that names none creates the ticket with no priority.
+            if ($priorityId) {
+                require_once dirname(__DIR__, 2) . '/includes/ticket_priorities.php';
+                $priorityId = ticketPriorityForNewTicket($conn, $ticketTenant !== null ? (int)$ticketTenant : null, (int)$priorityId);
+            }
 
             // TRAP: the install's numbering, never a number made here - see
             //   messagingGenerateTicketNumber() for what went wrong when it was.

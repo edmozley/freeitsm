@@ -110,7 +110,10 @@ try {
         ? "SELECT id, tenant_id FROM sla_calendars WHERE LOWER(name) = LOWER(?)"
         : "SELECT id, tenant_id FROM sla_calendars WHERE LOWER(name) = LOWER(?) AND (tenant_id IS NULL OR tenant_id = " . (int)$scopeTenant . ")";
     $clashParams = [$name];
-    if ($id) { $clashSql .= " AND id <> ?"; $clashParams[] = $id; }
+    if ($id) {
+        $clashSql .= " AND id <> ?";
+        $clashParams[] = $id;
+    }
     $clash = $conn->prepare($clashSql);
     $clash->execute($clashParams);
     $clashRow = $clash->fetch(PDO::FETCH_ASSOC);

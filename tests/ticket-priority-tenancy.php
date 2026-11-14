@@ -18,7 +18,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *
  * Parts 1 and 2 run inside a transaction that is always rolled back, so nothing they make - companies included - is ever committed.
  * Part 3 cannot: a workflow action opens its own connection, which would not see uncommitted rows.
- * So it commits, names everything ZZ320 WF, and removes it all at the end, pass or fail.
+ * So it commits, names everything ZZ320 WF, and removes it all by the ids it made, pass or fail.
+ * Nothing here goes through a path that raises workflow events; part 3 runs its one action list directly.
  */
 
 require_once __DIR__ . '/../config.php';
@@ -26,14 +27,25 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/tenancy.php';
 require_once __DIR__ . '/../includes/ticket_priorities.php';
 
-$pass = 0; $fail = 0;
+$pass = 0;
+$fail = 0;
 function ok(string $what, bool $cond, string $detail = ''): void
 {
     global $pass, $fail;
-    if ($cond) { $pass++; echo "  PASS  $what\n"; }
-    else       { $fail++; echo "  FAIL  $what" . ($detail !== '' ? "  <- $detail" : '') . "\n"; }
+    if ($cond) {
+        $pass++;
+        echo "  PASS  $what\n";
+    } else {
+        $fail++;
+        echo "  FAIL  $what" . ($detail !== '' ? "  <- $detail" : '') . "\n";
+    }
 }
-function done(): never { global $pass, $fail; echo "\n$pass passed, $fail failed\n"; exit($fail ? 1 : 0); }
+function done(): never
+{
+    global $pass, $fail;
+    echo "\n$pass passed, $fail failed\n";
+    exit($fail ? 1 : 0);
+}
 
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -41,8 +53,13 @@ $expected = getenv('FREEITSM_TEST_DATABASE');
 if (!$expected || $conn->query('SELECT DATABASE()')->fetchColumn() !== $expected) {
     exit("Set FREEITSM_TEST_DATABASE to the throwaway database config.php points at - this test writes priorities, calendars and companies.\n");
 }
-try { $conn->query("SELECT tenant_id FROM ticket_priorities LIMIT 0"); $conn->query("SELECT tenant_id FROM sla_calendars LIMIT 0"); }
-catch (PDOException) { echo "  SKIP  run Database Verification first: no tenant_id on ticket_priorities / sla_calendars\n"; exit(0); }
+try {
+    $conn->query("SELECT tenant_id FROM ticket_priorities LIMIT 0");
+    $conn->query("SELECT tenant_id FROM sla_calendars LIMIT 0");
+} catch (PDOException) {
+    echo "  SKIP  run Database Verification first: no tenant_id on ticket_priorities / sla_calendars\n";
+    exit(0);
+}
 
 function zzPriority(PDO $c, string $name, ?int $tenant, int $default = 0, int $order = 900, int $active = 1): int
 {
@@ -69,8 +86,10 @@ if (($argv[1] ?? '') === '--multi') {
     $conn->beginTransaction();
     try {
         $ins = $conn->prepare("INSERT INTO tenants (name, is_default, is_active) VALUES (?, 0, 1)");
-        $ins->execute(['ZZ320 A']); $A = (int)$conn->lastInsertId();
-        $ins->execute(['ZZ320 B']); $B = (int)$conn->lastInsertId();
+        $ins->execute(['ZZ320 A']);
+        $A = (int)$conn->lastInsertId();
+        $ins->execute(['ZZ320 B']);
+        $B = (int)$conn->lastInsertId();
         ok('control: this process sees more than one company', isMultiTenant($conn));
 
         $conn->exec("UPDATE ticket_priorities SET is_default = 0 WHERE tenant_id IS NULL");
@@ -91,7 +110,11 @@ if (($argv[1] ?? '') === '--multi') {
         ok('triage gets the shared priorities only', in_array($sharedDef, $t, true) && !in_array($aOwn, $t, true) && !in_array($bOwn, $t, true));
         ok('two companies can each have a priority of the same name', $aOwn > 0 && $bOwn > 0);
         $dupe = false;
-        try { zzPriority($conn, 'ZZ320 P1', $A); } catch (PDOException) { $dupe = true; }
+        try {
+            zzPriority($conn, 'ZZ320 P1', $A);
+        } catch (PDOException) {
+            $dupe = true;
+        }
         ok('...but one company cannot have two', $dupe);
 
         ok('a company\'s own default wins', ticketPriorityDefaultId($conn, $A) === $aOwn);
@@ -128,7 +151,10 @@ if (($argv[1] ?? '') === '--multi') {
         ok('a company without one gets the shared default calendar', slaDefaultCalendarId($conn, $B) === $calShared);
         ok('triage gets the shared default calendar', slaDefaultCalendarId($conn, null) === $calShared);
 
-        // Moving tickets: the same call every move path makes (move, triage, the ticket service).
+        // Moving tickets. ticketsFollowCompanyMove(), which every move path calls, resets the priority and then raises
+        // ticket.priority_changed; the test calls the reset alone, so no real workflow runs.
+        $tenancySrc = file_get_contents(__DIR__ . '/../includes/tenancy.php');
+        ok('every company move resets the priority (ticketsFollowCompanyMove calls it)', str_contains($tenancySrc, 'ticketPriorityFollowCompanyMove($conn, $ticketIds, $tenantId)'));
         $everyone = zzPriority($conn, 'ZZ320 everyone', null);
         $retired  = zzPriority($conn, 'ZZ320 retired', null, 0, 900, 0);
         $status = (int)$conn->query("SELECT id FROM ticket_statuses ORDER BY id LIMIT 1")->fetchColumn();
@@ -139,7 +165,7 @@ if (($argv[1] ?? '') === '--multi') {
         };
         $move = function (int $id, int $to) use ($conn): int {
             $conn->prepare("UPDATE tickets SET tenant_id = ? WHERE id = ?")->execute([$to, $id]);
-            ticketsFollowCompanyMove($conn, [$id], $to);
+            ticketPriorityResetForCompany($conn, [$id], $to);
             return (int)$conn->query("SELECT priority_id FROM tickets WHERE id = $id")->fetchColumn();
         };
         $t = $ticket($B, $bOwn);
@@ -170,25 +196,33 @@ if (($argv[1] ?? '') === '--multi') {
 
         // Who may change a priority or calendar: shared needs every company, a company's own needs that company.
         $refused = function (array $ctx, ?int $tenant): bool {
-            try { tenantScopeRequireAccess($ctx, $tenant, 'tickets.settings.priorities'); return false; } catch (Exception) { return true; }
+            try {
+                tenantScopeRequireAccess($ctx, $tenant, 'tickets.settings.priorities');
+                return false;
+            } catch (Exception) {
+                return true;
+            }
         };
         $someone = ['multi' => true, 'can_share' => false, 'companies' => [['id' => $A, 'name' => 'A']]];
         $everyCompany = ['multi' => true, 'can_share' => true, 'companies' => [['id' => $A, 'name' => 'A'], ['id' => $B, 'name' => 'B']]];
         ok('changing a shared priority needs access to every company', $refused($someone, null) && !$refused($everyCompany, null));
         ok('...a company\'s own, access to that company', !$refused($someone, $A) && $refused($someone, $B));
 
-        // The ticket service: a priority is resolved among the ticket's company's, by id or name.
+        // The ticket service resolves a priority among the ticket's company's, by id or name.
+        // Called directly: updateTicket() would raise workflow events, and a test must not run real workflows.
         require_once __DIR__ . '/../includes/services/tickets.php';
-        $actor = new ActorContext(0, null, 'api', 'en', 'ZZ320');
-        $tA = $ticket($A, $everyone);
-        $priorityOf = fn(int $id): int => (int)$conn->query("SELECT priority_id FROM tickets WHERE id = $id")->fetchColumn();
-        TicketsService::updateTicket($conn, $actor, $tA, ['priority' => 'zz320 p1'], false);
-        ok('a priority named on a ticket is that company\'s, though another has the same name', $priorityOf($tA) === $aOwn);
-        $unknown = false;
-        try { TicketsService::updateTicket($conn, $actor, $tA, ['priority_id' => $bOwn], false); } catch (ServiceError $e) { $unknown = $e->getMessage(); }
-        ok('...another company\'s is refused as unknown', $unknown !== false && str_starts_with($unknown, 'Unknown priority') && $priorityOf($tA) === $aOwn);
-        TicketsService::updateTicket($conn, $actor, $tA, ['company_id' => $B, 'priority_id' => $bOwn], false);
-        ok('...and moving it checks the priority against the new company', $priorityOf($tA) === $bOwn);
+        $resolve = (new ReflectionMethod('TicketsService', 'resolvePriority'))->getClosure();
+        $resolved = function (array $in, ?int $tenant) use ($resolve, $conn) {
+            try {
+                return $resolve($conn, $in, $tenant)[0];
+            } catch (ServiceError $e) {
+                return $e->getMessage();
+            }
+        };
+        ok('a priority named on a ticket is that company\'s, though another has the same name', $resolved(['priority' => 'zz320 p1'], $A) === $aOwn
+            && $resolved(['priority' => 'zz320 p1'], $B) === $bOwn);
+        ok('...another company\'s is refused as unknown', str_starts_with((string)$resolved(['priority_id' => $bOwn], $A), 'Unknown priority'));
+        ok('...and so is a shared one the company hides', str_starts_with((string)$resolved(['priority_id' => $sharedHid], $B), 'Unknown priority'));
     } finally {
         $conn->rollBack();
     }
@@ -201,9 +235,15 @@ if (($argv[1] ?? '') === '--multi') {
 if (($argv[1] ?? '') === '--workflow') {
     echo "\nPART 3 - workflows\n";
     require_once __DIR__ . '/../workflow/includes/engine.php';
+    // Every row this part makes, by id, for the cleanup.
+    $made = ['tenants' => [], 'ticket_priorities' => [], 'tickets' => [], 'workflow_executions' => []];
     $ins = $conn->prepare("INSERT INTO tenants (name, is_default, is_active) VALUES (?, 0, 1)");
-    $ins->execute(['ZZ320 WF A']); $A = (int)$conn->lastInsertId();
-    $ins->execute(['ZZ320 WF B']); $B = (int)$conn->lastInsertId();
+    $ins->execute(['ZZ320 WF A']);
+    $A = (int)$conn->lastInsertId();
+    $made['tenants'][] = $A;
+    $ins->execute(['ZZ320 WF B']);
+    $B = (int)$conn->lastInsertId();
+    $made['tenants'][] = $B;
     try {
         ok('control: this process sees more than one company', isMultiTenant($conn));
         $aOwn    = zzPriority($conn, 'ZZ320 WF P1', $A);
@@ -211,12 +251,17 @@ if (($argv[1] ?? '') === '--workflow') {
         $shared  = zzPriority($conn, 'ZZ320 WF shared', null);
         $aHidden = zzPriority($conn, 'ZZ320 WF hidden by A', null);
         zzHide($conn, $A, 'ticket_priority', $aHidden);
+        $made['ticket_priorities'] = [$aOwn, $bOwn, $shared, $aHidden];
         $status = (int)$conn->query("SELECT id FROM ticket_statuses ORDER BY id LIMIT 1")->fetchColumn();
         $conn->prepare("INSERT INTO tickets (ticket_number, subject, tenant_id, priority_id, status_id, created_datetime) VALUES ('ZZ320-WF', 'ZZ320 WF', ?, NULL, ?, UTC_TIMESTAMP())")
              ->execute([$A, $status]);
         $t = (int)$conn->lastInsertId();
-        $set = function (int $priority) use ($conn, $t): ?int {
-            WorkflowEngine::runActionList('ZZ320 WF', 'zz.test', [['type' => 'set_ticket_priority', 'args' => ['ticket_id' => (string)$t, 'priority_id' => (string)$priority]]], ['ticket' => ['id' => $t]]);
+        $made['tickets'][] = $t;
+        $set = function (int $priority) use ($conn, $t, &$made): ?int {
+            $run = WorkflowEngine::runActionList('ZZ320 WF', 'zz.test', [['type' => 'set_ticket_priority', 'args' => ['ticket_id' => (string)$t, 'priority_id' => (string)$priority]]], ['ticket' => ['id' => $t]]);
+            if (!empty($run['execution_id'])) {
+                $made['workflow_executions'][] = (int)$run['execution_id'];
+            }
             $now = $conn->query("SELECT priority_id FROM tickets WHERE id = $t")->fetchColumn();
             return $now === null ? null : (int)$now;
         };
@@ -234,11 +279,17 @@ if (($argv[1] ?? '') === '--workflow') {
         ok('a company\'s own priority\'s events are filed under it', workflowEventTenantId($conn, ['ticket_priority' => ['id' => $aOwn]]) === $A);
         ok('...and a shared one\'s under no company', workflowEventTenantId($conn, ['ticket_priority' => ['id' => $shared]]) === null);
     } finally {
-        $conn->exec("DELETE FROM workflow_executions WHERE workflow_name = 'ZZ320 WF'");
-        $conn->exec("DELETE FROM tickets WHERE ticket_number = 'ZZ320-WF'");
-        $conn->exec("DELETE FROM tenant_config_hidden WHERE tenant_id IN ($A, $B)");
-        $conn->exec("DELETE FROM ticket_priorities WHERE name LIKE 'ZZ320 WF%'");
-        $conn->exec("DELETE FROM tenants WHERE id IN ($A, $B)");
+        // By the ids made above, children first.
+        $delete = function (string $table, array $ids, string $col = 'id') use ($conn): void {
+            if ($ids) {
+                $conn->exec("DELETE FROM $table WHERE $col IN (" . implode(',', array_map('intval', $ids)) . ")");
+            }
+        };
+        $delete('workflow_executions', $made['workflow_executions']);
+        $delete('tickets', $made['tickets']);
+        $delete('tenant_config_hidden', $made['tenants'], 'tenant_id');
+        $delete('ticket_priorities', $made['ticket_priorities']);
+        $delete('tenants', $made['tenants']);
     }
     done();
 }
@@ -252,7 +303,8 @@ if ((int)$conn->query("SELECT COUNT(*) FROM tenants")->fetchColumn() > 1) {
     try {
         $active = array_map('intval', $conn->query("SELECT id FROM ticket_priorities WHERE is_active = 1")->fetchAll(PDO::FETCH_COLUMN));
         $got = ids(ticketPrioritiesFor($conn, null));
-        sort($active); sort($got);
+        sort($active);
+        sort($got);
         ok('every active priority is offered', $got === $active, json_encode($got));
         $default = $conn->query("SELECT id FROM ticket_priorities WHERE is_active = 1 AND is_default = 1 LIMIT 1")->fetchColumn();
         ok('the default is the priority marked default', $default !== false && ticketPriorityDefaultId($conn, null) === (int)$default);

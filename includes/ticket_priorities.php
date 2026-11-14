@@ -74,11 +74,34 @@ function ticketPrioritiesOwn(PDO $conn, int $tenantId): array
  */
 function ticketPriorityFollowCompanyMove(PDO $conn, array $ticketIds, ?int $tenantId): void
 {
-    if (!isMultiTenant($conn) || !$ticketIds) return;
+    $changes = ticketPriorityResetForCompany($conn, $ticketIds, $tenantId);
+    if (!$changes) return;
+
+    require_once __DIR__ . '/services/tickets.php';
+    foreach ($changes as $c) {
+        WorkflowEngine::dispatch('ticket.priority_changed', [
+            'ticket'          => TicketsService::workflowPayload($conn, $c['ticket_id']),
+            'old_priority_id' => $c['old_priority_id'],
+            'new_priority_id' => $c['new_priority_id'],
+        ]);
+    }
+}
+
+/**
+ * The write half of ticketPriorityFollowCompanyMove(): resets the priorities and records them on each ticket's history.
+ * Raises nothing, so a caller (or a test) can decide when the events go out.
+ *
+ * @param int[] $ticketIds  tickets whose company has just changed
+ * @param ?int $tenantId  their new company; null = triage
+ * @return list<array{ticket_id:int, old_priority_id:int, new_priority_id:int}>
+ */
+function ticketPriorityResetForCompany(PDO $conn, array $ticketIds, ?int $tenantId): array
+{
+    if (!isMultiTenant($conn) || !$ticketIds) return [];
 
     $visible = array_column(ticketPrioritiesFor($conn, $tenantId, false), 'name', 'id');
     $defaultId = ticketPriorityDefaultId($conn, $tenantId);
-    if ($defaultId === null) return;
+    if ($defaultId === null) return [];
 
     $ph = implode(',', array_fill(0, count($ticketIds), '?'));
     $stmt = $conn->prepare(
@@ -88,7 +111,7 @@ function ticketPriorityFollowCompanyMove(PDO $conn, array $ticketIds, ?int $tena
     );
     $stmt->execute(array_values($ticketIds));
 
-    require_once __DIR__ . '/services/tickets.php';
+    $changes = [];
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $t) {
         $oldId = (int)$t['priority_id'];
         if (isset($visible[$oldId])) continue;
@@ -98,13 +121,9 @@ function ticketPriorityFollowCompanyMove(PDO $conn, array $ticketIds, ?int $tena
             "INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
              VALUES (?, ?, 'Priority', ?, ?, UTC_TIMESTAMP())"
         )->execute([(int)$t['id'], $_SESSION['analyst_id'] ?? null, $t['name'], $visible[$defaultId] ?? null]);
-
-        WorkflowEngine::dispatch('ticket.priority_changed', [
-            'ticket'          => TicketsService::workflowPayload($conn, (int)$t['id']),
-            'old_priority_id' => $oldId,
-            'new_priority_id' => $defaultId,
-        ]);
+        $changes[] = ['ticket_id' => (int)$t['id'], 'old_priority_id' => $oldId, 'new_priority_id' => $defaultId];
     }
+    return $changes;
 }
 
 /**

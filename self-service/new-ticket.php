@@ -1285,7 +1285,10 @@ $ssQuestions = function () { ?>
                             $ssPrioTenant = selfServiceTicketTenant($ssPrioConn, (int)$_SESSION['ss_user_id']);
                             $ssPrios      = ticketPrioritiesFor($ssPrioConn, $ssPrioTenant);
                             $ssPrioDefault = ticketPriorityDefaultId($ssPrioConn, $ssPrioTenant);
-                        } catch (Exception $e) { $ssPrios = []; $ssPrioDefault = null; }
+                        } catch (Exception $e) {
+                            $ssPrios = [];
+                            $ssPrioDefault = null;
+                        }
                         foreach ($ssPrios as $p):
                         ?>
                         <option value="<?php echo (int)$p['id']; ?>"<?php echo $p['id'] === $ssPrioDefault ? ' selected' : ''; ?>><?php echo htmlspecialchars($p['name']); ?></option>
