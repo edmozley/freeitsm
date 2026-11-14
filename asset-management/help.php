@@ -728,6 +728,8 @@ $translationNamespaces = ['common', 'asset-management'];
 
                     <p>Each row carries a small <strong>&#9432;</strong>. Click it for a card showing the ticket&rsquo;s status, priority, who it is with and who raised it &mdash; enough to tell whether it is the report you were thinking of, without leaving the asset. It is read-only; <strong>Open</strong> takes you to the ticket itself.</p>
 
+                    <p><strong>Which assets cause the most work?</strong> The <strong>Table</strong> has a <strong>Tickets</strong> column - how many tickets name each asset - and an <strong>Open tickets</strong> column you can switch on under <strong>Columns</strong>. Sort by either to bring the busiest assets to the top; filter or group by <strong>Model</strong> to see the models that cause the most. Both count only tickets you could open. For a period - last month, last quarter - use the <strong>Assets</strong> blocks in Report Packs (most tickets, and by model).</p>
+
                     <p class="help-note">Tickets appear here once somebody links the asset to them &mdash; from the <strong>Links</strong> bar on the ticket (<strong>Link to&hellip; &rarr; Equipment</strong>), or by the requester choosing their device when raising it in the self-service portal. Nothing is linked automatically, so this tab stays empty on assets nobody has attached to a ticket.</p>
                 </div>
 

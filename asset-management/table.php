@@ -137,7 +137,7 @@ try {
 
     <script>window.assetCustomColumns = <?php echo json_encode($assetCustomColumns, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/data-table.js?v=10"></script>
-    <script src="../assets/js/asset-table.js?v=12"></script>
+    <script src="../assets/js/asset-table.js?v=13"></script>
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

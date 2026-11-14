@@ -275,6 +275,34 @@ try {
     $stmt->execute($params);
     $assets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // GH #310: how many tickets name each asset (Link to -> Equipment, or the requester's pick in the
+    // portal), and how many are still open - the Table's Tickets / Open tickets columns, sortable, so the
+    // assets that cause the most work rise to the top. Only tickets this analyst could open (company and
+    // departments - ticketScopeFilter, the active company, as this list is), none in the trash, and only
+    // for an analyst who has Tickets: null otherwise, so the column shows nothing rather than a false 0.
+    // One grouped query for all of them, not one per row.
+    $canTickets = analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'tickets');
+    $tc = [];
+    if ($canTickets) {
+        try {
+            require_once '../../includes/ticket_department_scope.php';
+            [$tSql, $tArgs] = ticketScopeFilter($conn, (int)$_SESSION['analyst_id'], 't');
+            $tq = $conn->prepare("SELECT ta.asset_id, COUNT(*) AS n, SUM(COALESCE(ts.is_closed, 0) = 0) AS open_n
+                                     FROM ticket_assets ta
+                                     JOIN tickets t ON t.id = ta.ticket_id
+                                LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
+                                    WHERE t.deleted_datetime IS NULL$tSql
+                                 GROUP BY ta.asset_id");
+            $tq->execute($tArgs);
+            foreach ($tq->fetchAll(PDO::FETCH_ASSOC) as $r) $tc[(int)$r['asset_id']] = [(int)$r['n'], (int)$r['open_n']];
+        } catch (Throwable $e) { error_log('get_assets ticket counts: ' . $e->getMessage()); }
+    }
+    foreach ($assets as &$row) {
+        $row['ticket_count'] = $canTickets ? ($tc[(int)$row['id']][0] ?? 0) : null;
+        $row['open_ticket_count'] = $canTickets ? ($tc[(int)$row['id']][1] ?? 0) : null;
+    }
+    unset($row);
+
     // Attach the full location path (e.g. "UK › London › Office 1") for each
     // asset, built in PHP from the location tree so the client doesn't need
     // the tree loaded. Only if the location table exists.

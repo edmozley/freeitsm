@@ -31,6 +31,10 @@
         { key: 'memory',            label: tt('field.memory'),              type: 'number', defaultVisible: false, defaultOrder: 11 },
         { key: 'bios_version',      label: tt('table.col_bios'),            type: 'string', defaultVisible: false, defaultOrder: 12 },
         { key: 'user_count',        label: tt('table.col_assigned_users'),  type: 'number', defaultVisible: true,  defaultOrder: 13 },
+        // GH #310: tickets that name the asset, and how many are open - sort to find the assets (or, with the
+        // Model column, the models) that cause the most work. Empty for an analyst without Tickets.
+        { key: 'ticket_count',      label: tt('table.col_tickets'),         type: 'number', defaultVisible: true,  defaultOrder: 13.1 },
+        { key: 'open_ticket_count', label: tt('table.col_open_tickets'),    type: 'number', defaultVisible: false, defaultOrder: 13.2 },
         { key: 'location_path',     label: tt('field.location'),            type: 'string', defaultVisible: true,  defaultOrder: 14 },
         { key: 'purchase_date',     label: tt('field.purchase_date'),       type: 'date',   defaultVisible: false, defaultOrder: 15 },
         { key: 'purchase_cost',     label: tt('table.col_cost'),            type: 'number', defaultVisible: false, defaultOrder: 16 },

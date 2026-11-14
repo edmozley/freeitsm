@@ -676,6 +676,8 @@ Czy mimo to zmienić nazwę?',
         'col_build' => 'Kompilacja',
         'col_bios' => 'BIOS',
         'col_assigned_users' => 'Przypisani użytkownicy',
+        'col_tickets' => 'Zgłoszenia',   // GH #310
+        'col_open_tickets' => 'Otwarte zgłoszenia',
         'col_cost' => 'Koszt',
         'stale_notice' => 'Wyświetlono {count} zasobów, które nie zgłosiły się od {days} dni.',
         'stale_notice_one' => 'Wyświetlono 1 zasób, który nie zgłosił się od {days} dni.',

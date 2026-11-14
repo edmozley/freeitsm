@@ -676,6 +676,8 @@ Trotzdem umbenennen?',
         'col_build' => 'Build',
         'col_bios' => 'BIOS',
         'col_assigned_users' => 'Zugewiesene Benutzer',
+        'col_tickets' => 'Tickets',   // GH #310
+        'col_open_tickets' => 'Offene Tickets',
         'col_cost' => 'Kosten',
         'stale_notice' => 'Zeigt {count} Assets, die seit {days} Tagen nicht mehr gemeldet wurden.',
         'stale_notice_one' => 'Zeigt 1 Asset, das seit {days} Tagen nicht mehr gemeldet wurde.',

@@ -676,6 +676,8 @@ Omdøb det alligevel?',
         'col_build' => 'Build',
         'col_bios' => 'BIOS',
         'col_assigned_users' => 'Tildelte brugere',
+        'col_tickets' => 'Sager',   // GH #310
+        'col_open_tickets' => 'Åbne sager',
         'col_cost' => 'Pris',
         'stale_notice' => 'Viser {count} aktiver, der ikke har indberettet i {days} dage.',
         'stale_notice_one' => 'Viser 1 aktiv, der ikke har indberettet i {days} dage.',

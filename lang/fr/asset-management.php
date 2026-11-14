@@ -676,6 +676,8 @@ Le renommer quand même ?',
         'col_build' => 'Build',
         'col_bios' => 'BIOS',
         'col_assigned_users' => 'Utilisateurs assignés',
+        'col_tickets' => 'Tickets',   // GH #310
+        'col_open_tickets' => 'Tickets ouverts',
         'col_cost' => 'Coût',
         'stale_notice' => 'Affichage de {count} actifs qui ne se sont pas signalés depuis {days} jours.',
         'stale_notice_one' => 'Affichage d\'1 actif qui ne s\'est pas signalé depuis {days} jours.',

@@ -676,6 +676,8 @@ Hay dos formas de evitarlo: cambie también el nombre en la hoja de cálculo, o 
         'col_build' => 'Compilación',
         'col_bios' => 'BIOS',
         'col_assigned_users' => 'Usuarios asignados',
+        'col_tickets' => 'Tickets',   // GH #310
+        'col_open_tickets' => 'Tickets abiertos',
         'col_cost' => 'Coste',
         'stale_notice' => 'Mostrando {count} activos que no han informado en {days} días.',
         'stale_notice_one' => 'Mostrando 1 activo que no ha informado en {days} días.',

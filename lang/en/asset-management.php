@@ -792,6 +792,8 @@ return [
         'col_build'           => 'Build',
         'col_bios'            => 'BIOS',
         'col_assigned_users'  => 'Assigned users',
+        'col_tickets' => 'Tickets',   // GH #310
+        'col_open_tickets' => 'Open tickets',
         'col_cost'            => 'Cost',
 
         // Arriving from the Watchtower "not seen" count (discussion #97). The

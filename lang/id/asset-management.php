@@ -676,6 +676,8 @@ Tetap ganti nama?',
         'col_build' => 'Build',
         'col_bios' => 'BIOS',
         'col_assigned_users' => 'Pengguna yang ditugaskan',
+        'col_tickets' => 'Tiket',   // GH #310
+        'col_open_tickets' => 'Tiket terbuka',
         'col_cost' => 'Biaya',
         'stale_notice' => 'Menampilkan {count} aset yang belum melapor dalam {days} hari.',
         'stale_notice_one' => 'Menampilkan 1 aset yang belum melapor dalam {days} hari.',

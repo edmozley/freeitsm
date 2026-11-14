@@ -676,6 +676,8 @@ return [
         'col_build' => 'Build',
         'col_bios' => 'BIOS',
         'col_assigned_users' => 'Χρήστες στους οποίους έχει ανατεθεί',
+        'col_tickets' => 'Αιτήματα',   // GH #310
+        'col_open_tickets' => 'Ανοιχτά αιτήματα',
         'col_cost' => 'Κόστος',
         'stale_notice' => 'Εμφανίζονται {count} πάγια που δεν έχουν αναφερθεί εδώ και {days} ημέρες.',
         'stale_notice_one' => 'Εμφανίζεται 1 πάγιο που δεν έχει αναφερθεί εδώ και {days} ημέρες.',

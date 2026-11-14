@@ -676,6 +676,8 @@ return [
         'col_build' => 'Збірка',
         'col_bios' => 'BIOS',
         'col_assigned_users' => 'Призначені користувачі',
+        'col_tickets' => 'Заявки',   // GH #310
+        'col_open_tickets' => 'Відкриті заявки',
         'col_cost' => 'Вартість',
         'stale_notice' => 'Показано {count} активів, які не звітували {days} дн.',
         'stale_notice_one' => 'Показано 1 актив, який не звітував {days} дн.',

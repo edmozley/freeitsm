@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2889 | Assets            | Feature     | Tickets and Open tickets columns in the Asset table (GH #310 part 2): get_assets.php adds ticket_count / open_ticket_count from one grouped query over ticket_assets, counting only tickets the analyst could open (ticketScopeFilter - company + departments), none in the trash, null for an analyst without Tickets; Tickets shown by default, Open tickets in Columns; sortable like any number column, so the assets (and with Model, the models) causing the most work rise to the top. Labels in en + da/de/el/es/fr/id/pl/uk from each locale's existing words; Assets help. |
 
 
 
