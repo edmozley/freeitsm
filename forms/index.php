@@ -13,6 +13,8 @@ require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
+require_once '../includes/money.php';
+require_once '../includes/catalogue_card.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -23,6 +25,8 @@ require_once '../includes/rbac.php';
 $fmConn       = connectToDatabase();
 $formsLevel   = analystModuleLevel($fmConn, (int)$_SESSION['analyst_id'], 'forms');
 $formsMayDesign = $formsLevel === 'full' && analystMayAct($fmConn, (int)$_SESSION['analyst_id'], Cap::FORMS_DESIGN);
+// The shop card (GH #348): its button only once Database Verification has added the columns.
+$cardReady = catalogueCardAvailable($fmConn);
 
 $current_page = 'forms';
 $path_prefix = '../';
@@ -39,6 +43,8 @@ $translationNamespaces = ['common', 'forms'];
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
+    <?php echo Money::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
@@ -331,7 +337,77 @@ $translationNamespaces = ['common', 'forms'];
         .ca-btn-secondary { background: var(--surface-2, #eee); color: var(--text, #333); border: 1px solid var(--border, #ddd); }
         .ca-btn-primary { background: var(--accent, #0078d4); color: var(--on-accent, #fff); }
         .ca-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* The shop card (GH #348): the fields, and the card as the portal will draw it. */
+        .ca-field input[type="text"], .ca-field input[type="number"] { width: 100%; box-sizing: border-box; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .cc-price-row { display: flex; gap: 8px; }
+        /* .ca-field select is width:100%, so the row says how wide each part is. */
+        .ca-field .cc-price-row input[type="number"] { flex: 0 0 130px; width: 130px; }
+        .ca-field .cc-price-row select { flex: 1 1 0; width: auto; min-width: 0; }
+        .ca-field .cc-price-row select#cardPeriod { flex: 0 0 auto; }
+        .cc-picture { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .cc-preview-wrap { margin: 0 0 4px; padding: 14px; background: var(--surface-2, #f3f4f6); border-radius: 8px; }
+        .cc-preview-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint, #999); margin-bottom: 8px; }
+        .cc-card { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; overflow: hidden; max-width: 300px; }
+        .cc-card-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--surface-2, #f3f4f6); }
+        .cc-card-body { padding: 12px 14px; }
+        .cc-card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .cc-card-desc { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.45; }
+        .cc-card-price { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--accent, #0078d4); }
+        .ca-modal-box.cc-box { max-width: 540px; max-height: 92vh; display: flex; flex-direction: column; }
+        .cc-box .ca-modal-body { overflow-y: auto; }
     </style>
+    <!-- The item's card in the portal catalogue (GH #348): a picture, one line and a
+         price. Beside the other portal settings, for the same reason they are here. -->
+    <div id="cardModal" class="ca-modal-overlay" onclick="if(event.target===this)closeCardModal()">
+        <div class="ca-modal-box cc-box">
+            <div class="ca-modal-header"><?php echo htmlspecialchars(t('forms.card.modal_title')); ?></div>
+            <div class="ca-modal-body">
+                <p class="ca-modal-intro"><?php echo htmlspecialchars(t('forms.card.modal_intro')); ?></p>
+                <div class="cc-preview-wrap">
+                    <div class="cc-preview-label"><?php echo htmlspecialchars(t('forms.card.preview')); ?></div>
+                    <div class="cc-card">
+                        <img class="cc-card-img" id="cardPreviewImg" alt="" style="display:none;">
+                        <div class="cc-card-body">
+                            <div class="cc-card-title" id="cardPreviewTitle"></div>
+                            <div class="cc-card-desc" id="cardPreviewDesc"></div>
+                            <div class="cc-card-price" id="cardPreviewPrice"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ca-field">
+                    <label for="cardSummary"><?php echo htmlspecialchars(t('forms.card.summary_label')); ?></label>
+                    <input type="text" id="cardSummary" maxlength="255" oninput="renderCardPreview()">
+                    <small class="ca-hint"><?php echo htmlspecialchars(t('forms.card.summary_hint')); ?></small>
+                </div>
+                <div class="ca-field">
+                    <label for="cardPrice"><?php echo htmlspecialchars(t('forms.card.price_label')); ?></label>
+                    <div class="cc-price-row">
+                        <input type="number" id="cardPrice" min="0" step="0.01" inputmode="decimal" oninput="renderCardPreview()">
+                        <select id="cardCurrency" onchange="renderCardPreview()" aria-label="<?php echo htmlspecialchars(t('forms.card.currency_label')); ?>"></select>
+                        <select id="cardPeriod" onchange="renderCardPreview()" aria-label="<?php echo htmlspecialchars(t('forms.card.period_label')); ?>">
+                            <option value="once"><?php echo htmlspecialchars(t('forms.card.period_once')); ?></option>
+                            <option value="month"><?php echo htmlspecialchars(t('forms.card.period_month')); ?></option>
+                        </select>
+                    </div>
+                    <small class="ca-hint"><?php echo htmlspecialchars(t('forms.card.price_hint')); ?></small>
+                </div>
+                <div class="ca-field">
+                    <label><?php echo htmlspecialchars(t('forms.card.picture_label')); ?></label>
+                    <div class="cc-picture">
+                        <input type="file" id="cardPictureInput" accept=".png,.jpg,.jpeg,.gif,.webp" style="display:none;" onchange="uploadCardPicture(this)">
+                        <button type="button" class="ca-btn ca-btn-secondary" id="cardPictureBtn" onclick="document.getElementById('cardPictureInput').click()"><?php echo htmlspecialchars(t('forms.card.picture_choose')); ?></button>
+                        <button type="button" class="ca-btn ca-btn-secondary" id="cardPictureRemove" onclick="removeCardPicture()" style="display:none;"><?php echo htmlspecialchars(t('forms.card.picture_remove')); ?></button>
+                    </div>
+                    <small class="ca-hint"><?php echo htmlspecialchars(t('forms.card.picture_hint')); ?></small>
+                </div>
+                <p class="ca-note" id="cardPortalNote" style="display:none;"><?php echo htmlspecialchars(t('forms.card.not_portal_note')); ?></p>
+            </div>
+            <div class="ca-modal-footer">
+                <button class="ca-btn ca-btn-secondary" onclick="closeCardModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="ca-btn ca-btn-primary" id="cardSaveBtn" onclick="saveCard()"><?php echo htmlspecialchars(t('forms.card.save')); ?></button>
+            </div>
+        </div>
+    </div>
     <!-- Which collection this form's NEW submissions are filed under. Modelled
          on the approval modal above rather than invented afresh: same overlay,
          same footer, same save-and-reload. -->
@@ -434,6 +510,7 @@ $translationNamespaces = ['common', 'forms'];
         const API_BASE = '<?php echo BASE_URL; ?>api/forms/';
         const EDIT_BASE = '<?php echo BASE_URL; ?>forms/edit/';
         const FORMS_MAY_DESIGN = <?php echo $formsMayDesign ? 'true' : 'false'; ?>;   // #180
+        const CARD_READY = <?php echo $cardReady ? 'true' : 'false'; ?>;   // GH #348: after Database Verification
 
         let allForms = [];
         let filteredForms = [];
@@ -451,6 +528,8 @@ $translationNamespaces = ['common', 'forms'];
         // A folder: a collection is a place submissions are filed, which is the
         // nearest thing the icon set already has to what this means.
         const ICON_COLLECTION = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
+        // A tag: what the item is and what it costs, on its card in the catalogue (GH #348).
+        const ICON_CARD = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>';
         const ICON_APPROVAL = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>';
         // Two people — "who is this for". Restricting a form is about an
         // AUDIENCE, not about locking it, so deliberately not a padlock.
@@ -610,6 +689,7 @@ $translationNamespaces = ['common', 'forms'];
                         <a class="ft-action-btn" href="<?php echo BASE_URL; ?>forms/fill.php?id=${f.id}" title="${escAttr(window.t('forms.list.fill_title'))}">${ICON_FILL}</a>
                         <a class="ft-action-btn" href="<?php echo BASE_URL; ?>forms/submissions.php?id=${f.id}" title="${escAttr(window.t('forms.list.subs_title'))}">${ICON_SUBS}</a>
                         <button class="ft-action-btn" onclick="togglePortal(${f.id}, ${f.is_portal_visible == 1 ? 0 : 1})" title="${escAttr(window.t(f.is_portal_visible == 1 ? 'forms.list.portal_remove_title' : 'forms.list.portal_add_title'))}">${f.is_portal_visible == 1 ? ICON_PORTAL_ON : ICON_PORTAL_OFF}</button>
+                        ${CARD_READY ? `<button class="ft-action-btn${(f.catalogue_summary || f.catalogue_price !== null && f.catalogue_price !== undefined || f.catalogue_image_path) ? ' is-on' : ''}" onclick="openCardModal(${f.id})" title="${escAttr(window.t('forms.card.button_title'))}">${ICON_CARD}</button>` : ''}
                         <button class="ft-action-btn" onclick="openApprovalModal(${f.id})" title="${escAttr(window.t('forms.list.approval_title'))}">${ICON_APPROVAL}</button>
                         <button class="ft-action-btn${Number(f.audience_count) > 0 ? ' is-on' : ''}" onclick="openAudienceModal(${f.id})" title="${escAttr(window.t(Number(f.audience_count) > 0 ? 'forms.list.audience_on_title' : 'forms.list.audience_title'))}">${ICON_AUDIENCE}</button>
                         <button class="ft-action-btn" onclick="openCollectionModal(${f.id})" title="${escAttr(window.t('forms.pairing.title'))}">${ICON_COLLECTION}</button>
@@ -818,6 +898,122 @@ $translationNamespaces = ['common', 'forms'];
                 loadForms();
             } catch (e) {
                 showToast(window.t('forms.audience.save_failed'), 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ---------------------------------------------------------------- //
+        //  The item's catalogue card (GH #348)                             //
+        // ---------------------------------------------------------------- //
+
+        let cardFormId = null;
+        let cardImagePath = null;     // what Save sends: the stored path, or null for none
+        let cardImageSrc = '';        // what the preview draws
+
+        function openCardModal(id) {
+            const form = allForms.find(f => f.id == id);
+            if (!form) return;
+            cardFormId = id;
+            document.getElementById('cardSummary').value = form.catalogue_summary || '';
+            document.getElementById('cardPrice').value = (form.catalogue_price !== null && form.catalogue_price !== undefined) ? form.catalogue_price : '';
+            Money.fill(document.getElementById('cardCurrency'), form.catalogue_currency || Money.def());
+            document.getElementById('cardPeriod').value = form.catalogue_price_period === 'month' ? 'month' : 'once';
+            cardImagePath = form.catalogue_image_path || null;
+            cardImageSrc = cardImagePath ? API_BASE + 'card_image.php?form=' + encodeURIComponent(id) + '&t=' + Date.now() : '';
+            document.getElementById('cardPortalNote').style.display = (form.is_portal_visible == 1) ? 'none' : '';
+            renderCardPreview();
+            document.getElementById('cardModal').style.display = 'flex';
+        }
+
+        function closeCardModal() {
+            document.getElementById('cardModal').style.display = 'none';
+            document.getElementById('cardPictureInput').value = '';
+            cardFormId = null;
+        }
+
+        // The card as the portal draws it: the one line, or the description when there is none.
+        function renderCardPreview() {
+            const form = allForms.find(f => f.id == cardFormId);
+            if (!form) return;
+            document.getElementById('cardPreviewTitle').textContent = form.title || '';
+            document.getElementById('cardPreviewDesc').textContent = document.getElementById('cardSummary').value.trim() || form.description || '';
+            const raw = document.getElementById('cardPrice').value.trim();
+            let label = '';
+            if (raw !== '' && !isNaN(Number(raw))) {
+                const amount = Money.format(Number(raw), document.getElementById('cardCurrency').value);
+                label = Number(raw) === 0 ? window.t('common.catalogue_price.free')
+                    : document.getElementById('cardPeriod').value === 'month'
+                        ? window.t('common.catalogue_price.month', { price: amount }) : amount;
+            }
+            document.getElementById('cardPreviewPrice').textContent = label;
+            const img = document.getElementById('cardPreviewImg');
+            img.style.display = cardImageSrc ? '' : 'none';
+            if (cardImageSrc) img.src = cardImageSrc; else img.removeAttribute('src');
+            document.getElementById('cardPictureRemove').style.display = cardImagePath ? '' : 'none';
+            document.getElementById('cardPictureBtn').textContent = window.t(cardImagePath ? 'forms.card.picture_change' : 'forms.card.picture_choose');
+        }
+
+        // Stored at once, like an image block's - but only on the item once Save is pressed.
+        async function uploadCardPicture(input) {
+            const file = input.files && input.files[0];
+            if (!file || !cardFormId) return;
+            const body = new FormData();
+            body.append('form_id', cardFormId);
+            body.append('image', file);
+            const btn = document.getElementById('cardPictureBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'upload_image.php', { method: 'POST', body });
+                const data = await res.json();
+                if (!data.success) { showToast(data.error || window.t('forms.card.picture_failed'), 'error'); return; }
+                cardImagePath = data.image.path;
+                cardImageSrc = URL.createObjectURL(file);
+                renderCardPreview();
+            } catch (e) {
+                showToast(window.t('forms.card.picture_failed'), 'error');
+            } finally {
+                btn.disabled = false;
+                input.value = '';
+            }
+        }
+
+        function removeCardPicture() {
+            cardImagePath = null;
+            cardImageSrc = '';
+            renderCardPreview();
+        }
+
+        async function saveCard() {
+            if (!cardFormId) return;
+            const raw = document.getElementById('cardPrice').value.trim();
+            if (raw !== '' && (isNaN(Number(raw)) || Number(raw) < 0)) {
+                showToast(window.t('forms.card.price_invalid'), 'error');
+                return;
+            }
+            const btn = document.getElementById('cardSaveBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'save_form.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // A partial update: the card's keys only, so nothing else about the form is touched.
+                    body: JSON.stringify({
+                        id: cardFormId,
+                        catalogue_summary: document.getElementById('cardSummary').value.trim(),
+                        catalogue_price: raw,
+                        catalogue_currency: document.getElementById('cardCurrency').value,
+                        catalogue_price_period: document.getElementById('cardPeriod').value,
+                        catalogue_image_path: cardImagePath || '',
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) { showToast(data.error || window.t('forms.card.save_failed'), 'error'); return; }
+                showToast(window.t('forms.card.saved'), 'success');
+                closeCardModal();
+                loadForms();
+            } catch (e) {
+                showToast(window.t('forms.card.save_failed'), 'error');
             } finally {
                 btn.disabled = false;
             }

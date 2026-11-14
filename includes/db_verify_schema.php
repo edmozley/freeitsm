@@ -4869,6 +4869,14 @@ return [
         // that pressing Save deletes.
         'layout'             => 'LONGTEXT NULL',
         'submission_actions' => 'TEXT NULL',
+        // The item's card in the portal catalogue (GH #348) - includes/catalogue_card.php.
+        // All NULL = the card as before. ⚠️ Carried forward by createVersion(), like
+        // everything above: a setting left out of that copy is one Save deletes.
+        'catalogue_summary'      => 'VARCHAR(255) NULL',
+        'catalogue_price'        => 'DECIMAL(18,2) NULL',
+        'catalogue_currency'     => 'VARCHAR(3) NULL',     // NULL = the install's, fixed on each request
+        'catalogue_price_period' => 'VARCHAR(10) NULL',    // CataloguePricePeriod; NULL = once
+        'catalogue_image_path'   => 'VARCHAR(100) NULL',   // "<formId>/<32 hex>.<ext>", as upload_image.php writes it
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
@@ -4936,6 +4944,11 @@ return [
         'client_reference'  => 'VARCHAR(64) NULL',
         'superseded_by_id'  => 'INT NULL',
         'for_ticket_id'     => 'INT NULL',   // GH #272: made for a ticket (ticket_forms) - not ticket_id, which is "raised from"
+        // GH #348: the item's price AS REQUESTED. Snapshotted, never read live: a
+        // later change of the price must not rewrite what was asked for and approved.
+        'catalogue_price'        => 'DECIMAL(18,2) NULL',
+        'catalogue_currency'     => 'VARCHAR(3) NULL',
+        'catalogue_price_period' => 'VARCHAR(10) NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 

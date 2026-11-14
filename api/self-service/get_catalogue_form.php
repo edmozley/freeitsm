@@ -57,6 +57,16 @@ try {
         exit;
     }
 
+    // The price, beside the title (GH #348): what the person is asking for costs this.
+    require_once __DIR__ . '/../../includes/catalogue_card.php';
+    $form['price_label'] = '';
+    if (catalogueCardAvailable($conn)) {
+        $ps = $conn->prepare('SELECT catalogue_price, catalogue_currency, catalogue_price_period FROM forms WHERE id = ?');
+        $ps->execute([$formId]);
+        $p = $ps->fetch(PDO::FETCH_ASSOC) ?: [];
+        $form['price_label'] = cataloguePriceLabel($p['catalogue_price'] ?? null, $p['catalogue_currency'] ?? null, $p['catalogue_price_period'] ?? null);
+    }
+
     // Retired fields are excluded — they exist only to keep old submissions readable.
     $fStmt = $conn->prepare(
         "SELECT id, field_type, label, options, is_required, sort_order, config

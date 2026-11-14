@@ -61,13 +61,20 @@ try {
             LEFT JOIN form_collections col ON col.id = f.collection_id"
         : '';
 
+    // The shop card (GH #348), once Database Verification has added it.
+    require_once '../../includes/catalogue_card.php';
+    $cardSelect = catalogueCardAvailable($conn)
+        ? "
+                   f.catalogue_summary, f.catalogue_price, f.catalogue_currency, f.catalogue_price_period, f.catalogue_image_path,"
+        : '';
+
     $sql = "SELECT f.id, f.title, f.description, f.is_active, f.is_portal_visible,
                    f.requires_approval, f.approver_id, apr.full_name AS approver_name," . $teamSelect . "
                    f.created_by,  ca.full_name AS created_by_name,
                    DATE_FORMAT(f.created_date,  '%Y-%m-%d %H:%i:%s') AS created_date,
                    f.modified_by, ma.full_name AS modified_by_name,
                    DATE_FORMAT(f.modified_date, '%Y-%m-%d %H:%i:%s') AS modified_date,
-                   f.version_number," . $collectionSelect . "
+                   f.version_number," . $collectionSelect . $cardSelect . "
                    (SELECT COUNT(*) FROM form_fields      WHERE form_id = f.id) AS field_count,
                    (SELECT COUNT(*) FROM form_submissions WHERE form_id = f.id) AS submission_count" . $audienceSelect . "
             FROM forms f

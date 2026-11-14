@@ -71,6 +71,32 @@ return [
     ],
 
     // ── Catalogue-request approval (#928): config modal + inbox ─────
+    // The item's card in the portal catalogue (GH #348).
+    'card' => [
+        'button_title'     => 'Catalogue card: picture, short description and price',
+        'modal_title'      => 'Catalogue card',
+        'modal_intro'      => 'What the portal catalogue shows for this item: a picture, one line about it and its price. Leave them empty and the card shows the title and description, as before.',
+        'preview'          => 'How it looks in the portal',
+        'summary_label'    => 'Short description',
+        'summary_hint'     => 'One line, on the card. The full description stays on the item\'s page.',
+        'price_label'      => 'Price',
+        'currency_label'   => 'Currency',
+        'period_label'     => 'How often',
+        'period_once'      => 'One-off',
+        'period_month'     => 'A month',
+        'price_hint'       => 'Leave empty for no price; 0 shows as Free. Each request keeps the price it was made at, so changing it later does not change past requests.',
+        'price_invalid'    => 'The price must be a number from 0 up.',
+        'picture_label'    => 'Picture',
+        'picture_choose'   => 'Choose a picture',
+        'picture_change'   => 'Change picture',
+        'picture_remove'   => 'Remove picture',
+        'picture_hint'     => 'PNG, JPG, GIF or WebP, up to 4 MB. Shown at the top of the card.',
+        'picture_failed'   => 'The picture could not be uploaded.',
+        'not_portal_note'  => 'This form is not in the portal catalogue yet, so nobody sees its card until it is.',
+        'save'             => 'Save card',
+        'saved'            => 'Catalogue card saved',
+        'save_failed'      => 'The catalogue card could not be saved.',
+    ],
     'approval' => [
         // Config modal (forms/index.php)
         'modal_title'      => 'Approval settings',

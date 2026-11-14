@@ -6550,6 +6550,15 @@ CREATE TABLE IF NOT EXISTS `forms` (
     -- submission_actions. A per-form setting left out of that INSERT is a
     -- setting that pressing Save deletes — that is how approval gating was lost.
     `layout`            LONGTEXT NULL,
+    -- The item's card in the portal catalogue (GH #348): a one-line summary, a
+    -- price and a picture. All NULL = the card as before. Carried forward by
+    -- createVersion() like layout. A NULL currency is the install's, fixed on each
+    -- request; a NULL period is a one-off price.
+    `catalogue_summary`      VARCHAR(255) NULL,
+    `catalogue_price`        DECIMAL(18,2) NULL,
+    `catalogue_currency`     VARCHAR(3) NULL,
+    `catalogue_price_period` VARCHAR(10) NULL,
+    `catalogue_image_path`   VARCHAR(100) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     -- RESTRICT (no delete rule): a frozen version can't be deleted while
@@ -6649,6 +6658,11 @@ CREATE TABLE IF NOT EXISTS `form_submissions` (
     -- ticket's company in tenant_id as for a task. NOT ticket_id, which means "the ticket
     -- raised FROM this submission" (a catalogue request).
     `for_ticket_id`     INT NULL,
+    -- GH #348: the item's price AS REQUESTED - snapshotted at submit time, so a
+    -- later price change never rewrites what was asked for and approved.
+    `catalogue_price`        DECIMAL(18,2) NULL,
+    `catalogue_currency`     VARCHAR(3) NULL,
+    `catalogue_price_period` VARCHAR(10) NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     KEY `idx_form_submissions_user` (`submitted_by_user_id`),

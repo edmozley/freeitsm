@@ -328,6 +328,7 @@ $translationNamespaces = ['common', 'forms'];
                         <div class="ca-card-meta">
                             <span><span class="lbl">${esc(window.t('forms.approval.requester'))}</span> ${esc(requester)}</span>
                             ${it.submitted_date ? `<span><span class="lbl">${esc(window.t('forms.approval.submitted'))}</span> ${esc(formatDate(it.submitted_date))}</span>` : ''}
+                            ${it.price_label ? `<span><span class="lbl">${esc(window.t('common.catalogue_price.label'))}</span> ${esc(it.price_label)}</span>` : ''}
                             ${(currentFilter !== 'mine' && it.approver_name) ? `<span><span class="lbl">${esc(window.t('forms.approval.approver'))}</span> ${esc(it.approver_name)}</span>` : ''}
                         </div>
                         ${teamBlock}

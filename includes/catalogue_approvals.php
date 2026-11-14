@@ -933,6 +933,10 @@ function catalogueSubmissionBodyHtml(PDO $conn, int $submissionId, string $formT
     // somebody their Guest Wi-Fi request came "from the catalogue" when there is
     // no catalogue involved is just wrong.
     $html = '<p>Submitted via the <strong>' . $esc($formTitle) . '</strong> form.</p>';
+    // GH #348: the price it was requested at, when the item has one.
+    require_once __DIR__ . '/catalogue_card.php';
+    $price = catalogueRequestPriceLabels($conn, [$submissionId])[$submissionId] ?? '';
+    if ($price !== '') $html .= '<p><strong>' . $esc(t('common.catalogue_price.label')) . ':</strong> ' . $esc($price) . '</p>';
     $html .= '<table style="border-collapse:collapse;">';
     foreach ($rows as $r) {
         $val = catalogueAnswerText($r['field_value'], $r['field_type'], $r);
@@ -1078,6 +1082,11 @@ function catalogueApprovalsList(PDO $conn, int $analystId, string $filter = 'min
         $it['answers'] = catalogueSubmissionAnswers($conn, (int)$it['id']);
         $out[] = $it;
     }
+    // GH #348: the price each was requested at - what the approver is saying yes to.
+    require_once __DIR__ . '/catalogue_card.php';
+    $prices = catalogueRequestPriceLabels($conn, array_column($out, 'id'));
+    foreach ($out as &$it) $it['price_label'] = $prices[(int)$it['id']] ?? '';
+    unset($it);
 
     // "Mine" is counted the same way it is listed, so the tab never promises more than it shows.
     if ($filter === 'mine') {

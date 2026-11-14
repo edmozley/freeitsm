@@ -897,4 +897,10 @@ return [
         'cancel_export' => 'Cancel export',
         'export_failed' => 'The export could not be completed.',
     ],
+    // A catalogue item's price (GH #348): the portal card, the approvals inbox, the ticket.
+    'catalogue_price' => [
+        'label' => 'Price',
+        'month' => '{price} a month',
+        'free'  => 'Free',
+    ],
 ];
