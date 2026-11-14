@@ -253,6 +253,15 @@ $translationNamespaces = ['common', 'asset-management'];
         .hv-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
         .hv-table th, .hv-table td { text-align: left; padding: 5px 8px; border-top: 1px solid var(--border, #eee); font-size: 12.5px; }
         .hv-flag { margin-left: 6px; font-size: 11px; }
+        .storage-heading { margin: 14px 0 6px; font-size: 13px; }
+        .storage-cluster { margin-top: 10px; color: var(--text, #333); }
+        .storage-read { margin-top: 4px; overflow-wrap: anywhere; }
+        .storage-scroll { max-width: 100%; overflow-x: auto; }
+        .storage-scroll:focus-visible { outline: 2px solid var(--accent, #0078d4); outline-offset: 2px; }
+        .storage-table { min-width: 850px; }
+        .storage-table .storage-capacity { text-align: right; white-space: nowrap; }
+        .storage-table .storage-name { min-width: 150px; max-width: 300px; overflow-wrap: anywhere; }
+        .storage-table td { vertical-align: top; }
         /* The estate tree (Hosts / Clusters tiles). Rows wrap rather than scroll on a phone. */
         .summary-card.clickable { cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
         .summary-card.clickable:hover, .summary-card.clickable:focus-visible { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15); transform: translateY(-1px); outline: none; }
@@ -727,6 +736,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 <div class="hv-panel-head"><strong><?php echo htmlspecialchars(t('asset-management.hyperv.servers_title')); ?></strong>
                     <a href="#" id="hvHostsToggle" onclick="event.preventDefault(); toggleEstate(true)"><?php echo htmlspecialchars(t('asset-management.hyperv.servers_hosts')); ?></a></div>
                 <div id="hvConnections"></div>
+                <div id="hvStorage"></div>
             </div>
 
             <!-- Toolbar -->
@@ -983,7 +993,55 @@ $translationNamespaces = ['common', 'asset-management'];
                 return `<div class="hv-conn"><strong>${escapeHtml(c.name)}</strong><span class="hv-pill hv-${cls}">${escapeHtml(word)}</span>
                     <span class="hv-sub">${c.last_report_at ? escapeHtml(HV('last_report', { when: hvWhen(c.last_report_at) })) + ' · ' : ''}${escapeHtml(HV('expected', { n: c.interval }))}</span>
                     ${c.last_summary ? `<span class="hv-sub">${escapeHtml(c.last_summary)}</span>` : ''}</div>`;
-            }).join('') + `<div class="hv-sub">${escapeHtml(HV('storage_limit'))}</div>`;
+            }).join('');
+            renderStorage(h.storage || []);
+        }
+
+        /** Shared storage is separate from VM disks: never add VHDX capacities to these totals. */
+        function renderStorage(clusters) {
+            const body = document.getElementById('hvStorage');
+            if (!clusters.length) { body.innerHTML = `<div class="hv-sub">${escapeHtml(HV('storage_uncollected'))}</div>`; return; }
+            const bytes = value => {
+                if (value === null || value === undefined) return escapeHtml(HV('storage_unknown'));
+                const n = Number(value);
+                if (!Number.isFinite(n) || n < 0) return escapeHtml(HV('storage_unknown'));
+                const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB'];
+                const unit = n === 0 ? 0 : Math.min(Math.floor(Math.log(n) / Math.log(1024)), units.length - 1);
+                return (n / Math.pow(1024, unit)).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' ' + units[unit];
+            };
+            let connectionId = null;
+            body.innerHTML = clusters.map(c => {
+                let out = '';
+                if (connectionId !== c.connection_id) {
+                    connectionId = c.connection_id;
+                    out += `<h3 class="storage-heading">${escapeHtml(HV('storage_title'))} · ${escapeHtml(c.connection_name)}</h3>`;
+                }
+                out += `<section class="storage-cluster"><strong>${escapeHtml(c.cluster_name)}</strong>`;
+                if (c.read_error) {
+                    out += `<div class="storage-read"><span class="hv-pill hv-warn">${escapeHtml(HV('storage_read_failed'))}</span>
+                        <span class="hv-sub">${escapeHtml(hvWhen(c.last_attempted_at))} · ${escapeHtml(c.read_error)}</span></div>`;
+                } else if (!c.last_attempted_at) {
+                    out += `<div class="hv-sub">${escapeHtml(HV('storage_uncollected'))}</div>`;
+                }
+                if (c.last_observed_at) {
+                    out += `<div class="hv-sub">${escapeHtml(HV('storage_last_complete', { when: hvWhen(c.last_observed_at) }))}</div>`;
+                }
+                if (!c.volumes.length) {
+                    if (c.last_observed_at && !c.read_error) out += `<div class="hv-sub">${escapeHtml(HV('storage_empty'))}</div>`;
+                    return out + '</section>';
+                }
+                const label = escapeHtml(HV('storage_title') + ' · ' + c.cluster_name);
+                out += `<div class="storage-scroll" tabindex="0" role="region" aria-label="${label}"><table class="hv-table storage-table" aria-label="${label}">
+                    <thead><tr>${['storage_volume', 'storage_filesystem', 'col_state', 'storage_coordinator', 'storage_total', 'storage_free', 'storage_used', 'storage_observed'].map((k, i) =>
+                        `<th scope="col"${i >= 4 && i <= 6 ? ' class="storage-capacity"' : ''}>${escapeHtml(HV(k))}</th>`).join('')}</tr></thead><tbody>`;
+                out += c.volumes.map(v => `<tr>
+                    <td class="storage-name"><strong>${escapeHtml(v.name || v.volume_id)}</strong><div class="hv-sub">${escapeHtml(v.path || '-')}</div></td>
+                    <td>${escapeHtml(v.filesystem || '-')}</td><td>${escapeHtml(v.state || HV('storage_unknown'))}</td>
+                    <td>${escapeHtml(v.coordinator_node || '-')}</td>
+                    <td class="storage-capacity">${bytes(v.total_bytes)}</td><td class="storage-capacity">${bytes(v.free_bytes)}</td><td class="storage-capacity">${bytes(v.used_bytes)}</td>
+                    <td>${escapeHtml(hvWhen(v.last_seen_observed_at))}<div>${hvSeen(v)}</div></td></tr>`).join('');
+                return out + '</tbody></table></div></section>';
+            }).join('');
         }
 
         /* The Hosts and Clusters tiles open this: every source's clusters and hosts, with the

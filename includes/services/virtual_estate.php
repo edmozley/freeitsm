@@ -12,7 +12,7 @@
  *     resend for ever); the same scope and time with different content is a conflict. Each
  *     object also keeps the time it was last observed, so an older report sent under another
  *     scope can never wind an object back.
- *   - sections (clusters, hosts, cluster_roles, vms, vm_disks, vm_networks), each complete,
+ *   - sections (clusters, hosts, cluster_roles, vms, vm_disks, vm_networks, storage_volumes), each complete,
  *     partial or left out. Each is applied inside its own savepoint: one that fails is rolled
  *     back alone, named, and the others apply (the adapter answers 207).
  *   - REMOVAL IS NOT DELETION. An object missing from a complete section whose scope covers
@@ -46,7 +46,7 @@ final class VirtualEstateService
     public const SCHEMA_VERSION = 1;
 
     /** The sections, in the order they are applied: what is referenced comes first. */
-    public const SECTIONS = ['clusters', 'hosts', 'cluster_roles', 'vms', 'vm_disks', 'vm_networks'];
+    public const SECTIONS = ['clusters', 'hosts', 'cluster_roles', 'vms', 'vm_disks', 'vm_networks', 'storage_volumes'];
 
     /** The per-connection job key on System -> Background jobs. */
     public static function jobKey(int $connectionId): string
@@ -109,8 +109,11 @@ final class VirtualEstateService
                 if (!array_key_exists($name, $sections)) { continue; }
                 $conn->exec('SAVEPOINT virt_section');
                 try {
+                    if (!is_array($sections[$name])) {
+                        throw new ServiceError('validation', 'invalid_section', "$name must be an object.");
+                    }
                     $apply = 'apply_' . $name;
-                    $results[$name] = ['outcome' => 'applied'] + self::$apply($conn, $ctx, $sections[$name]);
+                    $results[$name] = self::$apply($conn, $ctx, $sections[$name]) + ['outcome' => 'applied'];
                     $conn->exec('RELEASE SAVEPOINT virt_section');
                 } catch (ServiceError $e) {
                     $conn->exec('ROLLBACK TO SAVEPOINT virt_section');
@@ -129,7 +132,8 @@ final class VirtualEstateService
 
         $failed = array_keys(array_filter($results, fn($r) => $r['outcome'] === 'failed'));
         $applied = count($results) - count($failed);
-        $outcome = !$failed ? 'applied' : ($applied ? 'partial' : 'failed');
+        $partial = array_filter($results, fn($r) => $r['outcome'] === 'partial');
+        $outcome = !$failed && !$partial ? 'applied' : ($applied ? 'partial' : 'failed');
         $summary = self::summary($results, $unreadable);
         JobRun::finish($conn, $run, $outcome === 'applied' && !$unreadable ? 'ok' : ($outcome === 'failed' ? 'failed' : 'partial'),
             array_map(fn($r) => ($r['added'] ?? 0) + ($r['updated'] ?? 0), $results), $summary);
@@ -261,6 +265,142 @@ final class VirtualEstateService
     }
 
     /**
+     * Shared volumes have completeness and failures per CLUSTER, independently of host/VM
+     * reads. An omitted section (old collector), or omitted cluster, changes nothing.
+     * Each cluster owns a savepoint so a bad partition cannot erase a good cluster's read.
+     * TRAP: never put storage errors in the report's top-level unreadable list: doing that
+     * would mark successfully read VMs unconfirmed too.
+     */
+    private static function apply_storage_volumes(PDO $conn, array &$ctx, array $section): array
+    {
+        if (!is_array($section['clusters'] ?? null) || !array_is_list($section['clusters'])) {
+            throw new ServiceError('validation', 'invalid_section', 'storage_volumes needs clusters (a list of cluster reads).');
+        }
+        $clusterIds = self::idMap($conn, $ctx, 'virt_clusters');
+        $scopeIds = self::scopeClusterIds($conn, $ctx);
+        $reads = [];
+        foreach ($section['clusters'] as $read) {
+            if (!is_array($read)) {
+                throw new ServiceError('validation', 'invalid_item', 'Every storage cluster read must be an object.');
+            }
+            $external = self::id($read, 'cluster_id', 'storage_volumes');
+            $id = $clusterIds[$external] ?? null;
+            if ($id === null || !in_array($id, $scopeIds, true)) {
+                throw new ServiceError('validation', 'unknown_cluster', 'Storage cluster must belong to this connection and report scope.');
+            }
+            if (isset($reads[$id])) {
+                throw new ServiceError('validation', 'duplicate_cluster', 'Send only one storage read per cluster.');
+            }
+            $reads[$id] = ['external_id' => $external, 'read' => $read];
+        }
+        // Get-Cluster itself can fail before the collector learns its id. Only an opted-in
+        // report reaches this method: old collectors must leave storage entirely untouched.
+        $blocked = self::unreadableIds($conn, $ctx);
+        $externalById = array_flip($clusterIds);
+        foreach (array_intersect($blocked['clusters'], $scopeIds) as $id) {
+            if (!isset($reads[$id])) {
+                $reads[$id] = ['external_id' => $externalById[$id],
+                    'read' => ['complete' => false, 'items' => [], 'error' => 'Cluster could not be read.']];
+            }
+        }
+        $stats = ['added' => 0, 'updated' => 0, 'not_seen' => 0, 'stale_objects' => 0, 'clusters' => []];
+        $failed = 0;
+        foreach ($reads as $clusterId => $entry) {
+            $read = $entry['read'];
+            $external = $entry['external_id'];
+            $st = $conn->prepare('SELECT storage_last_attempted_at FROM virt_clusters WHERE id = ? AND connection_id = ? FOR UPDATE');
+            $st->execute([$clusterId, (int)$ctx['conn']['id']]);
+            $lastAttempt = $st->fetchColumn();
+            // The watermark includes failed/empty reads, not only the last successful row.
+            // Otherwise an older report with a different scope could resurrect stale facts.
+            if ($lastAttempt !== null && $lastAttempt > $ctx['observed']) {
+                $stats['clusters'][$external] = ['outcome' => 'stale'];
+                $stats['stale_objects']++;
+                continue;
+            }
+            $conn->exec('SAVEPOINT virt_storage_cluster');
+            $error = null;
+            try {
+                $items = self::items($read, 'storage_volumes', function (array $i) use ($external, $clusterId) {
+                    $resource = self::id($i, 'resource_id', 'storage_volumes', 191);
+                    $volume = self::id($i, 'volume_id', 'storage_volumes', 191);
+                    $total = self::storageBytes($i['total_bytes'] ?? null);
+                    $free = self::storageBytes($i['free_bytes'] ?? null);
+                    if ($total !== null && $free !== null && $free > $total) { $free = null; }
+                    return ['external_id' => hash('sha256', json_encode([$external, $resource, $volume])),
+                        'cluster_id' => $clusterId, 'resource_id' => $resource, 'volume_id' => $volume,
+                        'name' => self::str($i, 'name', 255), 'path' => self::str($i, 'path', 500),
+                        'filesystem' => self::str($i, 'filesystem', 60), 'state' => self::str($i, 'state', 30),
+                        'coordinator_node' => self::str($i, 'coordinator_node', 255),
+                        'total_bytes' => $total, 'free_bytes' => $free,
+                        'used_bytes' => $total !== null && $free !== null ? $total - $free : null];
+                });
+                if (!array_is_list($read['items'])) {
+                    throw new ServiceError('validation', 'invalid_item', 'Storage items must be a list.');
+                }
+                $ids = array_column($items, 'external_id');
+                if (count($ids) !== count(array_unique($ids))) {
+                    throw new ServiceError('validation', 'duplicate_volume', 'Send each resource and volume identity only once per cluster.');
+                }
+                $error = self::str($read, 'error', 300);
+                if ($error !== null && ($read['complete'] || $items)) {
+                    throw new ServiceError('validation', 'invalid_item', 'A failed storage read must have complete=false and no items.');
+                }
+                if (in_array($clusterId, $blocked['clusters'], true)) {
+                    throw new ServiceError('validation', 'cluster_unreadable', 'Storage cannot be confirmed while its cluster is unreadable.');
+                }
+                $cols = ['cluster_id', 'resource_id', 'volume_id', 'name', 'path', 'filesystem', 'state',
+                    'coordinator_node', 'total_bytes', 'free_bytes', 'used_bytes'];
+                $s = self::upsert($conn, $ctx, 'virt_storage_volumes', $items, $cols);
+                $notSeen = 0;
+                if ($read['complete']) {
+                    $notSeen = self::markNotSeen($conn, $ctx, 'virt_storage_volumes', $ids, [$clusterId], 'cluster_id');
+                } else {
+                    $error = $error ?? 'Storage read was incomplete.';
+                }
+                $stats['added'] += $s['added'];
+                $stats['updated'] += $s['updated'];
+                $stats['not_seen'] += $notSeen;
+                $stats['stale_objects'] += $s['stale_objects'] ?? 0;
+                $stats['clusters'][$external] = ['outcome' => $error === null ? 'applied' : ($items ? 'partial' : 'failed')]
+                    + $s + ['not_seen' => $notSeen];
+                $conn->exec('RELEASE SAVEPOINT virt_storage_cluster');
+            } catch (ServiceError $e) {
+                $conn->exec('ROLLBACK TO SAVEPOINT virt_storage_cluster');
+                $error = $e->getMessage();
+                $stats['clusters'][$external] = ['outcome' => 'failed', 'error' => $e->errorCode];
+            }
+            if ($error !== null) {
+                $failed++;
+                $stats['clusters'][$external]['message'] = $error;
+                $conn->prepare('UPDATE virt_storage_volumes SET not_confirmed_since = COALESCE(not_confirmed_since, ?)
+                    WHERE connection_id = ? AND cluster_id = ? AND not_seen_since IS NULL
+                    AND (last_seen_observed_at IS NULL OR last_seen_observed_at < ?)')
+                    ->execute([$ctx['observed'], (int)$ctx['conn']['id'], $clusterId, $ctx['observed']]);
+            }
+            $conn->prepare('UPDATE virt_clusters SET storage_last_attempted_at = ?, storage_read_error = ?,
+                storage_last_observed_at = CASE WHEN ? IS NULL THEN ? ELSE storage_last_observed_at END
+                WHERE id = ? AND connection_id = ?')
+                ->execute([$ctx['observed'], $error, $error, $ctx['observed'], $clusterId, (int)$ctx['conn']['id']]);
+        }
+        $someApplied = array_filter($stats['clusters'], fn($r) => $r['outcome'] !== 'failed');
+        $stats['outcome'] = !$failed ? 'applied' : ($someApplied ? 'partial' : 'failed');
+        return $stats;
+    }
+
+    /** A capacity is an exact, non-negative signed BIGINT, or unknown. Never coerce null to zero. */
+    private static function storageBytes($value): ?int
+    {
+        if (!is_int($value) && !is_string($value)) { return null; }
+        $text = (string)$value;
+        if (!preg_match('/^\d+$/D', $text)) { return null; }
+        $text = ltrim($text, '0');
+        if ($text === '') { return 0; }
+        if (strlen($text) > 19 || (strlen($text) === 19 && strcmp($text, '9223372036854775807') > 0)) { return null; }
+        return (int)$text;
+    }
+
+    /**
      * Disks or adapters, grouped by VM. A complete section makes each VM it names, and each
      * VM in scope it does not name, hold exactly the rows sent. VMs not in this connection are
      * refused as a whole section, so a typo cannot quietly drop data.
@@ -305,6 +445,43 @@ final class VirtualEstateService
             }
         }
         return ['added' => $added, 'updated' => $updated, 'removed' => $removed];
+    }
+
+    /**
+     * Storage grouped by connection and cluster, including never-read and empty clusters.
+     * Callers pass only connection ids they already authorized (session company filter or
+     * apiVirtConnection). An empty list must never mean all companies.
+     */
+    public static function storageInventory(PDO $conn, array $connectionIds): array
+    {
+        if (!$connectionIds) { return []; }
+        $in = implode(',', array_map('intval', $connectionIds));
+        $clusters = $conn->query("SELECT cl.id AS cluster_id, cl.external_id AS cluster_external_id, cl.name AS cluster_name,
+                cl.connection_id, c.name AS connection_name, cl.storage_last_attempted_at AS last_attempted_at,
+                cl.storage_last_observed_at AS last_observed_at, cl.storage_read_error AS read_error
+            FROM virt_clusters cl JOIN virt_connections c ON c.id = cl.connection_id
+            WHERE cl.connection_id IN ($in) ORDER BY c.name, c.id, cl.name, cl.id")->fetchAll(PDO::FETCH_ASSOC);
+        $byCluster = [];
+        foreach ($clusters as $i => &$cluster) {
+            $cluster['cluster_id'] = (int)$cluster['cluster_id'];
+            $cluster['connection_id'] = (int)$cluster['connection_id'];
+            $cluster['volumes'] = [];
+            $byCluster[$cluster['cluster_id']] = $i;
+        }
+        unset($cluster);
+        $volumes = $conn->query("SELECT id, connection_id, cluster_id, external_id, resource_id, volume_id, name, path,
+                filesystem, state, coordinator_node, total_bytes, free_bytes, used_bytes, first_seen_at,
+                last_seen_observed_at, not_seen_since, not_confirmed_since
+            FROM virt_storage_volumes WHERE connection_id IN ($in) ORDER BY name, volume_id, id")->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($volumes as $volume) {
+            foreach (['id', 'connection_id', 'cluster_id', 'total_bytes', 'free_bytes', 'used_bytes'] as $column) {
+                if ($volume[$column] !== null) { $volume[$column] = (int)$volume[$column]; }
+            }
+            if (isset($byCluster[$volume['cluster_id']])) {
+                $clusters[$byCluster[$volume['cluster_id']]]['volumes'][] = $volume;
+            }
+        }
+        return $clusters;
     }
 
     // ---- shared mechanics ----------------------------------------------------
@@ -815,6 +992,9 @@ final class VirtualEstateService
             $openCase = $kind ? " AND id NOT IN (SELECT old_object_id FROM virt_identity_reviews WHERE status = 'open' AND object_kind = '$kind')" : '';
             // A discovered object with a CI is never purged: the CI, and the binding's history, need it.
             $bound = VirtualEstateCmdbService::ready($conn) ? ' AND ' . VirtualEstateCmdbService::boundIdsSql($bk) : '';
+            // Storage retention is not the VM retention option. Keep its parent cluster so
+            // retained observations remain visible even if a collector stops naming it.
+            if ($t === 'virt_clusters') { $bound .= ' AND id NOT IN (SELECT cluster_id FROM virt_storage_volumes)'; }
             $conn->prepare("DELETE FROM $t WHERE connection_id = ? AND not_seen_since IS NOT NULL AND not_seen_since < ?$openCase$bound")->execute([(int)$c['id'], $cut]);
         }
     }
@@ -823,7 +1003,7 @@ final class VirtualEstateService
     {
         $bits = [];
         foreach ($results as $name => $r) {
-            $bits[] = $r['outcome'] === 'failed' ? "$name failed" : sprintf('%s %d', $name, ($r['added'] ?? 0) + ($r['updated'] ?? 0));
+            $bits[] = $r['outcome'] !== 'applied' ? "$name {$r['outcome']}" : sprintf('%s %d', $name, ($r['added'] ?? 0) + ($r['updated'] ?? 0));
         }
         if ($unreadable) { $bits[] = count($unreadable) . ' unreadable'; }
         return implode(', ', $bits);

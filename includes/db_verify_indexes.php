@@ -138,6 +138,8 @@ return [
     ['vcloud_edge_gateways', 'uq_vcloud_edge', 'unique', '(`connection_id`,`gateway_id`)'],
     ['virt_connections', 'uq_virt_connections_name', 'unique', '(`name`)'],
     ['virt_clusters', 'uq_virt_clusters_ext', 'unique', '(`connection_id`,`external_id`)'],
+    ['virt_storage_volumes', 'uq_virt_storage_ext', 'unique', '(`connection_id`,`external_id`)'],
+    ['virt_storage_volumes', 'idx_virt_storage_cluster', 'key', '(`cluster_id`)'],
     ['virt_hosts', 'uq_virt_hosts_ext', 'unique', '(`connection_id`,`external_id`)'],
     ['virt_hosts', 'idx_virt_hosts_cluster', 'key', '(`cluster_id`)'],
     ['virt_cluster_roles', 'uq_virt_roles_ext', 'unique', '(`connection_id`,`external_id`)'],

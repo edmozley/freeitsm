@@ -1281,6 +1281,7 @@ try {
         ['asset_review_items',     'fk_asset_review_asset',        'assets',            'asset_id',              'id', 'CASCADE'],
         // GH #199: a connection's estate goes with it; a VM's disks, adapters and placements with the VM.
         ['virt_clusters',         'fk_virt_clusters_conn',     'virt_connections', 'connection_id',         'id', 'CASCADE'],
+        ['virt_storage_volumes',  'fk_virt_storage_conn',      'virt_connections', 'connection_id',         'id', 'CASCADE'],
         ['virt_hosts',            'fk_virt_hosts_conn',        'virt_connections', 'connection_id',         'id', 'CASCADE'],
         ['virt_cluster_roles',    'fk_virt_roles_conn',        'virt_connections', 'connection_id',         'id', 'CASCADE'],
         ['virt_vms',              'fk_virt_vms_conn',          'virt_connections', 'connection_id',         'id', 'CASCADE'],

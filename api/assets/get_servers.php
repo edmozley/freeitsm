@@ -89,7 +89,7 @@ try {
     // connection last reported instead. Unlike the three sources above these belong to a
     // company, so they are scoped to the analyst's. A VM not seen, or on a host the last
     // report could not read, is still listed and says so - nothing vanishes for a bad read.
-    $hyperv = ['connections' => [], 'clusters' => [], 'hosts' => []];
+    $hyperv = ['connections' => [], 'clusters' => [], 'hosts' => [], 'storage' => []];
     if (VirtualEstateService::ready($conn)) {
         $analystId = (int)$_SESSION['analyst_id'];
         [$tf, $ta] = isMultiTenant($conn) ? allAccessibleTenantsFilter($conn, $analystId, 'c.tenant_id') : ['', []];
@@ -104,6 +104,7 @@ try {
         }
         if ($connIds) {
             $in = implode(',', $connIds);
+            $hyperv['storage'] = VirtualEstateService::storageInventory($conn, $connIds);
             $names = [];
             foreach ($conn->query("SELECT id, name FROM virt_hosts WHERE connection_id IN ($in)")->fetchAll(PDO::FETCH_KEY_PAIR) as $hid => $hn) { $names[(int)$hid] = $hn; }
             $vms = $conn->query("SELECT v.*, h.name AS host_name, cl.name AS cluster_name, c.name AS conn_name,

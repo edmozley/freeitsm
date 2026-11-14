@@ -102,6 +102,8 @@ param(
     [ValidateSet('All', 'Cluster')]
     [string]$ReportPer = 'All',
     [string]$OutputFile,
+    # Opt in only after upgrading the server to accept storage_volumes (#296).
+    [switch]$IncludeStorage,
     [switch]$Redact,
     [switch]$TestAccess,
     [string]$CertificateThumbprint,
@@ -110,7 +112,7 @@ param(
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
-$CollectorVersion = '1.0.1'
+$CollectorVersion = '1.1.0'
 
 if (-not $Cluster -and -not $StandaloneHost) {
     Write-Host "Name at least one -Cluster or -StandaloneHost." -ForegroundColor Red
@@ -294,10 +296,72 @@ function Read-HyperVHost([string]$HostName, $ClusterId, [hashtable]$ClusterVmInf
 
 function New-Section([array]$Items) { return [ordered]@{ complete = $true; items = @($Items) } }
 
+# Optional properties are not guaranteed on every Windows Server version. Under strict
+# mode, an absent property would throw; absent capacity is unknown, not a failed inventory.
+function Get-StorageProperty($Object, [string]$Name) {
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+}
+
+function Get-StorageBytes($Value) {
+    if ($null -eq $Value) { return $null }
+    $text = [string]$Value
+    $bytes = [long]0
+    if ($text -notmatch '^\d+$' -or -not [long]::TryParse($text, [ref]$bytes) -or $bytes -lt 0) { return $null }
+    return $bytes
+}
+
+# One read per cluster, not per node. Every SharedVolumeInfo entry is a separate partition.
+# TRAP: FriendlyVolumeName and OwnerNode can change. Neither is a volume identity. If the
+# source cannot supply its resource Id and partition Name, fail this cluster explicitly.
+function Read-ClusterStorage([string]$ClusterName, [string]$ClusterId) {
+    try {
+        $items = @()
+        $volumes = @(Try-Read $ClusterName 'Get-ClusterSharedVolume' { Get-ClusterSharedVolume -Cluster $ClusterName })
+        foreach ($csv in $volumes) {
+            $resourceId = Get-Str (Get-StorageProperty $csv 'Id')
+            $partitions = @(Get-StorageProperty $csv 'SharedVolumeInfo')
+            if ([string]::IsNullOrWhiteSpace($resourceId) -or $partitions.Count -eq 0) {
+                throw 'Cluster Shared Volume did not report its resource identity or partitions.'
+            }
+            foreach ($info in $partitions) {
+                $partition = Get-StorageProperty $info 'Partition'
+                $volumeId = Get-Str (Get-StorageProperty $partition 'Name')
+                if ([string]::IsNullOrWhiteSpace($volumeId)) { throw 'Cluster Shared Volume partition did not report its volume identity.' }
+                $total = Get-StorageBytes (Get-StorageProperty $partition 'Size')
+                $free = Get-StorageBytes (Get-StorageProperty $partition 'FreeSpace')
+                $validSize = Get-StorageProperty $partition 'IsPartitionSizeValid'
+                if ($null -ne $validSize -and -not $validSize) { $total = $null; $free = $null }
+                if ($null -ne $total -and $null -ne $free -and $free -gt $total) { $free = $null }
+                $owner = Get-StorageProperty $csv 'OwnerNode'
+                $items += [ordered]@{
+                    resource_id = (RGuid $resourceId)
+                    volume_id = (RGuid $volumeId)
+                    name = (Mask 'storage' (Get-Str (Get-StorageProperty $csv 'Name')))
+                    path = (Mask 'path' (Get-Str (Get-StorageProperty $info 'FriendlyVolumeName')))
+                    filesystem = (Get-Str (Get-StorageProperty $partition 'FileSystem'))
+                    state = (Get-Str (Get-StorageProperty $csv 'State'))
+                    coordinator_node = (Mask 'host' (Get-Str (Get-StorageProperty $owner 'Name')))
+                    total_bytes = $total
+                    free_bytes = $free
+                }
+            }
+        }
+        return [ordered]@{ cluster_id = (RGuid $ClusterId); complete = $true; items = @($items) }
+    } catch {
+        # A storage failure must not enter top-level unreadable: host and VM reads continue.
+        [void]$script:Access.Add([pscustomobject]@{ Target = $ClusterName; Read = 'Cluster Shared Volume data'; Result = "REFUSED: $($_.Exception.Message)" })
+        return [ordered]@{ cluster_id = (RGuid $ClusterId); complete = $false; items = @(); error = (RError $_.Exception.Message) }
+    }
+}
+
 # One scope's report: the clusters and standalone hosts given.
 function Read-Scope([string[]]$Clusters, [string[]]$Hosts) {
     $scope = @(); $unreadable = @()
     $clusterItems = @(); $hostItems = @(); $roleItems = @(); $vmItems = @(); $diskItems = @(); $netItems = @()
+    $storageReads = @()
     foreach ($c in $Clusters) {
         try {
             $cl = Try-Read $c 'Get-Cluster' { Get-Cluster -Name $c }
@@ -320,6 +384,7 @@ function Read-Scope([string[]]$Clusters, [string[]]$Hosts) {
             } catch { }
             $scope += [ordered]@{ kind = 'cluster'; id = (RGuid $cid); name = (Mask 'cluster' $c) }
             $clusterItems += [ordered]@{ id = (RGuid $cid); name = (Mask 'cluster' (Get-Str $cl.Name)); quorum_type = $quorum; witness = (Mask 'witness' $witness) }
+            if ($IncludeStorage) { $storageReads += Read-ClusterStorage $c $cid }
             foreach ($g in $groups) {
                 $preferred = @()
                 try { $preferred = @((Get-ClusterOwnerNode -InputObject $g).OwnerNodes | ForEach-Object { Mask 'host' (Get-Str $_.Name) }) } catch { }
@@ -354,6 +419,7 @@ function Read-Scope([string[]]$Clusters, [string[]]$Hosts) {
     if ($Clusters) {
         $sections.Insert(0, 'clusters', (New-Section $clusterItems))
         $sections.Insert(2, 'cluster_roles', (New-Section $roleItems))
+        if ($IncludeStorage) { $sections['storage_volumes'] = [ordered]@{ clusters = @($storageReads) } }
     }
     return [ordered]@{
         schema_version = 1

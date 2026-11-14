@@ -53,6 +53,18 @@ function apiVirtConnectionGet(PDO $conn, array $apiKey, array $params, array $bo
     };
     $reviews = $conn->prepare("SELECT COUNT(*) FROM virt_identity_reviews WHERE connection_id = ? AND status = 'open'");
     $reviews->execute([(int)$c['id']]);
+    $storage = VirtualEstateService::storageInventory($conn, [(int)$c['id']]);
+    foreach ($storage as &$cluster) {
+        $cluster['last_attempted_at'] = apiIsoDate($cluster['last_attempted_at']);
+        $cluster['last_observed_at'] = apiIsoDate($cluster['last_observed_at']);
+        foreach ($cluster['volumes'] as &$volume) {
+            foreach (['first_seen_at', 'last_seen_observed_at', 'not_seen_since', 'not_confirmed_since'] as $column) {
+                $volume[$column] = apiIsoDate($volume[$column]);
+            }
+        }
+        unset($volume);
+    }
+    unset($cluster);
     apiRespond([
         'id' => (int)$c['id'], 'name' => $c['name'], 'source' => $c['source_kind'], 'active' => (bool)$c['is_active'],
         'expected_interval_minutes' => (int)$c['expected_interval_minutes'], 'grace_minutes' => (int)$c['grace_minutes'],
@@ -61,7 +73,9 @@ function apiVirtConnectionGet(PDO $conn, array $apiKey, array $params, array $bo
         'last_outcome' => $c['last_outcome'], 'last_summary' => $c['last_summary'],
         'collector' => $c['collector_json'] ? json_decode($c['collector_json'], true) : null,
         'counts' => ['clusters' => $count('virt_clusters'), 'hosts' => $count('virt_hosts'), 'vms' => $count('virt_vms'),
+            'storage_volumes' => $count('virt_storage_volumes'),
             'vms_not_confirmed' => $count('virt_vms', ' AND not_confirmed_since IS NOT NULL')],
+        'storage' => $storage,
         'identity_reviews_open' => (int)$reviews->fetchColumn(),
     ]);
 }
