@@ -18,6 +18,7 @@ require_once __DIR__ . '/resources/tickets.php';
 require_once __DIR__ . '/resources/users.php';
 require_once __DIR__ . '/resources/reference.php';
 require_once __DIR__ . '/resources/analysts.php';
+require_once __DIR__ . '/resources/companies.php';   // GH #279
 require_once __DIR__ . '/resources/assets.php';
 require_once __DIR__ . '/resources/problems.php';
 require_once __DIR__ . '/resources/changes.php';
@@ -212,7 +213,8 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'POST /network-diagrams/{id}/connectors', 'PATCH /network-diagrams/{id}/connectors/{connector_id}',
             'DELETE /network-diagrams/{id}/connectors/{connector_id}', 'GET /cmdb-icons',
             'GET /users', 'POST /users', 'GET /users/{id}',
-            'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
+            'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'POST /companies',
+            'POST /companies/upsert', 'GET /companies/{id}', 'PATCH /companies/{id}', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',
             'GET /asset-types', 'GET /asset-statuses', 'GET /asset-locations', 'GET /suppliers',
         ],

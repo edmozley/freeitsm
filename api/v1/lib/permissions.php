@@ -517,7 +517,11 @@ function apiV1PermissionCatalog(): array {
         'companies' => [
             'label'   => 'Companies',
             'actions' => [
-                'read' => 'List the companies this key can see',
+                'read'   => 'List and view the companies this key can see',
+                // GH #279. Writes also need the key to act as an administrator and to
+                // see all companies - see api/v1/resources/companies.php.
+                'create' => 'Create companies; with update, create or update one by its outside reference (administrator keys for all companies only)',
+                'update' => 'Change a company\'s name, ticket code, outside reference, tax ID or active flag (administrator keys for all companies only)',
             ],
         ],
         'reference' => [

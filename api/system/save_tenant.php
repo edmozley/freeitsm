@@ -32,72 +32,23 @@ if (!is_array($data)) {
 }
 
 // --- Validate fields ---
-$name = trim($data['name'] ?? '');
-if ($name === '') {
-    echo json_encode(['success' => false, 'error' => 'Name is required']);
-    exit;
-}
-$isActive = !empty($data['is_active']) ? 1 : 0;
-$id       = isset($data['id']) ? (int)$data['id'] : 0;
-
-// The short code that stands in for this company in a ticket number
-// ({COMPANY}). Blank is a real answer meaning "derive one from the name", so
-// it is stored as NULL rather than an empty string — the two are asked apart
-// by TicketNumbering::codeFor().
-$ticketCode = TicketNumbering::cleanCode((string)($data['ticket_code'] ?? ''));
-
-
+// GH #279: every rule (name, ticket code, outside reference, tax ID, the Default
+// company staying active) is in CompaniesService, shared with the REST API.
+require_once '../../includes/services/companies.php';
+$id = isset($data['id']) ? (int)$data['id'] : 0;
 try {
     $conn = connectToDatabase();
-
-    // ⚠️ Two companies sharing a ticket code means two companies producing the
-    // same ticket numbers under per-company counting. Refused here rather than
-    // discovered later, because by then the numbers are in people's inboxes.
-    //
-    // Only an EXPLICIT code is refused. A derived one that happens to clash is
-    // reported on the numbering screen instead — blocking a company from being
-    // saved over a setting the install may not even use would be an obstruction
-    // rather than a guard.
-    if ($ticketCode !== '') {
-        $stmt = $conn->prepare(
-            "SELECT name FROM tenants WHERE UPPER(ticket_code) = ? AND id <> ? LIMIT 1"
-        );
-        $stmt->execute([$ticketCode, $id]);
-        $clash = $stmt->fetchColumn();
-        if ($clash !== false) {
-            echo json_encode(['success' => false,
-                'error' => 'The ticket code ' . $ticketCode . ' is already used by ' . $clash . '.']);
-            exit;
-        }
+    $in = [];
+    foreach (['name', 'is_active', 'ticket_code', 'external_ref', 'tax_id'] as $k) {
+        if (array_key_exists($k, $data)) $in[$k] = $data[$k];
     }
-
-    if ($id > 0) {
-        // --- Update existing company ---
-        $existing = getTenantById($conn, $id);
-        if (!$existing) {
-            echo json_encode(['success' => false, 'error' => 'Company not found']);
-            exit;
-        }
-        // Never let the default company be deactivated.
-        if ($existing['is_default'] && !$isActive) {
-            echo json_encode(['success' => false, 'error' => 'The default company cannot be set inactive']);
-            exit;
-        }
-
-        $stmt = $conn->prepare("UPDATE tenants SET name = ?, is_active = ?, ticket_code = ? WHERE id = ?");
-        $stmt->execute([$name, $isActive, ($ticketCode !== '' ? $ticketCode : null), $id]);
-        echo json_encode(['success' => true, 'id' => $id]);
-
-    } else {
-        // --- Create new company (always non-default) ---
-        $stmt = $conn->prepare(
-            "INSERT INTO tenants (name, is_default, is_active, ticket_code, created_datetime)
-             VALUES (?, 0, ?, ?, UTC_TIMESTAMP())"
-        );
-        $stmt->execute([$name, $isActive, ($ticketCode !== '' ? $ticketCode : null)]);
-        echo json_encode(['success' => true, 'id' => (int)$conn->lastInsertId()]);
-    }
-
-} catch (Exception $e) {
+    // The form always sends these two; an older page without them still saves.
+    if (!CompaniesService::refsReady($conn)) unset($in['external_ref'], $in['tax_id']);
+    $r = CompaniesService::save($conn, $in, $id > 0 ? $id : null);
+    echo json_encode(['success' => true, 'id' => $r['id']]);
+} catch (ServiceError $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+} catch (Exception $e) {
+    error_log('save_tenant: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The company could not be saved.']);
 }

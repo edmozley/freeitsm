@@ -1049,6 +1049,10 @@ return [
         // The company's own logo (System -> Companies), shown on the Files
         // desktop. NULL falls back to the organisation logo.
         'logo_path'        => 'VARCHAR(255) NULL',
+        // GH #279: the company's reference in an ERP / CRM (what POST /companies/upsert
+        // matches on) and its tax ID. Optional, unique when set.
+        'external_ref'     => 'VARCHAR(100) NULL',
+        'tax_id'           => 'VARCHAR(50) NULL',
         'is_default'       => 'TINYINT(1) NOT NULL DEFAULT 0',
         'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',

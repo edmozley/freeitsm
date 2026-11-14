@@ -158,6 +158,8 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .routing-path .rp-kind .rp-flag,
         [data-theme-mode="dark"] .freemail-chip button:hover { color: #fca5a5; }
         [data-theme-mode="dark"] .sso-banner { filter: brightness(0.82); }
+        .co-search { width: 400px; max-width: 100%; padding: 8px 10px; border: 1px solid var(--border, #d1d5db); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .co-ref { display: block; font-size: 12px; color: var(--text-dim, #888); font-weight: 400; margin-top: 2px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -179,7 +181,11 @@ $translationNamespaces = ['common', 'system'];
 
         <div class="settings-card">
             <div class="companies-head">
-                <div></div>
+                <?php /* GH #279: with hundreds of companies the list needs a search - name,
+                         outside reference, tax ID, ticket code or email domain. */ ?>
+                <input type="search" id="coSearch" class="co-search" autocomplete="off"
+                       placeholder="<?php echo htmlspecialchars(t('system.companies.search_placeholder')); ?>"
+                       aria-label="<?php echo htmlspecialchars(t('system.companies.search_placeholder')); ?>">
                 <button class="add-btn" id="addCompanyBtn"><?php echo htmlspecialchars(t('system.companies.add')); ?></button>
             </div>
             <table class="companies">
@@ -238,6 +244,18 @@ $translationNamespaces = ['common', 'system'];
                            style="text-transform: uppercase; max-width: 200px;"
                            placeholder="<?php echo htmlspecialchars(t('system.companies.field_code_placeholder')); ?>">
                     <div class="hint" id="codeDerivedHint" style="margin-top:6px;"></div>
+                </div>
+                <?php /* GH #279: the company's key in your ERP / CRM (what the REST API's
+                         upsert matches on) and its tax ID. Optional, unique when set. */ ?>
+                <div class="form-field">
+                    <label for="fExternalRef"><?php echo htmlspecialchars(t('system.companies.field_external_ref')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.companies.field_external_ref_hint')); ?></div>
+                    <input type="text" id="fExternalRef" maxlength="100" autocomplete="off" spellcheck="false" style="max-width: 320px;">
+                </div>
+                <div class="form-field">
+                    <label for="fTaxId"><?php echo htmlspecialchars(t('system.companies.field_tax_id')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.companies.field_tax_id_hint')); ?></div>
+                    <input type="text" id="fTaxId" maxlength="50" autocomplete="off" spellcheck="false" style="max-width: 320px;">
                 </div>
                 <?php /* The company's own logo - shown on the Files desktop for people
                          working in this company. Existing companies only: it saves
@@ -366,7 +384,15 @@ $translationNamespaces = ['common', 'system'];
             return;
         }
         const clash = clashingCodes();
-        body.innerHTML = companies.map(c => {
+        // GH #279: the search box - name, outside reference, tax ID, ticket code, domains.
+        const q = (document.getElementById('coSearch').value || '').trim().toLowerCase();
+        const shown = !q ? companies : companies.filter(c => [c.name, c.external_ref, c.tax_id, c.effective_ticket_code].concat(c.domains || [])
+            .some(v => v && String(v).toLowerCase().includes(q)));
+        if (!shown.length) {
+            body.innerHTML = '<tr class="empty-row"><td colspan="5">' + esc(window.t('system.companies.search_none')) + '</td></tr>';
+            return;
+        }
+        body.innerHTML = shown.map(c => {
             const code = c.effective_ticket_code || '';
             // A derived code is shown in a lighter weight than one that was
             // typed, so "FreeITSM guessed this" and "somebody chose this" are
@@ -378,7 +404,8 @@ $translationNamespaces = ['common', 'system'];
                 : '<span style="opacity:.5;">&mdash;</span>'}</td>`;
             return `
             <tr>
-                <td><strong>${esc(c.name)}</strong>${c.is_default ? '<span class="badge-default">' + window.t('system.companies.default') + '</span>' : ''}</td>
+                <td><strong>${esc(c.name)}</strong>${c.is_default ? '<span class="badge-default">' + window.t('system.companies.default') + '</span>' : ''}
+                    ${(c.external_ref || c.tax_id) ? '<span class="co-ref">' + [c.external_ref ? esc(window.t('system.companies.ref_short', { ref: c.external_ref })) : '', c.tax_id ? esc(window.t('system.companies.tax_short', { tax: c.tax_id })) : ''].filter(Boolean).join(' · ') + '</span>' : ''}</td>
                 <td>${renderDomainCell(c.domains)}</td>
                 ${cell}
                 <td><span class="status-badge ${c.is_active ? 'on' : 'off'}">${c.is_active ? window.t('system.companies.active') : window.t('system.companies.inactive')}</span></td>
@@ -456,6 +483,8 @@ $translationNamespaces = ['common', 'system'];
         document.getElementById('modalTitle').textContent = c ? window.t('system.companies.modal_edit_title') : window.t('system.companies.modal_add_title');
         document.getElementById('companyId').value = c ? c.id : '';
         document.getElementById('fName').value = c ? c.name : '';
+        document.getElementById('fExternalRef').value = (c && c.external_ref) || '';
+        document.getElementById('fTaxId').value = (c && c.tax_id) || '';
         const active = document.getElementById('fActive');
         active.checked = c ? !!c.is_active : true;
         // The default company is always active and can't be deactivated.
@@ -784,6 +813,8 @@ $translationNamespaces = ['common', 'system'];
         if (editId) openModal(companies.find(c => c.id == editId));
     });
 
+    document.getElementById('coSearch').addEventListener('input', renderCompanies);
+
     // ---------- Save company ----------
     document.getElementById('saveCompanyBtn').addEventListener('click', async function () {
         const payload = {
@@ -792,7 +823,9 @@ $translationNamespaces = ['common', 'system'];
             is_active: document.getElementById('fActive').checked ? 1 : 0,
             // Sent even when the section is hidden — an empty string means
             // "derive one", which is the same answer the server would reach.
-            ticket_code: document.getElementById('fCode').value.trim()
+            ticket_code: document.getElementById('fCode').value.trim(),
+            external_ref: document.getElementById('fExternalRef').value.trim(),
+            tax_id: document.getElementById('fTaxId').value.trim()
         };
         if (!payload.name) {
             showToast(window.t('system.companies.required_name'), 'error');

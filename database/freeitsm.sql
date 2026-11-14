@@ -1802,10 +1802,17 @@ CREATE TABLE IF NOT EXISTS `tenants` (
     -- The company's own logo (System -> Companies). Shown on the Files desktop for
     -- people working in this company; NULL falls back to the organisation logo.
     `logo_path`         VARCHAR(255) NULL,
+    -- GH #279: the company's reference in your ERP / CRM (the key an outside system
+    -- syncs by - POST /companies/upsert) and its tax ID (VAT number, AFM ...). Both
+    -- optional, unique when set.
+    `external_ref`      VARCHAR(100) NULL,
+    `tax_id`            VARCHAR(50) NULL,
     `is_default`        TINYINT(1) NOT NULL DEFAULT 0,
     `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tenants_external_ref` (`external_ref`),
+    UNIQUE KEY `uq_tenants_tax_id` (`tax_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- The silent default tenant that owns all data on a single-company install.

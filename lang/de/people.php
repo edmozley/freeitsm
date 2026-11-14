@@ -330,6 +330,8 @@ return [
     'company' => [
         'not_found' => 'Unternehmen nicht gefunden.',
         'ticket_code' => 'Ticketcode',
+        'external_ref' => 'Externe Referenz',   // GH #279
+        'tax_id' => 'Steuer-ID',
         'email_domains' => 'E-Mail-Domänen',
         'people' => 'Personen',
         'leavers' => '{n} Ausgeschiedene',

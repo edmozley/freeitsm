@@ -345,9 +345,11 @@ function getHelpTopics() {
                 ['id' => 'email',    'label' => 'Routing inbound email'],
                 ['id' => 'senders',  'label' => 'Personal & free email'],
                 ['id' => 'summary',  'label' => 'How email reaches a company'],
+                ['id' => 'references', 'label' => 'Outside reference, tax ID and ERP sync'],
                 ['id' => 'support',  'label' => 'One company supporting another'],
             ],
             'terms' => 'tenant msp client customer multi-tenancy separate organisation domain logo files desktop'
+                     . ' external reference erp crm sync upsert api tax id vat afm search'
                      . ' supports support provider outsourced raise with wrong company warning looks like dismiss',
         ],
         // Locations (GH #311).

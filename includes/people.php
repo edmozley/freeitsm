@@ -556,7 +556,14 @@ function companyDetail(PDO $conn, int $analystId, int $tenantId): ?array
         'is_default' => (int)($t['is_default'] ?? 0) === 1, 'is_active' => (int)($t['is_active'] ?? 1) === 1,
         'email_domains' => $domains, 'people_active' => $active, 'people_leavers' => $leavers,
         'multi_company' => $multi,
+        // GH #279: the company's reference in an ERP / CRM and its tax ID.
+        'external_ref' => null, 'tax_id' => null,
     ];
+    try {
+        $r = $conn->prepare("SELECT external_ref, tax_id FROM tenants WHERE id = ?");
+        $r->execute([$tenantId]);
+        if ($row = $r->fetch(PDO::FETCH_ASSOC)) { $company['external_ref'] = $row['external_ref']; $company['tax_id'] = $row['tax_id']; }
+    } catch (Throwable) { /* before Database Verification */ }
 
     $sections = ['people' => peopleListRows($conn, $analystId, ['company' => $multi ? $tenantId : null, 'status' => 'all'], 500)];
     $groups = peopleCompanyGroups($conn, $analystId, $tenantId);

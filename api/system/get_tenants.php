@@ -57,6 +57,17 @@ try {
         $logos = [];
     }
 
+    // GH #279: the outside reference (ERP / CRM key) and tax ID - read on their own
+    // for the same reason as the codes (missing before Database Verification).
+    $refs = [];
+    try {
+        foreach ($conn->query("SELECT id, external_ref, tax_id FROM tenants") as $row) {
+            $refs[(int)$row['id']] = ['external_ref' => $row['external_ref'], 'tax_id' => $row['tax_id']];
+        }
+    } catch (Exception $e) {
+        $refs = [];
+    }
+
     // ?accessible=1 → only the companies this analyst may access (for "move ticket to
     // company" pickers). Default returns every company (unchanged behaviour).
     $accessibleOnly = !empty($_GET['accessible']);
@@ -85,6 +96,8 @@ try {
             'ticket_code'           => $codes[$id] ?? null,
             'effective_ticket_code' => TicketNumbering::codeFor($t + ['ticket_code' => $codes[$id] ?? null]),
             'logo_url'              => $logos[$id] ?? null,
+            'external_ref'          => $refs[$id]['external_ref'] ?? null,
+            'tax_id'                => $refs[$id]['tax_id'] ?? null,
         ];
     }
 

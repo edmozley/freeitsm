@@ -5,6 +5,39 @@
  */
 require_once dirname(__DIR__, 3) . '/includes/cost_centre_assign.php';   // GH #160
 
+/**
+ * Has Database Verification added users.employee_id (the payroll / HR number) yet?
+ * GH #279: an ERP or HR sync matches people on it.
+ */
+function apiUserEmployeeIdReady(PDO $conn): bool {
+    static $ok = null;
+    if ($ok === null) {
+        try { $conn->query("SELECT employee_id FROM users LIMIT 0"); $ok = true; }
+        catch (Throwable $e) { $ok = false; }
+    }
+    return $ok;
+}
+
+/**
+ * `employee_id` from a request body: trimmed, null when empty, 422 when longer
+ * than 64 or not text. Not unique - two companies may both have an employee 1001.
+ * Returns [sent?, value]; never sent before Database Verification has added it.
+ */
+function apiUserEmployeeId(PDO $conn, array $body): array {
+    if (!array_key_exists('employee_id', $body)) return [false, null];
+    if (!apiUserEmployeeIdReady($conn)) {
+        apiError(422, 'invalid_field', "'employee_id' needs a database update: run System -> Database Verification.");
+    }
+    $v = $body['employee_id'];
+    if ($v !== null && !is_string($v) && !is_int($v)) {
+        apiError(422, 'invalid_field', "'employee_id' must be text.");
+    }
+    $v = trim((string)($v ?? ''));
+    if (mb_strlen($v) > 64) {
+        apiError(422, 'invalid_field', "'employee_id' is too long (64 characters at most).");
+    }
+    return [true, $v === '' ? null : $v];
+}
 
 /**
  * The columns every read of a requester selects - including the cost centre
@@ -12,7 +45,8 @@ require_once dirname(__DIR__, 3) . '/includes/cost_centre_assign.php';   // GH #
  */
 function apiUserColumns(PDO $conn): string {
     require_once dirname(__DIR__, 3) . '/includes/cost_centre_assign.php';
-    $cols = "id, email, username, display_name, preferred_name, tenant_id, COALESCE(is_active, 1) AS is_active, created_at";
+    $cols = "id, email, username, display_name, preferred_name, tenant_id, COALESCE(is_active, 1) AS is_active, created_at"
+          . (apiUserEmployeeIdReady($conn) ? ', employee_id' : '');
     if (costCentreReady($conn, 'users')) {
         $cols .= ", cost_centre_id,
                   (SELECT ccu.code FROM cost_centres ccu WHERE ccu.id = users.cost_centre_id) AS cost_centre_code,
@@ -59,6 +93,8 @@ function apiSerializeUser(array $u): array {
         'tenant_id'      => isset($u['tenant_id']) && $u['tenant_id'] !== null ? (int)$u['tenant_id'] : null,
         // false = marked as left (3.5.0): kept on record, cannot sign in to the portal.
         'is_active'      => (int)($u['is_active'] ?? 1) === 1,
+        // GH #279: the payroll / HR number an ERP or HR system knows them by, or null.
+        'employee_id'    => $u['employee_id'] ?? null,
         // GH #160: the cost centre they are charged to, or null.
         'cost_centre'    => !empty($u['cost_centre_id'])
             ? ['id' => (int)$u['cost_centre_id'], 'code' => $u['cost_centre_code'] ?? null, 'name' => $u['cost_centre_name'] ?? null]
@@ -67,13 +103,22 @@ function apiSerializeUser(array $u): array {
     ];
 }
 
-// GET /users?q=&email=
+// GET /users?q=&email=&employee_id=
 function apiUsersList(PDO $conn, array $apiKey, array $params, array $body): void {
     $where = ['1=1'];
     $args  = [];
     if (isset($_GET['email']) && $_GET['email'] !== '') {
         $where[] = 'email = ?';
         $args[]  = strtolower(trim($_GET['email']));
+    }
+    // GH #279: exact (ignoring case) - the join key an HR or ERP sync has.
+    if (isset($_GET['employee_id']) && trim((string)$_GET['employee_id']) !== '') {
+        if (!apiUserEmployeeIdReady($conn)) {
+            $where[] = '1 = 0';
+        } else {
+            $where[] = 'LOWER(employee_id) = LOWER(?)';
+            $args[]  = trim((string)$_GET['employee_id']);
+        }
     }
     if (isset($_GET['q']) && trim($_GET['q']) !== '') {
         $where[] = '(email LIKE ? OR username LIKE ? OR display_name LIKE ? OR preferred_name LIKE ?)';
@@ -210,11 +255,13 @@ function apiUsersCreate(PDO $conn, array $apiKey, array $params, array $body): v
     }
 
     [$ccSent, $ccId] = apiUserCostCentre($conn, $body, $tenantId, null);
+    [$empSent, $empId] = apiUserEmployeeId($conn, $body);
 
     $stmt = $conn->prepare("INSERT INTO users (email, username, display_name, preferred_name, tenant_id, created_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())");
     $stmt->execute([$emailOrNull, $usernameOrNull, $displayName, $preferredName, $tenantId]);
     $id = (int)$conn->lastInsertId();
     if ($ccSent) $conn->prepare("UPDATE users SET cost_centre_id = ? WHERE id = ?")->execute([$ccId, $id]);
+    if ($empSent) $conn->prepare("UPDATE users SET employee_id = ? WHERE id = ?")->execute([$empId, $id]);
 
     $get = $conn->prepare("SELECT " . apiUserColumns($conn) . " FROM users WHERE id = ?");
     $get->execute([$id]);
@@ -312,6 +359,11 @@ function apiUsersUpdate(PDO $conn, array $apiKey, array $params, array $body): v
         if ((int)$ct->fetchColumn() !== costCentreRecordTenant($conn, $targetTenant)) {
             apiError(422, 'invalid_field', "This requester's cost centre belongs to their current company. Send cost_centre_id (one of the new company's, or null) with tenant_id.");
         }
+    }
+    [$empSent, $empId] = apiUserEmployeeId($conn, $body);
+    if ($empSent) {
+        $updates[] = 'employee_id = ?';
+        $args[]    = $empId;
     }
     if (!$updates) {
         apiError(422, 'missing_field', 'No fields to update.');

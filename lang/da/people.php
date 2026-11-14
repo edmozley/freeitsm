@@ -330,6 +330,8 @@ return [
     'company' => [
         'not_found' => 'Virksomheden blev ikke fundet.',
         'ticket_code' => 'Sagskode',
+        'external_ref' => 'Ekstern reference',   // GH #279
+        'tax_id' => 'Skatte-ID',
         'email_domains' => 'E-maildomæner',
         'people' => 'Personer',
         'leavers' => '{n} fratrådte',

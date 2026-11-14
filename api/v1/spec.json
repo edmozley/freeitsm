@@ -14783,7 +14783,7 @@
                     "p": "\/users",
                     "perm": "users.read",
                     "s": "List \/ search requesters",
-                    "d": "End users who raise tickets. Search with q, or look one up exactly with email.",
+                    "d": "End users who raise tickets. Search with q, or look one up exactly with email or employee_id.",
                     "params": [
                         {
                             "name": "q",
@@ -14795,6 +14795,12 @@
                             "name": "email",
                             "in": "query",
                             "desc": "Exact email lookup",
+                            "req": false
+                        },
+                        {
+                            "name": "employee_id",
+                            "in": "query",
+                            "desc": "Exact payroll \/ HR number, ignoring case",
                             "req": false
                         },
                         {
@@ -14828,6 +14834,13 @@
                                 "query": {
                                     "q": "example.com",
                                     "per_page": "50"
+                                }
+                            },
+                            {
+                                "title": "Find by payroll number",
+                                "note": "The key an HR or ERP system knows them by. Not unique: more than one requester can come back.",
+                                "query": {
+                                    "employee_id": "E1001"
                                 }
                             }
                         ]
@@ -14890,6 +14903,12 @@
                             "name": "cost_centre_id",
                             "in": "body",
                             "desc": "The cost centre they are charged to: an ACTIVE one of their company (no company = the Default company's). 422 otherwise",
+                            "req": false
+                        },
+                        {
+                            "name": "employee_id",
+                            "in": "body",
+                            "desc": "Payroll \/ HR number (64 characters at most; not unique)",
                             "req": false
                         }
                     ],
@@ -14964,6 +14983,12 @@
                             "name": "cost_centre_id",
                             "in": "body",
                             "desc": "An active cost centre of the company they will be in, or null. Moving company with tenant_id needs one of the new company's (or null) when they have one",
+                            "req": false
+                        },
+                        {
+                            "name": "employee_id",
+                            "in": "body",
+                            "desc": "Payroll \/ HR number (64 characters at most); null or \"\" clears it",
                             "req": false
                         }
                     ],
@@ -15311,6 +15336,385 @@
             ]
         },
         {
+            "section": "Companies",
+            "items": [
+                {
+                    "m": "GET",
+                    "p": "\/companies",
+                    "perm": "companies.read",
+                    "s": "List companies",
+                    "d": "The companies (tenants) this key can see, each with is_active, ticket_code, external_ref (your ERP \/ CRM key) and tax_id. Not paginated. Active companies only unless active says otherwise - except an exact external_ref or tax_id lookup, which finds the company active or not.",
+                    "params": [
+                        {
+                            "name": "q",
+                            "in": "query",
+                            "desc": "Name, external_ref or tax_id contains this",
+                            "req": false
+                        },
+                        {
+                            "name": "external_ref",
+                            "in": "query",
+                            "desc": "Exact external_ref, ignoring case (active or not, unless active is given)",
+                            "req": false
+                        },
+                        {
+                            "name": "tax_id",
+                            "in": "query",
+                            "desc": "Exact tax_id, ignoring case (active or not, unless active is given)",
+                            "req": false
+                        },
+                        {
+                            "name": "active",
+                            "in": "query",
+                            "desc": "true (the default), false, or all",
+                            "req": false
+                        }
+                    ],
+                    "section": "Companies",
+                    "slug": "get-companies",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "All companies",
+                                "note": "No parameters - the active companies (tenants) this key can see; single-company installs get one entry."
+                            },
+                            {
+                                "title": "Find one by your ERP key",
+                                "note": "Exact, ignoring case - finds the company whether or not it is active.",
+                                "query": {
+                                    "external_ref": "CUST-00042"
+                                }
+                            },
+                            {
+                                "title": "Search",
+                                "note": "Name, external_ref or tax_id contains the text.",
+                                "query": {
+                                    "q": "acme"
+                                }
+                            },
+                            {
+                                "title": "Inactive companies",
+                                "note": "active=false for inactive only, active=all for both.",
+                                "query": {
+                                    "active": "false"
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 400,
+                                "slug": "invalid_parameter",
+                                "when": "active is not true, false or all."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/companies\/{id}",
+                    "perm": "companies.read",
+                    "s": "Get a company",
+                    "d": "One company, active or not. A company outside the key's companies is 404, the same as an unknown id.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Company id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Companies",
+                    "slug": "get-companies-id",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Get a company",
+                                "note": "Includes its outside reference and tax ID.",
+                                "path": {
+                                    "id": "3"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/companies",
+                    "perm": "companies.create",
+                    "s": "Create a company",
+                    "d": "Creates a company (tenant). Needs a key that acts as a System administrator and is scoped to all companies (403 otherwise), as System -> Companies does in the app. Returns the company (201).",
+                    "params": [
+                        {
+                            "name": "name",
+                            "in": "body",
+                            "desc": "Company name (150 characters at most)",
+                            "req": true
+                        },
+                        {
+                            "name": "is_active",
+                            "in": "body",
+                            "desc": "false = inactive. The Default company cannot be made inactive (422)",
+                            "req": false
+                        },
+                        {
+                            "name": "ticket_code",
+                            "in": "body",
+                            "desc": "Ticket number prefix, unique when set; null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "external_ref",
+                            "in": "body",
+                            "desc": "The company's key in your ERP or CRM (100 characters at most), unique when set ignoring case; null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "tax_id",
+                            "in": "body",
+                            "desc": "Tax number - VAT, AFM ... (50 characters at most), unique when set ignoring case; null or \"\" clears it",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "name": "Acme Plumbing Ltd",
+                        "external_ref": "CUST-00042",
+                        "tax_id": "GB123456789"
+                    },
+                    "section": "Companies",
+                    "slug": "post-companies",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "A new customer",
+                                "note": "Name is the only required field.",
+                                "body": {
+                                    "name": "Acme Plumbing Ltd"
+                                }
+                            },
+                            {
+                                "title": "With its ERP key and tax number",
+                                "note": "external_ref is what POST \/companies\/upsert matches on later.",
+                                "body": {
+                                    "name": "Acme Plumbing Ltd",
+                                    "external_ref": "CUST-00042",
+                                    "tax_id": "GB123456789"
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "missing_field",
+                                "when": "name is missing."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A field is too long or not text."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "duplicate",
+                                "when": "The ticket code, external_ref or tax_id is already used by another company."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key does not act as an administrator, or is scoped to specific companies."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/companies\/upsert",
+                    "perm": "companies.create",
+                    "s": "Create or update a company by external_ref",
+                    "d": "The call an ERP or CRM sync makes for each customer, as often as it likes, without duplicates: finds the company by external_ref (ignoring case, active or not) and changes only the fields sent, or creates it when there is none (name then required). Responds with the company plus created: 201 + true when it was created, 200 + false when it was updated. Also needs companies.update. Needs a key that acts as a System administrator and is scoped to all companies (403 otherwise), as System -> Companies does in the app.",
+                    "params": [
+                        {
+                            "name": "external_ref",
+                            "in": "body",
+                            "desc": "The company's key in your ERP or CRM (100 characters at most) - what it is matched on",
+                            "req": true
+                        },
+                        {
+                            "name": "name",
+                            "in": "body",
+                            "desc": "Company name (150 characters at most)",
+                            "req": false
+                        },
+                        {
+                            "name": "is_active",
+                            "in": "body",
+                            "desc": "false = inactive. The Default company cannot be made inactive (422)",
+                            "req": false
+                        },
+                        {
+                            "name": "ticket_code",
+                            "in": "body",
+                            "desc": "Ticket number prefix, unique when set; null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "tax_id",
+                            "in": "body",
+                            "desc": "Tax number - VAT, AFM ... (50 characters at most), unique when set ignoring case; null or \"\" clears it",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "external_ref": "CUST-00042",
+                        "name": "Acme Plumbing Ltd",
+                        "tax_id": "GB123456789",
+                        "is_active": true
+                    },
+                    "section": "Companies",
+                    "slug": "post-companies-upsert",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Nightly customer sync",
+                                "note": "Send every customer every night: the first run creates them (201), later runs update them (200).",
+                                "body": {
+                                    "external_ref": "CUST-00042",
+                                    "name": "Acme Plumbing Ltd",
+                                    "tax_id": "GB123456789",
+                                    "is_active": true
+                                }
+                            },
+                            {
+                                "title": "A customer who left",
+                                "note": "Only is_active changes; the name and tax ID stay.",
+                                "body": {
+                                    "external_ref": "CUST-00042",
+                                    "is_active": false
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "missing_field",
+                                "when": "external_ref is missing, or name is missing for a company that does not exist yet."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A field is too long or not text, or the Default company would be made inactive."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "duplicate",
+                                "when": "The ticket code, external_ref or tax_id is already used by another company."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key does not act as an administrator, or is scoped to specific companies."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/companies\/{id}",
+                    "perm": "companies.update",
+                    "s": "Update a company",
+                    "d": "Changes only the fields sent. Needs a key that acts as a System administrator and is scoped to all companies (403 otherwise), as System -> Companies does in the app. A company outside the key's companies is 404, the same as an unknown id.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Company id",
+                            "req": true
+                        },
+                        {
+                            "name": "name",
+                            "in": "body",
+                            "desc": "Company name (150 characters at most)",
+                            "req": false
+                        },
+                        {
+                            "name": "is_active",
+                            "in": "body",
+                            "desc": "false = inactive. The Default company cannot be made inactive (422)",
+                            "req": false
+                        },
+                        {
+                            "name": "ticket_code",
+                            "in": "body",
+                            "desc": "Ticket number prefix, unique when set; null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "external_ref",
+                            "in": "body",
+                            "desc": "The company's key in your ERP or CRM (100 characters at most), unique when set ignoring case; null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "tax_id",
+                            "in": "body",
+                            "desc": "Tax number - VAT, AFM ... (50 characters at most), unique when set ignoring case; null or \"\" clears it",
+                            "req": false
+                        }
+                    ],
+                    "body": {
+                        "tax_id": "GB987654321"
+                    },
+                    "section": "Companies",
+                    "slug": "patch-companies-id",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Change the tax number",
+                                "note": "Nothing else changes.",
+                                "path": {
+                                    "id": "3"
+                                },
+                                "body": {
+                                    "tax_id": "GB987654321"
+                                }
+                            },
+                            {
+                                "title": "Switch a company off",
+                                "note": "The Default company cannot be made inactive (422).",
+                                "path": {
+                                    "id": "3"
+                                },
+                                "body": {
+                                    "is_active": false
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "A field is too long or not text, or the Default company would be made inactive."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "missing_field",
+                                "when": "No fields to update, or name sent empty."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "duplicate",
+                                "when": "The ticket code, external_ref or tax_id is already used by another company."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The key does not act as an administrator, or is scoped to specific companies."
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
             "section": "Reference data",
             "items": [
                 {
@@ -15340,24 +15744,6 @@
                             {
                                 "title": "All analysts",
                                 "note": "No parameters — the active analysts eligible for ticket and task assignment."
-                            }
-                        ]
-                    }
-                },
-                {
-                    "m": "GET",
-                    "p": "\/companies",
-                    "perm": "companies.read",
-                    "s": "List companies",
-                    "d": "The companies (tenants) this key is scoped to see.",
-                    "params": [],
-                    "section": "Reference data",
-                    "slug": "get-companies",
-                    "extras": {
-                        "examples": [
-                            {
-                                "title": "All companies",
-                                "note": "No parameters — the companies (tenants) this key is scoped to see; single-company installs get one entry."
                             }
                         ]
                     }
@@ -16300,7 +16686,35 @@
             "examples": [
                 {
                     "title": "All companies",
-                    "note": "No parameters — the companies (tenants) this key is scoped to see; single-company installs get one entry."
+                    "note": "No parameters - the active companies (tenants) this key can see; single-company installs get one entry."
+                },
+                {
+                    "title": "Find one by your ERP key",
+                    "note": "Exact, ignoring case - finds the company whether or not it is active.",
+                    "query": {
+                        "external_ref": "CUST-00042"
+                    }
+                },
+                {
+                    "title": "Search",
+                    "note": "Name, external_ref or tax_id contains the text.",
+                    "query": {
+                        "q": "acme"
+                    }
+                },
+                {
+                    "title": "Inactive companies",
+                    "note": "active=false for inactive only, active=all for both.",
+                    "query": {
+                        "active": "false"
+                    }
+                }
+            ],
+            "errors": [
+                {
+                    "code": 400,
+                    "slug": "invalid_parameter",
+                    "when": "active is not true, false or all."
                 }
             ]
         },
@@ -16999,6 +17413,13 @@
                     "query": {
                         "q": "example.com",
                         "per_page": "50"
+                    }
+                },
+                {
+                    "title": "Find by payroll number",
+                    "note": "The key an HR or ERP system knows them by. Not unique: more than one requester can come back.",
+                    "query": {
+                        "employee_id": "E1001"
                     }
                 }
             ]
@@ -21925,6 +22346,149 @@
                     "query": {
                         "strict": 1
                     }
+                }
+            ]
+        },
+        "GET \/companies\/{id}": {
+            "examples": [
+                {
+                    "title": "Get a company",
+                    "note": "Includes its outside reference and tax ID.",
+                    "path": {
+                        "id": "3"
+                    }
+                }
+            ]
+        },
+        "POST \/companies": {
+            "examples": [
+                {
+                    "title": "A new customer",
+                    "note": "Name is the only required field.",
+                    "body": {
+                        "name": "Acme Plumbing Ltd"
+                    }
+                },
+                {
+                    "title": "With its ERP key and tax number",
+                    "note": "external_ref is what POST \/companies\/upsert matches on later.",
+                    "body": {
+                        "name": "Acme Plumbing Ltd",
+                        "external_ref": "CUST-00042",
+                        "tax_id": "GB123456789"
+                    }
+                }
+            ],
+            "errors": [
+                {
+                    "code": 422,
+                    "slug": "missing_field",
+                    "when": "name is missing."
+                },
+                {
+                    "code": 422,
+                    "slug": "invalid_field",
+                    "when": "A field is too long or not text."
+                },
+                {
+                    "code": 409,
+                    "slug": "duplicate",
+                    "when": "The ticket code, external_ref or tax_id is already used by another company."
+                },
+                {
+                    "code": 403,
+                    "slug": "forbidden",
+                    "when": "The key does not act as an administrator, or is scoped to specific companies."
+                }
+            ]
+        },
+        "POST \/companies\/upsert": {
+            "examples": [
+                {
+                    "title": "Nightly customer sync",
+                    "note": "Send every customer every night: the first run creates them (201), later runs update them (200).",
+                    "body": {
+                        "external_ref": "CUST-00042",
+                        "name": "Acme Plumbing Ltd",
+                        "tax_id": "GB123456789",
+                        "is_active": true
+                    }
+                },
+                {
+                    "title": "A customer who left",
+                    "note": "Only is_active changes; the name and tax ID stay.",
+                    "body": {
+                        "external_ref": "CUST-00042",
+                        "is_active": false
+                    }
+                }
+            ],
+            "errors": [
+                {
+                    "code": 422,
+                    "slug": "missing_field",
+                    "when": "external_ref is missing, or name is missing for a company that does not exist yet."
+                },
+                {
+                    "code": 422,
+                    "slug": "invalid_field",
+                    "when": "A field is too long or not text, or the Default company would be made inactive."
+                },
+                {
+                    "code": 409,
+                    "slug": "duplicate",
+                    "when": "The ticket code, external_ref or tax_id is already used by another company."
+                },
+                {
+                    "code": 403,
+                    "slug": "forbidden",
+                    "when": "The key does not act as an administrator, or is scoped to specific companies."
+                }
+            ]
+        },
+        "PATCH \/companies\/{id}": {
+            "examples": [
+                {
+                    "title": "Change the tax number",
+                    "note": "Nothing else changes.",
+                    "path": {
+                        "id": "3"
+                    },
+                    "body": {
+                        "tax_id": "GB987654321"
+                    }
+                },
+                {
+                    "title": "Switch a company off",
+                    "note": "The Default company cannot be made inactive (422).",
+                    "path": {
+                        "id": "3"
+                    },
+                    "body": {
+                        "is_active": false
+                    }
+                }
+            ],
+            "errors": [
+                {
+                    "code": 422,
+                    "slug": "invalid_field",
+                    "when": "A field is too long or not text, or the Default company would be made inactive."
+                },
+                {
+                    "code": 422,
+                    "slug": "missing_field",
+                    "when": "No fields to update, or name sent empty."
+                },
+                {
+                    "code": 409,
+                    "slug": "duplicate",
+                    "when": "The ticket code, external_ref or tax_id is already used by another company."
+                },
+                {
+                    "code": 403,
+                    "slug": "forbidden",
+                    "when": "The key does not act as an administrator, or is scoped to specific companies."
                 }
             ]
         }

@@ -1115,6 +1115,8 @@ function resolveTenantForNewUser(PDO $conn, string $email): ?int {
  *            though its domain can never be mapped (two clients share gmail.com).
  *        (b) otherwise match the sender's domain against the companies'
  *            registered domains (tenant_domains) → that company.
+ *        (c) otherwise a person whose main address it is, with a company set
+ *            → that company (GH #279).
  *        - no match (including freemail not on any list) → NULL, meaning
  *          "triage": the ticket is left un-companied and, because
  *          ticketTenantFilter() treats NULL as Default-owned, surfaces under
@@ -1193,6 +1195,22 @@ function resolveTicketTenantForEmail(PDO $conn, $mailboxId, string $fromAddress)
         } catch (Exception) {
             // tenant_domains missing → fall through to triage.
         }
+    }
+
+    // (3c) GH #279: a PERSON we already know, whose main address matched nothing
+    // above (a Gmail address, say), files with that person's company. Before this,
+    // filing jane@gmail.com under Acme on her People page did nothing for her mail -
+    // it went to triage until someone also typed the address into Acme's specific
+    // senders. Last, so a company's sender list and a mapped domain still win, as
+    // #308 decided for main addresses; it only rescues mail that would be triaged.
+    if ($addr !== '') {
+        try {
+            // users.email is unique, so this is one person or nobody.
+            $stmt = $conn->prepare("SELECT tenant_id FROM users WHERE LOWER(email) = ? AND tenant_id IS NOT NULL LIMIT 1");
+            $stmt->execute([$addr]);
+            $val = $stmt->fetchColumn();
+            if ($val !== false && $val !== null) return (int)$val;
+        } catch (Exception) { /* users.tenant_id missing - triage as before */ }
     }
 
     // No match → triage (NULL).

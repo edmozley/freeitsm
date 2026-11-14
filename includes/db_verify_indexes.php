@@ -112,6 +112,8 @@ return [
     ['ticket_views', 'ix_ticket_views_ticket', 'key', '(`ticket_id`,`last_viewed_datetime`)'],
     ['ticket_time_entries', 'ix_time_entries_ticket_id', 'key', '(`ticket_id`)'],
     ['ticket_time_entries', 'ix_time_entries_analyst_date', 'key', '(`analyst_id`,`entry_datetime`)'],
+    ['tenants', 'uq_tenants_external_ref', 'unique', '(`external_ref`)'],
+    ['tenants', 'uq_tenants_tax_id', 'unique', '(`tax_id`)'],
     ['tenant_domains', 'uq_tenant_domains_domain', 'unique', '(`domain`)'],
     ['freemail_domains', 'uq_freemail_domains_domain', 'unique', '(`domain`)'],
     ['tenant_sender_addresses', 'uq_tenant_sender_email', 'unique', '(`email`)'],

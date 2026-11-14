@@ -2,7 +2,7 @@
 /**
  * FreeITSM REST API v1 — reference data: the lookups an integration needs to
  * build valid ticket writes (statuses, priorities, ticket types, origins,
- * departments), plus analysts and companies.
+ * departments), plus the analysts list. Companies are in companies.php.
  */
 
 // GET /analysts — active analysts (assignment targets).
@@ -32,22 +32,7 @@ function apiAnalystsList(PDO $conn, array $apiKey, array $params, array $body): 
     }, $stmt->fetchAll(PDO::FETCH_ASSOC)));
 }
 
-// GET /companies — the companies (tenants) this key can see.
-function apiCompaniesList(PDO $conn, array $apiKey, array $params, array $body): void {
-    $tenants = getAllTenants($conn, true);
-    if (!$tenants) {
-        // tenants table not migrated yet — behave as a single Default company.
-        apiRespond([['id' => getDefaultTenantId($conn), 'name' => 'Default', 'is_default' => true]]);
-    }
-    if ($apiKey['company_scope'] !== null) {
-        $tenants = array_values(array_filter($tenants, function ($t) use ($apiKey) {
-            return in_array($t['id'], $apiKey['company_scope'], true);
-        }));
-    }
-    apiRespond(array_map(function ($t) {
-        return ['id' => $t['id'], 'name' => $t['name'], 'is_default' => $t['is_default']];
-    }, $tenants));
-}
+// GET /companies is in companies.php (GH #279), with the company writes.
 
 // GET /statuses
 function apiStatusesList(PDO $conn, array $apiKey, array $params, array $body): void {

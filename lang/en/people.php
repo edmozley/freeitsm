@@ -337,6 +337,8 @@ return [
     'company' => [
         'not_found'     => 'Company not found.',
         'ticket_code'   => 'Ticket code',
+        'external_ref' => 'Outside reference',   // GH #279
+        'tax_id' => 'Tax ID',
         'email_domains' => 'Email domains',
         'people'        => 'People',
         'leavers'       => '{n} leavers',

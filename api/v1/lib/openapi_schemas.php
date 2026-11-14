@@ -3823,6 +3823,7 @@ return array (
         ),
       ),
     ),
+    // GH #279: GET /companies, GET/PATCH /companies/{id}, POST /companies
     'Company' => 
     array (
       'type' => 'object',
@@ -3839,9 +3840,23 @@ return array (
         'is_default' => 
         array (
           'type' => 'boolean',
+          'description' => 'The Default company: owns everything on a single-company install, and can never be made inactive.',
         ),
+        'is_active' => ['type' => 'boolean'],
+        'ticket_code' => ['type' => 'string', 'nullable' => true, 'description' => 'The prefix on this company\'s ticket numbers, when ticket numbering uses one. Unique when set.'],
+        'external_ref' => ['type' => 'string', 'nullable' => true, 'description' => 'The company\'s key in your ERP or CRM. Unique when set, ignoring case. POST /companies/upsert matches on it.'],
+        'tax_id' => ['type' => 'string', 'nullable' => true, 'description' => 'Tax number (VAT, AFM ...). Unique when set, ignoring case.'],
       ),
     ),
+    // GH #279: POST /companies/upsert - the company, and whether it was just made.
+    'CompanyUpsertResult' => [
+      'allOf' => [
+        ['$ref' => '#/components/schemas/Company'],
+        ['type' => 'object', 'properties' => [
+          'created' => ['type' => 'boolean', 'description' => 'true = a new company was created (HTTP 201); false = the one with this external_ref was updated (HTTP 200).'],
+        ]],
+      ],
+    ],
     'Contract' => 
     array (
       'type' => 'object',
@@ -8729,6 +8744,8 @@ return array (
           'type' => 'boolean',
           'description' => 'false = marked as left: kept on record, cannot sign in to the portal (3.5.0).',
         ),
+        // GH #279
+        'employee_id' => ['type' => 'string', 'nullable' => true, 'description' => 'Payroll / HR number - the key an HR or ERP system knows them by. Not unique.'],
         // GH #160: the cost centre they are charged to.
         'cost_centre' =>
         array (
@@ -15767,6 +15784,10 @@ return array (
         '$ref' => '#/components/schemas/Company',
       ),
     ),
+    'GET /companies/{id}' => ['$ref' => '#/components/schemas/Company'],
+    'POST /companies' => ['$ref' => '#/components/schemas/Company'],
+    'PATCH /companies/{id}' => ['$ref' => '#/components/schemas/Company'],
+    'POST /companies/upsert' => ['$ref' => '#/components/schemas/CompanyUpsertResult'],
     'GET /contract-statuses' => 
     array (
       'type' => 'array',
@@ -17378,6 +17399,38 @@ return array (
   ),
   'requestBodies' => 
   array (
+    // GH #279: companies. Only the fields sent change on a PATCH or an upsert that finds one.
+    'POST /companies' => [
+      'type' => 'object', 'required' => ['name'],
+      'properties' => [
+        'name' => ['type' => 'string', 'maxLength' => 150],
+        'is_active' => ['type' => 'boolean', 'description' => 'The Default company cannot be made inactive (422).'],
+        'ticket_code' => ['type' => 'string', 'nullable' => true, 'description' => 'Ticket number prefix; unique when set. null or "" clears it.'],
+        'external_ref' => ['type' => 'string', 'nullable' => true, 'maxLength' => 100, 'description' => 'Your ERP / CRM key; unique when set, ignoring case (409 when taken). null or "" clears it.'],
+        'tax_id' => ['type' => 'string', 'nullable' => true, 'maxLength' => 50, 'description' => 'Tax number; unique when set, ignoring case (409 when taken). null or "" clears it.'],
+      ],
+    ],
+    'PATCH /companies/{id}' => [
+      'type' => 'object',
+      'properties' => [
+        'name' => ['type' => 'string', 'maxLength' => 150],
+        'is_active' => ['type' => 'boolean', 'description' => 'The Default company cannot be made inactive (422).'],
+        'ticket_code' => ['type' => 'string', 'nullable' => true, 'description' => 'Ticket number prefix; unique when set. null or "" clears it.'],
+        'external_ref' => ['type' => 'string', 'nullable' => true, 'maxLength' => 100, 'description' => 'Your ERP / CRM key; unique when set, ignoring case (409 when taken). null or "" clears it.'],
+        'tax_id' => ['type' => 'string', 'nullable' => true, 'maxLength' => 50, 'description' => 'Tax number; unique when set, ignoring case (409 when taken). null or "" clears it.'],
+      ],
+    ],
+    'POST /companies/upsert' => [
+      'type' => 'object', 'required' => ['external_ref'],
+      'description' => 'Finds the company by external_ref (ignoring case, active or not): updates the fields sent, or creates it (name then required).',
+      'properties' => [
+        'name' => ['type' => 'string', 'maxLength' => 150],
+        'is_active' => ['type' => 'boolean', 'description' => 'The Default company cannot be made inactive (422).'],
+        'ticket_code' => ['type' => 'string', 'nullable' => true, 'description' => 'Ticket number prefix; unique when set. null or "" clears it.'],
+        'external_ref' => ['type' => 'string', 'nullable' => true, 'maxLength' => 100, 'description' => 'Your ERP / CRM key; unique when set, ignoring case (409 when taken). null or "" clears it.'],
+        'tax_id' => ['type' => 'string', 'nullable' => true, 'maxLength' => 50, 'description' => 'Tax number; unique when set, ignoring case (409 when taken). null or "" clears it.'],
+      ],
+    ],
     'PATCH /tickets/{id}' => [
       'type' => 'object',
       'properties' => [

@@ -55,6 +55,9 @@ $sections = $data['sections'] ?? [];
                     <?php
                     $bits = [];
                     if ($company['ticket_code']) $bits[] = pplE(t('people.company.ticket_code')) . ': <strong>' . pplE($company['ticket_code']) . '</strong>';
+                    // GH #279
+                    if ($company['external_ref']) $bits[] = pplE(t('people.company.external_ref')) . ': <strong>' . pplE($company['external_ref']) . '</strong>';
+                    if ($company['tax_id']) $bits[] = pplE(t('people.company.tax_id')) . ': <strong>' . pplE($company['tax_id']) . '</strong>';
                     if ($company['email_domains']) $bits[] = pplE(t('people.company.email_domains')) . ': ' . pplE(implode(', ', $company['email_domains']));
                     if ($company['people_leavers']) $bits[] = pplE(t('people.company.leavers', ['n' => $company['people_leavers']]));
                     echo implode(' · ', $bits);

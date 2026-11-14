@@ -330,6 +330,8 @@ return [
     'company' => [
         'not_found' => 'Η εταιρεία δεν βρέθηκε.',
         'ticket_code' => 'Κωδικός αιτήματος',
+        'external_ref' => 'Εξωτερική αναφορά',   // GH #279
+        'tax_id' => 'ΑΦΜ',
         'email_domains' => 'Τομείς email',
         'people' => 'Άτομα',
         'leavers' => '{n} αποχωρήσαντες',

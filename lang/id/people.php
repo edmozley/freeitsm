@@ -330,6 +330,8 @@ return [
     'company' => [
         'not_found' => 'Perusahaan tidak ditemukan.',
         'ticket_code' => 'Kode tiket',
+        'external_ref' => 'Referensi eksternal',   // GH #279
+        'tax_id' => 'Nomor pajak',
         'email_domains' => 'Domain email',
         'people' => 'Orang',
         'leavers' => '{n} karyawan keluar',

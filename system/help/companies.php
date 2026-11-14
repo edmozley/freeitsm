@@ -84,6 +84,8 @@ require __DIR__ . '/_top.php';
     <p>On a company, add a <strong>specific sender</strong> — a single full email address (e.g. <code>jo.bloggs@gmail.com</code>) — to route just that one person to that company, even though their domain is shared. It's the precise complement to domain routing.</p>
     <h4>Public / free-email domains</h4>
     <p>The <strong>Public email domains</strong> card (shown only once you have more than one company) lists the domains FreeITSM treats as personal/free — <code>gmail.com</code>, <code>outlook.com</code> and the like. Mail from these is never auto-attributed by domain, so it can only reach a company via a specific sender. FreeITSM ships with a built-in list (expandable from the card); you can add your own as well. The list is add-only.</p>
+    <h4>People you already know</h4>
+    <p>When a person is in <strong>People</strong> with a company set, mail from their address files with that company even when nothing else matches - so <code>jo.bloggs@gmail.com</code>, filed under Acme on her People page, reaches Acme without also being added as a specific sender. A company's specific senders and a mapped domain still come first; this only catches mail that would otherwise go to triage. (5.3.0)</p>
     <div class="help-note">Rule of thumb: <strong>domains</strong> route a whole organisation; <strong>specific senders</strong> route one individual; the <strong>public email-domains list</strong> protects shared providers from being mapped by accident.</div>
 </div>
 
@@ -103,6 +105,23 @@ require __DIR__ . '/_top.php';
     </table></div>
     <p>The panel also surfaces warnings worth acting on — for instance a company with domains but no shared inbox to match them on, or an inbox that isn't authenticated. The <strong>Default</strong> company additionally catches anything no other company claims, so nothing is ever dropped.</p>
     <div class="help-note ok"><strong>If the summary shows no route,</strong> the company won't receive any mail yet: add an email domain or a specific sender, or pin it an inbox, and the panel will fill in.</div>
+</div>
+
+<!-- GH #279: outside reference, tax ID, search and syncing from an ERP -->
+<div class="help-section" id="references">
+    <div class="help-section-header"><?php echo helpSectionNum('references'); ?>
+        <div>
+            <h3>Outside reference, tax ID and syncing from your ERP</h3>
+            <p>For when your customers live in another system - an ERP or CRM - and FreeITSM should follow it.</p>
+        </div>
+    </div>
+    <ul>
+        <li><strong>Outside reference</strong> - the company's ID in that system. Optional, and no two companies can share one.</li>
+        <li><strong>Tax ID</strong> - the company's tax or VAT number, for countries where that is how a business is known. Optional, and unique too.</li>
+        <li>Both show under the company's name in the list and on its <strong>People</strong> page.</li>
+        <li><strong>Search</strong> above the list finds a company by name, outside reference, tax ID, ticket code or email domain - for when there are hundreds.</li>
+    </ul>
+    <p><strong>Keeping them in step:</strong> the REST API can create and update companies, and <code>POST /companies/upsert</code> creates or updates by outside reference - so your ERP can send its whole customer list every night without making duplicates. It needs an API key that acts as a System administrator and covers every company (System &rarr; API). The full reference is on <strong>System &rarr; API &rarr; Documentation</strong> under <em>Companies</em>.</p>
 </div>
 
 <!-- 6. One company supporting another (GH #228) -->

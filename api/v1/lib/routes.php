@@ -352,7 +352,12 @@ return [
     ['PATCH',  '#^/analysts/(\d+)$#',                      ['analysts', 'update'],            'apiAnalystsUpdate'],
     ['GET',    '#^/analysts/(\d+)/access$#',               ['analyst_access', 'read'],        'apiAnalystsAccessGet'],
     ['PATCH',  '#^/analysts/(\d+)/access$#',               ['analyst_access', 'manage'],      'apiAnalystsAccessUpdate'],
+    // Companies (GH #279) - resources/companies.php. /upsert before /(\d+).
     ['GET',    '#^/companies$#',                           ['companies', 'read'],             'apiCompaniesList'],
+    ['POST',   '#^/companies$#',                           ['companies', 'create'],           'apiCompaniesCreate'],
+    ['POST',   '#^/companies/upsert$#',                    ['companies', 'create'],           'apiCompaniesUpsert'],
+    ['GET',    '#^/companies/(\d+)$#',                     ['companies', 'read'],             'apiCompaniesGet'],
+    ['PATCH',  '#^/companies/(\d+)$#',                     ['companies', 'update'],           'apiCompaniesUpdate'],
     ['GET',    '#^/statuses$#',                            ['reference', 'read'],             'apiStatusesList'],
     ['GET',    '#^/priorities$#',                          ['reference', 'read'],             'apiPrioritiesList'],
     ['GET',    '#^/ticket-types$#',                        ['reference', 'read'],             'apiTicketTypesList'],
