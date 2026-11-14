@@ -1929,6 +1929,21 @@ $translationNamespaces = ['common', 'asset-management'];
                             <button type="button" class="btn btn-secondary" id="intuneSyncBtn" onclick="startIntuneSync()"><?php echo htmlspecialchars(t('asset-management.settings.sync')); ?></button>
                             <span id="intuneLastSync" class="form-hint" style="margin-left: auto;"></span>
                         </div>
+                        <?php /* #342: both syncs are scheduled jobs now (cron/intune_sync.php, cron/intune_app_sync.php). */ ?>
+                        <div class="form-hint" style="margin-top:6px;"><?php echo htmlspecialchars(t('asset-management.settings.intune_schedule_hint')); ?>
+                            <a href="<?php echo BASE_URL; ?>reporting/logs/?tab=jobs"><?php echo htmlspecialchars(t('asset-management.settings.intune_schedule_link')); ?></a>
+                            <?php
+                            // #342: and when each last ran, however it was started, with its outcome.
+                            require_once __DIR__ . '/../../includes/intune.php';
+                            $intuneLast = [];
+                            try { $intuneLast = intuneJobsLastRun(connectToDatabase()); } catch (Throwable $e) { }
+                            foreach (['intune_sync', 'intune_app_sync'] as $jk):
+                                $lr = $intuneLast[$jk] ?? null; ?>
+                            <br><?php echo htmlspecialchars($lr
+                                ? t('asset-management.settings.intune_job_last', ['job' => t('reporting.jobs.name_' . $jk),
+                                    'when' => fmt_datetime($lr['started']), 'outcome' => t('reporting.jobs.outcome_' . $lr['outcome'])])
+                                : t('asset-management.settings.intune_job_never', ['job' => t('reporting.jobs.name_' . $jk)])); ?>
+                            <?php endforeach; ?></div>
                         <div id="intuneSyncProgress" class="intune-progress" style="display: none;">
                             <div class="intune-progress-bar"><div class="intune-progress-fill" id="intuneProgressFill"></div></div>
                             <div class="intune-progress-meta" id="intuneProgressMeta"><?php echo htmlspecialchars(t('asset-management.settings.starting')); ?></div>

@@ -568,8 +568,10 @@ function intuneSyncDisks(PDO $conn): int {
  * so the UI progress bar can poll. Designed for CLI worker use.
  *
  * @param int $jobId  the intune_sync_jobs id whose progress this updates
+ * @return array{processed:int,failed:int,error:?string}  devices written, devices that could not be,
+ *               and the error that stopped the whole sync (null when it finished)
  */
-function intuneRunSync(PDO $conn, int $jobId): void {
+function intuneRunSync(PDO $conn, int $jobId): array {
     $logFile = __DIR__ . '/../logs/intune_sync.log';
     @mkdir(dirname($logFile), 0775, true);
     $log = function (string $msg) use ($logFile, $jobId) {
@@ -687,11 +689,85 @@ function intuneRunSync(PDO $conn, int $jobId): void {
         if ($failed > 0) $msg .= " ($failed failed — see logs/intune_sync.log)";
         $setProgress($processed, $processed, 'done', $msg, true);
         $log("done, processed=$processed, failed=$failed");
+        return ['processed' => $processed, 'failed' => $failed, 'error' => null];
 
     } catch (Throwable $e) {
         $msg = $e->getMessage();
         $setProgress(0, 0, 'error', $msg, true);
         $log("ERROR: $msg\n" . $e->getTraceAsString());
+        return ['processed' => 0, 'failed' => 0, 'error' => $msg];
+    }
+}
+
+/**
+ * When each scheduled Intune job last ran, for the settings tab (#342): the newest
+ * run of intune_sync and intune_app_sync in the run history - scheduled or Run
+ * now from Background jobs; the Sync buttons on the tab are not in the run
+ * history - with its outcome. Skipped runs are left out. A job that has never
+ * run has no row.
+ *
+ * @return array<string,array{started:string,outcome:string}>  job key => its last run
+ */
+function intuneJobsLastRun(PDO $conn): array {
+    $out = [];
+    try {
+        // A skipped run did no work (turned away by its lock, a sync already running,
+        // Assets switched off) - "last ran" means the last one that did something.
+        $st = $conn->query(
+            "SELECT r.job_key, r.started_datetime, r.outcome FROM job_runs r
+               JOIN (SELECT job_key, MAX(id) AS id FROM job_runs
+                      WHERE job_key IN ('intune_sync', 'intune_app_sync') AND outcome <> 'skipped' GROUP BY job_key) l ON l.id = r.id");
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $out[$r['job_key']] = ['started' => $r['started_datetime'], 'outcome' => $r['outcome']];
+        }
+    } catch (Throwable $e) {
+        // No run history on this install yet: nothing to say.
+    }
+    return $out;
+}
+
+/**
+ * Claim a device sync: the intune_sync_jobs row it reports into, or null when one
+ * is already running (or another claim holds the lock). Shared by Sync on the
+ * settings tab (api/intune/sync.php) and the scheduled job (cron/intune_sync.php),
+ * so the two can never run at once.
+ *
+ * Dead rows are failed first, so they do not block:
+ *  - "running" for 10 minutes with nothing processed: a worker that died before
+ *    reporting (the token and the first Graph page can take minutes, so not 2);
+ *  - "running" for longer than the scheduled job's max_runtime (60 minutes),
+ *    whatever it processed: a worker that died part-way.
+ *
+ * TRAP: the check and the insert are one step under a MySQL named lock -
+ * without it the button and the scheduled job, a moment apart, could both see
+ * nothing running and both start a sync. GET_LOCK names are server-wide, so the
+ * name carries this database's.
+ */
+function intuneClaimDeviceSyncJob(PDO $conn): ?int {
+    $lock = 'freeitsm.' . substr(md5((string)$conn->query('SELECT DATABASE()')->fetchColumn()), 0, 16) . ':intune_device_claim';
+    $got = $conn->prepare("SELECT GET_LOCK(?, 5)");
+    $got->execute([$lock]);
+    if ((int)$got->fetchColumn() !== 1) return null;
+    try {
+        $conn->exec(
+            "UPDATE intune_sync_jobs
+                SET status = 'error',
+                    message = 'Auto-failed: the worker stopped before finishing',
+                    finished_datetime = UTC_TIMESTAMP()
+              WHERE status = 'running'
+                AND (   (processed = 0 AND started_datetime < (UTC_TIMESTAMP() - INTERVAL 10 MINUTE))
+                     OR started_datetime < (UTC_TIMESTAMP() - INTERVAL 60 MINUTE))"
+        );
+        if ($conn->query("SELECT id FROM intune_sync_jobs WHERE status = 'running' ORDER BY id DESC LIMIT 1")->fetchColumn()) {
+            return null;
+        }
+        $conn->prepare(
+            "INSERT INTO intune_sync_jobs (started_datetime, status, total, processed, message)
+             VALUES (UTC_TIMESTAMP(), 'running', 0, 0, 'Starting...')"
+        )->execute();
+        return (int)$conn->lastInsertId();
+    } finally {
+        $conn->prepare("SELECT RELEASE_LOCK(?)")->execute([$lock]);
     }
 }
 
@@ -797,16 +873,31 @@ function intuneGetAppBatchSize(PDO $conn): int {
  *   - Have a linked intune_devices row (with a usable Graph id)
  *   - Have NO 'agent'-sourced rows in software_inventory_detail (agent wins)
  *   - Aren't already pending/running in another job
- * Ordered: assets that have never been Intune-synced first, then oldest synced.
+ *   - With $notSince, were not in a job started at or after it (one scheduled run
+ *     reads each device once)
+ * Ordered by the last time an app sync was ATTEMPTED for the asset - never first,
+ * then the oldest attempt. Not by the last success: a device with no apps, one
+ * Intune has deleted (404) or one that keeps erroring never gets a newer
+ * last_seen, and would otherwise be picked first by every batch for ever.
  *
  * @param int $limit  the most assets to return (the app sync batch size)
+ * @param ?string $notSince  a UTC 'Y-m-d H:i:s'; null for no such limit
  */
-function intuneGetAppSyncCandidates(PDO $conn, int $limit): array {
+function intuneGetAppSyncCandidates(PDO $conn, int $limit, ?string $notSince = null): array {
+    $since = '';
+    if ($notSince !== null) {
+        $since = "AND NOT EXISTS (
+               SELECT 1 FROM intune_app_sync_job_assets js
+                JOIN intune_app_sync_jobs jj ON jj.id = js.job_id
+                WHERE js.asset_id = a.id AND jj.started_datetime >= " . $conn->quote($notSince) . "
+           )";
+    }
     $sql = "
         SELECT a.id AS asset_id, a.hostname, id_dev.intune_id,
-               (SELECT MAX(d.last_seen)
-                  FROM software_inventory_detail d
-                 WHERE d.host_id = a.id AND d.source = 'intune') AS last_intune_sync
+               (SELECT MAX(j.started_datetime)
+                  FROM intune_app_sync_job_assets ja
+                  JOIN intune_app_sync_jobs j ON j.id = ja.job_id
+                 WHERE ja.asset_id = a.id) AS last_attempt
           FROM assets a
           JOIN intune_devices id_dev ON id_dev.asset_id = a.id
          WHERE id_dev.intune_id IS NOT NULL
@@ -822,19 +913,39 @@ function intuneGetAppSyncCandidates(PDO $conn, int $limit): array {
                   AND ja.status = 'pending'
                   AND j.status IN ('pending','running')
            )
-         ORDER BY (last_intune_sync IS NULL) DESC,
-                  last_intune_sync ASC,
+           $since
+         ORDER BY (last_attempt IS NULL) DESC,
+                  last_attempt ASC,
                   a.id ASC
          LIMIT " . (int)$limit;
     return $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
 
+/** Minutes after which an app-sync batch still pending or running is dead, whatever it has done (#342). */
+const INTUNE_APP_JOB_STALE_MINUTES = 150;
+
 /**
  * Create a new app-sync job for the next batch of candidate assets.
  * Returns ['job_id' => int, 'asset_count' => int, 'reused' => bool].
  * If a pending/running job already exists, returns it (reused=true).
+ *
+ * @param ?string $notSince  passed to intuneGetAppSyncCandidates(): leave out assets already in a job started since
  */
-function intuneCreateAppSyncJob(PDO $conn): array {
+function intuneCreateAppSyncJob(PDO $conn, ?string $notSince = null): array {
+    // Self-heal FIRST, so a dead batch never turns every later one away:
+    //  - pending or running for 10 minutes with nothing done: its worker never started or died;
+    //  - pending or running for longer than any batch takes (INTUNE_APP_JOB_STALE_MINUTES),
+    //    whatever it has done: its worker died part-way.
+    $conn->exec(
+        "UPDATE intune_app_sync_jobs
+            SET status = 'error',
+                message = 'Auto-failed: the worker stopped before finishing',
+                finished_datetime = UTC_TIMESTAMP()
+          WHERE status IN ('pending','running')
+            AND (   (processed = 0 AND failed = 0 AND started_datetime < (UTC_TIMESTAMP() - INTERVAL 10 MINUTE))
+                 OR started_datetime < (UTC_TIMESTAMP() - INTERVAL " . INTUNE_APP_JOB_STALE_MINUTES . " MINUTE))"
+    );
+
     // Concurrency lock — only one app-sync job at a time
     $running = $conn->query(
         "SELECT id FROM intune_app_sync_jobs WHERE status IN ('pending','running') ORDER BY id DESC LIMIT 1"
@@ -844,20 +955,8 @@ function intuneCreateAppSyncJob(PDO $conn): array {
         return ['job_id' => (int)$running, 'asset_count' => $count, 'reused' => true];
     }
 
-    // Self-heal: any 'running' job older than 10 minutes that hasn't progressed
-    // is a worker that died. Mark it errored.
-    $conn->exec(
-        "UPDATE intune_app_sync_jobs
-            SET status = 'error',
-                message = 'Auto-failed: worker did not progress within 10 minutes',
-                finished_datetime = UTC_TIMESTAMP()
-          WHERE status = 'running'
-            AND processed = 0
-            AND started_datetime < (UTC_TIMESTAMP() - INTERVAL 10 MINUTE)"
-    );
-
     $batch = intuneGetAppBatchSize($conn);
-    $candidates = intuneGetAppSyncCandidates($conn, $batch);
+    $candidates = intuneGetAppSyncCandidates($conn, $batch, $notSince);
     if (!$candidates) {
         return ['job_id' => 0, 'asset_count' => 0, 'reused' => false];
     }
@@ -883,6 +982,64 @@ function intuneCreateAppSyncJob(PDO $conn): array {
     }
 
     return ['job_id' => $jobId, 'asset_count' => count($candidates), 'reused' => false];
+}
+
+/**
+ * The scheduled software sync (#342) - cron/intune_app_sync.php's work, here so it
+ * can be tested without Graph. Runs batch after batch until every eligible device
+ * has been read once, or until $budgetSeconds have gone (a batch already started
+ * finishes); the next run carries on with the devices tried longest ago.
+ *
+ *  - A batch already pending or running (Sync software on the tab) is left to
+ *    finish: if that turns the run away before it did anything, the run is
+ *    'skipped', not ok.
+ *  - A batch that failed as a whole (no token, Graph refused) stops the run: it
+ *    is 'failed', or 'partial' when earlier batches read devices.
+ *  - Devices that could not be read, among others that were, make it 'partial'.
+ *  - Each device once per run: a batch never takes a device that was in a batch
+ *    started since this run began, whatever happened to it.
+ *
+ * @param int $budgetSeconds  how long the run may keep starting batches
+ * @param ?callable $runBatch  fn(PDO $conn, int $jobId): void - intuneRunAppSyncJob() when null; a test's stand-in
+ * @return array{outcome:string,counts:array,summary:string}  for JobRun::finish()
+ */
+function intuneScheduledAppSync(PDO $conn, int $budgetSeconds, ?callable $runBatch = null): array {
+    $runBatch ??= 'intuneRunAppSyncJob';
+    $since    = (string)$conn->query("SELECT UTC_TIMESTAMP()")->fetchColumn();
+    $batch    = max(1, intuneGetAppBatchSize($conn));
+    $eligible = count(intuneGetAppSyncCandidates($conn, 1000000));
+    $batches  = (int)ceil($eligible / $batch);
+    $started  = time();
+    $devices = 0; $failed = 0; $ran = 0; $error = null; $reused = false;
+
+    for ($i = 0; $i < $batches && time() - $started < $budgetSeconds; $i++) {
+        $job = intuneCreateAppSyncJob($conn, $since);
+        if ($job['reused']) { $reused = true; break; }
+        if ($job['job_id'] === 0) break;   // nothing left to read
+        $runBatch($conn, $job['job_id']);
+        $st = $conn->prepare("SELECT status, processed, failed, message FROM intune_app_sync_jobs WHERE id = ?");
+        $st->execute([$job['job_id']]);
+        $r = $st->fetch(PDO::FETCH_ASSOC) ?: ['status' => 'error', 'processed' => 0, 'failed' => 0, 'message' => 'The batch left no record.'];
+        $ran++;
+        if ($r['status'] === 'error') {
+            // The whole batch failed: nothing in it was read, and the next would fail the same way.
+            $failed += (int)$job['asset_count'];
+            $error = (string)($r['message'] ?: 'The batch failed.');
+            break;
+        }
+        $devices += (int)$r['processed'];
+        $failed  += (int)$r['failed'];
+    }
+
+    if ($reused && $ran === 0) {
+        return ['outcome' => 'skipped', 'counts' => [],
+                'summary' => 'A software sync started from the settings tab was still running - left to finish.'];
+    }
+    $outcome = ($error === null && $failed === 0) ? 'ok' : ($devices > 0 ? 'partial' : 'failed');
+    $summary = "{$devices} device(s) read in {$ran} batch(es), {$failed} failed, of {$eligible} eligible.";
+    if ($error !== null) $summary .= ' A batch failed as a whole: ' . $error;
+    if ($reused) $summary .= ' Stopped: a batch started from the settings tab is running.';
+    return ['outcome' => $outcome, 'counts' => ['devices' => $devices, 'failed' => $failed, 'batches' => $ran], 'summary' => $summary];
 }
 
 /**

@@ -37,34 +37,14 @@ try {
         exit;
     }
 
-    // Self-heal: any "running" job older than 2 minutes that hasn't processed
-    // anything is a worker that died before reporting. Mark it errored so the
-    // running-job check below can ignore it.
-    $conn->exec(
-        "UPDATE intune_sync_jobs
-            SET status = 'error',
-                message = 'Auto-failed: worker did not start within 2 minutes',
-                finished_datetime = UTC_TIMESTAMP()
-          WHERE status = 'running'
-            AND processed = 0
-            AND started_datetime < (UTC_TIMESTAMP() - INTERVAL 2 MINUTE)"
-    );
-
-    // Reject if a job is genuinely already running, otherwise we'd race on upserts.
-    $running = $conn->query(
-        "SELECT id FROM intune_sync_jobs WHERE status = 'running' ORDER BY id DESC LIMIT 1"
-    )->fetchColumn();
-    if ($running) {
+    // One claim for the button and the scheduled job (cron/intune_sync.php): a
+    // sync already running - from either - is reused, never raced.
+    $jobId = intuneClaimDeviceSyncJob($conn);
+    if ($jobId === null) {
+        $running = $conn->query("SELECT id FROM intune_sync_jobs WHERE status = 'running' ORDER BY id DESC LIMIT 1")->fetchColumn();
         echo json_encode(['success' => true, 'id' => (int)$running, 'reused' => true]);
         exit;
     }
-
-    $stmt = $conn->prepare(
-        "INSERT INTO intune_sync_jobs (started_datetime, status, total, processed, message)
-         VALUES (UTC_TIMESTAMP(), 'running', 0, 0, 'Starting...')"
-    );
-    $stmt->execute();
-    $jobId = (int)$conn->lastInsertId();
 
     $spawned = intuneSpawnWorker($jobId, $settings['php_exe']);
     if (!$spawned) {

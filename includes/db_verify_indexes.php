@@ -285,6 +285,7 @@ return [
     ['intune_app_sync_jobs', 'ix_intune_app_sync_jobs_started', 'key', '(`started_datetime`)'],
     ['intune_app_sync_job_assets', 'ix_intune_app_sync_job_assets_job', 'key', '(`job_id`)'],
     ['intune_app_sync_job_assets', 'ix_intune_app_sync_job_assets_status', 'key', '(`status`)'],
+    ['intune_app_sync_job_assets', 'ix_intune_app_sync_job_assets_asset', 'key', '(`asset_id`,`job_id`)'],
     ['change_types', 'uq_change_types_name', 'unique', '(`name`)'],
     ['change_statuses', 'uq_change_statuses_name', 'unique', '(`name`)'],
     ['change_priorities', 'uq_change_priorities_name', 'unique', '(`name`)'],

@@ -4531,7 +4531,8 @@ CREATE TABLE IF NOT EXISTS `intune_app_sync_job_assets` (
     `app_count`         INT NULL,
     PRIMARY KEY (`id`),
     KEY `ix_intune_app_sync_job_assets_job` (`job_id`),
-    KEY `ix_intune_app_sync_job_assets_status` (`status`)
+    KEY `ix_intune_app_sync_job_assets_status` (`status`),
+    KEY `ix_intune_app_sync_job_assets_asset` (`asset_id`, `job_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
