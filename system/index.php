@@ -222,6 +222,19 @@ $translationNamespaces = ['common', 'system'];
             font-weight: 700;
         }
 
+        /* By topic / A-Z, beside the search (system/includes/areas.php: systemAreaGroups()). */
+        .system-tools { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 0 0 24px; }
+        .system-tools .system-search { margin: 0; flex: 0 1 420px; }
+        .system-order { display: inline-flex; border: 1px solid var(--border, #d6dde3); border-radius: 8px; overflow: hidden; background: var(--surface, #fff); }
+        .system-order button { font: inherit; font-size: 13px; padding: 9px 14px; border: none; background: none; color: var(--text-dim, #667); cursor: pointer; }
+        .system-order button + button { border-left: 1px solid var(--border, #d6dde3); }
+        .system-order button[aria-pressed="true"] { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
+        /* A group's heading: the whole row, quiet, so the cards stay the thing to look at. */
+        .system-group-head { grid-column: 1 / -1; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.06em; color: var(--text-dim, #7a8790); padding: 0 2px 6px; margin-top: 12px;
+            border-bottom: 1px solid var(--border-soft, #e3e8ec); }
+        .system-group-head.first { margin-top: 0; }
+        .system-group-head.is-hidden { display: none; }
         .system-cards {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -447,6 +460,7 @@ $translationNamespaces = ['common', 'system'];
                 </p>
             </div></div>
 
+            <div class="system-tools">
             <div class="system-search">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -456,14 +470,25 @@ $translationNamespaces = ['common', 'system'];
                        placeholder="<?php echo htmlspecialchars(t('system.landing.search_placeholder')); ?>"
                        aria-label="<?php echo htmlspecialchars(t('system.landing.search_placeholder')); ?>">
             </div>
+            <?php /* By topic: a heading per group, the cards in their registry order.
+                     A-Z: by the translated title, no headings. Remembered in this browser. */ ?>
+            <div class="system-order" role="group" aria-label="<?php echo htmlspecialchars(t('system.landing.order_label')); ?>">
+                <button type="button" data-order="topic" aria-pressed="true"><?php echo htmlspecialchars(t('system.landing.order_topic')); ?></button>
+                <button type="button" data-order="az" aria-pressed="false"><?php echo htmlspecialchars(t('system.landing.order_az')); ?></button>
+            </div>
+            </div>
 
-            <?php $areaSettings = systemAreaSettings(); ?>
+            <?php $areaSettings = systemAreaSettings();
+            $areaGroups = systemAreaGroups();
+            $groupList = [];
+            foreach ($areaGroups as $gk => $gl) $groupList[] = ['key' => $gk, 'label' => t($gl)]; ?>
             <div class="system-cards" id="systemCards"
+                 data-groups="<?php echo htmlspecialchars(json_encode($groupList, JSON_UNESCAPED_UNICODE)); ?>"
                  data-match-one="<?php echo htmlspecialchars(t('system.landing.match_one')); ?>"
                  data-match-many="<?php echo htmlspecialchars(t('system.landing.match_many')); ?>">
                 <!-- Help is rendered directly (not from the areas registry) so it
                      appears here but never recurses onto the help landing. -->
-                <div class="system-card-wrap" data-search="help guides guide documentation how to setup instructions manual sso single sign-on" data-url="help/" data-settings="[]">
+                <div class="system-card-wrap" data-search="help guides guide documentation how to setup instructions manual sso single sign-on" data-url="help/" data-settings="[]" data-pinned="1" data-group="start" data-index="0" data-title="<?php echo htmlspecialchars(t('system.landing.help_title')); ?>">
                 <a href="help/" class="system-card system-card--help">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -474,7 +499,7 @@ $translationNamespaces = ['common', 'system'];
                     <p><?php echo htmlspecialchars(t('system.landing.help_desc')); ?></p>
                 </a>
                 </div>
-                <?php foreach ($systemAreas as $area): ?>
+                <?php $areaIndex = 0; foreach ($systemAreas as $area): $areaIndex++; ?>
                     <?php
                     $title = t($area['title']);
                     $desc  = t($area['desc']);
@@ -492,6 +517,8 @@ $translationNamespaces = ['common', 'system'];
                     }
                     ?>
                     <div class="system-card-wrap" data-search="<?php echo htmlspecialchars($haystack); ?>"
+                         data-group="<?php echo htmlspecialchars(isset($areaGroups[$area['group'] ?? '']) ? $area['group'] : 'other'); ?>"
+                         data-index="<?php echo $areaIndex; ?>" data-title="<?php echo htmlspecialchars($title); ?>"
                          data-url="<?php echo htmlspecialchars($area['url']); ?>"
                          data-settings="<?php echo htmlspecialchars(json_encode($settings, JSON_UNESCAPED_UNICODE)); ?>">
                     <a href="<?php echo htmlspecialchars($area['url']); ?>" class="system-card">
@@ -545,6 +572,62 @@ $translationNamespaces = ['common', 'system'];
             a.appendChild(document.createTextNode(label.substr(at + q.length)));
         }
 
+        // ── By topic / A-Z ───────────────────────────────────────────────────
+        var groups = [];
+        try { groups = JSON.parse(grid.getAttribute('data-groups') || '[]'); } catch (e) {}
+        var heads = {};
+        groups.forEach(function (g) {
+            var h = document.createElement('div');
+            h.className = 'system-group-head';
+            h.setAttribute('role', 'heading');
+            h.setAttribute('aria-level', '2');
+            h.textContent = g.label;
+            heads[g.key] = h;
+        });
+        var orderButtons = Array.prototype.slice.call(document.querySelectorAll('.system-order button'));
+        var order = 'topic';
+        try { if (localStorage.getItem('system_cards_order') === 'az') order = 'az'; } catch (e) {}
+
+        function layout() {
+            orderButtons.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-order') === order ? 'true' : 'false'); });
+            Object.keys(heads).forEach(function (k) { if (heads[k].parentNode) heads[k].parentNode.removeChild(heads[k]); });
+            var pinned = cards.filter(function (c) { return c.getAttribute('data-pinned'); });
+            var rest = cards.filter(function (c) { return !c.getAttribute('data-pinned'); });
+            var lang = document.documentElement.lang || undefined;
+            if (order === 'az') {
+                rest.sort(function (a, b) { return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title'), lang, { sensitivity: 'base' }); });
+                pinned.concat(rest).forEach(function (c) { grid.appendChild(c); });
+                return;
+            }
+            var first = true;
+            groups.forEach(function (g) {
+                var inGroup = cards.filter(function (c) { return c.getAttribute('data-group') === g.key; })
+                                   .sort(function (a, b) { return a.getAttribute('data-index') - b.getAttribute('data-index'); });
+                if (!inGroup.length) return;
+                heads[g.key].classList.toggle('first', first);
+                first = false;
+                grid.appendChild(heads[g.key]);
+                inGroup.forEach(function (c) { grid.appendChild(c); });
+            });
+        }
+        // A heading whose group the search has emptied goes with it.
+        function headsFollow() {
+            if (order === 'az') return;
+            Object.keys(heads).forEach(function (k) {
+                var any = cards.some(function (c) { return c.getAttribute('data-group') === k && !c.classList.contains('is-hidden'); });
+                heads[k].classList.toggle('is-hidden', !any);
+            });
+        }
+        orderButtons.forEach(function (b) {
+            b.addEventListener('click', function () {
+                order = b.getAttribute('data-order');
+                try { localStorage.setItem('system_cards_order', order); } catch (e) {}
+                layout();
+                headsFollow();
+            });
+        });
+        layout();
+
         function filter() {
             var q = input.value.trim().toLowerCase();
             var shown = 0;
@@ -573,6 +656,7 @@ $translationNamespaces = ['common', 'system'];
                 if (match) shown++;
             });
             noResults.style.display = shown === 0 ? 'block' : 'none';
+            headsFollow();
         }
 
         // A tap on the count opens the list - a phone has no hover. Opening one
