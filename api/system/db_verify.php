@@ -2509,9 +2509,25 @@ try {
         }
     }
     if ($tableExists('tickets') && $colExists('tickets', 'priority_id')) {
-        $upd = $conn->exec("UPDATE tickets
-                               SET priority_id = (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1)
-                             WHERE priority_id IS NULL");
+        if ($colExists('ticket_priorities', 'tenant_id') && $colExists('tickets', 'tenant_id')) {
+            // Each ticket gets its own company's default (GH #320): with a default per company,
+            // the first is_default row could be another company's.
+            require_once '../../includes/ticket_priorities.php';
+            $upd = 0;
+            $fill = $conn->prepare("UPDATE tickets SET priority_id = ? WHERE priority_id IS NULL AND tenant_id <=> ?");
+            foreach ($conn->query("SELECT DISTINCT tenant_id FROM tickets WHERE priority_id IS NULL")->fetchAll(PDO::FETCH_COLUMN) as $tid) {
+                $tid = $tid === null ? null : (int)$tid;
+                $defaultId = ticketPriorityDefaultId($conn, $tid);
+                if ($defaultId !== null) {
+                    $fill->execute([$defaultId, $tid]);
+                    $upd += $fill->rowCount();
+                }
+            }
+        } else {
+            $upd = $conn->exec("UPDATE tickets
+                                   SET priority_id = (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1)
+                                 WHERE priority_id IS NULL");
+        }
         if ($upd > 0) {
             $results[] = ['table' => 'tickets', 'status' => 'migrated',
                           'details' => ["Set the default priority on $upd ticket(s) that had none"]];
