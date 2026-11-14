@@ -181,6 +181,7 @@ function apiSerializeSupplier(array $r): array {
         'display_name' => trim((string)$r['trading_name']) !== '' ? $r['trading_name'] : $r['legal_name'],
         'reg_number'   => $r['reg_number'],
         'vat_number'   => $r['vat_number'],
+        'ticket_email' => $r['ticket_email'] ?? null,   // GH #307
         'type'         => $rel($r['supplier_type_id'], $r['type_name']),
         'status'       => $rel($r['supplier_status_id'], $r['status_name']),
         'address'      => [

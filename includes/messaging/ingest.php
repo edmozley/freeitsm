@@ -424,9 +424,12 @@ function messagingKnownPersonByEmail(PDO $conn, string $email, string $name): ?a
         return null;
     }
     try {
-        $stmt = $conn->prepare("SELECT id, display_name FROM users WHERE email = ? LIMIT 1");
-        $stmt->execute([$email]);
-        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        // GH #308: the person whose main or linked address it is.
+        require_once __DIR__ . '/../user_emails.php';
+        $owned = userIdForEmail($conn, $email);
+        $stmt = $conn->prepare("SELECT id, display_name FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([(int)$owned]);
+        if ($owned && ($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             $known = trim((string) ($row['display_name'] ?? ''));
             return [(int) $row['id'], $known !== '' ? $known : ($name !== '' ? $name : $email)];
         }

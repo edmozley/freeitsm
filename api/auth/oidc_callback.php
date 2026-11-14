@@ -557,6 +557,9 @@ function completeSelfServiceSso(PDO $conn, array $provider, int $providerId, str
             $profAttrs = ($syncMode !== "never")
                 ? oidcExtractProfileAttributes($claims)
                 : ["job_title" => null, "department" => null, "office" => null, "phone" => null, "mobile" => null];
+            // GH #308: the identity provider wins an address somebody else has linked.
+            require_once __DIR__ . '/../../includes/user_emails.php';
+            userReleaseEmailForMain($conn, $email, 'sso');
             $stmt = $conn->prepare(
                 "INSERT INTO users (email, display_name, job_title, department, office, phone, mobile, auth_provider_id, tenant_id, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"

@@ -382,6 +382,7 @@ $steps = [
     ['ticket_time_entries', "DELETE FROM ticket_time_entries WHERE ticket_id = ?", [$ticketId]],
     ['ticket_watchers',     "DELETE FROM ticket_watchers WHERE ticket_id = ?", [$ticketId]],   // GH #277
     ['ticket_forms',        "DELETE FROM ticket_forms WHERE ticket_id = ?", [$ticketId]],      // GH #272
+    ['jml_case_tickets',    "DELETE FROM jml_case_tickets WHERE ticket_id = ?", [$ticketId]],  // GH #316
     ['tickets',             "DELETE FROM tickets WHERE id = ?", [$ticketId]],
 ];
 

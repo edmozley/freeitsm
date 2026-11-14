@@ -30,7 +30,7 @@ $rewritten = ['org.p2' => 'org.p2_v2'];   // the wheel scrolls the chart, Ctrl a
 $sections = [
     'overview'  => 1,
     'people'    => 4,
-    'person'    => 3,
+    'person'    => 4,   // p4: email addresses and history (GH #308)
     'org'       => 4,
     'companies' => 3,
     'suppliers' => 4,

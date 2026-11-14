@@ -55,8 +55,8 @@ versa), so you cannot forget step 2.
 
 | File | What it does |
 |---|---|
-| `openapi_verify.php` | Fetches every GET endpoint live and validates `data` against its bound schema (OpenAPI-aware: `$ref`, `allOf`, `nullable`). Reports type violations and undocumented response fields. |
-| `openapi_fix.php` | Auto-patches the typed schemas from live responses — adds missing fields (type inferred from the live value), marks `nullable`, relaxes over-strict `required`. Idempotent. |
+| `openapi_verify.php` | Fetches every GET endpoint live and validates `data` against its bound schema (OpenAPI-aware: `$ref`, `allOf`, `nullable`, `additionalProperties`). Reports type violations and undocumented response fields. An `allOf` of objects is merged and checked as one object; a key covered by `additionalProperties` is documented. Give the read key a high rate limit or later endpoints SKIP with 429. |
+| `openapi_fix.php` | Auto-patches the typed schemas from live responses — adds missing fields (type inferred from the live value), marks `nullable`, relaxes over-strict `required`. Idempotent. **TRAP: it rewrites `openapi_schemas.php` through `var_export`, which strips the hand-written comments and drops the top-level `requestContentTypes` and `responseContents` sections. Never run it on the real file** - run it on a copy and use the difference as a list, then add the fields by hand. It also infers a type from ONE sample (a map keyed by form labels becomes fixed properties), so read what it proposes. |
 | `jsonschema4.php` | Minimal draft-04 JSON-Schema validator; checks the generated document against `oas-3.0-schema.json`. Proven to reject malformed documents. |
 | `oas-3.0-schema.json` | The official OpenAPI 3.0 meta-schema (from spec.openapis.org), for offline validation. |
 | `openapi_stub.php` | Scaffolds ready-to-paste `spec.json` entries for any route not yet documented. |

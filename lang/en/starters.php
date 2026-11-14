@@ -100,6 +100,11 @@ return [
 
     'view' => [
         'back'            => 'Cases',
+        // GH #316
+        'tickets'         => 'Tickets',
+        'tickets_intro'   => 'Steps raised as tickets, in the teams\' queues. Each counts as one step, done when the ticket is closed.',
+        'ticket_items'    => '{done} of {total} done',
+        'ticket_trash'    => 'In the trash',
         'not_found'       => 'This case does not exist, or is in a company you cannot see.',
         'template'        => 'Template',
         'owner'           => 'Owner',
@@ -186,6 +191,9 @@ return [
         'h_step_failed'   => 'Could not add the step "{old}": {value}',
         'h_steps_pending' => 'Put the template\'s questions on the case\'s task - the steps wait for the answers',
         'h_steps_added'   => 'Added {value} steps from the template',
+        // GH #316
+        'h_ticket_raised'       => 'Raised ticket {value} for "{old}"',
+        'h_ticket_no_requester' => 'Added "{old}" as tasks, not a ticket: there was nobody to raise it for',
         'h_template_id'   => 'Chose a template',
         'h_no_template'   => 'No template matched the answers - choose one',
         'h_owner_analyst_id' => 'Handed the case to another owner',
@@ -195,6 +203,20 @@ return [
 
     'settings' => [
         'tab_templates'   => 'Templates',
+        // GH #316: steps raised as tickets
+        'step_raise'          => 'Raise as',
+        'step_raise_tip'      => 'A task on the case (as always), or a ticket in the team\'s queue. Ticket steps with the same ticket name become one ticket, each step an item of its checklist.',
+        'raise_task'          => 'Task',
+        'raise_ticket'        => 'Ticket',
+        'ticket_name_ph'      => 'Ticket name',
+        'ticket_name_tip'     => 'Steps with the same ticket name become one ticket. Leave it blank for a ticket of its own.',
+        'ticket_teams_differ' => 'The steps of {names} go to different teams. A ticket goes to the team of its first step.',
+        'tickets_heading'     => 'Steps raised as tickets',
+        'ticket_type'         => 'Ticket type',
+        'ticket_type_default' => 'The usual one',
+        'email_requester'     => 'Email the requester about these tickets',
+        'tickets_hint'        => 'The requester is whoever asked for the case - the person who filled in its form, else the manager, else the person themselves. Off: no logged, assigned or closed emails and no satisfaction survey for these tickets - the team just works them. Each ticket is scheduled on its due date, so it shows on the Calendar.',
+        'tickets_not_ready'   => 'Run Database Verification to raise steps as tickets.',
         'no_tabs_title'   => 'Nothing to set up here',
         'no_tabs_body'    => 'You do not have permission to change any Starters & leavers settings.',
         'templates_title' => 'Templates',
@@ -261,6 +283,11 @@ return [
         'task_open' => 'Open the case',
         'kit_note' => 'Starters & leavers case #{id}',
         'step_failed' => 'The step "{step}" could not be added: {error}',
+        // GH #316: tickets raised by a case
+        'ticket_subject'      => '{ticket}: {name} - due {date}',
+        'ticket_intro'        => 'For the Starters & leavers case of {name} - {kind}, {date}.',
+        'ticket_case'         => 'The case: {url}',
+        'ticket_no_requester' => '"{ticket}" was added as tasks: a ticket needs a requester, and this case has nobody to raise it for - no one who submitted its form, no manager, and the person is not in Users yet.',
     ],
     'help' => [
         'guide'      => 'Guide',
@@ -284,6 +311,14 @@ return [
             'p1' => 'Under **Settings → Templates**, a template lists the steps for a kind of change: "Create the email account", "Order a laptop", "Disable the account", "Collect the badge".',
             'p2' => 'Each step can go to a **team** or a named **analyst**, and is due a number of **days** from the case\'s date: -5 is five days before, 0 is on the day, 2 is two days after. A step can carry a **checklist** from Tasks, for anything with several parts.',
             'p3' => 'Changing a template never changes cases already opened from it - their tasks are already set. Switch a template **Off** to stop offering it without losing it.',
+        ],
+        'tickets' => [
+            'nav' => 'Steps as tickets', 'title' => 'Steps as tickets', 'intro' => 'For a desk that works from the ticket queue.',
+            'p1' => 'Each step of a template has **Raise as**: a **Task** on the case, as always, or a **Ticket** in the team\'s queue. Steps given the same **ticket name** become **one ticket**, each step an item of its checklist - so "Create AD account", "Mailbox" and "DMS access" can be one IT accounts ticket while MFA is a ticket of its own and the security pass a Facilities ticket. Leave the name blank for a ticket of its own. How the work is split is yours to choose.',
+            'p2' => 'A ticket goes to the **team and analyst of its first step** (the editor warns when the steps of one ticket name different teams), in that team\'s department when it has exactly one, in the case\'s company. It is **scheduled on its due date** - the earliest of its steps - so it shows on the Calendar, and its subject says the date: "IT accounts: Jane Smith - due 3 Nov 2026". Its text links back to the case, lists the steps and gives the answers. Under **Steps raised as tickets** on the template you can give them a **ticket type** - a Starter type with its own SLA, say.',
+            'p3' => 'Every ticket needs a **requester**: whoever asked for the case - the person who filled in its form in the portal - else the case\'s **manager**, else the person themselves once they are in Users. With none of them, the steps are added as tasks instead, and the case\'s history says why. **Email the requester about these tickets** is off unless you tick it: off, these tickets send no logged, assigned, closed or shared-note emails and no satisfaction survey - the team just works them, and the mailbox\'s send log (Tickets -> Settings -> Mailboxes, the clock icon, Outbound) shows each email it did not send. The choice is kept with each ticket when it is raised, so changing the template later does not change tickets already out.',
+            'p4' => 'The case lists its tickets beside its steps - number, team, due date, checklist progress and status - and **each ticket counts as one step**, done when it is closed, in the progress bar, the case list, the person\'s page and Report Packs. On the ticket, a 🧳 pill in its links names the case (for anyone who can use Starters & leavers). **Done** never closes a ticket, as it never closes a task: it says how many steps and tickets are still open first.',
+            'p5' => 'The tickets are ordinary tickets, so **A ticket is created** workflows run for them like any other. If a routing rule could move them to another team, give the template a ticket type and leave that type out of the rule.',
         ],
         'questions' => [
             'nav' => 'Questions', 'title' => 'Questions from Forms', 'intro' => 'Your own questions decide the work.',

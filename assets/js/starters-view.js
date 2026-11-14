@@ -83,6 +83,26 @@
         return panel(T('view.steps'), T('view.steps_intro'), body);
     }
 
+    // ---- tickets (GH #316) --------------------------------------------------------
+    /** The tickets the case raised - template steps raised as tickets, each one step of progress. */
+    function tickets(c) {
+        if (!c.tickets || !c.tickets.length) return '';
+        const tick = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+        const items = c.tickets.map(t => {
+            const d = daysFrom(t.due_date);
+            const late = !t.is_closed && !t.in_trash && d !== null && d < 0;
+            const who = [t.team_name, t.analyst_name].filter(Boolean).map(esc).join(' &middot; ') || esc(T('view.step_nobody'));
+            return '<li class="jml-step' + (t.is_closed ? ' closed' : '') + '"><span class="jml-tick">' + (t.is_closed ? tick : '') + '</span>'
+                 + '<div class="jml-step-body">' + link(t.url, esc(t.ticket_number + ' - ' + (t.ticket_name || t.subject)), 'jml-step-title')
+                 + '<div class="jml-step-meta"><span>' + who + '</span>'
+                 + (t.due_date ? '<span' + (late ? ' class="late"' : '') + '>' + esc(late ? T('view.step_overdue') + ' - ' + date(t.due_date) : T('view.step_due', { date: date(t.due_date) })) + '</span>' : '')
+                 + (t.items_total ? '<span>' + esc(T('view.ticket_items', { done: t.items_done, total: t.items_total })) + '</span>' : '')
+                 + (t.in_trash ? '<span class="jml-pill">' + esc(T('view.ticket_trash')) + '</span>' : (t.status_name ? '<span class="jml-pill">' + esc(t.status_name) + '</span>' : ''))
+                 + '</div></div></li>';
+        });
+        return panel(T('view.tickets'), T('view.tickets_intro'), '<ul class="jml-steps">' + items.join('') + '</ul>');
+    }
+
     // ---- the answers (Forms) ----------------------------------------------------
     /** An answer as shown - and copied: a date question's "2026-11-07" reads like every other date on the page. */
     const answerText = a => { const v = String(a.value); return /^\d{4}-\d{2}-\d{2}$/.test(v) ? date(v) : v; };
@@ -156,7 +176,7 @@
         const { case: c, can, links } = data;
         document.title = c.person_name + ' - ' + T('title');
         root().innerHTML = hero(c, can, links)
-            + '<div class="jml-grid"><div class="jml-col">' + steps(c) + history(c) + '</div>'
+            + '<div class="jml-grid"><div class="jml-col">' + steps(c) + tickets(c) + history(c) + '</div>'
             + '<div class="jml-col">' + answers(c) + person(c) + kit(c, can, links) + account(c)
             + '<section class="jml-panel"><div class="jml-panel-h"><h2>' + esc(T('view.documents')) + '</h2></div><div id="jmlDocs"></div></section>'
             + '</div></div>';
@@ -285,7 +305,7 @@
             let created = null;
             try { created = JSON.parse(sessionStorage.getItem('jml_created') || 'null'); sessionStorage.removeItem('jml_created'); } catch (e) { /* private mode */ }
             if (created && +created.id === id) {
-                const n = data ? data.case.steps.length : 0;
+                const n = data ? data.case.steps.length + (data.case.tickets || []).length : 0;   // GH #316: tickets are steps too
                 toast(n ? T('new.created_steps', { n }) : T('new.created'));
                 (created.warnings || []).forEach(w => toast(w, 'error'));
             }

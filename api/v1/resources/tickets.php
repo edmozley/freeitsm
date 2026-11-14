@@ -25,6 +25,7 @@
 
 require_once dirname(__DIR__, 3) . '/includes/service_context.php';
 require_once dirname(__DIR__, 3) . '/includes/services/tickets.php';
+require_once __DIR__ . '/ticket_related.php';   // GH #328: `related` - counts and links
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -261,6 +262,11 @@ function apiTicketsList(PDO $conn, array $apiKey, array $params, array $body): v
     $stmt = $conn->prepare(apiTicketSelect() . " WHERE $whereSql ORDER BY $orderSql LIMIT $perPage OFFSET $offset");
     $stmt->execute($args);
     $tickets = array_map('apiSerializeTicket', $stmt->fetchAll(PDO::FETCH_ASSOC));
+    // GH #328: opt-in on the list - a page of 100 would otherwise run 100 sets of counts.
+    if (in_array('related', array_map('trim', explode(',', (string)($_GET['include'] ?? ''))), true)) {
+        foreach ($tickets as &$tk) $tk['related'] = apiTicketRelated($conn, (int)$tk['id'], $apiKey);
+        unset($tk);
+    }
 
     apiRespond($tickets, 200, [
         'page'        => $page,
@@ -285,6 +291,8 @@ function apiTicketsGet(PDO $conn, array $apiKey, array $params, array $body): vo
     $desc = $descStmt->fetchColumn();
     $ticket['description_html'] = $desc === false ? null : $desc;
     $ticket['custom_fields'] = apiTicketCustomFields($conn, $row);
+    // GH #328: what is worth fetching next, and what the ticket is linked to.
+    $ticket['related'] = apiTicketRelated($conn, (int)$params[0], $apiKey);
 
     apiRespond($ticket);
 }
@@ -328,9 +336,8 @@ function apiTicketsCreate(PDO $conn, array $apiKey, array $params, array $body):
             apiError(422, 'invalid_field', 'That requester no longer exists.');   // same words as a missing id
         }
     } else {
-        $known = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $known->execute([$requesterEmail]);
-        if ($known->fetchColumn() === false) {
+        require_once dirname(__DIR__, 3) . '/includes/user_emails.php';
+        if (userIdForEmail($conn, $requesterEmail) === null) {   // GH #308: a linked address is somebody's too
             $newTenant = resolveTenantForNewUser($conn, $requesterEmail);
             if ($newTenant !== null && !apiKeyCanAccessTenant($conn, $apiKey, (int)$newTenant)) {
                 apiError(403, 'forbidden', "This address belongs to a company this API key cannot reach, so the requester cannot be created.");

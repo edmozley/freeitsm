@@ -112,6 +112,12 @@
                             "req": false
                         },
                         {
+                            "name": "include",
+                            "in": "query",
+                            "desc": "\"related\" adds each ticket's related block (counts and links, as on GET \/tickets\/{id}). Off by default: it runs extra queries per ticket.",
+                            "req": false
+                        },
+                        {
                             "name": "page \/ per_page",
                             "in": "query",
                             "desc": "Pagination (default 1 \/ 25, max per_page 100)",
@@ -308,7 +314,7 @@
                     "p": "\/tickets\/{id}",
                     "perm": "tickets.read",
                     "s": "Get one ticket",
-                    "d": "Full ticket detail including the original request body (description_html).",
+                    "d": "Full ticket detail including the original request body (description_html), custom fields, and related: counts of what is on the ticket (notes, messages, attachments, forms, checklists, watchers, time_entries) so you know which sub-endpoints are worth calling, and links to what it is linked with (tasks, problems, changes, projects, assets, CMDB objects, other tickets with the relation, and external tracker issues with their address). A count appears only if the key has read on that sub-endpoint's permission, and a link only if the key may read that kind of record in that company. The same related block is on the ticket's Full record webhook.",
                     "params": [
                         {
                             "name": "id",
@@ -403,6 +409,12 @@
                             "name": "company_id",
                             "in": "body",
                             "desc": "Move the ticket to another company (key must be scoped to both)",
+                            "req": false
+                        },
+                        {
+                            "name": "user_id",
+                            "in": "body",
+                            "desc": "Change the requester (5.2.0, #308): a person the key's analyst can see, in the ticket's company. Always written to the ticket's history.",
                             "req": false
                         }
                     ],
@@ -1019,6 +1031,34 @@
                             {
                                 "title": "Get the conversation",
                                 "note": "The full message thread — inbound and outbound — oldest first, with HTML bodies.",
+                                "path": {
+                                    "id": "42"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/tickets\/{id}\/attachments",
+                    "perm": "ticket_attachments.read",
+                    "s": "List a ticket's attachments",
+                    "d": "Everything attached to a ticket: files on its messages (source \"message\", source_id = the message id from \/thread) and documents on its notes (source \"note\", source_id = the note id from \/notes) - name, content type, size and when. Inline pictures inside an email body are left out. kind is \"file\", \"link\" (with its url) or \"files\" (a link to a file in the Files module, whose name is not given). Its length is related.counts.attachments on GET \/tickets\/{id}.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Ticket id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Ticket notes, conversation & history",
+                    "slug": "get-tickets-id-attachments",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "A ticket's attachments",
+                                "note": "Files on its messages and documents on its notes.",
                                 "path": {
                                     "id": "42"
                                 }

@@ -89,6 +89,13 @@ try {
             echo json_encode(['success' => false, 'error' => 'A user with this email already exists']);
             exit;
         }
+        // GH #308: one owner per address - never another person's linked address either.
+        require_once '../../includes/user_emails.php';
+        $owner = userEmailOwner($conn, $email);
+        if ($owner && $owner['kind'] === 'linked' && $owner['user_id'] !== (int)($id ?? 0)) {
+            echo json_encode(['success' => false, 'error' => 'This email is linked to another person. Remove it there first, or merge the two.']);
+            exit;
+        }
     }
 
     // Where this save will ACTUALLY file the person. For a new person that is not

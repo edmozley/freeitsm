@@ -83,6 +83,8 @@ $DB_VERIFY_MODULE_PREFIXES = [
     'sla_'             => 'tickets',
     'rota_'            => 'tickets',
     'users'            => 'tickets',
+    'user_email_'      => 'tickets',   // GH #308: a person's other addresses, and portal claims
+    'user_audit'       => 'tickets',   // GH #308: a person's history
     // --- Changes / Problems ---
     'change'           => 'changes',
     'problem'          => 'problems',

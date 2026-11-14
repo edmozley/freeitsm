@@ -177,6 +177,10 @@ function apiUsersCreate(PDO $conn, array $apiKey, array $params, array $body): v
         if ($check->fetchColumn()) {
             apiError(409, 'conflict', 'A requester with this email already exists.');
         }
+        require_once dirname(__DIR__, 3) . '/includes/user_emails.php';   // GH #308: one owner per address
+        if (userEmailOwner($conn, $email) !== null) {
+            apiError(409, 'conflict', 'This email is linked to another requester.');
+        }
     }
     if ($usernameOrNull !== null) {
         $check = $conn->prepare("SELECT id FROM users WHERE username = ?");
@@ -251,6 +255,11 @@ function apiUsersUpdate(PDO $conn, array $apiKey, array $params, array $body): v
         $dup->execute([$email, $params[0]]);
         if ($dup->fetchColumn()) {
             apiError(409, 'conflict', 'Another requester already uses this email.');
+        }
+        require_once dirname(__DIR__, 3) . '/includes/user_emails.php';   // GH #308: one owner per address
+        $own = userEmailOwner($conn, $email);
+        if ($own && $own['kind'] === 'linked' && $own['user_id'] !== (int)$params[0]) {
+            apiError(409, 'conflict', 'This email is linked to another requester.');
         }
         $updates[] = 'email = ?';
         $args[]    = $email;

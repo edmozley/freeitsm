@@ -509,6 +509,8 @@ try {
                     </div>
                     <?php /* GH #306 */ ?>
                     <p class="help-note" style="margin-top: 12px;"><?php echo t('tickets.help.comments.subject_note'); ?></p>
+                    <p class="help-note"><?php echo t('tickets.help.comments.addresses_note'); ?></p>   <?php /* GH #307 */ ?>
+                    <p class="help-note"><?php echo t('tickets.help.comments.requester_note'); ?></p>   <?php /* GH #308 */ ?>
                     <p class="help-note"><?php echo t('tickets.help.comments.attachments_note'); ?></p>
 
                     <p style="margin-top: 16px;"><?php echo t('tickets.help.comments.files_heading'); ?></p>
@@ -562,6 +564,7 @@ try {
                     </div>
 
                     <p class="help-note"><?php echo t('tickets.help.csat.switch_note'); ?></p>
+                    <p class="help-note"><?php echo t('tickets.help.csat.starters_note'); ?></p>   <?php /* GH #316 */ ?>
 
                     <p><?php echo t('tickets.help.csat.modes_heading'); ?></p>
                     <div class="help-list">

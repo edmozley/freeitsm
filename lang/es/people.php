@@ -11,6 +11,42 @@
  */
 
 return [
+    'emails' => [
+        'title' => 'Direcciones de correo electrónico',
+        'history' => 'Historial',
+        'main' => 'principal',
+        'none' => 'No hay otras direcciones.',
+        'via_analyst' => 'vinculada por {who}',
+        'via_portal' => 'añadida por la propia persona en el portal',
+        'via_merge' => 'de una persona fusionada',
+        'via_requester' => 'vinculada por {who}',
+        'remove' => 'Quitar',
+        'link' => 'Vincular',
+        'placeholder' => 'otra dirección, p. ej. una privada',
+        'hint' => 'El correo de una dirección vinculada es de esta persona: un ticket nuevo desde ella es suyo y aparece en su portal. Las respuestas siguen yendo a la dirección desde la que escribió. Nunca le permite iniciar sesión. Usted responde de ella y queda registrado abajo.',
+        'linked' => '{email} vinculada.',
+        'removed' => 'Quitada. Los tickets ya creados desde ella se quedan donde están.',
+        'failed' => 'Eso no ha funcionado. Inténtelo de nuevo.',
+        'system' => 'Sistema',
+        'history_none' => 'Todavía nada.',
+        'merge_title' => '{name} es una persona distinta',
+        'merge_body' => 'Esa es la dirección principal de {name} ({email}), que tiene {n} tickets - probablemente creada cuando escribió por primera vez desde ella. ¿Fusionarla en {into}? Sus tickets se trasladan aquí, y el historial de cada uno lo indica, y la dirección pasa a ser una de las de {into}.',
+        'merge_delete' => '{name} se elimina después: nada más hace referencia a esa persona.',
+        'merge_keep' => 'Algo más sigue haciendo referencia a esa persona, así que se desactiva en lugar de eliminarse.',
+        'merge_ok' => 'Fusionar',
+        'merged_deleted' => 'Fusionada: {n} tickets trasladados y duplicado eliminado.',
+        'merged_switched_off' => 'Fusionada: {n} tickets trasladados y duplicado desactivado.',
+        'merge_no_other_company' => '{name} pertenece a otra empresa, así que no se pueden fusionar.',
+        'merge_no_has_login' => '{name} inicia sesión en el portal con esa dirección, así que es una cuenta real. Resuélvalo a mano.',
+        'merge_no_directory' => 'Un directorio mantiene actualizada a {name}, así que eliminarla solo la haría reaparecer.',
+        'merge_no_same' => 'Esa es esta misma persona.',
+        'merge_no_not_found' => 'Esa dirección pertenece a otra persona.',
+        'h_email_linked' => 'vinculó {new} ({old})',
+        'h_email_unlinked' => 'quitó {old}',
+        'h_email_released' => 'perdió {old} - pasó a ser una dirección principal en {new}',
+        'h_merged' => 'fusionó a {old} ({new} tickets)',
+        'h_merged_into' => 'fusionada en {new} - {old} se trasladó con ella',
+    ],
     'title' => 'Personas',
     'nav' => [
         'people' => 'Personas',
@@ -71,7 +107,6 @@ return [
         'detail_none' => 'Nadie depende de esta persona.',
         'focus_pill' => 'Elegido',
         'dim' => 'Atenuar el resto',
-        'dim_title' => 'Atenuar a todos excepto a la persona elegida y a aquella cuyos detalles están abiertos',
         'keys' => 'Ratón y teclado',
         'keys_title' => 'Moverse por el gráfico',
         'keys_close' => 'Cerrar',
@@ -96,6 +131,7 @@ return [
         'key_enter' => 'Abrir el cuadro en el que está (también Espacio)',
         'key_esc' => 'Cerrar un menú o esta ventana',
         'key_f5' => 'Recargar, manteniendo lo que está abierto y la persona de la página',
+        'dim_title' => 'Atenuar a todos excepto a la persona elegida y a aquella cuyos detalles están abiertos',
         'scope' => 'Mostrar',
         'scope_context' => 'En la organización',
         'scope_branch' => 'Su parte',
@@ -155,7 +191,6 @@ return [
         'gap_none' => 'Ninguna.',
         'gap_more' => 'Se muestran las primeras {n} de {total}.',
     ],
-    // Grupos del directorio: importados de Microsoft Entra ID, se leen aquí y se cambian en Entra.
     'groups' => [
         'title' => 'Grupos',
         'intro' => 'Grupos importados de Microsoft Entra ID y las personas que contienen. Se cambian en Entra y llegan con la siguiente importación.',
@@ -182,7 +217,6 @@ return [
         'kind_microsoft365' => 'Microsoft 365',
         'kind_distribution' => 'Distribución',
     ],
-
     'suppliers' => [
         'intro' => 'Las organizaciones de Contratos - aquellas a las que compra y las que usted atiende - con sus contactos. Abra una para ver todo lo relacionado con ella.',
         'search_ph' => 'Proveedor, contacto o localidad...',
@@ -426,6 +460,7 @@ return [
             'sec_forms_d' => 'Formularios que envió, con cualquier aprobación y el ticket que originó un envío.',
             'sec_projects' => 'Proyectos',
             'sec_projects_d' => 'Proyectos de los que es miembro, con su rol, cuánto ha avanzado cada uno y su estado de salud.',
+            'p4' => '**Direcciones de correo electrónico** lista su dirección principal y las **vinculadas**: otras direcciones suyas, como una privada desde la que escribe cuando no puede acceder a su cuenta de trabajo. El correo de una dirección vinculada es suyo: un ticket nuevo desde ella se crea para esa persona y aparece en su portal, y las respuestas siguen yendo a la dirección desde la que escribió. Una dirección vinculada nunca le permite iniciar sesión. Puede añadir una ella misma en el portal (queda vinculada cuando abre un enlace enviado a esa dirección) o cualquiera que pueda editar personas puede **Vincular** una aquí - usted responde de ella y el **Historial** registra quién hizo qué. Si la dirección ya es la principal de otra persona - normalmente un duplicado creado la primera vez que escribió desde ella - se le ofrece **fusionar** a esa persona aquí: sus tickets se trasladan, el historial de cada ticket lo indica, la dirección pasa a ser una de las de esta persona y el duplicado se elimina (o se desactiva si algo más sigue haciendo referencia a él). Nunca se fusiona a alguien que inicia sesión, a alguien que un directorio mantiene actualizado ni a alguien de otra empresa.',
             'p3' => 'Cada sección muestra diez filas, con **Mostrar todo** para el resto. Una sección con muchísimo contenido muestra las últimas 50 y lo indica - el propio módulo tiene la lista completa.',
         ],
         'org' => [

@@ -15,6 +15,8 @@
  */
 (function () {
     'use strict';
+    // Loaded once: the Documents panel brings it to any page, and a page may also load it itself.
+    if (window.FilesPicker) return;
     var BASE = (document.currentScript && document.currentScript.src || '').replace(/assets\/js\/files-picker\.js.*$/, '');
     var LIST = BASE + 'api/files/list.php';
     var LV_DOWNLOAD = 2;

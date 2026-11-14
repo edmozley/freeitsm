@@ -55,6 +55,20 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
             return;
         }
 
+        // GH #316: a ticket raised by a Starters & leavers case whose template says not to
+        // email the requester. Logged, so "why did the manager hear nothing?" has an answer.
+        require_once __DIR__ . '/ticket_requester_mute.php';
+        if (templateEventAudience($eventTrigger) === 'requester' && ticketRequesterEmailsMuted($conn, $ticketId)) {
+            emailLogSkipped(
+                $conn, templateGetMailboxForTicket($conn, $ticketId), 'template',
+                (string)($mergeData['requester_email'] ?? ''),
+                'Automatic email: ' . $eventTrigger,
+                'This ticket was raised by a Starters & leavers case whose template does not email the requester.',
+                $ticketId
+            );
+            return;
+        }
+
         // 🔑 SELECTION IS ALWAYS KEYED ON THE REQUESTER, even for an event whose
         // email goes to an analyst. Sender rules answer "which customers does
         // this template cover" (#80) - scoping an analyst notification by the

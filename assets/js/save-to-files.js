@@ -14,6 +14,8 @@
  */
 (function () {
     'use strict';
+    // Loaded once: the Documents panel brings it to any page, and a page may also load it itself.
+    if (window.SaveToFiles) return;
     // The app's root, from this script's own address - it is loaded from pages at
     // different depths (tickets/, tasks/, assets/...).
     var BASE = (document.currentScript && document.currentScript.src || '').replace(/assets\/js\/save-to-files\.js.*$/, '');

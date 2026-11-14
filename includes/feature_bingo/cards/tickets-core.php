@@ -19,6 +19,30 @@ $companyOn = function (string $key): array {
 
 return [
     [
+        'id'       => 'people.linked_email',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Other addresses linked to a person',
+        'what'     => 'A private or second address linked to a person - by them in the portal (with a confirmation link) or by an analyst on their People page - so mail from it is theirs.',
+        'why'      => 'People write from a personal address exactly when they cannot get into their work account. Their ticket then lands under them and shows in their portal, instead of under a stranger with the same name.',
+        'done'     => 'At least one person has a linked email address.',
+        'link'     => 'people/',
+        'check'    => ['rows', 'user_email_addresses', '1=1'],
+    ],
+    [
+        'id'       => 'tickets.supplier_service_desk',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Suppliers\' service desk addresses',
+        'what'     => 'A supplier\'s service desk address, set on the supplier in Contracts, offered first as you type in To or Cc when you email from a ticket - with supplier contacts, people and recently emailed addresses.',
+        'why'      => 'Escalating to an outside provider means typing their ticket address every time. Type the first letters of their name instead.',
+        'done'     => 'At least one supplier has a service desk address.',
+        'link'     => 'contracts/suppliers/',
+        'check'    => ['rows', 'suppliers', "ticket_email IS NOT NULL AND ticket_email <> ''"],
+    ],
+    [
         'id'       => 'tickets.reply_to_requester',
         'module'   => 'tickets',
         'tier'     => 'extra',

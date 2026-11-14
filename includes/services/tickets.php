@@ -240,9 +240,9 @@ class TicketsService
                     $requesterName = (string)($picked['display_name'] ?? '');
                 }
             } else {
-                $uStmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-                $uStmt->execute([$requesterEmail]);
-                $userId = $uStmt->fetchColumn();
+                // GH #308: the address may be a person's linked one - the ticket is theirs.
+                require_once __DIR__ . '/../user_emails.php';
+                $userId = userIdForEmail($conn, $requesterEmail) ?? false;
                 if ($userId === false) {
                     // ⚠️ tenant_id was missing from this INSERT entirely, so a
                     // requester born from a manual ticket had NO company — while
@@ -355,6 +355,43 @@ class TicketsService
         $updates = [];
         $args    = [];
         $audits  = [];
+
+        // GH #308: change the requester - a ticket logged by a colleague on someone's behalf, a
+        // mistake at intake, a person who wrote from an address not yet linked to them. Always in
+        // the ticket's history. The new requester must be someone the actor may see, in the
+        // ticket's company (moving a ticket between companies is its own, separate action).
+        if (array_key_exists('user_id', $in)) {
+            $newReq = (int)$in['user_id'];
+            if ($newReq <= 0) {
+                throw new ServiceError('validation', 'missing_field', 'A ticket must have a requester.');
+            }
+            if ($newReq !== (int)($current['user_id'] ?? 0)) {
+                $u = $conn->prepare("SELECT id, display_name, email, tenant_id FROM users WHERE id = ?");
+                $u->execute([$newReq]);
+                $person = $u->fetch(PDO::FETCH_ASSOC);
+                if (!$person || ($actorId > 0 && !analystCanAccessUser($conn, $actorId, $newReq))) {
+                    throw new ServiceError('validation', 'invalid_field', 'That person no longer exists.');
+                }
+                if (isMultiTenant($conn)) {
+                    $def = getDefaultTenantId($conn);
+                    $pt = $person['tenant_id'] !== null ? (int)$person['tenant_id'] : $def;
+                    $tt = $current['tenant_id'] !== null ? (int)$current['tenant_id'] : $def;
+                    if ($pt !== $tt) {
+                        throw new ServiceError('validation', 'invalid_field', 'That person belongs to another company. Move the ticket to their company first.');
+                    }
+                }
+                $old = null;
+                if (!empty($current['user_id'])) {
+                    $o = $conn->prepare("SELECT display_name, email FROM users WHERE id = ?");
+                    $o->execute([(int)$current['user_id']]);
+                    if ($or = $o->fetch(PDO::FETCH_ASSOC)) $old = trim(($or['display_name'] ?: '') . ($or['email'] ? ' <' . $or['email'] . '>' : ''));
+                }
+                $updates[] = 'user_id = ?';
+                $args[]    = $newReq;
+                // The 4th element: written even when the caller turns audit off - who a ticket is for is never changed silently.
+                $audits[]  = ['Requester', $old, trim(($person['display_name'] ?: '') . ($person['email'] ? ' <' . $person['email'] . '>' : '')), true];
+            }
+        }
 
         // A presentation choice, shared by every channel. Always audit it here,
         // including UI calls, so changing layout cannot lose its history.

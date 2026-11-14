@@ -103,7 +103,7 @@ try {
         $stmt->execute([$realId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
-            $ser = apiSerializeTicket($row);
+            $ser = apiSerializeTicket($row) + ['related' => apiTicketRelated($conn, (int)$row['id'], null)];   // as the real Full record (GH #328)
             // Same keys a real ticket.* dispatch carries — nothing invented.
             // `full` is genuine: it's what {{ticket.full}} resolves to at run time.
             $sample['ticket'] = [

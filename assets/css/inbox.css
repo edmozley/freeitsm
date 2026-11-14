@@ -4988,3 +4988,6 @@ body .tox-tinymce-aux {
 .note-from-files-none { padding: 6px 2px; font-size: 12px; color: var(--text-muted, #666); }
 .note-file-wrap { display: inline-flex; align-items: center; gap: 4px; }
 .note-file-noaccess { color: var(--text-muted, #666); font-style: italic; }
+/* GH #308 */
+.req-change-link { margin-left: 8px; font-size: 12px; color: var(--accent); text-decoration: none; }
+.req-change-link:hover { text-decoration: underline; }

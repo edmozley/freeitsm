@@ -11,6 +11,42 @@
  */
 
 return [
+    'emails' => [
+        'title' => 'E-Mail-Adressen',
+        'history' => 'Verlauf',
+        'main' => 'Haupt',
+        'none' => 'Keine weiteren Adressen.',
+        'via_analyst' => 'verknüpft von {who}',
+        'via_portal' => 'von der Person selbst im Portal hinzugefügt',
+        'via_merge' => 'aus einer zusammengeführten Person',
+        'via_requester' => 'verknüpft von {who}',
+        'remove' => 'Entfernen',
+        'link' => 'Verknüpfen',
+        'placeholder' => 'weitere Adresse, z. B. eine private',
+        'hint' => 'E-Mails von einer verknüpften Adresse gehören dieser Person: Ein neues Ticket von dort ist ihres und erscheint in ihrem Portal. Antworten gehen weiterhin an die Adresse, von der geschrieben wurde. Die Adresse meldet die Person nie an. Sie bürgen dafür - es wird unten protokolliert.',
+        'linked' => '{email} verknüpft.',
+        'removed' => 'Entfernt. Bereits von dort erstellte Tickets bleiben, wo sie sind.',
+        'failed' => 'Das hat nicht funktioniert. Bitte versuchen Sie es erneut.',
+        'system' => 'System',
+        'history_none' => 'Noch nichts.',
+        'merge_title' => '{name} ist eine eigene Person',
+        'merge_body' => 'Das ist die Hauptadresse von {name} ({email}) mit {n} Tickets - vermutlich angelegt, als die Person zum ersten Mal von dort geschrieben hat. Mit {into} zusammenführen? Die Tickets wandern hierher, im Verlauf jedes Tickets wird das vermerkt, und die Adresse wird eine von {into}.',
+        'merge_delete' => '{name} wird danach entfernt: Nichts anderes verweist auf diese Person.',
+        'merge_keep' => 'Etwas anderes verweist noch auf diese Person, daher wird sie deaktiviert statt entfernt.',
+        'merge_ok' => 'Zusammenführen',
+        'merged_deleted' => 'Zusammengeführt: {n} Tickets verschoben und das Duplikat entfernt.',
+        'merged_switched_off' => 'Zusammengeführt: {n} Tickets verschoben und das Duplikat deaktiviert.',
+        'merge_no_other_company' => '{name} gehört zu einem anderen Unternehmen und kann deshalb nicht zusammengeführt werden.',
+        'merge_no_has_login' => '{name} meldet sich mit dieser Adresse im Portal an und ist daher ein echtes Konto. Klären Sie das von Hand.',
+        'merge_no_directory' => 'Ein Verzeichnis hält {name} aktuell, ein Entfernen würde die Person nur wieder zurückbringen.',
+        'merge_no_same' => 'Das ist diese Person.',
+        'merge_no_not_found' => 'Diese Adresse gehört jemand anderem.',
+        'h_email_linked' => '{new} verknüpft ({old})',
+        'h_email_unlinked' => '{old} entfernt',
+        'h_email_released' => '{old} verloren - sie wurde Hauptadresse in {new}',
+        'h_merged' => '{old} zusammengeführt ({new} Tickets)',
+        'h_merged_into' => 'in {new} zusammengeführt - {old} mit ihr verschoben',
+    ],
     'title' => 'Personen',
     'nav' => [
         'people' => 'Personen',
@@ -71,7 +107,6 @@ return [
         'detail_none' => 'Niemand ist dieser Person unterstellt.',
         'focus_pill' => 'Ausgewählt',
         'dim' => 'Andere abblenden',
-        'dim_title' => 'Alle außer der ausgewählten Person und der Person, deren Details geöffnet sind, abblenden',
         'keys' => 'Maus und Tastatur',
         'keys_title' => 'Im Diagramm bewegen',
         'keys_close' => 'Schließen',
@@ -96,6 +131,7 @@ return [
         'key_enter' => 'Das Kästchen öffnen, auf dem Sie stehen (auch Leertaste)',
         'key_esc' => 'Ein Menü oder dieses Fenster schließen',
         'key_f5' => 'Neu laden, wobei Geöffnetes und die gewählte Person erhalten bleiben',
+        'dim_title' => 'Alle außer der ausgewählten Person und der Person, deren Details geöffnet sind, abblenden',
         'scope' => 'Anzeigen',
         'scope_context' => 'In der Organisation',
         'scope_branch' => 'Ihr Bereich',
@@ -155,7 +191,6 @@ return [
         'gap_none' => 'Keine.',
         'gap_more' => 'Die ersten {n} von {total} werden angezeigt.',
     ],
-    // Verzeichnisgruppen - aus Microsoft Entra ID importiert, hier gelesen, in Entra geändert.
     'groups' => [
         'title' => 'Gruppen',
         'intro' => 'Aus Microsoft Entra ID importierte Gruppen und die Personen darin. Sie werden in Entra geändert und kommen mit dem nächsten Import an.',
@@ -182,7 +217,6 @@ return [
         'kind_microsoft365' => 'Microsoft 365',
         'kind_distribution' => 'Verteiler',
     ],
-
     'suppliers' => [
         'intro' => 'Die Organisationen in Verträge - bei denen Sie einkaufen und die Sie betreuen - mit ihren Kontakten. Öffnen Sie eine, um alles zu sehen, was mit ihr zu tun hat.',
         'search_ph' => 'Lieferant, Kontakt oder Ort...',
@@ -426,6 +460,7 @@ return [
             'sec_forms_d' => 'Von ihr eingereichte Formulare, mit Genehmigung und dem Ticket, das eine Einreichung erstellt hat.',
             'sec_projects' => 'Projekte',
             'sec_projects_d' => 'Projekte, in denen sie Mitglied ist, mit Rolle, Fortschritt und Zustand.',
+            'p4' => '**E-Mail-Adressen** listet die Hauptadresse und alle **verknüpften** Adressen auf - weitere Adressen der Person, etwa eine private, von der sie schreibt, wenn sie nicht in ihr Arbeitskonto kommt. E-Mails von einer verknüpften Adresse gehören der Person: Ein neues Ticket von dort wird für sie angelegt und erscheint in ihrem Portal, Antworten gehen weiterhin an die Adresse, von der geschrieben wurde. Eine verknüpfte Adresse meldet die Person nie an. Sie kann selbst eine im Portal hinzufügen (sie wird verknüpft, sobald sie einen per E-Mail zugesandten Link öffnet), oder jeder, der Personen bearbeiten darf, kann hier eine **verknüpfen** - Sie bürgen dafür, und der **Verlauf** hält fest, wer was getan hat. Ist die Adresse bereits die Hauptadresse einer anderen Person - meist ein Duplikat, das beim ersten Schreiben von dort entstanden ist -, wird Ihnen angeboten, diese Person **zusammenzuführen**: Ihre Tickets wandern hierher, im Verlauf jedes Tickets wird das vermerkt, die Adresse wird eine dieser Person, und das Duplikat wird entfernt (oder deaktiviert, wenn noch etwas anderes darauf verweist). Wer sich anmeldet, wer von einem Verzeichnis aktuell gehalten wird und wer zu einem anderen Unternehmen gehört, wird nie zusammengeführt.',
             'p3' => 'Jeder Abschnitt zeigt zehn Zeilen, mit **Alle anzeigen** für den Rest. Ein Abschnitt mit sehr vielen Einträgen zeigt die neuesten 50 und weist darauf hin - die vollständige Liste hat das Modul selbst.',
         ],
         'org' => [

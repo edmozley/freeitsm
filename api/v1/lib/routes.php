@@ -28,6 +28,7 @@ return [
     ['GET',    '#^/tickets/(\d+)/checklists$#',            ['ticket_checklists', 'read'],     'apiTicketChecklistsList'],
     ['PATCH',  '#^/tickets/(\d+)/checklists/steps/(\d+)$#', ['ticket_checklists', 'update'], 'apiTicketChecklistStepUpdate'],
     ['GET',    '#^/tickets/(\d+)/thread$#',                ['ticket_thread', 'read'],         'apiTicketThreadList'],
+    ['GET',    '#^/tickets/(\d+)/attachments$#',           ['ticket_attachments', 'read'],    'apiTicketAttachmentsList'],   // GH #328
     ['GET',    '#^/tickets/(\d+)/audit$#',                 ['ticket_audit', 'read'],          'apiTicketAuditList'],
     ['GET',    '#^/tickets/(\d+)/sla$#',                   ['ticket_sla', 'read'],            'apiTicketSlaGet'],
     ['GET',    '#^/tickets/(\d+)/time-entries$#',          ['ticket_time_entries', 'read'],   'apiTicketTimeEntriesList'],

@@ -577,9 +577,8 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
     $fallbackName  = trim((string)($overrides['from_name']  ?? ''));
 
     if (!$userId && $fallbackEmail !== '') {
-        $look = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
-        $look->execute([$fallbackEmail]);
-        $userId = (int)$look->fetchColumn();
+        require_once __DIR__ . '/user_emails.php';
+        $userId = (int)(userIdForEmail($conn, $fallbackEmail) ?? 0);   // GH #308: linked addresses too
         if (!$userId) {
             $conn->prepare('INSERT INTO users (email, display_name, created_at) VALUES (?, ?, UTC_TIMESTAMP())')
                  ->execute([$fallbackEmail, $fallbackName !== '' ? $fallbackName : $fallbackEmail]);

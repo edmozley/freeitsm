@@ -3412,8 +3412,24 @@ try {
         ['jml_templates',      'fk_jml_templates_form',    "ALTER TABLE jml_templates ADD CONSTRAINT fk_jml_templates_form FOREIGN KEY (form_id) REFERENCES forms (id) ON DELETE SET NULL"],
         ['jml_cases',          'fk_jml_cases_submission',  "ALTER TABLE jml_cases ADD CONSTRAINT fk_jml_cases_submission FOREIGN KEY (form_submission_id) REFERENCES form_submissions (id) ON DELETE SET NULL"],
         ['jml_audit',          'fk_jml_audit_case',        "ALTER TABLE jml_audit ADD CONSTRAINT fk_jml_audit_case FOREIGN KEY (case_id) REFERENCES jml_cases (id) ON DELETE CASCADE"],
+        // GH #316
+        ['jml_templates',      'fk_jml_templates_ticket_type', "ALTER TABLE jml_templates ADD CONSTRAINT fk_jml_templates_ticket_type FOREIGN KEY (ticket_type_id) REFERENCES ticket_types (id) ON DELETE SET NULL"],
+        ['jml_case_tickets',   'fk_jml_ct_case',           "ALTER TABLE jml_case_tickets ADD CONSTRAINT fk_jml_ct_case FOREIGN KEY (case_id) REFERENCES jml_cases (id) ON DELETE CASCADE"],
+        ['jml_case_tickets',   'fk_jml_ct_ticket',         "ALTER TABLE jml_case_tickets ADD CONSTRAINT fk_jml_ct_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"],
     ];
     foreach ($jmlFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
+    // GH #308: a person's other addresses, portal claims and history go with the person.
+    foreach ([
+        ['user_email_addresses', 'fk_uea_user',           "ALTER TABLE user_email_addresses ADD CONSTRAINT fk_uea_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE"],
+        ['user_email_addresses', 'fk_uea_analyst',        "ALTER TABLE user_email_addresses ADD CONSTRAINT fk_uea_analyst FOREIGN KEY (added_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['user_email_claims',    'fk_uec_user',           "ALTER TABLE user_email_claims ADD CONSTRAINT fk_uec_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE"],
+        ['user_audit',           'fk_user_audit_user',    "ALTER TABLE user_audit ADD CONSTRAINT fk_user_audit_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE"],
+        ['user_audit',           'fk_user_audit_analyst', "ALTER TABLE user_audit ADD CONSTRAINT fk_user_audit_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+    ] as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
         try { $conn->exec($sql); } catch (Exception $e) {}
     }

@@ -697,6 +697,33 @@ return [
         'created_at'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // GH #308: a person's other addresses, portal claims waiting for confirmation, and their history - see freeitsm.sql.
+    'user_email_addresses' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'user_id'             => 'INT NOT NULL',
+        'email'               => 'VARCHAR(255) NOT NULL',
+        'added_via'           => "VARCHAR(20) NOT NULL DEFAULT 'analyst'",
+        'added_by_analyst_id' => 'INT NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'user_email_claims' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'user_id'          => 'INT NOT NULL',
+        'email'            => 'VARCHAR(255) NOT NULL',
+        'token_hash'       => 'CHAR(64) NOT NULL',
+        'expires_at'       => 'DATETIME NOT NULL',
+        'created_at'       => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'user_audit' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'user_id'          => 'INT NOT NULL',
+        'analyst_id'       => 'INT NULL',
+        'field_name'       => 'VARCHAR(100) NOT NULL',
+        'old_value'        => 'VARCHAR(1000) NULL',
+        'new_value'        => 'VARCHAR(1000) NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     // Password reset for SELF-SERVICE PORTAL users (GH #134). Separate from
     // `password_reset_tokens`, which is the analyst one and is hard-wired to
     // analyst_id — see the note beside this table in database/freeitsm.sql for
@@ -5026,6 +5053,7 @@ return [
         'trading_name'                  => 'VARCHAR(255) NULL',
         'reg_number'                    => 'VARCHAR(50) NULL',
         'vat_number'                    => 'VARCHAR(50) NULL',
+        'ticket_email'                  => 'VARCHAR(255) NULL',   // GH #307: their service desk's address, suggested in a ticket's To / Cc
         'supplier_type_id'              => 'INT NULL',
         'supplier_status_id'            => 'INT NULL',
         'address_line_1'                => 'VARCHAR(255) NULL',
@@ -7022,6 +7050,8 @@ return [
         'display_order'     => 'INT NOT NULL DEFAULT 0',
         'form_id'           => 'INT NULL',
         'match_rule'        => 'TEXT NULL',
+        'ticket_type_id'    => 'INT NULL',                       // GH #316: ticket steps' type
+        'email_requester'   => 'TINYINT(1) NOT NULL DEFAULT 0',  // GH #316: their requester gets the automatic emails
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
@@ -7035,6 +7065,8 @@ return [
         'due_offset_days'        => 'INT NOT NULL DEFAULT 0',
         'checklist_template_id'  => 'INT NULL',
         'condition_rule'         => 'TEXT NULL',
+        'raise_as'               => "VARCHAR(10) NOT NULL DEFAULT 'task'",   // GH #316: task | ticket
+        'ticket_name'            => 'VARCHAR(100) NULL',                      // GH #316: same name = one ticket
         'display_order'          => 'INT NOT NULL DEFAULT 0',
         'is_demo'                => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
@@ -7059,6 +7091,15 @@ return [
         'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'completed_datetime'  => 'DATETIME NULL',
         'is_demo'             => 'TINYINT(1) NOT NULL DEFAULT 0',
+    ],
+    // GH #316: the tickets a case raised - see freeitsm.sql.
+    'jml_case_tickets' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'case_id'          => 'INT NOT NULL',
+        'ticket_id'        => 'INT NOT NULL',
+        'ticket_name'      => 'VARCHAR(100) NULL',
+        'mute_requester'   => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
     'jml_audit' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',

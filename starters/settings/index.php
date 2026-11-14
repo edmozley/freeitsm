@@ -40,7 +40,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
     <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=28">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=85">
-    <link rel="stylesheet" href="../../assets/css/starters.css?v=7">
+    <link rel="stylesheet" href="../../assets/css/starters.css?v=8">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="starters" data-mobile-page="settings">
@@ -97,11 +97,23 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
                             <th><?php echo $tt('step_analyst'); ?></th>
                             <th title="<?php echo $tt('step_days_tip'); ?>"><?php echo $tt('step_days'); ?></th>
                             <th><?php echo $tt('step_checklist'); ?></th>
+                            <th title="<?php echo $tt('step_raise_tip'); ?>"><?php echo $tt('step_raise'); ?></th>   <?php /* GH #316 */ ?>
                             <th></th>
                         </tr></thead>
                     </table>
                     <button type="button" class="jml-btn small" id="jmlTplAddStep" style="margin-top:8px"><?php echo $tt('step_add'); ?></button>
                     <div class="jml-hint"><?php echo $tt('step_days_tip'); ?></div>
+                    <datalist id="jmlTplTicketNames"></datalist>
+                    <div class="jml-warn" id="jmlTplTicketWarn" hidden></div>
+                </div>
+                <?php /* GH #316: what the steps raised as tickets get. */ ?>
+                <div class="jml-field" id="jmlTplTicketBits">
+                    <div class="lbl"><?php echo $tt('tickets_heading'); ?></div>
+                    <div class="jml-row">
+                        <div class="jml-field"><label for="jmlTplTicketType"><?php echo $tt('ticket_type'); ?></label><select id="jmlTplTicketType"></select></div>
+                    </div>
+                    <label class="jml-switch"><input type="checkbox" id="jmlTplEmailReq"> <?php echo $tt('email_requester'); ?></label>
+                    <div class="jml-hint"><?php echo $tt('tickets_hint'); ?></div>
                 </div>
                 <div class="jml-error" id="jmlTplError" hidden></div>
             </div>
@@ -114,7 +126,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.settings.' . $k));
     </div>
 
     <script src="../../assets/js/starters.js?v=2"></script>
-    <script src="../../assets/js/starters-settings.js?v=6"></script>
+    <script src="../../assets/js/starters-settings.js?v=7"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

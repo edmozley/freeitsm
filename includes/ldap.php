@@ -818,6 +818,8 @@ function ldapResolveUser(PDO $conn, array $provider, array $ldapUser): array {
         )->execute([$emailOrNull, $providerId, $subject]);
 
         if ($emailOrNull !== null && strtolower((string)$user['email']) !== $email) {
+            require_once __DIR__ . '/user_emails.php';
+            userReleaseEmailForMain($conn, $emailOrNull, 'ldap', $userId);   // GH #308: the directory wins
             $conn->prepare("UPDATE users SET email = ? WHERE id = ?")->execute([$emailOrNull, $userId]);
         }
         return ['ok' => true, 'user_id' => $userId];
@@ -886,6 +888,10 @@ function ldapResolveUser(PDO $conn, array $provider, array $ldapUser): array {
         // placeholder hash would make the local login path treat a directory
         // user as having a password of their own.
         $display = $name !== '' ? $name : ($username !== '' ? $username : (string)$email);
+
+        // GH #308: the directory wins an address somebody else has linked.
+        require_once __DIR__ . '/user_emails.php';
+        userReleaseEmailForMain($conn, $email, 'ldap');
 
         try {
             $ins = $conn->prepare(

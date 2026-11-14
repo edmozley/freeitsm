@@ -13,6 +13,8 @@
  */
 (function () {
     'use strict';
+    // Loaded once: the Documents panel brings it to any page, and a page may also load it itself.
+    if (window.FilesIcons) return;
 
     // Extension -> kind. The kind decides colour, band label and the Type column.
     var KINDS = {

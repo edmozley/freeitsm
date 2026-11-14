@@ -3495,8 +3495,14 @@ function displayEmail(email, recordings) {
             <div class="email-meta">
                 <div class="email-meta-row">
                     <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_from'))}</div>
-                    <div class="email-meta-value">${senderLabel(email.from_name, email.from_address, true)}${requesterDialHtml(email)}</div>
+                    <div class="email-meta-value">${senderLabel(email.from_name, email.from_address, true)}${requesterDialHtml(email)}
+                        <a href="#" class="req-change-link" onclick="event.preventDefault();openChangeRequester();">${escapeHtml(t('tickets.change_requester.link'))}</a></div>
                 </div>
+                ${email.requester_email && String(email.requester_email).toLowerCase() !== String(email.from_address || '').toLowerCase() ? `
+                <div class="email-meta-row">
+                    <div class="email-meta-label">${escapeHtml(t('tickets.change_requester.requester'))}</div>
+                    <div class="email-meta-value">${senderLabel(email.requester_name, email.requester_email, true)}</div>
+                </div>` : ''}
                 <div class="email-meta-row">
                     <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_to'))}</div>
                     <div class="email-meta-value">${escapeHtml(email.to_recipients)}</div>
@@ -4016,6 +4022,14 @@ function buildLinksSection(email, workspace = false) {
     if (L.duplicate_of) pills.push(tp(L.duplicate_of, 'Duplicate of:'));
     (L.duplicates || []).forEach(d => pills.push(tp(d, 'Duplicate:')));
     (L.related || []).forEach(r => pills.push(tp(r, 'Related:')));
+
+    // GH #316: the Starters & leavers case that raised this ticket - who it is for, and the way back to the case.
+    if (email.jml_case) {
+        const jc = email.jml_case;
+        pills.push(`<a class="pm-ticket-badge" href="../starters/view.php?id=${jc.id}" target="_blank" title="${escapeHtml(t('tickets.jml_case_tip'))}">
+            🧳 <span class="pill-text">${escapeHtml(t('tickets.jml_case_' + jc.kind, { name: jc.person_name }))}</span>
+        </a>`);
+    }
 
     // External issue trackers (#950). A Jira issue IS a link, so it belongs in
     // this strip rather than in a panel of its own — an analyst already looks
@@ -7254,7 +7268,7 @@ function renderNotes() {
                 // (the Files viewer) - followed as a plain link a picture REPLACED the
                 // Tickets page, with no way back but Back, which left the ticket too.
                 const inViewer = d.kind === 'file' && VIEWER_FILE_RE.test(name);
-                return `<span class="note-file-wrap"><a class="note-file" href="${escapeHtml(href)}"
+                return `<span class="note-file-wrap"><a class="note-file" href="${escapeHtml(href)}" ${d.kind === 'files' && d.files_item_id_open ? `data-open-files="${Number(d.files_item_id_open)}"` : ''}
                            ${d.kind === 'link' || d.kind === 'files' ? 'target="_blank" rel="noopener noreferrer"' : ''}
                            ${inViewer ? `data-view-file="${escapeHtml(name)}" data-size="${Number(d.size_bytes) || 0}"` : ''}
                            title="${escapeHtml(name)}">
@@ -7314,6 +7328,14 @@ const VIEWER_FILE_RE = /\.(png|jpe?g|gif|webp|bmp|pdf)$/i;
 // link stays a real link, so Ctrl/middle-click still opens it in a new tab, and
 // the address is the same download.php, so the permission check is unchanged.
 function openNoteFile(ev) {
+    // GH #303: a file in Files opens in the page, through view.php (its permissions, View only, watermark)
+    const fl = ev.target.closest('a.note-file[data-open-files]');
+    if (fl && ev.button === 0 && !(ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) && window.FilesViewer && window.FilesViewer.openItem) {
+        ev.preventDefault();
+        const href = fl.getAttribute('href');
+        window.FilesViewer.openItem(Number(fl.dataset.openFiles)).catch(() => window.open(href, '_blank'));
+        return;
+    }
     const a = ev.target.closest('a.note-file[data-view-file], a.note-inline-image[data-view-file]');
     if (!a || ev.button !== 0 || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
     if (!window.FilesViewer || !window.FilesViewer.openUrl) return;
@@ -7790,6 +7812,22 @@ function replyFromThread(emailId, mode) {
 }
 
 // Open forward modal
+/**
+ * GH #307: suggestions as you type in To and Cc - supplier service desks, supplier contacts,
+ * people of the ticket's company and addresses recently emailed from its tickets.
+ * Attached once; each lookup asks about the ticket open at that moment.
+ */
+(function initAddressSuggest() {
+    if (!window.AddressSuggest) return;
+    const lookup = q => {
+        const id = currentEmail && currentEmail.ticket_id;
+        if (!id) return Promise.resolve([]);
+        return fetch(API_BASE + 'address_suggest.php?ticket_id=' + encodeURIComponent(id) + '&q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+            .then(r => r.json()).then(j => (j && j.success ? j.suggestions : []));
+    };
+    ['emailTo', 'emailCc'].forEach(id => window.AddressSuggest.attach(document.getElementById(id), { fetch: lookup }));
+})();
+
 function openForwardModal(fromEmail) {
     composeMode = 'forward';
     document.getElementById('emailTo').value = '';
@@ -13823,4 +13861,80 @@ function aiErrorText(code) {
         case 'auto_disabled':        return t('tickets.ai.turned_off');
         default:                     return t('tickets.ai.failed');
     }
+}
+
+// ── GH #308: Change requester ─────────────────────────────────────────────────
+/**
+ * Change the open ticket's requester: search people (get_users.php, which finds linked
+ * addresses too), pick one, and - when the old requester looks like a duplicate of them -
+ * offer to merge the old person in (their other tickets move, their address becomes one of
+ * the new person's). api/tickets/change_requester.php does it and records it in the history.
+ */
+async function openChangeRequester() {
+    if (!currentEmail || !currentEmail.ticket_id) return;
+    const ticketId = currentEmail.ticket_id;
+    const T = (k, p) => t('tickets.change_requester.' + k, p);
+    const wrap = document.createElement('div');
+    wrap.className = 'modal active';
+    wrap.innerHTML = `<div class="modal-content" style="max-width:520px">
+        <div class="modal-header">${escapeHtml(T('title'))}</div>
+        <div class="modal-body">
+            <input type="search" class="form-input" id="crqSearch" placeholder="${escapeHtml(T('search'))}" autocomplete="off">
+            <div id="crqList" style="max-height:220px;overflow:auto;margin-top:8px"></div>
+            <div id="crqPicked" style="margin-top:10px" hidden></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-crq="cancel">${escapeHtml(t('common.cancel'))}</button>
+            <button type="button" class="btn btn-primary" data-crq="save" disabled>${escapeHtml(T('save'))}</button>
+        </div></div>`;
+    document.body.appendChild(wrap);
+    const close = () => wrap.remove();
+    const list = wrap.querySelector('#crqList'), picked = wrap.querySelector('#crqPicked'), save = wrap.querySelector('[data-crq="save"]');
+    let chosen = null, preview = null, timer = null;
+    const search = wrap.querySelector('#crqSearch');
+    search.focus();
+    search.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+            const q = search.value.trim();
+            if (q.length < 2) { list.innerHTML = ''; return; }
+            const res = await fetch(API_BASE + 'get_users.php?limit=8&search=' + encodeURIComponent(q)).then(r => r.json()).catch(() => null);
+            const users = (res && (res.users || res.data)) || [];
+            list.innerHTML = users.length ? users.map(u => `<div class="crq-row" data-id="${u.id}" style="padding:6px 8px;cursor:pointer;border-bottom:1px solid var(--border-soft)">
+                <strong>${escapeHtml(u.display_name || u.email || '')}</strong> <span style="color:var(--text-muted)">${escapeHtml(u.email || '')}</span></div>`).join('')
+                : `<div style="color:var(--text-muted);padding:6px">${escapeHtml(T('none'))}</div>`;
+        }, 200);
+    });
+    list.addEventListener('click', async e => {
+        const row = e.target.closest('.crq-row');
+        if (!row) return;
+        chosen = +row.dataset.id;
+        list.querySelectorAll('.crq-row').forEach(r => r.style.background = r === row ? 'var(--accent-soft)' : '');
+        preview = await fetch(API_BASE + 'change_requester.php?ticket_id=' + ticketId + '&user_id=' + chosen).then(r => r.json()).catch(() => null);
+        const m = preview && preview.merge;
+        picked.hidden = false;
+        if (m && m.can) {
+            const others = Math.max(0, (m.tickets || 0) - 1);
+            picked.innerHTML = `<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="crqMerge" checked>
+                <span>${escapeHtml(T(others ? 'merge' : 'merge_only', { name: m.from.name, email: m.from.email || '', into: m.to.name, n: others }))}
+                <br><span style="color:var(--text-muted);font-size:12px">${escapeHtml(m.delete ? T('merge_delete') : T('merge_keep'))}</span></span></label>`;
+        } else if (m && m.reason && m.reason !== 'same') {
+            picked.innerHTML = `<div style="color:var(--text-muted);font-size:12px">${escapeHtml(T('no_merge_' + m.reason, { name: m.from.name || '' }))}</div>`;
+        } else {
+            picked.innerHTML = '';
+        }
+        save.disabled = !chosen;
+    });
+    wrap.querySelector('[data-crq="cancel"]').addEventListener('click', close);
+    wrap.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    save.addEventListener('click', async () => {
+        save.disabled = true;
+        const merge = !!(wrap.querySelector('#crqMerge') || {}).checked;
+        const r = await fetch(API_BASE + 'change_requester.php', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: ticketId, user_id: chosen, merge_old: merge }) }).then(x => x.json()).catch(() => null);
+        if (!r || !r.success) { showToast((r && r.error) || T('failed'), 'error'); save.disabled = false; return; }
+        showToast(r.merged ? T('done_merged', { n: r.merged.moved }) : T('done'), 'success');
+        close();
+        loadTicketById(ticketId, { refresh: true });
+    });
 }

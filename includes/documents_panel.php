@@ -35,10 +35,18 @@ function documentsPanelAssets(string $pathPrefix = '../'): void
     if ($emitted) return;
     $emitted = true;
     echo '<link rel="stylesheet" href="' . htmlspecialchars($pathPrefix) . 'assets/css/documents.css?v=6">' . "\n";
-    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/documents.js?v=10"></script>' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/documents.js?v=11"></script>' . "\n";
+    // GH #303: open documents IN the page (the Files viewer in a floating window), pick
+    // from Files in a file-dialog window. Each script loads once even if the page has it too.
+    echo '<link rel="stylesheet" href="' . htmlspecialchars($pathPrefix) . 'assets/css/float-window.css?v=1">' . "\n";
+    echo '<link rel="stylesheet" href="' . htmlspecialchars($pathPrefix) . 'assets/css/files-picker.css?v=1">' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/float-window.js?v=2"></script>' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/files-icons.js?v=3"></script>' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/files-viewer.js?v=9"></script>' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/files-picker.js?v=2"></script>' . "\n";
     // GH #303: Save to Files, for a stored document
     echo '<link rel="stylesheet" href="' . htmlspecialchars($pathPrefix) . 'assets/css/save-to-files.css?v=1">' . "\n";
-    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/save-to-files.js?v=1"></script>' . "\n";
+    echo '<script src="' . htmlspecialchars($pathPrefix) . 'assets/js/save-to-files.js?v=2"></script>' . "\n";
 }
 
 /**

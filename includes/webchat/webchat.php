@@ -178,11 +178,12 @@ function webchatGetOrCreateUser(PDO $conn, string $email, string $name): ?int
         return null;
     }
     try {
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
-        $stmt->execute([$email]);
-        $id = $stmt->fetchColumn();
+        // GH #308: the person whose main or linked address it is.
+        require_once __DIR__ . '/../user_emails.php';
+        $owner = userEmailOwner($conn, $email);
+        $id = $owner ? $owner['user_id'] : false;
         if ($id) {
-            if ($name !== '') {
+            if ($name !== '' && $owner['kind'] === 'main') {
                 $conn->prepare("UPDATE users SET display_name = ? WHERE id = ? AND (display_name IS NULL OR display_name = '')")
                      ->execute([$name, (int) $id]);
             }

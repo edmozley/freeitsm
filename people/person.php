@@ -109,6 +109,16 @@ $multi = isMultiTenant($conn);
                         ?>
                     </dl>
                 </section>
+                <?php /* GH #308: the person's other addresses (mail from them is theirs) and their history.
+                         Filled by assets/js/people-emails.js from api/people/emails.php. */ ?>
+                <section class="ppl-card">
+                    <div class="ppl-card-h"><h3><?php echo pplE(t('people.emails.title')); ?></h3></div>
+                    <div class="ppl-addrs" id="pplEmails" data-user-id="<?php echo (int)$p['id']; ?>" data-api="<?php echo BASE_URL; ?>api/people/emails.php"></div>
+                </section>
+                <section class="ppl-card">
+                    <div class="ppl-card-h"><h3><?php echo pplE(t('people.emails.history')); ?></h3></div>
+                    <div class="ppl-addrs" id="pplHistory"></div>
+                </section>
             </aside>
             <div class="ppl-main">
                 <?php echo pplSections($sections, true); ?>
@@ -116,6 +126,9 @@ $multi = isMultiTenant($conn);
         </div>
     <?php endif; ?>
     </main>
+    <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/people-emails.js?v=1"></script>   <!-- GH #308 -->
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

@@ -29,5 +29,8 @@ startersApiRun(function () use ($conn, $ctx, $analystId) {
         // The forms a template can ask (Forms switched on): its newest version of each.
         'forms'      => StartersService::formChoices($conn),
         'asset_statuses' => $statuses,
+        // GH #316: the type a template's ticket steps get.
+        'ticket_types' => $conn->query("SELECT id, name FROM ticket_types WHERE is_active = 1 ORDER BY name")->fetchAll(PDO::FETCH_ASSOC),
+        'tickets_ready' => StartersService::ticketsReady($conn),
     ]);
 });

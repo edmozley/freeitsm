@@ -1304,6 +1304,42 @@ class ChecklistsService
         }
     }
 
+    /**
+     * A checklist on a ticket made from a list of steps rather than a template (GH #316: a
+     * Starters & leavers ticket, one item per template step). Every item is mandatory, so the
+     * ticket's closure rule (warn) points at anything left. Returns the checklist id.
+     *
+     * @param array $items  [{title, description?}] in order; blank titles are skipped
+     */
+    public static function addTicketChecklist(PDO $conn, ActorContext $ctx, int $ticketId, string $title, array $items): int
+    {
+        $cols = self::ticketCols($conn);
+        $own = !$conn->inTransaction();
+        if ($own) $conn->beginTransaction();
+        try {
+            $conn->prepare("INSERT INTO ticket_checklists (ticket_id, template_id, title, closure_mode, created_by_id, created_datetime)
+                            VALUES (?, NULL, ?, 'warn', ?, UTC_TIMESTAMP())")
+                 ->execute([$ticketId, mb_substr($title, 0, 255), $ctx->actorId > 0 ? $ctx->actorId : null]);
+            $chkId = (int)$conn->lastInsertId();
+            $ins = $conn->prepare("INSERT INTO ticket_checklist_items (ticket_checklist_id, title, is_mandatory, sort_order"
+                                   . ($cols['description'] ? ', description' : '') . ")
+                                   VALUES (?, ?, 1, ?" . ($cols['description'] ? ', ?' : '') . ")");
+            $i = 0;
+            foreach ($items as $it) {
+                $t = trim((string)($it['title'] ?? ''));
+                if ($t === '') continue;
+                $vals = [$chkId, mb_substr($t, 0, 255), ++$i];
+                if ($cols['description']) $vals[] = trim((string)($it['description'] ?? '')) ?: null;
+                $ins->execute($vals);
+            }
+            if ($own) $conn->commit();
+            return $chkId;
+        } catch (Throwable $e) {
+            if ($own && $conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+    }
+
     /** The ticket a step belongs to, or 0. Callers gate on the ticket. */
     public static function ticketIdForItem(PDO $conn, int $itemId): int
     {

@@ -96,9 +96,8 @@ try {
     // load-bearing for the same reason as there (single-company installs have no
     // analyst_tenant_access rows).
     if ($userId === null && $fromEmail !== '' && isMultiTenant($conn)) {
-        $known = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $known->execute([strtolower(trim($fromEmail))]);
-        if ($known->fetchColumn() === false) {
+        require_once __DIR__ . '/../../includes/user_emails.php';
+        if (userIdForEmail($conn, $fromEmail) === null) {   // GH #308: a linked address is somebody's too
             $newTenant = resolveTenantForNewUser($conn, $fromEmail);
             if ($newTenant !== null && !analystCanAccessTenant($conn, $analystId, (int)$newTenant)) {
                 echo json_encode(['success' => false, 'error' => 'You do not have access to that company']);

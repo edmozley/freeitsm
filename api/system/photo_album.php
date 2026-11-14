@@ -29,7 +29,9 @@ if (!isset($_SESSION['analyst_id'])) {
 requireModuleAccessJson('system');
 
 const PA_STYLES   = ['braille', 'classic', 'blocks'];
-const PA_PALETTES = ['green', 'amber', 'paper', 'colour'];
+const PA_PALETTES = ['green', 'amber', 'paper', 'colour', 'cga', 'ega', 'vga'];
+// The screens that carry a colour per character: Colour, and the old PC cards (5.2.0).
+const PA_COLOUR_PALETTES = ['colour', 'cga', 'ega', 'vga'];
 const PA_THUMB_MAX = 200 * 1024;   // bytes of JPEG, decoded
 
 /**
@@ -137,9 +139,9 @@ try {
             }
         }
 
-        // Colours: 3 bytes per character, only (and always) for the Colour palette.
+        // Colours: 3 bytes per character, only (and always) for the colour screens (PA_COLOUR_PALETTES).
         $colours = null;
-        if ($palette === 'colour') {
+        if (in_array($palette, PA_COLOUR_PALETTES, true)) {
             $raw = base64_decode((string)($json['colours'] ?? ''), true);
             if ($raw === false || strlen($raw) !== $w * $h * 3) paFail('The colours do not match the picture.');
             $colours = base64_encode($raw);

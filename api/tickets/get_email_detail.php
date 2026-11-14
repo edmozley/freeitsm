@@ -92,6 +92,7 @@ try {
                 t.tenant_id,
                 t.user_id,
                 u.email AS requester_email,
+                u.display_name AS requester_name,   -- GH #308: shown when it is not the sender
                 u.phone AS requester_phone,
                 u.mobile AS requester_mobile,
                 t.created_datetime as ticket_created,
@@ -261,6 +262,15 @@ try {
         require_once '../../includes/ticket_links.php';
         $email['linked_tickets'] = ticketLinksFor($conn, (int) $email['ticket_id']);
     } catch (Exception $e) { /* table not present yet */ }
+
+    // GH #316: the Starters & leavers case that raised this ticket - for analysts who can use
+    // that module (a pill in the Links strip). Empty before Database Verification.
+    $email['jml_case'] = null;
+    if (analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'starters')) try {
+        $jq = $conn->prepare("SELECT c.id, c.kind, c.person_name, c.effective_date FROM jml_case_tickets ct JOIN jml_cases c ON c.id = ct.case_id WHERE ct.ticket_id = ? LIMIT 1");
+        $jq->execute([(int)$email['ticket_id']]);
+        if ($jc = $jq->fetch(PDO::FETCH_ASSOC)) { $jc['id'] = (int)$jc['id']; $email['jml_case'] = $jc; }
+    } catch (Throwable $e) { /* table not present yet */ }
 
     // External issue trackers (#950). Issues this ticket has been escalated to,
     // with the status cached at the last poll. Degrades to an empty list on an

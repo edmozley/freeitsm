@@ -124,9 +124,17 @@ try {
         // nothing else to type. Without this rung they are findable only by
         // display name — and an analyst who knows them as "w.noemail" would
         // conclude the account doesn't exist.
-        $sql .= " AND (u.display_name LIKE ? OR u.email LIKE ? OR u.username LIKE ?)";
         $searchParam = '%' . $search . '%';
-        $params = array_merge($params, [$searchParam, $searchParam, $searchParam]);
+        // GH #308: a person's linked addresses find them too.
+        require_once '../../includes/user_emails.php';
+        if (userEmailsReady($conn)) {
+            $sql .= " AND (u.display_name LIKE ? OR u.email LIKE ? OR u.username LIKE ?
+                          OR EXISTS (SELECT 1 FROM user_email_addresses uea WHERE uea.user_id = u.id AND uea.email LIKE ?))";
+            $params = array_merge($params, [$searchParam, $searchParam, $searchParam, $searchParam]);
+        } else {
+            $sql .= " AND (u.display_name LIKE ? OR u.email LIKE ? OR u.username LIKE ?)";
+            $params = array_merge($params, [$searchParam, $searchParam, $searchParam]);
+        }
     }
 
     // The picker asks for a handful of matches per keystroke, not the whole

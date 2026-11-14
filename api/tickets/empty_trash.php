@@ -84,7 +84,8 @@ try {
     foreach (["DELETE FROM ticket_checklist_items WHERE ticket_checklist_id IN (SELECT id FROM ticket_checklists WHERE ticket_id IN ($place))",
               "DELETE FROM ticket_checklists WHERE ticket_id IN ($place)",
               "DELETE FROM ticket_watchers WHERE ticket_id IN ($place)",
-              "DELETE FROM ticket_forms WHERE ticket_id IN ($place)"] as $sql) {   // GH #272
+              "DELETE FROM ticket_forms WHERE ticket_id IN ($place)",   // GH #272
+              "DELETE FROM jml_case_tickets WHERE ticket_id IN ($place)"] as $sql) {   // GH #316
         try { $conn->prepare($sql)->execute($ids); } catch (PDOException $e) { if ((string)$e->getCode() !== '42S02') throw $e; }
     }
     $conn->prepare("DELETE FROM tickets WHERE id IN ($place)")->execute($ids);

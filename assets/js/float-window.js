@@ -24,6 +24,8 @@
  */
 (function () {
     'use strict';
+    // Loaded once: the Documents panel brings it to any page, and a page may also load it itself.
+    if (window.FloatWin) return;
 
     /** Creates an element with an optional class and inner HTML. */
     function el(tag, cls, html) {

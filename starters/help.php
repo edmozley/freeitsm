@@ -32,6 +32,7 @@ $sections = [
     'overview'    => 2,
     'cases'       => 4,
     'templates'   => 3,
+    'tickets'     => 5,   // GH #316: steps raised as tickets
     'questions'   => 5,   // questions from Forms (p5: working values out, GH #317)
     'kit'         => 3,
     'leaving'     => 2,

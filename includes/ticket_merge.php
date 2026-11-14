@@ -58,6 +58,7 @@
  *          sla_notifications_sent what the SLA engine did to THAT ticket, at the time.
  *          ticket_csat_responses  a survey somebody answered ABOUT that ticket.
  *          mailbox_activity_log   an append-only log; logs are not editable records.
+ *          jml_case_tickets       the Starters & leavers case that raised THAT ticket (GH #316).
  */
 
 require_once __DIR__ . '/functions.php';
