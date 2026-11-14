@@ -210,6 +210,18 @@ $translationNamespaces = ['common', 'asset-management'];
             color: var(--text, #333);
             font: inherit;
         }
+        /* GH #337: a type's heading in the grouped list - a button, so it opens and closes from the keyboard too. */
+        .asset-group-head {
+            display: flex; align-items: center; gap: 6px; width: 100%;
+            padding: 7px 12px; border: none; border-bottom: 1px solid var(--border-soft, #eee);
+            background: var(--surface-3, #f4f6f8); color: var(--text, #333);
+            font: inherit; font-size: 12.5px; font-weight: 600; text-align: left; cursor: pointer;
+            position: sticky; top: 0; z-index: 1;
+        }
+        .asset-group-head:hover { background: var(--surface-hover, #eceff2); }
+        .asset-group-chev { display: inline-block; width: 10px; color: var(--text-dim, #888); transition: transform 0.15s; }
+        .asset-group-head[aria-expanded="true"] .asset-group-chev { transform: rotate(90deg); }
+        .asset-group-count { margin-left: auto; font-weight: 500; color: var(--text-dim, #888); }
         .asset-show-retired {
             display: inline-flex;
             align-items: center;
@@ -1644,6 +1656,8 @@ $translationNamespaces = ['common', 'asset-management'];
                     <a class="btn btn-outline btn-sm" href="assign-tags.php"><?php echo htmlspecialchars(t('asset-management.list.assign_tags')); ?></a>
                     <?php /* Retired assets have left the estate: hidden until asked for. */ ?>
                     <label class="asset-show-retired"><input type="checkbox" id="assetShowRetired" onchange="toggleShowRetired(this.checked)"> <?php echo htmlspecialchars(t('asset-management.retired.show')); ?></label>
+                    <?php /* GH #337: one heading per type, with its count. Off, the list is as it always was. */ ?>
+                    <label class="asset-show-retired"><input type="checkbox" id="assetGroupByType" onchange="toggleGroupByType(this.checked)"> <?php echo htmlspecialchars(t('asset-management.list.group_by_type')); ?></label>
                 </div>
                 <?php /* Appears only once more than one asset is picked with
                          Ctrl/Shift — see handleAssetRowClick(). Hidden by default
@@ -2041,6 +2055,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 const data = await response.json();
                 if (data.success) {
                     assetTypes = data.asset_types.filter(t => t.is_active);
+                    if (groupByType && assets.length) renderAssetsList();   // GH #337: the headings need the types
                     assetTypeLayouts = {};
                     data.asset_types.forEach(t => { if (t.layout) assetTypeLayouts[t.id] = t.layout; });
                     if (selectedAsset) applyAssetLayout();
@@ -2193,6 +2208,26 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         document.addEventListener('DOMContentLoaded', () => { const c = document.getElementById('assetShowRetired'); if (c) c.checked = showRetired; });
 
+        // GH #337: the list grouped by type - remembered in this browser, like
+        // Show retired, and so is which groups are closed.
+        let groupByType = false;
+        let closedAssetGroups = new Set();
+        try {
+            groupByType = localStorage.getItem('assets_group_by_type') === '1';
+            closedAssetGroups = new Set(JSON.parse(localStorage.getItem('assets_type_groups_closed') || '[]'));
+        } catch (e) {}
+        function toggleGroupByType(on) {
+            groupByType = !!on;
+            try { localStorage.setItem('assets_group_by_type', groupByType ? '1' : '0'); } catch (e) {}
+            renderAssetsList();
+        }
+        function toggleAssetGroup(key) {
+            if (closedAssetGroups.has(key)) closedAssetGroups.delete(key); else closedAssetGroups.add(key);
+            try { localStorage.setItem('assets_type_groups_closed', JSON.stringify([...closedAssetGroups])); } catch (e) {}
+            renderAssetsList();
+        }
+        document.addEventListener('DOMContentLoaded', () => { const c = document.getElementById('assetGroupByType'); if (c) c.checked = groupByType; });
+
         async function loadAssets(search = '') {
             try {
                 const response = await fetch(assetListUrl(search));
@@ -2236,7 +2271,39 @@ $translationNamespaces = ['common', 'asset-management'];
 
             countEl.textContent = window.t('asset-management.list.count_heading', { count: assets.length });
 
-            container.innerHTML = assets.map(asset => `
+            container.innerHTML = groupByType ? assetGroupsHtml() : assets.map(assetItemHtml).join('');
+
+            renderAssetSelectionBar();
+        }
+
+        /**
+         * GH #337: the list as one heading per type, in the types' own order, then
+         * "No type". A group nothing was found in is not drawn; a closed one draws
+         * only its heading - unless it holds the asset that is open, which is
+         * always shown, so a link to an asset never lands on a hidden row.
+         */
+        function assetGroupsHtml() {
+            const order = assetTypes.map(t => String(t.id));
+            const byKey = {};
+            assets.forEach(a => {
+                const key = a.asset_type_id && order.includes(String(a.asset_type_id)) ? String(a.asset_type_id) : 'none';
+                (byKey[key] = byKey[key] || []).push(a);
+            });
+            return order.concat(['none']).filter(k => byKey[k]).map(key => {
+                const list = byKey[key];
+                const type = assetTypes.find(t => String(t.id) === key);
+                const name = type ? type.name : window.t('asset-management.list.group_no_type');
+                const open = !closedAssetGroups.has(key) || list.some(a => a.id == selectedAssetId);
+                return `<button type="button" class="asset-group-head" aria-expanded="${open}" onclick="toggleAssetGroup('${key}')">`
+                    + `<span class="asset-group-chev" aria-hidden="true">&#9656;</span>${type ? assetTypeIcon(type.id) : ''}`
+                    + `<span>${escapeHtml(name)}</span><span class="asset-group-count">${list.length}</span></button>`
+                    + (open ? list.map(assetItemHtml).join('') : '');
+            }).join('');
+        }
+
+        /** One asset's row in the list. */
+        function assetItemHtml(asset) {
+            return `
                 <div class="asset-item ${selectedAssetId == asset.id ? 'selected' : ''} ${assetSelection.has(asset.id) ? 'multi-selected' : ''}"
                      data-asset-id="${asset.id}" onclick="handleAssetRowClick(event, ${asset.id})"
                      oncontextmenu="return openAssetContextMenu(event, ${asset.id});">
@@ -2255,9 +2322,7 @@ $translationNamespaces = ['common', 'asset-management'];
                         </span>
                     </div>
                 </div>
-            `).join('');
-
-            renderAssetSelectionBar();
+            `;
         }
 
         // ===================================================================
@@ -2294,8 +2359,10 @@ $translationNamespaces = ['common', 'asset-management'];
                 else assetSelection.add(assetId);
                 assetSelectionAnchor = assetId;
             } else if (event.shiftKey && assetSelectionAnchor !== null) {
-                // A block, from the anchor to here, in the order the list is in.
-                const ids = assets.map(a => a.id);
+                // A block, from the anchor to here, in the order the rows are on
+                // screen - grouped by type that is not the order of `assets`, and
+                // a closed group's rows are not in it (GH #337).
+                const ids = Array.from(document.querySelectorAll('#assetsList .asset-item')).map(el => parseInt(el.dataset.assetId, 10));
                 const from = ids.indexOf(assetSelectionAnchor);
                 const to   = ids.indexOf(assetId);
                 if (from !== -1 && to !== -1) {
