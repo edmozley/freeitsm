@@ -51,6 +51,63 @@ function ticketPrioritiesShared(PDO $conn): array
 }
 
 /**
+ * A company's own priorities, in display order; not the shared ones.
+ *
+ * @return list<array{id:int, name:string, colour:?string, is_default:bool, display_order:int, is_active:bool,
+ *                    sla_response_minutes:?int, sla_resolution_minutes:?int, sla_calendar_id:?int, tenant_id:?int}>
+ */
+function ticketPrioritiesOwn(PDO $conn, int $tenantId): array
+{
+    $stmt = $conn->prepare("SELECT " . TICKET_PRIORITY_COLUMNS . " FROM ticket_priorities WHERE tenant_id = ? ORDER BY display_order, name");
+    $stmt->execute([$tenantId]);
+
+    return array_map('ticketPriorityRow', $stmt->fetchAll(PDO::FETCH_ASSOC));
+}
+
+/**
+ * After tickets change company, a priority the new company cannot use becomes that company's default.
+ * Recorded on the ticket's history and raised as ticket.priority_changed, like any other priority change.
+ * A ticket keeps a priority the new company can see, even an inactive one.
+ *
+ * @param int[] $ticketIds  tickets whose company has just changed
+ * @param ?int $tenantId  their new company; null = triage
+ */
+function ticketPriorityFollowCompanyMove(PDO $conn, array $ticketIds, ?int $tenantId): void
+{
+    if (!isMultiTenant($conn) || !$ticketIds) return;
+
+    $visible = array_column(ticketPrioritiesFor($conn, $tenantId, false), 'name', 'id');
+    $defaultId = ticketPriorityDefaultId($conn, $tenantId);
+    if ($defaultId === null) return;
+
+    $ph = implode(',', array_fill(0, count($ticketIds), '?'));
+    $stmt = $conn->prepare(
+        "SELECT t.id, t.priority_id, tp.name FROM tickets t
+           LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
+          WHERE t.id IN ($ph) AND t.priority_id IS NOT NULL"
+    );
+    $stmt->execute(array_values($ticketIds));
+
+    require_once __DIR__ . '/services/tickets.php';
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $t) {
+        $oldId = (int)$t['priority_id'];
+        if (isset($visible[$oldId])) continue;
+
+        $conn->prepare("UPDATE tickets SET priority_id = ? WHERE id = ?")->execute([$defaultId, (int)$t['id']]);
+        $conn->prepare(
+            "INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
+             VALUES (?, ?, 'Priority', ?, ?, UTC_TIMESTAMP())"
+        )->execute([(int)$t['id'], $_SESSION['analyst_id'] ?? null, $t['name'], $visible[$defaultId] ?? null]);
+
+        WorkflowEngine::dispatch('ticket.priority_changed', [
+            'ticket'          => TicketsService::workflowPayload($conn, (int)$t['id']),
+            'old_priority_id' => $oldId,
+            'new_priority_id' => $defaultId,
+        ]);
+    }
+}
+
+/**
  * Where a priority saved from Tickets -> Settings goes, for this analyst.
  *
  * `company` is the active client company, or null in the default company's context and in the All companies view, where the screen manages the shared priorities.

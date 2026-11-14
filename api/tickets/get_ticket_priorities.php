@@ -60,10 +60,8 @@ try {
 
     if ($manage && $ctx['multi'] && isActiveTenantAll($conn)) {
         $resp['company_priorities'] = [];
-        $own = $conn->prepare("SELECT " . TICKET_PRIORITY_COLUMNS . " FROM ticket_priorities WHERE tenant_id = ? ORDER BY display_order, name");
         foreach ($ctx['companies'] as $company) {
-            $own->execute([$company['id']]);
-            $rows = array_map('ticketPriorityRow', $own->fetchAll(PDO::FETCH_ASSOC));
+            $rows = ticketPrioritiesOwn($conn, $company['id']);
             if ($rows) {
                 $resp['company_priorities'][] = ['company' => $company, 'priorities' => $rows];
             }

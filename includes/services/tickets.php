@@ -960,6 +960,22 @@ class TicketsService
     }
 
     /**
+     * The canonical ticket workflow payload for a ticket, read from the database.
+     * For a change made outside updateTicket(), such as the priority a company move resets.
+     */
+    public static function workflowPayload(PDO $conn, int $ticketId): array
+    {
+        $stmt = $conn->prepare(
+            "SELECT t.id, t.subject, t.priority_id, t.status_id, t.department_id, t.ticket_type_id,
+                    t.assigned_analyst_id, t.owner_id, t.origin_id, t.user_id, u.email AS requester_email, t.category_id
+             FROM tickets t LEFT JOIN users u ON u.id = t.user_id WHERE t.id = ?"
+        );
+        $stmt->execute([$ticketId]);
+
+        return self::eventTicket($stmt->fetch(PDO::FETCH_ASSOC) ?: ['id' => $ticketId]);
+    }
+
+    /**
      * The canonical ticket workflow payload, built from a loaded (joined) row.
      *
      * @param array $r  the ticket row, as loaded by loadTicket() or rowAfterUpdates()

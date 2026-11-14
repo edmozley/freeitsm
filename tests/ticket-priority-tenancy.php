@@ -108,6 +108,28 @@ if (($argv[1] ?? '') === '--multi') {
         ok('triage gets the shared default calendar', slaDefaultCalendarId($conn, null) === $calShared);
         zzHide($conn, $B, 'sla_calendar', $calShared);
         ok('a company that hid the shared default and has none gets no calendar', slaDefaultCalendarId($conn, $B) === null);
+
+        // Moving tickets: the same call every move path makes (move, triage, the ticket service).
+        $everyone = zzPriority($conn, 'ZZ320 everyone', null);
+        $retired  = zzPriority($conn, 'ZZ320 retired', null, 0, 900, 0);
+        $status = (int)$conn->query("SELECT id FROM ticket_statuses ORDER BY id LIMIT 1")->fetchColumn();
+        $ticket = function (int $tenant, int $priority) use ($conn, $status): int {
+            $conn->prepare("INSERT INTO tickets (ticket_number, subject, tenant_id, priority_id, status_id, created_datetime) VALUES (?, 'ZZ320 move', ?, ?, ?, UTC_TIMESTAMP())")
+                 ->execute(['ZZ320-' . bin2hex(random_bytes(4)), $tenant, $priority, $status]);
+            return (int)$conn->lastInsertId();
+        };
+        $move = function (int $id, int $to) use ($conn): int {
+            $conn->prepare("UPDATE tickets SET tenant_id = ? WHERE id = ?")->execute([$to, $id]);
+            ticketsFollowCompanyMove($conn, [$id], $to);
+            return (int)$conn->query("SELECT priority_id FROM tickets WHERE id = $id")->fetchColumn();
+        };
+        $t = $ticket($B, $bOwn);
+        ok('a ticket moved with its old company\'s own priority gets the new company\'s default', $move($t, $A) === $aOwn);
+        $audit = $conn->query("SELECT old_value, new_value FROM ticket_audit WHERE ticket_id = $t AND field_name = 'Priority'")->fetch(PDO::FETCH_ASSOC);
+        ok('...and the change is on its history', $audit !== false && $audit['old_value'] === 'ZZ320 P1' && $audit['new_value'] === 'ZZ320 P1');
+        ok('a ticket moved with a shared priority the new company hid gets its default', $move($ticket($A, $sharedHid), $B) === ticketPriorityDefaultId($conn, $B));
+        ok('a ticket moved with a shared priority both can use keeps it', $move($ticket($A, $everyone), $B) === $everyone);
+        ok('a ticket keeps an inactive shared priority the new company can see', $move($ticket($A, $retired), $B) === $retired);
     } finally {
         $conn->rollBack();
     }

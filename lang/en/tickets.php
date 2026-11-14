@@ -2195,6 +2195,7 @@ return [
             'shared_needs_all'    => 'Only someone with access to every company can change shared priorities.',
             'scope_label'         => 'Company',
             'scope_shared'        => 'Shared (every company)',
+            'shared'              => 'Shared',
             'company_not_allowed' => 'You cannot change priorities for that company.',
         ],
 

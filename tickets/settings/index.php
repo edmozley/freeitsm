@@ -1299,6 +1299,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <thead>
                         <tr>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_priority')); ?></th>
+                            <th id="slaTargetsCompanyCol" hidden><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_response_mins')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_resolution_mins')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_calendar')); ?></th>
@@ -8884,7 +8885,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 const res = await fetch(API_BASE + 'get_sla_settings.php');
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'load failed');
-                slaData = { settings: data.settings || {}, priorities: data.priorities || [], calendars: data.calendars || [] };
+                slaData = { settings: data.settings || {}, priorities: data.priorities || [], calendars: data.calendars || [], multi: !!data.multi_tenant };
                 // SLA switched off for the install (GH #217): only the calendars are on the tab.
                 if (document.body.classList.contains('sla-off')) { renderSlaCalendars(); return; }
                 renderSlaGlobalSettings();
@@ -8945,27 +8946,37 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
         function renderSlaTargets() {
             const tbody = document.getElementById('slaTargetsList');
+            const multi = slaData.multi;
+            document.getElementById('slaTargetsCompanyCol').hidden = !multi;
             if (slaData.priorities.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-faint, #999);">No active priorities — add some on the Priorities tab.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${multi ? 6 : 5}" style="text-align:center;color:var(--text-faint, #999);">No active priorities — add some on the Priorities tab.</td></tr>`;
                 return;
             }
             const calOptions = slaData.calendars.map(c =>
                 `<option value="${c.id}">${escapeHtml(c.name)}</option>`
             ).join('');
-            tbody.innerHTML = slaData.priorities.map(p => `
-                <tr>
+            tbody.innerHTML = slaData.priorities.map(p => {
+                // A shared priority the analyst may not change: its targets are shown, not editable.
+                const off = p.editable ? '' : ' disabled';
+                const company = multi ? `<td>${escapeHtml(p.company ?? t('tickets.settings.priorities.shared'))}</td>` : '';
+                const save = p.editable
+                    ? `<button type="button" class="btn btn-secondary" style="padding:4px 12px;" onclick="savePrioritySla(${p.id})">Save</button>`
+                    : '';
+                return `
+                <tr${p.editable ? '' : ` title="${escapeHtml(t('tickets.settings.priorities.shared_needs_all'))}"`}>
                     <td><strong style="color:${escapeHtml(p.colour || '#333')};">${escapeHtml(p.name)}</strong></td>
-                    <td><input type="number" min="0" value="${p.sla_response_minutes || ''}" data-pid="${p.id}" data-field="response" style="width:90px;padding:4px 8px;"></td>
-                    <td><input type="number" min="0" value="${p.sla_resolution_minutes || ''}" data-pid="${p.id}" data-field="resolution" style="width:90px;padding:4px 8px;"></td>
+                    ${company}
+                    <td><input type="number" min="0" value="${p.sla_response_minutes || ''}" data-pid="${p.id}" data-field="response" style="width:90px;padding:4px 8px;"${off}></td>
+                    <td><input type="number" min="0" value="${p.sla_resolution_minutes || ''}" data-pid="${p.id}" data-field="resolution" style="width:90px;padding:4px 8px;"${off}></td>
                     <td>
-                        <select data-pid="${p.id}" data-field="calendar" style="padding:4px 8px;">
+                        <select data-pid="${p.id}" data-field="calendar" style="padding:4px 8px;"${off}>
                             <option value="">— None —</option>
                             ${calOptions.replace(`value="${p.sla_calendar_id}"`, `value="${p.sla_calendar_id}" selected`)}
                         </select>
                     </td>
-                    <td><button type="button" class="btn btn-secondary" style="padding:4px 12px;" onclick="savePrioritySla(${p.id})">Save</button></td>
-                </tr>
-            `).join('');
+                    <td>${save}</td>
+                </tr>`;
+            }).join('');
         }
 
         async function savePrioritySla(priorityId) {

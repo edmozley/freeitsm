@@ -8,11 +8,17 @@
  * Doesn't touch the other ticket_priorities columns (name, colour, etc.) — that's
  * a different endpoint. Pass nulls for minutes to clear targets; pass null
  * sla_calendar_id to detach the calendar.
+ *
+ * A shared priority needs access to every company, a company's own needs access to that company.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
+require_once '../../includes/i18n.php';
+require_once '../../includes/ticket_priorities.php';
+I18n::initFromSession();
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -37,6 +43,12 @@ try {
     $calendarId = isset($data['sla_calendar_id'])        && $data['sla_calendar_id']        !== '' ? (int)$data['sla_calendar_id']                : null;
 
     $conn = connectToDatabase();
+
+    $owner = $conn->prepare("SELECT tenant_id FROM ticket_priorities WHERE id = ?");
+    $owner->execute([$id]);
+    $row = $owner->fetch(PDO::FETCH_ASSOC);
+    if (!$row) throw new Exception(t('tickets.settings.priorities.not_found'));
+    ticketPriorityRequireAccess(ticketPriorityScopeContext($conn, (int)$_SESSION['analyst_id']), $row['tenant_id'] === null ? null : (int)$row['tenant_id']);
 
     // Validate calendar exists if one was passed (FK will catch it too but a friendly error reads better)
     if ($calendarId !== null) {

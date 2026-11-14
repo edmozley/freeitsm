@@ -4,12 +4,19 @@
  *
  * Returns:
  *   settings:    { sla_enforce_from, sla_priority_change_behaviour, ... }
- *   priorities:  [{ id, name, sla_response_minutes, sla_resolution_minutes, sla_calendar_id }]
+ *   priorities:  [{ id, name, sla_response_minutes, sla_resolution_minutes, sla_calendar_id, company, editable }]
+ *                One company selected: the shared ones it has not hidden, then its own.
+ *                Default company: the shared ones. All companies: the shared ones, then each accessible company's own.
+ *                `company` is the owning company's name, null when shared.
+ *                `editable` is false for a shared one when the analyst cannot reach every company.
+ *   multi_tenant: whether to show the company of each priority
  *   calendars:   [{ id, name, timezone, is_default, hours: [...], holiday_count }]
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
+require_once '../../includes/ticket_priorities.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -40,10 +47,27 @@ try {
         $settings[$row['setting_key']] = $row['setting_value'];
     }
 
-    // Priorities with their SLA fields
-    $stmt = $conn->query("SELECT id, name, colour, display_order, sla_response_minutes, sla_resolution_minutes, sla_calendar_id
-                          FROM ticket_priorities WHERE is_active = 1 ORDER BY display_order, id");
-    $priorities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $ctx = ticketPriorityScopeContext($conn, (int)$_SESSION['analyst_id']);
+    $companyNames = array_column($ctx['companies'], 'name', 'id');
+
+    if ($ctx['company'] !== null) {
+        $own = ticketPrioritiesFor($conn, $ctx['company']);
+        $priorities = array_merge(
+            array_filter($own, fn(array $p): bool => $p['tenant_id'] === null),
+            array_filter($own, fn(array $p): bool => $p['tenant_id'] !== null),
+        );
+    } else {
+        $priorities = ticketPrioritiesShared($conn);
+        if ($ctx['multi'] && isActiveTenantAll($conn)) {
+            foreach ($ctx['companies'] as $company) {
+                $priorities = array_merge($priorities, ticketPrioritiesOwn($conn, $company['id']));
+            }
+        }
+    }
+    $priorities = array_values(array_map(fn(array $p): array => $p + [
+        'company'  => $p['tenant_id'] === null ? null : ($companyNames[$p['tenant_id']] ?? ''),
+        'editable' => $p['tenant_id'] !== null || !$ctx['multi'] || $ctx['can_share'],
+    ], array_filter($priorities, fn(array $p): bool => $p['is_active'])));
 
     // Calendars with their hours + holiday count
     $stmt = $conn->query("SELECT id, name, timezone, is_default, is_active FROM sla_calendars WHERE is_active = 1 ORDER BY is_default DESC, name");
@@ -77,8 +101,9 @@ try {
     echo json_encode([
         'success'    => true,
         'settings'   => $settings,
-        'priorities' => $priorities,
-        'calendars'  => $calendars,
+        'priorities'   => $priorities,
+        'calendars'    => $calendars,
+        'multi_tenant' => $ctx['multi'],
     ]);
 
 } catch (Exception $e) {
