@@ -380,6 +380,28 @@ function listForTicket(byCompany, fallback, email) {
     return byCompany[id] || byCompany[String(id)] || fallback;
 }
 let ticketPriorities = [];   // loaded once at init from get_ticket_priorities.php
+let ticketPrioritiesByCompany = null;   // {tenantId: [priorities]}, in the consolidated view only
+
+/** The priorities this ticket's company can use. */
+function prioritiesForTicket(email) {
+    return listForTicket(ticketPrioritiesByCompany, ticketPriorities, email);
+}
+
+/**
+ * The priorities every one of these tickets' companies can use: one company's list,
+ * or for several, only those in all of their lists - the shared ones none of them hides.
+ */
+function prioritiesForTickets(ticketEmails) {
+    const lists = [...new Set(ticketEmails.map(ticketCompanyId).map(String))]
+        .map(id => prioritiesForTicket({ tenant_id: id === 'null' ? null : Number(id) }));
+    if (!lists.length) return ticketPriorities;
+    return lists.reduce((acc, list) => acc.filter(p => list.some(q => q.id === p.id)));
+}
+
+/** A company's own default, else the shared one. */
+function defaultPriorityOf(list) {
+    return list.find(p => p.is_default && p.tenant_id !== null) || list.find(p => p.is_default) || null;
+}
 // Classification (#1540): the category tree, the resolution codes, and whether
 // each of the three fields is switched on for this company at all.
 //
@@ -1180,6 +1202,10 @@ async function loadTicketPriorities() {
 
         if (data.success) {
             ticketPriorities = data.priorities.filter(p => p.is_active);
+            ticketPrioritiesByCompany = data.by_company
+                ? Object.fromEntries(Object.entries(data.by_company)
+                    .map(([k, v]) => [k, (v || []).filter(p => p.is_active)]))
+                : null;
         }
     } catch (error) {
         console.error('Error loading ticket priorities:', error);
@@ -2315,6 +2341,11 @@ function selectedTicketIds() {
 }
 
 /** Returns how many rows are selected. */
+/** The selected rows' records, for what depends on their companies. */
+function selectedEmails() {
+    return Array.from(selectedEmailIds).map(id => emails.find(e => e.id == id)).filter(Boolean);
+}
+
 function selectionCount() {
     return selectedEmailIds.size;
 }
@@ -2912,7 +2943,7 @@ function openSelectionMenu(event, kind) {
     } else if (kind === 'priority') {
         items = [{ label: t('tickets.context.clear_priority'), italic: true,
                    run: () => bulkSetField({ priority_id: null }, t('tickets.bulk.label_priority')) }]
-            .concat(ticketPriorities.map(p => ({
+            .concat(prioritiesForTickets(selectedEmails()).map(p => ({
                 label: p.name,
                 colour: p.colour,
                 run: () => bulkSetField({ priority_id: p.id }, t('tickets.bulk.label_priority'))
@@ -3229,7 +3260,11 @@ function displayEmail(email, recordings) {
     // Build priority dropdown from the active ticket_priorities lookup.
     // A blank option lets the user clear the priority — useful since priority
     // is nullable and not every ticket needs an SLA-driving priority assigned.
-    const priorityOptions = ticketPriorities.map(p =>
+    // The ticket's company's list; a current priority it no longer offers still shows, so opening the ticket changes nothing.
+    const prioritiesForThis = prioritiesForTicket(email);
+    const keepCurrent = email.priority_id != null && !prioritiesForThis.some(p => p.id == email.priority_id)
+        ? `<option value="${email.priority_id}" selected>${escapeHtml(email.priority || '')}</option>` : '';
+    const priorityOptions = keepCurrent + prioritiesForThis.map(p =>
         `<option value="${p.id}" ${email.priority_id == p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`
     ).join('');
 
@@ -5671,9 +5706,8 @@ async function confirmCloseWithMandatoryFields(ticketIds) {
 // read, so we don't need a separate recompute call here.
 async function assignPriority() {
     const priorityId = document.getElementById('prioritySelect').value;
-    const oldPriority = ticketPriorities.find(p => p.id == currentEmail.priority_id);
-    const newPriority = ticketPriorities.find(p => p.id == priorityId);
-    const oldLabel = oldPriority ? oldPriority.name : '';
+    const newPriority = prioritiesForTicket(currentEmail).find(p => p.id == priorityId);
+    const oldLabel = currentEmail.priority || '';
     const newLabel = newPriority ? newPriority.name : '';
 
     try {
@@ -9229,20 +9263,7 @@ function openNewTicketModal() {
     typeSelect.innerHTML = '<option value="">-- Select --</option>' +
         ticketTypes.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
 
-    // Populate priority dropdown from the CONFIGURED priorities (active only) so
-    // custom ones like Urgent/Critical appear instead of a hardcoded Low/Normal/High
-    // subset (#40). The value is the priority NAME — createTicket resolves name→id.
-    const prioSelect = document.getElementById('newTicketPriority');
-    if (ticketPriorities.length) {
-        prioSelect.innerHTML = ticketPriorities
-            .map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`)
-            .join('');
-        const def = ticketPriorities.find(p => p.is_default) || ticketPriorities.find(p => p.name === 'Normal');
-        if (def) prioSelect.value = def.name;
-    } else {
-        // Fallback if priorities haven't loaded yet — keeps the form usable.
-        prioSelect.innerHTML = '<option value="Normal">Normal</option>';
-    }
+    fillNewTicketPriorities(ticketPriorities);
 
     // The consolidated view (#1554): ask which company, because the board holds
     // several and a new ticket has to land in exactly one of them.
@@ -9258,6 +9279,7 @@ function openNewTicketModal() {
             // until one is chosen — see the change handler below.
             typeSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_company_first')) + '</option>';
             typeSelect.disabled = true;
+            fillNewTicketPriorities(null);
             preselectNewTicketCompany(coSel);
         } else {
             coRow.hidden = true;
@@ -9347,6 +9369,30 @@ async function preselectNewTicketCompany(coSel) {
 }
 
 /**
+ * The New Ticket priority list, on its company's default.
+ * The value is the priority NAME — createTicket resolves it among that company's priorities.
+ *
+ * @param {Array|null} list  the company's priorities; null while the form still asks which company
+ */
+function fillNewTicketPriorities(list) {
+    const prioSelect = document.getElementById('newTicketPriority');
+    if (list === null) {
+        prioSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_company_first')) + '</option>';
+        prioSelect.disabled = true;
+        return;
+    }
+    prioSelect.disabled = false;
+    if (!list.length) {
+        // Priorities not loaded yet: leave it to the server, which gives the company's default.
+        prioSelect.innerHTML = '<option value=""></option>';
+        return;
+    }
+    prioSelect.innerHTML = list.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('');
+    const def = defaultPriorityOf(list);
+    if (def) prioSelect.value = def.name;
+}
+
+/**
  * Refill the New Ticket type list once a company is chosen (#1554).
  *
  * ⚠️ The types have to follow the CHOSEN company, not the active one. Offering
@@ -9361,9 +9407,11 @@ function onNewTicketCompanyChange() {
     if (id == null) {
         typeSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_company_first')) + '</option>';
         typeSelect.disabled = true;
+        fillNewTicketPriorities(null);
         syncNewTicketDepartment();
         return;
     }
+    fillNewTicketPriorities(prioritiesForTicket({ tenant_id: id }));
     const list = (ticketTypesByCompany && (ticketTypesByCompany[id] || ticketTypesByCompany[String(id)])) || ticketTypes;
     typeSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_placeholder')) + '</option>' +
         list.map(ty => `<option value="${ty.id}">${escapeHtml(ty.name)}</option>`).join('');
@@ -11041,10 +11089,17 @@ function populateContextStatusSubmenu() {
 // lookup. Priority is nullable on tickets, so the first row is a "no priority"
 // option that clears the assignment. Same chip + tick pattern as the status
 // submenu — colour swatch from the priority's stored colour.
+/** The priorities the right-click menu offers: the selection's, or the clicked ticket's company's. */
+function ctxPriorityList() {
+    if (ctxActsOnSelection) return prioritiesForTickets(selectedEmails());
+    return prioritiesForTicket(emails.find(e => e.ticket_id == ctxTargetTicketId) || currentEmail);
+}
+
 function populateContextPrioritySubmenu() {
     const sub = document.getElementById('ctxPrioritySubmenu');
     if (!sub) return;
-    if (!ticketPriorities.length) {
+    const list = ctxPriorityList();
+    if (!list.length) {
         sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.no_priorities')) + '</div>';
         return;
     }
@@ -11057,7 +11112,7 @@ function populateContextPrioritySubmenu() {
         <span class="ctx-status-name" style="color:#888; font-style: italic;">${escapeHtml(t('tickets.context.clear_priority'))}</span>
         ${(currentPriorityId === null || currentPriorityId === undefined) && currentEmail && currentEmail.ticket_id == ctxTargetTicketId ? '<span class="ctx-status-check">&#10003;</span>' : ''}
     </div>`;
-    sub.innerHTML = clearRow + ticketPriorities.map(p => {
+    sub.innerHTML = clearRow + list.map(p => {
         const isCurrent = (currentPriorityId != null && p.id == currentPriorityId);
         const swatch = p.colour
             ? `<span class="ctx-status-swatch" style="background: ${escapeHtml(p.colour)};"></span>`
@@ -11080,7 +11135,7 @@ async function setPriorityFromContext(priorityId) {
     if (ctxActsOnSelection) return bulkSetField({ priority_id: priorityId === '' ? null : priorityId }, t('tickets.bulk.label_priority'));
     if (!ctxTargetTicketId) return;
     const targetId = ctxTargetTicketId;
-    const newRow   = priorityId !== '' ? ticketPriorities.find(p => p.id == priorityId) : null;
+    const newRow   = priorityId !== '' ? ctxPriorityList().find(p => p.id == priorityId) : null;
     const newLabel = newRow ? newRow.name : '';
     try {
         const response = await fetch(API_BASE + 'assign_ticket.php', {
@@ -11097,10 +11152,8 @@ async function setPriorityFromContext(priorityId) {
             return;
         }
         try {
-            const oldRow   = (currentEmail && currentEmail.ticket_id == targetId)
-                ? ticketPriorities.find(p => p.id == currentEmail.priority_id)
-                : null;
-            const oldLabel = oldRow ? oldRow.name : '';
+            const target   = emails.find(e => e.ticket_id == targetId);
+            const oldLabel = (target && target.priority) || '';
             await logAudit(targetId, 'Priority', oldLabel, newLabel);
         } catch (e) { /* audit is best-effort */ }
         // Keep the open ticket's toolbar in sync when the same ticket is in the reading pane.
