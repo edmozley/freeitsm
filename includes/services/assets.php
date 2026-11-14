@@ -424,10 +424,11 @@ class AssetsService
 
         // user_id is left NULL. That column was NOT NULL until this feature; see
         // api/system/db_verify.php, which relaxes it on an existing install.
+        [$srcCol, $srcVal] = self::assignedSource($conn, $ctx, $in);
         $conn->prepare(
-            "INSERT INTO users_assets (asset_id, analyst_id, assigned_by_analyst_id, notes, expected_return_date, assigned_datetime)
-             VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([$assetId, $analystId, $actorId, $notes, $expectedReturn]);
+            "INSERT INTO users_assets (asset_id, analyst_id, assigned_by_analyst_id, notes, expected_return_date, assigned_datetime$srcCol)
+             VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP()" . ($srcCol ? ', ?' : '') . ")"
+        )->execute(array_merge([$assetId, $analystId, $actorId, $notes, $expectedReturn], $srcVal));
 
         // Custody trail, best-effort as elsewhere. asset_checkout_log.user_id
         // names a requester, so an analyst handover records the NAME and leaves
@@ -460,11 +461,29 @@ class AssetsService
     }
 
     /**
+     * users_assets.assigned_source for a new assignment (GH #335): $in['source']
+     * when it is an AssetAssignmentSource (never a string - see resolve()), else
+     * what the actor implies.
+     * Nothing on an install whose Database Verification has not added the column
+     * yet, so assigning keeps working until it has.
+     *
+     * @return array{0:string,1:array}  the extra column for the INSERT, and its value
+     */
+    private static function assignedSource(PDO $conn, ActorContext $ctx, array $in): array
+    {
+        require_once __DIR__ . '/../asset_assignment_source.php';
+        require_once __DIR__ . '/../tenancy.php';   // tenancyColumnExists()
+        if (!tenancyColumnExists($conn, 'users_assets', 'assigned_source')) return ['', []];
+        return [', assigned_source', [AssetAssignmentSource::resolve($in['source'] ?? null, $ctx)->value]];
+    }
+
+    /**
      * Assign a requester to an asset. $in: user_id | user_email, plus optional
      * notes, expected_return_date, previous_user_id (UI re-assign old_value).
      * Returns [asset_id, user_id, name, expected_return_date, notes].
      *
-     * @param array $in  user_id or user_email, plus optional notes, expected_return_date (Y-m-d), previous_user_id
+     * @param array $in  user_id or user_email, plus optional notes, expected_return_date (Y-m-d), previous_user_id,
+     *                   source (AssetAssignmentSource; else the actor's)
      */
     public static function assignUser(PDO $conn, ActorContext $ctx, int $assetId, array $in): array
     {
@@ -501,10 +520,11 @@ class AssetsService
         // No analyst (0): Intune assigned it. NULL, not 0, as auditWrite() does -
         // 0 would point fk_users_assets_analyst at an analyst who does not exist.
         $byAnalyst = $actorId > 0 ? $actorId : null;
+        [$srcCol, $srcVal] = self::assignedSource($conn, $ctx, $in);
         $conn->prepare(
-            "INSERT INTO users_assets (asset_id, user_id, assigned_by_analyst_id, notes, expected_return_date, assigned_datetime)
-             VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([$assetId, $userId, $byAnalyst, $notes, $expectedReturn]);
+            "INSERT INTO users_assets (asset_id, user_id, assigned_by_analyst_id, notes, expected_return_date, assigned_datetime$srcCol)
+             VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP()" . ($srcCol ? ', ?' : '') . ")"
+        )->execute(array_merge([$assetId, $userId, $byAnalyst, $notes, $expectedReturn], $srcVal));
 
         // Custody trail (best-effort, like the UI).
         try {
@@ -565,10 +585,11 @@ class AssetsService
         $conn->prepare("DELETE FROM users_assets WHERE asset_id = ? AND user_id = ?")->execute([$assetId, $userId]);
 
         try {
+            // No analyst (0): Intune moved it (GH #335). NULL, as assignUser() writes.
             $conn->prepare(
                 "INSERT INTO asset_checkout_log (asset_id, user_id, user_name, action, expected_return_date, analyst_id, action_datetime)
                  VALUES (?, ?, ?, 'checkin', ?, ?, UTC_TIMESTAMP())"
-            )->execute([$assetId, $userId, $row['display_name'], $row['expected_return_date'], $actorId]);
+            )->execute([$assetId, $userId, $row['display_name'], $row['expected_return_date'], $actorId > 0 ? $actorId : null]);
         } catch (Exception) { /* custody log not critical */ }
 
         if (!$skipAudit) {

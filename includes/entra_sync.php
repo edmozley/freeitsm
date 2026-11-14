@@ -1149,6 +1149,9 @@ function entraSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int $a
             if ($holders && $holders['assigned'] > 0) {
                 $message .= sprintf(' Assets given to their Intune primary user: %d.', $holders['assigned']);
             }
+            if ($holders && ($holders['moved'] ?? 0) > 0) {
+                $message .= sprintf(" Assets moved to their device's new primary user: %d.", $holders['moved']);
+            }
         }
 
         if (!$preview) {

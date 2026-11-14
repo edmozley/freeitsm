@@ -22,7 +22,13 @@ if ($assetId <= 0) {
 }
 
 try {
+    require_once '../../includes/tenancy.php';
     $conn = connectToDatabase();
+    // Multi-tenancy: only an asset in this analyst's companies, like get_asset_users.php.
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], $assetId)) {
+        echo json_encode(['success' => false, 'error' => 'Asset not found']);
+        exit;
+    }
 
     $stmt = $conn->prepare(
         "SELECT id, intune_id, device_name, user_principal_name, user_display_name,
@@ -38,9 +44,15 @@ try {
     );
     $stmt->execute([$assetId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    echo json_encode(['success' => true, 'device' => $row ?: null]);
-
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    // GH #335: every primary user it has had, and whether Intune's is its holder.
+    $users = null;
+    if ($row) {
+        require_once '../../includes/intune_user_history.php';
+        $users = intuneAssetUserInfo($conn, $assetId);
+    }
+    echo json_encode(['success' => true, 'device' => $row ?: null, 'users' => $users]);
+} catch (Throwable $e) {
+    // Never the exception's own text: it can carry SQL and column names.
+    error_log('get_intune_device: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The Intune device could not be read.']);
 }

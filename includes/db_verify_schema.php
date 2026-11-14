@@ -2159,6 +2159,9 @@ return [
         'assigned_by_analyst_id'    => 'INT NULL',
         'notes'                     => 'VARCHAR(500) NULL',
         'expected_return_date'      => 'DATE NULL',
+        // Where the assignment came from: AssetAssignmentSource (GH #335) - what
+        // decides which holders Intune may move. NULL = from before the column.
+        'assigned_source'           => 'VARCHAR(16) NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
@@ -2961,6 +2964,26 @@ return [
         'free_storage_bytes'            => 'BIGINT NULL',
         'raw_json'                      => 'LONGTEXT NULL',
         'last_seen_local'               => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // Every primary user a device has had in Intune, as the sync saw it (GH #335).
+    // One row when a device is first seen, then one per change. The sync used to
+    // overwrite intune_devices.user_id, so who had a device before was lost.
+    // includes/intune.php: intuneRecordUserChange(), intuneResolveUserHistory().
+    'intune_device_user_history' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'intune_device_id'  => 'INT NOT NULL',
+        'asset_id'          => 'INT NULL',            // the device's asset when it was seen, if linked
+        'old_user_id'       => 'VARCHAR(64) NULL',    // Entra object id; NULL on a device's first row
+        'old_upn'           => 'VARCHAR(256) NULL',
+        'old_name'          => 'VARCHAR(256) NULL',
+        'old_person_id'     => 'INT NULL',            // users.id that object id matched, if anybody
+        'new_user_id'       => 'VARCHAR(64) NULL',
+        'new_upn'           => 'VARCHAR(256) NULL',
+        'new_name'          => 'VARCHAR(256) NULL',
+        'new_person_id'     => 'INT NULL',
+        'outcome'           => 'VARCHAR(20) NULL',    // what FreeITSM did about it; NULL until the sync decides
+        'seen_datetime'     => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     'intune_sync_jobs' => [

@@ -102,6 +102,9 @@ return [
         'orphaned_title'    => 'Orphaned tickets',
         'orphaned_desc'     => 'Find tickets stuck in a deleted department and reassign them',
         'orphaned_keywords' => 'orphaned tickets department missing deleted hidden reassign fix stuck lost broken',
+        'intune_mismatch_title'    => 'Assets whose Intune user differs',
+        'intune_mismatch_desc'     => 'Assets held by one person here while Intune names another as the device\'s primary user',
+        'intune_mismatch_keywords' => 'intune primary user holder differs mismatch laptop handed on reassigned device entra',
         'maintenance_title'    => 'Maintenance',
         'maintenance_desc'     => 'Find data left behind, such as tickets in a deleted department, and put it right',
         'maintenance_keywords' => 'maintenance cleanup clean up tidy orphaned orphans left behind stale broken repair fix',
@@ -1003,6 +1006,20 @@ return [
 
         'error'        => 'Error: {message}',
         'connect_fail' => 'Failed to connect: {message}',
+    ],
+
+    // Assets whose Intune user differs (system/intune-user-mismatch/, GH #335)
+    'intune_mismatch' => [
+        'heading'      => 'Assets whose Intune user differs',
+        'intro'        => 'Assets held by one person here while a linked Intune device names somebody else as its primary user: a laptop handed on in Intune but not here, or a holder corrected here that Intune still disagrees with. Open an asset to see its device\'s whole history on its Intune tab. Follow changes of primary user (Assets → Settings → Intune) moves the ones Intune itself assigned; the rest are for a person to decide.',
+        'none'         => 'None: every asset with an Intune device is held by its primary user, or by nobody.',
+        'col_asset'    => 'Asset',
+        'col_holder'   => 'Held here by',
+        'col_intune'   => 'Primary user in Intune',
+        'not_imported' => 'Not imported from Entra ID',
+        'count'        => 'Assets: {n}',
+        'more'         => 'Showing the first {n} of {total}.',
+        'load_failed'  => 'The list could not be read. Run Database Verification if Intune has never been set up here.',
     ],
 
     // Maintenance page (system/maintenance/index.php, GH #263)

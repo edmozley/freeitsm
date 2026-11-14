@@ -607,6 +607,16 @@ function getHelpTopics() {
             ],
             'terms' => 'cleanup clean up tidy orphaned orphans left behind stale broken repair fix housekeeping',
         ],
+        'intune-user-mismatch' => [
+            'hero' => 'Assets whose Intune user differs',
+            'sub'  => 'A laptop handed on in Intune is not handed on here by itself. This lists the assets held by one person here while Intune names another, so somebody can decide - or Intune can be left to follow its own changes.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'why',      'label' => 'Why they differ'],
+                ['id' => 'fixing',   'label' => 'Settling them'],
+            ],
+            'terms' => 'intune primary user holder mismatch differs handed on reassigned laptop custody follow entra',
+        ],
         'orphaned-tickets' => [
             'hero' => 'Orphaned tickets',
             'sub'  => 'Delete a department and its tickets do not vanish — they keep pointing at a department that no longer exists, which hides them from every queue. This page finds those tickets and puts them back somewhere real.',
