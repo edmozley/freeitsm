@@ -830,6 +830,25 @@ $translationNamespaces = ['common', 'reporting'];
             }
         }
 
+        // Run now: the job starts at once, in the background; the list shows it running.
+        async function runJobNow(key, btn) {
+            const say = (m, type) => (typeof showToast === 'function' ? showToast(m, type) : alert(m));
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'job_health.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'run_now', job: key })
+                });
+                const d = await res.json();
+                say(d.success ? JT('run_now_started') : (d.error || JT('run_now_failed_to_start')), d.success ? 'success' : 'warning');
+                if (d.success) setTimeout(() => { if (typeof loadJobs === 'function') loadJobs(); }, 3000);
+            } catch (e) {
+                say(JT('run_now_failed_to_start'), 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
         function renderJobs() {
             const d = jobsData;
             const order = { stuck: 0, failing: 1, overdue: 2, never_seen: 3, partial: 4, healthy: 5, not_used: 6, not_needed: 7 };
@@ -859,7 +878,8 @@ $translationNamespaces = ['common', 'reporting'];
                             <td>${j.last_run ? `<span class="job-pill ${escapeHtml(j.last_run.outcome)}">${escapeHtml(JT('outcome_' + j.last_run.outcome))}</span>
                                 <div class="job-sub">${escapeHtml(JT('trigger_' + j.last_run.trigger))} · ${escapeHtml(fmtUtc(j.last_run.started))}</div>` : '<span class="job-sub">-</span>'}</td>
                             <td class="job-sub">${escapeHtml(intervalText(j.interval))}${j.interval !== j.default_interval ? '<br>' + escapeHtml(JT('changed_from', { d: intervalText(j.default_interval) })) : ''}${scheduleText(d, j)}</td>
-                            ${d.can_configure ? `<td><button class="job-edit-btn" onclick="editJob(${jsArg(j.key)})">${escapeHtml(JT('edit'))}</button></td>` : ''}
+                            ${d.can_configure ? `<td><button class="job-edit-btn" onclick="editJob(${jsArg(j.key)})">${escapeHtml(JT('edit'))}</button>${
+                                /^php (cron|scripts)\//.test(j.command || '') ? ` <button class="job-edit-btn" onclick="runJobNow(${jsArg(j.key)}, this)">${escapeHtml(JT('run_now'))}</button>` : ''}</td>` : ''}
                         </tr>`).join('')}
                     </tbody>
                 </table>

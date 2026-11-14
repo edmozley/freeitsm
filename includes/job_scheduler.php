@@ -268,6 +268,53 @@ function jobSchedulerFallbackDue(PDO $conn): bool
 }
 
 /**
+ * Run now, from Background jobs: starts one scheduled job at once, as its own process,
+ * exactly as the scheduler would - the registry's command, validated by
+ * jobSchedulerCommand(), never anything from the request. The run is recorded as
+ * 'manual', with who pressed it (FREEITSM_JOB_TRIGGER / FREEITSM_JOB_ANALYST, which
+ * JobRun reads), and the job's schedule is left as it was.
+ *
+ * Refused, with the reason, when the job is not a scheduled one, is not needed here
+ * (its feature is not set up, or its module is off), or is running already - its run
+ * lock would turn a second one away anyway, but saying so beats a silent nothing.
+ *
+ * @param int $analystId  who pressed it
+ * @param ?callable $spawn  fn(string $php, string $script, array $args): bool - for tests; jobSchedulerSpawn() by default
+ * @return string  started, unknown, not_needed, running, bad_command or failed_to_start
+ */
+function jobRunNow(PDO $conn, string $job, int $analystId, ?callable $spawn = null): string
+{
+    $def = jobRegistry()[$job] ?? null;
+    if ($def === null) return 'unknown';
+    try {
+        if (!(bool)$def['needed']($conn)) return 'not_needed';
+    } catch (Throwable) {
+        // Could not tell: let the job decide for itself, as the scheduler does.
+    }
+    $cmd = jobSchedulerCommand($def['command']);
+    if ($cmd === null) return 'bad_command';
+    $running = $conn->prepare("SELECT 1 FROM job_runs WHERE job_key = ? AND outcome = 'running'
+                                 AND started_datetime > UTC_TIMESTAMP() - INTERVAL ? MINUTE LIMIT 1");
+    $running->execute([$job, max(1, (int)($def['max_runtime'] ?? 60))]);
+    if ($running->fetchColumn()) return 'running';
+
+    require_once __DIR__ . '/intune.php';   // intuneFindPhpExe(): the same PHP the fallback starts jobs with
+    $php = intuneFindPhpExe(jobSetting($conn, 'intune_php_exe') ?: null);
+    // The child inherits these; they are put back at once, so nothing else this
+    // process starts - in a PHP-FPM worker, the next request - looks like Run now.
+    $before = [getenv('FREEITSM_JOB_TRIGGER'), getenv('FREEITSM_JOB_ANALYST')];
+    putenv('FREEITSM_JOB_TRIGGER=manual');
+    putenv('FREEITSM_JOB_ANALYST=' . $analystId);
+    try {
+        $ok = ($spawn ?? 'jobSchedulerSpawn')($php, $cmd[0], $cmd[1]);
+    } finally {
+        putenv($before[0] === false ? 'FREEITSM_JOB_TRIGGER' : 'FREEITSM_JOB_TRIGGER=' . $before[0]);
+        putenv($before[1] === false ? 'FREEITSM_JOB_ANALYST' : 'FREEITSM_JOB_ANALYST=' . $before[1]);
+    }
+    return $ok ? 'started' : 'failed_to_start';
+}
+
+/**
  * Starts the scheduler from a page, when the fallback is due: claims the minute with one
  * atomic UPDATE, so ten open tabs start it once, then runs `cron/run.php --fallback` as
  * its own process. If PHP may not start a process, that is logged and recorded, and the
