@@ -2947,6 +2947,7 @@ return [
         'managed_device_owner_type'     => 'VARCHAR(32) NULL',
         'device_enrollment_type'        => 'VARCHAR(64) NULL',
         'device_registration_state'     => 'VARCHAR(32) NULL',
+        'chassis_type'                  => 'VARCHAR(32) NULL',   // Graph's chassisType: laptop, desktop, phone... (GH #336)
         'enrolled_datetime'             => 'DATETIME NULL',
         'last_sync_datetime'            => 'DATETIME NULL',
         'model'                         => 'VARCHAR(128) NULL',

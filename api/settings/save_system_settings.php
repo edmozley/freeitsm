@@ -87,6 +87,19 @@ try {
         }
     }
 
+    // GH #336: the Intune kind -> asset type mapping is stored as JSON - only kinds
+    // that exist, each a positive type id; anything else is dropped, never stored.
+    if (array_key_exists('intune_type_map', $settings)) {
+        require_once '../../includes/intune_asset_type.php';
+        $raw = is_string($settings['intune_type_map']) ? json_decode($settings['intune_type_map'], true) : null;
+        $clean = [];
+        foreach (IntuneDeviceKind::cases() as $k) {
+            $v = is_array($raw) ? ($raw[$k->value] ?? null) : null;
+            if (is_numeric($v) && (int)$v > 0) $clean[$k->value] = (int)$v;
+        }
+        $settings['intune_type_map'] = $clean ? json_encode($clean) : '';
+    }
+
     foreach ($settings as $key => $value) {
         // For masked secret keys, treat blank or asterisk-prefixed values as
         // "leave existing untouched" so the user can submit the form without

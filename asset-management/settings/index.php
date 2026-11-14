@@ -1900,6 +1900,25 @@ $translationNamespaces = ['common', 'asset-management'];
                             </label>
                             <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_follow_primary_user_hint')); ?></div>
                         </div>
+                        <?php /* GH #336: which of this install's asset types each kind of Intune device gets. */ ?>
+                        <div class="form-group">
+                            <label class="form-label"><?php echo htmlspecialchars(t('asset-management.settings.intune_types_label')); ?></label>
+                            <div class="form-hint" style="margin-bottom:8px;"><?php echo htmlspecialchars(t('asset-management.settings.intune_types_hint')); ?></div>
+                            <table id="intuneTypeMap" style="border-collapse:collapse;font-size:13px;">
+                                <?php foreach (['laptop', 'desktop', 'server', 'phone', 'tablet', 'other_mobile'] as $kind): ?>
+                                <tr>
+                                    <td style="padding:4px 14px 4px 0;"><?php echo htmlspecialchars(t('asset-management.settings.intune_kind_' . $kind)); ?></td>
+                                    <td style="padding:4px 0;"><select class="form-input" data-intune-kind="<?php echo $kind; ?>" style="min-width:200px;"></select></td>
+                                    <td style="padding:4px 0 4px 10px;" data-intune-suggest="<?php echo $kind; ?>"></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </table>
+                            <?php /* A suggestion is never preselected: it shows beside its row with a Use button, and nothing is saved until Save. The button creates what is still missing. */ ?>
+                            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
+                                <button type="button" class="btn btn-secondary btn-sm" id="intuneCreateTypesBtn" onclick="createMissingIntuneTypes()"><?php echo htmlspecialchars(t('asset-management.settings.intune_types_create')); ?></button>
+                                <span class="form-hint" id="intuneTypesNote"></span>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label class="form-label" for="intuneAppBatchSize"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_label')); ?></label>
                             <input type="number" class="form-input" id="intuneAppBatchSize" min="1" max="500" value="30" style="max-width: 140px;">
@@ -3095,6 +3114,85 @@ $translationNamespaces = ['common', 'asset-management'];
         // the placeholder tells the user one is already saved. The save endpoint
         // treats blank/asterisk values as "keep existing", so leaving them
         // alone preserves the stored secret.
+        // GH #336: the kind -> asset type mapping. The selects list the active
+        // types; a mapping to a type since deleted shows as nothing.
+        // TRAP: Save sends intune_type_map only once this has loaded the mapping -
+        // a failed or slow load leaves every select on "No type", and saving that
+        // would wipe the mapping somebody made.
+        let intuneTypeMapLoaded = false;
+        async function fillIntuneTypeMap(data) {
+            // From the server: the active types, the saved mapping and, for each kind
+            // with nothing mapped, the type it is known by ("Portátil" for laptops).
+            if (!data) {
+                try { data = await (await fetch('../../api/intune/type_map.php')).json(); } catch (e) { data = null; }
+            }
+            if (!data || !data.success) return;   // keep whatever is on screen, and Save leaves the mapping alone
+            const types = data.types || [];
+            const map = data.map || {};
+            const suggested = data.suggested || {};
+            const nameOf = Object.fromEntries(types.map(t => [String(t.id), t.name]));
+            let suggestedAny = false;
+            document.querySelectorAll('#intuneTypeMap select[data-intune-kind]').forEach(sel => {
+                const kind = sel.dataset.intuneKind;
+                const want = String(map[kind] || '');
+                sel.innerHTML = `<option value="">${escapeHtml(window.t('asset-management.settings.intune_type_none'))}</option>`
+                    + types.map(t => `<option value="${t.id}"${String(t.id) === want ? ' selected' : ''}>${escapeHtml(t.name)}</option>`).join('');
+                // A suggestion is only offered: "Suggested: Portátil" and a Use button. Nothing is
+                // chosen, and nothing saved, until somebody presses Use and then Save.
+                const cell = document.querySelector(`#intuneTypeMap [data-intune-suggest="${kind}"]`);
+                if (!cell) return;
+                const sid = suggested[kind] ? String(suggested[kind]) : '';
+                if (!map[kind] && sid && nameOf[sid]) {
+                    suggestedAny = true;
+                    cell.innerHTML = `<span class="form-hint" style="margin-right:8px;">${escapeHtml(window.t('asset-management.settings.intune_type_suggested', { name: nameOf[sid] }))}</span>`
+                        + `<button type="button" class="btn btn-secondary btn-sm">${escapeHtml(window.t('asset-management.settings.intune_type_use'))}</button>`;
+                    cell.querySelector('button').addEventListener('click', () => { sel.value = sid; cell.innerHTML = ''; });
+                } else {
+                    cell.innerHTML = '';
+                }
+            });
+            intuneTypeMapLoaded = true;
+            const note = document.getElementById('intuneTypesNote');
+            if (note) note.textContent = suggestedAny ? window.t('asset-management.settings.intune_types_suggested') : '';
+        }
+
+        // Every kind with nothing chosen gets the type it is known by, or a new one.
+        async function createMissingIntuneTypes() {
+            const missing = Array.from(document.querySelectorAll('#intuneTypeMap select[data-intune-kind]')).filter(s => !s.value);
+            if (!missing.length) { showToast(window.t('asset-management.settings.intune_types_none_missing'), 'info'); return; }
+            if (!(await showConfirm({
+                title: window.t('asset-management.settings.intune_types_create_title'),
+                message: window.t('asset-management.settings.intune_types_create_confirm'),
+                okLabel: window.t('asset-management.settings.intune_types_create')
+            }))) return;
+            const btn = document.getElementById('intuneCreateTypesBtn');
+            btn.disabled = true;
+            try {
+                const r = await fetch('../../api/intune/type_map.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    // The mapping as it is on screen, so a choice not saved yet is kept.
+                    body: JSON.stringify({ action: 'create_missing', map: intuneTypeMapLoaded ? JSON.parse(readIntuneTypeMap() || '{}') : undefined })
+                });
+                const d = await r.json();
+                if (!d.success) { showToast(d.error, 'error'); return; }
+                await fillIntuneTypeMap(d);
+                showToast(d.created.length
+                    ? window.t('asset-management.settings.intune_types_created', { names: d.created.join(', ') })
+                    : window.t('asset-management.settings.intune_types_mapped'), 'success');
+            } catch (e) {
+                showToast(window.t('asset-management.settings.intune_types_failed'), 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        function readIntuneTypeMap() {
+            const map = {};
+            document.querySelectorAll('#intuneTypeMap select[data-intune-kind]').forEach(sel => {
+                if (sel.value) map[sel.dataset.intuneKind] = parseInt(sel.value, 10);
+            });
+            return Object.keys(map).length ? JSON.stringify(map) : '';
+        }
+
         async function loadIntegrationSettings() {
             try {
                 const response = await fetch(API_SETTINGS + 'get_system_settings.php');
@@ -3124,6 +3222,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     document.getElementById('intuneSyncHostnames').checked = data.settings.intune_sync_hostnames === '1';
                     document.getElementById('intuneAssignPrimaryUser').checked = data.settings.intune_assign_primary_user === '1';
                     document.getElementById('intuneFollowPrimaryUser').checked = data.settings.intune_follow_primary_user === '1';
+                    fillIntuneTypeMap();
                     if (document.getElementById('reconIgnoredSerials')) {
                         document.getElementById('reconIgnoredSerials').value = data.settings.asset_reconciliation_ignored_serials || '';
                     }
@@ -3293,7 +3392,9 @@ $translationNamespaces = ['common', 'asset-management'];
                             intune_company_id: document.getElementById('intuneCompanyId') ? document.getElementById('intuneCompanyId').value.trim() : '',
                             intune_sync_hostnames: document.getElementById('intuneSyncHostnames').checked ? '1' : '0',
                             intune_assign_primary_user: document.getElementById('intuneAssignPrimaryUser').checked ? '1' : '0',
-                            intune_follow_primary_user: document.getElementById('intuneFollowPrimaryUser').checked ? '1' : '0'
+                            intune_follow_primary_user: document.getElementById('intuneFollowPrimaryUser').checked ? '1' : '0',
+                            // Only once the mapping has loaded - see intuneTypeMapLoaded.
+                            ...(intuneTypeMapLoaded ? { intune_type_map: readIntuneTypeMap() } : {})
                         }
                     })
                 });
