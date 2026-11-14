@@ -8,7 +8,7 @@ return [
         'category' => 'getting-started',
         'title'    => 'Configuration item classes',
         'what'     => 'The kinds of thing your CMDB records - Server, Database, Application, Service, Firewall - each with its own icon.',
-        'why'      => 'Classes are the CMDB\'s schema. Nothing can be recorded until at least one exists, and a sensible set keeps like things together.',
+        'why'      => 'Classes are the CMDB\'s schema. Nothing can be recorded until at least one exists, and a sensible set keeps like things together - Starter classes adds nine common ones, with their properties, after a preview.',
         'done'     => 'At least one CMDB class exists (demo data not counted).',
         'link'     => 'cmdb/settings/',
         'check'    => ['rows', 'cmdb_classes', 'is_demo = 0'],
@@ -179,7 +179,8 @@ return [
         'why'      => 'Designing a class from a blank page is slow; the AI asks about your environment and suggests the fields worth recording.',
         'done'     => 'A CMDB AI API key has been saved.',
         'link'     => 'cmdb/settings/',
-        'check'    => ['setting', 'cmdb_ai_api_key', 'nonempty'],
+        // An OpenAI-compatible server can need no key (GH #192), so its base URL counts too.
+        'check'    => ['any', [['setting', 'cmdb_ai_api_key', 'nonempty'], ['setting', 'cmdb_ai_compatible_base_url', 'nonempty']]],
     ],
     [
         'id'       => 'cmdb.ai_instructions',
@@ -192,6 +193,22 @@ return [
         'done'     => 'Custom instructions for the CMDB AI have been saved.',
         'link'     => 'cmdb/settings/',
         'check'    => ['setting', 'cmdb_ai_custom_instructions', 'nonempty'],
+    ],
+    [
+        'id'       => 'cmdb.assistant',
+        'module'   => 'cmdb',
+        'tier'     => 'recommended',
+        'category' => 'ai',
+        'title'    => 'The CMDB assistant',
+        'what'     => 'An AI configuration manager in the CMDB header that asks about the company - its services, what they run on, what the CMDB should answer - remembers what it learns, and suggests classes and configuration items to add after a preview.',
+        'why'      => 'Most people do not know where to start with a CMDB. A short conversation turns what you already know about the business into a sensible set of classes and the CIs to go in them.',
+        'done'     => 'The CMDB assistant has noted at least one fact about a company.',
+        'link'     => 'cmdb/',
+        // Guarded: before Database Verification has created cmdb_ai_facts this reads as not set up, not as an error.
+        'check'    => ['all', [
+            ['sql', "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'cmdb_ai_facts'"],
+            ['rows', 'cmdb_ai_facts'],
+        ]],
     ],
     [
         'id'       => 'cmdb.ai_summaries',

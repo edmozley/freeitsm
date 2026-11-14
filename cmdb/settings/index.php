@@ -237,6 +237,18 @@ $translationNamespaces = ['common', 'cmdb'];
             <p style="color: var(--text-muted,#6b7280); font-size: 13px; margin-bottom: 16px; max-width: 720px;">
                 <?php echo t('cmdb.settings.classes_intro'); ?>
             </p>
+            <?php
+            // GH #313: what the CMDB assistant has learned about the active company - readable,
+            // editable and forgettable here even with AI switched off (the panel is in the header).
+            $caFacts = 0;
+            try {
+                require_once '../../includes/cmdb/assistant.php';
+                $caConn = connectToDatabase();
+                $caFacts = cmdbAssistFactCount($caConn, getActiveTenantId($caConn, (int)$_SESSION['analyst_id']));
+            } catch (Throwable $e) { $caFacts = 0; }
+            if ($caFacts > 0): ?>
+            <p style="margin: -8px 0 16px;"><button type="button" class="ca-learned-link" data-ca-open="learned"><?php echo htmlspecialchars(t('cmdb.assistant.learned_link', ['count' => $caFacts])); ?></button></p>
+            <?php endif; ?>
             <table>
                 <thead>
                     <tr>

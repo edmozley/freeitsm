@@ -40,6 +40,9 @@ $all[] = [
     'model'         => $body['model'] ?? null,
     'has_tools'     => !empty($body['tools']),
     'roles'         => array_map(function ($m) { return $m['role'] ?? ''; }, $body['messages'] ?? []),
+    // Every message's text, for tests that check what a prompt carried (tests/cmdb-assistant.php, tests/projects-assistant.php).
+    'texts'         => array_map(function ($m) { $c = $m['content'] ?? ''; return mb_substr(is_string($c) ? $c : json_encode($c), 0, 40000); }, $body['messages'] ?? []),
+    'tools'         => array_map(function ($t) { return $t['function']['name'] ?? ''; }, $body['tools'] ?? []),
 ];
 file_put_contents($logFile, json_encode($all));
 
@@ -154,5 +157,30 @@ if ($model === 'help-search') {
     preg_match_all('/^\[(\d+)\]/m', $toolText, $nums);
     $n = $nums[1] ? end($nums[1]) : '1';
     $reply(['content' => "Found it after searching again. [$n]\nSOURCES: $n"]);
+}
+/* The conversation assistants (tests/projects-assistant.php, tests/cmdb-assistant.php):
+     script  a memory fold (system starts "You keep the memory") answers "- MEMORY: folded";
+             otherwise every line of the LAST user message of the form
+               CALL tool_name {"json": "arguments"}
+             is asked for as a tool call (all at once, once); after the results come back -
+             or when there are no CALL lines - it answers "REPLY: " and the tool results
+             joined with " | " (or the first 60 characters of the user message). */
+if ($model === 'script') {
+    $msgs = $body['messages'] ?? [];
+    $sys = (string)($msgs[0]['content'] ?? '');
+    if (str_starts_with($sys, 'You keep the memory')) $reply(['content' => '- MEMORY: folded']);
+    $lastUser = -1;
+    foreach ($msgs as $i => $m) if (($m['role'] ?? '') === 'user') $lastUser = $i;
+    $after = array_slice($msgs, $lastUser + 1);
+    $results = [];
+    foreach ($after as $m) if (($m['role'] ?? '') === 'tool') $results[] = is_string($m['content'] ?? null) ? $m['content'] : json_encode($m['content'] ?? '');
+    $text = $lastUser >= 0 ? (string)($msgs[$lastUser]['content'] ?? '') : '';
+    preg_match_all('/^CALL ([a-z_]+) (\{.*\})\s*$/m', $text, $calls, PREG_SET_ORDER);
+    if ($calls && !$results && !empty($body['tools'])) {
+        $reply(['content' => '', 'tool_calls' => array_map(function ($c, $i) {
+            return ['id' => 'call_' . $i, 'type' => 'function', 'function' => ['name' => $c[1], 'arguments' => $c[2]]];
+        }, $calls, array_keys($calls))], 'tool_calls');
+    }
+    $reply(['content' => 'REPLY: ' . ($results ? implode(' | ', $results) : mb_substr($text, 0, 60))]);
 }
 $reply(['content' => 'OK']);

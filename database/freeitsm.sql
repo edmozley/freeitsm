@@ -8236,6 +8236,73 @@ CREATE TABLE IF NOT EXISTS `ticket_cmdb_objects` (
     CONSTRAINT `fk_tco_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- CMDB 5.3.0 (GH #313): the CMDB assistant - includes/cmdb/assistant.php.
+-- A PRIVATE conversation per analyst per company (cmdb_ai_threads, like the Projects
+-- assistant's), and what it LEARNS about the company (cmdb_ai_facts), shared by
+-- everyone who works in that company. tenant_id is always the real company id -
+-- never NULL for the Default company. `summary` is the conversation's long-term
+-- memory (older turns folded in, includes/ai_conversation.php).
+-- TRAP: code never relies on these foreign keys - installs built by Database
+-- Verification have none, so clean-up deletes by id.
+CREATE TABLE IF NOT EXISTS `cmdb_ai_threads` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`         INT NOT NULL,                               -- the company the conversation is about
+    `analyst_id`        INT NOT NULL,                               -- whose conversation (always private)
+    `summary`           MEDIUMTEXT NULL,                            -- what earlier turns established
+    `summary_upto_id`   INT NULL,                                   -- the last message folded into it
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_cait_owner` (`tenant_id`, `analyst_id`),
+    KEY `ix_cait_analyst` (`analyst_id`),
+    CONSTRAINT `fk_cait_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_cait_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `cmdb_ai_messages` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `thread_id`         INT NOT NULL,
+    `role`              VARCHAR(10) NOT NULL,                       -- user | assistant
+    `kind`              VARCHAR(10) NOT NULL DEFAULT 'chat',        -- chat | open (a greeting) | resume (since we last spoke)
+    `content`           MEDIUMTEXT NULL,
+    `proposals`         MEDIUMTEXT NULL,                            -- JSON: what it proposed, each with status pending | applied | dismissed | failed
+    `looked_at`         TEXT NULL,                                  -- JSON: the read tools it used
+    `learned`           TEXT NULL,                                  -- JSON: the cmdb_ai_facts ids it noted this turn (the Noted chips)
+    `analyst_id`        INT NULL,                                   -- whose conversation (the thread's analyst), so leaving removes it on installs without FKs
+    `model`             VARCHAR(120) NULL,
+    `tokens_in`         INT NULL,
+    `tokens_out`        INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_caim_thread` (`thread_id`, `id`),
+    CONSTRAINT `fk_caim_thread` FOREIGN KEY (`thread_id`) REFERENCES `cmdb_ai_threads` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_caim_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One thing the assistant knows about a company, one row per (company, topic, subject):
+-- remembering the same subject again replaces the statement. topic is one of
+-- organisation, service, application, hosting, network, devices, dependency,
+-- ownership, tracking, exclude, convention.
+CREATE TABLE IF NOT EXISTS `cmdb_ai_facts` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`             INT NOT NULL,
+    `topic`                 VARCHAR(20) NOT NULL,
+    `subject`               VARCHAR(200) NOT NULL,
+    `statement`             VARCHAR(1000) NOT NULL,
+    `source`                VARCHAR(10) NOT NULL DEFAULT 'assistant',   -- assistant (noted in conversation) | user (edited on the Learned view)
+    `source_message_id`     INT NULL,                                   -- the cmdb_ai_messages turn that noted it (no FK: the conversation can be cleared)
+    `created_by_analyst_id` INT NULL,
+    `updated_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_caif_subject` (`tenant_id`, `topic`, `subject`),
+    KEY `ix_caif_topic` (`tenant_id`, `topic`),
+    CONSTRAINT `fk_caif_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_caif_created_by` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_caif_updated_by` FOREIGN KEY (`updated_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Join table linking tickets to assets (M:N). Asked for in discussion #57.
 -- Drives the "Affected equipment" section on the ticket reading pane and the
 -- "Tickets" tab on the asset detail page.

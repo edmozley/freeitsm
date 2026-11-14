@@ -84,39 +84,42 @@ $translationNamespaces = ['common', 'cmdb'];
             <a href="#ai-suggest" class="help-nav-link" data-section="ai-suggest">
                 <span class="help-nav-num">4</span> <?php echo t('cmdb.help.nav_ai_suggest'); ?>
             </a>
+            <a href="#assistant" class="help-nav-link" data-section="assistant">
+                <span class="help-nav-num">5</span> <?php echo t('cmdb.help.nav_assistant'); ?>
+            </a>
             <a href="#objects" class="help-nav-link" data-section="objects">
-                <span class="help-nav-num">5</span> <?php echo t('cmdb.help.nav_objects'); ?>
+                <span class="help-nav-num">6</span> <?php echo t('cmdb.help.nav_objects'); ?>
             </a>
             <a href="#hierarchy" class="help-nav-link" data-section="hierarchy">
-                <span class="help-nav-num">6</span> <?php echo t('cmdb.help.nav_hierarchy'); ?>
+                <span class="help-nav-num">7</span> <?php echo t('cmdb.help.nav_hierarchy'); ?>
             </a>
             <a href="#relationships" class="help-nav-link" data-section="relationships">
-                <span class="help-nav-num">7</span> <?php echo t('cmdb.help.nav_relationships'); ?>
+                <span class="help-nav-num">8</span> <?php echo t('cmdb.help.nav_relationships'); ?>
             </a>
             <a href="#when-to-use" class="help-nav-link" data-section="when-to-use">
-                <span class="help-nav-num">8</span> <?php echo t('cmdb.help.nav_when_to_use'); ?>
+                <span class="help-nav-num">9</span> <?php echo t('cmdb.help.nav_when_to_use'); ?>
             </a>
             <a href="#synthesis" class="help-nav-link" data-section="synthesis">
-                <span class="help-nav-num">9</span> <?php echo t('cmdb.help.nav_synthesis'); ?>
+                <span class="help-nav-num">10</span> <?php echo t('cmdb.help.nav_synthesis'); ?>
             </a>
             <a href="#tickets" class="help-nav-link" data-section="tickets">
-                <span class="help-nav-num">10</span> <?php echo t('cmdb.help.nav_tickets'); ?>
+                <span class="help-nav-num">11</span> <?php echo t('cmdb.help.nav_tickets'); ?>
             </a>
             <a href="#settings" class="help-nav-link" data-section="settings">
-                <span class="help-nav-num">11</span> <?php echo t('cmdb.help.nav_settings'); ?>
+                <span class="help-nav-num">12</span> <?php echo t('cmdb.help.nav_settings'); ?>
             </a>
             <a href="#tips" class="help-nav-link" data-section="tips">
-                <span class="help-nav-num">12</span> <?php echo t('cmdb.help.nav_tips'); ?>
+                <span class="help-nav-num">13</span> <?php echo t('cmdb.help.nav_tips'); ?>
             </a>
             <a href="#dataquality" class="help-nav-link" data-section="dataquality">
-                <span class="help-nav-num">13</span> <?php echo t('cmdb.help.nav_dataquality'); ?>
+                <span class="help-nav-num">14</span> <?php echo t('cmdb.help.nav_dataquality'); ?>
             </a>
             <a href="#assets" class="help-nav-link" data-section="assets">
-                <span class="help-nav-num">14</span> <?php echo t('cmdb.help.nav_assets'); ?>
+                <span class="help-nav-num">15</span> <?php echo t('cmdb.help.nav_assets'); ?>
             </a>
             <?php if ($showTenancyHelp): ?>
             <a href="#companies" class="help-nav-link" data-section="companies">
-                <span class="help-nav-num">15</span> <?php echo t('cmdb.help.nav_companies'); ?>
+                <span class="help-nav-num">16</span> <?php echo t('cmdb.help.nav_companies'); ?>
             </a>
             <?php endif; ?>
 
@@ -291,10 +294,34 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 5. Adding objects -->
-                <div class="help-section" id="objects">
+                <!-- 5. The CMDB assistant (GH #313) -->
+                <div class="help-section" id="assistant">
                     <div class="help-section-header">
                         <span class="help-section-num">5</span>
+                        <div>
+                            <h3><?php echo t('cmdb.help.assistant_heading'); ?></h3>
+                            <p><?php echo t('cmdb.help.assistant_intro'); ?></p>
+                        </div>
+                    </div>
+
+                    <p><?php echo t('cmdb.help.assistant_what'); ?></p>
+                    <p><?php echo t('cmdb.help.assistant_learned'); ?></p>
+
+                    <div class="help-note" id="assistant-classes">
+                        <?php echo t('cmdb.help.assistant_schema'); ?>
+                    </div>
+
+                    <div class="help-note" id="assistant-cis">
+                        <?php echo t('cmdb.help.assistant_cis'); ?>
+                    </div>
+
+                    <p><?php echo t('cmdb.help.assistant_setup'); ?></p>
+                </div>
+
+                <!-- 6. Adding objects -->
+                <div class="help-section" id="objects">
+                    <div class="help-section-header">
+                        <span class="help-section-num">6</span>
                         <div>
                             <h3><?php echo t('cmdb.help.objects_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.objects_intro'); ?></p>
@@ -329,10 +356,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 6. Hierarchy -->
+                <!-- 7. Hierarchy -->
                 <div class="help-section" id="hierarchy">
                     <div class="help-section-header">
-                        <span class="help-section-num">6</span>
+                        <span class="help-section-num">7</span>
                         <div>
                             <h3><?php echo t('cmdb.help.hierarchy_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.hierarchy_intro'); ?></p>
@@ -356,10 +383,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 7. Relationships -->
+                <!-- 8. Relationships -->
                 <div class="help-section" id="relationships">
                     <div class="help-section-header">
-                        <span class="help-section-num">7</span>
+                        <span class="help-section-num">8</span>
                         <div>
                             <h3><?php echo t('cmdb.help.relationships_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.relationships_intro'); ?></p>
@@ -391,10 +418,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 8. When to use which -->
+                <!-- 9. When to use which -->
                 <div class="help-section" id="when-to-use">
                     <div class="help-section-header">
-                        <span class="help-section-num">8</span>
+                        <span class="help-section-num">9</span>
                         <div>
                             <h3><?php echo t('cmdb.help.when_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.when_intro'); ?></p>
@@ -424,10 +451,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 9. Synthesis layer -->
+                <!-- 10. Synthesis layer -->
                 <div class="help-section" id="synthesis">
                     <div class="help-section-header">
-                        <span class="help-section-num">9</span>
+                        <span class="help-section-num">10</span>
                         <div>
                             <h3><?php echo t('cmdb.help.synthesis_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.synthesis_intro'); ?></p>
@@ -470,10 +497,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 10. Linking tickets -->
+                <!-- 11. Linking tickets -->
                 <div class="help-section" id="tickets">
                     <div class="help-section-header">
-                        <span class="help-section-num">10</span>
+                        <span class="help-section-num">11</span>
                         <div>
                             <h3><?php echo t('cmdb.help.tickets_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.tickets_intro'); ?></p>
@@ -504,10 +531,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 11. Settings tour -->
+                <!-- 12. Settings tour -->
                 <div class="help-section" id="settings" data-cap="cmdb.manage">
                     <div class="help-section-header">
-                        <span class="help-section-num">11</span>
+                        <span class="help-section-num">12</span>
                         <div>
                             <h3><?php echo t('cmdb.help.settings_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.settings_intro_tabs'); ?></p>
@@ -542,10 +569,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 12. Tips -->
+                <!-- 13. Tips -->
                 <div class="help-section" id="tips">
                     <div class="help-section-header">
-                        <span class="help-section-num">12</span>
+                        <span class="help-section-num">13</span>
                         <div>
                             <h3><?php echo t('cmdb.help.tips_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.tips_intro'); ?></p>
@@ -588,10 +615,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     </div>
                 </div>
 
-                <!-- 13. Data quality -->
+                <!-- 14. Data quality -->
                 <div class="help-section" id="dataquality">
                     <div class="help-section-header">
-                        <span class="help-section-num">13</span>
+                        <span class="help-section-num">14</span>
                         <div>
                             <h3><?php echo t('cmdb.help.dataquality_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.dataquality_intro'); ?></p>
@@ -603,10 +630,10 @@ $translationNamespaces = ['common', 'cmdb'];
                     <p><?php echo t('cmdb.help.dataquality_advisory'); ?></p>
                 </div>
 
-                <!-- 14. Linked assets (GH #201) -->
+                <!-- 15. Linked assets (GH #201) -->
                 <div class="help-section" id="assets">
                     <div class="help-section-header">
-                        <span class="help-section-num">14</span>
+                        <span class="help-section-num">15</span>
                         <div>
                             <h3><?php echo t('cmdb.help.assets_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.assets_intro'); ?></p>
@@ -630,10 +657,10 @@ $translationNamespaces = ['common', 'cmdb'];
                 </div>
 
                 <?php if ($showTenancyHelp): ?>
-                <!-- 15. Companies (multi-company installs only) -->
+                <!-- 16. Companies (multi-company installs only) -->
                 <div class="help-section" id="companies">
                     <div class="help-section-header">
-                        <span class="help-section-num">15</span>
+                        <span class="help-section-num">16</span>
                         <div>
                             <h3><?php echo t('cmdb.help.companies_heading'); ?></h3>
                             <p><?php echo t('cmdb.help.companies_intro'); ?></p>

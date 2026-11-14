@@ -29,6 +29,7 @@ require_once __DIR__ . '/read.php';
 require_once __DIR__ . '/budget.php';
 require_once __DIR__ . '/alerts.php';
 require_once __DIR__ . '/../ai_settings.php';
+require_once __DIR__ . '/../ai_conversation.php';   // aiConversationLanguage() (GH #313)
 
 /** The report kinds a person can ask the AI to draft, with what each must contain. */
 function projectAiReportKinds(): array
@@ -52,14 +53,10 @@ function projectAiReportKinds(): array
     ];
 }
 
-/** The language the analyst reads FreeITSM in, as a name the model understands. */
+/** The language the analyst reads FreeITSM in, as a name the model understands (shared: includes/ai_conversation.php). */
 function projectAiLanguage(): string
 {
-    $loc = class_exists('I18n') ? (string)I18n::getLocale() : 'en';
-    $names = ['en' => 'British English', 'de' => 'German', 'fr' => 'French', 'es' => 'Spanish', 'it' => 'Italian', 'nl' => 'Dutch',
-              'pt' => 'Portuguese', 'pl' => 'Polish', 'da' => 'Danish', 'sv' => 'Swedish', 'nb' => 'Norwegian', 'fi' => 'Finnish',
-              'cs' => 'Czech', 'tr' => 'Turkish', 'ja' => 'Japanese', 'zh' => 'Chinese', 'hi' => 'Hindi', 'ar' => 'Arabic', 'ru' => 'Russian'];
-    return $names[substr($loc, 0, 2)] ?? 'the language with locale code ' . $loc;
+    return aiConversationLanguage();
 }
 
 /**
@@ -379,7 +376,8 @@ function projectAiAsk(PDO $conn, string $task, string $facts, int $maxTokens): a
 /** Is AI set up for Projects? */
 function projectAiReady(PDO $conn): bool
 {
-    try { return (aiSettingsLoad($conn, 'projects_ai')['api_key'] ?? '') !== ''; } catch (Throwable) { return false; }
+    // aiConfigured(), never "is there a key": a custom endpoint needs none (AI-Providers TRAP, GH #313).
+    return aiFeatureReady($conn, 'projects_ai');
 }
 
 /**

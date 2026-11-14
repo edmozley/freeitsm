@@ -5553,6 +5553,46 @@ return [
         'created_by_analyst_id' => 'INT NULL',
     ],
 
+    // GH #313: the CMDB assistant (includes/cmdb/assistant.php) - a private conversation
+    // per analyst per company, and what it has learned about each company (shared).
+    'cmdb_ai_threads' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'        => 'INT NOT NULL',   // always the real company id, never NULL for Default
+        'analyst_id'       => 'INT NOT NULL',
+        'summary'          => 'MEDIUMTEXT NULL',
+        'summary_upto_id'  => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'cmdb_ai_messages' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'thread_id'        => 'INT NOT NULL',
+        'role'             => 'VARCHAR(10) NOT NULL',
+        'kind'             => "VARCHAR(10) NOT NULL DEFAULT 'chat'",
+        'content'          => 'MEDIUMTEXT NULL',
+        'proposals'        => 'MEDIUMTEXT NULL',   // JSON: pending | applied | dismissed | failed, for the propose slices
+        'looked_at'        => 'TEXT NULL',
+        'learned'          => 'TEXT NULL',         // JSON: cmdb_ai_facts ids noted this turn
+        'analyst_id'       => 'INT NULL',          // the thread's analyst (so leaving removes it without FKs)
+        'model'            => 'VARCHAR(120) NULL',
+        'tokens_in'        => 'INT NULL',
+        'tokens_out'       => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+    'cmdb_ai_facts' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'             => 'INT NOT NULL',
+        'topic'                 => 'VARCHAR(20) NOT NULL',
+        'subject'               => 'VARCHAR(200) NOT NULL',
+        'statement'             => 'VARCHAR(1000) NOT NULL',
+        'source'                => "VARCHAR(10) NOT NULL DEFAULT 'assistant'",
+        'source_message_id'     => 'INT NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'updated_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     // Tickets ↔ assets (discussion #57). Two nullable creator columns because a
     // link can be made by an analyst or by a portal user, and they are different
     // tables. See freeitsm.sql for the full reasoning.

@@ -92,6 +92,8 @@ function analystReferenceRegistry(): array {
         ['project_members', 'analyst_id', 'personal'],
         ['project_ai_messages', 'analyst_id', 'personal'],
         ['project_ai_threads', 'analyst_id', 'personal'],
+        ['cmdb_ai_messages', 'analyst_id', 'personal'],  // GH #313: their private CMDB assistant conversation
+        ['cmdb_ai_threads', 'analyst_id', 'personal'],
         ['lms_learning_group_members', 'analyst_id', 'personal'],
         ['files_shortcuts', 'analyst_id', 'personal'],
         ['report_downloads', 'analyst_id', 'personal'],   // 5.3.0: their own emailed report links - only they can download them
@@ -183,6 +185,8 @@ function analystReferenceRegistry(): array {
         ['ticket_csat_responses', 'analyst_id', 'history'],
         ['csat_queue', 'analyst_id', 'history'],   // GH #301: kept - the survey still goes, credited as on an immediate send
         ['ticket_cmdb_objects', 'created_by_analyst_id', 'history'],
+        ['cmdb_ai_facts', 'created_by_analyst_id', 'history'],   // GH #313: what the CMDB assistant learned is the company's, kept
+        ['cmdb_ai_facts', 'updated_by_analyst_id', 'history'],
         ['ticket_assets', 'created_by_analyst_id', 'history'],
         ['ticket_domains', 'created_by_analyst_id', 'history'],
         ['ticket_links', 'created_by_id', 'history'],
