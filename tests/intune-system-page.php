@@ -52,7 +52,7 @@ check('the Intune tab is still declared in the Assets manifest, with its capabil
 check('...and says where it went', $tab && ($tab['moved_to'] ?? '') === 'system/integrations/microsoft365/intune.php');
 $owner = settingKeyOwner('intune_tenant_id');
 check('the intune_* keys are still the Intune tab\'s to write', $owner !== null && (($owner['cap'] ?? null) === capKey(Cap::ASSETS_INTUNE) || ($owner['tab'] ?? null) === 'intune'), json_encode($owner));
-check('the file it moved to exists', is_file($root . '/' . ($tab['moved_to'] ?? 'x')));
+check('the file it moved to exists', is_file($root . '/' . ($tab['moved_to'] ?? 'x')) && is_file($root . '/system/integrations/microsoft365/intune_import.php'));
 
 // ── the tab bar and the old link ─────────────────────────────────────────────
 $visible = [['id' => 'intune', 'cap' => capKey(Cap::ASSETS_INTUNE), 'label' => 'Intune', 'moved_to' => 'system/integrations/microsoft365/intune.php'],
@@ -73,9 +73,16 @@ check('the Assets settings page has no Intune panel or script left',
 check('Proxmox and vCloud each have their own guard (they sat inside Intune\'s)',
     str_contains($page, "settingsTabVisible(\$visibleTabs, 'proxmox')") && str_contains($page, "settingsTabVisible(\$visibleTabs, 'vcloud')")
     && !str_contains($page, "settingsTabVisible(\$visibleTabs, 'intune')"));
-$moved = (string)file_get_contents($root . '/system/integrations/microsoft365/intune.php');
-check('the new page has everything the tab had', str_contains($moved, 'function saveIntuneSettings') && str_contains($moved, 'id="intuneTypeMap"')
-    && str_contains($moved, 'function startAppSync') && str_contains($moved, 'function loadIntuneFreshness') && str_contains($moved, "Cap::ASSETS_INTUNE"));
+$conn_ = (string)file_get_contents($root . '/system/integrations/microsoft365/intune.php');
+$imp   = (string)file_get_contents($root . '/system/integrations/microsoft365/intune_import.php');
+check('the connection page has the tenant, the app and its secret - and nothing it imports',
+    str_contains($conn_, 'id="intuneTenantId"') && str_contains($conn_, 'id="intuneClientSecret"') && str_contains($conn_, 'function saveIntuneConnection')
+    && !str_contains($conn_, 'intuneSyncHostnames') && !str_contains($conn_, 'intune_type_map') && str_contains($conn_, 'Cap::ASSETS_INTUNE'));
+check('the import page has everything else, in tabs, and never saves the connection',
+    str_contains($imp, "'id' => 'devices'") && str_contains($imp, "'id' => 'types'") && str_contains($imp, "'id' => 'software'")
+    && str_contains($imp, 'id="intuneTypeMap"') && str_contains($imp, 'function startIntuneSync') && str_contains($imp, 'function startAppSync')
+    && str_contains($imp, 'function loadIntuneFreshness') && !str_contains($imp, 'intune_tenant_id') && !str_contains($imp, 'intune_client_secret')
+    && str_contains($imp, 'Cap::ASSETS_INTUNE'));
 
 // ── the hub: Entra, Intune, and the map of the rest ─────────────────────────
 $hub = (string)file_get_contents($root . '/system/integrations/microsoft365/index.php');

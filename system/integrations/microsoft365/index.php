@@ -221,7 +221,11 @@ if ($isAdmin) {
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <div class="ms-actions"><a class="btn btn-primary" href="intune.php"><?php echo htmlspecialchars(t('system.integrations.ms365_open_intune')); ?></a></div>
+                <?php /* The two halves, as Entra ID has them: what it imports, and the connection. */ ?>
+                <div class="ms-actions">
+                    <a class="btn btn-primary" href="intune_import.php"><?php echo htmlspecialchars(t('system.integrations.ms365_open_intune_import')); ?></a>
+                    <a class="btn btn-secondary" href="intune.php"><?php echo htmlspecialchars(t('system.integrations.ms365_open_intune_conn')); ?></a>
+                </div>
             </div>
         </section>
 
