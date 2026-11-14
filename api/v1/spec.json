@@ -15345,8 +15345,15 @@
                     "p": "\/priorities",
                     "perm": "reference.read",
                     "s": "List priorities",
-                    "d": "All priorities with their SLA response\/resolution targets in minutes.",
-                    "params": [],
+                    "d": "All priorities with their SLA response\/resolution targets in minutes. Pass company_id for the ones that company's tickets can use.",
+                    "params": [
+                        {
+                            "name": "company_id",
+                            "in": "query",
+                            "desc": "Resolve the list for one company",
+                            "req": false
+                        }
+                    ],
                     "section": "Reference data",
                     "slug": "get-priorities",
                     "extras": {
@@ -15354,6 +15361,13 @@
                             {
                                 "title": "All priorities",
                                 "note": "No parameters — every ticket priority with its SLA response and resolution targets in minutes."
+                            },
+                            {
+                                "title": "One company's view",
+                                "note": "company_id gives that company's own priorities and the shared ones it has not hidden — what can be set on its tickets.",
+                                "query": {
+                                    "company_id": "2"
+                                }
                             }
                         ]
                     }
@@ -16277,6 +16291,13 @@
                 {
                     "title": "All priorities",
                     "note": "No parameters — every ticket priority with its SLA response and resolution targets in minutes."
+                },
+                {
+                    "title": "One company's view",
+                    "note": "company_id gives that company's own priorities and the shared ones it has not hidden — what can be set on its tickets.",
+                    "query": {
+                        "company_id": "2"
+                    }
                 }
             ]
         },
