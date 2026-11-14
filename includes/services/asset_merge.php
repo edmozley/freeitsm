@@ -54,6 +54,7 @@ final class AssetMergeService
         ['asset_disk_hide_rules',      'asset_id',           'move'],
         ['asset_import_run_entries',   'asset_id',           'move'],
         ['intune_devices',             'asset_id',           'move'],
+        ['intune_device_user_history', 'asset_id',           'move'],   // GH #335: the device's primary-user history follows it
         ['intune_app_sync_job_assets', 'asset_id',           'move'],
         ['software_inventory_log',     'host_id',            'move'],
         ['software_inventory_detail',  'host_id',            'unique', ['app_id', 'source']],

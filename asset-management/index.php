@@ -4814,13 +4814,13 @@ $translationNamespaces = ['common', 'asset-management'];
                 const response = await fetch(`../api/intune/get_intune_device.php?asset_id=${assetId}`);
                 const data = await response.json();
                 if (!data.success || !data.device) return;
-                renderIntuneTab(data.device);
+                renderIntuneTab(data.device, data.users);
             } catch (e) {
                 // Intune endpoint may not exist on older deployments — fail silently
             }
         }
 
-        function renderIntuneTab(d) {
+        function renderIntuneTab(d, users) {
             const tabs = document.getElementById('detailTabs');
             const body = document.getElementById('detailBody');
             if (!tabs || !body) return;
@@ -4835,8 +4835,38 @@ $translationNamespaces = ['common', 'asset-management'];
             const panel = document.createElement('div');
             panel.className = 'detail-tab-panel detail-tab-panel--scroll';
             panel.dataset.dtabPanel = 'intune';
-            panel.innerHTML = renderIntuneTabBody(d);
+            panel.innerHTML = renderIntuneUserDiffers(d, users) + renderIntuneTabBody(d) + renderIntuneUserHistory(users);
             body.appendChild(panel);
+        }
+
+        // GH #335: Intune's primary user is not the asset's holder here.
+        function renderIntuneUserDiffers(d, users) {
+            if (!users || !users.differs) return '';
+            const text = users.intune_person
+                ? window.t('asset-management.intune.differs', { intune: users.intune_person.name })
+                : window.t('asset-management.intune.differs_unknown', { upn: d.user_principal_name || d.user_display_name || '-' });
+            return `<div class="intune-user-differs" style="margin:0 0 12px;padding:10px 12px;border-radius:6px;font-size:13px;background:var(--warning-bg,#fff7e6);color:var(--warning-text,#92400e);">${escapeHtml(text)}</div>`;
+        }
+
+        // GH #335: every primary user the device has had, and what FreeITSM did.
+        function renderIntuneUserHistory(users) {
+            const rows = (users && users.history) || [];
+            const who = (person, name, upn) => person || name || upn || window.t('asset-management.intune.history_nobody');
+            const body = rows.length
+                ? `<table class="history-table"><thead><tr>
+                        <th>${escapeHtml(window.t('asset-management.intune.history_col_when'))}</th>
+                        <th>${escapeHtml(window.t('asset-management.intune.history_col_from'))}</th>
+                        <th>${escapeHtml(window.t('asset-management.intune.history_col_to'))}</th>
+                        <th>${escapeHtml(window.t('asset-management.intune.history_col_done'))}</th>
+                    </tr></thead><tbody>${rows.map(h => `<tr>
+                        <td class="history-meta">${escapeHtml(formatDateTime(h.seen_datetime))}</td>
+                        <td>${h.outcome === 'first' ? '-' : escapeHtml(who(h.old_person, h.old_name, h.old_upn))}</td>
+                        <td>${escapeHtml(who(h.new_person, h.new_name, h.new_upn))}</td>
+                        <td class="history-meta">${h.outcome ? escapeHtml(window.t('asset-management.intune.outcome_' + h.outcome)) : '-'}</td>
+                    </tr>`).join('')}</tbody></table>`
+                : `<div class="empty-state" style="padding: 12px;">${escapeHtml(window.t('asset-management.intune.history_none'))}</div>`;
+            return `<h4 style="margin:18px 0 4px;font-size:14px;">${escapeHtml(window.t('asset-management.intune.history_heading'))}</h4>
+                <div class="form-hint" style="margin-bottom:8px;">${escapeHtml(window.t('asset-management.intune.history_hint'))}</div>${body}`;
         }
 
         function renderIntuneTabBody(d) {

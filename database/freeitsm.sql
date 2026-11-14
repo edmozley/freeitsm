@@ -3648,6 +3648,7 @@ CREATE TABLE IF NOT EXISTS `users_assets` (
     `assigned_by_analyst_id`    INT NULL,
     `notes`                     VARCHAR(500) NULL,
     `expected_return_date`      DATE NULL,
+    `assigned_source`           VARCHAR(16) NULL,   -- AssetAssignmentSource (GH #335); NULL = from before the column
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_user_asset` (`user_id`, `asset_id`),
@@ -4470,6 +4471,28 @@ CREATE TABLE IF NOT EXISTS `intune_devices` (
     UNIQUE KEY `uq_intune_devices_intune_id` (`intune_id`),
     KEY `ix_intune_devices_asset_id` (`asset_id`),
     KEY `ix_intune_devices_device_name` (`device_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Every primary user a device has had in Intune, as the sync saw it (GH #335):
+-- one row when a device is first seen, then one per change.
+CREATE TABLE IF NOT EXISTS `intune_device_user_history` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `intune_device_id`  INT NOT NULL,
+    `asset_id`          INT NULL,
+    `old_user_id`       VARCHAR(64) NULL,
+    `old_upn`           VARCHAR(256) NULL,
+    `old_name`          VARCHAR(256) NULL,
+    `old_person_id`     INT NULL,
+    `new_user_id`       VARCHAR(64) NULL,
+    `new_upn`           VARCHAR(256) NULL,
+    `new_name`          VARCHAR(256) NULL,
+    `new_person_id`     INT NULL,
+    `outcome`           VARCHAR(20) NULL,
+    `seen_datetime`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_idush_device` (`intune_device_id`, `id`),
+    KEY `ix_idush_asset` (`asset_id`),
+    KEY `ix_idush_outcome` (`outcome`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `intune_sync_jobs` (
@@ -7805,6 +7828,8 @@ INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`) VALUES
     ('intune_sync_hostnames', '1'),
     -- OFF everywhere: assigning assets to people is the administrator's to switch on.
     ('intune_assign_primary_user', '0'),
+    -- GH #335: moving an asset when its device's primary user changes - OFF everywhere too.
+    ('intune_follow_primary_user', '0'),
     -- PR #166: a new install asks chat customers in their chat (an upgrade gets '0').
     ('csat_in_channel', '1'),
     ('asset_reconciliation_ignored_serials', 'TO BE FILLED BY O.E.M.\nDEFAULT STRING\nNONE\nSYSTEM SERIAL NUMBER\nNOT SPECIFIED\n123456789');

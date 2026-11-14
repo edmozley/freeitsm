@@ -9,6 +9,7 @@
 
 require_once __DIR__ . '/asset_retirement.php';   // retired assets are not renamed
 require_once __DIR__ . '/encryption.php';
+require_once __DIR__ . '/intune_user_history.php';   // every primary user a device has had (GH #335)
 
 /**
  * Load the InTune connection settings from system_settings, decrypting
@@ -17,7 +18,7 @@ require_once __DIR__ . '/encryption.php';
 function intuneGetSettings(PDO $conn): ?array {
     $stmt = $conn->prepare(
         "SELECT setting_key, setting_value FROM system_settings
-          WHERE setting_key IN ('intune_tenant_id','intune_client_id','intune_client_secret','intune_verify_ssl','intune_php_exe','intune_company_id','intune_sync_hostnames','intune_assign_primary_user')"
+          WHERE setting_key IN ('intune_tenant_id','intune_client_id','intune_client_secret','intune_verify_ssl','intune_php_exe','intune_company_id','intune_sync_hostnames','intune_assign_primary_user','intune_follow_primary_user')"
     );
     $stmt->execute();
 
@@ -43,6 +44,7 @@ function intuneGetSettings(PDO $conn): ?array {
         'company_id'    => (!empty($values['intune_company_id']) && is_numeric($values['intune_company_id'])) ? (int)$values['intune_company_id'] : null,
         'sync_hostnames' => ($values['intune_sync_hostnames'] ?? '0') === '1',
         'assign_primary_user' => ($values['intune_assign_primary_user'] ?? '0') === '1',
+        'follow_primary_user' => ($values['intune_follow_primary_user'] ?? '0') === '1',
     ];
 }
 
@@ -261,6 +263,9 @@ function intuneUpsertDevice(PDO $conn, array $d): void {
         ':free_storage_bytes'        => $d['freeStorageSpaceInBytes'] ?? null,
         ':raw_json'                  => json_encode($d, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
     ]);
+
+    // Who had it before is about to be gone from the row: keep it (GH #335).
+    intuneRecordUserChange($conn, $d);
 }
 
 /**
@@ -432,7 +437,8 @@ function intuneAssignPrimaryUsers(PDO $conn): array {
         try {
             AssetsService::assignUser($conn, $ctx, (int)$row['asset_id'], [
                 'user_id' => (int)$row['user_id'],
-                'notes'   => 'Primary user of the device in Intune',
+                'notes'   => AssetAssignmentSource::INTUNE_NOTE,
+                'source'  => AssetAssignmentSource::Intune,   // GH #335: what lets "Follow changes" move it later
             ]);
             $assigned++;
         } catch (Throwable $e) {
@@ -460,10 +466,22 @@ function intuneAssignPrimaryUsers(PDO $conn): array {
  */
 function intuneAssignAfterDirectoryImport(PDO $conn): ?array {
     try {
-        $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'intune_assign_primary_user'");
+        $st = $conn->prepare("SELECT setting_key, setting_value FROM system_settings
+                               WHERE setting_key IN ('intune_assign_primary_user', 'intune_follow_primary_user')");
         $st->execute();
-        if ((string)$st->fetchColumn() !== '1') return null;
-        return intuneAssignPrimaryUsers($conn);
+        $on = $st->fetchAll(PDO::FETCH_KEY_PAIR);
+        if ((string)($on['intune_assign_primary_user'] ?? '') !== '1') return null;
+        $r = intuneAssignPrimaryUsers($conn);
+        // The same order as the Intune sync: fill gaps, follow changes, then say what was done (GH #335).
+        $follow = (string)($on['intune_follow_primary_user'] ?? '') === '1';
+        $r['moved'] = 0;
+        if ($follow) {
+            $m = intuneFollowPrimaryUsers($conn);
+            $r['moved'] = $m['moved'];
+            $r['failed'] += $m['failed'];
+        }
+        intuneResolveUserHistory($conn, $follow);
+        return $r;
     } catch (Throwable $e) {
         error_log('[intune] assign primary users after a directory import: ' . $e->getMessage());
         return null;
@@ -632,6 +650,16 @@ function intuneRunSync(PDO $conn, int $jobId): void {
             $holders = intuneAssignPrimaryUsers($conn);
             $log("primary users done: assigned={$holders['assigned']}, failed={$holders['failed']}");
         }
+        // GH #335: an asset Intune gave to somebody follows its device to the next
+        // person - only behind its own setting, and only on top of assigning.
+        $followed = ['moved' => 0, 'failed' => 0];
+        $follow = !empty($settings['assign_primary_user']) && !empty($settings['follow_primary_user']);
+        if ($follow) {
+            $setProgress($processed, $processed, 'running', 'Following changes of primary user...', false);
+            $followed = intuneFollowPrimaryUsers($conn);
+            $log("follow done: moved={$followed['moved']}, failed={$followed['failed']}");
+        }
+        intuneResolveUserHistory($conn, $follow);
 
         $setProgress($processed, $processed, 'running', 'Updating disk usage...', false);
         $disksWritten = intuneSyncDisks($conn);
@@ -641,6 +669,10 @@ function intuneRunSync(PDO $conn, int $jobId): void {
         if (!empty($settings['assign_primary_user'])) {
             $msg .= " {$holders['assigned']} asset(s) assigned to their primary user.";
             if ($holders['failed'] > 0) $msg .= " {$holders['failed']} could not be assigned — see the PHP error log.";
+        }
+        if ($follow) {
+            $msg .= " {$followed['moved']} asset(s) moved to their device's new primary user.";
+            if ($followed['failed'] > 0) $msg .= " {$followed['failed']} could not be moved — see the PHP error log.";
         }
         if ($failed > 0) $msg .= " ($failed failed — see logs/intune_sync.log)";
         $setProgress($processed, $processed, 'done', $msg, true);

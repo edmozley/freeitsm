@@ -31,6 +31,8 @@ require __DIR__ . '/_top.php';
     <p>Tickets in a department that has been deleted, which hides them from every team's queue. Reassign them to a real department, one at a time or in bulk. See <a href="orphaned-tickets.php">Orphaned tickets</a>.</p>
     <h4>Imported people</h4>
     <p>People a directory source - LDAP, an address book or Microsoft Entra ID - imported, when they need a decision: their source was deleted, it no longer brings them in, or they should never have been imported. Its count is the people whose source was deleted. See <a href="directory-maintenance.php">Imported people</a>.</p>
+    <h4>Assets whose Intune user differs</h4>
+    <p>Assets held by one person here while a linked Intune device names somebody else as its primary user. Its count is how many there are. See <a href="intune-user-mismatch.php">Assets whose Intune user differs</a>.</p>
     <div class="help-note">A tool keeps its own address when it moves here, so a bookmark to <code>system/orphaned-tickets/</code> still works.</div>
 </div>
 

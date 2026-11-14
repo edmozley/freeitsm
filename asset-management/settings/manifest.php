@@ -161,7 +161,7 @@ return [
             'label_key'    => 'asset-management.settings.tab_intune',
             'grant'        => 'Configure the Intune connection and run syncs, including its credentials',
             'sensitive'    => true,
-            'setting_keys' => ['intune_tenant_id', 'intune_client_id', 'intune_client_secret', 'intune_verify_ssl', 'intune_app_batch_size', 'intune_company_id', 'intune_sync_hostnames', 'intune_assign_primary_user'],
+            'setting_keys' => ['intune_tenant_id', 'intune_client_id', 'intune_client_secret', 'intune_verify_ssl', 'intune_app_batch_size', 'intune_company_id', 'intune_sync_hostnames', 'intune_assign_primary_user', 'intune_follow_primary_user'],
         ],
         [
             // Several Proxmox VE servers. Their credentials live in proxmox_connections,
