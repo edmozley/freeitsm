@@ -87,6 +87,13 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $forms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // The price as the portal shows it, for the list's pill (GH #348).
+    if ($cardSelect !== '') {
+        foreach ($forms as &$f) {
+            $f['catalogue_price_label'] = cataloguePriceLabel($f['catalogue_price'], $f['catalogue_currency'], $f['catalogue_price_period']);
+        }
+        unset($f);
+    }
 
     echo json_encode(['success' => true, 'forms' => $forms]);
 

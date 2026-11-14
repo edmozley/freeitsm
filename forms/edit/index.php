@@ -23,6 +23,8 @@ require_once '../../includes/branding.php';   // the organisation's logo (GH #87
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
+require_once '../../includes/money.php';
+require_once '../../includes/catalogue_card.php';
 I18n::initFromSession();
 Tz::init();
 requireModuleAccess('forms');
@@ -35,6 +37,8 @@ if (analystModuleLevel($edConn, (int)$_SESSION['analyst_id'], 'forms') !== 'full
     header('Location: ' . BASE_URL . 'forms/');
     exit;
 }
+// The Catalogue tab (GH #348) works once Database Verification has added its columns.
+$cardReady = catalogueCardAvailable($edConn);
 
 $current_page = 'forms';
 $path_prefix = '../../';
@@ -94,6 +98,8 @@ foreach ($formActionDefs as $def) {
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
+    <?php echo Money::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/money.js?v=1"></script>
     <!-- The builder did NOT load these, which is why it kept its own copy of the
          width list — a third hand-maintained list of the same six numbers. The
          preview now shares the walk with the filler and the portal. -->
@@ -478,6 +484,48 @@ foreach ($formActionDefs as $def) {
             border: 1px solid var(--border, #ddd); border-radius: 4px;
             background: var(--surface, #fff); color: var(--text, #333);
         }
+        /* ── The Catalogue tab (GH #348): the card's settings, and the card beside them ── */
+        .cc-intro { margin: 0 0 18px; font-size: 13px; color: var(--text-muted, #666); }
+        /* The same field look as the title and description above (.form-settings-card in forms.css). */
+        #tabContentCatalogue .field-group { margin-bottom: 18px; }
+        #tabContentCatalogue .field-group > label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted, #666);
+            margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+        #tabContentCatalogue input[type="text"], #tabContentCatalogue input[type="number"], #tabContentCatalogue select {
+            padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 14px; font-family: inherit;
+            box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
+        #tabContentCatalogue input[type="text"] { width: 100%; }
+        #tabContentCatalogue input:focus, #tabContentCatalogue select:focus { outline: none; border-color: var(--forms-accent, var(--accent, #0078d4)); }
+        #tabContentCatalogue .cc-count { text-transform: none; letter-spacing: 0; }
+        .cc-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+        .cc-side { position: sticky; top: 0; }
+        .cc-side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint, #999); margin-bottom: 8px; }
+        .cc-count { float: right; font-size: 11px; font-weight: 400; color: var(--text-faint, #999); }
+        .cc-count.over { color: var(--danger, #c62828); }
+        .cc-price-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .cc-price-row input { flex: 0 0 140px; width: 140px; }
+        .cc-price-row select { flex: 0 0 auto; width: auto; }
+        .cc-currency { font-size: 12.5px; color: var(--text-muted, #666); margin-top: 6px; }
+        .cc-currency button { background: none; border: none; padding: 0; color: var(--accent, #0078d4); cursor: pointer; font: inherit; text-decoration: underline; }
+        .cc-currency select { margin-top: 6px; max-width: 100%; }
+        .cc-hint { display: block; margin-top: 6px; font-size: 12px; color: var(--text-faint, #999); }
+        /* The picture: one zone to click, drop a file on or paste into - 16:9, as the card draws it. */
+        .cc-drop { position: relative; aspect-ratio: 16 / 9; max-width: 420px; border: 2px dashed var(--border, #d0d5da); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px; box-sizing: border-box;
+            font-size: 13px; color: var(--text-muted, #666); cursor: pointer; overflow: hidden; background: var(--surface-2, #f7f8fa); }
+        .cc-drop:hover, .cc-drop.dragover { border-color: var(--accent, #0078d4); color: var(--accent, #0078d4); }
+        .cc-drop.is-off { cursor: not-allowed; opacity: 0.7; }
+        .cc-drop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .cc-drop.has-image { border-style: solid; padding: 0; }
+        .cc-drop-remove { position: absolute; top: 8px; right: 8px; z-index: 1; padding: 5px 10px; border-radius: 5px; border: none;
+            background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; cursor: pointer; }
+        .cc-note { margin: 0 0 16px; padding: 9px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
+        .cc-card { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; overflow: hidden; }
+        .cc-card-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+        .cc-card-body { padding: 14px 16px; }
+        .cc-card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
+        .cc-card-desc { font-size: 13px; color: var(--text-muted, #666); line-height: 1.45; }
+        .cc-card-price { margin-top: 10px; font-size: 15px; font-weight: 600; color: var(--accent, #0078d4); }
+        @media (max-width: 900px) { .cc-layout { grid-template-columns: 1fr; } .cc-side { position: static; } }
     </style>
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
          mobile rules must win on equal specificity, and a link placed above it
@@ -561,6 +609,7 @@ foreach ($formActionDefs as $def) {
                 <button class="form-tab active" onclick="switchFormTab('fields')" id="tabFields"><?php echo htmlspecialchars(t('forms.editor.tab_fields')); ?></button>
                 <button class="form-tab" onclick="switchFormTab('preview')" id="tabPreview"><?php echo htmlspecialchars(t('forms.editor.tab_preview')); ?></button>
                 <button class="form-tab" onclick="switchFormTab('actions')" id="tabActions"><?php echo htmlspecialchars(t('forms.actions.tab')); ?></button>
+                <button class="form-tab" onclick="switchFormTab('catalogue')" id="tabCatalogue"><?php echo htmlspecialchars(t('forms.card.tab')); ?></button>
             </div>
 
             <!-- Fields tab -->
@@ -626,6 +675,65 @@ foreach ($formActionDefs as $def) {
                 <div id="previewContent">
                     <p class="preview-empty"><?php echo htmlspecialchars(t('forms.editor.preview_empty')); ?></p>
                 </div>
+            </div>
+
+            <!-- The Catalogue tab (GH #348): how this item looks in the portal - a picture,
+                 one line and a price - with the card beside it. Saved with the form. -->
+            <div class="form-tab-content" id="tabContentCatalogue">
+                <p class="cc-intro"><?php echo htmlspecialchars(t('forms.card.intro')); ?></p>
+                <?php if (!$cardReady): ?>
+                <p class="cc-note"><?php echo htmlspecialchars(t('forms.card.needs_verify')); ?></p>
+                <?php else: ?>
+                <p class="cc-note" id="cardPortalNote" style="display:none;"><?php echo htmlspecialchars(t('forms.card.not_portal_note')); ?></p>
+                <div class="cc-layout">
+                    <div>
+                        <div class="field-group">
+                            <label><?php echo htmlspecialchars(t('forms.card.picture_label')); ?></label>
+                            <div class="cc-drop" id="cardDrop" tabindex="0" role="button" aria-label="<?php echo htmlspecialchars(t('forms.card.picture_drop')); ?>">
+                                <span id="cardDropText"><?php echo htmlspecialchars(t('forms.card.picture_drop')); ?></span>
+                                <img id="cardDropImg" alt="" style="display:none;">
+                                <button type="button" class="cc-drop-remove" id="cardDropRemove" style="display:none;"><?php echo htmlspecialchars(t('forms.card.picture_remove')); ?></button>
+                            </div>
+                            <input type="file" id="cardPictureInput" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
+                            <small class="cc-hint"><?php echo htmlspecialchars(t('forms.card.picture_hint')); ?></small>
+                        </div>
+                        <div class="field-group">
+                            <label for="cardSummary"><?php echo htmlspecialchars(t('forms.card.summary_label')); ?> <span class="cc-count" id="cardSummaryCount"></span></label>
+                            <input type="text" id="cardSummary" maxlength="255" placeholder="<?php echo htmlspecialchars(t('forms.card.summary_ph')); ?>">
+                            <small class="cc-hint"><?php echo htmlspecialchars(t('forms.card.summary_hint')); ?></small>
+                        </div>
+                        <div class="field-group">
+                            <label for="cardPrice"><?php echo htmlspecialchars(t('forms.card.price_label')); ?></label>
+                            <div class="cc-price-row">
+                                <input type="number" id="cardPrice" min="0" step="0.01" inputmode="decimal" placeholder="<?php echo htmlspecialchars(t('forms.card.price_ph')); ?>">
+                                <select id="cardPeriod" aria-label="<?php echo htmlspecialchars(t('forms.card.period_label')); ?>">
+                                    <option value="once"><?php echo htmlspecialchars(t('forms.card.period_once')); ?></option>
+                                    <option value="month"><?php echo htmlspecialchars(t('forms.card.period_month')); ?></option>
+                                </select>
+                            </div>
+                            <?php /* The install's currency unless somebody says otherwise -
+                                     a long list nobody needs most of the time, behind a link. */ ?>
+                            <div class="cc-currency">
+                                <span id="cardCurrencyText"></span>
+                                <button type="button" id="cardCurrencyChange"><?php echo htmlspecialchars(t('forms.card.currency_change')); ?></button>
+                                <div><select id="cardCurrency" style="display:none;" aria-label="<?php echo htmlspecialchars(t('forms.card.currency_label')); ?>"></select></div>
+                            </div>
+                            <small class="cc-hint"><?php echo htmlspecialchars(t('forms.card.price_hint')); ?></small>
+                        </div>
+                    </div>
+                    <div class="cc-side">
+                        <div class="cc-side-label"><?php echo htmlspecialchars(t('forms.card.preview')); ?></div>
+                        <div class="cc-card">
+                            <img class="cc-card-img" id="cardPreviewImg" alt="" style="display:none;">
+                            <div class="cc-card-body">
+                                <div class="cc-card-title" id="cardPreviewTitle"></div>
+                                <div class="cc-card-desc" id="cardPreviewDesc"></div>
+                                <div class="cc-card-price" id="cardPreviewPrice"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- "What happens next" tab (#95). Three moments, each holding an
@@ -785,11 +893,12 @@ foreach ($formActionDefs as $def) {
             });
 
             document.getElementById('formTitle').addEventListener('input', function() {
-                markDirty(); updatePreview();
+                markDirty(); updatePreview(); cardRender();
             });
             document.getElementById('formDesc').addEventListener('input', function() {
-                markDirty(); updatePreview();
+                markDirty(); updatePreview(); cardRender();
             });
+            cardWire();   // GH #348
 
             // Warn before navigating away with unsaved work
             window.addEventListener('beforeunload', function(e) {
@@ -850,6 +959,7 @@ foreach ($formActionDefs as $def) {
                 renderFields();
                 updatePreview();
                 renderFormMeta(data.form);
+                cardLoad(data.form.catalogue);   // GH #348
             } catch (e) {
                 showToast(window.t('forms.toast.load_failed', { message: e.message }), 'error');
             }
@@ -1106,11 +1216,157 @@ foreach ($formActionDefs as $def) {
             document.getElementById('tabFields').classList.toggle('active', tab === 'fields');
             document.getElementById('tabPreview').classList.toggle('active', tab === 'preview');
             document.getElementById('tabActions').classList.toggle('active', tab === 'actions');
+            document.getElementById('tabCatalogue').classList.toggle('active', tab === 'catalogue');
+            document.getElementById('tabContentCatalogue').classList.toggle('active', tab === 'catalogue');
             document.getElementById('tabContentFields').classList.toggle('active', tab === 'fields');
             document.getElementById('tabContentPreview').classList.toggle('active', tab === 'preview');
             document.getElementById('tabContentActions').classList.toggle('active', tab === 'actions');
             if (tab === 'preview') updatePreview();
             if (tab === 'actions') faRenderAll();
+            if (tab === 'catalogue') cardRender();
+        }
+
+        // ===== The Catalogue tab (GH #348) =====
+        // The card is part of the form: loaded with it, saved by the same Save. Only
+        // the picture is stored at once (it needs the form's id, as an image block's does).
+        const CARD_READY = <?php echo $cardReady ? 'true' : 'false'; ?>;
+        // Sent on Save only once known - a new form, or a card that loaded - so a failed
+        // load can never save an empty card over the real one.
+        let cardLoaded = !currentFormId;
+        let cardCurrency = '';        // '' = the install's, read when the item is requested
+        let cardImagePath = null;     // the stored picture, or null for none
+        let cardImageSrc = '';        // what the tab and the preview draw
+
+        function cardLoad(c) {
+            if (!CARD_READY) return;
+            c = c || {};
+            document.getElementById('cardSummary').value = c.summary || '';
+            document.getElementById('cardPrice').value = (c.price !== null && c.price !== undefined) ? c.price : '';
+            document.getElementById('cardPeriod').value = c.period === 'month' ? 'month' : 'once';
+            cardCurrency = c.currency || '';
+            document.getElementById('cardCurrency').style.display = 'none';
+            cardImagePath = c.image_path || null;
+            cardImageSrc = cardImagePath ? API_BASE + 'card_image.php?form=' + encodeURIComponent(currentFormId) + '&t=' + Date.now() : '';
+            document.getElementById('cardPortalNote').style.display = c.is_portal_visible ? 'none' : '';
+            cardLoaded = true;
+            cardRender();
+        }
+
+        function cardPriceLabel() {
+            const raw = document.getElementById('cardPrice').value.trim();
+            if (raw === '' || isNaN(Number(raw))) return '';
+            if (Number(raw) === 0) return window.t('common.catalogue_price.free');
+            const amount = Money.format(Number(raw), cardCurrency || Money.def());
+            return document.getElementById('cardPeriod').value === 'month' ? window.t('common.catalogue_price.month', { price: amount }) : amount;
+        }
+
+        // The tab and the card beside it, from what is on screen now.
+        function cardRender() {
+            if (!CARD_READY) return;
+            const summary = document.getElementById('cardSummary').value;
+            const count = document.getElementById('cardSummaryCount');
+            count.textContent = window.t('forms.card.summary_count', { n: summary.length });
+            count.classList.toggle('over', summary.length >= 255);
+            const code = cardCurrency || Money.def();
+            document.getElementById('cardCurrencyText').textContent = window.t('forms.card.currency_is', { code: code + ' - ' + Money.name(code) });
+
+            const drop = document.getElementById('cardDrop');
+            drop.classList.toggle('has-image', !!cardImageSrc);
+            drop.classList.toggle('is-off', !currentFormId);
+            document.getElementById('cardDropText').textContent = window.t(currentFormId ? 'forms.card.picture_drop' : 'forms.card.picture_save_first');
+            document.getElementById('cardDropText').style.display = cardImageSrc ? 'none' : '';
+            const img = document.getElementById('cardDropImg');
+            img.style.display = cardImageSrc ? '' : 'none';
+            if (cardImageSrc) img.src = cardImageSrc; else img.removeAttribute('src');
+            document.getElementById('cardDropRemove').style.display = cardImageSrc ? '' : 'none';
+
+            // The card as the portal draws it: the one line, or the description when there is none.
+            document.getElementById('cardPreviewTitle').textContent = document.getElementById('formTitle').value.trim() || window.t('forms.card.preview_untitled');
+            document.getElementById('cardPreviewDesc').textContent = summary.trim() || document.getElementById('formDesc').value.trim();
+            document.getElementById('cardPreviewPrice').textContent = cardPriceLabel();
+            const pimg = document.getElementById('cardPreviewImg');
+            pimg.style.display = cardImageSrc ? '' : 'none';
+            if (cardImageSrc) pimg.src = cardImageSrc; else pimg.removeAttribute('src');
+        }
+
+        // Stored at once (upload_image.php, the image-block rules); on the item at Save.
+        async function cardUpload(file) {
+            if (!file || !CARD_READY) return;
+            if (!currentFormId) { showToast(window.t('forms.card.picture_save_first'), 'error'); return; }
+            if (!/^image\//.test(file.type || '')) { showToast(window.t('forms.card.picture_not_image'), 'error'); return; }
+            const body = new FormData();
+            body.append('form_id', currentFormId);
+            body.append('image', file, file.name || 'picture.png');
+            const drop = document.getElementById('cardDrop');
+            drop.classList.add('is-off');
+            try {
+                const res = await fetch(API_BASE + 'upload_image.php', { method: 'POST', body });
+                const data = await res.json();
+                if (!data.success) { showToast(data.error || window.t('forms.card.picture_failed'), 'error'); return; }
+                cardImagePath = data.image.path;
+                cardImageSrc = URL.createObjectURL(file);
+                markDirty();
+            } catch (e) {
+                showToast(window.t('forms.card.picture_failed'), 'error');
+            } finally {
+                drop.classList.remove('is-off');
+                cardRender();
+            }
+        }
+
+        // What Save sends - null when the card is not to be touched.
+        function cardPayload() {
+            if (!CARD_READY || !cardLoaded) return null;
+            return {
+                catalogue_summary: document.getElementById('cardSummary').value.trim(),
+                catalogue_price: document.getElementById('cardPrice').value.trim(),
+                catalogue_currency: cardCurrency,
+                catalogue_price_period: document.getElementById('cardPeriod').value,
+                catalogue_image_path: cardImagePath || '',
+            };
+        }
+
+        function cardWire() {
+            if (!CARD_READY) return;
+            ['cardSummary', 'cardPrice'].forEach(id => document.getElementById(id).addEventListener('input', () => { markDirty(); cardRender(); }));
+            document.getElementById('cardPeriod').addEventListener('change', () => { markDirty(); cardRender(); });
+            document.getElementById('cardCurrencyChange').addEventListener('click', () => {
+                const sel = document.getElementById('cardCurrency');
+                Money.fill(sel, cardCurrency || Money.def());
+                sel.style.display = '';
+                sel.focus();
+            });
+            document.getElementById('cardCurrency').addEventListener('change', e => {
+                cardCurrency = e.target.value === Money.def() && !cardCurrency ? '' : e.target.value;
+                markDirty(); cardRender();
+            });
+            const drop = document.getElementById('cardDrop');
+            const input = document.getElementById('cardPictureInput');
+            const choose = () => { if (currentFormId) input.click(); };
+            drop.addEventListener('click', choose);
+            drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); } });
+            input.addEventListener('change', () => { cardUpload(input.files && input.files[0]); input.value = ''; });
+            drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+            drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+            drop.addEventListener('drop', e => {
+                e.preventDefault();
+                drop.classList.remove('dragover');
+                cardUpload(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
+            });
+            document.getElementById('cardDropRemove').addEventListener('click', e => {
+                e.stopPropagation();
+                cardImagePath = null; cardImageSrc = '';
+                markDirty(); cardRender();
+            });
+            // A picture pasted while the tab is open - a screenshot, or one copied from a shop's page.
+            document.addEventListener('paste', e => {
+                if (!document.getElementById('tabContentCatalogue').classList.contains('active')) return;
+                const item = Array.from((e.clipboardData && e.clipboardData.items) || []).find(i => i.kind === 'file' && /^image\//.test(i.type));
+                if (!item) return;
+                e.preventDefault();
+                cardUpload(item.getAsFile());
+            });
+            cardRender();
         }
 
         // ===== "What happens next" (#95) =====
@@ -2525,6 +2781,13 @@ foreach ($formActionDefs as $def) {
                 showToast(window.t('forms.save.need_field'), 'error');
                 return false;
             }
+            // The catalogue card (GH #348) - a price the server would refuse, said here.
+            const cardOut = cardPayload();
+            if (cardOut && cardOut.catalogue_price !== '' && (isNaN(Number(cardOut.catalogue_price)) || Number(cardOut.catalogue_price) < 0)) {
+                switchFormTab('catalogue');
+                showToast(window.t('forms.card.price_invalid'), 'error');
+                return false;
+            }
             const payload = {
                 title: title,
                 description: document.getElementById('formDesc').value.trim(),
@@ -2551,6 +2814,7 @@ foreach ($formActionDefs as $def) {
             // so a form whose action lists were never opened is never rewritten.
             const faOut = faPayload();
             if (faOut !== null) payload.submission_actions = faOut;
+            if (cardOut) Object.assign(payload, cardOut);
             try {
                 const res = await fetch(API_BASE + 'save_form.php', {
                     method: 'POST',
