@@ -45,21 +45,9 @@ $translationNamespaces = ['common', 'system'];
         .branding-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            padding: 30px 20px;
         }
 
-        .page-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--text, #333);
-            margin: 0 0 6px 0;
-        }
-
-        .page-subtitle {
-            font-size: 13px;
-            color: var(--text-dim, #888);
-            margin: 0 0 30px 0;
-        }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .settings-card {
             background: var(--surface, #fff);
@@ -331,9 +319,11 @@ $translationNamespaces = ['common', 'system'];
 <body data-mobile-module="system" data-mobile-page="branding">
     <?php include '../includes/header.php'; ?>
 
-    <div class="branding-container">
-        <h1 class="page-title">Branding</h1>
-        <p class="page-subtitle">Set the organisation logo and default header/footer text used on diagrams and exported documents</p>
+    <div class="branding-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.branding.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.branding.subtitle')); ?></p>
+        </div></div>
 
         <form id="brandingForm" enctype="multipart/form-data">
             <!-- System name. Moved here from Tickets -> Settings -> General: it is

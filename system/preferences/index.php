@@ -208,17 +208,12 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
            only scroll region, rather than a fragile `height: calc(100vh - 48px)`.
            <body> stays unstyled so browser-extension nodes can't join the flex. */
         .settings-shell { display: flex; flex-direction: column; height: 100vh; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .settings-scroll {
             flex: 1 1 auto;
             min-height: 0;
             overflow-y: auto;
-            width: 100%;
-            margin: 0;
-            box-sizing: border-box;
-            padding: 30px 24px 24px;
         }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-muted, #888); margin: 0 0 24px 0; line-height: 1.5; }
 
         /* .tabs / .tab / .tab-content all come from inbox.css — .tab-content already
            carries the card (surface, radius, shadow, 30px padding), so the panel IS
@@ -466,9 +461,11 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
     <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
-    <div class="settings-scroll">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.preferences.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.preferences.subtitle')); ?></p>
+    <div class="settings-scroll sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.preferences.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.preferences.subtitle')); ?></p>
+        </div></div>
 
         <?php
             // The tab bar. Not rendered from a settings manifest like a module's
@@ -767,7 +764,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                                  no way for FreeITSM to write into everybody's, and
                                  nobody else has the password that reaches theirs.
                                  Shown only when the system's connection is CalDAV. */ ?>
-                        <div id="calDavPanel" style="display:none;margin-top:12px;max-width:560px;">
+                        <div id="calDavPanel" style="display:none;margin-top:12px;max-width:560px;" data-sys-cap="sign-in form">
                             <p class="pref-hint" id="calDavIntro" style="color:var(--text-muted,#666);font-size:12px;"></p>
 
                             <div id="calDavCurrent" style="display:none;margin:8px 0 12px;">
@@ -860,7 +857,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             <div class="pref-section">
                 <h3 id="notifications"><?php echo htmlspecialchars(t('system.preferences.notif_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.notif_desc')); ?></p>
-                <div id="notifTypes" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;max-width:520px;">
+                <div id="notifTypes" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;max-width:520px;" data-sys-cap="list of switches">
                     <?php foreach ($notifPrefs as $key => $on): ?>
                         <!-- No inline layout: .toggle-group in inbox.css is the shared
                              switch component and deliberately puts the caption above the
@@ -1035,7 +1032,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 <!-- One row per module that has a left panel. Rows are built
                      in JS from SIDEBAR_PANELS so adding a module is a one-line
                      change here + a default in $prefDefaults above. -->
-                <div id="sidebarPanelsList" class="sidebar-panels-list"></div>
+                <div id="sidebarPanelsList" class="sidebar-panels-list" data-sys-cap="label-and-switch rows"></div>
             </div>
 
             <!-- How the ticket list is shown (PR #213): the familiar message list,

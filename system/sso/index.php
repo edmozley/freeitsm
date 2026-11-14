@@ -67,9 +67,8 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
             --on-accent: var(--sys-on-accent, #fff);
         }
 
-        .sso-container { height: calc(100vh - 48px); overflow-y: auto; padding: 30px 20px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 30px 0; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .sso-container { height: calc(100vh - 48px); overflow-y: auto; }
 
         .settings-card { background: var(--surface, #fff); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 24px; }
         .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
@@ -270,9 +269,11 @@ $signoutPortalUri  = $signoutAnalystUri . 'self-service/login.php';
 <body data-mobile-module="system" data-mobile-page="sso">
     <?php include '../includes/header.php'; ?>
 
-    <div class="sso-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.sso.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.sso.subtitle')); ?></p>
+    <div class="sso-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.sso.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.sso.subtitle')); ?></p>
+        </div></div>
 
         <!-- Global switches -->
         <div class="settings-card">

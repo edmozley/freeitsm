@@ -66,29 +66,10 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
             --on-accent: var(--sys-on-accent, #fff);
         }
 
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .db-verify-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            padding: 24px 20px 0;
-        }
-
-        .db-verify-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .db-verify-header h2 {
-            margin: 0;
-            font-size: 22px;
-            color: var(--text, #333);
-        }
-
-        .db-verify-header p {
-            margin: 5px 0 0 0;
-            font-size: 13px;
-            color: var(--text-dim, #888);
         }
 
         .verify-btn {
@@ -556,13 +537,13 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
 <body data-mobile-module="system" data-mobile-page="db-verify">
     <?php include '../includes/header.php'; ?>
 
-    <div class="db-verify-container">
-        <div class="db-verify-header">
+    <div class="db-verify-container sys-page">
+        <div class="sys-page-head">
             <div>
-                <h2><?php echo htmlspecialchars(t('system.db_verify.heading')); ?></h2>
-                <p><?php echo htmlspecialchars(t('system.db_verify.intro')); ?></p>
+                <h1 class="sys-title"><?php echo htmlspecialchars(t('system.db_verify.heading')); ?></h1>
+                <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.db_verify.intro')); ?></p>
             </div>
-            <div class="verify-actions">
+            <div class="verify-actions sys-actions">
                 <button class="preview-btn" id="previewBtn" onclick="runPreview()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>

@@ -50,9 +50,8 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
             --on-accent: var(--sys-on-accent, #fff);
         }
 
-        .api-container { height: calc(100vh - 48px); overflow-y: auto; padding: 30px 20px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 30px 0; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .api-container { height: calc(100vh - 48px); overflow-y: auto; }
 
         .settings-card { background: var(--surface, #fff); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 24px; }
         .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
@@ -187,9 +186,11 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
 <body data-mobile-module="system" data-mobile-page="api">
     <?php include '../includes/header.php'; ?>
 
-    <div class="api-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.api.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.api.subtitle')); ?></p>
+    <div class="api-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.api.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.api.subtitle')); ?></p>
+        </div></div>
         <!-- GH #287: Keys | Threat protection -->
         <div class="api-tabs" role="tablist">
             <button class="api-tab active" data-tab="keys" role="tab"><?php echo htmlspecialchars(t('system.api.tab_keys')); ?></button>

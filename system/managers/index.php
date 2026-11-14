@@ -43,22 +43,19 @@ $m = fn(string $k) => t('system.managers.' . $k);
             --accent-hover: var(--sys-accent-hover, #37474f);
             --on-accent: var(--sys-on-accent, #fff);
         }
-        /* Full width, like the other System settings pages (Ed). */
-        .mg-container { height: calc(100vh - 48px); overflow-y: auto; width: 100%; box-sizing: border-box; padding: 24px 32px 40px; }
-        .mg-header { margin-bottom: 22px; }
-        .mg-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .mg-header p  { margin: 5px 0 0 0; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; max-width: 780px; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .mg-container { height: calc(100vh - 48px); overflow-y: auto; }
         .mg-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px;
             background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .mg-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px; margin-bottom: 18px; }
         .mg-panel h3 { margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
-        .mg-panel > p { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; max-width: 720px; }
+        .mg-panel > p { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; }
         .mg-field { padding: 12px 0; border-top: 1px solid var(--border-soft, #f1f1f1); }
         .mg-field:first-of-type { border-top: none; padding-top: 0; }
         .mg-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
         .mg-toggle input { margin-top: 3px; }
         .mg-label { display: block; font-size: 13.5px; font-weight: 600; color: var(--text, #333); }
-        .mg-desc  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; max-width: 640px; margin-top: 2px; }
+        .mg-desc  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-top: 2px; }
         .mg-sub { margin: 10px 0 0 26px; }
         .mg-sub select { padding: 7px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
         .mg-radio { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; cursor: pointer; }
@@ -88,11 +85,11 @@ $m = fn(string $k) => t('system.managers.' . $k);
 </head>
 <body data-mobile-module="system" data-mobile-page="managers">
     <?php include '../includes/header.php'; ?>
-    <div class="mg-container">
-        <div class="mg-header">
-            <h2><?php echo htmlspecialchars($m('heading')); ?></h2>
-            <p><?php echo $m('intro'); ?></p>
-        </div>
+    <div class="mg-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars($m('heading')); ?></h1>
+            <p class="sys-subtitle"><?php echo $m('intro'); ?></p>
+        </div></div>
 
         <div class="mg-verify" id="mgVerify" hidden><?php echo htmlspecialchars($m('needs_verify')); ?></div>
 

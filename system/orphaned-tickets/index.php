@@ -47,11 +47,10 @@ if (!isset($_SESSION['analyst_id'])) {
             --on-accent: var(--sys-on-accent, #fff);
         }
 
-        .orph-wrap { height: calc(100vh - 48px); overflow-y: auto; background: #f5f7fa; padding: 24px 28px 60px; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page on .orph-wrap). */
+        .orph-wrap { height: calc(100vh - 48px); overflow-y: auto; background: #f5f7fa; }
         .orph-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }
         .orph-back:hover { text-decoration: underline; }
-        .orph-wrap h2 { font-size: 22px; color: var(--text, #333); margin: 0 0 6px; }
-        .orph-sub { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 18px; max-width: 760px; line-height: 1.5; }
 
         .orph-bulkbar { display: none; align-items: center; gap: 10px; background: var(--surface, #fff); border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; flex-wrap: wrap; }
         .orph-bulkbar.show { display: flex; }
@@ -101,11 +100,13 @@ if (!isset($_SESSION['analyst_id'])) {
 <body data-mobile-module="system" data-mobile-page="orphaned-tickets">
     <?php include '../includes/header.php'; ?>
 
-    <div class="orph-wrap">
+    <div class="orph-wrap sys-page">
         <?php /* Orphaned tickets lives under Maintenance (GH #263); its URL stays. */ ?>
         <a class="orph-back" href="../maintenance/">&larr; <?php echo htmlspecialchars(t('system.maintenance.back')); ?></a>
-        <h2>Orphaned tickets</h2>
-        <p class="orph-sub">Tickets assigned to a department that no longer exists. They're hidden from every team's queue (they're neither "no department" nor in anyone's departments), so reassign them to a real department — or to "No department" — to make them visible again.</p>
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title">Orphaned tickets</h1>
+            <p class="sys-subtitle">Tickets assigned to a department that no longer exists. They're hidden from every team's queue (they're neither "no department" nor in anyone's departments), so reassign them to a real department — or to "No department" — to make them visible again.</p>
+        </div></div>
 
         <div class="orph-bulkbar" id="bulkBar">
             <span class="sel" id="selCount">0 selected</span>

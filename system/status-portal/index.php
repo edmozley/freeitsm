@@ -52,19 +52,11 @@ requireModuleAccess('system');
             --on-accent: var(--sys-on-accent, #fff);
         }
 
-        /* Full width, edge to edge — the house style for settings screens. */
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .sp-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            width: 100%;
-            max-width: none;
-            margin: 0;
-            box-sizing: border-box;
-            padding: 24px 32px 40px;
         }
-        .sp-header { margin-bottom: 22px; }
-        .sp-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .sp-header p  { margin: 5px 0 0 0; font-size: 13px; color: var(--text-dim, #888); max-width: 820px; line-height: 1.55; }
 
         /* inbox.css's .btn-primary sets only background and colour, so on its own
            it renders a coloured rectangle with no padding or radius. */
@@ -79,7 +71,6 @@ requireModuleAccess('system');
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 18px;
-            max-width: 820px;
         }
         .sp-panel h3 {
             margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase;
@@ -110,7 +101,7 @@ requireModuleAccess('system');
             border: 1px solid var(--warning-border, #f0d9a8);
             color: var(--warning-text, #92400e);
             border-radius: 8px; padding: 14px 16px; margin-bottom: 18px;
-            font-size: 13px; line-height: 1.55; max-width: 820px;
+            font-size: 13px; line-height: 1.55;
         }
         .sp-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
     </style>
@@ -120,11 +111,11 @@ requireModuleAccess('system');
 <body data-mobile-module="system" data-mobile-page="status-portal">
     <?php include '../includes/header.php'; ?>
 
-    <div class="sp-container">
-        <div class="sp-header">
-            <h2><?php echo htmlspecialchars(t('system.status_portal.heading')); ?></h2>
-            <p><?php echo t('system.status_portal.intro'); ?></p>
-        </div>
+    <div class="sp-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.status_portal.heading')); ?></h1>
+            <p class="sys-subtitle"><?php echo t('system.status_portal.intro'); ?></p>
+        </div></div>
 
         <div class="sp-warn"><?php echo t('system.status_portal.warning'); ?></div>
 

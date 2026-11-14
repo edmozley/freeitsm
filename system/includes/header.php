@@ -32,6 +32,11 @@ $current_page = $current_page ?? '';
 // Include the shared waffle menu component
 require_once $path_prefix . 'includes/waffle-menu.php';
 ?>
+<?php /* The one System page layout (assets/css/system-page.css): loaded here so
+         every System page has it without each <head> remembering, and AFTER the
+         page's own <style>, so it wins a tie. tests/system-page-layout.php
+         measures every page against it. */ ?>
+<link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/system-page.css?v=<?php echo (int)@filemtime(__DIR__ . '/../../assets/css/system-page.css'); ?>">
 
 <div class="header system-header">
     <div class="waffle-menu-container">

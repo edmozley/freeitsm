@@ -1,0 +1,96 @@
+/**
+ * System pages - the one page layout (2026-11-14).
+ *
+ * Every System screen used to carry its own container and heading rules
+ * (.sso-container, .cc-container, .encryption-container ...), and they drifted:
+ * gutters of 20, 24, 28, 32 and 40px, headings at 22 or 24px in 600 or 700,
+ * and panels capped at 720-900px on a 1600px screen. This file is the single
+ * definition, loaded by system/includes/header.php so every System page has it
+ * without asking, and tests/system-page-layout.php measures every page in a
+ * browser so a new or edited page cannot quietly drift again.
+ *
+ * Use:
+ *   <div class="xx-container sys-page">            the page's scrolling content box
+ *     <div class="sys-page-head">                  title block, actions on the right
+ *       <div><h1 class="sys-title">Title</h1>
+ *            <p class="sys-subtitle">What this page is for.</p></div>
+ *       <div class="sys-actions"> buttons </div>   optional
+ *     </div>
+ *     <div class="sys-panel"> ... </div>           a white card, full width
+ *   </div>
+ *
+ * TRAP: FULL WIDTH MEANS NO CAP OF YOUR OWN. Ed wants System screens edge to
+ * edge; a "tasteful" 760px reading measure on a panel or an intro paragraph is
+ * still a cap (it bit System -> Search, Tickets -> Indexing, Forms ->
+ * Collections and System -> Locations). Caps belong only on controls that would
+ * be silly stretched: a search box, a single text input, a table cell.
+ *
+ * This file is loaded from the header, i.e. AFTER each page's own <style>, so
+ * at equal specificity it wins; a page-local rule should not be fighting it.
+ */
+
+.sys-page {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
+    padding: 24px 32px 40px;
+}
+
+.sys-page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 0 0 20px;
+}
+.sys-page-head > :first-child { flex: 1 1 320px; min-width: 0; }
+
+.sys-title {
+    margin: 0;
+    padding: 0;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text, #333);
+}
+.sys-subtitle {
+    margin: 5px 0 0;
+    max-width: none;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-dim, #888);
+}
+.sys-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+.sys-panel {
+    max-width: none;
+    box-sizing: border-box;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 8px;
+    padding: 18px 20px;
+}
+.sys-panel + .sys-panel { margin-top: 16px; }
+
+@media (max-width: 700px) {
+    .sys-page { padding: 16px; }
+}
+/* Phones: the size mobile.css gave the old .page-title on System pages. */
+@media (max-width: 768px) {
+    .sys-title { font-size: 19px; }
+}
+
+/* Height. Most System pages sized their scroll box as calc(100vh - 48px), but the
+   header is taller than 48px, so the page ran past the bottom of the window (a
+   second scrollbar, and the last bit of the page out of reach). On a desktop the
+   body is a column instead: the header takes its real height and the page fills
+   the rest and scrolls itself. Only when .sys-page is the body's own child -
+   pages with another wrapper (a .main-container, a .settings-shell) already do
+   this themselves. Phones keep mobile.css's layout. */
+@media (min-width: 769px) {
+    body:has(> .sys-page) { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    body:has(> .sys-page) > .header { flex-shrink: 0; }
+    body > .sys-page { flex: 1 1 auto; min-height: 0; height: auto; overflow-y: auto; }
+}

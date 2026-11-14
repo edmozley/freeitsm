@@ -6,7 +6,6 @@
     border: 1px solid var(--border, #e0e0e0);
     border-radius: 8px;
     padding: 8px 4px;
-    max-width: 760px;
 }
 .loc-tree ul { list-style: none; margin: 0; padding: 0; }
 /* Children indent + a guide line down the branch. */
@@ -57,7 +56,7 @@
 .loc-empty.loc-error { color: var(--danger-text, #d13438); }
 .loc-modal-actions { margin-top: 20px; }
 /* GH #311: the note on Assets -> Settings -> Locations that the list is also System -> Locations. */
-.loc-signpost { display: flex; gap: 10px; align-items: flex-start; max-width: 760px; box-sizing: border-box; margin: 0 0 16px; padding: 12px 14px;
+.loc-signpost { display: flex; gap: 10px; align-items: flex-start; box-sizing: border-box; margin: 0 0 16px; padding: 12px 14px;
     border-radius: 8px; font-size: 13px; line-height: 1.5; background: var(--accent-soft, #e8f0f8); color: var(--text, #333); border: 1px solid var(--border, #e0e0e0); }
 .loc-signpost svg { flex-shrink: 0; margin-top: 1px; color: var(--accent, #0078d4); }
 .loc-signpost a { font-weight: 600; white-space: nowrap; }

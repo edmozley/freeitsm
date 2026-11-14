@@ -48,10 +48,8 @@ if (!isset($_SESSION['analyst_id'])) {
             --on-accent: var(--sys-on-accent, #fff);
         }
 
-        .topo-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f7fa); padding: 24px 28px 60px; }
-        .topo-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
-        .topo-head h2 { font-size: 22px; color: var(--text, #333); margin: 0; }
-        .topo-sub { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 16px; }
+        .topo-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f7fa); }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .topo-totals { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
         .topo-stat { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-muted, #555); }
@@ -105,11 +103,11 @@ if (!isset($_SESSION['analyst_id'])) {
 <body data-mobile-module="system" data-mobile-page="topology">
     <?php include '../includes/header.php'; ?>
 
-    <div class="topo-wrap">
-        <div class="topo-head">
-            <h2>Topology</h2>
-        </div>
-        <p class="topo-sub">How your companies, mailboxes, domains, sign-in providers, analysts and requesters fit together. Read-only — click a section's link to manage it.</p>
+    <div class="topo-wrap sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title">Topology</h1>
+            <p class="sys-subtitle">How your companies, mailboxes, domains, sign-in providers, analysts and requesters fit together. Read-only — click a section's link to manage it.</p>
+        </div></div>
 
         <div class="topo-totals" id="topoTotals"></div>
 

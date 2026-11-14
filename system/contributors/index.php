@@ -51,12 +51,10 @@ $contributors = getContributors();
             --accent-hover: var(--sys-accent-hover, #37474f);
             --on-accent: var(--sys-on-accent, #fff);
         }
-        html, body { height: auto !important; min-height: 100vh; overflow-y: auto !important; margin: 0; padding: 0; background: var(--app-bg, #f8fafc); }
+        /* Height and scrolling: assets/css/system-page.css (the page scrolls, the header stays). */
+        html, body { margin: 0; padding: 0; background: var(--app-bg, #f8fafc); }
 
-        .con-wrap { padding: 24px 32px 48px; }
-        .con-head { margin-bottom: 6px; }
-        .con-head h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .con-lead { margin: 6px 0 26px; font-size: 13px; color: var(--text-muted, #6b7280); max-width: 760px; line-height: 1.6; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page on .con-wrap). */
 
         /* Two columns at most: the blurb is a real paragraph and a narrow card
            turns it into a column of ragged fragments. Same reasoning as
@@ -111,7 +109,6 @@ $contributors = getContributors();
         .con-empty { padding: 30px; text-align: center; color: var(--text-muted, #6b7280); font-size: 13px; }
 
         @media (max-width: 700px) {
-            .con-wrap { padding: 18px 16px 40px; }
             .con-list { grid-template-columns: 1fr; }
         }
     </style>
@@ -119,11 +116,11 @@ $contributors = getContributors();
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include '../includes/header.php'; ?>
 
-    <div class="con-wrap">
-        <div class="con-head">
-            <h2><?php echo htmlspecialchars(t('system.contributors.heading')); ?></h2>
-        </div>
-        <p class="con-lead"><?php echo htmlspecialchars(t('system.contributors.lead')); ?></p>
+    <div class="con-wrap sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.contributors.heading')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.contributors.lead')); ?></p>
+        </div></div>
 
         <?php if (empty($contributors)): ?>
             <div class="con-empty"><?php echo htmlspecialchars(t('system.contributors.none')); ?></div>

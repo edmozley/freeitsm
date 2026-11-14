@@ -49,19 +49,16 @@ $debugTools = getDebugTools();
         }
 
         .debug-landing { flex: 1; display: flex; justify-content: center; align-items: flex-start; background: var(--app-bg, #f5f7fa); overflow-y: auto; }
-        .landing-content { width: 100%; margin: 0 auto; padding: 36px 40px; box-sizing: border-box; }
-        .landing-head { text-align: center; }
-        .landing-head h2 { font-size: 24px; color: var(--text, #333); margin: 0 0 8px; }
-        .landing-head .subtitle { font-size: 14px; color: var(--text-dim, #888); margin: 0 auto 22px; max-width: 720px; line-height: 1.5; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page on .landing-content). */
 
         /* Pale blue "how it works" wash — not an accent-soft value, so it keeps its
            light colours and gets a dark override at the end of this block. */
-        .intro-card { max-width: 720px; margin: 0 auto 26px; background: #e8f4fd; border: 1px solid #90caf9; border-radius: 8px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 12px; text-align: left; }
+        .intro-card { margin: 0 0 26px; background: #e8f4fd; border: 1px solid #90caf9; border-radius: 8px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 12px; text-align: left; }
         .intro-card svg { color: #1976d2; flex-shrink: 0; margin-top: 2px; }
         .intro-card .intro-text { font-size: 12.5px; color: #1565c0; line-height: 1.5; }
         .intro-card .intro-text strong { color: #0d47a1; }
 
-        .debug-search { position: relative; max-width: 420px; margin: 0 auto 30px; }
+        .debug-search { position: relative; max-width: 420px; margin: 0 0 30px; }
         .debug-search input { width: 100%; padding: 11px 14px 11px 40px; border: 1px solid var(--border, #d6dde3); border-radius: 8px; font-size: 14px; background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
         .debug-search input::placeholder { color: var(--text-faint, #999); }
         .debug-search input:focus { outline: none; border-color: var(--sys-accent, #546e7a); box-shadow: 0 0 0 3px rgba(84,110,122,0.12); }
@@ -93,6 +90,10 @@ $debugTools = getDebugTools();
             body { display: flex; flex-direction: column; }
             body > .header { flex-shrink: 0; }
             body > .main-container { height: auto; flex: 1 1 auto; min-height: 0; }
+            /* The .sys-page box scrolls, not its parent, so a long card list's
+               scrollbar does not take 8px off the page's width. */
+            .debug-landing { overflow: hidden; }
+            .debug-landing > .landing-content { align-self: stretch; min-height: 0; overflow-y: auto; }
         }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
@@ -104,11 +105,11 @@ $debugTools = getDebugTools();
     <?php include '../includes/header.php'; ?>
 
     <div class="main-container debug-landing">
-        <div class="landing-content">
-            <div class="landing-head">
-                <h2><?php echo htmlspecialchars(t('system.debug.heading')); ?></h2>
-                <p class="subtitle"><?php echo htmlspecialchars(t('system.debug.intro')); ?></p>
-            </div>
+        <div class="landing-content sys-page">
+            <div class="sys-page-head"><div>
+                <h1 class="sys-title"><?php echo htmlspecialchars(t('system.debug.heading')); ?></h1>
+                <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.debug.intro')); ?></p>
+            </div></div>
 
             <div class="intro-card">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

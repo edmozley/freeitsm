@@ -227,9 +227,8 @@ function whAgo($s) {
             --on-accent: var(--sys-on-accent, #fff);
         }
 
-        .wh-container { height: calc(100vh - 48px); overflow-y: auto; padding: 30px 20px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 26px 0; max-width: 720px; line-height: 1.5; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .wh-container { height: calc(100vh - 48px); overflow-y: auto; }
 
         .card { background: var(--surface, #fff); border-radius: 8px; padding: 22px 24px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 22px; }
         .card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
@@ -375,11 +374,13 @@ function whAgo($s) {
 <body data-mobile-module="system" data-mobile-page="webhooks">
     <?php include '../includes/header.php'; ?>
 
-    <div class="wh-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.webhooks.title')); ?></h1>
-        <p class="page-subtitle">
-            <?php echo t('system.webhooks.subtitle'); ?>
-        </p>
+    <div class="wh-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.webhooks.title')); ?></h1>
+            <p class="sys-subtitle">
+                <?php echo t('system.webhooks.subtitle'); ?>
+            </p>
+        </div></div>
 
         <!-- ============ SETUP / STATUS ============ -->
         <div class="card setup <?php echo $cronState; ?>">
@@ -462,7 +463,7 @@ function whAgo($s) {
             <h3 id="delivery"><?php echo htmlspecialchars(t('system.webhooks.del_title')); ?></h3>
             <p class="desc"><?php echo htmlspecialchars(t('system.webhooks.del_desc')); ?></p>
 
-            <div class="form-group" style="max-width: 520px; margin-top: 16px;">
+            <div class="form-group" style="max-width: 520px; margin-top: 16px;" data-sys-cap="one select">
                 <label for="whMaxAttempts" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_attempts_label')); ?></label>
                 <select id="whMaxAttempts" class="form-input" onchange="saveDeliverySetting('max_attempts', parseInt(this.value, 10), 'whMaxAttemptsStatus')">
                     <?php foreach (WEBHOOK_ATTEMPTS_ALLOWED as $n):
@@ -475,7 +476,7 @@ function whAgo($s) {
                 <small style="display:block; color:var(--text-muted,#666); margin-top:6px; line-height:1.55;"><?php echo t('system.webhooks.del_attempts_help'); ?></small>
             </div>
 
-            <div class="form-group" style="max-width: 520px; margin-top: 16px;">
+            <div class="form-group" style="max-width: 520px; margin-top: 16px;" data-sys-cap="one select">
                 <label for="whTimeout" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_timeout_label')); ?></label>
                 <select id="whTimeout" class="form-input" onchange="saveDeliverySetting('timeout', parseInt(this.value, 10), 'whTimeoutStatus')">
                     <?php foreach (WEBHOOK_TIMEOUT_ALLOWED as $n):
@@ -488,7 +489,7 @@ function whAgo($s) {
                 <small style="display:block; color:var(--text-muted,#666); margin-top:6px; line-height:1.55;"><?php echo t('system.webhooks.del_timeout_help'); ?></small>
             </div>
 
-            <div class="form-group" style="max-width: 520px; margin-top: 16px;">
+            <div class="form-group" style="max-width: 520px; margin-top: 16px;" data-sys-cap="one select">
                 <label for="whInterrupted" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.del_int_label')); ?></label>
                 <select id="whInterrupted" class="form-input" onchange="saveDeliverySetting('interrupted', this.value, 'whInterruptedStatus')">
                     <option value="<?php echo WEBHOOK_INTERRUPTED_RETRY; ?>" <?php echo $deliveryCfg['interrupted'] === WEBHOOK_INTERRUPTED_RETRY ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.webhooks.opt_default', ['label' => t('system.webhooks.del_int_retry')])); ?></option>
@@ -520,7 +521,7 @@ function whAgo($s) {
                 </div>
             <?php endif; ?>
 
-            <div class="form-group" style="max-width: 520px; margin-top: 16px;">
+            <div class="form-group" style="max-width: 520px; margin-top: 16px;" data-sys-cap="one select">
                 <label for="payloadRetention" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;"><?php echo htmlspecialchars(t('system.webhooks.ret_label')); ?></label>
                 <select id="payloadRetention" class="form-input" onchange="savePayloadRetention(this.value)">
                     <option value="0"  <?php echo $payloadRetention === 0  ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.webhooks.ret_none')); ?></option>

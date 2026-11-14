@@ -48,9 +48,8 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
             --on-accent: var(--sys-on-accent, #fff);
             display: flex; flex-direction: column;
         }
-        .pa-container { flex: 1; overflow-y: auto; padding: 24px 32px 40px; box-sizing: border-box; width: 100%; }
-        .pa-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .pa-header p { margin: 5px 0 20px; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; }
+        .pa-container { flex: 1; overflow-y: auto; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .pa-verify { background: #fff8e1; border: 1px solid #ffe082; color: #7a5b00; border-radius: 8px; padding: 12px 16px; font-size: 13px; margin-bottom: 16px; }
 
         .pa-studio { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
@@ -125,7 +124,6 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
         [data-theme-mode="dark"] .pa-verify { background: #3a2e12; border-color: #6b5417; color: #fcd34d; }
 
         @media (max-width: 900px) {
-            .pa-container { padding: 16px; }
             .pa-studio { grid-template-columns: minmax(0, 1fr); }
             .pa-stage { min-height: 240px; }
         }
@@ -134,11 +132,11 @@ $paT = fn(string $k) => t('system.photo_album.' . $k);
 </head>
 <body data-mobile-module="system" data-mobile-page="photo-album">
     <?php include '../includes/header.php'; ?>
-    <div class="pa-container">
-        <div class="pa-header">
-            <h2><?php echo htmlspecialchars($paT('title')); ?></h2>
-            <p><?php echo htmlspecialchars($paT('intro')); ?></p>
-        </div>
+    <div class="pa-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars($paT('title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars($paT('intro')); ?></p>
+        </div></div>
 
         <div class="pa-verify" id="paVerify" hidden><?php echo htmlspecialchars($paT('needs_verify')); ?></div>
 

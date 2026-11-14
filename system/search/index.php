@@ -54,22 +54,11 @@ if (!isset($_SESSION['analyst_id'])) {
             --on-accent: var(--sys-on-accent, #fff);
         }
 
-        /* Full width, edge to edge — the house style for settings screens.
-           Nothing here caps the width: no max-width, and no `margin: auto`,
-           which would silently re-centre the content inside a flex parent even
-           with the cap removed. */
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .srch-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            width: 100%;
-            max-width: none;
-            margin: 0;
-            box-sizing: border-box;
-            padding: 24px 32px 40px;
         }
-        .srch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 16px; flex-wrap: wrap; }
-        .srch-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .srch-header p  { margin: 5px 0 0 0; font-size: 13px; color: var(--text-dim, #888); }
 
         /* The System button pair, same as the other System screens. inbox.css's
            .btn-primary sets only background and colour, so on its own it renders
@@ -123,15 +112,17 @@ if (!isset($_SESSION['analyst_id'])) {
 <body data-mobile-module="system" data-mobile-page="search">
     <?php include '../includes/header.php'; ?>
 
-    <div class="srch-container">
-        <div class="srch-header">
+    <div class="srch-container sys-page">
+        <div class="sys-page-head">
             <div>
-                <h2><?php echo htmlspecialchars(t('system.search.heading')); ?></h2>
-                <p><?php echo htmlspecialchars(t('system.search.intro')); ?></p>
+                <h1 class="sys-title"><?php echo htmlspecialchars(t('system.search.heading')); ?></h1>
+                <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.search.intro')); ?></p>
             </div>
-            <button class="btn btn-primary" id="rebuildBtn" onclick="startRebuild()">
-                <?php echo htmlspecialchars(t('system.search.rebuild')); ?>
-            </button>
+            <div class="sys-actions">
+                <button class="btn btn-primary" id="rebuildBtn" onclick="startRebuild()">
+                    <?php echo htmlspecialchars(t('system.search.rebuild')); ?>
+                </button>
+            </div>
         </div>
 
         <div class="srch-panel">

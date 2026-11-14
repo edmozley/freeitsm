@@ -81,14 +81,11 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
             --on-accent: var(--sys-on-accent, #fff);
         }
 
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .df-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            padding: 30px 20px;
         }
-
-        .page-title    { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 24px 0; max-width: 720px; line-height: 1.6; }
 
         .settings-card {
             background: var(--surface, #fff);
@@ -96,7 +93,6 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
             padding: 24px;
             box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
             margin-bottom: 24px;
-            max-width: 720px;
         }
 
         .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
@@ -151,7 +147,7 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
         }
         .info-note strong { color: var(--text, #333); }
 
-        .df-actions { display: flex; align-items: center; gap: 14px; max-width: 720px; }
+        .df-actions { display: flex; align-items: center; gap: 14px; }
 
         [data-theme-mode="dark"] .btn-primary:hover { background: var(--sys-accent-hover, #b0bec5); }
         [data-theme-mode="dark"] .info-note,
@@ -165,9 +161,11 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
 <body data-mobile-module="system" data-mobile-page="date-formats">
     <?php include '../includes/header.php'; ?>
 
-    <div class="df-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.dateformat.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.dateformat.subtitle')); ?></p>
+    <div class="df-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.dateformat.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.dateformat.subtitle')); ?></p>
+        </div></div>
 
         <form id="dateFormatForm">
             <div class="settings-card">

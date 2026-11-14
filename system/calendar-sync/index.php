@@ -41,10 +41,8 @@ $translationNamespaces = ['common', 'system'];
         }
         /* Same shell as the other System pages. */
         .settings-shell { display: flex; flex-direction: column; height: 100vh; }
-        .settings-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; width: 100%; margin: 0;
-                           box-sizing: border-box; padding: 30px 24px 24px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-muted, #888); margin: 0 0 24px 0; line-height: 1.5; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .settings-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 
         .cs-card { background: var(--surface, #fff); border-radius: 8px; padding: 24px;
                    box-shadow: 0 2px 8px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 20px; }
@@ -140,9 +138,11 @@ $translationNamespaces = ['common', 'system'];
     <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
-    <div class="settings-scroll">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.calsync.title')); ?></h1>
-        <p class="page-subtitle"><?php echo t('system.calsync.subtitle'); ?></p>
+    <div class="settings-scroll sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.calsync.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo t('system.calsync.subtitle'); ?></p>
+        </div></div>
 
         <div id="csNeedsDb" class="cs-card" style="display:none;">
             <h2><?php echo htmlspecialchars(t('system.calsync.needs_db')); ?></h2>
@@ -255,7 +255,7 @@ $translationNamespaces = ['common', 'system'];
                          and never stored - the connection holds nobody's password. */ ?>
                 <div id="csProbeCalDav" style="display:none;margin-top:16px;">
                     <div class="cs-field" style="margin-bottom:6px;"><span><?php echo htmlspecialchars(t('system.calsync.caldav_probe')); ?></span></div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:520px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:520px;" data-sys-cap="user + password inputs">
                         <input type="text" id="csProbeUser" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('system.calsync.probe_user')); ?>"
                                style="flex:1 1 180px;padding:8px 10px;border:1px solid var(--border,#ddd);border-radius:4px;background:var(--surface,#fff);color:var(--text,#333);font-size:13px;">
                         <input type="password" id="csProbePass" autocomplete="new-password" placeholder="<?php echo htmlspecialchars(t('system.calsync.probe_pass')); ?>"

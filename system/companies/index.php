@@ -47,9 +47,8 @@ $translationNamespaces = ['common', 'system'];
            container grew to its content and the bottom of the page (public
            email domains) was cut off with no way to scroll to it. */
         body { display: flex; flex-direction: column; }
-        .companies-container { flex: 1; min-height: 0; overflow-y: auto; padding: 30px 20px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 30px 0; }
+        .companies-container { flex: 1; min-height: 0; overflow-y: auto; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .settings-card { background: var(--surface, #fff); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); margin-bottom: 24px; }
 
@@ -169,9 +168,11 @@ $translationNamespaces = ['common', 'system'];
 <body data-mobile-module="system" data-mobile-page="companies">
     <?php include '../includes/header.php'; ?>
 
-    <div class="companies-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.companies.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.companies.subtitle')); ?></p>
+    <div class="companies-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.companies.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.companies.subtitle')); ?></p>
+        </div></div>
 
         <a href="../help/sso.php" class="sso-banner">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg>

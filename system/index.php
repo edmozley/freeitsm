@@ -88,30 +88,12 @@ $translationNamespaces = ['common', 'system'];
             overflow-y: auto;
         }
 
-        .landing-content {
-            text-align: center;
-            width: 100%;
-            margin: 0 auto;
-            padding: 40px 40px;
-            box-sizing: border-box;
-        }
-
-        .landing-content h2 {
-            font-size: 24px;
-            color: var(--text, #333);
-            margin: 0 0 8px 0;
-        }
-
-        .landing-content .subtitle {
-            font-size: 14px;
-            color: var(--text-dim, #888);
-            margin: 0 0 24px 0;
-        }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .landing-version {
             font-size: 13px;
             color: var(--text-dim, #888);
-            margin: -16px 0 24px 0;
+            margin: 6px 0 0 0;
         }
 
         .landing-version a {
@@ -125,7 +107,7 @@ $translationNamespaces = ['common', 'system'];
         .system-search {
             position: relative;
             max-width: 420px;
-            margin: 0 auto 32px;
+            margin: 0 0 24px;
         }
 
         .system-search input {
@@ -244,6 +226,7 @@ $translationNamespaces = ['common', 'system'];
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
             gap: 16px;
+            text-align: center;
         }
 
         .system-card {
@@ -389,6 +372,10 @@ $translationNamespaces = ['common', 'system'];
             body { display: flex; flex-direction: column; }
             body > .header { flex-shrink: 0; }
             body > .main-container { height: auto; flex: 1 1 auto; min-height: 0; }
+            /* The content box is the scroller, as on the other System pages, so the
+               scrollbar sits inside .sys-page instead of narrowing it. */
+            .system-landing { overflow-y: hidden; }
+            .landing-content { align-self: stretch; min-height: 0; overflow-y: auto; }
         }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
@@ -405,7 +392,7 @@ $translationNamespaces = ['common', 'system'];
     <?php include 'includes/header.php'; ?>
 
     <div class="main-container system-landing">
-        <div class="landing-content">
+        <div class="landing-content sys-page">
 
             <?php if ($storageAtRisk): ?>
             <?php /* The count and the folder names are the whole message: "some files"
@@ -446,17 +433,19 @@ $translationNamespaces = ['common', 'system'];
             </div>
             <?php endif; ?>
 
-            <h2><?php echo htmlspecialchars(t('system.landing.heading')); ?></h2>
-            <p class="subtitle"><?php echo htmlspecialchars(t('system.landing.subtitle')); ?></p>
+            <div class="sys-page-head"><div>
+                <h1 class="sys-title"><?php echo htmlspecialchars(t('system.landing.heading')); ?></h1>
+                <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.landing.subtitle')); ?></p>
 
-            <?php /* Discussion #92: the version an operator is running, on a screen they
-                     already open, linked to what changed. Plain text, not a badge — it is
-                     reference information, not something to act on. */ ?>
-            <p class="landing-version">
-                <?php echo htmlspecialchars(t('system.landing.version')); ?>
-                <a href="<?php echo htmlspecialchars(freeitsmReleaseUrl()); ?>"
-                   target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars(freeitsmVersion()); ?></a>
-            </p>
+                <?php /* Discussion #92: the version an operator is running, on a screen they
+                         already open, linked to what changed. Plain text, not a badge — it is
+                         reference information, not something to act on. */ ?>
+                <p class="landing-version">
+                    <?php echo htmlspecialchars(t('system.landing.version')); ?>
+                    <a href="<?php echo htmlspecialchars(freeitsmReleaseUrl()); ?>"
+                       target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars(freeitsmVersion()); ?></a>
+                </p>
+            </div></div>
 
             <div class="system-search">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

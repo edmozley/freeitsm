@@ -42,17 +42,11 @@ requireModuleAccess('system');
             --on-accent: var(--sys-on-accent, #fff);
         }
 
-        /* Full width, edge to edge — the house style for settings screens. */
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .pp-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            width: 100%;
-            box-sizing: border-box;
-            padding: 24px 32px 40px;
         }
-        .pp-header { margin-bottom: 22px; }
-        .pp-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .pp-header p  { margin: 5px 0 0 0; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; }
 
         /* inbox.css's .btn-primary sets only background and colour. */
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
@@ -99,11 +93,11 @@ requireModuleAccess('system');
 <body data-mobile-module="system" data-mobile-page="portal-profile">
     <?php include '../includes/header.php'; ?>
 
-    <div class="pp-container">
-        <div class="pp-header">
-            <h2><?php echo htmlspecialchars(t('system.portal_profile.heading')); ?></h2>
-            <p><?php echo t('system.portal_profile.intro'); ?></p>
-        </div>
+    <div class="pp-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.portal_profile.heading')); ?></h1>
+            <p class="sys-subtitle"><?php echo t('system.portal_profile.intro'); ?></p>
+        </div></div>
 
         <div class="pp-panel">
             <h3 id="fields"><?php echo htmlspecialchars(t('system.portal_profile.fields_heading')); ?></h3>

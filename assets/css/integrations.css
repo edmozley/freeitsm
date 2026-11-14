@@ -14,23 +14,13 @@
    Requires: theme.css (surfaces, text, borders, --sys-accent).
    ========================================================================== */
 
-/* Full width, like every other System page. ⚠️ max-width alone is NOT enough —
-   an inherited `margin: … auto` would still centre it, so there is deliberately
-   no auto margin here either. */
+/* Width, gutter, title and subtitle belong to .sys-page / .sys-title /
+   .sys-subtitle in assets/css/system-page.css (2026-11-14) - every Integrations
+   page carries `sys-page` on its content box. Only the scroll box stays here. */
 .int-container {
     height: calc(100vh - 48px);
     overflow-y: auto;
-    padding: 30px 20px;
 }
-
-.page-title { font-size: 24px; font-weight: 600; color: var(--text); margin: 0 0 6px; }
-
-/* ⚠️ The tight 8px is deliberate and the two pages did NOT agree on it before
-   this file existed: the provider page used 8px because a help pill follows
-   immediately, the landing page used 26px because a card grid does. The gap
-   belongs to whatever comes NEXT, so it is set there (see .provider-grid) and
-   the subtitle keeps the tighter value everywhere. */
-.page-subtitle { font-size: 14px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.5; }
 
 .back-link {
     display: inline-block;
@@ -57,6 +47,9 @@
     border-radius: 20px;
 }
 .help-link:hover { background: var(--sys-accent-soft); }
+/* In the title block the pill sits under the subtitle; .sys-page-head already
+   leaves the gap below it. */
+.sys-page-head .help-link { margin: 12px 0 0; }
 
 .setup-warning {
     background: var(--warning-bg);
@@ -251,7 +244,7 @@ table.int-table td {
 /* ------------------------------------------------------------------ narrow */
 
 @media (max-width: 700px) {
-    .int-container { padding: 16px 12px; }
+    /* (The phone gutter is .sys-page's, in system-page.css.) */
     /* The connections table's columns are known, so it becomes a card feed
        rather than a horizontal scroller (the wide-table rule). */
     table.int-table thead { display: none; }

@@ -116,7 +116,7 @@ try {
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.integrations.title'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/integrations.css?v=1">
+    <link rel="stylesheet" href="../../assets/css/integrations.css?v=2">
     <style>
         /* Only the card grid — the container, title and warning come from
            integrations.css, shared with the provider and Slack pages. */
@@ -124,10 +124,7 @@ try {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 16px;
-            /* The breathing room under the subtitle belongs here, not on the
-               subtitle — the provider page puts a help pill in this space
-               instead and wants it tight. 8px + 18px = the original 26px. */
-            margin-top: 18px;
+            /* The gap under the title comes from .sys-page-head (20px). */
         }
         .provider-card {
             display: block;
@@ -160,9 +157,13 @@ try {
 <body data-mobile-module="system" data-mobile-page="integrations">
     <?php include '../includes/header.php'; ?>
 
-    <div class="int-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.integrations.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.integrations.subtitle')); ?></p>
+    <?php /* .sys-page (assets/css/system-page.css) owns the gutter and the title;
+             integrations.css still styles .int-container for the provider pages. */ ?>
+    <div class="int-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.integrations.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.integrations.subtitle')); ?></p>
+        </div></div>
 
         <?php if (!$schemaOk): ?>
             <div class="setup-warning">

@@ -15,11 +15,11 @@ require __DIR__ . '/_top.php';
     <div class="help-section-header"><?php echo helpSectionNum('overview'); ?>
         <div>
             <h3>What a location is here</h3>
-            <p>The places your organisation works from - sites, buildings, floors and rooms - kept as one tree.</p>
+            <p>The places your organisation works from - sites, buildings, floors and rooms - kept as one tree for each company.</p>
         </div>
     </div>
     <p>A location is a name in a tree you shape yourself, as deep or as shallow as you like, and each branch can differ: <em>UK &rsaquo; London &rsaquo; Floor 2</em> beside a simple <em>Data centre</em>. You manage them on <strong>System &rarr; Locations</strong>.</p>
-    <p>Locations started out in Assets, for saying where each piece of kit is. They describe the organisation rather than the kit, so they now live in System, where other parts of FreeITSM can use them too. Nothing moved in the database: it is the same list, and every asset keeps its location.</p>
+    <p>Locations started out in Assets, for saying where each piece of kit is. They describe the organisation rather than the kit, so they now live in System, where other parts of FreeITSM can use them too. Nothing moved in the database: it is the same list, <strong>still kept separately for each company</strong> (only locations you mark as shared are seen by every company), and every asset keeps its location.</p>
 </div>
 
 <!-- 2. Building the tree -->

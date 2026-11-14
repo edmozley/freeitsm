@@ -64,11 +64,8 @@ $translationNamespaces = ['common', 'tickets'];
             --on-accent: var(--sys-on-accent, #fff);
         }
         .settings-shell { display: flex; flex-direction: column; height: 100vh; }
-        .settings-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; width: 100%; margin: 0; box-sizing: border-box; padding: 30px 24px 24px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-muted, #888); margin: 0 0 24px 0; line-height: 1.5; }
-        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-        .section-header h2 { font-size: 16px; font-weight: 600; color: var(--text, #333); margin: 0; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .settings-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         thead th { text-align: left; color: var(--text-muted, #888); font-weight: 600; font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #eee); }
         tbody td { padding: 10px; border-bottom: 1px solid var(--border-soft, #f2f2f2); color: var(--text, #444); vertical-align: middle; }
@@ -121,13 +118,15 @@ $translationNamespaces = ['common', 'tickets'];
     <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
-    <div class="settings-scroll">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('tickets.settings.headings.teams')); ?></h1>
-        <p class="page-subtitle"><?php echo t('tickets.settings.intros.teams'); ?></p>
-
-        <div class="section-header">
-            <div></div>
-            <button class="add-btn" onclick="openTeamModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
+    <div class="settings-scroll sys-page">
+        <div class="sys-page-head">
+            <div>
+                <h1 class="sys-title"><?php echo htmlspecialchars(t('tickets.settings.headings.teams')); ?></h1>
+                <p class="sys-subtitle"><?php echo t('tickets.settings.intros.teams'); ?></p>
+            </div>
+            <div class="sys-actions">
+                <button class="add-btn" onclick="openTeamModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
+            </div>
         </div>
         <div id="teamsNoDeptWarning" style="display:none; margin:0 0 15px; padding:12px 15px; border-radius:6px; background:var(--warning-bg, #fef3c7); color:var(--warning-text, #92400e); border:1px solid var(--warning-border, #f0d9a8); font-size:13px; line-height:1.5;"></div>
         <table>

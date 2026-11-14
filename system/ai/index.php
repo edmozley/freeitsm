@@ -99,16 +99,14 @@ try {
             --accent-hover: var(--sys-accent-hover, #37474f);
             --on-accent: var(--sys-on-accent, #fff);
         }
-        .ai-container { height: calc(100vh - 48px); overflow-y: auto; padding: 30px 20px; }
-        .page-title    { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 24px 0; max-width: 760px; line-height: 1.6; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .ai-container { height: calc(100vh - 48px); overflow-y: auto; }
         .settings-card {
             background: var(--surface, #fff);
             border-radius: 8px;
             padding: 24px;
             box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
             margin-bottom: 24px;
-            max-width: 860px;
         }
         .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
         .settings-card .card-desc { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 18px 0; line-height: 1.6; }
@@ -175,9 +173,11 @@ try {
 <body data-mobile-module="system" data-mobile-page="ai">
     <?php include '../includes/header.php'; ?>
 
-    <div class="ai-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.ai.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.ai.subtitle')); ?></p>
+    <div class="ai-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.ai.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.ai.subtitle')); ?></p>
+        </div></div>
 
         <form id="aiReasoningForm">
             <div class="settings-card">

@@ -34,9 +34,8 @@ $translationNamespaces = ['common', 'system'];
         body { --accent: var(--sys-accent, #546e7a); --accent-hover: var(--sys-accent-hover, #37474f); --on-accent: var(--sys-on-accent, #fff); }
 
         .main-container { flex: 1; background: var(--app-bg, #f5f7fa); overflow-y: auto; }
-        .modules-container { flex: 1; min-width: 0; overflow-y: auto; padding: 28px 32px 80px; box-sizing: border-box; }
-        .page-title { font-size: 24px; font-weight: 700; color: var(--text, #1a1a1a); margin: 0 0 4px; }
-        .page-subtitle { color: var(--text-muted, #666); margin: 0 0 22px; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .modules-container { flex: 1; min-width: 0; overflow-y: auto; }
 
         .panel { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 1px 3px var(--shadow, rgba(0,0,0,0.05)); }
         .panel > h2 { font-size: 15px; margin: 0 0 12px; color: var(--text, #333); }
@@ -122,9 +121,11 @@ $translationNamespaces = ['common', 'system'];
     <?php include '../includes/header.php'; ?>
 
     <div class="main-container">
-        <div class="modules-container">
-            <h1 class="page-title"><?php echo htmlspecialchars(t('system.modules.title')); ?></h1>
-            <p class="page-subtitle">Control which modules teams and analysts can use. Grant a module to a whole team, or to individuals. (System access is separate — set the Administrator flag on the Analysts screen.)</p>
+        <div class="modules-container sys-page">
+            <div class="sys-page-head"><div>
+                <h1 class="sys-title"><?php echo htmlspecialchars(t('system.modules.title')); ?></h1>
+                <p class="sys-subtitle">Control which modules teams and analysts can use. Grant a module to a whole team, or to individuals. (System access is separate — set the Administrator flag on the Analysts screen.)</p>
+            </div></div>
 
             <!-- Availability (GH #217): switch a module off for the whole install -->
             <div class="panel">

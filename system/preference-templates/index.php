@@ -51,9 +51,8 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
         .btn-secondary:hover { background: var(--border, #cfd8dc); }
         .btn:disabled { opacity: .5; cursor: default; }
 
-        /* Full width, like the other System settings pages. */
-        .pt-container { flex: 1; min-height: 0; overflow-y: auto; width: 100%; box-sizing: border-box; padding: 20px 32px 40px; }
-        .pt-intro { margin: 0 0 18px; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; max-width: 900px; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). Only the scroll box is local. */
+        .pt-container { flex: 1; min-height: 0; overflow-y: auto; }
         .pt-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px;
             background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .pt-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 6px 20px 10px; }
@@ -95,7 +94,6 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
         .pt-count { font-size: 12px; color: var(--text-dim, #888); }
 
         @media (max-width: 768px) {
-            .pt-container { padding: 14px 12px 30px; }
             .pt-panel { padding: 4px 10px 8px; overflow-x: auto; }
             .pt-col-updated, .pt-col-new { display: none; }
         }
@@ -103,10 +101,16 @@ $ptT = fn(string $k) => t('system.pref_templates.' . $k);
 </head>
 <body data-mobile-module="system" data-mobile-page="preference-templates">
     <?php include '../includes/header.php'; ?>
-    <?php require_once __DIR__ . '/../../includes/action_row.php';
-          renderActionRow($ptT('title'), [actionRowNew('PT.openEdit(null)', $ptT('new_tip'))]); ?>
-    <div class="pt-container">
-        <p class="pt-intro"><?php echo htmlspecialchars($ptT('intro')); ?></p>
+    <div class="pt-container sys-page">
+        <div class="sys-page-head">
+            <div>
+                <h1 class="sys-title"><?php echo htmlspecialchars($ptT('title')); ?></h1>
+                <p class="sys-subtitle"><?php echo htmlspecialchars($ptT('intro')); ?></p>
+            </div>
+            <div class="sys-actions">
+                <button type="button" class="btn btn-primary" onclick="PT.openEdit(null)" title="<?php echo htmlspecialchars($ptT('new_tip')); ?>" aria-label="<?php echo htmlspecialchars($ptT('new_tip')); ?>"><?php echo htmlspecialchars(t('common.action_row.new')); ?></button>
+            </div>
+        </div>
         <div class="pt-verify" id="ptVerify" hidden><?php echo htmlspecialchars($ptT('needs_verify')); ?></div>
         <div class="pt-panel">
             <table class="pt-table">

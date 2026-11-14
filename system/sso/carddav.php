@@ -113,20 +113,17 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
                against a 58px header, which hung the Save button off the bottom. */
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-        .prov-wrap {
-            width: 100%; max-width: none; margin: 0;
-            box-sizing: border-box; padding: 24px 32px 0;
-            flex: 1 1 auto; min-height: 0; overflow-y: auto;
-        }
+        /* Width, margin, gutter, title and subtitle: assets/css/system-page.css
+           (.sys-page, .sys-title, .sys-subtitle). No bottom padding on desktop -
+           the sticky save bar is the last element (see provider.php). */
+        .prov-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+        @media (min-width: 701px) { .prov-wrap.sys-page { padding-bottom: 0; } }
         /* ⚠️ These match provider.php's values deliberately, down to the
            margins. The two pages are the same screen for two kinds of source,
            and a 1px difference in a label's margin is exactly how "built by two
            different people" happens. Recorded in TODO.local.md as T-8: the
            right fix is one shared stylesheet, and the moment for it is when
            this page grows the mapping and history tabs. */
-        .prov-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
-        .prov-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0; }
-        .prov-sub { font-size: 13px; color: var(--text-dim, #888); margin: 2px 0 18px; }
         .prov-card { background: var(--surface, #fff); border-radius: 8px; padding: 22px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
         .back-link { font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
@@ -215,7 +212,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
            teach an operator to treat the safety net as a fault to be cleared. */
         .pill.conflict { background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); }
         .pill.skipped  { background: var(--surface-2, #f1f1f1); color: var(--text-dim, #888); }
-        @media (max-width: 700px) { .prov-wrap { padding: 14px 12px 50px; } }
+        @media (max-width: 700px) { .prov-wrap.sys-page { padding: 14px 12px 50px; } }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -223,12 +220,12 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
 <body data-mobile-module="system" data-mobile-page="sso-carddav">
 <?php include '../includes/header.php'; ?>
 
-<div class="prov-wrap">
+<div class="prov-wrap sys-page">
     <a class="back-link" href="index.php">&larr; <?php echo htmlspecialchars(t('system.sso.back_to_list')); ?></a>
-    <div class="prov-head">
+    <div class="sys-page-head">
         <div>
-            <h1 class="prov-title"><?php echo htmlspecialchars($p['display_name']); ?></h1>
-            <div class="prov-sub"><?php echo htmlspecialchars(t('system.sso.carddav_page_sub')); ?></div>
+            <h1 class="sys-title"><?php echo htmlspecialchars($p['display_name']); ?></h1>
+            <div class="sys-subtitle"><?php echo htmlspecialchars(t('system.sso.carddav_page_sub')); ?></div>
         </div>
     </div>
 

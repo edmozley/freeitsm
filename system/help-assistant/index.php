@@ -46,16 +46,13 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
             --accent-hover: var(--sys-accent-hover, #37474f);
             --on-accent: var(--sys-on-accent, #fff);
         }
-        /* Full width, edge to edge - the house style for settings screens. */
-        .ha-container { height: calc(100vh - 48px); overflow-y: auto; width: 100%; box-sizing: border-box; padding: 24px 32px 40px; }
-        .ha-header { margin-bottom: 18px; }
-        .ha-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .ha-header p  { margin: 5px 0 0; font-size: 13px; color: var(--text-dim, #888); max-width: 820px; line-height: 1.55; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .ha-container { height: calc(100vh - 48px); overflow-y: auto; }
 
         /* The good news, first: it works with no AI at all. */
         .ha-good {
             background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #a7f3d0); color: var(--text, #333);
-            border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; max-width: 820px; font-size: 13.5px; line-height: 1.6;
+            border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; font-size: 13.5px; line-height: 1.6;
         }
         .ha-good-title { font-size: 15px; font-weight: 700; color: var(--success-text, #166534); margin-bottom: 4px; }
         .ha-good p { margin: 0 0 8px; }
@@ -70,7 +67,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
         .btn-secondary:hover:not(:disabled) { background: var(--surface-hover, #f5f5f5); }
         .btn:disabled { opacity: .55; cursor: progress; }
 
-        .ha-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px; margin-bottom: 18px; max-width: 820px; }
+        .ha-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px; margin-bottom: 18px; }
         .ha-panel h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
         .ha-panel > p { margin: 0 0 14px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; }
         .ha-toggle { display: flex; align-items: flex-start; gap: 10px; }
@@ -130,11 +127,11 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
 <body data-mobile-module="system" data-mobile-page="help-assistant">
     <?php include '../includes/header.php'; ?>
 
-    <div class="ha-container">
-        <div class="ha-header">
-            <h2><?php echo $h('heading'); ?></h2>
-            <p><?php echo $h('intro'); ?></p>
-        </div>
+    <div class="ha-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo $h('heading'); ?></h1>
+            <p class="sys-subtitle"><?php echo $h('intro'); ?></p>
+        </div></div>
 
         <div class="ha-good">
             <div class="ha-good-title">✅ <?php echo $h('no_ai_title'); ?></div>
@@ -226,7 +223,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
                     <span class="ha-toggle-hint" id="haskHint"></span>
                 </span>
             </label>
-            <div class="hask-ai"><?php renderAiSettingsPanel('help_ai'); ?></div>
+            <div class="hask-ai" data-sys-cap="shared AI provider/model/key form - its own 640px cap"><?php renderAiSettingsPanel('help_ai'); ?></div>
 
             <h3 id="try" style="margin-top:22px;"><?php echo $h('try_heading'); ?></h3>
             <p><?php echo $h('try_hint'); ?></p>

@@ -42,19 +42,15 @@ $meta = integrationsProviderMeta('tika');
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.integrations.title'), 'Apache Tika')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/integrations.css?v=1">
+    <link rel="stylesheet" href="../../assets/css/integrations.css?v=2">
     <style>
         body {
             --accent: var(--sys-accent, #546e7a);
             --accent-hover: var(--sys-accent-hover, #37474f);
             --on-accent: var(--sys-on-accent, #fff);
         }
-        /* Full width, like every other settings screen. No max-width, and
-           margin:0 so an inherited `auto` cannot re-centre it. */
-        .tika-wrap { width:100%; max-width:none; margin:0; box-sizing:border-box;
-                     padding:24px 32px 48px; height:calc(100vh - 48px); overflow-y:auto; }
-        .tika-head h2 { margin:0; font-size:22px; color:var(--text,#333); }
-        .tika-head p  { margin:5px 0 18px; font-size:13px; color:var(--text-dim,#888); }
+        /* Gutter, width and title come from .sys-page (assets/css/system-page.css). */
+        .tika-wrap { height:calc(100vh - 48px); overflow-y:auto; }
 
         .tika-panel { background:var(--surface,#fff); border:1px solid var(--border,#e0e0e0);
                       border-radius:8px; padding:20px; margin-bottom:18px; }
@@ -103,11 +99,11 @@ $meta = integrationsProviderMeta('tika');
 <body data-mobile-module="system" data-mobile-page="integrations-tika">
     <?php include '../includes/header.php'; ?>
 
-    <div class="tika-wrap">
-        <div class="tika-head">
-            <h2>Apache Tika</h2>
-            <p><?php echo htmlspecialchars(t('system.integrations.tika_intro')); ?></p>
-        </div>
+    <div class="tika-wrap sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title">Apache Tika</h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.integrations.tika_intro')); ?></p>
+        </div></div>
 
         <div class="tika-warn">
             <strong><?php echo htmlspecialchars(t('system.integrations.tika_security_title')); ?></strong>

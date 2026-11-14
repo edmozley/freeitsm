@@ -78,11 +78,9 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         body { --accent: var(--sys-accent, #546e7a); --accent-hover: var(--sys-accent-hover, #37474f); --on-accent: var(--sys-on-accent, #fff); }
 
         .main-container { flex: 1; background: var(--app-bg, #f5f7fa); overflow-y: auto; }
-        .docker-container { max-width: 800px; margin: 0 auto; padding: 30px 20px; min-width: 0; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .docker-container { min-width: 0; }
         .panel, .notice { overflow-wrap: anywhere; }
-
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 30px 0; }
 
         .panel {
             background: var(--surface, #fff);
@@ -196,9 +194,11 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
     <?php include '../includes/header.php'; ?>
 
     <div class="main-container">
-        <div class="docker-container">
-            <h1 class="page-title"><?php echo dk('title'); ?></h1>
-            <p class="page-subtitle"><?php echo dk('subtitle'); ?></p>
+        <div class="docker-container sys-page">
+            <div class="sys-page-head"><div>
+                <h1 class="sys-title"><?php echo dk('title'); ?></h1>
+                <p class="sys-subtitle"><?php echo dk('subtitle'); ?></p>
+            </div></div>
 
 <?php if (!$inContainer): ?>
             <div class="notice is-info"><?php echo dk('not_container'); ?></div>

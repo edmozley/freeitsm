@@ -43,10 +43,8 @@ requireModuleAccess('system');
             --accent-hover: var(--sys-accent-hover, #37474f);
             --on-accent: var(--sys-on-accent, #fff);
         }
-        .ssp-container { height: calc(100vh - 48px); overflow-y: auto; width: 100%; box-sizing: border-box; padding: 24px 32px 40px; }
-        .ssp-header { margin-bottom: 22px; }
-        .ssp-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .ssp-header p  { margin: 5px 0 0 0; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; max-width: 780px; }
+        .ssp-container { height: calc(100vh - 48px); overflow-y: auto; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
@@ -55,12 +53,12 @@ requireModuleAccess('system');
 
         .ssp-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px; margin-bottom: 18px; }
         .ssp-panel h3 { margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #888); }
-        .ssp-panel > p { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; max-width: 720px; }
+        .ssp-panel > p { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); line-height: 1.55; }
 
         .ssp-field { padding: 14px 0; border-top: 1px solid var(--border-soft, #f1f1f1); }
         .ssp-field:first-of-type { border-top: none; padding-top: 0; }
         .ssp-label { display: block; font-size: 13.5px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
-        .ssp-desc  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-bottom: 9px; max-width: 640px; }
+        .ssp-desc  { font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; margin-bottom: 9px; }
         .ssp-input { width: 100%; max-width: 420px; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); box-sizing: border-box; }
 
         /* A colour needs both a picker and a typed value: an admin handed a
@@ -111,11 +109,11 @@ requireModuleAccess('system');
 <body data-mobile-module="system" data-mobile-page="self-service">
     <?php include '../includes/header.php'; ?>
 
-    <div class="ssp-container">
-        <div class="ssp-header">
-            <h2><?php echo htmlspecialchars(t('system.self_service.heading')); ?></h2>
-            <p><?php echo t('system.self_service.intro'); ?></p>
-        </div>
+    <div class="ssp-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.self_service.heading')); ?></h1>
+            <p class="sys-subtitle"><?php echo t('system.self_service.intro'); ?></p>
+        </div></div>
 
         <div class="ssp-panel">
             <h3 id="appearance"><?php echo htmlspecialchars(t('system.self_service.appearance_heading')); ?></h3>
@@ -178,7 +176,7 @@ requireModuleAccess('system');
         <div class="ssp-panel">
             <h3><?php echo htmlspecialchars(t('system.self_service.preview_heading')); ?></h3>
             <p><?php echo htmlspecialchars(t('system.self_service.preview_desc')); ?></p>
-            <div class="ssp-preview" id="sspPreview">
+            <div class="ssp-preview" id="sspPreview" data-sys-cap="a mock-up of the portal, kept at a portal-like size">
                 <div class="ssp-preview-bar" id="sspPreviewBar">
                     <img class="ssp-preview-logo" id="sspPreviewLogo" alt="" style="display:none;">
                     <span id="sspPreviewName"><?php echo htmlspecialchars(t('system.self_service.preview_portal')); ?></span>

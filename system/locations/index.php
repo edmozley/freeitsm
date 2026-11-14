@@ -39,7 +39,7 @@ $lT = fn(string $k) => t('system.locations.' . $k);
     <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/locations-tree.css?v=1">
+    <link rel="stylesheet" href="../../assets/css/locations-tree.css?v=2">
     <style>
         body {
             --accent: var(--sys-accent, #546e7a);
@@ -49,28 +49,24 @@ $lT = fn(string $k) => t('system.locations.' . $k);
         }
         /* Full width, like the other System settings pages. flex:1 inside a flex
            column, so the page scrolls rather than being cut off. */
-        .lc-container { flex: 1; min-height: 0; overflow-y: auto; width: 100%; box-sizing: border-box; padding: 24px 32px 40px; }
-        .lc-header { display: flex; align-items: flex-start; gap: 16px; max-width: 760px; }
-        .lc-header > div { flex: 1; }
-        .lc-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .lc-header p { margin: 5px 0 14px; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; }
-        .lc-uses { max-width: 760px; margin: 0 0 18px; font-size: 13px; color: var(--text-muted, #555); line-height: 1.55; }
+        /* Layout: assets/css/system-page.css (.sys-page, .sys-page-head). Only the scroll box is local. */
+        .lc-container { flex: 1; min-height: 0; overflow-y: auto; }
+        .lc-uses { margin: 0 0 18px; font-size: 13px; color: var(--text-muted, #555); line-height: 1.55; }
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
         .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
         .btn-primary:hover { background: var(--sys-accent-hover, #455a64); }
         .btn-secondary { background: var(--surface-2, #eceff1); color: var(--text, #333); }
         .btn-secondary:hover { background: var(--border, #cfd8dc); }
-        @media (max-width: 700px) { .lc-container { padding: 16px; } }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="system" data-mobile-page="locations">
     <?php include '../includes/header.php'; ?>
-    <div class="lc-container">
-        <div class="lc-header">
+    <div class="lc-container sys-page">
+        <div class="sys-page-head">
             <div>
-                <h2><?php echo htmlspecialchars($lT('title')); ?></h2>
-                <p><?php echo t('asset-management.settings.locations_intro'); ?></p>
+                <h1 class="sys-title"><?php echo htmlspecialchars($lT('title')); ?></h1>
+                <p class="sys-subtitle"><?php echo t('asset-management.settings.locations_intro'); ?></p>
             </div>
             <button type="button" class="btn btn-primary" id="lcAddBtn"><?php echo htmlspecialchars(t('common.add')); ?></button>
         </div>

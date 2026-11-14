@@ -61,9 +61,8 @@ $translationNamespaces = ['common', 'tickets'];
             --on-accent: var(--sys-on-accent, #fff);
         }
         .settings-shell { display: flex; flex-direction: column; height: 100vh; }
-        .settings-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; width: 100%; margin: 0; box-sizing: border-box; padding: 30px 24px 24px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-muted, #888); margin: 0 0 24px 0; line-height: 1.5; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .settings-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
         .section-header h2 { font-size: 16px; font-weight: 600; color: var(--text, #333); margin: 0; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -93,7 +92,6 @@ $translationNamespaces = ['common', 'tickets'];
         .av-badge { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border-radius: 9px; font-size: 11px; font-weight: 700;
             background: var(--accent, #546e7a); color: var(--on-accent, #fff); text-align: center; }
         .av-badge[hidden] { display: none; }
-        .av-titlebar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .av-menu-wrap { position: relative; }
         .av-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; min-width: 280px; padding: 4px;
             background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
@@ -254,12 +252,16 @@ $translationNamespaces = ['common', 'tickets'];
     <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
-    <div class="settings-scroll">
-        <div class="av-titlebar">
-            <h1 class="page-title"><?php echo htmlspecialchars(t('tickets.settings.headings.analysts')); ?></h1>
-            <button class="add-btn" onclick="openAnalystModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
+    <div class="settings-scroll sys-page">
+        <div class="sys-page-head">
+            <div>
+                <h1 class="sys-title"><?php echo htmlspecialchars(t('tickets.settings.headings.analysts')); ?></h1>
+                <p class="sys-subtitle"><?php echo t('tickets.settings.intros.analysts'); ?></p>
+            </div>
+            <div class="sys-actions">
+                <button class="add-btn" onclick="openAnalystModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
+            </div>
         </div>
-        <p class="page-subtitle"><?php echo t('tickets.settings.intros.analysts'); ?></p>
 
         <?php $av = fn($k) => htmlspecialchars(t('tickets.settings.analyst_view.' . $k)); ?>
         <!-- The list's controls (GH #208). Layout ones are remembered per analyst

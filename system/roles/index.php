@@ -57,9 +57,8 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
             --on-accent: var(--sys-on-accent, #fff);
         }
         .settings-shell { display: flex; flex-direction: column; height: 100vh; }
-        .roles-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 24px 32px 48px; }
-        .roles-scroll > h1 { font-size: 1.5rem; margin: 0 0 6px; }
-        .roles-intro { color: var(--text-muted, #555); font-size: 14px; line-height: 1.6; max-width: 760px; margin: 0 0 20px; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .roles-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
         .roles-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .roles-head h2 { margin: 0; font-size: 1.05rem; }
 
@@ -95,14 +94,16 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
     <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
-    <div class="roles-scroll">
-        <h1><?php echo htmlspecialchars(t('system.landing.roles_title')); ?></h1>
-        <p class="roles-intro">
-            Roles let you hand a slice of administration to someone who isn't a full System administrator —
-            for example, letting a training lead manage the LMS without giving them the run of System.
-            A role grants one or more <strong>settings capabilities</strong>; assign it to analysts or whole teams.
-            System administrators already have everything, so they don't need a role.
-        </p>
+    <div class="roles-scroll sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.landing.roles_title')); ?></h1>
+            <p class="sys-subtitle">
+                Roles let you hand a slice of administration to someone who isn't a full System administrator —
+                for example, letting a training lead manage the LMS without giving them the run of System.
+                A role grants one or more <strong>settings capabilities</strong>; assign it to analysts or whole teams.
+                System administrators already have everything, so they don't need a role.
+            </p>
+        </div></div>
 
         <div class="roles-head">
             <h2>Roles</h2>

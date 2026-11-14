@@ -108,21 +108,16 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
                button with it. Measuring found that; the CSS read as correct. */
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-        /* Full width, edge to edge. ⚠️ `max-width: none` alone is not enough
-           elsewhere in this app — an inherited `margin: … auto` inside a flex
-           parent cancels the stretch and re-centres the column. Belt (width) and
-           braces (margin: 0) both stated so this cannot regress into a narrow
-           centred page that looks exactly like the cap is still there. */
+        /* Full width, edge to edge: width, margin and the 32px gutter come from
+           assets/css/system-page.css (.sys-page), which states width:100% AND
+           margin:0 so an inherited `margin: … auto` cannot re-centre it.
+           No bottom padding: the sticky save bar is the last element and
+           provides the end-of-page spacing itself. With padding here AND a
+           negative margin on the bar to cancel it, the bar ended up sitting
+           over the final field and clipping it. Two classes, so it beats
+           .sys-page's 40px bottom; desktop only, phones keep their 50px. */
+        @media (min-width: 701px) { .prov-wrap.sys-page { padding-bottom: 0; } }
         .prov-wrap {
-            width: 100%;
-            max-width: none;
-            margin: 0;
-            box-sizing: border-box;
-            /* No bottom padding: the sticky save bar is the last element and
-               provides the end-of-page spacing itself. With padding here AND a
-               negative margin on the bar to cancel it, the bar ended up sitting
-               over the final field and clipping it. */
-            padding: 24px 32px 0;
             /* ⚠️ THIS is what scrolls, not the document. Without it the content
                below the fold is simply unreachable — there is nothing to scroll.
                flex:1 + min-height:0 takes exactly the space the header leaves,
@@ -131,9 +126,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
             min-height: 0;
             overflow-y: auto;
         }
-        .prov-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
-        .prov-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0; }
-        .prov-sub { font-size: 13px; color: var(--text-dim, #888); margin: 2px 0 18px; }
+        /* Title and subtitle: .sys-page-head / .sys-title / .sys-subtitle. */
         .prov-card { background: var(--surface, #fff); border-radius: 8px; padding: 22px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
         .fld { margin-bottom: 18px; }
         .fld label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
@@ -298,7 +291,7 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         table.runs tbody tr.clickable:hover td { background: var(--surface-hover, rgba(127,127,127,0.07)); }
         .back-link { font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
-        @media (max-width: 700px) { .prov-wrap { padding: 14px 12px 50px; } }
+        @media (max-width: 700px) { .prov-wrap.sys-page { padding: 14px 12px 50px; } }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
@@ -306,12 +299,12 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
 <body data-mobile-module="system" data-mobile-page="sso-provider">
 <?php include '../includes/header.php'; ?>
 
-<div class="prov-wrap">
+<div class="prov-wrap sys-page">
     <a class="back-link" href="index.php">&larr; <?php echo htmlspecialchars(t('system.sso.back_to_list')); ?></a>
-    <div class="prov-head">
+    <div class="sys-page-head">
         <div>
-            <h1 class="prov-title"><?php echo htmlspecialchars($p['display_name']); ?></h1>
-            <div class="prov-sub"><?php echo htmlspecialchars(t('system.sso.provider_page_sub')); ?></div>
+            <h1 class="sys-title"><?php echo htmlspecialchars($p['display_name']); ?></h1>
+            <div class="sys-subtitle"><?php echo htmlspecialchars(t('system.sso.provider_page_sub')); ?></div>
         </div>
     </div>
 

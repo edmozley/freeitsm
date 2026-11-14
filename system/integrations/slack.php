@@ -59,7 +59,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.integrations.title'), 'Slack')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
-    <link rel="stylesheet" href="../../assets/css/integrations.css?v=1">
+    <link rel="stylesheet" href="../../assets/css/integrations.css?v=2">
     <style>
         /* Only what this page alone draws — everything else is integrations.css. */
 
@@ -153,18 +153,20 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
 <body data-mobile-module="system" data-mobile-page="integrations-slack">
     <?php include '../includes/header.php'; ?>
 
-    <div class="int-container">
+    <div class="int-container sys-page">
         <a class="back-link" href="./">&larr; <?php echo htmlspecialchars(t('system.integrations.title')); ?></a>
-        <h1 class="page-title">Slack</h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.integrations.slack_blurb')); ?></p>
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title">Slack</h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.integrations.slack_blurb')); ?></p>
 
-        <a class="help-link" href="./slack/help">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                 aria-hidden="true"><circle cx="12" cy="12" r="10"></circle>
-                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            <?php echo htmlspecialchars(t('system.integrations.help_link', ['name' => 'Slack'])); ?>
-        </a>
+            <a class="help-link" href="./slack/help">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true"><circle cx="12" cy="12" r="10"></circle>
+                     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <?php echo htmlspecialchars(t('system.integrations.help_link', ['name' => 'Slack'])); ?>
+            </a>
+        </div></div>
 
         <?php if (!$schemaOk): ?>
             <div class="setup-warning"><?php echo htmlspecialchars(t('system.integrations.needs_db_verify')); ?></div>

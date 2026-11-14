@@ -36,24 +36,7 @@ $translationNamespaces = ['common', 'system'];
             overflow-y: auto;
         }
 
-        .encryption-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
-
-        .page-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--text, #333);
-            margin: 0 0 6px 0;
-        }
-
-        .page-subtitle {
-            font-size: 13px;
-            color: var(--text-dim, #888);
-            margin: 0 0 30px 0;
-        }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         /* Status card */
         .status-card {
@@ -318,9 +301,11 @@ $translationNamespaces = ['common', 'system'];
     <?php include '../includes/header.php'; ?>
 
     <div class="main-container">
-        <div class="encryption-container">
-            <h1 class="page-title"><?php echo htmlspecialchars(t('system.encryption.title')); ?></h1>
-            <p class="page-subtitle"><?php echo htmlspecialchars(t('system.encryption.subtitle')); ?></p>
+        <div class="encryption-container sys-page">
+            <div class="sys-page-head"><div>
+                <h1 class="sys-title"><?php echo htmlspecialchars(t('system.encryption.title')); ?></h1>
+                <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.encryption.subtitle')); ?></p>
+            </div></div>
 
             <div id="loading" class="loading-spinner"><?php echo htmlspecialchars(t('system.encryption.checking')); ?></div>
 

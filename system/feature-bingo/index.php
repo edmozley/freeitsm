@@ -37,10 +37,8 @@ $b = fn(string $k) => t('system.bingo.' . $k);
     <style>
         body { --accent: var(--sys-accent, #546e7a); --accent-hover: var(--sys-accent-hover, #37474f); --on-accent: var(--sys-on-accent, #fff);
                --star: #f5b301; --star-soft: rgba(245, 179, 1, .14); }
-        .fb-container { height: calc(100vh - 48px); overflow-y: auto; width: 100%; box-sizing: border-box; padding: 24px 32px 48px; }
-        .fb-top { display: flex; gap: 24px; align-items: stretch; justify-content: space-between; flex-wrap: wrap; margin-bottom: 18px; }
-        .fb-top h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .fb-top p { margin: 6px 0 0; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; max-width: 720px; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .fb-container { height: calc(100vh - 48px); overflow-y: auto; }
         .fb-score { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 10px; padding: 14px 18px; min-width: 300px; }
         .fb-score-top { display: flex; align-items: center; gap: 12px; }
         .fb-score-star { font-size: 34px; line-height: 1; color: var(--star); }
@@ -106,17 +104,17 @@ $b = fn(string $k) => t('system.bingo.' . $k);
         .fbm-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
         .fbm-actions .fb-btn { padding: 8px 14px; font-size: 13px; }
         .fbm-actions .fbm-grow { margin-right: auto; }
-        @media (max-width: 700px) { .fb-container { padding: 16px; } .fb-score { min-width: 0; width: 100%; } }
+        @media (max-width: 700px) { .fb-score { min-width: 0; width: 100%; } }
     </style>
 </head>
 <body>
     <?php include __DIR__ . '/../includes/header.php'; ?>
 
-    <div class="fb-container">
-        <div class="fb-top">
+    <div class="fb-container sys-page">
+        <div class="sys-page-head">
             <div>
-                <h2><?php echo htmlspecialchars($b('heading')); ?></h2>
-                <p><?php echo htmlspecialchars($b('intro')); ?></p>
+                <h1 class="sys-title"><?php echo htmlspecialchars($b('heading')); ?></h1>
+                <p class="sys-subtitle"><?php echo htmlspecialchars($b('intro')); ?></p>
             </div>
             <div class="fb-score" id="fbScore" hidden>
                 <div class="fb-score-top">

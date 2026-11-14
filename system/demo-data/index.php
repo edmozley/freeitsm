@@ -46,24 +46,9 @@ if (!isset($_SESSION['analyst_id'])) {
         .demo-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            padding: 0 20px 40px;
         }
 
-        .demo-header {
-            margin-bottom: 25px;
-        }
-
-        .demo-header h2 {
-            margin: 0;
-            font-size: 22px;
-            color: var(--text, #333);
-        }
-
-        .demo-header p {
-            margin: 5px 0 0 0;
-            font-size: 13px;
-            color: var(--text-dim, #888);
-        }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .warning-card {
             background: #fff8e1;
@@ -313,11 +298,11 @@ if (!isset($_SESSION['analyst_id'])) {
 <body data-mobile-module="system" data-mobile-page="demo-data">
     <?php include '../includes/header.php'; ?>
 
-    <div class="demo-container">
-        <div class="demo-header">
-            <h2><?php echo htmlspecialchars(t('system.demo.heading')); ?></h2>
-            <p><?php echo htmlspecialchars(t('system.demo.subtitle')); ?></p>
-        </div>
+    <div class="demo-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.demo.heading')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.demo.subtitle')); ?></p>
+        </div></div>
 
         <div class="warning-card">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

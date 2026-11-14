@@ -44,9 +44,8 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         }
         /* Full width, like the other System settings pages (Ed). flex:1 inside a
            flex column, so the page scrolls rather than being cut off. */
-        .cc-container { flex: 1; min-height: 0; overflow-y: auto; width: 100%; box-sizing: border-box; padding: 24px 32px 40px; }
-        .cc-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .cc-header p { margin: 5px 0 20px; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; }
+        .cc-container { flex: 1; min-height: 0; overflow-y: auto; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .cc-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px;
             background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .cc-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 18px 20px; }
@@ -141,7 +140,6 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
         [data-theme-mode="dark"] .cc-act.deactivate, [data-theme-mode="dark"] .cc-errors { background: #3b1512; color: #f3c7c2; border-color: #7d2e26; }
         [data-theme-mode="dark"] .cc-done { color: #86efac; }
         @media (max-width: 700px) {
-            .cc-container { padding: 16px; }
             .cc-desc { display: none; }
             .cc-toolbar input[type=search] { width: 100%; }
         }
@@ -150,11 +148,11 @@ $ccT = fn(string $k) => t('system.cost_centres.' . $k);
 </head>
 <body data-mobile-module="system" data-mobile-page="cost-centres">
     <?php include '../includes/header.php'; ?>
-    <div class="cc-container">
-        <div class="cc-header">
-            <h2><?php echo htmlspecialchars($ccT('title')); ?></h2>
-            <p><?php echo htmlspecialchars($ccT('intro')); ?></p>
-        </div>
+    <div class="cc-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars($ccT('title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars($ccT('intro')); ?></p>
+        </div></div>
 
         <div class="cc-verify" id="ccVerify" hidden><?php echo htmlspecialchars($ccT('needs_verify')); ?></div>
 

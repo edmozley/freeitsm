@@ -41,21 +41,9 @@ $translationNamespaces = ['common', 'system'];
         .security-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            padding: 30px 20px;
         }
 
-        .page-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--text, #333);
-            margin: 0 0 6px 0;
-        }
-
-        .page-subtitle {
-            font-size: 13px;
-            color: var(--text-dim, #888);
-            margin: 0 0 30px 0;
-        }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         .settings-card {
             background: var(--surface, #fff);
@@ -186,9 +174,11 @@ $translationNamespaces = ['common', 'system'];
 <body data-mobile-module="system" data-mobile-page="security">
     <?php include '../includes/header.php'; ?>
 
-    <div class="security-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.security.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.security.subtitle')); ?></p>
+    <div class="security-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.security.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.security.subtitle')); ?></p>
+        </div></div>
 
         <form id="securityForm">
             <!-- Self-service registration -->

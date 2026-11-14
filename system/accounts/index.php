@@ -44,9 +44,8 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
         }
         /* Full width, like the other System settings pages (Ed). flex:1 inside a
            flex column, so the page scrolls rather than being cut off. */
-        .ac-container { flex: 1; min-height: 0; overflow-y: auto; width: 100%; box-sizing: border-box; padding: 24px 32px 40px; }
-        .ac-header h2 { margin: 0; font-size: 22px; color: var(--text, #333); }
-        .ac-header p { margin: 5px 0 20px; font-size: 13px; color: var(--text-dim, #888); line-height: 1.55; }
+        .ac-container { flex: 1; min-height: 0; overflow-y: auto; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
         .ac-verify { margin-bottom: 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px;
             background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); border: 1px solid var(--warning-border, #f2d675); }
         .ac-panel { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 18px 20px; }
@@ -150,7 +149,6 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
         [data-theme-mode="dark"] .ac-kind.payroll     { background: #3b1f45; color: #e1bee7; }
         [data-theme-mode="dark"] .ac-kind.income      { background: #16331f; color: #86efac; }
         @media (max-width: 700px) {
-            .ac-container { padding: 16px; }
             .ac-desc { display: none; }
             .ac-toolbar input[type=search] { width: 100%; }
         }
@@ -159,11 +157,11 @@ $acT = fn(string $k) => t('system.accounts.' . $k);
 </head>
 <body data-mobile-module="system" data-mobile-page="accounts">
     <?php include '../includes/header.php'; ?>
-    <div class="ac-container">
-        <div class="ac-header">
-            <h2><?php echo htmlspecialchars($acT('title')); ?></h2>
-            <p><?php echo htmlspecialchars($acT('intro')); ?></p>
-        </div>
+    <div class="ac-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars($acT('title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars($acT('intro')); ?></p>
+        </div></div>
 
         <div class="ac-verify" id="acVerify" hidden><?php echo htmlspecialchars($acT('needs_verify')); ?></div>
 

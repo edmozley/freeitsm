@@ -37,9 +37,8 @@ $translationNamespaces = ['common', 'system'];
            height (the #535 reasoning — no hardcoded 100vh-48px). */
         /* System module accent (blue-grey) */
         body { display: flex; flex-direction: column; --accent: var(--sys-accent, #546e7a); }
-        .rt-container { flex: 1; min-height: 0; overflow-y: auto; padding: 30px 20px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 24px 0; }
+        .rt-container { flex: 1; min-height: 0; overflow-y: auto; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
 
         /* Two columns: the form on the left, the result on the right. Wraps to
            a single column when there isn't room. */
@@ -60,7 +59,7 @@ $translationNamespaces = ['common', 'system'];
         .btn-primary:hover { background: #455a64; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .rt-note { font-size: 13px; color: #8a5a00; background: #fff8e1; border: 1px solid #ffe0a3; border-radius: 6px; padding: 12px 14px; margin-bottom: 24px; max-width: 720px; }
+        .rt-note { font-size: 13px; color: #8a5a00; background: #fff8e1; border: 1px solid #ffe0a3; border-radius: 6px; padding: 12px 14px; margin-bottom: 24px; }
 
         /* Result */
         .rt-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; color: #b0b8bd; background: #fafbfc; border: 1px dashed #dde3e6; border-radius: 8px; padding: 48px 24px; }
@@ -108,9 +107,11 @@ $translationNamespaces = ['common', 'system'];
 <body data-mobile-module="system" data-mobile-page="email-routing-test">
     <?php include '../includes/header.php'; ?>
 
-    <div class="rt-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.routing_test.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.routing_test.subtitle')); ?></p>
+    <div class="rt-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.routing_test.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.routing_test.subtitle')); ?></p>
+        </div></div>
 
         <div class="rt-note" id="singleCompanyNote" style="display:none;">
             <?php echo htmlspecialchars(t('system.routing_test.single_company_note')); ?>

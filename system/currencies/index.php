@@ -73,9 +73,8 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
             --accent-hover: var(--sys-accent-hover, #37474f);
             --on-accent: var(--sys-on-accent, #fff);
         }
-        .cur-container { height: calc(100vh - 48px); overflow-y: auto; padding: 30px 20px; }
-        .page-title    { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 24px 0; max-width: 760px; line-height: 1.6; }
+        /* Page layout, title and subtitle: assets/css/system-page.css (.sys-page). */
+        .cur-container { height: calc(100vh - 48px); overflow-y: auto; }
 
         .settings-card {
             background: var(--surface, #fff);
@@ -83,7 +82,6 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
             padding: 24px;
             box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
             margin-bottom: 24px;
-            max-width: 760px;
         }
         .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 4px 0; }
         .settings-card .card-desc { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 18px 0; line-height: 1.5; }
@@ -142,7 +140,7 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
 
         .unknown-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text, #333); line-height: 1.8; }
 
-        .df-actions { display: flex; align-items: center; gap: 14px; max-width: 760px; }
+        .df-actions { display: flex; align-items: center; gap: 14px; }
 
         [data-theme-mode="dark"] .btn-primary:hover { background: var(--sys-accent-hover, #b0bec5); }
         [data-theme-mode="dark"] .df-preview,
@@ -155,9 +153,11 @@ $installSettings['formats'] = (object)$installSettings['formats'];   // {} not [
 <body data-mobile-module="system" data-mobile-page="currencies">
     <?php include '../includes/header.php'; ?>
 
-    <div class="cur-container">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('system.currencies.title')); ?></h1>
-        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.currencies.subtitle')); ?></p>
+    <div class="cur-container sys-page">
+        <div class="sys-page-head"><div>
+            <h1 class="sys-title"><?php echo htmlspecialchars(t('system.currencies.title')); ?></h1>
+            <p class="sys-subtitle"><?php echo htmlspecialchars(t('system.currencies.subtitle')); ?></p>
+        </div></div>
 
         <form id="curForm">
             <div class="settings-card">

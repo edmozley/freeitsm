@@ -100,9 +100,11 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         /* The layout, fields, buttons, results, history table and run modal are
            provider.php's, so the three people-source pages look and behave as one. */
         body { margin: 0; background: var(--app-bg, #f5f5f5); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .prov-wrap { width: 100%; max-width: none; margin: 0; box-sizing: border-box; padding: 24px 32px 0; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-        .prov-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0; }
-        .prov-sub { font-size: 13px; color: var(--text-dim, #888); margin: 2px 0 18px; }
+        /* Width, margin, gutter, title and subtitle: assets/css/system-page.css
+           (.sys-page, .sys-title, .sys-subtitle). No bottom padding on desktop -
+           the sticky save bar is the last element (see provider.php). */
+        .prov-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+        @media (min-width: 701px) { .prov-wrap.sys-page { padding-bottom: 0; } }
         .prov-card { background: var(--surface, #fff); border-radius: 8px; padding: 22px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
         .fld { margin-bottom: 18px; }
         .fld label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
@@ -214,17 +216,19 @@ function et(string $k, array $params = []): string { return htmlspecialchars(t('
         .avail-grid span { color: var(--text-dim, #999); }
         .back-link { font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
-        @media (max-width: 700px) { .prov-wrap { padding: 14px 12px 50px; } }
+        @media (max-width: 700px) { .prov-wrap.sys-page { padding: 14px 12px 50px; } }
     </style>
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">
 </head>
 <body data-mobile-module="system" data-mobile-page="sso-provider">
 <?php include '../includes/header.php'; ?>
 
-<div class="prov-wrap">
+<div class="prov-wrap sys-page">
     <a class="back-link" href="index.php">&larr; <?php echo et('back_to_list'); ?></a>
-    <h1 class="prov-title"><?php echo htmlspecialchars($p['display_name']); ?></h1>
-    <div class="prov-sub"><?php echo et('entra_page_sub'); ?></div>
+    <div class="sys-page-head"><div>
+        <h1 class="sys-title"><?php echo htmlspecialchars($p['display_name']); ?></h1>
+        <div class="sys-subtitle"><?php echo et('entra_page_sub'); ?></div>
+    </div></div>
 
     <?php if (!$columnsReady): ?>
         <div class="notice"><?php echo et('entra_not_ready'); ?></div>
