@@ -7,12 +7,10 @@
 require_once __DIR__ . '/../../includes/encryption.php';
 require_once __DIR__ . '/../../includes/ai_settings.php';
 
-require_once __DIR__ . '/../../includes/cmdb_record_refs.php';
-
-// GH #312: plus the record types (person, analyst, team, location, company,
-// supplier, contract), so an owner points at the real person rather than a
+// cmdbPropertyTypes(): the one list of property types (GH #313), including the
+// record types (GH #312) so an owner points at the real person rather than a
 // "Person" CI the wizard used to invent.
-define('CMDB_AI_PROPERTY_TYPES', array_merge(['text', 'number', 'date', 'boolean', 'dropdown', 'object_ref'], array_keys(cmdbRecordTypes())));
+require_once __DIR__ . '/../../includes/services/cmdb_schema.php';
 
 /**
  * Load CMDB AI config via the shared building block (ns=cmdb_ai), then attach

@@ -194,6 +194,39 @@ async function deleteClass(id, name) {
     }
 }
 
+/**
+ * GH #313: Starter classes. Loads the starter plan resolved against this install,
+ * shows it in the shared schema preview, applies the ticked lines in one go and
+ * reloads the Classes table (and the relationship types, which it may add to).
+ */
+async function openStarterClasses() {
+    let data;
+    try {
+        data = await (await fetch(API + 'schema_plan.php?plan=starter', { credentials: 'same-origin' })).json();
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.save_failed'));
+    } catch (err) {
+        showInlineToast(window.t('cmdb.starter.load_failed', { message: err.message }), true);
+        return;
+    }
+    CmdbSchemaPreview.open({
+        resolved: data.resolved,
+        title: window.t('cmdb.starter.title'),
+        intro: window.t('cmdb.starter.intro'),
+        multiCompany: !!data.multi_company,
+        canRelTypes: !!(data.can && data.can.relationship_types),
+        onApply: async (selection) => {
+            const res = await postJson(API + 'schema_plan.php', { plan: 'starter', selection });
+            if (!res.success) throw new Error(res.error || window.t('cmdb.settings.save_failed'));
+            const c = res.counts || {};
+            const total = (c.classes || 0) + (c.properties || 0) + (c.relationship_types || 0);
+            showInlineToast(total ? window.t('cmdb.plan.applied', { classes: c.classes || 0, properties: c.properties || 0, rel_types: c.relationship_types || 0 })
+                                  : window.t('cmdb.plan.applied_nothing'));
+            loadClasses();
+            if (typeof loadRelTypes === 'function' && document.getElementById('relTypesTableBody')) loadRelTypes();
+        }
+    });
+}
+
 // Auto-suggest class_key from name in the Add flow
 document.addEventListener('DOMContentLoaded', () => {
     const nameInput = document.getElementById('className');

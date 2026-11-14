@@ -228,7 +228,11 @@ $translationNamespaces = ['common', 'cmdb'];
         <div class="tab-content<?php echo $activeTabId === 'classes' ? ' active' : ''; ?>" id="classes-tab" data-capability="<?php echo capKey(Cap::CMDB_CLASSES); ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('cmdb.settings.classes_heading')); ?></h2>
-                <button class="add-btn" onclick="openClassModal()"><?php echo htmlspecialchars(t('cmdb.settings.add')); ?></button>
+                <div style="display: flex; gap: 8px;">
+                    <?php /* GH #313: add the starter classes - only what is missing, after a preview */ ?>
+                    <button class="add-btn" id="starterClassesBtn" onclick="openStarterClasses()" title="<?php echo htmlspecialchars(t('cmdb.starter.button_title')); ?>"><?php echo htmlspecialchars(t('cmdb.starter.button')); ?></button>
+                    <button class="add-btn" onclick="openClassModal()"><?php echo htmlspecialchars(t('cmdb.settings.add')); ?></button>
+                </div>
             </div>
             <p style="color: var(--text-muted,#6b7280); font-size: 13px; margin-bottom: 16px; max-width: 720px;">
                 <?php echo t('cmdb.settings.classes_intro'); ?>
@@ -687,7 +691,8 @@ $translationNamespaces = ['common', 'cmdb'];
 
     <script src="../../assets/js/ai-settings.js?v=4"></script>
     <script src="../options-editor.js?v=3"></script>
-    <script src="settings.js?v=12"></script>
+    <script src="../../assets/js/cmdb-schema-preview.js?v=1"></script>
+    <script src="settings.js?v=13"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

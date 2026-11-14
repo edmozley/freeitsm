@@ -23,6 +23,7 @@ require_once '../../config.php';
 require_once '../../includes/admin_api_guard.php';   // System admins only
 require_once '../../includes/functions.php';
 require_once '../../includes/services/directory_maintenance.php';
+require_once '../../includes/service_context.php';   // ServiceError, thrown here directly
 
 header('Content-Type: application/json');
 

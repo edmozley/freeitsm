@@ -60,7 +60,7 @@ try {
 
     $cfg = loadCmdbAiConfig($conn);
 
-    $allowedTypes = implode(' | ', CMDB_AI_PROPERTY_TYPES);
+    $allowedTypes = implode(' | ', cmdbPropertyTypes());
     $systemPrompt = <<<PROMPT
 You are designing CMDB properties for a class, given context the admin has provided about THEIR specific environment.
 
@@ -121,7 +121,7 @@ PROMPT;
         $label = trim((string)($p['label'] ?? ''));
         $key   = trim((string)($p['property_key'] ?? ''));
         $type  = trim((string)($p['property_type'] ?? ''));
-        if ($label === '' || !in_array($type, CMDB_AI_PROPERTY_TYPES, true)) continue;
+        if ($label === '' || !in_array($type, cmdbPropertyTypes(), true)) continue;
 
         // Reject duplicates of existing or earlier suggestions (case-insensitive)
         if (in_array(strtolower($label), $existingLabels, true)) continue;

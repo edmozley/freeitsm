@@ -252,6 +252,11 @@ $translationNamespaces = ['common', 'cmdb'];
                     <div class="help-note">
                         <?php echo t('cmdb.help.classes_tip2'); ?>
                     </div>
+
+                    <?php /* GH #313: Starter classes */ ?>
+                    <div class="help-note" id="starter-classes">
+                        <?php echo t('cmdb.help.classes_tip_starter'); ?>
+                    </div>
                 </div>
 
                 <!-- 4. AI Suggest Properties -->

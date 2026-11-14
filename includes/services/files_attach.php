@@ -27,6 +27,7 @@ require_once __DIR__ . '/../files/storage.php';
 require_once __DIR__ . '/../files/audit.php';
 require_once __DIR__ . '/../uploads.php';
 require_once __DIR__ . '/documents.php';
+require_once __DIR__ . '/../service_context.php';   // ServiceError, thrown here directly
 
 const FILES_ATTACH_MODES = ['link', 'copy', 'both'];
 

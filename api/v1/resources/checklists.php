@@ -23,6 +23,7 @@
  */
 
 require_once __DIR__ . '/../../../includes/services/checklists.php';
+require_once __DIR__ . '/../../../includes/service_context.php';   // ServiceError, thrown here directly
 
 /**
  * A checklist as the API returns it - the same for a ticket and a task.

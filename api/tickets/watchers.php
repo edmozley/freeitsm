@@ -16,6 +16,7 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/tenancy.php';
 require_once __DIR__ . '/../../includes/services/ticket_watchers.php';
+require_once __DIR__ . '/../../includes/service_context.php';   // ServiceError, thrown here directly
 
 header('Content-Type: application/json');
 if (!isset($_SESSION['analyst_id'])) {
