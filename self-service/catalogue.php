@@ -71,6 +71,14 @@ $pageStyles = <<<'CSS'
             width: 100%;
         }
         .cat-card:hover { border-color: var(--ss-accent, #0078d4); }
+        /* The shop card (GH #348): a picture on top, the price at the foot. A card
+           without either is the card it always was. */
+        .cat-card.has-image { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+        .cat-card.has-image .cat-card-body { padding: 14px 18px 16px; display: flex; flex-direction: column; flex: 1; }
+        .cat-card-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--surface-2, #f3f4f6); }
+        .cat-card-body { display: flex; flex-direction: column; height: 100%; }
+        .cat-card-price { margin-top: auto; padding-top: 10px; font-size: 15px; font-weight: 600; color: var(--ss-accent, #0078d4); }
+        .cat-form-price { margin: -2px 0 12px; font-size: 16px; font-weight: 600; color: var(--ss-accent, #0078d4); }
         .cat-card-title {
             font-size: 15px;
             font-weight: 600;
@@ -221,12 +229,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
-                container.innerHTML = '<div class="cat-grid">' + forms.map(f =>
-                    '<button type="button" class="cat-card" onclick="openForm(' + f.id + ')">'
-                    + '<div class="cat-card-title">' + esc(f.title || '') + '</div>'
-                    + (f.description ? '<div class="cat-card-desc">' + esc(f.description) + '</div>' : '')
-                    + '</button>'
-                ).join('') + '</div>';
+                // GH #348: the one line when there is one (the server falls back to
+                // the description), a picture and a price when the item has them.
+                container.innerHTML = '<div class="cat-grid">' + forms.map(f => {
+                    const text = f.summary || f.description || '';
+                    return '<button type="button" class="cat-card' + (f.image_url ? ' has-image' : '') + '" onclick="openForm(' + f.id + ')">'
+                        + (f.image_url ? '<img class="cat-card-img" src="' + esc(f.image_url) + '" alt="" loading="lazy">' : '')
+                        + '<div class="cat-card-body">'
+                        +   '<div class="cat-card-title">' + esc(f.title || '') + '</div>'
+                        +   (text ? '<div class="cat-card-desc">' + esc(text) + '</div>' : '')
+                        +   (f.price_label ? '<div class="cat-card-price">' + esc(f.price_label) + '</div>' : '')
+                        + '</div>'
+                        + '</button>';
+                }).join('') + '</div>';
             } catch (e) { catError(); }
         }
 
@@ -402,9 +417,12 @@ document.addEventListener('DOMContentLoaded', function () {
                form laid out as designed, not a portal-specific guess. */
             }, form.layout);
 
+            // Whether there is anything to answer - an item may ask nothing (GH #348).
+            const hasQuestions = (form.fields || []).some(f => FormLogic.isAnswerable(f.field_type));
             container.innerHTML = backBtn()
                 + '<div class="cat-form">'
                 +   '<h1>' + esc(form.title || '') + '</h1>'
+                +   (form.price_label ? '<div class="cat-form-price">' + esc(form.price_label) + '</div>' : '')
                 +   (form.description ? '<div class="cat-form-desc">' + esc(form.description) + '</div>' : '')
                 /* 🔴 cat-form-grid, NOT cat-form-table. Every field here carries
                    data-width from the shared walk, but the twelfths only mean
@@ -417,8 +435,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 +   '<div class="cat-actions">'
                 +     '<button type="button" class="btn btn-primary" id="catSubmit" onclick="submitForm(' + form.id + ')">'
                 +       esc(window.t('self-service.catalogue.submit')) + '</button>'
-                +     '<button type="button" class="btn btn-secondary" onclick="saveCatDraft(' + form.id + ')">'
-                +       esc(window.t('forms.draft.save')) + '</button>'
+                /* An item that asks nothing (GH #348 - a mouse at a price) has no
+                   answers to keep, and the draft endpoint refuses it: no draft button. */
+                +     (hasQuestions ? '<button type="button" class="btn btn-secondary" onclick="saveCatDraft(' + form.id + ')">'
+                +       esc(window.t('forms.draft.save')) + '</button>' : '')
                 +   '</div>'
                 + '</div>';
 
@@ -433,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function () {
             FormLogic.attachLookups(formEl, '../api/forms/lookup_search.php');
 
             applyVisibility();
-            restoreCatDraft(form.id);
+            if (hasQuestions) restoreCatDraft(form.id);
         }
 
         /* ══ Drafts ═════════════════════════════════════════════════════════

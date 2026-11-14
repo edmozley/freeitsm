@@ -144,6 +144,11 @@ try {
         );
         $reqStmt->execute([$userId]);
         $requests = $reqStmt->fetchAll(PDO::FETCH_ASSOC);
+        // GH #348: the price each was requested at.
+        require_once __DIR__ . '/../../includes/catalogue_card.php';
+        $prices = catalogueRequestPriceLabels($conn, array_column($requests, 'id'));
+        foreach ($requests as &$r) $r['price_label'] = $prices[(int)$r['id']] ?? '';
+        unset($r);
     } catch (Exception $e) {
         $requests = [];
     }

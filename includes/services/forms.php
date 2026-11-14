@@ -1085,7 +1085,8 @@ class FormsService
      * Historical versions cannot be edited.
      *
      * @param array $in  id (absent = new), title, description, is_active, is_portal_visible, requires_approval, approver_id,
-     *     submission_actions, collection_id, fields - on update only keys sent are changed
+     *     submission_actions, collection_id, fields, catalogue_summary, catalogue_price, catalogue_currency,
+     *     catalogue_price_period, catalogue_image_path - on update only keys sent are changed
      */
     /**
      * Designing a form - including who approves it and what happens next - needs "Design
@@ -1182,6 +1183,7 @@ class FormsService
                     $formId,
                 ]);
                 self::saveApprovalPolicy($conn, $formId, $in);   // GH #220
+                self::saveCatalogueCard($conn, $formId, $in);    // GH #348
                 if ($fields !== null) {
                     self::syncFields($conn, $formId, $fields);
                 }
@@ -1222,6 +1224,7 @@ class FormsService
             ]);
             $formId = (int)$conn->lastInsertId();
             self::saveApprovalPolicy($conn, $formId, $in);   // GH #220
+            self::saveCatalogueCard($conn, $formId, $in);    // GH #348
             // Same path as an update, so a brand-new form's conditions get resolved
             // and stored by exactly the same code rather than a second copy of it.
             self::syncFields($conn, $formId, $fields);
@@ -1479,6 +1482,10 @@ class FormsService
             // pressing Save deletes, and here a team-approved form would fall back to
             // its named approver (or to no gate at all) the moment somebody edited it.
             self::copyApprovalPolicy($conn, $src, $newId);
+            // The shop card too (GH #348) - the same trap: left out, an edited item
+            // would lose its price and picture the moment somebody pressed Save.
+            require_once __DIR__ . '/../catalogue_card.php';
+            catalogueCardCopy($conn, $src, $newId);
 
             // Copied row by row rather than INSERT..SELECT because a condition stores
             // the form_fields.id it depends on: a bulk copy would leave the new
@@ -1920,6 +1927,17 @@ class FormsService
                 $vals .= ', ?';
                 $args[] = $collectionId;
             }
+            /* The item's price AS REQUESTED (GH #348) - snapshotted like the approver
+               and the collection, so changing the price later never rewrites what was
+               asked for. A portal request only: the price is the catalogue's, and an
+               analyst filling the form in is not buying anything. */
+            require_once __DIR__ . '/../catalogue_card.php';
+            $price = ($portalUserId !== null && catalogueCardAvailable($conn)) ? catalogueRequestPrice($form) : null;
+            if ($price !== null) {
+                $cols .= ', catalogue_price, catalogue_currency, catalogue_price_period';
+                $vals .= ', ?, ?, ?';
+                array_push($args, ...$price);
+            }
             if (!empty($link['task_id'])) {
                 $cols .= ', task_id, tenant_id, client_reference';
                 $vals .= ', ?, ?, ?';
@@ -2145,6 +2163,18 @@ class FormsService
      *
      * @param int $id  the form to load
      */
+    /**
+     * Store the item's shop card (GH #348): summary, price and picture, each only
+     * when sent - see includes/catalogue_card.php.
+     *
+     * @param array $in  the save payload
+     */
+    private static function saveCatalogueCard(PDO $conn, int $formId, array $in): void
+    {
+        require_once __DIR__ . '/../catalogue_card.php';
+        catalogueCardSave($conn, $formId, $in);
+    }
+
     /**
      * Store a form's group-approval policy (GH #220), each part only when sent and
      * only once Database Verification has added the columns - so an adapter that

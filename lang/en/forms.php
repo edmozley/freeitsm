@@ -71,6 +71,37 @@ return [
     ],
 
     // ── Catalogue-request approval (#928): config modal + inbox ─────
+    // The item's card in the portal catalogue (GH #348): the editor's Catalogue tab.
+    'card' => [
+        'tab'                => 'Catalogue',
+        'intro'              => 'How this item looks in the portal catalogue: a picture, one line about it and its price. Leave them empty and the card shows the title and description, as before. Saved with the form.',
+        'needs_verify'       => 'Run System -> Database Verification first to give catalogue items a picture, a short description and a price.',
+        'not_portal_note'    => 'This form is not in the portal catalogue yet, so nobody sees its card until it is (the globe button on the forms list).',
+        'preview'            => 'In the portal',
+        'preview_untitled'   => 'Untitled',
+        'picture_label'      => 'Picture',
+        'picture_drop'       => 'Drag a picture here, paste one, or click to choose',
+        'picture_hint'       => 'Wide pictures work best (16:9). PNG, JPG, GIF or WebP, up to 4 MB.',
+        'picture_remove'     => 'Remove',
+        'picture_save_first' => 'Save the form first, then add its picture.',
+        'picture_not_image'  => 'That is not a picture.',
+        'picture_failed'     => 'The picture could not be uploaded.',
+        'summary_label'      => 'Short description',
+        'summary_ph'         => 'e.g. A 27-inch monitor for the desk, with its cable',
+        'summary_hint'       => 'One line, on the card. The full description stays on the item\'s page.',
+        'summary_count'      => '{n} / 255',
+        'price_label'        => 'Price',
+        'price_ph'           => 'No price',
+        'period_label'       => 'How often',
+        'period_once'        => 'One-off',
+        'period_month'       => 'A month',
+        'currency_label'     => 'Currency',
+        'currency_is'        => 'In {code}.',
+        'currency_change'    => 'Change',
+        'price_hint'         => 'Leave empty for no price; 0 shows as Free. Each request keeps the price it was made at, so changing it later does not change past requests.',
+        'price_invalid'      => 'The price must be a number from 0 up.',
+        'price_pill_title'   => 'Its price in the portal catalogue',
+    ],
     'approval' => [
         // Config modal (forms/index.php)
         'modal_title'      => 'Approval settings',
@@ -453,6 +484,7 @@ return [
     'save' => [
         'need_title'  => 'Please enter a form title',
         'need_field'  => 'Please add at least one field with a label',
+        'need_field_or_item' => 'Add at least one question - or, for an item people just request (a mouse, a licence), give it a price, a picture or a short description in the Catalogue tab.',
     ],
 
     // ── AI Assist modal (forms/edit/index.php) ──────────────────────

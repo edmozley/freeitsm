@@ -23,6 +23,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/services/forms.php';   // portalCatalogueFilter()
+require_once '../../includes/catalogue_card.php';   // the shop card (GH #348)
 
 header('Content-Type: application/json');
 
@@ -53,8 +54,12 @@ try {
        which is every form that predates the feature. */
     $audienceGate = ' AND ' . FormsService::portalAudienceSql($conn, 'f');
 
+    // The shop card (GH #348), once Database Verification has added its columns.
+    $cardCols = catalogueCardAvailable($conn)
+        ? ', f.catalogue_summary, f.catalogue_price, f.catalogue_currency, f.catalogue_price_period, f.catalogue_image_path'
+        : '';
     $stmt = $conn->prepare(
-        "SELECT f.id, f.title, f.description
+        "SELECT f.id, f.title, f.description" . $cardCols . "
          FROM forms f
          WHERE f.is_portal_visible = 1
            AND f.is_active = 1
@@ -66,14 +71,21 @@ try {
     $forms = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Descriptions are author-written plain text; strip any markup so the
-    // catalogue card can render it as text.
-    foreach ($forms as &$f) {
-        $f['description'] = trim(preg_replace('/\s+/', ' ', strip_tags((string)$f['description'])));
+    // catalogue card can render it as text. Only what the card shows goes out:
+    // the stored picture path is ours, not the customer's.
+    $out = [];
+    foreach ($forms as $f) {
+        $out[] = [
+            'id'          => (int)$f['id'],
+            'title'       => $f['title'],
+            'description' => trim(preg_replace('/\s+/', ' ', strip_tags((string)$f['description']))),
+        ] + catalogueCardForPortal($f);
     }
-    unset($f);
 
-    echo json_encode(['success' => true, 'forms' => $forms]);
+    echo json_encode(['success' => true, 'forms' => $out]);
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    // Never the exception's own text: it can carry SQL and column names.
+    error_log('get_catalogue: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The catalogue could not be loaded.']);
 }

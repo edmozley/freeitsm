@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                     statusCell = `<span class="req-pill pending">${escapeHtml(window.t('self-service.dashboard.req_pending'))}</span>`;
                 }
                 return `<tr>
-                    <td>${escapeHtml(r.form_title)}</td>
+                    <td>${escapeHtml(r.form_title)}${r.price_label ? `<div class="ticket-date">${escapeHtml(r.price_label)}</div>` : ''}</td>
                     <td>${statusCell}</td>
                     <td><span class="ticket-date">${formatDate(r.submitted_date)}</span></td>
                 </tr>`;

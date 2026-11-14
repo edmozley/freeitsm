@@ -66,6 +66,25 @@ try {
             foreach ($decoded as $k => $list) if (is_array($list)) $decoded[$k] = webhookDecryptActions($list);
         }
         $form['submission_actions'] = is_array($decoded) ? $decoded : null;
+
+        // The item's catalogue card (GH #348), for the editor's Catalogue tab - null
+        // until Database Verification has added its columns.
+        require_once __DIR__ . '/../../includes/catalogue_card.php';
+        $form['catalogue'] = null;
+        if (catalogueCardAvailable($conn)) {
+            $cs = $conn->prepare('SELECT is_portal_visible, catalogue_summary, catalogue_price, catalogue_currency,
+                                         catalogue_price_period, catalogue_image_path FROM forms WHERE id = ?');
+            $cs->execute([$formId]);
+            $c = $cs->fetch(PDO::FETCH_ASSOC) ?: [];
+            $form['catalogue'] = [
+                'is_portal_visible' => (int)($c['is_portal_visible'] ?? 0),
+                'summary'    => $c['catalogue_summary'] ?? null,
+                'price'      => $c['catalogue_price'] ?? null,
+                'currency'   => $c['catalogue_currency'] ?? null,
+                'period'     => $c['catalogue_price_period'] ?? null,
+                'image_path' => $c['catalogue_image_path'] ?? null,
+            ];
+        }
     }
 
     if (!$form) {
