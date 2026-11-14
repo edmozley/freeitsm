@@ -24,15 +24,20 @@
  * @param array  $labels   title, intro, address_label, address_hint, url_label,
  *                         copy, ios_label, ios_hint, android_label, android_hint,
  *                         reset, close, insecure, secret_note
+ * @param bool   $system   true on a System page (Preferences): the dialog takes the System
+ *                         modal classes from assets/css/system-page.css, so it looks like
+ *                         every other System dialog. The Calendar module leaves it false and
+ *                         keeps its own look - Ed chose Preferences only (2026-11-14).
  */
-function renderSubscribeModal(string $id, array $labels): void
+function renderSubscribeModal(string $id, array $labels, bool $system = false): void
 {
     $e = fn($k) => htmlspecialchars($labels[$k] ?? '');
+    $sys = fn(string $cls) => $system ? ' ' . $cls : '';
     ?>
     <div class="modal" id="<?php echo $id; ?>Modal">
-        <div class="modal-content subscribe-modal">
-            <div class="modal-header"><?php echo $e('title'); ?></div>
-            <div class="modal-body">
+        <div class="modal-content subscribe-modal<?php echo $sys('sys-modal'); ?>">
+            <div class="modal-header<?php echo $sys('sys-modal-head'); ?>"><?php echo $e('title'); ?></div>
+            <div class="modal-body<?php echo $sys('sys-modal-body'); ?>">
                 <p class="subscribe-intro"><?php echo $e('intro'); ?></p>
 
                 <?php /* Shown only over plain HTTP, and it is the reason this was
@@ -70,8 +75,8 @@ function renderSubscribeModal(string $id, array $labels): void
                 <p class="subscribe-hint"><strong><?php echo $e('ios_label'); ?>:</strong> <?php echo $e('ios_hint'); ?></p>
                 <p class="subscribe-hint"><strong><?php echo $e('android_label'); ?>:</strong> <?php echo $e('android_hint'); ?></p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="subscribe-reset"
+            <div class="modal-footer<?php echo $sys('sys-modal-foot'); ?>">
+                <button type="button" class="subscribe-reset<?php echo $system ? ' btn btn-secondary sys-modal-foot-left' : ''; ?>"
                         onclick="FreeITSMSubscribe.reset('<?php echo $id; ?>')"><?php echo $e('reset'); ?></button>
                 <div class="modal-footer-right">
                     <button class="btn btn-secondary"

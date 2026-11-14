@@ -1208,7 +1208,7 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 'android_hint'  => t('calendar.subscribe.android_hint'),
                 'reset'         => t('system.preferences.workcal_reset'),
                 'close'         => t('common.close'),
-            ]);
+            ], true);   // true: the System dialog look (calendar/ keeps its own)
         }
     ?>
 
