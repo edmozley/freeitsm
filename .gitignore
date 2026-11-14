@@ -154,6 +154,8 @@ system/uploads/branding/*
 # solely if uploadPrepareWebServableDir() happened to have run — i.e. only after
 # somebody had already uploaded a logo.
 !system/uploads/branding/web.config
+# Fonts uploaded for asset label designs - created on first upload.
+system/uploads/label-fonts/
 recordings/*
 !recordings/.htaccess
 !recordings/web.config

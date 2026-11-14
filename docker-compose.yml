@@ -53,6 +53,21 @@ services:
       # The HTTPS certificate and the authority that signed it. Losing this
       # means installing a new authority certificate on every PC.
       - tls:/var/www/tls
+      # Everything else the application stores - without a volume, each of these is
+      # deleted by the next `docker compose up -d --build`. The list is
+      # storagePersistenceDirectories() (includes/storage_persistence.php), and the
+      # names are the ones System -> Setup gives in its docker-compose.override.yml,
+      # so an install that already followed that advice keeps the same volumes.
+      # Documents attached to tickets, notes, assets and articles, asset imports,
+      # API log archives and emailed-report downloads (uploads/files is above).
+      - uploads:/var/www/html/uploads
+      - recordings:/var/www/html/recordings
+      - lms-content:/var/www/html/lms/content
+      - contracts-rfp-builder-uploads:/var/www/html/contracts/rfp-builder/uploads
+      - system-uploads-branding:/var/www/html/system/uploads/branding
+      - system-uploads-label-fonts:/var/www/html/system/uploads/label-fonts
+      - war-room-attachments:/var/www/html/war-room/attachments
+      - forms-images:/var/www/html/forms/images
 
   db:
     image: mysql:8.0
@@ -79,3 +94,11 @@ volumes:
   files:
   encryption-keys:
   tls:
+  uploads:
+  recordings:
+  lms-content:
+  contracts-rfp-builder-uploads:
+  system-uploads-branding:
+  system-uploads-label-fonts:
+  war-room-attachments:
+  forms-images:
