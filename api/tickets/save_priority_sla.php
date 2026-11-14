@@ -50,11 +50,9 @@ try {
     if (!$row) throw new Exception(t('tickets.settings.priorities.not_found'));
     ticketPriorityRequireAccess(ticketPriorityScopeContext($conn, (int)$_SESSION['analyst_id']), $row['tenant_id'] === null ? null : (int)$row['tenant_id']);
 
-    // Validate calendar exists if one was passed (FK will catch it too but a friendly error reads better)
-    if ($calendarId !== null) {
-        $check = $conn->prepare("SELECT COUNT(*) FROM sla_calendars WHERE id = ? AND is_active = 1");
-        $check->execute([$calendarId]);
-        if ((int)$check->fetchColumn() === 0) throw new Exception('Calendar not found');
+    // A shared priority runs on shared calendars only; a company's, on the ones that company can use.
+    if ($calendarId !== null && !in_array($calendarId, slaCalendarOptionIds($conn, $row['tenant_id'] === null ? null : (int)$row['tenant_id']), true)) {
+        throw new Exception(t($row['tenant_id'] === null ? 'tickets.settings.sla_calendars.not_for_shared' : 'tickets.settings.sla_calendars.not_for_priority'));
     }
 
     $stmt = $conn->prepare("UPDATE ticket_priorities

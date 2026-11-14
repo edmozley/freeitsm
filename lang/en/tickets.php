@@ -2199,6 +2199,17 @@ return [
             'company_not_allowed' => 'You cannot change priorities for that company.',
         ],
 
+        // SLA calendars: shared, and each company's own.
+        'sla_calendars' => [
+            'not_found'           => 'Calendar not found.',
+            'name_exists'         => 'A calendar with that name already exists here.',
+            'name_exists_company' => 'A company already has its own calendar with that name, so it cannot be shared.',
+            'shared_needs_all'    => 'Only someone with access to every company can change shared calendars.',
+            'company_not_allowed' => 'You cannot change calendars for that company.',
+            'not_for_priority'    => 'That calendar is not one this priority\'s company can use.',
+            'not_for_shared'      => 'A shared priority can only use shared calendars.',
+        ],
+
         // SLA tab — see docs/sla.md. Headings, intros, labels, radio/checkbox
         // option text, table headers and notes. Values with intended HTML are
         // echoed raw.

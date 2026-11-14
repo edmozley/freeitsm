@@ -7,18 +7,25 @@
  *   id?:           int (omit to create)
  *   name:          string (required)
  *   timezone:      string (IANA zone, required, must validate)
- *   is_default:    bool (only one calendar can be default; setting this clears others)
+ *   tenant_id?:    int|null (new calendars only: null = shared, else a client company the analyst can access; left out, the active company's context decides)
+ *   is_default:    bool (one default per scope: one shared, at most one per company; setting this clears the others in its scope)
  *   hours:         [{ weekday: 1-7, start_time: 'HH:MM', end_time: 'HH:MM' }]   — absence of a weekday = closed
  *   holidays:      [{ holiday_date: 'YYYY-MM-DD', name?: string }]
  * }
  *
  * Hours and holidays are replaced wholesale (delete-then-insert in a transaction)
  * so the caller sends the complete desired state, not deltas.
+ *
+ * A shared calendar needs access to every company, a company's own needs access to that company.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
+require_once '../../includes/i18n.php';
+require_once '../../includes/ticket_priorities.php';
+I18n::initFromSession();
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -82,19 +89,49 @@ try {
     }
 
     $conn = connectToDatabase();
+    $ctx = ticketPriorityScopeContext($conn, (int)$_SESSION['analyst_id']);
+
+    if ($id) {
+        $cur = $conn->prepare("SELECT tenant_id FROM sla_calendars WHERE id = ?");
+        $cur->execute([$id]);
+        $row = $cur->fetch(PDO::FETCH_ASSOC);
+        if (!$row) throw new Exception(t('tickets.settings.sla_calendars.not_found'));
+        $scopeTenant = $row['tenant_id'] === null ? null : (int)$row['tenant_id'];
+    } else {
+        $scopeTenant = array_key_exists('tenant_id', $data)
+            ? ($ctx['multi'] && !empty($data['tenant_id']) ? (int)$data['tenant_id'] : null)
+            : $ctx['company'];
+    }
+    tenantScopeRequireAccess($ctx, $scopeTenant, 'tickets.settings.sla_calendars');
+
+    // A shared name must not match any calendar, or a company with its own of that name would see two.
+    // A company's name must not match its own or a shared one.
+    $clashSql = $scopeTenant === null
+        ? "SELECT id, tenant_id FROM sla_calendars WHERE LOWER(name) = LOWER(?)"
+        : "SELECT id, tenant_id FROM sla_calendars WHERE LOWER(name) = LOWER(?) AND (tenant_id IS NULL OR tenant_id = " . (int)$scopeTenant . ")";
+    $clashParams = [$name];
+    if ($id) { $clashSql .= " AND id <> ?"; $clashParams[] = $id; }
+    $clash = $conn->prepare($clashSql);
+    $clash->execute($clashParams);
+    $clashRow = $clash->fetch(PDO::FETCH_ASSOC);
+    if ($clashRow) {
+        throw new Exception(t($scopeTenant === null && $clashRow['tenant_id'] !== null
+            ? 'tickets.settings.sla_calendars.name_exists_company'
+            : 'tickets.settings.sla_calendars.name_exists'));
+    }
+
     $conn->beginTransaction();
 
-    // If this is being set as default, clear default from others first
     if ($isDefault) {
-        $conn->exec("UPDATE sla_calendars SET is_default = 0");
+        $conn->prepare("UPDATE sla_calendars SET is_default = 0 WHERE tenant_id <=> ?")->execute([$scopeTenant]);
     }
 
     if ($id) {
         $stmt = $conn->prepare("UPDATE sla_calendars SET name = ?, timezone = ?, is_default = ? WHERE id = ?");
         $stmt->execute([$name, $timezone, $isDefault, $id]);
     } else {
-        $stmt = $conn->prepare("INSERT INTO sla_calendars (name, timezone, is_default) VALUES (?, ?, ?)");
-        $stmt->execute([$name, $timezone, $isDefault]);
+        $stmt = $conn->prepare("INSERT INTO sla_calendars (name, timezone, is_default, tenant_id) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$name, $timezone, $isDefault, $scopeTenant]);
         $id = (int)$conn->lastInsertId();
     }
 

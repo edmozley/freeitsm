@@ -106,8 +106,6 @@ if (($argv[1] ?? '') === '--multi') {
         ok('a company\'s own default calendar wins', slaDefaultCalendarId($conn, $A) === $calA);
         ok('a company without one gets the shared default calendar', slaDefaultCalendarId($conn, $B) === $calShared);
         ok('triage gets the shared default calendar', slaDefaultCalendarId($conn, null) === $calShared);
-        zzHide($conn, $B, 'sla_calendar', $calShared);
-        ok('a company that hid the shared default and has none gets no calendar', slaDefaultCalendarId($conn, $B) === null);
 
         // Moving tickets: the same call every move path makes (move, triage, the ticket service).
         $everyone = zzPriority($conn, 'ZZ320 everyone', null);

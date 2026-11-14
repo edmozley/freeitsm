@@ -146,12 +146,23 @@ function ticketPriorityScopeContext(PDO $conn, int $analystId): array
  */
 function ticketPriorityRequireAccess(array $ctx, ?int $tenantId): void
 {
+    tenantScopeRequireAccess($ctx, $tenantId, 'tickets.settings.priorities');
+}
+
+/**
+ * The same rule for any per-company settings row, with the refusals from `$langPrefix`.shared_needs_all and .company_not_allowed.
+ *
+ * @param array{multi:bool, can_share:bool, companies:list<array{id:int, name:string}>} $ctx  from ticketPriorityScopeContext()
+ * @param ?int $tenantId  the row's company; null = shared
+ */
+function tenantScopeRequireAccess(array $ctx, ?int $tenantId, string $langPrefix): void
+{
     if (!$ctx['multi']) return;
     if ($tenantId === null && !$ctx['can_share']) {
-        throw new Exception(t('tickets.settings.priorities.shared_needs_all'));
+        throw new Exception(t($langPrefix . '.shared_needs_all'));
     }
     if ($tenantId !== null && !in_array($tenantId, array_column($ctx['companies'], 'id'), true)) {
-        throw new Exception(t('tickets.settings.priorities.company_not_allowed'));
+        throw new Exception(t($langPrefix . '.company_not_allowed'));
     }
 }
 
@@ -196,6 +207,67 @@ function ticketPriorityAllowed(PDO $conn, int $priorityId, ?int $tenantId): bool
     return in_array($priorityId, array_column(ticketPrioritiesFor($conn, $tenantId), 'id'), true);
 }
 
+const SLA_CALENDAR_COLUMNS = 'id, name, timezone, is_default, is_active, tenant_id';
+
+/**
+ * The calendars a company's priorities may use: the shared ones and its own.
+ * On a single-company install, every calendar.
+ *
+ * @param ?int $tenantId  the company; null = triage, which sees the shared ones
+ * @return list<array{id:int, name:string, timezone:string, is_default:bool, is_active:bool, tenant_id:?int}>
+ */
+function slaCalendarsFor(PDO $conn, ?int $tenantId, bool $activeOnly = true): array
+{
+    $where = isMultiTenant($conn) ? "(tenant_id IS NULL OR tenant_id = " . (int)($tenantId ?? getDefaultTenantId($conn)) . ")" : "1 = 1";
+    $rows = $conn->query(
+        "SELECT " . SLA_CALENDAR_COLUMNS . " FROM sla_calendars WHERE $where" . ($activeOnly ? " AND is_active = 1" : "") . " ORDER BY name"
+    )->fetchAll(PDO::FETCH_ASSOC);
+
+    return array_map('slaCalendarRow', $rows);
+}
+
+/**
+ * Calendars by owner: the shared ones (null) or one company's own, in name order.
+ *
+ * @param ?int $tenantId  the company; null = the shared calendars, hidden or not
+ * @return list<array{id:int, name:string, timezone:string, is_default:bool, is_active:bool, tenant_id:?int}>
+ */
+function slaCalendarsOwnedBy(PDO $conn, ?int $tenantId, bool $activeOnly = true): array
+{
+    $stmt = $conn->prepare(
+        "SELECT " . SLA_CALENDAR_COLUMNS . " FROM sla_calendars WHERE tenant_id <=> ?" . ($activeOnly ? " AND is_active = 1" : "") . " ORDER BY name"
+    );
+    $stmt->execute([$tenantId]);
+
+    return array_map('slaCalendarRow', $stmt->fetchAll(PDO::FETCH_ASSOC));
+}
+
+/** An sla_calendars row with its values typed. */
+function slaCalendarRow(array $r): array
+{
+    return [
+        'id'         => (int)$r['id'],
+        'name'       => (string)$r['name'],
+        'timezone'   => (string)$r['timezone'],
+        'is_default' => (bool)$r['is_default'],
+        'is_active'  => (bool)$r['is_active'],
+        'tenant_id'  => nullableInt($r['tenant_id']),
+    ];
+}
+
+/**
+ * The calendars a priority may run on: a shared priority applies to every company, so only shared calendars; a company's own priority, the calendars that company can use.
+ *
+ * @param ?int $priorityTenantId  the priority's company; null = shared
+ * @return int[]
+ */
+function slaCalendarOptionIds(PDO $conn, ?int $priorityTenantId): array
+{
+    $rows = $priorityTenantId === null ? slaCalendarsOwnedBy($conn, null) : slaCalendarsFor($conn, $priorityTenantId);
+
+    return array_column($rows, 'id');
+}
+
 /**
  * The calendar a ticket's SLA runs on when its priority names none:
  *   the company's own default calendar, else the shared default. Null when neither,
@@ -205,22 +277,8 @@ function ticketPriorityAllowed(PDO $conn, int $priorityId, ?int $tenantId): bool
  */
 function slaDefaultCalendarId(PDO $conn, ?int $tenantId): ?int
 {
-    $rows = getTenantConfigRows(
-        $conn,
-        'sla_calendars', // table
-        'sla_calendar', // entity type
-        $tenantId ?? getDefaultTenantId($conn), // tenant
-        'id, is_default, tenant_id', // columns
-        'is_active = 1', // where
-        'name', // order
-    );
-
     return tenantConfigDefaultId(
-        array_map(fn(array $r): array => [
-            'id'         => (int)$r['id'],
-            'is_default' => (bool)$r['is_default'],
-            'tenant_id'  => nullableInt($r['tenant_id']),
-        ], $rows),
+        slaCalendarsFor($conn, $tenantId),
         false, // no default calendar means no SLA, never the first one
     );
 }

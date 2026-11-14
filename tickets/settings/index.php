@@ -1325,6 +1325,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <thead>
                         <tr>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_name')); ?></th>
+                            <th id="slaCalendarsCompanyCol" hidden><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_timezone')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_hours')); ?></th>
                             <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_holidays')); ?></th>
@@ -3845,6 +3846,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                             <select id="slaCalendarTimezone" required></select>
                             <small><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.timezone_help')); ?></small>
                         </div>
+                    </div>
+
+                    <div class="form-group" id="slaCalendarCompanyGroup" hidden>
+                        <label for="slaCalendarCompany"><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></label>
+                        <select id="slaCalendarCompany"></select>
                     </div>
 
                     <div class="form-group">
@@ -8885,7 +8891,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 const res = await fetch(API_BASE + 'get_sla_settings.php');
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'load failed');
-                slaData = { settings: data.settings || {}, priorities: data.priorities || [], calendars: data.calendars || [], multi: !!data.multi_tenant };
+                slaData = {
+                    settings: data.settings || {}, priorities: data.priorities || [], calendars: data.calendars || [],
+                    multi: !!data.multi_tenant, canShare: !!data.can_share, companies: data.companies || [], company: data.company || null,
+                };
                 // SLA switched off for the install (GH #217): only the calendars are on the tab.
                 if (document.body.classList.contains('sla-off')) { renderSlaCalendars(); return; }
                 renderSlaGlobalSettings();
@@ -8952,10 +8961,11 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 tbody.innerHTML = `<tr><td colspan="${multi ? 6 : 5}" style="text-align:center;color:var(--text-faint, #999);">No active priorities — add some on the Priorities tab.</td></tr>`;
                 return;
             }
-            const calOptions = slaData.calendars.map(c =>
-                `<option value="${c.id}">${escapeHtml(c.name)}</option>`
-            ).join('');
             tbody.innerHTML = slaData.priorities.map(p => {
+                const calOptions = slaData.calendars
+                    .filter(c => (p.calendar_options || []).includes(c.id))
+                    .map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+                    .join('');
                 // A shared priority the analyst may not change: its targets are shown, not editable.
                 const off = p.editable ? '' : ' disabled';
                 const company = multi ? `<td>${escapeHtml(p.company ?? t('tickets.settings.priorities.shared'))}</td>` : '';
@@ -9003,30 +9013,55 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
         function renderSlaCalendars() {
             const tbody = document.getElementById('slaCalendarsList');
+            const multi = slaData.multi;
+            document.getElementById('slaCalendarsCompanyCol').hidden = !multi;
             if (slaData.calendars.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-faint, #999);">No calendars defined yet. Add one above.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${multi ? 7 : 6}" style="text-align:center;color:var(--text-faint, #999);">No calendars defined yet. Add one above.</td></tr>`;
                 return;
             }
+            // With one company selected, its own default replaces the shared one.
+            const ownDefault = slaData.company !== null && slaData.calendars.some(c => c.tenant_id !== null && c.is_default);
             tbody.innerHTML = slaData.calendars.map(c => {
                 const openDays = (c.hours || []).length;
                 const hoursLabel = openDays > 0
                     ? `${openDays} open day${openDays === 1 ? '' : 's'}`
                     : '<span style="color:#c62828;">No hours set</span>';
+                const isDefault = c.is_default && !(c.tenant_id === null && ownDefault);
+                const defaultCell = isDefault ? '<span class="status-badge status-active">Default</span>' : '';
+                const edit = c.editable
+                    ? `<button class="action-btn" onclick="openSlaCalendarModal(${c.id})" title="${escapeHtml(t('common.edit'))}">${TT_EDIT_SVG}</button>`
+                    : '';
                 return `
                     <tr>
                         <td><strong>${escapeHtml(c.name)}</strong></td>
+                        ${multi ? `<td>${escapeHtml(c.company ?? t('tickets.settings.priorities.shared'))}</td>` : ''}
                         <td><code style="font-size:12px;">${escapeHtml(c.timezone)}</code></td>
                         <td>${hoursLabel}</td>
                         <td>${c.holiday_count || 0}</td>
-                        <td>${c.is_default ? '<span class="status-badge status-active">Default</span>' : ''}</td>
-                        <td>
-                            <button class="action-btn" onclick="openSlaCalendarModal(${c.id})" title="${escapeHtml(t('common.edit'))}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            </button>
-                        </td>
+                        <td>${defaultCell}</td>
+                        <td>${edit}</td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        // Which company a calendar belongs to, on a multi-company install: Shared (only for someone who may change shared calendars) or a company the analyst can access.
+        // Fixed once saved.
+        function configureSlaCalendarCompany(calendar) {
+            const group = document.getElementById('slaCalendarCompanyGroup');
+            group.hidden = !slaData.multi;
+            if (!slaData.multi) return;
+            const select = document.getElementById('slaCalendarCompany');
+            const option = (value, label) => `<option value="${value}">${escapeHtml(label)}</option>`;
+            const shared = option('', t('tickets.settings.priorities.scope_shared'));
+            if (calendar) {
+                const owner = slaData.companies.find(c => c.id === calendar.tenant_id);
+                select.innerHTML = calendar.tenant_id === null ? shared : option(calendar.tenant_id, owner ? owner.name : '');
+            } else {
+                select.innerHTML = (slaData.canShare ? shared : '') + slaData.companies.map(c => option(c.id, c.name)).join('');
+                if (slaData.company) select.value = String(slaData.company.id);
+            }
+            select.disabled = !!calendar || select.options.length < 2;
         }
 
         // ---------- Calendar modal ----------
@@ -9080,7 +9115,18 @@ function renderOversizeFields(string $px, bool $withLimits): void
             const reset = () => {
                 document.getElementById('slaCalendarId').value = '';
                 document.getElementById('slaCalendarName').value = '';
-                tzSelect.value = 'Europe/London';
+                // The browser's own timezone, when the list has it.
+                // Some browsers still report a few zones by their old names, which the list has under the current ones.
+                const oldTzNames = {
+                    'Asia/Calcutta': 'Asia/Kolkata', 'Asia/Saigon': 'Asia/Ho_Chi_Minh', 'Asia/Katmandu': 'Asia/Kathmandu',
+                    'Asia/Rangoon': 'Asia/Yangon', 'Europe/Kiev': 'Europe/Kyiv', 'Atlantic/Faeroe': 'Atlantic/Faroe',
+                    'America/Godthab': 'America/Nuuk', 'America/Buenos_Aires': 'America/Argentina/Buenos_Aires',
+                    'America/Indianapolis': 'America/Indiana/Indianapolis', 'America/Louisville': 'America/Kentucky/Louisville',
+                    'Pacific/Truk': 'Pacific/Chuuk', 'Pacific/Ponape': 'Pacific/Pohnpei', 'Africa/Asmera': 'Africa/Asmara',
+                };
+                const reported = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const browserTz = oldTzNames[reported] || reported;
+                tzSelect.value = [...tzSelect.options].some(o => o.value === browserTz) ? browserTz : 'Europe/London';
                 document.getElementById('slaCalendarIsDefault').checked = false;
                 slaModalHolidays = [];
                 // Default: Mon-Fri 09:00-17:00 open, Sat/Sun closed
@@ -9094,6 +9140,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 });
                 document.getElementById('slaCalendarModalTitle').textContent = 'Add business calendar';
                 document.getElementById('slaCalendarDeleteBtn').style.display = 'none';
+                configureSlaCalendarCompany(null);
             };
             reset();
 
@@ -9107,6 +9154,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     document.getElementById('slaCalendarName').value = c.name;
                     tzSelect.value = c.timezone;
                     document.getElementById('slaCalendarIsDefault').checked = c.is_default;
+                    configureSlaCalendarCompany(c);
                     document.getElementById('slaCalendarModalTitle').textContent = 'Edit business calendar';
                     document.getElementById('slaCalendarDeleteBtn').style.display = '';
                     // Reset all days closed first, then apply
@@ -9200,6 +9248,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     holidays:   slaModalHolidays,
                 };
                 if (idRaw) payload.id = parseInt(idRaw, 10);
+                else if (slaData.multi) payload.tenant_id = parseInt(document.getElementById('slaCalendarCompany').value) || null;
 
                 try {
                     const res = await fetch(API_BASE + 'save_sla_calendar.php', {

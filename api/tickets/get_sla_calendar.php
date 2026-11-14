@@ -7,6 +7,8 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
+require_once '../../includes/ticket_priorities.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -21,11 +23,14 @@ try {
 
     $conn = connectToDatabase();
 
-    $stmt = $conn->prepare("SELECT id, name, timezone, is_default, is_active FROM sla_calendars WHERE id = ?");
+    $stmt = $conn->prepare("SELECT id, name, timezone, is_default, is_active, tenant_id FROM sla_calendars WHERE id = ?");
     $stmt->execute([$id]);
     $calendar = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$calendar) throw new Exception('Calendar not found');
-    $calendar['is_default'] = (bool)$calendar['is_default'];
+    $calendar = $calendar ? slaCalendarRow($calendar) : null;
+    $ctx = ticketPriorityScopeContext($conn, (int)$_SESSION['analyst_id']);
+    if (!$calendar || ($ctx['multi'] && $calendar['tenant_id'] !== null && !in_array($calendar['tenant_id'], array_column($ctx['companies'], 'id'), true))) {
+        throw new Exception('Calendar not found');
+    }
 
     $hStmt = $conn->prepare("SELECT weekday, start_time, end_time FROM sla_calendar_hours WHERE calendar_id = ? ORDER BY weekday");
     $hStmt->execute([$id]);
