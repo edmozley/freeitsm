@@ -1572,6 +1572,8 @@ return [
         'intune_assign_primary_user_label' => 'Assign assets to their primary user in Intune',
         'intune_schedule_hint'    => 'Both syncs also run on their own - devices every 6 hours and software once a day, unless changed in Background jobs. Sync and Sync software run them now.',
         'intune_schedule_link'    => 'Background jobs',
+        'intune_job_last'         => '{job}: last ran {when} - {outcome}.',
+        'intune_job_never'        => '{job}: has not run yet.',
         'intune_types_label'      => 'Asset type for each kind of device',
         'intune_types_hint'       => 'Intune says what each device is. An asset with no type gets the type chosen here for its device\'s kind; a type somebody chose is never changed. When Intune does not know, phones and tablets are told apart by their operating system; a computer is left without a type.',
         'intune_type_none'        => 'No type',

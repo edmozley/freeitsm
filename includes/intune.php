@@ -696,6 +696,29 @@ function intuneRunSync(PDO $conn, int $jobId): void {
 }
 
 /**
+ * When each scheduled Intune job last ran, for the settings tab (#342): the newest
+ * run of intune_sync and intune_app_sync in the run history, however it was
+ * started, with its outcome. A job that has never run has no row.
+ *
+ * @return array<string,array{started:string,outcome:string}>  job key => its last run
+ */
+function intuneJobsLastRun(PDO $conn): array {
+    $out = [];
+    try {
+        $st = $conn->query(
+            "SELECT r.job_key, r.started_datetime, r.outcome FROM job_runs r
+               JOIN (SELECT job_key, MAX(id) AS id FROM job_runs
+                      WHERE job_key IN ('intune_sync', 'intune_app_sync') GROUP BY job_key) l ON l.id = r.id");
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $out[$r['job_key']] = ['started' => $r['started_datetime'], 'outcome' => $r['outcome']];
+        }
+    } catch (Throwable $e) {
+        // No run history on this install yet: nothing to say.
+    }
+    return $out;
+}
+
+/**
  * Claim a device sync: the intune_sync_jobs row it reports into, or null when one
  * is already running. Shared by Sync on the settings tab (api/intune/sync.php)
  * and the scheduled job (cron/intune_sync.php), so the two can never run at once.
