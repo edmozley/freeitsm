@@ -43,6 +43,16 @@ ok('other mobile, both ways Graph says it', $k('mobileOther') === 'other_mobile'
 ok('unknown iOS, iPadOS or Android is a mobile device', $k('unknown', 'iOS') === 'other_mobile' && $k(null, 'iPadOS') === 'other_mobile' && $k('unknown', 'Android') === 'other_mobile');
 ok('an unknown computer is not guessed', $k('unknown', 'Windows') === null && $k(null, 'macOS') === null && $k(null, null) === null);
 
+echo "Part 1b - suggesting this install's own types
+";
+$types = [['id' => 1, 'name' => 'Portátiles'], ['id' => 2, 'name' => 'Sobremesa'], ['id' => 3, 'name' => 'Móvil'],
+          ['id' => 4, 'name' => 'Impresora'], ['id' => 5, 'name' => 'TABLET'], ['id' => 6, 'name' => 'Tableta']];
+$sug = intuneSuggestTypeMap($types, []);
+ok('a type known by another name, accent and plural aside, is suggested', ($sug['laptop'] ?? null) === 1 && ($sug['desktop'] ?? null) === 2 && ($sug['phone'] ?? null) === 3, json_encode($sug));
+ok('a kind two types could be gets no suggestion - a person picks', !isset($sug['tablet']), json_encode($sug));
+ok('a kind nothing matches gets none', !isset($sug['server']));
+ok('a kind already mapped is not suggested over', !isset(intuneSuggestTypeMap($types, ['laptop' => 9])['laptop']));
+
 echo "Part 2 - the assets\n";
 $conn = connectToDatabase();
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -111,6 +121,33 @@ if (!$expected || $conn->query('SELECT DATABASE()')->fetchColumn() !== $expected
         $aLater = $asset('ZZ-AT-LATER'); $device($aLater, 'laptop');
         intuneApplyAssetTypes($conn);
         ok('a type switched off since it was mapped maps to nothing', $typeOf($aLater) === null);
+
+        // "Create the missing types"
+        $tServer = $type('ZZ-AT Servidor');
+        $conn->prepare("UPDATE asset_types SET name = 'Servidor' WHERE id = ?")->execute([$tServer]);
+        $before = (int)$conn->query("SELECT COUNT(*) FROM asset_types")->fetchColumn();
+        $names = ['laptop' => 'ZZ-AT New laptop', 'desktop' => 'ZZ-AT New desktop', 'server' => 'ZZ-AT New server',
+                  'phone' => 'ZZ-AT New phone', 'tablet' => 'ZZ-AT New tablet', 'other_mobile' => 'ZZ-AT New mobile'];
+        $r = intuneCreateMissingTypes($conn, $names);
+        $m = $r['map'];
+        ok('a kind already mapped keeps its type', ($m['other_mobile'] ?? null) === $tPhone, json_encode($m));
+        ok('a kind with a type known by its name gets that one, not a new one', ($m['server'] ?? null) === $tServer && !in_array('ZZ-AT New server', $r['created'], true));
+        // Which kinds get a NEW type depends on the types this database already has
+        // (a "Laptop" here is reused); what must hold is that every kind is mapped,
+        // and each type made is one of the names asked for, mapped to its kind.
+        $made = array_flip($r['created']);
+        $byName = $conn->query("SELECT id, name FROM asset_types WHERE name LIKE 'ZZ-AT New %'")->fetchAll(PDO::FETCH_KEY_PAIR);
+        ok('every kind is mapped; each new type is the one named for its kind', count($m) === 6
+            && count(array_filter($names, fn($n, $kind) => isset($made[$n]) && ($byName[$m[$kind]] ?? null) !== $n, ARRAY_FILTER_USE_BOTH)) === 0
+            && count($r['created']) >= 1, json_encode($r));
+        $g = $conn->prepare("SELECT COUNT(*) FROM asset_types WHERE name LIKE 'ZZ-AT New %' AND tenant_id IS NULL AND is_active = 1");
+        $g->execute();
+        ok('...global and active', (int)$g->fetchColumn() === count($r['created']));
+        $again = intuneCreateMissingTypes($conn, $names);
+        ok('pressing it again creates nothing more', $again['created'] === [] && (int)$conn->query("SELECT COUNT(*) FROM asset_types")->fetchColumn() === $before + count($r['created']));
+        $aNew = $asset('ZZ-AT-NEW'); $device($aNew, 'desktop');
+        intuneApplyAssetTypes($conn);
+        ok('the next sync uses them', $typeOf($aNew) === $m['desktop']);
     } catch (Throwable $e) {
         ok('the run completed', false, get_class($e) . ': ' . $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
     } finally {

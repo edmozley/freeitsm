@@ -1912,6 +1912,11 @@ $translationNamespaces = ['common', 'asset-management'];
                                 </tr>
                                 <?php endforeach; ?>
                             </table>
+                            <?php /* Suggested rows are only preselected: Save keeps them. The button creates what is still missing. */ ?>
+                            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
+                                <button type="button" class="btn btn-secondary btn-sm" id="intuneCreateTypesBtn" onclick="createMissingIntuneTypes()"><?php echo htmlspecialchars(t('asset-management.settings.intune_types_create')); ?></button>
+                                <span class="form-hint" id="intuneTypesNote"></span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="intuneAppBatchSize"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_label')); ?></label>
@@ -3110,20 +3115,55 @@ $translationNamespaces = ['common', 'asset-management'];
         // alone preserves the stored secret.
         // GH #336: the kind -> asset type mapping. The selects list the active
         // types; a mapping to a type since deleted shows as nothing.
-        async function fillIntuneTypeMap(raw) {
-            let map = {};
-            try { map = raw ? JSON.parse(raw) : {}; } catch (e) { map = {}; }
-            let types = [];
-            try {
-                const r = await fetch(API_BASE + 'get_asset_types.php');
-                const d = await r.json();
-                types = (d.asset_types || []).filter(t => t.is_active == 1 || t.is_active === true);
-            } catch (e) { /* the selects keep "No type" only */ }
+        async function fillIntuneTypeMap(raw, data) {
+            // From the server: the active types, the saved mapping and, for each kind
+            // with nothing mapped, the type it is known by ("Portátil" for laptops).
+            if (!data) {
+                try { data = await (await fetch('../../api/intune/type_map.php')).json(); } catch (e) { data = null; }
+            }
+            const types = (data && data.types) || [];
+            const map = (data && data.map) || {};
+            const suggested = (data && data.suggested) || {};
+            let suggestedAny = false;
             document.querySelectorAll('#intuneTypeMap select[data-intune-kind]').forEach(sel => {
-                const want = String(map[sel.dataset.intuneKind] || '');
+                const kind = sel.dataset.intuneKind;
+                const want = String(map[kind] || suggested[kind] || '');
+                if (!map[kind] && suggested[kind]) suggestedAny = true;
                 sel.innerHTML = `<option value="">${escapeHtml(window.t('asset-management.settings.intune_type_none'))}</option>`
                     + types.map(t => `<option value="${t.id}"${String(t.id) === want ? ' selected' : ''}>${escapeHtml(t.name)}</option>`).join('');
+                sel.style.borderColor = (!map[kind] && suggested[kind]) ? 'var(--warning-border, #f0b429)' : '';
             });
+            const note = document.getElementById('intuneTypesNote');
+            if (note) note.textContent = suggestedAny ? window.t('asset-management.settings.intune_types_suggested') : '';
+        }
+
+        // Every kind with nothing chosen gets the type it is known by, or a new one.
+        async function createMissingIntuneTypes() {
+            const missing = Array.from(document.querySelectorAll('#intuneTypeMap select[data-intune-kind]')).filter(s => !s.value);
+            if (!missing.length) { showToast(window.t('asset-management.settings.intune_types_none_missing'), 'info'); return; }
+            if (!(await showConfirm({
+                title: window.t('asset-management.settings.intune_types_create'),
+                message: window.t('asset-management.settings.intune_types_create_confirm'),
+                okLabel: window.t('asset-management.settings.intune_types_create')
+            }))) return;
+            const btn = document.getElementById('intuneCreateTypesBtn');
+            btn.disabled = true;
+            try {
+                const r = await fetch('../../api/intune/type_map.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'create_missing' })
+                });
+                const d = await r.json();
+                if (!d.success) { showToast(d.error, 'error'); return; }
+                await fillIntuneTypeMap('', d);
+                showToast(d.created.length
+                    ? window.t('asset-management.settings.intune_types_created', { names: d.created.join(', ') })
+                    : window.t('asset-management.settings.intune_types_mapped'), 'success');
+            } catch (e) {
+                showToast(window.t('asset-management.settings.intune_types_failed'), 'error');
+            } finally {
+                btn.disabled = false;
+            }
         }
         function readIntuneTypeMap() {
             const map = {};

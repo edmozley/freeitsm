@@ -52,6 +52,116 @@ enum IntuneDeviceKind: string
         if (str_contains($os, 'ios') || str_contains($os, 'ipados') || str_contains($os, 'android')) return self::OtherMobile;
         return null;
     }
+
+    /**
+     * The names an install's own asset type for this kind is likely to have, in the
+     * languages FreeITSM ships most - compared without case or accents, and a
+     * plural counts ("Portátiles"). Only for suggesting: a person confirms.
+     *
+     * @return string[]
+     */
+    public function synonyms(): array
+    {
+        return match ($this) {
+            self::Laptop      => ['laptop', 'portatil', 'notebook', 'ordenador portatil', 'ordinateur portable', 'portable', 'laptops', 'notebooks'],
+            self::Desktop     => ['desktop', 'sobremesa', 'pc', 'workstation', 'estacion de trabajo', 'ordenador', 'ordenador de sobremesa', 'computer', 'desktop computer', 'ordinateur', 'arbeitsplatz'],
+            self::Server      => ['server', 'servidor', 'serveur'],
+            self::Phone       => ['phone', 'mobile phone', 'smartphone', 'movil', 'telefono', 'telefono movil', 'cell phone', 'handy', 'telephone'],
+            self::Tablet      => ['tablet', 'tableta', 'ipad', 'tablette'],
+            self::OtherMobile => ['mobile', 'mobile device', 'dispositivo movil', 'other mobile', 'otro movil'],
+        };
+    }
+}
+
+/** A type name as it is compared: lower case, no accents, single spaces. */
+function intuneNormaliseTypeName(string $name): string
+{
+    $name = strtolower(trim($name));
+    $name = strtr($name, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n', 'à' => 'a', 'è' => 'e',
+                          'ò' => 'o', 'â' => 'a', 'ê' => 'e', 'ô' => 'o', 'ç' => 'c', 'ä' => 'a', 'ö' => 'o', 'Á' => 'a', 'É' => 'e', 'Í' => 'i', 'Ó' => 'o', 'Ú' => 'u']);
+    return preg_replace('/\s+/', ' ', $name);
+}
+
+/**
+ * For each kind with nothing mapped, the one asset type whose name it is known by.
+ * A kind two types could be (or none) gets no suggestion - a person picks.
+ *
+ * @param array $types    [['id' => int, 'name' => string], ...] - the active types
+ * @param array $current  the mapping as saved, kind value => type id
+ * @return array<string,int>  kind value => suggested type id, for the kinds not in $current
+ */
+function intuneSuggestTypeMap(array $types, array $current): array
+{
+    $out = [];
+    foreach (IntuneDeviceKind::cases() as $k) {
+        if (!empty($current[$k->value])) continue;
+        $known = $k->synonyms();
+        $hits = [];
+        foreach ($types as $t) {
+            $n = intuneNormaliseTypeName((string)$t['name']);
+            foreach ([$n, preg_replace('/(es|s)$/', '', $n)] as $form) {
+                if (in_array($form, $known, true)) { $hits[(int)$t['id']] = true; break; }
+            }
+        }
+        if (count($hits) === 1) $out[$k->value] = (int)array_key_first($hits);
+    }
+    return $out;
+}
+
+/** The active asset types, for the mapping: id and name, in their own order. */
+function intuneActiveAssetTypes(PDO $conn): array
+{
+    return array_map(fn($r) => ['id' => (int)$r['id'], 'name' => $r['name']],
+        $conn->query("SELECT id, name FROM asset_types WHERE is_active = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC));
+}
+
+/** Save the mapping: only kinds that exist, only positive ids; empty saves ''. */
+function intuneSaveTypeMap(PDO $conn, array $map): void
+{
+    $clean = [];
+    foreach (IntuneDeviceKind::cases() as $k) {
+        if (!empty($map[$k->value]) && (int)$map[$k->value] > 0) $clean[$k->value] = (int)$map[$k->value];
+    }
+    $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('intune_type_map', ?)
+                    ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
+         ->execute([$clean ? json_encode($clean) : '']);
+}
+
+/**
+ * "Create the missing types": every kind with nothing mapped gets the type it is
+ * known by, if there is one, or a new type named $names[kind] - then the whole
+ * mapping is saved. A new type is a global one (every company sees it), as the
+ * mapping is install-wide; it is not created when a type of that name exists.
+ *
+ * @param array $names  kind value => the name a new type gets (in the reader's language)
+ * @return array  ['map' => the saved mapping, 'created' => names of the types made]
+ */
+function intuneCreateMissingTypes(PDO $conn, array $names): array
+{
+    $map = intuneTypeMap($conn);
+    $types = intuneActiveAssetTypes($conn);
+    $map += intuneSuggestTypeMap($types, $map);
+    $created = [];
+    $order = (int)$conn->query("SELECT COALESCE(MAX(display_order), 0) FROM asset_types")->fetchColumn();
+    foreach (IntuneDeviceKind::cases() as $k) {
+        if (!empty($map[$k->value])) continue;
+        $name = trim((string)($names[$k->value] ?? ''));
+        if ($name === '') continue;
+        $same = $conn->prepare("SELECT id FROM asset_types WHERE tenant_id IS NULL AND LOWER(name) = LOWER(?) LIMIT 1");
+        $same->execute([$name]);
+        $id = (int)$same->fetchColumn();
+        if (!$id) {
+            $conn->prepare("INSERT INTO asset_types (name, description, display_order, is_active, tenant_id) VALUES (?, ?, ?, 1, NULL)")
+                 ->execute([$name, 'Created for Intune devices', ++$order]);
+            $id = (int)$conn->lastInsertId();
+            $created[] = $name;
+        } else {
+            $conn->prepare("UPDATE asset_types SET is_active = 1 WHERE id = ?")->execute([$id]);
+        }
+        $map[$k->value] = $id;
+    }
+    intuneSaveTypeMap($conn, $map);
+    return ['map' => intuneTypeMap($conn), 'created' => $created];
 }
 
 /**
