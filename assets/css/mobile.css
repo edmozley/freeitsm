@@ -11080,6 +11080,11 @@
         max-width: none;
         margin-bottom: 18px;
     }
+    /* In the tools row beside the By topic / A-Z switch (#346) the row keeps its
+       own bottom margin - the search's 18px on top of it was a double gap. */
+    [data-mobile-module="system"] .system-tools .system-search {
+        margin-bottom: 0;
+    }
     /* The storage warning (#109) is the one thing on this page that must not
        be missed, and it is a heading, a paragraph and a link in a row. */
     [data-mobile-module="system"] .storage-alert {

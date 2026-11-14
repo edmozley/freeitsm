@@ -10,6 +10,9 @@
  * Icons are referenced by key and resolved to inline SVG in systemAreaIcon()
  * below — keeps the markup out of the data and the registry easy to scan.
  *
+ * 'group' names the heading it is shown under when the landing is by topic
+ * (systemAreaGroups()); within a group, cards keep the order of this list.
+ *
  * 'requires' (optional) gates an area behind a runtime condition the landing
  * page evaluates: 'multitenant' (hidden until a 2nd company exists) and
  * 'container' (only inside the Docker image), keeping the registry itself free
@@ -31,6 +34,7 @@ function getSystemAreas() {
         [
             'icon'     => 'feature_bingo',
             'url'      => 'feature-bingo/',
+            'group'    => 'start',
             'title'    => 'system.landing.bingo_title',
             'desc'     => 'system.landing.bingo_desc',
             'keywords' => 'system.landing.bingo_keywords',
@@ -38,6 +42,7 @@ function getSystemAreas() {
         [
             'icon'     => 'encryption',
             'url'      => 'encryption/',
+            'group'    => 'signin',
             'title'    => 'system.landing.encryption_title',
             'desc'     => 'system.landing.encryption_desc',
             'keywords' => 'system.landing.encryption_keywords',
@@ -47,6 +52,7 @@ function getSystemAreas() {
         [
             'icon'     => 'docker',
             'url'      => 'docker/',
+            'group'    => 'health',
             'title'    => 'system.landing.docker_title',
             'desc'     => 'system.landing.docker_desc',
             'keywords' => 'system.landing.docker_keywords',
@@ -55,6 +61,7 @@ function getSystemAreas() {
         [
             'icon'     => 'analysts',
             'url'      => 'analysts/',
+            'group'    => 'people',
             'title'    => 'system.landing.analysts_title',
             'desc'     => 'system.landing.analysts_desc',
             'keywords' => 'system.landing.analysts_keywords',
@@ -62,6 +69,7 @@ function getSystemAreas() {
         [
             'icon'     => 'teams',
             'url'      => 'teams/',
+            'group'    => 'people',
             'title'    => 'system.landing.teams_title',
             'desc'     => 'system.landing.teams_desc',
             'keywords' => 'system.landing.teams_keywords',
@@ -69,6 +77,7 @@ function getSystemAreas() {
         [
             'icon'     => 'roles',
             'url'      => 'roles/',
+            'group'    => 'people',
             'title'    => 'system.landing.roles_title',
             'desc'     => 'system.landing.roles_desc',
             'keywords' => 'system.landing.roles_keywords',
@@ -76,6 +85,7 @@ function getSystemAreas() {
         [
             'icon'     => 'modules',
             'url'      => 'modules/',
+            'group'    => 'people',
             'title'    => 'system.landing.modules_title',
             'desc'     => 'system.landing.modules_desc',
             'keywords' => 'system.landing.modules_keywords',
@@ -83,6 +93,7 @@ function getSystemAreas() {
         [
             'icon'     => 'db_verify',
             'url'      => 'db-verify/',
+            'group'    => 'health',
             'title'    => 'system.landing.db_verify_title',
             'desc'     => 'system.landing.db_verify_desc',
             'keywords' => 'system.landing.db_verify_keywords',
@@ -97,6 +108,7 @@ function getSystemAreas() {
         [
             'icon'     => 'status_portal',
             'url'      => 'status-portal/',
+            'group'    => 'portal',
             'title'    => 'system.landing.status_portal_title',
             'desc'     => 'system.landing.status_portal_desc',
             'keywords' => 'system.landing.status_portal_keywords',
@@ -107,6 +119,7 @@ function getSystemAreas() {
         [
             'icon'     => 'self_service',
             'url'      => 'self-service/',
+            'group'    => 'portal',
             'title'    => 'system.landing.self_service_title',
             'desc'     => 'system.landing.self_service_desc',
             'keywords' => 'system.landing.self_service_keywords',
@@ -116,6 +129,7 @@ function getSystemAreas() {
         [
             'icon'     => 'portal_profile',
             'url'      => 'portal-profile/',
+            'group'    => 'portal',
             'title'    => 'system.landing.portal_profile_title',
             'desc'     => 'system.landing.portal_profile_desc',
             'keywords' => 'system.landing.portal_profile_keywords',
@@ -126,6 +140,7 @@ function getSystemAreas() {
         [
             'icon'     => 'managers',
             'url'      => 'managers/',
+            'group'    => 'portal',
             'title'    => 'system.landing.managers_title',
             'desc'     => 'system.landing.managers_desc',
             'keywords' => 'system.landing.managers_keywords',
@@ -133,6 +148,7 @@ function getSystemAreas() {
         [
             'icon'     => 'search',
             'url'      => 'search/',
+            'group'    => 'health',
             'title'    => 'system.landing.search_title',
             'desc'     => 'system.landing.search_desc',
             'keywords' => 'system.landing.search_keywords',
@@ -140,6 +156,7 @@ function getSystemAreas() {
         [
             'icon'     => 'colours',
             'url'      => 'colours/',
+            'group'    => 'look',
             'title'    => 'system.landing.colours_title',
             'desc'     => 'system.landing.colours_desc',
             'keywords' => 'system.landing.colours_keywords',
@@ -147,6 +164,7 @@ function getSystemAreas() {
         [
             'icon'     => 'branding',
             'url'      => 'branding/',
+            'group'    => 'look',
             'title'    => 'system.landing.branding_title',
             'desc'     => 'system.landing.branding_desc',
             'keywords' => 'system.landing.branding_keywords',
@@ -154,6 +172,7 @@ function getSystemAreas() {
         [
             'icon'     => 'security',
             'url'      => 'security/',
+            'group'    => 'signin',
             'title'    => 'system.landing.security_title',
             'desc'     => 'system.landing.security_desc',
             'keywords' => 'system.landing.security_keywords',
@@ -161,6 +180,7 @@ function getSystemAreas() {
         [
             'icon'     => 'sso',
             'url'      => 'sso/',
+            'group'    => 'signin',
             'title'    => 'system.landing.sso_title',
             'desc'     => 'system.landing.sso_desc',
             'keywords' => 'system.landing.sso_keywords',
@@ -170,6 +190,7 @@ function getSystemAreas() {
         [
             'icon'     => 'api',
             'url'      => 'api/',
+            'group'    => 'integrations',
             'title'    => 'system.landing.api_title',
             'desc'     => 'system.landing.api_desc',
             'keywords' => 'system.landing.api_keywords',
@@ -177,6 +198,7 @@ function getSystemAreas() {
         [
             'icon'     => 'webhooks',
             'url'      => 'webhooks/',
+            'group'    => 'integrations',
             'title'    => 'system.landing.webhooks_title',
             'desc'     => 'system.landing.webhooks_desc',
             'keywords' => 'system.landing.webhooks_keywords',
@@ -184,6 +206,7 @@ function getSystemAreas() {
         [
             'icon'     => 'calendar_sync',
             'url'      => 'calendar-sync/',
+            'group'    => 'integrations',
             'title'    => 'system.landing.calsync_title',
             'desc'     => 'system.landing.calsync_desc',
             'keywords' => 'system.landing.calsync_keywords',
@@ -191,6 +214,7 @@ function getSystemAreas() {
         [
             'icon'     => 'ai_thinking',
             'url'      => 'ai/',
+            'group'    => 'integrations',
             'title'    => 'system.landing.ai_title',
             'desc'     => 'system.landing.ai_desc',
             'keywords' => 'system.landing.ai_keywords',
@@ -199,6 +223,7 @@ function getSystemAreas() {
         [
             'icon'     => 'help_assistant',
             'url'      => 'help-assistant/',
+            'group'    => 'integrations',
             'title'    => 'system.landing.help_assistant_title',
             'desc'     => 'system.landing.help_assistant_desc',
             'keywords' => 'system.landing.help_assistant_keywords',
@@ -206,6 +231,7 @@ function getSystemAreas() {
         [
             'icon'     => 'integrations',
             'url'      => 'integrations/',
+            'group'    => 'integrations',
             'title'    => 'system.landing.integrations_title',
             'desc'     => 'system.landing.integrations_desc',
             'keywords' => 'system.landing.integrations_keywords',
@@ -213,6 +239,7 @@ function getSystemAreas() {
         [
             'icon'     => 'date_formats',
             'url'      => 'date-formats/',
+            'group'    => 'look',
             'title'    => 'system.landing.date_formats_title',
             'desc'     => 'system.landing.date_formats_desc',
             'keywords' => 'system.landing.date_formats_keywords',
@@ -220,6 +247,7 @@ function getSystemAreas() {
         [
             'icon'     => 'currencies',
             'url'      => 'currencies/',
+            'group'    => 'organisation',
             'title'    => 'system.landing.currencies_title',
             'desc'     => 'system.landing.currencies_desc',
             'keywords' => 'system.landing.currencies_keywords',
@@ -227,6 +255,7 @@ function getSystemAreas() {
         [
             'icon'     => 'preferences',
             'url'      => 'preferences/',
+            'group'    => 'look',
             'title'    => 'system.landing.preferences_title',
             'desc'     => 'system.landing.preferences_desc',
             'keywords' => 'system.landing.preferences_keywords',
@@ -236,6 +265,7 @@ function getSystemAreas() {
         [
             'icon'     => 'pref_templates',
             'url'      => 'preference-templates/',
+            'group'    => 'look',
             'title'    => 'system.landing.pref_templates_title',
             'desc'     => 'system.landing.pref_templates_desc',
             'keywords' => 'system.landing.pref_templates_keywords',
@@ -243,6 +273,7 @@ function getSystemAreas() {
         [
             'icon'     => 'demo_data',
             'url'      => 'demo-data/',
+            'group'    => 'more',
             'title'    => 'system.landing.demo_data_title',
             'desc'     => 'system.landing.demo_data_desc',
             'keywords' => 'system.landing.demo_data_keywords',
@@ -250,6 +281,7 @@ function getSystemAreas() {
         [
             'icon'     => 'debug_tools',
             'url'      => 'debug-tools/',
+            'group'    => 'health',
             'title'    => 'system.landing.debug_tools_title',
             'desc'     => 'system.landing.debug_tools_desc',
             'keywords' => 'system.landing.debug_tools_keywords',
@@ -260,6 +292,7 @@ function getSystemAreas() {
         [
             'icon'     => 'engineering_wiki',
             'url'      => 'engineering-wiki/',
+            'group'    => 'more',
             'title'    => 'system.landing.engineering_wiki_title',
             'desc'     => 'system.landing.engineering_wiki_desc',
             'keywords' => 'system.landing.engineering_wiki_keywords',
@@ -267,6 +300,7 @@ function getSystemAreas() {
         [
             'icon'     => 'companies',
             'url'      => 'companies/',
+            'group'    => 'organisation',
             'title'    => 'system.landing.companies_title',
             'desc'     => 'system.landing.companies_desc',
             'keywords' => 'system.landing.companies_keywords',
@@ -277,6 +311,7 @@ function getSystemAreas() {
         [
             'icon'     => 'locations',
             'url'      => 'locations/',
+            'group'    => 'organisation',
             'title'    => 'system.landing.locations_title',
             'desc'     => 'system.landing.locations_desc',
             'keywords' => 'system.landing.locations_keywords',
@@ -286,6 +321,7 @@ function getSystemAreas() {
         [
             'icon'     => 'cost_centres',
             'url'      => 'cost-centres/',
+            'group'    => 'organisation',
             'title'    => 'system.landing.cost_centres_title',
             'desc'     => 'system.landing.cost_centres_desc',
             'keywords' => 'system.landing.cost_centres_keywords',
@@ -295,6 +331,7 @@ function getSystemAreas() {
         [
             'icon'     => 'accounts',
             'url'      => 'accounts/',
+            'group'    => 'organisation',
             'title'    => 'system.landing.accounts_title',
             'desc'     => 'system.landing.accounts_desc',
             'keywords' => 'system.landing.accounts_keywords',
@@ -302,6 +339,7 @@ function getSystemAreas() {
         [
             'icon'     => 'topology',
             'url'      => 'topology/',
+            'group'    => 'health',
             'title'    => 'system.landing.topology_title',
             'desc'     => 'system.landing.topology_desc',
             'keywords' => 'system.landing.topology_keywords',
@@ -312,6 +350,7 @@ function getSystemAreas() {
         [
             'icon'     => 'maintenance',
             'url'      => 'maintenance/',
+            'group'    => 'health',
             'title'    => 'system.landing.maintenance_title',
             'desc'     => 'system.landing.maintenance_desc',
             'keywords' => 'system.landing.maintenance_keywords',
@@ -321,6 +360,7 @@ function getSystemAreas() {
         [
             'icon'     => 'emailed_reports',
             'url'      => 'emailed-reports/',
+            'group'    => 'integrations',
             'title'    => 'system.landing.emailed_reports_title',
             'desc'     => 'system.landing.emailed_reports_desc',
             'keywords' => 'system.landing.emailed_reports_keywords',
@@ -328,6 +368,7 @@ function getSystemAreas() {
         [
             'icon'     => 'routing_test',
             'url'      => 'email-routing-test/',
+            'group'    => 'health',
             'title'    => 'system.landing.routing_test_title',
             'desc'     => 'system.landing.routing_test_desc',
             'keywords' => 'system.landing.routing_test_keywords',
@@ -338,6 +379,7 @@ function getSystemAreas() {
         [
             'icon'     => 'photo_album',
             'url'      => 'photo-album/',
+            'group'    => 'more',
             'title'    => 'system.landing.photo_album_title',
             'desc'     => 'system.landing.photo_album_desc',
             'keywords' => 'system.landing.photo_album_keywords',
@@ -348,10 +390,39 @@ function getSystemAreas() {
         [
             'icon'     => 'contributors',
             'url'      => 'contributors/',
+            'group'    => 'more',
             'title'    => 'system.landing.contributors_title',
             'desc'     => 'system.landing.contributors_desc',
             'keywords' => 'system.landing.contributors_keywords',
         ],
+    ];
+}
+
+/**
+ * The groups the System cards are shown in, in order, when the landing shows them
+ * by topic: key => i18n key of its heading. Each area names one in 'group'; an
+ * area naming none, or one not here, goes in the last ('other').
+ *
+ * The cards were always ordered by topic - the portal screens together, the
+ * finance lists together, Feature Bingo first, Contributors last - but nothing on
+ * the page said so, and it read as no order at all. The headings say it; A-Z on
+ * the landing is the other way to find one.
+ *
+ * @return array<string,string>
+ */
+function systemAreaGroups(): array
+{
+    return [
+        'start'        => 'system.landing.group_start',
+        'people'       => 'system.landing.group_people',
+        'signin'       => 'system.landing.group_signin',
+        'portal'       => 'system.landing.group_portal',
+        'organisation' => 'system.landing.group_organisation',
+        'look'         => 'system.landing.group_look',
+        'integrations' => 'system.landing.group_integrations',
+        'health'       => 'system.landing.group_health',
+        'more'         => 'system.landing.group_more',
+        'other'        => 'system.landing.group_other',
     ];
 }
 
