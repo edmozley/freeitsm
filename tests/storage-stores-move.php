@@ -220,6 +220,34 @@ try {
     foreach ($odd as $k => $v) if (storeGetString($conn, 'recordings', $k) !== $v) $all = false;
     ok('...and each reads back as itself after the move', $all && storeMoveSummary($conn, 'recordings') === null);
 
+    section('Removing old copies safely (the rules Files got in the PR #318 review)');
+    storeSaveSetting($conn, 'storage_s3_bucket', 'zz');
+    storeReset();
+    $mk('documents', 'd1.pdf', 'doc one');
+    $mk('documents', 'd2.pdf', 'doc two');
+    $mk('documents', 'd3.pdf', 'doc three');
+    storeMoveStart($conn, 'documents', 's3', $admin);
+    $batch('documents');
+    ok('positive control: all three copied', count(array_filter($items('documents'), fn($s) => $s === 'verified')) === 3, json_encode($items('documents')));
+    storeMoveAction($conn, 'documents', 'remove_old', $admin);
+    ZzMoveFakeS3::$down = true;
+    $b = $batch('documents');
+    ok('the new place cannot be probed ("unknown"): no old copy is deleted', is_file("$work/local-documents/d1.pdf") && is_file("$work/local-documents/d2.pdf")
+       && is_file("$work/local-documents/d3.pdf") && storeMoveSummary($conn, 'documents') !== null, json_encode($b));
+    ZzMoveFakeS3::$down = false;
+    unlink("$work/s3-documents/d2.pdf");   // its new copy is gone after it was verified
+    $b = $batch('documents');
+    ok('a new copy that is not there: its old copy is kept, and it goes back to be copied', is_file("$work/local-documents/d2.pdf")
+       && ($items('documents')['d2.pdf'] ?? '') === 'pending' && !is_file("$work/local-documents/d1.pdf"), json_encode([$b, $items('documents')]));
+    $mk('documents', 'd4.pdf', 'uploaded during cleanup');   // an upload that picked the old place (queueIfMoved)
+    $conn->prepare("INSERT INTO storage_migration_items (store, object_key, size_bytes, state, updated_datetime) VALUES ('documents', 'd4.pdf', ?, 'pending', UTC_TIMESTAMP())")
+         ->execute([strlen('uploaded during cleanup')]);
+    for ($i = 0; $i < 4; $i++) $batch('documents');
+    storeReset();
+    ok('...both are copied before the move ends, and nothing is lost', storeMoveSummary($conn, 'documents') === null
+       && storeGetString($conn, 'documents', 'd2.pdf') === 'doc two' && storeGetString($conn, 'documents', 'd4.pdf') === 'uploaded during cleanup'
+       && is_file("$work/s3-documents/d4.pdf"), json_encode($items('documents')));
+
     section('A store moved to S3 on the connection Files was given');
     require_once "$root/includes/services/storage.php";
     foreach (['endpoint', 'region', 'bucket', 'access_key_id', 'secret', 'prefix', 'path_style'] as $k) storeSaveSetting($conn, "storage_s3_$k", null);

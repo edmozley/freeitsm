@@ -18,7 +18,14 @@
  *           arrived there late (a writer that started before the switch) is queued.
  *   CLEANUP only after "Remove old copies" (storage_<store>_cleanup = 1): each verified
  *           file's old copy is deleted; then the move ends. "Finish, keep old copies"
- *           ends it without deleting. Never deletes if the two places turn out to be one.
+ *           ends it without deleting. The same rules as Files after the PR #318 review
+ *           (includes/files/storage_migration.php):
+ *             - deletes only when the two places are PROVED different
+ *               (storageLocationRelation() === 'different'); 'unknown' deletes nothing;
+ *             - each old copy is deleted only once its new copy is there at the recorded
+ *               size; a missing one goes back to 'pending' and is copied again;
+ *             - pending rows are copied before anything is deleted, and ending a move
+ *               clears only finished rows (storeMoveEnd), so nothing is dropped.
  */
 
 require_once __DIR__ . '/stores.php';
@@ -58,7 +65,7 @@ function storeMoveStart(PDO $conn, string $store, string $to, int $by): int
 
     // Different settings can still be one place; then there is nothing to copy, and a
     // "move" must never reach the step that deletes old copies.
-    if (storageSameLocation($dest, $from)) {
+    if (storageLocationRelation($dest, $from) === 'same') {
         storeSaveSetting($conn, "storage_{$store}_location", $to === 's3' ? 's3' : null);
         storeReset();
         return 0;
@@ -108,13 +115,31 @@ function storeMoveBatch(PDO $conn, string $store, int $deadlineUnix, int $limit 
     }
     $cleanup = storeMoveSetting($conn, $store, 'cleanup') === '1';
 
-    if ($cleanup && storageSameLocation($active, $prev)) {
-        storeMoveEnd($conn, $store, 'ended_same_location_nothing_deleted');
-        $r['done'] = true;
-        return $r;
+    // Anything still to copy (a file that went back to pending) is copied first, even
+    // while removing old copies - never deleted before it has a new copy.
+    $pl = $conn->prepare("SELECT COUNT(*) FROM storage_migration_items WHERE store = ? AND state = 'pending'");
+    $pl->execute([$store]);
+    $deleting = $cleanup && (int)$pl->fetchColumn() === 0;
+
+    // Before deleting anything: if the two places are one after all, every "old copy" IS
+    // the new copy - end the move and delete nothing. If they cannot be PROVED different,
+    // delete nothing either; the job tries again.
+    // TRAP: never treat 'unknown' as 'different' (PR #318 review).
+    if ($deleting) {
+        $rel = storageLocationRelation($active, $prev);
+        if ($rel === 'same') {
+            $conn->prepare("UPDATE storage_migration_items SET state = 'removed' WHERE store = ? AND state = 'verified'")->execute([$store]);
+            storeMoveEnd($conn, $store, 'ended_same_location_nothing_deleted');
+            $r['done'] = true;
+            return $r;
+        }
+        if ($rel !== 'different') {
+            $r['unavailable'] = true;     // nothing charged to any file
+            return $r;
+        }
     }
 
-    $state = $cleanup ? 'verified' : 'pending';
+    $state = $deleting ? 'verified' : 'pending';
     $st = $conn->prepare("SELECT id, object_key, size_bytes FROM storage_migration_items
                            WHERE store = ? AND state = ? ORDER BY id LIMIT " . (int)$limit);
     $st->execute([$store, $state]);
@@ -123,8 +148,18 @@ function storeMoveBatch(PDO $conn, string $store, int $deadlineUnix, int $limit 
     foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $row) {
         if (time() >= $deadlineUnix) return $r;
         $key = (string)$row['object_key'];
-        if ($cleanup) {
+        if ($deleting) {
             try {
+                // Never delete the old copy on the strength of a row alone: the new copy
+                // must be there, at the size recorded, now.
+                if (!storeKeyIsValid($key)) throw new RuntimeException('Not a valid stored-file key.');
+                $there = $active->size($key);
+                if ($there !== (int)$row['size_bytes']) {
+                    $mark("UPDATE storage_migration_items SET state = 'pending', attempts = 0, last_error = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?",
+                          [mb_substr('The new copy was ' . var_export($there, true) . " bytes, expected {$row['size_bytes']} - copying it again before the old one is removed.", 0, 500), $row['id']]);
+                    $r['failed']++;
+                    continue;
+                }
                 $prev->delete($key);
                 $mark("UPDATE storage_migration_items SET state = 'removed', updated_datetime = UTC_TIMESTAMP() WHERE id = ?", [$row['id']]);
                 $r['removed']++;
@@ -178,8 +213,11 @@ function storeMoveBatch(PDO $conn, string $store, int $deadlineUnix, int $limit 
         }
     }
 
-    $left = $conn->prepare('SELECT COUNT(*) FROM storage_migration_items WHERE store = ? AND state = ?');
-    $left->execute([$store, $state]);
+    // Done only when nothing is left to do: while removing old copies that includes
+    // files sent back to be copied (pending) and copies that failed.
+    $open = $cleanup ? "'pending', 'verified', 'failed'" : "'pending'";
+    $left = $conn->prepare("SELECT COUNT(*) FROM storage_migration_items WHERE store = ? AND state IN ($open)");
+    $left->execute([$store]);
     $r['done'] = (int)$left->fetchColumn() === 0;
 
     if (!$cleanup && $r['done']) {
@@ -276,14 +314,31 @@ function storesMoving(PDO $conn): array
     return array_values(array_filter(array_keys(STORAGE_STORES), fn($s) => storeMoveSetting($conn, $s, 'previous') !== ''));
 }
 
-/** Ends a move: the old place is forgotten, the queue cleared. */
+/**
+ * Ends a move: clears the FINISHED rows (verified, removed, skipped) and, when nothing
+ * unfinished is left, forgets the old place. A row still pending or failed keeps the
+ * move running, so its file is never left in a place nothing records.
+ *
+ * TRAP: never DELETE every row of the store to end a move (PR #318 review).
+ */
 function storeMoveEnd(PDO $conn, string $store, string $how, int $by = 0): void
 {
-    storeSaveSetting($conn, "storage_{$store}_previous", null);
+    // Files set aside as missing are named in the record, so one skipped because of a
+    // passing permission error can still be found afterwards.
+    $sk = $conn->prepare("SELECT object_key FROM storage_migration_items WHERE store = ? AND state = 'skipped' ORDER BY id LIMIT 200");
+    $sk->execute([$store]);
+    $skipped = $sk->fetchAll(PDO::FETCH_COLUMN);
+    $conn->prepare("DELETE FROM storage_migration_items WHERE store = ? AND state IN ('verified', 'removed', 'skipped')")->execute([$store]);
+    $u = $conn->prepare('SELECT COUNT(*) FROM storage_migration_items WHERE store = ?');
+    $u->execute([$store]);
+    $unfinished = (int)$u->fetchColumn();
     storeSaveSetting($conn, "storage_{$store}_cleanup", null);
-    $conn->prepare('DELETE FROM storage_migration_items WHERE store = ?')->execute([$store]);
+    if ($unfinished === 0) storeSaveSetting($conn, "storage_{$store}_previous", null);
     storeReset();
-    storeMoveAudit($conn, $by, $store, ['ended' => $how]);
+    $detail = ['ended' => $how];
+    if ($skipped) $detail['skipped_missing'] = implode(', ', $skipped);
+    if ($unfinished) $detail['still_to_copy'] = $unfinished;
+    storeMoveAudit($conn, $by, $store, $detail);
 }
 
 /** Where a file waits between the two places: the store's own staging folder (same disk as the store). */
