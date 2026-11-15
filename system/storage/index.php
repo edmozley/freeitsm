@@ -44,6 +44,8 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
         .st-field label { font-size: 12px; font-weight: 600; color: var(--text-dim, #666); }
         .st-field input, select.st-select { padding: 8px 10px; border: 1px solid var(--border, #ccc); border-radius: 5px; font-size: 14px;
                            background: var(--input-bg, #fff); color: var(--text, #333); }
+        /* A field alone on its row keeps the width of the paired fields above it. */
+        .st-field.st-half { flex: 0 1 calc(50% - 6px); }
         .st-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text, #333); }
         .st-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .btn { padding: 8px 16px; border-radius: 5px; border: 1px solid var(--border, #ccc); background: var(--surface, #fff); color: var(--text, #333); cursor: pointer; font-size: 14px; }
@@ -104,8 +106,8 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
                     </div>
                     <div class="st-row"><label class="st-check"><input id="stPathStyle" type="checkbox"> <?php echo $h('system.storage.path_style'); ?></label></div>
                     <div class="st-row">
-                        <div class="st-field"><label for="stSse"><?php echo $h('system.storage.sse'); ?></label>
-                            <select id="stSse">
+                        <div class="st-field st-half"><label for="stSse"><?php echo $h('system.storage.sse'); ?></label>
+                            <select id="stSse" class="st-select">
                                 <option value=""><?php echo $h('system.storage.sse_default'); ?></option>
                                 <option value="AES256"><?php echo $h('system.storage.sse_aes256'); ?></option>
                             </select>
