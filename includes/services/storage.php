@@ -88,8 +88,9 @@ final class StorageService
      *
      * @param array $in  endpoint, region, bucket, access_key_id, secret (masked = the saved one), prefix, path_style
      */
-    public static function test(PDO $conn, array $in, int $by = 0): array
+    public static function test(PDO $conn, array $in, int $by): array
     {
+        if ($by < 1) throw new InvalidArgumentException('Not signed in.');
         try {
             $cfg = self::connectionFromInput($conn, $in);
             $t = FilesStorageService::test($cfg);
@@ -116,6 +117,7 @@ final class StorageService
     /** Saves the connection once it passes test(). The place cannot change while anything is kept there. */
     public static function saveConnection(PDO $conn, array $in, int $by): void
     {
+        if ($by < 1) throw new InvalidArgumentException('Not signed in.');
         $cfg = self::connectionFromInput($conn, $in);
         $old = storageS3Connection($conn);
         // A move out of S3 reads the old place with the keys it started with; rotate them at
@@ -160,6 +162,7 @@ final class StorageService
     /** Points a store at its server folder or the bucket; starts the move. Returns how many files will move. */
     public static function setLocation(PDO $conn, string $store, string $to, int $by): int
     {
+        if ($by < 1) throw new InvalidArgumentException('Not signed in.');
         if (!isset(STORAGE_STORES[$store])) throw new InvalidArgumentException('Unknown store.');
         if ($to === 's3' && !extension_loaded('curl')) throw new InvalidArgumentException('S3-compatible storage needs the PHP curl extension, which this server does not have.');
         if ($to === 's3') self::adoptFilesConnection($conn);
@@ -173,6 +176,7 @@ final class StorageService
     /** retry_failed | skip_missing | remove_old | finish_keep, for a store's running move. */
     public static function moveAction(PDO $conn, string $store, string $action, int $by): void
     {
+        if ($by < 1) throw new InvalidArgumentException('Not signed in.');
         if (!isset(STORAGE_STORES[$store])) throw new InvalidArgumentException('Unknown store.');
         storeMoveAction($conn, $store, $action, $by);
     }

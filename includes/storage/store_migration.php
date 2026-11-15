@@ -326,7 +326,7 @@ function storesMoving(PDO $conn): array
  *
  * TRAP: never DELETE every row of the store to end a move (PR #318 review).
  */
-function storeMoveEnd(PDO $conn, string $store, string $how, int $by = 0): void
+function storeMoveEnd(PDO $conn, string $store, string $how, ?int $by = null): void
 {
     // Files set aside as missing are named in the record, so one skipped because of a
     // passing permission error can still be found afterwards.
@@ -380,12 +380,12 @@ function storeMoveTempDir(string $store): string
 }
 
 /** A line in the system log: who moved which store where. */
-function storeMoveAudit(PDO $conn, int $by, string $store, array $detail): void
+function storeMoveAudit(PDO $conn, ?int $by, string $store, array $detail): void
 {
-    error_log('[storage] ' . $store . ' ' . json_encode($detail) . ($by > 0 ? " (analyst $by)" : ''));
+    error_log('[storage] ' . $store . ' ' . json_encode($detail) . ($by !== null ? " (analyst $by)" : ''));
     try {
         $conn->prepare("INSERT INTO system_logs (log_type, analyst_id, details, created_datetime) VALUES ('storage', ?, ?, UTC_TIMESTAMP())")
-             ->execute([$by > 0 ? $by : null, json_encode(['store' => $store] + $detail)]);
+             ->execute([$by, json_encode(['store' => $store] + $detail)]);
     } catch (Throwable $e) {
         // the error_log line above is the record
     }

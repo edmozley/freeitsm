@@ -180,10 +180,10 @@ function storageMigrateBatch(PDO $conn, int $deadlineUnix, int $limit = 200): ar
  *
  * @param string $what  the audit word: old_copies_removed, finished_kept_old_copies, ...
  * @param string $from  the old location's label, for the audit entry
- * @param int    $actorId who ended it (Finish on the Files tab): audited as them and not
- *                        told about their own action; 0 when the background job ends it
+ * @param ?int   $actorId who ended it (Finish on the Files tab): audited as them and not
+ *                        told about their own action; null when the background job ends it
  */
-function storageMigrateEnd(PDO $conn, string $what, string $from, int $actorId = 0): void
+function storageMigrateEnd(PDO $conn, string $what, string $from, ?int $actorId = null): void
 {
     // The files set aside as missing are named in the audit entry, so one skipped
     // because of a passing permission error can still be found afterwards.
@@ -196,7 +196,7 @@ function storageMigrateEnd(PDO $conn, string $what, string $from, int $actorId =
     $audit = ['storage_move' => $what, 'from' => $from];
     if ($skipped) $audit['skipped_missing'] = implode(', ', $skipped);
     if ($unfinished) $audit['still_to_copy'] = $unfinished;
-    filesAudit($conn, $actorId, 'settings', ['path' => '(Settings: storage)'], $audit);
+    filesAudit($conn, $actorId ?? 0, 'settings', ['path' => '(Settings: storage)'], $audit);
     // Storage series N1: administrators are told a move ended (and whether old copies went).
     require_once __DIR__ . '/../storage/notify.php';
     $how = ['old_copies_removed' => 'the old copies were removed', 'finished_kept_old_copies' => 'the old copies were kept',

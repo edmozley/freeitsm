@@ -77,7 +77,7 @@ try {
     $a = $bells($actor);
     storageMigrateEnd($conn, 'finished_kept_old_copies', 'zz old place', $actor);
     ok('...but not to the one who pressed Finish', $bells($actor) === $a);
-    ok('the Files tab passes who pressed Finish', str_contains((string)file_get_contents("$root/includes/services/files_storage.php"), "storageMigrateEnd(\$conn, 'finished_kept_old_copies', \$m['from_label'], \$analystId)"));
+    ok('the Files tab passes who pressed Finish', str_contains((string)file_get_contents("$root/includes/services/files_storage.php"), "storageMigrateEnd(\$conn, 'finished_kept_old_copies', \$m['from_label'], \$analystId > 0 ? \$analystId : null)"));
 
     echo "\nThe stores\n";
     $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';

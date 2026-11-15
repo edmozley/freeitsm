@@ -17,9 +17,9 @@
  * @param string $title    one line, e.g. 'Files storage location changed'
  * @param string $message  what happened, never a secret
  * @param string $entity   'storage' (System -> Storage) or 'files_storage' (Files -> Settings -> Storage)
- * @param int    $actorId  who did it (not told); 0 = the system (a job)
+ * @param ?int   $actorId  who did it (not told); null = the system (a job) - never 0 (PR #353 review)
  */
-function storageNotifyAdmins(PDO $conn, string $title, string $message, string $entity, int $actorId = 0): void
+function storageNotifyAdmins(PDO $conn, string $title, string $message, string $entity, ?int $actorId = null): void
 {
     try {
         $admins = $conn->query("SELECT id, email FROM analysts WHERE is_admin = 1 AND is_active = 1")->fetchAll(PDO::FETCH_ASSOC);
@@ -35,7 +35,7 @@ function storageNotifyAdmins(PDO $conn, string $title, string $message, string $
             NotificationsService::notify($conn, [
                 'analyst_id' => (int)$a['id'], 'event_type' => 'storage.changed', 'entity_type' => $entity, 'entity_id' => 1,
                 'title' => mb_substr($title, 0, 255), 'body' => mb_substr($message, 0, 500),
-                'actor_id' => $actorId > 0 ? $actorId : null, 'actor_name' => null,
+                'actor_id' => $actorId, 'actor_name' => null,
             ]);
         }
     } catch (Throwable $e) {

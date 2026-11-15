@@ -106,6 +106,30 @@ try {
     ok('...Files -> Storage alone may not', systemPageAllowed($conn, $tabOnly, 'storage', $grant) === false);
     $api = (string)file_get_contents("$root/api/system/storage.php");
     ok('its API checks the same permission, not administrator-only', str_contains($api, 'requireCapabilityJson(Cap::FILES_STORAGE_BACKUPS') && !str_contains($api, "admin_api_guard.php"));
+
+    // PR #353 review: analyst 0 is what (int) of a missing session id gives, so it must never
+    // mean "the system, no checks". The system is null; a person's id below 1 is refused.
+    echo "\nWho acts: a person, or the system - never analyst 0\n";
+    require_once "$root/includes/services/storage.php";
+    $e = threw(fn() => FilesStorageService::save($conn, 0, $moveTo));
+    ok('Files -> Storage: analyst 0 cannot change the location', $e instanceof InvalidArgumentException, $e ? $e->getMessage() : 'saved');
+    $e = threw(fn() => FilesStorageService::save($conn, 0, $sizeOnly));
+    ok('...nor anything else on the tab', $e instanceof InvalidArgumentException, $e ? $e->getMessage() : 'saved');
+    ok('canChangeLocation(0) is no, canChangeLocation(null) - the system - is yes',
+       FilesStorageService::canChangeLocation($conn, 0) === false && FilesStorageService::canChangeLocation($conn, null) === true);
+    foreach ([
+        'saveConnection' => fn() => StorageService::saveConnection($conn, ['endpoint' => 'http://127.0.0.1:9', 'bucket' => 'zz'], 0),
+        'setLocation'    => fn() => StorageService::setLocation($conn, 'warroom', 's3', 0),
+        'moveAction'     => fn() => StorageService::moveAction($conn, 'warroom', 'finish_keep', 0),
+        'test'           => fn() => StorageService::test($conn, ['endpoint' => 'http://127.0.0.1:9', 'bucket' => 'zz'], 0),
+    ] as $m => $fn) {
+        $e = threw($fn);
+        ok("System -> Storage $m(): analyst 0 is refused as not signed in", $e instanceof InvalidArgumentException && str_contains($e->getMessage(), 'Not signed in'), $e ? $e->getMessage() : 'ran');
+    }
+    foreach (['storageMigrateEnd' => 3, 'storeMoveEnd' => 3, 'storageNotifyAdmins' => 4, 'storeMoveAudit' => 1] as $fn => $i) {
+        $p = (new ReflectionFunction($fn))->getParameters()[$i];
+        ok("$fn(): the system is null, not 0", $p->allowsNull() && (!$p->isOptional() || $p->getDefaultValue() === null));
+    }
 } catch (Throwable $e) {
     ok('no unexpected error', false, get_class($e) . ': ' . $e->getMessage() . ' @' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {
