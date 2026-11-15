@@ -12,7 +12,7 @@ require __DIR__ . '/_top.php';
     <div class="help-section-header"><?php echo helpSectionNum('overview'); ?>
         <div>
             <h3>What this page is for</h3>
-            <p><strong>People, tickets, contracts and projects</strong> can each have a <strong>Location</strong> from System &rarr; Locations. A location that any of them points at <strong>cannot be deleted</strong> - deleting it would quietly leave them with none.</p>
+            <p><strong>Assets, people, tickets, contracts and projects</strong> can each have a <strong>Location</strong> from System &rarr; Locations. A location that any of them points at <strong>cannot be deleted</strong> - deleting it would quietly leave them with none.</p>
         </div>
     </div>
     <p>Pick a location to see how many of each point at it, and the first few of each with a link. When you try to delete a location that is in use, System &rarr; Locations offers to open this page for it.</p>
@@ -41,7 +41,7 @@ require __DIR__ . '/_top.php';
     </div>
     <ul>
         <li><strong>Each record is checked against its own company.</strong> A company's own location can only be given to that company's records; a shared one to anyone's. A record the new location is not open to is left as it was, and the page says how many.</li>
-        <li><strong>History:</strong> tickets and projects record the change in their history. People and contracts keep no history of their location.</li>
+        <li><strong>History:</strong> assets, tickets and projects record the change in their history. People and contracts keep no history of their location.</li>
         <li><strong>Who can use it:</strong> administrators, and anyone who may manage locations in Assets. A shared location needs access to every company, as deleting one does.</li>
     </ul>
 </div>

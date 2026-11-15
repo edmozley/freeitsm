@@ -8,7 +8,8 @@
  *     record's OWN company's, or a shared one (assetLocationScope());
  *   - it is checked again when the record moves company, and dropped if the new
  *     company cannot use it;
- *   - deleting a location that any of them points at is REFUSED
+ *   - deleting a location that any of them - or an ASSET - points at is REFUSED
+ *     (Ed, 16 Nov 2026: assets too, which used to lose their location silently)
  *     (api/assets/delete_asset_location.php), with a pointer to
  *     System -> Maintenance -> Locations in use, which moves them all at once.
  *     The ON DELETE SET NULL foreign keys are only a backstop.
@@ -25,8 +26,13 @@
 require_once __DIR__ . '/tenancy.php';
 require_once __DIR__ . '/asset_locations.php';
 
-/** The tables that carry a location_id, with the word used for them in counts. */
+/**
+ * The tables that carry a location_id, with the word used for them in counts.
+ * Assets are here for the refusal and the move, not for the field rule (theirs is
+ * AssetsService's own, older and the same in effect).
+ */
 const RECORD_LOCATION_TABLES = [
+    'assets'    => 'assets',
     'users'     => 'people',
     'tickets'   => 'tickets',
     'contracts' => 'contracts',
@@ -277,6 +283,7 @@ function recordLocationRecords(PDO $conn, int $locationId, int $limit = 25): arr
 {
     $limit = max(1, min($limit, 200));
     $q = [
+        'assets'    => ["SELECT id, COALESCE(NULLIF(hostname, ''), CONCAT('#', id)) AS label FROM assets WHERE location_id = ? ORDER BY label LIMIT $limit", 'asset-management/?asset_id='],
         'people'    => ["SELECT id, COALESCE(NULLIF(display_name, ''), NULLIF(email, ''), username) AS label FROM users WHERE location_id = ? ORDER BY label LIMIT $limit", 'people/person.php?id='],
         'tickets'   => ["SELECT id, CONCAT(COALESCE(ticket_number, CONCAT('#', id)), ' ', COALESCE(subject, '')) AS label FROM tickets WHERE location_id = ? ORDER BY id DESC LIMIT $limit", 'tickets/?ticket_id='],
         'contracts' => ["SELECT id, CONCAT(COALESCE(contract_number, ''), ' ', COALESCE(title, '')) AS label FROM contracts WHERE location_id = ? ORDER BY id DESC LIMIT $limit", 'contracts/view.php?id='],
@@ -298,7 +305,7 @@ function recordLocationRecords(PDO $conn, int $locationId, int $limit = 25): arr
  * Move everything that points at one location to another, or clear it
  * ($toId null). Each record is checked against its OWN company: a record the
  * new location is not open to is left as it was and counted as skipped.
- * Tickets and projects record the change in their history; people and
+ * Assets, tickets and projects record the change in their history; people and
  * contracts keep none.
  *
  * @param int $actorId  the analyst doing it (for the history)
@@ -323,7 +330,12 @@ function recordLocationMove(PDO $conn, int $actorId, int $fromId, ?int $toId): a
                 if ($toId && !recordLocationStillValid($conn, $tenant, $toId)) { $skipped[$kind]++; continue; }
                 $upd->execute([$toId, (int)$r['id'], $fromId]);
                 $moved[$kind]++;
-                if ($table === 'tickets') {
+                if ($table === 'assets') {
+                    // The asset's own history, as an edit on the asset records it (field 'location', names).
+                    $conn->prepare("INSERT INTO asset_history (asset_id, analyst_id, field_name, old_value, new_value, created_datetime)
+                                    VALUES (?, ?, 'location', ?, ?, UTC_TIMESTAMP())")
+                         ->execute([(int)$r['id'], $actorId > 0 ? $actorId : null, recordLocationRef($conn, $fromId)['name'] ?? null, $toId ? (recordLocationRef($conn, $toId)['name'] ?? null) : null]);
+                } elseif ($table === 'tickets') {
                     $conn->prepare("INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
                                     VALUES (?, ?, 'Location', ?, ?, UTC_TIMESTAMP())")
                          ->execute([(int)$r['id'], $actorId > 0 ? $actorId : null, $fromPath, $toPath]);

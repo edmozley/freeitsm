@@ -2,8 +2,8 @@
 /**
  * System - Maintenance - Locations in use (GH #311).
  *
- * Deleting a location that people, tickets, contracts or projects point at is
- * refused (Ed, 15 Nov 2026). This is where that is resolved: pick a location,
+ * Deleting a location that assets, people, tickets, contracts or projects point
+ * at is refused (Ed, 15-16 Nov 2026). This is where that is resolved: pick a location,
  * see everything that uses it, then move it all to another location, or
  * clear it. Each record is checked against its own company; one the new
  * location is not open to is left as it was and counted.
@@ -125,7 +125,7 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
         'use strict';
         var T = function (k, p) { return window.t('system.locations_in_use.' + k, p); };
         var API = '../../api/locations/';
-        var KINDS = ['people', 'tickets', 'contracts', 'projects'];
+        var KINDS = ['assets', 'people', 'tickets', 'contracts', 'projects'];
         var pick = document.getElementById('liuLocation');
         var out = document.getElementById('liuResult');
         if (!pick) return;

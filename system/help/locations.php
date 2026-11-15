@@ -33,7 +33,7 @@ require __DIR__ . '/_top.php';
     <ul>
         <li><strong>Add</strong> at the top of the page adds a top-level location. The <strong>+</strong> on any location adds one inside it, with the parent already chosen.</li>
         <li><strong>Edit</strong> (the pencil) renames a location or moves it under a different parent. A location cannot be moved inside itself or one of its own sub-locations, so those are not offered.</li>
-        <li><strong>Delete</strong> (the bin) is refused while a location still has sub-locations - delete or move them first, so a whole branch cannot go by accident. It is refused too while <strong>people, tickets, contracts or projects</strong> point at it: it says how many, and <strong>Open</strong> takes you to <strong>System &rarr; Maintenance &rarr; Locations in use</strong>, which moves them all to another location, or clears it, in one go. Assets at a deleted location are left with no location.</li>
+        <li><strong>Delete</strong> (the bin) is refused while a location still has sub-locations - delete or move them first, so a whole branch cannot go by accident. It is refused too while <strong>assets, people, tickets, contracts or projects</strong> point at it: it says how many, and <strong>Open</strong> takes you to <strong>System &rarr; Maintenance &rarr; Locations in use</strong>, which moves them all to another location, or clears it, in one go.</li>
         <li>The arrow beside a location folds its branch away; the number beside it is how many sub-locations it has.</li>
     </ul>
 </div>

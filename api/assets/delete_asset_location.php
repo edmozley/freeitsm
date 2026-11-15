@@ -5,10 +5,10 @@
  * Refuses to delete a node that still has children (re-parent/remove them
  * first; the DB self-ref FK is RESTRICT as a backstop). Per company: you may
  * delete only what this context owns — a company's own locations in its
- * context, the shared ones from the MSP/Default context. Assets pointing at the
- * deleted location have their location cleared (FK ON DELETE SET NULL).
+ * context, the shared ones from the MSP/Default context. Nothing that points at
+ * it is ever cleared silently any more - see GH #311 below.
  *
- * GH #311: REFUSED while people, tickets, contracts or projects point at it,
+ * GH #311: REFUSED while assets, people, tickets, contracts or projects point at it,
  * with the counts and a link to System -> Maintenance -> Locations in use,
  * which moves them all at once (Ed, 15 Nov 2026). Who may manage which
  * location is recordLocationManageError(), shared with that tool.

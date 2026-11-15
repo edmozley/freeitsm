@@ -58,7 +58,7 @@ if (!$admin) { echo "  SKIP  no all-company administrator\n"; exit(0); }
 
 $counters = $conn->query("SELECT * FROM ticket_number_counters")->fetchAll(PDO::FETCH_ASSOC);
 $settingWas = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'ticket_location_from_requester'")->fetchColumn();
-$tenantZ = 0; $locs = []; $userIds = []; $ticketIds = []; $contractIds = []; $projectIds = [];
+$tenantZ = 0; $locs = []; $userIds = []; $ticketIds = []; $contractIds = []; $projectIds = []; $assetIds = [];
 $setSetting = function (?string $v) use ($conn) {
     $conn->prepare("DELETE FROM system_settings WHERE setting_key = 'ticket_location_from_requester'")->execute();
     if ($v !== null) $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('ticket_location_from_requester', ?)")->execute([$v]);
@@ -126,9 +126,14 @@ try {
     ok('a project takes a location', $locOf('projects', (int)$pr['id']) === $locDef);
     ok("a project refuses another company's location", throws(fn() => ProjectsService::updateProject($conn, $ctx, (int)$pr['id'], ['location_id' => $locZ])));
 
+    // GH #311 (Ed, 16 Nov): an asset at the location blocks the delete too, and moves with the rest.
+    $conn->prepare("INSERT INTO assets (hostname, tenant_id, location_id) VALUES ('ZZ-RECLOC-ASSET', ?, ?)")->execute([$def, $locDef]);
+    $assetIds[] = $asset = (int)$conn->lastInsertId();
+
     echo "\nDeleting a location in use\n";
     $usage = recordLocationUsage($conn, $locDef);
     ok('its usage is counted', ($usage['people'] ?? 0) === 1 && ($usage['contracts'] ?? 0) === 1 && ($usage['projects'] ?? 0) === 1, json_encode($usage));
+    ok('an asset at it counts too', ($usage['assets'] ?? 0) === 1, json_encode($usage));
     // The real endpoint over HTTP, as an administrator (a forged session, as
     // tests/accounts-http.php does). Skipped without FREEITSM_TEST_URL.
     $base = rtrim((string)getenv('FREEITSM_TEST_URL'), '/');
@@ -158,9 +163,12 @@ try {
     // The ZZ-company ticket's location is none; give the ZZ company a record on locDef? It cannot hold one,
     // so move to the ZZ company's own location: Default-company records must be skipped.
     $res = recordLocationMove($conn, $admin, $locDef, $locZ);
-    ok("a record the new location is not open to is skipped", array_sum($res['skipped']) === 3 && array_sum($res['moved']) === 0, json_encode($res));
+    ok("a record the new location is not open to is skipped", array_sum($res['skipped']) === 4 && array_sum($res['moved']) === 0, json_encode($res));
     $res = recordLocationMove($conn, $admin, $locDef, $locShared);
-    ok('moving to a shared location moves them all', array_sum($res['moved']) === 3, json_encode($res));
+    ok('moving to a shared location moves them all', array_sum($res['moved']) === 4 && ($res['moved']['assets'] ?? 0) === 1, json_encode($res));
+    $ah = $conn->prepare("SELECT old_value, new_value FROM asset_history WHERE asset_id = ? AND field_name = 'location' ORDER BY id DESC LIMIT 1");
+    $ah->execute([$asset]); $ahr = $ah->fetch(PDO::FETCH_ASSOC);
+    ok("the asset's history records the move", $ahr && $ahr['old_value'] === 'ZZ Loc Default' && $ahr['new_value'] === 'ZZ Loc Shared', json_encode($ahr));
     ok('nothing points at it now', array_sum(recordLocationUsage($conn, $locDef)) === 0);
     $res = recordLocationMove($conn, $admin, $locShared, null);
     ok('clearing leaves them with none', $locOf('users', $person) === null && array_sum(recordLocationUsage($conn, $locShared)) === 0, json_encode($res));
@@ -189,6 +197,7 @@ try {
         foreach (['emails', 'ticket_audit', 'ticket_field_values', 'ticket_watchers'] as $tb) { try { $conn->exec("DELETE FROM $tb WHERE ticket_id IN ($in)"); } catch (Throwable $e) {} }
         $conn->exec("DELETE FROM tickets WHERE id IN ($in)");
     }
+    foreach ($assetIds as $aid) { $conn->prepare("DELETE FROM asset_history WHERE asset_id = ?")->execute([$aid]); $conn->prepare("DELETE FROM assets WHERE id = ?")->execute([$aid]); }
     foreach ($projectIds as $pid) { try { $conn->prepare("DELETE FROM projects WHERE id = ?")->execute([$pid]); } catch (Throwable $e) { echo "  note: project $pid: " . $e->getMessage() . "\n"; } }
     foreach ($contractIds as $cid) { try { $conn->prepare("DELETE FROM contracts WHERE id = ?")->execute([$cid]); } catch (Throwable $e) { echo "  note: contract $cid: " . $e->getMessage() . "\n"; } }
     if ($userIds) $conn->exec("DELETE FROM users WHERE id IN (" . implode(',', array_map('intval', $userIds)) . ")");
@@ -207,7 +216,8 @@ try {
         + (SELECT COUNT(*) FROM users WHERE email = 'zz-recloc@example.invalid')
         + (SELECT COUNT(*) FROM tickets WHERE subject = 'ZZ record locations')
         + (SELECT COUNT(*) FROM contracts WHERE contract_number = 'ZZ-RECLOC-1')
-        + (SELECT COUNT(*) FROM projects WHERE name = 'ZZ record locations')")->fetchColumn();
+        + (SELECT COUNT(*) FROM projects WHERE name = 'ZZ record locations')
+        + (SELECT COUNT(*) FROM assets WHERE hostname = 'ZZ-RECLOC-ASSET')")->fetchColumn();
     echo "\n";
     ok('everything the test wrote is gone', $left === 0, "$left rows left");
 }

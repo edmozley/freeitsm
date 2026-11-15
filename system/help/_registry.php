@@ -630,7 +630,7 @@ function getHelpTopics() {
         ],
         'locations-in-use' => [
             'hero' => 'Locations in use',
-            'sub'  => 'People, tickets, contracts and projects can each have a location. A location something points at cannot be deleted - this is where you move them all to another one first, or clear it.',
+            'sub'  => 'Assets, people, tickets, contracts and projects can each have a location. A location something points at cannot be deleted - this is where you move them all to another one first, or clear it.',
             'sections' => [
                 ['id' => 'overview', 'label' => 'Overview'],
                 ['id' => 'moving',   'label' => 'Moving or clearing'],
