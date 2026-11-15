@@ -43,7 +43,7 @@ $sections = [
     'recycle'     => 7,
     'audit'       => 3,
     'ownership'   => 3,
-    'settings'    => 5,
+    'settings'    => 6,
     'phone'       => 2,
 ];
 $h = fn(string $k, array $p = []) => htmlspecialchars(t('files.help.' . $k, $p));
