@@ -36,6 +36,7 @@
 // handlers + serializers stay here.
 require_once dirname(__DIR__, 3) . '/includes/service_context.php';
 require_once dirname(__DIR__, 3) . '/includes/services/tasks.php';
+require_once __DIR__ . '/task_related.php';   // GH #328: `related` - counts and links, as on tickets
 require_once dirname(__DIR__, 3) . '/includes/timezone.php';   // naive_today_sql() — due_date is a bare date (GH #126)
 
 // ---------------------------------------------------------------------------
@@ -292,6 +293,11 @@ function apiTasksList(PDO $conn, array $apiKey, array $params, array $body): voi
     $tasks = array_map(function ($r) use ($conn) {
         return apiSerializeTask($conn, $r);
     }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    // GH #328: opt-in on the list, as on tickets - a page of 100 would otherwise run 100 sets of counts.
+    if (in_array('related', array_map('trim', explode(',', (string)($_GET['include'] ?? ''))), true)) {
+        foreach ($tasks as &$tk) $tk['related'] = apiTaskRelated($conn, (int)$tk['id'], $apiKey);
+        unset($tk);
+    }
 
     apiRespond($tasks, 200, [
         'page'        => $page,
@@ -378,6 +384,7 @@ function apiTasksGet(PDO $conn, array $apiKey, array $params, array $body): void
         ];
     }, $cm->fetchAll(PDO::FETCH_ASSOC));
 
+    $task['related'] = apiTaskRelated($conn, (int)$params[0], $apiKey);   // GH #328
     apiRespond($task);
 }
 

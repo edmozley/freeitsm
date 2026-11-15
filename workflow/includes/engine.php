@@ -4393,7 +4393,8 @@ class WorkflowEngine
             'ticket'           => $one('tickets.php',        'apiTicketSelect',         ' WHERE t.id = ? LIMIT 1',  fn($c, $r) => apiSerializeTicket($r) + ['related' => apiTicketRelated($c, (int)$r['id'], null)]),
             'change'           => $one('changes.php',        'apiChangeSelect',         ' WHERE c.id = ? LIMIT 1',  fn($c, $r) => apiSerializeChange($r)),
             'problem'          => $one('problems.php',        'apiProblemSelect',        ' WHERE p.id = ? LIMIT 1',  fn($c, $r) => apiSerializeProblem($r)),
-            'task'             => $one('tasks.php',          'apiTaskSelect',           ' WHERE t.id = ? LIMIT 1',  fn($c, $r) => apiSerializeTask($c, $r)),
+            // GH #328: with `related` (counts and links), as GET /tasks/{id} has it
+            'task'             => $one('tasks.php',          'apiTaskSelect',           ' WHERE t.id = ? LIMIT 1',  fn($c, $r) => apiSerializeTask($c, $r) + ['related' => apiTaskRelated($c, (int)$r['id'], null)]),
             'asset'            => $one('assets.php',          'apiAssetSelect',          ' WHERE a.id = ? LIMIT 1',  fn($c, $r) => apiSerializeAsset($c, $r)),
             'article'          => $one('knowledge.php',       'apiKnowledgeSelect',      ' WHERE a.id = ? LIMIT 1',  fn($c, $r) => apiSerializeArticle($c, $r, true)),
             'contract'         => $one('contracts.php',       'apiContractSelect',       ' WHERE c.id = ? LIMIT 1',  fn($c, $r) => apiSerializeContract($r)),

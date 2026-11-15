@@ -4794,6 +4794,12 @@
                             "in": "query",
                             "desc": "Pagination (default 1 \/ 25, max per_page 100)",
                             "req": false
+                        },
+                        {
+                            "name": "include",
+                            "in": "query",
+                            "desc": "related - add each task's `related` block (counts of its comments, forms and checklists; links to its ticket, change, contract, project, parent, subtasks and dependencies), as GET \/tasks\/{id} always has. Opt-in: it runs a few queries per task",
+                            "req": false
                         }
                     ],
                     "section": "Tasks",
@@ -4973,7 +4979,7 @@
                     "p": "\/tasks\/{id}",
                     "perm": "tasks.read",
                     "s": "Get one task",
-                    "d": "Full detail: parent summary, ordered subtask list, comments, and linked ticket\/change summaries (linked-ticket details only appear when the key's company scope could read that ticket directly).",
+                    "d": "Full detail: parent summary, ordered subtask list, comments, and linked ticket\/change summaries (linked-ticket details only appear when the key's company scope could read that ticket directly). Includes `related`: counts of the task's comments, forms and checklists (only those the key may read), and links to its ticket (number only), change, contract, project, parent task, subtasks and dependencies (only records the key may read).",
                     "params": [
                         {
                             "name": "id",

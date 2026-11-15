@@ -28,6 +28,21 @@ return array (
         ]]],
       ],
     ],
+    // GH #328 (the task half): what hangs off a task - on GET /tasks/{id}, GET /tasks?include=related and the Full record webhook.
+    'TaskRelated' => [
+      'type' => 'object',
+      'description' => 'Counts of what is on the task (only those whose sub-endpoint the key may read) and links to what it is linked with (only records the key may read). The same shape as TicketRelated.',
+      'properties' => [
+        'counts' => ['type' => 'object', 'properties' => ['comments' => ['type' => 'integer'], 'forms' => ['type' => 'integer'], 'checklists' => ['type' => 'integer']]],
+        'links' => ['type' => 'array', 'items' => ['type' => 'object', 'required' => ['type', 'id'], 'properties' => [
+          'type' => ['type' => 'string', 'enum' => ['ticket', 'change', 'contract', 'project', 'task']],
+          'id' => ['type' => 'integer'],
+          'reference' => ['type' => 'string', 'nullable' => true, 'description' => 'A ticket number'],
+          'name' => ['type' => 'string', 'nullable' => true, 'description' => 'Not on ticket links - a linked ticket may be confidential'],
+          'relation' => ['type' => 'string', 'enum' => ['child_of', 'parent_of', 'waits_on', 'blocks'], 'description' => 'task links only, from this task\'s point of view: its parent (child_of), its subtasks (parent_of), what it waits for (waits_on) and what waits for it (blocks)'],
+        ]]],
+      ],
+    ],
     // GH #328: GET /tickets/{id}/attachments
     'TicketAttachment' => [
       'type' => 'object',
@@ -10522,6 +10537,7 @@ return array (
       ),
       'properties' => 
       array (
+        'related' => ['$ref' => '#/components/schemas/TaskRelated'],   // GH #328: only with ?include=related on the list; always on GET /tasks/{id}
         'collaborators' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => [   // 5.2.0 docs tidy
           'id' => ['type' => 'integer'], 'name' => ['type' => 'string', 'nullable' => true],
           'is_completed' => ['type' => 'boolean'], 'completed_at' => ['type' => 'string', 'nullable' => true]]]],
@@ -10933,6 +10949,7 @@ return array (
           ),
           'properties' => 
           array (
+            'related' => ['$ref' => '#/components/schemas/TaskRelated'],   // GH #328
             'parent' => 
             array (
               'type' => 'object',
