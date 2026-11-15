@@ -175,6 +175,7 @@ function analystReferenceRegistry(): array {
         ['jml_audit', 'analyst_id', 'history'],
         ['user_email_addresses', 'added_by_analyst_id', 'history'],   // GH #308: who linked an address
         ['user_audit', 'analyst_id', 'history'],                       // GH #308: a person's history
+        ['company_audit', 'analyst_id', 'history'],                    // GH #279: a company's history (custom fields, changes)
         ['ticket_notes', 'analyst_id', 'history'],
         ['ticket_time_entries', 'analyst_id', 'history'],
         ['tickets', 'deleted_by', 'history'],

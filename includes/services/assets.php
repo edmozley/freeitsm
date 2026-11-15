@@ -58,6 +58,23 @@ class AssetsService
     }
 
     /**
+     * Is this person (users.id) in a company the caller may reach? NULL tenant is the
+     * Default company's, as everywhere. True when the caller is not company-limited.
+     */
+    private static function personInScope(PDO $conn, ActorContext $ctx, int $userId): bool
+    {
+        if ($ctx->companyScope === null) {
+            return true;
+        }
+        $st = $conn->prepare('SELECT tenant_id FROM users WHERE id = ?');
+        $st->execute([$userId]);
+        $t = $st->fetchColumn();
+        if ($t === false) return false;
+        $tid = $t === null ? getDefaultTenantId($conn) : (int)$t;
+        return in_array($tid, $ctx->companyScope, true);
+    }
+
+    /**
      * The editable columns, their audit field keys (the SAME stable keys the UI
      * history view localises via t('asset-management.field.<key>')), and how to
      * validate/resolve each. 'lookup'/'supplier' fields audit display NAMES.
@@ -392,7 +409,8 @@ class AssetsService
      */
     public static function assignAnalyst(PDO $conn, ActorContext $ctx, int $assetId, array $in): array
     {
-        self::loadRow($conn, $assetId);   // 404 if gone
+        // The asset's company, as updateFields() checks it: 404 if gone or out of reach.
+        self::assertScope($conn, $ctx, self::loadRow($conn, $assetId));
         $actorId = $ctx->actorId;
 
         if (isset($in['analyst_id']) && $in['analyst_id'] !== '') {
@@ -487,7 +505,8 @@ class AssetsService
      */
     public static function assignUser(PDO $conn, ActorContext $ctx, int $assetId, array $in): array
     {
-        self::loadRow($conn, $assetId);   // 404 if gone
+        // The asset's company, as updateFields() checks it: 404 if gone or out of reach.
+        self::assertScope($conn, $ctx, self::loadRow($conn, $assetId));
         $actorId = $ctx->actorId;
 
         // Accept user_id or user_email (must be an existing requester).
@@ -502,7 +521,9 @@ class AssetsService
             throw new ServiceError('validation', 'missing_field', "Provide 'user_id' or 'user_email'.");
         }
         $userRow = $u->fetch(PDO::FETCH_ASSOC);
-        if (!$userRow) {
+        // A person in a company the caller cannot reach reads exactly like one that
+        // does not exist - same message, so the answer says nothing about them.
+        if (!$userRow || !self::personInScope($conn, $ctx, (int)$userRow['id'])) {
             throw new ServiceError('validation', 'invalid_field', 'Unknown requester. Create them first with POST /users.');
         }
         $userId   = (int)$userRow['id'];
@@ -565,7 +586,8 @@ class AssetsService
      */
     public static function unassignUser(PDO $conn, ActorContext $ctx, int $assetId, int $userId, bool $skipAudit = false): array
     {
-        self::loadRow($conn, $assetId);   // 404 if gone
+        // The asset's company, as updateFields() checks it: 404 if gone or out of reach.
+        self::assertScope($conn, $ctx, self::loadRow($conn, $assetId));
         $actorId = $ctx->actorId;
 
         // Snapshot holder + due-back before removal, for the custody trail + audit.
@@ -612,7 +634,8 @@ class AssetsService
      */
     public static function unassignAnalyst(PDO $conn, ActorContext $ctx, int $assetId, int $analystId, bool $skipAudit = false): array
     {
-        self::loadRow($conn, $assetId);   // 404 if gone
+        // The asset's company, as updateFields() checks it: 404 if gone or out of reach.
+        self::assertScope($conn, $ctx, self::loadRow($conn, $assetId));
         $actorId = $ctx->actorId;
 
         $snap = $conn->prepare(
