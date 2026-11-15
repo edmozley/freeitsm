@@ -148,6 +148,11 @@ final class S3Driver implements StorageDriver, StorageLister
 
     public function listKeys(string $prefix): array
     {
+        return array_keys($this->listObjects($prefix));
+    }
+
+    public function listObjects(string $prefix): array
+    {
         $keys  = [];
         $token = null;
         do {
@@ -155,12 +160,12 @@ final class S3Driver implements StorageDriver, StorageLister
             if ($token !== null) $q['continuation-token'] = $token;
             $r = $this->call('GET', '', $q);
             $page = s3ParseListObjects((string)$r['body']);
-            foreach ($page['keys'] as $k) {
-                if (str_starts_with($k, $this->base)) $keys[] = substr($k, strlen($this->base));
+            foreach ($page['objects'] as $k => $o) {
+                if (str_starts_with($k, $this->base)) $keys[substr($k, strlen($this->base))] = $o;
             }
             $token = $page['next'];
         } while ($token !== null);
-        sort($keys, SORT_STRING);
+        ksort($keys, SORT_STRING);
         return $keys;
     }
 
@@ -373,7 +378,7 @@ final class S3Driver implements StorageDriver, StorageLister
  * One ListObjectsV2 page: its keys and the continuation token (null on the last
  * page). Anything that is not a listing throws - never read as "empty".
  *
- * @return array{keys: string[], next: ?string}
+ * @return array{keys: string[], objects: array<string, array{size: int, mtime: int}>, next: ?string}
  */
 function s3ParseListObjects(string $xml): array
 {
@@ -388,11 +393,16 @@ function s3ParseListObjects(string $xml): array
         throw new StorageUnavailable('Storage sent an unreadable listing.');
     }
     $keys = [];
+    $objects = [];
     foreach ($doc->children() as $node) {
-        if ($node->getName() === 'Contents') $keys[] = (string)$node->Key;
+        if ($node->getName() !== 'Contents') continue;
+        $k = (string)$node->Key;
+        $keys[] = $k;
+        $t = strtotime((string)$node->LastModified);
+        $objects[$k] = ['size' => (int)(string)$node->Size, 'mtime' => $t === false ? 0 : $t];
     }
     $truncated = strtolower(trim((string)$doc->IsTruncated)) === 'true';
     $next = $truncated ? trim((string)$doc->NextContinuationToken) : '';
     if ($truncated && $next === '') throw new StorageUnavailable('Storage sent a truncated listing without a continuation token.');
-    return ['keys' => $keys, 'next' => $truncated ? $next : null];
+    return ['keys' => $keys, 'objects' => $objects, 'next' => $truncated ? $next : null];
 }

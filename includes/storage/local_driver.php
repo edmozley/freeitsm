@@ -40,7 +40,13 @@ final class LocalDriver implements StorageDriver, StorageLister
         }
         // rename() fails across devices (a volume, another disk): fall back to copy.
         if ($move && @rename($localPath, $dest)) return;
-        if (!@copy($localPath, $dest)) throw new StorageUnavailable('The server could not write to the storage folder.');
+        // Copy under a temporary name, then rename: a crash part way never leaves a
+        // short file under the real name for a later reader to trust.
+        $part = $dest . '.part-' . bin2hex(random_bytes(4));
+        if (!@copy($localPath, $part) || !@rename($part, $dest)) {
+            @unlink($part);
+            throw new StorageUnavailable('The server could not write to the storage folder.');
+        }
         if ($move) @unlink($localPath);
     }
 
@@ -90,6 +96,11 @@ final class LocalDriver implements StorageDriver, StorageLister
 
     public function listKeys(string $prefix): array
     {
+        return array_keys($this->listObjects($prefix));
+    }
+
+    public function listObjects(string $prefix): array
+    {
         if (!is_dir($this->root)) return [];
         $keys = [];
         try {
@@ -97,12 +108,12 @@ final class LocalDriver implements StorageDriver, StorageLister
             foreach ($it as $f) {
                 if (!$f->isFile()) continue;
                 $key = substr(str_replace(DIRECTORY_SEPARATOR, '/', $f->getPathname()), strlen($this->root) + 1);
-                if ($prefix === '' || str_starts_with($key, $prefix)) $keys[] = $key;
+                if ($prefix === '' || str_starts_with($key, $prefix)) $keys[$key] = ['size' => (int)$f->getSize(), 'mtime' => (int)$f->getMTime()];
             }
         } catch (UnexpectedValueException $e) {
             throw new StorageUnavailable('The storage folder could not be read.');
         }
-        sort($keys, SORT_STRING);
+        ksort($keys, SORT_STRING);
         return $keys;
     }
 

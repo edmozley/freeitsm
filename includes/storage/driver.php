@@ -34,6 +34,13 @@ interface StorageLister
      * @return string[]
      */
     public function listKeys(string $prefix): array;
+
+    /**
+     * Like listKeys(), with each object's size and last-modified time.
+     *
+     * @return array<string, array{size: int, mtime: int}>  key => details, sorted by key
+     */
+    public function listObjects(string $prefix): array;
 }
 
 interface StorageDriver
