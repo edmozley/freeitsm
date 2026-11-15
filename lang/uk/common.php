@@ -861,4 +861,9 @@ return [
         'cancel_export' => 'Скасувати експорт',
         'export_failed' => 'Не вдалося завершити експорт.',
     ],
+    'catalogue_price' => [
+        'label' => 'Ціна',
+        'month' => '{price} на місяць',
+        'free' => 'Безкоштовно',
+    ],
 ];

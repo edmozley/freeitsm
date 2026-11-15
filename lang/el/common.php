@@ -847,4 +847,9 @@ return [
         'cancel_export' => 'Ακύρωση εξαγωγής',
         'export_failed' => 'Η εξαγωγή δεν ολοκληρώθηκε.',
     ],
+    'catalogue_price' => [
+        'label' => 'Τιμή',
+        'month' => '{price} τον μήνα',
+        'free' => 'Δωρεάν',
+    ],
 ];

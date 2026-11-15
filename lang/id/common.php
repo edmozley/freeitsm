@@ -847,4 +847,9 @@ return [
         'cancel_export' => 'Batalkan ekspor',
         'export_failed' => 'Ekspor tidak dapat diselesaikan.',
     ],
+    'catalogue_price' => [
+        'label' => 'Harga',
+        'month' => '{price} per bulan',
+        'free' => 'Gratis',
+    ],
 ];

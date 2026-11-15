@@ -847,4 +847,9 @@ return [
         'cancel_export' => 'Annuler l\'export',
         'export_failed' => 'L\'export n\'a pas pu être terminé.',
     ],
+    'catalogue_price' => [
+        'label' => 'Prix',
+        'month' => '{price} par mois',
+        'free' => 'Gratuit',
+    ],
 ];
