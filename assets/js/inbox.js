@@ -4071,7 +4071,7 @@ function buildLinksSection(email, workspace = false) {
             <span class="strip-pill-group" id="stripCmdbPills"></span>
             <span class="strip-pill-group" id="stripDomainPills"></span>
             <span class="strip-pill-group" id="stripProjectPills"></span>
-            ${workspace ? '' : '<span class="strip-pill-group" id="stripTaskPills"></span>'}
+            <span class="strip-pill-group" id="stripTaskPills"></span>
         </span>
         ${workspace ? '' : '<button type="button" class="links-strip-more" hidden onclick="toggleLinksStripMore(this)"></button>'}
         ${workspace ? '' : buildLinkActions()}
@@ -4210,8 +4210,7 @@ let tasksForTicket = [];
  */
 async function loadTicketTasks(ticketId) {
     const isCurrent = ticketReadGuard(ticketId);
-    const host = document.getElementById('twTaskList') || document.getElementById('stripTaskPills');
-    if (!host) return;
+    if (!taskPillHosts().length) return;
     // Clear FIRST. Otherwise a failed fetch leaves the previous ticket's tasks in
     // place, and the close warning then reports a count belonging to a ticket the
     // analyst is no longer looking at.
@@ -4233,13 +4232,25 @@ async function loadTicketTasks(ticketId) {
 }
 
 /**
+ * Where task pills go: the Links strip always, and in the workspace also the Work
+ * tab's list (where a click opens the task beside the ticket).
+ *
+ * TRAP: GH #354 - the workspace once drew them ONLY in the Work tab, so its Links
+ * tab showed a Jira issue but not the ticket's tasks, and the ticket looked
+ * unlinked. A task is a link; it belongs in Links in both layouts.
+ */
+function taskPillHosts() {
+    return ['twTaskList', 'stripTaskPills'].map(id => document.getElementById(id)).filter(Boolean);
+}
+
+/**
  * Draws tasksForTicket as task pills (done box, subtask progress, unlink cross) and hides the strip's empty note when there are any.
  */
 function renderTicketTasks(ticketId) {
-    const host = document.getElementById('twTaskList') || document.getElementById('stripTaskPills');
-    if (!host) return;
+    const hosts = taskPillHosts();
+    if (!hosts.length) return;
 
-    host.innerHTML = (tasksForTicket || []).map(tk => {
+    const html = (tasksForTicket || []).map(tk => {
         // ☑ / ☐ carries the state at a glance; the fraction is the subtask
         // progress #83 asked for, and is omitted entirely when there are no
         // subtasks rather than showing a meaningless 0/0.
@@ -4262,6 +4273,7 @@ function renderTicketTasks(ticketId) {
                   onclick="event.preventDefault();event.stopPropagation();unlinkTicketTask(event, ${tk.id}, ${ticketId});">&#10005;</span>
         </a>`;
     }).join('');
+    hosts.forEach(host => { host.innerHTML = html; });
 
     // The strip's "nothing yet" note is drawn before these arrive, so it has to
     // get out of the way once there is something to show.

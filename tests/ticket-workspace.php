@@ -103,6 +103,19 @@ try {
         }
 
     }
+
+    // GH #354: a linked task is a link - the workspace's Links tab lists it as the
+    // reading pane's strip does, beside the Work tab's list. Control: before the
+    // fix the workspace drew no #stripTaskPills, so the Links tab showed Jira
+    // issues but not the ticket's tasks.
+    window.TICKET_WORKSPACE={mode:'all',personal:true,ready:true,can_write:true};
+    displayEmail(ticket,[]);
+    tasksForTicket=[{id:7,title:'ZZ Linked task',status:'Open',status_is_closed:0,subtasks_total:0}];
+    renderTicketTasks(ticket.id);
+    check('GH #354 a linked task shows in the workspace Links tab',
+        (pane.querySelector('#tw-panel-links')?.textContent||'').includes('ZZ Linked task'));
+    check('GH #354 and still in the Work tab',
+        (pane.querySelector('#tw-panel-work #twTaskList')?.textContent||'').includes('ZZ Linked task'));
 } catch(error) { check('renderer completes without errors',false,String(error)); }
 document.getElementById('result').textContent=JSON.stringify(checks);
 </script></body></html>
