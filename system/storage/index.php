@@ -34,19 +34,9 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
     <style>
         body { --accent: var(--sys-accent, #546e7a); --accent-hover: var(--sys-accent-hover, #37474f); --on-accent: var(--sys-on-accent, #fff); }
         .main-container { flex: 1; background: var(--app-bg, #f5f7fa); overflow-y: auto; }
-        /* The header is taller than the 48px inbox.css assumes (calc(100vh - 48px)), which put the
-           bottom of this page below the window. As the tickets inbox does: the body is a column,
-           the header takes its real height and this fills the rest. Block, not flex, so the page's
-           bottom padding scrolls into view. Desktop only; mobile.css has its own layout. */
-        @media (min-width: 769px) {
-            body { display: flex; flex-direction: column; }
-            body > .header { flex-shrink: 0; }
-            body > .main-container { display: block; height: auto; flex: 1 1 auto; min-height: 0; }
-        }
-        .st-container { max-width: 980px; margin: 0 auto; padding: 30px 20px; }
-        .page-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: var(--text-dim, #888); margin: 0 0 24px 0; }
-        .st-card { background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        /* Page layout, title, subtitle and panels: assets/css/system-page.css (.sys-page, .sys-panel). */
+        .st-container { min-width: 0; }
+        .st-card { margin-bottom: 16px; }
         .st-card h3 { margin: 0 0 4px 0; font-size: 16px; color: var(--text, #333); }
         .st-hint { margin: 0 0 14px 0; font-size: 13px; color: var(--text-dim, #777); }
         .st-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
@@ -84,16 +74,18 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
     <?php include '../includes/header.php'; ?>
 
     <div class="main-container">
-        <div class="st-container">
-            <h1 class="page-title"><?php echo $h('system.storage.title'); ?></h1>
-            <p class="page-subtitle"><?php echo $h('system.storage.subtitle'); ?></p>
+        <div class="st-container sys-page">
+            <div class="sys-page-head"><div>
+                <h1 class="sys-title"><?php echo $h('system.storage.title'); ?></h1>
+                <p class="sys-subtitle"><?php echo $h('system.storage.subtitle'); ?></p>
+            </div></div>
 
             <div id="stLoading"><?php echo $h('system.storage.loading'); ?></div>
             <div id="stContent" class="st-hidden">
                 <div id="stScheduler" class="st-warning st-hidden"><?php echo $h('system.storage.scheduler_off'); ?></div>
 
                 <!-- 1. The connection -->
-                <div class="st-card">
+                <div class="st-card sys-panel">
                     <h3><?php echo $h('system.storage.conn_heading'); ?></h3>
                     <p class="st-hint"><?php echo $h('system.storage.conn_hint'); ?></p>
                     <div id="stSource" class="st-status"></div>
@@ -128,7 +120,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
                 </div>
 
                 <!-- 2. Where each store keeps its files -->
-                <div class="st-card">
+                <div class="st-card sys-panel">
                     <h3><?php echo $h('system.storage.stores_heading'); ?></h3>
                     <p class="st-hint"><?php echo $h('system.storage.stores_hint'); ?></p>
                     <table class="st-table">
@@ -147,7 +139,8 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script>window.ST_API = '<?php echo $path_prefix; ?>api/system/storage.php'; window.ST_FILES_SETTINGS = '<?php echo $path_prefix; ?>files/settings/?tab=storage';</script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <script src="../../assets/js/system-storage.js?v=3"></script>
+    <script src="../../assets/js/confirm.js?v=7"></script>
+    <script src="../../assets/js/system-storage.js?v=4"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

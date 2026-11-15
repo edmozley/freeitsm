@@ -149,14 +149,16 @@
                 var to = document.querySelector('select[data-loc="' + store + '"]').value;
                 var cur = state.data.stores.filter(function (s) { return s.store === store; })[0];
                 if (!cur || cur.location === to) return;
-                if (!window.confirm(t('confirm_move', { store: t('store_' + store), where: where(to) }))) return;
+                // The app's own dialog, not the browser's (PR #318 review R3).
+                if (!(await window.showConfirm({ title: t('store_' + store), message: t('confirm_move', { store: t('store_' + store), where: where(to) }) }))) return;
                 apply.disabled = true;
                 var d = await api({ action: 'set_location', store: store, location: to });
                 if (!d.success) { msg(document.querySelector('[data-msg="' + store + '"]'), d.error, false); apply.disabled = false; return; }
                 load();
             } else if (mv) {
                 var st = mv.getAttribute('data-store'), what = mv.getAttribute('data-move');
-                if (what === 'remove_old' && !window.confirm(t('confirm_remove', { store: t('store_' + st) }))) return;
+                // Deletes for good: the red button, as Files' Remove (PR #318 review).
+                if (what === 'remove_old' && !(await window.showConfirm({ title: t('store_' + st), message: t('confirm_remove', { store: t('store_' + st) }), okClass: 'danger' }))) return;
                 mv.disabled = true;
                 var r = await api({ action: 'move_action', store: st, move: what });
                 if (!r.success) { msg(document.querySelector('[data-msg="' + st + '"]'), r.error, false); mv.disabled = false; return; }
