@@ -393,4 +393,83 @@ final class FilesAcl
         }
         return array_keys($out);
     }
+
+    /**
+     * A folder and every live folder beneath it, top first, each with its depth
+     * (0 = the folder itself) - breadth-first, children by name, so "the first one"
+     * is always the same one and the nearest to the top.
+     *
+     * @param int $folderId  the files_folders id at the top; a deleted or unknown folder gives []
+     * @return list<array{id:int, depth:int}>
+     */
+    public static function subtreeTopFirst(PDO $conn, int $folderId): array
+    {
+        $tree = self::tree($conn);
+        if (!isset($tree[$folderId])) return [];
+        $kids = [];
+        foreach ($tree as $f) {
+            if ($f['parent_id'] !== null) $kids[$f['parent_id']][] = $f['id'];
+        }
+        foreach ($kids as &$k) usort($k, fn($a, $b) => strnatcasecmp($tree[$a]['name'], $tree[$b]['name']) ?: $a <=> $b);
+        unset($k);
+        $out = [];
+        $seen = [];
+        $queue = [[$folderId, 0]];
+        while ($queue) {
+            [$id, $d] = array_shift($queue);
+            if (isset($seen[$id])) continue;   // cycle guard
+            $seen[$id] = true;
+            $out[] = ['id' => $id, 'depth' => $d];
+            foreach ($kids[$id] ?? [] as $c) $queue[] = [$c, $d + 1];
+        }
+        return $out;
+    }
+
+    /**
+     * The folders INSIDE a folder (not the folder itself) this analyst holds less
+     * than Modify on, nearest the top first. Deleting a folder takes everything in
+     * it, so it needs Modify on all of them - as Windows refuses to delete a folder
+     * holding something you have no right to delete. A subfolder that stopped
+     * inheriting and was never shared with this person is the usual one.
+     *
+     * @return list<int>  folder ids; empty when nothing inside stands in the way
+     */
+    public static function deleteBlockers(PDO $conn, int $analystId, int $folderId): array
+    {
+        $levels = self::levels($conn, $analystId);
+        $out = [];
+        foreach (self::subtreeTopFirst($conn, $folderId) as $s) {
+            if ($s['depth'] > 0 && ($levels[$s['id']] ?? 0) < self::MODIFY) $out[] = $s['id'];
+        }
+        return $out;
+    }
+
+    /**
+     * Why this analyst may not delete the folder because of what is inside it, as
+     * the sentence they are shown - or null when nothing inside stands in the way.
+     * (Modify on the folder itself is checked first, by filesNeed().)
+     *
+     * TRAP: this message must never tell anyone something they cannot already see.
+     * It names ONE blocking folder, and only one they can view; when every blocker
+     * is hidden from them it names none and gives no count - otherwise trying to
+     * delete a parent would be a way to list the names of folders kept from you.
+     * No list either: a folder with 300 locked subfolders is one sentence. System ->
+     * Debug Tools -> D020 shows an administrator the whole picture.
+     */
+    public static function deleteRefusal(PDO $conn, int $analystId, int $folderId): ?string
+    {
+        $blockers = self::deleteBlockers($conn, $analystId, $folderId);
+        if (!$blockers) return null;
+        $tree = self::tree($conn);
+        $levels = self::levels($conn, $analystId);
+        $name = $tree[$folderId]['name'] ?? '';
+        foreach ($blockers as $b) {
+            if (($levels[$b] ?? 0) >= self::VIEW) {
+                return 'You cannot delete "' . $name . '": you do not have permission to change "' . $tree[$b]['name'] . '"'
+                     . (count($blockers) > 1 ? ', and other items inside it' : ' inside it')
+                     . '. Ask whoever manages it.';
+            }
+        }
+        return 'You cannot delete "' . $name . '": it contains folders you do not have access to. Ask whoever manages this folder.';
+    }
 }

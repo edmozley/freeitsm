@@ -490,6 +490,32 @@ function getDebugTools() {
             'duration' => 'About a minute - every page is fetched, four at a time',
             'persists' => 'Only the result: the date, who ran it and the counts are kept so Database Verification can show when the pages were last checked. No page\'s script is run - each is read by the browser and put aside. Opening a page does whatever opening it normally does on the server, exactly as if you had clicked to it.',
         ],
+        [
+            // GH #293: deleting a folder takes everything in it, so it needs Modify on
+            // all of it, and the refusal names nothing the person cannot see. This is
+            // the administrator's view of the same check: every folder, every file.
+            'id'       => 'D020',
+            'slug'     => 'd020',
+            'file'     => 'D020_files_folder_delete.php',
+            'title'    => 'Files - can this person delete this folder?',
+            'category' => 'Files',
+            'icon'     => 'shield',
+            'desc'     => 'Choose a person and a folder in Files, and see everything inside it with a pass or fail for whether they could delete it - and the one that stops them.',
+            'keywords' => 'files folder delete refused cannot delete permission modify subfolder access inheritance inherit recycle bin who can delete d020',
+            'inputs'   => [
+                ['name' => 'analyst', 'label' => 'Person', 'type' => 'select', 'options' => debugToolAnalystOptions(false)],
+                ['name' => 'folder',  'label' => 'Folder', 'type' => 'select', 'options' => debugToolFilesFolderOptions()],
+            ],
+            'when'     => 'Run this when somebody is told they cannot delete a folder in Files and nobody can see why. Deleting a folder takes everything in it, so FreeITSM asks for Modify on the folder AND on every folder inside it. The message they see names at most one folder, and only one they can already see, so it can never be used to find the names of folders kept from them. This report is for an administrator only and shows the whole picture. The usual cause is a subfolder that stopped inheriting its permissions and was never shared with them.',
+            'checks'   => [
+                'The folder and every folder inside it, as a tree, with the person\'s level on each, whether it inherits, and PASS or FAIL',
+                'The files in each folder, which pass or fail with their folder (deleting a file needs Modify on its folder)',
+                'The verdict: would the delete go ahead, and the exact message they would be shown if not',
+                'For each folder that fails, why: no grant at all, a grant below Modify, or inheritance turned off',
+            ],
+            'duration' => 'Instant',
+            'persists' => 'Nothing. Read-only - it reads folders, file names and permissions. It shows folder and file names, so keep the report to yourself if any of them are private.',
+        ],
     ];
 }
 
@@ -509,12 +535,29 @@ function getDebugToolBySlug($slug) {
  * D018's analyst picker: "you" first, then every active analyst. An empty list
  * (database unreachable) still leaves "you", so the page always renders.
  */
-function debugToolAnalystOptions(): array {
-    $opts = [['value' => '', 'label' => 'You']];
+function debugToolAnalystOptions(bool $withYou = true): array {
+    $opts = $withYou ? [['value' => '', 'label' => 'You']] : [];
     try {
         require_once __DIR__ . '/../../../includes/functions.php';
         $rows = connectToDatabase()->query("SELECT id, full_name FROM analysts WHERE is_active = 1 ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as $r) $opts[] = ['value' => (string)$r['id'], 'label' => $r['full_name']];
+    } catch (Throwable) {
+    }
+    return $opts;
+}
+
+/**
+ * D020's folder picker: every live folder in Files, by its full path, in path
+ * order. Administrators only see this page, and they may see every folder.
+ */
+function debugToolFilesFolderOptions(): array {
+    $opts = [];
+    try {
+        require_once __DIR__ . '/../../../includes/functions.php';
+        require_once __DIR__ . '/../../../includes/files/acl.php';
+        $conn = connectToDatabase();
+        foreach (array_keys(FilesAcl::tree($conn)) as $id) $opts[] = ['value' => (string)$id, 'label' => FilesAcl::path($conn, $id)];
+        usort($opts, fn($a, $b) => strnatcasecmp($a['label'], $b['label']));
     } catch (Throwable) {
     }
     return $opts;

@@ -73,6 +73,14 @@ filesApiRun(function () use ($conn, $analystId) {
 
     if ($action === 'delete') {
         filesNeed($conn, $analystId, $id, FilesAcl::MODIFY, 'delete');
+        // Everything inside goes too, so Modify on all of it - never a way to bin a
+        // folder someone else kept from you. The message names nothing hidden.
+        $refusal = FilesAcl::deleteRefusal($conn, $analystId, $id);
+        if ($refusal !== null) {
+            filesAudit($conn, $analystId, 'denied', ['folder_id' => $id],
+                       ['wanted' => 'modify', 'doing' => 'delete', 'blocked_inside' => count(FilesAcl::deleteBlockers($conn, $analystId, $id))]);
+            filesApiFail($refusal);
+        }
         $path = FilesAcl::path($conn, $id);
         $conn->prepare("UPDATE files_folders SET deleted_by = ?, deleted_datetime = UTC_TIMESTAMP() WHERE id = ?")
              ->execute([$analystId, $id]);
