@@ -195,4 +195,10 @@ function storageMigrateEnd(PDO $conn, string $what, string $from): void
     if ($skipped) $audit['skipped_missing'] = implode(', ', $skipped);
     if ($unfinished) $audit['still_to_copy'] = $unfinished;
     filesAudit($conn, 0, 'settings', ['path' => '(Settings: storage)'], $audit);
+    // Storage series N1: administrators are told a move ended (and whether old copies went).
+    require_once __DIR__ . '/../storage/notify.php';
+    $how = ['old_copies_removed' => 'the old copies were removed', 'finished_kept_old_copies' => 'the old copies were kept',
+            'ended_same_location_nothing_deleted' => 'the old and new places turned out to be one, so nothing was deleted'][$what] ?? $what;
+    storageNotifyAdmins($conn, $unfinished ? 'Files storage move: finished files cleared' : 'Files storage move finished',
+        "Moving Files from $from: $how." . ($unfinished ? " $unfinished files are still to copy." : ''), 'files_storage');
 }

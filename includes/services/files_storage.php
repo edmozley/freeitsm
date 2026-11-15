@@ -230,6 +230,13 @@ final class FilesStorageService
                 filesSaveSetting($conn, 'files_s3_path_style', $s3['path_style'] ? '1' : '0');
             }
             if ($own) $conn->commit();
+            if (self::locationKey($current) !== self::locationKey($next)) {
+                require_once __DIR__ . '/../storage/notify.php';
+                storageNotifyAdmins($conn, 'Files storage location changed',
+                    'Files are now stored in ' . self::label($next) . ' (were in ' . self::label($current) . ').'
+                    . ($queued > 0 ? " $queued stored files are being copied there in the background; until each is, it is read from the old place." : ''),
+                    'files_storage', $analystId);
+            }
         } catch (Throwable $e) {
             if ($own && $conn->inTransaction()) $conn->rollBack();
             throw $e;

@@ -125,6 +125,11 @@ final class StorageService
         storeReset();
         filesStorageReset();
         storeMoveAudit($conn, $by, 'connection', ['saved' => 's3://' . $cfg['bucket'] . '/' . $cfg['prefix'] . ' (' . $cfg['endpoint'] . ')']);
+        if ($old === null || $placeChanged) {
+            require_once __DIR__ . '/../storage/notify.php';
+            storageNotifyAdmins($conn, 'S3 storage connection saved', 'The S3-compatible connection on System -> Storage now points at '
+                . 's3://' . $cfg['bucket'] . '/' . $cfg['prefix'] . ' (' . $cfg['endpoint'] . ').', 'storage', $by);
+        }
     }
 
     /** Points a store at its server folder or the bucket; starts the move. Returns how many files will move. */

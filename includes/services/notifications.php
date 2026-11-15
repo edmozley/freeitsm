@@ -198,6 +198,10 @@ class NotificationsService
             // reaching its limit, used from a new address or where or when it may not be.
             // On: this is exactly what a bell is for, and nobody causes it by their own hand.
             'api.security'            => ['default' => true,  'entity' => 'api_key'],
+            // Storage series N1 (PR #318 review) - to ADMINISTRATORS: a storage location
+            // changed, a move started or ended (Files, or a store on System -> Storage).
+            // On: it can send every stored file somewhere new; never the reader's own doing.
+            'storage.changed'         => ['default' => true,  'entity' => 'storage'],
             'domain.changed'          => ['default' => true,  'entity' => 'domain'],
             // Projects (3.2.0) - to the PROJECT MANAGER (projects.owner_analyst_id).
             // Health and tolerances fire on a change only (includes/projects/alerts.php),

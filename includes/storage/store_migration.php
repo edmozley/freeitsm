@@ -68,6 +68,7 @@ function storeMoveStart(PDO $conn, string $store, string $to, int $by): int
     if (storageLocationRelation($dest, $from) === 'same') {
         storeSaveSetting($conn, "storage_{$store}_location", $to === 's3' ? 's3' : null);
         storeReset();
+        storeNotifyMoved($conn, $store, $to, 0, $by);
         return 0;
     }
 
@@ -93,6 +94,7 @@ function storeMoveStart(PDO $conn, string $store, string $to, int $by): int
     }
     storeReset();
     storeMoveAudit($conn, $by, $store, ['to' => $to, 'files' => count($listing)]);
+    storeNotifyMoved($conn, $store, $to, count($listing), $by);
     return count($listing);
 }
 
@@ -339,6 +341,29 @@ function storeMoveEnd(PDO $conn, string $store, string $how, int $by = 0): void
     if ($skipped) $detail['skipped_missing'] = implode(', ', $skipped);
     if ($unfinished) $detail['still_to_copy'] = $unfinished;
     storeMoveAudit($conn, $by, $store, $detail);
+    // Storage series N1: administrators are told a move ended.
+    require_once __DIR__ . '/notify.php';
+    $what = ['old_copies_removed' => 'the old copies were removed', 'finished_old_copies_kept' => 'the old copies were kept',
+             'ended_same_location_nothing_deleted' => 'the old and new places turned out to be one, so nothing was deleted'][$how] ?? $how;
+    storageNotifyAdmins($conn, storeName($store) . ': move finished', storeName($store) . " finished moving: $what."
+        . ($unfinished ? " $unfinished files are still to copy." : ''), 'storage', $by);
+}
+
+/** A store's name for people. */
+function storeName(string $store): string
+{
+    return ['tickets' => 'Ticket attachments', 'changes' => 'Change attachments', 'documents' => 'Documents',
+            'recordings' => 'Screen recordings', 'warroom' => 'War-room attachments'][$store] ?? $store;
+}
+
+/** Storage series N1: a store's location changed (and a move started, when it holds files). */
+function storeNotifyMoved(PDO $conn, string $store, string $to, int $files, int $by): void
+{
+    require_once __DIR__ . '/notify.php';
+    $where = $to === 's3' ? 'S3-compatible storage' : 'the server folder';
+    storageNotifyAdmins($conn, storeName($store) . ' now kept in ' . $where,
+        storeName($store) . " are now kept in $where." . ($files > 0 ? " $files files are being copied there in the background; until each is, it is read from the old place." : ''),
+        'storage', $by);
 }
 
 /** Where a file waits between the two places: the store's own staging folder (same disk as the store). */
