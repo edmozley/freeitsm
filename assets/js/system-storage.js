@@ -18,6 +18,11 @@
         el.textContent = text || '';
         el.className = 'st-msg' + (text ? (ok ? ' ok' : ' err') : '');
     }
+    // files/bytes are null when they could not be counted - unknown, never shown as empty.
+    function holds(x) {
+        return x.files === null ? t('holds_unknown') : t('holds', { n: x.files, size: size(x.bytes) });
+    }
+
     function size(bytes) {
         var b = +bytes || 0, u = ['B', 'KB', 'MB', 'GB', 'TB'], i = 0;
         while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
@@ -88,14 +93,14 @@
         rows.push('<tr><td><div class="st-name">' + esc(t('store_files')) + '</div><div class="st-desc">' + esc(t('store_files_desc'))
             + ' <a href="' + esc(window.ST_FILES_SETTINGS) + '">' + esc(t('store_files_link')) + '</a></div>'
             + (d.files.moving ? '<div class="st-move">' + esc(t('files_moving')) + '</div>' : '') + '</td>'
-            + '<td>' + esc(t('holds', { n: d.files.files, size: size(d.files.bytes) })) + '</td>'
+            + '<td>' + esc(holds(d.files)) + '</td>'
             + '<td>' + esc(where(d.files.location)) + '</td></tr>');
         d.stores.forEach(function (s) {
             var busy = !!s.move;
             var noS3 = !d.connection || !d.curl;
             rows.push('<tr><td><div class="st-name">' + esc(t('store_' + s.store)) + '</div><div class="st-desc">' + esc(t('store_' + s.store + '_desc')) + '</div>'
                 + moveBlock(s) + '<div class="st-msg" data-msg="' + esc(s.store) + '"></div></td>'
-                + '<td>' + esc(t('holds', { n: s.files, size: size(s.bytes) })) + '</td>'
+                + '<td>' + esc(holds(s)) + '</td>'
                 + '<td><div class="st-where"><select class="st-select" data-loc="' + esc(s.store) + '"' + (busy ? ' disabled' : '') + '>'
                 + '<option value="local"' + (s.location === 'local' ? ' selected' : '') + '>' + esc(t('local')) + '</option>'
                 + '<option value="s3"' + (s.location === 's3' ? ' selected' : '') + (noS3 && s.location !== 's3' ? ' disabled' : '') + '>' + esc(t('s3')) + '</option>'

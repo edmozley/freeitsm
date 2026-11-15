@@ -31,12 +31,15 @@ final class ZzMoveFakeS3 implements StorageDriver, StorageLister
 {
     public static bool $down = false;
     public static ?string $refuse = null;
+    /** Called just before a put: a delete landing between the job's read and its write. */
+    public static ?Closure $beforePut = null;
     private LocalDriver $d;
     public function __construct(string $dir) { $this->d = new LocalDriver($dir); }
     private function up(): void { if (self::$down) throw new StorageUnavailable('Storage could not be reached: stand-in is down'); }
     public function putFile(string $key, string $localPath, bool $move = false): void {
         $this->up();
         if ($key === self::$refuse) throw new RuntimeException('the stand-in refuses this key');
+        if (self::$beforePut) { $f = self::$beforePut; self::$beforePut = null; $f($key); }
         $this->d->putFile($key, $localPath, $move);
     }
     public function readRange(string $key, int $start, int $end, callable $sink): void { $this->up(); $this->d->readRange($key, $start, $end, $sink); }
@@ -207,9 +210,9 @@ try {
     storeDelete($conn, 'recordings', 'r/gone.pdf');
     $batch('recordings');
     $st = $items('recordings');
-    ok('a file deleted during the move is skipped, not failed', ($st['r/gone.pdf'] ?? '') === 'skipped', json_encode($st));
+    ok('a file deleted during the move leaves it (its row goes with the delete), never failed', !isset($st['r/gone.pdf']) && !is_file("$work/s3-recordings/r/gone.pdf"), json_encode($st));
     $sum = storeMoveSummary($conn, 'recordings');
-    ok('...so nothing blocks the end of the move', $sum['failed'] === 0 && $sum['pending'] === 0 && $sum['skipped'] === 1, json_encode($sum));
+    ok('...so nothing blocks the end of the move', $sum['failed'] === 0 && $sum['pending'] === 0 && $sum['skipped'] === 0, json_encode($sum));
     $all = true;
     foreach ($odd as $k => $v) if (@file_get_contents("$work/s3-recordings/$k") !== $v) $all = false;
     ok('names that differ only by case or accent are all copied, and dot names', $all);
@@ -247,6 +250,34 @@ try {
     ok('...both are copied before the move ends, and nothing is lost', storeMoveSummary($conn, 'documents') === null
        && storeGetString($conn, 'documents', 'd2.pdf') === 'doc two' && storeGetString($conn, 'documents', 'd4.pdf') === 'uploaded during cleanup'
        && is_file("$work/s3-documents/d4.pdf"), json_encode($items('documents')));
+
+    section('Deleting during a move');
+    $fresh = function (string $store) use ($conn) {
+        foreach (['location', 'previous', 'cleanup'] as $k) storeSaveSetting($conn, "storage_{$store}_$k", null);
+        $conn->prepare('DELETE FROM storage_migration_items WHERE store = ?')->execute([$store]);
+        storeReset();
+    };
+    $fresh('warroom');
+    $mk('warroom', 'w/gone.png', 'deleted while the job copies it');
+    $mk('warroom', 'w/kept.png', 'stays');
+    storeMoveStart($conn, 'warroom', 's3', $admin);
+    // The job has read w/gone.png from the server folder; before it writes the copy, someone
+    // deletes the attachment for good (storeDelete, as a ticket delete does).
+    ZzMoveFakeS3::$beforePut = function (string $key) use ($conn) { if ($key === 'w/gone.png') storeDelete($conn, 'warroom', $key); };
+    for ($i = 0; $i < 3; $i++) $batch('warroom');
+    ZzMoveFakeS3::$beforePut = null;
+    ok('a file deleted while the job copied it is not left in the new place', !is_file("$work/s3-warroom/w/gone.png") && !is_file("$work/local-warroom/w/gone.png"),
+       json_encode($items('warroom')));
+    ok('...its row is gone too, and the other file still moved', !isset($items('warroom')['w/gone.png']) && is_file("$work/s3-warroom/w/kept.png"), json_encode($items('warroom')));
+    storeMoveAction($conn, 'warroom', 'finish_keep', $admin);
+
+    $fresh('changes');
+    $mk('changes', 'c/x.pdf', 'delete me');
+    storeSaveSetting($conn, 'storage_changes_previous', ENCRYPTION_PREFIX . base64_encode(str_repeat('z', 40)));   // the old place can no longer be read
+    storeReset();
+    storeDelete($conn, 'changes', 'c/x.pdf');
+    ok('an old place that cannot be decrypted: the delete still removes the current copy', !is_file("$work/local-changes/c/x.pdf"));
+    $fresh('changes');
 
     section('A store moved to S3 on the connection Files was given');
     require_once "$root/includes/services/storage.php";

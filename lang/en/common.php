@@ -652,6 +652,10 @@ return [
             'help' => [
                 'unanswered' => 'The help assistant could not answer a question',
             ],
+            // Storage series N1 - administrators only.
+            'storage' => [
+                'changed' => 'Where stored files are kept has changed',
+            ],
             'hyperv' => [
                 'collector' => 'A Hyper-V collector needs your attention',
             ],
@@ -716,6 +720,9 @@ return [
             // The help assistant (wiki Help-Assistant-Design) - administrators only.
             'help' => [
                 'unanswered' => 'The help assistant cannot answer a question someone asked (administrators)',
+            ],
+            'storage' => [
+                'changed' => 'Where stored files are kept changes, or a move between storage locations starts or ends (administrators)',
             ],
             'hyperv' => [
                 'collector' => 'A Hyper-V collector stops reporting, or a cluster\'s storage cannot be read (people who manage Hyper-V connections)',

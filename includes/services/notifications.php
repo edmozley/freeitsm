@@ -201,7 +201,8 @@ class NotificationsService
             // Storage series N1 (PR #318 review) - to ADMINISTRATORS: a storage location
             // changed, a move started or ended (Files, or a store on System -> Storage).
             // On: it can send every stored file somewhere new; never the reader's own doing.
-            'storage.changed'         => ['default' => true,  'entity' => 'storage'],
+            // admin_only: Preferences does not offer it to anyone who could never get it.
+            'storage.changed'         => ['default' => true,  'entity' => 'storage', 'admin_only' => true],
             'domain.changed'          => ['default' => true,  'entity' => 'domain'],
             // Projects (3.2.0) - to the PROJECT MANAGER (projects.owner_analyst_id).
             // Health and tolerances fire on a change only (includes/projects/alerts.php),

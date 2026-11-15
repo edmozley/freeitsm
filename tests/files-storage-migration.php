@@ -140,13 +140,15 @@ try {
     queue($conn, $k7, 5, null);                    // old copy missing
     queue($conn, $k8, 5, hash('sha256', 'nope')); // old copy there, but damaged
     for ($i = 0; $i < 5; $i++) storageMigrateBatch($conn, time() + 60);
-    FilesStorageService::migrationAction($conn, 0, 'skip_missing');
+    // A person presses the buttons: an id below 1 is refused (PR #353 review).
+    $who = (int)$conn->query('SELECT id FROM analysts ORDER BY id LIMIT 1')->fetchColumn();
+    FilesStorageService::migrationAction($conn, $who, 'skip_missing');
     ok('skip_missing skips only files whose old copy is gone', stateOf($conn, $k7) === 'skipped/5' && stateOf($conn, $k8) === 'failed/5', stateOf($conn, $k7) . ' ' . stateOf($conn, $k8));
     $e = null;
-    try { FilesStorageService::migrationAction($conn, 0, 'finish_keep'); } catch (Throwable $x) { $e = $x; }
+    try { FilesStorageService::migrationAction($conn, $who, 'finish_keep'); } catch (Throwable $x) { $e = $x; }
     ok('control: finish_keep refuses while a file failed with its old copy present', $e instanceof InvalidArgumentException && filesPreviousStorageConfig($conn) !== null);
     $conn->exec("DELETE FROM storage_migration_items WHERE object_key = '$k8'");
-    FilesStorageService::migrationAction($conn, 0, 'finish_keep');
+    FilesStorageService::migrationAction($conn, $who, 'finish_keep');
     ok('finish_keep ends the move and deletes nothing', filesPreviousStorageConfig($conn) === null && is_file("$old/$k8")
         && (int)$conn->query("SELECT COUNT(*) FROM storage_migration_items WHERE store = 'files'")->fetchColumn() === 0);
 

@@ -202,5 +202,5 @@ function storageMigrateEnd(PDO $conn, string $what, string $from, ?int $actorId 
     $how = ['old_copies_removed' => 'the old copies were removed', 'finished_kept_old_copies' => 'the old copies were kept',
             'ended_same_location_nothing_deleted' => 'the old and new places turned out to be one, so nothing was deleted'][$what] ?? $what;
     storageNotifyAdmins($conn, $unfinished ? 'Files storage move: finished files cleared' : 'Files storage move finished',
-        "Moving Files from $from: $how." . ($unfinished ? " $unfinished files are still to copy." : ''), 'files_storage', $actorId);
+        "Moving Files from $from: $how." . ($unfinished ? " Files still to copy: $unfinished." : ''), 'files_storage', $actorId);
 }

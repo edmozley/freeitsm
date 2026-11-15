@@ -235,7 +235,7 @@ final class FilesStorageService
                 require_once __DIR__ . '/../storage/notify.php';
                 storageNotifyAdmins($conn, 'Files storage location changed',
                     'Files are now stored in ' . self::label($next) . ' (were in ' . self::label($current) . ').'
-                    . ($queued > 0 ? " $queued stored files are being copied there in the background; until each is, it is read from the old place." : ''),
+                    . ($queued > 0 ? " Stored files being copied there in the background: $queued. Until each is, it is read from the old place." : ''),
                     'files_storage', $analystId);
             }
         } catch (Throwable $e) {
@@ -288,6 +288,7 @@ final class FilesStorageService
      */
     public static function migrationAction(PDO $conn, int $analystId, string $action): void
     {
+        if ($analystId < 1) throw new InvalidArgumentException('Not signed in.');
         $m = self::migrationSummary($conn);
         if ($m === null) throw new InvalidArgumentException('No move between storage locations is running.');
         $copiedAll = $m['pending'] === 0 && $m['failed'] === 0;
@@ -308,7 +309,7 @@ final class FilesStorageService
             filesSaveSetting($conn, 'files_storage_cleanup', '1');
         } elseif ($action === 'finish_keep') {
             if (!$copiedAll) throw new InvalidArgumentException('The move can only be finished once every file has been copied.');
-            storageMigrateEnd($conn, 'finished_kept_old_copies', $m['from_label'], $analystId > 0 ? $analystId : null);
+            storageMigrateEnd($conn, 'finished_kept_old_copies', $m['from_label'], $analystId);
         } else {
             throw new InvalidArgumentException('Unknown action.');
         }
@@ -361,7 +362,6 @@ final class FilesStorageService
         ];
     }
 
-    /** What identifies a location: moving between two different ones moves the files. */
     /**
      * Changing WHERE Files is stored - another folder or bucket, or other S3 credentials -
      * needs Storage and backups (Cap::FILES_STORAGE_BACKUPS) beside Files -> Storage: it can
@@ -393,6 +393,7 @@ final class FilesStorageService
      */
     public static function testAudited(PDO $conn, int $analystId, array $s): array
     {
+        if ($analystId < 1) throw new InvalidArgumentException('Not signed in.');
         $stored = settingGetDecrypted($conn, 'files_s3_secret');
         if (self::secretUnchanged((string)($s['secret'] ?? ''), $stored)) $s['secret'] = $stored;
         $t = self::test($s);
@@ -419,6 +420,7 @@ final class FilesStorageService
         catch (Throwable $e) { return false; }
     }
 
+    /** What identifies a location: moving between two different ones moves the files. */
     private static function locationKey(array $cfg): string
     {
         if (($cfg['driver'] ?? 'local') === 's3') {

@@ -480,14 +480,20 @@ function storeDelete(PDO $conn, string $store, string $key): bool
 {
     if (!storeKeyIsValid($key)) return false;
     $ok = true;
+    // A running move forgets the key FIRST: a copy its job writes after this point finds its
+    // row gone and removes it (storeMoveBatch), so a deleted file never comes back.
     try {
-        $drivers = [storeActive($conn, $store)];
-        $prev = storePrevious($conn, $store);
-        if ($prev !== null) $drivers[] = $prev;
-    } catch (Throwable $e) {
-        error_log("storage: {$store} delete {$key}: " . $e->getMessage());
-        return false;
+        $conn->prepare("DELETE FROM storage_migration_items WHERE store = ? AND object_key = ?")->execute([$store, $key]);
+    } catch (PDOException $e) {
+        error_log("storage: {$store} delete {$key}: the move's row could not be removed: " . $e->getMessage());
+        $ok = false;
     }
+    // Each place on its own: an old place that cannot be read never stops the current copy going.
+    $drivers = [];
+    try { $drivers[] = storeActive($conn, $store); }
+    catch (Throwable $e) { error_log("storage: {$store} delete {$key}: " . $e->getMessage()); $ok = false; }
+    try { if (($prev = storePrevious($conn, $store)) !== null) $drivers[] = $prev; }
+    catch (Throwable $e) { error_log("storage: {$store} delete {$key}: " . $e->getMessage()); $ok = false; }
     foreach ($drivers as $d) {
         try {
             $d->delete($key);

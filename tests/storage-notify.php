@@ -17,6 +17,7 @@ $root = dirname(__DIR__);
 require_once "$root/config.php";
 require_once "$root/includes/functions.php";
 require_once "$root/includes/entity_links.php";
+require_once "$root/includes/i18n.php";
 require_once "$root/includes/services/notifications.php";
 require_once "$root/includes/services/files_storage.php";
 require_once "$root/includes/services/storage.php";
@@ -39,6 +40,10 @@ if (getenv('FREEITSM_TEST_DATABASE') !== (string)$conn->query('SELECT DATABASE()
 $types = NotificationsService::types();
 ok('a notification type for storage changes, on by default', ($types['storage.changed']['default'] ?? null) === true, json_encode($types['storage.changed'] ?? null));
 ok('...linking to System -> Storage', entityLink('storage', 1) === 'system/storage/', var_export(entityLink('storage', 1), true));
+ok('...offered on Preferences only to administrators (the only ones sent it)', ($types['storage.changed']['admin_only'] ?? null) === true);
+foreach (['common.notifications.pref.storage.changed', 'common.notifications.event.storage.changed'] as $k) {
+    ok("...with a label: $k", t($k) !== $k && t($k) !== '', t($k));
+}
 
 $dir = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-notify-' . bin2hex(random_bytes(4));
 mkdir($dir);
@@ -77,7 +82,7 @@ try {
     $a = $bells($actor);
     storageMigrateEnd($conn, 'finished_kept_old_copies', 'zz old place', $actor);
     ok('...but not to the one who pressed Finish', $bells($actor) === $a);
-    ok('the Files tab passes who pressed Finish', str_contains((string)file_get_contents("$root/includes/services/files_storage.php"), "storageMigrateEnd(\$conn, 'finished_kept_old_copies', \$m['from_label'], \$analystId > 0 ? \$analystId : null)"));
+    ok('the Files tab passes who pressed Finish', str_contains((string)file_get_contents("$root/includes/services/files_storage.php"), "storageMigrateEnd(\$conn, 'finished_kept_old_copies', \$m['from_label'], \$analystId)"));
 
     echo "\nThe stores\n";
     $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';

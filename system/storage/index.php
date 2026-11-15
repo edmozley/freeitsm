@@ -140,7 +140,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
     <script>window.ST_API = '<?php echo $path_prefix; ?>api/system/storage.php'; window.ST_FILES_SETTINGS = '<?php echo $path_prefix; ?>files/settings/?tab=storage';</script>
     <script src="../../assets/js/i18n.js?v=3"></script>
     <script src="../../assets/js/confirm.js?v=7"></script>
-    <script src="../../assets/js/system-storage.js?v=4"></script>
+    <script src="../../assets/js/system-storage.js?v=5"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

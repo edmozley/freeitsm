@@ -36,22 +36,18 @@ final class StorageService
         $c = storageS3Connection($conn);
         $stores = [];
         foreach (array_keys(STORAGE_STORES) as $s) {
-            $usage = [0, 0];
-            try { $usage = $conn->query(self::USAGE_SQL[$s])->fetch(PDO::FETCH_NUM) ?: [0, 0]; } catch (PDOException $e) { /* before Database Verification */ }
+            $usage = self::usage($conn, self::USAGE_SQL[$s]);
             $stores[] = [
                 'store'    => $s,
                 'location' => storeLocation($conn, $s),
-                'files'    => (int)$usage[0],
-                'bytes'    => (int)$usage[1],
+                'files'    => $usage[0],
+                'bytes'    => $usage[1],
                 'folder'   => STORAGE_STORES[$s],
                 'move'     => storeMoveSummary($conn, $s),
             ];
         }
-        $filesUsage = [0, 0];
-        try {
-            $filesUsage = $conn->query("SELECT COUNT(DISTINCT storage_path), COALESCE(SUM(size_bytes), 0)
-                                          FROM (SELECT storage_path, MAX(size_bytes) AS size_bytes FROM files_versions GROUP BY storage_path) s")->fetch(PDO::FETCH_NUM) ?: [0, 0];
-        } catch (PDOException $e) { /* before Database Verification */ }
+        $filesUsage = self::usage($conn, "SELECT COUNT(DISTINCT storage_path), COALESCE(SUM(size_bytes), 0)
+                                          FROM (SELECT storage_path, MAX(size_bytes) AS size_bytes FROM files_versions GROUP BY storage_path) s");
         return [
             'connection' => $c === null ? null : [
                 'endpoint'      => $c['endpoint'],
@@ -73,8 +69,8 @@ final class StorageService
             'stores'     => $stores,
             'files'      => [
                 'location' => filesSetting($conn, 'files_storage_driver', 'local') === 's3' ? 's3' : 'local',
-                'files'    => (int)$filesUsage[0],
-                'bytes'    => (int)$filesUsage[1],
+                'files'    => $filesUsage[0],
+                'bytes'    => $filesUsage[1],
                 'moving'   => filesPreviousStorageConfig($conn) !== null,
             ],
             'curl'       => extension_loaded('curl'),
@@ -191,17 +187,34 @@ final class StorageService
     {
         if (storeSetting($conn, 'storage_s3_bucket') !== '' || storeSetting($conn, 'files_s3_bucket') === '') return;
         $keys = ['endpoint', 'region', 'bucket', 'access_key_id', 'secret', 'prefix', 'path_style'];
-        $conn->beginTransaction();
+        $own = !$conn->inTransaction();   // join the caller's transaction, or own one
+        if ($own) $conn->beginTransaction();
         try {
             foreach ($keys as $k) storeSaveSetting($conn, "storage_s3_$k", storeSetting($conn, "files_s3_$k"));
             foreach ($keys as $k) storeSaveSetting($conn, "files_s3_$k", null);
-            $conn->commit();
+            if ($own) $conn->commit();
         } catch (Throwable $e) {
-            $conn->rollBack();
+            if ($own) $conn->rollBack();
             throw $e;
         }
         storeReset();
         filesStorageReset();
+    }
+
+    /**
+     * [files, bytes] for the page. A table Database Verification has not created yet holds
+     * nothing: [0, 0]. Any other failure is unknown - [null, null], never "empty".
+     */
+    private static function usage(PDO $conn, string $sql): array
+    {
+        try {
+            $r = $conn->query($sql)->fetch(PDO::FETCH_NUM) ?: [0, 0];
+            return [(int)$r[0], (int)$r[1]];
+        } catch (PDOException $e) {
+            if ($e->getCode() === '42S02') return [0, 0];
+            error_log('[storage] usage: ' . $e->getMessage());
+            return [null, null];
+        }
     }
 
     /** True while Files or any store keeps files in the bucket, or is moving. */
@@ -243,7 +256,6 @@ final class StorageService
         return $cfg;
     }
 
-    /** What identifies the place: another endpoint, bucket or prefix is another place. */
     /** True while Files or a store is moving OUT of S3 (its previous place is the bucket). */
     private static function moveReadsS3(PDO $conn): bool
     {
@@ -264,6 +276,7 @@ final class StorageService
         return json_encode([(string)$c['access_key_id'], (string)$c['secret'], (string)($c['region'] ?? ''), !empty($c['path_style'])]);
     }
 
+    /** What identifies the place: another endpoint, bucket or prefix is another place. */
     private static function placeKey(array $c): string
     {
         return rtrim((string)$c['endpoint'], '/') . '|' . $c['bucket'] . '|' . s3NormalisePrefix((string)($c['prefix'] ?? ''));
