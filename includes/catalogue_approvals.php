@@ -396,6 +396,107 @@ function catalogueLockSubmission(PDO $conn, int $submissionId): array {
     return $sub;
 }
 
+/**
+ * May the requester still cancel this request (GH #348)? Only while it waits for an
+ * approval (Ed's decision): a request sent with no approval is already with the desk,
+ * and once there is a ticket, the ticket is where to say so. Only a catalogue request -
+ * not a form filled in on a ticket (GH #272) or in a task.
+ *
+ * @param array $sub  the form_submissions row
+ */
+function catalogueRequestCancellable(array $sub): bool
+{
+    if (!empty($sub['for_ticket_id']) || !empty($sub['task_id'])) return false;
+    return ($sub['approval_status'] ?? '') === 'pending';
+}
+
+/**
+ * The requester cancels their own request (GH #348) - asked for by mistake, or no longer
+ * needed - with the reason, which the approver sees. The request is kept, marked
+ * 'cancelled', never deleted: it leaves the approvers' inbox, and can no longer be decided.
+ *
+ * Locked FOR UPDATE, as a decision is, so a cancel and an approval at the same moment
+ * cannot both win: whichever comes second finds it no longer pending.
+ *
+ * @param int    $userId        the portal user cancelling - must be who made the request
+ * @param int    $submissionId  form_submissions.id
+ * @param string $reason        why - required
+ * @throws ServiceError  not_found (not theirs, or not a request), validation (no reason), conflict (too late)
+ */
+function catalogueCancelRequest(PDO $conn, int $userId, int $submissionId, string $reason): void
+{
+    require_once __DIR__ . '/service_context.php';   // ServiceError
+    $reason = trim(preg_replace('/\s+/u', ' ', $reason));
+    if ($reason === '') throw new ServiceError('validation', 'missing_field', 'Say why you are cancelling this request.');
+    if (mb_strlen($reason) > 1000) throw new ServiceError('validation', 'invalid_field', 'Keep the reason under 1000 characters.');
+
+    $conn->beginTransaction();
+    try {
+        $st = $conn->prepare('SELECT * FROM form_submissions WHERE id = ? FOR UPDATE');
+        $st->execute([$submissionId]);
+        $sub = $st->fetch(PDO::FETCH_ASSOC);
+        // Somebody else's request is "not found", never "not yours".
+        if (!$sub || (int)$sub['submitted_by_user_id'] !== $userId || !empty($sub['for_ticket_id']) || !empty($sub['task_id'])) {
+            throw new ServiceError('not_found', 'not_found', 'That request was not found.');
+        }
+        if (!catalogueRequestCancellable($sub)) {
+            throw new ServiceError('conflict', 'conflict', match ($sub['approval_status']) {
+                'cancelled' => 'This request is already cancelled.',
+                'approved', 'rejected' => 'This request has already been decided, so it can no longer be cancelled.',
+                default => 'Only a request that is waiting for approval can be cancelled. This one has already been sent - reply on its ticket, or contact the service desk.',
+            });
+        }
+        // approval_decided_by_id names an ANALYST; the requester is submitted_by_user_id.
+        $conn->prepare(
+            "UPDATE form_submissions SET approval_status = 'cancelled', approval_decided_by_id = NULL,
+                    approval_decided_datetime = UTC_TIMESTAMP(), approval_comment = ? WHERE id = ?"
+        )->execute([$reason, $submissionId]);
+        $conn->commit();
+    } catch (Throwable $e) {
+        if ($conn->inTransaction()) $conn->rollBack();
+        throw $e;
+    }
+
+    catalogueAfterCancel($conn, $sub, $reason);
+}
+
+/**
+ * After a cancel has committed: fire catalogue_request.cancelled (GH #348), so a rule can
+ * tell the approver - or the team - that the request waiting for them is withdrawn, and
+ * why. Carries what catalogue_request.submitted carried (who decides) plus the reason.
+ * Best-effort, like every catalogue event: a failure here never undoes the cancel.
+ *
+ * @param array  $sub     the form_submissions row as it was locked (still 'pending')
+ * @param string $reason  the requester's reason, already tidied
+ */
+function catalogueAfterCancel(PDO $conn, array $sub, string $reason): void
+{
+    if (!class_exists('WorkflowEngine')) return;
+    $submissionId = (int)$sub['id'];
+    try {
+        $st = $conn->prepare('SELECT title FROM forms WHERE id = ?');
+        $st->execute([(int)$sub['form_id']]);
+        $answers = catalogueSubmissionAnswerMap($conn, $submissionId);
+        $payload = [
+            'form'    => ['id' => (int)$sub['form_id'], 'name' => (string)$st->fetchColumn()],
+            // 'comment' as on .approved / .rejected, so one message template reads all three.
+            'request' => ['id' => $submissionId, 'reason' => $reason, 'comment' => $reason],
+            'submission' => [
+                'id'     => $submissionId,
+                'email'  => $answers['email'],
+                'fields' => $answers['fields'],
+            ],
+        ];
+        // Who was going to decide - from the request's snapshot, as .submitted named them.
+        $p = catalogueApprovalPolicy($sub);
+        if ($p['approver_id'] !== null && $p['mode'] === 'person') $payload['approver'] = ['id' => $p['approver_id']];
+        if ($p['team_id'] !== null) $payload['approval_team'] = ['id' => $p['team_id'], 'approvals_required' => $p['approvals_required']];
+        WorkflowEngine::dispatch('catalogue_request.cancelled', $payload);
+    } catch (Throwable $e) {
+        error_log('catalogue_request.cancelled dispatch error: ' . $e->getMessage());
+    }
+}
+
 /** "Team: Finance (2 approvals)" or "Priya Shah" - what a request is waiting on, for the record. */
 function catalogueRoutingLabel(PDO $conn, array $sub): string {
     $p = catalogueApprovalPolicy($sub);
@@ -753,10 +854,14 @@ function catalogueRaiseTicketFromSubmissionId(PDO $conn, int $submissionId, arra
     // Reported privately, October 2026. And a ticket already raised (by the
     // approval itself, or a rule on .approved) is returned, not raised twice.
     $status = (string)($sub['approval_status'] ?? 'not_required');
-    if ($status === 'pending' || $status === 'rejected') {
-        throw new Exception($status === 'pending'
-            ? 'That request is still awaiting approval, so no ticket was raised'
-            : 'That request was rejected, so no ticket was raised');
+    // GH #348: and never for one the requester cancelled - a rule on
+    // catalogue_request.cancelled must not raise the ticket they withdrew.
+    if ($status === 'pending' || $status === 'rejected' || $status === 'cancelled') {
+        throw new Exception(match ($status) {
+            'pending'   => 'That request is still awaiting approval, so no ticket was raised',
+            'rejected'  => 'That request was rejected, so no ticket was raised',
+            'cancelled' => 'That request was cancelled by the requester, so no ticket was raised',
+        });
     }
     if (!empty($sub['ticket_id'])) {
         $tn = $conn->prepare("SELECT ticket_number FROM tickets WHERE id = ?");
@@ -933,6 +1038,12 @@ function catalogueSubmissionBodyHtml(PDO $conn, int $submissionId, string $formT
     // somebody their Guest Wi-Fi request came "from the catalogue" when there is
     // no catalogue involved is just wrong.
     $html = '<p>Submitted via the <strong>' . $esc($formTitle) . '</strong> form.</p>';
+    // GH #348: the price it was requested at, when the item has one.
+    require_once __DIR__ . '/catalogue_card.php';
+    $price = catalogueRequestPriceLabels($conn, [$submissionId])[$submissionId] ?? '';
+    if ($price !== '') $html .= '<p><strong>' . $esc(t('common.catalogue_price.label')) . ':</strong> ' . $esc($price) . '</p>';
+    // An item that asks nothing (GH #348) has no answers: no empty table.
+    if (!$rows) return $html;
     $html .= '<table style="border-collapse:collapse;">';
     foreach ($rows as $r) {
         $val = catalogueAnswerText($r['field_value'], $r['field_type'], $r);
@@ -1078,6 +1189,11 @@ function catalogueApprovalsList(PDO $conn, int $analystId, string $filter = 'min
         $it['answers'] = catalogueSubmissionAnswers($conn, (int)$it['id']);
         $out[] = $it;
     }
+    // GH #348: the price each was requested at - what the approver is saying yes to.
+    require_once __DIR__ . '/catalogue_card.php';
+    $prices = catalogueRequestPriceLabels($conn, array_column($out, 'id'));
+    foreach ($out as &$it) $it['price_label'] = $prices[(int)$it['id']] ?? '';
+    unset($it);
 
     // "Mine" is counted the same way it is listed, so the tab never promises more than it shows.
     if ($filter === 'mine') {

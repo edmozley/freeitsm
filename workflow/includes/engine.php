@@ -141,6 +141,8 @@ class WorkflowEngine
             'catalogue_request.submitted' => 'A catalogue request is submitted for approval',
             'catalogue_request.approved'  => 'A catalogue request is approved',
             'catalogue_request.rejected'  => 'A catalogue request is rejected',
+            // GH #348: the requester withdrew it while it waited for approval.
+            'catalogue_request.cancelled' => 'A catalogue request is cancelled by the requester',
             'task.created'             => 'A task is created',
             'task.assigned'            => 'A task is assigned to somebody',
             // GH #89. SEPARATE events, never a widened task.assigned: that one
@@ -455,6 +457,13 @@ class WorkflowEngine
             ],
             'catalogue_request.rejected' => [
                 'form.id', 'form.name', 'request.id', 'request.comment', 'submission.email',
+            ],
+            // GH #348: who was going to decide, as on .submitted, and why it was
+            // withdrawn (request.reason; request.comment carries the same text so a
+            // template written for .rejected reads it too).
+            'catalogue_request.cancelled' => [
+                'form.id', 'form.name', 'request.id', 'request.reason', 'request.comment',
+                'submission.email', 'approver.id', 'approval_team.id',
             ],
             'task.created' => [
                 'task.id', 'task.title', 'task.status_id', 'task.priority_id', 'task.assignee_id',
@@ -1201,6 +1210,7 @@ class WorkflowEngine
         'catalogue_request.submitted',
         'catalogue_request.approved',
         'catalogue_request.rejected',
+        'catalogue_request.cancelled',
     ];
 
     /**

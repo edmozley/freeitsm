@@ -205,12 +205,67 @@ document.addEventListener('DOMContentLoaded', loadTraining);
 
         // Catalogue requests awaiting / after approval (#928). Hidden entirely when
         // the user has none, so it never adds noise for people who only raise tickets.
+        // ── Cancel a request (GH #348) ──────────────────────────────────────
+        let cancelRequests = {};
+        let cancelId = 0;
+        function openCancelRequest(id) {
+            const r = cancelRequests[id];
+            if (!r) return;
+            cancelId = id;
+            document.getElementById('reqCancelWhat').textContent = window.t('self-service.dashboard.req_cancel_text', { what: r.form_title });
+            document.getElementById('reqCancelReason').value = '';
+            document.getElementById('reqCancelError').style.display = 'none';
+            document.getElementById('reqCancelConfirm').disabled = false;
+            const dlg = document.getElementById('reqCancelDialog');
+            if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+            document.getElementById('reqCancelReason').focus();
+        }
+        function closeCancelRequest() {
+            const dlg = document.getElementById('reqCancelDialog');
+            if (dlg.close) dlg.close(); else dlg.removeAttribute('open');
+            cancelId = 0;
+        }
+        async function confirmCancelRequest() {
+            const reason = document.getElementById('reqCancelReason').value.trim();
+            const err = document.getElementById('reqCancelError');
+            if (!reason) {
+                err.textContent = window.t('self-service.dashboard.req_cancel_need_reason');
+                err.style.display = '';
+                document.getElementById('reqCancelReason').focus();
+                return;
+            }
+            const btn = document.getElementById('reqCancelConfirm');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'cancel_request.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ submission_id: cancelId, reason: reason })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    err.textContent = data.error || window.t('self-service.dashboard.req_cancel_failed');
+                    err.style.display = '';
+                    btn.disabled = false;
+                    return;
+                }
+                closeCancelRequest();
+                loadDashboard();
+            } catch (e) {
+                err.textContent = window.t('self-service.dashboard.req_cancel_failed');
+                err.style.display = '';
+                btn.disabled = false;
+            }
+        }
+
         function renderRequests(requests) {
             const section = document.getElementById('requestsSection');
             const container = document.getElementById('requestsContainer');
             if (!section || !container) return;
 
             const list = Array.isArray(requests) ? requests : [];
+            cancelRequests = {};
+            list.forEach(r => { cancelRequests[r.id] = r; });
             if (list.length === 0) { section.style.display = 'none'; return; }
             section.style.display = '';
 
@@ -222,11 +277,24 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                     statusCell = `<span class="req-pill approved">${escapeHtml(window.t('self-service.dashboard.req_approved'))}</span>${link}`;
                 } else if (r.approval_status === 'rejected') {
                     statusCell = `<span class="req-pill rejected">${escapeHtml(window.t('self-service.dashboard.req_rejected'))}</span>`;
+                } else if (r.approval_status === 'cancelled') {
+                    // GH #348: cancelled by the requester - the reason on hover.
+                    statusCell = `<span class="req-pill cancelled" title="${escapeHtml(r.approval_comment || '')}">${escapeHtml(window.t('self-service.dashboard.req_cancelled'))}</span>`;
+                } else if (r.approval_status === 'not_required') {
+                    // GH #348: a request with no approval - sent, and its ticket once there is one.
+                    const link = r.ticket_number
+                        ? ` <a href="tickets.php?id=${r.ticket_id}" class="ticket-link">${escapeHtml(r.ticket_number)}</a>` : '';
+                    statusCell = `<span class="req-pill sent">${escapeHtml(window.t('self-service.dashboard.req_sent'))}</span>${link}`;
                 } else {
                     statusCell = `<span class="req-pill pending">${escapeHtml(window.t('self-service.dashboard.req_pending'))}</span>`;
                 }
+                // Cancel, while it can still be (GH #348) - in the state cell, so the
+                // phone layout, which keys on the column, is unchanged.
+                if (r.can_cancel) {
+                    statusCell += `<button type="button" class="req-cancel" onclick="openCancelRequest(${Number(r.id)})">${escapeHtml(window.t('self-service.dashboard.req_cancel'))}</button>`;
+                }
                 return `<tr>
-                    <td>${escapeHtml(r.form_title)}</td>
+                    <td>${escapeHtml(r.form_title)}${r.price_label ? `<div class="ticket-date">${escapeHtml(r.price_label)}</div>` : ''}</td>
                     <td>${statusCell}</td>
                     <td><span class="ticket-date">${formatDate(r.submitted_date)}</span></td>
                 </tr>`;
@@ -630,6 +698,23 @@ require __DIR__ . "/includes/header.php";
             .req-pill.pending  { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
             .req-pill.approved { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
             .req-pill.rejected { background: var(--danger-bg, #fee2e2);  color: var(--danger-text, #991b1b); }
+            .req-pill.sent     { background: var(--info-bg, #e0f2fe);    color: var(--info-text, #075985); }
+            .req-pill.cancelled { background: var(--surface-2, #f1f3f5);  color: var(--text-muted, #666); }
+            /* Cancel (GH #348): quiet beside the state, a link rather than a button. */
+            .req-cancel { margin-left: 10px; padding: 0; border: none; background: none; font: inherit; font-size: 12.5px;
+                color: var(--danger-text, #b91c1c); cursor: pointer; text-decoration: underline; }
+            .req-dialog { margin: auto; border: none; border-radius: 10px; padding: 0; width: min(440px, calc(100vw - 32px));
+                background: var(--surface, #fff); color: var(--text, #333); box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
+            .req-dialog::backdrop { background: rgba(0,0,0,0.45); }
+            .req-dialog h3 { margin: 0; padding: 18px 20px 6px; font-size: 17px; }
+            .req-dialog p { margin: 0; padding: 0 20px 12px; font-size: 13.5px; color: var(--text-muted, #666); }
+            .req-dialog textarea { display: block; width: calc(100% - 40px); margin: 0 20px; min-height: 90px; padding: 10px; box-sizing: border-box;
+                border: 1px solid var(--border, #d0d5da); border-radius: 6px; font: inherit; font-size: 14px; resize: vertical;
+                background: var(--surface, #fff); color: var(--text, #333); }
+            .req-dialog .req-dialog-error { color: var(--danger-text, #b91c1c); padding: 6px 20px 0; font-size: 13px; }
+            .req-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px 18px; }
+            .req-dialog .req-danger { background: var(--danger, #dc2626); color: #fff; border: none; }
+            .req-dialog .req-danger:disabled { opacity: 0.6; }
         </style>
         <div class="portal-section" id="requestsSection" style="display:none;">
             <div class="section-header">
@@ -637,6 +722,19 @@ require __DIR__ . "/includes/header.php";
             </div>
             <div id="requestsContainer"></div>
         </div>
+        <?php /* Cancel a request (GH #348) - asked for by mistake, or no longer needed.
+                 The reason is required: the approver reads it. */ ?>
+        <dialog class="req-dialog" id="reqCancelDialog">
+            <h3><?php echo htmlspecialchars(t('self-service.dashboard.req_cancel_title')); ?></h3>
+            <p id="reqCancelWhat"></p>
+            <textarea id="reqCancelReason" maxlength="1000" placeholder="<?php echo htmlspecialchars(t('self-service.dashboard.req_cancel_reason_ph')); ?>"
+                      aria-label="<?php echo htmlspecialchars(t('self-service.dashboard.req_cancel_reason')); ?>"></textarea>
+            <div class="req-dialog-error" id="reqCancelError" style="display:none;"></div>
+            <div class="req-dialog-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCancelRequest()"><?php echo htmlspecialchars(t('self-service.dashboard.req_cancel_keep')); ?></button>
+                <button type="button" class="btn req-danger" id="reqCancelConfirm" onclick="confirmCancelRequest()"><?php echo htmlspecialchars(t('self-service.dashboard.req_cancel_confirm')); ?></button>
+            </div>
+        </dialog>
 
         <!-- Two column layout -->
         <div class="portal-grid">

@@ -124,7 +124,18 @@ try {
     $statusOn = moduleIsEnabled($conn, 'service-status');
     $services = $statusOn ? $svcStmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
-    // Catalogue requests the user has submitted that carry an approval state (#928).
+    // Catalogue requests the user has submitted (#928). Every one, not only those
+    // that wait for an approval (GH #348): a request with no approval was saved and
+    // then shown nowhere, so the person who asked for something never saw it again.
+    // A form filled in on one of their tickets (GH #272) or inside a task is not a
+    // request, and stays out - so Cancel is never offered on one. Each column is
+    // named only once Database Verification has added it (columnsReady() is the
+    // per-request cached check every form_submissions reader uses).
+    require_once __DIR__ . '/../../includes/services/task_forms.php';
+    $reqForTicket = '';
+    if (TaskForms::columnsReady($conn))   $reqForTicket .= ' AND s.task_id IS NULL';
+    if (TicketForms::columnsReady($conn)) $reqForTicket .= ' AND s.for_ticket_id IS NULL';
+    // (Before GH #348: only those that carry an approval state.)
     // A pending request is NOT a ticket yet, so without this the requester has no way
     // to see it — it would just vanish until (and unless) it is approved. Guarded so a
     // pre-upgrade install without the approval columns degrades to "no requests"
@@ -132,18 +143,28 @@ try {
     $requests = [];
     if (moduleIsEnabled($conn, 'forms')) try {   // GH #217
         $reqStmt = $conn->prepare(
-            "SELECT s.id, s.approval_status, s.submitted_date, s.ticket_id,
+            "SELECT s.id, s.approval_status, s.submitted_date, s.ticket_id, s.approval_comment,
                     f.title AS form_title, t.ticket_number
                FROM form_submissions s
                JOIN forms f       ON f.id = s.form_id
                LEFT JOIN tickets t ON t.id = s.ticket_id AND t.deleted_datetime IS NULL
-              WHERE s.submitted_by_user_id = ?
-                AND s.approval_status IN ('pending','approved','rejected')
+              WHERE s.submitted_by_user_id = ?" . $reqForTicket . "
            ORDER BY s.submitted_date DESC
               LIMIT 15"
         );
         $reqStmt->execute([$userId]);
         $requests = $reqStmt->fetchAll(PDO::FETCH_ASSOC);
+        // GH #348: the price each was requested at.
+        require_once __DIR__ . '/../../includes/catalogue_card.php';
+        $prices = catalogueRequestPriceLabels($conn, array_column($requests, 'id'));
+        require_once __DIR__ . '/../../includes/catalogue_approvals.php';
+        foreach ($requests as &$r) {
+            $r['price_label'] = $prices[(int)$r['id']] ?? '';
+            // Whether the person may still cancel it (GH #348); the reason shows only on a cancelled one.
+            $r['can_cancel'] = catalogueRequestCancellable($r);
+            if ($r['approval_status'] !== 'cancelled') $r['approval_comment'] = null;
+        }
+        unset($r);
     } catch (Exception $e) {
         $requests = [];
     }

@@ -47,7 +47,7 @@ $translationNamespaces = ['common', 'forms'];
     <script src="../assets/js/pdf-writer.js?v=2"></script>
     <!-- The shared document builder. Same code as the single-form page, so a
          record exported from here is identical to one exported from there. -->
-    <script src="../assets/js/form-pdf.js?v=3"></script>
+    <script src="../assets/js/form-pdf.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <!-- The detail panel draws a table QUESTION as a real table, and .form-table

@@ -591,6 +591,12 @@ $translationNamespaces = ['common', 'forms'];
                       + (collectionClosed ? ' · ' + esc(window.t('forms.collections.closed_badge')) : '')
                       + '</span>'
                     : '';
+                /* Its price in the catalogue (GH #348): the state, readable while
+                   scanning. The card itself is set in the editor's Catalogue tab. */
+                const pricePill = f.catalogue_price_label
+                    ? '<span class="ft-pill" style="background:var(--forms-accent-soft);color:var(--forms-accent);" title="'
+                      + escAttr(window.t('forms.card.price_pill_title')) + '">' + esc(f.catalogue_price_label) + '</span>'
+                    : '';
                 return `<tr onclick="openEdit(${f.id})">
                     <td class="col-title">
                         <strong>${esc(f.title)}</strong>
@@ -599,7 +605,7 @@ $translationNamespaces = ['common', 'forms'];
                              a collection name is a sentence, and four pills in 100px
                              wrapped to one word per line. This column is the wide
                              one, and the pills describe the form. -->
-                        <div class="ft-pills">${statusPill}${portalPill}${approvalPill}${audiencePill}${collectionPill}</div>
+                        <div class="ft-pills">${statusPill}${portalPill}${pricePill}${approvalPill}${audiencePill}${collectionPill}</div>
                     </td>
                     <td><span class="ft-pill version">v${f.version_number || 1}</span></td>
                     <td style="text-align: right;">${f.field_count}</td>

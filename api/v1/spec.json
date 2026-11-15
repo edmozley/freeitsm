@@ -12621,7 +12621,7 @@
                     "p": "\/forms",
                     "perm": "forms.create",
                     "s": "Create a form",
-                    "d": "Title required; fields is an ordered array of {field_type, label, options?, is_required?}. Types: text, textarea, email, number, checkbox, checkboxes, dropdown, radio (options array for the last three). Unknown types and empty labels are a 422 — stricter than the UI.",
+                    "d": "Title required; fields is an ordered array of {field_type, label, options?, is_required?}. The catalogue_* keys set the portal catalogue card (GH #348) - the picture is set in the form editor, never here. Types: text, textarea, email, number, checkbox, checkboxes, dropdown, radio (options array for the last three). Unknown types and empty labels are a 422 — stricter than the UI.",
                     "params": [
                         {
                             "name": "title",
@@ -12639,6 +12639,30 @@
                             "name": "fields",
                             "in": "body",
                             "desc": "Ordered array of field definitions",
+                            "req": false
+                        },
+                        {
+                            "name": "catalogue_summary",
+                            "in": "body",
+                            "desc": "GH #348: the portal catalogue card's one line - plain text, up to 255 characters; null or empty clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "catalogue_price",
+                            "in": "body",
+                            "desc": "The catalogue price, a number from 0 up (0 shows as Free); null or empty clears it. A portal request keeps the price it was made at",
+                            "req": false
+                        },
+                        {
+                            "name": "catalogue_currency",
+                            "in": "body",
+                            "desc": "ISO 4217 code (e.g. GBP); null or empty = the install's currency",
+                            "req": false
+                        },
+                        {
+                            "name": "catalogue_price_period",
+                            "in": "body",
+                            "desc": "once (the default) or month",
                             "req": false
                         }
                     ],
@@ -12740,7 +12764,7 @@
                     "p": "\/forms\/{id}",
                     "perm": "forms.read",
                     "s": "Get one form",
-                    "d": "The form with its fields and version info (version.is_current = editable leaf).",
+                    "d": "The form with its fields and version info (version.is_current = editable leaf), and its portal catalogue card (catalogue_summary, catalogue_price, catalogue_currency, catalogue_price_period, catalogue_has_image - null \/ false when it has none).",
                     "params": [
                         {
                             "name": "id",
@@ -12780,6 +12804,12 @@
                             "name": "title \/ description \/ is_active \/ fields",
                             "in": "body",
                             "desc": "What to change",
+                            "req": false
+                        },
+                        {
+                            "name": "catalogue_summary \/ catalogue_price \/ catalogue_currency \/ catalogue_price_period",
+                            "in": "body",
+                            "desc": "GH #348: the portal catalogue card, as on create; only the keys sent change. The picture is set in the form editor - catalogue_image_path is ignored here",
                             "req": false
                         }
                     ],

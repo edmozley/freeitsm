@@ -144,6 +144,8 @@
         if (st === 'approved') return { st: st, cls: 'da-approved', label: window.t('forms.approval.status_approved') };
         if (st === 'rejected') return { st: st, cls: 'da-rejected', label: window.t('forms.approval.status_rejected') };
         if (st === 'pending')  return { st: st, cls: 'da-pending',  label: window.t('forms.subs.approval_awaiting') };
+        // GH #348: the requester withdrew it.
+        if (st === 'cancelled') return { st: st, cls: '', label: window.t('forms.approval.status_cancelled') };
         return { st: st, cls: '', label: window.t('forms.subs.approval_none') };
     }
 

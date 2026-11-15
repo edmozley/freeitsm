@@ -6054,6 +6054,40 @@ return array (
           'format' => 'date-time',
           'nullable' => true,
         ),
+        'catalogue_summary' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'GH #348: the catalogue card\'s one line (plain text, up to 255 characters).',
+        ),
+        'catalogue_price' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+          'description' => 'The catalogue price; null = no price, 0 = Free.',
+        ),
+        'catalogue_currency' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'ISO 4217 code; null = the install\'s currency.',
+        ),
+        'catalogue_price_period' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' => 
+          array (
+            0 => 'once',
+            1 => 'month',
+          ),
+          'description' => 'once or month; null when there is no price.',
+        ),
+        'catalogue_has_image' => 
+        array (
+          'type' => 'boolean',
+          'description' => 'Whether the card has a picture (set in the form editor; the API does not upload one).',
+        ),
         'fields' => 
         array (
           'type' => 'array',
@@ -6298,6 +6332,40 @@ return array (
           'type' => 'string',
           'format' => 'date-time',
           'nullable' => true,
+        ),
+        'catalogue_summary' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'GH #348: the catalogue card\'s one line (plain text, up to 255 characters).',
+        ),
+        'catalogue_price' => 
+        array (
+          'type' => 'number',
+          'nullable' => true,
+          'description' => 'The catalogue price; null = no price, 0 = Free.',
+        ),
+        'catalogue_currency' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'ISO 4217 code; null = the install\'s currency.',
+        ),
+        'catalogue_price_period' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'enum' => 
+          array (
+            0 => 'once',
+            1 => 'month',
+          ),
+          'description' => 'once or month; null when there is no price.',
+        ),
+        'catalogue_has_image' => 
+        array (
+          'type' => 'boolean',
+          'description' => 'Whether the card has a picture (set in the form editor; the API does not upload one).',
         ),
       ),
     ),

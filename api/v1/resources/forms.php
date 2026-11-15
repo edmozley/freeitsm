@@ -123,6 +123,15 @@ function apiSerializeForm(PDO $conn, array $r, bool $withFields = true): array {
         'modified_by' => $r['modified_by'] === null ? null : ['id' => (int)$r['modified_by'], 'name' => $r['modified_by_name']],
         'created_at'  => apiIsoDate($r['created_date']),
         'modified_at' => apiIsoDate($r['modified_date']),
+        // GH #348: the catalogue card - all null before Database Verification adds the
+        // columns, or on a form with no card. The picture's stored path is never sent
+        // (catalogue_has_image says whether there is one): it is set in the form editor.
+        'catalogue_summary'      => $r['catalogue_summary'] ?? null,
+        'catalogue_price'        => isset($r['catalogue_price']) && $r['catalogue_price'] !== '' ? (float)$r['catalogue_price'] : null,
+        'catalogue_currency'     => ($r['catalogue_currency'] ?? '') !== '' ? $r['catalogue_currency'] : null,
+        'catalogue_price_period' => isset($r['catalogue_price']) && $r['catalogue_price'] !== ''
+            ? (($r['catalogue_price_period'] ?? '') !== '' ? $r['catalogue_price_period'] : 'once') : null,
+        'catalogue_has_image'    => !empty($r['catalogue_image_path']),
     ];
     if ($withFields) {
         // Retired fields stay out of the API's view of the form for the same reason
@@ -269,10 +278,23 @@ function apiFormsGet(PDO $conn, array $apiKey, array $params, array $body): void
     apiRespond(apiSerializeForm($conn, apiLoadForm($conn, $params[0])));
 }
 
+/**
+ * The save payload as the API may send it. catalogue_summary, catalogue_price,
+ * catalogue_currency and catalogue_price_period pass through (GH #348, checked by
+ * catalogueCardFromInput()); catalogue_image_path does not - the API has no way to
+ * upload the picture, and the stored path is internal.
+ *
+ * @param array $body  the request body
+ */
+function apiFormsWritableBody(array $body): array {
+    unset($body['catalogue_image_path']);
+    return $body;
+}
+
 // POST /forms — mirrors save_form.php's create branch (version_number 1).
 function apiFormsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
     try {
-        $res = FormsService::saveForm($conn, ActorContext::fromApiKey($apiKey), $body);
+        $res = FormsService::saveForm($conn, ActorContext::fromApiKey($apiKey), apiFormsWritableBody($body));
         apiRespond(apiSerializeForm($conn, apiLoadForm($conn, $res['id'])), 201);
     } catch (ServiceError $e) { apiFailFromService($e); }
 }
@@ -280,7 +302,7 @@ function apiFormsCreate(PDO $conn, array $apiKey, array $params, array $body): v
 // PATCH /forms/{id} — save_form.php's in-place save (id-based field sync).
 function apiFormsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
     try {
-        $res = FormsService::saveForm($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
+        $res = FormsService::saveForm($conn, ActorContext::fromApiKey($apiKey), array_merge(apiFormsWritableBody($body), ['id' => (int)$params[0]]));
         apiRespond(apiSerializeForm($conn, apiLoadForm($conn, $res['id'])));
     } catch (ServiceError $e) { apiFailFromService($e); }
 }

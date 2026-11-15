@@ -38,7 +38,7 @@ $translationNamespaces = ['common', 'forms'];
     <!-- The shared document builder, also used by forms/collection.php. One
          implementation of what a record looks like, so the two pages cannot
          disagree the first time a field type changes. -->
-    <script src="../assets/js/form-pdf.js?v=3"></script>
+    <script src="../assets/js/form-pdf.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <!-- The detail panel draws a table QUESTION as a real table, and .form-table
