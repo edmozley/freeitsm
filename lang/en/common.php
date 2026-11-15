@@ -107,6 +107,8 @@ return [
         'visibility' => 'Visibility',
         'always'     => 'Always visible',
         'hover'      => 'Show on hover',
+        // Discussion #292: a thin strip you click (or press [) to open. Tickets only, for now.
+        'click'      => 'Click to open',
     ],
 
     // Shared AI provider/model/key panel (includes/ai_settings_panel.php),

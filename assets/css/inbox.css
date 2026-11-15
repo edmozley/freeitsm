@@ -5047,3 +5047,67 @@ body .tox-tinymce-aux {
 .modal-body p + .form-group {
     margin-top: 12px;
 }
+
+/* ===== The Folders column, collapsible (discussion #292) =====================
+   Preferences -> Left panels -> Tickets: Always shown, Click to open, or Show on
+   hover; [ and the « / » buttons do the same for this visit. Collapsed, the
+   column is a thin strip and opens OVER the list - the list never jumps about.
+   Desktop only: phones keep their sliding panes (mobile.css), so every rule is
+   inside the media query and the buttons are hidden below it.
+   Behaviour: assets/js/ticket-folders-pane.js. */
+.folder-strip-btn, .folder-collapse-btn { display: none; }
+@media (min-width: 769px) {
+    .main-container { position: relative; }
+    .folder-header { position: relative; }
+    .folder-collapse-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        position: absolute; top: 14px; right: 12px;
+        width: 26px; height: 26px; border-radius: 6px;
+        border: 1px solid transparent; background: transparent;
+        color: var(--text-dim, #888); font-size: 16px; line-height: 1; cursor: pointer;
+    }
+    .folder-collapse-btn:hover, .folder-collapse-btn:focus-visible {
+        background: var(--surface-2, #f3f3f3); border-color: var(--border, #ddd); color: var(--text, #333);
+    }
+
+    .main-container.folders-collapsed { padding-left: 28px; }
+    .main-container.folders-hover { padding-left: 16px; }
+    .main-container.folders-collapsed .folder-container {
+        position: absolute; top: 0; left: 0; bottom: 0;
+        width: 28px; min-width: 0; flex: none;
+        z-index: 30;
+        overflow: hidden;
+        transition: width 0.18s ease;
+        box-shadow: 2px 0 8px var(--shadow, rgba(0, 0, 0, 0.12));
+    }
+    .main-container.folders-hover .folder-container { width: 16px; }
+    .main-container.folders-collapsed .folder-container > :not(.folder-strip-btn) {
+        opacity: 0; pointer-events: none; transition: opacity 0.12s ease 0s;
+    }
+    /* The strip: click mode shows », hover mode a small grip, as in Knowledge. */
+    .main-container.folders-collapsed .folder-strip-btn {
+        display: flex; align-items: flex-start; justify-content: center;
+        position: absolute; inset: 0; width: 100%;
+        padding-top: 16px; border: 0; background: transparent;
+        color: var(--text-dim, #888); font-size: 16px; cursor: pointer;
+    }
+    .main-container.folders-collapsed .folder-strip-btn:hover,
+    .main-container.folders-collapsed .folder-strip-btn:focus-visible { background: var(--surface-2, #f3f3f3); color: var(--text, #333); }
+    .main-container.folders-hover .folder-strip-btn { align-items: center; padding-top: 0; }
+    .main-container.folders-hover .folder-strip-btn span { display: none; }
+    .main-container.folders-hover .folder-strip-btn::before {
+        content: ''; width: 3px; height: 36px; border-radius: 2px; background: var(--text-faint, #bbb);
+    }
+
+    /* Open: full width, over the list. Hover mode opens on the pointer too. */
+    .main-container.folders-collapsed.folders-open .folder-container,
+    .main-container.folders-hover .folder-container:hover { width: 280px; overflow-y: auto; }
+    .main-container.folders-collapsed.folders-open .folder-container > :not(.folder-strip-btn),
+    .main-container.folders-hover .folder-container:hover > :not(.folder-strip-btn) {
+        opacity: 1; pointer-events: auto; transition-delay: 0.08s;
+    }
+    .main-container.folders-collapsed.folders-open .folder-strip-btn,
+    .main-container.folders-hover .folder-container:hover .folder-strip-btn { display: none; }
+    /* Collapsed, the « in the header closes the overlay rather than collapsing. */
+    .main-container.folders-hover .folder-collapse-btn { display: none; }
+}

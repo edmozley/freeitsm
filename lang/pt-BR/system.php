@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'Deslizar',
         'anim_fade' => 'Esmaecer',
         'panels_heading' => 'Painéis à esquerda',
-        'panels_desc' => 'Escolha, por módulo, se o painel à esquerda fica fixado aberto ou recolhe em uma faixa fina que se expande ao passar o mouse. Módulos com uma página de configurações também oferecem isso na própria aba Painel à esquerda.',
         'panel_knowledge' => 'Conhecimento',
         'panel_process_mapper' => 'Process Mapper',
         'panel_contracts' => 'Contratos',

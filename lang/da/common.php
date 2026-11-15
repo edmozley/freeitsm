@@ -90,6 +90,7 @@ return [
         'visibility' => 'Synlighed',
         'always' => 'Altid synligt',
         'hover' => 'Vis ved markørover',
+        'click' => 'Klik for at åbne',
     ],
     'ai' => [
         'provider' => 'Udbyder',

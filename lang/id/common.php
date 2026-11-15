@@ -90,6 +90,7 @@ return [
         'visibility' => 'Visibilitas',
         'always' => 'Selalu terlihat',
         'hover' => 'Tampilkan saat ditunjuk',
+        'click' => 'Klik untuk membuka',
     ],
     'ai' => [
         'provider' => 'Penyedia',

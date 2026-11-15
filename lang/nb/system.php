@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'Skyving',
         'anim_fade' => 'Toning',
         'panels_heading' => 'Venstrepaneler',
-        'panels_desc' => 'Velg per modul om venstrepanelet står fast åpent eller trekker seg sammen til en smal stripe som utvider seg når du holder musepekeren over. Moduler med egen innstillingsside tilbyr dette også på sin egen Venstrepanel-fane.',
         'panel_knowledge' => 'Kunnskap',
         'panel_process_mapper' => 'Process Mapper',
         'panel_contracts' => 'Kontrakter',

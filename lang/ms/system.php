@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'Gelongsor',
         'anim_fade' => 'Pudar',
         'panels_heading' => 'Panel kiri',
-        'panels_desc' => 'Pilih, bagi setiap modul, sama ada panel kiri kekal terbuka atau dilipat menjadi jalur nipis yang mengembang apabila ditunjuk. Modul dengan halaman tetapan sendiri juga menawarkan ini pada tab Panel kiri masing-masing.',
         'panel_knowledge' => 'Pengetahuan',
         'panel_process_mapper' => 'Pemeta Proses',
         'panel_contracts' => 'Kontrak',

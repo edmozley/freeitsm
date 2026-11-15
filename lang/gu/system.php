@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'સ્લાઇડ',
         'anim_fade' => 'ફેડ',
         'panels_heading' => 'ડાબી પેનલ',
-        'panels_desc' => 'દરેક મોડ્યુલ માટે પસંદ કરો કે ડાબી પેનલ ખુલ્લી પિન રહે છે કે hover પર વિસ્તરતી પાતળી પટ્ટીમાં સંકોચાય છે. સેટિંગ્સ પેજ ધરાવતા મોડ્યુલ પોતાના Left panel ટેબ પર પણ આ ઑફર કરે છે.',
         'panel_knowledge' => 'જ્ઞાન',
         'panel_process_mapper' => 'પ્રક્રિયાઓ',
         'panel_contracts' => 'કરારો',

@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'Gli',
         'anim_fade' => 'Ton',
         'panels_heading' => 'Venstrepanel',
-        'panels_desc' => 'Vel, per modul, om venstrepanelet står fast ope eller trekkjer seg saman til ei tynn stripe som utvidar seg når du held peikaren over. Modular med ei innstillingsside tilbyr dette òg på si eiga fane for venstrepanel.',
         'panel_knowledge' => 'Kunnskap',
         'panel_process_mapper' => 'Process Mapper',
         'panel_contracts' => 'Kontraktar',

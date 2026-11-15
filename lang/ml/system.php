@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'Slide',
         'anim_fade' => 'Fade',
         'panels_heading' => 'ഇടത് പാനലുകൾ',
-        'panels_desc' => 'ഓരോ മൊഡ്യൂളിനും, ഇടത് പാനൽ പിൻ ചെയ്ത് തുറന്ന് നിൽക്കണോ, അതോ hover-ൽ വികസിക്കുന്ന ഒരു നേർത്ത സ്ട്രിപ്പ് ആയി ചുരുങ്ങണോ എന്ന് തിരഞ്ഞെടുക്കുക. ഒരു settings പേജ് ഉള്ള മൊഡ്യൂളുകൾ അവയുടെ സ്വന്തം Left panel ടാബിലും ഇത് വാഗ്ദാനം ചെയ്യുന്നു.',
         'panel_knowledge' => 'അറിവ്',
         'panel_process_mapper' => 'Process Mapper',
         'panel_contracts' => 'കരാറുകൾ',

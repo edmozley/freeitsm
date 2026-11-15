@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'Scorrimento',
         'anim_fade' => 'Dissolvenza',
         'panels_heading' => 'Pannelli sinistri',
-        'panels_desc' => 'Scegli, per ogni modulo, se il pannello sinistro resta fisso e aperto oppure si riduce a una sottile striscia che si espande al passaggio del mouse. I moduli con una pagina di impostazioni offrono questa opzione anche nella loro scheda Pannello sinistro.',
         'panel_knowledge' => 'Knowledge',
         'panel_process_mapper' => 'Process Mapper',
         'panel_contracts' => 'Contratti',

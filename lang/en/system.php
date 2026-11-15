@@ -1780,7 +1780,8 @@ return [
         'anim_fade'         => 'Fade',
 
         'panels_heading' => 'Left panels',
-        'panels_desc'    => 'Choose, per module, whether the left panel stays pinned open or collapses to a thin strip that expands on hover. Modules with a settings page also offer this on their own Left panel tab.',
+        'panels_desc'    => 'Choose, per module, whether the left panel stays pinned open or collapses to a thin strip that expands on hover. Tickets can also open it with a click (or the [ key). Modules with a settings page also offer this on their own Left panel tab.',
+        'panel_tickets'           => 'Tickets - folders',
         'panel_knowledge'         => 'Knowledge',
         'panel_process_mapper'    => 'Process Mapper',
         'panel_contracts'         => 'Contracts',

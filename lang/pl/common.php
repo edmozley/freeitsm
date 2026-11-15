@@ -90,6 +90,7 @@ return [
         'visibility' => 'Widoczność',
         'always' => 'Zawsze widoczny',
         'hover' => 'Pokaż po najechaniu',
+        'click' => 'Otwórz kliknięciem',
     ],
     'ai' => [
         'provider' => 'Dostawca',

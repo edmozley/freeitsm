@@ -44,6 +44,8 @@ $workspaceConfig = ticketWorkspaceConfig(connectToDatabase(), (int)$_SESSION['an
 $workspaceConfig['can_write'] = analystCanWriteModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'tickets');
 // Messages or Table (PR #213) - how the LIST is shown, independent of the workspace.
 $ticketListLayout = ticketListLayout(connectToDatabase(), (int)$_SESSION['analyst_id']);
+// The Folders column: always shown, or a strip opened by click or hover (discussion #292).
+$ticketFoldersMode = ticketFoldersMode(connectToDatabase(), (int)$_SESSION['analyst_id']);
 
 $current_page = 'inbox';
 // Module id for per-module theme/palette resolution (account-menu picker).
@@ -62,7 +64,7 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=91">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=92">
     <link rel="stylesheet" href="../assets/css/address-suggest.css?v=1">   <!-- GH #307 -->
     <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
@@ -116,10 +118,12 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                   actionRowNew('openNewTicketModal()', t('tickets.list.new_ticket_btn'))],
               ['extra' => '<button type="button" id="ticketTableBack" class="action-row-btn" hidden onclick="TicketTable.backToList()" title="' . htmlspecialchars(t('tickets.queue.back_title')) . '">' . htmlspecialchars(t('tickets.queue.back')) . '</button>' . ticketListSelector($ticketListLayout), 'title_id' => 'inboxActionTitle']); ?>
 
-    <div class="main-container">
-        <!-- Folder Navigation -->
-        <div class="folder-container">
+    <div class="main-container<?php echo $ticketFoldersMode !== 'always' ? ' folders-collapsed folders-' . $ticketFoldersMode : ''; ?>" data-folders-mode="<?php echo htmlspecialchars($ticketFoldersMode); ?>">
+        <!-- Folder Navigation. Collapsible on desktop (discussion #292): assets/js/ticket-folders-pane.js -->
+        <div class="folder-container" id="folderContainer">
+            <button type="button" class="folder-strip-btn" id="folderStripBtn" title="<?php echo htmlspecialchars(t('tickets.folders.show')); ?> ([)" aria-label="<?php echo htmlspecialchars(t('tickets.folders.show')); ?>" aria-controls="folderContainer"><span aria-hidden="true">&raquo;</span></button>
             <div class="folder-header">
+                <button type="button" class="folder-collapse-btn" id="folderCollapseBtn" title="<?php echo htmlspecialchars(t('tickets.folders.hide')); ?> ([)" aria-label="<?php echo htmlspecialchars(t('tickets.folders.hide')); ?>"><span aria-hidden="true">&laquo;</span></button>
                 <h2><?php echo htmlspecialchars(t('tickets.folders.title')); ?></h2>
                 <div class="folder-group-toggle" role="group" aria-label="<?php echo htmlspecialchars(t('tickets.folders.group_label')); ?>">
                     <button type="button" class="folder-group-btn active" data-group="department" onclick="setFolderGrouping('department')"><?php echo htmlspecialchars(t('tickets.folders.group_department')); ?></button>
@@ -1195,6 +1199,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/address-suggest.js?v=1"></script>   <!-- GH #307: before inbox.js, which attaches it to To and Cc -->
     <script src="../assets/js/location-picker.js?v=1"></script>   <!-- GH #311: before inbox.js -->
     <script src="../assets/js/inbox.js?v=210"></script>
+    <script src="../assets/js/ticket-folders-pane.js?v=1"></script>   <!-- discussion #292 -->
     <script src="../assets/js/ticket-watchers.js?v=1"></script>
     <script src="../assets/js/ticket-forms.js?v=4"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>

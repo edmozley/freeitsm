@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'Schuiven',
         'anim_fade' => 'Vervagen',
         'panels_heading' => 'Linkerpanelen',
-        'panels_desc' => 'Kies per module of het linkerpaneel open blijft staan of inklapt tot een dunne strook die bij hover uitklapt. Modules met een instellingenpagina bieden dit ook op hun eigen tabblad Linkerpaneel.',
         'panel_knowledge' => 'Kennis',
         'panel_process_mapper' => 'Procesmapper',
         'panel_contracts' => 'Contracten',

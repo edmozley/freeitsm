@@ -627,6 +627,24 @@ function ticketListLayout(PDO $conn, int $analystId): string
     }
 }
 
+/**
+ * How the inbox's Folders column behaves for this analyst (discussion #292):
+ * 'always' (shown, the default), 'click' (a thin strip; click it, or press [, to
+ * open the folders over the list) or 'hover' (the strip opens when the pointer is
+ * on it). Preferences -> Left panels. Desktop only - phones keep their panes.
+ */
+function ticketFoldersMode(PDO $conn, int $analystId): string
+{
+    try {
+        $stmt = $conn->prepare('SELECT preference_value FROM user_preferences WHERE analyst_id = ? AND preference_key = ?');
+        $stmt->execute([$analystId, 'tickets_sidebar_mode']);
+        $v = (string)$stmt->fetchColumn();
+        return in_array($v, ['click', 'hover'], true) ? $v : 'always';
+    } catch (Throwable) {
+        return 'always';
+    }
+}
+
 /** The Messages / Table dropdown in the inbox's action row. */
 function ticketListSelector(string $layout): string
 {

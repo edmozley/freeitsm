@@ -86,6 +86,8 @@ $prefDefaults = [
     // Left-panel visibility — one key per module that has a left panel.
     // Each module's header reads its key; module settings pages (where one
     // exists) edit the same key. Surfaced together below.
+    // Discussion #292: the Tickets inbox's Folders column - always / click / hover.
+    'tickets_sidebar_mode'           => 'always',
     'knowledge_sidebar_mode'         => 'always',
     'process_mapper_sidebar_mode'    => 'always',
     'contracts_sidebar_mode'         => 'always',
@@ -1842,6 +1844,9 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
         // Each module's settings page (where one exists) edits the same
         // preference key, and the module header reads it on every page.
         const SIDEBAR_PANELS = [
+            // Tickets also offers Click to open (discussion #292): its folder list is
+            // used constantly, so a strip you open on purpose suits some people better.
+            { key: 'tickets_sidebar_mode',           label: window.t('system.preferences.panel_tickets'), click: true },
             { key: 'knowledge_sidebar_mode',         label: window.t('system.preferences.panel_knowledge') },
             { key: 'process_mapper_sidebar_mode',    label: window.t('system.preferences.panel_process_mapper') },
             { key: 'contracts_sidebar_mode',         label: window.t('system.preferences.panel_contracts') },
@@ -1880,6 +1885,13 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 hoverBtn.textContent = HOVER_LABEL;
 
                 toggle.appendChild(alwaysBtn);
+                if (panel.click) {
+                    const clickBtn = document.createElement('button');
+                    clickBtn.className = 'anim-option';
+                    clickBtn.dataset.mode = 'click';
+                    clickBtn.textContent = window.t('common.left_panel.click');
+                    toggle.appendChild(clickBtn);
+                }
                 toggle.appendChild(hoverBtn);
                 row.appendChild(label);
                 row.appendChild(toggle);

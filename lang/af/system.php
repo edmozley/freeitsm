@@ -1005,7 +1005,6 @@ return [
         'anim_slide' => 'Gly',
         'anim_fade' => 'Vervaag',
         'panels_heading' => 'Linkerpanele',
-        'panels_desc' => 'Kies, per module, of die linkerpaneel vasgespeld oop bly of inmekaar vou tot \'n dun strook wat met sweef uitbrei. Modules met \'n instellingsbladsy bied dit ook op hul eie Linkerpaneel-oortjie.',
         'panel_knowledge' => 'Kennis',
         'panel_process_mapper' => 'Prosesbeplanner',
         'panel_contracts' => 'Kontrakte',

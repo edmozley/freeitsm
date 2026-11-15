@@ -199,6 +199,8 @@ try {
 
                     <p style="margin-top: 20px;"><?php echo t('tickets.help.inbox.switch_heading'); ?></p>
                     <p><?php echo t('tickets.help.inbox.switch_body'); ?></p>
+                    <!-- Discussion #292: hiding the folder panel. -->
+                    <p><?php echo t('tickets.help.inbox.folders_hide'); ?></p>
 
                     <p><?php echo t('tickets.help.inbox.p_actions'); ?></p>
                     <p><?php echo t('tickets.help.inbox.filter_body'); ?></p>
