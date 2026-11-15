@@ -595,6 +595,7 @@ return [
         'event' => [
             'ticket' => [
                 'assigned'         => 'Assigned to you by {actor}',
+                'team_assigned'    => 'Handed to your team by {actor}',
                 'reassigned'       => '{actor} reassigned it',   // GH #277: to a watcher
                 'reply_received'   => 'The requester replied',
                 'note_added'       => '{actor} added a note',
@@ -660,6 +661,7 @@ return [
         'pref' => [
             'ticket' => [
                 'assigned'         => 'A ticket is assigned to me',
+                'team_assigned'    => 'A ticket is handed to one of my teams',
                 'reassigned'       => 'A ticket I watch is reassigned',
                 'reply_received'   => 'A requester replies to my ticket, or one I watch',
                 'note_added'       => 'Someone adds a note to my ticket, or one I watch',
