@@ -472,6 +472,7 @@ return [
     // Split-pane left list
     'list' => [
         'group_by_type'      => 'Group by type',
+        'one_company_note'   => 'Showing <strong>{company}</strong> only. The asset list shows one company at a time, even under All companies - pick a company at the top of the page to see another.',
         'group_no_type'      => 'No type',
         'search_placeholder' => 'Search name, serial, tag, location or contract...',
         'no_assets'          => 'No assets found',

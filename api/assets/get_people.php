@@ -43,7 +43,7 @@ try {
     $out = ['success' => true, 'users' => $people, 'scope' => $scope];
     // What the Source filter offers, counted inside the same company scope.
     if (!empty($_GET['include_sources'])) {
-        [$tSql, $tArgs] = activeTenantFilter($conn, $ctx->actorId, 'u');
+        [$tSql, $tArgs] = activeTenantReadFilter($conn, $ctx->actorId, 'u');
         $out['sources'] = userSourcesInScope($conn, $tSql, $tArgs);
     }
     echo json_encode($out);

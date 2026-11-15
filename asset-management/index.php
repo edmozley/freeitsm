@@ -38,6 +38,11 @@ try {
         'all'     => isActiveTenantAll($tconn),
         'default' => getDefaultTenantId($tconn),
     ];
+    // GH #356: under All companies the asset list still shows ONE company (its
+    // dropdowns are single-company - see the Assets-and-All-Companies design page),
+    // so the list names which one rather than leaving it to be guessed.
+    $assetTenancy['active_name'] = $assetTenancy['all']
+        ? (string)(getTenantById($tconn, $assetTenancy['active'])['name'] ?? '') : '';
 } catch (Exception $e) { /* single-company behaviour */ }
 
 $current_page = 'assets';
@@ -232,6 +237,16 @@ $translationNamespaces = ['common', 'asset-management'];
             white-space: nowrap;
         }
 
+        /* GH #356: which company the list shows under All companies. */
+        .asset-one-company-note {
+            margin: 0 12px 8px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            color: var(--info-text);
+        }
         .asset-select-bar {
             display: flex;
             align-items: center;
@@ -1671,6 +1686,9 @@ $translationNamespaces = ['common', 'asset-management'];
                     </span>
                 </div>
             </div>
+            <?php if ($assetTenancy['all'] && $assetTenancy['active_name'] !== ''): ?>
+                <div class="asset-one-company-note" role="note"><?php echo t('asset-management.list.one_company_note', ['company' => htmlspecialchars($assetTenancy['active_name'])]); ?></div>
+            <?php endif; ?>
             <div class="assets-list" id="assetsList">
                 <div class="loading">
                     <div class="spinner"></div>

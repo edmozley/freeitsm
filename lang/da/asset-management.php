@@ -428,6 +428,7 @@ return [
     ],
     'list' => [
         'group_by_type' => 'Gruppér efter type',
+        'one_company_note'   => 'Viser kun <strong>{company}</strong>. Aktivlisten viser én virksomhed ad gangen, også under Alle virksomheder - vælg en virksomhed øverst på siden for at se en anden.',
         'group_no_type' => 'Ingen type',
         'search_placeholder' => 'Søg efter navn, serienr., mærke, placering eller kontrakt...',
         'no_assets' => 'Ingen aktiver fundet',

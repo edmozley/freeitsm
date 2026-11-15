@@ -428,6 +428,7 @@ return [
     ],
     'list' => [
         'group_by_type' => 'Nach Typ gruppieren',
+        'one_company_note'   => 'Es wird nur <strong>{company}</strong> angezeigt. Die Asset-Liste zeigt jeweils ein Unternehmen, auch unter Alle Unternehmen - wählen Sie oben auf der Seite ein Unternehmen, um ein anderes zu sehen.',
         'group_no_type' => 'Kein Typ',
         'search_placeholder' => 'Nach Name, Seriennr., Inventarnr., Standort oder Vertrag suchen...',
         'no_assets' => 'Keine Assets gefunden',

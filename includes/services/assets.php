@@ -1047,7 +1047,7 @@ class AssetsService
      */
     public static function usersHoldingAssets(PDO $conn, ActorContext $ctx, string $search = '', int $limit = 200): array
     {
-        [$tenantSql, $tenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'a');
+        [$tenantSql, $tenantArgs] = activeTenantReadFilter($conn, $ctx->actorId, 'a');
 
         $where = '';
         $args  = [];
@@ -1116,7 +1116,7 @@ class AssetsService
      */
     public static function people(PDO $conn, ActorContext $ctx, string $search = '', string $scope = 'current', int $limit = 500, string $source = ''): array
     {
-        [$tenantSql, $tenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'u');
+        [$tenantSql, $tenantArgs] = activeTenantReadFilter($conn, $ctx->actorId, 'u');
 
         // 🔴 The manager's NAME needs its own scope, and it belongs in the JOIN.
         //
@@ -1131,7 +1131,7 @@ class AssetsService
         // entirely, so a person whose manager is out of scope would vanish from
         // the list rather than simply showing no manager. Same lesson as the
         // Watchtower scoping fix.
-        [$mgrTenantSql, $mgrTenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'm');
+        [$mgrTenantSql, $mgrTenantArgs] = activeTenantReadFilter($conn, $ctx->actorId, 'm');
 
         $where = '';
         $args  = [];
@@ -1225,7 +1225,7 @@ class AssetsService
         // Same scope on the manager's name as the list above, for the same
         // reason — and in the ON clause, so a manager out of scope means "no
         // manager shown" rather than "this person does not exist".
-        [$mgrTenantSql, $mgrTenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'm');
+        [$mgrTenantSql, $mgrTenantArgs] = activeTenantReadFilter($conn, $ctx->actorId, 'm');
         $u = $conn->prepare(
             "SELECT u.id, u.email, u.username, u.display_name, u.preferred_name,
                     u.job_title, u.department, u.office, u.phone, u.mobile,
@@ -1263,7 +1263,7 @@ class AssetsService
         // a leaver who still has people pointed at them.
         // Scoped like the list: a report in a company the reader cannot see is
         // not shown (a manager can have reports in more than one company).
-        [$repTenantSql, $repTenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'r');
+        [$repTenantSql, $repTenantArgs] = activeTenantReadFilter($conn, $ctx->actorId, 'r');
         $r = $conn->prepare(
             "SELECT r.id, r.display_name, r.email, r.is_active
                FROM users r
@@ -1279,7 +1279,7 @@ class AssetsService
             ];
         }, $r->fetchAll(PDO::FETCH_ASSOC));
 
-        [$tenantSql, $tenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'a');
+        [$tenantSql, $tenantArgs] = activeTenantReadFilter($conn, $ctx->actorId, 'a');
 
         $sql = "SELECT a.id, a.hostname, a.manufacturer, a.model, a.service_tag, a.asset_tag,
                        a.operating_system, a.purchase_date, a.warranty_expiry,

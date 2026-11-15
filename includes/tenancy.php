@@ -858,7 +858,15 @@ function allAccessibleTenantsFilter(PDO $conn, int $analystId, string $qualified
  *
  * Opted in so far: Tickets → Users (api/tickets/get_users.php) and the task
  * list (api/tasks/list.php) — the two a customer reported showing "the last
- * selected company" under All companies.
+ * selected company" under All companies — and, since GH #356 (5.4.0), Assets
+ * -> People, the list of who holds equipment and a person's panel
+ * (tests/assets-all-companies.php). The ASSET LIST, its lookup and its widgets
+ * deliberately stay on one company until an asset's type/status/location
+ * dropdowns follow the asset's own company (wiki Assets-and-All-Companies-Design).
+ *
+ * TRAP: a new LIST READ that keeps activeTenantFilter() quietly shows only the
+ * last company picked under "All companies" - GH #356 was Assets -> People
+ * listing 4 people where Tickets -> Users listed 7.
  *
  * @param string $alias  the table's alias in the calling query; '' for none
  * @param string $col  the company column on that table (default 'tenant_id')

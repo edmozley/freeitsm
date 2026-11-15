@@ -428,6 +428,7 @@ return [
     ],
     'list' => [
         'group_by_type' => 'Agrupar por tipo',
+        'one_company_note'   => 'Solo se muestra <strong>{company}</strong>. La lista de activos muestra una empresa a la vez, incluso en Todas las empresas; elija una empresa en la parte superior de la página para ver otra.',
         'group_no_type' => 'Sin tipo',
         'search_placeholder' => 'Buscar por nombre de host...',
         'no_assets' => 'No se encontraron activos',

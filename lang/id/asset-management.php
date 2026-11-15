@@ -428,6 +428,7 @@ return [
     ],
     'list' => [
         'group_by_type' => 'Kelompokkan menurut tipe',
+        'one_company_note'   => 'Hanya menampilkan <strong>{company}</strong>. Daftar aset menampilkan satu perusahaan pada satu waktu, bahkan pada Semua perusahaan - pilih perusahaan di bagian atas halaman untuk melihat yang lain.',
         'group_no_type' => 'Tanpa tipe',
         'search_placeholder' => 'Cari berdasarkan nama host...',
         'no_assets' => 'Tidak ada aset ditemukan',

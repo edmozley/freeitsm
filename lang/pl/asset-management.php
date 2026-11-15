@@ -428,6 +428,7 @@ return [
     ],
     'list' => [
         'group_by_type' => 'Grupuj według typu',
+        'one_company_note'   => 'Wyświetlana jest tylko firma <strong>{company}</strong>. Lista zasobów pokazuje jedną firmę naraz, także w widoku Wszystkie firmy - wybierz firmę u góry strony, aby zobaczyć inną.',
         'group_no_type' => 'Brak typu',
         'search_placeholder' => 'Szukaj według nazwy hosta...',
         'no_assets' => 'Nie znaleziono zasobów',

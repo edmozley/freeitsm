@@ -428,6 +428,7 @@ return [
     ],
     'list' => [
         'group_by_type' => 'Regrouper par type',
+        'one_company_note'   => 'Seule l\'entreprise <strong>{company}</strong> est affichée. La liste des actifs affiche une entreprise à la fois, même avec Toutes les entreprises - choisissez une entreprise en haut de la page pour en voir une autre.',
         'group_no_type' => 'Sans type',
         'search_placeholder' => 'Rechercher par nom d\'hôte...',
         'no_assets' => 'Aucun actif trouvé',
