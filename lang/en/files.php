@@ -215,6 +215,7 @@ return [
         'recycle_off' => 'Nothing is deleted automatically until this setting is saved.',
         'recycle_forever' => 'Deleted items are kept until someone deletes them permanently.',
         'recycle_pending' => 'Stored files waiting to be removed because storage could not be reached: {n}.',
+        'recycle_pending_unknown' => 'Stored files waiting to be removed: unknown until Database Verification has been run.',
         'recycle_due_confirm' => 'Items already in the recycle bin longer than this will be deleted permanently within the hour, with their stored files (Items: {n}). Continue?',
         'take' => 'Take ownership',
         'take_confirm' => 'Give yourself Full control of "{path}"? You will be able to open every file in it. This is recorded in the audit trail with your name.',

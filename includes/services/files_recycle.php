@@ -23,8 +23,11 @@
  * copied file or a restored version SHARES a storage_path, so bytes are deleted only
  * once no files_versions row names them - filesPurgeBytesIfUnused() (files_versions.php)
  * decides that and deletes from the active location and, during a storage move, the
- * previous one. If a store fails the key waits in files_purge_pending and the job tries
- * again - the rows are already gone, so the person purging never sees a storage error.
+ * previous one. Every key is recorded in files_purge_pending WITH the rows (same
+ * transaction), so a purge cut short - a killed request, a deploy - forgets nothing; the
+ * record goes once its bytes are gone. Storage is not asked again in that purge once it
+ * is found unreachable, and a purge out of time leaves the rest to the job: the person
+ * purging never waits on, or sees, a storage error for rows that are already gone.
  *
  * LINKS: a document that links to a file in Files (documents.kind = 'files') reads as
  * deleted while the file or a folder above it is in the bin (FilesAttach::viewFor),
@@ -60,6 +63,9 @@ final class FilesRecycleBlocked extends InvalidArgumentException
 
 final class FilesRecycleService
 {
+    /** How long one purge spends deleting stored bytes before leaving the rest to the job. */
+    public const PURGE_BYTES_SECONDS = 20;
+
     const DEFAULT_DAYS = 30;
     const MAX_DAYS = 3650;
 
@@ -455,11 +461,14 @@ final class FilesRecycleService
      * Deletes one bin entry for good: its rows, every shortcut to it, and stored bytes
      * nothing else uses.
      *
-     * @param int $analystId  who asks (0 = the retention job, which needs no permission)
+     * @param int      $analystId     who asks (0 = the retention job, which needs no permission)
+     * @param int|null $bytesDeadline unix time after which stored bytes are left to the job
+     *                                (default: PURGE_BYTES_SECONDS from now)
      * @return array ['files' => files removed, 'bytes' => bytes freed or queued, 'pending' => keys left for the job]
      */
-    public static function purge(PDO $conn, int $analystId, string $type, int $id): array
+    public static function purge(PDO $conn, int $analystId, string $type, int $id, ?int $bytesDeadline = null): array
     {
+        $bytesDeadline ??= time() + self::PURGE_BYTES_SECONDS;
         [$e, $lvl] = self::entryFor($conn, $analystId, $type, $id);
         $all = FilesAcl::allFolders($conn);
         $isEntry = $type === 'folder'
@@ -512,6 +521,9 @@ final class FilesRecycleService
             if ($still === false || ($still === null && ($type === 'folder' || !empty($e['self_deleted'])))) {
                 throw new InvalidArgumentException($type === 'folder' ? 'Folder not found.' : 'File not found.');
             }
+            // Record the stored files first, in the same transaction as the rows: whatever
+            // happens to this request afterwards, the job knows what is left to delete.
+            $journaled = self::queueKeys($conn, array_map('strval', array_keys($keys)));
             // Children first: an install grown from an older schema may lack the cascades.
             if ($items) {
                 $in = implode(',', array_fill(0, count($items), '?'));
@@ -547,11 +559,25 @@ final class FilesRecycleService
         // Bytes, after the rows are gone: only keys nothing else still points at.
         // One key's failure must not skip the others or the audit row: the rows are gone.
         $pending = 0;
+        $down = false;
+        $inUse = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
         foreach ($keys as $key => $size) {
-            $res = self::purgeBytes($conn, (string)$key);
+            $key = (string)$key;
+            if ($journaled && ($down || time() >= $bytesDeadline)) {
+                // Left recorded for the job - storage is down, or this request is out of time.
+                $inUse->execute([$key]);
+                if ($inUse->fetchColumn()) { self::unqueueKey($conn, $key); continue; }   // a copy still uses it
+                $bytes += (int)$size;
+                $pending++;
+                continue;
+            }
+            $res = self::purgeBytes($conn, $key);
             if ($res === 'in_use') continue;   // a copy or another version still uses it
             $bytes += (int)$size;
-            if ($res !== 'deleted') $pending++;
+            if ($res !== 'deleted') {
+                $pending++;
+                if ($res === 'unavailable') $down = true;   // don't wait on it again for every other file
+            }
         }
 
         $t = $type === 'folder' ? ['path' => $path] : ['item_id' => $id, 'path' => $path];
@@ -572,6 +598,36 @@ final class FilesRecycleService
         if (!$items || !DocumentsService::filesLinkReady($conn)) return;
         $in = implode(',', array_fill(0, count($items), '?'));
         $conn->prepare("UPDATE documents SET files_item_id = NULL WHERE files_item_id IN ($in)")->execute($items);
+    }
+
+    /**
+     * Records keys in files_purge_pending (nothing deleted yet). False when the table is
+     * missing (before Database Verification): then nothing can be recorded, and the purge
+     * deletes what it can at once, as before.
+     *
+     * @param string[] $keys
+     */
+    private static function queueKeys(PDO $conn, array $keys): bool
+    {
+        try {
+            $ins = $conn->prepare("INSERT IGNORE INTO files_purge_pending (storage_path, attempts, created_datetime, updated_datetime)
+                                   VALUES (?, 0, UTC_TIMESTAMP(), UTC_TIMESTAMP())");
+            foreach ($keys as $k) if (filesStorageKeyIsValid($k)) $ins->execute([$k]);
+            return true;
+        } catch (PDOException $e) {
+            if (!self::missingTable($e)) throw $e;
+            return false;
+        }
+    }
+
+    /** Forgets a recorded key (its bytes are gone, or a file still uses them). */
+    private static function unqueueKey(PDO $conn, string $key): void
+    {
+        try {
+            $conn->prepare("DELETE FROM files_purge_pending WHERE storage_path = ?")->execute([$key]);
+        } catch (PDOException $e) {
+            if (!self::missingTable($e)) throw $e;
+        }
     }
 
     /**
@@ -619,11 +675,14 @@ final class FilesRecycleService
     public static function emptyBin(PDO $conn, int $analystId, int $deadlineUnix): array
     {
         $r = ['entries' => 0, 'files' => 0, 'bytes' => 0, 'skipped' => 0, 'failed' => 0, 'more' => false];
+        $tried = 0;
         foreach (self::entries($conn, $analystId) as $e) {
             if (!$e['can_purge']) { $r['skipped']++; continue; }
-            if (time() >= $deadlineUnix) { $r['more'] = true; break; }
+            // At least one entry per call, so a slow listing can never stop Empty making progress.
+            if ($tried > 0 && time() >= $deadlineUnix) { $r['more'] = true; break; }
+            $tried++;
             try {
-                $p = self::purge($conn, $analystId, $e['type'], $e['id']);
+                $p = self::purge($conn, $analystId, $e['type'], $e['id'], $deadlineUnix);
             } catch (Throwable $ex) {
                 // Gone meanwhile, restored meanwhile, or a real failure: count it, carry on.
                 if (!$ex instanceof InvalidArgumentException) error_log('files: empty recycle bin: ' . $ex->getMessage());
@@ -653,7 +712,7 @@ final class FilesRecycleService
         foreach ($due as $e) {
             if (time() >= $deadlineUnix) { $r['done'] = false; break; }
             try {
-                $p = self::purge($conn, 0, $e['type'], $e['id']);
+                $p = self::purge($conn, 0, $e['type'], $e['id'], $deadlineUnix);
             } catch (InvalidArgumentException $ex) {
                 continue;   // restored or purged since the list was read
             } catch (Throwable $ex) {

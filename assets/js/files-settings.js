@@ -316,7 +316,9 @@
                 L('settings.recycle_usage', 'Items in the recycle bin: {n} (using {size} of storage).', { n: r.entries, size: fmtSize(r.bin_bytes) }) +
                 (!r.configured ? ' ' + L('settings.recycle_off', 'Nothing is deleted automatically until this setting is saved.')
                     : r.days === 0 ? ' ' + L('settings.recycle_forever', 'Deleted items are kept until someone deletes them permanently.') : '') +
-                (r.pending_bytes ? ' ' + L('settings.recycle_pending', 'Stored files waiting to be removed because storage could not be reached: {n}.', { n: r.pending_bytes }) : '');
+                (r.pending_bytes ? ' ' + L('settings.recycle_pending', 'Stored files waiting to be removed because storage could not be reached: {n}.', { n: r.pending_bytes })
+                    // null: the queue's table is missing (before Database Verification) - unknown, never "none".
+                    : r.pending_bytes === null ? ' ' + L('settings.recycle_pending_unknown', 'Stored files waiting to be removed: unknown until Database Verification has been run.') : '');
         };
         api('settings.php?tab=recycle').then(rbRender).catch(function (e) { document.getElementById('rbState').textContent = e.message; });
         document.getElementById('rbSave').addEventListener('click', function () {

@@ -207,6 +207,41 @@ try {
     $s->execute([$down['key']]);
     ok('the job removes it once storage answers', $b['deleted'] === 1 && (int)$s->fetchColumn() === 0 && !is_file("$store/{$down['key']}"), json_encode($b));
 
+    // ── A big delete never waits on dead storage, and nothing is forgotten ──
+    // Every stored file is recorded for the job with the rows; storage is not asked
+    // again once it is found unreachable; a purge out of time leaves the rest queued.
+    $queued = function (array $keys) use ($conn): int {
+        $q = $conn->prepare("SELECT COUNT(*) FROM files_purge_pending WHERE storage_path = ?");
+        $n = 0;
+        foreach ($keys as $k) { $q->execute([$k]); $n += (int)$q->fetchColumn(); }
+        return $n;
+    };
+    $deadFolder = folder($conn, $proj, 'ZZ Dead storage');
+    $deadKeys = [];
+    foreach (['zz-d1.txt', 'zz-d2.txt', 'zz-d3.txt'] as $n) $deadKeys[] = item($conn, $store, $deadFolder, $n)['key'];
+    setSetting($conn, 'files_storage_previous', encryptValue(json_encode([
+        'driver' => 's3', 'endpoint' => 'http://127.0.0.1:9', 'region' => 'us-east-1', 'bucket' => 'zz',
+        'access_key_id' => 'zz', 'secret' => 'zz', 'prefix' => '', 'path_style' => true])));
+    softDelete($conn, 'folder', $deadFolder, $U1);
+    $logFile = tempnam(sys_get_temp_dir(), 'zzlog');
+    $prevLog = ini_set('error_log', $logFile);
+    $p = FilesRecycleService::purge($conn, $U1, 'folder', $deadFolder);
+    ini_set('error_log', $prevLog === false ? '' : $prevLog);
+    $tries = substr_count((string)file_get_contents($logFile), 'could not delete unused bytes');
+    @unlink($logFile);
+    ok('storage down: asked once, not once per file (a big folder would hang the request)', $tries === 1, "$tries attempts");
+    ok('...and every stored file is recorded for the job', $queued($deadKeys) === 3 && $p['pending'] === 3, json_encode($p));
+    setSetting($conn, 'files_storage_previous', null);
+    FilesRecycleService::retryPendingBytes($conn, time() + 30);
+    ok('...which removes them once storage answers', $queued($deadKeys) === 0 && !is_file("$store/{$deadKeys[2]}"));
+    $late = item($conn, $store, $proj, 'zz-late.txt');
+    softDelete($conn, 'item', $late['id'], $U1);
+    $p = FilesRecycleService::purge($conn, $U1, 'item', $late['id'], time() - 1);
+    ok('out of time: the rows go, the stored file is left recorded for the job', !rowExists($conn, 'files_items', $late['id'])
+       && is_file("$store/{$late['key']}") && $queued([$late['key']]) === 1 && $p['pending'] === 1, json_encode($p));
+    FilesRecycleService::retryPendingBytes($conn, time() + 30);
+    ok('...which removes it', !is_file("$store/{$late['key']}") && $queued([$late['key']]) === 0);
+
     // ── Retention ──────────────────────────────────────────────────────
     $oldFile = item($conn, $store, $proj, 'zz-40-days.txt');
     $newFile = item($conn, $store, $proj, 'zz-10-days.txt');
@@ -261,8 +296,11 @@ try {
     ok('...and only that: 30 days would delete nothing yet', FilesRecycleService::describe($conn, 30)['due'] === 0);
     softDelete($conn, 'item', $old1['id'], $U1, 'UTC_TIMESTAMP() - INTERVAL 3 DAY');
     ok('...an entry older than the period is counted', FilesRecycleService::describe($conn, 1)['due'] === 2);
+    $fresh = item($conn, $store, $proj, 'zz-newest.txt');
+    softDelete($conn, 'item', $fresh['id'], $U1, 'UTC_TIMESTAMP() + INTERVAL 1 MINUTE');   // first in the list (newest)
     $r = FilesRecycleService::emptyBin($conn, $U1, time() - 1);
-    ok('Empty past its deadline does nothing and asks to be called again', $r['entries'] === 0 && $r['more'] === true, json_encode($r));
+    ok('Empty past its deadline still purges one entry, so every call makes progress', $r['entries'] === 1 && $r['more'] === true
+       && !rowExists($conn, 'files_items', $fresh['id']), json_encode($r));
 
     // ── Empty, and the Storage tab's figures ───────────────────────────
     $u = FilesRecycleService::binUsage($conn);

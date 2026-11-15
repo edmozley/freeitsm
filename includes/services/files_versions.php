@@ -201,6 +201,9 @@ function filesPurgeBytesIfUnused(PDO $conn, string $key): string
     $st = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
     $st->execute([$key]);
     if ($st->fetchColumn()) return 'in_use';
+    // The move forgets the key FIRST: a copy the move job writes after this point finds
+    // its row gone and nothing using the bytes, and removes it (storageMigrateBatch).
+    $conn->prepare("DELETE FROM storage_migration_items WHERE store = 'files' AND object_key = ?")->execute([$key]);
     $stores = [filesActiveStore($conn)];
     try { if (($prev = filesPreviousStore($conn)) !== null) $stores[] = $prev; } catch (Throwable) {}
     $result = 'deleted';
@@ -211,6 +214,5 @@ function filesPurgeBytesIfUnused(PDO $conn, string $key): string
             if ($result !== 'unavailable') $result = $e instanceof StorageUnavailable ? 'unavailable' : 'failed';
         }
     }
-    $conn->prepare("DELETE FROM storage_migration_items WHERE store = 'files' AND object_key = ?")->execute([$key]);
     return $result;
 }
