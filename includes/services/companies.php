@@ -72,10 +72,16 @@ class CompaniesService
      * an update: name, is_active, ticket_code, external_ref, tax_id. An empty
      * string clears ticket_code, external_ref and tax_id.
      *
+     * GH #279: `custom_fields` {field_key: value} sets custom fields (System ->
+     * Custom fields), checked BEFORE the company is written and recorded in
+     * company_audit as $ctx; a required field must be there when creating.
+     *
+     * @param ?ActorContext $ctx  who is saving, for the history (null = nobody named)
+     * @param string $source  'app' or 'api'
      * @return array{id:int, created:bool}
      * @throws ServiceError validation / not_found / conflict
      */
-    public static function save(PDO $conn, array $in, ?int $id = null): array
+    public static function save(PDO $conn, array $in, ?int $id = null, ?ActorContext $ctx = null, string $source = 'app'): array
     {
         $existing = null;
         if ($id !== null) {
@@ -134,15 +140,31 @@ class CompaniesService
             $refs[$col] = $v;
         }
 
+        // GH #279: custom fields, checked now so a bad answer never leaves a half-saved company.
+        $cfDefs = [];
+        $cfValues = [];
+        if (array_key_exists('custom_fields', $in) || $isCreate) {
+            require_once __DIR__ . '/record_fields.php';
+            $sent = $in['custom_fields'] ?? [];
+            if (!is_array($sent)) throw new ServiceError('validation', 'invalid_field', "'custom_fields' must be an object of field keys and values.");
+            $cfDefs = RecordFieldsService::fieldsFor($conn, 'company');
+            if ($cfDefs) $cfValues = RecordFieldsService::validate($conn, 'company', $cfDefs, $sent, $isCreate);
+            elseif ($sent) throw new ServiceError('validation', 'invalid_field', 'Companies have no custom fields yet. See System -> Custom fields.');
+        }
+        $ctx ??= ActorContext::system('Companies');
+
         $refSql = $ready ? ', external_ref = ?, tax_id = ?' : '';
         $refArgs = $ready ? [$refs['external_ref'], $refs['tax_id']] : [];
         if ($isCreate) {
             $conn->prepare("INSERT INTO tenants SET name = ?, is_default = 0, is_active = ?, ticket_code = ?$refSql, created_datetime = UTC_TIMESTAMP()")
                  ->execute(array_merge([$name, $isActive, $code], $refArgs));
-            return ['id' => (int)$conn->lastInsertId(), 'created' => true];
+            $newId = (int)$conn->lastInsertId();
+            if ($cfValues) RecordFieldsService::write($conn, $ctx, 'company', $newId, $cfDefs, $cfValues, $source);
+            return ['id' => $newId, 'created' => true];
         }
         $conn->prepare("UPDATE tenants SET name = ?, is_active = ?, ticket_code = ?$refSql WHERE id = ?")
              ->execute(array_merge([$name, $isActive, $code], $refArgs, [(int)$id]));
+        if ($cfValues) RecordFieldsService::write($conn, $ctx, 'company', (int)$id, $cfDefs, $cfValues, $source);
         return ['id' => (int)$id, 'created' => false];
     }
 
@@ -152,14 +174,24 @@ class CompaniesService
      *
      * @return array{id:int, created:bool}
      */
-    public static function upsert(PDO $conn, array $in): array
+    public static function upsert(PDO $conn, array $in, ?ActorContext $ctx = null, string $source = 'app'): array
     {
         $ref = self::clean((string)($in['external_ref'] ?? ''), 100);
         if ($ref === null || $ref === false) {
             throw new ServiceError('validation', 'missing_field', 'external_ref is required (100 characters at most).');
         }
         $hit = self::findByExternalRef($conn, $ref);
-        return self::save($conn, $in, $hit ? (int)$hit['id'] : null);
+        return self::save($conn, $in, $hit ? (int)$hit['id'] : null, $ctx, $source);
+    }
+
+    /**
+     * GH #279: a company's custom fields as the REST API returns them -
+     * {field_key: value|null} for every company field.
+     */
+    public static function customFields(PDO $conn, int $id): object
+    {
+        require_once __DIR__ . '/record_fields.php';
+        return RecordFieldsService::apiMap($conn, 'company', $id);
     }
 
     /** A company as the API and the System page show it. */

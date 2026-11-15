@@ -211,6 +211,33 @@ try {
         }
     }
 
+    // GH #279: custom fields - the shared ones plus the company's own (System ->
+    // Custom fields). Checked now, before anything is written. Never directory-owned.
+    require_once '../../includes/services/record_fields.php';
+    require_once '../../includes/service_context.php';
+    $cfDefs = [];
+    $cfValues = [];
+    if (array_key_exists('custom_fields', $data) || !$id) {
+        $cfTenant = $destinationTenantId ?? null;
+        if ($id && !$tenantSent) {
+            $ct = $conn->prepare('SELECT tenant_id FROM users WHERE id = ?');
+            $ct->execute([$id]);
+            $cv = $ct->fetchColumn();
+            $cfTenant = $cv === false || $cv === null ? null : (int)$cv;
+        } elseif ($tenantSent) {
+            $cfTenant = $tenantId !== null ? (int)$tenantId : null;
+        }
+        $sent = $data['custom_fields'] ?? [];
+        try {
+            if (!is_array($sent)) throw new ServiceError('validation', 'invalid_field', 'Custom fields must be field keys and values.');
+            $cfDefs = RecordFieldsService::fieldsFor($conn, 'person', $cfTenant !== null ? (int)$cfTenant : null);
+            if ($cfDefs) $cfValues = RecordFieldsService::validate($conn, 'person', $cfDefs, $sent, !$id);
+        } catch (ServiceError $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+    }
+
     // Is this record owned by a directory, and by WHICH KIND of directory? Both
     // halves matter: `is_managed` says somebody else maintains this person, and
     // the provider's protocol says which parts of them. An address book owns a
@@ -336,6 +363,7 @@ try {
             $args[] = $id;
             $conn->prepare("UPDATE users SET " . implode(', ', $sets) . " WHERE id = ?")->execute($args);
         }
+        if ($cfValues) RecordFieldsService::write($conn, ActorContext::fromSession($conn), 'person', (int)$id, $cfDefs, $cfValues);   // GH #279
 
         // --- CardDAV write-back -------------------------------------------
         //
@@ -396,7 +424,9 @@ try {
         $ph = implode(', ', array_fill(0, count($cols), '?'));
         $stmt = $conn->prepare("INSERT INTO users (" . implode(', ', $cols) . ", created_at) VALUES ($ph, UTC_TIMESTAMP())");
         $stmt->execute($vals);
-        echo json_encode(['success' => true, 'id' => (int)$conn->lastInsertId(), 'message' => 'User created']);
+        $newId = (int)$conn->lastInsertId();
+        if ($cfValues) RecordFieldsService::write($conn, ActorContext::fromSession($conn), 'person', $newId, $cfDefs, $cfValues);   // GH #279
+        echo json_encode(['success' => true, 'id' => $newId, 'message' => 'User created']);
     }
 
 } catch (Exception $e) {

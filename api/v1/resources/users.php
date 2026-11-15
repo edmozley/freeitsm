@@ -5,6 +5,7 @@
  */
 require_once dirname(__DIR__, 3) . '/includes/cost_centre_assign.php';   // GH #160
 require_once dirname(__DIR__, 3) . '/includes/record_locations.php';      // GH #311
+require_once dirname(__DIR__, 3) . '/includes/services/record_fields.php'; // GH #279
 
 /**
  * Has Database Verification added users.employee_id (the payroll / HR number) yet?
@@ -59,6 +60,33 @@ function apiUserColumns(PDO $conn): string {
                   (SELECT ccu.name FROM cost_centres ccu WHERE ccu.id = users.cost_centre_id) AS cost_centre_name";
     }
     return $cols;
+}
+
+/**
+ * `custom_fields` from a request body for a person in company $tenantId (GH #279):
+ * [false, [], []] when not sent (and not a create), else [true, defs, checked values].
+ * 422 for an unknown key, a bad value, or a required field missing on a create.
+ */
+function apiUserCustomFields(PDO $conn, array $body, ?int $tenantId, bool $isCreate): array {
+    if (!array_key_exists('custom_fields', $body) && !$isCreate) return [false, [], []];
+    $sent = $body['custom_fields'] ?? [];
+    if (!is_array($sent)) apiError(422, 'invalid_field', "'custom_fields' must be an object of field keys and values.");
+    $defs = RecordFieldsService::fieldsFor($conn, 'person', $tenantId);
+    if (!$defs) {
+        if ($sent) apiError(422, 'invalid_field', 'People have no custom fields yet. See System -> Custom fields.');
+        return [false, [], []];
+    }
+    try {
+        return [true, $defs, RecordFieldsService::validate($conn, 'person', $defs, $sent, $isCreate)];
+    } catch (ServiceError $e) {
+        apiFailFromService($e);
+    }
+    return [false, [], []];
+}
+
+/** A person's custom fields as the API returns them: {field_key: value|null} (GH #279). */
+function apiUserCustomMap(PDO $conn, array $u): object {
+    return RecordFieldsService::apiMap($conn, 'person', (int)$u['id'], isset($u['tenant_id']) && $u['tenant_id'] !== null ? (int)$u['tenant_id'] : null);
 }
 
 /**
@@ -174,7 +202,21 @@ function apiUsersList(PDO $conn, array $apiKey, array $params, array $body): voi
          FROM users WHERE $whereSql ORDER BY COALESCE(email, username, display_name) ASC LIMIT $perPage OFFSET $offset"
     );
     $stmt->execute($args);
-    apiRespond(array_map('apiSerializeUser', $stmt->fetchAll(PDO::FETCH_ASSOC)), 200, [
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // GH #279: custom fields - one read per company on the page, not one per person.
+    $byTenant = [];
+    foreach ($rows as $r) $byTenant[(int)($r['tenant_id'] ?? 0)][] = (int)$r['id'];
+    $cf = [];
+    foreach ($byTenant as $t => $ids) {
+        $defs = RecordFieldsService::fieldsFor($conn, 'person', $t ?: null);
+        $vals = $defs ? RecordFieldsService::valuesMany($conn, 'person', $ids, $defs) : [];
+        foreach ($ids as $uid) {
+            $m = [];
+            foreach (array_keys($defs) as $k) $m[$k] = $vals[$uid][$k] ?? null;
+            $cf[$uid] = (object)$m;
+        }
+    }
+    apiRespond(array_map(fn($r) => apiSerializeUser($r) + ['custom_fields' => $cf[(int)$r['id']] ?? (object)[]], $rows), 200, [
         'page' => $page, 'per_page' => $perPage, 'total' => $total,
         'total_pages' => (int)ceil($total / $perPage),
     ]);
@@ -196,6 +238,7 @@ function apiUsersGet(PDO $conn, array $apiKey, array $params, array $body): void
         apiError(404, 'not_found', 'Requester not found.');
     }
     $data = apiSerializeUser($user);
+    $data['custom_fields'] = apiUserCustomMap($conn, $user);   // GH #279
 
     // Ticket counts, scoped to the key's companies.
     [$scopeSql, $scopeArgs] = apiKeyTicketFilter($conn, $apiKey);
@@ -280,6 +323,7 @@ function apiUsersCreate(PDO $conn, array $apiKey, array $params, array $body): v
     [$ccSent, $ccId] = apiUserCostCentre($conn, $body, $tenantId, null);
     [$empSent, $empId] = apiUserEmployeeId($conn, $body);
     [$locSent, $locId] = apiUserLocation($conn, $body, $tenantId !== null ? (int)$tenantId : null);
+    [$cfSent, $cfDefs, $cfValues] = apiUserCustomFields($conn, $body, $tenantId !== null ? (int)$tenantId : null, true);
 
     $stmt = $conn->prepare("INSERT INTO users (email, username, display_name, preferred_name, tenant_id, created_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())");
     $stmt->execute([$emailOrNull, $usernameOrNull, $displayName, $preferredName, $tenantId]);
@@ -287,10 +331,12 @@ function apiUsersCreate(PDO $conn, array $apiKey, array $params, array $body): v
     if ($ccSent) $conn->prepare("UPDATE users SET cost_centre_id = ? WHERE id = ?")->execute([$ccId, $id]);
     if ($empSent) $conn->prepare("UPDATE users SET employee_id = ? WHERE id = ?")->execute([$empId, $id]);
     if ($locSent) $conn->prepare("UPDATE users SET location_id = ? WHERE id = ?")->execute([$locId, $id]);
+    if ($cfSent && $cfValues) RecordFieldsService::write($conn, ActorContext::fromApiKey($apiKey), 'person', $id, $cfDefs, $cfValues);
 
     $get = $conn->prepare("SELECT " . apiUserColumns($conn) . " FROM users WHERE id = ?");
     $get->execute([$id]);
-    apiRespond(apiSerializeUser($get->fetch(PDO::FETCH_ASSOC)), 201);
+    $row = $get->fetch(PDO::FETCH_ASSOC);
+    apiRespond(apiSerializeUser($row) + ['custom_fields' => apiUserCustomMap($conn, $row)], 201);
 }
 
 // PATCH /users/{id}
@@ -405,13 +451,19 @@ function apiUsersUpdate(PDO $conn, array $apiKey, array $params, array $body): v
             $args[]    = null;
         }
     }
-    if (!$updates) {
+    // GH #279: custom fields, checked against the company they will be in.
+    [$cfSent, $cfDefs, $cfValues] = apiUserCustomFields($conn, $body, $targetTenant, false);
+    if (!$updates && !$cfSent) {
         apiError(422, 'missing_field', 'No fields to update.');
     }
-    $args[] = $params[0];
-    $conn->prepare('UPDATE users SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
+    if ($updates) {
+        $args[] = $params[0];
+        $conn->prepare('UPDATE users SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
+    }
+    if ($cfSent && $cfValues) RecordFieldsService::write($conn, ActorContext::fromApiKey($apiKey), 'person', (int)$params[0], $cfDefs, $cfValues);
 
     $get = $conn->prepare("SELECT " . apiUserColumns($conn) . " FROM users WHERE id = ?");
     $get->execute([$params[0]]);
-    apiRespond(apiSerializeUser($get->fetch(PDO::FETCH_ASSOC)));
+    $row = $get->fetch(PDO::FETCH_ASSOC);
+    apiRespond(apiSerializeUser($row) + ['custom_fields' => apiUserCustomMap($conn, $row)]);
 }

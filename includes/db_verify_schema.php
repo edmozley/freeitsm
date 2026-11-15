@@ -725,6 +725,83 @@ return [
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // Custom fields on companies and people (GH #279) - includes/services/record_fields.php.
+    'company_fields' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'field_key'        => 'VARCHAR(100) NOT NULL',
+        'label'            => 'VARCHAR(150) NOT NULL',
+        'field_type'       => 'VARCHAR(20) NOT NULL',
+        'config'           => 'LONGTEXT NULL',
+        'help_text'        => 'VARCHAR(500) NULL',
+        'is_required'      => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'display_order'    => 'INT NOT NULL DEFAULT 0',
+        'is_deleted'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'company_field_options' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'field_id'      => 'INT NOT NULL',
+        'option_value'  => 'VARCHAR(255) NOT NULL',
+        'display_order' => 'INT NOT NULL DEFAULT 0',
+    ],
+
+    'company_field_values' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'     => 'INT NOT NULL',
+        'field_id'      => 'INT NOT NULL',
+        'seq'           => 'INT NOT NULL DEFAULT 0',
+        'value_text'    => 'TEXT NULL',
+        'value_number'  => 'DECIMAL(20,4) NULL',
+        'value_date'    => 'DATETIME NULL',
+        'value_boolean' => 'TINYINT(1) NULL',
+        'value_ref_id'  => 'INT NULL',
+    ],
+
+    'company_audit' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'        => 'INT NOT NULL',
+        'analyst_id'       => 'INT NULL',
+        'field_name'       => 'VARCHAR(100) NOT NULL',
+        'old_value'        => 'VARCHAR(1000) NULL',
+        'new_value'        => 'VARCHAR(1000) NULL',
+        'source'           => "VARCHAR(20) NOT NULL DEFAULT 'app'",
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'person_fields' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'field_key'        => 'VARCHAR(100) NOT NULL',
+        'label'            => 'VARCHAR(150) NOT NULL',
+        'field_type'       => 'VARCHAR(20) NOT NULL',
+        'config'           => 'LONGTEXT NULL',
+        'help_text'        => 'VARCHAR(500) NULL',
+        'is_required'      => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'display_order'    => 'INT NOT NULL DEFAULT 0',
+        'tenant_id'        => 'INT NULL',
+        'is_deleted'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'person_field_options' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'field_id'      => 'INT NOT NULL',
+        'option_value'  => 'VARCHAR(255) NOT NULL',
+        'display_order' => 'INT NOT NULL DEFAULT 0',
+    ],
+
+    'person_field_values' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'user_id'       => 'INT NOT NULL',
+        'field_id'      => 'INT NOT NULL',
+        'seq'           => 'INT NOT NULL DEFAULT 0',
+        'value_text'    => 'TEXT NULL',
+        'value_number'  => 'DECIMAL(20,4) NULL',
+        'value_date'    => 'DATETIME NULL',
+        'value_boolean' => 'TINYINT(1) NULL',
+        'value_ref_id'  => 'INT NULL',
+    ],
+
     // Password reset for SELF-SERVICE PORTAL users (GH #134). Separate from
     // `password_reset_tokens`, which is the analyst one and is hard-wired to
     // analyst_id — see the note beside this table in database/freeitsm.sql for

@@ -239,6 +239,12 @@
                             "in": "body",
                             "desc": "Send-from mailbox for later replies",
                             "req": false
+                        },
+                        {
+                            "name": "location_id",
+                            "in": "body",
+                            "desc": "Where the ticket is about (default: the requester's location, when Tickets -> Settings says so): a location id from System -> Locations - one of the record's company's or a shared one; null clears it. Read back as location {id, name, path}",
+                            "req": false
                         }
                     ],
                     "body": {
@@ -415,6 +421,12 @@
                             "name": "user_id",
                             "in": "body",
                             "desc": "Change the requester (5.2.0, #308): a person the key's analyst can see, in the ticket's company. Always written to the ticket's history.",
+                            "req": false
+                        },
+                        {
+                            "name": "location_id",
+                            "in": "body",
+                            "desc": "Where the ticket is about: a location id from System -> Locations - one of the record's company's or a shared one; null clears it. Read back as location {id, name, path}",
                             "req": false
                         }
                     ],
@@ -6309,6 +6321,12 @@
                             "in": "body",
                             "desc": "Default true",
                             "req": false
+                        },
+                        {
+                            "name": "location_id",
+                            "in": "body",
+                            "desc": "The site it covers: a location id from System -> Locations - one of the record's company's or a shared one; null clears it. Read back as location {id, name, path}",
+                            "req": false
                         }
                     ],
                     "body": {
@@ -6433,6 +6451,12 @@
                             "name": "…all POST fields…",
                             "in": "body",
                             "desc": "Everything creatable is patchable",
+                            "req": false
+                        },
+                        {
+                            "name": "location_id",
+                            "in": "body",
+                            "desc": "The site it covers: a location id from System -> Locations - one of the record's company's or a shared one; null clears it. Read back as location {id, name, path}",
                             "req": false
                         }
                     ],
@@ -9025,6 +9049,12 @@
                             "in": "body",
                             "desc": "builtin:<key> or saved:<id> - start already planned",
                             "req": false
+                        },
+                        {
+                            "name": "location_id",
+                            "in": "body",
+                            "desc": "The site it is about: a location id from System -> Locations - one of the record's company's or a shared one; null clears it. Read back as location {id, name, path}",
+                            "req": false
                         }
                     ],
                     "body": {
@@ -9114,6 +9144,12 @@
                             "name": "(any field from create)",
                             "in": "body",
                             "desc": "Only the fields sent are changed",
+                            "req": false
+                        },
+                        {
+                            "name": "location_id",
+                            "in": "body",
+                            "desc": "The site it is about: a location id from System -> Locations - one of the record's company's or a shared one; null clears it. Read back as location {id, name, path}",
                             "req": false
                         }
                     ],
@@ -14940,6 +14976,18 @@
                             "in": "body",
                             "desc": "Payroll \/ HR number (64 characters at most; not unique)",
                             "req": false
+                        },
+                        {
+                            "name": "location_id",
+                            "in": "body",
+                            "desc": "Where they sit: a location id from System -> Locations - one of the record's company's or a shared one; null clears it. Read back as location {id, name, path}",
+                            "req": false
+                        },
+                        {
+                            "name": "custom_fields",
+                            "in": "body",
+                            "desc": "Custom fields - the shared person fields and their company's own (System -> Custom fields): an object of field key -> value; \"\" or null clears one. Unknown keys and values a field does not accept are refused (422); a required field must be given when creating",
+                            "req": false
                         }
                     ],
                     "body": {
@@ -15019,6 +15067,18 @@
                             "name": "employee_id",
                             "in": "body",
                             "desc": "Payroll \/ HR number (64 characters at most); null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "location_id",
+                            "in": "body",
+                            "desc": "Where they sit (dropped when tenant_id moves them to a company that cannot use it): a location id from System -> Locations - one of the record's company's or a shared one; null clears it. Read back as location {id, name, path}",
+                            "req": false
+                        },
+                        {
+                            "name": "custom_fields",
+                            "in": "body",
+                            "desc": "Custom fields - the shared person fields and their company's own (System -> Custom fields): an object of field key -> value; \"\" or null clears one. Unknown keys and values a field does not accept are refused (422); a required field must be given when creating",
                             "req": false
                         }
                     ],
@@ -15503,6 +15563,12 @@
                             "in": "body",
                             "desc": "Tax number - VAT, AFM ... (50 characters at most), unique when set ignoring case; null or \"\" clears it",
                             "req": false
+                        },
+                        {
+                            "name": "custom_fields",
+                            "in": "body",
+                            "desc": "Custom fields (System -> Custom fields): an object of field key -> value; \"\" or null clears one. Unknown keys and values a field does not accept are refused (422); a required field must be given when creating",
+                            "req": false
                         }
                     ],
                     "body": {
@@ -15590,6 +15656,12 @@
                             "name": "tax_id",
                             "in": "body",
                             "desc": "Tax number - VAT, AFM ... (50 characters at most), unique when set ignoring case; null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "custom_fields",
+                            "in": "body",
+                            "desc": "Custom fields (System -> Custom fields): an object of field key -> value; \"\" or null clears one. Unknown keys and values a field does not accept are refused (422); a required field must be given when creating",
                             "req": false
                         }
                     ],
@@ -15687,6 +15759,12 @@
                             "name": "tax_id",
                             "in": "body",
                             "desc": "Tax number - VAT, AFM ... (50 characters at most), unique when set ignoring case; null or \"\" clears it",
+                            "req": false
+                        },
+                        {
+                            "name": "custom_fields",
+                            "in": "body",
+                            "desc": "Custom fields (System -> Custom fields): an object of field key -> value; \"\" or null clears one. Unknown keys and values a field does not accept are refused (422); a required field must be given when creating",
                             "req": false
                         }
                     ],

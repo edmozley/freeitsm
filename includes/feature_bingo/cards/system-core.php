@@ -40,6 +40,21 @@ return [
         'check'    => ['setting', 'help_ask_enabled', 'eq', '1'],
     ],
 
+    // ───────────────────────── Custom fields (GH #279) ─────────────────────────
+    [
+        // The tables arrive with Database Verification; until then the check errors,
+        // which reads as not configured (see feature_bingo.php).
+        'id'       => 'system.custom_fields',
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Your own fields on companies and people',
+        'what'     => 'Fields you make up in System -> Custom fields - an account manager, a support tier, a badge number - filled in on the company and the person, and read and written through the REST API.',
+        'why'      => 'The details you keep about a client or a person live beside them instead of in a spreadsheet, and your ERP or CRM can keep them in step every night.',
+        'done'     => 'At least one custom field exists for companies.',
+        'link'     => 'system/custom-fields/',
+        'check'    => ['rows', 'company_fields', 'is_deleted = 0'],
+    ],
     // ───────────────────────── Analysts ─────────────────────────
     [
         'id'       => 'system.analyst_accounts',

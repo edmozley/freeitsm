@@ -101,6 +101,8 @@ $translationNamespaces = ['common', 'system'];
         .form-field .hint { font-size: 12px; color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
         .form-field input[type=text] { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
         .form-field input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
+        /* GH #279: custom fields - the same look for every kind of control. */
+        #coCustomFields input, #coCustomFields select, #coCustomFields textarea { width: 100%; max-width: 420px; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); } #coCustomFields .tf-hint { display: block; font-size: 12px; color: var(--text-faint, #999); margin-top: 4px; }
         .checkbox-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
         .checkbox-field input { margin-top: 3px; }
         .checkbox-field .cb-label { font-size: 13px; color: var(--text, #444); }
@@ -257,6 +259,9 @@ $translationNamespaces = ['common', 'system'];
                     <div class="hint"><?php echo htmlspecialchars(t('system.companies.field_tax_id_hint')); ?></div>
                     <input type="text" id="fTaxId" maxlength="50" autocomplete="off" spellcheck="false" style="max-width: 320px;">
                 </div>
+                <?php /* GH #279: the company's custom fields (System -> Custom fields), drawn by
+                         assets/js/ticket-fields.js; empty when there are none. */ ?>
+                <div id="coCustomFields"></div>
                 <?php /* The company's own logo - shown on the Files desktop for people
                          working in this company. Existing companies only: it saves
                          straight away through api/system/tenant_logo.php. */ ?>
@@ -327,6 +332,7 @@ $translationNamespaces = ['common', 'system'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
+    <script src="../../assets/js/ticket-fields.js?v=2"></script>   <!-- GH #279: custom fields -->
     <script>
     const API = '<?php echo $path_prefix; ?>api/';
     let companies = [];
@@ -532,10 +538,23 @@ $translationNamespaces = ['common', 'system'];
             document.getElementById('routingPanel').innerHTML = '';
         }
 
+        loadCompanyCustomFields(c ? c.id : 0);
         modal.classList.add('open');
         document.getElementById('fName').focus();
     }
     function closeModal() { modal.classList.remove('open'); }
+
+    // GH #279: the company's custom fields with their answers (none for a new one).
+    async function loadCompanyCustomFields(id) {
+        const box = document.getElementById('coCustomFields');
+        box.innerHTML = '';
+        if (!window.TicketFields) return;
+        try {
+            const r = await fetch(API + 'system/custom_fields.php?entity=company&record=' + encodeURIComponent(id || 0), { credentials: 'same-origin' });
+            const d = await r.json();
+            if (d.success && d.fields && d.fields.length) box.innerHTML = TicketFields.render(d.fields, { groupClass: 'form-field' });
+        } catch (e) { /* the dialog still saves everything else */ }
+    }
 
     // ---------- Company email domains ----------
     let currentDomains = [];
@@ -827,6 +846,9 @@ $translationNamespaces = ['common', 'system'];
             external_ref: document.getElementById('fExternalRef').value.trim(),
             tax_id: document.getElementById('fTaxId').value.trim()
         };
+        // GH #279: custom fields, whenever there are any. An empty box is sent as '' - clear it.
+        const cfBox = document.getElementById('coCustomFields');
+        if (window.TicketFields && cfBox.querySelector('[data-tf-key]')) payload.custom_fields = TicketFields.collect(cfBox);
         if (!payload.name) {
             showToast(window.t('system.companies.required_name'), 'error');
             return;

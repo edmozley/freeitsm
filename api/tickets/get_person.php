@@ -63,6 +63,9 @@ try {
         ? array_values(userDirectoryOwnedFields($u['managed_protocol'] ?? null, (int)($u['managed_write_back'] ?? 0) === 1))
         : [];
     $u['is_active'] = (int)($u['is_active'] ?? 1) === 1;
+    // GH #279: their custom fields - the shared ones plus their company's own.
+    require_once '../../includes/services/record_fields.php';
+    $u['custom_fields'] = RecordFieldsService::forRecord($conn, 'person', (int)$u['id'], $u['tenant_id'] !== null ? (int)$u['tenant_id'] : null);
     // GH #311: where they sit, with its full path for the editor.
     $u['location_id']   = !empty($u['location_id']) ? (int)$u['location_id'] : null;
     $u['location_path'] = recordLocationPath($conn, $u['location_id']);

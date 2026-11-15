@@ -39,12 +39,13 @@ $id = isset($data['id']) ? (int)$data['id'] : 0;
 try {
     $conn = connectToDatabase();
     $in = [];
-    foreach (['name', 'is_active', 'ticket_code', 'external_ref', 'tax_id'] as $k) {
+    foreach (['name', 'is_active', 'ticket_code', 'external_ref', 'tax_id', 'custom_fields'] as $k) {   // custom_fields: GH #279
         if (array_key_exists($k, $data)) $in[$k] = $data[$k];
     }
     // The form always sends these two; an older page without them still saves.
     if (!CompaniesService::refsReady($conn)) unset($in['external_ref'], $in['tax_id']);
-    $r = CompaniesService::save($conn, $in, $id > 0 ? $id : null);
+    require_once '../../includes/service_context.php';
+    $r = CompaniesService::save($conn, $in, $id > 0 ? $id : null, ActorContext::fromSession($conn));
     echo json_encode(['success' => true, 'id' => $r['id']]);
 } catch (ServiceError $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

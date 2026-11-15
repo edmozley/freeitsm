@@ -617,6 +617,17 @@ function getHelpTopics() {
             ],
             'terms' => 'intune primary user holder mismatch differs handed on reassigned laptop custody follow entra',
         ],
+        'custom-fields' => [
+            'hero' => 'Custom fields',
+            'sub'  => 'Make up the fields your companies and people need - an account manager, a support tier, a badge number - and fill them in on the company and the person, or through the REST API.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'kinds',    'label' => 'Kinds of field'],
+                ['id' => 'people',   'label' => 'People and companies'],
+                ['id' => 'api',      'label' => 'The REST API'],
+            ],
+            'terms' => 'custom fields field extra attributes company companies people person erp crm api required dropdown',
+        ],
         'locations-in-use' => [
             'hero' => 'Locations in use',
             'sub'  => 'People, tickets, contracts and projects can each have a location. A location something points at cannot be deleted - this is where you move them all to another one first, or clear it.',

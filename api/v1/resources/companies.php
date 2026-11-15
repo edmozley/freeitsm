@@ -46,6 +46,11 @@ function apiCompaniesInput(array $body): array
         }
         $in[$k] = $body[$k];
     }
+    // GH #279: custom fields - {field_key: value}; checked by CompaniesService.
+    if (array_key_exists('custom_fields', $body)) {
+        if (!is_array($body['custom_fields'])) apiError(422, 'invalid_field', "'custom_fields' must be an object of field keys and values.");
+        $in['custom_fields'] = $body['custom_fields'];
+    }
     if (array_key_exists('is_active', $body)) {
         if (!is_bool($body['is_active']) && !in_array($body['is_active'], [0, 1, '0', '1'], true)) {
             apiError(422, 'invalid_field', "'is_active' must be true or false.");
@@ -108,7 +113,16 @@ function apiCompaniesList(PDO $conn, array $apiKey, array $params, array $body):
     $st = $conn->prepare("SELECT $cols FROM tenants" . ($where ? ' WHERE ' . implode(' AND ', $where) : '')
         . ' ORDER BY is_default DESC, name ASC');
     $st->execute($args);
-    apiRespond(array_map(['CompaniesService', 'serialize'], $st->fetchAll(PDO::FETCH_ASSOC)));
+    $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+    // GH #279: custom fields, read for the whole page at once.
+    require_once __DIR__ . '/../../../includes/services/record_fields.php';
+    $cfDefs = RecordFieldsService::fieldsFor($conn, 'company');
+    $cfVals = $cfDefs ? RecordFieldsService::valuesMany($conn, 'company', array_column($rows, 'id'), $cfDefs) : [];
+    apiRespond(array_map(function ($row) use ($cfDefs, $cfVals) {
+        $cf = [];
+        foreach (array_keys($cfDefs) as $k) $cf[$k] = $cfVals[(int)$row['id']][$k] ?? null;
+        return CompaniesService::serialize($row) + ['custom_fields' => (object)$cf];
+    }, $rows));
 }
 
 // GET /companies/{id} - unknown and outside the key's companies give the same 404.
@@ -116,7 +130,7 @@ function apiCompaniesGet(PDO $conn, array $apiKey, array $params, array $body): 
     $id = (int)$params[0];
     $row = apiKeyCanAccessTenant($conn, $apiKey, $id) ? CompaniesService::get($conn, $id) : null;
     if (!$row) apiError(404, 'not_found', 'Company not found.');
-    apiRespond(CompaniesService::serialize($row));
+    apiRespond(CompaniesService::serialize($row) + ['custom_fields' => CompaniesService::customFields($conn, $id)]);
 }
 
 // POST /companies
@@ -124,8 +138,8 @@ function apiCompaniesCreate(PDO $conn, array $apiKey, array $params, array $body
     apiCompaniesRequireManager($conn, $apiKey);
     $in = apiCompaniesInput($body);
     try {
-        $r = CompaniesService::save($conn, $in, null);
-        apiRespond(CompaniesService::serialize(CompaniesService::get($conn, $r['id'])), 201);
+        $r = CompaniesService::save($conn, $in, null, ActorContext::fromApiKey($apiKey), 'api');
+        apiRespond(CompaniesService::serialize(CompaniesService::get($conn, $r['id'])) + ['custom_fields' => CompaniesService::customFields($conn, $r['id'])], 201);
     } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
@@ -140,8 +154,8 @@ function apiCompaniesUpdate(PDO $conn, array $apiKey, array $params, array $body
     $in = apiCompaniesInput($body);
     if (!$in) apiError(422, 'missing_field', 'No fields to update.');
     try {
-        CompaniesService::save($conn, $in, $id);
-        apiRespond(CompaniesService::serialize(CompaniesService::get($conn, $id)));
+        CompaniesService::save($conn, $in, $id, ActorContext::fromApiKey($apiKey), 'api');
+        apiRespond(CompaniesService::serialize(CompaniesService::get($conn, $id)) + ['custom_fields' => CompaniesService::customFields($conn, $id)]);
     } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
@@ -153,8 +167,8 @@ function apiCompaniesUpsert(PDO $conn, array $apiKey, array $params, array $body
     apiCompaniesRequireManager($conn, $apiKey);
     $in = apiCompaniesInput($body);
     try {
-        $r = CompaniesService::upsert($conn, $in);
-        $out = CompaniesService::serialize(CompaniesService::get($conn, $r['id']));
+        $r = CompaniesService::upsert($conn, $in, ActorContext::fromApiKey($apiKey), 'api');
+        $out = CompaniesService::serialize(CompaniesService::get($conn, $r['id'])) + ['custom_fields' => CompaniesService::customFields($conn, $r['id'])];
         $out['created'] = $r['created'];
         // Two literal calls: the OpenAPI generator reads the status codes from them.
         if ($r['created']) apiRespond($out, 201);
