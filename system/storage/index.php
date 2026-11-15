@@ -14,6 +14,9 @@ I18n::initFromSession();
 Tz::init();
 
 $current_page = 'storage';
+// Not only administrators: whoever holds Storage and backups (PR #318 review), with Files access.
+require_once '../../includes/capabilities.php';
+$system_page_grant = ['module' => 'files', 'cap' => Cap::FILES_STORAGE_BACKUPS];
 require_once __DIR__ . '/../includes/page_gate.php';
 $path_prefix = '../../';
 $translationNamespaces = ['common', 'system'];

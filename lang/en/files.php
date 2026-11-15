@@ -319,6 +319,7 @@ return [
         'move_removing' => 'Removing the old copies from {from}…',
         'move_last_error' => 'Last error: {error}',
         'move_locked' => 'The location cannot be changed while files are being moved.',
+        'location_no_permission' => 'Changing where files are stored needs the Storage and backups permission (System -> Roles). The largest upload can still be changed.',
         'retry_failed' => 'Retry',
         'skip_missing' => 'Skip',
         'finish_keep' => 'Finish',

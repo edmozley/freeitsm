@@ -283,6 +283,11 @@ enum Cap: string
     // RECYCLE sets how long deleted files stay in the recycle bin before they are
     // deleted for good - it never lets anyone see or restore a file.
     case FILES_RECYCLE = 'files.recycle';
+    // STORAGE_BACKUPS: where every stored file goes - Files' location, System -> Storage (the
+    // S3 connection and each store's switch) and System -> Backups. Whoever holds it can send
+    // every file to a bucket of their choosing, past the folder permissions, so it is NOT part
+    // of FILES_MANAGE ('outside_umbrella' in the manifest) - PR #318 review.
+    case FILES_STORAGE_BACKUPS = 'files.storage_backups';
 
     // ---- Projects (3.2.0) --------------------------------------------------
     // GENERAL decides who may create and change projects - the module's own
@@ -531,6 +536,7 @@ function capRegistry(): array
                 'umbrella'  => false,
                 'sensitive' => !empty($tab['sensitive']),
                 'label'     => $tab['grant'] ?? $tab['id'],
+                'outside_umbrella' => !empty($tab['outside_umbrella']),
             ];
         }
 
@@ -549,6 +555,8 @@ function capRegistry(): array
                 'sensitive' => !empty($action['sensitive']),
                 'label'     => $action['grant'] ?? $cap,
                 'restrict'  => $action['restrict'] ?? null,   // ['setting' => key, 'value' => v]; null = always restricted
+                // Granted only on its own: the module's "manage everything" does not include it.
+                'outside_umbrella' => !empty($action['outside_umbrella']),
             ];
         }
     }
@@ -692,7 +700,9 @@ function capExpandUmbrellas(array $held): array
     foreach ($held as $key) {
         $meta = capRegistry()[$key] ?? null;
         if ($meta && !empty($meta['umbrella'])) {
-            $expanded = array_merge($expanded, capsForModule($meta['module']));
+            // Not what the module marks 'outside_umbrella': that is granted only on its own.
+            $expanded = array_merge($expanded, array_filter(capsForModule($meta['module']),
+                fn($k) => empty(capRegistry()[$k]['outside_umbrella'])));
         }
     }
     return array_values(array_unique($expanded));
@@ -730,6 +740,7 @@ function capGroups(): array
                 'sensitive' => capIsSensitive($key),
                 'umbrella'  => $key === $umbrella,
                 'everyday'  => capIsEveryday($key),
+                'outside_umbrella' => !empty(capRegistry()[$key]['outside_umbrella']),
             ];
         }
         $groups[$module] = ['label' => $moduleLabel, 'capabilities' => $entries];

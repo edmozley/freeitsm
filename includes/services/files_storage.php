@@ -69,7 +69,7 @@ final class FilesStorageService
     }
 
     /** The Storage tab's data. The S3 secret is reported as set or not, never sent. */
-    public static function describe(PDO $conn): array
+    public static function describe(PDO $conn, ?int $analystId = null): array
     {
         $root  = rtrim(str_replace('\\', '/', filesSetting($conn, 'files_storage_root', filesDefaultStorageRoot())), '/');
         $usage = $conn->query("SELECT COUNT(DISTINCT storage_path) AS n, COALESCE(SUM(size_bytes), 0) AS bytes
@@ -77,6 +77,8 @@ final class FilesStorageService
         $driver = filesSetting($conn, 'files_storage_driver', 'local') === 's3' ? 's3' : 'local';
         $out = [
             'driver'         => $driver,
+            // Storage and backups (PR #318 review): without it the location fields are read-only.
+            'can_change_location' => self::canChangeLocation($conn, $analystId),
             'location'       => self::label(filesStorageConfig($conn)),
             'storage_root'   => $root,
             'default_root'   => filesDefaultStorageRoot(),
@@ -166,6 +168,7 @@ final class FilesStorageService
         if ($shared !== null) {
             // The install's one connection (System -> Storage): whatever the form sent.
             $s3 = $shared;
+            self::requireLocationPermission($conn, $analystId, $s3);
             $t = self::test($s3);
             if (!$t['ok']) throw new InvalidArgumentException('The S3 connection saved on System -> Storage did not work (failed at ' . $t['step'] . '): ' . $t['error']);
         } elseif ($driver === 's3') {
@@ -187,12 +190,14 @@ final class FilesStorageService
             foreach (['bucket' => 'the bucket', 'access_key_id' => 'the access key ID', 'secret' => 'the secret access key'] as $k => $what) {
                 if ($s3[$k] === '') throw new InvalidArgumentException('Enter ' . $what . '.');
             }
+            self::requireLocationPermission($conn, $analystId, $s3);
             $t = self::test($s3);
             if (!$t['ok']) throw new InvalidArgumentException('Those S3 settings did not work (failed at ' . $t['step'] . '): ' . $t['error']);
         }
 
         $current = filesStorageConfig($conn);
         $next    = $s3 ?? ['driver' => 'local', 'root' => $rootAbs];
+        if ($s3 === null) self::requireLocationPermission($conn, $analystId, $next);
         $moving  = self::locationKey($current) !== self::locationKey($next)
                    // Different settings, same place (another spelling of one folder or bucket):
                    // nothing to move - and a "move" onto itself must never reach cleanup.
@@ -348,6 +353,37 @@ final class FilesStorageService
     }
 
     /** What identifies a location: moving between two different ones moves the files. */
+    /**
+     * Changing WHERE Files is stored - another folder or bucket, or other S3 credentials -
+     * needs Storage and backups (Cap::FILES_STORAGE_BACKUPS) beside Files -> Storage: it can
+     * send every file somewhere new, past the folder permissions (PR #318 review). The rest
+     * of the tab (the largest upload) does not. Analyst 0 (the system) is never refused.
+     *
+     * @param array $next  the location the save would leave in place
+     * @throws InvalidArgumentException
+     */
+    private static function requireLocationPermission(PDO $conn, int $analystId, array $next): void
+    {
+        if ($analystId <= 0 || self::canChangeLocation($conn, $analystId)) return;
+        $cur = filesStorageConfig($conn);
+        $same = self::locationKey($cur) === self::locationKey($next);
+        if ($same && ($next['driver'] ?? 'local') === 's3') {
+            foreach (['region', 'access_key_id', 'secret', 'path_style'] as $k) {
+                if ((string)($cur[$k] ?? '') !== (string)($next[$k] ?? '')) { $same = false; break; }
+            }
+        }
+        if (!$same) throw new InvalidArgumentException('Changing where files are stored needs the Storage and backups permission (System -> Roles).');
+    }
+
+    /** May this analyst change where Files is stored (Storage and backups)? */
+    public static function canChangeLocation(PDO $conn, ?int $analystId): bool
+    {
+        if ($analystId === null || $analystId <= 0) return true;
+        require_once __DIR__ . '/../rbac.php';
+        try { return analystHasCapability($conn, $analystId, Cap::FILES_STORAGE_BACKUPS); }
+        catch (Throwable $e) { return false; }
+    }
+
     private static function locationKey(array $cfg): string
     {
         if (($cfg['driver'] ?? 'local') === 's3') {

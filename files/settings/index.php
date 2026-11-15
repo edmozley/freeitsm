@@ -126,6 +126,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
                     <label><input type="radio" name="stoType" value="local"> <?php echo $tt('type_local'); ?></label>
                     <label><input type="radio" name="stoType" value="s3"> <?php echo $tt('type_s3'); ?></label>
                     <div class="dflt" id="stoLocked" hidden><?php echo $tt('move_locked'); ?></div>
+                    <div class="dflt" id="stoNoPerm" hidden><?php echo $tt('location_no_permission'); ?></div>
                 </div></div>
             <div class="set-row"><div><div class="lbl" id="stoRootLbl"><?php echo $tt('storage_root'); ?></div><div class="desc" id="stoRootDesc"><?php echo $tt('storage_root_desc'); ?></div></div>
                 <div><input type="text" id="stoRoot" spellcheck="false"><div class="dflt" id="stoRootDefault"></div></div></div>

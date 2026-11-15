@@ -1,0 +1,112 @@
+<?php
+/* 🔴 NEVER OVER THE WEB. See tests/README.md. */
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
+/**
+ * The "Storage and backups" permission (Cap::FILES_STORAGE_BACKUPS, PR #318 review /
+ * Storage series S3): whoever holds it can send every stored file to a bucket of their
+ * choosing, past the folder permissions, so it is its own grant -
+ *   - listed under Files on System -> Roles, sensitive, and NOT part of "Manage
+ *     everything in Files" (the umbrella);
+ *   - needed to change where Files is stored (Files -> Settings -> Storage keeps the
+ *     rest, such as the largest upload);
+ *   - what opens System -> Storage to someone who is not an administrator.
+ *
+ * ZZ analysts, team and roles in one transaction that is rolled back; a temporary folder.
+ *   FREEITSM_TEST_DATABASE=<throwaway db> php tests/storage-permission.php
+ */
+
+$root = dirname(__DIR__);
+require_once "$root/config.php";
+require_once "$root/includes/functions.php";
+require_once "$root/includes/rbac.php";
+require_once "$root/includes/services/files_storage.php";
+require_once "$root/system/includes/page_access.php";
+
+$pass = 0; $fail = 0;
+function ok(string $what, bool $cond, string $detail = ''): void {
+    global $pass, $fail;
+    if ($cond) { $pass++; echo "  PASS  {$what}\n"; }
+    else       { $fail++; echo "  FAIL  {$what}" . ($detail !== '' ? "  <- {$detail}" : '') . "\n"; }
+}
+function threw(callable $fn): ?Throwable { try { $fn(); return null; } catch (Throwable $e) { return $e; } }
+
+echo "\nThe Storage and backups permission\n" . str_repeat('=', 72) . "\n";
+$conn = connectToDatabase();
+$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+if (getenv('FREEITSM_TEST_DATABASE') !== (string)$conn->query('SELECT DATABASE()')->fetchColumn()) {
+    exit("Set FREEITSM_TEST_DATABASE to the throwaway database config.php points at - this test writes (rolled back).\n");
+}
+
+$cap = Cap::tryFrom('files.storage_backups');
+ok('the permission exists: files.storage_backups', $cap !== null);
+if ($cap === null) { echo "\n$pass passed, $fail failed\n"; exit(1); }
+$meta = capRegistry()['files.storage_backups'] ?? null;
+ok('...listed under Files, sensitive', $meta && $meta['module'] === 'files' && $meta['sensitive'] === true, json_encode($meta));
+$under = capExpandUmbrellas([capKey(Cap::FILES_MANAGE)]);
+ok('"Manage everything in Files" does NOT include it', !in_array('files.storage_backups', $under, true) && in_array(capKey(Cap::FILES_STORAGE), $under, true), json_encode($under));
+ok('System -> Roles shows it as outside the umbrella', (capGroups()['files']['capabilities']['files.storage_backups']['outside_umbrella'] ?? null) === true);
+
+$dir = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-perm-' . bin2hex(random_bytes(4));
+mkdir($dir);
+$conn->beginTransaction();
+try {
+    foreach (['files_storage_driver', 'files_storage_root', 'files_storage_previous', 'files_max_upload_mb'] as $k) {
+        $conn->prepare("DELETE FROM system_settings WHERE setting_key = ?")->execute([$k]);
+    }
+    filesStorageReset();
+    $tag = 'ZZPERM' . bin2hex(random_bytes(3));
+    $conn->prepare("INSERT INTO teams (name, is_active, can_access_all_modules, can_access_all_tenants) VALUES (?, 1, 0, 1)")->execute(["$tag team"]);
+    $team = (int)$conn->lastInsertId();
+    $conn->prepare("INSERT INTO team_modules (team_id, module_key, access_level) VALUES (?, 'files', 'full')")->execute([$team]);
+    /** A non-admin analyst holding exactly $caps (capability keys) through a role of their own team. */
+    $analyst = function (string $name, array $caps) use ($conn, $tag, $team): int {
+        $conn->prepare("INSERT INTO teams (name, is_active, can_access_all_modules, can_access_all_tenants) VALUES (?, 1, 0, 1)")->execute(["$tag $name"]);
+        $t = (int)$conn->lastInsertId();
+        $conn->prepare("INSERT INTO team_modules (team_id, module_key, access_level) VALUES (?, 'files', 'full')")->execute([$t]);
+        $conn->prepare("INSERT INTO analysts (username, full_name, email, password_hash, is_active, is_admin) VALUES (?, ?, ?, '', 1, 0)")
+             ->execute([strtolower("$tag$name"), "$tag $name", strtolower("$tag$name") . '@example.test']);
+        $a = (int)$conn->lastInsertId();
+        $conn->prepare("INSERT INTO analyst_teams (analyst_id, team_id) VALUES (?, ?)")->execute([$a, $t]);
+        $conn->prepare("INSERT INTO rbac_roles (name, is_active) VALUES (?, 1)")->execute(["$tag $name role"]);
+        $r = (int)$conn->lastInsertId();
+        foreach ($caps as $c) $conn->prepare("INSERT INTO rbac_role_capabilities (role_id, capability_key) VALUES (?, ?)")->execute([$r, $c]);
+        $conn->prepare("INSERT INTO rbac_team_roles (team_id, role_id) VALUES (?, ?)")->execute([$t, $r]);
+        return $a;
+    };
+    $tabOnly  = $analyst('tab', [capKey(Cap::FILES_STORAGE)]);
+    $umbrella = $analyst('umb', [capKey(Cap::FILES_MANAGE)]);
+    $holder   = $analyst('hold', [capKey(Cap::FILES_STORAGE), capKey($cap)]);
+
+    $moveTo = ['driver' => 'local', 'max_upload_mb' => 100, 'storage_root' => $dir];
+    $sizeOnly = ['driver' => 'local', 'max_upload_mb' => 77, 'storage_root' => ''];
+
+    echo "\nChanging where Files is stored\n";
+    ok('Files -> Storage alone: the largest upload can still be changed', threw(fn() => FilesStorageService::save($conn, $tabOnly, $sizeOnly)) === null);
+    $e = threw(fn() => FilesStorageService::save($conn, $tabOnly, $moveTo));
+    ok('...but not the location', $e instanceof InvalidArgumentException && str_contains($e->getMessage(), 'Storage and backups'), $e ? $e->getMessage() : 'saved');
+    $e = threw(fn() => FilesStorageService::save($conn, $umbrella, $moveTo));
+    ok('"Manage everything in Files" cannot change it either', $e instanceof InvalidArgumentException, $e ? $e->getMessage() : 'saved');
+    ok('with Storage and backups it can', threw(fn() => FilesStorageService::save($conn, $holder, $moveTo)) === null);
+    ok('...and the location really changed', rtrim(filesSetting($conn, 'files_storage_root'), '/') === $dir);
+    ok('describe() tells the page whether the location may be changed',
+       (FilesStorageService::describe($conn, $tabOnly)['can_change_location'] ?? null) === false
+       && (FilesStorageService::describe($conn, $holder)['can_change_location'] ?? null) === true);
+
+    echo "\nSystem -> Storage\n";
+    $grant = ['module' => 'files', 'cap' => $cap];
+    ok('the page grants Storage and backups (as Intune\'s pages grant theirs)', str_contains((string)file_get_contents("$root/system/storage/index.php"), 'Cap::FILES_STORAGE_BACKUPS'));
+    ok('...a holder may open it', systemPageAllowed($conn, $holder, 'storage', $grant) === true);
+    ok('...Files -> Storage alone may not', systemPageAllowed($conn, $tabOnly, 'storage', $grant) === false);
+    $api = (string)file_get_contents("$root/api/system/storage.php");
+    ok('its API checks the same permission, not administrator-only', str_contains($api, 'requireCapabilityJson(Cap::FILES_STORAGE_BACKUPS') && !str_contains($api, "admin_api_guard.php"));
+} catch (Throwable $e) {
+    ok('no unexpected error', false, get_class($e) . ': ' . $e->getMessage() . ' @' . basename($e->getFile()) . ':' . $e->getLine());
+} finally {
+    if ($conn->inTransaction()) $conn->rollBack();
+    filesStorageReset();
+    @rmdir($dir);
+}
+
+echo "\n$pass passed, $fail failed\n";
+exit($fail ? 1 : 0);

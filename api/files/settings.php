@@ -40,7 +40,7 @@ filesApiRun(function () use ($conn, $analystId) {
 
     if (in_array($tab, ['storage', 'storage_test', 'storage_migration'], true)) {
         requireCapabilityJson(Cap::FILES_STORAGE, $conn);
-        if ($tab === 'storage' && $isGet) filesApiOk(FilesStorageService::describe($conn));
+        if ($tab === 'storage' && $isGet) filesApiOk(FilesStorageService::describe($conn, $analystId));
         if ($isGet) filesApiFail('Unknown settings tab.');
         try {
             if ($tab === 'storage_test') {

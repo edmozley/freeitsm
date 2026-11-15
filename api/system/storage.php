@@ -1,6 +1,8 @@
 <?php
 /**
- * API: System -> Storage (#284). Administrators only.
+ * API: System -> Storage (#284). Administrators, and analysts with Files access who hold
+ * Storage and backups (Cap::FILES_STORAGE_BACKUPS - never part of "Manage everything in
+ * Files"), as system/storage/ lets them open the page.
  *
  * GET  - the connection (no secret), each store's location, size and move
  * POST - {action: test | save_connection | set_location | move_action, ...}
@@ -14,14 +16,20 @@
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
-require_once '../../includes/admin_api_guard.php';   // signed in AND an administrator
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
 require_once '../../includes/services/storage.php';
 
 header('Content-Type: application/json');
 
 $conn = connectToDatabase();
+requireCapabilityJson(Cap::FILES_STORAGE_BACKUPS, $conn);   // signed in (401) and the permission (403); administrators hold it
 $analystId = (int)$_SESSION['analyst_id'];
+if (!analystIsAdmin($conn, $analystId) && !analystCanAccessModule($conn, $analystId, 'files')) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => 'You do not have permission to manage these settings']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     echo json_encode(['success' => true] + StorageService::describe($conn));

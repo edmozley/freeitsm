@@ -202,7 +202,7 @@ $capabilityGroups = capGroups();   // generated from the registry — add a Cap:
     </script>
     <script src="../../assets/js/toast.js"></script>
     <script src="../../assets/js/confirm.js?v=7"></script>
-    <script src="../../assets/js/system-roles.js?v=5"></script>
+    <script src="../../assets/js/system-roles.js?v=6"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

@@ -191,7 +191,11 @@
             var m = r.migration;
             $('stoMove').hidden = !m;
             $('stoLocked').hidden = !m;
-            document.querySelectorAll('input[name="stoType"], #stoRoot, #s3Endpoint, #s3Bucket, #s3Prefix').forEach(function (el) { el.disabled = !!m; });
+            // Without Storage and backups (System -> Roles) the location is shown, not changed.
+            var noPerm = r.can_change_location === false;
+            $('stoNoPerm').hidden = !noPerm;
+            document.querySelectorAll('input[name="stoType"], #stoRoot, #s3Endpoint, #s3Bucket, #s3Prefix').forEach(function (el) { el.disabled = !!m || noPerm; });
+            document.querySelectorAll('#s3Region, #s3Key, #s3Secret, #s3PathStyle').forEach(function (el) { el.disabled = noPerm; });
             clearTimeout(pollTimer);
             if (!m) return;
             var done = m.verified + m.removed + m.skipped;

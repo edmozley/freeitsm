@@ -63,4 +63,17 @@ return [
             'sensitive' => true,   // a short period deletes files sooner
         ],
     ],
+
+    'actions' => [
+        [
+            // PR #318 review: where every stored file goes is its own grant. NOT part of
+            // "Manage everything in Files", and needed beside Files -> Storage to change
+            // Files' location. Also opens System -> Storage (and System -> Backups).
+            'cap'              => capKey(Cap::FILES_STORAGE_BACKUPS),
+            'grant'            => 'Storage and backups: choose where every stored file is kept (Files, and the stores on System -> Storage) and where backups go - a holder can send every file to a bucket of their choosing. Never part of "Manage everything in Files"',
+            'sensitive'        => true,
+            'restrict'         => null,   // always applies
+            'outside_umbrella' => true,
+        ],
+    ],
 ];
