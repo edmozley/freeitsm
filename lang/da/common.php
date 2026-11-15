@@ -624,6 +624,9 @@ return [
             'help' => [
                 'unanswered' => 'Hjælpeassistenten kunne ikke besvare et spørgsmål',
             ],
+            'hyperv' => [
+                'collector' => 'En Hyper-V-collector kræver din opmærksomhed',
+            ],
         ],
         'pref' => [
             'ticket' => [
@@ -678,6 +681,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Hjælpeassistenten kan ikke besvare et spørgsmål, nogen har stillet (administratorer)',
+            ],
+            'hyperv' => [
+                'collector' => 'En Hyper-V-collector holder op med at rapportere, eller en clusters lager kan ikke læses (personer, der administrerer Hyper-V-forbindelser)',
             ],
         ],
     ],

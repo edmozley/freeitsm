@@ -308,6 +308,8 @@ try {
         && $conn->query("SELECT stale_alerted_at FROM virt_connections WHERE id = $cid")->fetchColumn() === null);
     $conn->prepare("DELETE FROM notifications WHERE entity_type = 'virt_connection' AND entity_id = ?")->execute([$cid]);
     VirtualEstateService::submit($conn, $cid, $report(21, [$group('ZZ-CL-A', [], false, 'ZZ CSV refused')], $scopeA));
+    $w = VirtualEstateService::watch($conn, null, [$cid]);
+    storageCheck('one failed read tells nobody yet (two in a row before the bell)', $w['storage'] === 0 && count($bell()) === 0);
     VirtualEstateService::submit($conn, $cid, $report(22, [$group('ZZ-CL-A', [], false, 'ZZ CSV refused')], $scopeA));
     $clusterOf = fn() => array_values(array_filter(VirtualEstateService::storageInventory($conn, [$cid]),
         fn($c) => $c['cluster_external_id'] === $estate['clusters']['ZZ-CL-A']))[0];

@@ -141,7 +141,7 @@ return [
         'fallback_hint'     => 'For an install that cannot have a scheduled task. It is a fallback, not a schedule: nothing runs while nobody has FreeITSM open, so a job due at 06:00 runs at the first page load after it. PHP must be allowed to start a process, as the Intune sync needs. Runs it starts are recorded as page runs, so health still says no scheduled task runs these jobs. It does nothing while a scheduled task runs the scheduler.',
         'fallback_last'     => 'Last started from a page {when}.',
         'fallback_not_yet'  => 'Not started yet: it starts with the next page load by somebody signed in.',
-        'fallback_error'    => 'PHP could not start a process at {when}, so it is tried again every 15 minutes. If it keeps failing, set the PHP path under System -> Integrations -> Microsoft 365 -> Intune, or ask your host whether PHP may start processes.',
+        'fallback_error'    => 'PHP could not start a process at {when}, so it is tried again every 15 minutes. If it keeps failing, ask your host whether PHP may start processes, or run the scheduler from cron instead.',
         'starts'            => 'Scheduler: {when}',
         'starts_daily'      => 'Scheduler: daily at {time} ({tz})',
         'starts_off'        => 'Scheduler: off',

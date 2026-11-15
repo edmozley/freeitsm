@@ -864,7 +864,9 @@ final class VirtualEstateService
         $clusters = $conn->query('SELECT cl.id, cl.connection_id, cl.name, cl.external_id, cl.storage_read_error, cl.storage_failing_since,
                 cl.storage_failed_runs, cl.storage_alerted_at
             FROM virt_clusters cl JOIN virt_connections c ON c.id = cl.connection_id AND c.is_active = 1' . str_replace('id IN', 'c.id IN', $limit) . '
-            WHERE (cl.storage_read_error IS NOT NULL AND cl.storage_alerted_at IS NULL)
+            -- Two failed reports in a row before anybody is told, as the Servers page warns:
+            -- one failed read can be a blip (Ed, 2026-11-15).
+            WHERE (cl.storage_read_error IS NOT NULL AND cl.storage_alerted_at IS NULL AND cl.storage_failed_runs >= 2)
                OR (cl.storage_read_error IS NULL AND cl.storage_alerted_at IS NOT NULL)')->fetchAll(PDO::FETCH_ASSOC);
         foreach ($clusters as $cl) {
             if ($cl['storage_read_error'] === null) {

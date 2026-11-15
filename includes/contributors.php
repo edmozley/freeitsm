@@ -65,7 +65,10 @@ function getContributors(): array
                       . 'Back from a full-screen ticket that keeps your layout and your draft, Hyper-V VMs '
                       . 'reporting their guest OS, CMDB relationships that read correctly in every language, '
                       . 'Impact and Risk impact told apart on a change, two preferences templates had left '
-                      . 'out, and software columns that say what they count.',
+                      . 'out, and software columns that say what they count. And Cluster Shared Volumes on '
+                      . 'Assets -> Servers (PR #351, 5.4.0): the Hyper-V collector reads each cluster\'s '
+                      . 'shared storage once, with every failure case - a failed read, a partial one, an old '
+                      . 'collector - worked out before a line was written and tested with synthetic reports.',
         ],
         [
             // Public GitHub handle - they confirmed it on #235 (2026-11-02).
@@ -94,7 +97,11 @@ function getContributors(): array
                       . 'for each Intune asset from what its device is (PR #339); the asset list grouped by '
                       . 'type (PR #340); both Intune syncs running on their own as scheduled jobs (PR #344); '
                       . 'Run now on Background jobs, with who ran what for the audit (PR #345); and the '
-                      . 'System cards by topic, with a heading per group, or A-Z (PR #347).',
+                      . 'System cards by topic, with a heading per group, or A-Z (PR #347). Then Microsoft 365 '
+                      . 'in System -> Integrations (PR #352, 5.4.0): Entra ID and Intune together, Intune set '
+                      . 'up there in two halves - its connection, and what it imports - with the asset managers '
+                      . 'who set it up before still able to, and everything else that talks to Microsoft 365 '
+                      . 'listed beside them.',
         ],
         [
             // Name and company as Ed was given them (October 2026). The package

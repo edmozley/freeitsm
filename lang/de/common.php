@@ -624,6 +624,9 @@ return [
             'help' => [
                 'unanswered' => 'Der Hilfe-Assistent konnte eine Frage nicht beantworten',
             ],
+            'hyperv' => [
+                'collector' => 'Ein Hyper-V-Collector braucht Ihre Aufmerksamkeit',
+            ],
         ],
         'pref' => [
             'ticket' => [
@@ -678,6 +681,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Der Hilfe-Assistent kann eine gestellte Frage nicht beantworten (Administratoren)',
+            ],
+            'hyperv' => [
+                'collector' => 'Ein Hyper-V-Collector meldet sich nicht mehr, oder der Speicher eines Clusters kann nicht gelesen werden (Personen, die Hyper-V-Verbindungen verwalten)',
             ],
         ],
     ],

@@ -624,6 +624,9 @@ return [
             'help' => [
                 'unanswered' => 'Asisten bantuan tidak dapat menjawab sebuah pertanyaan',
             ],
+            'hyperv' => [
+                'collector' => 'Collector Hyper-V memerlukan perhatian Anda',
+            ],
         ],
         'pref' => [
             'ticket' => [
@@ -678,6 +681,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Asisten bantuan tidak dapat menjawab pertanyaan yang diajukan seseorang (administrator)',
+            ],
+            'hyperv' => [
+                'collector' => 'Collector Hyper-V berhenti melapor, atau penyimpanan sebuah cluster tidak dapat dibaca (orang yang mengelola koneksi Hyper-V)',
             ],
         ],
     ],

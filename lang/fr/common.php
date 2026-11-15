@@ -624,6 +624,9 @@ return [
             'help' => [
                 'unanswered' => 'L\'assistant d\'aide n\'a pas pu répondre à une question',
             ],
+            'hyperv' => [
+                'collector' => 'Un collecteur Hyper-V demande votre attention',
+            ],
         ],
         'pref' => [
             'ticket' => [
@@ -678,6 +681,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'L\'assistant d\'aide ne peut pas répondre à une question posée (administrateurs)',
+            ],
+            'hyperv' => [
+                'collector' => 'Un collecteur Hyper-V cesse de remonter des rapports, ou le stockage d\'un cluster est illisible (personnes qui gèrent les connexions Hyper-V)',
             ],
         ],
     ],
