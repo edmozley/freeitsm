@@ -32,7 +32,8 @@ if (!analystIsAdmin($conn, $analystId) && !analystCanAccessModule($conn, $analys
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    echo json_encode(['success' => true] + StorageService::describe($conn));
+    // ?poll=1: the page's refresh during a move - no address lookup each time.
+    echo json_encode(['success' => true] + StorageService::describe($conn, !isset($_GET['poll'])));
     exit;
 }
 

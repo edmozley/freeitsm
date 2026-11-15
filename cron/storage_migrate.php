@@ -44,28 +44,20 @@ if (!JobRun::lock($conn, 'storage_migrate', $trigger)) exit(0);
 
 $runId = JobRun::start($conn, 'storage_migrate', $trigger);
 try {
-    $r = ['copied' => 0, 'failed' => 0, 'removed' => 0, 'done' => true];
     $deadline = time() + 8 * 60;
-    $unavailable = false;
-    // Files first (its own engine), then each store that is moving, each in turn.
+    // Files first (its own engine), then each store that is moving - each with its share of
+    // the run, and one that throws never stops the others (storageMoveRunAll()).
     $movers = [];
-    if (!$filesOff) $movers['files'] = fn() => storageMigrateBatch($conn, $deadline);
-    foreach ($stores as $s) $movers[$s] = fn() => storeMoveBatch($conn, $s, $deadline);
-    foreach ($movers as $name => $run) {
-        do {
-            $b = $run();
-            foreach (['copied', 'failed', 'removed'] as $k) $r[$k] += $b[$k];
-            $thisDown = !empty($b['unavailable']);
-            $didWork = $b['copied'] + $b['removed'] > 0;
-        } while (!$b['done'] && $didWork && !$thisDown && time() < $deadline);
-        if (!$b['done']) $r['done'] = false;
-        if ($thisDown) $unavailable = true;
-        if (time() >= $deadline) break;
-    }
+    if (!$filesOff) $movers['files'] = function (int $until) use ($conn) { return storageMigrateBatch($conn, $until); };
+    foreach ($stores as $s) $movers[$s] = function (int $until) use ($conn, $s) { return storeMoveBatch($conn, $s, $until); };
+    $r = storageMoveRunAll($movers, $deadline);
+    $unavailable = $r['unavailable'];
+    if ($r['errors']) $r['failed'] += count($r['errors']);
 
     $summary = sprintf('%d copied, %d removed, %d failed attempts%s.', $r['copied'], $r['removed'], $r['failed'],
                        $unavailable ? ' - storage could not be reached, the next run tries again'
-                                    : ($r['done'] ? '' : ' (more to do: the next run carries on)'));
+                                    : ($r['done'] ? '' : ' (more to do: the next run carries on)'))
+             . ($r['errors'] ? ' Errors: ' . mb_substr(implode('; ', $r['errors']), 0, 400) : '');
     JobRun::finish($conn, $runId, ($r['failed'] === 0 && !$unavailable) ? 'ok' : ($r['copied'] + $r['removed'] > 0 ? 'partial' : 'failed'),
                    ['copied' => $r['copied'], 'removed' => $r['removed'], 'failed' => $r['failed']], $summary);
     echo "Storage move: $summary\n";

@@ -30,9 +30,9 @@
     }
     function where(loc) { return loc === 's3' ? t('s3') : t('local'); }
 
-    async function api(body) {
+    async function api(body, poll) {
         var opts = body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {};
-        var resp = await fetch(window.ST_API, opts);
+        var resp = await fetch(window.ST_API + (poll ? '?poll=1' : ''), opts);
         var data;
         try { data = await resp.json(); } catch (e) { data = { success: false, error: t('err_server') }; }
         return data;
@@ -56,7 +56,8 @@
             $('stSse').value = c.sse || '';
         }
         // Plain http to a public address (storage series S1): the files cross the internet unencrypted.
-        $('stInsecure').classList.toggle('st-hidden', !(c && c.insecure));
+        // A poll does not look the address up (insecure is null): keep what the last load said.
+        if (!c || c.insecure !== null) $('stInsecure').classList.toggle('st-hidden', !(c && c.insecure));
         var locked = !!(c && d.connection_in_use);
         $('stLocked').classList.toggle('st-hidden', !locked);
         ['stEndpoint', 'stBucket', 'stPrefix'].forEach(function (id) { $(id).disabled = locked; });
@@ -69,7 +70,8 @@
         var out = '<div class="st-move">' + esc(t('moving', { from: where(m.from), to: where(m.to), done: done, total: m.total }));
         if (m.failed > 0) out += '<div class="st-msg err">' + esc(t('moving_failed', { n: m.failed, error: m.last_error || '' })) + '</div>';
         var copiedAll = m.pending === 0 && m.failed === 0;
-        if (m.cleanup_running) out += '<div>' + esc(t('moving_cleanup')) + '</div>';
+        if (m.cleanup_held) out += '<div class="st-msg err">' + esc(t('moving_cleanup_held')) + '</div>';
+        else if (m.cleanup_running) out += '<div>' + esc(t('moving_cleanup')) + '</div>';
         else if (copiedAll) out += '<div>' + esc(t('moving_done')) + '</div>';
         var btns = [];
         if (m.failed > 0) {
@@ -79,6 +81,8 @@
         if (copiedAll && !m.cleanup_running) {
             btns.push(['remove_old', t('remove_old')]);
             btns.push(['finish_keep', t('finish_keep')]);
+        } else if (m.cleanup_held) {
+            btns.push(['finish_keep', t('finish_keep')]);   // the way out: end the move, keep the old copies
         }
         if (btns.length) {
             out += '<div class="st-actions">' + btns.map(function (b) {
@@ -109,8 +113,8 @@
         $('stStores').innerHTML = rows.join('');
     }
 
-    async function load() {
-        var d = await api();
+    async function load(poll) {
+        var d = await api(null, poll === true);
         $('stLoading').classList.add('st-hidden');
         if (!d.success) { $('stLoading').classList.remove('st-hidden'); $('stLoading').textContent = d.error || ''; return; }
         state.data = d;
@@ -121,7 +125,7 @@
         var moving = d.files.moving || d.stores.some(function (s) { return !!s.move; });
         $('stScheduler').classList.toggle('st-hidden', !(moving && d.scheduler_running === false));
         clearTimeout(state.polling);
-        if (moving) state.polling = setTimeout(load, 5000);
+        if (moving) state.polling = setTimeout(function () { load(true); }, 5000);
     }
 
     document.addEventListener('DOMContentLoaded', function () {

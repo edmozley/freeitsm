@@ -47,6 +47,12 @@ function storeMoveSetting(PDO $conn, string $store, string $what): string
  */
 function storeMoveStart(PDO $conn, string $store, string $to, int $by): int
 {
+    return storageWithSettingsLock($conn, fn() => storeMoveStartLocked($conn, $store, $to, $by));
+}
+
+/** storeMoveStart() under the settings lock: everything below is read after taking it. */
+function storeMoveStartLocked(PDO $conn, string $store, string $to, int $by): int
+{
     storeCheckId($store);
     if (!in_array($to, ['local', 's3'], true)) throw new InvalidArgumentException('Choose a server folder or S3-compatible storage.');
     storeReset();
@@ -138,9 +144,13 @@ function storeMoveBatch(PDO $conn, string $store, int $deadlineUnix, int $limit 
             return $r;
         }
         if ($rel !== 'different') {
-            $r['unavailable'] = true;     // nothing charged to any file
+            // Nothing charged to any file - and the page says why, so an administrator can
+            // choose Finish (one bucket reached through two addresses reads as unknown).
+            if (storeMoveSetting($conn, $store, 'cleanup_held') !== '1') storeSaveSetting($conn, "storage_{$store}_cleanup_held", '1');
+            $r['unavailable'] = true;
             return $r;
         }
+        if (storeMoveSetting($conn, $store, 'cleanup_held') !== '') storeSaveSetting($conn, "storage_{$store}_cleanup_held", null);
     }
 
     $state = $deleting ? 'verified' : 'pending';
@@ -229,21 +239,13 @@ function storeMoveBatch(PDO $conn, string $store, int $deadlineUnix, int $limit 
     $left->execute([$store]);
     $r['done'] = (int)$left->fetchColumn() === 0;
 
-    if (!$cleanup && $r['done']) {
-        // Before the copy phase can end: anything that reached the old place after the
-        // list was made (a write that began before the switch) is queued too.
+    if ($r['done']) {
+        // Before a phase can end, the old place is listed again. A write that began before
+        // the switch can land there late: a new file, or one rewritten after its copy was
+        // checked (another size). Either is (re)queued, so it is copied - never left behind
+        // at the old place, and never deleted there before it has its new copy.
         try {
-            $known = $conn->prepare('SELECT object_key FROM storage_migration_items WHERE store = ?');
-            $known->execute([$store]);
-            $have = array_flip($known->fetchAll(PDO::FETCH_COLUMN));
-            $ins = $conn->prepare("INSERT IGNORE INTO storage_migration_items (store, object_key, size_bytes, state, updated_datetime)
-                                   VALUES (?, ?, ?, 'pending', UTC_TIMESTAMP())");
-            $late = 0;
-            foreach ($prev instanceof StorageLister ? $prev->listObjects('') : [] as $k => $o) {
-                if (!storeListedKeyIsFile($k) || isset($have[$k])) continue;
-                $ins->execute([$store, $k, (int)$o['size']]);
-                $late++;
-            }
+            $late = storeMoveRequeueLate($conn, $store, $prev, $cleanup);
             if ($late > 0) $r['done'] = false;
         } catch (StorageUnavailable $e) {
             $r['unavailable'] = true;
@@ -256,12 +258,87 @@ function storeMoveBatch(PDO $conn, string $store, int $deadlineUnix, int $limit 
 }
 
 /**
+ * Lists the old place and queues what reached it late: a file with no row, or (copy phase)
+ * a copied file whose size changed, or (cleanup) any file still there - the cleanup removed
+ * every old copy it knew of, so what is left was written afterwards.
+ *
+ * @return int how many files were (re)queued
+ * @throws StorageUnavailable
+ */
+function storeMoveRequeueLate(PDO $conn, string $store, StorageDriver $prev, bool $cleanup): int
+{
+    if (!$prev instanceof StorageLister) return 0;
+    $known = $conn->prepare('SELECT object_key, state, size_bytes FROM storage_migration_items WHERE store = ?');
+    $known->execute([$store]);
+    $have = [];
+    foreach ($known->fetchAll(PDO::FETCH_ASSOC) as $row) $have[(string)$row['object_key']] = $row;
+    $ins = $conn->prepare("INSERT INTO storage_migration_items (store, object_key, size_bytes, state, updated_datetime)
+                           VALUES (?, ?, ?, 'pending', UTC_TIMESTAMP())
+                           ON DUPLICATE KEY UPDATE state = 'pending', attempts = 0, last_error = NULL,
+                                                   size_bytes = VALUES(size_bytes), updated_datetime = UTC_TIMESTAMP()");
+    $n = 0;
+    foreach ($prev->listObjects('') as $k => $o) {
+        $k = (string)$k;
+        if (!storeListedKeyIsFile($k)) continue;
+        $row = $have[$k] ?? null;
+        $size = (int)$o['size'];
+        $requeue = $row === null
+            || ($cleanup && in_array($row['state'], ['removed', 'skipped'], true))
+            || (!$cleanup && $row['state'] === 'verified' && (int)$row['size_bytes'] !== $size);
+        if (!$requeue) continue;
+        $ins->execute([$store, $k, $size]);
+        $n++;
+    }
+    return $n;
+}
+
+/**
+ * Runs each mover in turn, each with its share of the time left, catching what one throws so
+ * the next still gets its turn (a per-item loop catches Throwable per item). Used by
+ * cron/storage_migrate.php: Files first, then each moving store.
+ *
+ * @param array<string, callable(int $untilUnix): array> $movers
+ * @return array{copied: int, failed: int, removed: int, done: bool, unavailable: bool, errors: string[]}
+ */
+function storageMoveRunAll(array $movers, int $deadlineUnix): array
+{
+    $r = ['copied' => 0, 'failed' => 0, 'removed' => 0, 'done' => true, 'unavailable' => false, 'errors' => []];
+    $left = count($movers);
+    foreach ($movers as $name => $run) {
+        $until = min($deadlineUnix, time() + max(60, intdiv(max(0, $deadlineUnix - time()), max(1, $left))));
+        $left--;
+        try {
+            do {
+                $b = $run($until);
+                foreach (['copied', 'failed', 'removed'] as $k) $r[$k] += (int)$b[$k];
+                $down = !empty($b['unavailable']);
+                $didWork = $b['copied'] + $b['removed'] > 0;
+            } while (!$b['done'] && $didWork && !$down && time() < $until);
+            if (!$b['done']) $r['done'] = false;
+            if ($down) $r['unavailable'] = true;
+        } catch (Throwable $e) {
+            $r['done'] = false;
+            $r['errors'][] = "$name: " . $e->getMessage();
+            error_log("[storage] move of $name failed: " . $e->getMessage());
+        }
+        if (time() >= $deadlineUnix) break;
+    }
+    return $r;
+}
+
+/**
  * What an administrator can do with a running move (as for Files):
  *   retry_failed, skip_missing, remove_old (once all is copied), finish_keep (once all is copied)
  *
  * @throws InvalidArgumentException
  */
 function storeMoveAction(PDO $conn, string $store, string $action, int $by): void
+{
+    storageWithSettingsLock($conn, fn() => storeMoveActionLocked($conn, $store, $action, $by));
+}
+
+/** storeMoveAction() under the settings lock. */
+function storeMoveActionLocked(PDO $conn, string $store, string $action, int $by): void
 {
     $m = storeMoveSummary($conn, $store);
     if ($m === null) throw new InvalidArgumentException('No move of this store is running.');
@@ -312,6 +389,8 @@ function storeMoveSummary(PDO $conn, string $store): ?array
     }
     $m['to'] = storeLocation($conn, $store);
     $m['cleanup_running'] = storeMoveSetting($conn, $store, 'cleanup') === '1';
+    // The old copies cannot be removed: the two places could not be proved different.
+    $m['cleanup_held'] = $m['cleanup_running'] && storeMoveSetting($conn, $store, 'cleanup_held') === '1';
     $err = $conn->prepare("SELECT last_error FROM storage_migration_items WHERE store = ? AND state = 'failed' ORDER BY updated_datetime DESC LIMIT 1");
     $err->execute([$store]);
     $m['last_error'] = $m['failed'] > 0 ? (string)$err->fetchColumn() : null;
@@ -343,6 +422,7 @@ function storeMoveEnd(PDO $conn, string $store, string $how, ?int $by = null): v
     $u->execute([$store]);
     $unfinished = (int)$u->fetchColumn();
     storeSaveSetting($conn, "storage_{$store}_cleanup", null);
+    storeSaveSetting($conn, "storage_{$store}_cleanup_held", null);
     if ($unfinished === 0) storeSaveSetting($conn, "storage_{$store}_previous", null);
     storeReset();
     $detail = ['ended' => $how];

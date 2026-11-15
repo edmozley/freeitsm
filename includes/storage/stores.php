@@ -135,8 +135,11 @@ function storageS3Connection(PDO $conn): ?array
     $bucket = storeSetting($conn, $p . 'bucket');
     if ($bucket === '') return null;
     $secret = storeSetting($conn, $p . 'secret');
+    // A secret that cannot be decrypted (the encryption key was replaced) is not an empty
+    // secret: say so, and storageDriver() refuses to sign anything with it.
+    $unreadable = false;
     if (str_starts_with($secret, 'ENC:')) {
-        try { $secret = (string)decryptValue($secret); } catch (Throwable $e) { $secret = ''; }
+        try { $secret = (string)decryptValue($secret); } catch (Throwable $e) { $secret = ''; $unreadable = true; }
     }
     return [
         'driver'        => 's3',
@@ -149,7 +152,33 @@ function storageS3Connection(PDO $conn): ?array
         'path_style'    => storeSetting($conn, $p . 'path_style') === '1',
         // Server-side encryption (storage series S2): only on the connection saved here.
         'sse'           => storeSetting($conn, 'storage_s3_sse') === 'AES256' ? 'AES256' : '',
+        'secret_unreadable' => $unreadable,
     ];
+}
+
+/**
+ * Runs $fn holding the storage-settings lock: two administrators changing where files are
+ * kept at the same moment take turns, and each re-reads the settings under the lock (lock
+ * first, then read - PR #353 review). Waits up to 10 seconds, then refuses.
+ *
+ * @throws InvalidArgumentException when another change holds the lock for too long
+ */
+function storageWithSettingsLock(PDO $conn, callable $fn)
+{
+    $name = storageSettingsLockName($conn);
+    $got = $conn->query('SELECT GET_LOCK(' . $conn->quote($name) . ', 10)')->fetchColumn();
+    if ((string)$got !== '1') throw new InvalidArgumentException('Another change to storage is being saved. Try again in a moment.');
+    try {
+        return $fn();
+    } finally {
+        $conn->query('SELECT RELEASE_LOCK(' . $conn->quote($name) . ')');
+    }
+}
+
+/** TRAP: GET_LOCK names are per MySQL server, not per database - the database is part of it. */
+function storageSettingsLockName(PDO $conn): string
+{
+    return 'freeitsm_storage_' . substr(sha1((string)$conn->query('SELECT DATABASE()')->fetchColumn()), 0, 12);
 }
 
 /** 'local' or 's3': where the store's switch points. */
@@ -566,6 +595,8 @@ function storeListedKeyIsFile(string $key): bool
 {
     $name = basename($key);
     if ($name === '' || strcasecmp($name, '.htaccess') === 0 || strcasecmp($name, 'web.config') === 0) return false;
+    // The folder driver's temporary name for a write in progress (LocalDriver::putFile).
+    if (preg_match('/\.part-[0-9a-f]{8}$/', $name)) return false;
     $first = explode('/', $key, 2)[0];
     return !in_array($first, [STORAGE_STAGING_DIR, '_freeitsm_probe', '_freeitsm_test'], true) && storeKeyIsValid($key);
 }

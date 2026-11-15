@@ -76,7 +76,7 @@ try {
 
     ok('label names the folder', str_contains($d->label(), $root));
 
-    // listKeys (backups prune by listing what the target holds)
+    // listKeys / listObjects (a store's move lists what its old place holds)
     file_put_contents($tmp, 'x');
     foreach (['a/1.txt', 'a/2.txt', 'b/3.txt'] as $k) $d->putFile($k, $tmp);
     ok('listKeys returns the keys under a prefix, sorted', $d->listKeys('a/') === ['a/1.txt', 'a/2.txt'], json_encode($d->listKeys('a/')));

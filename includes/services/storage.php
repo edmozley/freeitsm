@@ -30,7 +30,11 @@ final class StorageService
         'warroom'    => 'SELECT COUNT(*), COALESCE(SUM(size_bytes), 0) FROM warroom_attachments',
     ];
 
-    public static function describe(PDO $conn): array
+    /**
+     * @param bool $checkEndpoint  false for the page's polls during a move: no address lookup
+     *                             (the http:// check) every few seconds - 'insecure' is null
+     */
+    public static function describe(PDO $conn, bool $checkEndpoint = true): array
     {
         storeReset();
         $c = storageS3Connection($conn);
@@ -60,7 +64,7 @@ final class StorageService
                 'secret'        => $c['secret'] !== '' ? maskSecret($c['secret']) : '',
                 'sse'           => $c['sse'] ?? '',
                 // Plain http to a public address (storage series S1): shown as a warning.
-                'insecure'      => storageEndpointInsecure((string)$c['endpoint']),
+                'insecure'      => $checkEndpoint ? storageEndpointInsecure((string)$c['endpoint']) : null,
             ],
             // Saved here, or still the one Files was given (files_s3_*) until it is saved here.
             'connection_source' => $c === null ? null : (storeSetting($conn, 'storage_s3_bucket') !== '' ? 'storage' : 'files'),
@@ -116,6 +120,12 @@ final class StorageService
     public static function saveConnection(PDO $conn, array $in, int $by): void
     {
         if ($by < 1) throw new InvalidArgumentException('Not signed in.');
+        storageWithSettingsLock($conn, fn() => self::saveConnectionLocked($conn, $in, $by));
+    }
+
+    /** saveConnection() under the settings lock: the checks below read after taking it. */
+    private static function saveConnectionLocked(PDO $conn, array $in, int $by): void
+    {
         $cfg = self::connectionFromInput($conn, $in);
         $old = storageS3Connection($conn);
         // A move out of S3 reads the old place with the keys it started with; rotate them at
@@ -261,13 +271,19 @@ final class StorageService
     /** True while Files or a store is moving OUT of S3 (its previous place is the bucket). */
     private static function moveReadsS3(PDO $conn): bool
     {
+        // An old place that cannot be decrypted may well be the bucket: count it as reading,
+        // so the keys stay put (a failed lookup is never "no").
         try {
             if ((filesPreviousStorageConfig($conn)['driver'] ?? '') === 's3') return true;
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            return true;
+        }
         foreach (array_keys(STORAGE_STORES) as $s) {
             try {
                 if ((storePreviousConfig($conn, $s)['driver'] ?? '') === 's3') return true;
-            } catch (Throwable $e) {}   // undecryptable: that move cannot read anything anyway
+            } catch (Throwable $e) {
+                return true;
+            }
         }
         return false;
     }

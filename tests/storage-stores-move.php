@@ -283,6 +283,87 @@ try {
     ok('an old place that cannot be decrypted: the delete still removes the current copy', !is_file("$work/local-changes/c/x.pdf"));
     $fresh('changes');
 
+    section('Late writes, a rewritten file, and a cleanup that cannot go ahead');
+    $fresh('changes');
+    $mk('changes', 'c/a.txt', 'aaa');
+    $mk('changes', 'c/b.txt', 'bbb');
+    storeMoveStart($conn, 'changes', 's3', $admin);
+    $batch('changes');
+    // b.txt rewritten at the old place after its copy was checked (a write that began
+    // before the switch): the copy phase must notice and copy it again.
+    $mk('changes', 'c/b.txt', 'bbb, longer now');
+    $batch('changes');
+    ok('a file rewritten at the old place after it was copied goes back to be copied', ($items('changes')['c/b.txt'] ?? '') === 'pending', json_encode($items('changes')));
+    $batch('changes');
+    ok('...and the new copy is the new content', @file_get_contents("$work/s3-changes/c/b.txt") === 'bbb, longer now');
+    storeMoveAction($conn, 'changes', 'remove_old', $admin);
+    // The places cannot be proved different: nothing is deleted, and the page says why.
+    ZzMoveFakeS3::$down = true;
+    $batch('changes');
+    $sum = storeMoveSummary($conn, 'changes');
+    ok('a cleanup that cannot prove the places are different is held, and the page is told', ($sum['cleanup_held'] ?? null) === true && is_file("$work/local-changes/c/a.txt"), json_encode($sum));
+    ZzMoveFakeS3::$down = false;
+    // A late write lands at the old place while old copies are being removed.
+    $hook = function () use ($mk) { $mk('changes', 'c/late.txt', 'written late'); };
+    $hook();
+    for ($i = 0; $i < 6 && storeMoveSummary($conn, 'changes') !== null; $i++) $batch('changes');
+    storeReset();
+    ok('...once proved, the hold is lifted and the move ends', storeMoveSummary($conn, 'changes') === null);
+    ok('a file written to the old place during cleanup is copied before the move ends, never left behind',
+       @file_get_contents("$work/s3-changes/c/late.txt") === 'written late' && !is_file("$work/local-changes/c/late.txt") && !is_file("$work/local-changes/c/a.txt"));
+    $fresh('changes');
+
+    section('Two administrators at once, undecryptable secrets, temporary files, polling');
+    $other = connectToDatabase();   // a second session, as a second administrator's request
+    $lockName = storageSettingsLockName($conn);
+    $other->query('SELECT GET_LOCK(' . $other->quote($lockName) . ', 0)');
+    $threw = null;
+    try { storeMoveStart($conn, 'recordings', 'local', $admin); } catch (InvalidArgumentException $e) { $threw = $e; }
+    ok('while another change to storage is being saved, starting a move waits its turn (refused, not run twice)', $threw && str_contains($threw->getMessage(), 'Another change'), $threw ? $threw->getMessage() : 'ran');
+    $threw = null;
+    try { storeMoveAction($conn, 'recordings', 'retry_failed', $admin); } catch (InvalidArgumentException $e) { $threw = $e; }
+    ok('...and so does a move action', $threw && str_contains($threw->getMessage(), 'Another change'), $threw ? $threw->getMessage() : 'ran');
+    $other->query('SELECT RELEASE_LOCK(' . $other->quote($lockName) . ')');
+    $other = null;
+    ok('control: with the lock free, the same call runs', storeMoveStart($conn, 'recordings', storeLocation($conn, 'recordings'), $admin) === 0);
+
+    $savedSecret = storeSetting($conn, 'storage_s3_secret');
+    storeSaveSetting($conn, 'storage_s3_secret', ENCRYPTION_PREFIX . base64_encode(str_repeat('z', 40)));
+    storeReset();
+    $cfg = storageS3Connection($conn);
+    ok('a secret that cannot be decrypted is marked unreadable, not used as an empty secret', ($cfg['secret_unreadable'] ?? null) === true && $cfg['secret'] === '');
+    $e = null; try { storageDriver($cfg, 'tickets'); } catch (Throwable $x) { $e = $x; }
+    ok('...and no request is made with it: storage cannot be reached, and says why', $e instanceof StorageUnavailable && str_contains($e->getMessage(), 'decrypt'), $e ? get_class($e) . ': ' . $e->getMessage() : 'a driver was made');
+    storeSaveSetting($conn, 'storage_s3_secret', $savedSecret);
+    storeReset();
+    require_once "$root/includes/services/storage.php";
+    storeSaveSetting($conn, 'storage_tickets_previous', ENCRYPTION_PREFIX . base64_encode(str_repeat('y', 40)));
+    storeReset();
+    $reads = new ReflectionMethod('StorageService', 'moveReadsS3');
+    ok('a move whose old place cannot be decrypted counts as reading the bucket (so the keys stay put)', $reads->invoke(null, $conn) === true);
+    storeSaveSetting($conn, 'storage_tickets_previous', null);
+    storeReset();
+
+    ok("the folder driver's temporary files are not files to move", !storeListedKeyIsFile('0/7/a.pdf.part-1a2b3c4d') && storeListedKeyIsFile('0/7/a.part-of-it.pdf'));
+
+    $d = StorageService::describe($conn, false);
+    ok('a poll of System -> Storage does no address lookup (insecure left unknown)', array_key_exists('insecure', $d['connection'] ?? []) && $d['connection']['insecure'] === null, json_encode($d['connection'] ?? null));
+    ok('control: the first load does check it', is_bool(StorageService::describe($conn)['connection']['insecure'] ?? null));
+
+    section('The job: one store failing never stops the others');
+    $ran = [];
+    $res = storageMoveRunAll([
+        'tickets' => function (int $until) use (&$ran) { $ran[] = 'tickets'; throw new RuntimeException('zz boom'); },
+        'changes' => function (int $until) use (&$ran) { $ran[] = 'changes'; return ['copied' => 1, 'failed' => 0, 'removed' => 0, 'done' => true]; },
+    ], time() + 60);
+    ok('a store whose move throws is reported, and the next store still runs', $ran === ['tickets', 'changes'] && $res['copied'] === 1 && str_contains(implode(' ', $res['errors']), 'zz boom'), json_encode($res));
+    $until = [];
+    storageMoveRunAll([
+        'tickets' => function (int $u) use (&$until) { $until['tickets'] = $u; return ['copied' => 0, 'failed' => 0, 'removed' => 0, 'done' => true]; },
+        'changes' => function (int $u) use (&$until) { $until['changes'] = $u; return ['copied' => 0, 'failed' => 0, 'removed' => 0, 'done' => true]; },
+    ], time() + 600);
+    ok('...and each store gets its share of the run, not all of it', ($until['tickets'] ?? PHP_INT_MAX) < time() + 600, json_encode($until));
+
     section('A store moved to S3 on the connection Files was given');
     require_once "$root/includes/services/storage.php";
     foreach (['endpoint', 'region', 'bucket', 'access_key_id', 'secret', 'prefix', 'path_style'] as $k) storeSaveSetting($conn, "storage_s3_$k", null);

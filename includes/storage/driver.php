@@ -214,6 +214,9 @@ function storageCheckedAddress(string $host): string
 function storageDriver(array $cfg, string $store): StorageDriver
 {
     if (($cfg['driver'] ?? 'local') === 's3') {
+        if (!empty($cfg['secret_unreadable'])) {
+            throw new StorageUnavailable('The S3 secret could not be decrypted (has the encryption key changed?). Enter it again on System -> Storage.');
+        }
         require_once __DIR__ . '/s3_driver.php';
         return new S3Driver($cfg, $store);
     }

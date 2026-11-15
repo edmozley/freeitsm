@@ -148,6 +148,13 @@ final class FilesStorageService
     public static function save(PDO $conn, int $analystId, array $in): void
     {
         if ($analystId < 1) throw new InvalidArgumentException('Not signed in.');
+        require_once __DIR__ . '/../storage/stores.php';   // storageWithSettingsLock()
+        storageWithSettingsLock($conn, fn() => self::saveLocked($conn, $analystId, $in));
+    }
+
+    /** save() under the storage-settings lock (#284): the checks below read after taking it. */
+    private static function saveLocked(PDO $conn, int $analystId, array $in): void
+    {
         $driver = ($in['driver'] ?? 'local') === 's3' ? 's3' : 'local';
         $mb = (int)($in['max_upload_mb'] ?? 0);
         if ($mb < 1 || $mb > 1024 * 1024) throw new InvalidArgumentException('The largest upload must be between 1 MB and 1 TB.');

@@ -1315,7 +1315,7 @@ return [
         'remove_confirm'   => 'Remove the {module} demo data? Only the sample records it created are removed, including any configuration items made in its demo classes. Your own records are not affected.',
     ],
 
-    // Encryption page (system/encryption/index.php)
+    // Storage page (system/storage/index.php, #284)
     'storage' => [
         'title'    => 'Storage',
         'subtitle' => 'Where stored files are kept: in their folder on this server, or in S3-compatible storage - store by store',
@@ -1372,6 +1372,7 @@ return [
         'moving_failed'        => 'Could not be copied: {n}. Last error: {error}',
         'moving_done'          => 'Every file is copied. Remove the old copies, or finish and keep them.',
         'moving_cleanup'       => 'Removing the old copies...',
+        'moving_cleanup_held'  => 'The old copies are not being removed: FreeITSM cannot prove the old and new places are different (one bucket reached through two addresses looks like this, and so does storage that cannot be reached). Nothing has been deleted. It tries again on its own; Finish ends the move and keeps the old copies.',
         // One word each, as on Files -> Settings -> Storage (PR #318 review).
         'retry'                => 'Retry',
         'skip'                 => 'Skip',
@@ -1384,6 +1385,7 @@ return [
         'err_server'           => 'Something went wrong on the server. Details are in the server log.',
     ],
 
+    // Encryption page (system/encryption/index.php)
     'encryption' => [
         'title'    => 'Encryption',
         'subtitle' => 'Manage the encryption key used to protect sensitive data at rest',
