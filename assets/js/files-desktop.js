@@ -741,7 +741,7 @@
         WM.dialog({
             title: L('ex.delete', 'Delete'), message: msg + '\n\n' + (B.recycleDays > 0
                 ? L('ex.del_note_days', 'It goes to the recycle bin, where it can be restored until it is deleted permanently (days kept: {days}).', { days: B.recycleDays })
-                : L('ex.del_note_bin', 'It goes to the recycle bin, where it can be restored.')),
+                : L('ex.del_note', 'It goes to the recycle bin, where it can be restored.')),
             buttons: [{ label: L('btn.delete', 'Delete'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }]
         }).then(function (ok) {
             if (!ok) return;

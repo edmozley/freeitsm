@@ -79,6 +79,12 @@ try {
     if ($doc['kind'] === DOCUMENT_KIND_FILES) {
         require_once '../../includes/services/files_attach.php';
         $view = FilesAttach::viewFor($conn, $analystId, (int)$doc['files_item_id']);
+        if ($view['gone']) {
+            // Deleted from Files (or deleted for good): say so - the list says the same.
+            http_response_code(410);
+            header('Content-Type: text/plain; charset=utf-8');
+            exit("This file has been deleted from Files.\n");
+        }
         if (!$view['access']) documentDenied();
         header('Location: ' . $view['open_url'], true, 302);
         exit;

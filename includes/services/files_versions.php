@@ -189,18 +189,28 @@ final class FilesVersionsService
  * storage move the bytes may be in the old place, the new place, or both: both are
  * cleared, and the move forgets the key. A store that cannot be reached leaves the
  * bytes behind (logged) rather than failing what the person asked for.
+ *
+ * @return string what happened, for a caller that keeps a retry queue (the recycle bin):
+ *                'in_use' (kept - a version still names it), 'deleted' (gone, or never one
+ *                of ours), 'unavailable' (a store could not be reached) or 'failed' (a store
+ *                answered with another error). The last two are logged; the bytes remain.
  */
-function filesPurgeBytesIfUnused(PDO $conn, string $key): void
+function filesPurgeBytesIfUnused(PDO $conn, string $key): string
 {
-    if (!filesStorageKeyIsValid($key)) return;
+    if (!filesStorageKeyIsValid($key)) return 'deleted';
     $st = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
     $st->execute([$key]);
-    if ($st->fetchColumn()) return;
+    if ($st->fetchColumn()) return 'in_use';
     $stores = [filesActiveStore($conn)];
     try { if (($prev = filesPreviousStore($conn)) !== null) $stores[] = $prev; } catch (Throwable) {}
+    $result = 'deleted';
     foreach ($stores as $store) {
         try { $store->delete($key); }
-        catch (Throwable $e) { error_log("files: could not delete unused bytes $key from " . $store->label() . ': ' . $e->getMessage()); }
+        catch (Throwable $e) {
+            error_log("files: could not delete unused bytes $key from " . $store->label() . ': ' . $e->getMessage());
+            if ($result !== 'unavailable') $result = $e instanceof StorageUnavailable ? 'unavailable' : 'failed';
+        }
     }
     $conn->prepare("DELETE FROM storage_migration_items WHERE store = 'files' AND object_key = ?")->execute([$key]);
+    return $result;
 }

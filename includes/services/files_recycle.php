@@ -19,11 +19,17 @@
  * Seeing an entry needs View; restoring or purging it needs Modify - the level that
  * deleted it. Hidden means not found here too.
  *
- * BYTES: a copied file SHARES its source's storage_path, so a .bin is only deleted
- * once no files_versions row points at it. It is deleted from the active location
- * and, while a storage move runs, from the previous one too. If storage cannot be
- * reached the key waits in files_purge_pending and the job tries again - the rows
- * are already gone, so the person purging never sees a storage error.
+ * BYTES: every version of a file goes (files_versions rows and their bytes). A
+ * copied file or a restored version SHARES a storage_path, so bytes are deleted only
+ * once no files_versions row names them - filesPurgeBytesIfUnused() (files_versions.php)
+ * decides that and deletes from the active location and, during a storage move, the
+ * previous one. If a store fails the key waits in files_purge_pending and the job tries
+ * again - the rows are already gone, so the person purging never sees a storage error.
+ *
+ * LINKS: a document that links to a file in Files (documents.kind = 'files') reads as
+ * deleted while the file or a folder above it is in the bin (FilesAttach::viewFor),
+ * works again after a restore, and after a permanent delete keeps its row - the record
+ * still shows something was there - with files_item_id cleared, so it never opens again.
  *
  * RETENTION: files_recycle_bin_days, 0 = keep for ever. Until someone saves the
  * Recycle bin settings tab the setting is absent and nothing is purged, so an
@@ -37,6 +43,7 @@ require_once __DIR__ . '/../files/acl.php';
 require_once __DIR__ . '/../files/audit.php';
 require_once __DIR__ . '/../files/storage.php';
 require_once __DIR__ . '/../files/names.php';
+require_once __DIR__ . '/files_versions.php';   // filesPurgeBytesIfUnused()
 
 /** Restore refused because the folder it came from is in the bin too. */
 final class FilesRecycleBlocked extends InvalidArgumentException
@@ -508,6 +515,7 @@ final class FilesRecycleService
             // Children first: an install grown from an older schema may lack the cascades.
             if ($items) {
                 $in = implode(',', array_fill(0, count($items), '?'));
+                self::unlinkDocuments($conn, $items);
                 $conn->prepare("DELETE FROM files_shortcuts WHERE target_type = 'item' AND target_id IN ($in)")->execute($items);
                 $conn->prepare("DELETE FROM files_uploads WHERE item_id IN ($in)")->execute($items);
                 $conn->prepare("DELETE FROM files_versions WHERE item_id IN ($in)")->execute($items);
@@ -539,17 +547,11 @@ final class FilesRecycleService
         // Bytes, after the rows are gone: only keys nothing else still points at.
         // One key's failure must not skip the others or the audit row: the rows are gone.
         $pending = 0;
-        $check = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
         foreach ($keys as $key => $size) {
-            $check->execute([$key]);
-            if ($check->fetchColumn()) continue;   // a copy elsewhere still uses it
+            $res = self::purgeBytes($conn, (string)$key);
+            if ($res === 'in_use') continue;   // a copy or another version still uses it
             $bytes += (int)$size;
-            try {
-                if (self::deleteBytes($conn, (string)$key) !== 'ok') $pending++;
-            } catch (Throwable $ex) {
-                error_log("files: purge could not finish with stored bytes {$key}: " . $ex->getMessage());
-                $pending++;
-            }
+            if ($res !== 'deleted') $pending++;
         }
 
         $t = $type === 'folder' ? ['path' => $path] : ['item_id' => $id, 'path' => $path];
@@ -561,56 +563,50 @@ final class FilesRecycleService
     }
 
     /**
-     * Deletes one stored object everywhere it may be: the active location and, during a
-     * move, the previous one. During a move its move row goes too, so the move does not
-     * copy it (storageMigrateBatch() removes a copy that was already in flight).
-     *
-     * @return string 'ok'; 'unavailable' (a store could not be reached - the key waits in
-     *                files_purge_pending for the job); 'error' (any other failure, also queued)
+     * Documents that link to these files (documents.kind = 'files', upstream GH #303) keep
+     * their row, so the record still shows something was there, but point at nothing.
      */
-    private static function deleteBytes(PDO $conn, string $key): string
+    private static function unlinkDocuments(PDO $conn, array $items): void
     {
-        if (!filesStorageKeyIsValid($key)) return 'ok';   // never a path we wrote: nothing to do
-        $error = null;
-        $result = 'ok';
+        require_once __DIR__ . '/documents.php';
+        if (!$items || !DocumentsService::filesLinkReady($conn)) return;
+        $in = implode(',', array_fill(0, count($items), '?'));
+        $conn->prepare("UPDATE documents SET files_item_id = NULL WHERE files_item_id IN ($in)")->execute($items);
+    }
+
+    /**
+     * Deletes one stored object if nothing uses it (filesPurgeBytesIfUnused); a failure is
+     * queued in files_purge_pending for the job, a success or "in use" clears the queue.
+     *
+     * @return string as filesPurgeBytesIfUnused(): in_use | deleted | unavailable | failed
+     */
+    private static function purgeBytes(PDO $conn, string $key): string
+    {
         try {
-            $stores = [filesActiveStore($conn)];
-            if (($prev = filesPreviousStore($conn)) !== null) {
-                // A move is running, so its table exists.
-                $conn->prepare("DELETE FROM storage_migration_items WHERE store = 'files' AND object_key = ?")->execute([$key]);
-                $stores[] = $prev;
-            }
-            foreach ($stores as $s) {
-                try {
-                    $s->delete($key);
-                } catch (StorageNotFound $e) {
-                    // already gone
-                }
-            }
+            $res = filesPurgeBytesIfUnused($conn, $key);
         } catch (StorageUnavailable $e) {
-            $error = $e->getMessage();
-            $result = 'unavailable';
+            error_log("files: could not delete stored bytes {$key}: " . $e->getMessage());
+            $res = 'unavailable';
         } catch (Throwable $e) {
-            $error = $e->getMessage();
-            $result = 'error';
+            error_log("files: could not delete stored bytes {$key}: " . $e->getMessage());
+            $res = 'failed';
         }
         try {
-            if ($error === null) {
+            if ($res === 'deleted' || $res === 'in_use') {
                 $conn->prepare("DELETE FROM files_purge_pending WHERE storage_path = ?")->execute([$key]);
-                return 'ok';
+            } else {
+                $conn->prepare("INSERT INTO files_purge_pending (storage_path, attempts, last_error, created_datetime, updated_datetime)
+                                VALUES (?, 0, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+                                ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_error = VALUES(last_error), updated_datetime = UTC_TIMESTAMP()")
+                     ->execute([$key, $res === 'unavailable' ? 'Storage could not be reached (see the server log).' : 'Storage refused the delete (see the server log).']);
             }
-            error_log("files: could not delete stored bytes {$key}: {$error}");
-            $conn->prepare("INSERT INTO files_purge_pending (storage_path, attempts, last_error, created_datetime, updated_datetime)
-                            VALUES (?, 0, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
-                            ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_error = VALUES(last_error), updated_datetime = UTC_TIMESTAMP()")
-                 ->execute([$key, mb_substr($error, 0, 500)]);
         } catch (PDOException $e) {
             // Before Database Verification there is no queue: nothing was waiting, and a
             // failure can only be logged. Say so loudly - those bytes need removing by hand.
             if (!self::missingTable($e)) throw $e;
-            if ($error !== null) error_log("files: stored bytes {$key} were NOT deleted and cannot be queued: run Database Verification (files_purge_pending is missing)");
+            if ($res === 'unavailable' || $res === 'failed') error_log("files: stored bytes {$key} were NOT deleted and cannot be queued: run Database Verification (files_purge_pending is missing)");
         }
-        return $result;
+        return $res;
     }
 
     /**
@@ -688,16 +684,11 @@ final class FilesRecycleService
             if (self::missingTable($e)) return $r;   // no queue yet means nothing is queued
             throw $e;
         }
-        $check = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
         foreach ($rows as $key) {
             if (time() >= $deadlineUnix) break;
-            $check->execute([$key]);
-            if ($check->fetchColumn()) {
-                $conn->prepare("DELETE FROM files_purge_pending WHERE storage_path = ?")->execute([$key]);
-                continue;
-            }
-            $res = self::deleteBytes($conn, (string)$key);
-            if ($res === 'ok') {
+            $res = self::purgeBytes($conn, (string)$key);
+            if ($res === 'in_use') continue;   // a file uses it again: only forgotten
+            if ($res === 'deleted') {
                 $r['deleted']++;
                 continue;
             }

@@ -47,8 +47,7 @@ return [
         'del_file_q' => 'Delete "{name}"?',
         'del_folder_q' => 'Delete the folder "{name}" and everything in it?',
         'del_many_q' => 'Delete these {n} items?',
-        'del_note' => 'The deletion is recorded in the audit trail. There is no recycle bin to restore from yet.',
-        'del_note_bin' => 'It goes to the recycle bin, where it can be restored.',
+        'del_note' => 'It goes to the recycle bin, where it can be restored.',
         'del_note_days' => 'It goes to the recycle bin, where it can be restored until it is deleted permanently (days kept: {days}).',
         'delete' => 'Delete',
         'download' => 'Download',
@@ -529,6 +528,7 @@ return [
             'p2' => '**Restore** puts it back where it was. If something with the same name is there now, it comes back as "Name (2)". If the folder it was in is in the bin too, you are asked to restore that folder first. Double-click a deleted folder to look inside before restoring it.',
             'p3' => '**Delete permanently** (or **Empty recycle bin**) removes it for good, including the stored file - this cannot be undone. Restoring needs Modify on the folder, the same as deleting. Deleting a folder permanently also needs Modify on every folder inside it, so nobody can destroy files they could not see; Look inside lists only the folders you can see. A copy shares its stored file with the original, so that file is only removed once nothing uses it.',
             'p4' => 'Files -> Settings -> Recycle bin sets how long deleted items are kept before the Files recycle bin background job deletes them permanently (0 keeps them until someone does). Nothing is deleted automatically until that setting has been saved, and saving says first how many items are already older than the period. When a folder is restored, anything deleted inside it earlier starts its time in the bin again. Restores and permanent deletes are recorded in the audit trail.',
+            'p5' => 'Deleting permanently removes every version of the file too. A link to the file from a ticket, a task or any other record says the file has been deleted while it is in the bin, and works again once it is restored; after a permanent delete the link stays on the record, so it still shows something was there, but it can never be opened.',
         ],
         'audit' => [
             'nav' => 'Audit trail',

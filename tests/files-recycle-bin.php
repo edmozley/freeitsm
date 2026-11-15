@@ -33,6 +33,8 @@ require_once "$root/config.php";
 require_once "$root/includes/functions.php";
 require_once "$root/includes/encryption.php";
 require_once "$root/includes/services/files_recycle.php";
+require_once "$root/includes/services/files_versions.php";   // filesPurgeBytesIfUnused()
+require_once "$root/includes/services/files_attach.php";     // FilesAttach::viewFor()
 require_once "$root/includes/storage/s3_driver.php";
 
 $pass = 0; $fail = 0;
@@ -274,6 +276,48 @@ try {
     FilesRecycleService::restore($conn, $U1, 'folder', $fin);
     ok('restoring that folder brings the hidden subfolder back for its owner', isset(FilesAcl::tree($conn)[$hr]) && filesItem($conn, $salary['id']) !== null);
     ok('...including the hidden folder\'s stored file', !is_file("$store/{$secret['key']}"));
+
+    // ── Versions (upstream GH #303): a permanent delete takes every version ──
+    $v = item($conn, $store, $proj, 'zz-versioned.txt');
+    $v2key = '2026/11/09/' . bin2hex(random_bytes(16)) . '.bin';
+    @mkdir(dirname("$store/$v2key"), 0777, true);
+    file_put_contents("$store/$v2key", 'version two');
+    $conn->prepare("INSERT INTO files_versions (item_id, version_no, storage_path, size_bytes) VALUES (?, 2, ?, 11)")->execute([$v['id'], $v2key]);
+    item($conn, $store, $proj, 'zz-versioned copy.txt', $v['key']);   // a copy: shares version 1's bytes
+    softDelete($conn, 'item', $v['id'], $U1);
+    FilesRecycleService::purge($conn, $U1, 'item', $v['id']);
+    $nv = $conn->prepare("SELECT COUNT(*) FROM files_versions WHERE item_id = ?");
+    $nv->execute([$v['id']]);
+    ok('purge removes every version of a file, and their bytes', (int)$nv->fetchColumn() === 0 && !is_file("$store/$v2key"));
+    ok('...but keeps bytes another file still uses', is_file("$store/{$v['key']}"));
+    $why = [filesPurgeBytesIfUnused($conn, $v['key']), filesPurgeBytesIfUnused($conn, $v2key)];
+    ok('filesPurgeBytesIfUnused() says what it did (in use / deleted)', $why === ['in_use', 'deleted'], json_encode($why));
+
+    // ── Links to Files from other records (upstream GH #303: documents.kind = 'files') ──
+    $lf = folder($conn, $proj, 'ZZ Linked');
+    $linked = item($conn, $store, $lf, 'zz-linked.pdf');
+    $conn->prepare("INSERT INTO documents (kind, title, files_item_id) VALUES ('files', 'zz-linked.pdf', ?)")->execute([$linked['id']]);
+    $docId = (int)$conn->lastInsertId();
+    $gone = fn() => FilesAttach::viewFor($conn, $U1, $linked['id'])['gone'];
+    ok('CONTROL: a link to a live file is not "deleted"', $gone() === false);
+    softDelete($conn, 'folder', $lf, $U1);
+    ok('its folder in the recycle bin: the link says the file has been deleted', $gone() === true);
+    FilesRecycleService::restore($conn, $U1, 'folder', $lf);
+    ok('folder restored: the link works again', $gone() === false);
+    softDelete($conn, 'item', $linked['id'], $U1);
+    ok('the file itself in the recycle bin: deleted', $gone() === true);
+    FilesRecycleService::purge($conn, $U1, 'item', $linked['id']);
+    $d = $conn->prepare("SELECT kind, title, files_item_id FROM documents WHERE id = ?");
+    $d->execute([$docId]);
+    $doc = $d->fetch(PDO::FETCH_ASSOC);
+    ok('deleted for good: the document row stays, so the record shows something was there', $doc && $doc['kind'] === 'files' && $doc['title'] === 'zz-linked.pdf');
+    ok('...but it points at nothing, so it can never open again', $doc && $doc['files_item_id'] === null, json_encode($doc));
+
+    // ── Wording: the delete dialog no longer says there is no recycle bin ──
+    $lang = (string)file_get_contents("$root/lang/en/files.php");
+    $js = (string)file_get_contents("$root/assets/js/files-desktop.js");
+    ok('del_note speaks of the recycle bin, and the desktop uses it', !str_contains($lang, 'There is no recycle bin to restore from yet')
+       && str_contains($js, "L('ex.del_note',") && !str_contains($js, 'del_note_bin'));
 
     // ── Real S3-compatible storage ─────────────────────────────────────
     $ep = getenv('FREEITSM_TEST_S3_ENDPOINT') ?: '';
