@@ -4993,3 +4993,57 @@ body .tox-tinymce-aux {
 /* GH #308 */
 .req-change-link { margin-left: 8px; font-size: 12px; color: var(--accent); text-decoration: none; }
 .req-change-link:hover { text-decoration: underline; }
+
+/* ── Modal polish (Ed, 16 Nov 2026: "Modern compact") ─────────────────────
+   Tinted header and footer bands, rounder corners, a softer shadow and a focus
+   ring in the module's accent. LOOKS ONLY: no size, padding or layout changes.
+   Scoped to the canonical 3-pane layout (header + body + footer) - a modal that
+   puts its form straight into .modal-content keeps its own look - and a page's
+   own .modal-header rules still win where they are more specific.
+   The System dialogs get the same in assets/css/system-page.css (.sys-modal). */
+.modal-content:has(> .modal-body),
+.modal-content:has(> form > .modal-body) {
+    border-radius: 10px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.modal-content:has(> .modal-body) > .modal-header,
+.modal-content:has(> form > .modal-body) > .modal-header,
+.modal-content:has(> form > .modal-body) > form > .modal-header {
+    /* The dialog colour nudged towards the text and the module accent: a visible
+       band in light and dark alike (--surface-2 is all but the same as --surface). */
+    background: color-mix(in srgb, color-mix(in srgb, var(--surface, #fff) 94%, var(--text, #333) 6%) 90%, var(--accent, #2563eb) 10%);
+    border-radius: 10px 10px 0 0;
+}
+.modal-content:has(> .modal-body) .modal-footer,
+.modal-content:has(> form > .modal-body) .modal-footer {
+    /* The dialog colour nudged towards the text and the module accent: a visible
+       band in light and dark alike (--surface-2 is all but the same as --surface). */
+    background: color-mix(in srgb, color-mix(in srgb, var(--surface, #fff) 94%, var(--text, #333) 6%) 90%, var(--accent, #2563eb) 10%);
+    border-radius: 0 0 10px 10px;
+}
+.modal-body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
+.modal-body select,
+.modal-body textarea {
+    border-radius: 7px;
+}
+.modal-body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):focus,
+.modal-body select:focus,
+.modal-body textarea:focus {
+    border-color: var(--accent, #2563eb);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #2563eb) 18%, transparent);
+}
+
+/* A button straight after a paragraph in a dialog had no gap above it (Ed, 16 Nov
+   2026: Schedule Work's "Currently scheduled: ..." then Clear schedule). A little
+   room, in every dialog body. Paragraph-then-button only: a button BESIDE another
+   control in a row is not touched, nor the footer. */
+.modal-body p + button,
+.modal-body p + .btn,
+.modal-body p + a.btn {
+    margin-top: 8px;
+}
+/* And a field straight after a paragraph (Schedule Work's ticket line, then Date).
+   Vertical margins collapse, so where the paragraph already has a gap, nothing changes. */
+.modal-body p + .form-group {
+    margin-top: 12px;
+}

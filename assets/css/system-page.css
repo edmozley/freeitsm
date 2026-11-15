@@ -197,3 +197,41 @@
    [hidden] { display: none } - so a dialog that hides a step's button with the
    hidden attribute (the cost-centre import's Back / Import) showed it anyway. */
 .sys-modal .btn[hidden] { display: none; }
+
+/* Modal polish (Ed, 16 Nov 2026: "Modern compact") - the same as .modal in
+   inbox.css: tinted header and footer bands, rounder corners, a softer shadow,
+   a focus ring in the accent. Looks only; tests/system-page-layout.php still
+   measures every System dialog. */
+.sys-modal {
+    border-radius: 10px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.sys-modal-head,
+.sys-modal-foot {
+    /* The dialog colour nudged towards the text and the module accent: a visible
+       band in light and dark alike (--surface-2 is all but the same as --surface). */
+    background: color-mix(in srgb, color-mix(in srgb, var(--surface, #fff) 94%, var(--text, #333) 6%) 90%, var(--accent, #546e7a) 10%);
+}
+.sys-modal-body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
+.sys-modal-body select,
+.sys-modal-body textarea {
+    border-radius: 7px;
+}
+.sys-modal-body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):focus,
+.sys-modal-body select:focus,
+.sys-modal-body textarea:focus {
+    border-color: var(--accent, #546e7a);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #546e7a) 18%, transparent);
+}
+
+/* The same small gap above a button that follows a paragraph (see inbox.css). */
+.sys-modal-body p + button,
+.sys-modal-body p + .btn,
+.sys-modal-body p + a.btn {
+    margin-top: 8px;
+}
+/* And a field straight after a paragraph (Schedule Work's ticket line, then Date).
+   Vertical margins collapse, so where the paragraph already has a gap, nothing changes. */
+.sys-modal-body p + .form-group {
+    margin-top: 12px;
+}

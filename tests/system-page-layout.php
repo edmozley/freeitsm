@@ -14,7 +14,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   2. its .sys-title sits on the standard gutter (32px) at the standard size;
  *   3. the page ends inside the window: no second scrollbar, the bottom reachable;
  *   6. (below) every dialog on the page, opened, is the standard System modal: .sys-modal
- *      with head/body(/foot), 520/820/1000 wide, 8px corners, an 18px/600 title and
+ *      with head/body(/foot), 520/820/1000 wide, 10px corners, an 18px/600 title and
  *      content 24px in from the edges;
  *   4. nothing inside is capped: no visible block 400px+ wide that a max-width
  *      holds narrower than the page. Controls are allowed caps (inputs, selects,
@@ -149,7 +149,7 @@ try {
             else {
                 if (!$md['head'] || !$md['body']) $bad[] = 'needs .sys-modal-head and .sys-modal-body';
                 if (!in_array($md['w'], [520, 820, 1000], true)) $bad[] = "width {$md['w']} (520, 820 or 1000)";
-                if ($md['rad'] !== '8px') $bad[] = "corners {$md['rad']}";
+                if ($md['rad'] !== '10px') $bad[] = "corners {$md['rad']}";   // 10px since the modal polish (Ed, 16 Nov 2026)
                 if ($md['head'] && ($md['hFs'] !== '18px' || $md['hFw'] !== '600' || $md['hL'] !== 24)) $bad[] = "title {$md['hFs']}/{$md['hFw']} at {$md['hL']}px";
                 if ($md['body'] && $md['bL'] !== null && ($md['bL'] < 24 || $md['bR'] < 24)) $bad[] = "body content {$md['bL']}px / {$md['bR']}px from the edges (24+)";
                 if ($md['foot'] && $md['fR'] !== null && $md['fR'] !== 24) $bad[] = "footer button {$md['fR']}px from the right (24)";
