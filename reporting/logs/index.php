@@ -409,7 +409,7 @@ $translationNamespaces = ['common', 'reporting'];
         .job-form .hint { font-size: 12px; color: var(--text-muted, #666); margin-top: 4px; }
         .job-form label.job-mode { margin: 12px 0 4px; font-weight: 500; }
         .job-form .job-mode-detail { margin-left: 24px; }
-        .job-form input[type=time] { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); }
+        .job-form input[type=time] , .job-form .di-type-time { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); }
         .job-form .job-mode-footnote { margin-top: 14px; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border, #ddd); }
     </style>

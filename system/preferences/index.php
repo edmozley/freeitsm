@@ -39,6 +39,7 @@ $prefDefaults = [
     // uses below, and the only value that is not itself a format key.
     'date_format'                => '',
     'time_format'                => '',
+    'week_start'                 => '',   // GH #355: '' follows System > Date and time formats
     'toast_position'             => 'bottom-right',
     'toast_animation'            => 'slide',
     // Chime when a notification arrives. 'off' by default — whether a sound at
@@ -156,15 +157,19 @@ if (isset($_SESSION['analyst_id'])) {
 // choice you cannot see the consequence of is not really a choice.
 $installDate = DateFmt::DEFAULT_DATE;
 $installTime = DateFmt::DEFAULT_TIME;
+$installWeek = DateFmt::DEFAULT_WEEK;   // GH #355
 try {
     $conn = $conn ?? connectToDatabase();
     $stmt = $conn->prepare(
         "SELECT setting_key, setting_value FROM system_settings
-         WHERE setting_key IN ('date_format','time_format')"
+         WHERE setting_key IN ('date_format','time_format','week_start')"
     );
     $stmt->execute();
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         if ($row['setting_value'] === null || $row['setting_value'] === '') continue;
+        if ($row['setting_key'] === 'week_start' && in_array($row['setting_value'], DateFmt::WEEK_STARTS, true)) {
+            $installWeek = $row['setting_value'];
+        }
         if ($row['setting_key'] === 'date_format' && isset(DateFmt::DATE_TEMPLATES[$row['setting_value']])) {
             $installDate = $row['setting_value'];
         }
@@ -566,6 +571,21 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     <?php endforeach; ?>
                 </select>
                 <span class="pref-saving-hint" id="timeFormatSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+            </div>
+
+            <?php /* GH #355: the first day of the week in the date picker's calendar. */ ?>
+            <div class="pref-section">
+                <h3 id="week-start"><?php echo htmlspecialchars(t('system.preferences.weekstart_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.weekstart_desc')); ?></p>
+                <select id="weekStartSelect" class="pref-language-select">
+                    <option value="" <?php echo $prefs['week_start'] === '' ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars(t('system.preferences.format_follow_default', ['example' => t('system.dateformat.week_' . $installWeek)])); ?>
+                    </option>
+                    <?php foreach (DateFmt::WEEK_STARTS as $wk): ?>
+                        <option value="<?php echo $wk; ?>" <?php echo $prefs['week_start'] === $wk ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('system.dateformat.week_' . $wk)); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="pref-saving-hint" id="weekStartSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
 
             <?php /* Money (GH #189): how amounts are written for THIS analyst. The
@@ -1585,7 +1605,8 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
         // value here meaning "follow the install default", so it must be saved
         // as-is rather than treated as "nothing chosen".
         [['dateFormatSelect', 'dateFormatSavingHint', 'date_format'],
-         ['timeFormatSelect', 'timeFormatSavingHint', 'time_format']].forEach(function (row) {
+         ['timeFormatSelect', 'timeFormatSavingHint', 'time_format'],
+         ['weekStartSelect', 'weekStartSavingHint', 'week_start']].forEach(function (row) {   // week_start: GH #355
             const sel  = document.getElementById(row[0]);
             const hint = document.getElementById(row[1]);
             if (!sel) return;

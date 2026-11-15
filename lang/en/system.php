@@ -1704,6 +1704,8 @@ return [
         'dateformat_desc'    => 'How a date is written. This is the arrangement only - the date itself never changes, and month names always follow your interface language.',
         'timeformat_heading' => 'Time format',
         'timeformat_desc'    => 'The 24-hour clock, or a 12-hour clock with AM and PM.',
+        'weekstart_heading'  => 'First day of the week',
+        'weekstart_desc'     => 'The day each week starts on in the calendar you pick dates from.',
         'format_follow_default' => 'Use the system default ({example})',
         'format_saved'          => 'Format saved',
         // Module order (GH #187) - the analyst's own order for the waffle menu,
@@ -1823,6 +1825,10 @@ return [
 
         'time_heading' => 'Time format',
         'time_desc'    => 'Pick between the 24-hour clock and a 12-hour clock with AM and PM. This does not change the time itself, only how it is written.',
+        'week_heading' => 'First day of the week',
+        'week_desc'    => 'The day each week starts on in the calendar you pick dates from. Analysts can choose their own in Preferences.',
+        'week_monday'  => 'Monday',
+        'week_sunday'  => 'Sunday',
 
         'preview_heading' => 'Preview',
         'preview_desc'    => 'A sample date and time as they will appear once you save.',

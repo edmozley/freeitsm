@@ -113,7 +113,7 @@ $translationNamespaces = ['common', 'forms'];
             color: var(--text-muted, #666);
         }
 
-        .filter-group input[type="date"] {
+        .filter-group input[type="date"] , .filter-group .di-type-date {
             padding: 6px 10px;
             border: 1px solid var(--border, #ddd);
             border-radius: 4px;
@@ -123,7 +123,7 @@ $translationNamespaces = ['common', 'forms'];
             color: var(--text, #333);
         }
 
-        .filter-group input[type="date"]:focus {
+        .filter-group input[type="date"]:focus , .filter-group .di-type-date:focus {
             outline: none;
             border-color: var(--forms-accent, #00897b);
         }

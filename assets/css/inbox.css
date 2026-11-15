@@ -3169,9 +3169,9 @@ body .tox-tinymce-aux {
 .modal .form-group input[type="url"],
 .modal .form-group input[type="search"],
 .modal .form-group input[type="tel"],
-.modal .form-group input[type="date"],
-.modal .form-group input[type="datetime-local"],
-.modal .form-group input[type="time"],
+.modal .form-group input[type="date"], .modal .form-group .di-type-date,
+.modal .form-group input[type="datetime-local"], .modal .form-group .di-type-datetime-local,
+.modal .form-group input[type="time"], .modal .form-group .di-type-time,
 .modal .form-group select,
 .modal .form-group textarea {
     width: 100%;

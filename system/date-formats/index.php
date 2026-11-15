@@ -36,15 +36,19 @@ $translationNamespaces = ['common', 'system'];
 // resolver treats as the built-in default - so that is what we pre-select.
 $storedDate = DateFmt::DEFAULT_DATE;
 $storedTime = DateFmt::DEFAULT_TIME;
+$storedWeek = DateFmt::DEFAULT_WEEK;   // GH #355
 try {
     $conn = connectToDatabase();
     $stmt = $conn->prepare(
         "SELECT setting_key, setting_value FROM system_settings
-         WHERE setting_key IN ('date_format','time_format')"
+         WHERE setting_key IN ('date_format','time_format','week_start')"
     );
     $stmt->execute();
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         if ($row['setting_value'] === null || $row['setting_value'] === '') continue;
+        if ($row['setting_key'] === 'week_start' && in_array($row['setting_value'], DateFmt::WEEK_STARTS, true)) {
+            $storedWeek = $row['setting_value'];
+        }
         if ($row['setting_key'] === 'date_format' && isset(DateFmt::DATE_TEMPLATES[$row['setting_value']])) {
             $storedDate = $row['setting_value'];
         }
@@ -198,6 +202,20 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
                 </div>
             </div>
 
+            <?php /* GH #355: the day a week starts on in the date picker's calendar. */ ?>
+            <div class="settings-card">
+                <h3 id="week-start"><?php echo htmlspecialchars(t('system.dateformat.week_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.dateformat.week_desc')); ?></p>
+                <div class="fmt-list">
+                    <?php foreach (DateFmt::WEEK_STARTS as $wk): ?>
+                        <label class="fmt-option<?php echo $wk === $storedWeek ? ' is-selected' : ''; ?>">
+                            <input type="radio" name="week_start" value="<?php echo $wk; ?>" <?php echo $wk === $storedWeek ? 'checked' : ''; ?>>
+                            <span class="fmt-example"><?php echo htmlspecialchars(t('system.dateformat.week_' . $wk)); ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
             <div class="settings-card">
                 <h3><?php echo htmlspecialchars(t('system.dateformat.preview_heading')); ?></h3>
                 <p class="card-desc"><?php echo htmlspecialchars(t('system.dateformat.preview_desc')); ?></p>
@@ -258,7 +276,7 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
         window.DATE_FORMAT = saved;
     }
 
-    document.querySelectorAll('input[name="date_format"], input[name="time_format"]')
+    document.querySelectorAll('input[name="date_format"], input[name="time_format"], input[name="week_start"]')
         .forEach(function (el) { el.addEventListener('change', refreshPreview); });
 
     document.getElementById('dateFormatForm').addEventListener('submit', async function (e) {
@@ -266,6 +284,7 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
         const btn = this.querySelector('button[type="submit"]');
         const dateEl = document.querySelector('input[name="date_format"]:checked');
         const timeEl = document.querySelector('input[name="time_format"]:checked');
+        const weekEl = document.querySelector('input[name="week_start"]:checked');   // GH #355
         if (!dateEl || !timeEl) return;
 
         btn.disabled = true;
@@ -275,7 +294,8 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ settings: {
                     date_format: dateEl.value,
-                    time_format: timeEl.value
+                    time_format: timeEl.value,
+                    week_start: weekEl ? weekEl.value : 'monday'
                 } })
             });
             const data = await resp.json();

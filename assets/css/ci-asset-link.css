@@ -56,7 +56,7 @@
 .cil-matches { list-style: none; margin: 4px 0 10px; padding: 0; }
 .cil-matches li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; border-top: 1px solid var(--border-soft, #f0f0f0); }
 .cil-field { display: flex; flex-direction: column; gap: 3px; margin: 8px 0; font-size: 12px; color: var(--text-muted, #555); }
-.cil-field input[type=text], .cil-field input[type=number], .cil-field input[type=date], .cil-field select { padding: 6px 9px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #222); max-width: 420px; }
+.cil-field input[type=text], .cil-field input[type=number], .cil-field input[type=date], .cil-field .di-type-date, .cil-field select { padding: 6px 9px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #222); max-width: 420px; }
 .cil-field input[type=checkbox] { align-self: flex-start; }
 .cil-create-actions { display: flex; gap: 6px; margin-top: 10px; }
 .cil-create-actions .cil-primary { margin-top: 0; }

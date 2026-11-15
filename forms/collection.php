@@ -84,7 +84,7 @@ $translationNamespaces = ['common', 'forms'];
         .coll-blurb { color: var(--text-muted, #666); font-size: 13px; margin: -4px 0 16px; }
 
         .filter-group { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted, #666); }
-        .filter-group input[type="date"] {
+        .filter-group input[type="date"] , .filter-group .di-type-date {
             padding: 6px 10px; border: 1px solid var(--border, #ddd); border-radius: 4px;
             font-size: 13px; font-family: inherit; background: var(--surface, #fff); color: var(--text, #333);
         }

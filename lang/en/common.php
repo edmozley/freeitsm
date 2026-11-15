@@ -909,4 +909,17 @@ return [
         'month' => '{price} a month',
         'free'  => 'Free',
     ],
+    // GH #355: FreeITSM's own date and time picker (assets/js/date-input.js).
+    'date_input' => [
+        'invalid'    => 'Type a date like {example}, or pick one.',
+        'invalid_time' => 'Type a time like {example}, or pick one.',
+        'today'      => 'Today',
+        'now'        => 'Now',
+        'clear'      => 'Clear',
+        'prev_month' => 'Previous month',
+        'next_month' => 'Next month',
+        'open'       => 'Choose from a calendar',
+        'hour'       => 'Hour',
+        'minute'     => 'Minute',
+    ],
 ];

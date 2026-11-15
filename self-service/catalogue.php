@@ -155,9 +155,9 @@ $pageStyles = <<<'CSS'
         .cat-field input[type="text"],
         .cat-field input[type="email"],
         .cat-field input[type="number"],
-        .cat-field input[type="date"],
-        .cat-field input[type="time"],
-        .cat-field input[type="datetime-local"],
+        .cat-field input[type="date"], .cat-field .di-type-date,
+        .cat-field input[type="time"], .cat-field .di-type-time,
+        .cat-field input[type="datetime-local"], .cat-field .di-type-datetime-local,
         .cat-field select,
         .cat-field textarea {
             width: 100%;

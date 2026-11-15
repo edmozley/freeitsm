@@ -101,7 +101,7 @@ $translationNamespaces = ['common', 'contracts'];
             text-transform: uppercase; letter-spacing: 0.4px;
             margin-bottom: 3px;
         }
-        .supplier-field input[type="date"],
+        .supplier-field input[type="date"], .supplier-field .di-type-date,
         .supplier-field textarea {
             width: 100%; padding: 6px 10px; font-size: 13px;
             border: 1px solid var(--border, #d1d5db); border-radius: 5px;
@@ -160,7 +160,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .form-row .help { font-size: 12px; color: var(--text-dim, #888); }
         .form-row input[type="text"],
-        .form-row input[type="date"],
+        .form-row input[type="date"], .form-row .di-type-date,
         .form-row select,
         .form-row textarea {
             padding: 8px 10px; font-size: 14px; font-family: inherit;

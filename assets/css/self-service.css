@@ -792,9 +792,9 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     /* A native date field ignores the width it is given on iOS and sizes
      * itself to the date it draws — and iOS spells the month out. Techniques
      * 20; the sixth place in this product to need it. */
-    input[type="date"],
-    input[type="time"],
-    input[type="datetime-local"] {
+    input[type="date"], .di-type-date,
+    input[type="time"], .di-type-time,
+    input[type="datetime-local"] , .di-type-datetime-local {
         -webkit-appearance: none;
         appearance: none;
         width: 100%;

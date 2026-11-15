@@ -83,4 +83,17 @@ require __DIR__ . '/_top.php';
     <div class="help-note"><strong>Portal users always follow this page.</strong> The people who raise tickets have no format setting of their own, so what you choose here is what your customers read.</div>
 </div>
 
+<!-- Typing a date (GH #355) -->
+<div class="help-section" id="typing">
+    <div class="help-section-header"><?php echo helpSectionNum('typing'); ?>
+        <div>
+            <h3>Typing a date</h3>
+            <p>The boxes you type a date into follow these formats too.</p>
+        </div>
+    </div>
+    <p>Every date and time box in FreeITSM - on a ticket, a task, a contract, a form, the portal - shows its date in the format chosen here, and you can <strong>type</strong> one in that format (<em>5 aug 2026</em>, <em>05/08/2026</em>, <em>14:30</em> or <em>2:30 pm</em> all work) or <strong>pick</strong> one from the calendar that opens. <strong>Today</strong> (or <strong>Now</strong>) and <strong>Clear</strong> are at the bottom of the calendar.</p>
+    <p><strong>First day of the week</strong> sets the day each week starts on in that calendar - Monday unless you change it. Analysts can choose their own in Preferences.</p>
+    <div class="help-note"><strong>On a phone or tablet</strong> the device's own date picker is used, as it is the one people expect on a touch screen.</div>
+</div>
+
 <?php require __DIR__ . '/_bottom.php'; ?>

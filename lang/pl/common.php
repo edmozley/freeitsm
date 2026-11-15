@@ -866,4 +866,16 @@ return [
         'month' => '{price} miesięcznie',
         'free' => 'Bezpłatnie',
     ],
+    'date_input' => [
+        'invalid' => 'Wpisz datę w formie {example} lub wybierz ją.',
+        'invalid_time' => 'Wpisz godzinę w formie {example} lub wybierz ją.',
+        'today' => 'Dziś',
+        'now' => 'Teraz',
+        'clear' => 'Wyczyść',
+        'prev_month' => 'Poprzedni miesiąc',
+        'next_month' => 'Następny miesiąc',
+        'open' => 'Wybierz z kalendarza',
+        'hour' => 'Godzina',
+        'minute' => 'Minuta',
+    ],
 ];

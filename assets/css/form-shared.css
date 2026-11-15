@@ -306,7 +306,7 @@
    stretches to the full column and looks like a bug. */
 .form-table td input[type="text"],
 .form-table td input[type="number"],
-.form-table td input[type="date"],
+.form-table td input[type="date"], .form-table td .di-type-date,
 .form-table td select {
     width: 100%;
     min-width: 90px;

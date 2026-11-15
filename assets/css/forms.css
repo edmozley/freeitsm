@@ -694,9 +694,9 @@
 
 .cond-row select,
 .cond-row input[type="text"],
-.cond-row input[type="date"],
-.cond-row input[type="time"],
-.cond-row input[type="datetime-local"] {
+.cond-row input[type="date"], .cond-row .di-type-date,
+.cond-row input[type="time"], .cond-row .di-type-time,
+.cond-row input[type="datetime-local"] , .cond-row .di-type-datetime-local {
     flex: 1 1 0;
     min-width: 0;               /* let the three controls share the row evenly */
     padding: 5px 8px;

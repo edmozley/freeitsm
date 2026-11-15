@@ -177,7 +177,7 @@ a.jml-step-title:hover { color: var(--jml-accent, #a16207); text-decoration: und
 .jml-modal .modal-content { max-width: 620px; }
 .jml-field { margin-bottom: 16px; }
 .jml-field > label, .jml-field > .lbl { display: block; font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 6px; }
-.jml-field input[type="text"], .jml-field input[type="email"], .jml-field input[type="date"], .jml-field input[type="number"],
+.jml-field input[type="text"], .jml-field input[type="email"], .jml-field input[type="date"], .jml-field .di-type-date, .jml-field input[type="number"],
 .jml-field select, .jml-field textarea {
     width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px;
     font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); font-family: inherit;

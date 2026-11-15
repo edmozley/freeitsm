@@ -43,6 +43,7 @@ const PREF_TEMPLATE_SECTIONS = [
     'timezone'       => ['system.preferences.timezone_heading',        ['timezone']],
     'date-format'    => ['system.preferences.dateformat_heading',      ['date_format']],
     'time-format'    => ['system.preferences.timeformat_heading',      ['time_format']],
+    'week-start'     => ['system.preferences.weekstart_heading',       ['week_start']],   // GH #355
     'money'          => ['system.preferences.money_heading',           ['currency_format', 'currency_formats']],
     'task-view'      => ['system.preferences.task_view_heading',       ['tasks_detail_view', 'tasks_open_panel']],
     'ticket-list'    => ['system.preferences.ticket_list_heading',     ['tickets_list_layout']],

@@ -95,7 +95,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .form-field { margin-bottom: 16px; }
         .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
         .form-field .hint { font-size: 12px; color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
-        .form-field input[type=text], .form-field input[type=number], .form-field input[type=date], .form-field select {
+        .form-field input[type=text], .form-field input[type=number], .form-field input[type=date], .form-field .di-type-date, .form-field select {
             width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333);
         }
         .form-field input:focus, .form-field select:focus { outline: none; border-color: var(--sys-accent, #546e7a); }

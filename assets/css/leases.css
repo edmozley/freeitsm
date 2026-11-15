@@ -75,7 +75,7 @@
 .ls-modal form { padding: 20px 24px; overflow-y: auto; max-height: calc(90vh - 60px); box-sizing: border-box; }
 .ls-modal .form-group { margin-bottom: 14px; }
 .ls-modal .form-group > label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--text); }
-.ls-modal input[type=text], .ls-modal input[type=number], .ls-modal input[type=date], .ls-modal input[type=search],
+.ls-modal input[type=text], .ls-modal input[type=number], .ls-modal input[type=date], .ls-modal .di-type-date, .ls-modal input[type=search],
 .ls-modal select, .ls-modal textarea {
     width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
     font-size: 14px; font-family: inherit; background: var(--surface); color: var(--text);

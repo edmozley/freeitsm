@@ -152,9 +152,9 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
         .form-field input[type="text"],
         .form-field input[type="email"],
         .form-field input[type="number"],
-        .form-field input[type="date"],
-        .form-field input[type="time"],
-        .form-field input[type="datetime-local"],
+        .form-field input[type="date"], .form-field .di-type-date,
+        .form-field input[type="time"], .form-field .di-type-time,
+        .form-field input[type="datetime-local"], .form-field .di-type-datetime-local,
         .form-field textarea,
         .form-field select {
             width: 100%;

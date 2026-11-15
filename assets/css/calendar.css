@@ -658,8 +658,8 @@
     flex: 0 0 auto;
 }
 
-.cal-reschedule input[type="date"],
-.cal-reschedule input[type="time"],
+.cal-reschedule input[type="date"], .cal-reschedule .di-type-date,
+.cal-reschedule input[type="time"], .cal-reschedule .di-type-time,
 .cal-reschedule select {
     padding: 7px 8px;
     border: 1px solid var(--border, #ddd);

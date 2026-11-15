@@ -164,6 +164,7 @@ function settingKeyOwners(): array
         // everyone who has not chosen sees, and the only format the portal reads.
         'date_format'              => ['module' => 'system', 'cap' => null, 'tab' => 'date-formats'],
         'time_format'              => ['module' => 'system', 'cap' => null, 'tab' => 'date-formats'],
+        'week_start'               => ['module' => 'system', 'cap' => null, 'tab' => 'date-formats'],   // GH #355
 
         // --- System: Currencies area (GH #189) ---
         // The default currency, the favourites shown first in every currency

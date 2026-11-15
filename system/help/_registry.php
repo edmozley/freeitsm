@@ -579,8 +579,9 @@ function getHelpTopics() {
                 ['id' => 'choices',    'label' => 'The choices'],
                 ['id' => 'scope',      'label' => 'What it does not change'],
                 ['id' => 'per-person', 'label' => 'When somebody wants their own'],
+                ['id' => 'typing',     'label' => 'Typing a date'],
             ],
-            'terms' => 'date format time format 24 hour 12 hour am pm ddmmyyyy mmddyyyy iso 8601'
+            'terms' => 'date format time format 24 hour 12 hour am pm ddmmyyyy mmddyyyy iso 8601 date picker calendar first day of the week monday sunday typing'
                      . ' dd/mm/yyyy mm/dd/yyyy yyyy-mm-dd european american british locale regional'
                      . ' month name timezone preferences per analyst default',
         ],

@@ -116,7 +116,7 @@ nav:not(.app-sidebar):not(.header-nav) a.active {
     white-space: nowrap;
 }
 
-.date-selector-container input[type="date"] {
+.date-selector-container input[type="date"] , .date-selector-container .di-type-date {
     padding: 8px 12px;
     border: 1px solid var(--border, #ced4da);
     border-radius: 5px;
@@ -124,7 +124,7 @@ nav:not(.app-sidebar):not(.header-nav) a.active {
     font-family: inherit;
 }
 
-.date-selector-container input[type="date"]:focus {
+.date-selector-container input[type="date"]:focus , .date-selector-container .di-type-date:focus {
     outline: none;
     border-color: var(--accent, #007bff);
     box-shadow: 0 0 0 3px rgba(0,123,255,0.1);

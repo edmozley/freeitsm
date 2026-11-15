@@ -13,7 +13,7 @@
 .ev-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .ev-actions .btn { text-decoration: none; }
 .ev-period { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; font-size: 13px; }
-.ev-period input[type=date] { padding: 5px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); }
+.ev-period input[type=date] , .ev-period .di-type-date { padding: 5px 8px; border: 1px solid var(--border, #ddd); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333); }
 
 .ev-note { font-size: 13px; padding: 8px 12px; margin: 0 0 8px; border-left: 3px solid var(--border, #cbd5e1);
            background: var(--surface, #fff); border-radius: 4px; max-width: 1100px; }
