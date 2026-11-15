@@ -1342,10 +1342,10 @@ return [
         'source_storage' => 'This is the install\'s connection.',
         'source_files'   => 'This is the connection Files was given on its Storage tab. Save it here to make it the install\'s own; Files keeps using it.',
         'source_none'    => 'No connection yet. A store can only be switched to S3 once one is saved.',
-        'place_locked'   => 'Files are kept in this bucket now, so its endpoint, bucket and prefix cannot change (move every store, and Files, back to the server folder first). The keys, region and path style can be changed at any time.',
+        'place_locked'   => 'Files are kept in this bucket now, so its endpoint, bucket and prefix cannot change (move every store, and Files, back to the server folder first). The keys, region and path style can be changed whenever no move is reading from the bucket.',
 
         'stores_heading' => 'Where each store keeps its files',
-        'stores_hint'    => 'Switching a store moves its files in the background: each one is copied and checked, and is read from its old place until its copy is ready. Nothing is deleted until you choose Remove old copies.',
+        'stores_hint'    => 'Switching a store moves its files in the background: each one is copied and checked, and is read from its old place until its copy is ready. Nothing is deleted until you choose Remove.',
         'col_store'      => 'Store',
         'col_holds'      => 'Holds',
         'col_where'      => 'Kept in',

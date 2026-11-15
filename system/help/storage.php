@@ -17,7 +17,7 @@ require __DIR__ . '/_top.php';
     <p>Files (Files → Settings → Storage) and every store switched to S3 use this one bucket, each in its own folder under the prefix: <code>files/</code>, <code>tickets/</code>, <code>changes/</code>, <code>documents/</code>, <code>recordings/</code>, <code>warroom/</code>. Keep the bucket private: every download still goes through FreeITSM, which checks who may see the file.</p>
     <p><strong>Server-side encryption</strong>: most providers encrypt stored files by default; some only when asked. Choose <strong>AES-256</strong> to ask on every file written. Test first: a provider that cannot do it refuses, and the Test says so before anything is saved.</p>
     <p>An endpoint on plain <code>http://</code> is fine for a server on your own network (a MinIO beside FreeITSM). To an address on the internet the page warns you: the files themselves would cross it unencrypted (the secret does not - requests are only signed with it). Use <code>https://</code> if the provider offers it.</p>
-    <div class="help-note">While any store keeps files in the bucket, its endpoint, bucket and prefix cannot be changed (move the stores back to the server folder first). The keys, region, path style and encryption can be changed at any time - for example to rotate the access key.</div>
+    <div class="help-note">While any store keeps files in the bucket, its endpoint, bucket and prefix cannot be changed (move the stores back to the server folder first). The keys, region, path style and encryption can be changed - for example to rotate the access key - except the keys, region and path style while a move is still reading files from the bucket (they wait until it is finished).</div>
 </div>
 
 <!-- 2. The stores -->

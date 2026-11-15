@@ -117,14 +117,20 @@ final class StorageService
     public static function saveConnection(PDO $conn, array $in, int $by): void
     {
         $cfg = self::connectionFromInput($conn, $in);
+        $old = storageS3Connection($conn);
+        // A move out of S3 reads the old place with the keys it started with; rotate them at
+        // the provider and every file not yet copied is stranded. So the keys wait until it ends.
+        if ($old !== null && self::credentialsKey($old) !== self::credentialsKey($cfg) && self::moveReadsS3($conn)) {
+            throw new InvalidArgumentException('A move is still reading files from the bucket with the current keys. Change the keys, '
+                . 'secret, region or path style once that move has finished (Remove or Finish).');
+        }
         $t = FilesStorageService::test($cfg);
         if (!$t['ok']) throw new InvalidArgumentException('Those S3 settings did not work (failed at ' . $t['step'] . '): ' . $t['error']);
 
-        $old = storageS3Connection($conn);
         $placeChanged = $old !== null && self::placeKey($old) !== self::placeKey($cfg);
         if ($placeChanged && self::connectionInUse($conn)) {
             throw new InvalidArgumentException('Files are kept in that bucket now. To use another endpoint, bucket or prefix, move every store '
-                . '(and Files) back to the server folder first. The keys, region and path style can be changed at any time.');
+                . '(and Files) back to the server folder first. The keys, region and path style can be changed whenever no move is reading from the bucket.');
         }
 
         $own = !$conn->inTransaction();
@@ -234,6 +240,26 @@ final class StorageService
     }
 
     /** What identifies the place: another endpoint, bucket or prefix is another place. */
+    /** True while Files or a store is moving OUT of S3 (its previous place is the bucket). */
+    private static function moveReadsS3(PDO $conn): bool
+    {
+        try {
+            if ((filesPreviousStorageConfig($conn)['driver'] ?? '') === 's3') return true;
+        } catch (Throwable $e) {}
+        foreach (array_keys(STORAGE_STORES) as $s) {
+            try {
+                if ((storePreviousConfig($conn, $s)['driver'] ?? '') === 's3') return true;
+            } catch (Throwable $e) {}   // undecryptable: that move cannot read anything anyway
+        }
+        return false;
+    }
+
+    /** What a move reading the bucket depends on besides the place. */
+    private static function credentialsKey(array $c): string
+    {
+        return json_encode([(string)$c['access_key_id'], (string)$c['secret'], (string)($c['region'] ?? ''), !empty($c['path_style'])]);
+    }
+
     private static function placeKey(array $c): string
     {
         return rtrim((string)$c['endpoint'], '/') . '|' . $c['bucket'] . '|' . s3NormalisePrefix((string)($c['prefix'] ?? ''));

@@ -283,8 +283,8 @@ enum Cap: string
     // RECYCLE sets how long deleted files stay in the recycle bin before they are
     // deleted for good - it never lets anyone see or restore a file.
     case FILES_RECYCLE = 'files.recycle';
-    // STORAGE_BACKUPS: where every stored file goes - Files' location, System -> Storage (the
-    // S3 connection and each store's switch) and System -> Backups. Whoever holds it can send
+    // STORAGE_BACKUPS: where every stored file goes - Files' location and System -> Storage (the
+    // S3 connection and each store's switch); backups (#286) will join it. Whoever holds it can send
     // every file to a bucket of their choosing, past the folder permissions, so it is NOT part
     // of FILES_MANAGE ('outside_umbrella' in the manifest) - PR #318 review.
     case FILES_STORAGE_BACKUPS = 'files.storage_backups';
@@ -551,7 +551,10 @@ function capRegistry(): array
             $registry[$cap] = [
                 'module'    => $module,
                 'umbrella'  => false,
-                'everyday'  => true,
+                // A power that is not a settings tab yet belongs with them on Roles (Storage
+                // and backups) says 'everyday' => false; it then never goes through
+                // analystMayAct() - it is a plain capability, checked as one.
+                'everyday'  => ($action['everyday'] ?? true) !== false,
                 'sensitive' => !empty($action['sensitive']),
                 'label'     => $action['grant'] ?? $cap,
                 'restrict'  => $action['restrict'] ?? null,   // ['setting' => key, 'value' => v]; null = always restricted

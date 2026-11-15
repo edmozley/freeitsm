@@ -80,6 +80,8 @@ function storeMoveStart(PDO $conn, string $store, string $to, int $by): int
     $own = !$conn->inTransaction();
     if ($own) $conn->beginTransaction();
     try {
+        // No move of this store is running (checked above), so any rows left are from one
+        // that ended; the listing below is the whole queue for this one.
         $conn->prepare('DELETE FROM storage_migration_items WHERE store = ?')->execute([$store]);
         $ins = $conn->prepare("INSERT IGNORE INTO storage_migration_items (store, object_key, size_bytes, state, updated_datetime)
                                VALUES (?, ?, ?, 'pending', UTC_TIMESTAMP())");
@@ -263,11 +265,12 @@ function storeMoveAction(PDO $conn, string $store, string $action, int $by): voi
         $conn->prepare("UPDATE storage_migration_items SET state = 'pending', attempts = 0, last_error = NULL, updated_datetime = UTC_TIMESTAMP()
                          WHERE store = ? AND state = 'failed'")->execute([$store]);
     } elseif ($action === 'skip_missing') {
-        $prev = storePrevious($conn, $store);
         $rows = $conn->prepare("SELECT id, object_key FROM storage_migration_items WHERE store = ? AND state = 'failed'");
         $rows->execute([$store]);
         $skip = $conn->prepare("UPDATE storage_migration_items SET state = 'skipped', updated_datetime = UTC_TIMESTAMP() WHERE id = ?");
         try {
+            $prev = storePrevious($conn, $store);   // may throw: an undecryptable old place
+            if ($prev === null) throw new StorageUnavailable('the old location is no longer recorded.');
             foreach ($rows->fetchAll(PDO::FETCH_ASSOC) as $r) if ($prev->size((string)$r['object_key']) === null) $skip->execute([$r['id']]);
         } catch (StorageUnavailable $e) {
             throw new InvalidArgumentException('The old location cannot be reached, so missing files cannot be told apart: ' . $e->getMessage());

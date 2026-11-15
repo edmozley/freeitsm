@@ -436,8 +436,16 @@ function storeServe(PDO $conn, string $store, string $key, int $start, int $end,
         if ($started) return 0;
         return 410;
     } catch (StorageUnavailable $e) {
+        if ($started) return 0;
+        // An empty file: callers ask for bytes 0..0 and S3 refuses any range on an empty
+        // object (416). Asked only after a failure, so a normal download costs nothing more.
+        if ($start === 0) {
+            try {
+                if (storeSize($conn, $store, $key) === 0) { $begin(); return 0; }
+            } catch (Throwable $ignored) {}
+        }
         error_log("storage: {$store} unavailable reading {$key}: " . $e->getMessage());
-        return $started ? 0 : 503;
+        return 503;
     }
 }
 

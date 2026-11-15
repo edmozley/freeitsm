@@ -124,6 +124,18 @@ try {
         } catch (Throwable $e) { ok('from a document in S3: saved, with its bytes', false, get_class($e) . ': ' . $e->getMessage()); }
     }
 
+    echo "\nAn empty file in S3\n";
+    // S3 answers 416 to a range on an empty object; serving one must still work.
+    $emptyKey = storeJoinKey(storeTicketDir($email), bin2hex(random_bytes(8)) . '.txt');
+    $tmp = tempnam(sys_get_temp_dir(), 'zzs'); file_put_contents($tmp, '');
+    storePutFile($conn, 'tickets', $emptyKey, $tmp, true);
+    $cleanup[] = fn() => storeDelete($conn, 'tickets', $emptyKey);
+    $began = false;
+    ob_start();
+    $code = storeServe($conn, 'tickets', $emptyKey, 0, 0, function () use (&$began) { $began = true; });
+    $out = (string)ob_get_clean();
+    ok('an empty file in S3 is served (empty), not "unavailable"', $code === 0 && $began && $out === '', "code $code");
+
     echo "\nAttach from Files as a copy\n";
     FilesAttach::saveMode($conn, $admin, 'both');
     $fkey = '2026/11/14/' . bin2hex(random_bytes(16)) . '.bin';

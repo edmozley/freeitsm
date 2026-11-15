@@ -66,6 +66,21 @@ try {
     $d = StorageService::describe($conn);
     ok('System -> Storage shows the choice and the http warning', ($d['connection']['sse'] ?? null) === 'AES256' && ($d['connection']['insecure'] ?? null) === true, json_encode($d['connection']));
 
+    echo "\nKeys cannot change while a move reads the bucket with the old ones\n";
+    // A move from S3 reads the old place with the credentials it had when it started; a
+    // rotated key would strand every file not yet copied.
+    storeSaveSetting($conn, 'storage_s3_access_key_id', 'zz-old-key');
+    storeSaveSetting($conn, 'storage_s3_secret', encryptValue('zz-old-secret'));
+    storeSaveSetting($conn, 'storage_tickets_previous', encryptValue(json_encode(['driver' => 's3', 'endpoint' => 'http://8.8.8.8:9000',
+        'region' => 'us-east-1', 'bucket' => 'zz-b', 'access_key_id' => 'zz-old-key', 'secret' => 'zz-old-secret', 'prefix' => '', 'path_style' => true])));
+    storeReset();
+    $e = null;
+    try { StorageService::saveConnection($conn, ['endpoint' => 'http://8.8.8.8:9000', 'bucket' => 'zz-b', 'access_key_id' => 'zz-new-key', 'secret' => 'zz-new-secret'], 990000001); }
+    catch (Throwable $ex) { $e = $ex; }
+    ok('changing the keys while a store moves out of S3 is refused, before any request', $e instanceof InvalidArgumentException && str_contains($e->getMessage(), 'move'), $e ? $e->getMessage() : 'saved');
+    storeSaveSetting($conn, 'storage_tickets_previous', null);
+    storeReset();
+
     echo "\nS4: a failed Test is audited\n";
     $logs = fn() => (int)$conn->query("SELECT COUNT(*) FROM system_logs WHERE log_type = 'storage' AND details LIKE '%test_failed%'")->fetchColumn();
     $before = $logs();

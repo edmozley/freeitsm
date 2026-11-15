@@ -38,7 +38,7 @@ return [
             'id'        => 'storage',
             'cap'       => capKey(Cap::FILES_STORAGE),
             'label_key' => 'files.settings.tab_storage',
-            'grant'     => 'Choose where files are stored (a server folder or S3-compatible storage), move them between locations, and the largest file that can be uploaded',
+            'grant'     => 'Choose where files are stored (a server folder or S3-compatible storage), move them between locations, and the largest file that can be uploaded - changing the location also needs Storage and backups',
             'sensitive' => true,   // moves every file's bytes
         ],
         [
@@ -68,9 +68,11 @@ return [
         [
             // PR #318 review: where every stored file goes is its own grant. NOT part of
             // "Manage everything in Files", and needed beside Files -> Storage to change
-            // Files' location. Also opens System -> Storage (and System -> Backups).
+            // Files' location. Also opens System -> Storage. Named for backups too, which
+            // #286 adds to it. A settings power, not everyday work: 'everyday' => false.
             'cap'              => capKey(Cap::FILES_STORAGE_BACKUPS),
-            'grant'            => 'Storage and backups: choose where every stored file is kept (Files, and the stores on System -> Storage) and where backups go - a holder can send every file to a bucket of their choosing. Never part of "Manage everything in Files"',
+            'grant'            => 'Storage and backups: choose where every stored file is kept (Files, and the stores on System -> Storage) - a holder can send every file to a bucket of their choosing. Never part of "Manage everything in Files"',
+            'everyday'         => false,
             'sensitive'        => true,
             'restrict'         => null,   // always applies
             'outside_umbrella' => true,

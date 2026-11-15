@@ -307,7 +307,7 @@ final class FilesStorageService
             filesSaveSetting($conn, 'files_storage_cleanup', '1');
         } elseif ($action === 'finish_keep') {
             if (!$copiedAll) throw new InvalidArgumentException('The move can only be finished once every file has been copied.');
-            storageMigrateEnd($conn, 'finished_kept_old_copies', $m['from_label']);
+            storageMigrateEnd($conn, 'finished_kept_old_copies', $m['from_label'], $analystId);
         } else {
             throw new InvalidArgumentException('Unknown action.');
         }

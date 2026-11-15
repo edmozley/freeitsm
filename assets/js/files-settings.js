@@ -292,7 +292,7 @@
         var moveFailed = function (e) {
             var m = $('stoMoveMsg');
             m.textContent = e.message;
-            m.style.color = '#c62828';
+            m.style.color = 'var(--danger, #c62828)';
         };
         $('stoRetry').addEventListener('click', function () {
             api('settings.php', { tab: 'storage_migration', action: 'retry_failed' }).then(function () { $('stoMoveMsg').textContent = ''; return load(false); })

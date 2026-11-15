@@ -46,6 +46,12 @@ ok('...listed under Files, sensitive', $meta && $meta['module'] === 'files' && $
 $under = capExpandUmbrellas([capKey(Cap::FILES_MANAGE)]);
 ok('"Manage everything in Files" does NOT include it', !in_array('files.storage_backups', $under, true) && in_array(capKey(Cap::FILES_STORAGE), $under, true), json_encode($under));
 ok('System -> Roles shows it as outside the umbrella', (capGroups()['files']['capabilities']['files.storage_backups']['outside_umbrella'] ?? null) === true);
+ok('...with the settings permissions, not everyday work', (capGroups()['files']['capabilities']['files.storage_backups']['everyday'] ?? null) === false);
+$labels = capGroups()['files']['capabilities'];
+// Named for backups too (#286 adds them to it); what it grants today says nothing about them.
+$grants = (string)substr($labels['files.storage_backups']['label'], strpos($labels['files.storage_backups']['label'], ':') + 1);
+ok('its label describes only what exists today (no backups page yet)', !str_contains(strtolower($grants), 'backup'), $labels['files.storage_backups']['label']);
+ok('Files -> Storage\'s label says changing the location needs Storage and backups', str_contains($labels[capKey(Cap::FILES_STORAGE)]['label'], 'Storage and backups'), $labels[capKey(Cap::FILES_STORAGE)]['label']);
 
 $dir = str_replace('\\', '/', sys_get_temp_dir()) . '/zz-perm-' . bin2hex(random_bytes(4));
 mkdir($dir);

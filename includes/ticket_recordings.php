@@ -28,6 +28,19 @@
 require_once __DIR__ . '/storage/stores.php';   // the recordings store: a server folder or S3 (System -> Storage)
 
 /**
+ * The recordings store's key for a ticket_recordings.file_path: the row keeps the
+ * folder name ("recordings/pending/<name>", "recordings/<ticket>/<name>"); the store
+ * does not. Null for anything that is not a path under recordings/.
+ */
+function recordingStoreKey(string $filePath): ?string
+{
+    $p = str_replace('\\', '/', $filePath);
+    if (!str_starts_with($p, 'recordings/')) return null;
+    $key = substr($p, strlen('recordings/'));
+    return storeKeyIsValid($key) ? $key : null;
+}
+
+/**
  * Move pending recordings onto a ticket and (optionally) a specific message.
  *
  * File renames happen outside any transaction — filesystem operations are not
@@ -41,19 +54,6 @@ require_once __DIR__ . '/storage/stores.php';   // the recordings store: a serve
  *                            recording behaved before replies could carry one
  * @return int how many rows were actually claimed
  */
-/**
- * The recordings store's key for a ticket_recordings.file_path: the row keeps the
- * folder name ("recordings/pending/<name>", "recordings/<ticket>/<name>"); the store
- * does not. Null for anything that is not a path under recordings/.
- */
-function recordingStoreKey(string $filePath): ?string
-{
-    $p = str_replace('\\', '/', $filePath);
-    if (!str_starts_with($p, 'recordings/')) return null;
-    $key = substr($p, strlen('recordings/'));
-    return storeKeyIsValid($key) ? $key : null;
-}
-
 function claimPendingRecordings(PDO $conn, array $recordingIds, int $ticketId, int $userId, ?int $emailId = null): int
 {
     $recordingIds = array_values(array_filter(array_map('intval', $recordingIds)));
