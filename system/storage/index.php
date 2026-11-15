@@ -33,9 +33,9 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <style>
         body { --accent: var(--sys-accent, #546e7a); --accent-hover: var(--sys-accent-hover, #37474f); --on-accent: var(--sys-on-accent, #fff); }
-        .main-container { flex: 1; background: var(--app-bg, #f5f7fa); overflow-y: auto; }
-        /* Page layout, title, subtitle and panels: assets/css/system-page.css (.sys-page, .sys-panel). */
-        .st-container { min-width: 0; }
+        /* Page layout, title, subtitle and panels: assets/css/system-page.css (.sys-page, .sys-panel).
+           .sys-page is the body's own child, so system-page.css sizes it to the window (no wrapper). */
+        .st-container { min-width: 0; background: var(--app-bg, #f5f7fa); }
         .st-card { margin-bottom: 16px; }
         .st-card h3 { margin: 0 0 4px 0; font-size: 16px; color: var(--text, #333); }
         .st-hint { margin: 0 0 14px 0; font-size: 13px; color: var(--text-dim, #777); }
@@ -73,7 +73,6 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
 <body data-mobile-module="system" data-mobile-page="storage">
     <?php include '../includes/header.php'; ?>
 
-    <div class="main-container">
         <div class="st-container sys-page">
             <div class="sys-page-head"><div>
                 <h1 class="sys-title"><?php echo $h('system.storage.title'); ?></h1>
@@ -134,7 +133,6 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
                 </div>
             </div>
         </div>
-    </div>
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script>window.ST_API = '<?php echo $path_prefix; ?>api/system/storage.php'; window.ST_FILES_SETTINGS = '<?php echo $path_prefix; ?>files/settings/?tab=storage';</script>
