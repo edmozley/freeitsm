@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (pt-BR).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php pt-BR
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -47,7 +37,6 @@ return [
         'del_file_q' => 'Excluir "{name}"?',
         'del_folder_q' => 'Excluir a pasta "{name}" e tudo o que há nela?',
         'del_many_q' => 'Excluir estes {n} itens?',
-        'del_note' => 'A exclusão é registrada na trilha de auditoria. Ainda não há lixeira para restaurar.',
         'delete' => 'Excluir',
         'download' => 'Baixar',
         'empty_folder' => 'Esta pasta está vazia.',
@@ -314,7 +303,6 @@ return [
             'p1' => 'A janela Documentos mostra suas pastas à esquerda e a pasta aberta à direita. Alterne entre **Ícones** e **Detalhes** com os botões à direita da barra de ferramentas; em Detalhes, clique no título de uma coluna para ordenar por ela.',
             'p2' => 'Digite na caixa de filtro (canto superior direito, ou Ctrl+F) para reduzir a pasta aberta aos nomes que contêm o que você digitou. * e ? funcionam como curingas sobre o nome inteiro, então `*.pdf` mostra somente PDFs.',
             'p3' => 'Clique com o botão direito em qualquer item para ver o que pode fazer com ele. Clique para selecionar, Ctrl+clique para adicionar à seleção, Shift+clique para um intervalo, ou arraste uma caixa em volta de vários.',
-            'p4' => 'Recortar, Copiar e Colar funcionam como no Windows (Ctrl+X, Ctrl+C, Ctrl+V), e arrastar também: arraste arquivos, pastas e atalhos para uma pasta (em qualquer janela, na árvore de pastas ou na barra de endereço) para movê-los, e segure Ctrl para copiar. Arraste um arquivo ou pasta para a área de trabalho para colocar um atalho para ele lá - nada é armazenado na área de trabalho em si - e arraste um atalho da área de trabalho para uma pasta para movê-lo para lá. F2 renomeia, Delete exclui. Os itens excluídos são guardados em vez de destruídos - uma lixeira para restaurá-los chegará em uma versão futura.',
             'p5' => '"Documentos", no topo, mostra todas as pastas que foram compartilhadas com você. Se você recebeu uma pasta bem dentro da pasta de outra pessoa, ela aparece aqui sozinha, com o caminho completo como dica - você não vê as pastas acima dela.',
             'p6' => 'Clique duas vezes em um arquivo para abri-lo no visualizador (veja Visualizando arquivos). Clique com o botão direito nele para Baixar, Propriedades e o restante.',
             'p7' => 'Clique com o botão direito em um arquivo ou pasta e escolha **Criar atalho** para colocar um atalho para ele **nesta pasta** (ao lado dele, para todos que podem abrir a pasta) ou **na área de trabalho** (somente na sua própria área de trabalho). Um atalho abre aquilo para que aponta, mas não dá acesso a ninguém: quem não consegue ver o destino também nunca vê o atalho. Excluir um atalho não afeta o original. Para criar um link para um artigo do Conhecimento, clique com o botão direito em um espaço vazio de uma pasta (ou da área de trabalho) e escolha **Atalho para artigo...**; clicar duas vezes nele mostra o artigo em uma janela de prévia, com **Abrir no Conhecimento** para ir ao próprio artigo, e somente quem pode ler esse artigo vê o atalho.',

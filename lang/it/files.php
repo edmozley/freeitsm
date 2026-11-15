@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (it).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php it
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -47,7 +37,6 @@ return [
         'del_file_q' => 'Eliminare "{name}"?',
         'del_folder_q' => 'Eliminare la cartella "{name}" e tutto ciò che contiene?',
         'del_many_q' => 'Eliminare questi {n} elementi?',
-        'del_note' => 'L\'eliminazione viene registrata nella traccia di controllo. Non c\'è ancora un cestino da cui ripristinare.',
         'delete' => 'Elimina',
         'download' => 'Scarica',
         'empty_folder' => 'Questa cartella è vuota.',
@@ -314,7 +303,6 @@ return [
             'p1' => 'La finestra Documenti mostra le tue cartelle a sinistra e la cartella aperta a destra. Passa da **Icone** a **Dettagli** con i pulsanti a destra della barra degli strumenti; in Dettagli, fai clic sull\'intestazione di una colonna per ordinare in base ad essa.',
             'p2' => 'Digita nella casella del filtro (in alto a destra, oppure Ctrl+F) per restringere la cartella aperta ai nomi che contengono ciò che hai scritto. * e ? funzionano come caratteri jolly su tutto il nome, quindi `*.pdf` mostra solo i PDF.',
             'p3' => 'Fai clic con il tasto destro su qualsiasi elemento per vedere cosa puoi farne. Clicca per selezionare, Ctrl+clic per aggiungere alla selezione, Maiusc+clic per un intervallo, oppure trascina un riquadro attorno a più elementi.',
-            'p4' => 'Taglia, Copia e Incolla funzionano come in Windows (Ctrl+X, Ctrl+C, Ctrl+V), e così il trascinamento: trascina file, cartelle e collegamenti su una cartella (in qualsiasi finestra, nell\'albero delle cartelle o nella barra degli indirizzi) per spostarli, e tieni premuto Ctrl per copiarli. Trascina un file o una cartella sul desktop per metterci un collegamento - sul desktop non viene memorizzato nulla - e trascina un collegamento del desktop in una cartella per spostarlo lì. F2 rinomina, Canc elimina. Gli elementi eliminati vengono conservati anziché distrutti - un cestino per ripristinarli arriverà in una versione futura.',
             'p5' => '"Documenti" in alto mostra ogni cartella che è stata condivisa con te. Se ti è stata data una cartella annidata in profondità in quella di qualcun altro, compare qui da sola con il suo percorso completo come indicazione - le cartelle sopra di essa non le vedi.',
             'p6' => 'Fai doppio clic su un file per aprirlo nel visualizzatore (vedi Visualizzare i file). Fai clic con il tasto destro per Scarica, Proprietà e il resto.',
             'p7' => 'Fai clic con il tasto destro su un file o una cartella e scegli **Crea collegamento** per metterne un collegamento **In questa cartella** (accanto ad esso, per chiunque possa aprire la cartella) oppure **Sul desktop** (solo sul tuo desktop). Un collegamento apre ciò a cui punta, ma non dà accesso a nessuno: chi non può vedere la destinazione non vede nemmeno il collegamento. Eliminare un collegamento lascia intatto l\'originale. Per collegare un articolo di Knowledge, fai clic con il tasto destro su uno spazio vuoto in una cartella (o sul desktop) e scegli **Collegamento a un articolo...**; facendo doppio clic su di esso l\'articolo si mostra in una finestra di anteprima, con **Apri in Knowledge** per andare all\'articolo vero e proprio, e solo le persone che possono leggere quell\'articolo vedono il collegamento.',

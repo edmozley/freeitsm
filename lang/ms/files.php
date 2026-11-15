@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (ms).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php ms
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -47,7 +37,6 @@ return [
         'del_file_q' => 'Padam "{name}"?',
         'del_folder_q' => 'Padam folder "{name}" dan semua yang ada di dalamnya?',
         'del_many_q' => 'Padam {n} item ini?',
-        'del_note' => 'Pemadaman direkodkan dalam jejak audit. Belum ada tong kitar semula untuk memulihkan.',
         'delete' => 'Padam',
         'download' => 'Muat turun',
         'empty_folder' => 'Folder ini kosong.',
@@ -314,7 +303,6 @@ return [
             'p1' => 'Tetingkap Dokumen menunjukkan folder anda di sebelah kiri dan folder yang dibuka di sebelah kanan. Tukar antara **Ikon** dan **Butiran** dengan butang di sebelah kanan bar alat; dalam Butiran, klik pada pengepala lajur untuk mengisih mengikutnya.',
             'p2' => 'Taip dalam kotak penapis (kanan atas, atau Ctrl+F) untuk mengecilkan folder yang dibuka kepada nama yang mengandungi apa yang anda taip. * dan ? berfungsi sebagai kad liar pada keseluruhan nama, jadi `*.pdf` hanya menunjukkan PDF.',
             'p3' => 'Klik kanan apa-apa untuk melihat apa yang boleh dilakukan dengannya. Klik untuk memilih, Ctrl+klik untuk menambah pada pilihan, Shift+klik untuk satu julat, atau seret kotak mengelilingi beberapa item.',
-            'p4' => 'Potong, Salin dan Tampal berfungsi seperti dalam Windows (Ctrl+X, Ctrl+C, Ctrl+V), begitu juga menyeret: seret fail, folder dan pintasan ke atas folder (dalam mana-mana tetingkap, pepohon folder atau bar alamat) untuk mengalihkannya, dan tekan Ctrl untuk menyalin. Seret fail atau folder ke desktop untuk meletakkan pintasan kepadanya di situ - tiada apa-apa disimpan pada desktop itu sendiri - dan seret pintasan desktop ke dalam folder untuk mengalihkannya ke sana. F2 menamakan semula, Delete memadam. Item yang dipadam disimpan dan bukan dimusnahkan - tong kitar semula untuk memulihkannya akan datang dalam keluaran kemudian.',
             'p5' => '"Dokumen" di bahagian atas menunjukkan setiap folder yang telah dikongsi dengan anda. Jika anda diberi folder yang jauh di dalam folder orang lain, ia muncul di sini dengan sendirinya bersama laluan penuhnya sebagai petunjuk - anda tidak melihat folder di atasnya.',
             'p6' => 'Klik dua kali fail untuk membukanya dalam penonton (lihat Melihat fail). Klik kanan untuk Muat turun, Sifat dan selebihnya.',
             'p7' => 'Klik kanan fail atau folder dan pilih **Cipta pintasan** untuk meletakkan pintasan kepadanya **dalam folder ini** (di sebelahnya, untuk semua orang yang boleh membuka folder) atau **pada desktop** (pada desktop anda sendiri sahaja). Pintasan membuka apa yang ditujunya, tetapi tidak memberi akses kepada sesiapa: orang yang tidak dapat melihat sasarannya juga tidak akan melihat pintasan itu. Memadam pintasan tidak menjejaskan yang asal. Untuk memaut ke artikel Pengetahuan, klik kanan ruang kosong dalam folder (atau pada desktop) dan pilih **Pintasan ke artikel...**; klik dua kali menunjukkan artikel dalam tetingkap pratonton, dengan **Buka dalam Pengetahuan** untuk pergi ke artikel itu sendiri, dan hanya orang yang boleh membaca artikel itu melihat pintasan tersebut.',

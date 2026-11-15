@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (da).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php da
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -52,7 +42,6 @@ return [
         'del_file_q' => 'Slet "{name}"?',
         'del_folder_q' => 'Slet mappen "{name}" og alt i den?',
         'del_many_q' => 'Slet disse {n} elementer?',
-        'del_note' => 'Sletningen registreres i revisionssporet. Der er endnu ingen papirkurv at gendanne fra.',
         'delete' => 'Slet',
         'download' => 'Download',
         'empty_folder' => 'Denne mappe er tom.',
@@ -409,7 +398,6 @@ return [
             'p1' => 'Vinduet Dokumenter viser dine mapper til venstre og den åbne mappe til højre. Skift mellem **Ikoner** og **Detaljer** med knapperne til højre i værktøjslinjen; i Detaljer kan du klikke på en kolonneoverskrift for at sortere efter den.',
             'p2' => 'Skriv i filterfeltet (øverst til højre, eller Ctrl+F) for at indsnævre den åbne mappe til navne, der indeholder det, du skrev. * og ? virker som jokertegn over hele navnet, så `*.pdf` kun viser PDF-filer.',
             'p3' => 'Højreklik på noget for at se, hvad du kan gøre med det. Klik for at markere, Ctrl+klik for at føje til markeringen, Shift+klik for et interval, eller træk en boks rundt om flere.',
-            'p4' => 'Klip, Kopiér og Indsæt virker som i Windows (Ctrl+X, Ctrl+C, Ctrl+V), og det samme gør træk og slip: træk filer, mapper og genveje hen på en mappe (i et hvilket som helst vindue, i mappetræet eller i adresselinjen) for at flytte dem, og hold Ctrl nede for at kopiere. Træk en fil eller mappe hen på skrivebordet for at lægge en genvej til den der - der gemmes intet på selve skrivebordet - og træk en genvej på skrivebordet ind i en mappe for at flytte den dertil. F2 omdøber, Delete sletter. Slettede elementer bliver gemt og ikke destrueret - en papirkurv til at gendanne dem kommer i en senere version.',
             'p5' => '"Dokumenter" øverst viser alle mapper, der er delt med dig. Hvis du fik en mappe dybt inde i en andens, vises den her for sig selv med hele stien som hint - du ser ikke mapperne over den.',
             'p6' => 'Dobbeltklik på en fil for at åbne den i fremviseren (se Vis filer). Højreklik på den for Download, Egenskaber og resten.',
             'p7' => 'Højreklik på en fil eller mappe og vælg **Opret genvej** for at lægge en genvej til den **i denne mappe** (ved siden af, for alle der kan åbne mappen) eller **på skrivebordet** (kun på dit eget skrivebord). En genvej åbner det, den peger på, men giver ingen adgang: den, der ikke kan se målet, ser heller aldrig genvejen. Sletning af en genvej lader originalen være. For at linke til en Videnartikel skal du højreklikke på tomt område i en mappe (eller på skrivebordet) og vælge **Genvej til artikel...**; et dobbeltklik på den viser artiklen i et forhåndsvisningsvindue med **Åbn i Viden** for at gå til selve artiklen, og kun personer, der kan læse artiklen, ser genvejen.',

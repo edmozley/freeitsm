@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (nb).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php nb
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -47,7 +37,6 @@ return [
         'del_file_q' => 'Slette «{name}»?',
         'del_folder_q' => 'Slette mappen «{name}» og alt i den?',
         'del_many_q' => 'Slette disse {n} elementene?',
-        'del_note' => 'Slettingen registreres i revisjonssporet. Det finnes ingen papirkurv å gjenopprette fra ennå.',
         'delete' => 'Slett',
         'download' => 'Last ned',
         'empty_folder' => 'Denne mappen er tom.',
@@ -314,7 +303,6 @@ return [
             'p1' => 'Vinduet Dokumenter viser mappene dine til venstre og den åpne mappen til høyre. Bytt mellom **Ikoner** og **Detaljer** med knappene til høyre i verktøylinjen; i Detaljer kan du klikke på en kolonneoverskrift for å sortere etter den.',
             'p2' => 'Skriv i filterfeltet (øverst til høyre, eller Ctrl+F) for å snevre inn den åpne mappen til navn som inneholder det du skrev. * og ? fungerer som jokertegn over hele navnet, så `*.pdf` viser bare PDF-er.',
             'p3' => 'Høyreklikk på hva som helst for å se hva du kan gjøre med det. Klikk for å markere, Ctrl+klikk for å legge til i markeringen, Shift+klikk for et område, eller dra en boks rundt flere.',
-            'p4' => 'Klipp ut, Kopier og Lim inn fungerer som i Windows (Ctrl+X, Ctrl+C, Ctrl+V), og det gjør også dra og slipp: dra filer, mapper og snarveier til en mappe (i et hvilket som helst vindu, mappetreet eller adressefeltet) for å flytte dem, og hold nede Ctrl for å kopiere. Dra en fil eller mappe til skrivebordet for å legge en snarvei til den der - ingenting lagres på selve skrivebordet - og dra en skrivebordssnarvei inn i en mappe for å flytte den dit. F2 gir nytt navn, Delete sletter. Slettede elementer beholdes i stedet for å ødelegges - en papirkurv for å gjenopprette dem kommer i en senere versjon.',
             'p5' => '«Dokumenter» øverst viser hver mappe som er delt med deg. Hvis du fikk en mappe dypt inne i en annens, vises den her alene med full sti som hint - du ser ikke mappene over den.',
             'p6' => 'Dobbeltklikk på en fil for å åpne den i visningen (se Vise filer). Høyreklikk på den for Last ned, Egenskaper og resten.',
             'p7' => 'Høyreklikk på en fil eller mappe og velg **Opprett snarvei** for å legge en snarvei til den **i denne mappen** (ved siden av, for alle som kan åpne mappen) eller **på skrivebordet** (bare på ditt eget skrivebord). En snarvei åpner det den peker på, men gir ingen tilgang: den som ikke kan se målet, ser heller aldri snarveien. Å slette en snarvei lar originalen være i fred. For å lenke til en Kunnskap-artikkel høyreklikker du på tomt område i en mappe (eller på skrivebordet) og velger **Snarvei til artikkel...**; dobbeltklikk viser artikkelen i et forhåndsvisningsvindu, med **Åpne i Kunnskap** for å gå til selve artikkelen, og bare personer som kan lese artikkelen ser snarveien.',

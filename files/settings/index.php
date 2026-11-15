@@ -2,13 +2,16 @@
 /**
  * Files → Settings.
  *
- * Three tabs, three capabilities (files/settings/manifest.php). Only the tabs this
+ * Five tabs, five capabilities (files/settings/manifest.php). Only the tabs this
  * analyst may use are rendered at all; api/files/settings.php checks the same
  * capability again for every read and write.
  *
  *   Folders  every folder that exists - including ones the viewer cannot open -
  *            with Take ownership, the way back into an orphaned folder.
  *   Storage  where the bytes live on the server, and the largest upload.
+ *   Versions what is offered when a file of the same name is uploaded, and how
+ *            many versions of each file are kept.
+ *   Sharing  how a file in Files is attached to a record: a link, a copy, or either.
  *   Recycle bin  how long deleted files and folders are kept before they are
  *            deleted for good (the files_recycle_purge job).
  *

@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (es).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php es
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -52,7 +42,6 @@ return [
         'del_file_q' => '¿Eliminar "{name}"?',
         'del_folder_q' => '¿Eliminar la carpeta "{name}" y todo lo que contiene?',
         'del_many_q' => '¿Eliminar estos {n} elementos?',
-        'del_note' => 'La eliminación queda registrada en el registro de auditoría. Todavía no hay papelera de reciclaje desde la que restaurar.',
         'delete' => 'Eliminar',
         'download' => 'Descargar',
         'empty_folder' => 'Esta carpeta está vacía.',
@@ -409,7 +398,6 @@ return [
             'p1' => 'La ventana Documentos muestra sus carpetas a la izquierda y la carpeta abierta a la derecha. Cambie entre **Iconos** y **Detalles** con los botones a la derecha de la barra de herramientas; en Detalles, haga clic en el encabezado de una columna para ordenar por ella.',
             'p2' => 'Escriba en el cuadro de filtro (arriba a la derecha, o Ctrl+F) para reducir la carpeta abierta a los nombres que contengan lo escrito. * y ? funcionan como comodines sobre todo el nombre, así que `*.pdf` muestra solo los PDF.',
             'p3' => 'Haga clic con el botón derecho en cualquier elemento para ver lo que puede hacer con él. Haga clic para seleccionar, Ctrl+clic para añadir a la selección, Mayús+clic para un intervalo, o arrastre un recuadro alrededor de varios.',
-            'p4' => 'Cortar, Copiar y Pegar funcionan como en Windows (Ctrl+X, Ctrl+C, Ctrl+V), y también el arrastre: arrastre archivos, carpetas y accesos directos sobre una carpeta (en cualquier ventana, el árbol de carpetas o la barra de direcciones) para moverlos, y mantenga Ctrl para copiar. Arrastre un archivo o carpeta al escritorio para poner allí un acceso directo - en el escritorio no se almacena nada - y arrastre un acceso directo del escritorio a una carpeta para moverlo allí. F2 renombra, Supr elimina. Los elementos eliminados se conservan en lugar de destruirse - una papelera de reciclaje para restaurarlos llegará en una versión posterior.',
             'p5' => '"Documentos", en la parte superior, muestra todas las carpetas que se han compartido con usted. Si le dieron una carpeta situada dentro de la de otra persona, aparece aquí por sí sola con su ruta completa como pista - no ve las carpetas que la contienen.',
             'p6' => 'Haga doble clic en un archivo para abrirlo en el visor (vea Ver archivos). Haga clic con el botón derecho para Descargar, Propiedades y el resto.',
             'p7' => 'Haga clic con el botón derecho en un archivo o carpeta y elija **Crear acceso directo** para poner un acceso directo **en esta carpeta** (a su lado, para todos los que puedan abrir la carpeta) o **en el escritorio** (solo en su propio escritorio). Un acceso directo abre aquello a lo que apunta, pero no da acceso a nadie: quien no pueda ver el destino tampoco ve el acceso directo. Eliminar un acceso directo no afecta al original. Para enlazar a un artículo de Conocimiento, haga clic con el botón derecho en un espacio vacío de una carpeta (o del escritorio) y elija **Acceso directo a artículo...**; al hacer doble clic en él se muestra el artículo en una ventana de vista previa, con **Abrir en Conocimiento** para ir al propio artículo, y solo las personas que pueden leer ese artículo ven el acceso directo.',

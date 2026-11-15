@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (de).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php de
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -52,7 +42,6 @@ return [
         'del_file_q' => '„{name}“ löschen?',
         'del_folder_q' => 'Den Ordner „{name}“ und alles darin löschen?',
         'del_many_q' => 'Diese {n} Elemente löschen?',
-        'del_note' => 'Das Löschen wird im Audit-Trail festgehalten. Einen Papierkorb zum Wiederherstellen gibt es noch nicht.',
         'delete' => 'Löschen',
         'download' => 'Herunterladen',
         'empty_folder' => 'Dieser Ordner ist leer.',
@@ -409,7 +398,6 @@ return [
             'p1' => 'Das Fenster Dokumente zeigt links Ihre Ordner und rechts den geöffneten Ordner. Wechseln Sie mit den Schaltflächen rechts in der Symbolleiste zwischen **Symbole** und **Details**; in Details sortieren Sie durch Klick auf eine Spaltenüberschrift.',
             'p2' => 'Geben Sie im Filterfeld (oben rechts oder Strg+F) etwas ein, um den geöffneten Ordner auf Namen einzugrenzen, die den eingegebenen Text enthalten. * und ? funktionieren als Platzhalter über den ganzen Namen, `*.pdf` zeigt also nur PDFs.',
             'p3' => 'Klicken Sie mit der rechten Maustaste auf etwas, um zu sehen, was Sie damit tun können. Klicken zum Auswählen, Strg+Klick zum Erweitern der Auswahl, Umschalt+Klick für einen Bereich, oder ziehen Sie einen Rahmen um mehrere Elemente.',
-            'p4' => 'Ausschneiden, Kopieren und Einfügen funktionieren wie in Windows (Strg+X, Strg+C, Strg+V), ebenso das Ziehen: Ziehen Sie Dateien, Ordner und Verknüpfungen auf einen Ordner (in jedem Fenster, im Ordnerbaum oder in der Adressleiste), um sie zu verschieben, und halten Sie Strg gedrückt, um zu kopieren. Ziehen Sie eine Datei oder einen Ordner auf den Desktop, um dort eine Verknüpfung dazu anzulegen - auf dem Desktop selbst wird nichts gespeichert - und ziehen Sie eine Desktop-Verknüpfung in einen Ordner, um sie dorthin zu verschieben. F2 benennt um, Entf löscht. Gelöschte Elemente werden aufbewahrt statt vernichtet - ein Papierkorb zum Wiederherstellen folgt in einer späteren Version.',
             'p5' => '„Dokumente“ ganz oben zeigt jeden Ordner, der mit Ihnen geteilt wurde. Wenn Sie einen Ordner tief in einem fremden Ordner erhalten haben, erscheint er hier von selbst mit seinem vollständigen Pfad als Hinweis - die Ordner darüber sehen Sie nicht.',
             'p6' => 'Doppelklicken Sie auf eine Datei, um sie im Viewer zu öffnen (siehe Dateien ansehen). Mit der rechten Maustaste erreichen Sie Herunterladen, Eigenschaften und mehr.',
             'p7' => 'Klicken Sie mit der rechten Maustaste auf eine Datei oder einen Ordner und wählen Sie **Verknüpfung erstellen**, um eine Verknüpfung **in diesem Ordner** (daneben, für alle, die den Ordner öffnen können) oder **auf dem Desktop** (nur auf Ihrem eigenen Desktop) anzulegen. Eine Verknüpfung öffnet, worauf sie zeigt, gewährt aber niemandem Zugriff: Wer das Ziel nicht sehen kann, sieht auch die Verknüpfung nie. Das Löschen einer Verknüpfung lässt das Original unberührt. Um auf einen Wissensartikel zu verweisen, klicken Sie mit der rechten Maustaste auf freie Fläche in einem Ordner (oder auf dem Desktop) und wählen **Verknüpfung zu Artikel...**; ein Doppelklick darauf zeigt den Artikel in einem Vorschaufenster, mit **In Wissen öffnen**, um zum Artikel selbst zu gelangen, und nur Personen, die den Artikel lesen dürfen, sehen die Verknüpfung.',

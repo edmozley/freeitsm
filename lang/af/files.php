@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (af).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php af
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -47,7 +37,6 @@ return [
         'del_file_q' => 'Skrap "{name}"?',
         'del_folder_q' => 'Skrap die vouer "{name}" en alles daarin?',
         'del_many_q' => 'Skrap hierdie {n} items?',
-        'del_note' => 'Die skrapping word in die ouditspoor aangeteken. Daar is nog nie \'n herwinningsmandjie om vanaf te herstel nie.',
         'delete' => 'Skrap',
         'download' => 'Laai af',
         'empty_folder' => 'Hierdie vouer is leeg.',
@@ -314,7 +303,6 @@ return [
             'p1' => 'Die Documents-venster wys jou vouers links en die oop vouer regs. Wissel tussen **Ikone** en **Besonderhede** met die knoppies regs van die nutsbalk; klik in Details op \'n kolomopskrif om daarvolgens te sorteer.',
             'p2' => 'Tik in die filterblokkie (regs bo, of Ctrl+F) om die oop vouer te beperk tot name wat bevat wat jy getik het. * en ? werk as jokertekens oor die hele naam, so `*.pdf` wys net PDF\'s.',
             'p3' => 'Regsklik op enigiets vir wat jy daarmee kan doen. Klik om te kies, Ctrl+klik om by die keuse te voeg, Shift+klik vir \'n reeks, of sleep \'n blokkie om verskeie.',
-            'p4' => 'Knip, Kopieer en Plak werk soos in Windows (Ctrl+X, Ctrl+C, Ctrl+V), en so ook sleep: sleep lêers, vouers en kortpaaie na \'n vouer (in enige venster, die vouerboom of die adresbalk) om hulle te skuif, en hou Ctrl om te kopieer. Sleep \'n lêer of vouer na die werkskerm om \'n kortpad daarna daar te plaas - niks word op die werkskerm self gestoor nie - en sleep \'n werkskermkortpad na \'n vouer om dit daarheen te skuif. F2 hernoem, Delete skrap. Geskrapte items word behou eerder as vernietig - \'n herwinningsmandjie om hulle te herstel kom in \'n latere weergawe.',
             'p5' => '"Dokumente" heel bo wys elke vouer wat met jou gedeel is. As jy \'n vouer diep binne iemand anders s\'n gekry het, verskyn dit hier op sy eie met sy volle pad as wenk - jy sien nie die vouers daarbo nie.',
             'p6' => 'Dubbelklik op \'n lêer om dit in die kyker oop te maak (sien Lêers bekyk). Regsklik daarop vir Laai af, Eienskappe en die res.',
             'p7' => 'Regsklik op \'n lêer of vouer en kies **Skep kortpad** om \'n kortpad daarna **In hierdie vouer** (langsaan, vir almal wat die vouer kan oopmaak) of **Op werkskerm** (net op jou eie werkskerm) te plaas. \'n Kortpad maak oop waarna dit wys, maar gee niemand toegang nie: iemand wat nie die teiken kan sien nie, sien ook nooit die kortpad nie. As jy \'n kortpad skrap, bly die oorspronklike ongeskonde. Om na \'n Kennis-artikel te skakel, regsklik op leë spasie in \'n vouer (of op die werkskerm) en kies **Kortpad na artikel...**; dubbelklik daarop wys die artikel in \'n voorskouvenster, met **Maak oop in Kennis** om na die artikel self te gaan, en net mense wat daardie artikel kan lees, sien die kortpad.',

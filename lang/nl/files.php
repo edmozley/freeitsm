@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (nl).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php nl
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -47,7 +37,6 @@ return [
         'del_file_q' => '"{name}" verwijderen?',
         'del_folder_q' => 'De map "{name}" en alles daarin verwijderen?',
         'del_many_q' => 'Deze {n} items verwijderen?',
-        'del_note' => 'Het verwijderen wordt vastgelegd in de audittrail. Er is nog geen prullenbak om uit te herstellen.',
         'delete' => 'Verwijderen',
         'download' => 'Downloaden',
         'empty_folder' => 'Deze map is leeg.',
@@ -314,7 +303,6 @@ return [
             'p1' => 'Het venster Documenten toont links je mappen en rechts de geopende map. Schakel tussen **Pictogrammen** en **Details** met de knoppen rechts op de werkbalk; klik in Details op een kolomkop om daarop te sorteren.',
             'p2' => 'Typ in het filtervak (rechtsboven, of Ctrl+F) om de geopende map te beperken tot namen die bevatten wat je typt. * en ? werken als jokertekens over de hele naam, dus `*.pdf` toont alleen pdf\'s.',
             'p3' => 'Klik met de rechtermuisknop op iets om te zien wat je ermee kunt doen. Klik om te selecteren, Ctrl+klik om aan de selectie toe te voegen, Shift+klik voor een reeks, of sleep een kader rond meerdere items.',
-            'p4' => 'Knippen, Kopiëren en Plakken werken zoals in Windows (Ctrl+X, Ctrl+C, Ctrl+V), en slepen ook: sleep bestanden, mappen en snelkoppelingen naar een map (in een willekeurig venster, de mappenstructuur of de adresbalk) om ze te verplaatsen, en houd Ctrl ingedrukt om te kopiëren. Sleep een bestand of map naar het bureaublad om daar een snelkoppeling naartoe te maken - op het bureaublad zelf wordt niets opgeslagen - en sleep een snelkoppeling van het bureaublad naar een map om die daarheen te verplaatsen. F2 hernoemt, Delete verwijdert. Verwijderde items worden bewaard in plaats van vernietigd - een prullenbak om ze te herstellen komt in een latere release.',
             'p5' => '"Documenten" bovenaan toont elke map die met je is gedeeld. Als je een map diep in die van iemand anders hebt gekregen, verschijnt die hier zelfstandig met het volledige pad als hint - de mappen erboven zie je niet.',
             'p6' => 'Dubbelklik op een bestand om het in de viewer te openen (zie Bestanden bekijken). Klik met de rechtermuisknop voor Downloaden, Eigenschappen en de rest.',
             'p7' => 'Klik met de rechtermuisknop op een bestand of map en kies **Snelkoppeling maken** om een snelkoppeling ernaartoe te plaatsen **In deze map** (ernaast, voor iedereen die de map kan openen) of **Op bureaublad** (alleen op je eigen bureaublad). Een snelkoppeling opent waar hij naar verwijst, maar geeft niemand toegang: wie het doel niet kan zien, ziet ook de snelkoppeling niet. Een snelkoppeling verwijderen laat het origineel ongemoeid. Om te linken naar een artikel in Kennis klik je met de rechtermuisknop op lege ruimte in een map (of op het bureaublad) en kies je **Snelkoppeling naar artikel...**; dubbelklikken toont het artikel in een voorbeeldvenster, met **Openen in Kennis** om naar het artikel zelf te gaan, en alleen mensen die dat artikel mogen lezen zien de snelkoppeling.',

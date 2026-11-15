@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (id).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php id
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -52,7 +42,6 @@ return [
         'del_file_q' => 'Hapus "{name}"?',
         'del_folder_q' => 'Hapus folder "{name}" beserta seluruh isinya?',
         'del_many_q' => 'Hapus {n} item ini?',
-        'del_note' => 'Penghapusan dicatat di jejak audit. Belum ada tempat sampah untuk memulihkannya.',
         'delete' => 'Hapus',
         'download' => 'Unduh',
         'empty_folder' => 'Folder ini kosong.',
@@ -409,7 +398,6 @@ return [
             'p1' => 'Jendela Dokumen menampilkan folder Anda di sebelah kiri dan folder yang terbuka di sebelah kanan. Beralihlah antara **Ikon** dan **Detail** dengan tombol di sisi kanan bilah alat; di Detail, klik judul kolom untuk mengurutkan berdasarkan kolom itu.',
             'p2' => 'Ketik di kotak filter (kanan atas, atau Ctrl+F) untuk mempersempit folder yang terbuka menjadi nama yang mengandung teks yang Anda ketik. * dan ? berfungsi sebagai wildcard untuk seluruh nama, jadi `*.pdf` hanya menampilkan PDF.',
             'p3' => 'Klik kanan apa pun untuk melihat apa yang bisa Anda lakukan dengannya. Klik untuk memilih, Ctrl+klik untuk menambah pilihan, Shift+klik untuk rentang, atau seret kotak di sekitar beberapa item.',
-            'p4' => 'Potong, Salin, dan Tempel berfungsi seperti di Windows (Ctrl+X, Ctrl+C, Ctrl+V), begitu pula menyeret: seret berkas, folder, dan pintasan ke sebuah folder (di jendela mana pun, di pohon folder, atau di bilah alamat) untuk memindahkannya, dan tahan Ctrl untuk menyalin. Seret berkas atau folder ke desktop untuk menaruh pintasan ke sana di desktop - tidak ada yang disimpan di desktop itu sendiri - dan seret pintasan desktop ke folder untuk memindahkannya ke sana. F2 untuk mengganti nama, Delete untuk menghapus. Item yang dihapus disimpan, bukan dimusnahkan - tempat sampah untuk memulihkannya akan hadir di rilis mendatang.',
             'p5' => '"Dokumen" di bagian atas menampilkan setiap folder yang telah dibagikan kepada Anda. Jika Anda diberi folder yang berada jauh di dalam folder orang lain, folder itu muncul di sini dengan sendirinya beserta jalur lengkapnya sebagai petunjuk - folder di atasnya tidak terlihat oleh Anda.',
             'p6' => 'Klik dua kali sebuah berkas untuk membukanya di penampil (lihat Melihat berkas). Klik kanan untuk Unduh, Properti, dan lainnya.',
             'p7' => 'Klik kanan berkas atau folder dan pilih **Buat pintasan** untuk menaruh pintasan ke sana **Di folder ini** (di sebelahnya, untuk semua orang yang bisa membuka folder) atau **Di desktop** (hanya di desktop Anda sendiri). Pintasan membuka apa yang ditunjuknya, tetapi tidak memberi akses kepada siapa pun: orang yang tidak bisa melihat tujuannya juga tidak pernah melihat pintasannya. Menghapus pintasan tidak memengaruhi aslinya. Untuk menaut ke artikel Pengetahuan, klik kanan ruang kosong di sebuah folder (atau di desktop) dan pilih **Pintasan ke artikel...**; mengklik dua kali pintasan itu menampilkan artikel di jendela pratinjau, dengan **Buka di Pengetahuan** untuk menuju artikelnya langsung, dan hanya orang yang bisa membaca artikel itu yang melihat pintasannya.',

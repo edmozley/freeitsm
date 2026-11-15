@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (fr).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php fr
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -52,7 +42,6 @@ return [
         'del_file_q' => 'Supprimer « {name} » ?',
         'del_folder_q' => 'Supprimer le dossier « {name} » et tout son contenu ?',
         'del_many_q' => 'Supprimer ces {n} éléments ?',
-        'del_note' => 'La suppression est enregistrée dans la piste d\'audit. Il n\'existe pas encore de corbeille pour restaurer.',
         'delete' => 'Supprimer',
         'download' => 'Télécharger',
         'empty_folder' => 'Ce dossier est vide.',
@@ -409,7 +398,6 @@ return [
             'p1' => 'La fenêtre Documents affiche vos dossiers à gauche et le dossier ouvert à droite. Basculez entre **Icônes** et **Détails** avec les boutons à droite de la barre d\'outils ; dans Détails, cliquez sur un titre de colonne pour trier selon celle-ci.',
             'p2' => 'Saisissez dans la zone de filtre (en haut à droite, ou Ctrl+F) pour réduire le dossier ouvert aux noms contenant ce que vous avez saisi. * et ? fonctionnent comme jokers sur l\'ensemble du nom, donc `*.pdf` n\'affiche que les PDF.',
             'p3' => 'Faites un clic droit sur un élément pour voir ce que vous pouvez en faire. Cliquez pour sélectionner, Ctrl+clic pour ajouter à la sélection, Maj+clic pour une plage, ou tracez un cadre autour de plusieurs éléments.',
-            'p4' => 'Couper, Copier et Coller fonctionnent comme dans Windows (Ctrl+X, Ctrl+C, Ctrl+V), tout comme le glisser-déposer : faites glisser fichiers, dossiers et raccourcis sur un dossier (dans n\'importe quelle fenêtre, l\'arborescence ou la barre d\'adresse) pour les déplacer, et maintenez Ctrl pour copier. Faites glisser un fichier ou un dossier sur le bureau pour y placer un raccourci - rien n\'est stocké sur le bureau lui-même - et faites glisser un raccourci du bureau dans un dossier pour l\'y déplacer. F2 renomme, Suppr supprime. Les éléments supprimés sont conservés et non détruits - une corbeille pour les restaurer arrivera dans une prochaine version.',
             'p5' => '« Documents » en haut affiche tous les dossiers qui ont été partagés avec vous. Si on vous a donné un dossier situé profondément dans celui d\'une autre personne, il apparaît ici directement avec son chemin complet en indication - vous ne voyez pas les dossiers qui sont au-dessus.',
             'p6' => 'Double-cliquez sur un fichier pour l\'ouvrir dans la visionneuse (voir Afficher des fichiers). Faites un clic droit dessus pour Télécharger, Propriétés et le reste.',
             'p7' => 'Faites un clic droit sur un fichier ou un dossier et choisissez **Créer un raccourci** pour placer un raccourci vers cet élément **dans ce dossier** (à côté de lui, pour tous ceux qui peuvent ouvrir le dossier) ou **sur le bureau** (sur votre bureau uniquement). Un raccourci ouvre ce vers quoi il pointe, mais ne donne l\'accès à personne : quelqu\'un qui ne peut pas voir la cible ne voit pas non plus le raccourci. Supprimer un raccourci laisse l\'original intact. Pour créer un lien vers un article de Connaissances, faites un clic droit sur un espace vide d\'un dossier (ou du bureau) et choisissez **Raccourci vers un article...** ; un double-clic affiche l\'article dans une fenêtre d\'aperçu, avec **Ouvrir dans Connaissances** pour accéder à l\'article lui-même, et seules les personnes qui peuvent lire cet article voient le raccourci.',

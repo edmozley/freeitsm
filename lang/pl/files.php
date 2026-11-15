@@ -1,14 +1,4 @@
 <?php
-/**
- * FreeITSM — files strings (pl).
- *
- * Keys mirror lang/en/files.php exactly. A key absent here falls back to
- * English at runtime, so this file may be incomplete without breaking
- * anything. Check coverage with: php scripts/i18n_audit.php pl
- *
- * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
- * tokens substitute BY POSITION, so their order must match English.
- */
 
 return [
     'app' => [
@@ -52,7 +42,6 @@ return [
         'del_file_q' => 'Usunąć „{name}”?',
         'del_folder_q' => 'Usunąć folder „{name}” i wszystko, co w nim jest?',
         'del_many_q' => 'Usunąć te elementy ({n})?',
-        'del_note' => 'Usunięcie jest zapisywane w ścieżce audytu. Nie ma jeszcze kosza, z którego można by je przywrócić.',
         'delete' => 'Usuń',
         'download' => 'Pobierz',
         'empty_folder' => 'Ten folder jest pusty.',
@@ -409,7 +398,6 @@ return [
             'p1' => 'Okno Dokumenty pokazuje Twoje foldery po lewej, a otwarty folder po prawej. Przełączaj się między widokiem **Ikony** i **Szczegóły** przyciskami po prawej stronie paska narzędzi; w widoku Szczegóły kliknij nagłówek kolumny, aby posortować według niej.',
             'p2' => 'Wpisz tekst w polu filtra (u góry po prawej lub Ctrl+F), aby zawęzić otwarty folder do nazw zawierających wpisany tekst. * i ? działają jako symbole wieloznaczne w całej nazwie, więc `*.pdf` pokazuje tylko pliki PDF.',
             'p3' => 'Kliknij cokolwiek prawym przyciskiem myszy, aby zobaczyć dostępne działania. Kliknij, aby zaznaczyć, Ctrl+kliknięcie dodaje do zaznaczenia, Shift+kliknięcie zaznacza zakres, a przeciągnięcie ramki obejmuje kilka elementów.',
-            'p4' => 'Wytnij, Kopiuj i Wklej działają tak jak w Windows (Ctrl+X, Ctrl+C, Ctrl+V), podobnie jak przeciąganie: przeciągnij pliki, foldery i skróty na folder (w dowolnym oknie, drzewie folderów lub pasku adresu), aby je przenieść, a z klawiszem Ctrl - skopiować. Przeciągnij plik lub folder na pulpit, aby umieścić tam skrót do niego - sam pulpit niczego nie przechowuje - a skrót z pulpitu przeciągnij do folderu, aby go tam przenieść. F2 zmienia nazwę, Delete usuwa. Usunięte elementy są zachowywane, a nie niszczone - kosz do ich przywracania pojawi się w jednym z kolejnych wydań.',
             'p5' => '„Dokumenty” na samej górze pokazują każdy folder, który został Ci udostępniony. Jeśli dostałeś folder głęboko w cudzej strukturze, pojawia się tu samodzielnie, a jego pełna ścieżka jest podpowiedzią - folderów nad nim nie widzisz.',
             'p6' => 'Kliknij plik dwukrotnie, aby otworzyć go w przeglądarce (zobacz Przeglądanie plików). Kliknij go prawym przyciskiem myszy, aby znaleźć Pobierz, Właściwości i resztę poleceń.',
             'p7' => 'Kliknij plik lub folder prawym przyciskiem myszy i wybierz **Utwórz skrót**, aby umieścić skrót do niego **w tym folderze** (obok niego, dla każdego, kto może otworzyć folder) lub **na pulpicie** (tylko na Twoim pulpicie). Skrót otwiera to, na co wskazuje, ale nikomu nie daje dostępu: kto nie widzi celu, nie zobaczy też skrótu. Usunięcie skrótu nie rusza oryginału. Aby utworzyć link do artykułu z Bazy wiedzy, kliknij prawym przyciskiem puste miejsce w folderze (lub na pulpicie) i wybierz **Skrót do artykułu...**; dwukrotne kliknięcie pokazuje artykuł w oknie podglądu, z przyciskiem **Otwórz w Bazie wiedzy**, który prowadzi do samego artykułu, a skrót widzą tylko osoby, które mogą ten artykuł czytać.',
