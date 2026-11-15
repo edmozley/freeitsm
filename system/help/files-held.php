@@ -30,7 +30,7 @@ require __DIR__ . '/_top.php';
         <li><strong>Its deleter no longer has Modify on the folder itself</strong> - their access was changed after they deleted it.</li>
         <li><strong>Who deleted it was not recorded</strong>, and something inside it does not inherit its permissions - so it cannot be known who may have been kept out.</li>
     </ul>
-    <p>Today a folder <strong>cannot be deleted at all</strong> while it holds anything the person cannot change, so new folders should rarely land here: it is mostly for folders deleted before that rule, and for permissions changed later.</p>
+    <p>A folder <strong>cannot be deleted at all</strong> while it holds anything the person cannot change, so folders should rarely land here - usually because permissions were changed after the folder was deleted.</p>
     <p><strong>Past its date</strong> means the retention period would already have deleted it, but for this. The Maintenance card counts those.</p>
 </div>
 

@@ -44,10 +44,10 @@
  * HELD: the retention job only purges what the person who deleted it could have
  * deleted for good by hand (canPurge as them) - never a subfolder kept from them.
  * Such a folder stays in the bin, past its date, until someone resolves it:
- * System -> Maintenance -> "Deleted folders kept" lists them (heldEntries()). Since
- * a folder can no longer be deleted while it holds anything its deleter cannot
- * change (FilesAcl::refusalInside), this is for folders binned before that rule,
- * and for permissions changed after the delete.
+ * System -> Maintenance -> "Deleted folders kept" lists them (heldEntries()). A
+ * folder cannot be deleted while it holds anything its deleter cannot change
+ * (FilesAcl::refusalInside), so this is mostly for permissions changed after the
+ * delete, and for rows whose deleter was not recorded.
  *
  * DELETED ALONG WITH A FOLDER ABOVE IT: somebody who can see a subfolder of a
  * deleted folder, but not the deleted folder itself, would otherwise find their
