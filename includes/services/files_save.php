@@ -60,11 +60,13 @@ final class FilesSave
     }
 
     /**
-     * The file to copy, checked as downloading it is.
+     * The file to copy, checked as downloading it is. The bytes come through the stores
+     * layer (#284 - a store may be in S3): 'local' is a path a library can open, a
+     * temporary copy when the store is in S3 - hand it to storeReleaseLocal() when done.
      *
      * @param string $source  'email_attachment' or 'document'
-     * @return array{path:string, name:string, ticket_id:?int}
-     * @throws ServiceError not_found (the same for "no such" and "not yours")
+     * @return array{path:string, name:string, ticket_id:?int, local:array}
+     * @throws ServiceError not_found (the same for "no such" and "not yours"), unavailable
      */
     public static function source(PDO $conn, int $analystId, ?array $allowed, string $source, int $id): array
     {
@@ -74,11 +76,9 @@ final class FilesSave
             $st->execute([$id]);
             $a = $st->fetch(PDO::FETCH_ASSOC);
             if (!$a || !$a['ticket_id'] || !analystCanAccessTicket($conn, $analystId, (int)$a['ticket_id'])) throw $none;
-            // The same containment as get_attachment.php: the file must be INSIDE tickets/attachments.
-            $base = realpath(dirname(__DIR__, 2) . '/tickets/attachments');
-            $real = realpath(dirname(__DIR__, 2) . '/tickets/attachments/' . $a['file_path']);
-            if ($base === false || $real === false || strncmp($real, $base . DIRECTORY_SEPARATOR, strlen($base) + 1) !== 0) throw $none;
-            return ['path' => $real, 'name' => (string)$a['filename'], 'ticket_id' => (int)$a['ticket_id']];
+            // The same containment as get_attachment.php: a key inside the tickets store.
+            $local = self::storeCopy($conn, 'tickets', (string)$a['file_path'], $none);
+            return ['path' => $local['path'], 'local' => $local, 'name' => (string)$a['filename'], 'ticket_id' => (int)$a['ticket_id']];
         }
         if ($source === 'document') {
             if (!documentCanView($conn, $analystId, $allowed, $id)) throw $none;
@@ -86,14 +86,27 @@ final class FilesSave
             $st->execute([$id]);
             $d = $st->fetch(PDO::FETCH_ASSOC);
             if (!$d || $d['kind'] !== DOCUMENT_KIND_FILE) throw $none;   // a web link or a Files link has no bytes here
-            $path = documentStoragePath((string)$d['storage_key']);
-            if (!is_file($path)) throw $none;
             $t = $conn->prepare("SELECT parent_id FROM document_links WHERE document_id = ? AND parent_type = 'ticket' LIMIT 1");
             $t->execute([$id]);
             $tid = $t->fetchColumn();
-            return ['path' => $path, 'name' => (string)($d['original_name'] ?: $d['title']), 'ticket_id' => $tid ? (int)$tid : null];
+            $local = self::storeCopy($conn, 'documents', (string)$d['storage_key'], $none);
+            return ['path' => $local['path'], 'local' => $local, 'name' => (string)($d['original_name'] ?: $d['title']), 'ticket_id' => $tid ? (int)$tid : null];
         }
         throw $none;
+    }
+
+    /** A local path for a stored file (storeLocalPath), or $none / "storage unreachable". */
+    private static function storeCopy(PDO $conn, string $store, string $key, ServiceError $none): array
+    {
+        require_once __DIR__ . '/../storage/stores.php';
+        if (!storeKeyIsValid($key)) throw $none;
+        try {
+            return storeLocalPath($conn, $store, $key);
+        } catch (StorageNotFound $e) {
+            throw $none;
+        } catch (StorageUnavailable $e) {
+            throw new ServiceError('validation', 'unavailable', 'Storage cannot be reached just now, so the file cannot be copied. Try again in a moment.');
+        }
     }
 
     /**
@@ -128,10 +141,14 @@ final class FilesSave
     public static function save(PDO $conn, int $analystId, ?array $allowed, string $source, int $id, int $folderId, bool $intoTicketFolder, string $onConflict = 'ask'): array
     {
         if (!analystCanAccessModule($conn, $analystId, 'files')) throw new ServiceError('forbidden', 'forbidden', 'You do not have access to Files.');
-        $src = self::source($conn, $analystId, $allowed, $source, $id);
         if (FilesAcl::level($conn, $analystId, $folderId) < FilesAcl::UPLOAD) throw new ServiceError('forbidden', 'forbidden', 'You cannot save into that folder - it needs Upload.');
-        if ($intoTicketFolder && $src['ticket_id']) $folderId = self::ticketFolder($conn, $analystId, $folderId, $src['ticket_id']);
-        return filesStoreLocalFile($conn, $analystId, $folderId, $src['path'], $src['name'], $onConflict) + ['folder_id' => $folderId];
+        $src = self::source($conn, $analystId, $allowed, $source, $id);
+        try {
+            if ($intoTicketFolder && $src['ticket_id']) $folderId = self::ticketFolder($conn, $analystId, $folderId, $src['ticket_id']);
+            return filesStoreLocalFile($conn, $analystId, $folderId, $src['path'], $src['name'], $onConflict) + ['folder_id' => $folderId];
+        } finally {
+            storeReleaseLocal($src['local']);   // a temporary copy from S3
+        }
     }
 }
 
