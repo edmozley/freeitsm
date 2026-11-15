@@ -350,7 +350,7 @@
      */
     function sel(options, value, onChange, opts) {
         opts = opts || {};
-        const s = h('select', { class: 'rp-rsel' + (opts.cls ? ' ' + opts.cls : ''), 'aria-label': opts.label || '', title: opts.label || '', disabled: opts.disabled ? true : null, onchange: () => onChange(s.value) });
+        const s = h('select', { class: 'rp-rsel' + (opts.cls ? ' ' + opts.cls : ''), 'aria-label': opts.label || '', title: opts.label || '', disabled: opts.disabled ? true : null, 'data-searchable': opts.searchable ? '' : null, onchange: () => onChange(s.value) });
         options.forEach(o => { const op = h('option', { value: o.value, text: o.label }); if (String(o.value) === String(value)) op.selected = true; s.append(op); });
         if (opts.keepFocus) s.addEventListener('mousedown', () => { S.keepEdit = true; });
         return s;
@@ -575,7 +575,7 @@
             const opts = [{ value: 'active', label: T('designer.company_active') }, { value: 'all', label: T('designer.company_all') }]
                 .concat(S.companies.map(c => ({ value: c.id, label: c.name })));
             groups.push({ label: T('designer.grp.company'), items: [
-                sel(opts, cr.tenant, v => setCr(c => { c.tenant = (v === 'active' || v === 'all') ? v : +v; afterCriteria(); }), { label: T('designer.company') }),
+                sel(opts, cr.tenant, v => setCr(c => { c.tenant = (v === 'active' || v === 'all') ? v : +v; afterCriteria(); }), { label: T('designer.company'), searchable: true }),   // GH #358
             ] });
         }
         groups.push({ label: T('designer.grp.refresh'), items: [rb('refresh', T('designer.refresh'), () => { rt.refresh().then(scheduleRender); }, { big: true })] });

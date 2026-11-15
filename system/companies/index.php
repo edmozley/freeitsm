@@ -206,6 +206,19 @@ $translationNamespaces = ['common', 'system'];
             </table>
         </div>
 
+        <!-- Company lists (GH #358): when a company dropdown becomes a search box.
+             Only meaningful once there's more than one company. -->
+        <div class="settings-card" id="companyListsCard" style="display: none;">
+            <h2 id="company-lists" class="card-title"><?php echo htmlspecialchars(t('system.companies.lists_title')); ?></h2>
+            <p class="card-hint"><?php echo htmlspecialchars(t('system.companies.lists_hint')); ?></p>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <label for="listAfterInput"><?php echo htmlspecialchars(t('system.companies.lists_after')); ?></label>
+                <input type="number" id="listAfterInput" min="0" max="1000" step="1" style="width: 90px;">
+                <button type="button" class="btn btn-primary" id="listAfterSave"><?php echo htmlspecialchars(t('system.companies.lists_save')); ?></button>
+                <span id="listAfterMsg" class="card-hint" style="margin: 0;"></span>
+            </div>
+        </div>
+
         <!-- Public email domains (global). Only meaningful once there's more
              than one company (shared-intake routing), so hidden at N=1. -->
         <div class="settings-card" id="freemailCard" style="display: none;">
@@ -353,7 +366,27 @@ $translationNamespaces = ['common', 'system'];
         const multi = companies.length > 1;
         document.getElementById('freemailCard').style.display = multi ? '' : 'none';
         if (multi && !freemailLoaded) { freemailLoaded = true; loadFreemail(); }
+        document.getElementById('companyListsCard').style.display = multi ? '' : 'none';
+        if (multi) loadListAfter();
     }
+
+    // ---------- Company lists (GH #358) ----------
+    async function loadListAfter() {
+        try {
+            const d = await (await fetch(API + 'system/company_list_settings.php')).json();
+            if (d.success) document.getElementById('listAfterInput').value = d.after;
+        } catch (e) { /* the box stays empty; Save still works */ }
+    }
+    document.getElementById('listAfterSave').addEventListener('click', async function () {
+        const msg = document.getElementById('listAfterMsg');
+        try {
+            const d = await (await fetch(API + 'system/company_list_settings.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ after: document.getElementById('listAfterInput').value })
+            })).json();
+            msg.textContent = d.success ? window.t('system.companies.lists_saved') : (d.error || '');
+        } catch (e) { msg.textContent = e.message; }
+    });
 
     function renderDomainCell(domains) {
         if (!domains || !domains.length) {
@@ -781,6 +814,8 @@ $translationNamespaces = ['common', 'system'];
                 <td class="tick"><input type="checkbox" data-tick="quiet_warning" aria-label="${esc(window.t('system.companies.support_col_quiet') + ': ' + c.name)}" ${c.quiet_warning ? 'checked' : ''}></td>
                 <td class="tick"><input type="checkbox" data-tick="portal_raise" aria-label="${esc(window.t('system.companies.support_col_portal') + ': ' + c.name)}" ${c.portal_raise ? 'checked' : ''}></td>
             </tr>`).join('')}</tbody></table>`;
+        // GH #358: a search box once there are many companies.
+        if (window.FreeitsmSelectSearch) FreeitsmSelectSearch.filterList(list, 'tbody tr');
     }
     document.getElementById('supportList').addEventListener('change', async function (e) {
         const row = e.target.closest('tr[data-supported]');

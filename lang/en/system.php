@@ -3300,6 +3300,12 @@ return [
         'routing_failed'       => 'Couldn\'t load the routing summary.',
 
         // Public email domains (global, add-only)
+        // GH #358: when a company list becomes a search box.
+        'lists_title' => 'Company lists',
+        'lists_hint'  => 'With many companies, a plain list is hard to pick from. Once a company list has more entries than this, it becomes a box you type in to search, showing 10 at a time. 0 makes every company list a search box.',
+        'lists_after' => 'Search box after this many companies',
+        'lists_save'  => 'Save',
+        'lists_saved' => 'Saved. Pages opened from now on use it.',
         'freemail_title'          => 'Public email domains',
         'freemail_hint'           => 'Mail from public providers like Gmail and Outlook is never auto-routed to a company — two clients can share the same provider, so it lands in triage to be filed by hand. The common providers are always included; add any others your clients use so they\'re handled the same way.',
         'freemail_placeholder'    => 'example-isp.com',

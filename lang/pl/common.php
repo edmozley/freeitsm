@@ -879,4 +879,16 @@ return [
         'hour' => 'Godzina',
         'minute' => 'Minuta',
     ],
+    'tenant_switcher' => [
+        'title' => 'Przełącz firmę',
+        'head' => 'Firma',
+        'all' => 'Wszystkie firmy',
+        'triage' => 'Kolejka segregacji',
+        'failed' => 'Nie udało się przełączyć firmy',
+    ],
+    'select_search' => [
+        'search' => 'Wpisz, aby wyszukać',
+        'none' => 'Brak dopasowań.',
+        'more' => 'Wyświetlono {n} z {total} - wpisz, aby zawęzić.',
+    ],
 ];

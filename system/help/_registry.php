@@ -348,8 +348,10 @@ function getHelpTopics() {
                 ['id' => 'summary',  'label' => 'How email reaches a company'],
                 ['id' => 'references', 'label' => 'Outside reference, tax ID and ERP sync'],
                 ['id' => 'support',  'label' => 'One company supporting another'],
+                ['id' => 'lists',    'label' => 'Many companies: searching the lists'],   // GH #358
             ],
-            'terms' => 'tenant msp client customer multi-tenancy separate organisation domain logo files desktop'
+            'terms' => 'tenant msp client customer search box dropdown long list thousands switch company'
+                     . ' msp client customer multi-tenancy separate organisation domain logo files desktop'
                      . ' external reference erp crm sync upsert api tax id vat afm search'
                      . ' supports support provider outsourced raise with wrong company warning looks like dismiss',
         ],

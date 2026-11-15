@@ -865,4 +865,16 @@ return [
         'hour' => 'Stunde',
         'minute' => 'Minute',
     ],
+    'tenant_switcher' => [
+        'title' => 'Unternehmen wechseln',
+        'head' => 'Unternehmen',
+        'all' => 'Alle Unternehmen',
+        'triage' => 'Triage-Warteschlange',
+        'failed' => 'Unternehmen konnte nicht gewechselt werden',
+    ],
+    'select_search' => [
+        'search' => 'Zum Suchen tippen',
+        'none' => 'Keine Treffer.',
+        'more' => '{n} von {total} angezeigt - tippen Sie, um einzugrenzen.',
+    ],
 ];

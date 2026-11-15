@@ -192,6 +192,8 @@
                 elC.innerHTML = moveCompanies.map(co =>
                     opt('__company', co.id, co.name, currentTid !== null && String(co.id) === currentTid)
                 ).join('');
+                // GH #358: with many companies, a search box and the first 10.
+                if (window.FreeitsmSelectSearch) FreeitsmSelectSearch.filterList(elC, '.ctx-sub-item', { cap: 10 });
             }
         }
 

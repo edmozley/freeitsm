@@ -865,4 +865,16 @@ return [
         'hour' => 'Time',
         'minute' => 'Minut',
     ],
+    'tenant_switcher' => [
+        'title' => 'Skift virksomhed',
+        'head' => 'Virksomhed',
+        'all' => 'Alle virksomheder',
+        'triage' => 'Triagekø',
+        'failed' => 'Kunne ikke skifte virksomhed',
+    ],
+    'select_search' => [
+        'search' => 'Skriv for at søge',
+        'none' => 'Ingen resultater.',
+        'more' => 'Viser {n} af {total} - skriv for at begrænse.',
+    ],
 ];

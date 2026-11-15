@@ -924,4 +924,18 @@ return [
         'hour'       => 'Hour',
         'minute'     => 'Minute',
     ],
+    // The company switcher in the header (includes/tenancy-switcher.php) - it was English only.
+    'tenant_switcher' => [
+        'title'  => 'Switch company',
+        'head'   => 'Company',
+        'all'    => 'All companies',
+        'triage' => 'Triage queue',
+        'failed' => 'Could not switch company',
+    ],
+    // GH #358: a long company list becomes a search box (assets/js/select-search.js).
+    'select_search' => [
+        'search' => 'Type to search',
+        'none'   => 'No matches.',
+        'more'   => 'Showing {n} of {total} - type to narrow.',
+    ],
 ];

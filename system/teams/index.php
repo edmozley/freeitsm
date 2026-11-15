@@ -541,6 +541,8 @@ $translationNamespaces = ['common', 'tickets'];
                     <input type="checkbox" class="team-company-cb" value="${c.id}" ${grantedSet.has(Number(c.id)) ? 'checked' : ''}>
                     ${escapeHtml(c.name)}
                 </label>`).join('');
+            // GH #358: a search box once there are many companies.
+            if (window.FreeitsmSelectSearch) FreeitsmSelectSearch.filterList(document.getElementById('teamCompanyList'), 'label');
             syncTeamCompanies();
             document.getElementById('teamCompaniesModal').classList.add('active');
         }

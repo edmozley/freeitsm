@@ -865,4 +865,16 @@ return [
         'hour' => 'Jam',
         'minute' => 'Menit',
     ],
+    'tenant_switcher' => [
+        'title' => 'Ganti perusahaan',
+        'head' => 'Perusahaan',
+        'all' => 'Semua perusahaan',
+        'triage' => 'Antrean triase',
+        'failed' => 'Tidak dapat mengganti perusahaan',
+    ],
+    'select_search' => [
+        'search' => 'Ketik untuk mencari',
+        'none' => 'Tidak ada yang cocok.',
+        'more' => 'Menampilkan {n} dari {total} - ketik untuk mempersempit.',
+    ],
 ];

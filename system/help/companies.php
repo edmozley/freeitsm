@@ -152,4 +152,20 @@ require __DIR__ . '/_top.php';
     <div class="help-note"><strong>Dismiss is remembered.</strong> Pressing <strong>Dismiss</strong> on a wrong-company warning hides it on that ticket for good - unless it would later suggest a different company. To stop the warning for every ticket from a company you support, use <strong>Don't warn</strong> instead.</div>
     <div class="help-note warn"><strong>Why not let a person belong to two companies?</strong> Almost everything on the portal follows a person's company - which Knowledge articles they read, the catalogue, the mailboxes, who their manager can see. A person in two companies would need a second answer to every one of those, and different organisations would want different answers. A link between companies keeps all of that exactly as it is, and only changes where a ticket goes.</div>
 </div>
+<!-- GH #358: many companies -->
+<div class="help-section" id="lists">
+    <div class="help-section-header"><?php echo helpSectionNum('lists'); ?>
+        <div>
+            <h3>Many companies: searching the lists</h3>
+            <p>With dozens - or thousands - of companies, a plain list is hard to pick from. Once a company list is longer than the number under <strong>Company lists</strong> on this page (15 unless you change it), it becomes a box you <strong>type in to search</strong>, showing 10 at a time.</p>
+        </div>
+    </div>
+    <ul>
+        <li><strong>Every company list</strong> - moving a ticket, task, change or asset, a new ticket or asset, a contract, project, knowledge article, mailbox, person and the rest - becomes a search box past that number. Type part of a name; accents do not matter.</li>
+        <li><strong>The company switcher</strong> at the top of every page gets a search box too, and no longer lists every company.</li>
+        <li><strong>Right-click Move to company</strong> on tickets, tasks and changes shows a search box and the first 10.</li>
+        <li><strong>Lists of company tickboxes</strong> - an analyst's or a team's companies, an API key's companies, ticket type rules and the companies one supports - get a search box that narrows the list; every tick stays as it was.</li>
+        <li><strong>0</strong> makes every company list a search box. On an install with one company nothing changes at all.</li>
+    </ul>
+</div>
 <?php require __DIR__ . '/_bottom.php'; ?>

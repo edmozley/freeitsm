@@ -138,6 +138,10 @@
                 + '<small>' + esc(T('help_' + k)) + '</small></fieldset>';
         });
         document.getElementById('ttrCriteria').innerHTML = html;
+        // GH #358: the companies list gets a search box once there are many.
+        document.querySelectorAll('#ttrCriteria .ttr-checks').forEach(function (box) {
+            if (box.querySelector('input[data-crit="companies"]')) if (window.FreeitsmSelectSearch) FreeitsmSelectSearch.filterList(box, 'label');
+        });
         document.getElementById('ttrModal').classList.add('active');
         document.getElementById('ttrName').focus();
     }

@@ -865,4 +865,16 @@ return [
         'hour' => 'Hora',
         'minute' => 'Minuto',
     ],
+    'tenant_switcher' => [
+        'title' => 'Cambiar de empresa',
+        'head' => 'Empresa',
+        'all' => 'Todas las empresas',
+        'triage' => 'Cola de triaje',
+        'failed' => 'No se pudo cambiar de empresa',
+    ],
+    'select_search' => [
+        'search' => 'Escriba para buscar',
+        'none' => 'Sin coincidencias.',
+        'more' => 'Mostrando {n} de {total} - escriba para acotar.',
+    ],
 ];

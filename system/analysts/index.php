@@ -961,6 +961,8 @@ $translationNamespaces = ['common', 'tickets'];
                     <input type="checkbox" class="analyst-company-cb" value="${c.id}" ${granted.has(Number(c.id)) ? 'checked' : ''}>
                     ${escapeHtml(c.name)}
                 </label>`).join('');
+            // GH #358: a search box once there are many companies.
+            if (window.FreeitsmSelectSearch) FreeitsmSelectSearch.filterList(document.getElementById('analystCompanyList'), 'label');
         }
 
         // ── Follow team (GH #41) ──────────────────────────────────────────────

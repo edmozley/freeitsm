@@ -2993,6 +2993,8 @@ function populateContextChangeCompanySubmenu() {
             <span class="ctx-status-swatch" style="background:#ede7f6; border:none;"></span><span class="ctx-status-name">${escapeHtml(co.name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
         </div>`;
     }).join('');
+    // GH #358: with many companies, a search box and the first 10 (assets/js/select-search.js).
+    if (window.FreeitsmSelectSearch) FreeitsmSelectSearch.filterList(sub, '.ticket-context-submenu-item', { cap: 10 });
 }
 
 // Field setters. All post to save.php with {id, <field>: <name>}; the change

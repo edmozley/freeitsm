@@ -865,4 +865,16 @@ return [
         'hour' => 'Heure',
         'minute' => 'Minute',
     ],
+    'tenant_switcher' => [
+        'title' => 'Changer d\'entreprise',
+        'head' => 'Entreprise',
+        'all' => 'Toutes les entreprises',
+        'triage' => 'File de tri',
+        'failed' => 'Impossible de changer d\'entreprise',
+    ],
+    'select_search' => [
+        'search' => 'Saisissez pour rechercher',
+        'none' => 'Aucun résultat.',
+        'more' => '{n} sur {total} affichés - saisissez pour affiner.',
+    ],
 ];

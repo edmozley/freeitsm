@@ -2607,7 +2607,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
 
                 <div class="form-group" id="itemScopeGroup" style="display: none;">
                     <label for="itemScope"><?php echo htmlspecialchars(t('tickets.settings.priorities.scope_label')); ?></label>
-                    <select id="itemScope"></select>
+                    <select id="itemScope" data-searchable></select>
                 </div>
 
                 <div class="form-group" id="itemColourGroup" style="display: none;">
@@ -10252,7 +10252,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
     </script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/ticket-type-rules.js?v=1"></script>
+    <script src="../../assets/js/ticket-type-rules.js?v=2"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

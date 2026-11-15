@@ -554,6 +554,8 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
             const checked = specific && companyIds.includes(c.id) ? 'checked' : '';
             return `<label><input type="checkbox" value="${c.id}" ${checked}> ${esc(c.name)}</label>`;
         }).join('');
+        // GH #358: a search box once there are many companies.
+        if (window.FreeitsmSelectSearch) FreeitsmSelectSearch.filterList(checks, 'label');
     }
 
     function openModal(key) {

@@ -3480,7 +3480,7 @@ $translationNamespaces = ['common', 'asset-management'];
             return `
                 <div class="info-item">
                     <span class="info-label">${window.t('asset-management.field.company')}</span>
-                    <select class="info-value-select" data-previous="${current}" onchange="moveAssetToCompany(this)">
+                    <select class="info-value-select" data-searchable data-previous="${current}" onchange="moveAssetToCompany(this)">
                         ${assetCompanies.map(co => `<option value="${co.id}" ${co.id === current ? 'selected' : ''}>${escapeHtml(co.name)}</option>`).join('')}
                     </select>
                 </div>`;
