@@ -275,7 +275,6 @@ return [
         'confirm_delete' => 'Diese Verbindung löschen?',
         'confirm_delete_named' => 'Die Verbindung „{name}“ löschen? Bereits mit Vorgängen verknüpfte Tickets behalten ihre Verknüpfungen.',
         'slack_blurb' => 'Eine Nachricht in einem Slack-Kanal in ein Ticket verwandeln und sie aus dem Posteingang beantworten, ohne den Thread zu verlassen.',
-        'entra_blurb' => 'Personen, Gruppen und Vorgesetzte aus Microsoft Entra ID importieren, bevor sich jemand anmeldet. Einrichtung unter Authentifizierung.',
         'zabbix_blurb' => 'Überwachungsprobleme eröffnen selbstständig Vorfälle, Wiederholungen werden ihnen hinzugefügt und Wiederherstellungen lösen sie.',
         'zabbix_intro' => 'Wenn Zabbix ein Problem findet – eine volllaufende Festplatte, einen Server, der nicht antwortet –, legt es hier einen Vorfall an, verknüpft mit diesem Server in der CMDB. Meldet es dasselbe Problem erneut, kommt das auf dasselbe Ticket. Wenn das Problem behoben ist, wird das Ticket gelöst.',
         'zabbix_direction' => 'Zabbix ruft FreeITSM auf – FreeITSM verbindet sich nie mit Zabbix und braucht daher weder die Adresse von Zabbix noch ein Zabbix-Passwort. Alles, was Zabbix braucht, steht unten.',

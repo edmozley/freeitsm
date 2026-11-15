@@ -29,5 +29,11 @@
 
     # `/?$` so /jira and /jira/ both work with no DirectorySlash 301 bouncing
     # between them.
+    # ⚠️ The two conditions again: a RewriteCond applies to the ONE rule after it,
+    # so the pair above guarded only the help rule, and this one took real folders
+    # too - microsoft365/ (GH #263) went to provider.php, which sent it back to
+    # ./, which is the folder: a redirect loop.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^([a-z0-9-]+)/?$ provider.php?provider=$1 [QSA,L]
 </IfModule>

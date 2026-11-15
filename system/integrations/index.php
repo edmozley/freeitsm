@@ -96,8 +96,8 @@ foreach ($providers as $pk => $pmeta) {
     catch (Exception $e) { $counts[$pk] = 0; }
 }
 
-// Importing from Entra lives under Authentication, with the sign-in it extends.
-// The card is only a signpost, because this is where people look for it.
+// Microsoft 365 (GH #263): what FreeITSM reads from a Microsoft tenant - importing
+// from Entra ID and Intune - in one entry, microsoft365/. Set up when either is.
 $entraImporting = false;
 try {
     $entraImporting = (bool)$conn->query(
@@ -106,6 +106,18 @@ try {
 } catch (Exception $e) {
     // Not verified yet: reads as not configured.
 }
+// Intune counts only while Assets is switched on - it brings devices in as assets.
+$intuneSet = false;
+if (moduleIsEnabled($conn, 'assets')) try {
+    $intuneSet = (int)$conn->query(
+        "SELECT COUNT(*) FROM system_settings
+          WHERE setting_key IN ('intune_tenant_id', 'intune_client_id', 'intune_client_secret')
+            AND setting_value IS NOT NULL AND TRIM(setting_value) <> ''"
+    )->fetchColumn() === 3;
+} catch (Exception $e) {
+    // Reads as not configured.
+}
+$ms365Set = $entraImporting || $intuneSet;
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -200,17 +212,17 @@ try {
                     </span>
                 </a>
             <?php endforeach; ?>
-            <a class="provider-card" href="../sso/">
+            <a class="provider-card" href="microsoft365/">
                 <svg class="provider-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="1.7"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                 </svg>
-                <h3>Microsoft Entra ID</h3>
-                <p><?php echo htmlspecialchars(t('system.integrations.entra_blurb')); ?></p>
-                <span class="provider-count <?php echo $entraImporting ? '' : 'is-none'; ?>">
-                    <?php echo htmlspecialchars(t($entraImporting ? 'system.integrations.configured' : 'system.integrations.not_configured')); ?>
+                <h3>Microsoft 365</h3>
+                <p><?php echo htmlspecialchars(t('system.integrations.ms365_blurb')); ?></p>
+                <span class="provider-count <?php echo $ms365Set ? '' : 'is-none'; ?>">
+                    <?php echo htmlspecialchars(t($ms365Set ? 'system.integrations.configured' : 'system.integrations.not_configured')); ?>
                 </span>
             </a>
         </div>

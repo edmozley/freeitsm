@@ -275,7 +275,6 @@ return [
         'confirm_delete' => 'Usunąć to połączenie?',
         'confirm_delete_named' => 'Usunąć połączenie „{name}”? Zgłoszenia już powiązane ze sprawami w nim zachowają swoje powiązania.',
         'slack_blurb' => 'Zamień wiadomość na kanale Slack w zgłoszenie i odpowiadaj na nią ze skrzynki odbiorczej, bez opuszczania wątku.',
-        'entra_blurb' => 'Importuj osoby, grupy i informacje o tym, kto komu podlega, z Microsoft Entra ID, zanim ktokolwiek się zaloguje. Konfiguracja w sekcji Uwierzytelnianie.',
         'zabbix_blurb' => 'Problemy wykryte przez monitorowanie same otwierają incydenty, powtórzenia są do nich dodawane, a powroty do normy je rozwiązują.',
         'zabbix_intro' => 'Gdy Zabbix wykryje problem - zapełniający się dysk, serwer, który nie odpowiada - tworzy tutaj incydent powiązany z tym serwerem w CMDB. Jeśli zgłosi ten sam problem ponownie, trafi on do tego samego zgłoszenia. Gdy problem ustąpi, zgłoszenie zostaje rozwiązane.',
         'zabbix_direction' => 'Zabbix wywołuje FreeITSM - FreeITSM nigdy nie łączy się z Zabbix, więc nie potrzebuje adresu Zabbix ani hasła do Zabbix. Wszystko, czego potrzebuje Zabbix, znajduje się poniżej.',

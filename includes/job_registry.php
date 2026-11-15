@@ -216,7 +216,7 @@ function jobRegistry(): array
             'sources' => fn(PDO $c) => jobSourceKeys($c, 'server:', "SELECT id FROM proxmox_connections WHERE is_active = 1"),
         ],
         // Intune (#342): the device sync and the software sync ran only from the
-        // buttons on Assets -> Settings -> Intune. Two jobs, so each has its own
+        // buttons on the Intune page (now System -> Integrations -> Microsoft 365 -> Intune). Two jobs, so each has its own
         // schedule: devices are cheap, software is one Graph call per device.
         'intune_sync' => [
             'command' => 'php cron/intune_sync.php', 'web' => false,

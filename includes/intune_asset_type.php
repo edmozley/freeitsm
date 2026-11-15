@@ -8,7 +8,7 @@
  * report on. Intune does know: Graph sends `chassisType` with every managed device.
  *
  * Asset types are each install's own ("Laptop" here, "Notebook" there), so
- * nothing is hard-coded: Assets -> Settings -> Intune maps each kind of device
+ * nothing is hard-coded: System -> Integrations -> Microsoft 365 -> Intune -> Import maps each kind of device
  * (IntuneDeviceKind) to one of the install's types, in intune_type_map. Nothing
  * is mapped until somebody maps it.
  *

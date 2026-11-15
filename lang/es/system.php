@@ -275,7 +275,6 @@ return [
         'confirm_delete' => '¿Eliminar esta conexión?',
         'confirm_delete_named' => '¿Eliminar la conexión «{name}»? Los tickets ya vinculados a incidencias en ella conservan sus vínculos.',
         'slack_blurb' => 'Convierta un mensaje de un canal de Slack en un ticket, y respóndalo desde la bandeja de entrada sin salir del hilo.',
-        'entra_blurb' => 'Importe personas, grupos y responsables desde Microsoft Entra ID antes de que nadie inicie sesión. Se configura en Autenticación.',
         'zabbix_blurb' => 'Los problemas de supervisión abren incidencias por sí solos, las repeticiones se añaden a ellas y las recuperaciones las resuelven.',
         'zabbix_intro' => 'Cuando Zabbix detecta un problema (un disco que se llena, un servidor que no responde), crea aquí una incidencia vinculada a ese servidor en la CMDB. Si vuelve a notificar el mismo problema, se añade al mismo ticket. Cuando el problema desaparece, el ticket se resuelve.',
         'zabbix_direction' => 'Zabbix llama a FreeITSM; FreeITSM nunca se conecta a Zabbix, así que no necesita la dirección de Zabbix ni una contraseña de Zabbix. Todo lo que Zabbix necesita está a continuación.',

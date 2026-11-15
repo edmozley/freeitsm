@@ -4,7 +4,7 @@
  *
  *   php cron/intune_app_sync.php
  *
- * The same sync as Sync software on Assets -> Settings -> Intune: the apps
+ * The same sync as Sync software on System -> Integrations -> Microsoft 365 -> Intune -> Import: the apps
  * installed on each Intune device, into the software inventory. The button runs
  * ONE batch (the batch size on that tab) and expects somebody to keep pressing
  * it; this runs batch after batch until every eligible device has been read once

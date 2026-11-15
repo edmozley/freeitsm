@@ -159,6 +159,10 @@ return [
             'id'           => 'intune',
             'cap'          => capKey(Cap::ASSETS_INTUNE),
             'label_key'    => 'asset-management.settings.tab_intune',
+            // GH #263: set up under System -> Integrations -> Microsoft 365 now. The
+            // tab stays declared here - its capability (System -> Roles) and the
+            // setting keys it may write - and the tab bar links to the new page.
+            'moved_to'     => 'system/integrations/microsoft365/intune.php',
             'grant'        => 'Configure the Intune connection and run syncs, including its credentials',
             'sensitive'    => true,
             'setting_keys' => ['intune_tenant_id', 'intune_client_id', 'intune_client_secret', 'intune_verify_ssl', 'intune_app_batch_size', 'intune_company_id', 'intune_sync_hostnames', 'intune_assign_primary_user', 'intune_follow_primary_user', 'intune_type_map'],

@@ -4,7 +4,7 @@
  *
  *   php cron/intune_sync.php
  *
- * The same sync as Sync on Assets -> Settings -> Intune (intuneRunSync()): every
+ * The same sync as Sync on System -> Integrations -> Microsoft 365 -> Intune -> Import (intuneRunSync()): every
  * managed device, linked to its asset, its type, its primary user, the changes
  * of primary user it follows and the history it keeps. It ran only when somebody
  * pressed that button; the built-in scheduler (cron/run.php) now starts it on its

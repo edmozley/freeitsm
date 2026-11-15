@@ -15,6 +15,8 @@
  */
 require_once __DIR__ . '/../../includes/functions.php';
 
+require_once __DIR__ . '/page_access.php';   // systemPageAllowed()
+
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ' . BASE_URL . 'auth/login.php');
     exit;
@@ -23,8 +25,7 @@ if (!isset($_SESSION['analyst_id'])) {
 // Preferences is every analyst's own page; the rest of System is admin-only.
 // Asked of the database, not the session flag (3.5.0): an admin demoted or
 // deactivated since signing in is turned away here too, not only by the APIs.
-if (($current_page ?? '') !== 'preferences'
-    && !analystIsAdmin(connectToDatabase(), (int)$_SESSION['analyst_id'])) {
+if (!systemPageAllowed(connectToDatabase(), (int)$_SESSION['analyst_id'], $current_page ?? '', $system_page_grant ?? null)) {
     header('Location: ' . BASE_URL);
     exit;
 }

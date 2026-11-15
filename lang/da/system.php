@@ -275,7 +275,6 @@ return [
         'confirm_delete' => 'Slet denne forbindelse?',
         'confirm_delete_named' => 'Slet forbindelsen “{name}”? Sager, der allerede er knyttet til issues på den, beholder deres links.',
         'slack_blurb' => 'Gør en besked i en Slack-kanal til en sag, og besvar den fra indbakken uden at forlade tråden.',
-        'entra_blurb' => 'Importér personer, grupper og hvem der leder hvem fra Microsoft Entra ID, før nogen logger ind. Sættes op under Godkendelse.',
         'zabbix_blurb' => 'Overvågningsproblemer opretter selv hændelser, gentagelser føjes til dem, og genoprettelser løser dem.',
         'zabbix_intro' => 'Når Zabbix finder et problem - en disk, der fyldes op, en server, der ikke svarer - opretter den en hændelse her, knyttet til den server i CMDB\'en. Hvis den melder det samme problem igen, kommer det på samme sag. Når problemet forsvinder, løses sagen.',
         'zabbix_direction' => 'Zabbix kalder FreeITSM - FreeITSM forbinder aldrig til Zabbix, så den behøver hverken Zabbix\' adresse eller en Zabbix-adgangskode. Alt, hvad Zabbix har brug for, står nedenfor.',

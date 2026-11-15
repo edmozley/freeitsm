@@ -87,9 +87,13 @@ $urls = array_merge(['system/'], array_map(fn($a) => 'system/' . $a['url'], getS
 // removed in finally, and the first tracker in the integrations registry.
 $made = [];
 $sub = [];
-foreach (array_merge(glob($root . '/system/*/*.php') ?: []) as $abs) {
+// Two levels down as well (GH #263: system/integrations/microsoft365/). A folder's own
+// includes/ are parts, not pages - the Debug tools' shared tool-page.php among them, whose
+// d0NN/index.php pages do not include the header themselves and so are not picked up.
+foreach (array_merge(glob($root . '/system/*/*.php') ?: [], glob($root . '/system/*/*/*.php') ?: []) as $abs) {
     $rel = str_replace(DIRECTORY_SEPARATOR, '/', substr($abs, strlen($root) + 1));
-    if (str_starts_with($rel, 'system/includes/') || str_starts_with($rel, 'system/help/') || str_ends_with($rel, '/help.php')) continue;
+    if (str_starts_with($rel, 'system/includes/') || str_starts_with($rel, 'system/help/') || str_ends_with($rel, '/help.php')
+        || str_contains($rel, '/includes/')) continue;
     if (!preg_match('#include[^;]*includes/header\.php#', (string)file_get_contents($abs))) continue;
     $u = str_ends_with($rel, '/index.php') ? substr($rel, 0, -9) : $rel;
     if (!in_array($u, $urls, true)) $sub[] = $u;

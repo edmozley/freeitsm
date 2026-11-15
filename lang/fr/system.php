@@ -275,7 +275,6 @@ return [
         'confirm_delete' => 'Supprimer cette connexion ?',
         'confirm_delete_named' => 'Supprimer la connexion « {name} » ? Les tickets déjà liés à des tickets externes sur celle-ci conservent leurs liens.',
         'slack_blurb' => 'Transformer un message d\'un canal Slack en ticket, et y répondre depuis la boîte de réception sans quitter le fil de discussion.',
-        'entra_blurb' => 'Importez les personnes, les groupes et qui gère qui depuis Microsoft Entra ID, avant même que quiconque se connecte. À configurer sous Authentification.',
         'zabbix_blurb' => 'Les problèmes de surveillance ouvrent des incidents d\'eux-mêmes, les répétitions s\'y ajoutent et les retours à la normale les résolvent.',
         'zabbix_intro' => 'Lorsque Zabbix détecte un problème - un disque qui se remplit, un serveur qui ne répond plus - il crée ici un incident, lié à ce serveur dans la CMDB. S\'il signale à nouveau le même problème, cela va sur le même ticket. Lorsque le problème disparaît, le ticket est résolu.',
         'zabbix_direction' => 'Zabbix appelle FreeITSM - FreeITSM ne se connecte jamais à Zabbix, il n\'a donc besoin ni de l\'adresse de Zabbix ni d\'un mot de passe Zabbix. Tout ce dont Zabbix a besoin se trouve ci-dessous.',

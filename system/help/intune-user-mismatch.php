@@ -39,7 +39,7 @@ require __DIR__ . '/_top.php';
             <h3>Settling them</h3>
         </div>
     </div>
-    <p>Hand the asset to the right person on the asset itself, as any handover. Or, in <strong>Assets &rarr; Settings &rarr; Intune</strong>, switch on <strong>Follow changes of primary user</strong>: the next sync moves each asset Intune itself gave to somebody on to its device's new primary user, recorded in the custody trail.</p>
+    <p>Hand the asset to the right person on the asset itself, as any handover. Or, in <strong>System &rarr; Integrations &rarr; Microsoft 365 &rarr; Intune</strong>, switch on <strong>Follow changes of primary user</strong>: the next sync moves each asset Intune itself gave to somebody on to its device's new primary user, recorded in the custody trail.</p>
     <div class="help-note"><strong>A holder chosen by a person is never moved by Intune.</strong> Those stay on this list until a person decides.</div>
 </div>
 

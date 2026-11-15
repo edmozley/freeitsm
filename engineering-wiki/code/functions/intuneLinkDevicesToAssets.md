@@ -8,7 +8,7 @@ Link intune_devices to assets, then create stub assets for any device still unli
 Multi-tenancy: Intune is a single MSP-level connection that can hold machines
 from several client companies, so there is no per-key company to derive here
 (unlike the agent ingest paths). The workflow this supports: a stub lands in
-one company - the Default company unless Assets -> Settings -> Intune names
+one company - the Default company unless System -> Integrations -> Microsoft 365 -> Intune -> Import names
 another - and an analyst MOVES it to the client it belongs to. A link made by
 an earlier sync is therefore never second-guessed because its asset is now in
 a different company: a person put it there. Doing otherwise cleared the link

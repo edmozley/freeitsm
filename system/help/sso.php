@@ -625,7 +625,7 @@ require __DIR__ . '/_top.php';
 
     <div class="help-note ok"><strong>Group names in the sign-in mappings.</strong> Entra sends groups at sign-in as object IDs, so the mapping dropdowns under <a href="#sso-groups">Groups from the identity provider</a> used to show strings like <code>4f1c2a…</code>. Every imported group now appears there by name. A label you typed yourself is never overwritten.</div>
     <h4>Laptops from Intune</h4>
-    <p>Every person imported from Entra carries their Entra object ID, and so does every device Intune reports. Switch on <strong>Assign assets to their primary user in Intune</strong> under <strong>Assets &rarr; Settings &rarr; Intune</strong> and each asset nobody holds is given to its device's primary user at the next Intune sync &mdash; matched exactly by that ID, never by name. An asset that already has a holder is never changed.</p>
+    <p>Every person imported from Entra carries their Entra object ID, and so does every device Intune reports. Switch on <strong>Assign assets to their primary user in Intune</strong> under <strong>System &rarr; Integrations &rarr; Microsoft 365 &rarr; Intune</strong> and each asset nobody holds is given to its device's primary user at the next Intune sync &mdash; matched exactly by that ID, never by name. An asset that already has a holder is never changed.</p>
 </div>
 
 <!-- 4p. Entra safety and scheduling -->

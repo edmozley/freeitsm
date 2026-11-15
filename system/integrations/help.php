@@ -50,7 +50,10 @@ $assetBase   = BASE_URL;
 $providerUrl = BASE_URL . 'system/integrations/';
 
 $providerKey = strtolower(trim((string)($_GET['provider'] ?? '')));
-$meta        = integrationsProviderMeta($providerKey);
+// Microsoft 365 (GH #263) is a page of its own, not a registry provider; its guide is
+// help_microsoft365.php. Administrators only, like every other guide here.
+$isMs365     = ($providerKey === 'microsoft365');
+$meta        = $isMs365 ? ['name' => 'Microsoft 365'] : integrationsProviderMeta($providerKey);
 if (!$meta) {
     header('Location: ' . $providerUrl);
     exit;
@@ -81,7 +84,14 @@ $tokenNoun = $isDevOps ? 'personal access token' : 'API token';
 $getToken  = 'Get ' . ($isDevOps ? 'a' : 'an') . ' ' . $tokenNoun;   // "Get an API token", not "Get a API token"
 
 /** The left-nav sections, in order. Single source for nav + scroll-spy. */
-$sections = $isMsteams ? [
+$sections = $isMs365 ? [
+    ['id' => 'overview',   'title' => 'What this does'],
+    ['id' => 'entra',      'title' => 'Entra ID'],
+    ['id' => 'connection', 'title' => 'Intune: the connection'],
+    ['id' => 'import',     'title' => 'Intune: what it imports'],
+    ['id' => 'access',     'title' => 'Who can open it'],
+    ['id' => 'trouble',    'title' => 'If something is wrong'],
+] : ($isMsteams ? [
     ['id' => 'overview', 'title' => 'What this does'],
     ['id' => 'address',  'title' => 'Get the channel\'s address'],
     ['id' => 'channel',  'title' => 'Add the channel here'],
@@ -122,7 +132,7 @@ $sections = $isMsteams ? [
     ['id' => 'mapping',  'title' => 'Mapping'],
     ['id' => 'raise',    'title' => 'Raise an issue'],
     ['id' => 'trouble',  'title' => 'If something is wrong'],
-])));
+]))));
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -165,7 +175,10 @@ $sections = $isMsteams ? [
             <div class="help-hero">
                 <h2>Setting up <?php echo htmlspecialchars($name); ?></h2>
                 <p>
-                    <?php if ($isSlack): ?>
+                    <?php if ($isMs365): ?>
+                        See in one place what FreeITSM reads from your Microsoft tenant: people from
+                        Entra ID, and devices with their users and apps from Intune.
+                    <?php elseif ($isSlack): ?>
                         Let people ask for help in Slack and have it become a ticket, answered from the
                         FreeITSM inbox without either of you leaving the thread.
                     <?php else: ?>
@@ -181,7 +194,7 @@ $sections = $isMsteams ? [
 
             <div class="help-content">
 
-                <?php if ($isMsteams): include __DIR__ . '/help_msteams.php'; elseif ($isThreecx): include __DIR__ . '/help_threecx.php'; elseif ($isZabbix): include __DIR__ . '/help_zabbix.php'; elseif ($isSlack): include __DIR__ . '/help_slack.php'; else: ?>
+                <?php if ($isMs365): include __DIR__ . '/help_microsoft365.php'; elseif ($isMsteams): include __DIR__ . '/help_msteams.php'; elseif ($isThreecx): include __DIR__ . '/help_threecx.php'; elseif ($isZabbix): include __DIR__ . '/help_zabbix.php'; elseif ($isSlack): include __DIR__ . '/help_slack.php'; else: ?>
 
                 <!-- 1 ───────────────────────────────────────────── -->
                 <div class="help-section" id="overview">

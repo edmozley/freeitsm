@@ -275,7 +275,6 @@ return [
         'confirm_delete' => 'Hapus koneksi ini?',
         'confirm_delete_named' => 'Hapus koneksi “{name}”? Tiket yang sudah tertaut ke issue di dalamnya tetap mempertahankan tautannya.',
         'slack_blurb' => 'Ubah pesan di channel Slack menjadi tiket, dan jawab dari kotak masuk tanpa meninggalkan thread.',
-        'entra_blurb' => 'Impor orang, grup, dan siapa yang mengelola siapa dari Microsoft Entra ID, sebelum ada yang masuk. Diatur di bawah Autentikasi.',
         'zabbix_blurb' => 'Masalah pemantauan membuka insiden dengan sendirinya, pengulangan ditambahkan ke insiden itu, dan pemulihan menyelesaikannya.',
         'zabbix_intro' => 'Saat Zabbix menemukan masalah - disk yang hampir penuh, server yang tidak menjawab - Zabbix membuat insiden di sini, ditautkan ke server itu di CMDB. Jika masalah yang sama dilaporkan lagi, laporan itu masuk ke tiket yang sama. Saat masalah hilang, tiket diselesaikan.',
         'zabbix_direction' => 'Zabbix memanggil FreeITSM - FreeITSM tidak pernah terhubung ke Zabbix, jadi tidak memerlukan alamat Zabbix atau kata sandi Zabbix. Semua yang dibutuhkan Zabbix ada di bawah.',
