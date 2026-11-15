@@ -111,7 +111,7 @@ try {
     // on our origin. See includes/uploads.php.
     $code = storeServe($conn, 'tickets', $key, 0, max(0, $actual - 1), function () use ($attachment) {
         header('Cache-Control: private, max-age=86400');
-        attachmentSendHeaders((string)$attachment['filename'], (int)$attachment['file_size']);
+        attachmentSendHeaders((string)$attachment['filename'], (int)$actual);   // the size stored, not recorded (PR #318 review R1)
     });
     if ($code !== 0) {
         http_response_code($code === 503 ? 503 : 404);
