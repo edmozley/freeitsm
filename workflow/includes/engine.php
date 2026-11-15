@@ -3834,7 +3834,19 @@ class WorkflowEngine
             self::assertRecordInRunCompany($conn, 'form_submissions', $submissionId, 'form submission');
             if ($assignedAnalystId) self::assertAnalystReachesRunCompany($conn, $assignedAnalystId);
             $mailboxId = self::mailboxForNewTicket($conn, $mailboxId, $payload);
+            // TRAP: a second "Create a ticket" in the SAME run must raise a new ticket.
+            //   catalogueRaiseTicketFromSubmissionId() hands back the submission's
+            //   ticket once it has one - right across runs (a rule on .approved after
+            //   the approval raised it), wrong within one: the shipped "New starter
+            //   onboarding fan-out" raised IT and then got IT back for HR and
+            //   Facilities. An earlier step of this run raised it => a fresh one.
+            $raisedThisRun = [];
+            foreach ((array)($payload['steps'] ?? []) as $st) {
+                if (is_array($st) && !empty($st['ticket_id'])) $raisedThisRun[(int)$st['ticket_id']] = true;
+            }
+            $subTicket = (int)($conn->query("SELECT ticket_id FROM form_submissions WHERE id = " . (int)$submissionId)->fetchColumn() ?: 0);
             return catalogueRaiseTicketFromSubmissionId($conn, $submissionId, [
+                '_new_ticket'         => $subTicket > 0 && isset($raisedThisRun[$subTicket]),
                 // Blank means "not configured", so it must not reach the shared
                 // path as an override — that is what lets the submission supply
                 // the sensible default instead.

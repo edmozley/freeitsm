@@ -866,7 +866,10 @@ function catalogueRaiseTicketFromSubmissionId(PDO $conn, int $submissionId, arra
             'cancelled' => 'That request was cancelled by the requester, so no ticket was raised',
         });
     }
-    if (!empty($sub['ticket_id'])) {
+    // _new_ticket: a workflow that already raised this submission's ticket earlier in
+    // the same run wants ANOTHER (IT, then HR, then Facilities). The submission keeps
+    // pointing at the first; the UPDATE below only ever sets an empty ticket_id.
+    if (!empty($sub['ticket_id']) && empty($overrides['_new_ticket'])) {
         $tn = $conn->prepare("SELECT ticket_number FROM tickets WHERE id = ?");
         $tn->execute([(int)$sub['ticket_id']]);
         $num = $tn->fetchColumn();
