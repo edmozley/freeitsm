@@ -119,6 +119,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
                     <button type="button" class="fil-btn" id="stoSkip" hidden><?php echo $tt('skip_missing'); ?></button>
                     <button type="button" class="fil-btn" id="stoRemoveOld" hidden><?php echo $tt('remove_old'); ?></button>
                     <button type="button" class="fil-btn" id="stoFinishKeep" hidden><?php echo $tt('finish_keep'); ?></button>
+                    <span id="stoMoveMsg" style="font-size:13px"></span>
                 </div>
             </div>
             <div class="set-row"><div><div class="lbl"><?php echo $tt('storage_type'); ?></div><div class="desc"><?php echo $tt('storage_type_desc'); ?></div></div>

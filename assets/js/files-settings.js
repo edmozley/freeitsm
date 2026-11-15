@@ -288,25 +288,31 @@
             });
         });
 
+        /** A move button's error, in the tab's own message line (PR #318 review: no alert()). */
+        var moveFailed = function (e) {
+            var m = $('stoMoveMsg');
+            m.textContent = e.message;
+            m.style.color = '#c62828';
+        };
         $('stoRetry').addEventListener('click', function () {
-            api('settings.php', { tab: 'storage_migration', action: 'retry_failed' }).then(function () { return load(false); })
-                .catch(function (e) { alert(e.message); });
+            api('settings.php', { tab: 'storage_migration', action: 'retry_failed' }).then(function () { $('stoMoveMsg').textContent = ''; return load(false); })
+                .catch(moveFailed);
         });
         $('stoSkip').addEventListener('click', function () {
-            api('settings.php', { tab: 'storage_migration', action: 'skip_missing' }).then(function () { return load(false); })
-                .catch(function (e) { alert(e.message); });
+            api('settings.php', { tab: 'storage_migration', action: 'skip_missing' }).then(function () { $('stoMoveMsg').textContent = ''; return load(false); })
+                .catch(moveFailed);
         });
         $('stoFinishKeep').addEventListener('click', function () {
-            api('settings.php', { tab: 'storage_migration', action: 'finish_keep' }).then(function () { return load(false); })
-                .catch(function (e) { alert(e.message); });
+            api('settings.php', { tab: 'storage_migration', action: 'finish_keep' }).then(function () { $('stoMoveMsg').textContent = ''; return load(false); })
+                .catch(moveFailed);
         });
         $('stoRemoveOld').addEventListener('click', function () {
             var from = state && state.migration ? state.migration.from_label : '';
             confirmThen(L('settings.remove_old', 'Remove old copies'),
                 L('settings.remove_old_confirm', 'This permanently deletes the copies at {from}. Continue?', { from: from }),
                 L('settings.remove_old', 'Remove old copies'), function () {
-                    api('settings.php', { tab: 'storage_migration', action: 'remove_old' }).then(function () { return load(false); })
-                        .catch(function (e) { alert(e.message); });
+                    api('settings.php', { tab: 'storage_migration', action: 'remove_old' }).then(function () { $('stoMoveMsg').textContent = ''; return load(false); })
+                        .catch(moveFailed);
                 }, true);   // deletes for good: the red button
         });
 
