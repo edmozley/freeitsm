@@ -69,6 +69,7 @@
         const tp = P.targetPhrase(p);
         const facts = [];
         facts.push('<span class="prj-fact"><span class="prj-avatar light">' + esc(p.owner_name ? P.initials(p.owner_name) : '?') + '</span>' + esc(p.owner_name ? T('portfolio.led_by', { name: p.owner_name }) : T('portfolio.nobody')) + '</span>');
+        if (p.location_path) facts.push('<span class="prj-fact" title="' + esc(T('form.location')) + '">' + esc(p.location_path) + '</span>');   // GH #311
         if (p.start_date && p.target_end_date) facts.push('<span class="prj-fact">' + esc(T('view.dates', { start: P.fmtDate(p.start_date), end: P.fmtDate(p.target_end_date) })) + '</span>');
         else if (p.start_date) facts.push('<span class="prj-fact">' + esc(T('view.starts', { date: P.fmtDate(p.start_date) })) + '</span>');
         else if (p.target_end_date) facts.push('<span class="prj-fact">' + esc(T('view.ends', { date: P.fmtDate(p.target_end_date) })) + '</span>');

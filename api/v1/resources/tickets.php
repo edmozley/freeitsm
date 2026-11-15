@@ -35,6 +35,8 @@ require_once __DIR__ . '/ticket_related.php';   // GH #328: `related` - counts a
  * The SELECT for tickets, with status, priority, type, origin, department, analyst,
  * requester and company names.
  */
+require_once dirname(__DIR__, 3) . '/includes/record_locations.php';   // GH #311
+
 function apiTicketSelect(): string {
     return "SELECT t.*,
                    ts.name  AS status_name,  ts.is_closed AS status_is_closed,
@@ -75,6 +77,8 @@ function apiSerializeTicket(array $r): array {
         'ticket_type'   => $rel($r['ticket_type_id'], $r['type_name']),
         'origin'        => $rel($r['origin_id'], $r['origin_name']),
         'department'    => $rel($r['department_id'], $r['department_name']),
+        // GH #311: {id, name, path} or null. Write it as location_id.
+        'location'      => recordLocationRefFor(!empty($r['location_id']) ? (int)$r['location_id'] : null),
         'assigned_analyst' => $rel($r['assigned_analyst_id'], $r['analyst_name']),
         'requester'     => $r['user_id'] === null ? null : [
             'id'    => (int)$r['user_id'],

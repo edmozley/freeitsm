@@ -105,6 +105,7 @@ return [
         'contract_value' => 'Kontraktværdi',
         'payment_schedule' => 'Betalingsplan',
         'cost_centre' => 'Omkostningssted',
+        'location' => 'Placering',
         'dms_link' => 'DMS-link',
         'section_terms' => 'Vilkår & databeskyttelse',
         'terms' => 'Vilkår',

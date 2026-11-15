@@ -43,6 +43,8 @@ try {
               // by a person; see includes/ticket_sensitivity.php.
               'sensitivity',
               'workspace',
+              // GH #311: one of the ticket's company's locations, or a shared one.
+              'location_id',
               // ⚠️ NOT a ticket field (#142). A one-off note for the closure
               // email only: nothing stores it, and it is ignored unless this
               // request is the one that closes the ticket.

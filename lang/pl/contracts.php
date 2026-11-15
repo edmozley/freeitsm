@@ -105,6 +105,7 @@ return [
         'contract_value' => 'Wartość kontraktu',
         'payment_schedule' => 'Harmonogram płatności',
         'cost_centre' => 'Centrum kosztów',
+        'location' => 'Lokalizacja',
         'dms_link' => 'Link do DMS',
         'section_terms' => 'Warunki i ochrona danych',
         'terms' => 'Warunki',

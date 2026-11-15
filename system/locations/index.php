@@ -77,7 +77,7 @@ $lT = fn(string $k) => t('system.locations.' . $k);
     <script src="../../assets/js/toast.js"></script>
     <script src="../../assets/js/confirm.js?v=7"></script>
     <script src="../../assets/js/cmdb-ref-summary.js?v=1"></script>
-    <script src="../../assets/js/locations-tree.js?v=4"></script>
+    <script src="../../assets/js/locations-tree.js?v=5"></script>
     <script>
     (function () {
         var tree = LocationsTree.mount(document.getElementById('locations-tree'), { apiBase: '../../api/assets/' });

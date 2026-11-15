@@ -766,7 +766,7 @@ $projectId = (int)($_GET['id'] ?? 0);
 
     <?php include 'includes/project_form.php'; ?>
 
-    <script src="../assets/js/projects.js?v=11"></script>
+    <script src="../assets/js/projects.js?v=12"></script>
     <script src="../assets/js/projects-tools.js?v=14"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-accounts.js?v=1"></script>
@@ -783,7 +783,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=4"></script>
-    <script src="../assets/js/projects-view.js?v=33"></script>
+    <script src="../assets/js/projects-view.js?v=34"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

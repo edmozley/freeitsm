@@ -389,6 +389,9 @@ function projectDetail(PDO $conn, array $row): array
                        LEFT JOIN tenants tn ON tn.id = p.tenant_id WHERE p.id = ?");
     $st->execute([$id]);
     $row += $st->fetch(PDO::FETCH_ASSOC) ?: [];
+    // GH #311: the site it is about, as its full path.
+    require_once __DIR__ . '/../record_locations.php';
+    $row['location_path'] = recordLocationPath($conn, !empty($row['location_id']) ? (int)$row['location_id'] : null);
     $stats = projectTaskStats($conn, [$id]);
     $project = projectDecorate($row, $stats[$id] ?? [], projectHealthConfig($conn));
 

@@ -234,6 +234,8 @@ return [
         'sensitivity_help'    => 'Confidential tickets are kept from the requester\'s managers. The service desk sees them as usual.',
         'sensitivity_failed'  => 'Could not change the sensitivity',
         'field_origin'        => 'Origin',
+        'field_location'      => 'Location',
+        'location_failed'     => 'The location was not saved. {error}',
         'field_first_time_fix'=> 'First Time Fix',
         'field_it_training'   => 'IT Training',
         // #1566. Which queue owns the ticket, as distinct from who is doing it.
@@ -2457,6 +2459,9 @@ return [
             'ai_confidential_help'  => 'Covers every AI feature that reads a ticket: the summary, Read it, reply clean-up, Ask AI, merge summaries, knowledge write-ups, channel summaries, problem analysis and the war room bot. A confidential ticket is either not sent, or - where many tickets are read at once - left out or shown by number only.',
             'ai_read_help' => 'A button that reads the whole ticket and briefs you on it: what happened, what is unresolved, and what it would do next. Asked for and read once, stored nowhere.',
             'reopen_help'         => 'Applies wherever a requester comes back — the self-service portal, a reply to your notification email, WhatsApp or web chat. The ticket returns to your first open status. Only tickets in a status marked as closed are affected (set which those are under Statuses).',
+            'location_label'  => 'Location of a new ticket',
+            'location_toggle' => 'Take the requester\'s location',
+            'location_help'   => 'A new ticket starts with its requester\'s location (from their record), by every route - email, the portal, chat, the API. Analysts can change it on the ticket. Later moves of the requester do not change old tickets.',
         ],
 
         'privacy' => [
@@ -2825,6 +2830,9 @@ return [
             'cost_centre'                => 'Cost centre',
             'cost_centre_none'           => 'None',
             'cost_centre_inactive'       => 'inactive',
+            'location'                   => 'Location',
+            'location_none'              => 'None',
+            'location_help'              => 'Where this person sits, from System -> Locations. Separate from Office, which a directory may fill in. New tickets they raise can take it.',
             'company_auto'               => 'Work it out from their email address',
             'company_help'               => 'Which company this person belongs to. Tickets they raise in the self-service portal are filed here; without one they land in triage.',
             'password'                   => 'Password',

@@ -621,6 +621,7 @@ return [
         // land in triage, the same meaning NULL carries on `tickets`. Scoped-data
         // shape, not config: NULL is "not yet known", never "shared".
         'tenant_id'       => 'INT NULL',
+        'location_id'     => 'INT NULL',   // GH #311: System -> Locations - see includes/record_locations.php
         'cost_centre_id'  => 'INT NULL',   // GH #160: the cost centre it is charged to - see includes/cost_centre_assign.php
         'created_at'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
 
@@ -886,6 +887,7 @@ return [
     'tickets' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'tenant_id'             => 'INT NULL',
+        'location_id'     => 'INT NULL',   // GH #311: System -> Locations - see includes/record_locations.php
         'ticket_number'         => 'VARCHAR(50) NOT NULL',
         'subject'               => 'VARCHAR(500) NOT NULL',
         'status_id'             => 'INT NULL',
@@ -5202,6 +5204,7 @@ return [
         // NULL = the Default company, never "shared". Who it is WITH is the
         // separate party below. See includes/contract_party.php.
         'tenant_id'                 => 'INT NULL',
+        'location_id'     => 'INT NULL',   // GH #311: System -> Locations - see includes/record_locations.php
         'contract_number'           => 'VARCHAR(50) NOT NULL',
         'title'                     => 'VARCHAR(255) NOT NULL',
         'description'               => 'LONGTEXT NULL',
@@ -6522,6 +6525,7 @@ return [
     'projects' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
         'tenant_id'        => 'INT NULL',
+        'location_id'     => 'INT NULL',   // GH #311: System -> Locations - see includes/record_locations.php
         'name'             => 'VARCHAR(200) NOT NULL',
         'summary'          => 'TEXT NULL',
         'goal'             => 'VARCHAR(500) NULL',

@@ -27,6 +27,7 @@ require_once __DIR__ . '/../money.php';   // GH #189: currencies are checked aga
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 require_once __DIR__ . '/../contract_party.php';   // supplier or customer, and who may see a customer contract (#153)
 require_once __DIR__ . '/../cost_centre_assign.php';   // GH #160: the cost centre it is charged to
+require_once __DIR__ . '/../record_locations.php';     // GH #311: the site it covers
 require_once __DIR__ . '/../tenancy.php';   // GH #307: tenancyColumnExists() for suppliers.ticket_email
 
 class ContractsService
@@ -61,6 +62,7 @@ class ContractsService
                 self::assertNumberFree($conn, $f['contract_number'], $tenant, $id);
             }
             [$ccId, $f['cost_centre']] = self::costCentreFor($conn, $in, $current, $tenant);
+            [$locSet, $locId] = self::locationFor($conn, $in, $current, $tenant);
             $conn->prepare(
                 "UPDATE contracts SET contract_number=?, title=?, description=?, supplier_id=?, contract_owner_id=?,
                     contract_status_id=?, contract_start=?, contract_end=?, notice_period_days=?, notice_date=?,
@@ -71,6 +73,7 @@ class ContractsService
             self::writeParty($conn, $id, $party);
             self::writeTenant($conn, $id, $tenant);
             self::writeCostCentre($conn, $id, $ccId);
+            if ($locSet) self::writeLocation($conn, $id, $locId);
             WorkflowEngine::dispatch('contract.updated', ['contract' => ['id' => $id, 'title' => $f['title'] ?? null, 'status_id' => $f['contract_status_id'] ?? null, 'supplier_id' => $f['supplier_id'] ?? null] + self::partyPayload($party)]);
             return ['id' => $id, 'created' => false];
         }
@@ -83,6 +86,7 @@ class ContractsService
         $tenant = self::ownerTenant($conn, $ctx, $in, []);
         self::assertNumberFree($conn, $f['contract_number'], $tenant, null);
         [$ccId, $f['cost_centre']] = self::costCentreFor($conn, $in, [], $tenant);
+        [$locSet, $locId] = self::locationFor($conn, $in, [], $tenant);
         $conn->prepare(
             "INSERT INTO contracts (contract_number, title, description, supplier_id, contract_owner_id,
                 contract_status_id, contract_start, contract_end, notice_period_days, notice_date,
@@ -95,6 +99,7 @@ class ContractsService
         self::writeParty($conn, $newId, $party);
         self::writeTenant($conn, $newId, $tenant);
         self::writeCostCentre($conn, $newId, $ccId);
+        if ($locSet) self::writeLocation($conn, $newId, $locId);
         WorkflowEngine::dispatch('contract.created', ['contract' => ['id' => $newId, 'title' => $f['title'] ?? null, 'status_id' => $f['contract_status_id'] ?? null, 'supplier_id' => $f['supplier_id'] ?? null] + self::partyPayload($party)]);
         return ['id' => $newId, 'created' => true];
     }
@@ -415,6 +420,36 @@ class ContractsService
             }
         }
         return [$curId, $curText];
+    }
+
+    /**
+     * The contract's location (GH #311): [false, null] to leave it, else [true, id|null].
+     * One of the contract's company's locations or a shared one; moving the contract
+     * to another company drops one the new company cannot use.
+     *
+     * @param array $in  the request; location_id when it is being set
+     * @param array $current  the contract as stored ([] for a new one)
+     * @param int $tenant  the company the contract will be in
+     */
+    private static function locationFor(PDO $conn, array $in, array $current, int $tenant): array
+    {
+        if (!recordLocationReady($conn, 'contracts')) return [false, null];
+        if (array_key_exists('location_id', $in)) {
+            try {
+                return [true, recordLocationCheck($conn, $tenant, $in['location_id'])];
+            } catch (InvalidArgumentException $e) {
+                throw new ServiceError('validation', 'invalid_field', 'Unknown location.');
+            }
+        }
+        $cur = !empty($current['location_id']) ? (int)$current['location_id'] : null;
+        if ($cur && !recordLocationStillValid($conn, $tenant, $cur)) return [true, null];
+        return [false, null];
+    }
+
+    /** Sets a contract's location (GH #311). */
+    private static function writeLocation(PDO $conn, int $id, ?int $locId): void
+    {
+        $conn->prepare("UPDATE contracts SET location_id = ? WHERE id = ?")->execute([$locId, $id]);
     }
 
     /**

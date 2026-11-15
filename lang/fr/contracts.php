@@ -105,6 +105,7 @@ return [
         'contract_value' => 'Valeur du contrat',
         'payment_schedule' => 'Échéancier de paiement',
         'cost_centre' => 'Centre de coûts',
+        'location' => 'Emplacement',
         'dms_link' => 'Lien GED',
         'section_terms' => 'Conditions et protection des données',
         'terms' => 'Conditions',

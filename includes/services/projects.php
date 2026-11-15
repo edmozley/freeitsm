@@ -38,6 +38,8 @@ require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../projects/methodologies.php';
 require_once __DIR__ . '/../projects/settings.php';
 
+require_once __DIR__ . '/../record_locations.php';   // GH #311
+
 class ProjectsService
 {
     /** The fields a person (or an API key) may set, and how each is validated. */
@@ -65,6 +67,9 @@ class ProjectsService
             'estimated_benefit'=> ['type' => 'text',   'max' => 5000],
             // Members-only (3.3.0): includes/projects/visibility.php.
             'visibility'       => ['type' => 'enum',   'values' => ['everyone', 'members']],
+            // GH #311: the site it is about - checked against the project's company
+            // in createProject()/updateProject(), see projectLocation().
+            'location_id'      => ['type' => 'location'],
         ];
     }
 
@@ -137,8 +142,11 @@ class ProjectsService
             if (!array_key_exists($field, $in)) continue;
             if (str_starts_with($field, 'estimated_') && !projectIntakeReady($conn)) continue;   // before Verification
             if ($field === 'visibility' && !projectVisibilityReady($conn)) continue;
+            if ($field === 'location_id' && !recordLocationReady($conn, 'projects')) continue;
             $cols[] = $field;
-            $vals[] = self::validateField($conn, $field, $in[$field], $def);
+            $vals[] = $field === 'location_id'
+                ? self::projectLocation($conn, $store, $in[$field])
+                : self::validateField($conn, $field, $in[$field], $def);
         }
         self::assertDates($in['start_date'] ?? null, $in['target_end_date'] ?? null);
         $status = $in['status'] ?? 'proposed';
@@ -180,7 +188,9 @@ class ProjectsService
         foreach (self::fieldMap() as $field => $def) {
             if (!array_key_exists($field, $in)) continue;
             if (!array_key_exists($field, $cur)) continue;   // a column Database Verification has not added yet
-            $v = self::validateField($conn, $field, $in[$field], $def);
+            $v = $field === 'location_id'
+                ? self::projectLocation($conn, $cur['tenant_id'] !== null ? (int)$cur['tenant_id'] : null, $in[$field])
+                : self::validateField($conn, $field, $in[$field], $def);
             if (self::same($cur[$field], $v)) continue;
             $sets[] = "$field = ?"; $args[] = $v;
             $changes[$field] = [$cur[$field], $v];
@@ -716,6 +726,22 @@ class ProjectsService
      * @param mixed $v  the value as sent
      * @param array $def  that field's rule from fieldMap(): type, plus max, values or required
      */
+    /**
+     * A project's location (GH #311): one of its company's locations or a shared
+     * one, or null. Projects do not move company, so it is checked only here.
+     *
+     * @param ?int $tenantId  the project's company (null = the Default company)
+     * @param mixed $v  the location id as sent; blank for none
+     */
+    private static function projectLocation(PDO $conn, ?int $tenantId, $v): ?int
+    {
+        try {
+            return recordLocationCheck($conn, $tenantId, $v);
+        } catch (InvalidArgumentException $e) {
+            throw new ServiceError('validation', 'invalid_field', 'Unknown location.');
+        }
+    }
+
     private static function validateField(PDO $conn, string $field, $v, array $def)
     {
         $blank = $v === null || (is_string($v) && trim($v) === '');
@@ -1129,6 +1155,7 @@ class ProjectsService
     private static function auditDisplay(PDO $conn, string $field, $v): ?string
     {
         if ($v === null || $v === '') return null;
+        if ($field === 'location_id') return recordLocationPath($conn, (int)$v) ?? '#' . $v;   // GH #311
         if ($field === 'owner_analyst_id') {
             $st = $conn->prepare("SELECT full_name FROM analysts WHERE id = ?");
             $st->execute([(int)$v]);

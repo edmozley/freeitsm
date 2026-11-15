@@ -3421,6 +3421,16 @@ function displayEmail(email, recordings) {
                             ${originOptions}
                         </select>
                     </div>`,
+        // GH #311: where the ticket is about - the company's own locations or a
+        // shared one. Drawn with just the current one; loadTicketLocationOptions()
+        // fills the rest after the pane is drawn.
+        location: `<div class="toolbar-field">
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_location'))}</label>
+                        <select class="toolbar-select" id="locationSelect" onchange="assignLocation()">
+                            <option value=""></option>
+                            ${email.location_id ? `<option value="${Number(email.location_id)}" selected>${escapeHtml(email.location_path || '')}</option>` : ''}
+                        </select>
+                    </div>`,
         firstTimeFix: `<div class="toolbar-field">
                         <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_first_time_fix'))}</label>
                         <select class="toolbar-select" id="firstTimeFixSelect" onchange="assignFirstTimeFix()">
@@ -3447,7 +3457,7 @@ function displayEmail(email, recordings) {
     const propertyFieldsHtml = workspace
         ? TicketWorkspace.fieldGroup('classification', [propertyFields.department,propertyFields.type,propertyFields.classification,propertyFields.status,propertyFields.priority].join('')) +
           TicketWorkspace.fieldGroup('responsibility', [propertyFields.team,propertyFields.owner,propertyFields.company,propertyFields.sensitivity].join('')) +
-          TicketWorkspace.fieldGroup('other', [propertyFields.origin,propertyFields.firstTimeFix,propertyFields.training,propertyFields.custom].join(''))
+          TicketWorkspace.fieldGroup('other', [propertyFields.origin,propertyFields.location,propertyFields.firstTimeFix,propertyFields.training,propertyFields.custom].join(''))
         : Object.values(propertyFields).join('');
     const summaryHtml = `                <div class="ticket-properties-summary">
                     ${buildWorkspaceBadge(email)}
@@ -3619,6 +3629,7 @@ function displayEmail(email, recordings) {
     loadTimeEntries(email.ticket_id);
     loadSlaState(email.ticket_id);
     loadTicketCustomFields(email.ticket_id);
+    loadTicketLocationOptions(email);
 
     // Announce ourselves on this ticket, and start listening for anyone else
     // (#934). Moving between tickets stops the old announcement first, so a
@@ -5830,6 +5841,46 @@ async function assignOrigin() {
     } catch (error) {
         console.error('Error:', error);
         showToast('Failed to assign origin', 'error');
+    }
+}
+
+/**
+ * GH #311: fill the Location dropdown with the ticket's company's locations and
+ * the shared ones. The current one stays selectable even if the list no longer
+ * offers it (LocationPicker), so opening a ticket never changes it.
+ */
+function loadTicketLocationOptions(email) {
+    const select = document.getElementById('locationSelect');
+    if (!select || !window.LocationPicker) return;
+    LocationPicker.fill(select, email.tenant_id ? Number(email.tenant_id) : null, email.location_id, email.location_path, '../');
+}
+
+/** GH #311: save the ticket's location, then record it in the history as the other properties are. */
+async function assignLocation() {
+    const select = document.getElementById('locationSelect');
+    if (!select || !currentEmail) return;
+    const locationId = select.value;
+    const oldValue = currentEmail.location_path || null;
+    const newValue = locationId ? (select.options[select.selectedIndex]?.text || null) : null;
+    try {
+        const response = await fetch(API_BASE + 'assign_ticket.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: currentEmail.ticket_id, location_id: locationId || null })
+        });
+        const data = await response.json();
+        if (data.success) {
+            await logAudit(currentEmail.ticket_id, 'Location', oldValue, newValue);
+            currentEmail.location_id = locationId ? Number(locationId) : null;
+            currentEmail.location_path = newValue;
+        } else {
+            select.value = currentEmail.location_id || '';
+            showToast(t('tickets.reading_pane.location_failed', { error: data.error || '' }), 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        select.value = currentEmail.location_id || '';
+        showToast(t('tickets.reading_pane.location_failed', { error: '' }), 'error');
     }
 }
 

@@ -105,6 +105,7 @@ return [
         'contract_value' => 'Vertragswert',
         'payment_schedule' => 'Zahlungsplan',
         'cost_centre' => 'Kostenstelle',
+        'location' => 'Standort',
         'dms_link' => 'DMS-Link',
         'section_terms' => 'Bedingungen & Datenschutz',
         'terms' => 'Bedingungen',

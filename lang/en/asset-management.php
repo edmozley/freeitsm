@@ -1510,6 +1510,8 @@ return [
         'locations_load_failed'  => 'Failed to load locations',
         'location_has_children'  => 'This location has sub-locations. Delete or move them first.',
         'delete_location_confirm'=> 'Delete location "{name}"?',
+        'location_in_use_title'  => 'Location in use',
+        'location_in_use_open'   => 'Open',
         'delete_location_failed' => 'Failed to delete location',
         'name_required'          => 'Name is required',
         'save_location_failed'   => 'Failed to save location',

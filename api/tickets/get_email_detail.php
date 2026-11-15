@@ -47,6 +47,9 @@ try {
     $sensCol = ticketSensitivityReady($conn) ? "t.sensitivity," : "'normal' AS sensitivity,";
     require_once '../../includes/ticket_workspace.php';
     $workspaceCol = ticketWorkspaceReady($conn) ? 't.is_workspace,' : '0 AS is_workspace,';
+    // GH #311: the ticket's location (its company's or a shared one).
+    require_once '../../includes/record_locations.php';
+    $locationCol = recordLocationReady($conn, 'tickets') ? 't.location_id,' : 'NULL AS location_id,';
 
     // Query full email details with ticket information
     $sql = "SELECT
@@ -82,6 +85,7 @@ try {
                 t.assigned_team_id,
                 $sensCol
                 $workspaceCol
+                $locationCol
                 t.assigned_analyst_id,
                 t.origin_id,
                 t.first_time_fix,
@@ -161,6 +165,9 @@ try {
     // The requester's numbers, each with its Call link - only when click-to-call
     // is on, so the reading pane is unchanged on an install without it.
     $dial = phoneDialTemplate($conn);
+    // GH #311: shown as its full path - the reading pane loads the other choices when asked.
+    $email['location_id']   = $email['location_id'] !== null ? (int)$email['location_id'] : null;
+    $email['location_path'] = recordLocationPath($conn, $email['location_id']);
     $email['requester_dial'] = [];
     foreach (['requester_phone', 'requester_mobile'] as $col) {
         $href = phoneDialHref($dial, $email[$col] ?? null);

@@ -42,6 +42,12 @@
                     <label for="pfOwner"><?php echo htmlspecialchars(t('projects.form.owner')); ?></label>
                     <select id="pfOwner"></select>
                 </div>
+                <?php /* GH #311: the site it is about - one of the project's company's
+                         locations or a shared one. Filled by projects.js. */ ?>
+                <div class="form-group">
+                    <label for="pfLocation"><?php echo htmlspecialchars(t('projects.form.location')); ?></label>
+                    <select id="pfLocation"><option value=""></option></select>
+                </div>
                 <div class="form-group" id="pfCompanyWrap" hidden>
                     <label for="pfCompany"><?php echo htmlspecialchars(t('projects.form.company')); ?></label>
                     <select id="pfCompany"></select>

@@ -34,6 +34,8 @@ try {
     [$ownCols, $ownJoins] = contractOwnerSql($conn, 'c');
     require_once '../../includes/cost_centre_assign.php';
     $ownCols .= costCentreSelectSql($conn, 'contracts', 'c');   // GH #160
+    require_once '../../includes/record_locations.php';
+    $ownCols .= recordLocationReady($conn, 'contracts') ? ', c.location_id' : ', NULL AS location_id';   // GH #311
     [$visSql, $visParams] = contractVisibilitySql($conn, (int)$_SESSION['analyst_id'], 'c');
 
     $sql = "SELECT c.id, c.contract_number, c.title, c.description, c.supplier_id, c.contract_owner_id,
@@ -69,6 +71,9 @@ try {
 
     $contract['is_active'] = (bool)$contract['is_active'];
     $contract['party_label'] = contractPartyLabel($contract);
+    // GH #311: the site it covers, as its full path.
+    $contract['location_id']   = !empty($contract['location_id']) ? (int)$contract['location_id'] : null;
+    $contract['location_path'] = recordLocationPath($conn, $contract['location_id']);
     $contract['multi_company'] = $multiCompany;   // the view shows the company only when there is a choice
 
     echo json_encode(['success' => true, 'contract' => $contract]);

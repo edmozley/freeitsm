@@ -499,6 +499,12 @@ function mergeCreateTargetTicket(PDO $conn, array $model, int $actorId): int {
         $model['tenant_id'] ?? null,
     ]);
     $newId = (int)$conn->lastInsertId();
+    // GH #311: the location of the ticket this one came from; failing that, the requester's.
+    require_once __DIR__ . '/record_locations.php';
+    if (!empty($model['location_id']) && recordLocationReady($conn, 'tickets')) {
+        $conn->prepare('UPDATE tickets SET location_id = ? WHERE id = ?')->execute([(int)$model['location_id'], $newId]);
+    }
+    ticketApplyRequesterLocation($conn, $newId);
 
     mergeAudit($conn, $newId, $actorId, 'Ticket Created', null, 'Created by merging tickets');
     return $newId;

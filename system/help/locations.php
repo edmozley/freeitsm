@@ -33,7 +33,7 @@ require __DIR__ . '/_top.php';
     <ul>
         <li><strong>Add</strong> at the top of the page adds a top-level location. The <strong>+</strong> on any location adds one inside it, with the parent already chosen.</li>
         <li><strong>Edit</strong> (the pencil) renames a location or moves it under a different parent. A location cannot be moved inside itself or one of its own sub-locations, so those are not offered.</li>
-        <li><strong>Delete</strong> (the bin) is refused while a location still has sub-locations - delete or move them first, so a whole branch cannot go by accident. Assets at a deleted location are left with no location.</li>
+        <li><strong>Delete</strong> (the bin) is refused while a location still has sub-locations - delete or move them first, so a whole branch cannot go by accident. It is refused too while <strong>people, tickets, contracts or projects</strong> point at it: it says how many, and <strong>Open</strong> takes you to <strong>System &rarr; Maintenance &rarr; Locations in use</strong>, which moves them all to another location, or clears it, in one go. Assets at a deleted location are left with no location.</li>
         <li>The arrow beside a location folds its branch away; the number beside it is how many sub-locations it has.</li>
     </ul>
 </div>
@@ -61,6 +61,10 @@ require __DIR__ . '/_top.php';
     </div>
     <ul>
         <li><strong>Assets</strong> - each asset's <strong>Location</strong>, shown on the asset and in the Table, and settable from the right-click menu.</li>
+        <li><strong>People</strong> - where someone sits: <strong>Location</strong> in the person's details (Tickets &rarr; Users, Assets &rarr; People). It is separate from <strong>Office</strong>, which a directory such as Active Directory or Entra may fill in with its own text.</li>
+        <li><strong>Tickets</strong> - what a ticket is about: <strong>Location</strong> among its properties. A new ticket takes its requester's location, by every route - email, the portal, chat, the API - unless that is switched off in <strong>Tickets &rarr; Settings &rarr; General</strong>. An analyst can change it; a requester who moves later does not change old tickets.</li>
+        <li><strong>Contracts</strong> and <strong>projects</strong> - the site a contract covers, or a project is about: <strong>Location</strong> on its edit form.</li>
+        <li>Each record can only have its <strong>own company's</strong> locations or a shared one. A ticket or person moved to another company keeps its location only if the new company can use it.</li>
         <li><strong>Forms</strong> - a <strong>Lookup</strong> field can search <strong>Locations</strong>, so a form can ask <em>"Which office are you in?"</em> and get a real location rather than whatever someone types. Each location shows as its full path, such as <em>UK &gt; London &gt; Floor 2</em>, so two rooms called Floor 2 cannot be confused. A person sees their own company's locations and the shared ones. Tick <strong>Customers can use this on the portal</strong> on the field to let customers pick one too.</li>
     </ul>
 </div>

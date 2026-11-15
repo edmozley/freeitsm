@@ -54,7 +54,7 @@ $tourStart = !empty($_GET['walk']) ? 'walk' : 'explore';
         </div>
     </div>
 
-    <script src="../assets/js/projects.js?v=11"></script>
+    <script src="../assets/js/projects.js?v=12"></script>
     <script src="../assets/js/projects-tour.js?v=3"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

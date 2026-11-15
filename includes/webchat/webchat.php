@@ -250,6 +250,9 @@ function webchatOpenTicket(PDO $conn, array $conversation, array $channel, strin
     require_once __DIR__ . '/../ticket_priorities.php';
     $conn->prepare($sql)->execute([$ticketNumber, $subject, ticketPriorityDefaultId($conn, $tenantId), $userId, $tenantId, $originId, $typePick['type_id'] ?? null, $departmentId]);
     $ticketId = (int) $conn->lastInsertId();
+    // GH #311: the requester's location, if Tickets -> Settings says so.
+    require_once __DIR__ . '/../record_locations.php';
+    ticketApplyRequesterLocation($conn, (int)$ticketId);
     ticketDepartmentNote($conn, $ticketId, $departmentNote);
     ticketTypeAutoRecord($conn, $ticketId, $typePick);
     // Confidential defaults (discussion #62). Nothing to apply yet - no department

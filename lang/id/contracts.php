@@ -105,6 +105,7 @@ return [
         'contract_value' => 'Nilai kontrak',
         'payment_schedule' => 'Jadwal pembayaran',
         'cost_centre' => 'Pusat biaya',
+        'location' => 'Lokasi',
         'dms_link' => 'Tautan DMS',
         'section_terms' => 'Ketentuan & perlindungan data',
         'terms' => 'Ketentuan',

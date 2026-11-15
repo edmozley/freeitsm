@@ -3958,6 +3958,9 @@ class WorkflowEngine
                 $departmentId, $typeId, $assignedTeamId, $assignedAnalystId, $assignedAnalystId, $userId, $ticketTenant,
             ]);
             $newTicketId = (int)$conn->lastInsertId();
+            // GH #311: the requester's location, if Tickets -> Settings says so.
+            require_once __DIR__ . '/../../includes/record_locations.php';
+            ticketApplyRequesterLocation($conn, (int)$newTicketId);
             ticketDepartmentNote($conn, $newTicketId, $departmentNote);
             if ($typePick) ticketTypeAutoRecord($conn, $newTicketId, $typePick);
             // Confidential defaults (discussion #62) - the rule may have put it in a

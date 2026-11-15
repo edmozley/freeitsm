@@ -302,7 +302,14 @@ function splitCreateTicket(PDO $conn, array $source, array $moving, int $actorId
         $source['owner_id'] ?? null,
         $source['tenant_id'] ?? null,
     ]);
-    return (int)$conn->lastInsertId();
+    $newId = (int)$conn->lastInsertId();
+    // GH #311: the location of the ticket this one came from; failing that, the requester's.
+    require_once __DIR__ . '/record_locations.php';
+    if (!empty($source['location_id']) && recordLocationReady($conn, 'tickets')) {
+        $conn->prepare('UPDATE tickets SET location_id = ? WHERE id = ?')->execute([(int)$source['location_id'], $newId]);
+    }
+    ticketApplyRequesterLocation($conn, $newId);
+    return $newId;
 }
 
 /**

@@ -264,6 +264,7 @@ return [
             'label_key'    => 'tickets.settings.tabs.general',
             'grant'        => 'Manage general ticket settings',
             'setting_keys' => ['reopen_on_customer_reply', 'snooze_wake_hour', 'ticket_workspace_mode',
+                                'ticket_location_from_requester', // GH #311: a new ticket takes its requester's location
                                 'ticket_watch_events',   // GH #277: what watchers are told about
                                 'ticket_watch_inactive', // ...and what happens to a deactivated analyst's watches
                                 'ticket_list_export', 'ticket_reply_to', 'ticket_thread_replies',

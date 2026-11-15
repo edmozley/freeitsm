@@ -428,7 +428,7 @@ return [
     ],
     'list' => [
         'group_by_type' => 'Agrupar por tipo',
-        'one_company_note'   => 'Solo se muestra <strong>{company}</strong>. La lista de activos muestra una empresa a la vez, incluso en Todas las empresas; elija una empresa en la parte superior de la página para ver otra.',
+        'one_company_note' => 'Solo se muestra <strong>{company}</strong>. La lista de activos muestra una empresa a la vez, incluso en Todas las empresas; elija una empresa en la parte superior de la página para ver otra.',
         'group_no_type' => 'Sin tipo',
         'search_placeholder' => 'Buscar por nombre de host...',
         'no_assets' => 'No se encontraron activos',
@@ -1302,6 +1302,8 @@ Hay dos formas de evitarlo: cambie también el nombre en la hoja de cálculo, o 
         'locations_load_failed' => 'No se pudieron cargar las ubicaciones',
         'location_has_children' => 'Esta ubicación tiene sububicaciones. Elimínelas o muévalas primero.',
         'delete_location_confirm' => '¿Eliminar la ubicación "{name}"?',
+        'location_in_use_title' => 'Ubicación en uso',
+        'location_in_use_open' => 'Abrir',
         'delete_location_failed' => 'No se pudo eliminar la ubicación',
         'name_required' => 'El nombre es obligatorio',
         'save_location_failed' => 'No se pudo guardar la ubicación',

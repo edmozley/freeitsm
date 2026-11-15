@@ -119,6 +119,7 @@ return [
         'contract_value'            => 'Contract value',
         'payment_schedule'          => 'Payment schedule',
         'cost_centre'               => 'Cost centre',
+        'location'                  => 'Location',
         'dms_link'                  => 'DMS link',
         'section_terms'             => 'Terms & data protection',
         'terms'                     => 'Terms',

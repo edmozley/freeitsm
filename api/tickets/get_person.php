@@ -21,6 +21,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/users.php';   // userDirectoryOwnedFields()
 require_once '../../includes/cost_centre_assign.php';   // GH #160
+require_once '../../includes/record_locations.php';     // GH #311
 
 header('Content-Type: application/json');
 requireAnyModuleAccessJson(['tickets', 'assets']);
@@ -41,6 +42,7 @@ try {
                 -- Managed only while the source exists (userManagedSql(), #261).
                 " . userManagedSql() . " AS is_managed
                 " . costCentreSelectSql($conn, 'users', 'u') . ",
+                " . (recordLocationReady($conn, 'users') ? 'u.location_id' : 'NULL AS location_id') . ",
                 ap.protocol AS managed_protocol, ap.carddav_write_back AS managed_write_back,
                 ap.display_name AS source_name
            FROM users u
@@ -61,6 +63,9 @@ try {
         ? array_values(userDirectoryOwnedFields($u['managed_protocol'] ?? null, (int)($u['managed_write_back'] ?? 0) === 1))
         : [];
     $u['is_active'] = (int)($u['is_active'] ?? 1) === 1;
+    // GH #311: where they sit, with its full path for the editor.
+    $u['location_id']   = !empty($u['location_id']) ? (int)$u['location_id'] : null;
+    $u['location_path'] = recordLocationPath($conn, $u['location_id']);
 
     // The manager's name, for the editor's type-ahead - ONLY when this analyst
     // may see that person. Otherwise null, and the editor keeps the manager

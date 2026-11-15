@@ -75,6 +75,20 @@ return [
         'check'    => ['rows', 'asset_locations', 'is_shared = 1'],
     ],
     [
+        // GH #311. users.location_id arrives with Database Verification; until then
+        // the check errors, which reads as not configured (see feature_bingo.php).
+        'id'       => 'assets.locations_on_people',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Where people sit',
+        'what'     => 'A Location on a person, picked from System -> Locations - separate from the Office text a directory may fill in. New tickets they raise take it, and contracts and projects can have one too.',
+        'why'      => 'An engineer sees which site a ticket is about without asking, and a site move shows everyone and everything at that site in one place.',
+        'done'     => 'At least one person has a location.',
+        'link'     => 'system/locations/',
+        'check'    => ['rows', 'users', 'location_id IS NOT NULL'],
+    ],
+    [
         'id'       => 'assets.asset_suppliers',
         'module'   => 'assets',
         'tier'     => 'recommended',

@@ -4,6 +4,7 @@
  * tickets, distinct from analysts).
  */
 require_once dirname(__DIR__, 3) . '/includes/cost_centre_assign.php';   // GH #160
+require_once dirname(__DIR__, 3) . '/includes/record_locations.php';      // GH #311
 
 /**
  * Has Database Verification added users.employee_id (the payroll / HR number) yet?
@@ -47,12 +48,32 @@ function apiUserColumns(PDO $conn): string {
     require_once dirname(__DIR__, 3) . '/includes/cost_centre_assign.php';
     $cols = "id, email, username, display_name, preferred_name, tenant_id, COALESCE(is_active, 1) AS is_active, created_at"
           . (apiUserEmployeeIdReady($conn) ? ', employee_id' : '');
+    // GH #311: the person's location, once Database Verification has added it.
+    require_once dirname(__DIR__, 3) . '/includes/record_locations.php';
+    if (recordLocationReady($conn, 'users')) {
+        $cols .= ', location_id';
+    }
     if (costCentreReady($conn, 'users')) {
         $cols .= ", cost_centre_id,
                   (SELECT ccu.code FROM cost_centres ccu WHERE ccu.id = users.cost_centre_id) AS cost_centre_code,
                   (SELECT ccu.name FROM cost_centres ccu WHERE ccu.id = users.cost_centre_id) AS cost_centre_name";
     }
     return $cols;
+}
+
+/**
+ * `location_id` from a request body for a person in company $tenantId (GH #311):
+ * [false, null] when it was not sent, else [true, id|null]. 422 for a location
+ * that is unknown or not one their company may use.
+ */
+function apiUserLocation(PDO $conn, array $body, ?int $tenantId): array {
+    if (!array_key_exists('location_id', $body) || !recordLocationReady($conn, 'users')) return [false, null];
+    try {
+        return [true, recordLocationCheck($conn, $tenantId, $body['location_id'])];
+    } catch (InvalidArgumentException $e) {
+        apiError(422, 'invalid_field', 'Unknown location.');
+    }
+    return [false, null];
 }
 
 /**
@@ -95,6 +116,8 @@ function apiSerializeUser(array $u): array {
         'is_active'      => (int)($u['is_active'] ?? 1) === 1,
         // GH #279: the payroll / HR number an ERP or HR system knows them by, or null.
         'employee_id'    => $u['employee_id'] ?? null,
+        // GH #311: where they sit - {id, name, path} or null. Write it as location_id.
+        'location'       => recordLocationRefFor(!empty($u['location_id']) ? (int)$u['location_id'] : null),
         // GH #160: the cost centre they are charged to, or null.
         'cost_centre'    => !empty($u['cost_centre_id'])
             ? ['id' => (int)$u['cost_centre_id'], 'code' => $u['cost_centre_code'] ?? null, 'name' => $u['cost_centre_name'] ?? null]
@@ -256,12 +279,14 @@ function apiUsersCreate(PDO $conn, array $apiKey, array $params, array $body): v
 
     [$ccSent, $ccId] = apiUserCostCentre($conn, $body, $tenantId, null);
     [$empSent, $empId] = apiUserEmployeeId($conn, $body);
+    [$locSent, $locId] = apiUserLocation($conn, $body, $tenantId !== null ? (int)$tenantId : null);
 
     $stmt = $conn->prepare("INSERT INTO users (email, username, display_name, preferred_name, tenant_id, created_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())");
     $stmt->execute([$emailOrNull, $usernameOrNull, $displayName, $preferredName, $tenantId]);
     $id = (int)$conn->lastInsertId();
     if ($ccSent) $conn->prepare("UPDATE users SET cost_centre_id = ? WHERE id = ?")->execute([$ccId, $id]);
     if ($empSent) $conn->prepare("UPDATE users SET employee_id = ? WHERE id = ?")->execute([$empId, $id]);
+    if ($locSent) $conn->prepare("UPDATE users SET location_id = ? WHERE id = ?")->execute([$locId, $id]);
 
     $get = $conn->prepare("SELECT " . apiUserColumns($conn) . " FROM users WHERE id = ?");
     $get->execute([$id]);
@@ -364,6 +389,21 @@ function apiUsersUpdate(PDO $conn, array $apiKey, array $params, array $body): v
     if ($empSent) {
         $updates[] = 'employee_id = ?';
         $args[]    = $empId;
+    }
+    // GH #311: the location, checked against the company they will be in. Moving
+    // company drops one the new company cannot use, as a ticket's is dropped.
+    [$locSent, $locId] = apiUserLocation($conn, $body, $targetTenant);
+    if ($locSent) {
+        $updates[] = 'location_id = ?';
+        $args[]    = $locId;
+    } elseif (array_key_exists('tenant_id', $body) && recordLocationReady($conn, 'users')) {
+        $lc = $conn->prepare('SELECT location_id FROM users WHERE id = ?');
+        $lc->execute([$params[0]]);
+        $curLoc = $lc->fetchColumn();
+        if ($curLoc && !recordLocationStillValid($conn, $targetTenant, (int)$curLoc)) {
+            $updates[] = 'location_id = ?';
+            $args[]    = null;
+        }
     }
     if (!$updates) {
         apiError(422, 'missing_field', 'No fields to update.');

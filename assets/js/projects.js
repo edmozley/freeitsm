@@ -335,12 +335,27 @@
         } else {
             cw.hidden = true;
         }
+        // GH #311: the project's company's locations and the shared ones. Projects
+        // do not move company, so only a new one's list follows the Company box.
+        const fillLocation = async (tenantId, keep) => {
+            const sel = $('pfLocation');
+            try {
+                const r = await fetch(window.PRJ_API + '../locations/options.php?' + new URLSearchParams({ company_id: tenantId || '' }), { credentials: 'same-origin' });
+                const d = await r.json();
+                const list = d && d.success ? d.locations : [];
+                sel.innerHTML = '<option value="">' + esc(T('form.location_none')) + '</option>'
+                    + list.map(l => '<option value="' + l.id + '">' + esc(l.path) + '</option>').join('');
+                sel.value = keep && list.some(l => String(l.id) === String(keep)) ? String(keep) : '';
+            } catch (e) { /* the box keeps what it had */ }
+        };
         if (isEdit) {
             fillOwner(project.tenant_id, project.owner_analyst_id || '');
+            fillLocation(project.tenant_id, project.location_id || '');
         } else {
             const newCompany = () => cw.hidden ? (L.multi_company ? L.active_company : null) : $('pfCompany').value;
             fillOwner(newCompany(), String(window.PRJ_ME || ''));
-            $('pfCompany').onchange = () => fillOwner(newCompany(), $('pfOwner').value);
+            fillLocation(newCompany(), '');
+            $('pfCompany').onchange = () => { fillOwner(newCompany(), $('pfOwner').value); fillLocation(newCompany(), $('pfLocation').value); };
         }
 
         $('pfStatus').innerHTML = L.statuses.map(s => '<option value="' + s + '">' + esc(T('status.' + s)) + '</option>').join('');
@@ -469,6 +484,7 @@
                 summary: $('pfSummary').value.trim(),
                 methodology: formState.method,
                 owner_analyst_id: $('pfOwner').value || null,
+                location_id: $('pfLocation').value || null,   // GH #311
                 start_date: $('pfStart').value || null,
                 target_end_date: $('pfTarget').value || null,
                 priority: $('pfPriority').value || 'medium',

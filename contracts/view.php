@@ -629,6 +629,10 @@ $peopleBase = analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analys
                         <div class="value">${c.cost_centre_label ? escapeHtml(c.cost_centre_label) : (c.cost_centre ? escapeHtml(window.t('contracts.edit.cost_centre_previous', { text: c.cost_centre })) : '-')}</div>
                     </div>
                     <div class="detail-group">
+                        <label>${escapeHtml(window.t('contracts.detail.location'))}</label>
+                        <div class="value">${escapeHtml(c.location_path || '-')}</div>
+                    </div>
+                    <div class="detail-group">
                         <label>${escapeHtml(window.t('contracts.detail.dms_link'))}</label>
                         <div class="value dms-link">${c.dms_link ? '<a href="' + escapeHtml(c.dms_link) + '" target="_blank">' + escapeHtml(c.dms_link) + '</a>' : '-'}</div>
                     </div>

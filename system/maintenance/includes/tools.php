@@ -60,6 +60,16 @@ function getMaintenanceTools(): array
             'keywords' => 'system.landing.intune_mismatch_keywords',
             'count'    => 'maintenanceCountIntuneMismatch',
         ],
+        // Locations in use (GH #311): where a refused location delete is resolved -
+        // everything that points at a location, moved or cleared at once. No count:
+        // a location in use is normal, not something left behind.
+        [
+            'url'      => 'locations-in-use/',
+            'icon'     => 'locations',
+            'title'    => 'system.landing.locations_in_use_title',
+            'desc'     => 'system.landing.locations_in_use_desc',
+            'keywords' => 'system.landing.locations_in_use_keywords',
+        ],
     ];
 }
 

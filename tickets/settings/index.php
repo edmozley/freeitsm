@@ -2022,6 +2022,16 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.reopen_help')); ?></small>
                 </div>
 
+                <?php /* GH #311: a new ticket takes its requester's location. On when never
+                         saved (Ed, 15 Nov 2026) - see ticketLocationFromRequesterOn(). */ ?>
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('tickets.settings.general.location_label')); ?></label>
+                    <label style="display:block;margin-top:6px;font-weight:400;">
+                        <input type="checkbox" id="locationFromRequester"> <?php echo htmlspecialchars(t('tickets.settings.general.location_toggle')); ?>
+                    </label>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.location_help')); ?></small>
+                </div>
+
                 <?php /* The ticket workspace (PR #211): which tickets may be laid out
                          for working. Off by default, so an upgrade changes nothing;
                          see includes/ticket_workspace.php. */ ?>
@@ -7494,6 +7504,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
                     const reopen = data.settings.reopen_on_customer_reply;
                     document.getElementById('reopenOnCustomerReply').checked =
                         (reopen === null || reopen === undefined || reopen === '') ? true : (reopen === '1');
+                    // GH #311: absent (never saved) means ON, as the server reads it.
+                    const locFrom = data.settings.ticket_location_from_requester;
+                    document.getElementById('locationFromRequester').checked =
+                        (locFrom === null || locFrom === undefined || locFrom === '') ? true : (locFrom === '1');
                     // The workspace (Off) and who may export the list (Administrators
                     // only) when never saved - the same defaults the server falls
                     // back to (PR #211, #213).
@@ -7892,6 +7906,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 ticket_reply_to: document.getElementById('ticketReplyTo').value,
                 ticket_thread_replies: document.getElementById('ticketThreadReplies').value,
                 reopen_on_customer_reply: document.getElementById('reopenOnCustomerReply').checked ? '1' : '0',
+                ticket_location_from_requester: document.getElementById('locationFromRequester').checked ? '1' : '0',
                 snooze_wake_hour: document.getElementById('snoozeWakeHour').value,
                 ticket_collapse_enabled:       document.getElementById('collapseEnabled').checked ? '1' : '0',
                 ticket_ai_summary_enabled:       document.getElementById('aiSummaryEnabled').checked ? '1' : '0',

@@ -105,6 +105,7 @@ return [
         'contract_value' => 'Αξία σύμβασης',
         'payment_schedule' => 'Χρονοδιάγραμμα πληρωμών',
         'cost_centre' => 'Κέντρο κόστους',
+        'location' => 'Τοποθεσία',
         'dms_link' => 'Σύνδεσμος DMS',
         'section_terms' => 'Όροι και προστασία δεδομένων',
         'terms' => 'Όροι',

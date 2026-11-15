@@ -126,7 +126,7 @@ $translationNamespaces = ['common', 'projects'];
 
     <?php include 'includes/project_form.php'; ?>
 
-    <script src="../assets/js/projects.js?v=11"></script>
+    <script src="../assets/js/projects.js?v=12"></script>
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-accounts.js?v=1"></script>
     <script src="../assets/js/projects-portfolio.js?v=15"></script>

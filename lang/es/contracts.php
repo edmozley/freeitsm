@@ -105,6 +105,7 @@ return [
         'contract_value' => 'Valor del contrato',
         'payment_schedule' => 'Calendario de pagos',
         'cost_centre' => 'Centro de coste',
+        'location' => 'Ubicación',
         'dms_link' => 'Enlace al DMS',
         'section_terms' => 'Condiciones y protección de datos',
         'terms' => 'Condiciones',

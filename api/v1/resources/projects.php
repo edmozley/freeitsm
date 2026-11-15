@@ -86,6 +86,8 @@ function apiSerializeProject(PDO $conn, array $p): array {
         // 3.3.0 intake: null = needed no approval; pending | approved | rejected. Decided in the app.
         'approval'        => $p['approval_status'] ?? null,
         'project_manager' => $rel($p['owner_analyst_id'], $p['owner_name'] ?? null),
+        // GH #311: the site it is about - {id, name, path} or null. Write it as location_id.
+        'location'        => recordLocationRef($conn, !empty($p['location_id']) ? (int)$p['location_id'] : null),
         'start_date'      => $p['start_date'],
         'target_end_date' => $p['target_end_date'],
         'actual_end_date' => $p['actual_end_date'],

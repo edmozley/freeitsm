@@ -311,7 +311,7 @@ return [
         'username' => 'Benutzername',
         'phone' => 'Telefon',
         'mobile' => 'Mobil',
-        'office' => 'Standort',
+        'office' => 'Büro',
         'department' => 'Abteilung',
         'employee_id' => 'Personalnummer',
         'cost_centre' => 'Kostenstelle',

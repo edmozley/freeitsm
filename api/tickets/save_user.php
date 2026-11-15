@@ -180,6 +180,37 @@ try {
         }
     }
 
+    // GH #311: where this person sits - one of the locations of the company they
+    // will be in, or a shared one. Not sent: unchanged, unless they move to a
+    // company that cannot use it, when it is dropped. Never directory-owned:
+    // Office stays the directory's text; this is a separate field.
+    require_once '../../includes/record_locations.php';
+    $locSent = false;
+    $locValue = null;
+    if (recordLocationReady($conn, 'users')) {
+        $lq = ['tenant_id' => null, 'location_id' => null];
+        if ($id) {
+            $lst = $conn->prepare("SELECT tenant_id, location_id FROM users WHERE id = ?");
+            $lst->execute([$id]);
+            $lq = $lst->fetch(PDO::FETCH_ASSOC) ?: $lq;
+        }
+        $locTenant = $tenantSent ? $tenantId : ($id ? ($lq['tenant_id'] !== null ? (int)$lq['tenant_id'] : null) : $destinationTenantId);
+        $locTenant = $locTenant !== null ? (int)$locTenant : null;
+        if (array_key_exists('location_id', $data)) {
+            try {
+                $locValue = recordLocationCheck($conn, $locTenant, $data['location_id']);
+                $locSent = true;
+            } catch (InvalidArgumentException $e) {
+                echo json_encode(['success' => false, 'error' => 'Unknown location.']);
+                exit;
+            }
+        } elseif ($id && $tenantSent && $lq['location_id'] !== null
+                  && !recordLocationStillValid($conn, $locTenant, (int)$lq['location_id'])) {
+            $locSent = true;   // moving company: the old company's location cannot come too
+            $locValue = null;
+        }
+    }
+
     // Is this record owned by a directory, and by WHICH KIND of directory? Both
     // halves matter: `is_managed` says somebody else maintains this person, and
     // the provider's protocol says which parts of them. An address book owns a
@@ -275,6 +306,7 @@ try {
         if ($password !== '')                          { $sets[] = 'password_hash = ?';  $args[] = password_hash($password, PASSWORD_BCRYPT); }
         if ($tenantSent)                               { $sets[] = 'tenant_id = ?';      $args[] = $tenantId; }
         if ($ccSent)                                   { $sets[] = 'cost_centre_id = ?'; $args[] = $ccValue; }
+        if ($locSent)                                  { $sets[] = 'location_id = ?';    $args[] = $locValue; }
 
         // The person fields, same "absent means don't touch" rule as above.
         // ⚠️ Directory-owned ones are refused outright on a MANAGED record rather
@@ -359,6 +391,7 @@ try {
             $vals[] = userPersonFieldValue($f, $data[$f]);
         }
         if ($ccSent) { $cols[] = 'cost_centre_id'; $vals[] = $ccValue; }
+        if ($locSent) { $cols[] = 'location_id'; $vals[] = $locValue; }
         // is_active defaults to 1 in the schema; a create is never a deactivation.
         $ph = implode(', ', array_fill(0, count($cols), '?'));
         $stmt = $conn->prepare("INSERT INTO users (" . implode(', ', $cols) . ", created_at) VALUES ($ph, UTC_TIMESTAMP())");

@@ -87,6 +87,8 @@ function apiContractVisibility(PDO $conn, array $apiKey): array {
  *
  * @param array $r  the contracts row as apiContractSelect() loads it, with supplier, customer, owner, status and company names
  */
+require_once dirname(__DIR__, 3) . '/includes/record_locations.php';   // GH #311
+
 function apiSerializeContract(array $r): array {
     $rel = function ($id, $name) {
         return $id === null ? null : ['id' => (int)$id, 'name' => $name];
@@ -123,6 +125,8 @@ function apiSerializeContract(array $r): array {
         'cost_centre'     => !empty($r['cost_centre_id']) ? ($r['cost_centre_code'] ?? null) : $r['cost_centre'],
         'cost_centre_id'  => !empty($r['cost_centre_id']) ? (int)$r['cost_centre_id'] : null,
         'cost_centre_name' => !empty($r['cost_centre_id']) ? ($r['cost_centre_name'] ?? null) : null,
+        // GH #311: the site it covers - {id, name, path} or null. Write it as location_id.
+        'location'        => recordLocationRefFor(!empty($r['location_id']) ? (int)$r['location_id'] : null),
         'dms_link'        => $r['dms_link'],
         'governance'      => [
             'terms_status'              => $r['terms_status'],

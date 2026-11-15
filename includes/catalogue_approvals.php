@@ -780,6 +780,9 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
         $userId, $tenantId,
     ]);
     $ticketId = (int)$conn->lastInsertId();
+    // GH #311: the requester's location, if Tickets -> Settings says so.
+    require_once __DIR__ . '/record_locations.php';
+    ticketApplyRequesterLocation($conn, (int)$ticketId);
     ticketDepartmentNote($conn, $ticketId, $departmentNote);
     if ($typePick) ticketTypeAutoRecord($conn, $ticketId, $typePick);
     // Confidential defaults (discussion #62). Every path that creates a ticket

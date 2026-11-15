@@ -870,6 +870,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     -- a company's domains never silently re-files an existing person.
     `tenant_id`       INT NULL,
     `cost_centre_id`  INT NULL,   -- GH #160: the cost centre this person is charged to (fk added by db_verify)
+    `location_id`     INT NULL,   -- GH #311: System -> Locations, the record's company's or a shared one (fk added by db_verify)
     `created_at`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- ---------------------------------------------------------------------
@@ -940,6 +941,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     UNIQUE KEY `uq_users_dir_username` (`auth_provider_id`, `directory_username`),
     KEY `idx_users_tenant` (`tenant_id`),
     KEY `idx_users_cost_centre` (`cost_centre_id`),
+    KEY `idx_users_location` (`location_id`),
     KEY `idx_users_manager` (`manager_id`),
     KEY `idx_users_active` (`is_active`),
     KEY `idx_users_department` (`department`),
@@ -1440,10 +1442,12 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     -- only if it would suggest a DIFFERENT company. No FK: a deleted company
     -- just means the warning can never match it again.
     `company_warning_dismissed_tenant_id` INT NULL,
+    `location_id`           INT NULL,   -- GH #311: System -> Locations, the record's company's or a shared one (fk added by db_verify)
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_tickets_number` (`ticket_number`),
     KEY `ix_tickets_merged_into_id` (`merged_into_id`),
+    KEY `ix_tickets_location` (`location_id`),
     KEY `ix_tickets_snoozed_until` (`snoozed_until`),
     KEY `ix_tickets_status_id` (`status_id`),
     KEY `ix_tickets_priority_id` (`priority_id`),
@@ -6995,6 +6999,7 @@ CREATE TABLE IF NOT EXISTS `contracts` (
     `payment_schedule_id`       INT NULL,
     `cost_centre`               VARCHAR(100) NULL,
     `cost_centre_id`            INT NULL,            -- GH #160: the cost centre it is charged to (fk added by db_verify); cost_centre above is free text from before 3.5.0
+    `location_id`               INT NULL,            -- GH #311: System -> Locations, the record's company's or a shared one (fk added by db_verify)
     `dms_link`                  VARCHAR(500) NULL,
     `terms_status`              VARCHAR(20) NULL,
     `personal_data_transferred` TINYINT(1) NULL,
@@ -7011,6 +7016,7 @@ CREATE TABLE IF NOT EXISTS `contracts` (
     KEY `ix_contracts_contract_end` (`contract_end`),
     KEY `ix_contracts_tenant` (`tenant_id`),
     KEY `ix_contracts_cost_centre` (`cost_centre_id`),
+    KEY `ix_contracts_location` (`location_id`),
     CONSTRAINT `fk_contracts_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_contracts_customer_tenant` FOREIGN KEY (`customer_tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_contracts_customer_user` FOREIGN KEY (`customer_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
@@ -9864,6 +9870,7 @@ CREATE TABLE IF NOT EXISTS `photo_album` (
 CREATE TABLE IF NOT EXISTS `projects` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `tenant_id`         INT NULL,
+    `location_id`       INT NULL,   -- GH #311: System -> Locations, the record's company's or a shared one (fk added by db_verify)
     `name`              VARCHAR(200) NOT NULL,
     `summary`           TEXT NULL,                        -- a paragraph: what and why
     `goal`              VARCHAR(500) NULL,                -- one sentence: what "done" means
@@ -9931,6 +9938,7 @@ CREATE TABLE IF NOT EXISTS `projects` (
     KEY `idx_projects_approval` (`approval_status`),
     KEY `idx_projects_status` (`status`),
     KEY `idx_projects_owner` (`owner_analyst_id`),
+    KEY `idx_projects_location` (`location_id`),
     CONSTRAINT `fk_projects_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_projects_owner` FOREIGN KEY (`owner_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_projects_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,

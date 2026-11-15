@@ -364,7 +364,7 @@ function getHelpTopics() {
                 ['id' => 'used',      'label' => 'Where locations are used'],
                 ['id' => 'assets',    'label' => 'The same list in Assets'],
             ],
-            'terms' => 'location locations site sites building buildings floor floors room rooms office offices campus branch data centre datacenter'
+            'terms' => 'location locations site sites building buildings floor floors room rooms office offices campus branch data centre datacenter people person ticket tickets contract contracts project projects requester in use'
                      . ' hierarchy tree parent child sub-location shared every company form forms lookup portal asset assets moved where',
         ],
         // Cost centres (GH #160).
@@ -616,6 +616,16 @@ function getHelpTopics() {
                 ['id' => 'fixing',   'label' => 'Settling them'],
             ],
             'terms' => 'intune primary user holder mismatch differs handed on reassigned laptop custody follow entra',
+        ],
+        'locations-in-use' => [
+            'hero' => 'Locations in use',
+            'sub'  => 'People, tickets, contracts and projects can each have a location. A location something points at cannot be deleted - this is where you move them all to another one first, or clear it.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'moving',   'label' => 'Moving or clearing'],
+                ['id' => 'notes',    'label' => 'Good to know'],
+            ],
+            'terms' => 'location delete refused in use move clear people tickets contracts projects site office room',
         ],
         'orphaned-tickets' => [
             'hero' => 'Orphaned tickets',

@@ -162,6 +162,12 @@
                 });
                 var data = await res.json();
                 if (data.success) { toast(T('toast.deleted'), 'success'); reload(); }
+                else if (data.in_use && data.tool) {
+                    // GH #311: people, tickets, contracts or projects point at it - say how
+                    // many, and offer the tool that moves them all.
+                    var open = await window.showConfirm({ title: T('settings.location_in_use_title'), message: data.error, okLabel: T('settings.location_in_use_open') });
+                    if (open) window.location.href = apiBase + '../../' + data.tool;
+                }
                 else toast(T('toast.error', { error: data.error }), 'error');
             } catch (e) { toast(T('settings.delete_location_failed'), 'error'); }
         }

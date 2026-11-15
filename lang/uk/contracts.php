@@ -105,6 +105,7 @@ return [
         'contract_value' => 'Вартість контракту',
         'payment_schedule' => 'Графік платежів',
         'cost_centre' => 'Центр витрат',
+        'location' => 'Розташування',
         'dms_link' => 'Посилання DMS',
         'section_terms' => 'Умови та захист даних',
         'terms' => 'Умови',

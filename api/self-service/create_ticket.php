@@ -200,6 +200,9 @@ try {
     ]);
 
     $ticketId = $conn->lastInsertId();
+    // GH #311: the requester's location, if Tickets -> Settings says so.
+    require_once __DIR__ . '/../../includes/record_locations.php';
+    ticketApplyRequesterLocation($conn, (int)$ticketId);
     ticketDepartmentNote($conn, (int) $ticketId, $departmentNote);
     if ($ticketTypePick) ticketTypeAutoRecord($conn, (int)$ticketId, $ticketTypePick);
 

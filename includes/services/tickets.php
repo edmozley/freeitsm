@@ -269,6 +269,16 @@ class TicketsService
             // ⚠️ $tenantId, not a guessed name. An isset() on a variable that
             // does not exist here would quietly pass null and put every company
             // on the same counter — working, but wrong, and invisible.
+            // GH #311: a location chosen by the caller (the API) - checked before anything is written.
+            require_once __DIR__ . '/../record_locations.php';
+            $chosenLocation = null;
+            if (array_key_exists('location_id', $in) && recordLocationReady($conn, 'tickets')) {
+                try {
+                    $chosenLocation = recordLocationCheck($conn, $tenantId, $in['location_id']);
+                } catch (InvalidArgumentException $e) {
+                    throw new ServiceError('validation', 'invalid_field', 'Unknown location.');
+                }
+            }
             $ticketNumber = TicketNumbering::next($conn, $typeId, $tenantId);
 
             $conn->prepare(
@@ -284,6 +294,13 @@ class TicketsService
                 $analystId, $analystId, $userId,
             ]);
             $ticketId = (int)$conn->lastInsertId();
+            // GH #311: the caller's location if one was given, else the requester's
+            // when Tickets -> Settings says so.
+            if ($chosenLocation !== null) {
+                $conn->prepare('UPDATE tickets SET location_id = ? WHERE id = ?')->execute([$chosenLocation, $ticketId]);
+            } else {
+                ticketApplyRequesterLocation($conn, (int)$ticketId);
+            }
 
             $bodyHtml    = nl2br(htmlspecialchars($description));
             $bodyPreview = substr(strip_tags($description), 0, 200);
@@ -715,6 +732,32 @@ class TicketsService
                 $updates[] = 'tenant_id = ?';
                 $args[]    = $newTenantId;
                 $audits[]  = ['Company', $current['company_name'], $target['name']];
+            }
+        }
+
+        // GH #311: the ticket's location - its company's own or a shared one. A
+        // move to another company drops a location the new company cannot use,
+        // as a cost centre is dropped.
+        require_once __DIR__ . '/../record_locations.php';
+        if (recordLocationReady($conn, 'tickets')) {
+            $locTenant = in_array('tenant_id = ?', $updates, true)
+                ? (int)$in['company_id']
+                : ($current['tenant_id'] !== null ? (int)$current['tenant_id'] : null);
+            $curLoc = !empty($current['location_id']) ? (int)$current['location_id'] : null;
+            $newLoc = $curLoc;
+            if (array_key_exists('location_id', $in)) {
+                try {
+                    $newLoc = recordLocationCheck($conn, $locTenant, $in['location_id']);
+                } catch (InvalidArgumentException $e) {
+                    throw new ServiceError('validation', 'invalid_field', 'Unknown location.');
+                }
+            } elseif (!recordLocationStillValid($conn, $locTenant, $curLoc)) {
+                $newLoc = null;
+            }
+            if ($newLoc !== $curLoc) {
+                $updates[] = 'location_id = ?';
+                $args[]    = $newLoc;
+                $audits[]  = ['Location', recordLocationPath($conn, $curLoc), recordLocationPath($conn, $newLoc)];
             }
         }
 

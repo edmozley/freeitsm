@@ -500,7 +500,7 @@ return [
         'name_save_failed' => 'Speichern fehlgeschlagen',
         'job_title' => 'Position',
         'job_title_placeholder' => 'z. B. Finanzleiter',
-        'office' => 'Standort',
+        'office' => 'Büro',
         'office_placeholder' => 'z. B. Leeds',
         'office_hint' => 'Der Standort oder das Gebäude, von dem aus Sie arbeiten.',
         'phone' => 'Telefon',

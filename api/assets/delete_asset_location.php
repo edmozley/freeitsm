@@ -7,6 +7,11 @@
  * delete only what this context owns — a company's own locations in its
  * context, the shared ones from the MSP/Default context. Assets pointing at the
  * deleted location have their location cleared (FK ON DELETE SET NULL).
+ *
+ * GH #311: REFUSED while people, tickets, contracts or projects point at it,
+ * with the counts and a link to System -> Maintenance -> Locations in use,
+ * which moves them all at once (Ed, 15 Nov 2026). Who may manage which
+ * location is recordLocationManageError(), shared with that tool.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -14,6 +19,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/asset_locations.php';
+require_once '../../includes/record_locations.php';
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -39,42 +45,31 @@ try {
     $conn = connectToDatabase();
     $analystId = (int)$_SESSION['analyst_id'];
 
-    $multi        = isMultiTenant($conn);
-    $activeId     = getActiveTenantId($conn, $analystId);
-    $defaultId    = getDefaultTenantId($conn);
-    $isDefaultCtx = (!$multi || $activeId === $defaultId);
-
-    $cur = $conn->prepare("SELECT tenant_id FROM asset_locations WHERE id = ?");
-    $cur->execute([$id]);
-    $row = $cur->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        throw new Exception('Location not found');
-    }
-    $owner = ($row['tenant_id'] === null) ? null : (int)$row['tenant_id'];
-    if ($multi && assetLocationIsShared($conn, $id)) {
-        // 2.6.0. Shared by every company, so deleting it clears it from every
-        // company's assets: only someone who can reach all of them may do that,
-        // from whichever company they happen to be in.
-        if (!analystHasAllTenantAccess($conn, $analystId)) {
-            throw new Exception('That location is shared by every company. Only someone with access to every company can delete it.');
-        }
-    } elseif ($isDefaultCtx) {
-        if ($owner !== null) {
-            throw new Exception("That's a company's own location — switch to that company to delete it.");
-        }
-    } else {
-        if ($owner === null) {
-            throw new Exception('That location belongs to the Default company — switch to it to manage that location.');
-        }
-        if ($owner !== $activeId) {
-            throw new Exception('That location belongs to another company.');
-        }
+    // Who may delete which location - one rule, shared with System -> Maintenance ->
+    // Locations in use (includes/record_locations.php).
+    $reason = recordLocationManageError($conn, $analystId, $id);
+    if ($reason !== null) {
+        throw new Exception($reason);
     }
 
     $childStmt = $conn->prepare("SELECT COUNT(*) FROM asset_locations WHERE parent_id = ?");
     $childStmt->execute([$id]);
     if ((int)$childStmt->fetchColumn() > 0) {
         throw new Exception('This location has sub-locations. Delete or move them first.');
+    }
+
+    // GH #311: never while something points at it - the tool moves them all.
+    $usage = array_filter(recordLocationUsage($conn, $id));
+    if ($usage) {
+        $parts = [];
+        foreach ($usage as $kind => $n) $parts[] = $n . ' ' . $kind;
+        echo json_encode([
+            'success' => false,
+            'error'   => 'This location is in use (' . implode(', ', $parts) . '). Move them to another location first.',
+            'in_use'  => $usage,
+            'tool'    => 'system/locations-in-use/?id=' . $id,
+        ]);
+        exit;
     }
 
     $name = $conn->query("SELECT name FROM asset_locations WHERE id = " . (int)$id)->fetchColumn() ?: null;

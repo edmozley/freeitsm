@@ -3939,6 +3939,12 @@ try {
     foreach ([
         ['asset_locations', 'fk_asset_locations_parent', "ALTER TABLE asset_locations ADD CONSTRAINT fk_asset_locations_parent FOREIGN KEY (parent_id) REFERENCES asset_locations (id)"],
         ['assets', 'fk_assets_location', "ALTER TABLE assets ADD CONSTRAINT fk_assets_location FOREIGN KEY (location_id) REFERENCES asset_locations (id) ON DELETE SET NULL"],
+        // GH #311: a location on people, tickets, contracts and projects. SET NULL is only the
+        // backstop - deleting a location in use is refused (api/assets/delete_asset_location.php).
+        ['users',     'fk_users_location',     "ALTER TABLE users ADD CONSTRAINT fk_users_location FOREIGN KEY (location_id) REFERENCES asset_locations (id) ON DELETE SET NULL"],
+        ['tickets',   'fk_tickets_location',   "ALTER TABLE tickets ADD CONSTRAINT fk_tickets_location FOREIGN KEY (location_id) REFERENCES asset_locations (id) ON DELETE SET NULL"],
+        ['contracts', 'fk_contracts_location', "ALTER TABLE contracts ADD CONSTRAINT fk_contracts_location FOREIGN KEY (location_id) REFERENCES asset_locations (id) ON DELETE SET NULL"],
+        ['projects',  'fk_projects_location',  "ALTER TABLE projects ADD CONSTRAINT fk_projects_location FOREIGN KEY (location_id) REFERENCES asset_locations (id) ON DELETE SET NULL"],
         ['assets', 'fk_assets_supplier', "ALTER TABLE assets ADD CONSTRAINT fk_assets_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE SET NULL"],
         ['asset_checkout_log', 'fk_acl_asset', "ALTER TABLE asset_checkout_log ADD CONSTRAINT fk_acl_asset FOREIGN KEY (asset_id) REFERENCES assets (id) ON DELETE CASCADE"],
     ] as [$tbl, $name, $sql]) {

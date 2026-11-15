@@ -413,6 +413,14 @@ $contract_id = $_GET['id'] ?? null;
                             <small class="party-hint" id="costCentreLegacy" hidden></small>
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="locationId"><?php echo htmlspecialchars(t('contracts.detail.location')); ?></label>
+                            <!-- GH #311: the site it covers - one of the contract's company's
+                                 locations or a shared one (System -> Locations). -->
+                            <select id="locationId"><option value=""></option></select>
+                        </div>
+                    </div>
 
                     <div class="form-section"><?php echo htmlspecialchars(t('contracts.edit.section_documents')); ?></div>
                     <div class="form-group">
@@ -530,8 +538,10 @@ $contract_id = $_GET['id'] ?? null;
             ]);
             if (contractId) await loadContract();
             await loadCostCentres();
-            // A different company means a different list of cost centres.
+            await loadLocations();
+            // A different company means a different list of cost centres and locations.
             document.getElementById('ownerTenantId').addEventListener('change', loadCostCentres);
+            document.getElementById('ownerTenantId').addEventListener('change', loadLocations);
 
             buildTermEditors();
             initTermEditors(() => {
@@ -598,6 +608,24 @@ $contract_id = $_GET['id'] ?? null;
                 sel.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.none')) + ' --</option>'
                     + d.cost_centres.map(c => `<option value="${c.id}">${escapeHtml(c.code + ' ' + c.name)}${c.is_active ? '' : ' (' + escapeHtml(window.t('contracts.edit.cost_centre_inactive')) + ')'}</option>`).join('');
                 sel.value = d.cost_centres.some(c => String(c.id) === String(keep)) ? String(keep) : '';
+            } catch (e) { /* the box keeps what it had */ }
+        }
+
+        // ── Location (GH #311) ──────────────────────────────────────────
+        // The contract's company's locations and the shared ones; a choice the
+        // new company cannot use (after changing company) falls back to none.
+        let contractLocationId = null, contractLocationPath = null;
+        async function loadLocations() {
+            const sel = document.getElementById('locationId');
+            const keep = sel.value || contractLocationId || '';
+            const company = multiCompany ? document.getElementById('ownerTenantId').value : '';
+            try {
+                const r = await fetch('../api/locations/options.php?' + new URLSearchParams({ company_id: company || '' }), { credentials: 'same-origin' });
+                const d = await r.json();
+                if (!d.success) return;
+                sel.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.none')) + ' --</option>'
+                    + d.locations.map(l => `<option value="${l.id}">${escapeHtml(l.path)}</option>`).join('');
+                sel.value = d.locations.some(l => String(l.id) === String(keep)) ? String(keep) : '';
             } catch (e) { /* the box keeps what it had */ }
         }
 
@@ -748,6 +776,8 @@ $contract_id = $_GET['id'] ?? null;
                     populateCurrencies(c.currency || '');
                     document.getElementById('paymentScheduleId').value = c.payment_schedule_id || '';
                     contractCostCentreId = c.cost_centre_id || null;
+                    contractLocationId = c.location_id || null;
+                    contractLocationPath = c.location_path || null;
                     // Typed in before 3.5.0 and matching no cost centre code: shown, so it
                     // is not lost, until somebody chooses a real one.
                     const legacy = document.getElementById('costCentreLegacy');
@@ -788,6 +818,7 @@ $contract_id = $_GET['id'] ?? null;
                 currency: document.getElementById('currency').value || null,
                 payment_schedule_id: document.getElementById('paymentScheduleId').value || null,
                 cost_centre_id: document.getElementById('costCentreId').value || null,
+                location_id: document.getElementById('locationId').value || null,
                 dms_link: document.getElementById('dmsLink').value.trim(),
                 terms_status: document.getElementById('termsStatus').value || null,
                 personal_data_transferred: document.getElementById('personalDataTransferred').checked ? 1 : 0,
