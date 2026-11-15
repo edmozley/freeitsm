@@ -1,4 +1,14 @@
 <?php
+/**
+ * FreeITSM — files strings (es).
+ *
+ * Keys mirror lang/en/files.php exactly. A key absent here falls back to
+ * English at runtime, so this file may be incomplete without breaking
+ * anything. Check coverage with: php scripts/i18n_audit.php es
+ *
+ * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
+ * tokens substitute BY POSITION, so their order must match English.
+ */
 
 return [
     'app' => [
@@ -6,6 +16,7 @@ return [
         'help' => 'Ayuda',
         'personalise' => 'Personalizar',
         'recent' => 'Recientes',
+        'recycle' => 'Papelera de reciclaje',
         'search' => 'Buscar',
         'settings' => 'Configuración',
         'transfers' => 'Transferencias',
@@ -42,6 +53,8 @@ return [
         'del_file_q' => '¿Eliminar "{name}"?',
         'del_folder_q' => '¿Eliminar la carpeta "{name}" y todo lo que contiene?',
         'del_many_q' => '¿Eliminar estos {n} elementos?',
+        'del_note' => 'Va a la papelera de reciclaje, desde donde se puede restaurar.',
+        'del_note_days' => 'Va a la papelera de reciclaje, desde donde se puede restaurar hasta que se elimine permanentemente (días de conservación: {days}).',
         'delete' => 'Eliminar',
         'download' => 'Descargar',
         'empty_folder' => 'Esta carpeta está vacía.',
@@ -143,6 +156,33 @@ return [
         'versions' => 'Versiones',
         'your_access' => 'Su acceso',
     ],
+    'rb' => [
+        'col_by' => 'Eliminado por',
+        'col_deleted' => 'Fecha de eliminación',
+        'col_location' => 'Ubicación original',
+        'empty' => 'Vaciar',
+        'empty_title' => 'Vaciar la papelera de reciclaje',
+        'empty_bin' => 'La papelera de reciclaje está vacía.',
+        'empty_failed' => 'No se pudieron eliminar permanentemente algunos elementos (Elementos: {n}). Siguen en la papelera de reciclaje.',
+        'empty_q' => '¿Eliminar permanentemente todo el contenido de la papelera de reciclaje? (Elementos: {n})',
+        'empty_some' => 'Los elementos que puede ver pero no modificar se quedan en la papelera.',
+        'files_inside' => 'Archivos dentro: {n}',
+        'look_inside' => 'Ver contenido',
+        'loc_rescue' => 'Eliminada junto con una carpeta superior',
+        'note_days' => 'Los elementos se eliminan permanentemente cuando llevan aquí más tiempo que el periodo de conservación (días de conservación: {days}).',
+        'note_forever' => 'Los elementos permanecen aquí hasta que alguien los restaure o los elimine permanentemente.',
+        'peek_note' => 'Esta carpeta está en la papelera de reciclaje. Restáurela para abrir estos archivos.',
+        'purge' => 'Eliminar permanentemente',
+        'purge_file_q' => '¿Eliminar permanentemente "{name}"?',
+        'purge_folder_q' => '¿Eliminar permanentemente la carpeta "{name}" y todo lo que contiene?',
+        'purge_many_q' => '¿Eliminar permanentemente estos {n} elementos?',
+        'purge_note' => 'Esta acción no se puede deshacer. También se eliminan los archivos almacenados.',
+        'purge_on' => 'Eliminado permanentemente el {date}',
+        'restore' => 'Restaurar',
+        'restore_folder' => 'Restaurar "{name}"',
+        'restored_as' => '"{name}" se restauró como "{new}" porque ese nombre ya estaba en uso.',
+        'rescue_tip' => 'Esta carpeta pasó a la papelera de reciclaje junto con una carpeta superior a la que usted no tiene acceso. Al restaurarla, vuelve sola y con las mismas personas que podían abrirla.',
+    ],
     'sc' => [
         'article' => 'Acceso directo a artículo...',
         'article_none' => 'Ningún artículo coincide.',
@@ -174,6 +214,19 @@ return [
         'storage_free' => '{size} libres en ese disco.',
         'storage_now' => 'Los archivos se almacenan en',
         'storage_usage' => '{n} archivos almacenados, {size} en total.',
+        'storage_in_bin' => 'En la papelera de reciclaje (se libera al vaciarla): {n}, {size}.',
+        'recycle_title' => 'Papelera de reciclaje',
+        'recycle_days' => 'Conservar los elementos eliminados durante',
+        'recycle_days_desc' => 'Los archivos y carpetas eliminados permanecen en la papelera de reciclaje este tiempo y después se eliminan permanentemente, junto con sus archivos almacenados. Con 0 se conservan hasta que alguien los elimine.',
+        'recycle_days_unit' => 'días',
+        'recycle_not_set' => 'Aún sin guardar: no se elimina nada automáticamente hasta que guarde. Lo que ya esté en la papelera de reciclaje recibirá entonces el periodo completo, contado desde el día en que guarde.',
+        'recycle_usage' => 'Elementos en la papelera de reciclaje: {n} (ocupan {size} de almacenamiento).',
+        'recycle_off' => 'No se elimina nada automáticamente hasta que se guarde este ajuste.',
+        'recycle_forever' => 'Los elementos eliminados se conservan hasta que alguien los elimine permanentemente.',
+        'recycle_pending' => 'Archivos almacenados pendientes de eliminar porque no se pudo acceder al almacenamiento: {n}.',
+        'recycle_pending_unknown' => 'Archivos almacenados pendientes de eliminar: se desconoce hasta que se ejecute la verificación de la base de datos.',
+        'recycle_held' => 'Carpetas eliminadas conservadas más allá de este periodo porque quien las eliminó no podía eliminar todo lo que contienen: {n}. Un administrador puede verlas en Sistema -> Mantenimiento -> Carpetas eliminadas conservadas.',
+        'recycle_due_confirm' => 'Los elementos que lleven en la papelera de reciclaje más tiempo que este se eliminarán permanentemente en el plazo de una hora, junto con sus archivos almacenados (Elementos: {n}). ¿Continuar?',
         'take' => 'Tomar posesión',
         'take_confirm' => '¿Darse a sí mismo Control total sobre "{path}"? Podrá abrir todos los archivos que contiene. Esto queda registrado en el registro de auditoría con su nombre.',
         'take_ok' => 'Tomar',
@@ -219,6 +272,7 @@ return [
         'keep_versions_default' => 'Predeterminado: todas las versiones.',
         'keep_all' => 'Todas las versiones',
         'keep_n' => 'Las {n} más recientes',
+        'tab_recycle' => 'Papelera de reciclaje',
         'no_tabs_title' => 'Nada que configurar aquí',
         'no_tabs_body' => 'No tiene permiso para cambiar ningún ajuste de Archivos. Un administrador puede concedérselo en Sistema -> Roles.',
         'folders_title' => 'Todas las carpetas',
@@ -398,6 +452,7 @@ return [
             'p1' => 'La ventana Documentos muestra sus carpetas a la izquierda y la carpeta abierta a la derecha. Cambie entre **Iconos** y **Detalles** con los botones a la derecha de la barra de herramientas; en Detalles, haga clic en el encabezado de una columna para ordenar por ella.',
             'p2' => 'Escriba en el cuadro de filtro (arriba a la derecha, o Ctrl+F) para reducir la carpeta abierta a los nombres que contengan lo escrito. * y ? funcionan como comodines sobre todo el nombre, así que `*.pdf` muestra solo los PDF.',
             'p3' => 'Haga clic con el botón derecho en cualquier elemento para ver lo que puede hacer con él. Haga clic para seleccionar, Ctrl+clic para añadir a la selección, Mayús+clic para un intervalo, o arrastre un recuadro alrededor de varios.',
+            'p4' => 'Cortar, Copiar y Pegar funcionan como en Windows (Ctrl+X, Ctrl+C, Ctrl+V), y también arrastrar: arrastre archivos, carpetas y accesos directos a una carpeta (en cualquier ventana, en el árbol de carpetas o en la barra de direcciones) para moverlos, y mantenga pulsada Ctrl para copiarlos. Arrastre un archivo o una carpeta al escritorio para dejar allí un acceso directo a él (en el escritorio en sí no se guarda nada), y arrastre un acceso directo del escritorio a una carpeta para moverlo allí. F2 renombra, Supr elimina. Los elementos eliminados van a la papelera de reciclaje (consulte Papelera de reciclaje).',
             'p5' => '"Documentos", en la parte superior, muestra todas las carpetas que se han compartido con usted. Si le dieron una carpeta situada dentro de la de otra persona, aparece aquí por sí sola con su ruta completa como pista - no ve las carpetas que la contienen.',
             'p6' => 'Haga doble clic en un archivo para abrirlo en el visor (vea Ver archivos). Haga clic con el botón derecho para Descargar, Propiedades y el resto.',
             'p7' => 'Haga clic con el botón derecho en un archivo o carpeta y elija **Crear acceso directo** para poner un acceso directo **en esta carpeta** (a su lado, para todos los que puedan abrir la carpeta) o **en el escritorio** (solo en su propio escritorio). Un acceso directo abre aquello a lo que apunta, pero no da acceso a nadie: quien no pueda ver el destino tampoco ve el acceso directo. Eliminar un acceso directo no afecta al original. Para enlazar a un artículo de Conocimiento, haga clic con el botón derecho en un espacio vacío de una carpeta (o del escritorio) y elija **Acceso directo a artículo...**; al hacer doble clic en él se muestra el artículo en una ventana de vista previa, con **Abrir en Conocimiento** para ir al propio artículo, y solo las personas que pueden leer ese artículo ven el acceso directo.',
@@ -463,6 +518,7 @@ return [
             'p4' => 'Una carpeta a la que no tiene acceso no aparece en ninguna parte - ni en Documentos, ni en Buscar, ni en sus archivos recientes.',
             'p5' => 'Quien crea una carpeta de nivel superior obtiene automáticamente Control total sobre ella, para no quedarse fuera de lo que acaba de crear. Crear carpetas de nivel superior es en sí un permiso, que se concede en Sistema -> Roles.',
             'p6' => 'No existen entradas de "denegar": el acceso solo se concede. Para dejar a alguien fuera de una subcarpeta, haga que deje de heredar (vea la sección siguiente).',
+            'p7' => 'Eliminar o mover una carpeta arrastra consigo todo lo que contiene, así que hace falta Modificar en la carpeta **y en todas las carpetas que contiene**, a cualquier profundidad, como en Windows. Si algo de su interior se le oculta, se le dice que no puede, sin indicarle su nombre; consulte a quien gestiona la carpeta. Un administrador puede ver exactamente qué lo impide en Sistema -> Herramientas de depuración -> D020.',
         ],
         'inheritance' => [
             'nav' => 'Herencia',
@@ -472,6 +528,18 @@ return [
             'p2' => 'Desmarque **Incluir permisos de la carpeta superior** para que una carpeta deje de heredar. Se le pregunta si desea **Copiar** las entradas heredadas como propias de la carpeta (un punto de partida que puede recortar después) o **Quitarlas** (solo quedan las entradas propias de la carpeta).',
             'p3' => 'Mover una carpeta que hereda cambia lo que hereda - pasa a recibir los permisos de su nueva carpeta superior. El movimiento queda registrado en el registro de auditoría.',
             'p4' => 'Las copias siempre heredan del lugar donde aterrizan, y copiar nunca trae consigo nada que usted mismo no pudiera descargar.',
+        ],
+        'recycle' => [
+            'nav' => 'Papelera de reciclaje',
+            'title' => 'La papelera de reciclaje',
+            'intro' => 'Archivos y carpetas eliminados, hasta que se restauran o se eliminan definitivamente.',
+            'p1' => 'Al eliminar un archivo o una carpeta, pasa a la **Papelera de reciclaje** del escritorio. Una carpeta eliminada es una única entrada que contiene todo lo que había en ella. La papelera muestra lo que usted podía ver antes de que se eliminara (dónde estaba, cuándo y quién lo eliminó) y nada de las carpetas que no puede abrir.',
+            'p2' => '**Restaurar** lo devuelve a donde estaba. Si ahora hay allí algo con el mismo nombre, vuelve como "Nombre (2)". Si la carpeta en la que estaba también está en la papelera, se le pide que restaure primero esa carpeta. Haga doble clic en una carpeta eliminada para ver su contenido antes de restaurarla.',
+            'p3' => '**Eliminar permanentemente** (o **Vaciar**) lo elimina definitivamente, incluido el archivo almacenado; esta acción no se puede deshacer. Restaurar requiere Modificar en la carpeta, igual que eliminar. Eliminar permanentemente una carpeta también requiere Modificar en todas las carpetas que contiene, para que nadie pueda destruir archivos que no podía ver; Ver contenido muestra solo las carpetas que usted puede ver. Una copia comparte su archivo almacenado con el original, por lo que ese archivo solo se elimina cuando ya nada lo usa.',
+            'p4' => 'Archivos -> Configuración -> Papelera de reciclaje define cuánto tiempo se conservan los elementos eliminados antes de que la tarea en segundo plano de la papelera de reciclaje de Archivos los elimine permanentemente (con 0 se conservan hasta que alguien lo haga). No se elimina nada automáticamente hasta que se haya guardado ese ajuste, y lo que ya esté en la papelera recibe entonces el periodo completo, contado desde el día en que se guarda. Al cambiar el periodo más adelante, se indica primero cuántos elementos son ya más antiguos que el nuevo. Cuando se restaura una carpeta, lo que se eliminó antes dentro de ella empieza de nuevo su tiempo en la papelera. Las restauraciones y las eliminaciones permanentes quedan registradas en el registro de auditoría.',
+            'p5' => 'Eliminar permanentemente también elimina todas las versiones del archivo. Un enlace al archivo desde un ticket, una tarea o cualquier otro registro indica que el archivo se ha eliminado mientras está en la papelera, y vuelve a funcionar cuando se restaura; tras una eliminación permanente, el enlace permanece en el registro, de modo que sigue mostrando que allí había algo, pero ya nunca se podrá abrir.',
+            'p6' => 'Si una carpeta suya pasó a la papelera junto con una carpeta superior que usted no puede abrir, aparece sola en su papelera como **Eliminada junto con una carpeta superior**, sin el nombre de la otra carpeta. **Restaurar** la devuelve por sí sola a donde estaba esa carpeta, y pueden abrirla exactamente las mismas personas que antes.',
+            'p7' => 'La tarea en segundo plano nunca elimina una carpeta que contenga algo que quien la eliminó no habría podido eliminar por sí mismo. Esa carpeta permanece en la papelera más allá de su fecha, y un administrador la ve en Sistema -> Mantenimiento -> Carpetas eliminadas conservadas, con lo que hay que hacer.',
         ],
         'audit' => [
             'nav' => 'Registro de auditoría',

@@ -201,6 +201,8 @@ return [
         'affects_report_downloads_tidy' => 'Los informes de enlaces de descarga caducados o revocados permanecen en el disco',
         'name_storage_migrate' => 'Traslado del almacenamiento de Archivos',
         'affects_storage_migrate' => 'Copia de archivos a una nueva ubicación de almacenamiento (los archivos aún no copiados se leen de la antigua)',
+        'name_files_recycle_purge' => 'Papelera de reciclaje de Archivos',
+        'affects_files_recycle_purge' => 'Eliminación definitiva de archivos cuando llevan en la papelera de reciclaje más tiempo que el periodo de conservación',
         'name_lms_reminders' => 'Recordatorios de formación',
         'affects_lms_reminders' => 'Correos de recordatorio del LMS',
         'name_virt_watch' => 'Vigilancia de recopiladores de Hyper-V',

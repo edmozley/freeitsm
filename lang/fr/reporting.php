@@ -201,6 +201,8 @@ return [
         'affects_report_downloads_tidy' => 'Les rapports derrière des liens de téléchargement expirés ou révoqués restent sur le disque',
         'name_storage_migrate' => 'Déplacement du stockage de Fichiers',
         'affects_storage_migrate' => 'Copie des fichiers vers un nouvel emplacement de stockage (les fichiers pas encore copiés sont lus depuis l\'ancien)',
+        'name_files_recycle_purge' => 'Corbeille de Fichiers',
+        'affects_files_recycle_purge' => 'Suppression définitive des fichiers une fois qu\'ils sont dans la corbeille depuis plus longtemps que la durée de conservation',
         'name_lms_reminders' => 'Rappels de formation',
         'affects_lms_reminders' => 'E-mails de rappel du LMS',
         'name_virt_watch' => 'Surveillance des collecteurs Hyper-V',

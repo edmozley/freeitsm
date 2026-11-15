@@ -1,4 +1,14 @@
 <?php
+/**
+ * FreeITSM — files strings (da).
+ *
+ * Keys mirror lang/en/files.php exactly. A key absent here falls back to
+ * English at runtime, so this file may be incomplete without breaking
+ * anything. Check coverage with: php scripts/i18n_audit.php da
+ *
+ * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
+ * tokens substitute BY POSITION, so their order must match English.
+ */
 
 return [
     'app' => [
@@ -6,6 +16,7 @@ return [
         'help' => 'Hjælp',
         'personalise' => 'Tilpas',
         'recent' => 'Seneste',
+        'recycle' => 'Papirkurv',
         'search' => 'Søg',
         'settings' => 'Indstillinger',
         'transfers' => 'Overførsler',
@@ -42,6 +53,8 @@ return [
         'del_file_q' => 'Slet "{name}"?',
         'del_folder_q' => 'Slet mappen "{name}" og alt i den?',
         'del_many_q' => 'Slet disse {n} elementer?',
+        'del_note' => 'Den lægges i papirkurven, hvor den kan gendannes.',
+        'del_note_days' => 'Den lægges i papirkurven, hvor den kan gendannes, indtil den slettes permanent (dage gemt: {days}).',
         'delete' => 'Slet',
         'download' => 'Download',
         'empty_folder' => 'Denne mappe er tom.',
@@ -143,6 +156,33 @@ return [
         'versions' => 'Versioner',
         'your_access' => 'Din adgang',
     ],
+    'rb' => [
+        'col_by' => 'Slettet af',
+        'col_deleted' => 'Slettet den',
+        'col_location' => 'Oprindelig placering',
+        'empty' => 'Tøm',
+        'empty_title' => 'Tøm papirkurven',
+        'empty_bin' => 'Papirkurven er tom.',
+        'empty_failed' => 'Nogle elementer kunne ikke slettes permanent (Elementer: {n}). De ligger stadig i papirkurven.',
+        'empty_q' => 'Slet alt i papirkurven permanent? (Elementer: {n})',
+        'empty_some' => 'Elementer, du kan se, men ikke ændre, bliver i papirkurven.',
+        'files_inside' => 'Filer indeni: {n}',
+        'look_inside' => 'Kig indeni',
+        'loc_rescue' => 'Slettet sammen med en mappe over den',
+        'note_days' => 'Elementer slettes permanent, når de har ligget her længere end opbevaringsperioden (dage gemt: {days}).',
+        'note_forever' => 'Elementer bliver her, indtil nogen gendanner dem eller sletter dem permanent.',
+        'peek_note' => 'Denne mappe ligger i papirkurven. Gendan den for at åbne disse filer.',
+        'purge' => 'Slet permanent',
+        'purge_file_q' => 'Slet "{name}" permanent?',
+        'purge_folder_q' => 'Slet mappen "{name}" og alt i den permanent?',
+        'purge_many_q' => 'Slet disse {n} elementer permanent?',
+        'purge_note' => 'Dette kan ikke fortrydes. De gemte filer fjernes også.',
+        'purge_on' => 'Slettet permanent den {date}',
+        'restore' => 'Gendan',
+        'restore_folder' => 'Gendan "{name}"',
+        'restored_as' => '"{name}" blev gendannet som "{new}" - navnet var optaget.',
+        'rescue_tip' => 'Denne mappe kom i papirkurven sammen med en mappe over den, som du ikke har adgang til. Gendan henter den tilbage alene, så de samme personer kan åbne den.',
+    ],
     'sc' => [
         'article' => 'Genvej til artikel...',
         'article_none' => 'Ingen artikler matcher.',
@@ -174,6 +214,19 @@ return [
         'storage_free' => '{size} ledig på den disk.',
         'storage_now' => 'Filer er gemt i',
         'storage_usage' => '{n} gemte filer, {size} i alt.',
+        'storage_in_bin' => 'I papirkurven (frigives, når den tømmes): {n}, {size}.',
+        'recycle_title' => 'Papirkurv',
+        'recycle_days' => 'Gem slettede elementer i',
+        'recycle_days_desc' => 'Slettede filer og mapper bliver så længe i papirkurven og slettes derefter permanent sammen med deres gemte filer. 0 beholder dem, indtil nogen sletter dem.',
+        'recycle_days_unit' => 'dage',
+        'recycle_not_set' => 'Ikke gemt endnu: intet slettes automatisk, før du gemmer. Alt, der allerede ligger i papirkurven, får så hele perioden, regnet fra den dag, du gemmer.',
+        'recycle_usage' => 'Elementer i papirkurven: {n} (bruger {size} lager).',
+        'recycle_off' => 'Intet slettes automatisk, før denne indstilling er gemt.',
+        'recycle_forever' => 'Slettede elementer gemmes, indtil nogen sletter dem permanent.',
+        'recycle_pending' => 'Gemte filer, der venter på at blive fjernet, fordi lageret ikke kunne nås: {n}.',
+        'recycle_pending_unknown' => 'Gemte filer, der venter på at blive fjernet: ukendt, indtil Databaseverifikation er kørt.',
+        'recycle_held' => 'Slettede mapper, der er gemt ud over denne periode, fordi den, der slettede dem, ikke kunne slette alt i dem: {n}. En administrator kan se dem under System -> Vedligeholdelse -> Slettede mapper gemt.',
+        'recycle_due_confirm' => 'Elementer, der allerede har ligget i papirkurven længere end dette, slettes permanent inden for en time sammen med deres gemte filer (Elementer: {n}). Fortsæt?',
         'take' => 'Overtag ejerskab',
         'take_confirm' => 'Giv dig selv Fuld kontrol over "{path}"? Du vil kunne åbne hver fil i den. Det registreres i revisionssporet med dit navn.',
         'take_ok' => 'Overtag',
@@ -219,6 +272,7 @@ return [
         'keep_versions_default' => 'Standard: alle versioner.',
         'keep_all' => 'Alle versioner',
         'keep_n' => 'De nyeste {n}',
+        'tab_recycle' => 'Papirkurv',
         'no_tabs_title' => 'Intet at indstille her',
         'no_tabs_body' => 'Du har ikke tilladelse til at ændre nogen indstillinger for Filer. En administrator kan give den under System -> Roller.',
         'folders_title' => 'Alle mapper',
@@ -398,6 +452,7 @@ return [
             'p1' => 'Vinduet Dokumenter viser dine mapper til venstre og den åbne mappe til højre. Skift mellem **Ikoner** og **Detaljer** med knapperne til højre i værktøjslinjen; i Detaljer kan du klikke på en kolonneoverskrift for at sortere efter den.',
             'p2' => 'Skriv i filterfeltet (øverst til højre, eller Ctrl+F) for at indsnævre den åbne mappe til navne, der indeholder det, du skrev. * og ? virker som jokertegn over hele navnet, så `*.pdf` kun viser PDF-filer.',
             'p3' => 'Højreklik på noget for at se, hvad du kan gøre med det. Klik for at markere, Ctrl+klik for at føje til markeringen, Shift+klik for et interval, eller træk en boks rundt om flere.',
+            'p4' => 'Klip, Kopiér og Indsæt fungerer som i Windows (Ctrl+X, Ctrl+C, Ctrl+V), og det gør træk og slip også: træk filer, mapper og genveje hen på en mappe (i et vilkårligt vindue, mappetræet eller adresselinjen) for at flytte dem, og hold Ctrl nede for at kopiere. Træk en fil eller mappe hen på skrivebordet for at lægge en genvej til den der - der gemmes intet på selve skrivebordet - og træk en genvej fra skrivebordet ind i en mappe for at flytte den dertil. F2 omdøber, Delete sletter. Slettede elementer lægges i papirkurven (se Papirkurv).',
             'p5' => '"Dokumenter" øverst viser alle mapper, der er delt med dig. Hvis du fik en mappe dybt inde i en andens, vises den her for sig selv med hele stien som hint - du ser ikke mapperne over den.',
             'p6' => 'Dobbeltklik på en fil for at åbne den i fremviseren (se Vis filer). Højreklik på den for Download, Egenskaber og resten.',
             'p7' => 'Højreklik på en fil eller mappe og vælg **Opret genvej** for at lægge en genvej til den **i denne mappe** (ved siden af, for alle der kan åbne mappen) eller **på skrivebordet** (kun på dit eget skrivebord). En genvej åbner det, den peger på, men giver ingen adgang: den, der ikke kan se målet, ser heller aldrig genvejen. Sletning af en genvej lader originalen være. For at linke til en Videnartikel skal du højreklikke på tomt område i en mappe (eller på skrivebordet) og vælge **Genvej til artikel...**; et dobbeltklik på den viser artiklen i et forhåndsvisningsvindue med **Åbn i Viden** for at gå til selve artiklen, og kun personer, der kan læse artiklen, ser genvejen.',
@@ -463,6 +518,7 @@ return [
             'p4' => 'En mappe, du ikke har adgang til, vises ingen steder - ikke i Dokumenter, ikke i Søg, ikke blandt dine seneste filer.',
             'p5' => 'Den, der opretter en mappe på øverste niveau, får automatisk Fuld kontrol over den, så vedkommende ikke bliver låst ude fra det, der lige er lavet. At oprette mapper på øverste niveau er i sig selv en rettighed, givet under System -> Roller.',
             'p6' => 'Der er ingen "afvis"-poster: adgang bliver kun givet. For at holde nogen ude af en undermappe skal du stoppe arven (se næste afsnit).',
+            'p7' => 'Når en mappe slettes eller flyttes, tages alt i den med, så det kræver Ændre på mappen **og på hver mappe i den**, uanset hvor dybt - som i Windows. Hvis noget indeni er holdt skjult for dig, får du besked om, at du ikke kan, uden at få navnet at vide; spørg den, der administrerer mappen. En administrator kan se præcis, hvad der står i vejen, med System -> Fejlsøgningsværktøjer -> D020.',
         ],
         'inheritance' => [
             'nav' => 'Nedarvning',
@@ -472,6 +528,18 @@ return [
             'p2' => 'Fjern markeringen i **Inkludér rettigheder fra den overordnede mappe** for at stoppe nedarvningen. Du bliver spurgt, om du vil **Kopiere** de nedarvede poster ind som mappens egne (et udgangspunkt, du derefter kan trimme) eller **Fjerne** dem (kun mappens egne poster er tilbage).',
             'p3' => 'Flytning af en mappe, der nedarver, ændrer hvad den nedarver - den får nu sin nye overordnede mappes rettigheder. Flytningen registreres i revisionssporet.',
             'p4' => 'Kopier nedarver altid fra det sted, de lander, og kopiering medbringer aldrig noget, du ikke selv kunne downloade.',
+        ],
+        'recycle' => [
+            'nav' => 'Papirkurv',
+            'title' => 'Papirkurven',
+            'intro' => 'Slettede filer og mapper, indtil de gendannes eller slettes for altid.',
+            'p1' => 'Når du sletter en fil eller mappe, flyttes den til **Papirkurv** på skrivebordet. En slettet mappe er ét element, der rummer alt, hvad der var i den. Papirkurven viser det, du kunne se, før det blev slettet - hvor det lå, hvornår, og hvem der slettede det - og intet fra mapper, du ikke kan åbne.',
+            'p2' => '**Gendan** lægger det tilbage, hvor det var. Hvis der nu ligger noget med samme navn, kommer det tilbage som "Navn (2)". Hvis den mappe, det lå i, også er i papirkurven, bliver du bedt om at gendanne den mappe først. Dobbeltklik på en slettet mappe for at kigge indeni, før du gendanner den.',
+            'p3' => '**Slet permanent** (eller **Tøm**) fjerner det for altid, også den gemte fil - dette kan ikke fortrydes. Gendannelse kræver Ændre på mappen, ligesom sletning. Permanent sletning af en mappe kræver også Ændre på hver mappe i den, så ingen kan ødelægge filer, de ikke kunne se; Kig indeni viser kun de mapper, du kan se. En kopi deler sin gemte fil med originalen, så filen først fjernes, når intet bruger den længere.',
+            'p4' => 'Under Filer -> Indstillinger -> Papirkurv angiver du, hvor længe slettede elementer gemmes, før baggrundsjobbet Filer papirkurv sletter dem permanent (0 beholder dem, indtil nogen sletter dem). Intet slettes automatisk, før denne indstilling er gemt, og alt, der allerede ligger i papirkurven, får så hele perioden, regnet fra den dag, den gemmes. Hvis du senere ændrer perioden, får du først at vide, hvor mange elementer der allerede er ældre end den nye. Når en mappe gendannes, begynder alt, der tidligere blev slettet i den, påny sin tid i papirkurven. Gendannelser og permanente sletninger registreres i revisionssporet.',
+            'p5' => 'Permanent sletning fjerner også alle versioner af filen. Et link til filen fra en sag, en opgave eller en anden post fortæller, at filen er slettet, mens den ligger i papirkurven, og virker igen, når den er gendannet; efter en permanent sletning bliver linket på posten, så det stadig viser, at der var noget, men det kan aldrig åbnes.',
+            'p6' => 'Hvis en mappe, du har adgang til, kom i papirkurven sammen med en mappe over den, som du ikke kan åbne, vises den alene i din papirkurv som **Slettet sammen med en mappe over den** - uden den anden mappes navn. **Gendan** henter den tilbage alene, til der hvor den mappe lå, og præcis de samme personer kan åbne den som før.',
+            'p7' => 'Baggrundsjobbet sletter aldrig en mappe, der indeholder noget, som den, der slettede den, ikke selv kunne have slettet. En sådan mappe bliver i papirkurven efter sin dato, og en administrator ser den under System -> Vedligeholdelse -> Slettede mapper gemt, med oplysning om, hvad der kan gøres.',
         ],
         'audit' => [
             'nav' => 'Revisionsspor',

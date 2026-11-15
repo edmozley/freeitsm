@@ -1,4 +1,14 @@
 <?php
+/**
+ * FreeITSM — files strings (de).
+ *
+ * Keys mirror lang/en/files.php exactly. A key absent here falls back to
+ * English at runtime, so this file may be incomplete without breaking
+ * anything. Check coverage with: php scripts/i18n_audit.php de
+ *
+ * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
+ * tokens substitute BY POSITION, so their order must match English.
+ */
 
 return [
     'app' => [
@@ -6,6 +16,7 @@ return [
         'help' => 'Hilfe',
         'personalise' => 'Personalisieren',
         'recent' => 'Zuletzt',
+        'recycle' => 'Papierkorb',
         'search' => 'Suchen',
         'settings' => 'Einstellungen',
         'transfers' => 'Übertragungen',
@@ -42,6 +53,8 @@ return [
         'del_file_q' => '„{name}“ löschen?',
         'del_folder_q' => 'Den Ordner „{name}“ und alles darin löschen?',
         'del_many_q' => 'Diese {n} Elemente löschen?',
+        'del_note' => 'Es wird in den Papierkorb verschoben und kann dort wiederhergestellt werden.',
+        'del_note_days' => 'Es wird in den Papierkorb verschoben und kann dort wiederhergestellt werden, bis es endgültig gelöscht wird (Aufbewahrung in Tagen: {days}).',
         'delete' => 'Löschen',
         'download' => 'Herunterladen',
         'empty_folder' => 'Dieser Ordner ist leer.',
@@ -143,6 +156,33 @@ return [
         'versions' => 'Versionen',
         'your_access' => 'Ihr Zugriff',
     ],
+    'rb' => [
+        'col_by' => 'Gelöscht von',
+        'col_deleted' => 'Löschdatum',
+        'col_location' => 'Ursprünglicher Speicherort',
+        'empty' => 'Leeren',
+        'empty_title' => 'Papierkorb leeren',
+        'empty_bin' => 'Der Papierkorb ist leer.',
+        'empty_failed' => 'Einige Elemente konnten nicht endgültig gelöscht werden (Elemente: {n}). Sie befinden sich weiterhin im Papierkorb.',
+        'empty_q' => 'Alles im Papierkorb endgültig löschen? (Elemente: {n})',
+        'empty_some' => 'Elemente, die Sie sehen, aber nicht ändern können, bleiben im Papierkorb.',
+        'files_inside' => 'Enthaltene Dateien: {n}',
+        'look_inside' => 'Inhalt ansehen',
+        'loc_rescue' => 'Zusammen mit einem übergeordneten Ordner gelöscht',
+        'note_days' => 'Elemente werden endgültig gelöscht, sobald sie länger als die Aufbewahrungsdauer hier liegen (Aufbewahrung in Tagen: {days}).',
+        'note_forever' => 'Elemente bleiben hier, bis jemand sie wiederherstellt oder endgültig löscht.',
+        'peek_note' => 'Dieser Ordner befindet sich im Papierkorb. Stellen Sie ihn wieder her, um diese Dateien zu öffnen.',
+        'purge' => 'Endgültig löschen',
+        'purge_file_q' => '„{name}“ endgültig löschen?',
+        'purge_folder_q' => 'Den Ordner „{name}“ und alles darin endgültig löschen?',
+        'purge_many_q' => 'Diese {n} Elemente endgültig löschen?',
+        'purge_note' => 'Dies kann nicht rückgängig gemacht werden. Die gespeicherten Dateien werden ebenfalls entfernt.',
+        'purge_on' => 'Endgültig gelöscht am {date}',
+        'restore' => 'Wiederherstellen',
+        'restore_folder' => '„{name}“ wiederherstellen',
+        'restored_as' => '„{name}“ wurde als „{new}“ wiederhergestellt - der Name war bereits vergeben.',
+        'rescue_tip' => 'Dieser Ordner ist zusammen mit einem übergeordneten Ordner, auf den Sie keinen Zugriff haben, in den Papierkorb gelangt. Wiederherstellen bringt ihn einzeln zurück, und dieselben Personen können ihn wie zuvor öffnen.',
+    ],
     'sc' => [
         'article' => 'Verknüpfung zu Artikel...',
         'article_none' => 'Keine Artikel gefunden.',
@@ -174,6 +214,19 @@ return [
         'storage_free' => '{size} frei auf diesem Laufwerk.',
         'storage_now' => 'Dateien werden gespeichert in',
         'storage_usage' => '{n} gespeicherte Dateien, insgesamt {size}.',
+        'storage_in_bin' => 'Im Papierkorb (wird beim Leeren freigegeben): {n}, {size}.',
+        'recycle_title' => 'Papierkorb',
+        'recycle_days' => 'Gelöschte Elemente aufbewahren für',
+        'recycle_days_desc' => 'Gelöschte Dateien und Ordner bleiben so lange im Papierkorb und werden dann samt ihren gespeicherten Dateien endgültig gelöscht. Bei 0 bleiben sie, bis jemand sie löscht.',
+        'recycle_days_unit' => 'Tage',
+        'recycle_not_set' => 'Noch nicht gespeichert: Bis Sie speichern, wird nichts automatisch gelöscht. Alles, was sich dann bereits im Papierkorb befindet, erhält die volle Frist, gezählt ab dem Tag des Speicherns.',
+        'recycle_usage' => 'Elemente im Papierkorb: {n} (belegen {size} Speicher).',
+        'recycle_off' => 'Bis diese Einstellung gespeichert ist, wird nichts automatisch gelöscht.',
+        'recycle_forever' => 'Gelöschte Elemente bleiben erhalten, bis jemand sie endgültig löscht.',
+        'recycle_pending' => 'Gespeicherte Dateien, die auf ihre Entfernung warten, weil der Speicher nicht erreichbar war: {n}.',
+        'recycle_pending_unknown' => 'Gespeicherte Dateien, die auf ihre Entfernung warten: unbekannt, bis die Datenbankprüfung ausgeführt wurde.',
+        'recycle_held' => 'Gelöschte Ordner, die über diese Frist hinaus aufbewahrt werden, weil die Person, die sie gelöscht hat, nicht alles darin löschen konnte: {n}. Ein Administrator sieht sie unter System -> Wartung -> Aufbewahrte gelöschte Ordner.',
+        'recycle_due_confirm' => 'Elemente, die bereits länger im Papierkorb liegen, werden innerhalb einer Stunde samt ihren gespeicherten Dateien endgültig gelöscht (Elemente: {n}). Fortfahren?',
         'take' => 'Besitz übernehmen',
         'take_confirm' => 'Sich selbst Vollzugriff auf „{path}“ geben? Sie können dann jede Datei darin öffnen. Das wird mit Ihrem Namen im Audit-Trail festgehalten.',
         'take_ok' => 'Übernehmen',
@@ -219,6 +272,7 @@ return [
         'keep_versions_default' => 'Standard: jede Version.',
         'keep_all' => 'Jede Version',
         'keep_n' => 'Die neuesten {n}',
+        'tab_recycle' => 'Papierkorb',
         'no_tabs_title' => 'Hier gibt es nichts einzustellen',
         'no_tabs_body' => 'Sie haben keine Berechtigung, Einstellungen von Dateien zu ändern. Ein Administrator kann sie unter System -> Rollen erteilen.',
         'folders_title' => 'Jeder Ordner',
@@ -398,6 +452,7 @@ return [
             'p1' => 'Das Fenster Dokumente zeigt links Ihre Ordner und rechts den geöffneten Ordner. Wechseln Sie mit den Schaltflächen rechts in der Symbolleiste zwischen **Symbole** und **Details**; in Details sortieren Sie durch Klick auf eine Spaltenüberschrift.',
             'p2' => 'Geben Sie im Filterfeld (oben rechts oder Strg+F) etwas ein, um den geöffneten Ordner auf Namen einzugrenzen, die den eingegebenen Text enthalten. * und ? funktionieren als Platzhalter über den ganzen Namen, `*.pdf` zeigt also nur PDFs.',
             'p3' => 'Klicken Sie mit der rechten Maustaste auf etwas, um zu sehen, was Sie damit tun können. Klicken zum Auswählen, Strg+Klick zum Erweitern der Auswahl, Umschalt+Klick für einen Bereich, oder ziehen Sie einen Rahmen um mehrere Elemente.',
+            'p4' => 'Ausschneiden, Kopieren und Einfügen funktionieren wie in Windows (Strg+X, Strg+C, Strg+V), ebenso das Ziehen: Ziehen Sie Dateien, Ordner und Verknüpfungen auf einen Ordner (in einem beliebigen Fenster, in der Ordnerstruktur oder in der Adressleiste), um sie zu verschieben, und halten Sie Strg gedrückt, um zu kopieren. Ziehen Sie eine Datei oder einen Ordner auf den Desktop, um dort eine Verknüpfung dazu anzulegen - auf dem Desktop selbst wird nichts gespeichert - und ziehen Sie eine Desktop-Verknüpfung in einen Ordner, um sie dorthin zu verschieben. F2 benennt um, Entf löscht. Gelöschte Elemente landen im Papierkorb (siehe Papierkorb).',
             'p5' => '„Dokumente“ ganz oben zeigt jeden Ordner, der mit Ihnen geteilt wurde. Wenn Sie einen Ordner tief in einem fremden Ordner erhalten haben, erscheint er hier von selbst mit seinem vollständigen Pfad als Hinweis - die Ordner darüber sehen Sie nicht.',
             'p6' => 'Doppelklicken Sie auf eine Datei, um sie im Viewer zu öffnen (siehe Dateien ansehen). Mit der rechten Maustaste erreichen Sie Herunterladen, Eigenschaften und mehr.',
             'p7' => 'Klicken Sie mit der rechten Maustaste auf eine Datei oder einen Ordner und wählen Sie **Verknüpfung erstellen**, um eine Verknüpfung **in diesem Ordner** (daneben, für alle, die den Ordner öffnen können) oder **auf dem Desktop** (nur auf Ihrem eigenen Desktop) anzulegen. Eine Verknüpfung öffnet, worauf sie zeigt, gewährt aber niemandem Zugriff: Wer das Ziel nicht sehen kann, sieht auch die Verknüpfung nie. Das Löschen einer Verknüpfung lässt das Original unberührt. Um auf einen Wissensartikel zu verweisen, klicken Sie mit der rechten Maustaste auf freie Fläche in einem Ordner (oder auf dem Desktop) und wählen **Verknüpfung zu Artikel...**; ein Doppelklick darauf zeigt den Artikel in einem Vorschaufenster, mit **In Wissen öffnen**, um zum Artikel selbst zu gelangen, und nur Personen, die den Artikel lesen dürfen, sehen die Verknüpfung.',
@@ -463,6 +518,7 @@ return [
             'p4' => 'Ein Ordner, auf den Sie keinen Zugriff haben, erscheint nirgends - weder in Dokumente noch in der Suche noch in Ihren zuletzt verwendeten Dateien.',
             'p5' => 'Wer einen Ordner der obersten Ebene erstellt, erhält automatisch Vollzugriff darauf, damit er nicht von dem ausgesperrt ist, was er gerade angelegt hat. Das Erstellen von Ordnern der obersten Ebene ist selbst eine Berechtigung, die unter System -> Rollen vergeben wird.',
             'p6' => 'Es gibt keine Einträge zum „Verweigern“: Zugriff wird immer nur gewährt. Um jemanden aus einem Unterordner herauszuhalten, beenden Sie die Vererbung (siehe nächster Abschnitt).',
+            'p7' => 'Wer einen Ordner löscht oder verschiebt, nimmt alles darin mit. Dafür ist die Berechtigung Ändern für den Ordner **und für jeden darin enthaltenen Ordner** nötig, egal wie tief - wie in Windows. Wenn etwas darin für Sie gesperrt ist, wird Ihnen mitgeteilt, dass es nicht geht, ohne dass der Name genannt wird; fragen Sie die Person, die den Ordner verwaltet. Ein Administrator sieht unter System -> Debug-Werkzeuge -> D020 genau, was im Weg steht.',
         ],
         'inheritance' => [
             'nav' => 'Vererbung',
@@ -472,6 +528,18 @@ return [
             'p2' => 'Deaktivieren Sie **Berechtigungen vom übergeordneten Ordner einschließen**, um die Vererbung eines Ordners zu beenden. Sie werden gefragt, ob die geerbten Einträge als eigene des Ordners **Kopiert** werden sollen (ein Ausgangspunkt, den Sie dann kürzen können) oder **Entfernt** (nur die eigenen Einträge des Ordners bleiben).',
             'p3' => 'Das Verschieben eines Ordners, der erbt, ändert, was er erbt - er erhält nun die Berechtigungen seines neuen übergeordneten Ordners. Das Verschieben wird im Audit-Trail festgehalten.',
             'p4' => 'Kopien erben immer von dem Ort, an dem sie landen, und beim Kopieren wird nie etwas mitgenommen, was Sie nicht selbst herunterladen könnten.',
+        ],
+        'recycle' => [
+            'nav' => 'Papierkorb',
+            'title' => 'Der Papierkorb',
+            'intro' => 'Gelöschte Dateien und Ordner, bis sie wiederhergestellt oder endgültig gelöscht werden.',
+            'p1' => 'Wenn Sie eine Datei oder einen Ordner löschen, wird er in den **Papierkorb** auf dem Desktop verschoben. Ein gelöschter Ordner ist ein einziger Eintrag, der alles enthält, was darin war. Der Papierkorb zeigt, was Sie vor dem Löschen sehen konnten - wo es lag, wann und von wem es gelöscht wurde - und nichts aus Ordnern, die Sie nicht öffnen können.',
+            'p2' => '**Wiederherstellen** legt es dorthin zurück, wo es war. Gibt es dort inzwischen etwas mit demselben Namen, kommt es als „Name (2)“ zurück. Befindet sich der Ordner, in dem es lag, ebenfalls im Papierkorb, werden Sie aufgefordert, zuerst diesen Ordner wiederherzustellen. Doppelklicken Sie auf einen gelöschten Ordner, um vor dem Wiederherstellen hineinzusehen.',
+            'p3' => '**Endgültig löschen** (oder **Leeren**) entfernt es dauerhaft, einschließlich der gespeicherten Datei - dies kann nicht rückgängig gemacht werden. Zum Wiederherstellen ist die Berechtigung Ändern für den Ordner nötig, genau wie beim Löschen. Wer einen Ordner endgültig löscht, braucht außerdem Ändern für jeden darin enthaltenen Ordner, damit niemand Dateien vernichten kann, die er nicht sehen konnte; Inhalt ansehen listet nur die Ordner auf, die Sie sehen können. Eine Kopie teilt ihre gespeicherte Datei mit dem Original, daher wird diese Datei erst entfernt, wenn sie nirgends mehr verwendet wird.',
+            'p4' => 'Unter Dateien -> Einstellungen -> Papierkorb legen Sie fest, wie lange gelöschte Elemente aufbewahrt werden, bevor der Hintergrundjob „Files recycle bin“ sie endgültig löscht (bei 0 bleiben sie, bis jemand sie löscht). Bis diese Einstellung gespeichert wurde, wird nichts automatisch gelöscht, und alles, was sich dann bereits im Papierkorb befindet, erhält die volle Frist, gezählt ab dem Tag des Speicherns. Wenn Sie die Frist später ändern, wird zuerst angezeigt, wie viele Elemente bereits älter sind als die neue Frist. Wird ein Ordner wiederhergestellt, beginnt die Zeit im Papierkorb für alles, was zuvor darin gelöscht wurde, von vorn. Wiederherstellungen und endgültiges Löschen werden im Audit-Trail festgehalten.',
+            'p5' => 'Beim endgültigen Löschen werden auch alle Versionen der Datei entfernt. Ein Link auf die Datei von einem Ticket, einer Aufgabe oder einem anderen Datensatz meldet, dass die Datei gelöscht wurde, solange sie im Papierkorb liegt, und funktioniert wieder, sobald sie wiederhergestellt ist; nach dem endgültigen Löschen bleibt der Link am Datensatz bestehen, zeigt also weiterhin, dass dort etwas war, lässt sich aber nie mehr öffnen.',
+            'p6' => 'Ist ein Ordner von Ihnen zusammen mit einem übergeordneten Ordner, den Sie nicht öffnen können, in den Papierkorb gelangt, erscheint er in Ihrem Papierkorb einzeln als **Zusammen mit einem übergeordneten Ordner gelöscht** - ohne den Namen des anderen Ordners. **Wiederherstellen** bringt ihn selbstständig dorthin zurück, wo dieser Ordner war, und genau dieselben Personen können ihn wie zuvor öffnen.',
+            'p7' => 'Der Hintergrundjob löscht nie einen Ordner, der etwas enthält, das die Person, die ihn gelöscht hat, selbst nicht hätte löschen können. Ein solcher Ordner bleibt über sein Datum hinaus im Papierkorb, und ein Administrator sieht ihn unter System -> Wartung -> Aufbewahrte gelöschte Ordner, samt dem, was zu tun ist.',
         ],
         'audit' => [
             'nav' => 'Audit-Trail',

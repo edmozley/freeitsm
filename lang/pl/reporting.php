@@ -201,6 +201,8 @@ return [
         'affects_report_downloads_tidy' => 'Raporty ukryte za wygasłymi lub unieważnionymi linkami pozostają na dysku',
         'name_storage_migrate' => 'Przenoszenie magazynu Plików',
         'affects_storage_migrate' => 'Kopiowanie plików do nowej lokalizacji magazynu (pliki jeszcze nieskopiowane są odczytywane ze starej)',
+        'name_files_recycle_purge' => 'Kosz Plików',
+        'affects_files_recycle_purge' => 'Trwałe usuwanie plików, gdy przebywają w koszu dłużej niż okres przechowywania',
         'name_lms_reminders' => 'Przypomnienia o szkoleniach',
         'affects_lms_reminders' => 'Wiadomości e-mail z przypomnieniami LMS',
         'name_virt_watch' => 'Nadzór kolektorów Hyper-V',

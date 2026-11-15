@@ -201,6 +201,8 @@ return [
         'affects_report_downloads_tidy' => 'Berichte hinter abgelaufenen oder widerrufenen Download-Links bleiben auf dem Datenträger',
         'name_storage_migrate' => 'Verschieben des Dateispeichers',
         'affects_storage_migrate' => 'Kopieren von Dateien an einen neuen Speicherort (noch nicht kopierte Dateien werden vom alten gelesen)',
+        'name_files_recycle_purge' => 'Papierkorb der Dateien',
+        'affects_files_recycle_purge' => 'Endgültiges Löschen von Dateien, sobald sie länger als die Aufbewahrungsdauer im Papierkorb liegen',
         'name_lms_reminders' => 'Schulungserinnerungen',
         'affects_lms_reminders' => 'Erinnerungs-E-Mails des LMS',
         'name_virt_watch' => 'Überwachung der Hyper-V-Collector',

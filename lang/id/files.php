@@ -1,4 +1,14 @@
 <?php
+/**
+ * FreeITSM — files strings (id).
+ *
+ * Keys mirror lang/en/files.php exactly. A key absent here falls back to
+ * English at runtime, so this file may be incomplete without breaking
+ * anything. Check coverage with: php scripts/i18n_audit.php id
+ *
+ * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
+ * tokens substitute BY POSITION, so their order must match English.
+ */
 
 return [
     'app' => [
@@ -6,6 +16,7 @@ return [
         'help' => 'Bantuan',
         'personalise' => 'Personalisasi',
         'recent' => 'Terbaru',
+        'recycle' => 'Tempat sampah',
         'search' => 'Cari',
         'settings' => 'Pengaturan',
         'transfers' => 'Transfer',
@@ -42,6 +53,8 @@ return [
         'del_file_q' => 'Hapus "{name}"?',
         'del_folder_q' => 'Hapus folder "{name}" beserta seluruh isinya?',
         'del_many_q' => 'Hapus {n} item ini?',
+        'del_note' => 'Item masuk ke tempat sampah, tempat item dapat dipulihkan.',
+        'del_note_days' => 'Item masuk ke tempat sampah, tempat item dapat dipulihkan sampai dihapus permanen (lama disimpan: {days} hari).',
         'delete' => 'Hapus',
         'download' => 'Unduh',
         'empty_folder' => 'Folder ini kosong.',
@@ -143,6 +156,33 @@ return [
         'versions' => 'Versi',
         'your_access' => 'Akses Anda',
     ],
+    'rb' => [
+        'col_by' => 'Dihapus oleh',
+        'col_deleted' => 'Tanggal dihapus',
+        'col_location' => 'Lokasi asal',
+        'empty' => 'Kosongkan',
+        'empty_title' => 'Kosongkan tempat sampah',
+        'empty_bin' => 'Tempat sampah kosong.',
+        'empty_failed' => 'Sebagian item tidak dapat dihapus permanen (Item: {n}). Item tersebut masih ada di tempat sampah.',
+        'empty_q' => 'Hapus permanen semua isi tempat sampah? (Item: {n})',
+        'empty_some' => 'Item yang dapat Anda lihat tetapi tidak dapat Anda ubah tetap berada di tempat sampah.',
+        'files_inside' => 'Berkas di dalam: {n}',
+        'look_inside' => 'Lihat isi',
+        'loc_rescue' => 'Dihapus bersama folder di atasnya',
+        'note_days' => 'Item dihapus permanen setelah berada di sini lebih lama dari masa retensi (lama disimpan: {days} hari).',
+        'note_forever' => 'Item tetap di sini sampai seseorang memulihkannya atau menghapusnya secara permanen.',
+        'peek_note' => 'Folder ini ada di tempat sampah. Pulihkan folder ini untuk membuka berkas-berkas ini.',
+        'purge' => 'Hapus permanen',
+        'purge_file_q' => 'Hapus permanen "{name}"?',
+        'purge_folder_q' => 'Hapus permanen folder "{name}" beserta seluruh isinya?',
+        'purge_many_q' => 'Hapus permanen {n} item ini?',
+        'purge_note' => 'Tindakan ini tidak dapat dibatalkan. Berkas yang tersimpan juga ikut dihapus.',
+        'purge_on' => 'Dihapus permanen pada {date}',
+        'restore' => 'Pulihkan',
+        'restore_folder' => 'Pulihkan "{name}"',
+        'restored_as' => '"{name}" dipulihkan sebagai "{new}" - namanya sudah dipakai.',
+        'rescue_tip' => 'Folder ini masuk ke tempat sampah bersama folder di atasnya yang tidak dapat Anda akses. Pulihkan akan mengembalikannya sendiri, dengan orang yang sama tetap dapat membukanya.',
+    ],
     'sc' => [
         'article' => 'Pintasan ke artikel...',
         'article_none' => 'Tidak ada artikel yang cocok.',
@@ -174,6 +214,19 @@ return [
         'storage_free' => '{size} tersisa di disk itu.',
         'storage_now' => 'Berkas disimpan di',
         'storage_usage' => '{n} berkas tersimpan, total {size}.',
+        'storage_in_bin' => 'Di tempat sampah (dibebaskan saat dikosongkan): {n}, {size}.',
+        'recycle_title' => 'Tempat sampah',
+        'recycle_days' => 'Simpan item yang dihapus selama',
+        'recycle_days_desc' => 'Berkas dan folder yang dihapus tetap berada di tempat sampah selama waktu ini, lalu dihapus permanen beserta berkas yang tersimpan. 0 menyimpannya sampai seseorang menghapusnya.',
+        'recycle_days_unit' => 'hari',
+        'recycle_not_set' => 'Belum disimpan: tidak ada yang dihapus otomatis sampai Anda menyimpan. Semua yang sudah ada di tempat sampah kemudian mendapat masa penuh, dihitung dari hari Anda menyimpan.',
+        'recycle_usage' => 'Item di tempat sampah: {n} (menggunakan {size} penyimpanan).',
+        'recycle_off' => 'Tidak ada yang dihapus otomatis sampai pengaturan ini disimpan.',
+        'recycle_forever' => 'Item yang dihapus disimpan sampai seseorang menghapusnya secara permanen.',
+        'recycle_pending' => 'Berkas tersimpan yang menunggu untuk dihapus karena penyimpanan tidak dapat dijangkau: {n}.',
+        'recycle_pending_unknown' => 'Berkas tersimpan yang menunggu untuk dihapus: tidak diketahui sampai Verifikasi Database dijalankan.',
+        'recycle_held' => 'Folder terhapus yang disimpan melewati masa ini karena orang yang menghapusnya tidak dapat menghapus seluruh isinya: {n}. Administrator dapat melihatnya di Sistem -> Pemeliharaan -> Folder terhapus yang disimpan.',
+        'recycle_due_confirm' => 'Item yang sudah berada di tempat sampah lebih lama dari ini akan dihapus permanen dalam waktu satu jam, beserta berkas yang tersimpan (Item: {n}). Lanjutkan?',
         'take' => 'Ambil alih kepemilikan',
         'take_confirm' => 'Beri diri Anda Kendali penuh atas "{path}"? Anda akan dapat membuka setiap berkas di dalamnya. Ini dicatat di jejak audit dengan nama Anda.',
         'take_ok' => 'Ambil alih',
@@ -219,6 +272,7 @@ return [
         'keep_versions_default' => 'Default: semua versi.',
         'keep_all' => 'Semua versi',
         'keep_n' => '{n} terbaru',
+        'tab_recycle' => 'Tempat sampah',
         'no_tabs_title' => 'Tidak ada yang perlu diatur di sini',
         'no_tabs_body' => 'Anda tidak memiliki izin untuk mengubah pengaturan Berkas apa pun. Administrator dapat memberikannya di Sistem -> Peran.',
         'folders_title' => 'Setiap folder',
@@ -398,6 +452,7 @@ return [
             'p1' => 'Jendela Dokumen menampilkan folder Anda di sebelah kiri dan folder yang terbuka di sebelah kanan. Beralihlah antara **Ikon** dan **Detail** dengan tombol di sisi kanan bilah alat; di Detail, klik judul kolom untuk mengurutkan berdasarkan kolom itu.',
             'p2' => 'Ketik di kotak filter (kanan atas, atau Ctrl+F) untuk mempersempit folder yang terbuka menjadi nama yang mengandung teks yang Anda ketik. * dan ? berfungsi sebagai wildcard untuk seluruh nama, jadi `*.pdf` hanya menampilkan PDF.',
             'p3' => 'Klik kanan apa pun untuk melihat apa yang bisa Anda lakukan dengannya. Klik untuk memilih, Ctrl+klik untuk menambah pilihan, Shift+klik untuk rentang, atau seret kotak di sekitar beberapa item.',
+            'p4' => 'Potong, Salin, dan Tempel bekerja seperti di Windows (Ctrl+X, Ctrl+C, Ctrl+V), begitu juga seret: seret berkas, folder, dan pintasan ke sebuah folder (di jendela mana pun, pohon folder, atau bilah alamat) untuk memindahkannya, dan tahan Ctrl untuk menyalin. Seret berkas atau folder ke desktop untuk menaruh pintasan ke sana - tidak ada yang disimpan di desktop itu sendiri - dan seret pintasan desktop ke dalam folder untuk memindahkannya ke sana. F2 mengganti nama, Delete menghapus. Item yang dihapus masuk ke tempat sampah (lihat Tempat sampah).',
             'p5' => '"Dokumen" di bagian atas menampilkan setiap folder yang telah dibagikan kepada Anda. Jika Anda diberi folder yang berada jauh di dalam folder orang lain, folder itu muncul di sini dengan sendirinya beserta jalur lengkapnya sebagai petunjuk - folder di atasnya tidak terlihat oleh Anda.',
             'p6' => 'Klik dua kali sebuah berkas untuk membukanya di penampil (lihat Melihat berkas). Klik kanan untuk Unduh, Properti, dan lainnya.',
             'p7' => 'Klik kanan berkas atau folder dan pilih **Buat pintasan** untuk menaruh pintasan ke sana **Di folder ini** (di sebelahnya, untuk semua orang yang bisa membuka folder) atau **Di desktop** (hanya di desktop Anda sendiri). Pintasan membuka apa yang ditunjuknya, tetapi tidak memberi akses kepada siapa pun: orang yang tidak bisa melihat tujuannya juga tidak pernah melihat pintasannya. Menghapus pintasan tidak memengaruhi aslinya. Untuk menaut ke artikel Pengetahuan, klik kanan ruang kosong di sebuah folder (atau di desktop) dan pilih **Pintasan ke artikel...**; mengklik dua kali pintasan itu menampilkan artikel di jendela pratinjau, dengan **Buka di Pengetahuan** untuk menuju artikelnya langsung, dan hanya orang yang bisa membaca artikel itu yang melihat pintasannya.',
@@ -463,6 +518,7 @@ return [
             'p4' => 'Folder yang tidak dapat Anda akses tidak muncul di mana pun - tidak di Dokumen, tidak di Cari, tidak di berkas terbaru Anda.',
             'p5' => 'Siapa pun yang membuat folder tingkat atas otomatis mendapat Kendali penuh atasnya, sehingga mereka tidak terkunci dari apa yang baru mereka buat. Membuat folder tingkat atas sendiri merupakan sebuah izin, yang diberikan di Sistem -> Peran.',
             'p6' => 'Tidak ada entri "tolak": akses hanya pernah diberikan. Untuk menjauhkan seseorang dari subfolder, hentikan pewarisannya (lihat bagian berikutnya).',
+            'p7' => 'Menghapus atau memindahkan folder membawa serta semua isinya, jadi diperlukan Ubah pada folder tersebut **dan pada setiap folder di dalamnya**, seberapa pun dalamnya - seperti di Windows. Jika ada isi yang tidak dapat Anda akses, Anda diberi tahu bahwa Anda tidak dapat melakukannya, tanpa disebutkan namanya; tanyakan kepada pengelola folder. Administrator dapat melihat persis apa yang menghalangi dengan Sistem -> Alat Debug -> D020.',
         ],
         'inheritance' => [
             'nav' => 'Pewarisan',
@@ -472,6 +528,18 @@ return [
             'p2' => 'Hapus centang **Sertakan izin dari folder induk** untuk menghentikan pewarisan folder. Anda akan ditanya apakah akan **Salin** entri yang diwariskan sebagai milik folder itu sendiri (titik awal yang kemudian dapat Anda pangkas) atau **Hapus** (hanya entri milik folder itu yang tersisa).',
             'p3' => 'Memindahkan folder yang mewarisi mengubah apa yang diwarisinya - folder itu kini mendapat izin induk barunya. Pemindahan dicatat di jejak audit.',
             'p4' => 'Salinan selalu mewarisi dari tempatnya mendarat, dan menyalin tidak pernah membawa apa pun yang tidak dapat Anda unduh sendiri.',
+        ],
+        'recycle' => [
+            'nav' => 'Tempat sampah',
+            'title' => 'Tempat sampah',
+            'intro' => 'Berkas dan folder yang dihapus, sampai dipulihkan atau dihapus untuk selamanya.',
+            'p1' => 'Menghapus berkas atau folder memindahkannya ke **Tempat sampah** di desktop. Folder yang dihapus menjadi satu entri yang memuat semua isinya. Tempat sampah menampilkan apa yang dapat Anda lihat sebelum dihapus - di mana letaknya, kapan, dan siapa yang menghapus - dan tidak menampilkan apa pun dari folder yang tidak dapat Anda buka.',
+            'p2' => '**Pulihkan** mengembalikannya ke tempat semula. Jika sekarang sudah ada yang bernama sama di sana, item itu kembali sebagai "Nama (2)". Jika folder tempatnya semula juga ada di tempat sampah, Anda diminta memulihkan folder itu terlebih dahulu. Klik dua kali folder yang dihapus untuk melihat isinya sebelum memulihkan.',
+            'p3' => '**Hapus permanen** (atau **Kosongkan**) menghapusnya untuk selamanya, termasuk berkas yang tersimpan - tindakan ini tidak dapat dibatalkan. Memulihkan memerlukan Ubah pada folder, sama seperti menghapus. Menghapus folder secara permanen juga memerlukan Ubah pada setiap folder di dalamnya, sehingga tidak ada yang dapat memusnahkan berkas yang tidak dapat dilihatnya; Lihat isi hanya mencantumkan folder yang dapat Anda lihat. Salinan berbagi berkas tersimpannya dengan aslinya, sehingga berkas itu baru dihapus setelah tidak ada lagi yang menggunakannya.',
+            'p4' => 'Files -> Pengaturan -> Tempat sampah menentukan berapa lama item yang dihapus disimpan sebelum job latar belakang tempat sampah Files menghapusnya secara permanen (0 menyimpannya sampai seseorang menghapusnya). Tidak ada yang dihapus otomatis sampai pengaturan itu disimpan, dan semua yang sudah ada di tempat sampah kemudian mendapat masa penuh, dihitung dari hari pengaturan disimpan. Mengubah masa itu nanti akan lebih dulu menyebutkan berapa banyak item yang sudah lebih lama dari masa yang baru. Saat folder dipulihkan, semua yang sebelumnya dihapus di dalamnya mulai dihitung lagi masanya di tempat sampah. Pemulihan dan penghapusan permanen dicatat di jejak audit.',
+            'p5' => 'Menghapus secara permanen juga menghapus setiap versi berkas. Tautan ke berkas dari tiket, tugas, atau catatan lain menyatakan bahwa berkas telah dihapus selama berada di tempat sampah, dan berfungsi lagi setelah dipulihkan; setelah penghapusan permanen, tautan tetap ada pada catatan, sehingga tetap menunjukkan bahwa dulu ada sesuatu, tetapi tidak akan pernah dapat dibuka.',
+            'p6' => 'Jika folder Anda masuk ke tempat sampah bersama folder di atasnya yang tidak dapat Anda buka, folder itu muncul sendiri di tempat sampah Anda sebagai **Dihapus bersama folder di atasnya** - tanpa nama folder lainnya. **Pulihkan** mengembalikannya sendiri, ke tempat folder itu berada, dan orang yang sama persis dapat membukanya seperti sebelumnya.',
+            'p7' => 'Job latar belakang tidak pernah menghapus folder yang berisi sesuatu yang tidak dapat dihapus sendiri oleh orang yang menghapusnya. Folder seperti itu tetap di tempat sampah melewati tanggalnya, dan administrator melihatnya di Sistem -> Pemeliharaan -> Folder terhapus yang disimpan, beserta apa yang harus dilakukan.',
         ],
         'audit' => [
             'nav' => 'Jejak audit',

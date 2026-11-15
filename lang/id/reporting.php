@@ -201,6 +201,8 @@ return [
         'affects_report_downloads_tidy' => 'Laporan di balik tautan unduhan yang kedaluwarsa atau dicabut tetap berada di disk',
         'name_storage_migrate' => 'Pemindahan penyimpanan Berkas',
         'affects_storage_migrate' => 'Menyalin berkas ke lokasi penyimpanan baru (berkas yang belum disalin dibaca dari yang lama)',
+        'name_files_recycle_purge' => 'Tempat sampah Files',
+        'affects_files_recycle_purge' => 'Menghapus berkas untuk selamanya setelah berada di tempat sampah lebih lama dari masa retensi',
         'name_lms_reminders' => 'Pengingat pelatihan',
         'affects_lms_reminders' => 'Email pengingat LMS',
         'name_virt_watch' => 'Pengawasan collector Hyper-V',

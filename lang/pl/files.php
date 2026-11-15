@@ -1,4 +1,14 @@
 <?php
+/**
+ * FreeITSM — files strings (pl).
+ *
+ * Keys mirror lang/en/files.php exactly. A key absent here falls back to
+ * English at runtime, so this file may be incomplete without breaking
+ * anything. Check coverage with: php scripts/i18n_audit.php pl
+ *
+ * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
+ * tokens substitute BY POSITION, so their order must match English.
+ */
 
 return [
     'app' => [
@@ -6,6 +16,7 @@ return [
         'help' => 'Pomoc',
         'personalise' => 'Personalizuj',
         'recent' => 'Ostatnie',
+        'recycle' => 'Kosz',
         'search' => 'Szukaj',
         'settings' => 'Ustawienia',
         'transfers' => 'Transfery',
@@ -42,6 +53,8 @@ return [
         'del_file_q' => 'Usunąć „{name}”?',
         'del_folder_q' => 'Usunąć folder „{name}” i wszystko, co w nim jest?',
         'del_many_q' => 'Usunąć te elementy ({n})?',
+        'del_note' => 'Trafia do kosza, skąd można go przywrócić.',
+        'del_note_days' => 'Trafia do kosza, skąd można go przywrócić, dopóki nie zostanie usunięty trwale (dni przechowywania: {days}).',
         'delete' => 'Usuń',
         'download' => 'Pobierz',
         'empty_folder' => 'Ten folder jest pusty.',
@@ -143,6 +156,33 @@ return [
         'versions' => 'Wersje',
         'your_access' => 'Twój dostęp',
     ],
+    'rb' => [
+        'col_by' => 'Usunął',
+        'col_deleted' => 'Data usunięcia',
+        'col_location' => 'Pierwotna lokalizacja',
+        'empty' => 'Opróżnij',
+        'empty_title' => 'Opróżnij kosz',
+        'empty_bin' => 'Kosz jest pusty.',
+        'empty_failed' => 'Nie udało się trwale usunąć niektórych elementów (elementy: {n}). Nadal są w koszu.',
+        'empty_q' => 'Trwale usunąć wszystko z kosza? (Elementy: {n})',
+        'empty_some' => 'Elementy, które widzisz, ale których nie możesz zmienić, pozostają w koszu.',
+        'files_inside' => 'Plików w środku: {n}',
+        'look_inside' => 'Zajrzyj do środka',
+        'loc_rescue' => 'Usunięto razem z folderem nadrzędnym',
+        'note_days' => 'Elementy są trwale usuwane, gdy leżą tutaj dłużej niż okres przechowywania (dni przechowywania: {days}).',
+        'note_forever' => 'Elementy zostają tutaj, dopóki ktoś ich nie przywróci lub nie usunie trwale.',
+        'peek_note' => 'Ten folder jest w koszu. Przywróć go, aby otworzyć te pliki.',
+        'purge' => 'Usuń trwale',
+        'purge_file_q' => 'Trwale usunąć „{name}”?',
+        'purge_folder_q' => 'Trwale usunąć folder „{name}” wraz z całą zawartością?',
+        'purge_many_q' => 'Trwale usunąć te elementy ({n})?',
+        'purge_note' => 'Tej operacji nie można cofnąć. Przechowywane pliki również zostaną usunięte.',
+        'purge_on' => 'Usunięto trwale dnia {date}',
+        'restore' => 'Przywróć',
+        'restore_folder' => 'Przywróć „{name}”',
+        'restored_as' => '„{name}” przywrócono jako „{new}” - nazwa była zajęta.',
+        'rescue_tip' => 'Ten folder trafił do kosza razem z folderem nadrzędnym, do którego nie masz dostępu. Przywrócenie przywraca go samodzielnie, a otwierać go będą mogły te same osoby co wcześniej.',
+    ],
     'sc' => [
         'article' => 'Skrót do artykułu...',
         'article_none' => 'Brak pasujących artykułów.',
@@ -174,6 +214,19 @@ return [
         'storage_free' => 'Wolne miejsce na tym dysku: {size}.',
         'storage_now' => 'Pliki są przechowywane w',
         'storage_usage' => 'Przechowywanych plików: {n}, łącznie {size}.',
+        'storage_in_bin' => 'W koszu (zwolnione po jego opróżnieniu): {n}, {size}.',
+        'recycle_title' => 'Kosz',
+        'recycle_days' => 'Przechowuj usunięte elementy przez',
+        'recycle_days_desc' => 'Usunięte pliki i foldery pozostają w koszu przez ten czas, po czym są trwale usuwane wraz z przechowywanymi plikami. Wartość 0 zachowuje je, dopóki ktoś ich nie usunie.',
+        'recycle_days_unit' => 'dni',
+        'recycle_not_set' => 'Jeszcze nie zapisano: nic nie jest usuwane automatycznie, dopóki nie zapiszesz. Wszystko, co już jest w koszu, otrzyma wtedy pełny okres, liczony od dnia zapisu.',
+        'recycle_usage' => 'Elementy w koszu: {n} (zajmują {size} pamięci).',
+        'recycle_off' => 'Nic nie jest usuwane automatycznie, dopóki to ustawienie nie zostanie zapisane.',
+        'recycle_forever' => 'Usunięte elementy są przechowywane, dopóki ktoś nie usunie ich trwale.',
+        'recycle_pending' => 'Przechowywane pliki oczekujące na usunięcie, ponieważ nie można było połączyć się z magazynem: {n}.',
+        'recycle_pending_unknown' => 'Przechowywane pliki oczekujące na usunięcie: nieznane, dopóki nie zostanie uruchomiona weryfikacja bazy danych.',
+        'recycle_held' => 'Usunięte foldery zachowane po upływie tego okresu, ponieważ osoba, która je usunęła, nie mogła usunąć wszystkiego, co w nich było: {n}. Administrator może je zobaczyć w System -> Konserwacja -> Zachowane usunięte foldery.',
+        'recycle_due_confirm' => 'Elementy, które są już w koszu dłużej niż ten okres, zostaną trwale usunięte w ciągu godziny wraz z przechowywanymi plikami (elementy: {n}). Kontynuować?',
         'take' => 'Przejmij własność',
         'take_confirm' => 'Nadać sobie Pełną kontrolę nad „{path}”? Będziesz mógł otworzyć każdy plik w nim. Zostanie to zapisane w ścieżce audytu wraz z Twoim imieniem i nazwiskiem.',
         'take_ok' => 'Przejmij',
@@ -219,6 +272,7 @@ return [
         'keep_versions_default' => 'Domyślnie: każda wersja.',
         'keep_all' => 'Każda wersja',
         'keep_n' => 'Najnowsze: {n}',
+        'tab_recycle' => 'Kosz',
         'no_tabs_title' => 'Nie ma tu nic do ustawienia',
         'no_tabs_body' => 'Nie masz uprawnień do zmiany żadnych ustawień Plików. Administrator może je nadać w System -> Role.',
         'folders_title' => 'Każdy folder',
@@ -398,6 +452,7 @@ return [
             'p1' => 'Okno Dokumenty pokazuje Twoje foldery po lewej, a otwarty folder po prawej. Przełączaj się między widokiem **Ikony** i **Szczegóły** przyciskami po prawej stronie paska narzędzi; w widoku Szczegóły kliknij nagłówek kolumny, aby posortować według niej.',
             'p2' => 'Wpisz tekst w polu filtra (u góry po prawej lub Ctrl+F), aby zawęzić otwarty folder do nazw zawierających wpisany tekst. * i ? działają jako symbole wieloznaczne w całej nazwie, więc `*.pdf` pokazuje tylko pliki PDF.',
             'p3' => 'Kliknij cokolwiek prawym przyciskiem myszy, aby zobaczyć dostępne działania. Kliknij, aby zaznaczyć, Ctrl+kliknięcie dodaje do zaznaczenia, Shift+kliknięcie zaznacza zakres, a przeciągnięcie ramki obejmuje kilka elementów.',
+            'p4' => 'Wytnij, Kopiuj i Wklej działają tak jak w Windows (Ctrl+X, Ctrl+C, Ctrl+V), podobnie jak przeciąganie: przeciągnij pliki, foldery i skróty na folder (w dowolnym oknie, w drzewie folderów lub na pasku adresu), aby je przenieść, a z klawiszem Ctrl - skopiować. Przeciągnij plik lub folder na pulpit, aby umieścić tam skrót do niego - sam pulpit niczego nie przechowuje - a skrót z pulpitu przeciągnij do folderu, aby go tam przenieść. F2 zmienia nazwę, Delete usuwa. Usunięte elementy trafiają do kosza (zobacz Kosz).',
             'p5' => '„Dokumenty” na samej górze pokazują każdy folder, który został Ci udostępniony. Jeśli dostałeś folder głęboko w cudzej strukturze, pojawia się tu samodzielnie, a jego pełna ścieżka jest podpowiedzią - folderów nad nim nie widzisz.',
             'p6' => 'Kliknij plik dwukrotnie, aby otworzyć go w przeglądarce (zobacz Przeglądanie plików). Kliknij go prawym przyciskiem myszy, aby znaleźć Pobierz, Właściwości i resztę poleceń.',
             'p7' => 'Kliknij plik lub folder prawym przyciskiem myszy i wybierz **Utwórz skrót**, aby umieścić skrót do niego **w tym folderze** (obok niego, dla każdego, kto może otworzyć folder) lub **na pulpicie** (tylko na Twoim pulpicie). Skrót otwiera to, na co wskazuje, ale nikomu nie daje dostępu: kto nie widzi celu, nie zobaczy też skrótu. Usunięcie skrótu nie rusza oryginału. Aby utworzyć link do artykułu z Bazy wiedzy, kliknij prawym przyciskiem puste miejsce w folderze (lub na pulpicie) i wybierz **Skrót do artykułu...**; dwukrotne kliknięcie pokazuje artykuł w oknie podglądu, z przyciskiem **Otwórz w Bazie wiedzy**, który prowadzi do samego artykułu, a skrót widzą tylko osoby, które mogą ten artykuł czytać.',
@@ -463,6 +518,7 @@ return [
             'p4' => 'Folder, do którego nie masz dostępu, nie pojawia się nigdzie - ani w Dokumentach, ani w Wyszukiwaniu, ani wśród ostatnich plików.',
             'p5' => 'Kto tworzy folder najwyższego poziomu, automatycznie dostaje do niego Pełną kontrolę, by nie zostać odciętym od tego, co właśnie stworzył. Tworzenie folderów najwyższego poziomu jest samo w sobie uprawnieniem, nadawanym w System -> Role.',
             'p6' => 'Nie ma wpisów „odmów”: dostęp jest wyłącznie przyznawany. Aby kogoś nie wpuścić do podfolderu, przestań dziedziczyć uprawnienia (zobacz następną sekcję).',
+            'p7' => 'Usunięcie lub przeniesienie folderu zabiera ze sobą całą jego zawartość, dlatego wymaga Modyfikacji w tym folderze **i w każdym folderze wewnątrz niego**, bez względu na głębokość - tak jak w Windows. Jeśli coś w środku jest przed Tobą ukryte, dowiesz się, że nie możesz tego zrobić, ale bez podania nazwy; zwróć się do osoby zarządzającej folderem. Administrator może dokładnie sprawdzić, co stoi na przeszkodzie, w System -> Narzędzia diagnostyczne -> D020.',
         ],
         'inheritance' => [
             'nav' => 'Dziedziczenie',
@@ -472,6 +528,18 @@ return [
             'p2' => 'Odznacz **Uwzględnij uprawnienia z folderu nadrzędnego**, aby folder przestał dziedziczyć. Zostaniesz zapytany, czy **Kopiować** odziedziczone wpisy jako własne wpisy folderu (punkt wyjścia, który możesz potem przyciąć), czy je **Usunąć** (zostają tylko własne wpisy folderu).',
             'p3' => 'Przeniesienie folderu, który dziedziczy, zmienia to, co dziedziczy - dostaje teraz uprawnienia nowego folderu nadrzędnego. Przeniesienie jest zapisywane w ścieżce audytu.',
             'p4' => 'Kopie zawsze dziedziczą z miejsca, w którym wylądują, a kopiowanie nigdy nie przenosi niczego, czego sam nie mógłbyś pobrać.',
+        ],
+        'recycle' => [
+            'nav' => 'Kosz',
+            'title' => 'Kosz',
+            'intro' => 'Usunięte pliki i foldery, dopóki nie zostaną przywrócone lub usunięte na dobre.',
+            'p1' => 'Usunięcie pliku lub folderu przenosi go do **Kosza** na pulpicie. Usunięty folder to jeden wpis zawierający wszystko, co w nim było. Kosz pokazuje to, co mogłeś zobaczyć przed usunięciem - gdzie to było, kiedy i kto to usunął - i nic z folderów, których nie możesz otworzyć.',
+            'p2' => '**Przywróć** umieszcza element z powrotem tam, gdzie był. Jeśli teraz jest tam coś o tej samej nazwie, wraca jako „Nazwa (2)”. Jeśli folder, w którym był, również jest w koszu, zostaniesz poproszony o przywrócenie najpierw tego folderu. Kliknij dwukrotnie usunięty folder, aby zajrzeć do środka przed przywróceniem.',
+            'p3' => '**Usuń trwale** (lub **Opróżnij**) usuwa element na dobre, wraz z przechowywanym plikiem - tej operacji nie można cofnąć. Przywrócenie wymaga Modyfikacji w folderze, tak samo jak usunięcie. Trwałe usunięcie folderu wymaga także Modyfikacji w każdym folderze wewnątrz niego, aby nikt nie mógł zniszczyć plików, których nie widział; Zajrzyj do środka wyświetla tylko foldery, które widzisz. Kopia współdzieli przechowywany plik z oryginałem, więc ten plik jest usuwany dopiero wtedy, gdy nic go już nie używa.',
+            'p4' => 'Pliki -> Ustawienia -> Kosz określa, jak długo usunięte elementy są przechowywane, zanim zadanie w tle kosza Plików usunie je trwale (0 zachowuje je, dopóki ktoś ich nie usunie). Nic nie jest usuwane automatycznie, dopóki to ustawienie nie zostanie zapisane, a wszystko, co już jest w koszu, otrzymuje wtedy pełny okres, liczony od dnia zapisu. Późniejsza zmiana okresu najpierw informuje, ile elementów jest już starszych niż nowy okres. Gdy folder zostanie przywrócony, wszystko, co wcześniej w nim usunięto, zaczyna swój czas w koszu od nowa. Przywrócenia i trwałe usunięcia są zapisywane w ścieżce audytu.',
+            'p5' => 'Trwałe usunięcie usuwa również wszystkie wersje pliku. Odnośnik do pliku ze zgłoszenia, zadania lub innego rekordu informuje, że plik został usunięty, gdy jest w koszu, i znów działa po jego przywróceniu; po trwałym usunięciu odnośnik pozostaje w rekordzie, więc nadal widać, że coś tam było, ale nigdy nie będzie można go otworzyć.',
+            'p6' => 'Jeśli Twój folder trafił do kosza razem z folderem nadrzędnym, którego nie możesz otworzyć, pojawia się w Twoim koszu osobno jako **Usunięto razem z folderem nadrzędnym** - bez nazwy tamtego folderu. **Przywróć** przywraca go samodzielnie, tam gdzie był tamten folder, a otwierać go mogą dokładnie te same osoby co wcześniej.',
+            'p7' => 'Zadanie w tle nigdy nie usuwa folderu zawierającego cokolwiek, czego osoba, która go usunęła, nie mogłaby sama usunąć. Taki folder zostaje w koszu po swojej dacie, a administrator widzi go w System -> Konserwacja -> Zachowane usunięte foldery, wraz z informacją, co zrobić.',
         ],
         'audit' => [
             'nav' => 'Ścieżka audytu',

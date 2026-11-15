@@ -1,4 +1,14 @@
 <?php
+/**
+ * FreeITSM — files strings (fr).
+ *
+ * Keys mirror lang/en/files.php exactly. A key absent here falls back to
+ * English at runtime, so this file may be incomplete without breaking
+ * anything. Check coverage with: php scripts/i18n_audit.php fr
+ *
+ * ⚠️ Placeholders like {name} and %d are substituted at runtime — printf
+ * tokens substitute BY POSITION, so their order must match English.
+ */
 
 return [
     'app' => [
@@ -6,6 +16,7 @@ return [
         'help' => 'Aide',
         'personalise' => 'Personnaliser',
         'recent' => 'Récents',
+        'recycle' => 'Corbeille',
         'search' => 'Rechercher',
         'settings' => 'Paramètres',
         'transfers' => 'Transferts',
@@ -42,6 +53,8 @@ return [
         'del_file_q' => 'Supprimer « {name} » ?',
         'del_folder_q' => 'Supprimer le dossier « {name} » et tout son contenu ?',
         'del_many_q' => 'Supprimer ces {n} éléments ?',
+        'del_note' => 'Il est placé dans la corbeille, d\'où il peut être restauré.',
+        'del_note_days' => 'Il est placé dans la corbeille, d\'où il peut être restauré jusqu\'à sa suppression définitive (jours de conservation : {days}).',
         'delete' => 'Supprimer',
         'download' => 'Télécharger',
         'empty_folder' => 'Ce dossier est vide.',
@@ -143,6 +156,33 @@ return [
         'versions' => 'Versions',
         'your_access' => 'Votre accès',
     ],
+    'rb' => [
+        'col_by' => 'Supprimé par',
+        'col_deleted' => 'Date de suppression',
+        'col_location' => 'Emplacement d\'origine',
+        'empty' => 'Vider',
+        'empty_title' => 'Vider la corbeille',
+        'empty_bin' => 'La corbeille est vide.',
+        'empty_failed' => 'Certains éléments n\'ont pas pu être supprimés définitivement (éléments : {n}). Ils sont toujours dans la corbeille.',
+        'empty_q' => 'Supprimer définitivement tout le contenu de la corbeille ? (Éléments : {n})',
+        'empty_some' => 'Les éléments que vous pouvez voir mais pas modifier restent dans la corbeille.',
+        'files_inside' => 'Fichiers à l\'intérieur : {n}',
+        'look_inside' => 'Regarder à l\'intérieur',
+        'loc_rescue' => 'Supprimé avec un dossier situé au-dessus',
+        'note_days' => 'Les éléments sont supprimés définitivement dès qu\'ils sont ici depuis plus longtemps que la durée de conservation (jours de conservation : {days}).',
+        'note_forever' => 'Les éléments restent ici jusqu\'à ce que quelqu\'un les restaure ou les supprime définitivement.',
+        'peek_note' => 'Ce dossier est dans la corbeille. Restaurez-le pour ouvrir ces fichiers.',
+        'purge' => 'Supprimer définitivement',
+        'purge_file_q' => 'Supprimer définitivement « {name} » ?',
+        'purge_folder_q' => 'Supprimer définitivement le dossier « {name} » et tout son contenu ?',
+        'purge_many_q' => 'Supprimer définitivement ces {n} éléments ?',
+        'purge_note' => 'Cette action est irréversible. Les fichiers stockés sont aussi supprimés.',
+        'purge_on' => 'Supprimé définitivement le {date}',
+        'restore' => 'Restaurer',
+        'restore_folder' => 'Restaurer « {name} »',
+        'restored_as' => '« {name} » a été restauré sous le nom « {new} » - le nom était déjà pris.',
+        'rescue_tip' => 'Ce dossier est allé dans la corbeille avec un dossier situé au-dessus auquel vous n\'avez pas accès. Restaurer le remet en place seul, avec les mêmes personnes pouvant l\'ouvrir.',
+    ],
     'sc' => [
         'article' => 'Raccourci vers un article...',
         'article_none' => 'Aucun article ne correspond.',
@@ -174,6 +214,19 @@ return [
         'storage_free' => '{size} libres sur ce disque.',
         'storage_now' => 'Les fichiers sont stockés dans',
         'storage_usage' => '{n} fichiers stockés, {size} au total.',
+        'storage_in_bin' => 'Dans la corbeille (libéré lorsqu\'elle est vidée) : {n}, {size}.',
+        'recycle_title' => 'Corbeille',
+        'recycle_days' => 'Conserver les éléments supprimés pendant',
+        'recycle_days_desc' => 'Les fichiers et dossiers supprimés restent dans la corbeille pendant cette durée, puis ils sont supprimés définitivement, avec leurs fichiers stockés. 0 les conserve jusqu\'à ce que quelqu\'un les supprime.',
+        'recycle_days_unit' => 'jours',
+        'recycle_not_set' => 'Pas encore enregistré : rien n\'est supprimé automatiquement tant que vous n\'enregistrez pas. Tout ce qui est déjà dans la corbeille bénéficie alors de la durée complète, comptée à partir du jour de l\'enregistrement.',
+        'recycle_usage' => 'Éléments dans la corbeille : {n} (utilisant {size} de stockage).',
+        'recycle_off' => 'Rien n\'est supprimé automatiquement tant que ce paramètre n\'est pas enregistré.',
+        'recycle_forever' => 'Les éléments supprimés sont conservés jusqu\'à ce que quelqu\'un les supprime définitivement.',
+        'recycle_pending' => 'Fichiers stockés en attente de suppression, car le stockage n\'a pas pu être joint : {n}.',
+        'recycle_pending_unknown' => 'Fichiers stockés en attente de suppression : inconnu tant que la vérification de la base de données n\'a pas été exécutée.',
+        'recycle_held' => 'Dossiers supprimés conservés au-delà de cette durée, car la personne qui les a supprimés ne pouvait pas tout supprimer à l\'intérieur : {n}. Un administrateur peut les voir dans Système -> Maintenance -> Dossiers supprimés conservés.',
+        'recycle_due_confirm' => 'Les éléments qui sont dans la corbeille depuis plus longtemps que cette durée seront supprimés définitivement dans l\'heure, avec leurs fichiers stockés (éléments : {n}). Continuer ?',
         'take' => 'Prendre possession',
         'take_confirm' => 'Vous donner le Contrôle total de « {path} » ? Vous pourrez ouvrir tous les fichiers qu\'il contient. Cette action est enregistrée dans la piste d\'audit avec votre nom.',
         'take_ok' => 'Prendre',
@@ -219,6 +272,7 @@ return [
         'keep_versions_default' => 'Par défaut : toutes les versions.',
         'keep_all' => 'Toutes les versions',
         'keep_n' => 'Les {n} plus récentes',
+        'tab_recycle' => 'Corbeille',
         'no_tabs_title' => 'Rien à définir ici',
         'no_tabs_body' => 'Vous n\'avez pas la permission de modifier les paramètres de Fichiers. Un administrateur peut vous l\'accorder sous Système -> Rôles.',
         'folders_title' => 'Tous les dossiers',
@@ -398,6 +452,7 @@ return [
             'p1' => 'La fenêtre Documents affiche vos dossiers à gauche et le dossier ouvert à droite. Basculez entre **Icônes** et **Détails** avec les boutons à droite de la barre d\'outils ; dans Détails, cliquez sur un titre de colonne pour trier selon celle-ci.',
             'p2' => 'Saisissez dans la zone de filtre (en haut à droite, ou Ctrl+F) pour réduire le dossier ouvert aux noms contenant ce que vous avez saisi. * et ? fonctionnent comme jokers sur l\'ensemble du nom, donc `*.pdf` n\'affiche que les PDF.',
             'p3' => 'Faites un clic droit sur un élément pour voir ce que vous pouvez en faire. Cliquez pour sélectionner, Ctrl+clic pour ajouter à la sélection, Maj+clic pour une plage, ou tracez un cadre autour de plusieurs éléments.',
+            'p4' => 'Couper, Copier et Coller fonctionnent comme dans Windows (Ctrl+X, Ctrl+C, Ctrl+V), et le glisser-déposer aussi : faites glisser des fichiers, dossiers et raccourcis sur un dossier (dans n\'importe quelle fenêtre, l\'arborescence des dossiers ou la barre d\'adresse) pour les déplacer, et maintenez Ctrl pour les copier. Faites glisser un fichier ou un dossier sur le bureau pour y placer un raccourci - rien n\'est stocké sur le bureau lui-même - et faites glisser un raccourci du bureau dans un dossier pour l\'y déplacer. F2 renomme, Suppr supprime. Les éléments supprimés vont dans la corbeille (voir Corbeille).',
             'p5' => '« Documents » en haut affiche tous les dossiers qui ont été partagés avec vous. Si on vous a donné un dossier situé profondément dans celui d\'une autre personne, il apparaît ici directement avec son chemin complet en indication - vous ne voyez pas les dossiers qui sont au-dessus.',
             'p6' => 'Double-cliquez sur un fichier pour l\'ouvrir dans la visionneuse (voir Afficher des fichiers). Faites un clic droit dessus pour Télécharger, Propriétés et le reste.',
             'p7' => 'Faites un clic droit sur un fichier ou un dossier et choisissez **Créer un raccourci** pour placer un raccourci vers cet élément **dans ce dossier** (à côté de lui, pour tous ceux qui peuvent ouvrir le dossier) ou **sur le bureau** (sur votre bureau uniquement). Un raccourci ouvre ce vers quoi il pointe, mais ne donne l\'accès à personne : quelqu\'un qui ne peut pas voir la cible ne voit pas non plus le raccourci. Supprimer un raccourci laisse l\'original intact. Pour créer un lien vers un article de Connaissances, faites un clic droit sur un espace vide d\'un dossier (ou du bureau) et choisissez **Raccourci vers un article...** ; un double-clic affiche l\'article dans une fenêtre d\'aperçu, avec **Ouvrir dans Connaissances** pour accéder à l\'article lui-même, et seules les personnes qui peuvent lire cet article voient le raccourci.',
@@ -463,6 +518,7 @@ return [
             'p4' => 'Un dossier auquel vous n\'avez pas accès n\'apparaît nulle part - ni dans Documents, ni dans Rechercher, ni dans vos fichiers récents.',
             'p5' => 'Quiconque crée un dossier de premier niveau en obtient automatiquement le Contrôle total, afin de ne pas être exclu de ce qu\'il vient de créer. Créer des dossiers de premier niveau est lui-même une permission, accordée sous Système -> Rôles.',
             'p6' => 'Il n\'y a pas d\'entrées « refuser » : l\'accès est uniquement accordé. Pour tenir quelqu\'un à l\'écart d\'un sous-dossier, arrêtez l\'héritage (voir la section suivante).',
+            'p7' => 'Supprimer ou déplacer un dossier emporte tout son contenu, donc cela exige Modifier sur le dossier **et sur chaque dossier qu\'il contient**, quelle que soit la profondeur - comme dans Windows. Si un élément à l\'intérieur vous est inaccessible, on vous indique que vous ne pouvez pas, sans vous donner son nom ; adressez-vous à la personne qui gère le dossier. Un administrateur peut voir précisément ce qui bloque avec Système -> Outils de débogage -> D020.',
         ],
         'inheritance' => [
             'nav' => 'Héritage',
@@ -472,6 +528,18 @@ return [
             'p2' => 'Décochez **Inclure les permissions du dossier parent** pour arrêter l\'héritage d\'un dossier. On vous demande s\'il faut **Copier** les entrées héritées comme entrées propres du dossier (un point de départ que vous pouvez ensuite élaguer) ou les **Retirer** (seules les entrées propres du dossier subsistent).',
             'p3' => 'Déplacer un dossier qui hérite change ce qu\'il hérite - il reçoit désormais les permissions de son nouveau parent. Le déplacement est enregistré dans la piste d\'audit.',
             'p4' => 'Les copies héritent toujours de l\'endroit où elles atterrissent, et copier n\'apporte jamais rien que vous ne pourriez pas télécharger vous-même.',
+        ],
+        'recycle' => [
+            'nav' => 'Corbeille',
+            'title' => 'La corbeille',
+            'intro' => 'Les fichiers et dossiers supprimés, jusqu\'à leur restauration ou leur suppression définitive.',
+            'p1' => 'Supprimer un fichier ou un dossier le déplace dans la **Corbeille** du bureau. Un dossier supprimé forme une seule entrée contenant tout ce qu\'il renfermait. La corbeille montre ce que vous pouviez voir avant la suppression - où c\'était, quand, et qui l\'a supprimé - et rien venant de dossiers que vous ne pouvez pas ouvrir.',
+            'p2' => '**Restaurer** le remet là où il était. Si un élément du même nom s\'y trouve désormais, il revient sous le nom « Nom (2) ». Si le dossier où il se trouvait est lui aussi dans la corbeille, on vous demande de restaurer ce dossier d\'abord. Double-cliquez sur un dossier supprimé pour regarder à l\'intérieur avant de le restaurer.',
+            'p3' => '**Supprimer définitivement** (ou **Vider**) le supprime pour de bon, y compris le fichier stocké - cette action est irréversible. Restaurer exige Modifier sur le dossier, comme pour supprimer. Supprimer définitivement un dossier exige aussi Modifier sur chaque dossier qu\'il contient, afin que personne ne puisse détruire des fichiers qu\'il ne pouvait pas voir ; Regarder à l\'intérieur ne liste que les dossiers que vous pouvez voir. Une copie partage son fichier stocké avec l\'original, donc ce fichier n\'est supprimé que lorsque plus rien ne l\'utilise.',
+            'p4' => 'Fichiers -> Paramètres -> Corbeille définit combien de temps les éléments supprimés sont conservés avant que le travail d\'arrière-plan de la corbeille de Fichiers ne les supprime définitivement (0 les conserve jusqu\'à ce que quelqu\'un le fasse). Rien n\'est supprimé automatiquement tant que ce paramètre n\'a pas été enregistré, et tout ce qui est déjà dans la corbeille bénéficie alors de la durée complète, comptée à partir du jour de l\'enregistrement. Modifier la durée plus tard indique d\'abord combien d\'éléments sont déjà plus anciens que la nouvelle durée. Lorsqu\'un dossier est restauré, tout ce qui y avait été supprimé auparavant repart pour une nouvelle durée dans la corbeille. Les restaurations et suppressions définitives sont consignées dans la piste d\'audit.',
+            'p5' => 'Supprimer définitivement supprime aussi toutes les versions du fichier. Un lien vers le fichier depuis un ticket, une tâche ou tout autre enregistrement indique que le fichier a été supprimé tant qu\'il est dans la corbeille, et refonctionne une fois restauré ; après une suppression définitive, le lien reste sur l\'enregistrement, ce qui montre qu\'il y avait quelque chose, mais il ne pourra jamais être ouvert.',
+            'p6' => 'Si l\'un de vos dossiers est allé dans la corbeille avec un dossier situé au-dessus que vous ne pouvez pas ouvrir, il apparaît seul dans votre corbeille sous **Supprimé avec un dossier situé au-dessus** - sans le nom de l\'autre dossier. **Restaurer** le remet en place de lui-même, là où se trouvait ce dossier, et exactement les mêmes personnes peuvent l\'ouvrir qu\'auparavant.',
+            'p7' => 'Le travail d\'arrière-plan ne supprime jamais un dossier contenant quelque chose que la personne qui l\'a supprimé n\'aurait pas pu supprimer elle-même. Un tel dossier reste dans la corbeille au-delà de sa date, et un administrateur le voit dans Système -> Maintenance -> Dossiers supprimés conservés, avec la marche à suivre.',
         ],
         'audit' => [
             'nav' => 'Piste d\'audit',
