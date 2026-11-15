@@ -261,6 +261,10 @@ if ($ssHelpIsManager) array_splice($helpNav, array_search('s7', $helpNav, true),
                 <li><?php echo t('self-service.help.cat_li3'); ?></li>
             </ol>
             <p><?php echo t('self-service.help.cat_p2'); ?></p>
+            <?php /* The catalogue card, Your requests and cancelling (#348, 5.4.0). */ ?>
+            <p><?php echo t('self-service.help.cat_p3'); ?></p>
+            <p><?php echo t('self-service.help.cat_p4'); ?></p>
+            <p><?php echo t('self-service.help.cat_p5'); ?></p>
         </div>
 
         <!-- 4. Screen recording -->
