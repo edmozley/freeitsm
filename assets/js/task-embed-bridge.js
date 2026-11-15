@@ -68,7 +68,39 @@ window.TaskEmbedBridge = (() => {
             };
             doc.addEventListener('input', changed, true);
             doc.addEventListener('change', changed, true);
+            doc.addEventListener('click', leaveInNewTab);
         }
+    }
+
+    /**
+     * A link to another page opens in a new browser tab, never in this frame
+     * (GH #360). Followed in place, a linked record (the task's ticket, an asset, a
+     * project) loaded the whole of FreeITSM - header, menus, another copy of the
+     * ticket - inside the ticket's Work tab, and its links did the same again.
+     *
+     * Left alone: a link already opening elsewhere (target=_blank), Ctrl/Shift/
+     * middle clicks (the browser opens those separately anyway), a download, a link
+     * to somewhere on this same page (#...), and a click the page itself handled -
+     * this listens in the bubbling phase, so an onclick that calls preventDefault()
+     * has already run. Anything that still navigates the frame is caught by the
+     * ticket (frameLeftEditor in ticket-workspace.js).
+     *
+     * TRAP: keep this for every document the editor draws in, including a form's
+     * own frame (watch() adds it), or that frame's links escape the same way.
+     */
+    function leaveInNewTab(event) {
+        if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        const link = event.target.closest?.('a[href]');
+        if (!link || link.hasAttribute('download') || (link.getAttribute('target') || '').toLowerCase() === '_blank') return;
+        const raw = link.getAttribute('href').trim();
+        if (raw === '' || raw.startsWith('#') || /^javascript:/i.test(raw)) return;
+        const here = (link.ownerDocument.defaultView || window).location;
+        let url;
+        try { url = new URL(link.href, here.href); } catch (_) { return; }
+        if (!/^https?:$/.test(url.protocol)) return;   // mailto:, tel: - the browser hands those to another app
+        if (url.origin === here.origin && url.pathname === here.pathname && url.search === here.search) return;
+        event.preventDefault();
+        window.open(url.href, '_blank', 'noopener');
     }
 
     /** Is anything unsaved? An edited input that differs from its baseline, a failed write, or an edited description. */

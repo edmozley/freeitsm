@@ -1,6 +1,7 @@
 # FreeITSM Changelog
 
-This file tracks all fixes, improvements, and features for website updates.
+This file tracks all fixes, impro| 2981 | Tickets | Fix | **A linked record opened the whole of FreeITSM inside the ticket (GH #360).** In workspace mode, a task opened on the Work tab is the real Tasks page in a frame, and its linked records (`linkedRecord()`: the ticket, an asset, a project) were plain links, so clicking one loaded the full app inside the ticket, and its links nested again. The embedded editor now opens any link to another page in a new browser tab (`leaveInNewTab()` in `task-embed-bridge.js`, on every document it watches, a task form's frame included; same-page, self-handled, `_blank`, download and modified clicks are left alone), and the ticket puts the editor back, once, if anything else moves the frame (`frameLeftEditor()` in `ticket-workspace.js`). Test: three new checks in `tests/task-embed-bridge.php` (14), which fail on the old code. |
+vements, and features for website updates.
 Items are logged here and then published to the updates page at freeitsm.co.uk/updates.html.
 
 Each entry has a unique ID (3-digit, sequential) used as `data-id` on the website update items.

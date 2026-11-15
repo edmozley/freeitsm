@@ -53,6 +53,17 @@ for(const name of ['loadAiSummary','loadTicketChecklists','loadCorrespondenceThr
     frame.contentWindow.TaskEmbedBridge.editorReady(frame.contentWindow.tinyEditor);
     frame.contentWindow.tinyEditor={getContent:()=>'',on:()=>{}};
     check('a new description editor does not inherit the previous task baseline',await TicketWorkspace.canLeave());
+    // GH #360: a linked record inside the editor must not load FreeITSM inside the ticket.
+    const opened=[];frame.contentWindow.open=(u,t,f)=>{opened.push([u,t,f]);return null;};
+    const panel=doc.getElementById('detailPanel');
+    const link=doc.createElement('a');link.className='linked-record';link.href='../tickets/index.php?ticket=101';link.textContent='ZZ ticket';panel.append(link);
+    link.click();await pause(400);
+    check('a linked record opens in a new browser tab, not inside the ticket (GH #360)',opened.length===1&&/\/tickets\/index\.php\?ticket=101$/.test(opened[0][0])&&opened[0][1]==='_blank'&&/\/tasks\/embedded\.php$/.test(frame.contentWindow.location.pathname),JSON.stringify(opened)+' '+frame.contentWindow.location.pathname);
+    const hash=doc.createElement('a');hash.href='#detailPanel';hash.textContent='ZZ here';panel.append(hash);hash.click();await pause(200);
+    const handled=doc.createElement('a');handled.href='../tickets/index.php?ticket=102';handled.textContent='ZZ handled';handled.addEventListener('click',e=>e.preventDefault());panel.append(handled);handled.click();await pause(200);
+    check('a link to this same page, or one the page handles itself, is left alone',opened.length===1,JSON.stringify(opened));
+    frame.contentWindow.location.href='../tickets/index.php?ticket=101';await pause(2000);
+    check('the frame sent to another page is put back on the task editor (GH #360)',/\/tasks\/embedded\.php$/.test(frame.contentWindow.location.pathname)&&!!frame.contentWindow.TaskEmbedBridge,frame.contentWindow.location.pathname);
 })().catch(error=>check('embed bridge runs',false,String(error))).finally(()=>document.getElementById('result').textContent=JSON.stringify(checks));
 </script></body></html>
 HTML;
@@ -61,4 +72,5 @@ $frame = '<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}
     .'<div id="detailPanel"><div id="grow" style="height:50px">ZZ task content</div><textarea id="newCommentInput"></textarea></div>'
     .'<script>window.TASK_HOST="ticket";window.TASK_EMBED_CONTEXT={ticketId:101,taskId:201};window.t=k=>k;window.API_BASE="/api/tasks/";</script>'
     .'<script>'.$bridge.'</script><script>window.TaskEmbedBridge?.ready();</script></body></html>';
-exit(ticketWorkspaceBrowser(['index.html'=>$html,'tasks/embedded.php'=>$frame]));
+exit(ticketWorkspaceBrowser(['index.html'=>$html,'tasks/embedded.php'=>$frame,
+    'tickets/index.php'=>'<!doctype html><html><body><p>ZZ the whole app</p></body></html>']));

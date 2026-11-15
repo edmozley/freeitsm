@@ -483,6 +483,26 @@ window.TicketWorkspace = (() => {
     }
 
     /**
+     * The safety net for GH #360: the frame is only ever for the task editor. If
+     * something navigated it to another page (the editor's own link guard,
+     * leaveInNewTab in task-embed-bridge.js, missed it), the whole of FreeITSM would
+     * be drawn inside this ticket. Put the task editor back instead, once; if it
+     * lands somewhere else again (a lapsed session sending it to the sign-in page)
+     * let the normal "could not be loaded" state show rather than loop.
+     *
+     * @return {boolean} true when it sent the frame back, so the load is not judged
+     */
+    function frameLeftEditor(frame, context) {
+        let path = '';
+        try { path = frame.contentWindow.location.pathname; } catch (_) { return false; }   // not ours to read: the normal check decides
+        if (/\/tasks\/embedded\.php$/.test(path) || path === '' || path === 'blank') return false;
+        if (context.sentBack) return false;
+        context.sentBack = true;
+        frame.src = '../tasks/embedded.php?task=' + context.taskId + '&ticket_id=' + context.ticketId;
+        return true;
+    }
+
+    /**
      * Open a linked task in the Work tab. Called from the task pill's click in
      * renderTicketTasks() (inbox.js); Ctrl/Shift-click still opens it separately.
      * The same task again just shows the tab; another task asks the open one first.
@@ -503,10 +523,13 @@ window.TicketWorkspace = (() => {
         // said 404 or 503). Nothing in it can be unsaved, so it can be left.
         taskFrame.addEventListener('load', event => {
             if (event.currentTarget !== taskFrame) return;
+            if (frameLeftEditor(taskFrame, taskContext)) return;
             try {
                 if (!taskFrame.contentWindow.TaskEmbedBridge) {
                     taskContext.unavailable = true;
                     setSectionState(ticketId, 'work', 'error', null, 'task-editor');
+                } else {
+                    taskContext.sentBack = false;   // the editor is back: a later escape may be sent back again
                 }
             } catch (_) {
                 taskContext.unavailable = true;
