@@ -109,7 +109,7 @@ try {
     // our own map, never from the sender-supplied content_type — which let
     // `image/svg+xml` through the old inline test and made a planted SVG run script
     // on our origin. See includes/uploads.php.
-    $code = storeServe($conn, 'tickets', $key, 0, max(0, $actual - 1), function () use ($attachment) {
+    $code = storeServe($conn, 'tickets', $key, 0, max(0, $actual - 1), function () use ($attachment, $actual) {
         header('Cache-Control: private, max-age=86400');
         attachmentSendHeaders((string)$attachment['filename'], (int)$actual);   // the size stored, not recorded (PR #318 review R1)
     });

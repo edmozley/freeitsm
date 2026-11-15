@@ -92,7 +92,7 @@ try {
     // and runs <script>. nosniff cannot help when the declared type is the executable
     // one. The type is now derived from the file extension against our own map, and
     // anything unrecognised downloads as octet-stream. See includes/uploads.php.
-    $code = storeServe($conn, 'tickets', $key, 0, max(0, $actual - 1), function () use ($attachment) {
+    $code = storeServe($conn, 'tickets', $key, 0, max(0, $actual - 1), function () use ($attachment, $actual) {
         // For inline images, allow browser caching
         header('Cache-Control: private, max-age=86400');
         attachmentSendHeaders((string)$attachment['filename'], (int)$actual);   // the size stored, not recorded (PR #318 review R1)
