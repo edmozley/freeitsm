@@ -95,7 +95,12 @@ function apiV1OpenApiInfoDescription(): string {
         . "server-local datetimes (noted on those operations). Writes behave exactly like the "
         . "web UI — audit rows, workflow events, emails and SLA all fire.\n\n"
         . "The default rate limit is 60 requests/minute per key; every response carries "
-        . "`X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`.";
+        . "`X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`.
+
+"
+        . "Each operation names the key permission it needs in `x-permission` (`resource.action`, "
+        . "as in System -> API). `x-permissions-also` lists any further permission that operation "
+        . "may need, depending on the request - for example `documents.download` to read a document's content.";
 }
 
 /** Base component schemas that always exist (envelope, error, pagination). */
@@ -215,10 +220,65 @@ function apiV1BuildOperation(array $ep, string $section, array $extras, array $e
         ];
     }
 
+    // --- Permissions (discussion #319) -------------------------------------
+    // x-permission: the key permission the route itself needs ("tickets.read"),
+    // straight from routes.php. x-permissions-also: any more a handler checks
+    // for some requests (an apiRequirePermission() call in its body, found by
+    // scanning the source as the success codes are) - so a client can tell what
+    // a key needs without reading spec.json's wording. Absent = no key permission
+    // (GET / and /ping).
+    $handler = $endpointToHandler[$key] ?? null;
+    $routePerm = $handler !== null ? (apiV1RoutePermissions()[$handler] ?? null) : null;
+    if ($routePerm !== null) {
+        $op['x-permission'] = $routePerm;
+        $also = array_values(array_diff(apiV1HandlerExtraPermissions()[$handler] ?? [], [$routePerm]));
+        if ($also) $op['x-permissions-also'] = $also;
+    }
+
     // --- Responses --------------------------------------------------------
     $op['responses'] = apiV1BuildResponses($ep, $extras, $endpointToHandler, $handlerSuccess, $schemas);
 
     return $op;
+}
+
+/**
+ * The permission each handler's route needs, as "resource.action": [handler => "tickets.read"].
+ * A route with no permission (the root, /ping) is left out.
+ */
+function apiV1RoutePermissions(): array {
+    static $cache = null;
+    if ($cache !== null) return $cache;
+    $cache = [];
+    foreach (require __DIR__ . '/routes.php' as [$m, $pattern, $perm, $handler]) {
+        if (is_array($perm) && count($perm) === 2) $cache[$handler] = $perm[0] . '.' . $perm[1];
+    }
+    return $cache;
+}
+
+/**
+ * The permissions each handler checks itself, with apiRequirePermission() in its
+ * body, beyond its route's: [handler => ["documents.download", ...]]. Found by
+ * scanning the resource files, as apiV1HandlerSuccessCodes() does, so it cannot
+ * drift from the code. Such a check applies only to some requests, so the
+ * document calls them "may also be needed".
+ */
+function apiV1HandlerExtraPermissions(): array {
+    static $cache = null;
+    if ($cache !== null) return $cache;
+    $cache = [];
+    foreach (glob(__DIR__ . '/../resources/*.php') as $file) {
+        $src = file_get_contents($file);
+        if (!preg_match_all('/function\s+(api\w+)\s*\(/', $src, $fm, PREG_OFFSET_CAPTURE)) continue;
+        $count = count($fm[1]);
+        for ($i = 0; $i < $count; $i++) {
+            $start = $fm[0][$i][1];
+            $end   = ($i + 1 < $count) ? $fm[0][$i + 1][1] : strlen($src);
+            if (preg_match_all("/apiRequirePermission\s*\(\s*\\\$\w+\s*,\s*'(\w+)'\s*,\s*'(\w+)'\s*\)/", substr($src, $start, $end - $start), $pm, PREG_SET_ORDER)) {
+                $cache[$fm[1][$i][0]] = array_values(array_unique(array_map(fn($x) => $x[1] . '.' . $x[2], $pm)));
+            }
+        }
+    }
+    return $cache;
 }
 
 /**

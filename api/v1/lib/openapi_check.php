@@ -12,6 +12,9 @@
  *   3. opIds    — operationIds are present and unique
  *   4. responses— every operation declares at least one response
  *   5. shape    — no empty array is emitted where OpenAPI requires an object
+ *   6. perms    — every operation that needs a key permission says which (x-permission),
+ *                 and every extra apiRequirePermission() a handler makes is listed
+ *                 (x-permissions-also) - discussion #319
  *
  * Exits non-zero on any failure, so it can gate CI. For full JSON-Schema
  * conformance, additionally run `spectral lint` or `swagger-cli validate`
@@ -115,6 +118,24 @@ foreach (array_keys($spec['extras'] ?? []) as $k) {
 }
 $line(!$catErrs, "catalogue: " . count($specKeys) . " endpoints well-formed" . ($catErrs ? " — " . count($catErrs) . " problem(s): " . implode('; ', array_slice($catErrs, 0, 5)) : ", extras keys all resolve"));
 if ($catErrs) $fail++;
+
+// --- 6. Permissions: x-permission on every operation that needs one -------------
+$doc = apiV1BuildOpenApi();
+$permErrs = []; $withAlso = 0; $withPerm = 0;
+$routePerm = apiV1RoutePermissions();
+$e2h = apiV1MapEndpointsToHandlers($routes);
+foreach ($doc['paths'] as $p => $ops) foreach ($ops as $m => $op) {
+    $h = $e2h[strtoupper($m) . ' ' . $p] ?? null;
+    $want = $h !== null ? ($routePerm[$h] ?? null) : null;
+    if (($op['x-permission'] ?? null) !== $want) $permErrs[] = strtoupper($m) . " $p: x-permission " . json_encode($op['x-permission'] ?? null) . ', route says ' . json_encode($want);
+    if (isset($op['x-permission'])) { $withPerm++; if (!preg_match('/^\w+\.\w+$/', $op['x-permission'])) $permErrs[] = "$p: malformed x-permission"; }
+    if (!empty($op['x-permissions-also'])) $withAlso++;
+}
+// Every handler-level check must surface somewhere (a helper that is not a route handler would not).
+$handlers = array_flip(array_values($e2h));
+foreach (apiV1HandlerExtraPermissions() as $h => $ps) if (!isset($handlers[$h])) $permErrs[] = "$h checks " . implode(',', $ps) . ' but is not a route handler: move the check or list it by hand';
+$line(!$permErrs, "perms: $withPerm operations carry x-permission, $withAlso also x-permissions-also" . ($permErrs ? ' — ' . implode('; ', array_slice($permErrs, 0, 5)) : ''));
+if ($permErrs) $fail++;
 
 echo $fail === 0 ? "\nOpenAPI self-check: PASS\n" : "\nOpenAPI self-check: $fail FAILURE(S)\n";
 exit($fail === 0 ? 0 : 1);
