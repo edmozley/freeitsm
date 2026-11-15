@@ -86,7 +86,6 @@ return [
         'not_ha' => 'Hors cluster',
         'not_seen' => 'Non détecté depuis {when}',
         'not_confirmed_since' => 'Non confirmé depuis {when}',
-        'storage_limit' => 'Le stockage (volumes partagés de cluster) n\'est pas encore collecté.',
         'cmdb' => 'CMDB',
         'cmdb_title' => 'CMDB - {name}',
         'cmdb_intro' => 'Transformez ce parc en éléments de configuration et gardez-les synchronisés. Choisissez vos propres classes et types de relation. La découverte ne fait que créer des CI, synchroniser leurs noms (si la case est cochée) et gérer les relations qu\'elle a créées - jamais les propriétaires, les propriétés ni les relations tracées par une personne. Les faits découverts sont affichés sur chaque CI, sans y être copiés.',

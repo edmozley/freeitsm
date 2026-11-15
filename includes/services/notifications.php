@@ -237,6 +237,10 @@ class NotificationsService
             // keyed to the same entity, so a busy day coalesces into one row with a count.
             // admin_only: Preferences does not offer it to anyone who could never get it.
             'help.unanswered'            => ['default' => true,  'entity' => 'help_unanswered', 'admin_only' => true],
+            // #296 review: a Hyper-V collector stopped reporting, or a cluster's storage cannot be
+            // read - to the analysts who manage Hyper-V connections (VirtualEstateService::watch(),
+            // the virt_watch job). Once per silence or failure, never every run.
+            'hyperv.collector'           => ['default' => true,  'entity' => 'virt_connection'],
         ];
     }
 
@@ -434,7 +438,7 @@ class NotificationsService
         'task' => 'tasks', 'problem' => 'problems', 'change' => 'changes', 'asset' => 'assets',
         'cmdb_object' => 'cmdb', 'knowledge_article' => 'knowledge', 'contract' => 'contracts',
         'supplier' => 'contracts', 'supplier_contact' => 'contracts', 'domain' => 'domains',
-        'project' => 'projects', 'person' => 'people',
+        'project' => 'projects', 'person' => 'people', 'virt_connection' => 'assets',
     ];
 
     /** " AND entity_type NOT IN (...)" for the switched-off modules' entity types, or ''. */

@@ -86,7 +86,6 @@ return [
         'not_ha' => 'Nicht geclustert',
         'not_seen' => 'Nicht gesehen seit {when}',
         'not_confirmed_since' => 'Nicht bestätigt seit {when}',
-        'storage_limit' => 'Speicher (Cluster Shared Volumes) wird noch nicht erfasst.',
         'cmdb' => 'CMDB',
         'cmdb_title' => 'CMDB - {name}',
         'cmdb_intro' => 'Machen Sie aus dieser Umgebung Konfigurationselemente und halten Sie sie synchron. Wählen Sie Ihre eigenen Klassen und Beziehungstypen. Die Erkennung legt nur CIs an, hält ihre Namen synchron (wenn angehakt) und verwaltet die Beziehungen, die sie selbst erstellt hat - niemals Eigentümer, Eigenschaften oder Beziehungen, die eine Person gezeichnet hat. Erkannte Fakten werden an jedem CI angezeigt, nicht in es kopiert.',

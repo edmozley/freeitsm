@@ -86,7 +86,6 @@ return [
         'not_ha' => 'Sin clúster',
         'not_seen' => 'No visto desde {when}',
         'not_confirmed_since' => 'Sin confirmar desde {when}',
-        'storage_limit' => 'El almacenamiento (volúmenes compartidos de clúster) aún no se recopila.',
         'cmdb' => 'CMDB',
         'cmdb_title' => 'CMDB - {name}',
         'cmdb_intro' => 'Convierta esta infraestructura en elementos de configuración y manténgalos sincronizados. Elija sus propias clases y tipos de relación. El descubrimiento solo crea CI, mantiene sus nombres sincronizados (si se marca) y gestiona las relaciones que creó, nunca responsables, propiedades ni relaciones que dibujó una persona. Los datos descubiertos se muestran en cada CI, no se copian en él.',

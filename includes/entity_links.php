@@ -111,6 +111,10 @@ function entityLink(string $type, int $id): ?string {
         case 'supplier_contact':
             return 'people/contact.php?id=' . $id;
 
+        // A Hyper-V connection (#296 review: the collector alert) - its estate is on Assets -> Servers.
+        case 'virt_connection':
+            return 'asset-management/servers/';
+
         // The help assistant's unanswered questions - one list, whatever the id.
         case 'help_unanswered':
             return 'system/help-assistant/#unanswered';
@@ -129,6 +133,6 @@ function entityLinkTypes(): array {
     return [
         'ticket', 'task', 'problem', 'change',
         'asset', 'cmdb_object', 'knowledge_article', 'contract', 'domain', 'project',
-        'person', 'company', 'supplier', 'supplier_contact', 'jml_case', 'help_unanswered',
+        'person', 'company', 'supplier', 'supplier_contact', 'jml_case', 'help_unanswered', 'virt_connection',
     ];
 }

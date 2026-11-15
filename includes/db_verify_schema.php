@@ -2746,6 +2746,7 @@ return [
         'created_by_id'              => 'INT NULL',
         'created_datetime'           => 'DATETIME NULL',
         'is_demo'                    => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the Virtualisation demo (System -> Demo Data)
+        'stale_alerted_at'           => 'DATETIME NULL',   // #296 review: the "stopped reporting" bell was sent (virt_watch job)
     ],
 
     'virt_clusters' => [
@@ -2756,9 +2757,37 @@ return [
         'name'                       => 'VARCHAR(255) NULL',
         'quorum_type'                => 'VARCHAR(100) NULL',
         'witness'                    => 'VARCHAR(255) NULL',
+        'storage_last_attempted_at'   => 'DATETIME NULL',
+        'storage_last_observed_at'    => 'DATETIME NULL',
+        'storage_read_error'          => 'VARCHAR(300) NULL',
+        'storage_failing_since'       => 'DATETIME NULL',
+        'storage_failed_runs'         => 'INT NOT NULL DEFAULT 0',
+        'storage_alerted_at'          => 'DATETIME NULL',
         'first_seen_at'              => 'DATETIME NULL',
         'last_seen_observed_at'      => 'DATETIME NULL',
         'not_seen_since'             => 'DATETIME NULL',
+        'not_confirmed_since'        => 'DATETIME NULL',
+    ],
+
+    'virt_storage_volumes' => [
+        'id'                        => 'INT NOT NULL AUTO_INCREMENT',
+        'connection_id'             => 'INT NOT NULL',
+        'tenant_id'                 => 'INT NULL',
+        'cluster_id'                => 'INT NOT NULL',
+        'external_id'               => 'VARCHAR(100) NOT NULL',
+        'resource_id'               => 'VARCHAR(191) NOT NULL',
+        'volume_id'                 => 'VARCHAR(191) NOT NULL',
+        'name'                      => 'VARCHAR(255) NULL',
+        'path'                      => 'VARCHAR(500) NULL',
+        'filesystem'                => 'VARCHAR(60) NULL',
+        'state'                     => 'VARCHAR(30) NULL',
+        'coordinator_node'          => 'VARCHAR(255) NULL',
+        'total_bytes'               => 'BIGINT NULL',
+        'free_bytes'                => 'BIGINT NULL',
+        'used_bytes'                => 'BIGINT NULL',
+        'first_seen_at'             => 'DATETIME NULL',
+        'last_seen_observed_at'      => 'DATETIME NULL',
+        'not_seen_since'            => 'DATETIME NULL',
         'not_confirmed_since'        => 'DATETIME NULL',
     ],
 

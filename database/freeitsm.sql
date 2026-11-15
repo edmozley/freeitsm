@@ -2361,6 +2361,7 @@ CREATE TABLE IF NOT EXISTS `virt_connections` (
     `created_by_id`             INT NULL,
     `created_datetime`          DATETIME NULL,
     `is_demo`                    TINYINT(1) NOT NULL DEFAULT 0,   -- set by the Virtualisation demo (System -> Demo Data)
+    `stale_alerted_at`          DATETIME NULL,   -- the "stopped reporting" bell was sent (virt_watch job)
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_virt_connections_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -2374,6 +2375,12 @@ CREATE TABLE IF NOT EXISTS `virt_clusters` (
     `name`                      VARCHAR(255) NULL,
     `quorum_type`               VARCHAR(100) NULL,
     `witness`                   VARCHAR(255) NULL,
+    `storage_last_attempted_at` DATETIME NULL,
+    `storage_last_observed_at`  DATETIME NULL,
+    `storage_read_error`        VARCHAR(300) NULL,
+    `storage_failing_since`     DATETIME NULL,
+    `storage_failed_runs`       INT NOT NULL DEFAULT 0,
+    `storage_alerted_at`        DATETIME NULL,
     `first_seen_at`             DATETIME NULL,
     `last_seen_observed_at`     DATETIME NULL,
     `not_seen_since`            DATETIME NULL,
@@ -2381,6 +2388,35 @@ CREATE TABLE IF NOT EXISTS `virt_clusters` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_virt_clusters_ext` (`connection_id`, `external_id`),
     CONSTRAINT `fk_virt_clusters_conn` FOREIGN KEY (`connection_id`) REFERENCES `virt_connections` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Shared storage, once per cluster and partition (#296). Identity is derived from the
+-- cluster, resource and volume identifiers, never the friendly name or coordinator.
+-- Missing volumes are retained; capacity NULL means unknown, not zero.
+CREATE TABLE IF NOT EXISTS `virt_storage_volumes` (
+    `id`                       INT NOT NULL AUTO_INCREMENT,
+    `connection_id`            INT NOT NULL,
+    `tenant_id`                INT NULL,
+    `cluster_id`               INT NOT NULL,
+    `external_id`              VARCHAR(100) NOT NULL,
+    `resource_id`              VARCHAR(191) NOT NULL,
+    `volume_id`                VARCHAR(191) NOT NULL,
+    `name`                     VARCHAR(255) NULL,
+    `path`                     VARCHAR(500) NULL,
+    `filesystem`               VARCHAR(60) NULL,
+    `state`                    VARCHAR(30) NULL,
+    `coordinator_node`         VARCHAR(255) NULL,
+    `total_bytes`              BIGINT NULL,
+    `free_bytes`               BIGINT NULL,
+    `used_bytes`               BIGINT NULL,
+    `first_seen_at`            DATETIME NULL,
+    `last_seen_observed_at`     DATETIME NULL,
+    `not_seen_since`           DATETIME NULL,
+    `not_confirmed_since`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_virt_storage_ext` (`connection_id`, `external_id`),
+    KEY `idx_virt_storage_cluster` (`cluster_id`),
+    CONSTRAINT `fk_virt_storage_conn` FOREIGN KEY (`connection_id`) REFERENCES `virt_connections` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- A Hyper-V host, standalone or a cluster node. external_id is the hardware UUID

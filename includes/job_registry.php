@@ -228,6 +228,14 @@ function jobRegistry(): array
             'interval' => 1440, 'grace' => 720, 'max_runtime' => 120,
             'needed'  => fn(PDO $c) => jobIntuneConfigured($c),
         ],
+        // #296 review: tell the people who manage Hyper-V connections when a collector has
+        // gone quiet or a cluster's storage cannot be read (VirtualEstateService::watch()).
+        // A collector that stops sends nothing, so only a schedule can notice.
+        'virt_watch' => [
+            'command' => 'php cron/virt_watch.php', 'web' => false,
+            'interval' => 60, 'grace' => 120, 'max_runtime' => 5,
+            'needed'  => fn(PDO $c) => jobNeedOne($c, "SELECT 1 FROM virt_connections WHERE is_active = 1 LIMIT 1"),
+        ],
         'vcloud_sync' => [
             'command' => 'php cron/vcloud_sync.php', 'web' => false,
             'interval' => 15, 'grace' => 30, 'max_runtime' => 30,
@@ -255,7 +263,7 @@ function jobRegistry(): array
     $jobModules = [
         'lms_reminders' => 'lms', 'domains' => 'domains', 'task_recurrence' => 'tasks',
         'webhook_deliveries' => 'workflow', 'proxmox_sync' => 'assets', 'vcloud_sync' => 'assets',
-        'intune_sync' => 'assets', 'intune_app_sync' => 'assets',
+        'intune_sync' => 'assets', 'intune_app_sync' => 'assets', 'virt_watch' => 'assets',
         'sla_breach' => 'sla',   // a Tickets feature (slice 2)
         'csat_delayed' => 'csat',   // GH #301
     ];

@@ -86,7 +86,6 @@ return [
         'not_ha' => 'Poza klastrem',
         'not_seen' => 'Niewidziany od {when}',
         'not_confirmed_since' => 'Niepotwierdzony od {when}',
-        'storage_limit' => 'Pamięć masowa (Cluster Shared Volumes) nie jest jeszcze zbierana.',
         'cmdb' => 'CMDB',
         'cmdb_title' => 'CMDB - {name}',
         'cmdb_intro' => 'Zamień to środowisko w elementy konfiguracji i utrzymuj je w zgodzie ze źródłem. Wybierz własne klasy i typy relacji. Wykrywanie tylko tworzy elementy konfiguracji, utrzymuje ich nazwy w zgodzie (jeśli zaznaczono) i zarządza relacjami, które samo utworzyło - nigdy właścicielami, właściwościami ani relacjami narysowanymi przez człowieka. Wykryte fakty są pokazywane przy każdym elemencie konfiguracji, a nie do niego kopiowane.',

@@ -86,7 +86,6 @@ return [
         'not_ha' => 'Ikke i klynge',
         'not_seen' => 'Ikke set siden {when}',
         'not_confirmed_since' => 'Ikke bekræftet siden {when}',
-        'storage_limit' => 'Lager (Cluster Shared Volumes) indsamles ikke endnu.',
         'cmdb' => 'CMDB',
         'cmdb_title' => 'CMDB - {name}',
         'cmdb_intro' => 'Gør denne bestand til konfigurationselementer, og hold dem ajour. Vælg dine egne klasser og relationstyper. Discovery opretter kun CI\'er, holder deres navne ajour (hvis afkrydset) og styrer de relationer, den selv har lavet - aldrig ejere, egenskaber eller relationer, som en person har tegnet. Fundne oplysninger vises på hvert CI og kopieres ikke ind i det.',

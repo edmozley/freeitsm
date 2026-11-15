@@ -86,7 +86,6 @@ return [
         'not_ha' => 'Tidak di-cluster',
         'not_seen' => 'Tidak terlihat sejak {when}',
         'not_confirmed_since' => 'Belum dikonfirmasi sejak {when}',
-        'storage_limit' => 'Penyimpanan (Cluster Shared Volumes) belum dikumpulkan.',
         'cmdb' => 'CMDB',
         'cmdb_title' => 'CMDB - {name}',
         'cmdb_intro' => 'Ubah infrastruktur ini menjadi configuration item dan jaga agar tetap selaras. Pilih kelas dan tipe relasi Anda sendiri. Penemuan hanya membuat CI, menjaga namanya tetap selaras (jika dicentang) dan mengelola relasi yang dibuatnya - tidak pernah pemilik, properti, atau relasi yang digambar seseorang. Fakta yang ditemukan ditampilkan pada setiap CI, tidak disalin ke dalamnya.',

@@ -12,7 +12,7 @@
  *     resend for ever); the same scope and time with different content is a conflict. Each
  *     object also keeps the time it was last observed, so an older report sent under another
  *     scope can never wind an object back.
- *   - sections (clusters, hosts, cluster_roles, vms, vm_disks, vm_networks), each complete,
+ *   - sections (clusters, hosts, cluster_roles, vms, vm_disks, vm_networks, storage_volumes), each complete,
  *     partial or left out. Each is applied inside its own savepoint: one that fails is rolled
  *     back alone, named, and the others apply (the adapter answers 207).
  *   - REMOVAL IS NOT DELETION. An object missing from a complete section whose scope covers
@@ -46,7 +46,7 @@ final class VirtualEstateService
     public const SCHEMA_VERSION = 1;
 
     /** The sections, in the order they are applied: what is referenced comes first. */
-    public const SECTIONS = ['clusters', 'hosts', 'cluster_roles', 'vms', 'vm_disks', 'vm_networks'];
+    public const SECTIONS = ['clusters', 'hosts', 'cluster_roles', 'vms', 'vm_disks', 'vm_networks', 'storage_volumes'];
 
     /** The per-connection job key on System -> Background jobs. */
     public static function jobKey(int $connectionId): string
@@ -109,8 +109,11 @@ final class VirtualEstateService
                 if (!array_key_exists($name, $sections)) { continue; }
                 $conn->exec('SAVEPOINT virt_section');
                 try {
+                    if (!is_array($sections[$name])) {
+                        throw new ServiceError('validation', 'invalid_section', "$name must be an object.");
+                    }
                     $apply = 'apply_' . $name;
-                    $results[$name] = ['outcome' => 'applied'] + self::$apply($conn, $ctx, $sections[$name]);
+                    $results[$name] = self::$apply($conn, $ctx, $sections[$name]) + ['outcome' => 'applied'];
                     $conn->exec('RELEASE SAVEPOINT virt_section');
                 } catch (ServiceError $e) {
                     $conn->exec('ROLLBACK TO SAVEPOINT virt_section');
@@ -129,7 +132,8 @@ final class VirtualEstateService
 
         $failed = array_keys(array_filter($results, fn($r) => $r['outcome'] === 'failed'));
         $applied = count($results) - count($failed);
-        $outcome = !$failed ? 'applied' : ($applied ? 'partial' : 'failed');
+        $partial = array_filter($results, fn($r) => $r['outcome'] === 'partial');
+        $outcome = !$failed && !$partial ? 'applied' : ($applied ? 'partial' : 'failed');
         $summary = self::summary($results, $unreadable);
         JobRun::finish($conn, $run, $outcome === 'applied' && !$unreadable ? 'ok' : ($outcome === 'failed' ? 'failed' : 'partial'),
             array_map(fn($r) => ($r['added'] ?? 0) + ($r['updated'] ?? 0), $results), $summary);
@@ -261,6 +265,151 @@ final class VirtualEstateService
     }
 
     /**
+     * Shared volumes have completeness and failures per CLUSTER, independently of host/VM
+     * reads. An omitted section (old collector), or omitted cluster, changes nothing.
+     * Each cluster owns a savepoint so a bad partition cannot erase a good cluster's read.
+     * TRAP: never put storage errors in the report's top-level unreadable list: doing that
+     * would mark successfully read VMs unconfirmed too.
+     */
+    private static function apply_storage_volumes(PDO $conn, array &$ctx, array $section): array
+    {
+        // Before Database Verification has added storage, only this section fails (207); the VMs still apply.
+        if (!self::storageReady($conn)) {
+            throw new ServiceError('validation', 'storage_unavailable', 'Run Database Verification to accept storage.');
+        }
+        if (!is_array($section['clusters'] ?? null) || !array_is_list($section['clusters'])) {
+            throw new ServiceError('validation', 'invalid_section', 'storage_volumes needs clusters (a list of cluster reads).');
+        }
+        $clusterIds = self::idMap($conn, $ctx, 'virt_clusters');
+        $scopeIds = self::scopeClusterIds($conn, $ctx);
+        $reads = [];
+        foreach ($section['clusters'] as $read) {
+            if (!is_array($read)) {
+                throw new ServiceError('validation', 'invalid_item', 'Every storage cluster read must be an object.');
+            }
+            $external = self::id($read, 'cluster_id', 'storage_volumes');
+            $id = $clusterIds[$external] ?? null;
+            if ($id === null || !in_array($id, $scopeIds, true)) {
+                throw new ServiceError('validation', 'unknown_cluster', 'Storage cluster must belong to this connection and report scope.');
+            }
+            if (isset($reads[$id])) {
+                throw new ServiceError('validation', 'duplicate_cluster', 'Send only one storage read per cluster.');
+            }
+            $reads[$id] = ['external_id' => $external, 'read' => $read];
+        }
+        // Get-Cluster itself can fail before the collector learns its id. Only an opted-in
+        // report reaches this method: old collectors must leave storage entirely untouched.
+        $blocked = self::unreadableIds($conn, $ctx);
+        $externalById = array_flip($clusterIds);
+        foreach (array_intersect($blocked['clusters'], $scopeIds) as $id) {
+            if (!isset($reads[$id])) {
+                $reads[$id] = ['external_id' => $externalById[$id],
+                    'read' => ['complete' => false, 'items' => [], 'error' => 'Cluster could not be read.']];
+            }
+        }
+        $stats = ['added' => 0, 'updated' => 0, 'not_seen' => 0, 'stale_objects' => 0, 'clusters' => []];
+        $failed = 0;
+        foreach ($reads as $clusterId => $entry) {
+            $read = $entry['read'];
+            $external = $entry['external_id'];
+            $st = $conn->prepare('SELECT storage_last_attempted_at FROM virt_clusters WHERE id = ? AND connection_id = ? FOR UPDATE');
+            $st->execute([$clusterId, (int)$ctx['conn']['id']]);
+            $lastAttempt = $st->fetchColumn();
+            // The watermark includes failed/empty reads, not only the last successful row.
+            // Otherwise an older report with a different scope could resurrect stale facts.
+            if ($lastAttempt !== null && $lastAttempt > $ctx['observed']) {
+                $stats['clusters'][$external] = ['outcome' => 'stale'];
+                $stats['stale_objects']++;
+                continue;
+            }
+            $conn->exec('SAVEPOINT virt_storage_cluster');
+            $error = null;
+            try {
+                $items = self::items($read, 'storage_volumes', function (array $i) use ($external, $clusterId) {
+                    $resource = self::id($i, 'resource_id', 'storage_volumes', 191);
+                    $volume = self::id($i, 'volume_id', 'storage_volumes', 191);
+                    $total = self::storageBytes($i['total_bytes'] ?? null);
+                    $free = self::storageBytes($i['free_bytes'] ?? null);
+                    if ($total !== null && $free !== null && $free > $total) { $free = null; }
+                    return ['external_id' => hash('sha256', json_encode([$external, $resource, $volume])),
+                        'cluster_id' => $clusterId, 'resource_id' => $resource, 'volume_id' => $volume,
+                        'name' => self::str($i, 'name', 255), 'path' => self::str($i, 'path', 500),
+                        'filesystem' => self::str($i, 'filesystem', 60), 'state' => self::str($i, 'state', 30),
+                        'coordinator_node' => self::str($i, 'coordinator_node', 255),
+                        'total_bytes' => $total, 'free_bytes' => $free,
+                        'used_bytes' => $total !== null && $free !== null ? $total - $free : null];
+                });
+                if (!array_is_list($read['items'])) {
+                    throw new ServiceError('validation', 'invalid_item', 'Storage items must be a list.');
+                }
+                $ids = array_column($items, 'external_id');
+                if (count($ids) !== count(array_unique($ids))) {
+                    throw new ServiceError('validation', 'duplicate_volume', 'Send each resource and volume identity only once per cluster.');
+                }
+                $error = self::str($read, 'error', 300);
+                if ($error !== null && ($read['complete'] || $items)) {
+                    throw new ServiceError('validation', 'invalid_item', 'A failed storage read must have complete=false and no items.');
+                }
+                if (in_array($clusterId, $blocked['clusters'], true)) {
+                    throw new ServiceError('validation', 'cluster_unreadable', 'Storage cannot be confirmed while its cluster is unreadable.');
+                }
+                $cols = ['cluster_id', 'resource_id', 'volume_id', 'name', 'path', 'filesystem', 'state',
+                    'coordinator_node', 'total_bytes', 'free_bytes', 'used_bytes'];
+                $s = self::upsert($conn, $ctx, 'virt_storage_volumes', $items, $cols);
+                $notSeen = 0;
+                if ($read['complete']) {
+                    $notSeen = self::markNotSeen($conn, $ctx, 'virt_storage_volumes', $ids, [$clusterId], 'cluster_id');
+                } else {
+                    $error = $error ?? 'Storage read was incomplete.';
+                }
+                $stats['added'] += $s['added'];
+                $stats['updated'] += $s['updated'];
+                $stats['not_seen'] += $notSeen;
+                $stats['stale_objects'] += $s['stale_objects'] ?? 0;
+                $stats['clusters'][$external] = ['outcome' => $error === null ? 'applied' : ($items ? 'partial' : 'failed')]
+                    + $s + ['not_seen' => $notSeen];
+                $conn->exec('RELEASE SAVEPOINT virt_storage_cluster');
+            } catch (ServiceError $e) {
+                $conn->exec('ROLLBACK TO SAVEPOINT virt_storage_cluster');
+                $error = $e->getMessage();
+                $stats['clusters'][$external] = ['outcome' => 'failed', 'error' => $e->errorCode];
+            }
+            if ($error !== null) {
+                $failed++;
+                $stats['clusters'][$external]['message'] = $error;
+                $conn->prepare('UPDATE virt_storage_volumes SET not_confirmed_since = COALESCE(not_confirmed_since, ?)
+                    WHERE connection_id = ? AND cluster_id = ? AND not_seen_since IS NULL
+                    AND (last_seen_observed_at IS NULL OR last_seen_observed_at < ?)')
+                    ->execute([$ctx['observed'], (int)$ctx['conn']['id'], $clusterId, $ctx['observed']]);
+            }
+            // failing_since / failed_runs: how long storage has been failing, for the Servers page
+            // and the collector alert (watch()). A good read resets both.
+            $conn->prepare('UPDATE virt_clusters SET storage_last_attempted_at = ?, storage_read_error = ?,
+                storage_last_observed_at = CASE WHEN ? IS NULL THEN ? ELSE storage_last_observed_at END,
+                storage_failing_since = CASE WHEN ? IS NULL THEN NULL ELSE COALESCE(storage_failing_since, ?) END,
+                storage_failed_runs = CASE WHEN ? IS NULL THEN 0 ELSE storage_failed_runs + 1 END
+                WHERE id = ? AND connection_id = ?')
+                ->execute([$ctx['observed'], $error, $error, $ctx['observed'], $error, $ctx['observed'], $error,
+                    $clusterId, (int)$ctx['conn']['id']]);
+        }
+        $someApplied = array_filter($stats['clusters'], fn($r) => $r['outcome'] !== 'failed');
+        $stats['outcome'] = !$failed ? 'applied' : ($someApplied ? 'partial' : 'failed');
+        return $stats;
+    }
+
+    /** A capacity is an exact, non-negative signed BIGINT, or unknown. Never coerce null to zero. */
+    private static function storageBytes($value): ?int
+    {
+        if (!is_int($value) && !is_string($value)) { return null; }
+        $text = (string)$value;
+        if (!preg_match('/^\d+$/D', $text)) { return null; }
+        $text = ltrim($text, '0');
+        if ($text === '') { return 0; }
+        if (strlen($text) > 19 || (strlen($text) === 19 && strcmp($text, '9223372036854775807') > 0)) { return null; }
+        return (int)$text;
+    }
+
+    /**
      * Disks or adapters, grouped by VM. A complete section makes each VM it names, and each
      * VM in scope it does not name, hold exactly the rows sent. VMs not in this connection are
      * refused as a whole section, so a typo cannot quietly drop data.
@@ -305,6 +454,46 @@ final class VirtualEstateService
             }
         }
         return ['added' => $added, 'updated' => $updated, 'removed' => $removed];
+    }
+
+    /**
+     * Storage grouped by connection and cluster, including never-read and empty clusters.
+     * Callers pass only connection ids they already authorized (session company filter or
+     * apiVirtConnection). An empty list must never mean all companies.
+     */
+    public static function storageInventory(PDO $conn, array $connectionIds): array
+    {
+        // Before Database Verification: nothing, and the Servers page says "Storage not collected."
+        if (!$connectionIds || !self::storageReady($conn)) { return []; }
+        $in = implode(',', array_map('intval', $connectionIds));
+        $clusters = $conn->query("SELECT cl.id AS cluster_id, cl.external_id AS cluster_external_id, cl.name AS cluster_name,
+                cl.connection_id, c.name AS connection_name, cl.storage_last_attempted_at AS last_attempted_at,
+                cl.storage_last_observed_at AS last_observed_at, cl.storage_read_error AS read_error,
+                cl.storage_failing_since AS failing_since, cl.storage_failed_runs AS failed_runs
+            FROM virt_clusters cl JOIN virt_connections c ON c.id = cl.connection_id
+            WHERE cl.connection_id IN ($in) ORDER BY c.name, c.id, cl.name, cl.id")->fetchAll(PDO::FETCH_ASSOC);
+        $byCluster = [];
+        foreach ($clusters as $i => &$cluster) {
+            $cluster['cluster_id'] = (int)$cluster['cluster_id'];
+            $cluster['connection_id'] = (int)$cluster['connection_id'];
+            $cluster['failed_runs'] = (int)$cluster['failed_runs'];
+            $cluster['volumes'] = [];
+            $byCluster[$cluster['cluster_id']] = $i;
+        }
+        unset($cluster);
+        $volumes = $conn->query("SELECT id, connection_id, cluster_id, external_id, resource_id, volume_id, name, path,
+                filesystem, state, coordinator_node, total_bytes, free_bytes, used_bytes, first_seen_at,
+                last_seen_observed_at, not_seen_since, not_confirmed_since
+            FROM virt_storage_volumes WHERE connection_id IN ($in) ORDER BY name, volume_id, id")->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($volumes as $volume) {
+            foreach (['id', 'connection_id', 'cluster_id', 'total_bytes', 'free_bytes', 'used_bytes'] as $column) {
+                if ($volume[$column] !== null) { $volume[$column] = (int)$volume[$column]; }
+            }
+            if (isset($byCluster[$volume['cluster_id']])) {
+                $clusters[$byCluster[$volume['cluster_id']]]['volumes'][] = $volume;
+            }
+        }
+        return $clusters;
     }
 
     // ---- shared mechanics ----------------------------------------------------
@@ -594,6 +783,146 @@ final class VirtualEstateService
         return $ready;
     }
 
+    /** Tests only: pretend storage is (not) ready. null = ask the database. */
+    public static ?bool $storageReadyOverride = null;
+
+    /**
+     * Has Database Verification added cluster storage (#296) - the table and the cluster's
+     * storage columns? Until it has, storage reads as "not collected", a report's storage
+     * section fails on its own (the rest applies) and retention leaves storage alone.
+     * TRAP: an upgraded install runs the new code BEFORE anyone runs Database Verification;
+     * every storage query must sit behind this.
+     */
+    public static function storageReady(PDO $conn): bool
+    {
+        if (self::$storageReadyOverride !== null) { return self::$storageReadyOverride; }
+        static $ready = null;
+        if ($ready === null) {
+            try {
+                $conn->query('SELECT storage_last_attempted_at, storage_failing_since, storage_failed_runs, storage_alerted_at FROM virt_clusters LIMIT 0');
+                $conn->query('SELECT 1 FROM virt_storage_volumes LIMIT 0');
+                $ready = true;
+            } catch (PDOException) { $ready = false; }
+        }
+        return $ready;
+    }
+
+    // ======================================================================
+    //  Watching the collectors (#296 review): somebody hears when one stops
+    // ======================================================================
+
+    /** The connections' alert column, added by Database Verification with storage. */
+    private static function watchReady(PDO $conn): bool
+    {
+        try { $conn->query('SELECT stale_alerted_at FROM virt_connections LIMIT 0'); return true; }
+        catch (PDOException) { return false; }
+    }
+
+    /**
+     * Run by the virt_watch background job (cron/virt_watch.php), hourly. A collector that
+     * has stopped sends nothing, so nothing in submit() can notice it - a schedule has to.
+     *
+     *  - A switched-on connection whose last report is older than its own interval + grace
+     *    (freshness() = overdue, the Servers page's Overdue) tells the analysts who manage
+     *    its Hyper-V connections ONCE (stale_alerted_at); a report on time clears it, so the
+     *    next silence tells them again. A connection that has never reported is left to
+     *    System -> Background jobs (Never seen) - it is usually one still being set up.
+     *  - A cluster whose storage read is failing (storage_read_error) tells them once
+     *    (storage_alerted_at), cleared by a good read.
+     *
+     * Retention can never empty a silent connection: purge() only runs inside submit(),
+     * after a report that was not stale or a replay, so no report means no clean-up.
+     *
+     * @param int[]|null $only  just these connections (tests); null = every one
+     * @return array{stale:int, storage:int, cleared:int, told:int}
+     */
+    public static function watch(PDO $conn, ?int $now = null, ?array $only = null): array
+    {
+        $out = ['stale' => 0, 'storage' => 0, 'cleared' => 0, 'told' => 0];
+        if (!self::ready($conn) || !self::watchReady($conn)) { return $out; }
+        $nowSql = gmdate('Y-m-d H:i:s', $now ?? time());
+        $limit = $only === null ? '' : ' AND id IN (' . (implode(',', array_map('intval', $only)) ?: '0') . ')';
+        $rows = $conn->query('SELECT * FROM virt_connections WHERE is_active = 1' . $limit)->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as $c) {
+            $id = (int)$c['id'];
+            if (self::freshness($c, $now) === 'overdue') {
+                if ($c['stale_alerted_at'] !== null) { continue; }
+                $hours = intdiv(($now ?? time()) - strtotime($c['last_report_at'] . ' UTC'), 3600);
+                $out['told'] += self::tell($conn, $c, 'Hyper-V collector stopped reporting: ' . $c['name'],
+                    sprintf('No report for %s (expected every %d min). Check the scheduled task that runs Invoke-HyperVInventory.ps1.',
+                        $hours >= 1 ? $hours . ' hour' . ($hours === 1 ? '' : 's') : 'over ' . (int)$c['expected_interval_minutes'] . ' min',
+                        (int)$c['expected_interval_minutes']));
+                $conn->prepare('UPDATE virt_connections SET stale_alerted_at = ? WHERE id = ?')->execute([$nowSql, $id]);
+                $out['stale']++;
+            } elseif ($c['stale_alerted_at'] !== null) {
+                $conn->prepare('UPDATE virt_connections SET stale_alerted_at = NULL WHERE id = ?')->execute([$id]);
+                $out['cleared']++;
+            }
+        }
+        if (!self::storageReady($conn)) { return $out; }
+        $byId = array_column($rows, null, 'id');
+        $clusters = $conn->query('SELECT cl.id, cl.connection_id, cl.name, cl.external_id, cl.storage_read_error, cl.storage_failing_since,
+                cl.storage_failed_runs, cl.storage_alerted_at
+            FROM virt_clusters cl JOIN virt_connections c ON c.id = cl.connection_id AND c.is_active = 1' . str_replace('id IN', 'c.id IN', $limit) . '
+            WHERE (cl.storage_read_error IS NOT NULL AND cl.storage_alerted_at IS NULL)
+               OR (cl.storage_read_error IS NULL AND cl.storage_alerted_at IS NOT NULL)')->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($clusters as $cl) {
+            if ($cl['storage_read_error'] === null) {
+                $conn->prepare('UPDATE virt_clusters SET storage_alerted_at = NULL WHERE id = ?')->execute([(int)$cl['id']]);
+                $out['cleared']++;
+                continue;
+            }
+            $c = $byId[$cl['connection_id']] ?? null;
+            if (!$c) { continue; }
+            $name = $cl['name'] ?: $cl['external_id'];
+            $out['told'] += self::tell($conn, $c, 'Cluster storage could not be read: ' . $name . ' (' . $c['name'] . ')',
+                sprintf('%s Failing since %s UTC, %d report(s) in a row.', $cl['storage_read_error'],
+                    substr((string)$cl['storage_failing_since'], 0, 16), max(1, (int)$cl['storage_failed_runs'])));
+            $conn->prepare('UPDATE virt_clusters SET storage_alerted_at = ? WHERE id = ?')->execute([$nowSql, (int)$cl['id']]);
+            $out['storage']++;
+        }
+        return $out;
+    }
+
+    /**
+     * Who hears about a connection: every active analyst who could open its Hyper-V
+     * connections - Assets, the Hyper-V settings capability, and the connection's company.
+     *
+     * @return int[] analyst ids
+     */
+    public static function watchRecipients(PDO $conn, array $c): array
+    {
+        require_once __DIR__ . '/../rbac.php';
+        require_once __DIR__ . '/../tenancy.php';
+        $tenant = $c['tenant_id'] === null ? getDefaultTenantId($conn) : (int)$c['tenant_id'];
+        $out = [];
+        foreach ($conn->query('SELECT id FROM analysts WHERE is_active = 1 ORDER BY id')->fetchAll(PDO::FETCH_COLUMN) as $a) {
+            $a = (int)$a;
+            if (analystCanAccessModule($conn, $a, 'assets') && analystHasCapability($conn, $a, Cap::ASSETS_HYPERV)
+                && analystCanAccessTenant($conn, $a, $tenant)) {
+                $out[] = $a;
+            }
+        }
+        return $out;
+    }
+
+    /** The bell, to watchRecipients(); returns how many were told. Never throws. */
+    private static function tell(PDO $conn, array $c, string $title, string $body): int
+    {
+        try {
+            require_once __DIR__ . '/notifications.php';
+            $told = 0;
+            foreach (self::watchRecipients($conn, $c) as $a) {
+                $told += NotificationsService::notify($conn, ['analyst_id' => $a, 'event_type' => 'hyperv.collector',
+                    'entity_type' => 'virt_connection', 'entity_id' => (int)$c['id'], 'title' => $title, 'body' => $body]) ? 1 : 0;
+            }
+            return $told;
+        } catch (Throwable $e) {
+            error_log('[virt watch] bell: ' . $e->getMessage());
+            return 0;
+        }
+    }
+
     // ======================================================================
     //  Internals
     // ======================================================================
@@ -810,11 +1139,29 @@ final class VirtualEstateService
         $cut = gmdate('Y-m-d H:i:s', time() - $days * 86400);
         require_once __DIR__ . '/virtual_estate_cmdb.php';
         $bindKind = ['virt_vms' => 'vm', 'virt_cluster_roles' => 'role', 'virt_hosts' => 'host', 'virt_clusters' => 'cluster'];
+        $cmdb = VirtualEstateCmdbService::ready($conn);
+        // Storage volumes follow the same rule as VMs (Ed, #296 review): gone once not seen for
+        // longer than the setting - and so are the volumes of a cluster that is itself being
+        // removed (its storage cannot have been read since it went). Before the clusters, so a
+        // cluster is kept only while it still has volumes.
+        $storage = self::storageReady($conn);
+        if ($storage) {
+            $clusterBound = $cmdb ? ' AND ' . VirtualEstateCmdbService::boundIdsSql('cluster') : '';
+            $conn->prepare("DELETE FROM virt_storage_volumes WHERE connection_id = ? AND (
+                    (not_seen_since IS NOT NULL AND not_seen_since < ?)
+                    OR cluster_id IN (SELECT id FROM (SELECT id FROM virt_clusters WHERE connection_id = ?
+                        AND not_seen_since IS NOT NULL AND not_seen_since < ?$clusterBound) gone))")
+                ->execute([(int)$c['id'], $cut, (int)$c['id'], $cut]);
+        }
         foreach ($bindKind as $t => $bk) {
             $kind = $t === 'virt_vms' ? 'vm' : ($t === 'virt_hosts' ? 'host' : null);
             $openCase = $kind ? " AND id NOT IN (SELECT old_object_id FROM virt_identity_reviews WHERE status = 'open' AND object_kind = '$kind')" : '';
             // A discovered object with a CI is never purged: the CI, and the binding's history, need it.
-            $bound = VirtualEstateCmdbService::ready($conn) ? ' AND ' . VirtualEstateCmdbService::boundIdsSql($bk) : '';
+            $bound = $cmdb ? ' AND ' . VirtualEstateCmdbService::boundIdsSql($bk) : '';
+            // A cluster with volumes left (seen, or not yet past the setting) stays with them.
+            if ($t === 'virt_clusters' && $storage) {
+                $bound .= ' AND id NOT IN (SELECT cluster_id FROM virt_storage_volumes WHERE connection_id = ' . (int)$c['id'] . ')';
+            }
             $conn->prepare("DELETE FROM $t WHERE connection_id = ? AND not_seen_since IS NOT NULL AND not_seen_since < ?$openCase$bound")->execute([(int)$c['id'], $cut]);
         }
     }
@@ -823,7 +1170,7 @@ final class VirtualEstateService
     {
         $bits = [];
         foreach ($results as $name => $r) {
-            $bits[] = $r['outcome'] === 'failed' ? "$name failed" : sprintf('%s %d', $name, ($r['added'] ?? 0) + ($r['updated'] ?? 0));
+            $bits[] = $r['outcome'] !== 'applied' ? "$name {$r['outcome']}" : sprintf('%s %d', $name, ($r['added'] ?? 0) + ($r['updated'] ?? 0));
         }
         if ($unreadable) { $bits[] = count($unreadable) . ' unreadable'; }
         return implode(', ', $bits);

@@ -225,6 +225,8 @@ return [
         'name_lms_reminders'         => 'Training reminders',
         'affects_lms_reminders'      => 'LMS reminder emails',
         // GH #199: a pushed source - healthy when its collector's reports arrive on time.
+        'name_virt_watch'            => 'Hyper-V collector watch',
+        'affects_virt_watch'         => 'Nobody is told when a Hyper-V collector stops reporting or a cluster\'s storage cannot be read',
         'name_virt_push'             => 'Hyper-V reports: {name}',
         'affects_virt_push'          => 'What Assets -> Servers shows for this estate goes stale, and nothing marks VMs that have gone',
         'name_pushed_sources'        => 'Pushed sources',

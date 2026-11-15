@@ -178,6 +178,19 @@ return [
         'check'    => ['rows', 'vcloud_vms'],
     ],
     [
+        // PR #351 (GH #296)
+        'id'       => 'assets.hyperv_storage',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'integrations',
+        'title'    => 'Hyper-V cluster storage collected',
+        'what'     => 'The Hyper-V collector run with -IncludeStorage, so the Servers page lists each cluster\'s Cluster Shared Volumes with their size, free space and coordinator node.',
+        'why'      => 'A VM\'s disk sizes cannot tell you how full the shared storage under a cluster is. A failed read keeps the last good figures, marked not confirmed, and the people who manage Hyper-V are told in the bell.',
+        'done'     => 'At least one Cluster Shared Volume has been reported.',
+        'link'     => 'asset-management/servers/',
+        'check'    => ['rows', 'virt_storage_volumes'],
+    ],
+    [
         'id'       => 'assets.intune',
         'module'   => 'assets',
         'tier'     => 'extra',

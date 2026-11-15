@@ -322,6 +322,9 @@ function demoVirtRemove(PDO $conn, ActorContext $ctx): void
         $conn->prepare('DELETE FROM job_runs WHERE job_key = ?')->execute([VirtualEstateService::jobKey($cid)]);
         VirtualEstateCmdbService::connectionDeleted($conn, $ctx, $cid);
         $conn->exec("DELETE FROM cmdb_object_sources WHERE connection_id = $cid");   // demo: no history to keep
+        if (VirtualEstateService::storageReady($conn)) {
+            $conn->exec("DELETE FROM virt_storage_volumes WHERE connection_id = $cid");   // #296: not left to the FK
+        }
         $conn->exec("DELETE FROM virt_connections WHERE id = $cid");                 // its estate goes by cascade
         $conn->commit();
     }

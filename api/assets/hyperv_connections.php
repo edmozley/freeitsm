@@ -152,6 +152,10 @@ try {
             $conn->prepare('DELETE FROM job_runs WHERE job_key = ?')->execute([VirtualEstateService::jobKey((int)$c['id'])]);
             // Its CIs stay; their bindings end, and the mapping and decisions go (they have no FK).
             VirtualEstateCmdbService::connectionDeleted($conn, ActorContext::fromSession($conn), (int)$c['id']);
+            // #296: storage explicitly too, so it never depends on Database Verification having added the FK.
+            if (VirtualEstateService::storageReady($conn)) {
+                $conn->prepare('DELETE FROM virt_storage_volumes WHERE connection_id = ?')->execute([(int)$c['id']]);
+            }
             $conn->prepare('DELETE FROM virt_connections WHERE id = ?')->execute([(int)$c['id']]);   // its estate goes by cascade
             $conn->commit();
             echo json_encode(['success' => true]);
