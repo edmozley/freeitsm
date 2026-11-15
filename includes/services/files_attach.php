@@ -188,7 +188,11 @@ final class FilesAttach
         $st = $conn->prepare("SELECT id, folder_id, name, deleted_datetime FROM files_items WHERE id = ?");
         $st->execute([$itemId]);
         $it = $st->fetch(PDO::FETCH_ASSOC);
-        if (!$it || $it['deleted_datetime'] !== null) return ['access' => false, 'title' => null, 'open_url' => null, 'gone' => true];
+        // Deleted itself, or inside a folder that is deleted (in the recycle bin, a whole
+        // folder goes with its files): either way the file has been deleted.
+        if (!$it || $it['deleted_datetime'] !== null || !isset(FilesAcl::tree($conn)[(int)$it['folder_id']])) {
+            return ['access' => false, 'title' => null, 'open_url' => null, 'gone' => true];
+        }
         $ok = analystCanAccessModule($conn, $analystId, 'files') && FilesAcl::level($conn, $analystId, (int)$it['folder_id']) >= FilesAcl::VIEW;
         return $ok ? ['access' => true, 'title' => $it['name'], 'open_url' => BASE_URL . 'files/?item=' . (int)$it['id'], 'gone' => false]
                    : ['access' => false, 'title' => null, 'open_url' => null, 'gone' => false];

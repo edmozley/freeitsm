@@ -204,6 +204,15 @@ function jobRegistry(): array
             'interval' => 1, 'grace' => 10, 'max_runtime' => 15,
             'needed'  => fn(PDO $c) => jobSettingStrict($c, 'files_storage_previous') !== '',
         ],
+        // The Files recycle bin: deletes for good what has been in the bin longer than
+        // Files -> Settings -> Recycle bin allows, and retries stored bytes whose
+        // deletion found storage unreachable. Never needed until that tab is saved.
+        'files_recycle_purge' => [
+            'command' => 'php cron/files_recycle_purge.php', 'web' => false,
+            'interval' => 60, 'grace' => 180, 'max_runtime' => 15,
+            'needed'  => fn(PDO $c) => (int)jobSettingStrict($c, 'files_recycle_bin_days') > 0
+                                     || jobNeedOne($c, "SELECT 1 FROM files_purge_pending LIMIT 1"),
+        ],
         'lms_reminders' => [
             'command' => 'php cron/lms_reminders.php', 'web' => true,
             'interval' => 1440, 'grace' => 360, 'max_runtime' => 10,

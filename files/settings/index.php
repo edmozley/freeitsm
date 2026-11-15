@@ -2,13 +2,15 @@
 /**
  * Files → Settings.
  *
- * Two tabs, two capabilities (files/settings/manifest.php). Only the tabs this
+ * Three tabs, three capabilities (files/settings/manifest.php). Only the tabs this
  * analyst may use are rendered at all; api/files/settings.php checks the same
  * capability again for every read and write.
  *
  *   Folders  every folder that exists - including ones the viewer cannot open -
  *            with Take ownership, the way back into an orphaned folder.
  *   Storage  where the bytes live on the server, and the largest upload.
+ *   Recycle bin  how long deleted files and folders are kept before they are
+ *            deleted for good (the files_recycle_purge job).
  *
  * Behaviour is in assets/js/files-settings.js.
  */
@@ -186,9 +188,19 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
             <div class="set-actions"><button type="button" class="fil-btn primary" id="verSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="verMsg" style="font-size:13px"></span></div>
         </div>
         <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'recycle')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'recycle' ? ' active' : ''; ?>" id="recycle-tab" data-capability="<?php echo capKey(Cap::FILES_RECYCLE); ?>">
+            <h2 style="margin:0 0 4px;font-size:18px"><?php echo $tt('recycle_title'); ?></h2>
+            <div class="set-box" id="rbState"></div>
+            <div class="set-row"><div><div class="lbl"><?php echo $tt('recycle_days'); ?></div><div class="desc"><?php echo $tt('recycle_days_desc'); ?></div></div>
+                <div><input type="number" id="rbDays" min="0" style="width:160px"> <?php echo $tt('recycle_days_unit'); ?><div class="dflt" id="rbNotSet" hidden><?php echo $tt('recycle_not_set'); ?></div></div></div>
+            <div class="set-actions"><button type="button" class="fil-btn primary" id="rbSave"><?php echo htmlspecialchars(t('files.btn.save')); ?></button><span id="rbMsg" style="font-size:13px"></span></div>
+        </div>
+        <?php endif; ?>
     </div>
     <script>window.FILES_API = <?php echo json_encode(BASE_URL . 'api/files/'); ?>;</script>
-    <script src="../../assets/js/files-settings.js?v=8"></script>
+    <script src="../../assets/js/files-settings.js?v=11"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

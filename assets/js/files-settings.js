@@ -184,6 +184,7 @@
                 : esc(L('settings.storage_now', 'Files are stored in')) + ' <code>' + esc(r.storage_root) + '</code>. ';
             $('stoState').innerHTML = where +
                 esc(L('settings.storage_usage', '{n} stored files, {size} in all.', { n: r.stored_files, size: fmtSize(r.stored_bytes) })) +
+                (r.recycle && r.recycle.files ? ' ' + esc(L('settings.storage_in_bin', 'In the recycle bin (freed when it is emptied): {n}, {size}.', { n: r.recycle.files, size: fmtSize(r.recycle.bytes) })) : '') +
                 (r.free_bytes ? ' ' + esc(L('settings.storage_free', '{size} free on that disk.', { size: fmtSize(r.free_bytes) })) : '') +
                 (r.writable ? '' : ' <strong>' + esc(L('settings.not_writable', 'The web server cannot write there - uploads will fail.')) + '</strong>');
 
@@ -299,5 +300,49 @@
         });
 
         load(true);
+    }
+
+    // ── Recycle bin ────────────────────────────────────────────────────────
+    // How long deleted things are kept. Nothing is purged until this is saved
+    // once (an upgrade never deletes anything by itself).
+    var rbDays = document.getElementById('rbDays');
+    if (rbDays) {
+        /** Draws the state box and the field from the server's reply. */
+        var rbRender = function (r) {
+            rbDays.value = r.days;
+            rbDays.max = r.max_days;
+            document.getElementById('rbNotSet').hidden = r.configured;
+            document.getElementById('rbState').textContent =
+                L('settings.recycle_usage', 'Items in the recycle bin: {n} (using {size} of storage).', { n: r.entries, size: fmtSize(r.bin_bytes) }) +
+                (!r.configured ? ' ' + L('settings.recycle_off', 'Nothing is deleted automatically until this setting is saved.')
+                    : r.days === 0 ? ' ' + L('settings.recycle_forever', 'Deleted items are kept until someone deletes them permanently.') : '') +
+                (r.pending_bytes ? ' ' + L('settings.recycle_pending', 'Stored files waiting to be removed because storage could not be reached: {n}.', { n: r.pending_bytes })
+                    // null: the queue's table is missing (before Database Verification) - unknown, never "none".
+                    : r.pending_bytes === null ? ' ' + L('settings.recycle_pending_unknown', 'Stored files waiting to be removed: unknown until Database Verification has been run.') : '');
+        };
+        api('settings.php?tab=recycle').then(rbRender).catch(function (e) { document.getElementById('rbState').textContent = e.message; });
+        document.getElementById('rbSave').addEventListener('click', function () {
+            var msg = document.getElementById('rbMsg'), b = this;
+            var days = rbDays.value === '' ? -1 : +rbDays.value;
+            /** Saves the period and redraws the tab. */
+            var save = function () {
+                b.disabled = true;
+                msg.style.color = '';
+                msg.textContent = '';
+                api('settings.php', { tab: 'recycle', days: days })
+                    .then(function (r) { rbRender(r); msg.style.color = 'var(--success-text)'; msg.textContent = L('settings.saved', 'Saved.'); })
+                    .catch(function (e) { msg.style.color = 'var(--danger-text)'; msg.textContent = e.message; })
+                    .then(function () { b.disabled = false; });
+            };
+            if (!(days > 0)) { save(); return; }
+            // Items already older than the new period go at the next run (within the hour):
+            // say how many first - on the first save that can be everything deleted in the past.
+            api('settings.php?tab=recycle&days=' + days).then(function (r) {
+                if (!r.due) { save(); return; }
+                var q = L('settings.recycle_due_confirm', 'Items already in the recycle bin longer than this will be deleted permanently within the hour, with their stored files (Items: {n}). Continue?', { n: r.due });
+                if (window.showConfirm) window.showConfirm({ title: L('settings.recycle_title', 'Recycle bin'), message: q, okLabel: L('btn.save', 'Save'), onConfirm: save });
+                else if (confirm(q)) save();
+            }).catch(function (e) { msg.style.color = 'var(--danger-text)'; msg.textContent = e.message; });
+        });
     }
 })();

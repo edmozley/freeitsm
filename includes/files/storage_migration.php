@@ -122,6 +122,18 @@ function storageMigrateBatch(PDO $conn, int $deadlineUnix, int $limit = 200): ar
             if ($there !== (int)$row['size_bytes']) throw new RuntimeException('The new copy is ' . var_export($there, true) . " bytes, expected {$row['size_bytes']}.");
             $conn->prepare("UPDATE storage_migration_items SET state = 'verified', sha256 = ?, last_error = NULL, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
                  ->execute([$sha, $row['id']]);
+            // Deleted for good while we were copying it (the recycle bin, or an old version
+            // tidied away - filesPurgeBytesIfUnused drops the row, then the bytes): the copy
+            // just written belongs to nothing. Both must hold - the row can also go when a
+            // move is finished, and then a live file still names these bytes.
+            $still = $conn->prepare("SELECT 1 FROM storage_migration_items WHERE id = ?");
+            $still->execute([$row['id']]);
+            $used = $conn->prepare("SELECT 1 FROM files_versions WHERE storage_path = ? LIMIT 1");
+            $used->execute([$key]);
+            if (!$still->fetchColumn() && !$used->fetchColumn()) {
+                $active->delete($key);
+                continue;
+            }
             $r['copied']++;
         } catch (StorageUnavailable $e) {
             // A store is down (or its disk is full): nothing is wrong with THIS file.
