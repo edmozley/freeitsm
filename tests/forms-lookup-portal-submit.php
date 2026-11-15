@@ -117,10 +117,17 @@ try {
     check('another company\'s record is refused', !$ok);
 
     echo "\n3. The two portal gates hold at submit, not only in the search\n";
-    [$ok] = $portalPost($unticked, $answer($mineAsset), $requester);
-    check('a field not ticked for customers is refused', !$ok);
-    [$ok] = $portalPost($people, $answer($colleague), $requester);
-    check('a source that is never for customers is refused, ticked or not', !$ok);
+    // Discussion #330: such a field is never sent to the portal, so the portal never
+    // asked it - a crafted answer to it is DROPPED (never stored), and a required one
+    // does not stop the customer submitting.
+    [$ok, $sub] = $portalPost($unticked, $answer($mineAsset), $requester);
+    check('a field not ticked for customers: the answer is never stored', $ok && $stored((int)$sub, $unticked) === null, (string)$sub);
+    [$ok, $sub] = $portalPost($people, $answer($colleague), $requester);
+    check('a source that is never for customers: never stored, ticked or not', $ok && $stored((int)$sub, $people) === null, (string)$sub);
+    $conn->prepare("UPDATE form_fields SET is_required = 1 WHERE id IN (?, ?)")->execute([$unticked, $people]);
+    [$ok, $sub] = $portalPost($ticked, $answer($mineAsset), $requester);
+    check('a REQUIRED one does not stop the customer submitting', $ok, (string)$sub);
+    $conn->prepare("UPDATE form_fields SET is_required = 0 WHERE id IN (?, ?)")->execute([$unticked, $people]);
 
     echo "\n4. Staff keep every company they can reach\n";
     $admin = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 ORDER BY id LIMIT 1")->fetchColumn();

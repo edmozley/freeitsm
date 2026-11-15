@@ -85,5 +85,5 @@ if ($analystId) {
 
 echo json_encode([
     'success' => true,
-    'results' => FormsService::lookupSearch($conn, $source, $term, $tenantIds, 20),
+    'results' => FormsService::lookupSearch($conn, $source, $term, $tenantIds, 20, FormsService::lookupFiltersOf($field)),
 ]);

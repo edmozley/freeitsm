@@ -74,6 +74,12 @@ try {
     );
     $fStmt->execute([$formId]);
     $form['fields'] = $fStmt->fetchAll(PDO::FETCH_ASSOC);
+    // A lookup a customer may not use (People, or not ticked "Customers can use this
+    // on the portal") is left out altogether (discussion #330). It used to be drawn as
+    // a search box that could only ever answer "No matches". The submit treats it as
+    // not asked, so a required one never blocks the customer.
+    $form['fields'] = array_values(array_filter($form['fields'],
+        fn($f) => $f['field_type'] !== 'lookup' || FormsService::lookupPortalAllowed($f)));
 
     /* The same resolved layout the analyst side gets, from the same service —
        a customer must see the form laid out the way it was designed, not a

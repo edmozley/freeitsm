@@ -326,6 +326,9 @@ return [
 
     // Field row editing UI (forms/edit/index.php)
     'field' => [
+        // Discussion #330: narrow a CMDB lookup to one class (Job Position, say).
+        'lookup_class'     => 'Only objects of this kind',
+        'lookup_class_any' => 'Any kind',
         'lookup_portal' => 'Customers can use this on the portal',
         'lookup_src_user' => 'People',
         'lookup_src_cmdb' => 'CMDB objects',
@@ -969,14 +972,14 @@ return [
         'lookup_asset_title' => 'Equipment',
         'lookup_asset_body'  => 'Laptops, desktops, phones, monitors. Searchable by name, asset tag or service tag, so it works whether someone knows the machine name or is reading a sticker.',
         'lookup_cmdb_title'  => 'Infrastructure',
-        'lookup_cmdb_body'   => 'Servers, services, applications and databases from your CMDB. Use it for "which system is affected?".',
+        'lookup_cmdb_body'   => 'Servers, services, applications and databases from your CMDB. Use it for "which system is affected?". Choose a class under Only objects of this kind and it offers just that kind - keep your job positions as a class in the CMDB, say, and every form that asks for a position picks from the same list.',
         'lookup_user_title'  => 'People',
         'lookup_user_body'   => 'Your staff directory. Use it for "who is the new starter\'s manager?". Staff only, never available on the customer portal.',
         'lookup_location_title' => 'Locations',   // GH #311
         'lookup_location_body' => 'Your sites, buildings, floors and rooms from System → Locations, shown as a full path such as "UK > London > Floor 2". Use it for "which office are you in?".',
         'lookup_stored'      => 'Both the name and the link to the record are kept. Rename a machine later and an old submission still says what it said at the time, while the answer still points at the right record.',
         'lookup_portal_title' => 'Customers only see their own',
-        'lookup_portal'      => 'A lookup is not offered on the self-service portal unless you tick it for that field, and a customer only ever sees records belonging to their own company. The staff directory is never offered to customers, whatever you tick.',
+        'lookup_portal'      => 'A lookup is not offered on the self-service portal unless you tick it for that field, and a customer only ever sees records belonging to their own company. The staff directory is never offered to customers, whatever you tick. A lookup a customer cannot use is left off the form on the portal altogether, so a required one never stops them sending it.',
 
         // Section 3: Filling in forms
         'filling_title' => 'Filling in forms',

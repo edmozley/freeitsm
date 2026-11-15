@@ -95,6 +95,13 @@ foreach ($formActionDefs as $def) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('forms', t('forms.editor.page_title'))); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php
+    // Discussion #330: a CMDB lookup can be narrowed to one class. Names only - a form
+    // builder may not have the CMDB module, and the name of a class is no secret.
+    $cmdbClassList = [];
+    try { $cmdbClassList = connectToDatabase()->query("SELECT id, name FROM cmdb_classes WHERE COALESCE(is_active, 1) = 1 ORDER BY name")->fetchAll(PDO::FETCH_ASSOC); } catch (Throwable $__e) { $cmdbClassList = []; }
+    ?>
+    <script>window.FORMS_CMDB_CLASSES = <?php echo json_encode(array_map(fn($c) => ['id' => (int)$c['id'], 'name' => $c['name']], $cmdbClassList), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=4"></script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
@@ -1634,7 +1641,24 @@ foreach ($formActionDefs as $def) {
             // portal-safe), so drop it rather than leave a tick that does nothing.
             const meta = LOOKUP_SOURCES.find(x => x.key === src);
             if (!meta || !meta.portalSafe) delete fields[i].config.portal_lookup;
+            if (src !== 'cmdb') delete fields[i].config.lookup_filters;
             renderFields(); markDirty();
+        }
+        // "Only objects of this kind" (discussion #330): the first of a LIST of filters
+        // (config.lookup_filters), so later ones - "positions in the department picked
+        // above", say - are added beside it without changing how this one is stored.
+        // Keep the kinds in step with FormsService::LOOKUP_FILTER_TYPES.
+        function lookupClassOf(f) {
+            const list = (f.config && Array.isArray(f.config.lookup_filters)) ? f.config.lookup_filters : [];
+            const c = list.find(x => x && x.type === 'cmdb_class');
+            return c ? String(c.class_id) : '';
+        }
+        function setLookupClass(i, classId) {
+            fields[i].config = fields[i].config || {};
+            const rest = (Array.isArray(fields[i].config.lookup_filters) ? fields[i].config.lookup_filters : []).filter(x => x && x.type !== 'cmdb_class');
+            if (classId) rest.push({ type: 'cmdb_class', class_id: parseInt(classId, 10) });
+            if (rest.length) fields[i].config.lookup_filters = rest; else delete fields[i].config.lookup_filters;
+            markDirty();
         }
         function setLookupPortal(i, on) {
             fields[i].config = fields[i].config || {};
@@ -1718,7 +1742,7 @@ foreach ($formActionDefs as $def) {
                Inverted: everything survives by default, and only the keys
                rebuilt below are taken over. A key added tomorrow needs no
                change here and cannot be lost. */
-            const MANAGED = ['date_mode', 'lookup_source', 'portal_lookup', 'visible_if'];
+            const MANAGED = ['date_mode', 'lookup_source', 'portal_lookup', 'lookup_filters', 'visible_if'];
             const prev = (f.config && typeof f.config === 'object') ? f.config : {};
             const out = {};
             Object.keys(prev).forEach(function (k) {
@@ -1728,6 +1752,7 @@ foreach ($formActionDefs as $def) {
             if (isLookupField(f.field_type)) {
                 out.lookup_source = lookupSourceOf(f);
                 if (f.config && f.config.portal_lookup) out.portal_lookup = true;
+                if (f.config && Array.isArray(f.config.lookup_filters) && f.config.lookup_filters.length) out.lookup_filters = f.config.lookup_filters;
             }
 
             const vif = f.config && f.config.visible_if;
@@ -1970,6 +1995,12 @@ foreach ($formActionDefs as $def) {
                                 ${LOOKUP_SOURCES.map(o => `<option value="${o.key}" ${src === o.key ? 'selected' : ''}>`
                                     + esc(window.t('forms.field.lookup_src_' + o.key)) + `</option>`).join('')}
                             </select>
+                            ${src === 'cmdb' && (window.FORMS_CMDB_CLASSES || []).length ? `
+                                <div class="field-options-label" style="margin-top:8px;">${esc(window.t('forms.field.lookup_class'))}</div>
+                                <select onchange="setLookupClass(${i}, this.value)">
+                                    <option value="">${esc(window.t('forms.field.lookup_class_any'))}</option>
+                                    ${window.FORMS_CMDB_CLASSES.map(c => `<option value="${c.id}" ${lookupClassOf(f) === String(c.id) ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
+                                </select>` : ''}
                             ${meta && meta.portalSafe ? `
                                 <label class="field-required-toggle" style="margin-top:8px;">
                                     <input type="checkbox" ${f.config && f.config.portal_lookup ? 'checked' : ''}

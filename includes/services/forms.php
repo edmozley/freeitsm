@@ -358,6 +358,55 @@ class FormsService
     }
 
     /**
+     * The kinds of filter a lookup can carry in `config.lookup_filters` (discussion
+     * #330), each allowed only on the sources named. A list, so more kinds slot in
+     * later without changing a caller: "only positions whose Department is the one
+     * picked above", "portal users in group X", and so on.
+     *
+     *   cmdb_class  {class_id}  only CMDB objects of that class (Job Position, say)
+     */
+    const LOOKUP_FILTER_TYPES = [
+        'cmdb_class' => ['sources' => ['cmdb']],
+    ];
+
+    /**
+     * The usable filters on a lookup field: known kinds, on a source that allows them,
+     * with their values cast. Anything else is dropped (validateFieldConfig refuses it
+     * on save; this also guards rows saved by hand).
+     *
+     * @param array $field  a form_fields row or payload field; config may be an array or JSON text
+     * @return list<array{type:string, class_id?:int}>
+     */
+    public static function lookupFiltersOf(array $field): array
+    {
+        $config = $field['config'] ?? null;
+        if (is_string($config)) $config = json_decode($config, true);
+        $source = self::lookupSourceOf($field);
+        $out = [];
+        foreach ((array)(is_array($config) ? ($config['lookup_filters'] ?? []) : []) as $flt) {
+            $type = is_array($flt) ? (string)($flt['type'] ?? '') : '';
+            if (!isset(self::LOOKUP_FILTER_TYPES[$type]) || !in_array($source, self::LOOKUP_FILTER_TYPES[$type]['sources'], true)) continue;
+            if ($type === 'cmdb_class' && (int)($flt['class_id'] ?? 0) > 0) $out[] = ['type' => 'cmdb_class', 'class_id' => (int)$flt['class_id']];
+        }
+        return $out;
+    }
+
+    /**
+     * The SQL for a lookup's filters, shared by the search and the submit check so the
+     * list can never offer a record the submit then refuses (or the reverse).
+     *
+     * @return array{0:list<string>,1:array} [clauses, params]
+     */
+    private static function lookupFilterClause(array $filters): array
+    {
+        $where = []; $params = [];
+        foreach ($filters as $flt) {
+            if (($flt['type'] ?? '') === 'cmdb_class') { $where[] = '`class_id` = ?'; $params[] = (int)$flt['class_id']; }
+        }
+        return [$where, $params];
+    }
+
+    /**
      * The company-scope SQL for a lookup source, shared by the search and the
      * submit-time guard so the two can never disagree about what is in scope.
      *
@@ -451,9 +500,10 @@ class FormsService
      *                               company. There is no "all" string — a typo
      *                               in a string would silently mean everything.
      * @param int $limit  the most rows to return (1-50)
+     * @param array $filters  lookupFiltersOf() the field - narrows what is offered (discussion #330)
      * @return array [['id'=>int,'label'=>string], …]
      */
-    public static function lookupSearch(PDO $conn, string $source, string $term, ?array $tenantIds, int $limit = 20): array
+    public static function lookupSearch(PDO $conn, string $source, string $term, ?array $tenantIds, int $limit = 20, array $filters = []): array
     {
         if (!isset(self::LOOKUP_SOURCES[$source])) return [];
         $s = self::LOOKUP_SOURCES[$source];
@@ -490,6 +540,9 @@ class FormsService
             $where[] = $clause;
             $params  = array_merge($params, $tParams);
         }
+        [$fWhere, $fParams] = self::lookupFilterClause($filters);
+        $where  = array_merge($where, $fWhere);
+        $params = array_merge($params, $fParams);
 
         $sql = "SELECT `{$s['id_col']}` AS id, `{$s['label_col']}` AS label
                   FROM `{$s['table']}`"
@@ -530,8 +583,9 @@ class FormsService
      * @param string $source  a LOOKUP_SOURCES key
      * @param int $id  the record id that was posted
      * @param ?array $tenantIds  companies whose rows may be picked; null means unrestricted, [] means none
+     * @param array $filters  lookupFiltersOf() the field - the SAME narrowing the search applied
      */
-    public static function lookupValueAllowed(PDO $conn, string $source, int $id, ?array $tenantIds): bool
+    public static function lookupValueAllowed(PDO $conn, string $source, int $id, ?array $tenantIds, array $filters = []): bool
     {
         if (!isset(self::LOOKUP_SOURCES[$source]) || $id <= 0) return false;
         $s = self::LOOKUP_SOURCES[$source];
@@ -547,6 +601,9 @@ class FormsService
             $sql   .= " AND $clause";
             $params = array_merge($params, $tParams);
         }
+        [$fWhere, $fParams] = self::lookupFilterClause($filters);
+        foreach ($fWhere as $w) $sql .= " AND $w";
+        $params = array_merge($params, $fParams);
 
         try {
             $stmt = $conn->prepare($sql . ' LIMIT 1');
@@ -1676,6 +1733,15 @@ class FormsService
         // client-side would still 422 on submit, and a crafted post could skip a
         // required question by pretending it was hidden.
         $visible = formLogicVisibility($fields, $normalised);
+        // A lookup a customer may not use (People, or not ticked for the portal) is
+        // never sent to the portal (api/self-service/get_catalogue_form.php drops it,
+        // discussion #330), so on the portal it was not asked - and a required one
+        // must not stop the customer submitting a question they never saw.
+        if ($portalUserId !== null) {
+            foreach ($fields as $fl) {
+                if (($fl['field_type'] ?? '') === 'lookup' && !self::lookupPortalAllowed($fl)) $visible[(int)$fl['id']] = false;
+            }
+        }
 
         // An answer to a question that was never shown is dropped, so what we store is
         // what the person was actually asked.
@@ -1841,7 +1907,7 @@ class FormsService
                             '"' . $field['label'] . '" is not something you can choose.');
                     }
                     $scope = $portalUserId !== null ? self::lookupPortalScope($conn, $portalUserId) : $ctx->companyScope;
-                    $recordLabel = self::lookupValueAllowed($conn, $source, $lid, $scope)
+                    $recordLabel = self::lookupValueAllowed($conn, $source, $lid, $scope, self::lookupFiltersOf($field))
                         ? self::lookupRecordLabel($conn, $source, $lid)
                         : null;
                     if ($recordLabel === null) {
@@ -3059,6 +3125,24 @@ class FormsService
             } else {
                 $config['width'] = (int)$w;
             }
+        }
+        /* A lookup's filters (discussion #330): only known kinds, on a source that
+           allows them, with a real value. Empty means none, and is not stored. */
+        if (array_key_exists('lookup_filters', $config)) {
+            $clean = [];
+            $src = $type === 'lookup' ? ($config['lookup_source'] ?? null) : null;
+            foreach ((array)$config['lookup_filters'] as $flt) {
+                $ft = is_array($flt) ? (string)($flt['type'] ?? '') : '';
+                if (!isset(self::LOOKUP_FILTER_TYPES[$ft]) || !in_array($src, self::LOOKUP_FILTER_TYPES[$ft]['sources'], true)) {
+                    throw new ServiceError('validation', 'invalid_field', "fields[{$i}]: that lookup cannot be narrowed that way.");
+                }
+                if ($ft === 'cmdb_class') {
+                    $cid = (int)($flt['class_id'] ?? 0);
+                    if ($cid <= 0) continue;   // "Any kind"
+                    $clean[] = ['type' => 'cmdb_class', 'class_id' => $cid];
+                }
+            }
+            if ($clean) $config['lookup_filters'] = $clean; else unset($config['lookup_filters']);
         }
         /* Where the label sits. Applies to anything with a label to place, which
            is every ANSWERABLE type — a presentational block has no control for
