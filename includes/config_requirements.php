@@ -74,6 +74,15 @@ if (!function_exists('configRequirements')) {
                 'without'  => 'Off. Turn it on only when a reverse proxy you control ends HTTPS in front of the app and is the only way in.',
                 'add'      => "define('TRUST_PROXY_HTTPS', true);",
             ],
+            // docker/config.php defines it when FREEITSM_DISPLAY_ERRORS=1 is in the
+            // environment (#2611); a hand install puts it in db_config.php.
+            'FREEITSM_DISPLAY_ERRORS' => [
+                'kind'     => 'optional',
+                'where'    => 'db_config.php (or FREEITSM_DISPLAY_ERRORS=1 in the environment on Docker)',
+                'fallback' => 'config.php',
+                'without'  => 'Off. Errors are logged, never shown in a page. Turn it on only on a development box: a warning printed into a page names server paths.',
+                'add'      => "define('FREEITSM_DISPLAY_ERRORS', true);",
+            ],
         ];
     }
 }

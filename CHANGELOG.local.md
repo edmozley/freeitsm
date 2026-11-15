@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2971 | System            | Fix         | Debug Tools D017 (config.php completeness) lists FREEITSM_DISPLAY_ERRORS as an optional setting - db_config.php, or FREEITSM_DISPLAY_ERRORS=1 on Docker - so tests/config-not-load-bearing.php passes again (it had been missing since #2611). |
 | 2970 | Everywhere        | Improvement | The Files recycle bin, the folder rule, Deleted folders kept and their help translated into Danish, German, Greek, Spanish, French, Indonesian, Polish and Ukrainian (80 strings each); the two Files strings that said there was no recycle bin yet cleared from every locale (GH #293). |
 | 2969 | Files             | Fix         | Recycle bin: a permanent delete reads the folders, files and stored keys to remove only after it has locked the entry, and the retention job purges only the stay in the bin it listed; the job acts as the system (null), and a person's id of 0 is refused rather than skipping permission checks (PR #353 review). |
 | 2968 | Files             | Feature     | A folder of yours inside a deleted folder you cannot open shows in your recycle bin as "Deleted along with a folder above it" - without the other folder's name - and Restore brings it back on its own to where that folder was, its permissions frozen first so exactly the same people can open it (GH #293). |
