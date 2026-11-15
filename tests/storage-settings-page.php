@@ -55,7 +55,11 @@ $api = function (string $sid, ?array $post = null, string $path = 'api/system/st
 };
 $snap = $conn->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key LIKE 'storage\\_%' OR setting_key LIKE 'files\\_s3\\_%' OR setting_key LIKE 'files\\_storage\\_%'")->fetchAll(PDO::FETCH_KEY_PAIR);
 
+// The page's API runs in the web server, where a test cannot swap the mailer: no mailbox
+// sends while this test runs (they are switched back on in finally), so nobody is emailed.
+$mailboxesOn = $conn->query("SELECT id FROM target_mailboxes WHERE is_active = 1")->fetchAll(PDO::FETCH_COLUMN);
 try {
+    if ($mailboxesOn) $conn->exec("UPDATE target_mailboxes SET is_active = 0 WHERE id IN (" . implode(',', array_map('intval', $mailboxesOn)) . ")");
     $conn->exec("DELETE FROM system_settings WHERE setting_key LIKE 'storage\\_%' OR setting_key LIKE 'files\\_s3\\_%' OR setting_key LIKE 'files\\_storage\\_%'");
     $conn->exec("DELETE FROM storage_migration_items WHERE store IN ('tickets','changes','documents','recordings','warroom')");
     storeReset();
@@ -137,9 +141,17 @@ try {
     ok('an unknown store is a 400', $code === 400);
     [$code] = $api($adminSid, ['action' => 'nonsense']);
     ok('an unknown action is a 400', $code === 400);
+
+    // PR #318 review: the Storage tab still opens when the old location cannot be decrypted
+    // (the encryption key was replaced). So must System -> Storage.
+    $conn->prepare("REPLACE INTO system_settings (setting_key, setting_value) VALUES ('files_storage_previous', ?)")->execute([ENCRYPTION_PREFIX . base64_encode(str_repeat('z', 40))]);
+    [$code, $j] = $api($adminSid, null);
+    ok('an old Files location that cannot be decrypted: the page still opens, and says Files is moving', $code === 200 && ($j['files']['moving'] ?? null) === true, $code . ' ' . json_encode($j));
+    $conn->exec("DELETE FROM system_settings WHERE setting_key = 'files_storage_previous'");
 } catch (Throwable $e) {
     ok('no unexpected error', false, get_class($e) . ': ' . $e->getMessage() . ' @' . basename($e->getFile()) . ':' . $e->getLine());
 } finally {
+    if ($mailboxesOn) $conn->exec("UPDATE target_mailboxes SET is_active = 1 WHERE id IN (" . implode(',', array_map('intval', $mailboxesOn)) . ")");
     foreach (array_reverse($cleanup) as $c) { try { $c(); } catch (Throwable $ignored) {} }
     $conn->exec("DELETE FROM storage_migration_items WHERE store IN ('tickets','changes','documents','recordings','warroom')");
     $conn->exec("DELETE FROM system_settings WHERE setting_key LIKE 'storage\\_%' OR setting_key LIKE 'files\\_s3\\_%' OR setting_key LIKE 'files\\_storage\\_%'");

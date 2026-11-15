@@ -22,6 +22,11 @@ require_once "$root/includes/services/notifications.php";
 require_once "$root/includes/services/files_storage.php";
 require_once "$root/includes/services/storage.php";
 require_once "$root/includes/storage/store_migration.php";
+require_once "$root/includes/storage/notify.php";
+// Never email anyone (tests/README): storage notifications go to this recorder instead.
+require_once "$root/includes/storage/notify.php";
+$zzMails = [];
+StorageNotify::$mailer = function (string $to, string $subject, string $html) use (&$zzMails): void { $zzMails[] = [$to, $subject]; };
 
 $pass = 0; $fail = 0;
 function ok(string $what, bool $cond, string $detail = ''): void {
@@ -110,6 +115,9 @@ try {
     storeReset();
     @rmdir($dir);
 }
+
+$adminsWithMail = (int)$conn->query("SELECT COUNT(*) FROM analysts WHERE is_admin = 1 AND is_active = 1 AND email LIKE '%@%'")->fetchColumn();
+ok('no email left this test: the recorder took every one' . ($adminsWithMail ? '' : ' (no administrator has an address here)'), $adminsWithMail === 0 || count($zzMails) > 0, (string)count($zzMails));
 
 echo "\n$pass passed, $fail failed\n";
 exit($fail ? 1 : 0);

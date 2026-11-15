@@ -17,6 +17,10 @@ require_once "$root/includes/functions.php";
 require_once "$root/includes/storage/stores.php";
 require_once "$root/includes/storage/store_migration.php";
 require_once "$root/includes/job_registry.php";
+// Never email anyone (tests/README): storage notifications go to this recorder instead.
+require_once "$root/includes/storage/notify.php";
+$zzMails = [];
+StorageNotify::$mailer = function (string $to, string $subject, string $html) use (&$zzMails): void { $zzMails[] = [$to, $subject]; };
 
 $pass = 0; $fail = 0;
 function ok(string $label, bool $cond, string $detail = ''): void {

@@ -19,6 +19,15 @@
  * @param string $entity   'storage' (System -> Storage) or 'files_storage' (Files -> Settings -> Storage)
  * @param ?int   $actorId  who did it (not told); null = the system (a job) - never 0 (PR #353 review)
  */
+/**
+ * Tests replace the email sender so a test never emails anyone (as MandatoryFields::$mailer):
+ * fn(string $to, string $subject, string $html): void. Null: mail goes out as normal.
+ */
+final class StorageNotify
+{
+    public static $mailer = null;
+}
+
 function storageNotifyAdmins(PDO $conn, string $title, string $message, string $entity, ?int $actorId = null): void
 {
     try {
@@ -49,11 +58,13 @@ function storageNotifyAdmins(PDO $conn, string $title, string $message, string $
             $c = decryptMailboxRow($row);
             if (mailboxCanSend($c)) { $mailbox = $c; break; }
         }
-        if (!$mailbox) { error_log('[storage] no mailbox can send: administrators were told by the bell only (' . $title . ')'); return; }
+        if (!$mailbox && !StorageNotify::$mailer) { error_log('[storage] no mailbox can send: administrators were told by the bell only (' . $title . ')'); return; }
         $where = $entity === 'files_storage' ? 'Files &rarr; Settings &rarr; Storage' : 'System &rarr; Storage';
         $html = '<p>' . htmlspecialchars($message) . '</p><p>' . $where . ' has the details.</p>';
         foreach ($admins as $a) {
-            if (filter_var((string)$a['email'], FILTER_VALIDATE_EMAIL)) mailboxSendSimple($conn, $mailbox, (string)$a['email'], 'FreeITSM: ' . $title, $html, 'storage');
+            if (!filter_var((string)$a['email'], FILTER_VALIDATE_EMAIL)) continue;
+            if (StorageNotify::$mailer) { (StorageNotify::$mailer)((string)$a['email'], 'FreeITSM: ' . $title, $html); continue; }
+            mailboxSendSimple($conn, $mailbox, (string)$a['email'], 'FreeITSM: ' . $title, $html, 'storage');
         }
     } catch (Throwable $e) {
         error_log('[storage] email: ' . $e->getMessage());

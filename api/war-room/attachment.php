@@ -43,7 +43,7 @@ try {
 // One response for "no such file", "not yours" and "gone from storage". Telling the
 // three apart would let somebody map which attachment ids exist in channels they
 // cannot read. Storage that cannot be reached is a 503: the file may well be there.
-$refuse = function (int $code = 404): never {
+$refuse = function (int $code = 404): void {
     http_response_code($code);
     header('Content-Type: text/plain');
     echo $code === 503 ? 'Storage cannot be reached right now. Try again in a few minutes.' : 'Not found';

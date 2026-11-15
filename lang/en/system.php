@@ -1369,7 +1369,7 @@ return [
         'store_warroom_desc'   => 'Files shared in a war room.',
         'confirm_move'         => 'Move {store} to {where}? Its files are copied in the background and stay readable throughout.',
         'moving'               => 'Moving from {from} to {to}: {done} of {total} copied.',
-        'moving_failed'        => '{n} could not be copied. Last error: {error}',
+        'moving_failed'        => 'Could not be copied: {n}. Last error: {error}',
         'moving_done'          => 'Every file is copied. Remove the old copies, or finish and keep them.',
         'moving_cleanup'       => 'Removing the old copies...',
         // One word each, as on Files -> Settings -> Storage (PR #318 review).

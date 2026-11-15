@@ -71,7 +71,9 @@ final class StorageService
                 'location' => filesSetting($conn, 'files_storage_driver', 'local') === 's3' ? 's3' : 'local',
                 'files'    => $filesUsage[0],
                 'bytes'    => $filesUsage[1],
-                'moving'   => filesPreviousStorageConfig($conn) !== null,
+                // Whether a move is running needs no decrypting: the old location being
+                // unreadable (the encryption key replaced) must not stop the page (PR #318 review).
+                'moving'   => filesSetting($conn, 'files_storage_previous') !== '',
             ],
             'curl'       => extension_loaded('curl'),
             'scheduler_running' => (function () use ($conn) { try { return jobSchedulerRunning($conn); } catch (Throwable) { return null; } })(),
@@ -220,7 +222,7 @@ final class StorageService
     /** True while Files or any store keeps files in the bucket, or is moving. */
     public static function connectionInUse(PDO $conn): bool
     {
-        if (filesSetting($conn, 'files_storage_driver', 'local') === 's3' || filesPreviousStorageConfig($conn) !== null) return true;
+        if (filesSetting($conn, 'files_storage_driver', 'local') === 's3' || filesSetting($conn, 'files_storage_previous') !== '') return true;
         foreach (array_keys(STORAGE_STORES) as $s) {
             if (storeLocation($conn, $s) === 's3' || storeMoveSetting($conn, $s, 'previous') !== '') return true;
         }
