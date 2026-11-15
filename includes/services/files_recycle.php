@@ -36,7 +36,28 @@
  *
  * RETENTION: files_recycle_bin_days, 0 = keep for ever. Until someone saves the
  * Recycle bin settings tab the setting is absent and nothing is purged, so an
- * upgrade never deletes anything on its own.
+ * upgrade never deletes anything on its own. THE CLOCK starts when purging is
+ * switched on (files_recycle_bin_since): something already in the bin then gets
+ * the whole period from that moment, never "deleted within the hour" because it
+ * was binned long before anyone chose a period. (Decided 16 Nov 2026, GH #293.)
+ *
+ * HELD: the retention job only purges what the person who deleted it could have
+ * deleted for good by hand (canPurge as them) - never a subfolder kept from them.
+ * Such a folder stays in the bin, past its date, until someone resolves it:
+ * System -> Maintenance -> "Deleted folders kept" lists them (heldEntries()). Since
+ * a folder can no longer be deleted while it holds anything its deleter cannot
+ * change (FilesAcl::refusalInside), this is for folders binned before that rule,
+ * and for permissions changed after the delete.
+ *
+ * DELETED ALONG WITH A FOLDER ABOVE IT: somebody who can see a subfolder of a
+ * deleted folder, but not the deleted folder itself, would otherwise find their
+ * folder simply gone. They see it in their bin as an entry of its own ('rescue'),
+ * without the hidden folder's name, and Restore brings it back on its own to where
+ * the deleted folder was, its permissions frozen first so nobody gains or loses
+ * access by the move (rescue()).
+ *
+ * WHO ACTS: an analyst id, or null for the retention job (the system), which needs
+ * no permission. Never 0: a missing session id must not mean "the system".
  *
  * Throws InvalidArgumentException with a message for the person (FilesRecycleBlocked
  * when a parent folder has to be restored first).
@@ -79,6 +100,22 @@ final class FilesRecycleService
         return $v === '' ? null : max(0, (int)$v);
     }
 
+    /** When purging was switched on (UTC 'Y-m-d H:i:s'), or null while it is off. */
+    public static function clockSince(PDO $conn): ?string
+    {
+        $v = filesSetting($conn, 'files_recycle_bin_since', '');
+        return $v === '' ? null : $v;
+    }
+
+    /**
+     * When an entry's time in the bin started counting: when it was deleted, or when
+     * purging was switched on if that was later.
+     */
+    private static function clockStart(array $e, ?string $since): string
+    {
+        return ($since !== null && $since > $e['deleted_at']) ? $since : $e['deleted_at'];
+    }
+
     /**
      * Saves the retention period (the Recycle bin settings tab).
      *
@@ -91,6 +128,13 @@ final class FilesRecycleService
         }
         $before = self::retentionDays($conn);
         filesSaveSetting($conn, 'files_recycle_bin_days', (string)$days);
+        // The clock starts when purging is switched ON - first save, or from 0 (keep
+        // for ever) to a number - and runs on through later changes of the period.
+        if ($days === 0) {
+            filesSaveSetting($conn, 'files_recycle_bin_since', '');
+        } elseif (!$before || self::clockSince($conn) === null) {
+            filesSaveSetting($conn, 'files_recycle_bin_since', gmdate('Y-m-d H:i:s'));
+        }
         filesStorageReset();
         filesAudit($conn, $analystId, 'settings', ['path' => '(Settings: recycle bin)'],
                    ['recycle_bin_days' => ['from' => $before, 'to' => $days]]);
@@ -115,10 +159,15 @@ final class FilesRecycleService
         }
         $entries = self::allEntries($conn);
         $consider = $askDays ?? $days;
+        // Saving a period while purging is off switches it on NOW: the clock starts
+        // now, so nothing already in the bin is due yet.
+        $since = ($askDays !== null && !$days) ? gmdate('Y-m-d H:i:s') : self::clockSince($conn);
         $due = 0;
         if ($consider) {
             $cutoff = gmdate('Y-m-d H:i:s', time() - $consider * 86400);
-            $due = count(array_filter($entries, fn($e) => $e['deleted_at'] < $cutoff));
+            foreach ($entries as $e) {
+                if (self::clockStart($e, $since) < $cutoff && !self::heldBack($conn, $e)) $due++;
+            }
         }
         return [
             'days'          => $days ?? self::DEFAULT_DAYS,
@@ -128,6 +177,7 @@ final class FilesRecycleService
             'bin_files'     => $u['files'],
             'bin_bytes'     => $u['bytes'],
             'pending_bytes' => $pending,
+            'held'          => $days ? count(array_filter(self::heldEntries($conn), fn($h) => $h['due'])) : 0,
             'max_days'      => self::MAX_DAYS,
         ];
     }
@@ -220,12 +270,12 @@ final class FilesRecycleService
      * The folders of a subtree this person holds at least $need on (as before the
      * delete). A deleted folder can hold a subfolder that stopped inheriting and was
      * never shared with the person who deleted the parent: its name, files and sizes
-     * must not reach them through the bin. Analyst 0 (the retention job) gets all.
+     * must not reach them through the bin. Null (the retention job) gets all.
      */
-    private static function subtreeAtLeast(PDO $conn, int $analystId, int $folderId, int $need): array
+    private static function subtreeAtLeast(PDO $conn, ?int $analystId, int $folderId, int $need): array
     {
         $sub = self::subtree($conn, $folderId);
-        if ($analystId === 0) return $sub;
+        if ($analystId === null) return $sub;
         $levels = FilesAcl::levelsIncludingDeleted($conn, $analystId);
         return array_values(array_filter($sub, fn($fid) => ($levels[$fid] ?? 0) >= $need));
     }
@@ -235,9 +285,9 @@ final class FilesRecycleService
      * folder) AND on every folder under a deleted folder: a purge cannot be undone, so it
      * must never destroy something they could not even see.
      */
-    private static function canPurge(PDO $conn, int $analystId, array $e): bool
+    private static function canPurge(PDO $conn, ?int $analystId, array $e): bool
     {
-        if ($analystId === 0) return true;
+        if ($analystId === null) return true;
         $levels = FilesAcl::levelsIncludingDeleted($conn, $analystId);
         if (($levels[self::aclFolder($e)] ?? 0) < FilesAcl::MODIFY) return false;
         if ($e['type'] !== 'folder') return true;
@@ -245,6 +295,184 @@ final class FilesRecycleService
             if (($levels[$fid] ?? 0) < FilesAcl::MODIFY) return false;
         }
         return true;
+    }
+
+    /**
+     * The highest folders inside $folderId (not itself) this person can see: where
+     * a branch of a hidden deleted folder becomes theirs. Deeper visible folders
+     * come back with these, so are not listed again.
+     *
+     * @param array $levels  FilesAcl::levelsIncludingDeleted() for the person
+     * @return list<int>
+     */
+    private static function visibleTopsInside(PDO $conn, array $levels, int $folderId): array
+    {
+        $kids = [];
+        foreach (FilesAcl::allFolders($conn) as $f) {
+            if ($f['parent_id'] !== null) $kids[$f['parent_id']][] = $f['id'];
+        }
+        $out = [];
+        $stack = $kids[$folderId] ?? [];
+        $seen = [];
+        while ($stack) {
+            $id = array_pop($stack);
+            if (isset($seen[$id])) continue;
+            $seen[$id] = true;
+            if (($levels[$id] ?? 0) >= FilesAcl::VIEW) { $out[] = $id; continue; }
+            foreach ($kids[$id] ?? [] as $k) $stack[] = $k;
+        }
+        return $out;
+    }
+
+    /**
+     * Must the retention job leave this entry alone? True for a folder holding
+     * anything its deleter could not have deleted for good by hand (Ed, 16 Nov 2026:
+     * "keep it safe"). A file never is - deleting it needed Modify on its folder.
+     * Deleter unknown (an older row): held when anything inside stops inheriting,
+     * which is the only way a subfolder can be kept from anyone.
+     */
+    private static function heldBack(PDO $conn, array $e): bool
+    {
+        if ($e['type'] !== 'folder') return false;
+        if ($e['deleted_by'] === null) {
+            $all = FilesAcl::allFolders($conn);
+            foreach (self::subtree($conn, $e['id']) as $fid) {
+                if ($fid !== $e['id'] && empty($all[$fid]['inherit'])) return true;
+            }
+            return false;
+        }
+        return !self::canPurge($conn, $e['deleted_by'], $e);
+    }
+
+    /**
+     * Every deleted folder the retention job is holding back, for System ->
+     * Maintenance -> "Deleted folders kept" (administrators: names are shown).
+     *
+     * @return list<array{id:int, name:string, path:string, deleted_at:string, deleted_by_name:?string,
+     *                    due:bool, deleter_lost_access:bool, blocking:list<string>, blocking_count:int}>
+     *         due = it would have been deleted already but for this
+     */
+    public static function heldEntries(PDO $conn): array
+    {
+        $days = self::retentionDays($conn);
+        $since = self::clockSince($conn);
+        $cutoff = $days ? gmdate('Y-m-d H:i:s', time() - $days * 86400) : null;
+        $out = [];
+        foreach (self::allEntries($conn) as $e) {
+            if (!self::heldBack($conn, $e)) continue;
+            $by = $e['deleted_by'];
+            $levels = $by !== null ? FilesAcl::levelsIncludingDeleted($conn, $by) : [];
+            $all = FilesAcl::allFolders($conn);
+            $blocking = [];
+            foreach (self::subtree($conn, $e['id']) as $fid) {
+                if ($fid === $e['id']) continue;
+                $blocks = $by === null ? empty($all[$fid]['inherit']) : (($levels[$fid] ?? 0) < FilesAcl::MODIFY);
+                if ($blocks) $blocking[] = FilesAcl::pathIncludingDeleted($conn, $fid);
+            }
+            sort($blocking, SORT_NATURAL | SORT_FLAG_CASE);
+            $name = null;
+            if ($by !== null) {
+                $st = $conn->prepare("SELECT full_name FROM analysts WHERE id = ?");
+                $st->execute([$by]);
+                $name = $st->fetchColumn() ?: null;
+            }
+            $out[] = [
+                'id'                  => $e['id'],
+                'name'                => $e['name'],
+                'path'                => FilesAcl::pathIncludingDeleted($conn, $e['id']),
+                'deleted_at'          => $e['deleted_at'],
+                'deleted_by_name'     => $name,
+                'due'                 => $cutoff !== null && self::clockStart($e, $since) < $cutoff,
+                'deleter_lost_access' => $by !== null && ($levels[$e['id']] ?? 0) < FilesAcl::MODIFY,
+                'blocking'            => array_slice($blocking, 0, 50),
+                'blocking_count'      => count($blocking),
+            ];
+        }
+        usort($out, fn($a, $b) => strcmp($a['deleted_at'], $b['deleted_at']));
+        return $out;
+    }
+
+    /**
+     * Gives a folder that inherits its permissions the same entries as its own, and
+     * stops it inheriting - so moving it changes nobody's access. The chain is read
+     * over deleted folders too (allFolders), as the folder stood in the bin.
+     */
+    private static function freezePermissions(PDO $conn, int $folderId, int $byAnalyst): void
+    {
+        $all = FilesAcl::allFolders($conn);
+        $f = $all[$folderId] ?? null;
+        if (!$f || !$f['inherit']) return;
+        $chain = [];
+        $guard = 0;
+        while ($f && $guard++ < 200) {
+            $chain[] = $f['id'];
+            if (!$f['inherit'] || $f['parent_id'] === null) break;
+            $f = $all[$f['parent_id']] ?? null;
+        }
+        $in = implode(',', array_fill(0, count($chain), '?'));
+        $st = $conn->prepare("SELECT principal_type, principal_id, MAX(level) FROM files_permissions WHERE folder_id IN ($in) GROUP BY principal_type, principal_id");
+        $st->execute($chain);
+        $ins = $conn->prepare("INSERT INTO files_permissions (folder_id, principal_type, principal_id, level, granted_by, granted_datetime)
+                               VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP()) ON DUPLICATE KEY UPDATE level = GREATEST(level, VALUES(level))");
+        foreach ($st->fetchAll(PDO::FETCH_NUM) as [$type, $pid, $lvl]) $ins->execute([$folderId, $type, (int)$pid, (int)$lvl, $byAnalyst]);
+        $conn->prepare("UPDATE files_folders SET inherit_permissions = 0 WHERE id = ?")->execute([$folderId]);
+    }
+
+    /**
+     * Restores a folder that went into the bin with a folder above it that this
+     * person cannot see: on its own, to where that deleted folder was, permissions
+     * frozen first (freezePermissions) so the move gives nobody access and takes
+     * none away. Needs Modify on the folder. The hidden folder is never named.
+     */
+    private static function rescue(PDO $conn, int $analystId, int $folderId, array $top): array
+    {
+        $levels = FilesAcl::levelsIncludingDeleted($conn, $analystId);
+        if (($levels[$folderId] ?? 0) < FilesAcl::MODIFY) {
+            filesAudit($conn, $analystId, 'denied', ['folder_id' => $folderId],
+                       ['wanted' => 'modify', 'held' => FilesAcl::levelKey($levels[$folderId] ?? 0), 'doing' => 'restore']);
+            throw new InvalidArgumentException('You do not have permission to do that here.');
+        }
+        $from = FilesAcl::pathIncludingDeleted($conn, $folderId);
+        $own = !$conn->inTransaction();
+        if ($own) $conn->beginTransaction();
+        try {
+            // The deleted folder above, locked: a purge or restore of it waits for this.
+            $st = $conn->prepare("SELECT deleted_datetime FROM files_folders WHERE id = ? FOR UPDATE");
+            $st->execute([$top['id']]);
+            $still = $st->fetchColumn();
+            FilesAcl::reset();
+            $now = self::binEntryAbove($conn, $folderId);
+            if ($still === false || $still === null || !$now || $now['id'] !== $top['id']) throw new InvalidArgumentException('Folder not found.');
+            $all = FilesAcl::allFolders($conn);
+            $dest = $all[$top['id']]['parent_id'];   // live, or null: the top level
+            self::freezePermissions($conn, $folderId, $analystId);
+            $was = $GLOBALS['analystId'] ?? null;
+            $GLOBALS['analystId'] = $analystId;
+            try {
+                $name = filesFreeName($conn, $dest, $all[$folderId]['name']);
+            } finally {
+                $GLOBALS['analystId'] = $was;
+            }
+            $conn->prepare("UPDATE files_folders SET parent_id = ?, name = ?, deleted_by = NULL, deleted_datetime = NULL,
+                                   updated_by = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$dest, $name, $analystId, $folderId]);
+            // As restore(): things deleted on their own inside it start their time again.
+            $sub = array_values(array_diff(self::subtree($conn, $folderId), [$folderId]));
+            $conn->prepare("UPDATE files_items SET deleted_datetime = UTC_TIMESTAMP() WHERE deleted_datetime IS NOT NULL AND folder_id IN ("
+                           . implode(',', array_fill(0, count($sub) + 1, '?')) . ")")->execute(array_merge([$folderId], $sub));
+            if ($sub) {
+                $conn->prepare("UPDATE files_folders SET deleted_datetime = UTC_TIMESTAMP() WHERE deleted_datetime IS NOT NULL AND id IN ("
+                               . implode(',', array_fill(0, count($sub), '?')) . ")")->execute($sub);
+            }
+            if ($own) $conn->commit();
+        } catch (Throwable $ex) {
+            if ($own && $conn->inTransaction()) $conn->rollBack();
+            throw $ex;
+        }
+        FilesAcl::reset();
+        filesAudit($conn, $analystId, 'restore', ['folder_id' => $folderId],
+                   array_filter(['type' => 'folder', 'from' => $from, 'out_of_deleted_folder' => $top['id'], 'restored_as' => $name !== $all[$folderId]['name'] ? $name : null]));
+        return ['name' => $name, 'renamed' => $name !== $all[$folderId]['name'], 'folder_id' => $folderId];
     }
 
     /**
@@ -257,7 +485,19 @@ final class FilesRecycleService
     {
         $levels = FilesAcl::levelsIncludingDeleted($conn, $analystId);
         $days = self::retentionDays($conn);
-        $mine = array_values(array_filter(self::allEntries($conn), fn($e) => ($levels[self::aclFolder($e)] ?? 0) >= FilesAcl::VIEW));
+        $since = self::clockSince($conn);
+        $allEntries = self::allEntries($conn);
+        $mine = array_values(array_filter($allEntries, fn($e) => ($levels[self::aclFolder($e)] ?? 0) >= FilesAcl::VIEW));
+        // A folder of theirs inside a deleted folder they cannot see: an entry of its
+        // own, so it does not just vanish. The hidden folder is never named.
+        foreach ($allEntries as $e) {
+            if ($e['type'] !== 'folder' || ($levels[$e['id']] ?? 0) >= FilesAcl::VIEW) continue;
+            foreach (self::visibleTopsInside($conn, $levels, $e['id']) as $fid) {
+                $all = FilesAcl::allFolders($conn);
+                $mine[] = ['type' => 'folder', 'id' => $fid, 'name' => $all[$fid]['name'], 'parent_id' => null,
+                           'deleted_at' => $e['deleted_at'], 'deleted_by' => $e['deleted_by'], 'rescue_of' => $e];
+            }
+        }
         if (!$mine) return [];
 
         $names = [];
@@ -282,19 +522,27 @@ final class FilesRecycleService
         $out = [];
         foreach ($mine as $e) {
             $isFolder = $e['type'] === 'folder';
+            $rescue = isset($e['rescue_of']);
+            $binned = $rescue ? $e['rescue_of'] : $e;   // what the retention job would purge
             $out[] = [
                 'type'            => $e['type'],
                 'id'              => $e['id'],
                 'name'            => $e['name'],
                 'parent_id'       => $e['parent_id'],
-                'location'        => $e['parent_id'] !== null ? FilesAcl::path($conn, $e['parent_id']) : '',
+                // A rescue row: '' and rescue=true - the folder above it is not theirs to see.
+                'location'        => (!$rescue && $e['parent_id'] !== null) ? FilesAcl::path($conn, $e['parent_id']) : '',
+                'rescue'          => $rescue,
                 'deleted_at'      => $e['deleted_at'],
                 'deleted_by_name' => $e['deleted_by'] !== null ? ($names[$e['deleted_by']] ?? null) : null,
                 'size'            => $isFolder ? (int)$folderStats[$e['id']][1] : (int)$e['size'],
                 'files'           => $isFolder ? (int)$folderStats[$e['id']][0] : null,
-                'purge_at'        => $days ? gmdate('Y-m-d H:i:s', strtotime($e['deleted_at'] . ' UTC') + $days * 86400) : null,
+                // No date while the job is holding it back: it will not be purged then.
+                'purge_at'        => ($days && !self::heldBack($conn, $binned))
+                                     ? gmdate('Y-m-d H:i:s', strtotime(self::clockStart($binned, $since) . ' UTC') + $days * 86400) : null,
                 'can_modify'      => ($levels[self::aclFolder($e)] ?? 0) >= FilesAcl::MODIFY,
-                'can_purge'       => self::canPurge($conn, $analystId, $e),
+                // A rescue row can only be restored: deleting it for good is for whoever
+                // may delete the folder it went with.
+                'can_purge'       => !$rescue && self::canPurge($conn, $analystId, $e),
             ];
         }
         usort($out, fn($a, $b) => strcmp($b['deleted_at'], $a['deleted_at']) ?: strnatcasecmp($a['name'], $b['name']));
@@ -333,7 +581,7 @@ final class FilesRecycleService
      * The entry for (type, id) if it is one and this person may at least see it - else
      * "not found". Returns [entry, level].
      */
-    private static function entryFor(PDO $conn, int $analystId, string $type, int $id): array
+    private static function entryFor(PDO $conn, ?int $analystId, string $type, int $id): array
     {
         if (!in_array($type, ['folder', 'item'], true)) throw new InvalidArgumentException('Unknown type.');
         $notFound = $type === 'folder' ? 'Folder not found.' : 'File not found.';
@@ -349,7 +597,7 @@ final class FilesRecycleService
             if (!$i || ($i['deleted_datetime'] === null && !empty($all[(int)$i['folder_id']]['live']))) throw new InvalidArgumentException($notFound);
             $e = ['type' => 'item', 'id' => $id, 'name' => $i['name'], 'parent_id' => (int)$i['folder_id'], 'self_deleted' => $i['deleted_datetime'] !== null];
         }
-        $lvl = $analystId > 0 ? (FilesAcl::levelsIncludingDeleted($conn, $analystId)[self::aclFolder($e)] ?? 0) : FilesAcl::FULL;
+        $lvl = $analystId !== null ? (FilesAcl::levelsIncludingDeleted($conn, $analystId)[self::aclFolder($e)] ?? 0) : FilesAcl::FULL;
         if ($lvl < FilesAcl::VIEW) throw new InvalidArgumentException($notFound);
         return [$e, $lvl];
     }
@@ -375,10 +623,10 @@ final class FilesRecycleService
      * @param int $below     a folder at or under the bin entry that blocks
      * @param string $msg    English with {name} and {folder}
      */
-    private static function blocked(PDO $conn, int $analystId, int $below, string $msg, string $name): FilesRecycleBlocked
+    private static function blocked(PDO $conn, ?int $analystId, int $below, string $msg, string $name): FilesRecycleBlocked
     {
         $first = self::binEntryAbove($conn, $below);
-        $visible = $first && ($analystId === 0 || (FilesAcl::levelsIncludingDeleted($conn, $analystId)[$first['id']] ?? 0) >= FilesAcl::VIEW);
+        $visible = $first && ($analystId === null || (FilesAcl::levelsIncludingDeleted($conn, $analystId)[$first['id']] ?? 0) >= FilesAcl::VIEW);
         $text = strtr($msg, ['{name}' => $name, '{folder}' => $visible ? $first['name'] : '…']);
         return new FilesRecycleBlocked($text, $visible ? $first : []);
     }
@@ -391,6 +639,19 @@ final class FilesRecycleService
      */
     public static function restore(PDO $conn, int $analystId, string $type, int $id): array
     {
+        if ($analystId < 1) throw new InvalidArgumentException('Not signed in.');
+        // Their folder, inside a deleted folder they cannot see: it comes back on its own.
+        if ($type === 'folder') {
+            $all = FilesAcl::allFolders($conn);
+            $f = $all[$id] ?? null;
+            if ($f && !$f['live']) {
+                $top = self::binEntryAbove($conn, $id);
+                $lv = FilesAcl::levelsIncludingDeleted($conn, $analystId);
+                if ($top && $top['id'] !== $id && ($lv[$top['id']] ?? 0) < FilesAcl::VIEW && ($lv[$id] ?? 0) >= FilesAcl::VIEW) {
+                    return self::rescue($conn, $analystId, $id, $top);
+                }
+            }
+        }
         [$e, $lvl] = self::entryFor($conn, $analystId, $type, $id);
         $all = FilesAcl::allFolders($conn);
         $parent = $e['parent_id'];
@@ -461,12 +722,25 @@ final class FilesRecycleService
      * Deletes one bin entry for good: its rows, every shortcut to it, and stored bytes
      * nothing else uses.
      *
-     * @param int      $analystId     who asks (0 = the retention job, which needs no permission)
+     * @param int      $analystId     who asks - a person; the retention job uses purgeAs(null)
      * @param int|null $bytesDeadline unix time after which stored bytes are left to the job
      *                                (default: PURGE_BYTES_SECONDS from now)
      * @return array ['files' => files removed, 'bytes' => bytes freed or queued, 'pending' => keys left for the job]
      */
     public static function purge(PDO $conn, int $analystId, string $type, int $id, ?int $bytesDeadline = null): array
+    {
+        if ($analystId < 1) throw new InvalidArgumentException('Not signed in.');
+        return self::purgeAs($conn, $analystId, $type, $id, $bytesDeadline);
+    }
+
+    /**
+     * purge() for a person, or for the retention job ($analystId null: no permission
+     * needed, and only the stay in the bin it listed - $expectDeletedAt).
+     *
+     * @param ?string $expectDeletedAt  the deleted_datetime the job saw; restored and deleted
+     *                                  again since means a new stay, not the one that was due
+     */
+    private static function purgeAs(PDO $conn, ?int $analystId, string $type, int $id, ?int $bytesDeadline, ?string $expectDeletedAt = null): array
     {
         $bytesDeadline ??= time() + self::PURGE_BYTES_SECONDS;
         [$e, $lvl] = self::entryFor($conn, $analystId, $type, $id);
@@ -478,7 +752,7 @@ final class FilesRecycleService
             throw self::blocked($conn, $analystId, (int)$e['parent_id'],
                                 '"{name}" is inside a deleted folder ("{folder}"). Delete that folder permanently instead.', $e['name']);
         }
-        if ($analystId > 0 && $lvl < FilesAcl::MODIFY) {
+        if ($analystId !== null && $lvl < FilesAcl::MODIFY) {
             filesAudit($conn, $analystId, 'denied', ['path' => self::entryPath($conn, $e)],
                        ['wanted' => 'modify', 'held' => FilesAcl::levelKey($lvl), 'doing' => 'purge']);
             throw new InvalidArgumentException('You do not have permission to do that here.');
@@ -492,25 +766,7 @@ final class FilesRecycleService
         }
 
         $path = self::entryPath($conn, $e);
-        $folders = $type === 'folder' ? self::subtree($conn, $id) : [];
-        if ($folders) {
-            $in = implode(',', array_fill(0, count($folders), '?'));
-            $st = $conn->prepare("SELECT id FROM files_items WHERE folder_id IN ($in)");
-            $st->execute($folders);
-            $items = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
-        } else {
-            $items = [$id];
-        }
-
-        $keys = [];
         $bytes = 0;
-        if ($items) {
-            $in = implode(',', array_fill(0, count($items), '?'));
-            $st = $conn->prepare("SELECT storage_path, MAX(size_bytes) FROM files_versions WHERE item_id IN ($in) GROUP BY storage_path");
-            $st->execute($items);
-            $keys = $st->fetchAll(PDO::FETCH_KEY_PAIR);
-        }
-
         $own = !$conn->inTransaction();
         if ($own) $conn->beginTransaction();
         try {
@@ -520,6 +776,30 @@ final class FilesRecycleService
             $still = $st->fetchColumn();
             if ($still === false || ($still === null && ($type === 'folder' || !empty($e['self_deleted'])))) {
                 throw new InvalidArgumentException($type === 'folder' ? 'Folder not found.' : 'File not found.');
+            }
+            if ($expectDeletedAt !== null && $still !== $expectDeletedAt) {
+                throw new InvalidArgumentException($type === 'folder' ? 'Folder not found.' : 'File not found.');
+            }
+            // What goes is read NOW, with the row locked - not before it. Read earlier, a
+            // folder brought out of it meanwhile (rescue(), which locks this row too) or a
+            // file restored and deleted again would be destroyed on an out-of-date list.
+            FilesAcl::reset();
+            $all = FilesAcl::allFolders($conn);
+            $folders = $type === 'folder' ? self::subtree($conn, $id) : [];
+            if ($folders) {
+                $in = implode(',', array_fill(0, count($folders), '?'));
+                $st = $conn->prepare("SELECT id FROM files_items WHERE folder_id IN ($in)");
+                $st->execute($folders);
+                $items = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+            } else {
+                $items = [$id];
+            }
+            $keys = [];
+            if ($items) {
+                $in = implode(',', array_fill(0, count($items), '?'));
+                $st = $conn->prepare("SELECT storage_path, MAX(size_bytes) FROM files_versions WHERE item_id IN ($in) GROUP BY storage_path");
+                $st->execute($items);
+                $keys = $st->fetchAll(PDO::FETCH_KEY_PAIR);
             }
             // Record the stored files first, in the same transaction as the rows: whatever
             // happens to this request afterwards, the job knows what is left to delete.
@@ -581,9 +861,9 @@ final class FilesRecycleService
         }
 
         $t = $type === 'folder' ? ['path' => $path] : ['item_id' => $id, 'path' => $path];
-        filesAudit($conn, $analystId, 'purge', $t, array_filter([
+        filesAudit($conn, $analystId ?? 0, 'purge', $t, array_filter([
             'type' => $type, 'files' => count($items), 'bytes' => $bytes,
-            'by' => $analystId > 0 ? null : 'retention', 'bytes_pending' => $pending ?: null,
+            'by' => $analystId !== null ? null : 'retention', 'bytes_pending' => $pending ?: null,
         ], fn($v) => $v !== null));
         return ['files' => count($items), 'bytes' => $bytes, 'pending' => $pending];
     }
@@ -697,22 +977,26 @@ final class FilesRecycleService
     }
 
     /**
-     * The retention job's work: purges entries deleted more than the retention period
-     * ago, until $deadlineUnix. Nothing when the setting was never saved or is 0.
+     * The retention job's work: purges entries in the bin longer than the retention
+     * period (counted from clockStart()), until $deadlineUnix. Nothing when the setting
+     * was never saved or is 0. Never one heldBack(): those are counted in 'held' and
+     * listed in System -> Maintenance -> "Deleted folders kept".
      *
-     * @return array ['entries' => n, 'files' => n, 'bytes' => n, 'failed' => n, 'done' => bool]
+     * @return array ['entries' => n, 'files' => n, 'bytes' => n, 'failed' => n, 'held' => n, 'done' => bool]
      */
     public static function purgeExpired(PDO $conn, int $deadlineUnix): array
     {
-        $r = ['entries' => 0, 'files' => 0, 'bytes' => 0, 'failed' => 0, 'done' => true];
+        $r = ['entries' => 0, 'files' => 0, 'bytes' => 0, 'failed' => 0, 'held' => 0, 'done' => true];
         $days = self::retentionDays($conn);
         if (!$days) return $r;
+        $since = self::clockSince($conn);
         $cutoff = gmdate('Y-m-d H:i:s', time() - $days * 86400);
-        $due = array_filter(self::allEntries($conn), fn($e) => $e['deleted_at'] < $cutoff);
+        $due = array_filter(self::allEntries($conn), fn($e) => self::clockStart($e, $since) < $cutoff);
         foreach ($due as $e) {
             if (time() >= $deadlineUnix) { $r['done'] = false; break; }
+            if (self::heldBack($conn, $e)) { $r['held']++; continue; }
             try {
-                $p = self::purge($conn, 0, $e['type'], $e['id'], $deadlineUnix);
+                $p = self::purgeAs($conn, null, $e['type'], $e['id'], $deadlineUnix, $e['deleted_at']);
             } catch (InvalidArgumentException $ex) {
                 continue;   // restored or purged since the list was read
             } catch (Throwable $ex) {

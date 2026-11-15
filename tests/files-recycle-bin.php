@@ -102,8 +102,12 @@ $U3 = 990000003;   // the only one with access to ZZ Finance / ZZ HR
 
 $conn->beginTransaction();
 try {
-    foreach (['files_storage_driver', 'files_storage_previous', 'files_storage_cleanup', 'files_recycle_bin_days'] as $k) setSetting($conn, $k, null);
+    foreach (['files_storage_driver', 'files_storage_previous', 'files_storage_cleanup', 'files_recycle_bin_days', 'files_recycle_bin_since'] as $k) setSetting($conn, $k, null);
     setSetting($conn, 'files_storage_root', $store);
+    // Whatever this database already has in its bin must not count as due in the
+    // checks below: inside this (rolled-back) transaction it was deleted tomorrow.
+    $conn->exec("UPDATE files_folders SET deleted_datetime = UTC_TIMESTAMP() + INTERVAL 1 DAY WHERE deleted_datetime IS NOT NULL");
+    $conn->exec("UPDATE files_items SET deleted_datetime = UTC_TIMESTAMP() + INTERVAL 1 DAY WHERE deleted_datetime IS NOT NULL");
 
     $proj   = folder($conn, null, 'ZZ Projects');
     $sub    = folder($conn, $proj, 'ZZ Old');
@@ -253,6 +257,10 @@ try {
     $r = FilesRecycleService::purgeExpired($conn, time() + 30);
     ok('0 days: kept for ever', $r['entries'] === 0 && rowExists($conn, 'files_items', $oldFile['id']));
     FilesRecycleService::saveRetention($conn, $U1, 30);
+    $r = FilesRecycleService::purgeExpired($conn, time() + 30);
+    // The clock starts when purging is switched on (16 Nov 2026): nothing goes at once.
+    ok('30 days, just switched on: the 40-day-old entry is NOT deleted at once', rowExists($conn, 'files_items', $oldFile['id']), json_encode($r));
+    setSetting($conn, 'files_recycle_bin_since', gmdate('Y-m-d H:i:s', time() - 60 * 86400));   // switched on 60 days ago
     $r = FilesRecycleService::purgeExpired($conn, time() + 30);
     ok('30 days: the 40-day-old entry goes', !rowExists($conn, 'files_items', $oldFile['id']) && !is_file("$store/{$oldFile['key']}"), json_encode($r));
     ok('...the 10-day-old one stays', rowExists($conn, 'files_items', $newFile['id']));

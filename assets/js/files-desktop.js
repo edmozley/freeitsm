@@ -1840,7 +1840,7 @@
                 '<button type="button" data-act="restore">' + IC.restore + '<span>' + esc(L('rb.restore', 'Restore')) + '</span></button>' +
                 '<button type="button" data-act="purge">' + IC.del + '<span>' + esc(L('rb.purge', 'Delete permanently')) + '</span></button>' +
                 '<span class="fx-cmd-sep"></span>' +
-                '<button type="button" data-act="empty">' + IC.del + '<span>' + esc(L('rb.empty', 'Empty recycle bin')) + '</span></button>' +
+                '<button type="button" data-act="empty">' + IC.del + '<span>' + esc(L('rb.empty', 'Empty')) + '</span></button>' +
                 '<span class="fx-cmd-grow"></span>' +
                 '<button type="button" data-act="refresh" title="' + esc(L('ex.refresh', 'Refresh')) + '">' + IC.refresh + '</button>' +
             '</div>' +
@@ -1876,11 +1876,13 @@
                 esc(L('rb.col_location', 'Original location')) + '</button><button type="button">' + esc(L('rb.col_deleted', 'Date deleted')) +
                 '</button><button type="button">' + esc(L('rb.col_by', 'Deleted by')) + '</button><button type="button">' + esc(L('col.size', 'Size')) + '</button></div>' +
                 rows.map(function (r) {
-                    var tip = (r.type === 'folder' ? L('rb.files_inside', 'Files inside: {n}', { n: r.files }) : '') +
+                    var tip = (r.rescue ? L('rb.rescue_tip', 'This folder went into the recycle bin with a folder above it that you do not have access to. Restore brings it back on its own, with the same people able to open it.') + ' ' : '') +
+                        (r.type === 'folder' ? L('rb.files_inside', 'Files inside: {n}', { n: r.files }) : '') +
                         (r.purge_at ? (r.type === 'folder' ? ' - ' : '') + L('rb.purge_on', 'Deleted permanently on {date}', { date: fmtWhen(r.purge_at) }) : '');
                     return '<div class="fx-item" data-k="' + r.type + r.id + '" title="' + esc(tip) + '"><div class="fx-c fx-c-name"><span class="fx-ic">' +
                         (r.type === 'folder' ? FI.folder(18) : FI.file(r.name, 18)) + '</span><span class="fx-name">' + esc(r.name) + '</span></div>' +
-                        '<div class="fx-c">' + esc(r.location || L('app.documents', 'Documents')) + '</div><div class="fx-c">' + esc(fmtWhen(r.deleted_at)) + '</div>' +
+                        // A rescue row: the folder above it is not theirs to see, so it is not named.
+                        '<div class="fx-c">' + esc(r.rescue ? L('rb.loc_rescue', 'Deleted along with a folder above it') : (r.location || L('app.documents', 'Documents'))) + '</div><div class="fx-c">' + esc(fmtWhen(r.deleted_at)) + '</div>' +
                         '<div class="fx-c">' + esc(r.deleted_by_name || '') + '</div><div class="fx-c fx-c-size">' +
                         esc(fmtSize(r.size)) + '</div></div>';
                 }).join('') : '';
@@ -1952,11 +1954,11 @@
         /** Asks, then empties everything in the bin the person may delete. */
         var emptyBin = function () {
             var mine = rows.filter(function (r) { return r.can_purge; });
-            WM.dialog({ title: L('rb.empty', 'Empty recycle bin'),
+            WM.dialog({ title: L('rb.empty_title', 'Empty recycle bin'),
                 message: L('rb.empty_q', 'Permanently delete everything in the recycle bin? (Items: {n})', { n: mine.length }) +
                     (mine.length < rows.length ? '\n\n' + L('rb.empty_some', 'Items you can see but not change stay in the bin.') : '') +
                     '\n\n' + L('rb.purge_note', 'This cannot be undone. The stored files are removed too.'),
-                buttons: [{ label: L('rb.empty', 'Empty recycle bin'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
+                buttons: [{ label: L('rb.empty', 'Empty'), value: true, primary: true }, { label: L('btn.cancel', 'Cancel'), value: false, cancel: true }] })
                 .then(function (ok) {
                     if (!ok) return;
                     // The server works in slices (a big bin must not outrun one request): ask until done.

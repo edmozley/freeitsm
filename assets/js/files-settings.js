@@ -318,7 +318,8 @@
                     : r.days === 0 ? ' ' + L('settings.recycle_forever', 'Deleted items are kept until someone deletes them permanently.') : '') +
                 (r.pending_bytes ? ' ' + L('settings.recycle_pending', 'Stored files waiting to be removed because storage could not be reached: {n}.', { n: r.pending_bytes })
                     // null: the queue's table is missing (before Database Verification) - unknown, never "none".
-                    : r.pending_bytes === null ? ' ' + L('settings.recycle_pending_unknown', 'Stored files waiting to be removed: unknown until Database Verification has been run.') : '');
+                    : r.pending_bytes === null ? ' ' + L('settings.recycle_pending_unknown', 'Stored files waiting to be removed: unknown until Database Verification has been run.') : '') +
+                (r.held ? ' ' + L('settings.recycle_held', 'Deleted folders kept past this period because whoever deleted them could not delete everything in them: {n}. An administrator can see them in System -> Maintenance -> Deleted folders kept.', { n: r.held }) : '');
         };
         api('settings.php?tab=recycle').then(rbRender).catch(function (e) { document.getElementById('rbState').textContent = e.message; });
         document.getElementById('rbSave').addEventListener('click', function () {

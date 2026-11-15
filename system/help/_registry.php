@@ -629,6 +629,16 @@ function getHelpTopics() {
             ],
             'terms' => 'custom fields field extra attributes company companies people person erp crm api required dropdown',
         ],
+        'files-held' => [
+            'hero' => 'Deleted folders kept',
+            'sub'  => 'The Files recycle bin only deletes a folder for good when whoever deleted it could have deleted all of it. The rest are kept, past their date, and listed here with what to do.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'why',      'label' => 'Why a folder is kept'],
+                ['id' => 'resolve',  'label' => 'Resolving one'],
+            ],
+            'terms' => 'files recycle bin deleted folder kept held retention purge permanently subfolder permission restore',
+        ],
         'locations-in-use' => [
             'hero' => 'Locations in use',
             'sub'  => 'Assets, people, tickets, contracts and projects can each have a location. A location something points at cannot be deleted - this is where you move them all to another one first, or clear it.',
