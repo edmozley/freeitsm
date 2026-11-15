@@ -3,7 +3,8 @@
  * POST {mode: move|copy, target: <folder id, 0 = top level>, entries: [{type: folder|item, id}]}
  * Paste after Cut/Copy, and drag-and-drop between windows.
  *
- *   MOVE  needs Modify on what is moved, and Upload on the target. A folder that
+ *   MOVE  needs Modify on what is moved - for a folder, on every folder inside it
+ *         too, however deep (FilesAcl::refusalInside) - and Upload on the target. A folder that
  *         moves keeps its own entries and, if it inherits, now inherits from its
  *         new parent - exactly what Windows does, and recorded in the audit row.
  *   COPY  needs Download on what is copied (a copy is a copy taken away) and
@@ -145,6 +146,14 @@ function filesTransferFolder(PDO $conn, int $analystId, string $mode, int $id, i
 
     if ($mode === 'move') {
         if (($f['parent_id'] ?? 0) === ($target ?: null) || (int)$f['parent_id'] === $target) return;
+        // Everything inside moves with it, so Modify on all of it - nobody carries off
+        // a folder someone else kept from them. The message names nothing hidden.
+        $refusal = FilesAcl::refusalInside($conn, $analystId, $id, 'move');
+        if ($refusal !== null) {
+            filesAudit($conn, $analystId, 'denied', ['folder_id' => $id],
+                       ['wanted' => 'modify', 'doing' => 'move', 'blocked_inside' => count(FilesAcl::blockersInside($conn, $analystId, $id))]);
+            throw new RuntimeException($refusal);
+        }
         $name = filesFreeName($conn, $target ?: null, $f['name']);
         $conn->beginTransaction();
         $conn->prepare("UPDATE files_folders SET parent_id = ?, name = ?, updated_by = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")

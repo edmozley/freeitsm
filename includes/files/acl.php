@@ -427,14 +427,16 @@ final class FilesAcl
 
     /**
      * The folders INSIDE a folder (not the folder itself) this analyst holds less
-     * than Modify on, nearest the top first. Deleting a folder takes everything in
-     * it, so it needs Modify on all of them - as Windows refuses to delete a folder
-     * holding something you have no right to delete. A subfolder that stopped
-     * inheriting and was never shared with this person is the usual one.
+     * than Modify on, nearest the top first, however deep. Deleting or moving a
+     * folder takes everything in it along, so both need Modify on all of them - as
+     * Windows refuses to delete or move a folder holding something you have no
+     * right to change. A subfolder that stopped inheriting and was never shared with
+     * this person is the usual one. Files have no permissions of their own - a file
+     * is controlled by its folder - so checking every folder covers every file.
      *
      * @return list<int>  folder ids; empty when nothing inside stands in the way
      */
-    public static function deleteBlockers(PDO $conn, int $analystId, int $folderId): array
+    public static function blockersInside(PDO $conn, int $analystId, int $folderId): array
     {
         $levels = self::levels($conn, $analystId);
         $out = [];
@@ -445,9 +447,11 @@ final class FilesAcl
     }
 
     /**
-     * Why this analyst may not delete the folder because of what is inside it, as
-     * the sentence they are shown - or null when nothing inside stands in the way.
-     * (Modify on the folder itself is checked first, by filesNeed().)
+     * Why this analyst may not delete or move the folder because of what is inside
+     * it, as the sentence they are shown - or null when nothing inside stands in the
+     * way. (Modify on the folder itself is checked first, by the caller.)
+     *
+     * @param string $verb  'delete' or 'move', for the sentence
      *
      * TRAP: this message must never tell anyone something they cannot already see.
      * It names ONE blocking folder, and only one they can view; when every blocker
@@ -456,20 +460,21 @@ final class FilesAcl
      * No list either: a folder with 300 locked subfolders is one sentence. System ->
      * Debug Tools -> D020 shows an administrator the whole picture.
      */
-    public static function deleteRefusal(PDO $conn, int $analystId, int $folderId): ?string
+    public static function refusalInside(PDO $conn, int $analystId, int $folderId, string $verb = 'delete'): ?string
     {
-        $blockers = self::deleteBlockers($conn, $analystId, $folderId);
+        $blockers = self::blockersInside($conn, $analystId, $folderId);
         if (!$blockers) return null;
         $tree = self::tree($conn);
         $levels = self::levels($conn, $analystId);
         $name = $tree[$folderId]['name'] ?? '';
+        $verb = $verb === 'move' ? 'move' : 'delete';
         foreach ($blockers as $b) {
             if (($levels[$b] ?? 0) >= self::VIEW) {
-                return 'You cannot delete "' . $name . '": you do not have permission to change "' . $tree[$b]['name'] . '"'
+                return 'You cannot ' . $verb . ' "' . $name . '": you do not have permission to change "' . $tree[$b]['name'] . '"'
                      . (count($blockers) > 1 ? ', and other items inside it' : ' inside it')
                      . '. Ask whoever manages it.';
             }
         }
-        return 'You cannot delete "' . $name . '": it contains folders you do not have access to. Ask whoever manages this folder.';
+        return 'You cannot ' . $verb . ' "' . $name . '": it contains folders you do not have access to. Ask whoever manages this folder.';
     }
 }

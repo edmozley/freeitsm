@@ -78,12 +78,12 @@ try {
     $inside = $mk($open, 'ZZ Inside');
 
     echo "The rule, directly\n";
-    check('a folder whose inside all inherits Modify has no blockers', FilesAcl::deleteBlockers($conn, $admin, $open) === [] && FilesAcl::deleteRefusal($conn, $admin, $open) === null);
-    check('the blockers are the two folders that stop inheriting', FilesAcl::deleteBlockers($conn, $admin, $mixed) === [$hidden, $seen] || FilesAcl::deleteBlockers($conn, $admin, $mixed) === [$seen, $hidden]);
-    $m = (string)FilesAcl::deleteRefusal($conn, $admin, $mixed);
+    check('a folder whose inside all inherits Modify has no blockers', FilesAcl::blockersInside($conn, $admin, $open) === [] && FilesAcl::refusalInside($conn, $admin, $open) === null);
+    check('the blockers are the two folders that stop inheriting', FilesAcl::blockersInside($conn, $admin, $mixed) === [$hidden, $seen] || FilesAcl::blockersInside($conn, $admin, $mixed) === [$seen, $hidden]);
+    $m = (string)FilesAcl::refusalInside($conn, $admin, $mixed);
     check('it names the one they can see', str_contains($m, '"ZZ Seen"') && str_contains($m, 'other items'), $m);
     check('and never the one they cannot', !str_contains($m, 'Hidden'), $m);
-    $m = (string)FilesAcl::deleteRefusal($conn, $admin, $locked);
+    $m = (string)FilesAcl::refusalInside($conn, $admin, $locked);
     check('when every blocker is hidden: no name, no count', str_contains($m, 'contains folders you do not have access to') && !str_contains($m, 'Secret') && !preg_match('/\d/', str_replace($tag, '', $m)), $m);
 
     echo "Over HTTP, through api/files/folder.php\n";
@@ -109,6 +109,47 @@ try {
     $anon = (string)curl_exec($ch);
     check('without an administrator session it shows nothing', curl_getinfo($ch, CURLINFO_HTTP_CODE) === 403 && !str_contains($anon, 'Hidden'));
 
+    echo "Moving a folder: the same rule, through api/files/transfer.php\n";
+    $dest = $mk(null, 'Dest');  $grant($dest, FilesAcl::MODIFY);
+    $parentOf = function (int $id) use ($conn): ?int {
+        $s = $conn->prepare("SELECT parent_id FROM files_folders WHERE id = ?");
+        $s->execute([$id]);
+        $p = $s->fetchColumn();
+        return $p === null || $p === false ? null : (int)$p;
+    };
+    [$code, $raw, $r] = $call('api/files/transfer.php', ['mode' => 'move', 'target' => $dest, 'entries' => [['type' => 'folder', 'id' => $locked]]]);
+    $err = (string)($r['failed'][0]['error'] ?? '');
+    check('a folder holding a hidden folder is not moved', ($r['done'] ?? null) === 0 && $parentOf($locked) === null, $raw);
+    check('the message says move, and names nothing hidden', str_starts_with($err, 'You cannot move') && !str_contains($raw, 'Secret'), $raw);
+
+    echo "Buried deep: 10 folders, each with 10, each with 10 (1,110 folders), one locked at the bottom\n";
+    $deep = $mk(null, 'Deep');  $grant($deep, FilesAcl::MODIFY);
+    $bottom = [];
+    for ($i = 1; $i <= 10; $i++) {
+        $l1 = $mk($deep, "L1-$i");
+        for ($j = 1; $j <= 10; $j++) {
+            $l2 = $mk($l1, "L2-$i-$j");
+            for ($k = 1; $k <= 10; $k++) $bottom["$i-$j-$k"] = $mk($l2, "L3-$i-$j-$k");
+        }
+    }
+    // The 777th of 1,000 bottom folders stops inheriting; a file sits in it.
+    $buried = $mk($bottom['7-7-7'], 'ZZ Buried-' . $tag, false);
+    $conn->prepare("INSERT INTO files_items (folder_id, name, size_bytes) VALUES (?, ?, 0)")->execute([$buried, "$tag private.docx"]);
+    FilesAcl::reset();
+    check('the tree is all there: 1,112 folders', count(FilesAcl::subtreeTopFirst($conn, $deep)) === 1112);
+    check('the check finds the one buried four levels down', FilesAcl::blockersInside($conn, $admin, $deep) === [$buried]);
+    [$code, $raw, $r] = $call('api/files/folder.php', ['action' => 'delete', 'id' => $deep]);
+    check('deleting the top folder is refused, naming nothing', ($r['success'] ?? null) === false && !$deleted($deep) && !str_contains($raw, 'Buried') && !str_contains($raw, 'private'), $raw);
+    [$code, $raw, $r] = $call('api/files/transfer.php', ['mode' => 'move', 'target' => $dest, 'entries' => [['type' => 'folder', 'id' => $deep]]]);
+    check('moving the top folder is refused too', ($r['done'] ?? null) === 0 && $parentOf($deep) === null, $raw);
+    [$code, $raw] = $call("api/system/debug-tools/D020_files_folder_delete.php?analyst=$admin&folder=$deep");
+    check('D020 points straight at it, and at its file', preg_match('/\[FAIL\] ZZ Buried-\S+\//', $raw) && preg_match('/\[FAIL\] ' . preg_quote("$tag private.docx", '/') . '/', $raw) && substr_count($raw, '[FAIL]') === 2, substr_count($raw, '[FAIL]') . ' FAIL lines');
+
+    echo "CONTROL: give Modify on the buried folder\n";
+    $grant($buried, FilesAcl::MODIFY);
+    [$code, $raw, $r] = $call('api/files/transfer.php', ['mode' => 'move', 'target' => $dest, 'entries' => [['type' => 'folder', 'id' => $deep]]]);
+    check('now the top folder moves', ($r['done'] ?? null) === 1 && $parentOf($deep) === $dest, $raw);
+
     echo "CONTROL: give Modify on the blockers\n";
     $grant($hidden, FilesAcl::MODIFY);
     $grant($seen, FilesAcl::MODIFY);
@@ -121,6 +162,7 @@ try {
     if ($folders) {
         $in = implode(',', $folders);
         try { $conn->exec("DELETE FROM files_audit WHERE folder_id IN ($in)"); } catch (Throwable) {}
+        $conn->exec("DELETE FROM files_items WHERE folder_id IN ($in)");
         $conn->exec("DELETE FROM files_permissions WHERE folder_id IN ($in)");
         $conn->exec("UPDATE files_folders SET parent_id = NULL WHERE id IN ($in)");
         $conn->exec("DELETE FROM files_folders WHERE id IN ($in)");

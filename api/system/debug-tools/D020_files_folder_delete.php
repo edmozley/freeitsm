@@ -1,9 +1,11 @@
 <?php
 /**
- * Debug Tool D020 - Files: can this person delete this folder?
+ * Debug Tool D020 - Files: can this person delete or move this folder?
+ *
+ * (A move takes everything inside along too, so api/files/transfer.php asks the same.)
  *
  * Deleting a folder takes everything in it, so api/files/folder.php asks for
- * Modify on the folder AND on every folder inside it (FilesAcl::deleteBlockers).
+ * Modify on the folder AND on every folder inside it (FilesAcl::blockersInside).
  * The person refused is told about one folder at most, and only one they can
  * already see - so a refusal can never be used to list the names of folders
  * kept from them. That leaves an administrator with a one-line message and a
@@ -11,7 +13,7 @@
  * chosen folder, the person's level on each, and PASS or FAIL.
  *
  * 🔴 ONE COPY OF THE RULE. The verdict and the message come from the same
- * FilesAcl::deleteBlockers() / deleteRefusal() the delete itself calls, so this
+ * FilesAcl::blockersInside() / refusalInside() the delete itself calls, so this
  * report cannot drift from what the person is actually told.
  *
  * 🔒 ADMINISTRATORS ONLY - it prints the names of folders and files the person
@@ -25,7 +27,7 @@
 @session_start();
 
 $DIAG_ID   = 'D020';
-$DIAG_NAME = 'Files - can this person delete this folder?';
+$DIAG_NAME = 'Files - can this person delete or move this folder?';
 
 require_once __DIR__ . '/../../../config.php';
 require_once __DIR__ . '/../../../includes/functions.php';
@@ -80,7 +82,7 @@ try {
         $files[(int)$fid][] = $name;
     }
 
-    $blockers = FilesAcl::deleteBlockers($conn, $analystId, $folderId);
+    $blockers = FilesAcl::blockersInside($conn, $analystId, $folderId);
     $topLevel = $levels[$folderId] ?? 0;
     $allowed  = $topLevel >= FilesAcl::MODIFY && !$blockers;
 
@@ -91,19 +93,20 @@ try {
     $say();
     $say('=== VERDICT ===');
     if ($allowed) {
-        $say('PASS - they could delete this folder and everything in it.');
+        $say('PASS - they could delete or move this folder and everything in it.');
     } elseif ($topLevel < FilesAcl::VIEW) {
         $say('FAIL - they cannot see this folder at all, so to them it does not exist ("Folder not found.").');
     } elseif ($topLevel < FilesAcl::MODIFY) {
-        $say('FAIL - they hold ' . FilesAcl::levelKey($topLevel) . ' on the folder itself; deleting needs modify.');
+        $say('FAIL - they hold ' . FilesAcl::levelKey($topLevel) . ' on the folder itself; deleting or moving needs modify.');
         $say('They are told: "You do not have permission to do that here."');
     } else {
         $say('FAIL - ' . count($blockers) . ' folder(s) inside fail (marked FAIL below). They are told:');
-        $say('  "' . FilesAcl::deleteRefusal($conn, $analystId, $folderId) . '"');
+        $say('  "' . FilesAcl::refusalInside($conn, $analystId, $folderId) . '"');
+        $say('  (or "You cannot move ..." for a move - the same sentence)');
     }
     $say();
     $say('=== EVERYTHING INSIDE ===');
-    $say('Deleting needs modify on every folder. A file passes or fails with its folder.');
+    $say('Deleting or moving needs modify on every folder. A file passes or fails with its folder.');
     $say();
     $fileCap = 25;
     foreach ($sub as $s) {

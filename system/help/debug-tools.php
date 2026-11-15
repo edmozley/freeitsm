@@ -84,8 +84,8 @@ require __DIR__ . '/_top.php';
     <p><strong>Runtime:</strong> about a minute. <strong>Side effects:</strong> only the result — the date, who ran it and the counts — is kept, so Database Verification can show when the pages were last checked. Opening each page does on the server whatever opening it normally does, exactly as if you had clicked to it.</p>
     <div class="help-note"><strong>Why it exists.</strong> In 4.3.0 the Assets page never finished loading: one comment had swallowed the code after it. Every check that ran on the server passed. This tool, and the same check run on every change to FreeITSM before release, would have caught it.</div>
 
-    <h4>D020 — Files: can this person delete this folder?</h4>
-    <p>Run this when somebody is told they <strong>cannot delete a folder</strong> in Files and nobody can see why. Deleting a folder takes everything in it, so it needs <strong>Modify</strong> on the folder <em>and</em> on every folder inside it, as Windows does. The message they are shown names at most one folder, and only one they can already see, so a refusal can never be used to find the names of folders kept from them. That keeps their message short; this report is the whole picture, for an administrator only.</p>
+    <h4>D020 — Files: can this person delete or move this folder?</h4>
+    <p>Run this when somebody is told they <strong>cannot delete or move a folder</strong> in Files and nobody can see why. Deleting or moving a folder takes everything in it along, so it needs <strong>Modify</strong> on the folder <em>and</em> on every folder inside it, however deep, as Windows does. The message they are shown names at most one folder, and only one they can already see, so a refusal can never be used to find the names of folders kept from them. That keeps their message short; this report is the whole picture, for an administrator only.</p>
     <ul>
         <li>Choose the <strong>person</strong> and the <strong>folder</strong>.</li>
         <li>The verdict comes first: PASS, or FAIL with the exact message they are shown.</li>
