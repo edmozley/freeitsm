@@ -154,6 +154,11 @@ system/uploads/branding/*
 # solely if uploadPrepareWebServableDir() happened to have run — i.e. only after
 # somebody had already uploaded a logo.
 !system/uploads/branding/web.config
+# Fonts uploaded for asset label designs. The CONTENTS, not the directory, so its
+# guard files ship like every other upload directory's (the rule above).
+system/uploads/label-fonts/*
+!system/uploads/label-fonts/.htaccess
+!system/uploads/label-fonts/web.config
 recordings/*
 !recordings/.htaccess
 !recordings/web.config
