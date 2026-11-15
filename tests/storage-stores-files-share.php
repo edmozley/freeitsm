@@ -23,7 +23,11 @@ require_once "$root/includes/functions.php";
 require_once "$root/includes/storage/stores.php";
 require_once "$root/includes/services/files_attach.php";
 require_once "$root/includes/services/files_save.php";
-require_once "$root/includes/files/names.php";   // filesNameTaken(), as api/files/save_from.php has it
+// filesNameTaken() / filesFreeName(): in includes/files/names.php once the recycle bin (#293)
+// is in; before that only in api_bootstrap.php, which signs in when loaded - then Save to
+// Files can only be tried through the API, and its checks here are skipped.
+$haveNames = is_file("$root/includes/files/names.php");
+if ($haveNames) require_once "$root/includes/files/names.php";
 
 $pass = 0; $fail = 0;
 function ok(string $what, bool $cond, string $detail = ''): void {
@@ -107,14 +111,18 @@ try {
     documentInsertLink($conn, $doc, 'ticket', $ticket, $admin);
 
     echo "\nSave to Files\n";
-    try {
-        $r = FilesSave::save($conn, $admin, null, 'email_attachment', $att, $folder, false, 'rename');
-        ok('from an email attachment in S3: saved, with its bytes', isset($r['item_id']) && $filesBytes((int)$r['item_id']) === $attBytes, json_encode($r));
-    } catch (Throwable $e) { ok('from an email attachment in S3: saved, with its bytes', false, get_class($e) . ': ' . $e->getMessage()); }
-    try {
-        $r = FilesSave::save($conn, $admin, null, 'document', $doc, $folder, false, 'rename');
-        ok('from a document in S3: saved, with its bytes', isset($r['item_id']) && $filesBytes((int)$r['item_id']) === $docBytes, json_encode($r));
-    } catch (Throwable $e) { ok('from a document in S3: saved, with its bytes', false, get_class($e) . ': ' . $e->getMessage()); }
+    if (!$haveNames) {
+        echo "  SKIP  Save to Files (needs includes/files/names.php, from #293)\n";
+    } else {
+        try {
+            $r = FilesSave::save($conn, $admin, null, 'email_attachment', $att, $folder, false, 'rename');
+            ok('from an email attachment in S3: saved, with its bytes', isset($r['item_id']) && $filesBytes((int)$r['item_id']) === $attBytes, json_encode($r));
+        } catch (Throwable $e) { ok('from an email attachment in S3: saved, with its bytes', false, get_class($e) . ': ' . $e->getMessage()); }
+        try {
+            $r = FilesSave::save($conn, $admin, null, 'document', $doc, $folder, false, 'rename');
+            ok('from a document in S3: saved, with its bytes', isset($r['item_id']) && $filesBytes((int)$r['item_id']) === $docBytes, json_encode($r));
+        } catch (Throwable $e) { ok('from a document in S3: saved, with its bytes', false, get_class($e) . ': ' . $e->getMessage()); }
+    }
 
     echo "\nAttach from Files as a copy\n";
     FilesAttach::saveMode($conn, $admin, 'both');
