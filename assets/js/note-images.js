@@ -88,7 +88,8 @@
 
         function syncEmpty() {
             var empty = !el.textContent.trim() && !el.querySelector('img');
-            el.classList.toggle('is-empty', empty);
+            // .note-editor-empty, not .is-empty: that name is the Forms module's (inbox.css says why).
+            el.classList.toggle('note-editor-empty', empty);
         }
 
         function insertText(txt) {

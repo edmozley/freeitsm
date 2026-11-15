@@ -24,7 +24,7 @@ $needsRecorder = true;
 $pageHead = '<link rel="stylesheet" href="../assets/css/ticket-fields.css?v=2">'
           . '<script src="../assets/js/ticket-fields.js?v=2"></script>'
           // Pictures pasted into a shared note sit in its text (GH #224).
-          . '<script src="../assets/js/note-images.js?v=1"></script>';
+          . '<script src="../assets/js/note-images.js?v=2"></script>';
 
 // Which list: the person's own tickets, or - for a manager - their team's
 // (discussion #62). Whether they really manage anybody is the endpoint's answer

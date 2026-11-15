@@ -26,6 +26,20 @@ return [
         'check'    => ['rows', 'forms', 'is_portal_visible = 1 AND is_active = 1 AND is_demo = 0'],
     ],
     [
+        // GH #348 / PR #349. The catalogue_* columns arrive with Database Verification;
+        // until then the check errors, which reads as not configured (see feature_bingo.php).
+        'id'       => 'forms.catalogue_card',
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'customer',
+        'title'    => 'A catalogue item with a picture and a price',
+        'what'     => 'A catalogue item shown like a shop card in the portal - a picture, one line about it and a price, one-off or a month - set in the form editor\'s Catalogue tab. Each request keeps the price it was made at.',
+        'why'      => 'People pick the right monitor or licence faster from a picture and a price than from a title, and the approver sees what the request costs without asking.',
+        'done'     => 'At least one form that was not created by the demo data importer has a catalogue price or a card picture.',
+        'link'     => 'forms/',
+        'check'    => ['rows', 'forms', '(catalogue_price IS NOT NULL OR catalogue_image_path IS NOT NULL) AND is_demo = 0'],
+    ],
+    [
         'id'       => 'forms.approval',
         'module'   => 'forms',
         'tier'     => 'recommended',

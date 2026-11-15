@@ -213,7 +213,10 @@ if ($report['at_risk'] === 0) {
         $verdict[] = "";
         foreach ($report['directories'] as $d) {
             if ($d['status'] !== 'at_risk') continue;
-            $verdict[] = "       docker compose cp app:" . $d['path'] . " ./backup/" . basename($d['rel']);
+            // TRAP: name the backup after the volume, never basename(): uploads and
+            // contracts/rfp-builder/uploads both end in 'uploads', and the second copy
+            // would land inside the first.
+            $verdict[] = "       docker compose cp app:" . $d['path'] . " ./backup/" . storagePersistenceVolumeName($d['rel']);
         }
         $verdict[] = "";
         $verdict[] = "  2. Create a NEW file next to docker-compose.yml called";

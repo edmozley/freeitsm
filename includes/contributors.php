@@ -101,7 +101,12 @@ function getContributors(): array
                       . 'in System -> Integrations (PR #352, 5.4.0): Entra ID and Intune together, Intune set '
                       . 'up there in two halves - its connection, and what it imports - with the asset managers '
                       . 'who set it up before still able to, and everything else that talks to Microsoft 365 '
-                      . 'listed beside them.',
+                      . 'listed beside them. And two more in 5.4.0: the catalogue as a shop (PR #349, the first '
+                      . 'of four parts of #348) - each item with a picture, one line and a price, every request '
+                      . 'keeping the price it was made at, Your requests listing every request, and the requester '
+                      . 'able to cancel one still waiting for approval, with the reason; and every folder '
+                      . 'FreeITSM stores files in on its own Docker volume (PR #350), so a rebuild no longer '
+                      . 'deletes attachments, recordings, course content, logos, form pictures or label fonts.',
         ],
         [
             // Name and company as Ed was given them (October 2026). The package

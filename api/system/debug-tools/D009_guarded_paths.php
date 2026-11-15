@@ -179,6 +179,10 @@ $guarded = [
     'war-room/attachments'         => ['_d009probe.txt', 'War room attachments',      'deny'],
     'contracts/rfp-builder/uploads'=> ['_d009probe.txt', 'RFP uploads',               'deny'],
     'recordings'                   => ['_d009probe.txt', 'Screen recordings',         'deny'],
+    // Fonts uploaded for asset label designs, served only through
+    // api/assets/label_font.php (PR #350 shipped the folder's .htaccess / web.config).
+    'system/uploads/label-fonts'   => ['_d009probe.txt', 'Label fonts',               'deny'],
+    'forms/images'                 => ['_d009probe.txt', 'Form and catalogue pictures', 'deny'],
     // Documents attached to records (discussion #76). Served only through
     // api/documents/download.php, which checks that the caller can see something
     // the document is attached to. The stored filename is random, but a random

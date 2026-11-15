@@ -1657,7 +1657,9 @@ body.ticket-popout .ticket-toolbar {
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
 }
-.note-editor.is-empty::before {
+/* TRAP: not `.is-empty` - form-shared.css owns that name (.form-image.is-empty) and
+   tests/form-class-collisions.php fails on any Forms class this sheet also defines. */
+.note-editor.note-editor-empty::before {
     content: attr(data-placeholder);
     color: var(--text-muted, #888);
     pointer-events: none;

@@ -91,6 +91,18 @@ function formsHelpTopics(): array
                 'admins'   => 'When an administrator steps in',
             ],
         ],
+        'catalogue' => [
+            'title' => 'A catalogue item\'s card',
+            'sub'   => 'A picture, one line and a price on the item in the portal catalogue - and what the requester can do with a request.',
+            'blurb' => 'The Catalogue tab: picture, short description and price; Your requests; cancelling a request.',
+            'sections' => [
+                'card'      => 'What the card shows',
+                'picture'   => 'The picture',
+                'price'     => 'The price',
+                'questions' => 'An item with no questions',
+                'requests'  => 'Your requests, and cancelling',
+            ],
+        ],
         'who-can-request' => [
             'title' => 'Who can request a form',
             'sub'   => 'Offering a form to some customers and not others.',

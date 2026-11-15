@@ -185,6 +185,36 @@ check('CONTROL — the first-statement check SEES a guard after a long header',
 check('CONTROL — …and FAILS a file with code above its guard',
     !preg_match($firstGuardRe, firstStatement("<?php\n\$x = 1;\nif (PHP_SAPI !== 'cli') { exit; }")));
 
+/* ---- system/uploads/label-fonts: denied on nginx and probed by D009 -------
+   Fonts uploaded for asset label designs are served only through
+   api/assets/label_font.php. The folder's .htaccess / web.config (PR #350) cover
+   Apache and IIS; nginx has no in-folder equivalent, so the shipped config must
+   carry the line, and D009 must probe the folder so a server without it shows. */
+echo "\nsystem/uploads/label-fonts is never served directly\n";
+echo str_repeat('=', 64) . "\n";
+$lht = (string)@file_get_contents($root . '/system/uploads/label-fonts/.htaccess');
+check('system/uploads/label-fonts/.htaccess denies the folder (Apache)',
+    stripos($lht, 'Require all denied') !== false);
+check('system/uploads/label-fonts/web.config exists (IIS)',
+    is_file($root . '/system/uploads/label-fonts/web.config'));
+check('the shipped nginx config returns 404 for /system/uploads/label-fonts/',
+    (bool)preg_match('#location\s+\^~\s*/system/uploads/label-fonts/\s*\{[^}]*return\s+404#', $ngx));
+$d009 = (string)@file_get_contents($root . '/api/system/debug-tools/D009_guarded_paths.php');
+check('D009 probes system/uploads/label-fonts as a denied folder',
+    (bool)preg_match("#'system/uploads/label-fonts'\s*=>\s*\[[^\]]*'deny'\s*\]#", $d009));
+
+/* forms/images: pictures on forms and catalogue cards are served only through
+   api/forms/image.php / card_image.php (which check the form's audience); the
+   same three layers as label-fonts. */
+echo "\nforms/images is never served directly\n";
+check('forms/images/.htaccess denies the folder (Apache)',
+    stripos((string)@file_get_contents($root . '/forms/images/.htaccess'), 'Require all denied') !== false
+    || stripos((string)@file_get_contents($root . '/forms/images/.htaccess'), 'Deny from all') !== false);
+check('the shipped nginx config returns 404 for /forms/images/',
+    (bool)preg_match('#location\s+\^~\s*/forms/images/\s*\{[^}]*return\s+404#', $ngx));
+check('D009 probes forms/images as a denied folder',
+    (bool)preg_match("#'forms/images'\s*=>\s*\[[^\]]*'deny'\s*\]#", $d009));
+
 /* ---- CONTROLS — this checker must be able to fail ------------------------
    Every assertion above is pattern matching, and pattern matching that only
    ever passes is not evidence. These exercise the matcher itself. */

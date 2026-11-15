@@ -62,7 +62,7 @@ $translationNamespaces = ['common', 'tickets'];
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.inbox'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../checklists/ticket_checklist.css?v=4">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=90">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=91">
     <link rel="stylesheet" href="../assets/css/address-suggest.css?v=1">   <!-- GH #307 -->
     <link rel="stylesheet" href="../assets/css/save-to-files.css?v=1">
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
@@ -1189,7 +1189,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/float-window.js?v=2"></script>
     <script src="../assets/js/files-icons.js?v=3"></script>
     <script src="../assets/js/files-viewer.js?v=10"></script>
-    <script src="../assets/js/note-images.js?v=1"></script>
+    <script src="../assets/js/note-images.js?v=2"></script>
     <script src="../assets/js/save-to-files.js?v=2"></script>
     <script src="../assets/js/files-picker.js?v=2"></script>
     <script src="../assets/js/address-suggest.js?v=1"></script>   <!-- GH #307: before inbox.js, which attaches it to To and Cc -->
