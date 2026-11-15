@@ -43,6 +43,8 @@ final class S3Driver implements StorageDriver, StorageLister
             'access_key_id' => trim((string)($cfg['access_key_id'] ?? '')),
             'secret'        => (string)($cfg['secret'] ?? ''),
             'path_style'    => !empty($cfg['path_style']),
+            // Server-side encryption (storage series S2): 'AES256', or '' for the provider's default.
+            'sse'           => ($cfg['sse'] ?? '') === 'AES256' ? 'AES256' : '',
         ];
         $this->base = s3NormalisePrefix((string)($cfg['prefix'] ?? '')) . trim($store, '/') . '/';
         $this->threshold = max(5 * self::MIB, $multipartThreshold);
@@ -76,9 +78,19 @@ final class S3Driver implements StorageDriver, StorageLister
         if ($size > $this->threshold) {
             $this->putMultipart($ok, $localPath, (int)$size);
         } else {
-            $this->call('PUT', $ok, [], [], ['file' => $localPath, 'offset' => 0, 'length' => (int)$size]);
+            $this->call('PUT', $ok, [], $this->objectHeaders(), ['file' => $localPath, 'offset' => 0, 'length' => (int)$size]);
         }
         if ($move) @unlink($localPath);
+    }
+
+    /**
+     * Headers every request that CREATES an object carries (PutObject, CreateMultipartUpload;
+     * not the parts): server-side encryption when the connection asks for it. Signed with the
+     * rest of the request.
+     */
+    private function objectHeaders(): array
+    {
+        return $this->cfg['sse'] === 'AES256' ? ['x-amz-server-side-encryption' => 'AES256'] : [];
     }
 
     public function readRange(string $key, int $start, int $end, callable $sink): void
@@ -174,7 +186,7 @@ final class S3Driver implements StorageDriver, StorageLister
         $partSize = max(min(16 * self::MIB, $this->threshold), (int)ceil($size / 9000));
         $partSize = (int)(ceil($partSize / self::MIB) * self::MIB);
 
-        $r = $this->call('POST', $objectKey, ['uploads' => ''], [], ['body' => '']);
+        $r = $this->call('POST', $objectKey, ['uploads' => ''], $this->objectHeaders(), ['body' => '']);
         if (!preg_match('#<UploadId>([^<]+)</UploadId>#', $r['body'], $m)) {
             throw new StorageUnavailable('The storage did not start the upload.');
         }

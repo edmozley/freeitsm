@@ -98,6 +98,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
                     <p class="st-hint"><?php echo $h('system.storage.conn_hint'); ?></p>
                     <div id="stSource" class="st-status"></div>
                     <div id="stLocked" class="st-warning st-hidden"><?php echo $h('system.storage.place_locked'); ?></div>
+                    <div id="stInsecure" class="st-warning st-hidden"><?php echo $h('system.storage.insecure_warning'); ?></div>
                     <div class="st-row">
                         <div class="st-field"><label for="stEndpoint"><?php echo $h('system.storage.endpoint'); ?></label><input id="stEndpoint" type="text" placeholder="https://s3.us-east-1.amazonaws.com" autocomplete="off" spellcheck="false"></div>
                         <div class="st-field"><label for="stRegion"><?php echo $h('system.storage.region'); ?></label><input id="stRegion" type="text" placeholder="us-east-1" autocomplete="off" spellcheck="false"></div>
@@ -111,6 +112,14 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
                         <div class="st-field"><label for="stSecret"><?php echo $h('system.storage.secret'); ?></label><input id="stSecret" type="password" autocomplete="new-password"></div>
                     </div>
                     <div class="st-row"><label class="st-check"><input id="stPathStyle" type="checkbox"> <?php echo $h('system.storage.path_style'); ?></label></div>
+                    <div class="st-row">
+                        <div class="st-field"><label for="stSse"><?php echo $h('system.storage.sse'); ?></label>
+                            <select id="stSse">
+                                <option value=""><?php echo $h('system.storage.sse_default'); ?></option>
+                                <option value="AES256"><?php echo $h('system.storage.sse_aes256'); ?></option>
+                            </select>
+                            <p class="st-hint"><?php echo $h('system.storage.sse_hint'); ?></p></div>
+                    </div>
                     <div class="st-actions">
                         <button class="btn" id="stTest" type="button"><?php echo $h('system.storage.test'); ?></button>
                         <button class="btn btn-primary" id="stSave" type="button"><?php echo $h('common.save'); ?></button>
@@ -138,7 +147,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t($k, $p));
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script>window.ST_API = '<?php echo $path_prefix; ?>api/system/storage.php'; window.ST_FILES_SETTINGS = '<?php echo $path_prefix; ?>files/settings/?tab=storage';</script>
     <script src="../../assets/js/i18n.js?v=3"></script>
-    <script src="../../assets/js/system-storage.js?v=2"></script>
+    <script src="../../assets/js/system-storage.js?v=3"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

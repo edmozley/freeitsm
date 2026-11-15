@@ -36,7 +36,7 @@
     function connection() {
         return { endpoint: $('stEndpoint').value.trim(), region: $('stRegion').value.trim(), bucket: $('stBucket').value.trim(),
                  prefix: $('stPrefix').value.trim(), access_key_id: $('stKey').value.trim(), secret: $('stSecret').value,
-                 path_style: $('stPathStyle').checked };
+                 path_style: $('stPathStyle').checked, sse: $('stSse').value };
     }
 
     /** The status, the lock, and (when fill) the fields - a refresh must not overwrite what is being typed. */
@@ -48,7 +48,10 @@
             $('stEndpoint').value = c.endpoint; $('stRegion').value = c.region; $('stBucket').value = c.bucket;
             $('stPrefix').value = c.prefix; $('stKey').value = c.access_key_id; $('stSecret').value = c.secret || '';
             $('stPathStyle').checked = !!c.path_style;
+            $('stSse').value = c.sse || '';
         }
+        // Plain http to a public address (storage series S1): the files cross the internet unencrypted.
+        $('stInsecure').classList.toggle('st-hidden', !(c && c.insecure));
         var locked = !!(c && d.connection_in_use);
         $('stLocked').classList.toggle('st-hidden', !locked);
         ['stEndpoint', 'stBucket', 'stPrefix'].forEach(function (id) { $(id).disabled = locked; });

@@ -186,6 +186,7 @@
                 esc(L('settings.storage_usage', '{n} stored files, {size} in all.', { n: r.stored_files, size: fmtSize(r.stored_bytes) })) +
                 (r.recycle && r.recycle.files ? ' ' + esc(L('settings.storage_in_bin', 'In the recycle bin (freed when it is emptied): {n}, {size}.', { n: r.recycle.files, size: fmtSize(r.recycle.bytes) })) : '') +
                 (r.free_bytes ? ' ' + esc(L('settings.storage_free', '{size} free on that disk.', { size: fmtSize(r.free_bytes) })) : '') +
+                (r.driver === 's3' && r.s3 && r.s3.insecure ? ' <strong>' + esc(L('settings.storage_insecure', 'The storage endpoint uses plain http:// to an address on the internet: files cross it unencrypted. Use https:// if the provider offers it.')) + '</strong>' : '') +
                 (r.writable ? '' : ' <strong>' + esc(L('settings.not_writable', 'The web server cannot write there - uploads will fail.')) + '</strong>');
 
             var m = r.migration;

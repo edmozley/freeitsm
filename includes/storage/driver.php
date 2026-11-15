@@ -131,6 +131,34 @@ function storageSameLocation(StorageDriver $a, StorageDriver $b): bool
 }
 
 /**
+ * True when an endpoint is plain http:// to an address on the internet (storage series
+ * S1): the files themselves would cross it unencrypted (the secret does not - requests
+ * are only signed with it). A LAN or local server (a MinIO beside FreeITSM) is fine, as
+ * is a name without a dot (a Docker service) or one that does not resolve: a warning is
+ * for a public address, proved. Never a block.
+ */
+function storageEndpointInsecure(string $endpoint): bool
+{
+    $p = parse_url(trim($endpoint));
+    if (!$p || strtolower((string)($p['scheme'] ?? '')) !== 'http' || empty($p['host'])) return false;
+    $host = trim(strtolower((string)$p['host']), '[]');
+    if ($host === 'localhost' || str_ends_with($host, '.localhost') || str_ends_with($host, '.local')) return false;
+    if (filter_var($host, FILTER_VALIDATE_IP)) {
+        $ips = [$host];
+    } else {
+        if (!str_contains($host, '.')) return false;
+        $ips = @gethostbynamel($host) ?: [];
+        if (function_exists('dns_get_record')) {
+            foreach (@dns_get_record($host, DNS_AAAA) ?: [] as $r) if (!empty($r['ipv6'])) $ips[] = $r['ipv6'];
+        }
+    }
+    foreach ($ips as $ip) {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) return true;
+    }
+    return false;
+}
+
+/**
  * Why a storage server address may not be used, or null. The server sends requests
  * to whatever an administrator types; a link-local address is the cloud metadata
  * service, which hands out the server's own credentials. Private-network and

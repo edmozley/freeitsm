@@ -44,7 +44,7 @@ $action = (string)($in['action'] ?? '');
 try {
     switch ($action) {
         case 'test':
-            echo json_encode(['success' => true, 'test' => StorageService::test($conn, (array)($in['connection'] ?? []))]);
+            echo json_encode(['success' => true, 'test' => StorageService::test($conn, (array)($in['connection'] ?? []), $analystId)]);
             break;
         case 'save_connection':
             StorageService::saveConnection($conn, (array)($in['connection'] ?? []), $analystId);

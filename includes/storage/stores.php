@@ -147,6 +147,8 @@ function storageS3Connection(PDO $conn): ?array
         'secret'        => $secret,
         'prefix'        => storeSetting($conn, $p . 'prefix'),
         'path_style'    => storeSetting($conn, $p . 'path_style') === '1',
+        // Server-side encryption (storage series S2): only on the connection saved here.
+        'sse'           => storeSetting($conn, 'storage_s3_sse') === 'AES256' ? 'AES256' : '',
     ];
 }
 

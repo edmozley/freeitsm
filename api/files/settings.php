@@ -44,10 +44,7 @@ filesApiRun(function () use ($conn, $analystId) {
         if ($isGet) filesApiFail('Unknown settings tab.');
         try {
             if ($tab === 'storage_test') {
-                $s = (array)($in['s3'] ?? []);
-                $stored = settingGetDecrypted($conn, 'files_s3_secret');
-                if (FilesStorageService::secretUnchanged((string)($s['secret'] ?? ''), $stored)) $s['secret'] = $stored;
-                filesApiOk(FilesStorageService::test($s));
+                filesApiOk(FilesStorageService::testAudited($conn, $analystId, (array)($in['s3'] ?? [])));
             }
             if ($tab === 'storage_migration') {
                 FilesStorageService::migrationAction($conn, $analystId, (string)($in['action'] ?? ''));

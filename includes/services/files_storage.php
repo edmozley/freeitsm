@@ -346,7 +346,8 @@ final class FilesStorageService
         $c = self::sharedConnection($conn);
         if ($c !== null) {
             return ['endpoint' => $c['endpoint'], 'region' => $c['region'], 'bucket' => $c['bucket'], 'access_key_id' => $c['access_key_id'],
-                    'prefix' => $c['prefix'], 'path_style' => $c['path_style'], 'secret_set' => $c['secret'] !== ''];
+                    'prefix' => $c['prefix'], 'path_style' => $c['path_style'], 'secret_set' => $c['secret'] !== '',
+                    'insecure' => storageEndpointInsecure((string)$c['endpoint'])];
         }
         return [
             'endpoint'      => filesSetting($conn, 'files_s3_endpoint'),
@@ -380,6 +381,27 @@ final class FilesStorageService
             }
         }
         if (!$same) throw new InvalidArgumentException('Changing where files are stored needs the Storage and backups permission (System -> Roles).');
+    }
+
+    /**
+     * The Storage tab's Test (api/files/settings.php storage_test): a masked secret means
+     * the saved one. A failure is in the Files audit (storage series S4) - endpoint,
+     * bucket, step and error, never the secret.
+     *
+     * @param array $s  endpoint, region, bucket, access_key_id, secret, prefix, path_style
+     */
+    public static function testAudited(PDO $conn, int $analystId, array $s): array
+    {
+        $stored = settingGetDecrypted($conn, 'files_s3_secret');
+        if (self::secretUnchanged((string)($s['secret'] ?? ''), $stored)) $s['secret'] = $stored;
+        $t = self::test($s);
+        if (!$t['ok']) {
+            $secret = (string)($s['secret'] ?? '');
+            filesAudit($conn, $analystId, 'settings', ['path' => '(Settings: storage)'], ['test_failed' => true,
+                'endpoint' => mb_substr((string)($s['endpoint'] ?? ''), 0, 200), 'bucket' => mb_substr((string)($s['bucket'] ?? ''), 0, 100),
+                'step' => (string)$t['step'], 'error' => mb_substr($secret !== '' ? str_replace($secret, '***', (string)$t['error']) : (string)$t['error'], 0, 300)]);
+        }
+        return $t;
     }
 
     /** May this analyst change where Files is stored (Storage and backups)? */
