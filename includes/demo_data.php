@@ -234,6 +234,18 @@ function demoDuplicateExplanation(PDO $conn, string $module, string $table, stri
         $value = " (\"{$m[1]}\")";
     }
 
+    // GH #366: the clash can be inside the module's OWN data - two of its rows on one
+    // unique key. This runs before the rollback and the import cleared the table's
+    // demo rows first, so a demo row holding the clashing value was written by this
+    // run. MySQL names the key and joins the clashing values with '-', so look for
+    // one. Without this the message blamed a record "not marked as demo data" that
+    // the person never had.
+    if (demoDuplicateIsOwnData($conn, $table, $dbMessage)) {
+        return "The " . ucfirst($module) . " demo data could not be added: two of its own records clash in "
+             . "`$table`{$value}. That is a fault in FreeITSM's demo data, not in your data - please report it. "
+             . "Nothing has been changed.";
+    }
+
     if (demoHasUntaggedImport($conn)) {
         return "This installation already has demo data that was imported before demo rows were "
              . "marked as such, so it cannot be recognised or replaced automatically. The "
@@ -245,6 +257,35 @@ function demoDuplicateExplanation(PDO $conn, string $module, string $table, stri
     return "The " . ucfirst($module) . " demo data could not be added: a record in `$table`{$value} "
          . "already exists and is not marked as demo data, so the importer will not touch it. "
          . "Nothing has been changed.";
+}
+
+/**
+ * Did a demo import's duplicate key clash with a row the same import wrote (GH #366)?
+ * Reads the key name and value from MySQL's message ("Duplicate entry 'a-b' for key
+ * 'table.key'"), the key's columns from the generated index list, and looks for a
+ * row with is_demo = 1 whose columns, joined with '-', give that value. Any doubt
+ * (no key name, an unknown key, an error) answers no, and the older wording stands.
+ */
+function demoDuplicateIsOwnData(PDO $conn, string $table, string $dbMessage): bool {
+    if (!preg_match("/Duplicate entry '((?:[^']|'')*)' for key '(?:[^'.]+\\.)?([^']+)'/", $dbMessage, $m)) return false;
+    [$value, $keyName] = [str_replace("''", "'", $m[1]), $m[2]];
+    if (!preg_match('/^[A-Za-z0-9_]+$/', $table)) return false;
+    $cols = null;
+    foreach (require __DIR__ . '/db_verify_indexes.php' as $ix) {
+        if ($ix[0] === $table && $ix[1] === $keyName) {
+            $cols = array_map(fn($c) => trim($c, '` '), explode(',', trim($ix[3], '()')));
+            break;
+        }
+    }
+    if (!$cols || array_filter($cols, fn($c) => !preg_match('/^[A-Za-z0-9_]+$/', $c))) return false;
+    try {
+        $joined = 'CONCAT_WS(\'-\', ' . implode(', ', array_map(fn($c) => "`$c`", $cols)) . ')';
+        $st = $conn->prepare("SELECT 1 FROM `$table` WHERE is_demo = 1 AND $joined = ? LIMIT 1");
+        $st->execute([$value]);
+        return (bool)$st->fetchColumn();
+    } catch (Throwable) {
+        return false;
+    }
 }
 
 /**

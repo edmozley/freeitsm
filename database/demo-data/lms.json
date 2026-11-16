@@ -123,6 +123,8 @@
         "lms_progress": [
             {
                 "analyst_id": "@analysts.admin",
+                "learner_type": "analyst",
+                "learner_id": "@analysts.admin",
                 "course_id": "@lms_courses.sec",
                 "status": "passed",
                 "score_raw": 90.00,
@@ -136,6 +138,8 @@
             },
             {
                 "analyst_id": "@analysts.jsmith",
+                "learner_type": "analyst",
+                "learner_id": "@analysts.jsmith",
                 "course_id": "@lms_courses.sec",
                 "status": "failed",
                 "score_raw": 45.00,
@@ -149,6 +153,8 @@
             },
             {
                 "analyst_id": "@analysts.swilliams",
+                "learner_type": "analyst",
+                "learner_id": "@analysts.swilliams",
                 "course_id": "@lms_courses.sec",
                 "status": "incomplete",
                 "total_time": "00:06:32",
@@ -158,6 +164,8 @@
             },
             {
                 "analyst_id": "@analysts.mjones",
+                "learner_type": "analyst",
+                "learner_id": "@analysts.mjones",
                 "course_id": "@lms_courses.induction",
                 "status": "completed",
                 "total_time": "00:18:05",
