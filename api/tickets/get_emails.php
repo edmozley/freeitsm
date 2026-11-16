@@ -47,9 +47,12 @@ try {
     ]);
 
 } catch (Exception $e) {
+    // GH #369: a missing table or column means Database Verification has not been
+    // run since an upgrade - say that, not the SQL.
+    require_once '../../includes/db_verify_status.php';
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => dbErrorForPeople($e)
     ]);
 }
 

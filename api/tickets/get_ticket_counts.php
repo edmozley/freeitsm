@@ -611,7 +611,8 @@ try {
     ]);
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    require_once '../../includes/db_verify_status.php';   // GH #369: words, not SQL, when the database is behind
+    echo json_encode(['success' => false, 'error' => dbErrorForPeople($e)]);
 }
 
 ?>

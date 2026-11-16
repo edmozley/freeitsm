@@ -57,6 +57,7 @@ require __DIR__ . '/_top.php';
             <p>When to run it: after applying a FreeITSM update, after restoring or migrating a database, or whenever something looks like a column or table might be missing.</p>
         </div>
     </div>
+    <div class="help-note warn"><strong>FreeITSM reminds you.</strong> Each run that finishes without errors records the version it brought the database up to. If the files are newer than that - an update was installed but this has not been run - every administrator sees a notice at the bottom of each page: <em>FreeITSM has been updated to &hellip; Run Database Verification</em>, with <strong>Verify</strong> to come straight here. <strong>Hide</strong> puts it away until the browser is closed; it goes for good after the next clean run. Until then, pages that read something new can fail for other analysts: they see <em>The database needs updating for this version of FreeITSM. Ask an administrator to run System &rarr; Database Verification.</em> (In GH #369 that was the whole ticket list for anyone in a team.)</div>
     <div class="help-steps">
         <div class="help-step"><div class="help-step-num">1</div><div>Open <strong>System &rarr; Database verification</strong>.</div></div>
         <div class="help-step"><div class="help-step-num">2</div><div>Click <strong>Run verification</strong>. The button shows a spinner while the check runs against the database.</div></div>

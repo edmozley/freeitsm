@@ -775,6 +775,63 @@ function renderWaffleMenuPanel($modules, $current_module, $path_prefix) {
  *
  * @reads user_preferences - so the bell and toasts need not ask on every page
  */
+/**
+ * GH #369: tell an administrator, on every page, that FreeITSM has been updated
+ * but Database Verification has not been run for it. Until it is, anything that
+ * reads a new table or column fails - in #369 every team member's inbox went
+ * blank while administrators saw nothing wrong. Administrators only (nobody else
+ * can act on it); it can be put away for the rest of the browser session, and it
+ * goes for good once Database Verification has run cleanly.
+ *
+ * Must never break a page: any error and it shows nothing.
+ */
+function renderDbBehindNotice(): void {
+    if (empty($_SESSION['analyst_id'])) return;
+    try {
+        if (!function_exists('connectToDatabase')) require_once __DIR__ . '/functions.php';
+        require_once __DIR__ . '/db_verify_status.php';
+        $conn = connectToDatabase();
+        if (!analystIsAdmin($conn, (int)$_SESSION['analyst_id'])) return;
+        $behind = dbVerifyBehind($conn);
+        if (!$behind) return;
+        $tr = function (string $k, string $en, array $p = []): string {
+            $v = function_exists('t') ? t('common.db_behind.' . $k, $p) : '';
+            if ($v === '' || $v === 'common.db_behind.' . $k) { $v = $en; foreach ($p as $pk => $pv) $v = str_replace('{' . $pk . '}', (string)$pv, $v); }
+            return $v;
+        };
+        $text = $tr('notice', 'FreeITSM has been updated to {version}. Run Database Verification so the database matches, or some pages will not work.', ['version' => $behind['code']]);
+        $run = $tr('verify', 'Verify');
+        $hide = $tr('hide', 'Hide');
+    } catch (Throwable) {
+        return;
+    }
+    ?>
+    <div id="dbBehindNotice" class="db-behind-notice" role="status" hidden>
+        <span class="db-behind-text"><?php echo htmlspecialchars($text, ENT_QUOTES, 'UTF-8'); ?></span>
+        <a class="db-behind-run" href="<?php echo BASE_URL; ?>system/db-verify/"><?php echo htmlspecialchars($run, ENT_QUOTES, 'UTF-8'); ?></a>
+        <button type="button" class="db-behind-hide" onclick="try{sessionStorage.setItem('dbBehindHidden','<?php echo htmlspecialchars($behind['code'], ENT_QUOTES, 'UTF-8'); ?>')}catch(e){}this.parentNode.hidden=true;"><?php echo htmlspecialchars($hide, ENT_QUOTES, 'UTF-8'); ?></button>
+    </div>
+    <style>
+        .db-behind-notice{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:10050;max-width:min(760px,calc(100vw - 32px));
+            display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.4;
+            background:var(--warning-bg,#fff7e0);color:var(--warning-text,#7a5200);border:1px solid var(--warning-border,#f0c36d);box-shadow:0 6px 24px rgba(0,0,0,.18)}
+        .db-behind-notice[hidden]{display:none}
+        .db-behind-text{flex:1 1 280px}
+        .db-behind-run{font-weight:600;color:inherit;text-decoration:underline;white-space:nowrap}
+        .db-behind-hide{background:none;border:1px solid currentColor;color:inherit;border-radius:6px;padding:3px 10px;cursor:pointer;font:inherit;font-size:13px}
+    </style>
+    <script>
+        (function () {
+            var n = document.getElementById('dbBehindNotice');
+            var hidden = '';
+            try { hidden = sessionStorage.getItem('dbBehindHidden') || ''; } catch (e) {}
+            // Not on the Database Verification page itself - that is where it points.
+            if (n && hidden !== <?php echo json_encode($behind['code']); ?> && location.pathname.indexOf('/system/db-verify/') === -1) n.hidden = false;
+        })();
+    </script>
+    <?php
+}
+
 function renderWaffleMenuJS() {
     // Pre-fetch the analyst's toast notification preferences so toast.js
     // doesn't have to AJAX for them on every page. Keys mirror the
@@ -817,6 +874,7 @@ function renderWaffleMenuJS() {
             // Defaults stand
         }
     }
+    renderDbBehindNotice();
     ?>
     <!-- Search panel dismissal (#144, per analyst, off by default). The search
          panel is a DRAGGABLE floating panel, not a modal with a backdrop, so

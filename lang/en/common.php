@@ -924,6 +924,13 @@ return [
         'hour'       => 'Hour',
         'minute'     => 'Minute',
     ],
+    // GH #369: the database is behind the code (includes/db_verify_status.php, waffle-menu.php).
+    'db_behind' => [
+        'notice' => 'FreeITSM has been updated to {version}. Run Database Verification so the database matches, or some pages will not work.',
+        'verify' => 'Verify',
+        'hide'   => 'Hide',
+        'error'  => 'The database needs updating for this version of FreeITSM. Ask an administrator to run System → Database Verification.',
+    ],
     // The company switcher in the header (includes/tenancy-switcher.php) - it was English only.
     'tenant_switcher' => [
         'title'  => 'Switch company',

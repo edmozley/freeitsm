@@ -865,6 +865,13 @@ return [
         'hour' => 'Heure',
         'minute' => 'Minute',
     ],
+    // GH #369: the database is behind the code (includes/db_verify_status.php, waffle-menu.php).
+    'db_behind' => [
+        'notice' => 'FreeITSM a été mis à jour en version {version}. Lancez la Vérification de la base de données pour la mettre en accord, sinon certaines pages ne fonctionneront pas.',
+        'verify' => 'Vérifier',
+        'hide'   => 'Masquer',
+        'error'  => 'La base de données doit être mise à jour pour cette version de FreeITSM. Demandez à un administrateur de lancer Système → Vérification de la base de données.',
+    ],
     'tenant_switcher' => [
         'title' => 'Changer d\'entreprise',
         'head' => 'Entreprise',
