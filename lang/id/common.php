@@ -572,6 +572,7 @@ return [
         'event' => [
             'ticket' => [
                 'assigned' => 'Ditugaskan kepada Anda oleh {actor}',
+                'team_assigned' => 'Diserahkan ke tim Anda oleh {actor}',
                 'reassigned' => '{actor} menugaskannya ulang',
                 'reply_received' => 'Peminta membalas',
                 'note_added' => '{actor} menambahkan catatan',
@@ -632,6 +633,7 @@ return [
         'pref' => [
             'ticket' => [
                 'assigned' => 'Tiket ditugaskan kepada saya',
+                'team_assigned' => 'Sebuah tiket diserahkan ke salah satu tim saya',
                 'reassigned' => 'Tiket yang saya pantau ditugaskan ulang',
                 'reply_received' => 'Peminta membalas tiket saya',
                 'note_added' => 'Seseorang menambahkan catatan ke tiket saya',

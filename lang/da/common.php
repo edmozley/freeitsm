@@ -572,6 +572,7 @@ return [
         'event' => [
             'ticket' => [
                 'assigned' => 'Tildelt dig af {actor}',
+                'team_assigned' => 'Givet til dit team af {actor}',
                 'reassigned' => '{actor} har omtildelt den',
                 'reply_received' => 'Anmelderen har svaret',
                 'note_added' => '{actor} tilføjede en note',
@@ -632,6 +633,7 @@ return [
         'pref' => [
             'ticket' => [
                 'assigned' => 'En sag tildeles mig',
+                'team_assigned' => 'En sag gives til et af mine teams',
                 'reassigned' => 'En sag, jeg følger, omtildeles',
                 'reply_received' => 'En anmelder svarer på min sag',
                 'note_added' => 'Nogen tilføjer en note til min sag',

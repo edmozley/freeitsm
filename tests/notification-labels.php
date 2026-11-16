@@ -37,5 +37,21 @@ foreach (array_keys($types) as $type) {
 }
 ok('control: a type that does not exist has no label', t('common.notifications.pref.zz.nothing') === 'common.notifications.pref.zz.nothing');
 
+// GH #365: the same gap in another language reads the same way - a bare name in the
+// bell, which looked like the wrong assignee. The complete languages (the ones the
+// i18n gate holds at 100%) must have their own line for every type, not English.
+echo "\nIn the complete languages\n" . str_repeat('=', 72) . "\n";
+foreach (['da', 'de', 'el', 'es', 'fr', 'id', 'pl', 'uk'] as $locale) {
+    $strings = include "$root/lang/$locale/common.php";
+    $missing = [];
+    foreach (array_keys($types) as $type) {
+        [$group, $name] = explode('.', $type, 2);
+        foreach (['event', 'pref'] as $kind) {
+            if (!isset($strings['notifications'][$kind][$group][$name])) $missing[] = "$kind.$type";
+        }
+    }
+    ok("$locale has both labels for every type", !$missing, implode(', ', $missing));
+}
+
 echo "\n$pass passed, $fail failed\n";
 exit($fail ? 1 : 0);

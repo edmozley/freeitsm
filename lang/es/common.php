@@ -572,6 +572,7 @@ return [
         'event' => [
             'ticket' => [
                 'assigned' => '{actor} se lo ha asignado a usted',
+                'team_assigned' => 'Entregado a su equipo por {actor}',
                 'reassigned' => '{actor} lo ha reasignado',
                 'reply_received' => 'El solicitante ha respondido',
                 'note_added' => '{actor} ha añadido una nota',
@@ -632,6 +633,7 @@ return [
         'pref' => [
             'ticket' => [
                 'assigned' => 'Se me asigna un ticket',
+                'team_assigned' => 'Un ticket se entrega a uno de mis equipos',
                 'reassigned' => 'Se reasigna un ticket que sigo',
                 'reply_received' => 'Un solicitante responde a mi ticket o a uno que sigo',
                 'note_added' => 'Alguien añade una nota a mi ticket o a uno que sigo',

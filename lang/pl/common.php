@@ -572,6 +572,7 @@ return [
         'event' => [
             'ticket' => [
                 'assigned' => 'Przypisane Tobie przez {actor}',
+                'team_assigned' => 'Przekazane Twojemu zespołowi przez {actor}',
                 'reassigned' => '{actor} przypisał(a) je komuś innemu',
                 'reply_received' => 'Zgłaszający odpowiedział',
                 'note_added' => '{actor} dodał notatkę',
@@ -632,6 +633,7 @@ return [
         'pref' => [
             'ticket' => [
                 'assigned' => 'Zgłoszenie zostaje mi przypisane',
+                'team_assigned' => 'Zgłoszenie zostaje przekazane jednemu z moich zespołów',
                 'reassigned' => 'Obserwowane przeze mnie zgłoszenie zostaje przypisane komuś innemu',
                 'reply_received' => 'Zgłaszający odpowiada na moje zgłoszenie',
                 'note_added' => 'Ktoś dodaje notatkę do mojego zgłoszenia',
