@@ -4662,7 +4662,7 @@ try {
     // run with no errors - a failed run leaves the reminder showing.
     require_once '../../includes/db_verify_status.php';
     if (!array_filter($results, fn($r) => ($r['status'] ?? '') === 'error')) {
-        try { dbVerifyRecordRun($conn); } catch (Throwable) { /* the run itself succeeded; the reminder just stays */ }
+        try { dbVerifyRecordRun($conn); } catch (Throwable $notRecorded) { /* the run itself succeeded; the reminder just stays */ }
     }
 
     // Tag each result with its module for the card grid's colour + filter. This
