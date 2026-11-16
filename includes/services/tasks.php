@@ -140,7 +140,7 @@ class TasksService
                 ? (int) $in['tenant_id'] : null;
             if ($sent !== null && !self::sameCompany($conn, $sent, $parentTenant)) {
                 throw new ServiceError('validation', 'invalid_field',
-                    "'tenant_id' does not match the company of the parent task: a subtask is always in its parent's company.");
+                    "The company does not match the parent task's: a subtask is always in its parent's company.");
             }
         }
         $tenantId = $links['parent_task_id']
@@ -1390,11 +1390,11 @@ class TasksService
             // An id that names no company is a 422, not the foreign-key failure (500)
             // it used to reach the INSERT as when the actor's scope is "every company".
             if (tenancyTablesReady($conn) && !getTenantById($conn, $explicit)) {
-                throw new ServiceError('validation', 'invalid_field', "Unknown tenant_id: {$explicit}");
+                throw new ServiceError('validation', 'invalid_field', "Unknown company id: {$explicit}");
             }
             if (isMultiTenant($conn) && $ctx->companyScope !== null
                 && !in_array($explicit, $ctx->companyScope, true)) {
-                throw new ServiceError('validation', 'invalid_field', "Unknown tenant_id: {$explicit}");
+                throw new ServiceError('validation', 'invalid_field', "Unknown company id: {$explicit}");
             }
         }
 
@@ -1440,7 +1440,7 @@ class TasksService
         if ($from !== null) {
             if ($explicit !== null && !$same($explicit, $inherited)) {
                 throw new ServiceError('validation', 'invalid_field',
-                    "'tenant_id' does not match the company of the {$from} this task is linked to.");
+                    "The company does not match the company of the {$from} this task is linked to.");
             }
             return $inherited;
         }
