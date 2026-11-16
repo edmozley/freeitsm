@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2985 | System | Improvement | **A module's buttons, links, tabs and highlights take its colour from System → Module colours (GH #302, discussion #363).** The style guide always said a module's accent comes from its Module colour, but every page's `--accent` was the Tickets blue and ~23 modules carried hand-typed copies of their defaults, so changing a colour changed only the header. `renderWaffleMenuPanel()` now prints the current module's accent (`includes/module_accent.php`): at a default colour a module with its own set keeps its hand-tuned light and dark shades, a module without one (Assets, People...) gets its own colour instead of blue; a changed colour drives `--accent` and the module's own set, light and dark, deepened or lifted to 4.5:1 so it reads as text, with white or near-black on filled buttons. Calendar is the first module converted: its 11 hard-coded oranges are tokens with the old value as fallback. Checked by screenshot diff across all 28 module pages at default colours: only Knowledge (blue folder/toggle to purple) and Assets (blue New to green) change; light-mode Calendar is pixel-identical, and in dark its Month toggle and today mark now use its dark shade like its New button. Test: `tests/module-accent.php` (26). |
 
 
 

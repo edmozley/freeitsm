@@ -704,6 +704,15 @@ function renderWaffleMenuButton() {
  * @param mixed $path_prefix  relative path from the page to the app root, e.g. '../'; not used here (links use BASE_URL)
  */
 function renderWaffleMenuPanel($modules, $current_module, $path_prefix) {
+    // GH #302 / discussion #363: this module's buttons, tabs and highlights take its
+    // colour from System -> Module colours. See includes/module_accent.php.
+    global $defaultModuleColors;
+    require_once __DIR__ . '/module_accent.php';
+    $__colours = getModuleColors();
+    $__accent = isset($__colours[$current_module])
+        ? moduleAccentCss((string)$current_module, $__colours[$current_module], $defaultModuleColors[$current_module] ?? [])
+        : '';
+    if ($__accent !== '') echo '<style id="moduleAccent">' . $__accent . '</style>';
     ?>
     <div class="waffle-panel" id="wafflePanel">
         <div class="waffle-panel-header">

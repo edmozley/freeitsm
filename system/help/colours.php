@@ -17,6 +17,7 @@ require __DIR__ . '/_top.php';
     </div>
     <p>Each module uses <strong>two</strong> colours that blend into a gradient: a <strong>primary</strong> and a <strong>secondary</strong>. The page shows one row per module with a live preview of the icon, so you can see the result before you save.</p>
     <div class="help-note">The colours are stored centrally and apply for everyone — this is an install-wide setting, not a per-user preference.</div>
+    <p><strong>Inside the module too.</strong> A module's main buttons (such as <strong>New</strong>), its links, the selected tab and the highlighted row take the module's <strong>primary</strong> colour, so a module looks like one thing rather than a coloured header over another colour's buttons. A colour too pale to read as text on white - a light yellow, say - is deepened just enough for buttons and links to stay readable, and lifted in dark mode; the header keeps exactly the colour you chose. Modules are being moved over to this one at a time, so in a few places an older colour may still show.</p>
 </div>
 
 <!-- 2. Changing a colour -->
@@ -58,7 +59,7 @@ require __DIR__ . '/_top.php';
     <ul>
         <li>Modules you've never touched use their built-in defaults until you change and save them.</li>
         <li>Changes apply across the whole install — everyone sees the same module colours.</li>
-        <li>Only the colours shown on this page are affected; the rest of the interface is unchanged.</li>
+        <li>The colour reaches the launcher tile, the module's header, and its buttons, links, tabs and highlights. Status colours - red for overdue, green for done and so on - never change, because they mean something.</li>
     </ul>
     <div class="help-note ok">Tip: pick a primary and a secondary that are close in shade for a subtle gradient, or further apart for a bolder, more obvious icon.</div>
 </div>
