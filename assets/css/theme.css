@@ -11,6 +11,57 @@
  * includes/theme.php. Tokens that a palette doesn't override inherit :root.
  */
 
+/*
+ * Design tokens beyond colour (discussion #363). The same as the colour tokens:
+ * each value is TODAY'S most common one, so a rule moved onto a token looks exactly
+ * as it did, and every use carries the old value as its fallback -
+ * var(--radius-md, 6px) - so a page without theme.css is unchanged too.
+ *
+ * They are the same in every palette, so they live here once, not per palette.
+ * Use one of these instead of a new size; if none fits, that is a conversation
+ * for the UI style guide (wiki: UI-Style-Guide, "Design tokens"), not a one-off.
+ */
+:root {
+    /* Type. These eight sizes are about 6 in 10 of the font sizes in use today; the long
+       tail (12.5px, 11.5px, 13.5px ...) moves to the nearest as each module is
+       converted. 13px is the normal size for text. */
+    --font:          'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-mono:     ui-monospace, Consolas, monospace;
+    --font-size-xs:  11px;
+    --font-size-sm:  12px;
+    --font-size-md:  13px;
+    --font-size-lg:  14px;
+    --font-size-xl:  16px;
+    --font-size-2xl: 18px;
+    --font-size-3xl: 20px;
+    --font-size-4xl: 24px;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold:   600;
+
+    /* Space, on a 4px scale. */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    /* Corners: 6px is the commonest (inputs, buttons), 4px small controls,
+       8px and 10px panels and cards, pill for badges. */
+    --radius-sm:   4px;
+    --radius-md:   6px;
+    --radius-lg:   8px;
+    --radius-xl:   10px;
+    --radius-pill: 999px;
+
+    /* Elevation: a card, a popup or menu, a dialog. Each is a shadow already in use. */
+    --shadow-1: 0 1px 4px var(--shadow, rgba(0, 0, 0, 0.08));
+    --shadow-2: 0 2px 8px var(--shadow, rgba(0, 0, 0, 0.06));
+    --shadow-3: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
 :root,
 [data-theme="default"] {
     color-scheme: light;

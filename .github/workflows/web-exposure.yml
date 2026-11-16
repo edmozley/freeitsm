@@ -48,3 +48,11 @@ jobs:
       # at build time).
       - name: every PHP extension the code uses is in the Docker image
         run: php tests/docker-php-extensions.php
+
+      # Discussion #363: hard-coded colours in assets/css may only go DOWN. A colour
+      # written into a stylesheet ignores dark mode and System -> Module colours; the
+      # way out is a token with the old value as its fallback. Baseline in
+      # tests/baselines/css-colours.json - after a conversion lowers a count, run the
+      # test with --update. Same job: files only.
+      - name: no stylesheet gains hard-coded colours
+        run: php tests/css-colour-guard.php
