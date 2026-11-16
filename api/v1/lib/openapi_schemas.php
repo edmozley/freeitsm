@@ -10538,6 +10538,8 @@ return array (
       'properties' => 
       array (
         'related' => ['$ref' => '#/components/schemas/TaskRelated'],   // GH #328: only with ?include=related on the list; always on GET /tasks/{id}
+        'company' => ['type' => 'object', 'nullable' => true, 'allOf' => [['$ref' => '#/components/schemas/NamedRef']],
+          'description' => 'The company the task is in. A task stored with no company is in the Default company and is shown as it. null only on an install without companies set up.'],
         'collaborators' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => [   // 5.2.0 docs tidy
           'id' => ['type' => 'integer'], 'name' => ['type' => 'string', 'nullable' => true],
           'is_completed' => ['type' => 'boolean'], 'completed_at' => ['type' => 'string', 'nullable' => true]]]],
