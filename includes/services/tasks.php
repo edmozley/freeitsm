@@ -1413,8 +1413,21 @@ class TasksService
             $inherited = $linkedTenant('tickets', $ticketId);
             $from = 'ticket';
         }
-        if ($changeId && self::tableHasTenantColumn($conn, 'changes')) {
-            $changeTenant = $linkedTenant('changes', $changeId);
+        // The change's company - read directly, not through tableHasTenantColumn(),
+        // which answers "no column" when it cannot ask: a lock wait here must be an
+        // error, not a task quietly filed somewhere else. Only a genuinely missing
+        // column (an install without company-scoped changes) means "no company".
+        $changeHasCompany = false;
+        $changeTenant = null;
+        if ($changeId) {
+            try {
+                $changeTenant = $linkedTenant('changes', $changeId);
+                $changeHasCompany = true;
+            } catch (PDOException $e) {
+                if (!dbErrorIsMissingSchema($e)) throw $e;
+            }
+        }
+        if ($changeHasCompany) {
             if ($from === 'ticket' && !$same($inherited, $changeTenant)) {
                 throw new ServiceError('validation', 'invalid_field',
                     "The ticket and the change this task is linked to are in different companies.");
@@ -1566,7 +1579,10 @@ class TasksService
                 // unknown here as a ticket there.
                 try {
                     $known = self::recordAccessible($conn, $ctx, 'changes', $id);
-                } catch (PDOException) {
+                } catch (PDOException $e) {
+                    // Only a missing table means "not on this install"; a lock wait or
+                    // a lost connection is an error, not an answer.
+                    if (!dbErrorIsMissingSchema($e)) throw $e;
                     throw new ServiceError('validation', 'invalid_field', "Change links are not available on this install.");
                 }
                 if (!$known) {

@@ -224,8 +224,14 @@ function apiTasksList(PDO $conn, array $apiKey, array $params, array $body): voi
         if (!apiKeyCanAccessTenant($conn, $apiKey, $cid)) {
             apiError(403, 'forbidden', 'This API key is not scoped to that company.');
         }
-        $where[] = ($cid === getDefaultTenantId($conn)) ? '(t.tenant_id = ? OR t.tenant_id IS NULL)' : 't.tenant_id = ?';
-        $args[]  = $cid;
+        if (!isMultiTenant($conn)) {
+            // One company: every task is in it. No tenant_id in the SQL, so an install
+            // that has not run Database Verification yet is not broken by the filter.
+            if ($cid !== getDefaultTenantId($conn)) $where[] = '1=0';
+        } else {
+            $where[] = ($cid === getDefaultTenantId($conn)) ? '(t.tenant_id = ? OR t.tenant_id IS NULL)' : 't.tenant_id = ?';
+            $args[]  = $cid;
+        }
     }
     foreach (['status' => 'ts.name', 'priority' => 'tp.name'] as $param => $col) {
         if (isset($_GET[$param]) && $_GET[$param] !== '') {
@@ -468,6 +474,7 @@ function apiTasksUpdate(PDO $conn, array $apiKey, array $params, array $body): v
     // different company is refused, and the one the task is already in is accepted.
     foreach (['company_id', 'tenant_id'] as $f) {
         if (!array_key_exists($f, $body) || $body[$f] === null || $body[$f] === '') continue;
+        if (!tenancyTablesReady($conn)) { unset($body[$f]); continue; }   // no companies yet: ignored, as before
         $row = apiLoadTask($conn, (int)$params[0], $apiKey);
         $current = $row['tenant_id'] ?? null;
         $asked = (int)$body[$f];

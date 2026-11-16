@@ -24,7 +24,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * includes tasks stored with none) and refuses a company outside the key (403). PATCH
  * refuses another company (422) and accepts the one the task is in. Every refusal has
  * a positive control. Its companies (ZZ-named), keys, ticket, change and tasks are
- * removed at the end.
+ * removed at the end. Task workflows that are on are paused for the run and switched
+ * back on at the end, so none fires against the fixtures.
  */
 
 require_once __DIR__ . '/../config.php';
@@ -63,7 +64,7 @@ $newTenant = function (string $name) use ($conn, $tag, &$tenantIds): int {
 $newKey = function (string $name, array $perms, ?array $companies) use ($conn, $admin, &$keyIds): string {
     $raw = 'zzk_' . bin2hex(random_bytes(20));
     $conn->prepare("INSERT INTO api_keys (name, key_prefix, key_hash, analyst_id, permissions, company_ids, active) VALUES (?, ?, ?, ?, ?, ?, 1)")
-         ->execute(["zz $name", substr($raw, 0, 12), hash('sha256', $raw), $admin, json_encode($perms), $companies === null ? null : json_encode($companies)]);
+         ->execute(["ZZ $name", substr($raw, 0, 12), hash('sha256', $raw), $admin, json_encode($perms), $companies === null ? null : json_encode($companies)]);
     $keyIds[] = (int)$conn->lastInsertId();
     return $raw;
 };
@@ -79,7 +80,7 @@ $call = function (string $key, string $method, string $path, ?array $body = null
 };
 // POST /tasks, remembering what it made so it is always cleaned up.
 $create = function (string $key, array $body) use ($call, $tag, &$taskIds): array {
-    $body['title'] = ($body['title'] ?? 'task') . " $tag";
+    $body['title'] = 'ZZ ' . ($body['title'] ?? 'task') . " $tag";
     [$code, $r] = $call($key, 'POST', '/tasks', $body);
     if ($code === 201 && isset($r['data']['id'])) $taskIds[] = (int)$r['data']['id'];
     return [$code, $r];
@@ -92,6 +93,19 @@ $stored = function (int $taskId) use ($conn) {
 $err = function (array $r): string { return json_encode($r['error'] ?? $r); };
 
 $perms = ['tasks' => ['read', 'create', 'update', 'delete']];
+
+// Never fire workflows: every POST/PATCH here would run this install's task.*
+// workflows (emails, assignments) against the ZZ tasks. Those that are on are
+// switched off for the run and switched back on in `finally`, by id.
+$pausedWorkflows = [];
+try {
+    $pausedWorkflows = array_map('intval', $conn->query("SELECT id FROM workflows WHERE is_active = 1 AND trigger_event LIKE 'task.%'")->fetchAll(PDO::FETCH_COLUMN));
+} catch (PDOException $e) { /* no workflows table on this install: nothing to fire */ }
+if ($pausedWorkflows) {
+    $conn->exec("UPDATE workflows SET is_active = 0 WHERE id IN (" . implode(',', $pausedWorkflows) . ")");
+    echo "  (" . count($pausedWorkflows) . " task workflow(s) paused for the run)
+";
+}
 try {
     $a = $newTenant('alpha');
     $b = $newTenant('bravo');
@@ -99,12 +113,12 @@ try {
     // A ticket in Bravo, a ticket stored with no company (= Default), a change in Bravo.
     $mkTicket = function (?int $tenant) use ($conn, $tag, &$ticketIds): int {
         $conn->prepare("INSERT INTO tickets (ticket_number, subject, tenant_id, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
-             ->execute(['ZZ-' . strtoupper(bin2hex(random_bytes(4))), "zz ticket $tag", $tenant]);
+             ->execute(['ZZ-' . strtoupper(bin2hex(random_bytes(4))), "ZZ ticket $tag", $tenant]);
         return $ticketIds[] = (int)$conn->lastInsertId();
     };
     $ticketB    = $mkTicket($b);
     $ticketNone = $mkTicket(null);
-    $conn->prepare("INSERT INTO changes (title, tenant_id) VALUES (?, ?)")->execute(["zz change $tag", $b]);
+    $conn->prepare("INSERT INTO changes (title, tenant_id) VALUES (?, ?)")->execute(["ZZ change $tag", $b]);
     $changeB = $changeIds[] = (int)$conn->lastInsertId();
 
     $full   = $newKey('task company: all', $perms, null);
@@ -189,9 +203,12 @@ try {
     ok('another company is refused (422, was silently ignored)', $c === 422 && $stored($taskA) === $a, "$c " . $err($r));
     [$c, $r] = $call($full, 'PATCH', "/tasks/$taskA", ['tenant_id' => $b]);
     ok('  ...by its older name too', $c === 422, "$c " . $err($r));
-    [$c, $r] = $call($full, 'PATCH', "/tasks/$taskA", ['company_id' => $a, 'description' => "zz patched $tag"]);
-    ok('  control: the company it is already in is accepted, and the rest applies', $c === 200 && ($r['data']['description'] ?? '') === "zz patched $tag" && $companyOf($r) === $a, "$c " . $err($r));
+    [$c, $r] = $call($full, 'PATCH', "/tasks/$taskA", ['company_id' => $a, 'description' => "ZZ patched $tag"]);
+    ok('  control: the company it is already in is accepted, and the rest applies', $c === 200 && ($r['data']['description'] ?? '') === "ZZ patched $tag" && $companyOf($r) === $a, "$c " . $err($r));
 } finally {
+    if ($pausedWorkflows) {
+        $conn->exec("UPDATE workflows SET is_active = 1 WHERE id IN (" . implode(',', $pausedWorkflows) . ")");
+    }
     // Tasks first, through the API's own delete (it removes subtasks and history with
     // them; a subtask already gone with its parent answers 404). Then what they pointed at.
     if ($taskIds && isset($full)) {
