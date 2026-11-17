@@ -860,7 +860,7 @@ function allAccessibleTenantsFilter(PDO $conn, int $analystId, string $qualified
  * list (api/tasks/list.php) — the two a customer reported showing "the last
  * selected company" under All companies — and, since GH #356 (5.4.0), Assets
  * -> People, the list of who holds equipment and a person's panel
- * (tests/assets-all-companies.php). Since GH #373 (5.4.2): the Change Management
+ * (tests/assets-all-companies.php). Since GH #373 (5.5.0): the Change Management
  * list and calendar, and Watchtower's Domains and Projects cards
  * (tests/all-companies-lists.php). The ASSET LIST, its lookup and its widgets
  * deliberately stay on one company until an asset's type/status/location
