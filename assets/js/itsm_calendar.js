@@ -695,13 +695,19 @@ function showEventPopup(eventId, clickEvent) {
     descriptionEl.textContent = event.description || '';
     descriptionEl.style.display = event.description ? 'block' : 'none';
 
-    // Position popup near click
+    // Position popup near click: below the item, or above it when there is no room below,
+    // and always inside the window (a tall popup scrolls inside itself).
     const rect = clickEvent.target.getBoundingClientRect();
-    popup.style.top = `${rect.bottom + 10}px`;
-    popup.style.left = `${Math.min(rect.left, window.innerWidth - 320)}px`;
-
+    popup.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 320))}px`;
+    popup.style.top = '0px';
     currentEventId = eventId;
     popup.classList.add('active');
+    const popupHeight = popup.offsetHeight;
+    let top = rect.bottom + 10;
+    if (top + popupHeight > window.innerHeight - 8) {
+        top = rect.top - 10 - popupHeight;
+    }
+    popup.style.top = `${Math.max(8, Math.min(top, window.innerHeight - 8 - popupHeight))}px`;
 }
 
 // Close event popup

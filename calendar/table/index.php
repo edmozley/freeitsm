@@ -36,7 +36,7 @@ $translationNamespaces = ['common', 'calendar'];
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../../assets/css/calendar-grid.css?v=1">
-    <link rel="stylesheet" href="../../assets/css/itsm_calendar.css?v=10">
+    <link rel="stylesheet" href="../../assets/css/itsm_calendar.css?v=11">
     <link rel="stylesheet" href="../../assets/css/data-table.css?v=7">
     <style>body { --accent: var(--cal-accent, #ef6c00); --accent-hover: var(--cal-accent-hover, #e65100); }</style>
     <!-- Mobile: the shared shell plus LAYER 15c, which already contains a

@@ -26,7 +26,7 @@ $translationNamespaces = ['common', 'calendar'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../assets/css/calendar-grid.css?v=1">
-    <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=10">
+    <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=11">
     <link rel="stylesheet" href="../assets/css/subscribe.css?v=1">
     <style>
         /* Pin the shared accent to the module orange so canonical components
@@ -192,7 +192,7 @@ $translationNamespaces = ['common', 'calendar'];
     </div>
 
     <script>window.API_BASE = '../api/calendar/';</script>
-    <script src="../assets/js/itsm_calendar.js?v=5"></script>
+    <script src="../assets/js/itsm_calendar.js?v=6"></script>
     <script src="../assets/js/qrcode.min.js"></script>
     <script src="../assets/js/subscribe.js?v=1"></script>
     <script>

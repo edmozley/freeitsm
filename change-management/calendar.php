@@ -31,7 +31,7 @@ $translationNamespaces = ['common', 'change-management'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
     <link rel="stylesheet" href="../assets/css/calendar-grid.css?v=1">
-    <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=10">
+    <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=11">
     <style>
         /* Teal theme overrides for change management */
         .calendar-container .btn-primary {
@@ -64,6 +64,8 @@ $translationNamespaces = ['common', 'change-management'];
             z-index: 500;
             max-width: 320px;
             min-width: 260px;
+            max-height: calc(100vh - 16px);
+            overflow-y: auto;
         }
         .change-popup.active { display: block; }
         .change-popup-close {
@@ -197,7 +199,7 @@ $translationNamespaces = ['common', 'change-management'];
     </div>
 
     <script>window.API_BASE = '../api/change-management/';</script>
-    <script src="../assets/js/change-calendar.js?v=5"></script>
+    <script src="../assets/js/change-calendar.js?v=6"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

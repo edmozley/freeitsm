@@ -553,6 +553,8 @@
     border-radius: 8px;
     box-shadow: 0 4px 20px var(--shadow, rgba(0, 0, 0, 0.2));
     width: 300px;
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
     z-index: 500;
     display: none;
 }
