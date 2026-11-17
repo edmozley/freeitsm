@@ -500,7 +500,7 @@
         const opts = '<option value="">' + esc(T('import.ignore')) + '</option>' + csv.head.map((h, i) => '<option value="' + i + '">' + esc(h || ('#' + (i + 1))) + '</option>').join('');
         document.getElementById('impMap').innerHTML = IMPORT_FIELDS.map(([key, guesses]) => {
             const guess = csv.head.findIndex(h => guesses.includes(h.toLowerCase()));
-            return '<div class="form-group"><label>' + esc(T('import.field.' + key)) + (key === 'domain_name' ? ' *' : '') + '</label>'
+            return '<div class="form-group"><label>' + esc(T(key === 'scope' ? 'field.scope' : 'import.field.' + key)) + (key === 'domain_name' ? ' *' : '') + '</label>'
                 + '<select data-field="' + key + '">' + opts.replace('value="' + guess + '"', 'value="' + guess + '" selected') + '</select></div>';
         }).join('');
         const sample = csv.rows.slice(0, 5);
