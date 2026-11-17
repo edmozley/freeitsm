@@ -20,6 +20,7 @@ require_once '../../includes/rbac.php';
 require_once '../../includes/services/handover_templates.php';
 require_once '../../includes/services/assets.php';
 require_once '../../includes/tenancy.php';
+I18n::initFromSession();
 
 header('Content-Type: application/json');
 
