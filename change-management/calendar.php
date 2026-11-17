@@ -64,7 +64,8 @@ $translationNamespaces = ['common', 'change-management'];
             z-index: 500;
             max-width: 320px;
             min-width: 260px;
-            max-height: calc(100vh - 16px);
+            /* 16px of window margin plus this box's own 2 x 16px padding (#374) */
+            max-height: calc(100vh - 48px);
             overflow-y: auto;
         }
         .change-popup.active { display: block; }
