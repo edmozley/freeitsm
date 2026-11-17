@@ -70,9 +70,12 @@ function domainTlsCertificate(string $host, int $port = 443, int $timeout = 8, ?
         return $out;
     }
 
+    // Repeated DN components are arrays; keep individual CNs for matching and text for display.
+    $commonNames = (array)($info['subject']['CN'] ?? []);
+    $issuerNames = (array)($info['issuer']['O'] ?? ($info['issuer']['CN'] ?? []));
     $out['ok']         = true;
-    $out['subject']    = $info['subject']['CN'] ?? null;
-    $out['issuer']     = $info['issuer']['O'] ?? ($info['issuer']['CN'] ?? null);
+    $out['subject']    = $commonNames ? implode(', ', $commonNames) : null;
+    $out['issuer']     = $issuerNames ? implode(', ', $issuerNames) : null;
     $out['valid_from'] = isset($info['validFrom_time_t']) ? gmdate('Y-m-d', $info['validFrom_time_t']) : null;
     $out['valid_to']   = isset($info['validTo_time_t'])   ? gmdate('Y-m-d', $info['validTo_time_t'])   : null;
     if (isset($info['validTo_time_t'])) {
@@ -84,7 +87,7 @@ function domainTlsCertificate(string $host, int $port = 443, int $timeout = 8, ?
         $san = trim($san);
         if (stripos($san, 'DNS:') === 0) $sans[] = strtolower(substr($san, 4));
     }
-    if (!$sans && $out['subject']) $sans[] = strtolower($out['subject']);
+    if (!$sans) $sans = array_map('strtolower', $commonNames);
     $out['sans'] = array_values(array_unique($sans));
     $out['hostname_match'] = domainTlsNameMatches($host, $out['sans']);
 
