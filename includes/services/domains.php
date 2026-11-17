@@ -316,13 +316,6 @@ class DomainsService
         if ($oldTenant === $targetTenantId) {
             return ['moved' => 0, 'ids' => [], 'from' => $target['name'], 'to' => $target['name'], 'cleared' => []];
         }
-        if (domainSubdomainsReady($conn) && !empty($row['parent_domain_id'])) {
-            $p = $conn->prepare("SELECT domain_name FROM domains WHERE id = ?");
-            $p->execute([(int)$row['parent_domain_id']]);
-            throw new ServiceError('validation', 'invalid_field',
-                "{$row['domain_name']} is a subdomain of " . ($p->fetchColumn() ?: 'another domain')
-                . '. Move that domain instead: its subdomains move with it.');
-        }
         $oldName     = getTenantById($conn, $oldTenant)['name'] ?? 'Unknown';
         $oldStore    = $row['tenant_id'] === null ? null : (int)$row['tenant_id'];
         $targetStore = self::storeTenant($conn, $targetTenantId);
@@ -331,9 +324,24 @@ class DomainsService
         $ownTx = !$conn->inTransaction();
         if ($ownTx) $conn->beginTransaction();
         try {
-            // Lock first, then read what we will act on: the group is worked out
-            // from rows held FOR UPDATE, so a subdomain added meanwhile cannot be
-            // left behind in the old company.
+            // Lock first, then read what we will act on. The FIRST statement of the
+            // transaction is a locking read, so the snapshot every later plain read
+            // sees is taken after the lock, not before it; and the group is followed
+            // with locking reads (moveGroup), which see the latest committed rows -
+            // so a subdomain added meanwhile is moved too, never left behind.
+            $lk = $conn->prepare("SELECT * FROM domains WHERE id = ? FOR UPDATE");
+            $lk->execute([$id]);
+            $row = $lk->fetch(PDO::FETCH_ASSOC);
+            if (!$row || (($row['tenant_id'] === null) ? null : (int)$row['tenant_id']) !== $oldStore) {
+                throw new ServiceError('conflict', 'conflict', 'This domain changed while it was being moved. Try again.');
+            }
+            if (domainSubdomainsReady($conn) && !empty($row['parent_domain_id'])) {
+                $p = $conn->prepare("SELECT domain_name FROM domains WHERE id = ?");
+                $p->execute([(int)$row['parent_domain_id']]);
+                throw new ServiceError('validation', 'invalid_field',
+                    "{$row['domain_name']} is a subdomain of " . ($p->fetchColumn() ?: 'another domain')
+                    . '. Move that domain instead: its subdomains move with it.');
+            }
             $group = self::moveGroup($conn, $row, $oldStore);
             $in    = implode(',', array_fill(0, count($group), '?'));
             $st = $conn->prepare("SELECT * FROM domains WHERE id IN ($in) ORDER BY id FOR UPDATE");
@@ -409,22 +417,34 @@ class DomainsService
      */
     private static function moveGroup(PDO $conn, array $row, ?int $store): array
     {
+        // The same tests as domainTwin() and domainSubdomains(), as LOCKING reads:
+        // they see the latest committed rows (not the transaction's snapshot) and
+        // hold them, so the group cannot change under the move.
+        $scopeReady = domainScopeReady($conn);
+        $subReady   = domainSubdomainsReady($conn);
+        $twinQ  = $conn->prepare("SELECT id, domain_name FROM domains WHERE domain_name = ? AND tenant_id <=> ? AND id <> ? FOR UPDATE");
+        $childQ = $subReady ? $conn->prepare("SELECT id, domain_name FROM domains WHERE parent_domain_id = ? FOR UPDATE") : null;
         $group = [(int)$row['id'] => true];
         $todo  = [['id' => (int)$row['id'], 'name' => (string)$row['domain_name']]];
         while ($todo) {
             $cur = array_pop($todo);
             $next = [];
-            if (($twin = domainTwin($conn, $cur['id'], $cur['name'], $store)) !== null) $next[] = $twin['id'];
-            foreach (domainSubdomains($conn, $cur['id']) as $child) $next[] = (int)$child['id'];
-            foreach ($next as $nid) {
+            if ($scopeReady) {
+                $twinQ->execute([$cur['name'], $store, $cur['id']]);
+                foreach ($twinQ->fetchAll(PDO::FETCH_ASSOC) as $t) $next[] = $t;
+            }
+            if ($childQ) {
+                $childQ->execute([$cur['id']]);
+                foreach ($childQ->fetchAll(PDO::FETCH_ASSOC) as $c) $next[] = $c;
+            }
+            foreach ($next as $n) {
+                $nid = (int)$n['id'];
                 if (isset($group[$nid])) continue;
                 $group[$nid] = true;
                 if (count($group) > 1000) {
                     throw new ServiceError('validation', 'invalid_field', 'Too many subdomains to move at once.');
                 }
-                $n = $conn->prepare("SELECT domain_name FROM domains WHERE id = ?");
-                $n->execute([$nid]);
-                $todo[] = ['id' => $nid, 'name' => (string)$n->fetchColumn()];
+                $todo[] = ['id' => $nid, 'name' => (string)$n['domain_name']];
             }
         }
         return $group;
@@ -443,10 +463,12 @@ class DomainsService
         $default = getDefaultTenantId($conn);
         $in = implode(',', array_fill(0, count($ids), '?'));
         $out = ['tickets' => 0, 'cmdb' => 0];
-        foreach (['tickets' => ['ticket_domains', 'ticket_id', 'tickets'], 'cmdb' => ['domain_cmdb_objects', 'cmdb_object_id', 'cmdb_objects']] as $k => [$link, $col, $tbl]) {
+        // A link to a DELETED ticket does not count: the Links tab neither shows it
+        // nor can remove it (domainLinkTargetOk()), so it must not block a move.
+        foreach (['tickets' => ['ticket_domains', 'ticket_id', 'tickets', ' AND x.deleted_datetime IS NULL'], 'cmdb' => ['domain_cmdb_objects', 'cmdb_object_id', 'cmdb_objects', '']] as $k => [$link, $col, $tbl, $live]) {
             try { $conn->query("SELECT 1 FROM `$link` LIMIT 0"); } catch (Throwable) { continue; }
             $st = $conn->prepare("SELECT COUNT(DISTINCT x.id) FROM `$link` l JOIN `$tbl` x ON x.id = l.`$col`
-                                   WHERE l.domain_id IN ($in) AND COALESCE(x.tenant_id, ?) <> ?");
+                                   WHERE l.domain_id IN ($in) AND COALESCE(x.tenant_id, ?) <> ?$live");
             $st->execute(array_merge($ids, [$default, $targetTenantId]));
             $out[$k] = (int)$st->fetchColumn();
         }

@@ -123,7 +123,9 @@ try {
     $conn->prepare("INSERT INTO ticket_domains (ticket_id, domain_id) VALUES (?, ?)")->execute([$ticket, $p]);
     $r = refusal($conn, $ctx, $p, $tenantZ);
     ok('a linked ticket is refused', $r !== null && str_contains($r, 'tickets: 1'), (string)$r);
-    $conn->prepare("DELETE FROM ticket_domains WHERE ticket_id = ?")->execute([$ticket]);
+    // Deleted, the link stays but no longer counts: the Links tab cannot show or
+    // remove it. It is still there for the move below, which must not be stopped.
+    $conn->prepare("UPDATE tickets SET deleted_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$ticket]);
 
     $class = (int)$conn->query("SELECT id FROM cmdb_classes ORDER BY id LIMIT 1")->fetchColumn();
     if (!$class) {
@@ -160,7 +162,7 @@ try {
 
     echo "\nThe move\n";
     $res = DomainsService::moveToCompany($conn, $ctx, $p, $tenantZ);
-    ok('moves the domain, its internal view and its subdomain', $res['moved'] === 3 && $res['ids'] === $group, json_encode($res));
+    ok('moves the domain, its internal view and its subdomain (a deleted ticket\'s link does not stop it)',$res['moved'] === 3 && $res['ids'] === $group, json_encode($res));
     ok('all three are in the ZZ company', tenants($conn, $group) === [$p => $tenantZ, $twin => $tenantZ, $sub => $tenantZ], json_encode(tenants($conn, $group)));
     $row = DomainsService::loadRow($conn, $p);
     ok('registrar account, cost centre and customer are cleared', $row['registrar_account_id'] === null && $row['cost_centre_id'] === null && $row['customer_user_id'] === null, json_encode(array_intersect_key($row, array_flip(['registrar_account_id', 'cost_centre_id', 'customer_user_id']))));
