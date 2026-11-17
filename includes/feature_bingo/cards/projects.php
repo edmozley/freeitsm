@@ -373,4 +373,16 @@ return [
         'link'     => 'projects/',
         'check'    => ['rows', 'projects', 'tailoring IS NOT NULL'],
     ],
+    [
+        'id'       => 'projects.move_company',   // GH #370
+        'module'   => 'projects',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Move a project to another company',
+        'what'     => 'Move on a project page takes the project, its tasks and their subtasks to another company in one go, refusing - and saying why - when someone on it could not see that company.',
+        'why'      => 'A project started in the wrong company no longer has to be rebuilt by hand, losing its history and links.',
+        'done'     => 'At least one project has been moved to another company.',
+        'link'     => 'projects/',
+        'check'    => ['rows', 'project_audit', "field_name = 'company'"],
+    ],
 ];

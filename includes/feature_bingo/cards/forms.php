@@ -243,4 +243,16 @@ return [
         'link'     => 'forms/settings/?tab=ai',
         'check'    => ['setting', 'forms_ai_api_key', 'nonempty'],
     ],
+    [
+        'id'       => 'forms.company_lookup',   // GH #367
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Ask which company',
+        'what'     => 'A lookup question that searches your companies (People -> Companies) by name, code, tax ID or any company custom field, offering only the companies the person filling it in can reach.',
+        'why'      => 'On a provider install, "which client is this for?" typed into a box comes back spelt five ways. A picked company is exact and links to the record.',
+        'done'     => 'At least one form has a lookup question that searches Companies.',
+        'link'     => 'forms/',
+        'check'    => ['rows', 'form_fields', "field_type = 'lookup' AND config LIKE '%\"lookup_source\":\"company\"%' AND is_deleted = 0 AND is_demo = 0"],
+    ],
 ];

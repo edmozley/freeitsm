@@ -1125,4 +1125,16 @@ return [
         'link'     => 'system/emailed-reports/',
         'check'    => ['rows', 'email_send_log', "route = 'report_to_self' AND status = 'sent'"],
     ],
+    [
+        'id'       => 'system.section_memory',   // GH #376
+        'module'   => 'system',
+        'tier'     => 'extra',
+        'category' => 'productivity',
+        'title'    => 'Come back where you left off',
+        'what'     => 'System -> Preferences -> Reopen the last section of each module: opening a module from the menu, the home page or Ctrl+K goes back to the section you last used there.',
+        'why'      => 'Hopping between Tickets and Assets -> Servers all day without choosing Servers again every time.',
+        'done'     => 'At least one analyst has switched it on.',
+        'link'     => 'system/preferences/',
+        'check'    => ['rows', 'user_preferences', "preference_key = 'remember_module_section' AND preference_value = 'on'"],
+    ],
 ];

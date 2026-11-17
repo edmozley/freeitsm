@@ -563,4 +563,16 @@ return [
             ['sql', "SELECT COUNT(*) FROM tenant_settings WHERE setting_key = 'ticket_portal_field_ask' AND setting_value = 'main'", 1],
         ]],
     ],
+    [
+        'id'       => 'self-service.portal_language',   // GH #368
+        'module'   => 'self-service',
+        'tier'     => 'extra',
+        'category' => 'customer',
+        'title'    => 'Customers pick their language',
+        'what'     => 'A portal user chooses their own language under My account -> Language, instead of the portal following their browser.',
+        'why'      => 'Someone on a shared or work-issued computer, set to another language, can still read the portal in their own.',
+        'done'     => 'At least one portal user has chosen a language.',
+        'link'     => 'self-service/',
+        'check'    => ['rows', 'portal_user_preferences', "preference_key = 'interface_language' AND preference_value <> ''"],
+    ],
 ];
