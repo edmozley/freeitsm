@@ -1463,6 +1463,9 @@ return [
         'search_dismiss_heading' => 'Das Suchpanel schließen',
         'search_dismiss_desc' => 'Das Suchpanel lässt sich aus dem Weg ziehen und offen lassen, daher schließen es standardmäßig nur sein ✕ oder die Escape-Taste. Schalten Sie dies ein, damit es sich schließt, sobald Sie woanders klicken — auf die Ordnerliste, die Ticketliste oder die Symbolleiste. Ein Klick auf das gerade gefundene Ticket oder seine Eigenschaften lässt das Panel weiterhin offen, sodass eine Suche überlebt, wenn Sie auf ihr Ergebnis reagieren.',
         'search_dismiss_label' => 'Schließen, wenn ich woanders klicke',
+        'section_memory_heading' => 'Zurück in ein Modul',   // GH #376
+        'section_memory_desc' => 'Wenn Sie ein Modul über das Menü, die Startseite oder Strg+K öffnen, kehren Sie zum zuletzt genutzten Bereich zurück - etwa Assets → Server - statt zur Startseite des Moduls. Links zu einer bestimmten Seite oder einem Datensatz öffnen weiterhin genau diese. Wird in diesem Browser gespeichert.',
+        'section_memory_label' => 'Den letzten Bereich jedes Moduls wieder öffnen',
         'landing_heading' => 'Startseite',
         'workcal_heading' => 'Mein Arbeitskalender',
         'taskcal_heading' => 'Aufgaben in diesem Kalender',

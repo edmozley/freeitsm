@@ -1463,6 +1463,9 @@ return [
         'search_dismiss_heading' => 'Cerrar el panel de búsqueda',
         'search_dismiss_desc' => 'El panel de búsqueda se puede arrastrar fuera del medio y dejarlo abierto, así que de forma predeterminada solo lo cierra su ✕ o la tecla Escape. Active esto para que se cierre en cuanto haga clic fuera de él — en la lista de carpetas, la lista de tickets o la barra de herramientas. Hacer clic en el ticket que acaba de encontrar, o en sus propiedades, sigue dejando el panel abierto, así que una búsqueda sobrevive a que actúe sobre su resultado.',
         'search_dismiss_label' => 'Cerrarlo al hacer clic fuera',
+        'section_memory_heading' => 'Al volver a un módulo',   // GH #376
+        'section_memory_desc' => 'Cuando abra un módulo desde el menú, la página de inicio o Ctrl+K, vuelva a la sección que usó por última vez allí (por ejemplo, Activos → Servidores) en lugar de su página principal. Los enlaces a una página o registro concretos siguen abriendo exactamente eso. Se recuerda en este navegador.',
+        'section_memory_label' => 'Volver a abrir la última sección de cada módulo',
         'landing_heading' => 'Página de inicio',
         'workcal_heading' => 'Mi calendario de trabajo',
         'taskcal_heading' => 'Tareas en este calendario',

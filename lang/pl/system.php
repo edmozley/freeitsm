@@ -1463,6 +1463,9 @@ return [
         'search_dismiss_heading' => 'Zamykanie panelu wyszukiwania',
         'search_dismiss_desc' => 'Panel wyszukiwania można przeciągnąć w inne miejsce i zostawić otwarty, dlatego domyślnie zamyka go tylko jego ✕ albo klawisz Escape. Włącz to, aby zamykał się, gdy tylko klikniesz gdzie indziej — na liście folderów, liście zgłoszeń albo pasku narzędzi. Kliknięcie zgłoszenia, które właśnie znalazłeś, lub jego właściwości, wciąż zostawia panel otwarty, więc wyszukiwanie przetrwa, gdy zadziałasz na jego wyniku.',
         'search_dismiss_label' => 'Zamknij, gdy klikam gdzie indziej',
+        'section_memory_heading' => 'Powrót do modułu',   // GH #376
+        'section_memory_desc' => 'Gdy otwierasz moduł z menu, strony głównej lub Ctrl+K, wracasz do sekcji, której używałeś tam ostatnio - np. Zasoby → Serwery - zamiast do strony startowej modułu. Odnośniki do konkretnej strony lub rekordu nadal otwierają dokładnie ją. Zapamiętywane w tej przeglądarce.',
+        'section_memory_label' => 'Otwieraj ponownie ostatnią sekcję każdego modułu',
         'landing_heading' => 'Strona startowa',
         'workcal_heading' => 'Mój kalendarz pracy',
         'taskcal_heading' => 'Zadania w tym kalendarzu',

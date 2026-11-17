@@ -335,6 +335,7 @@ $translationNamespaces = ['common'];
          double-loading.) -->
     <script src="assets/js/toast.js"></script>
     <script src="assets/js/confirm.js?v=7"></script>
+    <?php renderSectionMemory();   // GH #376: the module cards reopen each module's last section, when that preference is on ?>
 <?php if ($brand && $brand['footer_text'] !== ''): ?>
     <div class="login-strip login-strip-footer"><?php echo htmlspecialchars($brand['footer_text']); ?></div>
 <?php endif; ?>

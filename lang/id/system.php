@@ -1463,6 +1463,9 @@ return [
         'search_dismiss_heading' => 'Menutup panel pencarian',
         'search_dismiss_desc' => 'Panel pencarian bisa digeser ke samping dan dibiarkan terbuka, jadi secara default hanya ✕ atau tombol Escape yang menutupnya. Aktifkan ini agar panel menutup begitu Anda mengklik di luar — pada daftar folder, daftar tiket, atau bilah alat. Mengklik tiket yang baru Anda temukan, atau propertinya, tetap membiarkan panel terbuka, sehingga pencarian tetap ada saat Anda menindaklanjuti hasilnya.',
         'search_dismiss_label' => 'Tutup saat saya mengklik di luar',
+        'section_memory_heading' => 'Kembali ke modul',   // GH #376
+        'section_memory_desc' => 'Saat Anda membuka modul dari menu, beranda, atau Ctrl+K, kembali ke bagian yang terakhir Anda gunakan di sana - misalnya Aset → Server - bukan halaman depannya. Tautan ke halaman atau catatan tertentu tetap membuka persis itu. Diingat di browser ini.',
+        'section_memory_label' => 'Buka kembali bagian terakhir setiap modul',
         'landing_heading' => 'Halaman awal',
         'workcal_heading' => 'Kalender kerja saya',
         'taskcal_heading' => 'Tugas di kalender ini',

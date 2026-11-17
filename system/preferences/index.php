@@ -70,6 +70,9 @@ $prefDefaults = [
     // Opt-in per analyst rather than per install, because which of the two you
     // want is a working style, not a property of the service desk.
     'search_panel_close_outside' => '',
+    // GH #376: reopen each module's last section when you come back to it. '' (off)
+    // keeps today's behaviour: a module opens on its front page.
+    'remember_module_section'    => '',
     // Whether the task calendar shows subtasks as well as tasks (#90). Written
     // from two places that must agree: here, and the calendar's own Show
     // control. '' is parent tasks only, which is what the calendar always did.
@@ -663,6 +666,20 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     <span class="toggle-label"><?php echo htmlspecialchars(t('system.preferences.search_dismiss_label')); ?></span>
                 </label>
                 <span class="pref-saving-hint" id="searchDismissSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
+            </div>
+
+            <!-- GH #376: reopen each module's last section. Off by default. -->
+            <div class="pref-section">
+                <h3 id="module-sections"><?php echo htmlspecialchars(t('system.preferences.section_memory_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.section_memory_desc')); ?></p>
+                <label class="toggle-group">
+                    <span class="toggle-switch">
+                        <input type="checkbox" id="sectionMemoryToggle" <?php echo $prefs['remember_module_section'] === 'on' ? 'checked' : ''; ?>>
+                        <span class="toggle-slider"></span>
+                    </span>
+                    <span class="toggle-label"><?php echo htmlspecialchars(t('system.preferences.section_memory_label')); ?></span>
+                </label>
+                <span class="pref-saving-hint" id="sectionMemorySavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
 
             <!-- Subtasks on the task calendar (#90). The calendar's own Show control
@@ -1545,6 +1562,17 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 workFoldHint.classList.add('show');
                 await savePref('tasks_collapse_empty_work', workFoldSelect.value);
                 setTimeout(() => workFoldHint.classList.remove('show'), 1200);
+            });
+        }
+
+        // ===== Reopen each module's last section (remember_module_section, GH #376) =====
+        const sectionMemoryToggle = document.getElementById('sectionMemoryToggle');
+        const sectionMemoryHint   = document.getElementById('sectionMemorySavingHint');
+        if (sectionMemoryToggle) {
+            sectionMemoryToggle.addEventListener('change', async function() {
+                sectionMemoryHint.classList.add('show');
+                await savePref('remember_module_section', sectionMemoryToggle.checked ? 'on' : '');
+                setTimeout(() => sectionMemoryHint.classList.remove('show'), 1200);
             });
         }
 

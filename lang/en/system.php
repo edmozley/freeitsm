@@ -1659,7 +1659,10 @@ return [
         'nt_company_none' => 'None - I choose each time',
         'search_dismiss_heading' => 'Closing the search panel',
         'search_dismiss_desc'    => 'The search panel can be dragged out of the way and left open, so by default only its ✕ or the Escape key closes it. Turn this on to have it close as soon as you click away — on the folder list, the ticket list or the toolbar. Clicking the ticket you just found, or its properties, still leaves the panel open, so a search survives you acting on its result.',
-        'search_dismiss_label'   => 'Close it when I click away',
+        'search_dismiss_label'   => 'Close it when I click away',
+        'section_memory_heading' => 'Coming back to a module',   // GH #376
+        'section_memory_desc' => 'When you open a module from the menu, the home page or Ctrl+K, go back to the section you last used there - Assets → Servers, say - instead of its front page. Links to a particular page or record still open exactly that. Remembered in this browser.',
+        'section_memory_label' => 'Reopen the last section of each module',
         'landing_heading' => 'Start page',
         'workcal_heading' => 'My work calendar',
         'taskcal_heading'    => 'Tasks in this calendar',

@@ -1463,6 +1463,9 @@ return [
         'search_dismiss_heading' => 'Fermeture du panneau de recherche',
         'search_dismiss_desc' => 'Le panneau de recherche peut être déplacé et laissé ouvert, par défaut seul son ✕ ou la touche Échap le ferme. Activez ceci pour qu\'il se ferme dès que vous cliquez ailleurs — sur la liste des dossiers, la liste des tickets ou la barre d\'outils. Cliquer sur le ticket que vous venez de trouver, ou sur ses propriétés, laisse toujours le panneau ouvert, afin qu\'une recherche survive à l\'action que vous menez sur son résultat.',
         'search_dismiss_label' => 'Le fermer quand je clique ailleurs',
+        'section_memory_heading' => 'Revenir dans un module',   // GH #376
+        'section_memory_desc' => 'Quand vous ouvrez un module depuis le menu, la page d\'accueil ou Ctrl+K, revenez à la section que vous y avez utilisée en dernier - Actifs → Serveurs, par exemple - plutôt qu\'à sa page d\'accueil. Les liens vers une page ou un enregistrement précis ouvrent toujours exactement celui-ci. Mémorisé dans ce navigateur.',
+        'section_memory_label' => 'Rouvrir la dernière section de chaque module',
         'landing_heading' => 'Page de démarrage',
         'workcal_heading' => 'Mon calendrier de travail',
         'taskcal_heading' => 'Tâches dans ce calendrier',

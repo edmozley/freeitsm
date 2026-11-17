@@ -214,7 +214,7 @@
                 html += row(idx,
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (m.icon || '') + '</svg>',
                     esc(m.name), '', '');
-                pending.push(function () { window.location.href = BASE + m.path; });
+                pending.push(function () { var u = BASE + m.path; window.location.href = window.FreeITSMSections ? window.FreeITSMSections.resolve(u) : u; });   // GH #376
             });
         }
 

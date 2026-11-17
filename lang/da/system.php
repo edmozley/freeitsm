@@ -1463,6 +1463,9 @@ return [
         'search_dismiss_heading' => 'Lukning af søgepanelet',
         'search_dismiss_desc' => 'Søgepanelet kan trækkes af vejen og efterlades åbent, så som standard er det kun dets ✕ eller Escape-tasten, der lukker det. Slå dette til for at få det til at lukke, så snart du klikker væk — på mappelisten, sagslisten eller værktøjslinjen. At klikke på den sag, du lige har fundet, eller dens egenskaber, lader stadig panelet være åbent, så en søgning overlever, at du handler på dens resultat.',
         'search_dismiss_label' => 'Luk det, når jeg klikker væk',
+        'section_memory_heading' => 'Når du vender tilbage til et modul',   // GH #376
+        'section_memory_desc' => 'Når du åbner et modul fra menuen, startsiden eller Ctrl+K, går du tilbage til det afsnit, du sidst brugte der - f.eks. Aktiver → Servere - i stedet for forsiden. Links til en bestemt side eller post åbner stadig præcis den. Huskes i denne browser.',
+        'section_memory_label' => 'Genåbn det sidste afsnit i hvert modul',
         'landing_heading' => 'Startside',
         'workcal_heading' => 'Min arbejdskalender',
         'taskcal_heading' => 'Opgaver i denne kalender',

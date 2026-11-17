@@ -841,6 +841,36 @@ function renderDbBehindNotice(): void {
     <?php
 }
 
+/**
+ * GH #376: reopen the last section of each module - System -> Preferences, per
+ * analyst, off by default. Prints the settings and assets/js/section-memory.js
+ * only when it is on. renderWaffleMenuJS() passes what it has already read; the
+ * home page, which does not load the waffle scripts, calls it with no argument.
+ *
+ * @param ?bool $on  whether the preference is on; null reads it
+ */
+function renderSectionMemory(?bool $on = null): void {
+    global $modules, $current_module;
+    static $done = false;
+    if ($done || empty($_SESSION['analyst_id'])) return;
+    if ($on === null) {
+        try {
+            if (!function_exists('connectToDatabase')) require_once __DIR__ . '/functions.php';
+            $st = connectToDatabase()->prepare("SELECT preference_value FROM user_preferences WHERE analyst_id = ? AND preference_key = 'remember_module_section'");
+            $st->execute([(int)$_SESSION['analyst_id']]);
+            $on = $st->fetchColumn() === 'on';
+        } catch (Throwable $e) {
+            $on = false;
+        }
+    }
+    if (!$on) return;
+    $done = true;
+    $roots = [];
+    foreach ((array)$modules as $k => $m) if (!empty($m['path'])) $roots[$k] = $m['path'];
+    echo '<script>window.FREEITSM_SECTIONS = ' . json_encode(['on' => true, 'analyst' => (int)$_SESSION['analyst_id'], 'module' => (string)($current_module ?? ''), 'base' => BASE_URL, 'roots' => $roots], JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . ';</script>' . "\n";
+    echo '<script src="' . BASE_URL . 'assets/js/section-memory.js?v=1"></script>' . "\n";
+}
+
 function renderWaffleMenuJS() {
     // Pre-fetch the analyst's toast notification preferences so toast.js
     // doesn't have to AJAX for them on every page. Keys mirror the
@@ -855,6 +885,7 @@ function renderWaffleMenuJS() {
     $notifSound = 'off';                // silence unless this analyst asked for a chime
     $searchDismiss = '';                // '' = only the ✕ or Escape closes the search panel
     $desktopNotif = '';                 // 'on' = desktop notifications for new bell items
+    $sectionMemory = '';                // 'on' = reopen each module's last section (GH #376)
     if (isset($_SESSION['analyst_id'])) {
         try {
             if (!function_exists('connectToDatabase')) {
@@ -863,7 +894,7 @@ function renderWaffleMenuJS() {
             $conn = connectToDatabase();
             $stmt = $conn->prepare(
                 "SELECT preference_key, preference_value FROM user_preferences
-                 WHERE analyst_id = ? AND preference_key IN ('toast_position', 'toast_animation', 'notification_sound', 'search_panel_close_outside', 'desktop_notifications')"
+                 WHERE analyst_id = ? AND preference_key IN ('toast_position', 'toast_animation', 'notification_sound', 'search_panel_close_outside', 'desktop_notifications', 'remember_module_section')"
             );
             $stmt->execute([(int)$_SESSION['analyst_id']]);
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -877,6 +908,8 @@ function renderWaffleMenuJS() {
                     $searchDismiss = $row['preference_value'];
                 } elseif ($row['preference_key'] === 'desktop_notifications' && $row['preference_value']) {
                     $desktopNotif = $row['preference_value'];
+                } elseif ($row['preference_key'] === 'remember_module_section' && $row['preference_value']) {
+                    $sectionMemory = $row['preference_value'];
                 }
             }
         } catch (Exception) {
@@ -894,6 +927,7 @@ function renderWaffleMenuJS() {
          and Contracts: a setting that only worked in one of them would be a
          label promising more than it delivers. -->
     <script>window.SEARCH_PANEL_CLOSE_OUTSIDE = <?php echo json_encode($searchDismiss === 'on'); ?>;</script>
+    <?php renderSectionMemory($sectionMemory === 'on'); ?>
     <?php ?>
     <!-- Notification chime (per-analyst, off by default). The bell and the
          war-room alerts both call window.playNotificationSound(); the value
@@ -940,7 +974,7 @@ function renderWaffleMenuJS() {
         window.CP_BASE = <?php echo json_encode(BASE_URL); ?>;
         window.CP_MODULES = <?php echo json_encode($cpModules, JSON_UNESCAPED_SLASHES); ?>;
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/command-palette.js?v=12"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/command-palette.js?v=13"></script>
     <?php
     // The palette can return documents, and a document row offers an ⓘ that opens
     // the "attached to" dialogue — which lives in the documents component. The
