@@ -21,7 +21,8 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * Writes, and removes in a finally block by the ids it got back:
  *   - one company "ZZ All companies lists" (a single-company install becomes
  *     multi-company for the run - that is why this must be a test install);
- *   - one change in the Default company and one in the ZZ company.
+ *   - one change in the Default company and one in the ZZ company;
+ *   - one domain in each, for the Watchtower Domains card (@cloudcogsio's follow-up on #373).
  * Reads one existing Default-company ticket for the picker; changes nothing on it.
  * Control: with the old activeTenantFilter() the All companies checks fail.
  */
@@ -89,7 +90,7 @@ if (!preg_match('/test/i', $db)) { echo "  STOP  this test adds a company; run i
 $viewer = (int)$conn->query("SELECT id FROM analysts WHERE is_active = 1 AND can_access_all_tenants = 1 ORDER BY id LIMIT 1")->fetchColumn();
 if (!$viewer) { echo "  SKIP  no active analyst with access to every company\n"; exit(0); }
 
-$tenantZ = 0; $changes = [];
+$tenantZ = 0; $changes = []; $domains = [];
 try {
     // The company first: tenantCount() caches, and nothing may ask it before this.
     $conn->prepare("INSERT INTO tenants (name) VALUES (?)")->execute(['ZZ All companies lists']);
@@ -146,6 +147,27 @@ try {
     $c = $calIds($one);
     ok("one company does not show the other company's change", in_array($changeD, $c, true) && !in_array($changeZ, $c, true), json_encode($c));
 
+    echo "\nWatchtower's Domains card follows All companies\n";
+    // The reported case: All companies, with a NON-Default company picked last.
+    require_once __DIR__ . '/../includes/watchtower_queries.php';
+    foreach ([[$default, 'zz-allco-default.example'], [$tenantZ, 'zz-allco-other.example']] as [$ten, $name]) {
+        $conn->prepare("INSERT INTO domains (domain_name, tenant_id) VALUES (?, ?)")->execute([$name, $ten]);
+        $domains[] = (int)$conn->lastInsertId();
+    }
+    $inDefault = (int)$conn->query("SELECT COUNT(*) FROM domains WHERE tenant_id = $default OR tenant_id IS NULL")->fetchColumn();
+    $inZ = 1;
+    $_SESSION = ['analyst_id' => $viewer, 'active_tenant_id' => $tenantZ, 'active_tenant_all' => true];
+    $card = getWatchtowerData($conn, $viewer)['domains'] ?? [];
+    if (empty($card['show'])) {
+        echo "  SKIP  the Domains card is switched off on this install (Domains settings: dashboard surfaces)\n";
+    } else {
+        ok('All companies, other company picked last: the card counts every company', ($card['total'] ?? -1) === $inDefault + $inZ,
+            json_encode($card['total'] ?? null) . ' of ' . ($inDefault + $inZ));
+        $_SESSION = $oth;
+        $card = getWatchtowerData($conn, $viewer)['domains'] ?? [];
+        ok('one company picked: the card counts only that company', ($card['total'] ?? -1) === $inZ, json_encode($card['total'] ?? null));
+    }
+
     echo "\nCMDB and Starters say which company they show\n";
     $_SESSION = $all;
     $defaultName = (string)(getTenantById($conn, $default)['name'] ?? '');
@@ -161,9 +183,14 @@ try {
         $in = implode(',', array_fill(0, count($changes), '?'));
         $conn->prepare("DELETE FROM changes WHERE id IN ($in)")->execute($changes);
     }
+    if ($domains) {
+        $in = implode(',', array_fill(0, count($domains), '?'));
+        $conn->prepare("DELETE FROM domains WHERE id IN ($in)")->execute($domains);
+    }
     if ($tenantZ) $conn->prepare("DELETE FROM tenants WHERE id = ?")->execute([$tenantZ]);
     $left = (int)$conn->query("SELECT (SELECT COUNT(*) FROM tenants WHERE name = 'ZZ All companies lists')
-                                    + (SELECT COUNT(*) FROM changes WHERE title LIKE 'ZZ Allco change %')")->fetchColumn();
+                                    + (SELECT COUNT(*) FROM changes WHERE title LIKE 'ZZ Allco change %')
+                                    + (SELECT COUNT(*) FROM domains WHERE domain_name LIKE 'zz-allco-%')")->fetchColumn();
     echo "\n";
     ok('everything the test wrote is gone', $left === 0, "$left rows left");
 }
