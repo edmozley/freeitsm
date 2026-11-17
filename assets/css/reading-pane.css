@@ -106,3 +106,12 @@
     .reading-pane.pane-compact .email-meta,
     .reading-pane.pane-compact .pane-strips { transition: none; }
 }
+
+/* Checklist / Watch / Forms while the newly opened ticket's own answer is on its way:
+   the previous ticket's button stays in its place, dimmed and not clickable, so the
+   row does not jump on every ticket switch (keepLateToolbarButtons, inbox.js). */
+.action-toolbar .action-btn.action-btn-pending {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+}

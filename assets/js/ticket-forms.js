@@ -55,6 +55,7 @@
         const n = state.forms.length, done = state.forms.filter(f => f.submission_id).length;
         btn.title = T('button_title');
         btn.innerHTML = '<span class="action-btn-icon">' + ICON + '</span><span>' + esc(T('button')) + (n ? ' · ' + done + '/' + n : '') + '</span>';
+        window.lateToolbarButtonReady?.(btn);   // carried over from the previous ticket while this one loaded (inbox.js)
     }
 
     // --- the panel -------------------------------------------------------

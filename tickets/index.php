@@ -70,7 +70,7 @@ $translationNamespaces = ['common', 'tickets'];
     <link rel="stylesheet" href="../assets/css/files-picker.css?v=1">
     <link rel="stylesheet" href="../assets/css/float-window.css?v=1">
     <link rel="stylesheet" href="../assets/css/ticket-fields.css?v=1">
-    <link rel="stylesheet" href="../assets/css/reading-pane.css?v=4">
+    <link rel="stylesheet" href="../assets/css/reading-pane.css?v=5">
     <link rel="stylesheet" href="../assets/css/ticket-workspace.css?v=4">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=198">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=7">
@@ -1185,7 +1185,7 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/schedule.js?v=1"></script>
     <script src="../checklists/search_scoring.js?v=1"></script>
-    <script src="../checklists/ticket_view.js?v=15"></script>
+    <script src="../checklists/ticket_view.js?v=16"></script>
     <script src="../assets/js/ticket-fields.js?v=2"></script>
     <script src="../assets/js/ticket-workspace.js?v=7"></script>
     <script src="../assets/js/data-table.js?v=10"></script>
@@ -1198,10 +1198,10 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-picker.js?v=2"></script>
     <script src="../assets/js/address-suggest.js?v=1"></script>   <!-- GH #307: before inbox.js, which attaches it to To and Cc -->
     <script src="../assets/js/location-picker.js?v=1"></script>   <!-- GH #311: before inbox.js -->
-    <script src="../assets/js/inbox.js?v=211"></script>
+    <script src="../assets/js/inbox.js?v=212"></script>
     <script src="../assets/js/ticket-folders-pane.js?v=1"></script>   <!-- discussion #292 -->
-    <script src="../assets/js/ticket-watchers.js?v=1"></script>
-    <script src="../assets/js/ticket-forms.js?v=4"></script>
+    <script src="../assets/js/ticket-watchers.js?v=2"></script>
+    <script src="../assets/js/ticket-forms.js?v=5"></script>
     <script src="../assets/js/tickets-table.js?v=7"></script>
     <script src="../assets/js/mobile.js?v=85"></script>
     <script>

@@ -86,6 +86,7 @@ async function loadTicketChecklists(ticketId) {
     if ((window.TICKETS_MODULE_ON || {}).checklists === false) {
         ticketChecklistsData = [];
         window.ticketChecklistEmptyClosureMode = 'off';
+        dropPendingChecklistButton();
         return;
     }
     const isCurrent = typeof ticketReadGuard === 'function' ? ticketReadGuard(ticketId) : () => currentViewingTicketId === ticketId;
@@ -97,6 +98,7 @@ async function loadTicketChecklists(ticketId) {
         if (!data.success) {
             console.error('Error fetching ticket checklists:', data.error);
             window.TicketWorkspace?.setSectionState(ticketId, 'work', 'error', null, 'checklists');
+            dropPendingChecklistButton();
             return;
         }
 
@@ -109,6 +111,7 @@ async function loadTicketChecklists(ticketId) {
         if (!isCurrent()) return;
         console.error('Failed to load checklists:', e);
         window.TicketWorkspace?.setSectionState(ticketId, 'work', 'error', null, 'checklists');
+        dropPendingChecklistButton();
     }
 }
 
@@ -166,14 +169,24 @@ function renderChecklistToolbarButton(ticketId) {
         btn.id = 'btnSopChecklists';
         btn.className = 'action-btn';
         btn.type = 'button';
-        btn.onclick = () => openChecklistModal(ticketId);
         toolbar.insertBefore(btn, toolbar.firstChild);
     }
+    // TRAP: on every render, not only at creation - the button is carried over from
+    // the previous ticket while this one loads (keepLateToolbarButtons, inbox.js), so
+    // a handler set once would open the PREVIOUS ticket's checklist.
+    btn.onclick = () => openChecklistModal(ticketId);
 
     btn.innerHTML = `
         <span class="action-btn-icon">✅</span>
         <span>${chkT('checklists.panel.title', 'Checklist')}${badgeText}</span>
     `;
+    window.lateToolbarButtonReady?.(btn);
+}
+
+/** No Checklist button for this ticket after all: take away the one carried over from the previous ticket. */
+function dropPendingChecklistButton() {
+    const btn = document.getElementById('btnSopChecklists');
+    if (btn && btn.classList.contains('action-btn-pending')) btn.remove();
 }
 
 // 3. Render Inline SOP Card

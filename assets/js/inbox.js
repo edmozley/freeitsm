@@ -3190,6 +3190,71 @@ async function setTicketWorkspace(value) {
 }
 
 // Display email in reading pane
+/**
+ * The buttons that arrive AFTER the reading pane is drawn - Checklist, Watch and
+ * Forms - each from its own script, once its own request for the new ticket
+ * answers. Each used to be inserted at the front of the toolbar when it arrived,
+ * so on every ticket switch the row was rebuilt without them and every other
+ * button jumped left, then right, then right again, in whatever order the answers
+ * came back. Ed noticed it as "jarring".
+ *
+ * Now the rebuild keeps them: takeLateToolbarButtons() lifts the previous ticket's
+ * buttons out before the pane is replaced, keepLateToolbarButtons() puts the same
+ * elements back in the same place, dimmed and disabled ("pending"), and each
+ * script's own render updates its button in place and clears the pending state
+ * (lateToolbarButtonReady). Nothing moves unless the new ticket really has a
+ * different set of buttons - then only that button comes or goes.
+ *
+ * TRAP: these are the SAME elements, so anything a script fixed at creation time
+ * goes with them. Each script must set its click handler for the CURRENT ticket on
+ * every render, not only when it creates the button (the Checklist button used to
+ * open the ticket it was created for). And a script that decides there is no button
+ * for this ticket must REMOVE it, or it would stay dimmed - backed up by a timeout
+ * here that removes anything still pending after 15 seconds.
+ */
+const LATE_TOOLBAR_BUTTONS = ['btnSopChecklists', 'btnTicketWatch', 'btnTicketForms'];
+
+/** Lifts the late buttons out of the current toolbar, in order, before the pane is redrawn. */
+function takeLateToolbarButtons(pane) {
+    const toolbar = pane && pane.querySelector('.action-toolbar');
+    // Desktop only. On a phone, mobile.js folds the toolbar into its own More menu
+    // when the row is built (buildToolbarOverflow), counting the buttons present then;
+    // carrying these over would change which buttons a phone shows. The phone keeps
+    // its own behaviour, untouched.
+    if (!toolbar || window.matchMedia('(max-width: 768px)').matches) return [];
+    return LATE_TOOLBAR_BUTTONS.map(id => document.getElementById(id))
+        .filter(btn => btn && toolbar.contains(btn))
+        .map(btn => { btn.remove(); return btn; });
+}
+
+/** Puts the previous ticket's late buttons back at the front of the new toolbar, pending until their scripts answer. */
+function keepLateToolbarButtons(pane, buttons, ticketId) {
+    const toolbar = pane && pane.querySelector('.action-toolbar');
+    if (!toolbar || !buttons.length) return;
+    const anchor = toolbar.firstChild;
+    const token = String(++lateToolbarSeq) + ':' + ticketId;   // this switch only - a later switch re-tags
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add('action-btn-pending');
+        btn.setAttribute('aria-busy', 'true');
+        btn.dataset.pending = token;
+        toolbar.insertBefore(btn, anchor);
+    });
+    setTimeout(() => {
+        buttons.forEach(btn => { if (btn.isConnected && btn.dataset.pending === token) btn.remove(); });
+    }, 15000);
+}
+let lateToolbarSeq = 0;
+
+/** Called by a late button's own script once it has drawn the button for the current ticket. */
+function lateToolbarButtonReady(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('action-btn-pending');
+    btn.removeAttribute('aria-busy');
+    delete btn.dataset.pending;
+}
+
 function displayEmail(email, recordings) {
     if (window.TicketWorkspace?.holdRender(email, recordings)) return;
     ticketRenderGeneration++;
@@ -3604,8 +3669,10 @@ function displayEmail(email, recordings) {
         + '<div class="pane-strips">' + linksHtml + aiHtml + '</div>' + recordingsHtml + actionsHtml
         + '<div class="email-body">' + checklistHtml + threadHtml + timeHtml + notesHtml + '</div>';
     // Keep the native trash guard around both layouts, not just individual actions.
+    const carriedButtons = takeLateToolbarButtons(readingPane);
     readingPane.innerHTML = trashBanner + (isTrashed ? '<div inert style="opacity:0.55;">' : '')
         + contentHtml + (isTrashed ? '</div>' : '');
+    keepLateToolbarButtons(readingPane, carriedButtons, email.ticket_id);
     window.TicketWorkspace?.prepare(readingPane, {ticketId: email.ticket_id, enabled: workspace});
     // Isolate the just-rendered email body in a shadow root (see emailBodyHost).
     hydrateEmailBodies(readingPane);

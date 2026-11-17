@@ -41,8 +41,10 @@
 
     function renderButton() {
         const toolbar = document.querySelector('.action-toolbar');
-        if (!toolbar || !state.ticketId || !state.ready) return;
         let btn = document.getElementById('btnTicketWatch');
+        // No Watch button here (watching not set up yet): take away the one carried
+        // over from the previous ticket while this one loaded (inbox.js, keepLateToolbarButtons).
+        if (!toolbar || !state.ticketId || !state.ready) { if (btn && btn.classList.contains('action-btn-pending')) btn.remove(); return; }
         if (!btn) {
             btn = document.createElement('button');
             btn.id = 'btnTicketWatch';
@@ -58,6 +60,7 @@
         btn.innerHTML = '<span class="action-btn-icon">' + EYE + '</span><span>'
             + esc(state.watching ? T('watching') : T('watch')) + (n ? ' · ' + n : '') + '</span>';
         btn.style.color = state.watching ? 'var(--primary, #2563eb)' : '';
+        window.lateToolbarButtonReady?.(btn);
     }
 
     function closePanel() {
