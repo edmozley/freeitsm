@@ -264,6 +264,7 @@ return [
     ['DELETE', '#^/domains/(\d+)$#',                       ['domains', 'delete'],             'apiDomainsDelete'],
     ['POST',   '#^/domains/(\d+)/lookup$#',                ['domains', 'update'],             'apiDomainsLookup'],
     ['POST',   '#^/domains/(\d+)/check$#',                 ['domains', 'update'],             'apiDomainsCheck'],
+    ['POST',   '#^/domains/(\d+)/move-to-company$#',       ['domains', 'update'],             'apiDomainsMoveToCompany'],   // GH #384
     ['GET',    '#^/domains/(\d+)/findings$#',              ['domains', 'read'],               'apiDomainsFindings'],
     ['GET',    '#^/domains/(\d+)/history$#',               ['domains', 'read'],               'apiDomainsHistory'],
     ['GET',    '#^/domain-statuses$#',                     ['domains', 'read'],               'apiDomainStatusesList'],

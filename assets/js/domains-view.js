@@ -18,6 +18,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
         wire();
         await Promise.all([load(), loadLookups()]);
+        showMove();
         const tab = new URLSearchParams(location.search).get('tab');
         if (tab) switchTab(tab);
         // ?edit=1 - from the register's right-click Edit: straight into the dialog.
@@ -746,6 +747,8 @@
             switchTab('security');
         }));
         document.getElementById('btnEdit').addEventListener('click', openEdit);
+        document.getElementById('btnMove').addEventListener('click', openMove);
+        document.getElementById('mvSave').addEventListener('click', e => busy(e.currentTarget, saveMove));
         document.getElementById('eSave').addEventListener('click', saveEdit);
         document.getElementById('ePurpose').addEventListener('change', () => { document.getElementById('ePurposeHint').textContent = T('purpose_hint.' + document.getElementById('ePurpose').value); });
         document.getElementById('btnDelete').addEventListener('click', async () => {
@@ -898,6 +901,47 @@
      *
      * A linked contract the analyst cannot see is kept as an option, so saving does not unlink it.
      */
+    // ---------------------------------------------------------------- move (GH #384)
+    /** The companies the domain could move to: every one the analyst reaches, except its own. */
+    function moveTargets() {
+        const all = (L && L.companies) || [];
+        const def = all.find(c => c.is_default);
+        const cur = D.tenant_id === null || D.tenant_id === undefined ? (def ? Number(def.id) : 0) : Number(D.tenant_id);
+        return all.filter(c => Number(c.id) !== cur);
+    }
+    /** Move shows on a multi-company install, for a domain that is not a subdomain (its parent moves it). */
+    function showMove() {
+        const b = document.getElementById('btnMove');
+        b.hidden = !(D && data && data.multi_company && L && moveTargets().length && !D.parent_domain_id);
+    }
+    function openMove() {
+        const targets = moveTargets();
+        document.getElementById('mvIntro').textContent = T('move.intro', { name: D.domain_name });
+        window.Dom.fillSelect('mvCompany', targets);
+        document.getElementById('mvSave').disabled = !targets.length;
+        if (!targets.length) document.getElementById('mvIntro').textContent = T('move.none');
+        const others = [];
+        if (data.twin) others.push(D.domain_name + ' (' + T('scope.' + data.twin.scope) + ')');
+        (data.subdomains || []).forEach(s => others.push(s.domain_name));
+        document.getElementById('mvWith').textContent = others.length ? T('move.with_others', { names: others.join(', ') }) : '';
+        window.Dom.openModal('mMove');
+    }
+    async function saveMove() {
+        const tenantId = Number(document.getElementById('mvCompany').value);
+        if (!tenantId) return;
+        try {
+            const r = await api('move_to_company.php', { id: ID, tenant_id: tenantId });
+            window.Dom.closeModal('mMove');
+            let msg = r.moved > 1 ? T('move.done_many', { company: r.company_name, n: r.moved }) : T('move.done', { company: r.company_name });
+            const cl = [];
+            (r.cleared || []).forEach(c => c.fields.forEach(f => cl.push(c.domain + ': ' + T('hist.f.' + f))));
+            if (cl.length) msg += '. ' + T('move.cleared_list', { list: cl.join(', ') });
+            showToast(msg, 'success');
+            await Promise.all([load(), loadLookups()]);
+            showMove();
+        } catch (err) { showToast(err.message, 'error'); }
+    }
+
     function openEdit() {
         if (!L) { showToast(T('err.generic'), 'error'); return; }
         const F = window.Dom.fillSelect;

@@ -45,7 +45,7 @@ $sections = [
     'people'     => 4,
     'accounts'   => 4,
     'schedule'   => 5,
-    'companies'  => 4,
+    'companies'  => 6,   // p5-p6: moving a domain (GH #384)
     'api'        => 4,
 ];
 if (!$multi) unset($sections['companies']);
