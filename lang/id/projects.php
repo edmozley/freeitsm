@@ -2243,6 +2243,7 @@ return [
             'title' => 'Proyek dan perusahaan',
             'intro' => 'Setiap proyek dimiliki satu perusahaan.',
             'p1' => 'Pada instalasi dengan lebih dari satu perusahaan, proyek menjadi milik perusahaan tempat proyek dibuat (atau yang Anda pilih), dan tugas-tugasnya juga milik perusahaan itu. Anda hanya melihat proyek untuk perusahaan yang dapat Anda lihat, dan tampilan Semua perusahaan menampilkannya bersama. Tugas dari perusahaan lain tidak dapat dimasukkan ke dalam proyek.',
+            'p2'    => 'Untuk memindahkan proyek ke perusahaan lain, gunakan **Pindahkan** di halamannya. Tugas dan subtugasnya ikut pindah. Pemindahan ditolak, dengan menyebut apa yang menghalangi, jika manajer proyek atau anggota tim tidak dapat melihat perusahaan baru, atau sebuah tugas tertaut ke tiket atau perubahan di perusahaan lain - tidak ada yang dikeluarkan dari proyek secara otomatis. Lokasi yang tidak dapat digunakan perusahaan baru dikosongkan. Satu tugas dalam proyek tidak dapat dipindahkan sendiri.',   // GH #370
         ],
         'settings' => [
             'nav' => 'Pengaturan',

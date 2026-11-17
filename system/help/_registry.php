@@ -298,6 +298,7 @@ function getHelpTopics() {
             'sections' => [
                 ['id' => 'overview', 'label' => 'Overview'],
                 ['id' => 'language', 'label' => 'Interface language'],
+                ['id' => 'module-sections', 'label' => 'Coming back to a module'],   // GH #376
                 ['id' => 'module-order', 'label' => 'Module order'],
                 ['id' => 'money',    'label' => 'Money'],
                 ['id' => 'toasts',   'label' => 'Toasts'],

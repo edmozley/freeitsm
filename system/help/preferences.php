@@ -29,6 +29,17 @@ require __DIR__ . '/_top.php';
     <p>When you choose a new language the page <strong>reloads</strong> so everything re-renders in your selection. Ticket content and other data you've entered are not translated — only the interface labels, menus and messages.</p>
 </div>
 
+<!-- Coming back to a module (GH #376) -->
+<div class="help-section" id="module-sections">
+    <div class="help-section-header"><?php echo helpSectionNum('module-sections'); ?>
+        <div>
+            <h3>Coming back to a module</h3>
+            <p>Switch on <strong>Reopen the last section of each module</strong> and FreeITSM remembers which section of each module you last used - Assets &rarr; Servers, say.</p>
+        </div>
+    </div>
+    <p>Opening that module again from the menu, the sidebar, the home page or Ctrl+K then takes you back to that section instead of the module's front page. A link to a particular page or record, a bookmark, a notification and the browser's Back button still go exactly where they say, and so do the module's own buttons. Help pages are never remembered. It is off unless you switch it on, and it is remembered in this browser, so another computer starts afresh.</p>
+</div>
+
 <!-- Module order (GH #187) -->
 <div class="help-section" id="module-order">
     <div class="help-section-header"><?php echo helpSectionNum('module-order'); ?>

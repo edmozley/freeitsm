@@ -58,7 +58,7 @@ $sections = [
     'benefits'  => 3,
     'reports'   => 4,
     'assistant' => 4,   // 3.3.0: Ask AI - the project assistant
-    'companies' => 1,
+    'companies' => 2,   // p2: moving a project (GH #370)
     'settings'  => 1,
     'api'       => 3,   // p3: documents (GH #287)
 ];

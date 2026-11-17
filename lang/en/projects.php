@@ -2314,6 +2314,7 @@ return [
             'title' => 'Projects and companies',
             'intro' => 'Each project belongs to one company.',
             'p1'    => 'On an install with more than one company, a project belongs to the company it was created in (or the one you pick), and its tasks belong there too. You only see projects for the companies you can see, and the All companies view shows them together. A task from another company cannot be put in a project.',
+            'p2'    => 'To move a project to another company, use **Move** on its page. Its tasks and their subtasks go with it. The move is refused, naming who or what is in the way, if the project manager or anyone on the team cannot see the new company, or a task is linked to a ticket or change in another company - nobody is taken off the project for you. A location the new company cannot use is cleared. A single task in a project cannot be moved on its own.',   // GH #370
         ],
         'settings' => [
             'nav'   => 'Settings',

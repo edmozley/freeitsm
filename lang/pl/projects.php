@@ -2243,6 +2243,7 @@ return [
             'title' => 'Projekty i firmy',
             'intro' => 'Każdy projekt należy do jednej firmy.',
             'p1' => 'W instalacji z więcej niż jedną firmą projekt należy do firmy, w której został utworzony (albo do wybranej przez Ciebie), a jego zadania także. Widzisz tylko projekty firm, które możesz zobaczyć, a widok Wszystkie firmy pokazuje je razem. Zadania z innej firmy nie mogą trafić do projektu.',
+            'p2'    => 'Aby przenieść projekt do innej firmy, użyj **Przenieś** na jego stronie. Jego zadania i ich podzadania przechodzą razem z nim. Przeniesienie zostanie odrzucone, z podaniem przeszkody, jeśli kierownik projektu lub ktoś z zespołu nie widzi nowej firmy albo zadanie jest powiązane ze zgłoszeniem lub zmianą innej firmy - nikt nie jest usuwany z projektu za Ciebie. Lokalizacja, której nowa firma nie może używać, zostanie wyczyszczona. Pojedynczego zadania z projektu nie można przenieść osobno.',   // GH #370
         ],
         'settings' => [
             'nav' => 'Ustawienia',

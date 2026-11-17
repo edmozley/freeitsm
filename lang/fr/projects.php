@@ -2243,6 +2243,7 @@ return [
             'title' => 'Projets et entreprises',
             'intro' => 'Chaque projet appartient à une entreprise.',
             'p1' => 'Sur une installation comportant plus d\'une entreprise, un projet appartient à l\'entreprise dans laquelle il a été créé (ou à celle que vous choisissez), et ses tâches y appartiennent aussi. Vous ne voyez que les projets des entreprises que vous pouvez voir, et la vue Toutes les entreprises les affiche ensemble. Une tâche d\'une autre entreprise ne peut pas être placée dans un projet.',
+            'p2'    => 'Pour déplacer un projet vers une autre entreprise, utilisez **Déplacer** sur sa page. Ses tâches et leurs sous-tâches suivent. Le déplacement est refusé, en nommant ce qui bloque, si le chef de projet ou quelqu\'un de l\'équipe ne peut pas voir la nouvelle entreprise, ou si une tâche est liée à un ticket ou un changement d\'une autre entreprise - personne n\'est retiré du projet à votre place. Un emplacement que la nouvelle entreprise ne peut pas utiliser est retiré. Une tâche seule d\'un projet ne peut pas être déplacée.',   // GH #370
         ],
         'settings' => [
             'nav' => 'Paramètres',

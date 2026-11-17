@@ -2243,6 +2243,7 @@ return [
             'title' => 'Proyectos y empresas',
             'intro' => 'Cada proyecto pertenece a una empresa.',
             'p1' => 'En una instalación con más de una empresa, un proyecto pertenece a la empresa en la que se creó (o a la que usted elija), y sus tareas también pertenecen a ella. Solo ve los proyectos de las empresas que puede ver, y la vista Todas las empresas los muestra juntos. Una tarea de otra empresa no se puede incluir en un proyecto.',
+            'p2'    => 'Para mover un proyecto a otra empresa, use **Mover** en su página. Sus tareas y subtareas se mueven con él. El movimiento se rechaza, indicando quién o qué lo impide, si el responsable del proyecto o alguien del equipo no puede ver la nueva empresa, o si una tarea está vinculada a un ticket o cambio de otra empresa; nadie sale del proyecto sin que usted lo decida. Una ubicación que la nueva empresa no pueda usar se quita. Una tarea de un proyecto no puede moverse por separado.',   // GH #370
         ],
         'settings' => [
             'nav' => 'Ajustes',

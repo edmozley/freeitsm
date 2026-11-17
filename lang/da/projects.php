@@ -2243,6 +2243,7 @@ return [
             'title' => 'Projekter og virksomheder',
             'intro' => 'Hvert projekt hører til én virksomhed.',
             'p1' => 'På en installation med mere end én virksomhed hører et projekt til den virksomhed, det blev oprettet i (eller den, du vælger), og dets opgaver hører også dertil. Du ser kun projekter for de virksomheder, du kan se, og visningen Alle virksomheder viser dem samlet. En opgave fra en anden virksomhed kan ikke lægges i et projekt.',
+            'p2'    => 'Brug **Flyt** på projektets side for at flytte et projekt til en anden virksomhed. Dets opgaver og deres underopgaver følger med. Flytningen afvises, og det nævnes hvem eller hvad der står i vejen, hvis projektlederen eller nogen på holdet ikke kan se den nye virksomhed, eller en opgave er knyttet til en sag eller ændring i en anden virksomhed - ingen fjernes fra projektet for dig. En lokation, den nye virksomhed ikke kan bruge, ryddes. En enkelt opgave i et projekt kan ikke flyttes alene.',   // GH #370
         ],
         'settings' => [
             'nav' => 'Indstillinger',
