@@ -52,6 +52,7 @@ return [
         'clean_stale' => 'Alt er blevet gennemgået for nylig.',
     ],
     'list' => [
+        'one_company_note' => 'Viser kun <strong>{company}</strong>. CMDB viser én virksomhed ad gangen, også under Alle virksomheder - vælg en virksomhed øverst på siden for at se en anden.',   // GH #373
         'classes' => 'Klasser',
         'loading' => 'Indlæser…',
         'select_class' => 'Vælg en klasse',

@@ -52,6 +52,7 @@ return [
         'ago_days' => '{n} hari lalu',
     ],
     'list' => [
+        'one_company_note' => 'Hanya menampilkan <strong>{company}</strong>. Karyawan baru & keluar menampilkan satu perusahaan pada satu waktu, bahkan pada Semua perusahaan - pilih perusahaan di bagian atas halaman untuk melihat yang lain.',   // GH #373
         'new_tip' => 'Kasus baru',
         'search' => 'Cari',
         'search_ph' => 'Cari berdasarkan nama atau email',

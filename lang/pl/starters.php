@@ -52,6 +52,7 @@ return [
         'ago_days' => '{n} dni temu',
     ],
     'list' => [
+        'one_company_note' => 'Wyświetlana jest tylko firma <strong>{company}</strong>. Moduł Nowi i odchodzący pokazuje jedną firmę naraz, także w widoku Wszystkie firmy - wybierz firmę u góry strony, aby zobaczyć inną.',   // GH #373
         'new_tip' => 'Nowa sprawa',
         'search' => 'Szukaj',
         'search_ph' => 'Szukaj według nazwiska lub e-maila',

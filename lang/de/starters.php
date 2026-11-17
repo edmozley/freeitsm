@@ -52,6 +52,7 @@ return [
         'ago_days' => 'vor {n} Tagen',
     ],
     'list' => [
+        'one_company_note' => 'Es wird nur <strong>{company}</strong> angezeigt. Ein- und Austritte zeigt jeweils ein Unternehmen, auch unter Alle Unternehmen - wählen Sie oben auf der Seite ein Unternehmen, um ein anderes zu sehen.',   // GH #373
         'new_tip' => 'Neuer Fall',
         'search' => 'Suchen',
         'search_ph' => 'Nach Name oder E-Mail suchen',

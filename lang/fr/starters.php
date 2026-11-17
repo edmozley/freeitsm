@@ -52,6 +52,7 @@ return [
         'ago_days' => 'il y a {n} jours',
     ],
     'list' => [
+        'one_company_note' => 'Seule l\'entreprise <strong>{company}</strong> est affichée. Arrivées et départs affiche une entreprise à la fois, même avec Toutes les entreprises - choisissez une entreprise en haut de la page pour en voir une autre.',   // GH #373
         'new_tip' => 'Nouveau dossier',
         'search' => 'Rechercher',
         'search_ph' => 'Rechercher par nom ou e-mail',

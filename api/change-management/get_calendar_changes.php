@@ -50,7 +50,8 @@ try {
               )";
 
     // Company scope (active company; Default also owns NULL-tenant changes). No-op at N=1.
-    [$tenantSql, $tenantParams] = activeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'c');
+    // GH #373: follows "All companies", like the change list beside it.
+    [$tenantSql, $tenantParams] = activeTenantReadFilter($conn, (int)$_SESSION['analyst_id'], 'c');
     $sql .= $tenantSql;
 
     $params = array_merge([$startDate, $endDate, $startDate, $endDate, $startDate, $endDate], $tenantParams);

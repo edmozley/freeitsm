@@ -860,9 +860,13 @@ function allAccessibleTenantsFilter(PDO $conn, int $analystId, string $qualified
  * list (api/tasks/list.php) — the two a customer reported showing "the last
  * selected company" under All companies — and, since GH #356 (5.4.0), Assets
  * -> People, the list of who holds equipment and a person's panel
- * (tests/assets-all-companies.php). The ASSET LIST, its lookup and its widgets
+ * (tests/assets-all-companies.php). Since GH #373 (5.4.2): the Change Management
+ * list and calendar, and Watchtower's Domains and Projects cards
+ * (tests/all-companies-lists.php). The ASSET LIST, its lookup and its widgets
  * deliberately stay on one company until an asset's type/status/location
- * dropdowns follow the asset's own company (wiki Assets-and-All-Companies-Design).
+ * dropdowns follow the asset's own company (wiki Assets-and-All-Companies-Design);
+ * so do CMDB and Starters & leavers, for the same reason - their pages say which
+ * company they show (oneCompanyNoteName()).
  *
  * TRAP: a new LIST READ that keeps activeTenantFilter() quietly shows only the
  * last company picked under "All companies" - GH #356 was Assets -> People
@@ -876,6 +880,22 @@ function activeTenantReadFilter(PDO $conn, int $analystId, string $alias = 't', 
         return allAccessibleTenantsFilter($conn, $analystId, $alias === '' ? $col : "$alias.$col");
     }
     return activeTenantFilter($conn, $analystId, $alias, $col);
+}
+
+/**
+ * For a page that deliberately stays on ONE company under "All companies" (the
+ * asset list, CMDB, Starters & leavers - their pickers still follow the selected
+ * company): the name of the company it shows, so the page can say so. '' when the
+ * All companies view is off (nothing to explain) or on a single-company install.
+ * GH #356 started it for Assets; GH #373 found CMDB and Starters doing it silently.
+ */
+function oneCompanyNoteName(PDO $conn, int $analystId): string {
+    try {
+        if (!isActiveTenantAll($conn)) return '';
+        return (string)(getTenantById($conn, getActiveTenantId($conn, $analystId))['name'] ?? '');
+    } catch (Exception $e) {
+        return '';   // no note is better than a broken page
+    }
 }
 
 /**

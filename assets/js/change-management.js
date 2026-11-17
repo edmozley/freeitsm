@@ -493,6 +493,7 @@ async function loadChanges() {
 
         if (data.success) {
             changes = data.changes;
+            showChangeCompany = !!data.show_company;   // GH #373: All companies
             updateCounts(data.counts);
             renderChangeList();
         }
@@ -501,6 +502,9 @@ async function loadChanges() {
         document.getElementById('changeList').innerHTML = `<div class="empty-state"><p>${window.t('change-management.list.error')}</p></div>`;
     }
 }
+
+// Under All companies the list spans companies, so each card names its own (GH #373).
+let showChangeCompany = false;
 
 // Last counts payload from list.php — cached so loadStatuses() can re-apply
 // them if the status list lands after the first counts response.
@@ -557,7 +561,8 @@ function renderChangeList() {
                 <div class="change-card-info">
                     <div class="change-card-title">${escapeHtml(c.title)}</div>
                     <div class="change-card-meta">
-                        <span>${assignedName}</span>
+                        <span>${escapeHtml(assignedName)}</span>
+                        ${showChangeCompany && c.company_name ? `<span class="change-card-company">${escapeHtml(c.company_name)}</span>` : ''}
                         ${workStart ? `<span>${window.t('change-management.list.work', { date: workStart })}</span>` : ''}
                     </div>
                 </div>

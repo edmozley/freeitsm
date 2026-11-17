@@ -3844,7 +3844,7 @@ async function loadLinkChangeList() {
     const q = (document.getElementById('linkChangeSearch') || {}).value || '';
     list.innerHTML = '<div class="lp-empty">Loading…</div>';
     try {
-        const data = await fetch('../api/change-management/list.php?search=' + encodeURIComponent(q.trim())).then(r => r.json());
+        const data = await fetch('../api/change-management/list.php?for_ticket=' + encodeURIComponent(linkChangeTicketId || '') + '&search=' + encodeURIComponent(q.trim())).then(r => r.json());
         if (!data.success) { list.innerHTML = '<div class="lp-empty">' + escapeHtml(data.error || 'Failed to load') + '</div>'; return; }
         const createRow = `<div class="lp-row lp-create" onclick="createChangeFromIncident()">
             <span class="lp-plus">＋</span><span>Create a new change from this ticket</span></div>`;

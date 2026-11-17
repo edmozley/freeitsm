@@ -18,6 +18,10 @@ requireModuleAccess('cmdb');
 
 $current_page = 'browse';
 $translationNamespaces = ['common', 'cmdb'];
+// GH #373: under All companies the CMDB still shows ONE company - a CI's parent,
+// relationship and class pickers follow the selected company - so it says which.
+require_once '../includes/tenancy.php';
+$oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0));
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -347,6 +351,9 @@ $translationNamespaces = ['common', 'cmdb'];
         </aside>
 
         <main class="browse-main">
+            <?php if ($oneCompany !== ''): ?>
+                <div class="one-company-note" role="note" style="margin:12px 12px 0;padding:8px 10px;border-radius:6px;font-size:13px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);"><?php echo t('cmdb.list.one_company_note', ['company' => htmlspecialchars($oneCompany)]); ?></div>
+            <?php endif; ?>
             <div class="filter-bar" id="filterBar" hidden></div>
             <div class="object-list" id="objectList">
                 <div class="empty-state">

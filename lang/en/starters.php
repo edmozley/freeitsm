@@ -53,6 +53,7 @@ return [
     ],
 
     'list' => [
+        'one_company_note' => 'Showing <strong>{company}</strong> only. Starters & leavers shows one company at a time, even under All companies - pick a company at the top of the page to see another.',   // GH #373
         'new_tip'        => 'New case',
         'search'         => 'Search',
         'search_ph'      => 'Search by name or email',

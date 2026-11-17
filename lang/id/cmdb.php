@@ -52,6 +52,7 @@ return [
         'clean_stale' => 'Semuanya sudah ditinjau baru-baru ini.',
     ],
     'list' => [
+        'one_company_note' => 'Hanya menampilkan <strong>{company}</strong>. CMDB menampilkan satu perusahaan pada satu waktu, bahkan pada Semua perusahaan - pilih perusahaan di bagian atas halaman untuk melihat yang lain.',   // GH #373
         'classes' => 'Kelas',
         'loading' => 'Memuat…',
         'select_class' => 'Pilih sebuah kelas',

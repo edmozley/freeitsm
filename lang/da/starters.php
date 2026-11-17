@@ -52,6 +52,7 @@ return [
         'ago_days' => 'for {n} dage siden',
     ],
     'list' => [
+        'one_company_note' => 'Viser kun <strong>{company}</strong>. Nyansatte og fratrædende viser én virksomhed ad gangen, også under Alle virksomheder - vælg en virksomhed øverst på siden for at se en anden.',   // GH #373
         'new_tip' => 'Ny sag',
         'search' => 'Søg',
         'search_ph' => 'Søg på navn eller e-mail',

@@ -33,10 +33,41 @@ try {
     $status = $_GET['status'] ?? '';
     $search = $_GET['search'] ?? '';
 
-    // Scope to the analyst's active company (no-op at N=1; Default also owns
-    // NULL-tenant changes). The fragment is appended right after WHERE 1=1, so
-    // its params lead the bound list.
-    [$tenantSql, $tenantParams] = activeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'c');
+    // Company scope (no-op at N=1; Default also owns NULL-tenant changes). The
+    // fragment is appended right after WHERE 1=1, so its params lead the bound list.
+    //
+    // GH #373: the list follows "All companies" like Tickets and Tasks - it used
+    // activeTenantFilter() and quietly showed only the last company picked. Opening
+    // a change checks that change's own company (analystCanAccessChange), and the
+    // change's own pickers (linkable tickets) follow ITS company, so a wider list
+    // is safe to act on.
+    //
+    // ?for_ticket=ID is the ticket's "Link to change" picker: a picker follows the
+    // record's own company (wiki Assets-and-All-Companies-Design), and a change in
+    // another company could not be linked anyway (ChangesService::linkTicket).
+    $analystId = (int)$_SESSION['analyst_id'];
+    $forTicket = (int)($_GET['for_ticket'] ?? 0);
+    if ($forTicket > 0) {
+        if (!analystCanAccessTicket($conn, $analystId, $forTicket)) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Ticket not found']);
+            exit;
+        }
+        $tenantSql = ''; $tenantParams = [];
+        if (isMultiTenant($conn)) {
+            $tt = $conn->prepare("SELECT tenant_id FROM tickets WHERE id = ?");
+            $tt->execute([$forTicket]);
+            $ticketTenant = $tt->fetchColumn();
+            $default = getDefaultTenantId($conn);
+            $eff = ($ticketTenant === false || $ticketTenant === null) ? $default : (int)$ticketTenant;
+            $tenantSql = $eff === $default ? " AND (c.tenant_id = ? OR c.tenant_id IS NULL)" : " AND c.tenant_id = ?";
+            $tenantParams = [$eff];
+        }
+    } else {
+        [$tenantSql, $tenantParams] = activeTenantReadFilter($conn, $analystId, 'c');
+    }
+    // Under All companies each card says which company the change is in.
+    $showCompany = $forTicket === 0 && isActiveTenantAll($conn);
 
     $sql = "SELECT
                 c.id,
@@ -101,10 +132,22 @@ try {
         $counts['total'] += (int)$row['cnt'];
     }
 
+    if ($showCompany) {
+        $default = getDefaultTenantId($conn);
+        $names = [];
+        foreach ($changes as &$ch) {
+            $tid = $ch['tenant_id'] === null ? $default : (int)$ch['tenant_id'];
+            if (!array_key_exists($tid, $names)) $names[$tid] = getTenantById($conn, $tid)['name'] ?? null;
+            $ch['company_name'] = $names[$tid];
+        }
+        unset($ch);
+    }
+
     echo json_encode([
         'success' => true,
         'changes' => $changes,
-        'counts' => $counts
+        'counts' => $counts,
+        'show_company' => $showCompany,
     ]);
 
 } catch (Exception $e) {

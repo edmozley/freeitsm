@@ -69,6 +69,7 @@ return [
     ],
 
     'list' => [
+        'one_company_note' => 'Showing <strong>{company}</strong> only. The CMDB shows one company at a time, even under All companies - pick a company at the top of the page to see another.',   // GH #373
         'classes'        => 'Classes',
         'loading'        => 'Loading…',
         'select_class'   => 'Select a class',

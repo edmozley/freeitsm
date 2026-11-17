@@ -52,6 +52,7 @@ return [
         'clean_stale' => 'Todo se ha revisado recientemente.',
     ],
     'list' => [
+        'one_company_note' => 'Solo se muestra <strong>{company}</strong>. La CMDB muestra una empresa a la vez, incluso en Todas las empresas; elija una empresa en la parte superior de la página para ver otra.',   // GH #373
         'classes' => 'Clases',
         'loading' => 'Cargando…',
         'select_class' => 'Selecciona una clase',

@@ -624,7 +624,8 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
         $dmShowCert   = in_array($dmS['domain_cert_surface'], ['dashboard', 'both'], true);
         $dmAllowed = $analystId <= 0 || analystCanAccessModule($conn, $analystId, 'domains');
         if ($dmAllowed && ($dmShowExpiry || $dmShowCert)) {
-            [$dmT, $dmA] = $analystId > 0 ? activeTenantFilter($conn, $analystId, 'd') : ['', []];
+            // GH #373: follows All companies, as the Domains register and the ticket cards do.
+            [$dmT, $dmA] = $analystId > 0 ? activeTenantReadFilter($conn, $analystId, 'd') : ['', []];
             // A status with alerts off ("Letting lapse") and "Do not renew" are
             // somebody's deliberate decision, not something to shout about.
             $live = "(s.id IS NULL OR s.alerts_enabled = 1) AND d.renewal_mode <> 'do_not_renew'";
@@ -897,7 +898,8 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     if ($pjAllowed) {
         try {
             require_once __DIR__ . '/projects/read.php';
-            [$pjT, $pjTA] = $analystId > 0 ? activeTenantFilter($conn, $analystId, 'p') : ['', []];
+            // GH #373: follows All companies, as the Projects list and the ticket cards do.
+            [$pjT, $pjTA] = $analystId > 0 ? activeTenantReadFilter($conn, $analystId, 'p') : ['', []];
             [$pjS, $pjSA] = wtScopeClause($conn, $analystId, $scope, 'p.owner_analyst_id');
             require_once __DIR__ . '/projects/visibility.php';   // members-only (3.3.0)
             [$pjV, $pjVA] = projectVisibleSql($conn, $analystId, 'p');

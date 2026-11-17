@@ -67,6 +67,12 @@ $tt = fn(string $k, array $p = []) => htmlspecialchars(t('starters.' . $k, $p));
         </aside>
 
         <main class="jml-main">
+            <?php // GH #373: under All companies the register still shows ONE company (a case's
+                  // asset lookups follow the selected company), so it says which.
+                  $oneCompany = oneCompanyNoteName(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0));
+                  if ($oneCompany !== ''): ?>
+                <div class="one-company-note" role="note" style="margin:0 0 12px;padding:8px 10px;border-radius:6px;font-size:13px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);"><?php echo t('starters.list.one_company_note', ['company' => htmlspecialchars($oneCompany)]); ?></div>
+            <?php endif; ?>
             <div class="jml-card" id="jmlTableCard" hidden>
                 <table class="jml-table">
                     <thead><tr>

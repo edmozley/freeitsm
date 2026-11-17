@@ -52,6 +52,7 @@ return [
         'ago_days' => 'hace {n} días',
     ],
     'list' => [
+        'one_company_note' => 'Solo se muestra <strong>{company}</strong>. Incorporaciones y bajas muestra una empresa a la vez, incluso en Todas las empresas; elija una empresa en la parte superior de la página para ver otra.',   // GH #373
         'new_tip' => 'Nuevo caso',
         'search' => 'Buscar',
         'search_ph' => 'Buscar por nombre o correo electrónico',
