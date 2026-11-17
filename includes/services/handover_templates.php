@@ -31,6 +31,7 @@
  */
 
 require_once __DIR__ . '/../timezone.php';   // DateFmt - the merge codes render dates
+require_once __DIR__ . '/../i18n.php';
 
 class HandoverTemplates
 {
@@ -418,14 +419,28 @@ class HandoverTemplates
      * @param array $blocks  the template's blocks, already cleaned by sanitiseBlocks()
      * @param array $user  the person receiving the kit, with name, email and id
      * @param array $assets  the asset rows to list, as AssetsService::assetsForUser() returns them
-     * @param array $opts  analyst_name, logo_path (an image URL) and labels (translated headings by key)
+     * @param array $opts  analyst_name, logo_path (an image URL) and labels (overrides for the active locale's headings)
      */
     public static function renderBlocks(array $blocks, array $user, array $assets, array $opts = []): string
     {
         $values    = self::mergeValues($user, $assets, $opts['analyst_name'] ?? null);
         $logoPath  = $opts['logo_path'] ?? null;
         $columnsOn = self::assetColumns();
-        $labels    = $opts['labels'] ?? [];
+        // All three destinations need the same labels, even when the caller supplies none.
+        $labels    = ($opts['labels'] ?? []) + [
+            'name'         => t('asset-management.handover.field_name'),
+            'email'        => t('asset-management.handover.field_email'),
+            'col_type'     => t('asset-management.handover.col_type'),
+            'col_name'     => t('asset-management.handover.col_name'),
+            'col_model'    => t('asset-management.handover.col_model'),
+            'col_serial'   => t('asset-management.handover.col_serial'),
+            'col_tag'      => t('asset-management.handover.col_tag'),
+            'col_assigned' => t('asset-management.handover.col_assigned'),
+            'col_location' => t('asset-management.handover.col_location'),
+            'col_status'   => t('asset-management.handover.col_status'),
+            'col_notes'    => t('asset-management.handover.col_notes'),
+            'none'         => t('asset-management.handover.none'),
+        ];
         $L = function (string $k, string $fallback) use ($labels) {
             return isset($labels[$k]) && $labels[$k] !== '' ? $labels[$k] : $fallback;
         };

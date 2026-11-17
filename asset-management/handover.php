@@ -64,20 +64,6 @@ if ($data === null) {
     $body = HandoverTemplates::renderBlocks($template['blocks'], $user, $assets, [
         'logo_path'    => $logoPath,
         'analyst_name' => $_SESSION['analyst_name'] ?? null,
-        'labels'       => [
-            'name'         => t('asset-management.handover.field_name'),
-            'email'        => t('asset-management.handover.field_email'),
-            'col_type'     => t('asset-management.handover.col_type'),
-            'col_name'     => t('asset-management.handover.col_name'),
-            'col_model'    => t('asset-management.handover.col_model'),
-            'col_serial'   => t('asset-management.handover.col_serial'),
-            'col_tag'      => t('asset-management.handover.col_tag'),
-            'col_assigned' => t('asset-management.handover.col_assigned'),
-            'col_location' => t('asset-management.handover.col_location'),
-            'col_status'   => t('asset-management.handover.col_status'),
-            'col_notes'    => t('asset-management.handover.col_notes'),
-            'none'         => t('asset-management.handover.none'),
-        ],
     ]);
 }
 ?>
