@@ -267,7 +267,16 @@ function apiProjectsCreate(PDO $conn, array $apiKey, array $params, array $body)
 // ---------------------------------------------------------------------------
 function apiProjectsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
     $id = (int)$params[0];
-    apiLoadProject($conn, $apiKey, $id);
+    $row = apiLoadProject($conn, $apiKey, $id);
+    // GH #370: company_id is create-only. It used to be ignored without a word, so the
+    // call looked as if it had worked; a different company is now a 422 that names the
+    // endpoint which does move it. The company it is already in is accepted.
+    if (isset($body['company_id']) && $body['company_id'] !== '' && $body['company_id'] !== null && isMultiTenant($conn)) {
+        $current = ($row['tenant_id'] ?? null) === null ? (int)getDefaultTenantId($conn) : (int)$row['tenant_id'];
+        if ((int)$body['company_id'] !== $current) {
+            apiError(422, 'invalid_field', "'company_id' cannot be changed with PATCH. Use POST /projects/{$id}/move-to-company.");
+        }
+    }
     $in = apiProjectFields($body);
     if (array_key_exists('project_manager_id', $in)) { $in['owner_analyst_id'] = $in['project_manager_id']; unset($in['project_manager_id']); }
     if (!$in) apiError(422, 'missing_field', 'No fields to update.');
@@ -283,6 +292,24 @@ function apiProjectsDelete(PDO $conn, array $apiKey, array $params, array $body)
     apiLoadProject($conn, $apiKey, $id);
     $r = apiProjectTry(fn() => ProjectsService::deleteProject($conn, apiProjectCtx($apiKey), $id));
     apiRespond(['id' => $params[0], 'deleted' => true, 'tasks_detached' => (int)$r['tasks_detached']]);
+}
+
+// ---------------------------------------------------------------------------
+// POST /projects/{id}/move-to-company  {company_id}  (GH #370)
+// The project, its tasks and their subtasks. Refused (422, saying what is in the
+// way) when the project manager, a member or a linked ticket/change does not fit
+// the target company; a company outside the key's list is 403.
+// ---------------------------------------------------------------------------
+function apiProjectsMoveToCompany(PDO $conn, array $apiKey, array $params, array $body): void {
+    $id = (int)$params[0];
+    apiLoadProject($conn, $apiKey, $id);
+    if (!isset($body['company_id']) || $body['company_id'] === '' || $body['company_id'] === null) apiError(422, 'missing_field', "'company_id' is required.");
+    $target = (int)$body['company_id'];
+    if (!getTenantById($conn, $target)) apiError(422, 'invalid_field', "Unknown company id: {$target}");
+    if (!apiKeyCanAccessTenant($conn, $apiKey, $target)) apiError(403, 'forbidden', 'This API key is not scoped to that company.');
+    $r = apiProjectTry(fn() => ProjectsService::moveProjectToCompany($conn, apiProjectCtx($apiKey), $id, $target));
+    apiRespond(['project' => apiSerializeProject($conn, apiLoadProject($conn, $apiKey, $id)),
+                'moved_tasks' => (int)$r['moved_tasks'], 'location_cleared' => (bool)$r['location_cleared']]);
 }
 
 // ---------------------------------------------------------------------------

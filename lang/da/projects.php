@@ -174,6 +174,7 @@ return [
         'name_required' => 'Giv projektet et navn.',
     ],
     'view' => [
+        'move' => 'Flyt',   // GH #370
         'tab_overview' => 'Oversigt',
         'tab_plan' => 'Plan',
         'tab_timeline' => 'Tidslinje',
@@ -1316,7 +1317,16 @@ return [
             'problem' => 'Problemer, projektet findes for at løse - eller som det forårsagede.',
         ],
     ],
+    // GH #370: move a project to another company.
+    'move' => [
+        'title' => 'Flyt til en anden virksomhed',
+        'body' => 'Projektet, dets opgaver og deres underopgaver flyttes til den virksomhed, du vælger. Alle på projektet skal kunne se den virksomhed, og en lokation, den ikke kan bruge, ryddes.',
+        'company' => 'Virksomhed',
+        'done' => 'Flyttet til {company} med {count} opgaver.',
+        'location_cleared' => 'Lokationen blev ryddet: {company} kan ikke bruge den.',
+    ],
     'history' => [
+        'company' => 'flyttede det til en anden virksomhed',   // GH #370
         'priority' => 'ændrede prioriteten',
         'visibility' => 'ændrede, hvem der kan se det',
         'project_created' => 'oprettede projektet',

@@ -180,6 +180,7 @@ return [
     ],
 
     'view' => [
+        'move' => 'Move',   // GH #370
         'tab_overview' => 'Overview',
         'tab_plan'     => 'Plan',
         'tab_timeline' => 'Timeline',
@@ -1372,7 +1373,16 @@ return [
         ],
     ],
 
+    // GH #370: move a project to another company.
+    'move' => [
+        'title' => 'Move to another company',
+        'body' => 'The project, its tasks and their subtasks move to the company you choose. Everyone on the project must be able to see that company, and a location it cannot use is cleared.',
+        'company' => 'Company',
+        'done' => 'Moved to {company}, with {count} tasks.',
+        'location_cleared' => 'Its location was cleared: {company} cannot use it.',
+    ],
     'history' => [
+        'company' => 'moved it to another company',   // GH #370
         'priority'        => 'changed the priority',
         'visibility'      => 'changed who can see it',
         'project_created' => 'created the project',

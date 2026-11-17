@@ -15,7 +15,7 @@ projectApiRun(function () use ($conn, $analystId) {
     if (isMultiTenant($conn)) {
         $ids = getAccessibleTenantIds($conn, $analystId);
         foreach (getAllTenants($conn) as $t) {
-            if (in_array((int)$t['id'], $ids, true)) $companies[] = ['id' => (int)$t['id'], 'name' => $t['name']];
+            if (in_array((int)$t['id'], $ids, true)) $companies[] = ['id' => (int)$t['id'], 'name' => $t['name'], 'is_default' => !empty($t['is_default'])];   // is_default: GH #370, a NULL-company project is in it
         }
     }
     $methods = [];

@@ -39,6 +39,7 @@ require_once __DIR__ . '/../projects/methodologies.php';
 require_once __DIR__ . '/../projects/settings.php';
 
 require_once __DIR__ . '/../record_locations.php';   // GH #311
+require_once __DIR__ . '/../db_errors.php';         // dbErrorIsMissingSchema() - GH #370 move
 
 class ProjectsService
 {
@@ -319,6 +320,148 @@ class ProjectsService
             projectDispatch('project.deleted', ['project' => $event]);
         }
         return ['id' => $id, 'tasks_detached' => $detached];
+    }
+
+    /**
+     * Move a project, its tasks and their subtasks to another company (GH #370).
+     *
+     * Modelled on TasksService::moveTaskToCompany(): the same two access checks on
+     * the target, and the same rule - REFUSE, saying what is in the way, rather
+     * than quietly fix. Refused when:
+     *   - the project manager cannot see the target company (GH #210);
+     *   - a member cannot: an analyst or team that does not reach it, or a person
+     *     from People in another company. They are named; nobody is removed for you
+     *     (Ed's call is recorded in the wiki: a move must never lose people quietly);
+     *   - a task in the project is linked to a ticket or change in another company
+     *     (contracts have no company, so they never block).
+     * A location that is not the target company's (nor shared) is cleared, and the
+     * answer says so. Links to other records stay: they are links, not ownership.
+     *
+     * @param int $id  the project to move
+     * @param int $targetTenantId  the company it goes to
+     * @return array{moved_tasks:int, from:string, to:string, location_cleared:bool}
+     */
+    public static function moveProjectToCompany(PDO $conn, ActorContext $ctx, int $id, int $targetTenantId): array
+    {
+        $cur = self::loadForActor($conn, $ctx, $id);
+        self::assertCanChange($conn, $ctx, $cur);
+        if (!isMultiTenant($conn)) {
+            throw new ServiceError('validation', 'invalid_field', 'This install has only one company, so there is nowhere to move a project to.');
+        }
+        // The caller's scope AND the person behind it - see moveTaskToCompany() for why both.
+        if ($ctx->companyScope !== null && !in_array($targetTenantId, $ctx->companyScope, true)) {
+            throw new ServiceError('validation', 'invalid_field', 'You do not have access to that company.');
+        }
+        if ($ctx->actorId > 0 && !analystCanAccessTenant($conn, $ctx->actorId, $targetTenantId)) {
+            throw new ServiceError('validation', 'invalid_field', 'You do not have access to that company.');
+        }
+        $target = getTenantById($conn, $targetTenantId);
+        if (!$target) throw new ServiceError('validation', 'invalid_field', 'That company does not exist.');
+
+        $def = (int)getDefaultTenantId($conn);
+        $oldTenantId = $cur['tenant_id'] === null ? $def : (int)$cur['tenant_id'];
+        if ($oldTenantId === $targetTenantId) {
+            return ['moved_tasks' => 0, 'from' => $target['name'], 'to' => $target['name'], 'location_cleared' => false];
+        }
+        $oldName = getTenantById($conn, $oldTenantId)['name'] ?? 'Unknown';
+        $stored  = self::storeTenant($conn, $targetTenantId);   // the Default company is stored as NULL
+
+        // People. Everyone who would end up on a project they cannot open.
+        require_once __DIR__ . '/../projects/settings.php';
+        if (!empty($cur['owner_analyst_id']) && !projectAnalystReachesCompany($conn, (int)$cur['owner_analyst_id'], $stored)) {
+            throw new ServiceError('validation', 'invalid_field', 'The project manager cannot see ' . $target['name'] . '. Give them access to it first, or choose another project manager.');
+        }
+        $blocked = [];
+        try {
+            $m = $conn->prepare(
+                "SELECT m.analyst_id, m.team_id, m.user_id, u.tenant_id AS user_tenant,
+                        COALESCE(a.full_name, tm.name, NULLIF(u.display_name, ''), u.email) AS name
+                   FROM project_members m
+              LEFT JOIN analysts a ON a.id = m.analyst_id
+              LEFT JOIN teams tm ON tm.id = m.team_id
+              LEFT JOIN users u ON u.id = m.user_id
+                  WHERE m.project_id = ?");
+            $m->execute([$id]);
+            foreach ($m->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                $out = ($r['analyst_id'] !== null && !projectAnalystReachesCompany($conn, (int)$r['analyst_id'], $stored))
+                    || ($r['team_id'] !== null && !projectTeamReachesCompany($conn, (int)$r['team_id'], $stored))
+                    || ($r['user_id'] !== null && ($r['user_tenant'] === null ? $def : (int)$r['user_tenant']) !== $targetTenantId);
+                if ($out) $blocked[] = (string)$r['name'];
+            }
+        } catch (PDOException $e) {
+            if (!dbErrorIsMissingSchema($e)) throw $e;   // no members table yet: nobody to check
+        }
+        if ($blocked) {
+            throw new ServiceError('validation', 'invalid_field',
+                'These people on the project cannot see ' . $target['name'] . ': ' . implode(', ', array_unique($blocked))
+                . '. Give them access to it, or take them off the project, then move it.');
+        }
+
+        // The project's tasks and everything filed beneath them.
+        $ids = []; $frontier = [];
+        $st = $conn->prepare("SELECT id FROM tasks WHERE project_id = ?");
+        $st->execute([$id]);
+        $frontier = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+        while ($frontier) {
+            $ids = array_merge($ids, $frontier);
+            $in = implode(',', array_fill(0, count($frontier), '?'));
+            $ch = $conn->prepare("SELECT id FROM tasks WHERE parent_task_id IN ($in)");
+            $ch->execute($frontier);
+            $frontier = array_values(array_diff(array_map('intval', $ch->fetchAll(PDO::FETCH_COLUMN)), $ids));
+        }
+        $ids = array_values(array_unique($ids));
+        if ($ids) {
+            $in = implode(',', array_fill(0, count($ids), '?'));
+            foreach ([['ticket_id', 'tickets', 'ticket'], ['change_id', 'changes', 'change']] as [$col, $table, $label]) {
+                try {
+                    $q = $conn->prepare("SELECT t.title, x.tenant_id FROM tasks t JOIN `$table` x ON x.id = t.`$col` WHERE t.id IN ($in)");
+                    $q->execute($ids);
+                } catch (PDOException $e) {
+                    if (dbErrorIsMissingSchema($e)) continue;   // that table has no company: it cannot block
+                    throw $e;
+                }
+                foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                    if (($r['tenant_id'] === null ? $def : (int)$r['tenant_id']) !== $targetTenantId) {
+                        throw new ServiceError('validation', 'invalid_field',
+                            "The task \"{$r['title']}\" is linked to a {$label} in another company. Remove the link, or move the {$label} too, then move the project.");
+                    }
+                }
+            }
+        }
+
+        // The location: kept if the target company can use it, otherwise cleared.
+        $clearLocation = false;
+        if (array_key_exists('location_id', $cur) && !empty($cur['location_id'])) {
+            try { recordLocationCheck($conn, $stored, (int)$cur['location_id']); }
+            catch (InvalidArgumentException $e) { $clearLocation = true; }
+        }
+
+        $conn->beginTransaction();
+        try {
+            $conn->prepare("UPDATE projects SET tenant_id = ?" . ($clearLocation ? ', location_id = NULL' : '') . ", updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$stored, $id]);
+            if ($ids) {
+                $conn->prepare("UPDATE tasks SET tenant_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id IN ($in)")
+                     ->execute(array_merge([$stored], $ids));
+            }
+            $conn->commit();
+        } catch (Throwable $e) {
+            if ($conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+
+        self::audit($conn, $id, $ctx->actorId, 'company', $oldName, $target['name'], self::source($ctx));
+        if ($clearLocation) self::audit($conn, $id, $ctx->actorId, 'location_id', self::auditDisplay($conn, 'location_id', $cur['location_id']), null, self::source($ctx));
+        // Every task that moved says why, as a task move does for its subtasks.
+        $aud = $conn->prepare("INSERT INTO task_audit (task_id, analyst_id, field_name, old_value, new_value, source, created_datetime)
+                               VALUES (?, ?, 'Company', ?, ?, ?, UTC_TIMESTAMP())");
+        foreach ($ids as $tid) {
+            try { $aud->execute([$tid, $ctx->actorId ?: null, $oldName, $target['name'], self::source($ctx)]); } catch (Throwable) { /* best-effort, as elsewhere */ }
+        }
+        self::syncCalendar($conn);
+        self::dispatch($conn, 'project.updated', $id, ['changed' => 'company']);
+        self::afterChange($conn, $id);
+        return ['moved_tasks' => count($ids), 'from' => $oldName, 'to' => $target['name'], 'location_cleared' => $clearLocation];
     }
 
     /**

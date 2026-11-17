@@ -104,6 +104,7 @@ $projectId = (int)($_GET['id'] ?? 0);
             <div class="prj-banner-actions">
                 <button type="button" class="btn prj-ghost-btn" id="pvEdit"><?php echo htmlspecialchars(t('projects.view.edit')); ?></button>
                 <button type="button" class="btn prj-ghost-btn" id="pvTemplate" title="<?php echo htmlspecialchars(t('projects.templates.button_title')); ?>" hidden><?php echo htmlspecialchars(t('projects.templates.button')); ?></button>
+                <button type="button" class="btn prj-ghost-btn" id="pvMove" title="<?php echo htmlspecialchars(t('projects.move.title')); ?>" hidden><?php echo htmlspecialchars(t('projects.view.move')); ?></button>
                 <button type="button" class="btn prj-ghost-btn danger" id="pvDelete"><?php echo htmlspecialchars(t('projects.view.delete')); ?></button>
             </div>
         </section>
@@ -145,6 +146,22 @@ $projectId = (int)($_GET['id'] ?? 0);
         <div class="prj-not-found" id="prjNotFound" hidden>
             <p><?php echo htmlspecialchars(t('projects.view.not_found')); ?></p>
             <a class="btn btn-secondary" href="<?php echo BASE_URL; ?>projects/"><?php echo htmlspecialchars(t('projects.view.back')); ?></a>
+        </div>
+    </div>
+
+    <!-- Move to another company (GH #370) -->
+    <div class="modal" id="prjMoveModal" aria-hidden="true">
+        <div class="modal-content" style="max-width:480px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('projects.move.title')); ?></div>
+            <div class="modal-body">
+                <p class="prj-muted" style="margin-top:0"><?php echo htmlspecialchars(t('projects.move.body')); ?></p>
+                <div class="form-group"><label for="pmCompany"><?php echo htmlspecialchars(t('projects.move.company')); ?></label><select id="pmCompany"></select></div>
+                <div class="prj-form-error" id="pmError" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-prj-close="prjMoveModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pmSave"><?php echo htmlspecialchars(t('projects.view.move')); ?></button>
+            </div>
         </div>
     </div>
 
@@ -783,7 +800,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=4"></script>
-    <script src="../assets/js/projects-view.js?v=34"></script>
+    <script src="../assets/js/projects-view.js?v=35"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

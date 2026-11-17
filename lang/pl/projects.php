@@ -174,6 +174,7 @@ return [
         'name_required' => 'Podaj nazwę projektu.',
     ],
     'view' => [
+        'move' => 'Przenieś',   // GH #370
         'tab_overview' => 'Przegląd',
         'tab_plan' => 'Plan',
         'tab_timeline' => 'Oś czasu',
@@ -1316,7 +1317,16 @@ return [
             'problem' => 'Problemy, które projekt ma naprawić - lub które wywołał.',
         ],
     ],
+    // GH #370: move a project to another company.
+    'move' => [
+        'title' => 'Przenieś do innej firmy',
+        'body' => 'Projekt, jego zadania i ich podzadania trafią do wybranej firmy. Wszyscy w projekcie muszą widzieć tę firmę, a lokalizacja, której nie może ona używać, zostanie wyczyszczona.',
+        'company' => 'Firma',
+        'done' => 'Przeniesiono do {company}, razem z zadaniami: {count}.',
+        'location_cleared' => 'Lokalizacja została wyczyszczona: {company} nie może jej używać.',
+    ],
     'history' => [
+        'company' => 'przeniósł(-a) go do innej firmy',   // GH #370
         'priority' => 'zmieniono priorytet',
         'visibility' => 'zmieniono, kto może go widzieć',
         'project_created' => 'utworzono projekt',

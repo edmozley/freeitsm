@@ -9173,7 +9173,7 @@
                     "p": "\/projects\/{id}",
                     "perm": "projects.update",
                     "s": "Update a project",
-                    "d": "Change any of the fields accepted on create (not company_id or template). Only what is sent changes, and every change is written to the project's history. Setting status to closed stamps the actual finish if none is set. Switching methodology relabels the open stages and converts nothing. A change of health, dates or status is picked up by the alert scan at once, so the project manager's bell and project.* workflows react as they do to a change on screen.",
+                    "d": "Change any of the fields accepted on create (not template). company_id cannot change here: a different company is 422 (since 5.4.2) - use POST \/projects\/{id}\/move-to-company. Only what is sent changes, and every change is written to the project's history. Setting status to closed stamps the actual finish if none is set. Switching methodology relabels the open stages and converts nothing. A change of health, dates or status is picked up by the alert scan at once, so the project manager's bell and project.* workflows react as they do to a change on screen.",
                     "params": [
                         {
                             "name": "id",
@@ -9253,6 +9253,52 @@
                     },
                     "section": "Projects",
                     "slug": "delete-projects-id"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/projects\/{id}\/move-to-company",
+                    "perm": "projects.update",
+                    "s": "Move a project to another company",
+                    "d": "Moves the project, its tasks and their subtasks to another company in one go (since 5.4.2, GH #370). Refused, saying what is in the way, when the project manager or anyone on the project cannot see the target company, or a task in it is linked to a ticket or change in another company - nobody is taken off the project for you. A location the target company cannot use is cleared (location_cleared). Links to other records stay as they are. Written to the project's history and to each moved task's, and fires project.updated. A single task in a project cannot be moved on its own: move the project.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Project id",
+                            "req": true
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "body",
+                            "desc": "The company to move it to; one the key can reach",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "company_id": 5
+                    },
+                    "extras": {
+                        "examples": [],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such project, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The target company is outside the key's companies, or the key's analyst may not change this project."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "An unknown company, or the move is refused: the project manager or a member cannot see that company, or a task is linked to a ticket or change in another company - the message names them."
+                            }
+                        ]
+                    },
+                    "section": "Projects",
+                    "slug": "post-projects-id-move-to-company"
                 },
                 {
                     "m": "GET",

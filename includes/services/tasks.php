@@ -1134,6 +1134,16 @@ class TasksService
             throw new ServiceError('validation', 'invalid_field',
                 'A subtask always belongs to the same company as its parent. Move the parent task instead.');
         }
+        // GH #370: a task in a project is in the project's company - adding one from
+        // another company is refused (ProjectsService), so moving one out on its own
+        // must be too, or the project ends up holding another company's work.
+        if (!empty($row['project_id'])) {
+            $pn = $conn->prepare("SELECT name FROM projects WHERE id = ?");
+            $pn->execute([(int)$row['project_id']]);
+            $projectName = (string)($pn->fetchColumn() ?: '');
+            throw new ServiceError('validation', 'invalid_field',
+                'This task is part of the project "' . $projectName . '", and a project\'s tasks are in its company. Move the project instead, or take the task out of the project first.');
+        }
 
         // 🔴 NOT EVERY LINKED TABLE HAS A COMPANY. `contracts` has no tenant_id
         // column at all - contracts are deliberately not company-scoped - so

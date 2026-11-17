@@ -60,6 +60,8 @@
         const comp = document.getElementById('pvCompany');
         comp.hidden = !(L.multi_company && p.company_name);
         comp.textContent = p.company_name || '';
+        // GH #370: Move only when there is somewhere this analyst could move it to.
+        document.getElementById('pvMove').hidden = !(L.multi_company && (L.companies || []).length > 1);
         document.getElementById('pvName').textContent = p.name;
         document.title = (document.titleBase = document.titleBase || document.title) + ' - ' + p.name;   // GH #173: appended to the server's pageTitle()
         const goal = document.getElementById('pvGoal');
@@ -910,6 +912,40 @@
         });
     }
 
+    /** Opens Move to another company (GH #370): every company the analyst can reach, except the one it is in. */
+    function openMove() {
+        const p = data.project;
+        const def = (L.companies || []).find(c => c.is_default) || null;
+        const current = p.tenant_id != null ? Number(p.tenant_id) : (def ? Number(def.id) : null);
+        const sel = document.getElementById('pmCompany');
+        sel.innerHTML = (L.companies || []).filter(c => Number(c.id) !== current && c.name !== p.company_name)
+            .map(c => '<option value="' + Number(c.id) + '">' + esc(c.name) + '</option>').join('');
+        document.getElementById('pmError').hidden = true;
+        document.getElementById('pmSave').disabled = !sel.options.length;
+        P.openModal('prjMoveModal');
+    }
+
+    /** Moves the project; a refusal stays in the dialog, saying what is in the way. */
+    async function saveMove() {
+        const sel = document.getElementById('pmCompany');
+        const err = document.getElementById('pmError');
+        const btn = document.getElementById('pmSave');
+        if (!sel.value) return;
+        btn.disabled = true;
+        try {
+            const r = await P.api('move_to_company.php', { id: projectId, company_id: Number(sel.value) });
+            P.closeModal('prjMoveModal');
+            P.toast(T('move.done', { company: r.to, count: r.moved_tasks }));
+            if (r.location_cleared) P.toast(T('move.location_cleared', { company: r.to }), 'warning');
+            await refresh();
+        } catch (e) {
+            err.textContent = e.message;
+            err.hidden = false;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
     /** Asks, then deletes the project and goes back to the portfolio. */
     async function deleteProject() {
         const kind = timeboxKind();
@@ -937,6 +973,8 @@
         });
         document.getElementById('pvEdit').addEventListener('click', editProject);
         document.getElementById('pvDelete').addEventListener('click', deleteProject);
+        document.getElementById('pvMove').addEventListener('click', openMove);   // GH #370
+        document.getElementById('pmSave').addEventListener('click', saveMove);
         document.getElementById('psSave').addEventListener('click', saveStage);
         document.getElementById('paSave').addEventListener('click', saveAnnounce);
         document.getElementById('paAddService').addEventListener('click', () => announceRow());

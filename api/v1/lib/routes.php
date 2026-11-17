@@ -306,6 +306,7 @@ return [
     ['GET',    '#^/projects/(\d+)$#',                      ['projects', 'read'],              'apiProjectsGet'],
     ['PATCH',  '#^/projects/(\d+)$#',                      ['projects', 'update'],            'apiProjectsUpdate'],
     ['DELETE', '#^/projects/(\d+)$#',                      ['projects', 'delete'],            'apiProjectsDelete'],
+    ['POST',   '#^/projects/(\d+)/move-to-company$#',      ['projects', 'update'],            'apiProjectsMoveToCompany'],   // GH #370
     ['GET',    '#^/projects/(\d+)/stages$#',               ['projects', 'read'],              'apiProjectStagesList'],
     ['POST',   '#^/projects/(\d+)/stages$#',               ['projects', 'update'],            'apiProjectStagesCreate'],
     ['PATCH',  '#^/projects/(\d+)/stages/(\d+)$#',         ['projects', 'update'],            'apiProjectStagesUpdate'],

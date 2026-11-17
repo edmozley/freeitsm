@@ -174,6 +174,7 @@ return [
         'name_required' => 'Beri nama pada proyek.',
     ],
     'view' => [
+        'move' => 'Pindahkan',   // GH #370
         'tab_overview' => 'Ikhtisar',
         'tab_plan' => 'Rencana',
         'tab_timeline' => 'Lini masa',
@@ -1316,7 +1317,16 @@ return [
             'problem' => 'Masalah yang ingin diperbaiki proyek - atau yang disebabkannya.',
         ],
     ],
+    // GH #370: move a project to another company.
+    'move' => [
+        'title' => 'Pindahkan ke perusahaan lain',
+        'body' => 'Proyek, tugasnya, dan subtugasnya pindah ke perusahaan yang Anda pilih. Semua orang di proyek harus dapat melihat perusahaan itu, dan lokasi yang tidak dapat digunakannya dikosongkan.',
+        'company' => 'Perusahaan',
+        'done' => 'Dipindahkan ke {company}, dengan {count} tugas.',
+        'location_cleared' => 'Lokasinya dikosongkan: {company} tidak dapat menggunakannya.',
+    ],
     'history' => [
+        'company' => 'memindahkannya ke perusahaan lain',   // GH #370
         'priority' => 'mengubah prioritas',
         'visibility' => 'mengubah siapa yang dapat melihatnya',
         'project_created' => 'membuat proyek',
