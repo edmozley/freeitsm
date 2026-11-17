@@ -49,6 +49,7 @@ const PREF_TEMPLATE_SECTIONS = [
     'ticket-list'    => ['system.preferences.ticket_list_heading',     ['tickets_list_layout']],
     'live-updates'   => ['system.preferences.live_heading',            ['live_updates']],   // GH #267
     'search-panel'   => ['system.preferences.search_dismiss_heading',  ['search_panel_close_outside']],
+    'module-sections' => ['system.preferences.section_memory_heading', ['remember_module_section']],   // GH #376
     'cal-subtasks'   => ['system.preferences.cal_subtasks_heading',    ['tasks_calendar_subtasks']],
     'board-subtasks' => ['system.preferences.board_subtasks_heading',  ['tasks_board_subtasks', 'tasks_hide_done_subtasks']],
     'work-fold'      => ['system.preferences.work_fold_heading',       ['tasks_collapse_empty_work']],
