@@ -19,6 +19,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/knowledge/visibility.php';
 require_once '../../includes/knowledge/audit.php';
+require_once '../../includes/services/knowledge_transfer.php';
 
 header('Content-Type: application/json');
 
@@ -55,8 +56,11 @@ try {
         default:
             echo json_encode(['success' => false, 'error' => 'Invalid action']);
     }
-} catch (Exception $e) {
+} catch (ServiceError $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log('[Knowledge access] ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The Knowledge operation could not be completed.']);
 }
 
 /**
@@ -162,25 +166,12 @@ function requireFolderAccess(PDO $conn, int $analystId, ?int $folderId): void
  */
 function handleCreate(PDO $conn, int $analystId, array $in): void
 {
-    $name = trim((string)($in['name'] ?? ''));
-    if ($name === '') { echo json_encode(['success' => false, 'error' => 'A name is required']); return; }
-    if (mb_strlen($name) > 255) { echo json_encode(['success' => false, 'error' => 'That name is too long']); return; }
-
-    $parent = isset($in['parent_id']) && $in['parent_id'] !== null && $in['parent_id'] !== ''
-        ? (int)$in['parent_id'] : null;
-    requireFolderAccess($conn, $analystId, $parent);
-
-    // A new folder INHERITS and restricts nothing. Anything else would mean
-    // creating a folder silently changed who could see its contents.
-    $conn->prepare(
-        "INSERT INTO knowledge_folders (parent_id, name, is_restricted, inherit_permissions, created_by_id, owner_id, created_datetime, modified_datetime)
-         VALUES (?, ?, 0, 1, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-    )->execute([$parent, $name, $analystId, $analystId]);
-    $id = (int)$conn->lastInsertId();
-
-    knowledgeAclResetCaches();
-    knowledgeAudit($conn, 'folder', $id, 'create', $analystId, ['name' => $name, 'parent_id' => $parent]);
-    echo json_encode(['success' => true, 'id' => $id]);
+    $parent = $in['parent_id'] ?? null;
+    if ($parent === '' || $parent === 0 || $parent === '0') $parent = null;
+    $result = KnowledgeTransferService::createFolder($conn, ActorContext::fromSession($conn), [
+        'name' => $in['name'] ?? '', 'parent_id' => $parent,
+    ]);
+    echo json_encode(['success' => true, 'id' => $result['id']]);
 }
 
 /**

@@ -5,7 +5,7 @@
  * Mirrors the module's internal endpoints so an article touched via the API
  * is indistinguishable from one touched in the UI:
  *   - create/update mirror api/knowledge/knowledge_save.php: articles are
- *     created published (there is no draft workflow in the product), tags are
+ *     created published unless explicitly staged by the caller, tags are
  *     get-or-created by name and re-linked as a set, "save as version" first
  *     snapshots the current row into knowledge_article_versions and bumps the
  *     version number, and — when the module's OpenAI key is configured — the
@@ -97,12 +97,16 @@ function apiSerializeArticle(PDO $conn, array $r, bool $detail = false): array {
         // Which company owns it (null = shared with all) and who may read it.
         'company'          => $rel($r['tenant_id'] ?? null, $r['tenant_name'] ?? null),
         'audience'         => $r['audience'] ?? Audience::INTERNAL,
+        'tenant_id'        => isset($r['tenant_id']) ? (int)$r['tenant_id'] : null,
+        'folder_id'        => isset($r['folder_id']) ? (int)$r['folder_id'] : null,
+        'is_published'     => (bool)$r['is_published'],
         'is_archived'      => (bool)$r['is_archived'],
         'created_at'       => apiIsoDate($r['created_datetime']),
         'modified_at'      => apiIsoDate($r['modified_datetime']),
     ];
     if ($detail) {
         $out['body_html'] = $r['body'];
+        $out['revision'] = KnowledgeTransferService::revision($conn, 'article', (int)$r['id']);
         $out['has_embedding'] = $r['embedding'] !== null && $r['embedding'] !== '';
     } else {
         // Plain text with entities decoded, the same helper as the app (PR #255).
@@ -161,6 +165,7 @@ function apiKnowledgePurgeExpired(PDO $conn): void {
         $ids->execute([$days]);
         $idList = $ids->fetchAll(PDO::FETCH_COLUMN);
         if ($idList) {
+            KnowledgeImageService::purgeArticles($conn, $idList);
             $placeholders = implode(',', array_fill(0, count($idList), '?'));
             $conn->prepare("DELETE FROM knowledge_article_versions WHERE article_id IN ($placeholders)")->execute($idList);
             $conn->prepare("DELETE FROM knowledge_article_tags WHERE article_id IN ($placeholders)")->execute($idList);
@@ -180,9 +185,20 @@ function apiKnowledgeArticlesList(PDO $conn, array $apiKey, array $params, array
         apiKnowledgePurgeExpired($conn);
         $where = ['a.is_archived = 1'];
     } else {
-        $where = ['a.is_published = 1', '(a.is_archived = 0 OR a.is_archived IS NULL)'];
+        $where = ['(a.is_archived = 0 OR a.is_archived IS NULL)'];
+        if (($_GET['include_unpublished'] ?? '') !== 'true') $where[] = 'a.is_published = 1';
     }
     $args = [];
+    if (array_key_exists('folder_id', $_GET)) {
+        if ($_GET['folder_id'] === 'root') {
+            $where[] = 'a.folder_id IS NULL';
+        } else {
+            try { $folderId = KnowledgeTransferService::nullableId($_GET['folder_id'], 'folder_id'); }
+            catch (ServiceError $e) { apiFailFromService($e); }
+            $where[] = 'a.folder_id = ?';
+            $args[] = $folderId;
+        }
+    }
 
     if (isset($_GET['q']) && trim($_GET['q']) !== '') {
         $where[] = '(a.title LIKE ? OR a.body LIKE ?)';
@@ -309,8 +325,17 @@ function apiKnowledgeArticlesGet(PDO $conn, array $apiKey, array $params, array 
 // ---------------------------------------------------------------------------
 function apiKnowledgeArticlesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
     try {
-        $res = KnowledgeService::saveArticle($conn, ActorContext::fromApiKey($apiKey), $body);
-        apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $res['id'], $apiKey), true), 201);
+        if (array_key_exists('access', $body)) apiRequirePermission($apiKey, 'knowledge_access', 'manage');
+        if (array_key_exists('processing', $body)) apiRequirePermission($apiKey, 'knowledge_imports', 'manage');
+        $ctx = apiKnowledgeWriteOptions($conn, $apiKey, $body, false);
+        $res = KnowledgeTransferService::createOnce($conn, $ctx, 'article', 0, $body,
+            static function () use ($conn, $ctx, $body) { return KnowledgeService::saveArticle($conn, $ctx, $body); });
+        if (!$res['replayed']) $res = KnowledgeService::finishSave($conn, $res, KnowledgeProcessing::suppresses($body));
+        $out = apiSerializeArticle($conn, apiLoadArticle($conn, $res['id'], $apiKey), true);
+        $out['replayed'] = $res['replayed'];
+        $out['processing'] = $res['processing'] ?? ['search' => 'not_repeated', 'ai' => 'not_repeated', 'workflows' => 'not_repeated'];
+        if ($res['replayed']) apiRespond($out, 200);
+        apiRespond($out, 201);
     } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
@@ -319,8 +344,11 @@ function apiKnowledgeArticlesCreate(PDO $conn, array $apiKey, array $params, arr
 // ---------------------------------------------------------------------------
 function apiKnowledgeArticlesUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
     try {
-        $res = KnowledgeService::saveArticle($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
-        apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $res['id'], $apiKey), true));
+        if (array_key_exists('access', $body)) apiRequirePermission($apiKey, 'knowledge_access', 'manage');
+        if (array_key_exists('processing', $body)) apiRequirePermission($apiKey, 'knowledge_imports', 'manage');
+        $ctx = apiKnowledgeWriteOptions($conn, $apiKey, $body, true);
+        $res = KnowledgeService::saveArticle($conn, $ctx, array_merge($body, ['id' => (int)$params[0]]));
+        apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $res['id'], $apiKey), true) + ['processing' => $res['processing']]);
     } catch (ServiceError $e) { apiFailFromService($e); }
 }
 

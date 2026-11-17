@@ -348,6 +348,8 @@ return [
     ['morningChecks_ResultLinks', 'ix_mcrl_result', 'key', '(`ResultID`)'],
     ['knowledge_articles', 'idx_knowledge_articles_tenant', 'key', '(`tenant_id`)'],
     ['knowledge_articles', 'idx_knowledge_articles_folder', 'key', '(`folder_id`)'],
+    ['knowledge_api_references', 'uq_knowledge_reference', 'unique', '(`analyst_id`,`operation`,`parent_id`,`client_reference`)'],
+    ['knowledge_images', 'idx_knowledge_images_article', 'key', '(`article_id`)'],
     ['knowledge_folders', 'idx_knowledge_folders_parent', 'key', '(`parent_id`)'],
     ['knowledge_folders', 'idx_knowledge_folders_tenant', 'key', '(`tenant_id`)'],
     ['knowledge_acl', 'idx_knowledge_acl_object', 'key', '(`object_type`,`object_id`)'],

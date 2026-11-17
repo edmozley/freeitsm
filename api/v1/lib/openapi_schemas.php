@@ -6431,6 +6431,48 @@ return array (
         ),
       ),
     ),
+    'KnowledgeAccess' => [
+      'type' => 'object', 'required' => ['is_restricted', 'inherits', 'entries'],
+      'properties' => [
+        'is_restricted' => ['type' => 'boolean'], 'inherits' => ['type' => 'boolean'],
+        'entries' => ['type' => 'array', 'items' => ['type' => 'object',
+          'required' => ['principal_type', 'principal_id'], 'additionalProperties' => false,
+          'properties' => ['principal_type' => ['type' => 'string', 'enum' => ['analyst', 'team', 'user', 'user_group']],
+            'principal_id' => ['type' => 'integer', 'minimum' => 1]]]],
+        'revision' => ['type' => 'string', 'readOnly' => true],
+        'permission_model' => ['type' => 'string', 'enum' => ['containers', 'filing'], 'readOnly' => true],
+      ],
+    ],
+    'KnowledgeFolder' => [
+      'type' => 'object', 'required' => ['id', 'parent_id', 'name', 'tenant_id', 'revision'],
+      'properties' => ['id' => ['type' => 'integer'], 'parent_id' => ['type' => 'integer', 'nullable' => true],
+        'name' => ['type' => 'string'], 'tenant_id' => ['type' => 'integer', 'nullable' => true],
+        'revision' => ['type' => 'string'], 'detached' => ['type' => 'boolean'], 'replayed' => ['type' => 'boolean']],
+    ],
+    'KnowledgeImage' => [
+      'type' => 'object', 'required' => ['id', 'article_id', 'filename', 'mime_type', 'size_bytes', 'sha256', 'url'],
+      'properties' => ['id' => ['type' => 'integer'], 'article_id' => ['type' => 'integer'],
+        'filename' => ['type' => 'string'], 'mime_type' => ['type' => 'string'], 'size_bytes' => ['type' => 'integer'],
+        'sha256' => ['type' => 'string'], 'url' => ['type' => 'string'], 'replayed' => ['type' => 'boolean']],
+    ],
+    'KnowledgeArticleWrite' => [
+      'type' => 'object', 'additionalProperties' => false,
+      'properties' => [
+        'title' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
+        'body_html' => ['type' => 'string'], 'tags' => ['type' => 'array', 'items' => ['type' => 'string']],
+        'owner_id' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1],
+        'next_review_date' => ['type' => 'string', 'format' => 'date', 'nullable' => true],
+        'tenant_id' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1],
+        'folder_id' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1],
+        'audience' => ['type' => 'string', 'enum' => ['internal', 'customer', 'public']],
+        'is_published' => ['type' => 'boolean'], 'save_as_version' => ['type' => 'boolean'],
+        'access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
+        'processing' => ['type' => 'string', 'enum' => ['normal', 'suppress']],
+        'client_reference' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 191],
+        'expected_revision' => ['type' => 'string', 'pattern' => '^[0-9a-f]{64}$'],
+        'required_image_ids' => ['type' => 'array', 'items' => ['type' => 'integer', 'minimum' => 1]],
+      ],
+    ],
     'KnowledgeArticle' =>
     array (
       'type' => 'object',
@@ -6455,6 +6497,16 @@ return array (
       ),
       'properties' => 
       array (
+        'tenant_id' => ['type' => 'integer', 'nullable' => true],
+        'folder_id' => ['type' => 'integer', 'nullable' => true],
+        'is_published' => ['type' => 'boolean'],
+        'revision' => ['type' => 'string', 'pattern' => '^[0-9a-f]{64}$'],
+        'replayed' => ['type' => 'boolean'],
+        'processing' => ['type' => 'object', 'properties' => [
+            'search' => ['type' => 'string', 'enum' => ['indexed', 'unavailable', 'failed', 'not_repeated']],
+            'ai' => ['type' => 'string', 'enum' => ['generated', 'not_configured', 'failed', 'suppressed', 'not_repeated']],
+            'workflows' => ['type' => 'string', 'enum' => ['dispatched', 'not_applicable', 'failed', 'suppressed', 'not_repeated']],
+        ]],
         'id' => 
         array (
           'type' => 'integer',
@@ -6662,6 +6714,9 @@ return array (
       ),
       'properties' => 
       array (
+        'tenant_id' => ['type' => 'integer', 'nullable' => true],
+        'folder_id' => ['type' => 'integer', 'nullable' => true],
+        'is_published' => ['type' => 'boolean'],
         'id' => 
         array (
           'type' => 'integer',
@@ -15324,6 +15379,15 @@ return array (
   ),
   'responses' => 
   array (
+    'GET /knowledge/folders' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/KnowledgeFolder']],
+    'POST /knowledge/folders' => ['$ref' => '#/components/schemas/KnowledgeFolder'],
+    'GET /knowledge/folders/{id}' => ['$ref' => '#/components/schemas/KnowledgeFolder'],
+    'GET /knowledge/articles/{id}/images' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/KnowledgeImage']],
+    'POST /knowledge/articles/{id}/images' => ['$ref' => '#/components/schemas/KnowledgeImage'],
+    'GET /knowledge/articles/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
+    'GET /knowledge/folders/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
+    'PATCH /knowledge/articles/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
+    'PATCH /knowledge/folders/{id}/access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
     'GET /domains/{id}/endpoints' => 
     array (
       'type' => 'array',
@@ -17512,6 +17576,20 @@ return array (
   ),
   'requestBodies' => 
   array (
+    'POST /knowledge/articles' => ['allOf' => [['$ref' => '#/components/schemas/KnowledgeArticleWrite'], ['type' => 'object', 'required' => ['title']]]],
+    'PATCH /knowledge/articles/{id}' => ['$ref' => '#/components/schemas/KnowledgeArticleWrite'],
+    'POST /knowledge/folders' => ['type' => 'object', 'required' => ['name'], 'additionalProperties' => false, 'properties' => [
+      'name' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 255],
+      'parent_id' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1],
+      'tenant_id' => ['type' => 'integer', 'nullable' => true, 'minimum' => 1],
+      'access' => ['$ref' => '#/components/schemas/KnowledgeAccess'],
+      'client_reference' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 191],
+    ]],
+    'POST /knowledge/articles/{id}/images' => ['type' => 'object', 'required' => ['filename', 'content_base64'], 'additionalProperties' => false,
+      'properties' => ['filename' => ['type' => 'string'], 'content_base64' => ['type' => 'string', 'format' => 'byte', 'maxLength' => 13981016],
+        'client_reference' => ['type' => 'string', 'minLength' => 1, 'maxLength' => 191]]],
+    'PATCH /knowledge/articles/{id}/access' => ['type' => 'object', 'required' => ['access', 'expected_revision'], 'additionalProperties' => false, 'properties' => ['access' => ['$ref' => '#/components/schemas/KnowledgeAccess'], 'expected_revision' => ['type' => 'string', 'pattern' => '^[0-9a-f]{64}$']]],
+    'PATCH /knowledge/folders/{id}/access' => ['type' => 'object', 'required' => ['access', 'expected_revision'], 'additionalProperties' => false, 'properties' => ['access' => ['$ref' => '#/components/schemas/KnowledgeAccess'], 'expected_revision' => ['type' => 'string', 'pattern' => '^[0-9a-f]{64}$']]],
     // GH #279: companies. Only the fields sent change on a PATCH or an upsert that finds one.
     'POST /companies' => [
       'type' => 'object', 'required' => ['name'],
@@ -17593,6 +17671,7 @@ return array (
   ),
   'requestContentTypes' => ['POST /changes/{id}/attachments'=>'multipart/form-data'],
   'responseContents' => [
+    'GET /knowledge/images/{id}/content' => ['image/*' => ['schema' => ['type' => 'string', 'format' => 'binary']]],
     'GET /changes/{id}/attachments/{attachment_id}/content'=>[
       'application/octet-stream'=>['schema'=>['type'=>'string','format'=>'binary']],
     ],

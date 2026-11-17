@@ -99,6 +99,7 @@ function analystReferenceRegistry(): array {
         ['report_downloads', 'analyst_id', 'personal'],   // 5.3.0: their own emailed report links - only they can download them
         ['files_uploads', 'analyst_id', 'personal'],
         ['form_drafts', 'owner_id', 'personal', "owner_kind = 'analyst'"],
+        ['knowledge_api_references', 'analyst_id', 'personal'],
         ['knowledge_acl', 'principal_id', 'personal', "principal_type = 'analyst'"],
         ['knowledge_user_group_members', 'member_id', 'personal', "member_type = 'analyst'"],
         ['form_audiences', 'principal_id', 'personal', "principal_type = 'analyst'"],
@@ -254,6 +255,7 @@ function analystReferenceRegistry(): array {
         ['knowledge_articles', 'archived_by_id', 'history'],
         ['knowledge_article_versions', 'saved_by_id', 'history'],
         ['knowledge_folders', 'created_by_id', 'history'],
+        ['knowledge_images', 'created_by_id', 'history'],
         ['knowledge_acl', 'created_by_id', 'history'],
         ['knowledge_shortcuts', 'created_by_id', 'history'],
         ['knowledge_user_groups', 'created_by_id', 'history'],

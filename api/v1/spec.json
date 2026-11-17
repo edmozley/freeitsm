@@ -4204,7 +4204,7 @@
                     "p": "\/knowledge\/articles",
                     "perm": "knowledge.read",
                     "s": "List \/ search articles",
-                    "d": "Lists published articles with keyword search (title + body), tag filter and the review-cycle filters the module's review screen uses. archived=true lists the recycle bin instead (and runs the same retention auto-purge as the UI). The knowledge base is install-wide.",
+                    "d": "Lists published articles with keyword search (title + body), tag filter and the review-cycle filters the module's review screen uses. archived=true lists the recycle bin instead (and runs the same retention auto-purge as the UI). The knowledge base is install-wide. Summaries include folder_id, tenant_id, audience and is_published. Reads enforce company scope and article\/folder access lists.",
                     "params": [
                         {
                             "name": "q",
@@ -4252,6 +4252,30 @@
                             "name": "page \/ per_page",
                             "in": "query",
                             "desc": "Pagination (default 1 \/ 25, max per_page 100)",
+                            "req": false
+                        },
+                        {
+                            "name": "folder_id",
+                            "in": "query",
+                            "desc": "Folder ID, or root for unfiled articles.",
+                            "req": false
+                        },
+                        {
+                            "name": "include_unpublished",
+                            "in": "query",
+                            "desc": "true includes accessible staged\/unpublished articles; default false.",
+                            "req": false
+                        },
+                        {
+                            "name": "company",
+                            "in": "query",
+                            "desc": "Company ID or shared. Restricted to the key scope.",
+                            "req": false
+                        },
+                        {
+                            "name": "audience",
+                            "in": "query",
+                            "desc": "internal, customer or public.",
                             "req": false
                         }
                     ],
@@ -4306,7 +4330,7 @@
                     "p": "\/knowledge\/articles",
                     "perm": "knowledge.create",
                     "s": "Create an article",
-                    "d": "Creates an article, published immediately (the product has no draft workflow). Tags are created on the fly by name. If the module's OpenAI key is configured the search embedding is generated automatically, so AI chat finds API-written articles. Body is HTML stored as-is — send trusted HTML only.",
+                    "d": "Create an article. Articles are published by default, as in the UI. For migration staging, explicitly send is_published=false and processing=suppress, with the final company, audience and access restrictions. Article content and access are committed atomically. Upload images to the new article, resolve internal links using returned IDs, then PATCH is_published=true with the current expected_revision and required_image_ids after client-side completeness checks. HTML is stored as supplied: sanitize source content before sending it. Unknown fields are rejected.",
                     "params": [
                         {
                             "name": "title",
@@ -4337,6 +4361,54 @@
                             "in": "body",
                             "desc": "YYYY-MM-DD",
                             "req": false
+                        },
+                        {
+                            "name": "tenant_id",
+                            "in": "body",
+                            "desc": "Owning company ID, or null for shared across all companies. Must be within the caller scope. Omission preserves the value on PATCH; create defaults to shared.",
+                            "req": false
+                        },
+                        {
+                            "name": "audience",
+                            "in": "body",
+                            "desc": "internal, customer or public. Create defaults to internal; PATCH omission preserves it.",
+                            "req": false
+                        },
+                        {
+                            "name": "folder_id",
+                            "in": "body",
+                            "desc": "Existing accessible folder ID or null for the root. PATCH omission preserves the folder.",
+                            "req": false
+                        },
+                        {
+                            "name": "is_published",
+                            "in": "body",
+                            "desc": "Boolean. Create defaults true. Use false to stage; PATCH true explicitly publishes. Draft status alone is not an access restriction: authorized analysts can read drafts.",
+                            "req": false
+                        },
+                        {
+                            "name": "access",
+                            "in": "body",
+                            "desc": "Object with boolean is_restricted and inherits, and entries [{principal_type, principal_id}]. Principal types: analyst, team, user, user_group; IDs must already exist. Restricted lists grant, open lists deny. inherits=true uses folder rules under the installation permission model. Replacing access replaces the entire list atomically. Requires knowledge_access.manage and the Knowledge administrator floor; read-only analysts cannot change it.",
+                            "req": false
+                        },
+                        {
+                            "name": "processing",
+                            "in": "body",
+                            "desc": "normal (default) preserves ordinary post-commit AI and workflow processing; suppress explicitly skips both, while still updating the permission-filtered search index. Selecting either value requires knowledge_imports.manage. Responses report search (indexed\/unavailable\/failed), ai (generated\/not_generated\/suppressed), and workflows (dispatched\/not_applicable\/failed\/suppressed). not_configured means there is no configured embedding key; failed reports embedding generation failure. Suppressed saves leave any existing embedding unchanged; they do not send content to an AI provider. Search\/AI\/workflow failure does not roll back committed content. A create replay reports not_repeated and does not retry effects; after an interrupted response the original processing outcome may be unknown. Reconcile before explicitly requesting another normal save; workflows can have external effects.",
+                            "req": false
+                        },
+                        {
+                            "name": "required_image_ids",
+                            "in": "body",
+                            "desc": "Array of images that must belong to this article, exist on disk and match their stored hashes before the save can commit. Missing\/damaged images return 422 missing_image and roll back the article change. The client must account for all source images; the API cannot discover omitted source data.",
+                            "req": false
+                        },
+                        {
+                            "name": "client_reference",
+                            "in": "body",
+                            "desc": "Optional stable source reference, at most 191 bytes, without surrounding whitespace or control characters; use a source namespace prefix; scope is this analyst and operation (images also the parent article), so key rotation preserves it. Retry the same JSON values to receive the existing ID with HTTP 200 and replayed=true. Object key order does not matter; changed payload returns 409 reference_conflict. A deleted object returns 404 and is never recreated. Current access is checked on every replay. References are retained until the owning analyst is deleted; keep a durable client-side source-to-target mapping.",
+                            "req": false
                         }
                     ],
                     "body": {
@@ -4353,7 +4425,7 @@
                         "examples": [
                             {
                                 "title": "Minimal article",
-                                "note": "Only title is required — everything else defaults empty, and the article is published immediately (there is no draft workflow).",
+                                "note": "Only title is required; ordinary creates are published by default. Migration clients should explicitly stage and suppress processing.",
                                 "body": {
                                     "title": "How to reset your VPN token"
                                 }
@@ -4390,6 +4462,16 @@
                                 "code": 422,
                                 "slug": "invalid_field",
                                 "when": "'title' is longer than 255 characters."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "revision_conflict",
+                                "when": "A manual or concurrent edit changed the revision."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_access",
+                                "when": "The access object or a mapped principal is invalid; nothing is committed."
                             }
                         ]
                     }
@@ -4399,7 +4481,7 @@
                     "p": "\/knowledge\/articles\/{id}",
                     "perm": "knowledge.read",
                     "s": "Get one article",
-                    "d": "The full article with HTML body and tags. Unlike the UI, reading via the API does NOT bump the view counter unless you pass count_view=true — so sync jobs don't inflate the stats.",
+                    "d": "The full article with HTML body and tags. Unlike the UI, reading via the API does NOT bump the view counter unless you pass count_view=true — so sync jobs don't inflate the stats. Includes folder_id, tenant_id, is_published and revision for guarded updates. A revision excludes view statistics and embedding refreshes. Use the separately authorized \/access endpoint to read access-list entries.",
                     "params": [
                         {
                             "name": "id",
@@ -4443,7 +4525,7 @@
                     "p": "\/knowledge\/articles\/{id}",
                     "perm": "knowledge.update",
                     "s": "Update an article",
-                    "d": "Updates title, body, tags (replaces the set), owner and review date. Pass save_as_version=true to snapshot the CURRENT content into the version history and bump the version number — exactly like the UI's \"Save as new version\". The search embedding is refreshed automatically.",
+                    "d": "Update only the supplied fields of an unarchived article. Articles are published by default, as in the UI. For migration staging, explicitly send is_published=false and processing=suppress, with the final company, audience and access restrictions. Article content and access are committed atomically. Upload images to the new article, resolve internal links using returned IDs, then PATCH is_published=true with the current expected_revision and required_image_ids after client-side completeness checks. HTML is stored as supplied: sanitize source content before sending it. Unknown fields are rejected.",
                     "params": [
                         {
                             "name": "id",
@@ -4473,6 +4555,54 @@
                             "name": "save_as_version",
                             "in": "body",
                             "desc": "true = snapshot the previous content first",
+                            "req": false
+                        },
+                        {
+                            "name": "tenant_id",
+                            "in": "body",
+                            "desc": "Owning company ID, or null for shared across all companies. Must be within the caller scope. Omission preserves the value on PATCH; create defaults to shared.",
+                            "req": false
+                        },
+                        {
+                            "name": "audience",
+                            "in": "body",
+                            "desc": "internal, customer or public. Create defaults to internal; PATCH omission preserves it.",
+                            "req": false
+                        },
+                        {
+                            "name": "folder_id",
+                            "in": "body",
+                            "desc": "Existing accessible folder ID or null for the root. PATCH omission preserves the folder.",
+                            "req": false
+                        },
+                        {
+                            "name": "is_published",
+                            "in": "body",
+                            "desc": "Boolean. Create defaults true. Use false to stage; PATCH true explicitly publishes. Draft status alone is not an access restriction: authorized analysts can read drafts.",
+                            "req": false
+                        },
+                        {
+                            "name": "access",
+                            "in": "body",
+                            "desc": "Object with boolean is_restricted and inherits, and entries [{principal_type, principal_id}]. Principal types: analyst, team, user, user_group; IDs must already exist. Restricted lists grant, open lists deny. inherits=true uses folder rules under the installation permission model. Replacing access replaces the entire list atomically. Requires knowledge_access.manage and the Knowledge administrator floor; read-only analysts cannot change it.",
+                            "req": false
+                        },
+                        {
+                            "name": "processing",
+                            "in": "body",
+                            "desc": "normal (default) preserves ordinary post-commit AI and workflow processing; suppress explicitly skips both, while still updating the permission-filtered search index. Selecting either value requires knowledge_imports.manage. Responses report search (indexed\/unavailable\/failed), ai (generated\/not_generated\/suppressed), and workflows (dispatched\/not_applicable\/failed\/suppressed). not_configured means there is no configured embedding key; failed reports embedding generation failure. Suppressed saves leave any existing embedding unchanged; they do not send content to an AI provider. Search\/AI\/workflow failure does not roll back committed content. A create replay reports not_repeated and does not retry effects; after an interrupted response the original processing outcome may be unknown. Reconcile before explicitly requesting another normal save; workflows can have external effects.",
+                            "req": false
+                        },
+                        {
+                            "name": "required_image_ids",
+                            "in": "body",
+                            "desc": "Array of images that must belong to this article, exist on disk and match their stored hashes before the save can commit. Missing\/damaged images return 422 missing_image and roll back the article change. The client must account for all source images; the API cannot discover omitted source data.",
+                            "req": false
+                        },
+                        {
+                            "name": "expected_revision",
+                            "in": "body",
+                            "desc": "Revision from GET article. Required when processing or access is supplied; optional for legacy writes. A stale revision returns 409 revision_conflict without changing content. Includes content, tags, lifecycle, access and the image manifest, detecting same-second manual edits. After a lost PATCH response, GET and reconcile; retrying an already-applied PATCH with its old revision conflicts safely and does not repeat effects.",
                             "req": false
                         }
                     ],
@@ -4538,6 +4668,16 @@
                                 "code": 422,
                                 "slug": "invalid_field",
                                 "when": "'title' is sent empty, or longer than 255 characters."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "revision_conflict",
+                                "when": "A manual or concurrent edit changed the revision."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_access",
+                                "when": "The access object or a mapped principal is invalid; nothing is committed."
                             }
                         ]
                     }
@@ -4716,6 +4856,342 @@
                             }
                         ]
                     }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/folders",
+                    "perm": "knowledge_folders.read",
+                    "s": "Read the folder hierarchy",
+                    "d": "Returns every accessible folder with id, parent_id, name, tenant_id and revision. A folder whose parent is inaccessible is returned at root with detached=true, as in the UI. Results are not paginated.",
+                    "params": [],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-folders"
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/folders\/{id}",
+                    "perm": "knowledge_folders.read",
+                    "s": "Read a folder",
+                    "d": "Returns an accessible folder and revision.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Folder ID.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-folders-id"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/knowledge\/folders",
+                    "perm": "knowledge_folders.create",
+                    "s": "Create a folder",
+                    "d": "Creates a folder through the same service as the UI. Default access inherits from the parent. Optional access restrictions are applied before commit. Returns 201 for a new folder, 200 for a replay.",
+                    "params": [
+                        {
+                            "name": "name",
+                            "in": "body",
+                            "desc": "Name, 1–255 characters.",
+                            "req": true
+                        },
+                        {
+                            "name": "parent_id",
+                            "in": "body",
+                            "desc": "Accessible parent folder ID, or null for root.",
+                            "req": false
+                        },
+                        {
+                            "name": "tenant_id",
+                            "in": "body",
+                            "desc": "Company ID, or null for shared.",
+                            "req": false
+                        },
+                        {
+                            "name": "access",
+                            "in": "body",
+                            "desc": "Object with boolean is_restricted and inherits, and entries [{principal_type, principal_id}]. Principal types: analyst, team, user, user_group; IDs must already exist. Restricted lists grant, open lists deny. inherits=true uses folder rules under the installation permission model. Replacing access replaces the entire list atomically. Requires knowledge_access.manage and the Knowledge administrator floor; read-only analysts cannot change it.",
+                            "req": false
+                        },
+                        {
+                            "name": "client_reference",
+                            "in": "body",
+                            "desc": "Optional stable source reference, at most 191 bytes, without surrounding whitespace or control characters; use a source namespace prefix; scope is this analyst and operation (images also the parent article), so key rotation preserves it. Retry the same JSON values to receive the existing ID with HTTP 200 and replayed=true. Object key order does not matter; changed payload returns 409 reference_conflict. A deleted object returns 404 and is never recreated. Current access is checked on every replay. References are retained until the owning analyst is deleted; keep a durable client-side source-to-target mapping.",
+                            "req": false
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "post-knowledge-folders",
+                    "extras": {
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "A source reference conflicts with its prior content, another request owns it, or the expected revision is stale."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The referenced object is gone or no longer accessible."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/articles\/{id}\/access",
+                    "perm": "knowledge_access.read",
+                    "s": "Read Knowledge access rules",
+                    "d": "Requires the Knowledge administrator floor and object\/company access. Returns is_restricted, inherits, entries and revision. These are the explicit rules, not a flattened effective ACL. Folder hierarchy and the installation permission model determine inherited access. The response also reports permission_model (containers or filing), so inherited rules can be interpreted without guessing the installation policy.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Object ID.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-articles-id-access",
+                    "extras": {
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "A source reference conflicts with its prior content, another request owns it, or the expected revision is stale."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The referenced object is gone or no longer accessible."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/knowledge\/articles\/{id}\/access",
+                    "perm": "knowledge_access.manage",
+                    "s": "Replace Knowledge access rules",
+                    "d": "Replaces rules and entries atomically after checking the current revision. Unlike the UI polarity toggle, this supplies the complete replacement list explicitly. The response also reports permission_model (containers or filing), so inherited rules can be interpreted without guessing the installation policy.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Object ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "expected_revision",
+                            "in": "body",
+                            "desc": "Current object revision; stale returns 409 revision_conflict.",
+                            "req": true
+                        },
+                        {
+                            "name": "access",
+                            "in": "body",
+                            "desc": "Object with boolean is_restricted and inherits, and entries [{principal_type, principal_id}]. Principal types: analyst, team, user, user_group; IDs must already exist. Restricted lists grant, open lists deny. inherits=true uses folder rules under the installation permission model. Replacing access replaces the entire list atomically. Requires knowledge_access.manage and the Knowledge administrator floor; read-only analysts cannot change it.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "patch-knowledge-articles-id-access",
+                    "extras": {
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "A source reference conflicts with its prior content, another request owns it, or the expected revision is stale."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The referenced object is gone or no longer accessible."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/folders\/{id}\/access",
+                    "perm": "knowledge_access.read",
+                    "s": "Read Knowledge access rules",
+                    "d": "Requires the Knowledge administrator floor and object\/company access. Returns is_restricted, inherits, entries and revision. These are the explicit rules, not a flattened effective ACL. Folder hierarchy and the installation permission model determine inherited access. The response also reports permission_model (containers or filing), so inherited rules can be interpreted without guessing the installation policy.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Object ID.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-folders-id-access",
+                    "extras": {
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "A source reference conflicts with its prior content, another request owns it, or the expected revision is stale."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The referenced object is gone or no longer accessible."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/knowledge\/folders\/{id}\/access",
+                    "perm": "knowledge_access.manage",
+                    "s": "Replace Knowledge access rules",
+                    "d": "Replaces rules and entries atomically after checking the current revision. Unlike the UI polarity toggle, this supplies the complete replacement list explicitly. The response also reports permission_model (containers or filing), so inherited rules can be interpreted without guessing the installation policy.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Object ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "expected_revision",
+                            "in": "body",
+                            "desc": "Current object revision; stale returns 409 revision_conflict.",
+                            "req": true
+                        },
+                        {
+                            "name": "access",
+                            "in": "body",
+                            "desc": "Object with boolean is_restricted and inherits, and entries [{principal_type, principal_id}]. Principal types: analyst, team, user, user_group; IDs must already exist. Restricted lists grant, open lists deny. inherits=true uses folder rules under the installation permission model. Replacing access replaces the entire list atomically. Requires knowledge_access.manage and the Knowledge administrator floor; read-only analysts cannot change it.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "patch-knowledge-folders-id-access",
+                    "extras": {
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "A source reference conflicts with its prior content, another request owns it, or the expected revision is stale."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The referenced object is gone or no longer accessible."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/articles\/{id}\/images",
+                    "perm": "knowledge_images.read",
+                    "s": "List article images",
+                    "d": "Lists image IDs, article_id, filename, mime_type, size_bytes, sha256 and stable session-aware url. Requires current article access.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-articles-id-images"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/knowledge\/articles\/{id}\/images",
+                    "perm": "knowledge_images.create",
+                    "s": "Upload a protected inline image",
+                    "d": "JSON upload, maximum 10 MiB decoded. Uses the shared image extension\/content whitelist (PNG, JPEG, GIF, WebP, BMP, HEIC\/HEIF; no SVG), random storage names and the existing protected uploads volume. The parent article must exist and be writable before any file is stored. No unattached\/public uploads. Reuse the returned url in HTML; it checks article access for analyst, portal and public viewers on every read. API clients use \/knowledge\/images\/{id}\/content with their key. Each image belongs to one article; copying content to another article requires its own upload. Original images linked from thumbnails can be uploaded separately.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "filename",
+                            "in": "body",
+                            "desc": "Original image filename with supported extension.",
+                            "req": true
+                        },
+                        {
+                            "name": "content_base64",
+                            "in": "body",
+                            "desc": "Strict base64-encoded image bytes, at most 10 MiB decoded; upstream HTTP\/PHP body limits also apply.",
+                            "req": true
+                        },
+                        {
+                            "name": "client_reference",
+                            "in": "body",
+                            "desc": "Optional stable source reference, at most 191 bytes, without surrounding whitespace or control characters; use a source namespace prefix; scope is this analyst and operation (images also the parent article), so key rotation preserves it. Retry the same JSON values to receive the existing ID with HTTP 200 and replayed=true. Object key order does not matter; changed payload returns 409 reference_conflict. A deleted object returns 404 and is never recreated. Current access is checked on every replay. References are retained until the owning analyst is deleted; keep a durable client-side source-to-target mapping.",
+                            "req": false
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "post-knowledge-articles-id-images",
+                    "extras": {
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "A source reference conflicts with its prior content, another request owns it, or the expected revision is stale."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "The referenced object is gone or no longer accessible."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/knowledge\/images\/{id}\/content",
+                    "perm": "knowledge_images.read",
+                    "s": "Retrieve protected image bytes",
+                    "d": "Binary response with image MIME type, nosniff and private\/no-store caching. Requires current parent-article access; inaccessible or missing images return 404. Inline HTML uses the returned session-aware url instead of embedding API credentials.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Image ID.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "get-knowledge-images-id-content"
+                },
+                {
+                    "m": "DELETE",
+                    "p": "\/knowledge\/articles\/{id}\/images\/{image_id}",
+                    "perm": "knowledge_images.delete",
+                    "s": "Delete an article image",
+                    "d": "Removes the image metadata and its file after checking article write access. References remain tombstones, so replaying the upload cannot resurrect the image. Returns file_removed=false if disk cleanup failed; the image is already inaccessible. Deletion also invalidates the article revision. Archived articles keep images until permanent deletion or recycle-bin retention purges them. Abandoned uploads remain attached to their staged article and can be explicitly deleted. A process crash may leave unreferenced bytes in the protected upload directory, requiring administrator cleanup. Non-Apache web servers must deny direct access to uploads\/knowledge; Apache protection is included.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Article ID.",
+                            "req": true
+                        },
+                        {
+                            "name": "image_id",
+                            "in": "path",
+                            "desc": "Image ID belonging to this article.",
+                            "req": true
+                        }
+                    ],
+                    "section": "Knowledge base",
+                    "slug": "delete-knowledge-articles-id-images-image-id"
                 }
             ]
         },

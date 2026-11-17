@@ -226,6 +226,22 @@ function apiV1PermissionCatalog(): array {
                 'purge'   => 'Permanently delete an archived article',
             ],
         ],
+        'knowledge_folders' => [
+            'label' => 'Knowledge folders',
+            'actions' => ['read' => 'Read accessible folder hierarchies', 'create' => 'Create folders'],
+        ],
+        'knowledge_access' => [
+            'label' => 'Knowledge access lists',
+            'actions' => ['read' => 'Read access lists (Knowledge administrator required)', 'manage' => 'Set access lists (Knowledge administrator required)'],
+        ],
+        'knowledge_images' => [
+            'label' => 'Knowledge images',
+            'actions' => ['read' => 'Read images through article permissions', 'create' => 'Upload article images', 'delete' => 'Delete article images'],
+        ],
+        'knowledge_imports' => [
+            'label' => 'Knowledge import processing',
+            'actions' => ['manage' => 'Explicitly select normal or suppressed AI/workflow processing on article saves'],
+        ],
         'knowledge_versions' => [
             'label'   => 'Article versions',
             'actions' => [
