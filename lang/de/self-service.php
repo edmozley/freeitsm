@@ -481,6 +481,10 @@ return [
         'mfa_off' => 'Aus',
     ],
     'account' => [
+        'language'            => 'Sprache',   // GH #368
+        'language_browser'    => 'Sprache Ihres Browsers',
+        'language_hint'       => 'Die Sprache, in der das Portal für Sie angezeigt wird. Wird in Ihrem Konto gespeichert.',
+        'language_failed'     => 'Ihre Sprache konnte nicht gespeichert werden.',
         'heading' => 'Mein Konto',
         'appearance' => 'Darstellung',
         'appearance_hint' => 'Wählen Sie, wie das Portal aussehen soll. Wird in Ihrem Konto gespeichert.',

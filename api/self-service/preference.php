@@ -32,8 +32,11 @@ $userId = (int)$_SESSION['ss_user_id'];
  * Adding a setting here is the whole job of offering a new one — the allow-list
  * and the renderer then cannot disagree about what is valid.
  */
+require_once '../../includes/i18n.php';
 $ALLOWED = [
     PORTAL_KB_LAYOUT_KEY => ['values' => PORTAL_KB_LAYOUTS, 'default' => PORTAL_KB_LAYOUT_DEFAULT],
+    // GH #368: '' = the browser's language; otherwise a supported locale code.
+    PORTAL_LANGUAGE_KEY  => ['values' => array_merge([''], array_map('strval', array_keys(I18n::getSupportedLocales()))), 'default' => ''],
 ];
 
 try {

@@ -481,6 +481,10 @@ return [
         'mfa_off' => 'Wył.',
     ],
     'account' => [
+        'language'            => 'Język',   // GH #368
+        'language_browser'    => 'Język przeglądarki',
+        'language_hint'       => 'Język, w którym portal wyświetla się dla Ciebie. Zapisywany na Twoim koncie.',
+        'language_failed'     => 'Nie udało się zapisać języka.',
         'heading' => 'Moje konto',
         'appearance' => 'Wygląd',
         'appearance_hint' => 'Wybierz wygląd portalu. Zapisywane na Twoim koncie.',

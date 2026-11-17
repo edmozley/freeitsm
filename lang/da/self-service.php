@@ -481,6 +481,10 @@ return [
         'mfa_off' => 'Fra',
     ],
     'account' => [
+        'language'            => 'Sprog',   // GH #368
+        'language_browser'    => 'Din browsers sprog',
+        'language_hint'       => 'Det sprog, portalen bruger for dig. Gemmes på din konto.',
+        'language_failed'     => 'Dit sprog kunne ikke gemmes.',
         'heading' => 'Min konto',
         'appearance' => 'Udseende',
         'appearance_hint' => 'Vælg, hvordan portalen ser ud. Gemmes på din konto.',

@@ -481,6 +481,10 @@ return [
         'mfa_off' => 'Nonaktif',
     ],
     'account' => [
+        'language'            => 'Bahasa',   // GH #368
+        'language_browser'    => 'Bahasa browser Anda',
+        'language_hint'       => 'Bahasa yang digunakan portal untuk Anda. Disimpan di akun Anda.',
+        'language_failed'     => 'Bahasa Anda tidak dapat disimpan.',
         'heading' => 'Akun Saya',
         'appearance' => 'Tampilan',
         'appearance_hint' => 'Pilih tampilan portal. Disimpan ke akun Anda.',

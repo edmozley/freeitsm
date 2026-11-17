@@ -34,7 +34,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
-I18n::initFromSession();
 /**
  * 🔑 Mark this request as a PORTAL render, before theme.php is asked anything.
  *
@@ -45,6 +44,8 @@ I18n::initFromSession();
 if (!defined('FREEITSM_SELF_SERVICE')) {
     define('FREEITSM_SELF_SERVICE', true);
 }
+// After the flag: on a portal page the portal user's own language wins (GH #368).
+I18n::initFromSession();
 
 require_once __DIR__ . '/../../includes/theme.php';
 require_once __DIR__ . '/../../includes/self_service_settings.php';

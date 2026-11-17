@@ -134,6 +134,25 @@ class I18n {
             require_once __DIR__ . '/functions.php';
         }
 
+        // 0. A self-service portal user's own choice (GH #368), on a portal page - or
+        //    anywhere when no analyst is signed in (the portal's API calls). The
+        //    portal and the app share one PHPSESSID, so an analyst who also has a
+        //    portal account carries both ids; on a portal page their PORTAL choice
+        //    wins, as the portal palette does (theme.php). No choice -> the chain below.
+        if (!empty($_SESSION['ss_user_id']) && (defined('FREEITSM_SELF_SERVICE') || empty($_SESSION['analyst_id']))
+            && function_exists('connectToDatabase')) {
+            try {
+                require_once __DIR__ . '/portal_preferences.php';
+                $value = portalPrefGet(connectToDatabase(), (int)$_SESSION['ss_user_id'], PORTAL_LANGUAGE_KEY, '');
+                if ($value !== '' && array_key_exists($value, self::SUPPORTED_LOCALES)) {
+                    self::$locale = $value;
+                    return;
+                }
+            } catch (Throwable) {
+                // Fall through
+            }
+        }
+
         // 1. User preference (if logged in and DB is reachable)
         if (!empty($_SESSION['analyst_id']) && function_exists('connectToDatabase')) {
             try {

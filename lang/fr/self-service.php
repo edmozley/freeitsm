@@ -481,6 +481,10 @@ return [
         'mfa_off' => 'Désactivé',
     ],
     'account' => [
+        'language'            => 'Langue',   // GH #368
+        'language_browser'    => 'La langue de votre navigateur',
+        'language_hint'       => 'La langue dans laquelle le portail s\'affiche pour vous. Enregistrée dans votre compte.',
+        'language_failed'     => 'Impossible d\'enregistrer votre langue.',
         'heading' => 'Mon compte',
         'appearance' => 'Apparence',
         'appearance_hint' => 'Choisissez l\'apparence du portail. Enregistré sur votre compte.',

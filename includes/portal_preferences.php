@@ -102,3 +102,11 @@ function portalKbLayout(PDO $conn, int $userId): string
     $v = portalPrefGet($conn, $userId, PORTAL_KB_LAYOUT_KEY, PORTAL_KB_LAYOUT_DEFAULT);
     return in_array($v, PORTAL_KB_LAYOUTS, true) ? $v : PORTAL_KB_LAYOUT_DEFAULT;
 }
+
+/**
+ * The portal user's interface language (GH #368). '' (or unset) = no choice: the
+ * browser's language decides, as before. Any other value is a key of
+ * I18n::SUPPORTED_LOCALES - checked by api/self-service/preference.php when
+ * stored, and again by I18n::initFromSession() when read.
+ */
+const PORTAL_LANGUAGE_KEY = 'interface_language';

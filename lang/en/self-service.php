@@ -576,6 +576,10 @@ return [
     ],
 
     'account' => [
+        'language'            => 'Language',   // GH #368
+        'language_browser'    => 'Your browser\'s language',
+        'language_hint'       => 'The language the portal uses for you. Saved to your account.',
+        'language_failed'     => 'Could not save your language.',
         'heading'             => 'My Account',
         'appearance'          => 'Appearance',
         'appearance_hint'     => 'Choose how the portal looks. Saved to your account.',

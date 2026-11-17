@@ -473,6 +473,32 @@ if (!$__hasAnalystAccount && !empty($ss_user_email)) {
                 <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.appearance_hint')); ?></div>
             </div>
 
+            <!-- Language (GH #368). Portal users have no analyst preferences page,
+                 so their language lives here. The page reloads after a change:
+                 the labels are rendered on the server. -->
+            <?php
+                require_once __DIR__ . '/../../includes/functions.php';
+                require_once __DIR__ . '/../../includes/portal_preferences.php';
+                try {
+                    $__ssLang = portalPrefGet(connectToDatabase(), (int)($_SESSION['ss_user_id'] ?? 0), PORTAL_LANGUAGE_KEY, '');
+                } catch (Throwable $__e) {
+                    $__ssLang = '';
+                }
+                if (!array_key_exists($__ssLang, I18n::getSupportedLocales())) $__ssLang = '';
+            ?>
+            <div style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px; margin-bottom:24px;">
+                <label for="ssLanguage" style="display:block;font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:12px;">
+                    <?php echo htmlspecialchars(t('self-service.account.language')); ?>
+                </label>
+                <select id="ssLanguage" class="ss-form-input" onchange="ssSetLanguage(this.value)">
+                    <option value=""<?php echo $__ssLang === '' ? ' selected' : ''; ?>><?php echo htmlspecialchars(t('self-service.account.language_browser')); ?></option>
+                    <?php foreach (I18n::getSupportedLocales() as $__code => $__native): ?>
+                    <option value="<?php echo htmlspecialchars($__code); ?>"<?php echo $__code === $__ssLang ? ' selected' : ''; ?> lang="<?php echo htmlspecialchars($__code); ?>"><?php echo htmlspecialchars($__native); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.language_hint')); ?></div>
+            </div>
+
             <div style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px;">
                 <div style="font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:16px;"><?php echo htmlspecialchars(t('self-service.account.change_password')); ?></div>
                 <div id="ssPwMsg" class="ss-msg"></div>
@@ -736,6 +762,28 @@ async function ssSetTheme(themeId) {
         // persist. Not worth an error banner over.
         console.warn('Could not save theme preference', e);
     }
+}
+
+/**
+ * Save the portal user's language (GH #368) and reload, since every label is
+ * rendered on the server. '' goes back to the browser's language.
+ */
+async function ssSetLanguage(code) {
+    const sel = document.getElementById('ssLanguage');
+    if (sel) sel.disabled = true;
+    try {
+        const r = await fetch('../api/self-service/preference.php', {
+            method: 'POST', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'interface_language', value: code })
+        });
+        const d = await r.json();
+        if (d.success && d.stored !== false) { window.location.reload(); return; }
+        ssShowAcctMsg((d && d.error) || (window.t ? window.t('self-service.account.language_failed') : 'Could not save your language.'), 'error');
+    } catch (e) {
+        ssShowAcctMsg(window.t ? window.t('self-service.account.language_failed') : 'Could not save your language.', 'error');
+    }
+    if (sel) sel.disabled = false;
 }
 
 function ssMarkSelectedTheme(themeId) {
