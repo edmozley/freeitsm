@@ -287,6 +287,7 @@ return [
         'lookup_class_any' => 'Dowolny rodzaj',
         'lookup_portal' => 'Klienci mogą tego używać w portalu',
         'lookup_src_user' => 'Osoby',
+        'lookup_src_company' => 'Firmy',   // GH #367
         'lookup_src_cmdb' => 'Obiekty CMDB',
         'lookup_src_asset' => 'Zasoby',
         'lookup_src_location' => 'Lokalizacje',
@@ -800,7 +801,9 @@ return [
         'lookup_cmdb_title' => 'Infrastruktura',
         'lookup_cmdb_body' => 'Serwery, usługi, aplikacje i bazy danych z Twojej CMDB. Użyj tego do pytania „którego systemu to dotyczy?”. Wybierz klasę w polu Tylko obiekty tego rodzaju, a pole zaoferuje wyłącznie ten rodzaj - jeśli na przykład stanowiska trzymasz jako klasę w CMDB, każdy formularz pytający o stanowisko wybiera z tej samej listy.',
         'lookup_user_title' => 'Osoby',
-        'lookup_user_body' => 'Twój katalog pracowników. Użyj go dla pytania „kto jest przełożonym nowego pracownika?”. Tylko dla pracowników, nigdy niedostępne w portalu klienta.',
+        'lookup_user_body' => 'Twój katalog pracowników. Wyszukiwanie po imieniu i nazwisku, e-mailu, loginie, numerze pracownika, stanowisku, dziale, biurze, telefonie i własnych polach osoby. Użyj go dla pytania „kto jest przełożonym nowego pracownika?”. Tylko dla pracowników, nigdy niedostępne w portalu klienta.',
+        'lookup_company_title' => 'Firmy',   // GH #367
+        'lookup_company_body' => 'Firmy, które obsługujesz, z Osoby → Firmy - tylko te, do których ma dostęp osoba wypełniająca formularz. Wyszukiwanie po nazwie, kodzie, odnośniku zewnętrznym, NIP i własnych polach firm. Użyj go dla pytania „dla której firmy?”. Tylko dla pracowników, nigdy niedostępne w portalu klienta.',
         'lookup_location_title' => 'Lokalizacje',
         'lookup_location_body' => 'Wasze siedziby, budynki, piętra i pomieszczenia z System → Lokalizacje, pokazane z pełną ścieżką, np. „UK > London > Piętro 2". Do pytań typu „W którym biurze jesteś?".',
         'lookup_stored' => 'Zachowywana jest zarówno nazwa, jak i odnośnik do rekordu. Zmień później nazwę urządzenia, a stare zgłoszenie nadal będzie mówić to, co mówiło wtedy, podczas gdy odpowiedź nadal wskazuje właściwy rekord.',

@@ -300,11 +300,32 @@ class FormsService
             'table'       => 'users',
             'id_col'      => 'id',
             'label_col'   => 'display_name',
-            'search_cols' => ['display_name', 'email'],
+            // GH #367: every field the person record shows, not just name and email -
+            // "Employee ID 4711" found nobody. A column an older install has not been
+            // given yet (Database Verification) is skipped, not an error.
+            'search_cols' => ['display_name', 'preferred_name', 'email', 'username', 'employee_id',
+                              'job_title', 'department', 'office', 'phone', 'mobile'],
+            // ...and their custom fields (System -> Custom fields -> People).
+            'custom_values' => ['values' => 'person_field_values', 'record_col' => 'user_id', 'defs' => 'person_fields'],
             'tenant_col'  => 'tenant_id',
             // ⚠️ A staff directory with email addresses. Never a customer's to
             // browse, whatever a form builder ticks.
             'portal_safe' => false,
+        ],
+        // GH #367: the companies themselves (People -> Companies). A company IS a
+        // tenant, so its scope column is its own id: an analyst is offered exactly
+        // the companies they can reach. Inactive companies are not offered.
+        'company' => [
+            'table'         => 'tenants',
+            'id_col'        => 'id',
+            'label_col'     => 'name',
+            'search_cols'   => ['name', 'slug', 'ticket_code', 'external_ref', 'tax_id'],
+            'custom_values' => ['values' => 'company_field_values', 'record_col' => 'tenant_id', 'defs' => 'company_fields'],
+            'tenant_col'    => 'id',
+            'where'         => '`is_active` = 1',
+            // A customer's only company is their own, already known from their
+            // account - nothing to choose, and no reason to open it up.
+            'portal_safe'   => false,
         ],
     ];
 
@@ -526,11 +547,21 @@ class FormsService
             $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $term) . '%';
             $ors  = [];
             foreach ($s['search_cols'] as $col) {
+                // The label column is always there; the others may postdate this install's schema.
+                if ($col !== $s['label_col'] && !self::lookupColumnExists($conn, $s['table'], $col)) continue;
                 $ors[]    = "`$col` LIKE ?";
+                $params[] = $like;
+            }
+            // GH #367: a match in one of the record's custom fields counts too.
+            $cv = $s['custom_values'] ?? null;
+            if ($cv && self::lookupColumnExists($conn, $cv['values'], 'value_text') && self::lookupColumnExists($conn, $cv['defs'], 'is_deleted')) {
+                $ors[]    = "EXISTS (SELECT 1 FROM `{$cv['values']}` cv JOIN `{$cv['defs']}` cd ON cd.id = cv.field_id AND cd.is_deleted = 0
+                                      WHERE cv.`{$cv['record_col']}` = `{$s['table']}`.`{$s['id_col']}` AND cv.value_text LIKE ?)";
                 $params[] = $like;
             }
             $where[] = '(' . implode(' OR ', $ors) . ')';
         }
+        if (!empty($s['where'])) $where[] = $s['where'];
 
         // A row with no label is unpickable — it would render as an empty option.
         $where[] = "`{$s['label_col']}` IS NOT NULL AND `{$s['label_col']}` <> ''";
@@ -593,6 +624,7 @@ class FormsService
 
         $params = [$id];
         $sql = "SELECT 1 FROM `{$s['table']}` WHERE `{$s['id_col']}` = ?";
+        if (!empty($s['where'])) $sql .= " AND {$s['where']}";   // what the search offered, the submit accepts
 
         if ($tenantIds !== null) {
             // The SAME clause the search used. If these two ever differed, the

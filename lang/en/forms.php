@@ -330,7 +330,8 @@ return [
         'lookup_class'     => 'Only objects of this kind',
         'lookup_class_any' => 'Any kind',
         'lookup_portal' => 'Customers can use this on the portal',
-        'lookup_src_user' => 'People',
+        'lookup_src_user' => 'People',
+        'lookup_src_company' => 'Companies',   // GH #367
         'lookup_src_cmdb' => 'CMDB objects',
         'lookup_src_asset' => 'Assets',
         'lookup_src_location' => 'Locations',   // GH #311
@@ -974,7 +975,9 @@ return [
         'lookup_cmdb_title'  => 'Infrastructure',
         'lookup_cmdb_body'   => 'Servers, services, applications and databases from your CMDB. Use it for "which system is affected?". Choose a class under Only objects of this kind and it offers just that kind - keep your job positions as a class in the CMDB, say, and every form that asks for a position picks from the same list.',
         'lookup_user_title'  => 'People',
-        'lookup_user_body'   => 'Your staff directory. Use it for "who is the new starter\'s manager?". Staff only, never available on the customer portal.',
+        'lookup_user_body'   => 'Your staff directory. Searchable by name, email, username, employee ID, job title, department, office, phone and the person\'s custom fields. Use it for "who is the new starter\'s manager?". Staff only, never available on the customer portal.',
+        'lookup_company_title' => 'Companies',   // GH #367
+        'lookup_company_body' => 'The companies you serve, from People → Companies - only those the person filling it in can reach. Searchable by name, code, external reference, tax ID and your company custom fields. Use it for "which company is this for?". Staff only, never available on the customer portal.',
         'lookup_location_title' => 'Locations',   // GH #311
         'lookup_location_body' => 'Your sites, buildings, floors and rooms from System → Locations, shown as a full path such as "UK > London > Floor 2". Use it for "which office are you in?".',
         'lookup_stored'      => 'Both the name and the link to the record are kept. Rename a machine later and an old submission still says what it said at the time, while the answer still points at the right record.',

@@ -287,6 +287,7 @@ return [
         'lookup_class_any' => 'Jenis apa pun',
         'lookup_portal' => 'Pelanggan dapat menggunakan ini di portal',
         'lookup_src_user' => 'Orang',
+        'lookup_src_company' => 'Perusahaan',   // GH #367
         'lookup_src_cmdb' => 'Objek CMDB',
         'lookup_src_asset' => 'Aset',
         'lookup_src_location' => 'Lokasi',
@@ -800,7 +801,9 @@ return [
         'lookup_cmdb_title' => 'Infrastruktur',
         'lookup_cmdb_body' => 'Server, layanan, aplikasi, dan basis data dari CMDB Anda. Gunakan untuk "sistem mana yang terdampak?". Pilih sebuah kelas di bawah Hanya objek dengan jenis ini dan hanya jenis itu yang ditawarkan - misalnya, simpan jabatan Anda sebagai kelas di CMDB, maka setiap formulir yang menanyakan jabatan memilih dari daftar yang sama.',
         'lookup_user_title' => 'Orang',
-        'lookup_user_body' => 'Direktori staf Anda. Gunakan untuk "siapa manajer karyawan baru?". Hanya staf, tidak pernah tersedia di portal pelanggan.',
+        'lookup_user_body' => 'Direktori staf Anda. Dapat dicari berdasarkan nama, email, nama pengguna, ID karyawan, jabatan, departemen, kantor, telepon, dan bidang kustom orang tersebut. Gunakan untuk "siapa manajer karyawan baru?". Hanya staf, tidak pernah tersedia di portal pelanggan.',
+        'lookup_company_title' => 'Perusahaan',   // GH #367
+        'lookup_company_body' => 'Perusahaan yang Anda layani, dari Orang → Perusahaan - hanya yang dapat diakses oleh orang yang mengisi formulir. Dapat dicari berdasarkan nama, kode, referensi eksternal, NPWP, dan bidang kustom perusahaan Anda. Gunakan untuk "untuk perusahaan mana ini?". Hanya staf, tidak pernah tersedia di portal pelanggan.',
         'lookup_location_title' => 'Lokasi',
         'lookup_location_body' => 'Situs, gedung, lantai, dan ruangan Anda dari Sistem → Lokasi, ditampilkan dengan jalur lengkap seperti "UK > London > Lantai 2". Gunakan untuk "Anda di kantor mana?".',
         'lookup_stored' => 'Nama dan tautan ke rekaman sama-sama disimpan. Ganti nama mesin di kemudian hari dan kiriman lama tetap menyebutkan apa yang tertulis saat itu, sementara jawabannya tetap menunjuk ke rekaman yang benar.',

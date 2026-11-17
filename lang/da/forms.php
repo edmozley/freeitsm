@@ -287,6 +287,7 @@ return [
         'lookup_class_any' => 'Enhver type',
         'lookup_portal' => 'Kunder kan bruge dette på portalen',
         'lookup_src_user' => 'Personer',
+        'lookup_src_company' => 'Virksomheder',   // GH #367
         'lookup_src_cmdb' => 'CMDB-objekter',
         'lookup_src_asset' => 'Aktiver',
         'lookup_src_location' => 'Lokationer',
@@ -800,7 +801,9 @@ return [
         'lookup_cmdb_title' => 'Infrastruktur',
         'lookup_cmdb_body' => 'Servere, tjenester, applikationer og databaser fra din CMDB. Brug det til "hvilket system er berørt?". Vælg en klasse under Kun objekter af denne type, så tilbyder det kun den slags - har du fx dine stillinger som en klasse i CMDB\'en, vælger alle formularer, der spørger om en stilling, fra den samme liste.',
         'lookup_user_title' => 'Personer',
-        'lookup_user_body' => 'Din medarbejderoversigt. Brug det til "hvem er den nye medarbejders leder?". Kun for medarbejdere, aldrig tilgængeligt på kundeportalen.',
+        'lookup_user_body' => 'Din medarbejderoversigt. Kan søges på navn, e-mail, brugernavn, medarbejder-id, stilling, afdeling, kontor, telefon og personens brugerdefinerede felter. Brug det til "hvem er den nye medarbejders leder?". Kun for medarbejdere, aldrig tilgængeligt på kundeportalen.',
+        'lookup_company_title' => 'Virksomheder',   // GH #367
+        'lookup_company_body' => 'De virksomheder, du betjener, fra Personer → Virksomheder - kun dem, den udfyldende person har adgang til. Kan søges på navn, kode, ekstern reference, momsnummer og jeres brugerdefinerede felter for virksomheder. Brug det til "hvilken virksomhed gælder det?". Kun for medarbejdere, aldrig tilgængeligt på kundeportalen.',
         'lookup_location_title' => 'Lokationer',
         'lookup_location_body' => 'Jeres steder, bygninger, etager og lokaler fra System → Lokationer, vist med hele stien, fx "UK > London > Etage 2". Brug det til "hvilket kontor sidder du på?".',
         'lookup_stored' => 'Både navnet og linket til posten bevares. Omdøber du en maskine senere, viser en gammel besvarelse stadig, hvad den viste dengang, mens svaret stadig peger på den rigtige post.',

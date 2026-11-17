@@ -287,6 +287,7 @@ return [
         'lookup_class_any' => 'Tout type',
         'lookup_portal' => 'Les clients peuvent l\'utiliser sur le portail',
         'lookup_src_user' => 'Personnes',
+        'lookup_src_company' => 'Entreprises',   // GH #367
         'lookup_src_cmdb' => 'Objets CMDB',
         'lookup_src_asset' => 'Actifs',
         'lookup_src_location' => 'Emplacements',
@@ -800,7 +801,9 @@ return [
         'lookup_cmdb_title' => 'Infrastructure',
         'lookup_cmdb_body' => 'Serveurs, services, applications et bases de données de votre CMDB. Utilisez-la pour « quel système est concerné ? ». Choisissez une classe sous Uniquement les objets de ce type et seul ce type sera proposé - si vous tenez par exemple vos postes comme une classe dans la CMDB, tous les formulaires qui demandent un poste puisent dans la même liste.',
         'lookup_user_title' => 'Personnes',
-        'lookup_user_body' => 'Votre annuaire du personnel. Utilisez-le pour « qui est le responsable du nouvel arrivant ? ». Réservé au personnel, jamais disponible sur le portail libre-service.',
+        'lookup_user_body' => 'Votre annuaire du personnel. Recherche par nom, e-mail, identifiant, matricule, poste, service, bureau, téléphone et les champs personnalisés de la personne. Utilisez-le pour « qui est le responsable du nouvel arrivant ? ». Réservé au personnel, jamais disponible sur le portail libre-service.',
+        'lookup_company_title' => 'Entreprises',   // GH #367
+        'lookup_company_body' => 'Les entreprises que vous servez, depuis Personnes → Entreprises - uniquement celles auxquelles la personne qui remplit le formulaire a accès. Recherche par nom, code, référence externe, numéro fiscal et vos champs personnalisés d\'entreprise. Utilisez-le pour « pour quelle entreprise ? ». Réservé au personnel, jamais disponible sur le portail libre-service.',
         'lookup_location_title' => 'Emplacements',
         'lookup_location_body' => 'Vos sites, bâtiments, étages et salles de Système → Emplacements, affichés avec le chemin complet, par exemple « UK > London > Étage 2 ». Pour « dans quel bureau êtes-vous ? ».',
         'lookup_stored' => 'Le nom et le lien vers l\'enregistrement sont tous deux conservés. Renommez une machine plus tard, et une ancienne soumission affiche toujours ce qu\'elle indiquait à l\'époque, tandis que la réponse continue de pointer vers le bon enregistrement.',

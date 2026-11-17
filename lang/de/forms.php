@@ -287,6 +287,7 @@ return [
         'lookup_class_any' => 'Jede Art',
         'lookup_portal' => 'Kunden können dies im Portal verwenden',
         'lookup_src_user' => 'Personen',
+        'lookup_src_company' => 'Unternehmen',   // GH #367
         'lookup_src_cmdb' => 'CMDB-Objekte',
         'lookup_src_asset' => 'Assets',
         'lookup_src_location' => 'Standorte',
@@ -800,7 +801,9 @@ return [
         'lookup_cmdb_title' => 'Infrastruktur',
         'lookup_cmdb_body' => 'Server, Dienste, Anwendungen und Datenbanken aus Ihrer CMDB. Nutzen Sie es für „Welches System ist betroffen?“. Wählen Sie unter Nur Objekte dieser Art eine Klasse, dann werden nur Objekte dieser Art angeboten - führen Sie etwa Ihre Stellen als Klasse in der CMDB, wählen alle Formulare, die nach einer Stelle fragen, aus derselben Liste.',
         'lookup_user_title' => 'Personen',
-        'lookup_user_body' => 'Ihr Mitarbeiterverzeichnis. Verwenden Sie es für „wer ist der Vorgesetzte des neuen Mitarbeiters?“. Nur für Mitarbeitende, nie im Self-Service-Portal verfügbar.',
+        'lookup_user_body' => 'Ihr Mitarbeiterverzeichnis. Durchsuchbar nach Name, E-Mail, Benutzername, Personalnummer, Position, Abteilung, Büro, Telefon und den benutzerdefinierten Feldern der Person. Verwenden Sie es für „wer ist der Vorgesetzte des neuen Mitarbeiters?“. Nur für Mitarbeitende, nie im Self-Service-Portal verfügbar.',
+        'lookup_company_title' => 'Unternehmen',   // GH #367
+        'lookup_company_body' => 'Die Unternehmen, die Sie betreuen, aus Personen → Unternehmen - nur die, auf die die ausfüllende Person Zugriff hat. Durchsuchbar nach Name, Kürzel, externer Referenz, Steuernummer und Ihren benutzerdefinierten Unternehmensfeldern. Verwenden Sie es für „Für welches Unternehmen ist das?“. Nur für Mitarbeitende, nie im Self-Service-Portal verfügbar.',
         'lookup_location_title' => 'Standorte',
         'lookup_location_body' => 'Ihre Standorte, Gebäude, Etagen und Räume aus System → Standorte, mit vollem Pfad angezeigt, etwa „UK > London > Etage 2". Für Fragen wie „In welchem Büro sind Sie?".',
         'lookup_stored' => 'Sowohl der Name als auch die Verknüpfung zum Datensatz werden gespeichert. Wird ein Gerät später umbenannt, zeigt eine alte Einreichung weiterhin das, was zum damaligen Zeitpunkt galt, während die Antwort trotzdem auf den richtigen Datensatz verweist.',

@@ -1628,7 +1628,8 @@ foreach ($formActionDefs as $def) {
             { key: 'asset', portalSafe: true },
             { key: 'cmdb',  portalSafe: true },
             { key: 'location', portalSafe: true },   // GH #311
-            { key: 'user',  portalSafe: false }
+            { key: 'user',  portalSafe: false },
+            { key: 'company', portalSafe: false }   // GH #367
         ];
         function lookupSourceOf(f) {
             const s = f.config && f.config.lookup_source;

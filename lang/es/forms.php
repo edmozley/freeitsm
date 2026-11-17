@@ -287,6 +287,7 @@ return [
         'lookup_class_any' => 'Cualquier tipo',
         'lookup_portal' => 'Los clientes pueden usar esto en el portal',
         'lookup_src_user' => 'Personas',
+        'lookup_src_company' => 'Empresas',   // GH #367
         'lookup_src_cmdb' => 'Objetos de la CMDB',
         'lookup_src_asset' => 'Activos',
         'lookup_src_location' => 'Ubicaciones',
@@ -800,7 +801,9 @@ return [
         'lookup_cmdb_title' => 'Infraestructura',
         'lookup_cmdb_body' => 'Servidores, servicios, aplicaciones y bases de datos de su CMDB. Úselo para "¿qué sistema está afectado?". Elija una clase en Solo objetos de este tipo y ofrecerá únicamente ese tipo: si mantiene, por ejemplo, sus puestos de trabajo como una clase en la CMDB, todos los formularios que pregunten por un puesto eligen de la misma lista.',
         'lookup_user_title' => 'Personas',
-        'lookup_user_body' => 'Tu directorio de personal. Úsalo para "¿quién es el responsable del nuevo empleado?". Solo para personal, nunca disponible en el portal de clientes.',
+        'lookup_user_body' => 'Tu directorio de personal. Se busca por nombre, correo, usuario, número de empleado, cargo, departamento, oficina, teléfono y los campos personalizados de la persona. Úsalo para "¿quién es el responsable del nuevo empleado?". Solo para personal, nunca disponible en el portal de clientes.',
+        'lookup_company_title' => 'Empresas',   // GH #367
+        'lookup_company_body' => 'Las empresas a las que das servicio, de Personas → Empresas: solo las que puede ver quien rellena el formulario. Se busca por nombre, código, referencia externa, NIF y los campos personalizados de empresa. Úsalo para "¿para qué empresa es esto?". Solo para personal, nunca disponible en el portal de clientes.',
         'lookup_location_title' => 'Ubicaciones',
         'lookup_location_body' => 'Sus sedes, edificios, plantas y salas de Sistema → Ubicaciones, con la ruta completa, como «UK > London > Planta 2». Úselo para «¿en qué oficina está?».',
         'lookup_stored' => 'Se conservan tanto el nombre como el enlace al registro. Si renombras una máquina más tarde, un envío antiguo sigue diciendo lo que decía en su momento, mientras la respuesta sigue apuntando al registro correcto.',
