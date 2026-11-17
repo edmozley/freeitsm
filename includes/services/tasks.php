@@ -131,9 +131,23 @@ class TasksService
         // A subtask always belongs wherever its parent does — it is not an
         // independent piece of work and must never be reachable from a company
         // its parent is not.
+        //
+        // A company sent with a subtask must be the parent's: it used to be dropped
+        // without a word, so the caller believed the subtask was where they asked.
+        if ($links['parent_task_id']) {
+            $parentTenant = self::parentTaskTenant($conn, (int) $links['parent_task_id']);
+            $sent = array_key_exists('tenant_id', $in) && $in['tenant_id'] !== null && $in['tenant_id'] !== ''
+                ? (int) $in['tenant_id'] : null;
+            if ($sent !== null && !self::sameCompany($conn, $sent, $parentTenant)) {
+                throw new ServiceError('validation', 'invalid_field',
+                    "The company does not match the parent task's: a subtask is always in its parent's company.");
+            }
+        }
         $tenantId = $links['parent_task_id']
-            ? self::parentTaskTenant($conn, (int) $links['parent_task_id'])
-            : self::resolveNewTaskTenant($conn, $ctx, $in, $links['ticket_id'] ? (int) $links['ticket_id'] : null);
+            ? $parentTenant
+            : self::resolveNewTaskTenant($conn, $ctx, $in,
+                $links['ticket_id'] ? (int) $links['ticket_id'] : null,
+                $links['change_id'] ? (int) $links['change_id'] : null);
 
         $conn->prepare(
             "INSERT INTO tasks (title, description, status_id, priority_id, start_date, due_date,
@@ -1326,44 +1340,112 @@ class TasksService
     }
 
     /**
+     * Are two stored company ids the same company? NULL is the Default company.
+     *
+     * @param ?int $a  a tenant_id as stored
+     * @param ?int $b  another tenant_id as stored
+     */
+    private static function sameCompany(PDO $conn, ?int $a, ?int $b): bool
+    {
+        if ($a === $b) return true;
+        if (!tenancyTablesReady($conn)) return false;
+        $d = (int) getDefaultTenantId($conn);
+        return ($a ?? $d) === ($b ?? $d);
+    }
+
+    /**
      * Which company should a NEW task belong to?
      *
      * 1. Linked to a ticket → the ticket's company. The task is work arising from
      *    that ticket, so it belongs where the ticket belongs. This is the GH #83
      *    path and the one that matters most.
-     * 2. Explicitly supplied → honoured only if the actor may reach it. Refused
-     *    outright rather than quietly downgraded to NULL, which would silently
-     *    move someone's task to the Default company.
-     * 3. From the UI → the analyst's active company, so a task created while
+     * 2. Linked to a change (and no ticket) → the change's company, for the same
+     *    reason. moveTaskToCompany() refuses to leave a task in a different company
+     *    from its change, so creating one that way made a state the move calls
+     *    broken. A ticket and a change in two different companies is refused.
+     * 3. Explicitly supplied → honoured only if the company exists and the actor
+     *    may reach it. Refused outright rather than quietly downgraded to NULL, which
+     *    would silently move someone's task to the Default company. With a ticket or
+     *    change link it must name that record's company.
+     * 4. From the UI → the analyst's active company, so a task created while
      *    working on a client does not vanish from the board the moment it is made.
-     * 4. Otherwise → NULL, i.e. the Default company. The state every existing task
-     *    is already in.
+     * 5. Otherwise → NULL, i.e. the Default company. The state every existing task
+     *    is already in. (The REST API sends the key's own company first when the key
+     *    cannot reach Default - see apiTasksCreate().)
+     *
+     * Companies are compared with NULL read as the Default company, so naming the
+     * Default company for a ticket stored with NULL is a match, not a mismatch.
      *
      * @param array $in  the create input; only tenant_id is read (an explicit company, checked against the actor's scope)
+     * @param ?int $ticketId  the validated ticket link, if any
+     * @param ?int $changeId  the validated change link, if any
      */
-    private static function resolveNewTaskTenant(PDO $conn, ActorContext $ctx, array $in, ?int $ticketId): ?int
+    private static function resolveNewTaskTenant(PDO $conn, ActorContext $ctx, array $in, ?int $ticketId, ?int $changeId = null): ?int
     {
         $explicit = array_key_exists('tenant_id', $in) && $in['tenant_id'] !== null && $in['tenant_id'] !== ''
             ? (int) $in['tenant_id']
             : null;
 
+        if ($explicit !== null) {
+            // An id that names no company is a 422, not the foreign-key failure (500)
+            // it used to reach the INSERT as when the actor's scope is "every company".
+            if (tenancyTablesReady($conn) && !getTenantById($conn, $explicit)) {
+                throw new ServiceError('validation', 'invalid_field', "Unknown company id: {$explicit}");
+            }
+            if (isMultiTenant($conn) && $ctx->companyScope !== null
+                && !in_array($explicit, $ctx->companyScope, true)) {
+                throw new ServiceError('validation', 'invalid_field', "Unknown company id: {$explicit}");
+            }
+        }
+
+        // The company a linked ticket or change sits in. Each link was already checked
+        // against the actor's scope by validateLink().
+        $linkedTenant = function (string $table, int $id) use ($conn): ?int {
+            $stmt = $conn->prepare("SELECT tenant_id FROM `$table` WHERE id = ?");
+            $stmt->execute([$id]);
+            $t = $stmt->fetchColumn();
+            return ($t === false || $t === null) ? null : (int) $t;
+        };
+        $same = fn(?int $a, ?int $b): bool => self::sameCompany($conn, $a, $b);
+
+        $inherited = null; $from = null;
         if ($ticketId) {
-            $stmt = $conn->prepare("SELECT tenant_id FROM tickets WHERE id = ?");
-            $stmt->execute([$ticketId]);
-            $ticketTenant = $stmt->fetchColumn();
-            $inherited = ($ticketTenant === false || $ticketTenant === null) ? null : (int) $ticketTenant;
-            if ($explicit !== null && $explicit !== $inherited) {
+            $inherited = $linkedTenant('tickets', $ticketId);
+            $from = 'ticket';
+        }
+        // The change's company - read directly, not through tableHasTenantColumn(),
+        // which answers "no column" when it cannot ask: a lock wait here must be an
+        // error, not a task quietly filed somewhere else. Only a genuinely missing
+        // column (an install without company-scoped changes) means "no company".
+        $changeHasCompany = false;
+        $changeTenant = null;
+        if ($changeId) {
+            try {
+                $changeTenant = $linkedTenant('changes', $changeId);
+                $changeHasCompany = true;
+            } catch (PDOException $e) {
+                if (!dbErrorIsMissingSchema($e)) throw $e;
+            }
+        }
+        if ($changeHasCompany) {
+            if ($from === 'ticket' && !$same($inherited, $changeTenant)) {
                 throw new ServiceError('validation', 'invalid_field',
-                    "'tenant_id' does not match the company of the ticket this task is linked to.");
+                    "The ticket and the change this task is linked to are in different companies.");
+            }
+            if ($from === null) {
+                $inherited = $changeTenant;
+                $from = 'change';
+            }
+        }
+        if ($from !== null) {
+            if ($explicit !== null && !$same($explicit, $inherited)) {
+                throw new ServiceError('validation', 'invalid_field',
+                    "The company does not match the company of the {$from} this task is linked to.");
             }
             return $inherited;
         }
 
         if ($explicit !== null) {
-            if (isMultiTenant($conn) && $ctx->companyScope !== null
-                && !in_array($explicit, $ctx->companyScope, true)) {
-                throw new ServiceError('validation', 'invalid_field', "Unknown tenant_id: {$explicit}");
-            }
             return $explicit;
         }
 
@@ -1472,8 +1554,10 @@ class TasksService
     }
 
     /**
-     * Validate a link column + parent task. Ticket links are checked against the
-     * actor's company scope (tickets are tenant-scoped; tasks aren't).
+     * Validate a link column + parent task. Ticket and change links are checked
+     * against the actor's company scope, and contracts against their visibility: a
+     * record in a company the actor cannot reach is "unknown", exactly like one that
+     * does not exist, so the answer never confirms that it does.
      *
      * @param string $field  which link: 'ticket_id', 'change_id', 'contract_id' or 'parent_task_id'; anything else gives null
      * @param mixed $value  the linked record's id as sent; null or '' means no link
@@ -1491,8 +1575,20 @@ class TasksService
                 }
                 return $id;
             case 'change_id':
-                $stmt = $conn->prepare("SELECT id FROM changes WHERE id = ?");
-                break;
+                // Changes are company-scoped too: a change in another company is as
+                // unknown here as a ticket there.
+                try {
+                    $known = self::recordAccessible($conn, $ctx, 'changes', $id);
+                } catch (PDOException $e) {
+                    // Only a missing table means "not on this install"; a lock wait or
+                    // a lost connection is an error, not an answer.
+                    if (!dbErrorIsMissingSchema($e)) throw $e;
+                    throw new ServiceError('validation', 'invalid_field', "Change links are not available on this install.");
+                }
+                if (!$known) {
+                    throw new ServiceError('validation', 'invalid_field', "Unknown change id: {$id}");
+                }
+                return $id;
             case 'contract_id':
                 // A customer contract outside the actor's companies is unknown (#153).
                 require_once __DIR__ . '/../contract_party.php';
@@ -1500,8 +1596,12 @@ class TasksService
                 $stmt = $conn->prepare("SELECT k.id FROM contracts k WHERE k.id = ?$kVis");
                 break;
             case 'parent_task_id':
-                $stmt = $conn->prepare("SELECT id FROM tasks WHERE id = ?");
-                break;
+                // A subtask lands in its parent's company, so a parent the actor
+                // cannot reach would put the new task where they cannot see it.
+                if (!self::recordAccessible($conn, $ctx, 'tasks', $id)) {
+                    throw new ServiceError('validation', 'invalid_field', "Unknown parent_task id: {$id}");
+                }
+                return $id;
             default:
                 return null;
         }
@@ -1514,6 +1614,41 @@ class TasksService
             throw new ServiceError('validation', 'invalid_field', ucfirst(str_replace('_id', ' ', $field)) . "links are not available on this install.");
         }
         return $id;
+    }
+
+    /**
+     * Does this record exist, and can the actor's company scope reach it? For a
+     * company-scoped table other than tickets (changes). A missing table throws
+     * PDOException for the caller to report; the company check itself follows
+     * ticketAccessible(): missing schema degrades to allow, anything else denies.
+     *
+     * @param string $table  a developer literal: a table with an id and (usually) a tenant_id column
+     */
+    private static function recordAccessible(PDO $conn, ActorContext $ctx, string $table, int $id): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+        $stmt = $conn->prepare("SELECT id FROM `$table` WHERE id = ?");
+        $stmt->execute([$id]);
+        if (!$stmt->fetchColumn()) {
+            return false;
+        }
+        try {
+            if (!isMultiTenant($conn) || $ctx->companyScope === null) {
+                return true;
+            }
+            // No tableHasTenantColumn() here: it answers "no column" when it cannot
+            // ask, and a guard must not open on that. A genuinely missing column
+            // throws below and tenancyDegradeAllowed() lets it through.
+            $stmt = $conn->prepare("SELECT tenant_id FROM `$table` WHERE id = ?");
+            $stmt->execute([$id]);
+            $t = $stmt->fetchColumn();
+            $tid = ($t === false || $t === null) ? getDefaultTenantId($conn) : (int)$t;
+            return in_array($tid, $ctx->companyScope, true);
+        } catch (Exception $e) {
+            return tenancyDegradeAllowed($e);
+        }
     }
 
     /** Can the actor's company scope reach this ticket? Mirrors apiKeyCanAccessTicket via ActorContext. */

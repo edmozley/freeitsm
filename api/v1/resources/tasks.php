@@ -19,9 +19,12 @@
  *     DELETE is a hard delete that cascades subtasks/comments/tags.
  *
  * Tasks belong to a company (tenant_id, GH #83) and every read here is scoped to
- * the key's companies - see apiTasksList. A task can also link to a ticket, and
- * the API validates ticket links against the key's company scope and only
- * reveals linked-ticket details the key could read directly.
+ * the key's companies - see apiTasksList. Each task shows it as `company`. A new
+ * task is created in `company_id` (or the company of its ticket, change or parent
+ * task), else in the Default company - or the key's own company when the key
+ * cannot reach Default. PATCH never changes it. Ticket, change and
+ * parent-task links are validated against the key's company scope, and only
+ * linked-ticket details the key could read directly are revealed.
  *
  * Tasks keep a history (#181: task_events, includes/services/task_history.php),
  * written by TasksService for every write made here; it is shown in the task
@@ -66,6 +69,23 @@ function apiTaskContractor(PDO $conn, int $taskId): ?array {
 }
 
 /**
+ * The company a task is in, as {id, name}. NULL tenant_id is the Default company and
+ * is shown as it, so a client always learns where a task sits. Null only on an
+ * install whose tenancy tables are not there yet. Names are read once per request.
+ *
+ * @param mixed $tenantId  tasks.tenant_id as stored
+ */
+function apiTaskCompany(PDO $conn, $tenantId): ?array {
+    static $names = [];
+    if (!tenancyTablesReady($conn)) return null;
+    $id = $tenantId === null ? (int)getDefaultTenantId($conn) : (int)$tenantId;
+    if (!array_key_exists($id, $names)) {
+        $names[$id] = getTenantById($conn, $id)['name'] ?? null;
+    }
+    return ['id' => $id, 'name' => $names[$id]];
+}
+
+/**
  * Shapes a task row for the API, with its tags and subtask progress (total and done)
  * read alongside.
  *
@@ -95,6 +115,8 @@ function apiSerializeTask(PDO $conn, array $r): array {
         'id'          => (int)$r['id'],
         'title'       => $r['title'],
         'description' => $r['description'],
+        // The company the task is in (NULL in the table = the Default company).
+        'company'     => array_key_exists('tenant_id', $r) ? apiTaskCompany($conn, $r['tenant_id']) : null,
         'status'      => $rel($r['status_id'], $r['status_name'], [
             'is_closed' => (bool)($r['status_is_closed'] ?? false),
             'colour'    => $r['status_colour'] ?? null,
@@ -192,6 +214,23 @@ function apiTasksList(PDO $conn, array $apiKey, array $params, array $body): voi
         if (isset($_GET[$param]) && $_GET[$param] !== '') {
             $where[] = "$col = ?";
             $args[]  = (int)$_GET[$param];
+        }
+    }
+    // One company's tasks - as GET /tickets and /projects filter. NULL tenant_id is
+    // the Default company. A company outside the key's list is refused (403), the
+    // same answer those filters give.
+    if (isset($_GET['company_id']) && $_GET['company_id'] !== '') {
+        $cid = (int)$_GET['company_id'];
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $cid)) {
+            apiError(403, 'forbidden', 'This API key is not scoped to that company.');
+        }
+        if (!isMultiTenant($conn)) {
+            // One company: every task is in it. No tenant_id in the SQL, so an install
+            // that has not run Database Verification yet is not broken by the filter.
+            if ($cid !== getDefaultTenantId($conn)) $where[] = '1=0';
+        } else {
+            $where[] = ($cid === getDefaultTenantId($conn)) ? '(t.tenant_id = ? OR t.tenant_id IS NULL)' : 't.tenant_id = ?';
+            $args[]  = $cid;
         }
     }
     foreach (['status' => 'ts.name', 'priority' => 'tp.name'] as $param => $col) {
@@ -392,6 +431,34 @@ function apiTasksGet(PDO $conn, array $apiKey, array $params, array $body): void
 // POST /tasks
 // ---------------------------------------------------------------------------
 function apiTasksCreate(PDO $conn, array $apiKey, array $params, array $body): void {
+    // The company: `company_id`, as on POST /tickets and /projects. `tenant_id` is the
+    // older name the service has always read, kept so existing callers still work.
+    $sent = function ($v) { return $v !== null && $v !== ''; };
+    $cid  = $sent($body['company_id'] ?? null) ? (int)$body['company_id'] : null;
+    $tid  = $sent($body['tenant_id'] ?? null) ? (int)$body['tenant_id'] : null;
+    if ($cid !== null && $tid !== null && $cid !== $tid) {
+        apiError(422, 'invalid_field', "'company_id' and 'tenant_id' name different companies. Send one: 'company_id'.");
+    }
+    $company = $cid ?? $tid;
+    unset($body['company_id']);
+    if ($company !== null) {
+        // The same answers as POST /tickets: an id that names no company is 422, one
+        // outside the key's list is 403.
+        if (tenancyTablesReady($conn) && !getTenantById($conn, $company)) {
+            apiError(422, 'invalid_field', "Unknown company id: {$company}");
+        }
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $company)) {
+            apiError(403, 'forbidden', 'This API key is not scoped to that company.');
+        }
+        $body['tenant_id'] = $company;
+    } elseif (!$sent($body['parent_task_id'] ?? null) && !$sent($body['ticket_id'] ?? null) && !$sent($body['change_id'] ?? null)
+              && isMultiTenant($conn) && !apiKeyCanAccessTenant($conn, $apiKey, getDefaultTenantId($conn))) {
+        // No company and nothing to take one from: the task used to land in the Default
+        // company even for a key that cannot reach it, and that key then got 404 on the
+        // task it had just made. It goes to the key's own company instead, as a ticket
+        // does. A key that reaches Default keeps today's behaviour (Default).
+        $body['tenant_id'] = apiKeyDefaultTenantId($conn, $apiKey);
+    }
     try {
         $res = TasksService::saveTask($conn, ActorContext::fromApiKey($apiKey), $body);
         apiRespond(apiSerializeTask($conn, apiLoadTask($conn, $res['id'])), 201);
@@ -402,6 +469,21 @@ function apiTasksCreate(PDO $conn, array $apiKey, array $params, array $body): v
 // PATCH /tasks/{id}
 // ---------------------------------------------------------------------------
 function apiTasksUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
+    // A task's company is not changed by PATCH (the app's Move to company does that,
+    // with its subtask and link rules). It used to be ignored without a word; now a
+    // different company is refused, and the one the task is already in is accepted.
+    foreach (['company_id', 'tenant_id'] as $f) {
+        if (!array_key_exists($f, $body) || $body[$f] === null || $body[$f] === '') continue;
+        if (!tenancyTablesReady($conn)) { unset($body[$f]); continue; }   // no companies yet: ignored, as before
+        $row = apiLoadTask($conn, (int)$params[0], $apiKey);
+        $current = $row['tenant_id'] ?? null;
+        $asked = (int)$body[$f];
+        $default = tenancyTablesReady($conn) ? (int)getDefaultTenantId($conn) : null;
+        if ($asked !== ($current === null ? $default : (int)$current)) {
+            apiError(422, 'invalid_field', "'{$f}' cannot be changed here. Move the task to another company in the app: right-click it and choose Move to company.");
+        }
+        unset($body[$f]);
+    }
     try {
         $res = TasksService::saveTask($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
         apiRespond(apiSerializeTask($conn, apiLoadTask($conn, $res['id'])));
