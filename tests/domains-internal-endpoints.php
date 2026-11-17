@@ -9,10 +9,10 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   FREEITSM_TEST_DATABASE=<a throwaway database> php tests/...  part 3 as well
  *
  * PART 1 - the rules with no connection: network ranges, ports, trust profiles.
- * PART 2 - real TLS. It makes a throwaway certificate authority and four small TLS
+ * PART 2 - real TLS. It makes a throwaway certificate authority and small TLS
  *          servers on 127.0.0.1 (a good certificate, one inside its warning window,
- *          one for the wrong name, and a closed port), and checks endpoints against
- *          them. A pretend DNS answer points the test names at 127.0.0.1, because a
+ *          one for the wrong name, repeated common names, and a closed port).
+ *          A pretend DNS answer points the test names at 127.0.0.1, because a
  *          Windows server's resolver does not answer for localhost. Every refusal
  *          is proved to make NO connection, from the trace.
  * PART 3 - through DomainsService on the test database: saving endpoints (and what
@@ -66,28 +66,29 @@ $cfgFile = null;
 foreach ([getenv('OPENSSL_CONF'), dirname(PHP_BINARY) . '/extras/ssl/openssl.cnf', '/usr/lib/ssl/openssl.cnf', '/etc/ssl/openssl.cnf'] as $c) if ($c && is_file($c)) { $cfgFile = $c; break; }
 $dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'zz-ep-' . bin2hex(random_bytes(3));
 mkdir($dir);
-/** An OpenSSL config whose leaf section names $host, so the certificate carries it as a SAN. */
-$leafCfg = function (string $host) use ($dir, $cfgFile): string {
-    $f = "$dir/leaf-" . md5($host) . '.cnf';
+/** DNS SANs by default; custom SANs exercise the legacy common-name fallback. */
+$leafCfg = function (string $host, ?string $san = null) use ($dir, $cfgFile): string {
+    $san = $san ?? 'DNS:' . $host;
+    $f = "$dir/leaf-" . md5($host . $san) . '.cnf';
     file_put_contents($f, ($cfgFile ? file_get_contents($cfgFile) : "[ req ]\ndistinguished_name = dn\n[ dn ]\n")
-        . "\n[ zz_leaf ]\nbasicConstraints = CA:FALSE\nsubjectAltName = DNS:$host\n[ zz_ca ]\nbasicConstraints = critical, CA:TRUE\nkeyUsage = critical, keyCertSign, cRLSign\n");
+        . "\n[ zz_leaf ]\nbasicConstraints = CA:FALSE\nsubjectAltName = $san\n[ zz_ca ]\nbasicConstraints = critical, CA:TRUE\nkeyUsage = critical, keyCertSign, cRLSign\n");
     return $f;
 };
 $caCfg = $leafCfg('ca.invalid');
 $caKey = openssl_pkey_new(['config' => $caCfg, 'private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
-$caCert = openssl_csr_sign(openssl_csr_new(['commonName' => 'ZZ Test Internal CA'], $caKey, ['config' => $caCfg, 'digest_alg' => 'sha256']),
+$caCert = openssl_csr_sign(openssl_csr_new(['commonName' => 'ZZ Test Internal CA', 'organizationName' => ['ZZ Test Org', 'ZZ Test Unit']], $caKey, ['config' => $caCfg, 'digest_alg' => 'sha256']),
                            null, $caKey, 30, ['config' => $caCfg, 'digest_alg' => 'sha256', 'x509_extensions' => 'zz_ca'], 1);
 openssl_x509_export($caCert, $caPem);
 $serial = 2;
 /** A certificate for $host from the test CA, valid $days days, written with its key for a server. */
-$leaf = function (string $host, int $days) use ($dir, $leafCfg, $caKey, $caCert, &$serial): string {
-    $cfg = $leafCfg($host);
+$leaf = function (string $host, int $days, array $dn = [], ?string $san = null) use ($dir, $leafCfg, $caKey, $caCert, &$serial): string {
+    $cfg = $leafCfg($host, $san);
     $k = openssl_pkey_new(['config' => $cfg, 'private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
-    $x = openssl_csr_sign(openssl_csr_new(['commonName' => $host], $k, ['config' => $cfg, 'digest_alg' => 'sha256']),
+    $x = openssl_csr_sign(openssl_csr_new($dn + ['commonName' => $host], $k, ['config' => $cfg, 'digest_alg' => 'sha256']),
                           $caCert, $caKey, $days, ['config' => $cfg, 'digest_alg' => 'sha256', 'x509_extensions' => 'zz_leaf'], $serial++);
     openssl_x509_export($x, $pem);
     openssl_pkey_export($k, $kp, null, ['config' => $cfg]);
-    $f = "$dir/" . md5($host . $days) . '.pem';
+    $f = "$dir/cert-$serial.pem";
     file_put_contents($f, $pem . $kp);
     return $f;
 };
@@ -100,8 +101,13 @@ ok('text that is not a certificate is refused', (function () { try { domainTrust
 echo "\nPART 2 - real TLS against throwaway local servers\n";
 $domain = 'zz-ep.test';
 $host   = 'app.zz-ep.test';
-$ports  = ['good' => 47431, 'soon' => 47432, 'wrong' => 47433, 'closed' => 47439];
+$ports  = ['good' => 47431, 'soon' => 47432, 'wrong' => 47433, 'multiple' => 47434, 'san' => 47435, 'closed' => 47439];
 $certs  = ['good' => $leaf($host, 365), 'soon' => $leaf($host, 10), 'wrong' => $leaf('other.zz-ep.test', 365)];
+// Repeated DN components become arrays in openssl_x509_parse(). An IP-only SAN
+// exercises the legacy CN fallback that previously threw a TypeError.
+$multipleCn = ['commonName' => [$host, '192.0.2.30']];
+$certs['multiple'] = $leaf($host, 365, $multipleCn, 'IP:192.0.2.60');
+$certs['san'] = $leaf($host, 365, $multipleCn, 'DNS:other.zz-ep.test');
 $server = "$dir/server.php";
 file_put_contents($server, '<?php
 // Throwaway TLS servers for tests/domains-internal-endpoints.php: port => cert file, for a few seconds.
@@ -135,10 +141,11 @@ Connection: close
         fclose($c);
     }
 }');
-$map = [$ports['good'] => $certs['good'], $ports['soon'] => $certs['soon'], $ports['wrong'] => $certs['wrong']];
+$map = [];
+foreach ($certs as $kind => $pem) $map[$ports[$kind]] = $pem;
 $proc = proc_open([PHP_BINARY, $server, json_encode($map), '60'], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
 $started = trim((string)fgets($pipes[1]));
-ok('control: the three test servers are listening', $started === '3', "started $started");
+ok('control: all test servers are listening', (int)$started === count($certs), "started $started");
 
 // Pretend DNS: the test names are at 127.0.0.1; "two" also has an address outside.
 $GLOBALS['DOMAIN_ENDPOINT_RESOLVER'] = function (string $h, string $t) {
@@ -155,6 +162,19 @@ $t = $check(['host' => $host, 'port' => $ports['good']], $nets, $allPorts, $caPe
 ok('control: a good certificate from the internal CA is healthy', $r['completed'] && $r['status'] === 'healthy', json_encode($r));
 ok('...connected to the resolved address, with the host name kept for SNI', $t === ["tls://$host:{$ports['good']}@127.0.0.1"], json_encode($t));
 ok('...and the certificate is recorded', ($r['cert']['hostname_match'] ?? null) === true && ($r['cert']['chain_valid'] ?? null) === true);
+ok('single subject and repeated issuer components remain display strings', $r['cert']['subject'] === $host && $r['cert']['issuer'] === 'ZZ Test Org, ZZ Test Unit', json_encode($r['cert']));
+
+try {
+    $check(['host' => $host, 'port' => $ports['multiple']], $nets, $allPorts, $caPem);
+    ok('repeated common names without DNS SANs do not abort the check', $r['status'] === 'healthy', json_encode($r));
+    ok('each common name is preserved for matching, with a text subject for display', $r['cert']['subject'] === "$host, 192.0.2.30" && $r['cert']['sans'] === [$host, '192.0.2.30'], json_encode($r['cert']));
+    $check(['host' => $host, 'port' => $ports['multiple']], $nets, $allPorts, null);
+    ok('repeated common names do not bypass chain verification', $r['detail'] === 'untrusted', json_encode($r));
+} catch (Throwable $e) {
+    ok('repeated common names are handled without an exception', false, $e->getMessage());
+}
+$check(['host' => $host, 'port' => $ports['san']], $nets, $allPorts, $caPem);
+ok('DNS SANs override common names, even when a common name matches', $r['detail'] === 'wrong_name' && $r['cert']['sans'] === ['other.zz-ep.test'], json_encode($r));
 
 $t = $check(['host' => $host, 'port' => $ports['good']], $nets, $allPorts, null);
 ok('the same certificate against the server\'s normal list: untrusted, never accepted', $r['completed'] && $r['status'] === 'problem' && $r['detail'] === 'untrusted', json_encode($r));
