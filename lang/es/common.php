@@ -626,6 +626,9 @@ return [
             'help' => [
                 'unanswered' => 'El asistente de ayuda no pudo responder una pregunta',
             ],
+            'storage' => [
+                'changed' => 'Ha cambiado dónde se guardan los archivos almacenados',
+            ],
             'hyperv' => [
                 'collector' => 'Un recopilador de Hyper-V requiere su atención',
             ],
@@ -684,6 +687,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'El asistente de ayuda no puede responder una pregunta que alguien hizo (administradores)',
+            ],
+            'storage' => [
+                'changed' => 'Cambia dónde se guardan los archivos almacenados, o empieza o termina un traslado entre ubicaciones de almacenamiento (administradores)',
             ],
             'hyperv' => [
                 'collector' => 'Un recopilador de Hyper-V deja de informar, o no se puede leer el almacenamiento de un clúster (personas que gestionan conexiones de Hyper-V)',

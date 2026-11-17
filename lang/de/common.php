@@ -626,6 +626,9 @@ return [
             'help' => [
                 'unanswered' => 'Der Hilfe-Assistent konnte eine Frage nicht beantworten',
             ],
+            'storage' => [
+                'changed' => 'Der Speicherort gespeicherter Dateien hat sich geändert',
+            ],
             'hyperv' => [
                 'collector' => 'Ein Hyper-V-Collector braucht Ihre Aufmerksamkeit',
             ],
@@ -684,6 +687,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Der Hilfe-Assistent kann eine gestellte Frage nicht beantworten (Administratoren)',
+            ],
+            'storage' => [
+                'changed' => 'Der Speicherort gespeicherter Dateien ändert sich, oder ein Umzug zwischen Speicherorten beginnt oder endet (Administratoren)',
             ],
             'hyperv' => [
                 'collector' => 'Ein Hyper-V-Collector meldet sich nicht mehr, oder der Speicher eines Clusters kann nicht gelesen werden (Personen, die Hyper-V-Verbindungen verwalten)',

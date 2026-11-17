@@ -626,6 +626,9 @@ return [
             'help' => [
                 'unanswered' => 'Hjælpeassistenten kunne ikke besvare et spørgsmål',
             ],
+            'storage' => [
+                'changed' => 'Hvor gemte filer opbevares, er ændret',
+            ],
             'hyperv' => [
                 'collector' => 'En Hyper-V-collector kræver din opmærksomhed',
             ],
@@ -684,6 +687,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Hjælpeassistenten kan ikke besvare et spørgsmål, nogen har stillet (administratorer)',
+            ],
+            'storage' => [
+                'changed' => 'Hvor gemte filer opbevares, ændres, eller en flytning mellem lagringssteder starter eller slutter (administratorer)',
             ],
             'hyperv' => [
                 'collector' => 'En Hyper-V-collector holder op med at rapportere, eller en clusters lager kan ikke læses (personer, der administrerer Hyper-V-forbindelser)',

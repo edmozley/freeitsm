@@ -626,6 +626,9 @@ return [
             'help' => [
                 'unanswered' => 'Asisten bantuan tidak dapat menjawab sebuah pertanyaan',
             ],
+            'storage' => [
+                'changed' => 'Tempat penyimpanan berkas telah berubah',
+            ],
             'hyperv' => [
                 'collector' => 'Collector Hyper-V memerlukan perhatian Anda',
             ],
@@ -684,6 +687,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Asisten bantuan tidak dapat menjawab pertanyaan yang diajukan seseorang (administrator)',
+            ],
+            'storage' => [
+                'changed' => 'Tempat penyimpanan berkas berubah, atau pemindahan antar lokasi penyimpanan dimulai atau selesai (administrator)',
             ],
             'hyperv' => [
                 'collector' => 'Collector Hyper-V berhenti melapor, atau penyimpanan sebuah cluster tidak dapat dibaca (orang yang mengelola koneksi Hyper-V)',

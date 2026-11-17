@@ -626,6 +626,9 @@ return [
             'help' => [
                 'unanswered' => 'Asystent pomocy nie potrafił odpowiedzieć na pytanie',
             ],
+            'storage' => [
+                'changed' => 'Zmieniło się miejsce przechowywania zapisanych plików',
+            ],
             'hyperv' => [
                 'collector' => 'Kolektor Hyper-V wymaga uwagi',
             ],
@@ -684,6 +687,9 @@ return [
             ],
             'help' => [
                 'unanswered' => 'Asystent pomocy nie potrafi odpowiedzieć na czyjeś pytanie (administratorzy)',
+            ],
+            'storage' => [
+                'changed' => 'Zmienia się miejsce przechowywania zapisanych plików albo zaczyna się lub kończy przenoszenie między lokalizacjami (administratorzy)',
             ],
             'hyperv' => [
                 'collector' => 'Kolektor Hyper-V przestaje zgłaszać dane lub nie można odczytać pamięci masowej klastra (osoby zarządzające połączeniami Hyper-V)',
