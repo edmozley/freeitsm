@@ -184,3 +184,42 @@ function serviceErrorHttpStatus(string $kind): int
         default:           return 422;
     }
 }
+
+/**
+ * A WALL-CLOCK date and time: a change's work, outage and PIR windows, a ticket's
+ * scheduled work. Stored and shown exactly as typed, never converted between time
+ * zones (formatNaiveDateTime() in the UI), so a value carrying "Z" or an offset is
+ * refused rather than converted - GH #375: converting it to UTC put a change at
+ * 01:46 on the 17th when the client meant 20:46 on the 16th. The same rule as task
+ * scheduling (TasksService::parseNaiveDateTime) and the calendar API.
+ *
+ * Accepts YYYY-MM-DD, YYYY-MM-DD HH:MM and YYYY-MM-DD HH:MM:SS, with a space or a
+ * "T", and drops fractions of a second. Returns "YYYY-MM-DD HH:MM:SS".
+ *
+ * @param mixed $value  the caller's value (untrusted); null or '' gives null
+ * @param string $field  the field name, quoted in the error
+ * @throws ServiceError validation/invalid_field (422) on an offset or anything unreadable
+ */
+function serviceWallClockDateTime($value, string $field): ?string
+{
+    if ($value === null || $value === '') {
+        return null;
+    }
+    $v = trim(str_replace('T', ' ', (string)$value));
+    if (preg_match('/(Z|[+\-]\d{2}:?\d{2})$/i', $v)) {
+        throw new ServiceError('validation', 'invalid_field',
+            "'{$field}' is a local wall-clock time and must not carry a time zone (no Z or offset): send it as YYYY-MM-DDTHH:MM:SS, exactly as it should show.");
+    }
+    $v = preg_replace('/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\.\d+$/', '$1', $v);
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $v)) {
+        $v .= ' 00:00:00';
+    } elseif (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $v)) {
+        $v .= ':00';
+    }
+    $d = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $v);
+    if (!$d || $d->format('Y-m-d H:i:s') !== $v) {
+        throw new ServiceError('validation', 'invalid_field',
+            "'{$field}' must be a local date and time as YYYY-MM-DDTHH:MM:SS.");
+    }
+    return $v;
+}

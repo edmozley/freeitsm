@@ -395,7 +395,7 @@
                         {
                             "name": "work_start_at",
                             "in": "body",
-                            "desc": "Scheduled work start, ISO 8601 (null clears)",
+                            "desc": "Scheduled work start: a local wall-clock time with no time zone, YYYY-MM-DDTHH:MM:SS, shown exactly as sent (null clears). A Z or offset is refused (422) - since 5.4.2, GH #375.",
                             "req": false
                         },
                         {
@@ -3123,7 +3123,7 @@
                         {
                             "name": "work_start_from \/ work_start_to",
                             "in": "query",
-                            "desc": "Scheduled-work window (ISO 8601) — the calendar shape",
+                            "desc": "Scheduled-work window, local wall-clock (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS, no time zone) — the calendar shape",
                             "req": false
                         },
                         {
@@ -3168,8 +3168,8 @@
                                 "query": {
                                     "change_type": "Emergency",
                                     "cab_required": "true",
-                                    "work_start_from": "2026-07-04T00:00:00Z",
-                                    "work_start_to": "2026-07-11T00:00:00Z",
+                                    "work_start_from": "2026-07-04T00:00:00",
+                                    "work_start_to": "2026-07-11T00:00:00",
                                     "sort": "work_start_at"
                                 }
                             }
@@ -3217,7 +3217,7 @@
                         {
                             "name": "work_start_at \/ work_end_at \/ outage_start_at \/ outage_end_at",
                             "in": "body",
-                            "desc": "Schedule, ISO 8601",
+                            "desc": "Schedule: local wall-clock times with no time zone, YYYY-MM-DDTHH:MM:SS, shown exactly as sent. A Z or offset is refused (422) - since 5.4.2, GH #375.",
                             "req": false
                         },
                         {
@@ -3282,8 +3282,8 @@
                                     "risk_impact_score": 5,
                                     "cab_required": true,
                                     "cab_approval_type": "majority",
-                                    "work_start_at": "2026-07-05T20:00:00Z",
-                                    "work_end_at": "2026-07-05T22:00:00Z"
+                                    "work_start_at": "2026-07-05T20:00:00",
+                                    "work_end_at": "2026-07-05T22:00:00"
                                 }
                             }
                         ],
@@ -3362,7 +3362,7 @@
                         {
                             "name": "pir_was_successful \/ pir_actual_start_at \/ pir_actual_end_at \/ pir_lessons_learned \/ pir_follow_up",
                             "in": "body",
-                            "desc": "Post-implementation review",
+                            "desc": "Post-implementation review. The two actual times are local wall-clock times with no time zone, YYYY-MM-DDTHH:MM:SS.",
                             "req": false
                         }
                     ],
@@ -3391,8 +3391,8 @@
                                 },
                                 "body": {
                                     "assigned_to_id": 3,
-                                    "work_start_at": "2026-07-06T06:00:00Z",
-                                    "work_end_at": "2026-07-06T08:00:00Z"
+                                    "work_start_at": "2026-07-06T06:00:00",
+                                    "work_end_at": "2026-07-06T08:00:00"
                                 }
                             },
                             {
@@ -3404,8 +3404,8 @@
                                 "body": {
                                     "status": "Scheduled",
                                     "approver_id": 2,
-                                    "work_start_at": "2026-07-12T22:00:00Z",
-                                    "work_end_at": "2026-07-13T02:00:00Z",
+                                    "work_start_at": "2026-07-12T22:00:00",
+                                    "work_end_at": "2026-07-13T02:00:00",
                                     "risk_likelihood": 2,
                                     "risk_impact_score": 3
                                 }
@@ -18355,8 +18355,8 @@
                     "query": {
                         "change_type": "Emergency",
                         "cab_required": "true",
-                        "work_start_from": "2026-07-04T00:00:00Z",
-                        "work_start_to": "2026-07-11T00:00:00Z",
+                        "work_start_from": "2026-07-04T00:00:00",
+                        "work_start_to": "2026-07-11T00:00:00",
                         "sort": "work_start_at"
                     }
                 }
@@ -18401,8 +18401,8 @@
                         "risk_impact_score": 5,
                         "cab_required": true,
                         "cab_approval_type": "majority",
-                        "work_start_at": "2026-07-05T20:00:00Z",
-                        "work_end_at": "2026-07-05T22:00:00Z"
+                        "work_start_at": "2026-07-05T20:00:00",
+                        "work_end_at": "2026-07-05T22:00:00"
                     }
                 }
             ],
@@ -18455,8 +18455,8 @@
                     },
                     "body": {
                         "assigned_to_id": 3,
-                        "work_start_at": "2026-07-06T06:00:00Z",
-                        "work_end_at": "2026-07-06T08:00:00Z"
+                        "work_start_at": "2026-07-06T06:00:00",
+                        "work_end_at": "2026-07-06T08:00:00"
                     }
                 },
                 {
@@ -18468,8 +18468,8 @@
                     "body": {
                         "status": "Scheduled",
                         "approver_id": 2,
-                        "work_start_at": "2026-07-12T22:00:00Z",
-                        "work_end_at": "2026-07-13T02:00:00Z",
+                        "work_start_at": "2026-07-12T22:00:00",
+                        "work_end_at": "2026-07-13T02:00:00",
                         "risk_likelihood": 2,
                         "risk_impact_score": 3
                     }

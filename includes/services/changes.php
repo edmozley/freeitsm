@@ -1843,20 +1843,16 @@ class ChangesService
     }
 
     /**
-     * Parse a date to UTC 'Y-m-d H:i:s' (mirrors the API's apiParseDate; 400 on garbage).
+     * Parse a change's date as a wall-clock 'Y-m-d H:i:s' (serviceWallClockDateTime; 422 on an offset or garbage).
      *
-     * @param string $value  the date or date-time from the request; read as UTC unless it carries an offset
+     * @param string $value  the date or date-time from the request, local and without a time zone
      * @param string $field  the request field name, used in the error message
      */
     private static function parseDate(string $value, string $field): string
     {
-        $v = trim($value);
-        try {
-            $dt = new DateTimeImmutable($v, new DateTimeZone('UTC'));
-            return $dt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
-        } catch (Exception) {
-            throw new ServiceError('bad_request', 'invalid_parameter', "'{$field}' is not a valid date/time. Use ISO 8601, e.g. 2026-07-02T09:00:00Z.");
-        }
+        // Every date a change stores (work, outage, PIR windows) is a wall-clock time,
+        // shown exactly as typed - never read as UTC and converted (GH #375).
+        return (string)serviceWallClockDateTime($value, $field);
     }
 
     /**

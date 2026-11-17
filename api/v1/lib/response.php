@@ -95,6 +95,36 @@ function apiIsoDate(?string $dbDatetime): ?string {
 }
 
 /**
+ * A WALL-CLOCK DB value -> "YYYY-MM-DDTHH:MM:SS" with NO "Z", or null: a change's
+ * work, outage and PIR windows and a ticket's scheduled work are stored and shown
+ * exactly as typed, not as UTC instants (GH #375; serviceWallClockDateTime()).
+ *
+ * @param string|null $dbDatetime  a wall-clock datetime column value; null or '' gives null
+ */
+function apiWallClockDate(?string $dbDatetime): ?string {
+    if ($dbDatetime === null || $dbDatetime === '') {
+        return null;
+    }
+    return str_replace(' ', 'T', $dbDatetime);
+}
+
+/**
+ * A wall-clock filter value (a date, or a local date and time with no Z or offset)
+ * as "YYYY-MM-DD HH:MM:SS". 400s on an offset or garbage.
+ *
+ * @param string $value  the caller-supplied value (untrusted)
+ * @param string $field  the query parameter name, quoted in the 400 message
+ */
+function apiParseWallClock(string $value, string $field): string {
+    require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+    try {
+        return (string)serviceWallClockDateTime($value, $field);
+    } catch (ServiceError $e) {
+        apiError(400, 'invalid_parameter', $e->getMessage());
+    }
+}
+
+/**
  * Parse an incoming date/time filter or field (ISO 8601, with or without Z,
  * or "YYYY-MM-DD HH:MM:SS") into a UTC DB string. 400s on garbage.
  *

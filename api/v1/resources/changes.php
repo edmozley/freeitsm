@@ -177,10 +177,10 @@ function apiSerializeChange(array $r): array {
             'policy'     => apiChangeRiskPolicyRef($r),
         ],
         'schedule'      => [
-            'work_start_at'   => apiIsoDate($r['work_start_datetime']),
-            'work_end_at'     => apiIsoDate($r['work_end_datetime']),
-            'outage_start_at' => apiIsoDate($r['outage_start_datetime']),
-            'outage_end_at'   => apiIsoDate($r['outage_end_datetime']),
+            'work_start_at'   => apiWallClockDate($r['work_start_datetime']),
+            'work_end_at'     => apiWallClockDate($r['work_end_datetime']),
+            'outage_start_at' => apiWallClockDate($r['outage_start_datetime']),
+            'outage_end_at'   => apiWallClockDate($r['outage_end_datetime']),
         ],
         'created_by'    => $rel($r['created_by_id'], $r['created_by_name']),
         'created_at'    => apiIsoDate($r['created_datetime']),
@@ -289,7 +289,8 @@ function apiChangesList(PDO $conn, array $apiKey, array $params, array $body): v
     ] as $param => [$col, $op]) {
         if (isset($_GET[$param]) && $_GET[$param] !== '') {
             $where[] = "$col $op ?";
-            $args[]  = apiParseDate($_GET[$param], $param);
+            // The work window is wall-clock (GH #375), so its filters are too.
+            $args[]  = strncmp($param, 'work_', 5) === 0 ? apiParseWallClock($_GET[$param], $param) : apiParseDate($_GET[$param], $param);
         }
     }
 
@@ -357,8 +358,8 @@ function apiChangesGet(PDO $conn, array $apiKey, array $params, array $body): vo
     $change['pir'] = [
         'review'          => $r['post_implementation_review'],
         'was_successful'  => $r['pir_was_successful'] === null ? null : (bool)$r['pir_was_successful'],
-        'actual_start_at' => apiIsoDate($r['pir_actual_start']),
-        'actual_end_at'   => apiIsoDate($r['pir_actual_end']),
+        'actual_start_at' => apiWallClockDate($r['pir_actual_start']),
+        'actual_end_at'   => apiWallClockDate($r['pir_actual_end']),
         'lessons_learned' => $r['pir_lessons_learned'],
         'follow_up'       => $r['pir_follow_up'],
     ];

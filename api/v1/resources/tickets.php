@@ -91,12 +91,12 @@ function apiSerializeTicket(array $r): array {
         'created_at'    => apiIsoDate($r['created_datetime']),
         'updated_at'    => apiIsoDate($r['updated_datetime']),
         'closed_at'     => apiIsoDate($r['closed_datetime']),
-        'work_start_at' => apiIsoDate($r['work_start_datetime']),
+        'work_start_at' => apiWallClockDate($r['work_start_datetime']),   // wall-clock, no Z (GH #375)
         // Reported exactly as stored — NULL means nobody set one, and the API says
         // so rather than inventing the hour the UI would have drawn. A client that
         // wants to render a block applies its own default knowingly; one that just
         // wants to know what was scheduled gets the truth.
-        'work_end_at'   => apiIsoDate($r['work_end_datetime'] ?? null),
+        'work_end_at'   => apiWallClockDate($r['work_end_datetime'] ?? null),
         'work_all_day'  => (bool)($r['work_all_day'] ?? 0),
         // Read-only (#933). Reported only while it is still in the future, which is
         // the same definition of "asleep" the inbox uses — an elapsed snooze is a

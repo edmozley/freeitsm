@@ -667,7 +667,7 @@ class TicketsService
 
         if (array_key_exists('work_start_at', $in)) {
             $newWork = ($in['work_start_at'] === null || $in['work_start_at'] === '')
-                ? null : self::parseDate((string)$in['work_start_at'], 'work_start_at');
+                ? null : serviceWallClockDateTime((string)$in['work_start_at'], 'work_start_at');   // wall-clock, never converted (GH #375)
             if ($newWork !== $current['work_start_datetime']) {
                 $updates[] = 'work_start_datetime = ?';
                 $args[]    = $newWork;
@@ -692,7 +692,7 @@ class TicketsService
         // ticket on the calendar with nothing to anchor it to.
         if (array_key_exists('work_end_at', $in) && !in_array('work_end_datetime = ?', $updates, true)) {
             $newEnd = ($in['work_end_at'] === null || $in['work_end_at'] === '')
-                ? null : self::parseDate((string)$in['work_end_at'], 'work_end_at');
+                ? null : serviceWallClockDateTime((string)$in['work_end_at'], 'work_end_at');
             $effectiveStart = array_key_exists('work_start_at', $in)
                 ? $newWork : ($current['work_start_datetime'] ?? null);
             if ($newEnd !== null && $effectiveStart === null) {
