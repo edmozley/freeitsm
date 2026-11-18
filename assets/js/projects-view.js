@@ -917,19 +917,19 @@
         const p = data.project;
         const def = (L.companies || []).find(c => c.is_default) || null;
         const current = p.tenant_id != null ? Number(p.tenant_id) : (def ? Number(def.id) : null);
-        const sel = document.getElementById('pmCompany');
+        const sel = document.getElementById('pmvCompany');
         sel.innerHTML = (L.companies || []).filter(c => Number(c.id) !== current && c.name !== p.company_name)
             .map(c => '<option value="' + Number(c.id) + '">' + esc(c.name) + '</option>').join('');
-        document.getElementById('pmError').hidden = true;
-        document.getElementById('pmSave').disabled = !sel.options.length;
+        document.getElementById('pmvError').hidden = true;
+        document.getElementById('pmvSave').disabled = !sel.options.length;
         P.openModal('prjMoveModal');
     }
 
     /** Moves the project; a refusal stays in the dialog, saying what is in the way. */
     async function saveMove() {
-        const sel = document.getElementById('pmCompany');
-        const err = document.getElementById('pmError');
-        const btn = document.getElementById('pmSave');
+        const sel = document.getElementById('pmvCompany');
+        const err = document.getElementById('pmvError');
+        const btn = document.getElementById('pmvSave');
         if (!sel.value) return;
         btn.disabled = true;
         try {
@@ -974,7 +974,7 @@
         document.getElementById('pvEdit').addEventListener('click', editProject);
         document.getElementById('pvDelete').addEventListener('click', deleteProject);
         document.getElementById('pvMove').addEventListener('click', openMove);   // GH #370
-        document.getElementById('pmSave').addEventListener('click', saveMove);
+        document.getElementById('pmvSave').addEventListener('click', saveMove);
         document.getElementById('psSave').addEventListener('click', saveStage);
         document.getElementById('paSave').addEventListener('click', saveAnnounce);
         document.getElementById('paAddService').addEventListener('click', () => announceRow());

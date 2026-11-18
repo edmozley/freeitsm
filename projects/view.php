@@ -155,12 +155,12 @@ $projectId = (int)($_GET['id'] ?? 0);
             <div class="modal-header"><?php echo htmlspecialchars(t('projects.move.title')); ?></div>
             <div class="modal-body">
                 <p class="prj-muted" style="margin-top:0"><?php echo htmlspecialchars(t('projects.move.body')); ?></p>
-                <div class="form-group"><label for="pmCompany"><?php echo htmlspecialchars(t('projects.move.company')); ?></label><select id="pmCompany"></select></div>
-                <div class="prj-form-error" id="pmError" hidden></div>
+                <div class="form-group"><label for="pmvCompany"><?php echo htmlspecialchars(t('projects.move.company')); ?></label><select id="pmvCompany"></select></div>
+                <div class="prj-form-error" id="pmvError" hidden></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-prj-close="prjMoveModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                <button type="button" class="btn btn-primary prj-btn" id="pmSave"><?php echo htmlspecialchars(t('projects.view.move')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pmvSave"><?php echo htmlspecialchars(t('projects.view.move')); ?></button>
             </div>
         </div>
     </div>
@@ -289,10 +289,10 @@ $projectId = (int)($_GET['id'] ?? 0);
     <!-- #282 slice 4: an income line - money the project brings in. -->
     <div class="modal" id="prjIncomeModal" aria-hidden="true">
         <div class="modal-content" style="max-width:520px">
-            <div class="modal-header" id="piTitle"></div>
+            <div class="modal-header" id="pinTitle"></div>
             <div class="modal-body">
-                <input type="hidden" id="piId">
-                <div class="form-group"><label for="piName"><?php echo htmlspecialchars(t('projects.budget.income_name')); ?></label><input type="text" id="piName" maxlength="200" placeholder="<?php echo htmlspecialchars(t('projects.budget.income_name_ph')); ?>"></div>
+                <input type="hidden" id="pinId">
+                <div class="form-group"><label for="pinName"><?php echo htmlspecialchars(t('projects.budget.income_name')); ?></label><input type="text" id="pinName" maxlength="200" placeholder="<?php echo htmlspecialchars(t('projects.budget.income_name_ph')); ?>"></div>
                 <div class="prj-ann-when">
                     <div class="form-group"><label for="piPlanned"><?php echo htmlspecialchars(t('projects.budget.planned')); ?></label><input type="text" inputmode="decimal" id="piPlanned"></div>
                     <div class="form-group"><label for="piReceived"><?php echo htmlspecialchars(t('projects.budget.income_received')); ?></label><input type="text" inputmode="decimal" id="piReceived"></div>
@@ -303,12 +303,12 @@ $projectId = (int)($_GET['id'] ?? 0);
                 </div>
                 <div class="form-group" id="piAccountWrap"><label for="piAccount"><?php echo htmlspecialchars(t('projects.budget.account')); ?></label><select id="piAccount"></select><small class="prj-muted"><?php echo htmlspecialchars(t('projects.budget.income_account_hint')); ?></small></div>
                 <div class="form-group"><label for="piNotes"><?php echo htmlspecialchars(t('projects.budget.notes')); ?></label><input type="text" id="piNotes" maxlength="500"></div>
-                <div class="prj-form-error" id="piError" hidden></div>
+                <div class="prj-form-error" id="pinError" hidden></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" id="piDelete" style="margin-right:auto"><?php echo htmlspecialchars(t('common.delete')); ?></button>
+                <button type="button" class="btn btn-danger" id="pinDelete" style="margin-right:auto"><?php echo htmlspecialchars(t('common.delete')); ?></button>
                 <button type="button" class="btn btn-secondary" data-prj-close="prjIncomeModal"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                <button type="button" class="btn btn-primary prj-btn" id="piSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                <button type="button" class="btn btn-primary prj-btn" id="pinSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -787,7 +787,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-tools.js?v=14"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-accounts.js?v=1"></script>
-    <script src="../assets/js/projects-budget.js?v=11"></script>
+    <script src="../assets/js/projects-budget.js?v=12"></script>
     <script src="../assets/js/projects-control.js?v=2"></script>
     <script src="../assets/js/projects-intake.js?v=2"></script>
     <script src="../assets/js/projects-benefits.js?v=1"></script>
@@ -800,7 +800,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-charts.js?v=9"></script>
     <script src="../assets/js/projects-milestones.js?v=1"></script>
     <script src="../assets/js/projects-timeline.js?v=4"></script>
-    <script src="../assets/js/projects-view.js?v=35"></script>
+    <script src="../assets/js/projects-view.js?v=36"></script>
     <script src="../assets/js/projects-templates.js?v=2"></script>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

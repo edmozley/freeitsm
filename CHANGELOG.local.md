@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 2999 | Projects | Fix | **"Add someone" on a project did nothing after 5.5.0, and a project's Income dialog had never saved (GH #392, reported by @acelr22).** Two dialogs on the project page repeated element ids, and `getElementById()` finds only the first: 5.5.0's Move to company dialog reused `pmSave` / `pmError` from the People dialog, so the People dialog's Add was never wired; and since 5.1.0 the Income dialog reused six `pi*` ids from the Scope deliverable dialog, so Income's Save did nothing and a deliverable's Save also sent an `income_line_save` (no stray income lines found on the two installs checked). The Move dialog's ids are now `pmv*` and the Income dialog's `pin*`. New guard `tests/duplicate-element-ids.php` (in CI, Web exposure job) fails on any page that repeats a literal id, with the 6 safe if/else repeats listed and explained; on the old page it finds all 8. Reproduced in a real browser on a test install first (Add sent nothing; Income Save sent nothing; deliverable Save sent two requests) and re-run after. |
 
 
 
