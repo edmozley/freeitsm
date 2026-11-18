@@ -12683,6 +12683,41 @@ document.addEventListener('mousedown', function (e) {
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') { closeTicketContextMenu(); closeTrashContextMenu(); }
 });
+
+/**
+ * Keeps a right-click flyout (Set status, Assign to, Move to company...) inside the window.
+ *
+ * A flyout opens beside its row and runs downward, so on a row near the bottom of the
+ * window its lower entries went off the page and could not be reached - Move to company,
+ * the last flyout, first. When it would run off, it slides up until it fits, and it is
+ * never taller than the window (it scrolls instead). Measured each time it opens, because
+ * the menu's own position and the flyout's length change from one right-click to the next.
+ * @param parent the .ticket-context-menu-parent row being opened
+ */
+function fitTicketContextSubmenu(parent) {
+    const sub = parent.querySelector(':scope > .ticket-context-submenu');
+    if (!sub) return;
+    const MARGIN = 6;
+    sub.style.top = '';
+    sub.style.maxHeight = '';
+    if (ticketMenuIsSheet()) return;   // the phone sheet shows a second level instead
+    const cssMax = parseFloat(getComputedStyle(sub).maxHeight) || Infinity;
+    sub.style.maxHeight = Math.min(cssMax, window.innerHeight - 2 * MARGIN) + 'px';
+    const r = sub.getBoundingClientRect();
+    const over = r.bottom - (window.innerHeight - MARGIN);
+    if (over > 0) {
+        const top = Math.max(MARGIN, r.top - over);
+        sub.style.top = (top - parent.getBoundingClientRect().top) + 'px';
+    }
+}
+// Once per entry into a row (hover or keyboard focus), not on every move inside it.
+['mouseover', 'focusin'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+        const parent = e.target.closest ? e.target.closest('.ticket-context-menu .ticket-context-menu-parent') : null;
+        if (!parent || (e.relatedTarget instanceof Node && parent.contains(e.relatedTarget))) return;
+        fitTicketContextSubmenu(parent);
+    });
+});
 // Right-clicking a different row should reopen, not stack
 window.addEventListener('blur', closeTicketContextMenu);
 window.addEventListener('scroll', function (e) {
