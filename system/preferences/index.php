@@ -213,6 +213,14 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             --on-accent: var(--sys-on-accent, #fff);
         }
 
+        /* Only the switch label activates a preference, never its caption or row. */
+        .pref-section .toggle-group,
+        .pref-section .toggle-label { cursor: default; }
+        .pref-section .toggle-switch input:focus-visible + .toggle-slider {
+            outline: 2px solid var(--sys-accent, #546e7a);
+            outline-offset: 3px;
+        }
+
         /* Same shell as the other System pages (system/analysts) and the module
            Settings pages: a flex wrapper pins the header and .settings-scroll is the
            only scroll region, rather than a fragile `height: calc(100vh - 48px)`.
@@ -658,13 +666,13 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             <div class="pref-section">
                 <h3 id="search-panel"><?php echo htmlspecialchars(t('system.preferences.search_dismiss_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.search_dismiss_desc')); ?></p>
-                <label class="toggle-group">
-                    <span class="toggle-switch">
-                        <input type="checkbox" id="searchDismissToggle" <?php echo $prefs['search_panel_close_outside'] === 'on' ? 'checked' : ''; ?>>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="searchDismissToggleLabel" id="searchDismissToggle" <?php echo $prefs['search_panel_close_outside'] === 'on' ? 'checked' : ''; ?>>
                         <span class="toggle-slider"></span>
-                    </span>
-                    <span class="toggle-label"><?php echo htmlspecialchars(t('system.preferences.search_dismiss_label')); ?></span>
-                </label>
+                    </label>
+                    <span class="toggle-label" id="searchDismissToggleLabel"><?php echo htmlspecialchars(t('system.preferences.search_dismiss_label')); ?></span>
+                </div>
                 <span class="pref-saving-hint" id="searchDismissSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
 
@@ -672,13 +680,13 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             <div class="pref-section">
                 <h3 id="module-sections"><?php echo htmlspecialchars(t('system.preferences.section_memory_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.section_memory_desc')); ?></p>
-                <label class="toggle-group">
-                    <span class="toggle-switch">
-                        <input type="checkbox" id="sectionMemoryToggle" <?php echo $prefs['remember_module_section'] === 'on' ? 'checked' : ''; ?>>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="sectionMemoryToggleLabel" id="sectionMemoryToggle" <?php echo $prefs['remember_module_section'] === 'on' ? 'checked' : ''; ?>>
                         <span class="toggle-slider"></span>
-                    </span>
-                    <span class="toggle-label"><?php echo htmlspecialchars(t('system.preferences.section_memory_label')); ?></span>
-                </label>
+                    </label>
+                    <span class="toggle-label" id="sectionMemoryToggleLabel"><?php echo htmlspecialchars(t('system.preferences.section_memory_label')); ?></span>
+                </div>
                 <span class="pref-saving-hint" id="sectionMemorySavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
 
@@ -902,13 +910,13 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                              switch component and deliberately puts the caption above the
                              switch (via order:1). Overriding align-items here centred
                              every row against the rest of the page. -->
-                        <label class="toggle-group">
-                            <span class="toggle-switch">
-                                <input type="checkbox" class="notif-type" data-type="<?php echo htmlspecialchars($key); ?>" <?php echo $on ? 'checked' : ''; ?>>
+                        <div class="toggle-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" aria-labelledby="notifLabel_<?php echo htmlspecialchars($key); ?>" class="notif-type" data-type="<?php echo htmlspecialchars($key); ?>" <?php echo $on ? 'checked' : ''; ?>>
                                 <span class="toggle-slider"></span>
-                            </span>
-                            <span class="toggle-label"><?php echo htmlspecialchars(t('common.notifications.pref.' . $key)); ?></span>
-                        </label>
+                            </label>
+                            <span class="toggle-label" id="notifLabel_<?php echo htmlspecialchars($key); ?>"><?php echo htmlspecialchars(t('common.notifications.pref.' . $key)); ?></span>
+                        </div>
                     <?php endforeach; ?>
                 </div>
                 <span class="pref-saving-hint" id="notifSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
@@ -941,13 +949,13 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             <div class="pref-section">
                 <h3 id="desktop"><?php echo htmlspecialchars(t('system.preferences.desktop_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.desktop_desc')); ?></p>
-                <label class="toggle-group">
-                    <span class="toggle-switch">
-                        <input type="checkbox" id="desktopNotifToggle" <?php echo $prefs['desktop_notifications'] === 'on' ? 'checked' : ''; ?>>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="desktopNotifToggleLabel" id="desktopNotifToggle" <?php echo $prefs['desktop_notifications'] === 'on' ? 'checked' : ''; ?>>
                         <span class="toggle-slider"></span>
-                    </span>
-                    <span class="toggle-label"><?php echo htmlspecialchars(t('system.preferences.desktop_label')); ?></span>
-                </label>
+                    </label>
+                    <span class="toggle-label" id="desktopNotifToggleLabel"><?php echo htmlspecialchars(t('system.preferences.desktop_label')); ?></span>
+                </div>
                 <button type="button" class="sig-btn sig-btn-secondary" id="desktopNotifTest" style="margin-top:10px;"><?php echo htmlspecialchars(t('system.preferences.desktop_test')); ?></button>
                 <span class="pref-saving-hint" id="desktopNotifHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
                 <p class="pref-hint" id="desktopNotifState" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;"></p>
@@ -957,13 +965,13 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             <div class="pref-section">
                 <h3 id="task-email"><?php echo htmlspecialchars(t('system.preferences.task_email_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.task_email_desc')); ?></p>
-                <label class="toggle-group">
-                    <span class="toggle-switch">
-                        <input type="checkbox" id="taskEmailToggle" <?php echo $prefs['task_assigned_email'] === 'on' ? 'checked' : ''; ?>>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="taskEmailToggleLabel" id="taskEmailToggle" <?php echo $prefs['task_assigned_email'] === 'on' ? 'checked' : ''; ?>>
                         <span class="toggle-slider"></span>
-                    </span>
-                    <span class="toggle-label"><?php echo htmlspecialchars(t('system.preferences.task_email_label')); ?></span>
-                </label>
+                    </label>
+                    <span class="toggle-label" id="taskEmailToggleLabel"><?php echo htmlspecialchars(t('system.preferences.task_email_label')); ?></span>
+                </div>
                 <span class="pref-saving-hint" id="taskEmailHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
 
@@ -1025,13 +1033,13 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             <div class="pref-section">
                 <h3 id="app-sidebar"><?php echo htmlspecialchars(t('system.preferences.sidebar_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.sidebar_desc')); ?></p>
-                <label class="toggle-group">
-                    <span class="toggle-switch">
-                        <input type="checkbox" id="appSidebarToggle" <?php echo $sbPrefs['on'] ? 'checked' : ''; ?>>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="appSidebarToggleLabel" id="appSidebarToggle" <?php echo $sbPrefs['on'] ? 'checked' : ''; ?>>
                         <span class="toggle-slider"></span>
-                    </span>
-                    <span class="toggle-label"><?php echo htmlspecialchars(t('system.preferences.sidebar_label')); ?></span>
-                </label>
+                    </label>
+                    <span class="toggle-label" id="appSidebarToggleLabel"><?php echo htmlspecialchars(t('system.preferences.sidebar_label')); ?></span>
+                </div>
                 <div id="appSidebarModules" class="app-sidebar-pick"<?php echo $sbPrefs['on'] ? '' : ' hidden'; ?>>
                     <?php /* How names show (#124). Icons only is the default - what
                              the sidebar has always done. */ ?>
@@ -1103,13 +1111,13 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
             <div class="pref-section">
                 <h3 id="ticket-workspace"><?php echo htmlspecialchars(t('system.preferences.ticket_workspace_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.ticket_workspace_desc')); ?></p>
-                <label class="toggle-group">
-                    <span class="toggle-switch">
-                        <input type="checkbox" id="ticketWorkspacePref" <?php echo ticketWorkspacePersonal($prefs['ticket_workspace']) ? 'checked' : ''; ?>>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" aria-labelledby="ticketWorkspacePrefLabel" id="ticketWorkspacePref" <?php echo ticketWorkspacePersonal($prefs['ticket_workspace']) ? 'checked' : ''; ?>>
                         <span class="toggle-slider"></span>
-                    </span>
-                    <span class="toggle-label"><?php echo htmlspecialchars(t('system.preferences.ticket_workspace_label')); ?></span>
-                </label>
+                    </label>
+                    <span class="toggle-label" id="ticketWorkspacePrefLabel"><?php echo htmlspecialchars(t('system.preferences.ticket_workspace_label')); ?></span>
+                </div>
             </div>
             <?php endif; ?>
 
