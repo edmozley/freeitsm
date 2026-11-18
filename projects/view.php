@@ -787,7 +787,7 @@ $projectId = (int)($_GET['id'] ?? 0);
     <script src="../assets/js/projects-tools.js?v=14"></script>
     <script src="../assets/js/projects-targets.js?v=1"></script>
     <script src="../assets/js/projects-accounts.js?v=1"></script>
-    <script src="../assets/js/projects-budget.js?v=12"></script>
+    <script src="../assets/js/projects-budget.js?v=13"></script>
     <script src="../assets/js/projects-control.js?v=2"></script>
     <script src="../assets/js/projects-intake.js?v=2"></script>
     <script src="../assets/js/projects-benefits.js?v=1"></script>
