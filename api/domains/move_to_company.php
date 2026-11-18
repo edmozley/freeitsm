@@ -1,6 +1,6 @@
 <?php
 /**
- * POST { id, tenant_id } - move a domain to another company (GH #384), with its
+ * POST { id, company_id } - move a domain to another company (GH #384), with its
  * internal view and subdomains. Thin adapter over DomainsService::moveToCompany(),
  * which holds every rule: both-ends access, what moves together, what is refused
  * and what is cleared. Nothing is decided here, so the REST API and the page
@@ -16,7 +16,7 @@ csrfRequireWriteMethod();
 domainApiRun(function () use ($conn, $ctx, $analystId) {
     $in       = domainApiBody();
     $id       = (int)($in['id'] ?? 0);
-    $targetId = (int)($in['tenant_id'] ?? 0);
+    $targetId = (int)($in['company_id'] ?? 0);
     if ($id <= 0 || !analystCanAccessDomain($conn, $analystId, $id)) domainApiFail('Domain not found.');
     if ($targetId <= 0) domainApiFail('A target company is required.');
     $res = DomainsService::moveToCompany($conn, $ctx, $id, $targetId);

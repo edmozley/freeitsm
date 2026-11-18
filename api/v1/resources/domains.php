@@ -315,7 +315,16 @@ function apiDomainsCreate(PDO $conn, array $apiKey, array $params, array $body):
 function apiDomainsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
     apiDomainRefuseAuthCode($body);
     $id = (int)$params[0];
-    apiLoadDomain($conn, $apiKey, $id);          // 404 first, before any body check
+    $row = apiLoadDomain($conn, $apiKey, $id);   // 404 first, before any body check
+    // GH #384: company_id is not changed here. A different company is a 422 naming the
+    // endpoint that moves it (as PATCH /projects since GH #370); the company it is
+    // already in is accepted.
+    if (isset($body['company_id']) && $body['company_id'] !== '' && $body['company_id'] !== null && isMultiTenant($conn)) {
+        $current = ($row['tenant_id'] ?? null) === null ? (int)getDefaultTenantId($conn) : (int)$row['tenant_id'];
+        if ((int)$body['company_id'] !== $current) {
+            apiError(422, 'invalid_field', "'company_id' cannot be changed with PATCH. Use POST /domains/{$id}/move-to-company.");
+        }
+    }
     unset($body['company_id'], $body['id'], $body['lookup']);
     try {
         DomainsService::updateDomain($conn, ActorContext::fromApiKey($apiKey), $id, $body, 'api');
@@ -374,8 +383,11 @@ function apiDomainsMoveToCompany(PDO $conn, array $apiKey, array $params, array 
     if (filter_var($body['company_id'], FILTER_VALIDATE_INT) === false || (int)$body['company_id'] <= 0) {
         apiError(422, 'invalid_field', 'company_id must be a positive integer.');
     }
+    $target = (int)$body['company_id'];
+    if (!getTenantById($conn, $target)) apiError(422, 'invalid_field', "Unknown company id: {$target}");
+    if (!apiKeyCanAccessTenant($conn, $apiKey, $target)) apiError(403, 'forbidden', 'This API key is not scoped to that company.');
     try {
-        $r = DomainsService::moveToCompany($conn, ActorContext::fromApiKey($apiKey), $id, (int)$body['company_id']);
+        $r = DomainsService::moveToCompany($conn, ActorContext::fromApiKey($apiKey), $id, $target);
         $out = apiSerializeDomain(apiLoadDomain($conn, $apiKey, $id));
         $out['moved']   = $r['moved'];
         $out['moved_ids'] = $r['ids'];

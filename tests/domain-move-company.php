@@ -26,6 +26,11 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  * Never fires a workflow: the domain.* events dispatch only to configured
  * workflows, and the test install has none for domains.
  * Control: drop a refusal or a clear from moveToCompany() and its check fails.
+ *
+ * With FREEITSM_TEST_URL=<this install's address> it also checks the REST API over
+ * real HTTP, with a ZZ API key (removed in finally): PATCH refuses a different
+ * company_id, POST /domains/{id}/move-to-company moves and refuses an unknown company.
+ * Without it those checks are skipped.
  */
 
 require_once __DIR__ . '/../config.php';
@@ -182,6 +187,40 @@ try {
 
     $back = DomainsService::moveToCompany($conn, $ctx, $p, $default);
     ok('moving back to Default stores NULL', $back['moved'] === 3 && tenants($conn, $group) === [$p => null, $twin => null, $sub => null], json_encode(tenants($conn, $group)));
+
+    $base = rtrim((string)getenv('FREEITSM_TEST_URL'), '/');
+    if ($base === '') {
+        echo "
+REST API: skipped (set FREEITSM_TEST_URL to this install's address)
+";
+    } else {
+        echo "
+REST API
+";
+        $raw = 'zzk_' . bin2hex(random_bytes(20));
+        $conn->prepare("INSERT INTO api_keys (name, key_prefix, key_hash, analyst_id, permissions, company_ids, created_datetime) VALUES (?, ?, ?, ?, ?, NULL, UTC_TIMESTAMP())")
+             ->execute(['ZZ domain move', substr($raw, 0, 12), hash('sha256', $raw), $viewer, json_encode(['domains' => ['read', 'update']])]);
+        $made['api_keys'][] = (int)$conn->lastInsertId();
+        $call = function (string $method, string $path, array $body) use ($base, $raw): array {
+            $ch = curl_init("$base/api/v1$path");
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CUSTOMREQUEST => $method, CURLOPT_TIMEOUT => 30,
+                CURLOPT_POSTFIELDS => json_encode($body), CURLOPT_HTTPHEADER => ["Authorization: Bearer $raw", 'Content-Type: application/json']]);
+            $out = (string)curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
+            return [$code, json_decode($out, true) ?: ['raw' => substr($out, 0, 300)]];
+        };
+        // With a real field, or the 'no fields to change' 422 would pass the first check.
+        [$c, $r] = $call('PATCH', "/domains/$p", ['company_id' => $tenantZ, 'notes' => 'zz']);
+        ok('PATCH with another company_id is refused (422), not ignored', $c === 422 && str_contains(json_encode($r), 'move-to-company') && tenants($conn, [$p]) === [$p => null], "$c " . json_encode($r));
+        [$c, $r] = $call('PATCH', "/domains/$p", ['company_id' => $default, 'notes' => 'zz']);
+        ok('  control: PATCH naming the company it is in is accepted', $c === 200, "$c " . json_encode($r));
+        [$c, $r] = $call('POST', "/domains/$p/move-to-company", ['company_id' => 999999999]);
+        ok('POST move-to-company: an unknown company is 422', $c === 422, "$c " . json_encode($r));
+        [$c, $r] = $call('POST', "/domains/$p/move-to-company", ['company_id' => $tenantZ]);
+        ok('POST move-to-company moves the group', $c === 200 && ($r['data']['moved'] ?? null) === 3 && ($r['data']['company']['id'] ?? null) === $tenantZ
+            && tenants($conn, $group) === [$p => $tenantZ, $twin => $tenantZ, $sub => $tenantZ], "$c " . json_encode($r));
+        [$c, $r] = $call('POST', "/domains/$p/move-to-company", ['company_id' => $default]);
+        ok('  and back to Default', $c === 200 && tenants($conn, $group) === [$p => null, $twin => null, $sub => null], "$c " . json_encode($r));
+    }
 } catch (Throwable $e) {
     $fail++;
     echo "  FAIL  unexpected " . get_class($e) . ': ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n";

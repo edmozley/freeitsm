@@ -7454,7 +7454,7 @@
                     "p": "\/domains\/{id}",
                     "perm": "domains.update",
                     "s": "Update a domain",
-                    "d": "Send only the fields to change; \"\" or null clears one. Every change is written to the domain's history with source \"api\" and fires the domain.updated workflow event. auth_code is refused; the company cannot be changed here (POST \/domains\/{id}\/move-to-company does that).",
+                    "d": "Send only the fields to change; \"\" or null clears one. Every change is written to the domain's history with source \"api\" and fires the domain.updated workflow event. auth_code is refused. company_id cannot change here: a different company is 422 - use POST \/domains\/{id}\/move-to-company; the company it is already in is accepted.",
                     "params": [
                         {
                             "name": "id",
@@ -7494,6 +7494,11 @@
                                 "code": 422,
                                 "slug": "missing_field",
                                 "when": "The body names no fields to change."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "company_id names a different company (use POST \/domains\/{id}\/move-to-company)."
                             }
                         ]
                     },
@@ -7633,6 +7638,16 @@
                         ],
                         "errors": [
                             {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such domain, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The target company is outside the key's companies."
+                            },
+                            {
                                 "code": 409,
                                 "slug": "conflict",
                                 "when": "The target company already has the name in the same scope."
@@ -7645,7 +7660,7 @@
                             {
                                 "code": 422,
                                 "slug": "invalid_field",
-                                "when": "The key cannot reach that company, the domain is a subdomain, or it is linked to tickets, CMDB objects or a contract."
+                                "when": "company_id is not a whole number or an unknown company, or the move is refused: the domain is a subdomain, or it is linked to tickets, CMDB objects or a contract - the message says which."
                             }
                         ]
                     },

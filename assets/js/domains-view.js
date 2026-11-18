@@ -930,7 +930,7 @@
         const tenantId = Number(document.getElementById('mvCompany').value);
         if (!tenantId) return;
         try {
-            const r = await api('move_to_company.php', { id: ID, tenant_id: tenantId });
+            const r = await api('move_to_company.php', { id: ID, company_id: tenantId });
             window.Dom.closeModal('mMove');
             let msg = r.moved > 1 ? T('move.done_many', { company: r.company_name, n: r.moved }) : T('move.done', { company: r.company_name });
             const cl = [];
