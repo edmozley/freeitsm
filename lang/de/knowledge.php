@@ -90,6 +90,9 @@ return [
         'move_failed' => 'Die ausgewählten Artikel konnten nicht verschoben werden',
     ],
     'editor' => [
+        'image_type' => 'Wählen Sie ein PNG-, JPEG-, GIF- oder WebP-Bild.',   // GH #391
+        'image_too_big' => 'Das Bild ist auch verkleinert zu groß. Versuchen Sie ein kleineres.',
+        'image_unreadable' => 'Das Bild konnte nicht gelesen werden.',
         'new_title' => 'Neuer Artikel',
         'edit_title' => 'Artikel bearbeiten',
         'popout_title' => 'Vollbildansicht umschalten',

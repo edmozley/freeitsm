@@ -90,6 +90,9 @@ return [
         'move_failed' => 'Artikel yang dipilih tidak dapat dipindahkan',
     ],
     'editor' => [
+        'image_type' => 'Pilih gambar PNG, JPEG, GIF, atau WebP.',   // GH #391
+        'image_too_big' => 'Gambar terlalu besar untuk ditambahkan, bahkan setelah diperkecil. Coba yang lebih kecil.',
+        'image_unreadable' => 'Gambar tidak dapat dibaca.',
         'new_title' => 'Artikel baru',
         'edit_title' => 'Edit artikel',
         'popout_title' => 'Alihkan tampilan layar penuh',

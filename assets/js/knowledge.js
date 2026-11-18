@@ -260,6 +260,11 @@ function initTinyMCE() {
         file_picker_callback: function(callback, value, meta) {
             if (meta.filetype === 'file') kbOpenArticleLinkPicker(callback, meta);
         },
+        // GH #391: the image dialog's Upload tab - choose a picture from your computer.
+        // It is embedded in the article exactly as a pasted or dragged-in picture always
+        // was (TinyMCE sends those through this same handler), but a large photo is
+        // first scaled down so an article does not carry megabytes of camera image.
+        images_upload_handler: blobInfo => kbEmbedImage(blobInfo.blob()),
         codesample_languages: [
             { text: 'PowerShell', value: 'powershell' },
             { text: 'Bash/Shell', value: 'bash' },
@@ -304,6 +309,45 @@ function initTinyMCE() {
             });
         }
     });
+}
+
+/** The longest side, in pixels, a picture is scaled down to before it is embedded. */
+const KB_IMAGE_MAX_SIDE = 1600;
+/** The most a picture may weigh once embedded (base64 adds a third). */
+const KB_IMAGE_MAX_BYTES = 3 * 1024 * 1024;
+
+/**
+ * A picture chosen in the image dialog (or pasted / dragged in) as a data: URL for the
+ * article (GH #391). PNG, JPEG, GIF and WebP only. Larger than KB_IMAGE_MAX_SIDE on its
+ * longest side: scaled down (a GIF is left alone, so an animation keeps moving).
+ * Rejects - TinyMCE shows the message - when it is not a picture or still too big.
+ *
+ * @param {Blob} blob  the file
+ * @returns {Promise<string>} the data: URL to put in the article
+ */
+function kbEmbedImage(blob) {
+    const t = (k, fallback) => { const v = window.t ? window.t('knowledge.editor.' + k) : ''; return v && v !== 'knowledge.editor.' + k ? v : fallback; };
+    const read = b => new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => bad(t('image_unreadable', 'That picture could not be read.')); r.readAsDataURL(b); });
+    const fits = url => url.length <= KB_IMAGE_MAX_BYTES * 4 / 3 ? url : Promise.reject(t('image_too_big', 'That picture is too large to add, even scaled down. Try a smaller one.'));
+    if (!/^image\/(png|jpe?g|gif|webp)$/.test(blob.type)) {
+        return Promise.reject(t('image_type', 'Choose a PNG, JPEG, GIF or WebP picture.'));
+    }
+    if (blob.type === 'image/gif') return read(blob).then(fits);
+    return read(blob).then(url => new Promise((ok, bad) => {
+        const img = new Image();
+        img.onload = () => {
+            const scale = Math.min(1, KB_IMAGE_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+            if (scale === 1) { ok(url); return; }
+            const c = document.createElement('canvas');
+            c.width = Math.round(img.naturalWidth * scale);
+            c.height = Math.round(img.naturalHeight * scale);
+            c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+            // A PNG may be transparent (a diagram, a screenshot of a window), so it stays PNG.
+            ok(blob.type === 'image/png' ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => bad(t('image_unreadable', 'That picture could not be read.'));
+        img.src = url;
+    })).then(fits);
 }
 
 let kbArticleLinkPicker = null;

@@ -90,6 +90,9 @@ return [
         'move_failed' => 'No se han podido mover los artículos seleccionados',
     ],
     'editor' => [
+        'image_type' => 'Elija una imagen PNG, JPEG, GIF o WebP.',   // GH #391
+        'image_too_big' => 'La imagen es demasiado grande para añadirla, incluso reducida. Pruebe con una más pequeña.',
+        'image_unreadable' => 'No se pudo leer la imagen.',
         'new_title' => 'Nuevo artículo',
         'edit_title' => 'Editar artículo',
         'popout_title' => 'Alternar vista a pantalla completa',

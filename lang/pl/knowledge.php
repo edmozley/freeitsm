@@ -90,6 +90,9 @@ return [
         'move_failed' => 'Nie udało się przenieść zaznaczonych artykułów',
     ],
     'editor' => [
+        'image_type' => 'Wybierz obraz PNG, JPEG, GIF lub WebP.',   // GH #391
+        'image_too_big' => 'Ten obraz jest za duży, nawet po zmniejszeniu. Spróbuj mniejszego.',
+        'image_unreadable' => 'Nie udało się odczytać obrazu.',
         'new_title' => 'Nowy artykuł',
         'edit_title' => 'Edytuj artykuł',
         'popout_title' => 'Przełącz widok pełnoekranowy',

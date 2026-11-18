@@ -99,6 +99,9 @@ return [
     ],
 
     'editor' => [
+        'image_type' => 'Choose a PNG, JPEG, GIF or WebP picture.',   // GH #391
+        'image_too_big' => 'That picture is too large to add, even scaled down. Try a smaller one.',
+        'image_unreadable' => 'That picture could not be read.',
         'new_title'        => 'New article',
         'edit_title'       => 'Edit article',
         'popout_title'     => 'Toggle full-screen view',

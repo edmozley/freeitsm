@@ -90,6 +90,9 @@ return [
         'move_failed' => 'Kunne ikke flytte de valgte artikler',
     ],
     'editor' => [
+        'image_type' => 'Vælg et PNG-, JPEG-, GIF- eller WebP-billede.',   // GH #391
+        'image_too_big' => 'Billedet er for stort til at blive tilføjet, selv nedskaleret. Prøv et mindre.',
+        'image_unreadable' => 'Billedet kunne ikke læses.',
         'new_title' => 'Ny artikel',
         'edit_title' => 'Redigér artikel',
         'popout_title' => 'Skift fuldskærmsvisning',
