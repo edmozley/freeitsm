@@ -61,7 +61,7 @@ $toolRunner = !empty($tool['runner']) ? preg_replace('/[^a-z0-9-]/', '', (string
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.debug.heading'), $tool['id'] . ' · ' . $tool['title'])); ?></title>
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=93">
     <style>
         body {
             /* System is the FIRST module whose DARK accent is a LIGHT colour (#90a4ae).

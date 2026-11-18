@@ -33,7 +33,7 @@ $contract_id = $_GET['id'] ?? null;
     <?php echo Money::scriptTag(); ?>
     <script src="../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=93">
     <script src="../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
     <style>
         /* Full-screen layout with sidebar - matches contracts dashboard */

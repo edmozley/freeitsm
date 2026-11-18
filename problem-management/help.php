@@ -22,7 +22,7 @@ $path_prefix = '../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('problems', 'Help')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=93">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=6">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */

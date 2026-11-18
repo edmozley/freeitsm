@@ -54,7 +54,7 @@ $choices = [0, 7, 30, 90, 180, 365];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('war-room', t('war-room.nav.settings'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
     <style>
         body { --accent: var(--war-room-accent, #ea580c); --accent-hover: var(--war-room-accent-hover, #c2410c); }
         /* Full-width settings page, matching the canonical settings layout. */

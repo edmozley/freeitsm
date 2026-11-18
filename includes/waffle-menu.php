@@ -944,6 +944,9 @@ function renderWaffleMenuJS() {
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/confirm.js?v=7"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/clipboard.js?v=1"></script>
+    <!-- Keeps the header on one line: tighter, then icon-only nav buttons when
+         the window is too narrow for them (see inbox.css). -->
+    <script src="<?php echo BASE_URL; ?>assets/js/header-fit.js?v=1"></script>
     <!-- Escape (always) and click-away (opt-in) for the draggable search panel,
          shared by the four modules that have one — see #144. -->
     <script src="<?php echo BASE_URL; ?>assets/js/search-panel-dismiss.js?v=1"></script>

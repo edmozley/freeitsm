@@ -61,7 +61,7 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.sso.maint_page_title'))); ?></title>
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=93">
     <style>
         /* System module accent (blue-grey), as on Orphaned tickets. */
         .dmp-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; margin: 0 0 12px; }

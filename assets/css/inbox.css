@@ -195,6 +195,49 @@ body {
     gap: 20px;
 }
 
+/* ---------------------------------------------------------------
+   Keeping the header on one screen (desktop). The nav buttons'
+   min-widths above add up to ~1000px in the larger modules, and
+   with a company switcher on the right the bar outgrew common
+   laptop widths, pushing the avatar off the page. Now the waffle
+   and the right-hand group never shrink, and assets/js/header-fit.js
+   steps the nav down only as far as the width needs:
+     .header-fit-tight  - buttons drop their min-width and pad less
+     .header-fit-icons  - icons only; each button keeps its label
+                          as a tooltip (title) and accessible name
+   Phones keep mobile.css's drawer, so all of this is >= 769px.
+   --------------------------------------------------------------- */
+@media (min-width: 769px) {
+    .header > .waffle-menu-container,
+    .header > .header-right { flex-shrink: 0; }
+
+    .header.header-fit-tight .header-nav { gap: 4px; }
+    .header.header-fit-tight .header-nav .nav-btn {
+        min-width: 0;
+        padding: 8px 10px;
+        white-space: nowrap;
+    }
+    .header.header-fit-tight .header-right { gap: 12px; }
+    .header.header-fit-tight .tenant-switcher { margin-right: 4px; }
+    .header.header-fit-tight .tenant-switcher-btn { max-width: 170px; }
+
+    .header.header-fit-icons .header-nav {
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .header.header-fit-icons .header-nav::-webkit-scrollbar { display: none; }
+    .header.header-fit-icons .header-nav .nav-btn {
+        flex-shrink: 0;
+        width: 38px;
+        padding: 8px;
+        gap: 16px;
+        justify-content: flex-start;
+        overflow: hidden;
+    }
+    .header.header-fit-icons .tenant-switcher-btn { max-width: 140px; }
+}
+
 .user-info {
     font-size: 14px;
 }

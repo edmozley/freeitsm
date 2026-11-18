@@ -30,7 +30,7 @@ $translationNamespaces = ['common', 'system-wiki'];
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=93">
     <style>
         body { --accent: var(--wiki-accent, #c62828); }
 

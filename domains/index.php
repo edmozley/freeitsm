@@ -38,7 +38,7 @@ $translationNamespaces = ['common', 'domains'];
     <?php echo Money::scriptTag(); ?>
     <script src="../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=79">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=93">
     <link rel="stylesheet" href="../assets/css/domains.css?v=8">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">
 </head>
