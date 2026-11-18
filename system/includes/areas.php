@@ -354,6 +354,16 @@ function getSystemAreas() {
             'desc'     => 'system.landing.topology_desc',
             'keywords' => 'system.landing.topology_keywords',
         ],
+        // Storage usage (5.6.0): every folder FreeITSM keeps files in, with counts and sizes.
+        // Read only, and deliberately NOT system/storage/: that address is PR #361's (where files are kept, S3, moves).
+        [
+            'icon'     => 'storage_usage',
+            'url'      => 'storage-usage/',
+            'group'    => 'health',
+            'title'    => 'system.landing.storage_usage_title',
+            'desc'     => 'system.landing.storage_usage_desc',
+            'keywords' => 'system.landing.storage_usage_keywords',
+        ],
         // Maintenance (GH #263): the tools that find data left behind and put it
         // right - Orphaned tickets first. 'tools' makes the System search find
         // each tool by its own name too (systemAreaKeywords()).
@@ -529,6 +539,8 @@ function systemAreaIcon($key) {
         // A ledger: a book with ruled lines and a column - the chart of accounts.
         'accounts'    => '<rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M9 3v18"></path><path d="M12 8h5"></path><path d="M12 12h5"></path><path d="M12 16h5"></path>',
         'routing_test'=> '<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>',
+        // A hard drive: two stacked drive bays with their lights - System -> Storage usage.
+        'storage_usage' => '<rect x="2" y="3" width="20" height="8" rx="2"></rect><rect x="2" y="13" width="20" height="8" rx="2"></rect><line x1="6" y1="7" x2="6.01" y2="7"></line><line x1="6" y1="17" x2="6.01" y2="17"></line><line x1="11" y1="7" x2="18" y2="7"></line><line x1="11" y1="17" x2="18" y2="17"></line>',
         'topology'    => '<rect x="9" y="3" width="6" height="5" rx="1"></rect><rect x="3" y="16" width="6" height="5" rx="1"></rect><rect x="15" y="16" width="6" height="5" rx="1"></rect><path d="M12 8v4M6 16v-2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"></path>',
         // An award ribbon — thanks, not administration. Deliberately not the
         // same star used inside the cards, so the tile is not just a smaller

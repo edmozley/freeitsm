@@ -601,6 +601,16 @@ function getHelpTopics() {
             ],
             'terms' => 'map overview tree structure relationships diagram graph audit review who has access mailbox domain',
         ],
+        'storage-usage' => [
+            'hero' => 'Storage usage',
+            'sub'  => 'Every folder FreeITSM keeps files in - attachments, documents, Files, learning content and the rest - where it is on the server, how many files it holds and how much space they take. Nothing on the page changes anything.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'Overview'],
+                ['id' => 'columns',  'label' => 'Reading the table'],
+                ['id' => 'backups',  'label' => 'Backups and Docker'],
+            ],
+            'terms' => 'storage disk space folder folders path where uploads attachments size usage full backup volume docker s3 move relocate',
+        ],
         'maintenance' => [
             'hero' => 'Maintenance',
             'sub'  => 'Data gets left behind: a department is deleted and its tickets keep pointing at it. Maintenance gathers the tools that find it and put it right, and says on each one how much it has found.',
