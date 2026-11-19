@@ -16,6 +16,7 @@ require __DIR__ . '/_top.php';
     </div>
     <p>The card only appears when FreeITSM is running in its Docker image. On any other install, your web server (Apache, IIS or nginx) handles HTTPS, and you set it up there.</p>
     <div class="help-note">If a reverse proxy such as Caddy, Traefik or nginx already sits in front of the container, let it handle HTTPS and ignore this page.</div>
+    <div class="help-note"><strong>Behind a proxy, every request comes from the proxy's address</strong>, and that is what System &rarr; Logs, the audit trails and API key allow-lists see. To record the real address instead, name the proxy in <code>docker-compose.yml</code>, for example <code>TRUSTED_PROXIES=10.0.0.5</code>. It takes IPv4 or IPv6 addresses, ranges such as <code>10.0.0.0/8</code>, or the proxy's container name, separated by spaces or commas. The address is then read from <code>X-Forwarded-For</code>; for a Cloudflare Tunnel, add <code>TRUSTED_PROXY_HEADER=CF-Connecting-IP</code>. The header is believed only on requests from the addresses you list, so list the proxy and nothing wider. It works with or without the container's own certificate and does not need <code>TRUST_PROXY_HTTPS</code>. Run <code>docker compose up -d</code> after changing it; <code>docker logs</code> says whether it was accepted. On other installs, set up <code>mod_remoteip</code> (Apache) or your web server's equivalent.</div>
 </div>
 
 <!-- 2. Why -->

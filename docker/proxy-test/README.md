@@ -11,8 +11,8 @@ needs its own stack.
 
 | Service | Port | What it is |
 |---|---|---|
-| `proxy` | [https://localhost:8453](https://localhost:8453) | nginx 1.27, TLS on, sends `X-Forwarded-Proto` |
-| `app` | none | FreeITSM built from this checkout, `TRUST_PROXY_HTTPS=1` |
+| `proxy` | [https://localhost:8453](https://localhost:8453) | nginx 1.27, TLS on, sends `X-Forwarded-Proto`, `X-Forwarded-For` and `CF-Connecting-IP` |
+| `app` | none | FreeITSM built from this checkout, `TRUST_PROXY_HTTPS=1`, `TRUSTED_PROXIES=proxy` |
 | `db` | none | MySQL 8.0 seeded from `database/freeitsm.sql` |
 
 The app has no port of its own on purpose. The proxy is the only way in, which is
@@ -65,6 +65,33 @@ TRUST_PROXY_HTTPS=0 docker compose -p proxytest -f docker/proxy-test/docker-comp
 sh docker/proxy-test/check.sh    # every line should now FAIL (say http)
 docker compose -p proxytest -f docker/proxy-test/docker-compose.yml up -d app
 ```
+
+## The client's address
+
+Behind the proxy, a sign-in must be recorded with the caller's address, not the
+proxy's, and an `X-Forwarded-For` the caller wrote itself must change nothing:
+
+```sh
+sh docker/proxy-test/check-ip.sh [admin-password]
+```
+
+It signs in through the proxy (plain, then with a forged `X-Forwarded-For`) and
+straight to the app from inside its container (forged again), and reads back the
+address `system_logs` recorded each time - what System -> Logs shows.
+
+The Cloudflare header, and the negative case (with `TRUSTED_PROXIES` empty, every
+sign-in is the proxy's):
+
+```sh
+TRUSTED_PROXY_HEADER=CF-Connecting-IP docker compose -p proxytest -f docker/proxy-test/docker-compose.yml up -d app
+sh docker/proxy-test/check-ip.sh
+TRUSTED_PROXIES= docker compose -p proxytest -f docker/proxy-test/docker-compose.yml up -d app
+EXPECT=proxy sh docker/proxy-test/check-ip.sh
+docker compose -p proxytest -f docker/proxy-test/docker-compose.yml up -d app
+```
+
+The app looks `proxy` up when it starts, which is why the proxy starts first here.
+If the proxy is recreated with a new address, restart the app too.
 
 ## Throw it away
 

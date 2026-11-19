@@ -77,6 +77,53 @@ case "$TRUST_PROXY_HTTPS" in
         ;;
 esac
 
+# Behind a reverse proxy, every request arrives from the proxy, so the sign-in
+# log, the audit trails and API key allow-lists all see the proxy's address.
+# TRUSTED_PROXIES names the proxy - IPv4 or IPv6 addresses, ranges such as
+# 10.0.0.0/8 or fd00::/8, or host names, which Apache looks up when it starts -
+# separated by spaces or commas. Apache's mod_remoteip then takes the client's
+# address from the proxy's header (TRUSTED_PROXY_HEADER: X-Forwarded-For unless
+# set; CF-Connecting-IP for a Cloudflare Tunnel). PHP's REMOTE_ADDR changes, so
+# nothing in FreeITSM needs to.
+#
+# 🔴 The header is only believed on a connection FROM a listed address: anyone
+# else can write it. mod_remoteip reads X-Forwarded-For from the right and stops
+# at the first address that is not a listed proxy, so a client's own value at
+# the left is never used. Decided on every start; an invalid value turns it off
+# and says so, rather than stopping Apache.
+REMOTEIP_CONF=/etc/apache2/conf-available/freeitsm-remoteip.conf
+remoteip_off() {
+    a2disconf -q freeitsm-remoteip >/dev/null 2>&1
+    a2dismod -q remoteip >/dev/null 2>&1
+    rm -f "$REMOTEIP_CONF"
+}
+PROXY_LIST=$(printf '%s' "$TRUSTED_PROXIES" | tr ',\t\r\n' '    ' | tr -s ' ' | sed 's/^ //; s/ $//')
+PROXY_HEADER="${TRUSTED_PROXY_HEADER:-X-Forwarded-For}"
+if [ -z "$PROXY_LIST" ]; then
+    remoteip_off
+elif printf '%s' "$PROXY_LIST" | grep -q '[^A-Za-z0-9.:/ -]' \
+    || printf '%s' "$PROXY_HEADER" | grep -q '[^A-Za-z0-9-]'; then
+    remoteip_off
+    echo "TRUSTED_PROXIES or TRUSTED_PROXY_HEADER is not valid, so client addresses are not taken from the proxy." >&2
+else
+    {
+        echo "# Written by entrypoint.sh from TRUSTED_PROXIES - do not edit."
+        echo "RemoteIPHeader $PROXY_HEADER"
+        echo "RemoteIPInternalProxy $PROXY_LIST"
+        # %a is the client's address after mod_remoteip; the stock format's %h
+        # would keep logging the proxy.
+        echo 'LogFormat "%a %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined'
+    } > "$REMOTEIP_CONF"
+    a2enmod -q remoteip >/dev/null 2>&1
+    a2enconf -q freeitsm-remoteip >/dev/null 2>&1
+    if apache2ctl -t >/dev/null 2>&1; then
+        echo "TRUSTED_PROXIES is set: client addresses come from $PROXY_HEADER on requests from $PROXY_LIST."
+    else
+        remoteip_off
+        echo "TRUSTED_PROXIES was refused by Apache ($PROXY_LIST), so client addresses are not taken from the proxy." >&2
+    fi
+fi
+
 # The built-in scheduler (#233): cron/run.php once a minute, as www-data, so the
 # background jobs run with no cron in the container or on the host. A loop rather
 # than the cron daemon, because cron starts jobs with an almost empty environment
