@@ -248,6 +248,12 @@ try {
         // column not migrated yet — nothing to enforce
     }
 
+    // Back to the page that sent them to sign in, if any (includes/login_return.php).
+    // Not when a password change comes first: that page sends them on afterwards.
+    if (empty($_SESSION['password_expired'])) {
+        $redirect = loginReturnTake();
+    }
+
     echo json_encode(['success' => true, 'message' => 'Login successful', 'redirect' => $redirect]);
 } catch (Exception $e) {
     // Before sign-in completes: never the raw text (it can be a database error,

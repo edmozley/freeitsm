@@ -311,9 +311,12 @@ try {
     // $skipPasswordExpiry. See the comment above loginRequiresPasswordChange().
     if (!empty($analyst['must_change_password'])) {
         $_SESSION['password_expired'] = true;
+        header('Location: ' . BASE_URL);
+        exit;
     }
 
-    header('Location: ' . BASE_URL);
+    // Back to the page that sent them to sign in, if any (includes/login_return.php).
+    header('Location: ' . loginReturnTake());
     exit;
 
 } catch (Exception $e) {
