@@ -230,6 +230,7 @@ $translationNamespaces = ['common', 'tasks'];
                         </div>
                     </div>
                     <p><?php echo t('tasks.help.list_body'); ?></p>
+                    <p><?php echo t('tasks.help.list_id'); ?></p>
                     <p class="help-note"><?php echo htmlspecialchars(t('tasks.help.list_tip')); ?></p>
                 </div>
 
@@ -246,6 +247,7 @@ $translationNamespaces = ['common', 'tasks'];
                     <p><?php echo t('tasks.help.calendar_sidebar'); ?></p>
                     <h4><?php echo htmlspecialchars(t('tasks.help.calendar_click_heading')); ?></h4>
                     <p><?php echo t('tasks.help.calendar_click_body'); ?></p>
+                    <p><?php echo t('tasks.help.calendar_hover_body'); ?></p>
                     <h4><?php echo htmlspecialchars(t('tasks.help.calendar_multiday_heading')); ?></h4>
                     <p><?php echo t('tasks.help.calendar_multiday_body'); ?></p>
                     <div class="help-list">
@@ -281,6 +283,7 @@ $translationNamespaces = ['common', 'tasks'];
 
                     <h4><?php echo htmlspecialchars(t('tasks.help.timeline_click_heading')); ?></h4>
                     <p><?php echo t('tasks.help.timeline_click_body'); ?></p>
+                    <p><?php echo t('tasks.help.timeline_hover_body'); ?></p>
                 </div>
 
                 <!-- 6. Table view -->
@@ -305,6 +308,7 @@ $translationNamespaces = ['common', 'tasks'];
 
                     <h4><?php echo htmlspecialchars(t('tasks.help.table_columns_heading')); ?></h4>
                     <p><?php echo t('tasks.help.table_columns_body'); ?></p>
+                    <p><?php echo t('tasks.help.table_columns_extra'); ?></p>
 
                     <h4><?php echo htmlspecialchars(t('tasks.help.table_sort_heading')); ?></h4>
                     <div class="help-list">

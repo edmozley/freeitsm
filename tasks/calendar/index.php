@@ -46,7 +46,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title><?php echo htmlspecialchars(pageTitle('tasks', t('tasks.nav.calendar'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
-    <link rel="stylesheet" href="../../assets/css/tasks.css?v=58">
+    <link rel="stylesheet" href="../../assets/css/tasks.css?v=60">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
@@ -158,7 +158,8 @@ $translationNamespaces = ['common', 'tasks'];
     </script>
     <script src="../../assets/js/safe-html.js?v=4"></script>
     <script src="../../assets/js/tasks-quick-panel.js?v=5"></script>
-    <script src="../../assets/js/tasks-calendar.js?v=13"></script>
+    <script src="../../assets/js/tasks-hover-card.js?v=1"></script>
+    <script src="../../assets/js/tasks-calendar.js?v=14"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

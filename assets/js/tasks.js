@@ -918,7 +918,7 @@ function renderCard(t) {
         ${statusChip}
         ${projectChip}
         ${contractorChip}
-        <div class="task-card-title">${esc(t.title)}</div>
+        <div class="task-card-title"><span class="task-card-id">#${t.id}</span>${esc(t.title)}</div>
         ${descHtml}
         ${meta.length ? `<div class="task-card-meta">${meta.join('')}</div>` : ''}
         ${tagsHtml}
@@ -1345,6 +1345,8 @@ function renderList() {
     const sorted = tasks.filter(t => taskMatchesSearch(t) && taskMatchesTag(t) && taskMatchesProject(t) && taskMatchesContractor(t) && taskMatchesDone(t)).sort((a, b) => {
         let va = a[sortField] || '';
         let vb = b[sortField] || '';
+        // The id is a number: compared as text, #10 would sort before #9.
+        if (sortField === 'id') { va = Number(a.id); vb = Number(b.id); }
         if (typeof va === 'string') va = va.toLowerCase();
         if (typeof vb === 'string') vb = vb.toLowerCase();
         if (va < vb) return sortDir === 'asc' ? -1 : 1;
@@ -1354,7 +1356,7 @@ function renderList() {
 
     const tbody = document.getElementById('listTableBody');
     if (sorted.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;padding:30px;">' + esc(window.t('tasks.list.no_tasks')) + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#999;padding:30px;">' + esc(window.t('tasks.list.no_tasks')) + '</td></tr>';
         return;
     }
 
@@ -1374,6 +1376,7 @@ function renderList() {
         const priorityCell = TasksPriority.markup(t.priority, t.priority_colour, 'pill') || '—';
 
         return `<tr onclick="openDetailPanel(${t.id})">
+            <td class="task-list-id">#${t.id}</td>
             <td><strong>${esc(t.title)}</strong>${tagsHtml}</td>
             <td><span class="status-pill" style="background:${sc}1f;color:${sc}">${esc(t.status)}</span></td>
             <td>${priorityCell}</td>

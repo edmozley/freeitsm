@@ -58,6 +58,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         fullEditUrl: id => '../index.php?task=' + id,
     });
 
+    // The details card on hovering a bar or a task name. It stays away while a
+    // bar is being dragged (no card while a mouse button is held).
+    TasksHoverCard.init({ selector: '.tl-bar[data-hc], .tl-row-label[data-hc]' });
+
     // Re-fit when the viewport changes
     let resizeTimer = null;
     window.addEventListener('resize', () => {
@@ -258,13 +262,12 @@ function render() {
             const width = (dayDiff(it.start, it.end) + 1) * dayW;
             const dateText = it.start !== it.end
                 ? fmt(it.start) + ' → ' + fmt(it.end) : fmt(it.end);
-            const tip = esc(t.title + ' · ' + (t.status || '') + ' · ' + dateText);
             const tagDots = (surfaceTags && t.tags && t.tags.length)
                 ? t.tags.slice(0, 5).map(tg =>
                     `<span class="mini-tag-dot" style="background:${esc(tg.colour || '#6b7280')}"></span>`).join('')
                 : '';
             body += `<div class="tl-row" style="width:${innerW}px">
-                <div class="tl-row-label" title="${esc(t.title)}"
+                <div class="tl-row-label" data-hc="${TasksHoverCard.ref(t)}"
                      onclick="openTask(${t.id})"${TasksPriority.accentAttrs(t.priority, t.priority_colour, priorityStyle, `width:${LABEL_W}px;`)}>
                     ${TasksPriority.markup(t.priority, t.priority_colour, priorityStyle)}
                     <span class="tl-row-title">${esc(t.title)}</span>
@@ -274,7 +277,7 @@ function render() {
                          data-taskid="${t.id}"
                          data-start="${esc(it.start)}" data-end="${esc(it.end)}"
                          style="left:${left}px;width:${width}px;background:${colour}"
-                         title="${tip}"
+                         data-hc="${TasksHoverCard.ref(t)}"
                          onmousedown="onBarMouseDown(event)">
                         <div class="tl-bar-handle tl-bar-handle-l"></div>
                         <span class="tl-bar-label">${esc(t.title)}</span>${tagDots}
