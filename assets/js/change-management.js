@@ -26,12 +26,13 @@ const RICH_TEXT_FIELDS = ['description', 'reason', 'risk', 'testplan', 'rollback
 // filter list, the editor's Status dropdown, and the updateCounts() loop.
 let changeStatuses = [];
 
-// Lookups for the right-click context menu submenus (active rows only). Loaded
+// Lookups for the editor and right-click context menu submenus (active rows only). Loaded
 // once at init; the menu is rebuilt from these each time it opens so newly-added
 // entries + the current-value tick appear without a page refresh.
 let changePriorities = [];
 let changeTypes = [];
 let changeImpacts = [];
+let changeLookupsReady = Promise.resolve(false);
 // Companies this analyst can move a change into (multi-company installs only).
 let moveCompanies = [];
 let isMultiCompany = false;
@@ -46,10 +47,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const layoutReady = loadFormLayout();
     loadAnalysts();
     const statusesReady = loadStatuses();
-    // Context-menu lookups (priorities / types / impacts) + accessible companies.
-    loadChangePriorities();
-    loadChangeTypes();
-    loadChangeImpacts();
+    changeLookupsReady = Promise.all([
+        loadChangePriorities(), loadChangeTypes(), loadChangeImpacts()
+    ]).then(loaded => loaded.every(Boolean));
     loadMoveCompanies();
     loadChanges();
     setupFileUpload();
@@ -364,10 +364,14 @@ async function loadChangePriorities() {
     try {
         const res = await fetch(API_BASE + 'get_change_priorities.php');
         const data = await res.json();
-        if (data.success) changePriorities = sortLookup((data.priorities || []).filter(p => p.is_active));
+        if (data.success) {
+            changePriorities = sortLookup((data.priorities || []).filter(p => p.is_active));
+            return true;
+        }
     } catch (e) {
         console.error('Error loading change priorities:', e);
     }
+    return false;
 }
 
 /** Loads the active change types, in order. */
@@ -375,10 +379,14 @@ async function loadChangeTypes() {
     try {
         const res = await fetch(API_BASE + 'get_change_types.php');
         const data = await res.json();
-        if (data.success) changeTypes = sortLookup((data.types || []).filter(t => t.is_active));
+        if (data.success) {
+            changeTypes = sortLookup((data.types || []).filter(t => t.is_active));
+            return true;
+        }
     } catch (e) {
         console.error('Error loading change types:', e);
     }
+    return false;
 }
 
 /** Loads the active change impact levels, in order. */
@@ -386,10 +394,27 @@ async function loadChangeImpacts() {
     try {
         const res = await fetch(API_BASE + 'get_change_impacts.php');
         const data = await res.json();
-        if (data.success) changeImpacts = sortLookup((data.impacts || []).filter(i => i.is_active));
+        if (data.success) {
+            changeImpacts = sortLookup((data.impacts || []).filter(i => i.is_active));
+            return true;
+        }
     } catch (e) {
         console.error('Error loading change impacts:', e);
     }
+    return false;
+}
+
+/** Use configured names, retaining an existing inactive value only on that change. */
+function populateChangeLookup(id, rows, currentValue = null) {
+    const select = document.getElementById(id);
+    select.replaceChildren(...rows.map(row => new Option(row.name, row.name)));
+    const value = currentValue === null
+        ? (rows.find(row => row.is_default) || rows[0])?.name || ''
+        : currentValue;
+    if (currentValue !== null && !rows.some(row => row.name === value)) {
+        select.add(new Option(value, value));
+    }
+    select.value = value;
 }
 
 // Companies this analyst can move a change into (multi-company installs only).
@@ -1321,21 +1346,25 @@ function clearSearch() {
 // ============ Create / Edit ============
 
 /** Opens a blank change editor with the default status and empty risk, review and CAB fields. */
-function openCreateChange() {
+async function openCreateChange() {
     if (window.MODULE_LEVEL === 'read') return;   // Read only (#180): nothing to create
+    if (!await changeLookupsReady) {
+        showToast(window.t('change-management.toast.lookup_load_error'), 'error');
+        return;
+    }
     applyApprovalEditorRules(null);
     loadChangeTemplatePicker();
     document.getElementById('editChangeId').value = '';
     document.getElementById('editorTitle').textContent = window.t('change-management.editor.new');
     document.getElementById('changeTitle').value = '';
-    document.getElementById('changeType').value = 'Normal';
+    populateChangeLookup('changeType', changeTypes);
     // Prefer the status flagged as default in change_statuses; fall back to
     // the first active status, then to 'Draft' as a last resort.
     const defaultStatus = changeStatuses.find(s => s.is_default);
     const fallbackStatus = defaultStatus ? defaultStatus.name : (changeStatuses[0] ? changeStatuses[0].name : 'Draft');
     document.getElementById('changeStatus').value = fallbackStatus;
-    document.getElementById('changePriority').value = 'Medium';
-    document.getElementById('changeImpact').value = 'Medium';
+    populateChangeLookup('changePriority', changePriorities);
+    populateChangeLookup('changeImpact', changeImpacts);
     document.getElementById('changeCategory').value = '';
     document.getElementById('changeRequester').value = '';
     document.getElementById('changeAssignedTo').value = '';
@@ -1382,8 +1411,13 @@ function openCreateChange() {
  * Opens the editor filled with the current change - fields, attachments, risk, review,
  * CAB members and the rich-text sections.
  */
-function editCurrentChange() {
+async function editCurrentChange() {
     if (!currentChange || window.MODULE_LEVEL === 'read') return;   // Read only (#180)
+    if (!await changeLookupsReady) {
+        showToast(window.t('change-management.toast.lookup_load_error'), 'error');
+        return;
+    }
+    if (!currentChange) return;
     document.getElementById('templatePickerWrap').style.display = 'none';   // a template is chosen when a change is raised
     document.getElementById('templateVersionId').value = '';
     const c = currentChange;
@@ -1391,10 +1425,10 @@ function editCurrentChange() {
     document.getElementById('editChangeId').value = c.id;
     document.getElementById('editorTitle').textContent = window.t('change-management.editor.edit', { ref: String(c.id).padStart(4, '0') });
     document.getElementById('changeTitle').value = c.title || '';
-    document.getElementById('changeType').value = c.change_type || 'Normal';
+    populateChangeLookup('changeType', changeTypes, c.change_type || '');
     document.getElementById('changeStatus').value = c.status || 'Draft';
-    document.getElementById('changePriority').value = c.priority || 'Medium';
-    document.getElementById('changeImpact').value = c.impact || 'Medium';
+    populateChangeLookup('changePriority', changePriorities, c.priority || '');
+    populateChangeLookup('changeImpact', changeImpacts, c.impact || '');
     document.getElementById('changeCategory').value = c.category || '';
     document.getElementById('changeRequester').value = c.requester_id || '';
     document.getElementById('changeAssignedTo').value = c.assigned_to_id || '';

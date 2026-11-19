@@ -762,6 +762,7 @@ return [
         'change_saved'    => 'Change saved successfully',
         'change_deleted'  => 'Change deleted',
         'error_loading'   => 'Error loading change',
+        'lookup_load_error' => 'Could not load change types, priorities and impacts. Reload the page and try again.',
         'error_saving'    => 'Error saving change',
         'error_deleting'  => 'Error deleting change',
         'error_prefix'    => 'Error: {message}',
