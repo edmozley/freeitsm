@@ -31,6 +31,7 @@ $conn = connectToDatabase();
 $analystId = (int)$_SESSION['analyst_id'];
 $ready = assetLabelsSchemaReady($conn);
 $activeTenantId = getActiveTenantId($conn, $analystId);
+$defaultTenantId = getDefaultTenantId($conn);
 
 // Load physical label and QR branding settings for the current context
 $labelSettings = assetLabelSettings($conn, $activeTenantId);
@@ -73,7 +74,7 @@ if (!empty($_GET['csv']) && $ready && $ids) {
         "SELECT a.id, a.asset_tag, a.hostname, a.service_tag, a.manufacturer, a.model,
                 t.name AS company_name
            FROM assets a
-      LEFT JOIN tenants t ON t.id = a.tenant_id
+      LEFT JOIN tenants t ON t.id = COALESCE(a.tenant_id, $defaultTenantId)
           WHERE a.id IN ($place)" . $tSql . "
           ORDER BY a.asset_tag IS NULL, a.asset_tag, a.hostname"
     );
@@ -106,7 +107,7 @@ if ($ready && $ids) {
                 at.name AS asset_type_name,
                 al.name AS location_name
            FROM assets a
-      LEFT JOIN tenants t ON t.id = a.tenant_id
+      LEFT JOIN tenants t ON t.id = COALESCE(a.tenant_id, $defaultTenantId)
       LEFT JOIN asset_types at ON at.id = a.asset_type_id
       LEFT JOIN asset_locations al ON al.id = a.location_id
           WHERE a.id IN ($place)" . $tSql . "
