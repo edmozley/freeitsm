@@ -2060,6 +2060,7 @@ CREATE TABLE IF NOT EXISTS `target_mailboxes` (
     `smtp_server`           TEXT NULL,
     `smtp_port`             INT NULL DEFAULT 587,
     `smtp_encryption`       VARCHAR(10) NULL DEFAULT 'tls',
+    `smtp_auth_enabled`     TINYINT(1) NOT NULL DEFAULT 1,
     -- Sending credentials, when they differ from the reading ones. Plenty of
     -- providers issue a separate SMTP login, and a submission relay in front of
     -- an internal mail server often wants its own. BOTH BLANK = use the IMAP

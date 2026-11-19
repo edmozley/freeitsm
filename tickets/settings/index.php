@@ -166,6 +166,10 @@ function renderOversizeFields(string $px, bool $withLimits): void
     <script src="../../assets/js/tinymce/tinymce.min.js?v=8.10.0"></script>
     <style>
         /* Page-specific overrides for settings page */
+        #mailboxSmtpAuthEnabled:focus-visible + .toggle-slider {
+            outline: 2px solid var(--text, #333);
+            outline-offset: 3px;
+        }
 
         /* SLA switched off for the install (GH #217): its columns and fields go. */
         body.sla-off .sla-only { display: none; }
@@ -2990,12 +2994,23 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         </select>
                     </div>
 
+                    <div class="form-group provider-imap" style="grid-column: span 2;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="mailboxSmtpAuthLabel"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_auth_enabled')); ?></span>
+                            <label class="toggle-switch" style="margin: 0;">
+                                <input type="checkbox" id="mailboxSmtpAuthEnabled" checked aria-labelledby="mailboxSmtpAuthLabel" aria-describedby="mailboxSmtpAuthHelp" onchange="toggleSmtpCredentials()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <small id="mailboxSmtpAuthHelp" style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_auth_help')); ?></small>
+                    </div>
+
                     <!-- Sending credentials, asked the way an online checkout asks about a
                          billing address: a toggle that says "same as the IMAP login", and
                          the two fields only when it is turned off. Stating the default
                          beats inferring it from two empty boxes, which cannot tell
                          "nothing is set" apart from "this failed to load". -->
-                    <div class="form-group provider-imap" style="grid-column: span 2;">
+                    <div class="form-group smtp-auth-creds" style="grid-column: span 2;">
                         <label style="display: flex; align-items: center; gap: 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_same_as_imap')); ?>
                             <label class="toggle-switch" style="margin: 0;">
                                 <input type="checkbox" id="mailboxSmtpSameAsImap" checked onchange="toggleSmtpCredentials()">
@@ -6289,6 +6304,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             document.getElementById('mailboxSmtpServer').value = mailbox ? (mailbox.smtp_server || '') : '';
             document.getElementById('mailboxSmtpPort').value = mailbox ? (mailbox.smtp_port || 587) : 587;
             document.getElementById('mailboxSmtpEncryption').value = mailbox ? (mailbox.smtp_encryption || 'tls') : 'tls';
+            document.getElementById('mailboxSmtpAuthEnabled').checked = Number(mailbox?.smtp_auth_enabled ?? 1) === 1;
             // 🔴 The SMTP username MUST be redisplayed. The save writes what this field
             // holds, so a box that came up empty on an edit would quietly replace a
             // working SMTP login with nothing — and because sending then falls back to
@@ -6395,9 +6411,13 @@ function renderOversizeFields(string $px, bool $withLimits): void
            every time the provider changes. */
         function toggleSmtpCredentials() {
             const isImap = document.getElementById('mailboxProvider').value === 'imap';
+            const authenticate = document.getElementById('mailboxSmtpAuthEnabled').checked;
             const sameAsImap = document.getElementById('mailboxSmtpSameAsImap').checked;
+            document.querySelectorAll('.smtp-auth-creds').forEach(el => {
+                el.style.display = (isImap && authenticate) ? '' : 'none';
+            });
             document.querySelectorAll('.smtp-creds').forEach(el => {
-                el.style.display = (isImap && !sameAsImap) ? '' : 'none';
+                el.style.display = (isImap && authenticate && !sameAsImap) ? '' : 'none';
             });
         }
 
@@ -6605,6 +6625,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                         smtp_server: val('mailboxSmtpServer'),
                         smtp_port: parseInt(val('mailboxSmtpPort')) || 587,
                         smtp_encryption: val('mailboxSmtpEncryption'),
+                        smtp_auth_enabled: document.getElementById('mailboxSmtpAuthEnabled').checked,
                         smtp_same_as_imap: document.getElementById('mailboxSmtpSameAsImap').checked,
                         smtp_username: val('mailboxSmtpUsername'),
                         smtp_password: val('mailboxSmtpPassword'),
@@ -6968,6 +6989,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 smtp_server: document.getElementById('mailboxSmtpServer').value,
                 smtp_port: parseInt(document.getElementById('mailboxSmtpPort').value) || 587,
                 smtp_encryption: document.getElementById('mailboxSmtpEncryption').value,
+                smtp_auth_enabled: document.getElementById('mailboxSmtpAuthEnabled').checked,
                 smtp_same_as_imap: document.getElementById('mailboxSmtpSameAsImap').checked,
                 smtp_username: document.getElementById('mailboxSmtpUsername').value,
                 smtp_password: document.getElementById('mailboxSmtpPassword').value,

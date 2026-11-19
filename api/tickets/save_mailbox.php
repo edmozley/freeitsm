@@ -276,6 +276,18 @@ try {
         $cols['sent_folder'] = $sf !== '' ? mb_substr($sf, 0, 255) : null;
     }
 
+    // Omitted by older clients: preserve the saved choice. Existing rows default to authentication.
+    if ($isImap && array_key_exists('smtp_auth_enabled', $data)) {
+        if (!in_array($data['smtp_auth_enabled'], [true, false, 1, 0, '1', '0'], true)) {
+            throw new InvalidArgumentException('Invalid SMTP authentication setting.');
+        }
+        if ($conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'smtp_auth_enabled'")->fetch()) {
+            $cols['smtp_auth_enabled'] = (int)$data['smtp_auth_enabled'];
+        } elseif (!$data['smtp_auth_enabled']) {
+            throw new RuntimeException('Run System > Database Verification before disabling SMTP authentication.');
+        }
+    }
+
     $secretProvided   = !(empty($azure_client_secret)  || preg_match('/^\*+/', $azure_client_secret));
     $passwordProvided = !(empty($imap_password_plain)   || preg_match('/^\*+/', $imap_password_plain));
     if ($secretProvided)   $cols['azure_client_secret'] = encryptValue($azure_client_secret);
@@ -289,7 +301,7 @@ try {
        working SMTP login — after which sending falls back to the IMAP credentials
        and carries on looking healthy, which is the worst way for a credential to
        disappear. Absent means unchanged, exactly as a blank password does. */
-    if (array_key_exists('smtp_same_as_imap', $data)) {
+    if (($cols['smtp_auth_enabled'] ?? 1) && array_key_exists('smtp_same_as_imap', $data)) {
         if (!empty($data['smtp_same_as_imap'])) {
             // The toggle is on: sending uses the IMAP login, so both columns go
             // back to empty rather than lingering as credentials nothing reads.

@@ -19,6 +19,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 // --- child: a fake SMTP server that takes one email and writes what it received -------
 if (($argv[1] ?? '') === '--fake-smtp') {
     [$port, $ready, $out] = [(int)$argv[2], $argv[3], $argv[4]];
+    $noAuth = ($argv[5] ?? '') === 'no-auth';
     $srv = stream_socket_server('tcp://127.0.0.1:' . $port, $e1, $e2);
     if (!$srv) exit(1);
     file_put_contents($ready, 'ready');
@@ -33,7 +34,10 @@ if (($argv[1] ?? '') === '--fake-smtp') {
         if ($auth === 1) { $auth = 2; $say('334 UGFzc3dvcmQ6'); continue; }
         if ($auth === 2) { $auth = 0; $say('235 ok'); continue; }
         if ($cmd === 'EHLO') $say('250 fake');
-        elseif ($cmd === 'AUTH') { $auth = 1; $say('334 VXNlcm5hbWU6'); }
+        elseif ($cmd === 'AUTH') {
+            if ($noAuth) { $say('504 AUTH is not supported'); break; }
+            $auth = 1; $say('334 VXNlcm5hbWU6');
+        }
         elseif ($cmd === 'MAIL' || $cmd === 'RCPT') $say('250 ok');
         elseif ($cmd === 'DATA') {
             $say('354 go');
@@ -125,8 +129,8 @@ function fake(string $kind, string $mode = ''): array {
  * One send through the real imapSmtpSend(), with fake servers. $imapMode null = no IMAP server.
  * @return array{error:string, smtp:string, imap:array, outcome:?array}
  */
-function sendOnce(array $mbExtra, ?string $imapMode, bool $saveCopy = true): array {
-    [$sp, $sport, $sout] = fake('smtp');
+function sendOnce(array $mbExtra, ?string $imapMode, bool $saveCopy = true, string $smtpMode = ''): array {
+    [$sp, $sport, $sout] = fake('smtp', $smtpMode);
     $ip = null; $iout = null; $iport = freePort();
     if ($imapMode !== null) [$ip, $iport, $iout] = fake('imap', $imapMode);
     $mb = array_merge([
@@ -149,6 +153,16 @@ function sendOnce(array $mbExtra, ?string $imapMode, bool $saveCopy = true): arr
     return ['error' => $err, 'smtp' => $smtp, 'imap' => $imap, 'outcome' => imapSentCopyOutcome()];
 }
 $unstuff = fn(string $s) => rtrim(preg_replace('/^\.\./m', '.', $s), "\r\n");
+
+echo "== SMTP authentication is an explicit choice\n";
+foreach ([[], ['smtp_username' => 'sender@example.test', 'smtp_password' => 'smtp-secret']] as $credentials) {
+    $r = sendOnce(['smtp_auth_enabled' => 0] + $credentials, null, false, 'no-auth');
+    ok('no AUTH even with saved IMAP or separate SMTP credentials', $r['error'] === '' && $r['smtp'] !== '', $r['error']);
+}
+$r = sendOnce([], null, false, 'no-auth');
+ok('legacy mailbox still authenticates; no silent fallback to unauthenticated delivery', str_contains($r['error'], 'SMTP sign-in failed') && $r['smtp'] === '', $r['error']);
+$r = sendOnce(['smtp_auth_enabled' => 0, 'save_sent_copy' => 1], 'special', true, 'no-auth');
+ok('unauthenticated SMTP still saves a copy through authenticated IMAP', $r['error'] === '' && count($r['imap']['appends']) === 1, $r['error']);
 
 echo "== 1. Off (the default): nothing is saved\n";
 $r = sendOnce([], null);
