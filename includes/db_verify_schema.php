@@ -1918,6 +1918,18 @@ return [
         'tokens_out'    => 'INT NOT NULL DEFAULT 0',
         'created_at'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
+    // GH #396: every version of the Reply Cleanup prompt; the newest is in use. Never updated or deleted.
+    'ticket_reply_cleanup_prompts' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        // NULL = the built-in default (a Reset, or the built-in text saved as it is).
+        'prompt_text'      => 'MEDIUMTEXT NULL',
+        // 'edit', 'reset' or 'restore'.
+        'action'           => "VARCHAR(20) NOT NULL DEFAULT 'edit'",
+        // For a restore: the version it copied.
+        'restored_from'    => 'INT NULL',
+        'created_by'       => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL',
+    ],
     'ticket_merges' => [
         'id'                   => 'INT NOT NULL AUTO_INCREMENT',
         'source_ticket_id'     => 'INT NOT NULL',

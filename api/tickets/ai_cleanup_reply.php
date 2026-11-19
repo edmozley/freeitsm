@@ -165,7 +165,8 @@ try {
     }
 
     $toneDescription = replyCleanupToneDescription($tone);
-    $system = buildReplyCleanupSystemPrompt($greetingName, $toneDescription, $customInstructions);
+    $system = buildReplyCleanupSystemPrompt($greetingName, $toneDescription, $customInstructions,
+                                             replyCleanupActiveTemplate($conn));   // GH #396: the edited prompt, if any
 
     $userMessage = "TICKET CONTEXT:\n";
     $userMessage .= "Subject: " . ($ticketSubject !== '' ? $ticketSubject : '(none)') . "\n";

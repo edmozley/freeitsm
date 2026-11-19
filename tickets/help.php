@@ -543,6 +543,7 @@ try {
                         <div><?php echo t('tickets.help.ai.cleanup_undo'); ?></div>
                         <div><?php echo t('tickets.help.ai.cleanup_tone'); ?></div>
                         <div><?php echo t('tickets.help.ai.cleanup_key'); ?></div>
+                        <div><?php echo t('tickets.help.ai.cleanup_prompt'); ?></div>
                     </div>
                     <p class="help-note"><?php echo t('tickets.help.ai.cleanup_tip'); ?></p>
 

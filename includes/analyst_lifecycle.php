@@ -181,6 +181,7 @@ function analystReferenceRegistry(): array {
         ['tickets', 'deleted_by', 'history'],
         ['emails', 'assigned_analyst_id', 'history'],
         ['ticket_ai_summaries', 'generated_by', 'history'],
+        ['ticket_reply_cleanup_prompts', 'created_by', 'history'],   // GH #396: who saved a prompt version
         ['ticket_merges', 'merged_by_id', 'history'],
         ['ticket_splits', 'split_by_id', 'history'],
         ['ticket_csat_responses', 'analyst_id', 'history'],

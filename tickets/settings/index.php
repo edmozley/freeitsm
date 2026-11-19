@@ -315,6 +315,20 @@ function renderOversizeFields(string $px, bool $withLimits): void
             font-weight: 600;
             color: var(--text, #333);
         }
+        /* GH #396: the editable prompt and its history. */
+        .rc-prompt-state { font-size: 12px; font-weight: 600; color: var(--text, #333); margin: 0 0 6px; }
+        .rc-prompt-text, .rc-prompt-view { width: 100%; box-sizing: border-box; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; background: var(--surface, white); padding: 14px; border: 1px solid var(--border, #e0e0e0); border-radius: 4px; color: var(--text, #333); margin: 0; }
+        .rc-prompt-text { height: calc(100vh - 420px); min-height: 260px; resize: vertical; }
+        .rc-prompt-view { white-space: pre-wrap; word-wrap: break-word; max-height: 320px; overflow-y: auto; margin-top: 8px; }
+        .rc-prompt-hint { display: block; margin: 6px 0 0; color: var(--text-muted, #666); }
+        .rc-prompt-actions { display: flex; gap: 10px; margin: 12px 0 0; }
+        .rc-prompt-history { margin-top: 14px; border: none !important; background: none !important; }
+        .rc-prompt-history summary { padding: 6px 0 !important; }
+        .rc-version { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--border-soft, #eee); font-size: 12px; color: var(--text, #333); }
+        .rc-version .rc-v-main { flex: 1; min-width: 0; }
+        .rc-version .rc-v-sub { color: var(--text-muted, #777); }
+        .rc-version .rc-v-use { font-size: 11px; font-weight: 600; color: var(--success-text, #065f46); background: var(--success-bg, #ecfdf5); border-radius: 10px; padding: 1px 8px; }
+        .rc-version .btn { padding: 3px 10px; font-size: 12px; }
 
         /* Custom fields dialog (#179): the ticket types a field is on. */
         .tf-type-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 4px 12px; margin: 6px 0 0 24px; max-height: 180px; overflow-y: auto; }
@@ -2357,7 +2371,19 @@ function renderOversizeFields(string $px, bool $withLimits): void
                             <p style="margin: 0 0 12px 0; font-size: 13px;">
                                 <?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.prompt_panel_intro')); ?>
                             </p>
-                            <pre id="rcPromptPreview" style="white-space: pre-wrap; word-wrap: break-word; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; background: var(--surface, white); padding: 14px; border: 1px solid var(--border, #e0e0e0); border-radius: 4px; max-height: calc(100vh - 280px); overflow-y: auto; color: var(--text, #333); margin: 0;"></pre>
+                            <!-- GH #396: editable, and every save kept (api/tickets/reply_cleanup_prompt.php) -->
+                            <div class="rc-prompt-state" id="rcPromptState"></div>
+                            <textarea id="rcPromptText" class="rc-prompt-text" spellcheck="false" aria-label="<?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.prompt_summary')); ?>"></textarea>
+                            <small class="rc-prompt-hint"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.prompt_placeholders', ['greeting' => '{greeting_name}', 'tone' => '{tone}'])); ?></small>
+                            <div class="rc-prompt-actions">
+                                <button type="button" class="btn btn-primary" id="rcPromptSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                                <button type="button" class="btn btn-secondary" id="rcPromptReset"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.reset')); ?></button>
+                            </div>
+                            <details class="rc-prompt-history" id="rcPromptHistory">
+                                <summary><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.history')); ?> <span id="rcPromptCount"></span></summary>
+                                <div id="rcPromptVersions"></div>
+                                <pre id="rcPromptView" class="rc-prompt-view" hidden></pre>
+                            </details>
                         </div>
                     </details>
                 </aside>
@@ -7395,11 +7421,115 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 // Provider / model / key are handled by the shared AI panel.
                 document.getElementById('rcTone').value  = data.tone  || 'Friendly';
                 document.getElementById('rcCustomInstructions').value = data.custom_instructions || '';
-                document.getElementById('rcPromptPreview').textContent = data.prompt_preview || '';
             } catch (err) {
                 console.error('Failed to load reply cleanup settings:', err);
             }
+            loadRcPrompt();
         }
+
+        // ---- The prompt itself: editable, every save kept (GH #396) ----
+        const RC_T = k => 'tickets.settings.reply_cleanup.' + k;
+        let rcPrompt = null;   // the last GET: { text, is_default, placeholders, versions }
+
+        async function loadRcPrompt() {
+            try {
+                const res = await fetch(API_TICKETS + 'reply_cleanup_prompt.php');
+                const data = await res.json();
+                if (!data.success) return;
+                rcPrompt = data;
+                document.getElementById('rcPromptText').value = data.text || '';
+                const cur = (data.versions || [])[0];
+                document.getElementById('rcPromptState').textContent = data.is_default
+                    ? t(RC_T('state_default'))
+                    : t(RC_T('state_edited'), { n: cur ? cur.id : '' });
+                renderRcVersions(data.versions || []);
+            } catch (err) {
+                console.error('Failed to load the Reply Cleanup prompt:', err);
+            }
+        }
+
+        function rcWhen(utc) {
+            const d = new Date(String(utc).replace(' ', 'T') + 'Z');
+            return isNaN(d) ? String(utc) : d.toLocaleString(document.documentElement.lang || undefined, { dateStyle: 'medium', timeStyle: 'short' });
+        }
+
+        function renderRcVersions(list) {
+            document.getElementById('rcPromptCount').textContent = list.length ? '(' + list.length + ')' : '';
+            const box = document.getElementById('rcPromptVersions');
+            document.getElementById('rcPromptView').hidden = true;
+            if (!list.length) {
+                box.innerHTML = `<div class="rc-version"><span class="rc-v-sub">${escapeHtml(t(RC_T('history_none')))}</span></div>`;
+                return;
+            }
+            box.innerHTML = list.map((v, i) => {
+                const what = v.action === 'reset' ? t(RC_T('v_reset'))
+                           : v.action === 'restore' ? t(RC_T('v_restore'), { n: v.restored_from || '' })
+                           : (v.is_default ? t(RC_T('v_default')) : t(RC_T('v_edit')));
+                return `<div class="rc-version">
+                    <div class="rc-v-main"><strong>#${v.id}</strong> ${escapeHtml(what)}
+                        <div class="rc-v-sub">${escapeHtml(rcWhen(v.created_datetime))} · ${escapeHtml(v.created_by_name || t(RC_T('v_by_unknown')))}</div></div>
+                    ${i === 0 ? `<span class="rc-v-use">${escapeHtml(t(RC_T('v_in_use')))}</span>` : ''}
+                    <button type="button" class="btn btn-secondary" data-rc-view="${v.id}">${escapeHtml(t(RC_T('view')))}</button>
+                    ${i === 0 ? '' : `<button type="button" class="btn btn-secondary" data-rc-restore="${v.id}">${escapeHtml(t(RC_T('restore')))}</button>`}
+                </div>`;
+            }).join('');
+        }
+
+        async function rcPost(body) {
+            const res = await fetch(API_TICKETS + 'reply_cleanup_prompt.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!data.success) throw new Error(data.error || t(RC_T('save_failed')));
+            return data;
+        }
+
+        document.getElementById('rcPromptSave')?.addEventListener('click', async () => {
+            const text = document.getElementById('rcPromptText').value;
+            // A missing placeholder is allowed - but say what it costs first.
+            for (const p of (rcPrompt && rcPrompt.placeholders) || []) {
+                if (!text.includes(p) && !confirm(t(RC_T('missing_placeholder'), { placeholder: p }))) return;
+            }
+            try {
+                const r = await rcPost({ action: 'save', text });
+                showToast(r.changed ? t(RC_T('saved'), { n: r.version_id }) : t(RC_T('unchanged')), 'success');
+                loadRcPrompt();
+            } catch (err) { showToast(err.message, 'error'); }
+        });
+
+        document.getElementById('rcPromptReset')?.addEventListener('click', async () => {
+            if (!confirm(t(RC_T('reset_confirm')))) return;
+            try {
+                const r = await rcPost({ action: 'reset' });
+                showToast(r.changed ? t(RC_T('reset_done')) : t(RC_T('unchanged')), 'success');
+                loadRcPrompt();
+            } catch (err) { showToast(err.message, 'error'); }
+        });
+
+        document.getElementById('rcPromptVersions')?.addEventListener('click', async e => {
+            const view = e.target.closest('[data-rc-view]');
+            const restore = e.target.closest('[data-rc-restore]');
+            if (view) {
+                const pre = document.getElementById('rcPromptView');
+                if (!pre.hidden && pre.dataset.v === view.dataset.rcView) { pre.hidden = true; return; }
+                try {
+                    const res = await fetch(API_TICKETS + 'reply_cleanup_prompt.php?version=' + encodeURIComponent(view.dataset.rcView));
+                    const data = await res.json();
+                    if (!data.success) throw new Error(data.error || '');
+                    pre.textContent = data.text || '';
+                    pre.dataset.v = view.dataset.rcView;
+                    pre.hidden = false;
+                } catch (err) { showToast(err.message || t(RC_T('save_failed')), 'error'); }
+            } else if (restore) {
+                const n = restore.dataset.rcRestore;
+                if (!confirm(t(RC_T('restore_confirm'), { n }))) return;
+                try {
+                    const r = await rcPost({ action: 'restore', id: Number(n) });
+                    showToast(r.changed ? t(RC_T('restore_done'), { n }) : t(RC_T('unchanged')), 'success');
+                    loadRcPrompt();
+                } catch (err) { showToast(err.message, 'error'); }
+            }
+        });
 
         // ============================
         // CSAT settings
@@ -7455,14 +7585,8 @@ function renderOversizeFields(string $px, bool $withLimits): void
             }
         });
 
-        // Re-fetch the prompt preview when the tone selection changes so the
-        // read-only panel always reflects the currently-chosen tone clause.
-        document.addEventListener('DOMContentLoaded', function() {
-            const toneSelect = document.getElementById('rcTone');
-            if (toneSelect) {
-                toneSelect.addEventListener('change', loadReplyCleanupSettings);
-            }
-        });
+        // (Changing the tone no longer reloads the panel: the prompt editor shows
+        // {tone} as a placeholder, and a reload would throw away unsaved edits. GH #396)
 
         document.getElementById('replyCleanupForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();

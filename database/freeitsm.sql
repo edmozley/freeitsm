@@ -1814,6 +1814,23 @@ CREATE TABLE IF NOT EXISTS `ticket_ai_summaries` (
     CONSTRAINT `fk_ticket_ai_summaries_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_ticket_ai_summaries_analyst` FOREIGN KEY (`generated_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ticket_reply_cleanup_prompts (GH #396): every version of the Reply Cleanup
+-- prompt, edited in Tickets -> Settings -> Reply Cleanup. The NEWEST row is the
+-- one in use. Rows are never updated or deleted: Reset and Restore add a row,
+-- so a broken prompt is always one Restore away.
+CREATE TABLE IF NOT EXISTS `ticket_reply_cleanup_prompts` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    -- NULL = the built-in default.
+    `prompt_text`      MEDIUMTEXT NULL,
+    -- 'edit', 'reset' or 'restore'.
+    `action`           VARCHAR(20) NOT NULL DEFAULT 'edit',
+    `restored_from`    INT NULL,
+    `created_by`       INT NULL,
+    `created_datetime` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_ticket_reply_cleanup_prompts_analyst` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `ticket_audit` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `ticket_id`         INT NOT NULL,

@@ -55,7 +55,8 @@ try {
     $promptPreview = buildReplyCleanupSystemPrompt(
         '[requester first name]',
         replyCleanupToneDescription($tone),
-        ''
+        '',
+        replyCleanupActiveTemplate($conn)   // GH #396: the version in use
     );
 
     echo json_encode([
