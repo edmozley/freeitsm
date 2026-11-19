@@ -1548,7 +1548,7 @@ return [
                 'imap_password_placeholder'   => 'Mailbox password or app password',
                 'imap_password_help'          => 'Stored encrypted. Use an app-specific password if your provider offers one.',
                 'imap_password_kept'          => 'leave blank to keep',
-                'smtp_server'                 => 'SMTP server',
+                'smtp_server'                 => 'SMTP server',
                 'smtp_auth_enabled'           => 'Authenticate with the SMTP server',
                 'smtp_auth_help'              => 'Turn this off only for a relay that allows this server to send without a login. IMAP still uses its own username and password to receive mail and save sent copies. SMTP encryption is configured separately.',
                 'smtp_same_as_imap'           => 'Use the IMAP login for sending',
