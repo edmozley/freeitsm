@@ -98,6 +98,19 @@ return [
         'check'    => ['rows', 'target_mailboxes', "provider = 'imap' AND smtp_username IS NOT NULL AND smtp_username <> ''"],
     ],
     [
+        // PR #400: a Basic IMAP mailbox that sends through a relay without SMTP AUTH.
+        'id'       => 'tickets.mailbox_smtp_no_auth',
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'communication',
+        'title'    => 'Send through a relay without a login',
+        'what'     => 'An IMAP mailbox with Authenticate with the SMTP server turned off, so replies go out through an internal relay that trusts this server rather than a username and password.',
+        'why'      => 'Many on-premises relays allow the application server by address and refuse a login outright. Without the setting every reply failed at the AUTH step even though mail was being collected fine.',
+        'done'     => 'At least one active IMAP mailbox sends without SMTP authentication.',
+        'link'     => 'tickets/settings/#mailboxes',
+        'check'    => ['rows', 'target_mailboxes', "provider = 'imap' AND is_active = 1 AND smtp_auth_enabled = 0"],
+    ],
+    [
         // GH #270: Basic IMAP files a copy of each sent email in the Sent folder.
         'id'       => 'tickets.mailbox_imap_sent_copy',
         'module'   => 'tickets',
