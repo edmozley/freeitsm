@@ -129,11 +129,7 @@ $translationNamespaces = ['common', 'change-management'];
                         <div class="cm-field-wrap" data-field-key="change_type">
                             <div class="form-group">
                                 <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.change_type')); ?></label>
-                                <select class="form-input" id="changeType">
-                                    <option value="Standard"><?php echo htmlspecialchars(t('change-management.editor.type_standard')); ?></option>
-                                    <option value="Normal" selected><?php echo htmlspecialchars(t('change-management.editor.type_normal')); ?></option>
-                                    <option value="Emergency"><?php echo htmlspecialchars(t('change-management.editor.type_emergency')); ?></option>
-                                </select>
+                                <select class="form-input" id="changeType"></select>
                             </div>
                         </div>
 
@@ -148,23 +144,14 @@ $translationNamespaces = ['common', 'change-management'];
                         <div class="cm-field-wrap" data-field-key="priority">
                             <div class="form-group">
                                 <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.priority')); ?></label>
-                                <select class="form-input" id="changePriority">
-                                    <option value="Low"><?php echo htmlspecialchars(t('change-management.editor.priority_low')); ?></option>
-                                    <option value="Medium" selected><?php echo htmlspecialchars(t('change-management.editor.priority_medium')); ?></option>
-                                    <option value="High"><?php echo htmlspecialchars(t('change-management.editor.priority_high')); ?></option>
-                                    <option value="Critical"><?php echo htmlspecialchars(t('change-management.editor.priority_critical')); ?></option>
-                                </select>
+                                <select class="form-input" id="changePriority"></select>
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="impact">
                             <div class="form-group">
                                 <label class="form-label" for="changeImpact"><?php echo htmlspecialchars(t('change-management.editor.impact')); ?></label>
-                                <select class="form-input" id="changeImpact" aria-describedby="changeImpactHelp">
-                                    <option value="Low"><?php echo htmlspecialchars(t('change-management.editor.impact_low')); ?></option>
-                                    <option value="Medium" selected><?php echo htmlspecialchars(t('change-management.editor.impact_medium')); ?></option>
-                                    <option value="High"><?php echo htmlspecialchars(t('change-management.editor.impact_high')); ?></option>
-                                </select>
+                                <select class="form-input" id="changeImpact" aria-describedby="changeImpactHelp"></select>
                                 <div class="approval-note" id="changeImpactHelp"><?php echo htmlspecialchars(t('change-management.editor.impact_help')); ?></div>
                             </div>
                         </div>
@@ -616,7 +603,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
     <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=40"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=41"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>
