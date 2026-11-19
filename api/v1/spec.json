@@ -7454,7 +7454,7 @@
                     "p": "\/domains\/{id}",
                     "perm": "domains.update",
                     "s": "Update a domain",
-                    "d": "Send only the fields to change; \"\" or null clears one. Every change is written to the domain's history with source \"api\" and fires the domain.updated workflow event. auth_code is refused; the company cannot be changed here.",
+                    "d": "Send only the fields to change; \"\" or null clears one. Every change is written to the domain's history with source \"api\" and fires the domain.updated workflow event. auth_code is refused. company_id cannot change here: a different company is 422 - use POST \/domains\/{id}\/move-to-company; the company it is already in is accepted.",
                     "params": [
                         {
                             "name": "id",
@@ -7494,6 +7494,11 @@
                                 "code": 422,
                                 "slug": "missing_field",
                                 "when": "The body names no fields to change."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "company_id names a different company (use POST \/domains\/{id}\/move-to-company)."
                             }
                         ]
                     },
@@ -7594,6 +7599,73 @@
                     },
                     "section": "Domains",
                     "slug": "post-domains-id-check"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/domains\/{id}\/move-to-company",
+                    "perm": "domains.update",
+                    "s": "Move a domain to another company",
+                    "d": "Moves the domain to another company the key can reach, with its internal view and its subdomains (they cannot be in a different company from it). Refused when the target company already has one of the names in the same scope, when the domain is linked to tickets or CMDB objects (links stay within one company, so unlink them first), or when it is linked to a contract. The registrar account, cost centre and customer person are cleared when the target company does not have them; `cleared` lists them. Each moved record gets a history entry and fires domain.updated. Returns the domain plus `moved` (records moved; 0 when it is already in that company), `moved_ids` and `cleared`. Moving a subdomain on its own is refused: move its parent.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Domain id (not a subdomain)",
+                            "req": true
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "body",
+                            "desc": "The company to move it to",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "company_id": 3
+                    },
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Fix a bulk import",
+                                "note": "A domain added without company_id lands in the key's default company; move it to the right one.",
+                                "path": {
+                                    "id": 1
+                                },
+                                "body": {
+                                    "company_id": 3
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such domain, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The target company is outside the key's companies."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "The target company already has the name in the same scope."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "missing_field",
+                                "when": "company_id is missing."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "company_id is not a whole number or an unknown company, or the move is refused: the domain is a subdomain, or it is linked to tickets, CMDB objects or a contract - the message says which."
+                            }
+                        ]
+                    },
+                    "section": "Domains",
+                    "slug": "post-domains-id-move-to-company"
                 },
                 {
                     "m": "GET",

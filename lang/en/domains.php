@@ -603,6 +603,20 @@ return [
         'subdomains_hint' => 'Each is checked on its own - DNS, email and certificates - and renews with this domain.',
         'sub_refresh'     => 'A subdomain has no registration of its own to refresh.',
     ],
+    // GH #384: move a domain to another company.
+    'move' => [
+        'button'      => 'Move',
+        'title'       => 'Move to another company',
+        'company'     => 'Company',
+        'intro'       => '{name} and everything recorded on it - history, findings, endpoints, certificates - move to the company you choose.',
+        'with_others' => 'These move with it, because they cannot be in a different company from it: {names}.',
+        'cleared'     => 'The registrar account, cost centre and customer person are cleared if the new company does not have them.',
+        'refused'     => 'The move is refused if the new company already has the name, or while the domain is linked to tickets, CMDB objects or a contract - unlink those first.',
+        'none'        => 'You cannot reach any other company.',
+        'done'        => 'Moved to {company}',
+        'done_many'   => 'Moved to {company}. Records moved: {n}',
+        'cleared_list'=> 'Cleared: {list}',
+    ],
     'tab' => [
         'health'       => 'Health',
         'overview'     => 'Overview',
@@ -837,6 +851,8 @@ return [
             'dns_dmarc'             => 'DMARC record',
             'renewal_task'          => 'Renewal task raised',
             'renewal_ticket'        => 'Renewal ticket raised',
+            'company'               => 'Company',       // GH #384: moved to another company
+            'cost_centre_id'        => 'Cost centre',   // cleared by a move, when the new company does not have it
         ],
     ],
 
@@ -1251,6 +1267,8 @@ return [
             'p2'    => 'The same domain name can be recorded under two companies - useful for an MSP managing names for clients.',
             'p3'    => 'Calendar entries have no company, so domain and certificate dates put in the Calendar are visible to everybody who can open it, as contract and warranty dates already are.',
             'p4'    => 'Connections keep to the company too: a CMDB item or a ticket can only be linked to a domain in the same company. Service Status services and knowledge articles are not company records, so a domain links to them under their own permissions.',
+            'p5'    => '**Move** (on the domain\'s page) moves a domain to another company you can reach. Its internal view and its subdomains move with it, since they cannot be in a different company from it; a subdomain is moved with its parent, not on its own. History, findings, endpoints and certificates go with it. The registrar account, cost centre and customer person are cleared when the new company does not have them, and the history says so.',
+            'p6'    => 'A move is refused when the new company already has the same name in the same scope, or while the domain is linked to tickets, CMDB objects or a contract - unlink those first. Over the REST API it is `POST /domains/{id}/move-to-company`; the company cannot be changed with PATCH.',
         ],
         'people' => [
             'nav'   => 'Owner, technical contact, customer',

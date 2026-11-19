@@ -258,6 +258,255 @@ class DomainsService
     }
 
     /**
+     * Moves a domain to another company (GH #384), with the records that cannot
+     * be in a different company from it, in one transaction.
+     *
+     * WHAT MOVES TOGETHER. A subdomain's parent must be in its own company
+     * (validateField 'parent'), and a name's Public and Internal records are
+     * twins only within one company (domainTwin(), #249). So the move takes the
+     * whole group joined by those two links: the domain, its twin, and the
+     * subdomains of either. Asked to move a subdomain, it refuses and names the
+     * parent to move instead - dragging a parent along unasked would surprise.
+     *
+     * Then, as AssetsService::moveToCompany(), what a record cannot keep splits in two:
+     *
+     *  REFUSED, with the reason: a name and scope the target company already
+     *  holds (one record per name, per company, per scope); links to tickets or
+     *  CMDB objects, which must be in the domain's own company (domainLinkTargetOk()
+     *  in includes/domains/links.php) - the same rule the task move applies to
+     *  linked tickets; and a contract, which belongs to one company since 3.5.0.
+     *  Those need a person's decision, not a guess made for them.
+     *
+     *  CLEARED, and reported: the registrar account, the cost centre and the
+     *  customer person (#153), when they are not the target company's. They do
+     *  not exist there, so keeping them would leave the domain wearing a value its
+     *  own company cannot see or pick.
+     *
+     * Everything else stays: status, owner, contacts and suppliers (not company
+     * records), endpoints, expected records, certificates, history, findings, and
+     * links to knowledge articles and Service Status services.
+     *
+     * @param int $id  the domain to move (not a subdomain)
+     * @param int $targetTenantId  the company (tenant) id to move it to
+     * @return array{moved:int, ids:int[], from:string, to:string, cleared:array<int,array{id:int,domain:string,fields:string[]}>}
+     *         moved is 0 when the domain is already in that company
+     */
+    public static function moveToCompany(PDO $conn, ActorContext $ctx, int $id, int $targetTenantId): array
+    {
+        $row = self::loadForActor($conn, $ctx, $id);              // 404 if out of scope
+        if (!isMultiTenant($conn)) {
+            throw new ServiceError('validation', 'invalid_field',
+                'This install has only one company, so there is nowhere to move a domain to.');
+        }
+        // The person (or the key's analyst) must reach the target as well as the
+        // source. Never analyst 0: "no analyst" is not "every company".
+        // One message for "no access" and "no such company", so probing ids
+        // cannot reveal which companies exist.
+        $noAccess = new ServiceError('validation', 'invalid_field', 'You do not have access to that company.');
+        if ($ctx->actorId < 1
+                || ($ctx->companyScope !== null && !in_array($targetTenantId, $ctx->companyScope, true))
+                || !analystCanAccessTenant($conn, $ctx->actorId, $targetTenantId)) {
+            throw $noAccess;
+        }
+        $target = getTenantById($conn, $targetTenantId);
+        if (!$target) throw $noAccess;
+
+        $defaultId = getDefaultTenantId($conn);
+        $oldTenant = $row['tenant_id'] === null ? $defaultId : (int)$row['tenant_id'];
+        if ($oldTenant === $targetTenantId) {
+            return ['moved' => 0, 'ids' => [], 'from' => $target['name'], 'to' => $target['name'], 'cleared' => []];
+        }
+        $oldName     = getTenantById($conn, $oldTenant)['name'] ?? 'Unknown';
+        $oldStore    = $row['tenant_id'] === null ? null : (int)$row['tenant_id'];
+        $targetStore = self::storeTenant($conn, $targetTenantId);
+        $source      = $ctx->source === 'api' ? 'api' : 'app';
+
+        $ownTx = !$conn->inTransaction();
+        if ($ownTx) $conn->beginTransaction();
+        try {
+            // Lock first, then read what we will act on. The FIRST statement of the
+            // transaction is a locking read, so the snapshot every later plain read
+            // sees is taken after the lock, not before it; and the group is followed
+            // with locking reads (moveGroup), which see the latest committed rows -
+            // so a subdomain added meanwhile is moved too, never left behind.
+            $lk = $conn->prepare("SELECT * FROM domains WHERE id = ? FOR UPDATE");
+            $lk->execute([$id]);
+            $row = $lk->fetch(PDO::FETCH_ASSOC);
+            if (!$row || (($row['tenant_id'] === null) ? null : (int)$row['tenant_id']) !== $oldStore) {
+                throw new ServiceError('conflict', 'conflict', 'This domain changed while it was being moved. Try again.');
+            }
+            if (domainSubdomainsReady($conn) && !empty($row['parent_domain_id'])) {
+                $p = $conn->prepare("SELECT domain_name FROM domains WHERE id = ?");
+                $p->execute([(int)$row['parent_domain_id']]);
+                throw new ServiceError('validation', 'invalid_field',
+                    "{$row['domain_name']} is a subdomain of " . ($p->fetchColumn() ?: 'another domain')
+                    . '. Move that domain instead: its subdomains move with it.');
+            }
+            $group = self::moveGroup($conn, $row, $oldStore);
+            $in    = implode(',', array_fill(0, count($group), '?'));
+            $st = $conn->prepare("SELECT * FROM domains WHERE id IN ($in) ORDER BY id FOR UPDATE");
+            $st->execute(array_keys($group));
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($rows as $r) {
+                if ((($r['tenant_id'] === null) ? null : (int)$r['tenant_id']) !== $oldStore) {
+                    throw new ServiceError('conflict', 'conflict', 'This domain changed while it was being moved. Try again.');
+                }
+            }
+            $ids = array_map(fn($r) => (int)$r['id'], $rows);
+
+            // --- refusals ----------------------------------------------------
+            foreach ($rows as $r) {
+                $scope = (string)($r['scope'] ?? DomainScope::Public->value);
+                if (($other = domainSameScopeId($conn, $r['domain_name'], $targetStore, $scope)) !== null) {
+                    throw new ServiceError('conflict', 'conflict',
+                        "{$target['name']} already has {$r['domain_name']} in the register"
+                        . (domainScopeReady($conn) ? ' as ' . ($scope === 'internal' ? 'an Internal' : 'a Public') . ' domain' : '')
+                        . '. Delete or rename one of them first.');
+                }
+            }
+            $links = self::moveLinkCounts($conn, $ids, $targetTenantId);
+            if ($links['tickets'] > 0 || $links['cmdb'] > 0) {
+                $what = [];
+                if ($links['tickets'] > 0) $what[] = 'tickets: ' . $links['tickets'];
+                if ($links['cmdb'] > 0)    $what[] = 'CMDB objects: ' . $links['cmdb'];
+                throw new ServiceError('validation', 'invalid_field',
+                    "Links must be in the domain's own company, and these are in {$oldName} (" . implode(', ', $what)
+                    . "). Unlink them on the domain's Links tab first.");
+            }
+            foreach ($rows as $r) {
+                if (empty($r['contract_id'])) continue;
+                if (contractTenantOf($conn, (int)$r['contract_id']) !== $targetTenantId) {
+                    throw new ServiceError('validation', 'invalid_field',
+                        "{$r['domain_name']} is linked to a contract in {$oldName}. Remove the contract from the domain first.");
+                }
+            }
+
+            // --- clear what the target company does not have ----------------
+            $cleared = [];
+            foreach ($rows as $r) {
+                $clear = self::moveClearFields($conn, $r, $targetTenantId, $targetStore);
+                $sets = ['tenant_id = ?']; $args = [$targetStore];
+                foreach ($clear as $f) { $sets[] = "$f = NULL"; }
+                $args[] = (int)$r['id'];
+                $conn->prepare("UPDATE domains SET " . implode(', ', $sets) . ", updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute($args);
+                self::audit($conn, (int)$r['id'], $ctx->actorId, 'company', $oldName, $target['name'], $source);
+                foreach ($clear as $f) {
+                    self::audit($conn, (int)$r['id'], $ctx->actorId, $f, self::auditDisplay($conn, $f, $r[$f]), null, $source);
+                }
+                if ($clear) $cleared[] = ['id' => (int)$r['id'], 'domain' => $r['domain_name'], 'fields' => $clear];
+            }
+            if ($ownTx) $conn->commit();
+        } catch (Throwable $e) {
+            if ($ownTx && $conn->inTransaction()) $conn->rollBack();
+            throw $e;
+        }
+
+        // After commit: the calendar and workflows never run for a move that rolled back.
+        self::afterDateChange($conn);
+        foreach ($ids as $mid) self::dispatchCrud($conn, 'updated', $mid);
+        return ['moved' => count($ids), 'ids' => $ids, 'from' => $oldName, 'to' => $target['name'], 'cleared' => $cleared];
+    }
+
+    /**
+     * The records that move with a domain: its twin (#249) and the subdomains of
+     * either, followed until nothing new turns up, all in the domain's company.
+     * Returns id => true, the domain itself included.
+     *
+     * @param array $row  the domain being moved
+     * @param ?int $store  its stored company (NULL = Default)
+     */
+    private static function moveGroup(PDO $conn, array $row, ?int $store): array
+    {
+        // The same tests as domainTwin() and domainSubdomains(), as LOCKING reads:
+        // they see the latest committed rows (not the transaction's snapshot) and
+        // hold them, so the group cannot change under the move.
+        $scopeReady = domainScopeReady($conn);
+        $subReady   = domainSubdomainsReady($conn);
+        $twinQ  = $conn->prepare("SELECT id, domain_name FROM domains WHERE domain_name = ? AND tenant_id <=> ? AND id <> ? FOR UPDATE");
+        $childQ = $subReady ? $conn->prepare("SELECT id, domain_name FROM domains WHERE parent_domain_id = ? FOR UPDATE") : null;
+        $group = [(int)$row['id'] => true];
+        $todo  = [['id' => (int)$row['id'], 'name' => (string)$row['domain_name']]];
+        while ($todo) {
+            $cur = array_pop($todo);
+            $next = [];
+            if ($scopeReady) {
+                $twinQ->execute([$cur['name'], $store, $cur['id']]);
+                foreach ($twinQ->fetchAll(PDO::FETCH_ASSOC) as $t) $next[] = $t;
+            }
+            if ($childQ) {
+                $childQ->execute([$cur['id']]);
+                foreach ($childQ->fetchAll(PDO::FETCH_ASSOC) as $c) $next[] = $c;
+            }
+            foreach ($next as $n) {
+                $nid = (int)$n['id'];
+                if (isset($group[$nid])) continue;
+                $group[$nid] = true;
+                if (count($group) > 1000) {
+                    throw new ServiceError('validation', 'invalid_field', 'Too many subdomains to move at once.');
+                }
+                $todo[] = ['id' => $nid, 'name' => (string)$n['domain_name']];
+            }
+        }
+        return $group;
+    }
+
+    /**
+     * How many tickets and CMDB objects linked to these domains are NOT in the
+     * target company. A link table Database Verification has not created yet
+     * holds no links; any other failure is an error, never "none".
+     *
+     * @param int[] $ids  the domains being moved
+     * @return array{tickets:int, cmdb:int}
+     */
+    private static function moveLinkCounts(PDO $conn, array $ids, int $targetTenantId): array
+    {
+        $default = getDefaultTenantId($conn);
+        $in = implode(',', array_fill(0, count($ids), '?'));
+        $out = ['tickets' => 0, 'cmdb' => 0];
+        // A link to a DELETED ticket does not count: the Links tab neither shows it
+        // nor can remove it (domainLinkTargetOk()), so it must not block a move.
+        foreach (['tickets' => ['ticket_domains', 'ticket_id', 'tickets', ' AND x.deleted_datetime IS NULL'], 'cmdb' => ['domain_cmdb_objects', 'cmdb_object_id', 'cmdb_objects', '']] as $k => [$link, $col, $tbl, $live]) {
+            try { $conn->query("SELECT 1 FROM `$link` LIMIT 0"); } catch (Throwable) { continue; }
+            $st = $conn->prepare("SELECT COUNT(DISTINCT x.id) FROM `$link` l JOIN `$tbl` x ON x.id = l.`$col`
+                                   WHERE l.domain_id IN ($in) AND COALESCE(x.tenant_id, ?) <> ?$live");
+            $st->execute(array_merge($ids, [$default, $targetTenantId]));
+            $out[$k] = (int)$st->fetchColumn();
+        }
+        return $out;
+    }
+
+    /**
+     * The company-owned fields of one domain that the target company does not
+     * have: its registrar account, cost centre and customer person.
+     *
+     * @param array $r  the domain row
+     * @param int $targetTenantId  the target company id
+     * @param ?int $targetStore  the same, as stored (NULL = Default)
+     * @return string[]  column names to clear
+     */
+    private static function moveClearFields(PDO $conn, array $r, int $targetTenantId, ?int $targetStore): array
+    {
+        $default = getDefaultTenantId($conn);
+        $clear = [];
+        if (!empty($r['registrar_account_id'])) {
+            $st = $conn->prepare("SELECT tenant_id FROM domain_registrar_accounts WHERE id = ?");
+            $st->execute([(int)$r['registrar_account_id']]);
+            $t = $st->fetchColumn();
+            if ($t === false || ($t === null ? $default : (int)$t) !== $targetTenantId) $clear[] = 'registrar_account_id';
+        }
+        if (!empty($r['cost_centre_id'])) {
+            $st = $conn->prepare("SELECT tenant_id FROM cost_centres WHERE id = ?");
+            $st->execute([(int)$r['cost_centre_id']]);
+            $t = $st->fetchColumn();
+            if ($t === false || (int)$t !== $targetTenantId) $clear[] = 'cost_centre_id';
+        }
+        if (!empty($r['customer_user_id']) && !domainCustomerPersonOk($conn, (int)$r['customer_user_id'], $targetStore)) {
+            $clear[] = 'customer_user_id';
+        }
+        return $clear;
+    }
+
+    /**
      * Changes a domain's fields, records each change in its history and fires
      * domain.updated when anything changed.
      *

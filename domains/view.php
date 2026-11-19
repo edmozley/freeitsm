@@ -77,6 +77,7 @@ $translationNamespaces = ['common', 'domains'];
                 <?php echo htmlspecialchars(t('domains.page.check')); ?>
             </button>
             <button type="button" class="dom-btn primary" id="btnEdit"><?php echo htmlspecialchars(t('common.edit')); ?></button>
+            <button type="button" class="dom-btn" id="btnMove" title="<?php echo htmlspecialchars(t('domains.move.title')); ?>" hidden><?php echo htmlspecialchars(t('domains.move.button')); ?></button>
             <span style="flex:1"></span>
             <button type="button" class="dom-btn danger" id="btnDelete"><?php echo htmlspecialchars(t('common.delete')); ?></button>
         </div>
@@ -187,6 +188,23 @@ $translationNamespaces = ['common', 'domains'];
             </div>
         </div>
     </div>
+    <!-- GH #384: move to another company - DomainsService::moveToCompany() holds the rules -->
+    <div class="modal" id="mMove">
+        <div class="modal-content" style="max-width:520px">
+            <div class="modal-header"><?php echo htmlspecialchars(t('domains.move.title')); ?></div>
+            <div class="modal-body">
+                <p class="dom-hint" style="font-size:13px" id="mvIntro"></p>
+                <div class="form-group"><label for="mvCompany"><?php echo htmlspecialchars(t('domains.move.company')); ?></label><select id="mvCompany"></select></div>
+                <div class="dom-hint" id="mvWith"></div>
+                <div class="dom-hint"><?php echo htmlspecialchars(t('domains.move.cleared')); ?></div>
+                <div class="dom-hint"><?php echo htmlspecialchars(t('domains.move.refused')); ?></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close="mMove"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="mvSave"><?php echo htmlspecialchars(t('domains.move.button')); ?></button>
+            </div>
+        </div>
+    </div>
     <!-- A certificate recorded by hand -->
     <div class="modal" id="mCert">
         <div class="modal-content" style="max-width:620px">
@@ -253,7 +271,7 @@ $translationNamespaces = ['common', 'domains'];
     // Supplier and contact pages in People (#162) also need Contracts, which owns those records.
     window.DOM_PEOPLE_SUPPLIERS = <?php echo json_encode(analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'people') && analystCanAccessModule($conn, (int)$_SESSION['analyst_id'], 'contracts')); ?>;</script>
     <script src="../assets/js/domains.js?v=4"></script>
-    <script src="../assets/js/domains-view.js?v=15"></script>
+    <script src="../assets/js/domains-view.js?v=17"></script>
     <?php endif; ?>
     <script src="../assets/js/mobile.js?v=83"></script>
 </body>

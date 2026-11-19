@@ -8,6 +8,20 @@ return array (
   'schemas' => 
   array (
     // GH #328: what hangs off a ticket - on GET /tickets/{id}, GET /tickets?include=related and the Full record webhook.
+    // GH #384: POST /domains/{id}/move-to-company.
+    'DomainMoved' => [
+      'allOf' => [
+        ['$ref' => '#/components/schemas/Domain'],
+        ['type' => 'object', 'properties' => [
+          'moved' => ['type' => 'integer', 'description' => 'Records moved: the domain, its internal view and subdomains. 0 when it was already in that company.'],
+          'moved_ids' => ['type' => 'array', 'items' => ['type' => 'integer']],
+          'cleared' => ['type' => 'array', 'description' => 'Fields emptied because the new company does not have them.', 'items' => ['type' => 'object', 'properties' => [
+            'id' => ['type' => 'integer'], 'domain' => ['type' => 'string'],
+            'fields' => ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['registrar_account_id', 'cost_centre_id', 'customer_user_id']]],
+          ]]],
+        ]],
+      ],
+    ],
     'TicketRelated' => [
       'type' => 'object',
       'description' => 'Counts of what is on the ticket (only those whose sub-endpoint the key may read) and links to what it is linked with (only records the key may read).',
@@ -15470,6 +15484,7 @@ return array (
     array (
       '$ref' => '#/components/schemas/DomainCheckResult',
     ),
+    'POST /domains/{id}/move-to-company' => ['$ref' => '#/components/schemas/DomainMoved'],   // GH #384
     'POST /domains/{id}/lookup' => 
     array (
       '$ref' => '#/components/schemas/DomainWithChanges',
