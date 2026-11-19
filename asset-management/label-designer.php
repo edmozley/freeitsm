@@ -49,10 +49,11 @@ foreach (assetLabelStocks() as $k => $st) $stocks[] = ['key' => (string)$k] + $s
 // A few real assets to preview with - their values only. The QR shows a sample
 // address: opening the designer must never mint a code for an asset.
 $samples = [];
+$defaultTenantId = getDefaultTenantId($conn);
 [$tSql, $tArgs] = activeTenantFilter($conn, $analystId, 'a');
 $st = $conn->prepare("SELECT a.id, a.asset_tag, a.hostname, a.service_tag, a.manufacturer, a.model, t.name AS company_name,
                              at.name AS asset_type_name, al.name AS location_name
-                        FROM assets a LEFT JOIN tenants t ON t.id = a.tenant_id LEFT JOIN asset_types at ON at.id = a.asset_type_id
+                        FROM assets a LEFT JOIN tenants t ON t.id = COALESCE(a.tenant_id, $defaultTenantId) LEFT JOIN asset_types at ON at.id = a.asset_type_id
                         LEFT JOIN asset_locations al ON al.id = a.location_id
                        WHERE 1 = 1" . $tSql . " ORDER BY a.asset_tag IS NULL, a.asset_tag, a.hostname LIMIT 40");
 $st->execute($tArgs);
