@@ -95,6 +95,10 @@ temp/
 # Upload directories (may contain sensitive user data)
 uploads/*
 !uploads/.gitkeep
+!uploads/knowledge/
+uploads/knowledge/*
+!uploads/knowledge/.htaccess
+!uploads/knowledge/web.config
 # ⚠️ The execution guards must ship, but git will not re-include a file inside an
 # excluded DIRECTORY — so uploads/documents/ has to be un-ignored first, then its
 # contents excluded again. Without this a fresh clone has no protection in that

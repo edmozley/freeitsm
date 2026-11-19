@@ -13,8 +13,8 @@
  * must be a real active analyst, next_review_date validated, updating an
  * archived article is refused (409), and the recycle-bin guards (archive an
  * archived article / restore a live one / purge a live one → 409). Articles are
- * created *published* unless the caller passes is_published => false; the only
- * caller that does is the Knowledge assistant, whose AI-written drafts must
+ * created *published* unless the caller passes is_published => false; the
+ * callers that do include migration clients and the Knowledge assistant, whose AI-written drafts must
  * reach a human before a reader. Bodies are TinyMCE HTML stored verbatim (no
  * sanitisation exists anywhere).
  *
@@ -30,10 +30,15 @@
  * no-op.
  *
  * Canonical input keys: title, body_html, tags[], owner_id, next_review_date,
- * save_as_version. The UI adapter maps its `body` to `body_html`.
+ * save_as_version, tenant_id, audience, folder_id, is_published, access,
+ * expected_revision, required_image_ids and processing. The UI adapter maps its
+ * `body` to `body_html`. processing=suppress skips AI/workflow calls; search
+ * indexing still runs after commit, and callers receive processing outcomes.
  */
 
 require_once __DIR__ . '/../service_context.php';
+require_once __DIR__ . '/knowledge_transfer.php';
+require_once __DIR__ . '/../knowledge/processing.php';
 require_once __DIR__ . '/../encryption.php';   // decryptValue() for the embedding step (safe: only reads the key file when actually called)
 require_once __DIR__ . '/../ai_embeddings.php';   // aiEmbed(), aiEmbeddingText()
 require_once __DIR__ . '/../knowledge/audience.php';
@@ -93,20 +98,14 @@ class KnowledgeService
         if ($raw === '' || $raw === null) return null;
         $id = (int)$raw;
         if ($id <= 0) return null;
-        try {
-            $st = $conn->prepare("SELECT 1 FROM knowledge_folders WHERE id = ?");
-            $st->execute([$id]);
-            // A folder you cannot read is, to you, not a folder - the same words
-            // as one that does not exist, so an id gives nothing away. Filing an
-            // article into it used to be allowed (report item 8, October 2026).
-            $viewer = self::viewerFor($conn, $ctx);
-            if (!$st->fetchColumn() || ($viewer && !knowledgeFolderIsReadable($conn, $viewer, $id))) {
-                throw new ServiceError('validation', 'invalid_field', "'folder_id' is not a known folder.");
-            }
-        } catch (PDOException) {
-            // Table absent (pre-Database-Verify): no folders exist, so the only
-            // honest answer is the root.
-            return null;
+        $st = $conn->prepare("SELECT 1 FROM knowledge_folders WHERE id = ?");
+        $st->execute([$id]);
+        // A folder you cannot read is, to you, not a folder - the same words
+        // as one that does not exist, so an id gives nothing away. Filing an
+        // article into it used to be allowed (report item 8, October 2026).
+        $viewer = self::viewerFor($conn, $ctx);
+        if (!$st->fetchColumn() || ($viewer && !knowledgeFolderIsReadable($conn, $viewer, $id))) {
+            throw new ServiceError('validation', 'invalid_field', "'folder_id' is not a known folder.");
         }
         return $id;
     }
@@ -195,6 +194,50 @@ class KnowledgeService
      */
     public static function saveArticle(PDO $conn, ActorContext $ctx, array $in): array
     {
+        $suppress = KnowledgeProcessing::suppresses($in);
+        $owns = !$conn->inTransaction();
+        $result = KnowledgeTransferService::transaction($conn, static function () use ($conn, $ctx, $in) {
+            if (!empty($in['id'])) {
+                // Lock before reading: snapshots, revision checks and the edit
+                // must all describe the same row, even for concurrent UI saves.
+                $conn->prepare('SELECT id FROM knowledge_articles WHERE id = ? FOR UPDATE')->execute([(int)$in['id']]);
+                if (array_key_exists('expected_revision', $in)) {
+                    self::assertCanAccessArticle($conn, $ctx, (int)$in['id']);
+                    KnowledgeTransferService::checkRevision($conn, 'article', (int)$in['id'], $in['expected_revision']);
+                }
+            }
+            $result = self::saveArticleData($conn, $ctx, $in);
+            if (array_key_exists('access', $in)) {
+                KnowledgeTransferService::setAccess($conn, $ctx, 'article', $result['id'], $in['access']);
+            }
+            if (array_key_exists('required_image_ids', $in)) {
+                require_once __DIR__ . '/knowledge_images.php';
+                if (!is_array($in['required_image_ids']) || !array_is_list($in['required_image_ids'])) {
+                    throw new ServiceError('validation', 'invalid_field', 'required_image_ids must be an array of image IDs.');
+                }
+                foreach ($in['required_image_ids'] as $imageId) {
+                    $imageId = KnowledgeTransferService::nullableId($imageId, 'required_image_ids');
+                    $st = $conn->prepare('SELECT * FROM knowledge_images WHERE id = ? AND article_id = ?');
+                    $st->execute([$imageId, $result['id']]);
+                    $image = $st->fetch(PDO::FETCH_ASSOC);
+                    if (!$image) throw new ServiceError('validation', 'missing_image', 'A required image is missing or belongs to another article. Upload it before completing the article.');
+                    try { $path = KnowledgeImageService::path($image); }
+                    catch (ServiceError $e) { throw new ServiceError('validation', 'missing_image', 'A required image file is missing. Restore it before completing the article.'); }
+                    if (!hash_equals($image['sha256'], hash_file('sha256', $path))) {
+                        throw new ServiceError('validation', 'missing_image', 'A required image is damaged. Restore it before completing the article.');
+                    }
+                }
+            }
+            return $result;
+        });
+        // TRAP: a caller joining a transaction owns the post-commit step too.
+        // No AI request or workflow can observe an uncommitted article/ACL.
+        return $owns ? self::finishSave($conn, $result, $suppress) : $result;
+    }
+
+    /** Apply the save inside the transaction owned by saveArticle or its caller. */
+    private static function saveArticleData(PDO $conn, ActorContext $ctx, array $in): array
+    {
         if (!empty($in['id'])) {
             $articleId = (int)$in['id'];
             $current   = self::loadArticleRow($conn, $articleId);     // 404 if gone
@@ -246,48 +289,45 @@ class KnowledgeService
             }
             // Which folder it is filed in. Same "only when sent" rule as the two
             // above, for the same reason: an adapter that knows nothing about
-            // folders (the REST API today, an importer) must not silently move
+            // folders (an older API client or importer) must not silently move
             // an article to the root every time it saves a title.
             if (array_key_exists('folder_id', $in)) {
                 $updates[] = 'folder_id = ?';
                 $args[]    = self::resolveFolderId($conn, $ctx, $in['folder_id']);
             }
 
+            if (array_key_exists('is_published', $in)) {
+                $updates[] = 'is_published = ?';
+                $args[] = (int)(bool)$in['is_published'];
+            }
+
             $saveAsVersion = !empty($in['save_as_version']);
 
-            $conn->beginTransaction();
-            try {
-                if ($saveAsVersion) {
-                    $conn->prepare(
-                        "INSERT INTO knowledge_article_versions (article_id, version, title, body, saved_by_id, saved_datetime)
-                         SELECT id, version, title, body, ?, UTC_TIMESTAMP() FROM knowledge_articles WHERE id = ?"
-                    )->execute([$ctx->actorId, $articleId]);
-                    $updates[] = 'version = version + 1';
-                }
-                $args[] = $articleId;
-                $conn->prepare('UPDATE knowledge_articles SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
-
-                if (isset($in['tags']) && is_array($in['tags'])) {
-                    self::setTags($conn, $articleId, $in['tags']);
-                }
-                $conn->commit();
-            } catch (Exception $e) {
-                if ($conn->inTransaction()) $conn->rollBack();
-                throw $e;
+            if ($saveAsVersion) {
+                $conn->prepare(
+                    "INSERT INTO knowledge_article_versions (article_id, version, title, body, saved_by_id, saved_datetime)
+                     SELECT id, version, title, body, ?, UTC_TIMESTAMP() FROM knowledge_articles WHERE id = ?"
+                )->execute([$ctx->actorId, $articleId]);
+                $updates[] = 'version = version + 1';
             }
-            $embGen = self::updateEmbedding($conn, $articleId, $newTitle, $newBody);
-            self::reindexForSearch($conn, $articleId);
-            WorkflowEngine::dispatch('knowledge.updated', ['article' => ['id' => $articleId, 'title' => $newTitle]]);
+            $args[] = $articleId;
+            $conn->prepare('UPDATE knowledge_articles SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
+
+            if (isset($in['tags']) && is_array($in['tags'])) {
+                self::setTags($conn, $articleId, $in['tags']);
+            }
             // Every write leaves a history row. Which FIELDS changed, not their
             // values: an audit trail holding old article bodies is a second
             // uncontrolled copy of the content, and knowledge_article_versions
             // already keeps the versions people actually want to restore.
             knowledgeAuditLog($conn, 'article', $articleId, 'edit', $ctx->actorId, [
                 'fields' => array_values(array_intersect(array_keys($in),
-                    ['title','body_html','tags','owner_id','next_review_date','tenant_id','audience','folder_id'])),
+                    ['title','body_html','tags','owner_id','next_review_date','tenant_id','audience','folder_id','is_published','access'])),
                 'save_as_version' => !empty($in['save_as_version']),
             ]);
-            return ['id' => $articleId, 'created' => false, 'embedding_generated' => $embGen];
+            $published = array_key_exists('is_published', $in) ? (bool)$in['is_published'] : (bool)$current['is_published'];
+            return ['id' => $articleId, 'created' => false, 'title' => $newTitle, 'body_html' => $newBody,
+                'event' => (!$current['is_published'] && $published) ? 'knowledge.published' : 'knowledge.updated'];
         }
 
         $title = trim((string)($in['title'] ?? ''));
@@ -318,48 +358,49 @@ class KnowledgeService
         // land in front of a human before anyone can read it.
         $isPublished = array_key_exists('is_published', $in) ? (int)(bool)$in['is_published'] : 1;
 
-        $conn->beginTransaction();
-        try {
-            $conn->prepare(
-                "INSERT INTO knowledge_articles
-                    (title, body, author_id, owner_id, next_review_date,
-                     created_datetime, modified_datetime, is_published, view_count,
-                     tenant_id, audience, folder_id)
-                 VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), ?, 0, ?, ?, ?)"
-            )->execute([$title, $bodyHtml, $ctx->actorId, $ownerId, $nextReview, $isPublished, $tenantId, $audience,
-                        self::resolveFolderId($conn, $ctx, $in['folder_id'] ?? null)]);
-            $articleId = (int)$conn->lastInsertId();
+        $conn->prepare(
+            "INSERT INTO knowledge_articles
+                (title, body, author_id, owner_id, next_review_date,
+                 created_datetime, modified_datetime, is_published, view_count,
+                 tenant_id, audience, folder_id)
+             VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), ?, 0, ?, ?, ?)"
+        )->execute([$title, $bodyHtml, $ctx->actorId, $ownerId, $nextReview, $isPublished, $tenantId, $audience,
+                    self::resolveFolderId($conn, $ctx, $in['folder_id'] ?? null)]);
+        $articleId = (int)$conn->lastInsertId();
 
-            if (isset($in['tags']) && is_array($in['tags'])) {
-                self::setTags($conn, $articleId, $in['tags']);
-            }
-            $conn->commit();
-        } catch (Exception $e) {
-            if ($conn->inTransaction()) $conn->rollBack();
-            throw $e;
-        }
-        $embGen = self::updateEmbedding($conn, $articleId, $title, $bodyHtml);
-
-        // Indexed whether or not it is published, unlike the event below: an
-        // analyst is meant to find their own unfinished drafts.
-        self::reindexForSearch($conn, $articleId);
-
-        // ⚠️ Only a genuinely published article fires knowledge.published. A draft
-        // has not been published to anyone, and a workflow that announces new
-        // articles would otherwise email the whole company about a page nobody
-        // can open.
-        if ($isPublished) {
-            try {
-                WorkflowEngine::dispatch('knowledge.published', [
-                    'article' => ['id' => $articleId, 'title' => $title],
-                ]);
-            } catch (Exception $wfEx) {
-                error_log('Workflow dispatch error in knowledge service (published): ' . $wfEx->getMessage());
-            }
+        if (isset($in['tags']) && is_array($in['tags'])) {
+            self::setTags($conn, $articleId, $in['tags']);
         }
         knowledgeAuditLog($conn, 'article', $articleId, 'create', $ctx->actorId, ['title' => $title]);
 
-        return ['id' => $articleId, 'created' => true, 'embedding_generated' => $embGen];
+        return ['id' => $articleId, 'created' => true, 'title' => $title, 'body_html' => $bodyHtml,
+            'event' => $isPublished ? 'knowledge.published' : null];
+    }
+
+    /** Post-commit effects are explicit, independently reported and never replayed. */
+    public static function finishSave(PDO $conn, array $result, bool $suppress = false): array
+    {
+        if ($conn->inTransaction()) throw new LogicException('Knowledge effects require a committed transaction.');
+        $processing = ['search' => self::reindexForSearch($conn, $result['id']),
+            'ai' => 'suppressed', 'workflows' => 'suppressed'];
+        $result['embedding_generated'] = false;
+        if (!$suppress) {
+            $processing['ai'] = self::updateEmbedding($conn, $result['id'], $result['title'], $result['body_html']);
+            $result['embedding_generated'] = $processing['ai'] === 'generated';
+            $processing['workflows'] = 'not_applicable';
+            if ($result['event'] !== null) {
+                try {
+                    WorkflowEngine::dispatch($result['event'], ['article' => ['id' => $result['id'], 'title' => $result['title']]]);
+                    $processing['workflows'] = 'dispatched';
+                } catch (Throwable $e) {
+                    error_log('[KnowledgeService workflow] ' . $e->getMessage());
+                    $processing['workflows'] = 'failed';
+                }
+            }
+        }
+        unset($result['title'], $result['body_html'], $result['event']);
+        $result['processing'] = $processing;
+        return $result;
     }
 
     /**
@@ -376,14 +417,15 @@ class KnowledgeService
      *
      * @param int $articleId  the knowledge article to reindex (or remove from the index)
      */
-    private static function reindexForSearch(PDO $conn, int $articleId): void
+    private static function reindexForSearch(PDO $conn, int $articleId): string
     {
         try {
             require_once __DIR__ . '/../search/indexer.php';
-            if (!searchCorpusReady($conn)) return;
-            searchIndexArticle($conn, $articleId);
+            if (!searchCorpusReady($conn)) return 'unavailable';
+            return searchIndexArticle($conn, $articleId) ? 'indexed' : 'unavailable';
         } catch (Throwable $e) {
             error_log('[KnowledgeService::reindexForSearch] ' . $e->getMessage());
+            return 'failed';
         }
     }
 
@@ -448,6 +490,8 @@ class KnowledgeService
         if (!(int)$row['is_archived']) {
             throw new ServiceError('conflict', 'conflict', 'Only archived articles can be permanently deleted. DELETE (archive) it first.');
         }
+        require_once __DIR__ . '/knowledge_images.php';
+        KnowledgeImageService::purgeArticles($conn, [$id]);
         // Children explicitly, not via cascade (versions FK has no cascade; grown installs may lack FKs).
         $conn->prepare("DELETE FROM knowledge_article_versions WHERE article_id = ?")->execute([$id]);
         $conn->prepare("DELETE FROM knowledge_article_tags WHERE article_id = ?")->execute([$id]);
@@ -512,37 +556,37 @@ class KnowledgeService
 
     /**
      * Regenerate the article's OpenAI embedding — best-effort, after commit,
-     * silent on failure. Returns true only if an embedding was stored. No-ops
+     * reported in the save result as generated, not_configured or failed. No-ops
      * unless decryptValue() is loaded and a key is configured (see class header).
      *
      * @param int $articleId  the knowledge article
      * @param string $title  the article's title
      * @param string $body  the article's body as HTML; tags are stripped before it is sent
      */
-    private static function updateEmbedding(PDO $conn, int $articleId, string $title, string $body): bool
+    private static function updateEmbedding(PDO $conn, int $articleId, string $title, string $body): string
     {
         try {
             $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'knowledge_openai_api_key'");
             $stmt->execute();
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$row || empty($row['setting_value']) || !function_exists('decryptValue')) {
-                return false;
+                return 'not_configured';
             }
             $apiKeyValue = decryptValue($row['setting_value']);
             if (!$apiKeyValue) {
-                return false;
+                return 'failed';
             }
 
             $embedding = aiEmbed(aiEmbeddingText($title, $body), $apiKeyValue);
             if ($embedding) {
                 $conn->prepare("UPDATE knowledge_articles SET embedding = ?, embedding_updated = UTC_TIMESTAMP() WHERE id = ?")
                      ->execute([json_encode($embedding), $articleId]);
-                return true;
+                return 'generated';
             }
         } catch (Exception) {
             // Embedding is a bonus, never a blocker — same as the UI.
         }
-        return false;
+        return 'failed';
     }
 
     /**

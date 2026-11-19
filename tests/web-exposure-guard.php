@@ -215,6 +215,13 @@ check('the shipped nginx config returns 404 for /forms/images/',
 check('D009 probes forms/images as a denied folder',
     (bool)preg_match("#'forms/images'\s*=>\s*\[[^\]]*'deny'\s*\]#", $d009));
 
+echo "\nKnowledge inline images are never served directly\n";
+$kbGuard = (string)@file_get_contents($root . '/uploads/knowledge/.htaccess');
+check('uploads/knowledge denies direct reads on Apache', stripos($kbGuard, 'Require all denied') !== false);
+check('uploads/knowledge ships an IIS guard', is_file($root . '/uploads/knowledge/web.config'));
+check('nginx denies the parent uploads directory', (bool)preg_match('#location\s+\^~\s+/uploads/\s*\{\s*return\s+404#', $ngx));
+check('D009 probes Knowledge image storage', strpos($d009, "'uploads/knowledge'") !== false);
+
 /* ---- CONTROLS — this checker must be able to fail ------------------------
    Every assertion above is pattern matching, and pattern matching that only
    ever passes is not evidence. These exercise the matcher itself. */

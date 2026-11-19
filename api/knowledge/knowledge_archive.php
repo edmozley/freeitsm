@@ -133,6 +133,8 @@ function purgeExpired($conn) {
     $ids = $idsStmt->fetchAll(PDO::FETCH_COLUMN);
 
     if ($ids) {
+        require_once __DIR__ . '/../../includes/services/knowledge_images.php';
+        KnowledgeImageService::purgeArticles($conn, $ids);
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $conn->prepare("DELETE FROM knowledge_article_versions WHERE article_id IN ($placeholders)")->execute($ids);
         $conn->prepare("DELETE FROM knowledge_article_tags WHERE article_id IN ($placeholders)")->execute($ids);

@@ -32,6 +32,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/knowledge/visibility.php';
 require_once '../../includes/knowledge/audit.php';
+require_once '../../includes/services/knowledge_transfer.php';
 
 header('Content-Type: application/json');
 
@@ -72,8 +73,11 @@ try {
         default:
             echo json_encode(['success' => false, 'error' => 'Invalid action']);
     }
-} catch (Exception $e) {
+} catch (ServiceError $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log('[Knowledge access] ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'The Knowledge operation could not be completed.']);
 }
 
 /**
@@ -247,29 +251,15 @@ function principalName(PDO $conn, string $type, int $id): string
  */
 function handleSetMode(PDO $conn, int $analystId, array $in): void
 {
-    [$type, $id, $table, $row] = requireObject($conn, $in);
-
-    $restricted = array_key_exists('is_restricted', $in) ? (int)(bool)$in['is_restricted'] : (int)$row['is_restricted'];
-    $inherits   = array_key_exists('inherits', $in)      ? (int)(bool)$in['inherits']      : (int)$row['inherit_permissions'];
-
-    $flipped = $restricted !== (int)$row['is_restricted'];
-    $dropped = 0;
-    if ($flipped) {
-        $st = $conn->prepare("SELECT COUNT(*) FROM knowledge_acl WHERE object_type = ? AND object_id = ?");
-        $st->execute([$type, $id]);
-        $dropped = (int)$st->fetchColumn();
-        $conn->prepare("DELETE FROM knowledge_acl WHERE object_type = ? AND object_id = ?")->execute([$type, $id]);
-    }
-
-    $conn->prepare("UPDATE {$table} SET is_restricted = ?, inherit_permissions = ? WHERE id = ?")
-         ->execute([$restricted, $inherits, $id]);
-
-    knowledgeAclResetCaches();
-    permAudit($conn, $type, $id, $analystId, [
-        'is_restricted' => $restricted,
-        'inherits'      => $inherits,
-        'entries_dropped_by_polarity_change' => $dropped,
-    ]);
+    [$type, $id] = requireObject($conn, $in);
+    $access = KnowledgeTransferService::access($conn, $type, $id);
+    $restricted = array_key_exists('is_restricted', $in) ? (bool)$in['is_restricted'] : $access['is_restricted'];
+    $dropped = $restricted !== $access['is_restricted'] ? count($access['entries']) : 0;
+    // Preserve the UI's polarity rule: changing Open/Restricted clears the list.
+    if ($restricted !== $access['is_restricted']) $access['entries'] = [];
+    $access['is_restricted'] = $restricted;
+    if (array_key_exists('inherits', $in)) $access['inherits'] = (bool)$in['inherits'];
+    KnowledgeTransferService::setAccess($conn, ActorContext::fromSession($conn), $type, $id, $access);
     echo json_encode(['success' => true, 'dropped' => $dropped]);
 }
 
@@ -283,24 +273,9 @@ function handleSetMode(PDO $conn, int $analystId, array $in): void
 function handleAdd(PDO $conn, int $analystId, array $in): void
 {
     [$type, $id] = requireObject($conn, $in);
-    $ptype = (string)($in['principal_type'] ?? '');
-    $pid   = (int)($in['principal_id'] ?? 0);
-    if (!in_array($ptype, ['analyst', 'team', 'user', 'user_group'], true) || $pid <= 0) {
-        echo json_encode(['success' => false, 'error' => 'Unknown person or group']);
-        return;
-    }
-    try {
-        $conn->prepare(
-            "INSERT INTO knowledge_acl (object_type, object_id, principal_type, principal_id, created_by_id, created_datetime)
-             VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([$type, $id, $ptype, $pid, $analystId]);
-    } catch (PDOException $e) {
-        // The unique key. Already listed is not an error worth showing — the
-        // state the caller wanted is the state that exists.
-        if (!str_contains($e->getMessage(), '1062') && $e->getCode() !== '23000') throw $e;
-    }
-    knowledgeAclResetCaches();
-    permAudit($conn, $type, $id, $analystId, ['added' => $ptype . ':' . $pid]);
+    $access = KnowledgeTransferService::access($conn, $type, $id);
+    $access['entries'][] = ['principal_type' => $in['principal_type'] ?? '', 'principal_id' => $in['principal_id'] ?? null];
+    KnowledgeTransferService::setAccess($conn, ActorContext::fromSession($conn), $type, $id, $access);
     echo json_encode(['success' => true]);
 }
 
@@ -313,32 +288,17 @@ function handleAdd(PDO $conn, int $analystId, array $in): void
 function handleRemove(PDO $conn, int $analystId, array $in): void
 {
     [$type, $id] = requireObject($conn, $in);
-    $rowId = (int)($in['entry_id'] ?? 0);
-    if ($rowId <= 0) { echo json_encode(['success' => false, 'error' => 'Nothing to remove']); return; }
-
-    $conn->prepare("DELETE FROM knowledge_acl WHERE id = ? AND object_type = ? AND object_id = ?")
-         ->execute([$rowId, $type, $id]);
-
-    knowledgeAclResetCaches();
-    permAudit($conn, $type, $id, $analystId, ['removed_entry' => $rowId]);
-
-    // Say when the object has just become unreachable to everyone but an
-    // administrator. It is a legal state — "restricted to nobody" — but it is
-    // almost never what somebody meant to do, and finding out later means
-    // finding out from a colleague who cannot open their own document.
-    $st = $conn->prepare("SELECT COUNT(*) FROM knowledge_acl WHERE object_type = ? AND object_id = ?");
-    $st->execute([$type, $id]);
-    $left = (int)$st->fetchColumn();
-
-    $table = $type === 'folder' ? 'knowledge_folders' : 'knowledge_articles';
-    $st = $conn->prepare("SELECT is_restricted FROM {$table} WHERE id = ?");
-    $st->execute([$id]);
-    $restricted = (int)$st->fetchColumn();
-
-    echo json_encode([
-        'success'          => true,
-        'now_unreachable'  => ($restricted === 1 && $left === 0),
-    ]);
+    $st = $conn->prepare('SELECT principal_type, principal_id FROM knowledge_acl WHERE id = ? AND object_type = ? AND object_id = ?');
+    $st->execute([(int)($in['entry_id'] ?? 0), $type, $id]);
+    $entry = $st->fetch(PDO::FETCH_ASSOC);
+    $access = KnowledgeTransferService::access($conn, $type, $id);
+    if ($entry) {
+        $access['entries'] = array_values(array_filter($access['entries'], static function ($row) use ($entry) {
+            return $row['principal_type'] !== $entry['principal_type'] || $row['principal_id'] !== (int)$entry['principal_id'];
+        }));
+    }
+    KnowledgeTransferService::setAccess($conn, ActorContext::fromSession($conn), $type, $id, $access);
+    echo json_encode(['success' => true, 'now_unreachable' => $access['is_restricted'] && !$access['entries']]);
 }
 
 /**
