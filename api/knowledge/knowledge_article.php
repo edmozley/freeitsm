@@ -35,7 +35,7 @@ try {
     $sql = "SELECT a.id, a.title, a.body,
                    a.author_id, a.owner_id, a.next_review_date,
                    a.created_datetime, a.modified_datetime, a.view_count,
-                   a.is_archived, a.archived_datetime, a.version,
+                   a.is_archived, a.archived_datetime, a.version, a.is_published,
                    a.tenant_id, a.audience, a.folder_id, a.is_restricted, a.inherit_permissions,
                    COALESCE(an.full_name, '(deleted analyst)') as author_name,
                    owner.full_name as owner_name

@@ -302,8 +302,11 @@ try {
     [$status] = kbGetUrl($origin . $imageUrl, $portalSession);
     kbCheck('unpublishing immediately hides images from portal readers', $status === 404);
     $conn->prepare("UPDATE knowledge_articles SET is_published = 1, audience = 'public' WHERE id = ?")->execute([$article]);
+    // Ed, 19 Nov 2026: nothing is served to somebody who is not signed in, even from a public article.
     [$status, $raw] = kbGetUrl($origin . $imageUrl);
-    kbCheck('positive control: public shared article images are publicly readable', $status === 200 && $raw === $png);
+    kbCheck('without a session, even a public shared article\'s image is not served', $status === 404 && $raw !== $png);
+    [$status, $raw] = kbGetUrl($origin . $imageUrl, $portalSession);
+    kbCheck('positive control: a signed-in portal reader gets the public article\'s image', $status === 200 && $raw === $png);
     [$status] = kbRequest('DELETE', '/knowledge/articles/' . $article . '/images/' . $imageId, $key);
     kbCheck('image deletion succeeds', $status === 200);
     [$status] = kbRequest('POST', '/knowledge/articles/' . $article . '/images', $key, $imageInput);

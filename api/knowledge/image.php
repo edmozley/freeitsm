@@ -23,8 +23,12 @@ try {
         // Match portalKnowledgeScope(), including its current principal model.
         $viewer = KnowledgeViewer::forPortalUser($conn, null, portalUserTenantId($conn, (int)$_SESSION['ss_user_id']));
     } else {
-        // No company identity: only public articles shared with all companies.
-        $viewer = KnowledgeViewer::forWebChat($conn, null);
+        // TRAP: nobody signed in = nothing served, not even an image from a
+        // public article. Ed, 19 Nov 2026: "you should not be able to view content
+        // of any sort if you are not authenticated in some way." Image ids are
+        // sequential, so an anonymous reader would be a walk through 1, 2, 3...
+        // The PR as sent served public, shared articles' images here.
+        throw new RuntimeException('Unavailable');
     }
     $row = KnowledgeImageService::load($conn, $viewer, (int)($_GET['id'] ?? 0), $lifecycle);
     KnowledgeImageService::serve($row);

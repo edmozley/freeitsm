@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../knowledge/visibility.php';
 require_once __DIR__ . '/../knowledge/audit.php';
+require_once __DIR__ . '/../encryption.php';
 
 class KnowledgeTransferService
 {
@@ -97,6 +98,17 @@ class KnowledgeTransferService
             throw new ServiceError('validation', 'invalid_access', 'Supply boolean is_restricted/inherits and an entries array.');
         }
         $tables = ['analyst' => 'analysts', 'team' => 'teams', 'user' => 'users', 'user_group' => 'knowledge_user_groups'];
+        // TRAP: only a NEW entry has to name someone who exists. An entry already
+        // on the list may point at a person, team or group deleted since (the
+        // permissions dialog shows it as "(deleted - safe to remove)"). The UI
+        // sends the whole list back on every add and remove, so checking stored
+        // entries too locked the list: nothing could be added - not even a deny
+        // on an open folder, the only way to shut someone out - and removing one
+        // stale entry failed on the next. Found reviewing PR #378, fixed before merge.
+        $st = $conn->prepare('SELECT principal_type, principal_id FROM knowledge_acl WHERE object_type = ? AND object_id = ?');
+        $st->execute([$type, $id]);
+        $stored = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $row) $stored[$row['principal_type'] . ':' . (int)$row['principal_id']] = true;
         $entries = [];
         foreach ($access['entries'] as $entry) {
             if (!is_array($entry) || array_diff(array_keys($entry), ['principal_type', 'principal_id'])
@@ -104,6 +116,10 @@ class KnowledgeTransferService
                 throw new ServiceError('validation', 'invalid_access', 'Unknown access-list principal type.');
             }
             $principal = self::nullableId($entry['principal_id'] ?? null, 'principal_id');
+            if ($principal && isset($stored[$entry['principal_type'] . ':' . $principal])) {
+                $entries[$entry['principal_type'] . ':' . $principal] = [$entry['principal_type'], $principal];
+                continue;
+            }
             $st = $conn->prepare('SELECT id FROM ' . $tables[$entry['principal_type']] . ' WHERE id = ?');
             $st->execute([$principal]);
             if (!$principal || !$st->fetchColumn()) {
@@ -180,7 +196,12 @@ class KnowledgeTransferService
             $st->execute([$id]);
             $row['images'] = $st->fetchAll(PDO::FETCH_ASSOC);
         }
-        return hash('sha256', json_encode($row, JSON_THROW_ON_ERROR));
+        // Keyed, not a plain sha256: the row includes the access list, which only a
+        // Knowledge administrator may read, and a plain hash would let any key that
+        // can read the article confirm a guessed list. Same derived-key pattern as
+        // messaging's media links. Found reviewing PR #378, fixed before merge.
+        $key = hash_hmac('sha256', 'freeitsm/knowledge-revision/v1', getEncryptionKey(), true);
+        return hash_hmac('sha256', json_encode($row, JSON_THROW_ON_ERROR), $key);
     }
 
     public static function checkRevision(PDO $conn, string $type, int $id, $expected): void

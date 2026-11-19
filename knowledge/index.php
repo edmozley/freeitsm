@@ -53,7 +53,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <title><?php echo htmlspecialchars(pageTitle('knowledge')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=93">
-    <link rel="stylesheet" href="../assets/css/knowledge.css?v=30">
+    <link rel="stylesheet" href="../assets/css/knowledge.css?v=31">
     <link rel="stylesheet" href="../assets/css/domain-links.css?v=1">
     <link rel="stylesheet" href="../assets/css/project-links.css?v=1">
     <!-- Prism.js for code syntax highlighting -->
@@ -207,6 +207,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                         <button class="btn btn-secondary" onclick="kbMoveCurrentArticle()" title="<?php echo htmlspecialchars(t('knowledge.move.title')); ?>"><span class="kb-act-icon" aria-hidden="true">📁</span><span class="kb-act-label"><?php echo htmlspecialchars(t('knowledge.move.button')); ?></span></button>
                         <button class="btn btn-secondary" id="kbArticleAuditBtn" style="display:none;" onclick="openArticleAuditModal()" title="<?php echo htmlspecialchars(t('knowledge.audit.title')); ?>"><span class="kb-act-icon" aria-hidden="true">🕘</span><span class="kb-act-label"><?php echo htmlspecialchars(t('knowledge.audit.button')); ?></span></button>
                         <button class="btn btn-secondary" id="kbArticlePermBtn" style="display:none;" onclick="openArticlePermModal()"><span class="kb-act-icon" aria-hidden="true">🔒</span><span class="kb-act-label"><?php echo htmlspecialchars(t('knowledge.perm.manage')); ?></span></button>
+                        <button class="btn btn-primary" id="kbArticlePublishBtn" style="display:none;" onclick="publishCurrentArticle()" title="<?php echo htmlspecialchars(t('knowledge.detail.publish_title')); ?>"><span class="kb-act-icon" aria-hidden="true">📢</span><span class="kb-act-label"><?php echo htmlspecialchars(t('knowledge.detail.publish')); ?></span></button>
                         <button class="btn btn-primary" onclick="editCurrentArticle()"><span class="kb-act-icon" aria-hidden="true">✏️</span><span class="kb-act-label"><?php echo htmlspecialchars(t('knowledge.detail.edit')); ?></span></button>
                         <button class="btn btn-danger" onclick="deleteCurrentArticle()"><span class="kb-act-icon" aria-hidden="true">🗑️</span><span class="kb-act-label"><?php echo htmlspecialchars(t('knowledge.detail.archive')); ?></span></button>
                     </div>
@@ -579,7 +580,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <script src="../assets/js/domain-links.js?v=2"></script>
     <script src="../assets/js/project-links.js?v=1"></script>
     <script src="../assets/js/safe-html.js?v=4"></script>   <!-- article bodies are cleaned before display -->
-    <script src="../assets/js/knowledge.js?v=72"></script>
+    <script src="../assets/js/knowledge.js?v=73"></script>
     <!-- Prism.js for code syntax highlighting when viewing articles -->
     <script src="../assets/js/vendor/prism.min.js?v=1.30.0"></script>
     <script src="../assets/js/vendor/prism-powershell.min.js"></script>

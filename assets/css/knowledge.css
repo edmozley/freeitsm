@@ -1525,6 +1525,25 @@ div.code-toolbar > .toolbar > .toolbar-item > span {
     cursor: help;
 }
 
+/* A draft: not published, so no requester, Help Centre, web chat or AI answer
+   sees it. A word, not an icon - it changes who can read the article. */
+.kb-draft-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    vertical-align: middle;
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+}
+.kb-draft-note {
+    margin: 6px 0 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
 /* ---------------------------------------------------------------------------
    Going into a folder from the main pane: a breadcrumb, then folder rows above
    the articles. NOT a view mode — see the note in knowledge.js.

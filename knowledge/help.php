@@ -272,6 +272,7 @@ $translationNamespaces = ['common', 'knowledge'];
                         <h3><?php echo htmlspecialchars(t('knowledge.help.review_heading')); ?></h3>
                     </div>
                     <p><?php echo htmlspecialchars(t('knowledge.help.review_intro')); ?></p>
+                    <p class="help-note"><?php echo t('knowledge.help.review_drafts'); ?></p>
 
                     <div class="help-flow">
                         <div class="help-flow-step"><?php echo htmlspecialchars(t('knowledge.help.review_flow_draft')); ?></div>

@@ -29,7 +29,19 @@ try {
     // Map the UI's `body` to the service's canonical `body_html`; the rest of
     // the keys (id, title, tags, owner_id, next_review_date, save_as_version)
     // are already canonical.
-    $in = $input;
+    //
+    // TRAP: an allow-list, not the whole body. KnowledgeService::saveArticle also
+    // takes the REST migration keys (PR #378) - processing, access,
+    // expected_revision, required_image_ids - and each of those has its own REST
+    // permission (processing=suppress needs knowledge_imports.manage, because it
+    // stops the knowledge.published workflow firing). Passing the body through
+    // would let anyone who can edit an article send them by hand with no check.
+    // Add a key here only when this screen really sends it.
+    $in = array_intersect_key($input, array_flip([
+        'id', 'title', 'tags', 'owner_id', 'next_review_date', 'save_as_version',
+        'audience', 'folder_id', 'tenant_id',
+        'is_published',   // the Publish button on a draft
+    ]));
     if (array_key_exists('body', $input)) {
         $in['body_html'] = $input['body'];
     }

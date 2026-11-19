@@ -2336,7 +2336,7 @@ function renderArticleList() {
                 // the list is an exception nobody will ever audit.
                 (kbRowIsShortcut(article.id) ? '<span class="kb-badge" title="' + escapeHtml(window.t('knowledge.folders.is_shortcut')) + '">↗</span> ' : '')
               + (Number(article.inherit_permissions) === 0 ? '<span class="kb-badge" title="' + escapeHtml(window.t('knowledge.exceptions.own_rules')) + '">🔒</span> ' : '')
-            }${escapeHtml(article.title)}</div>
+            }${escapeHtml(article.title)}${Number(article.is_published) === 0 ? ' <span class="kb-draft-badge">' + escapeHtml(window.t('knowledge.detail.draft')) + '</span>' : ''}</div>
             <div class="article-card-preview">${escapeHtml(article.preview || '')}</div>
             <div class="article-card-meta">
                 <div class="article-card-tags">
@@ -2383,6 +2383,36 @@ async function viewArticle(articleId) {
     }
 }
 
+/**
+ * Publish the draft being read. Sends ONLY the id and is_published - like the
+ * rename, it must not send a body back and overwrite an edit somebody has open.
+ * Publishing fires the knowledge.published workflow event and refreshes the
+ * article's search and AI index, exactly as a normal save does.
+ */
+async function publishCurrentArticle() {
+    if (!currentArticle) return;
+    const ok = await showConfirm({
+        title: window.t('knowledge.confirm.publish_title'),
+        message: window.t('knowledge.confirm.publish_message'),
+        okLabel: window.t('knowledge.confirm.publish_ok'),
+        okClass: 'primary'
+    });
+    if (!ok) return;
+    try {
+        const r = await fetch(API_BASE + 'knowledge_save.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: currentArticle.id, is_published: true })
+        });
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error || '');
+        showToast(window.t('knowledge.toast.published'), 'success');
+        loadArticles();
+        viewArticle(currentArticle.id);
+    } catch (e) {
+        showToast(window.t('knowledge.toast.error_saving', { message: e.message }), 'error');
+    }
+}
+
 // Render article detail
 function renderArticleDetail() {
     const container = document.getElementById('articleContent');
@@ -2397,10 +2427,18 @@ function renderArticleDetail() {
     // anyone who can open the article.
     const auditBtn = document.getElementById('kbArticleAuditBtn');
     if (auditBtn) auditBtn.style.display = kbCanManagePerms ? '' : 'none';
+    // A draft (an AI write-up, a project tool's article, a REST import staged
+    // with is_published=false) is not shown to requesters, the Help Centre, web
+    // chat or AI answers until somebody publishes it. Before 5.7.0 nothing on
+    // screen said so and nothing could publish it. Found reviewing PR #378.
+    const isDraft = Number(currentArticle.is_published) === 0;
+    const pubBtn = document.getElementById('kbArticlePublishBtn');
+    if (pubBtn) pubBtn.style.display = isDraft ? '' : 'none';
 
     container.innerHTML = `
         <div class="article-content-header">
             <h1 class="article-content-title">${escapeHtml(currentArticle.title)}</h1>
+            ${isDraft ? `<div class="kb-draft-note"><span class="kb-draft-badge">${escapeHtml(window.t('knowledge.detail.draft'))}</span> ${escapeHtml(window.t('knowledge.detail.draft_hint'))}</div>` : ''}
             <!-- The four meta lines carry a class each purely so a stylesheet
                  can name them. Nothing targets these on desktop; mobile.css
                  collapses all but "modified" behind a tap (LAYER 17h), and

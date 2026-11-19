@@ -501,6 +501,13 @@ function knowledgeViewerHasAdminFloor(PDO $conn, KnowledgeViewer $viewer): bool
  */
 function knowledgeAuditAdminOverride(PDO $conn, KnowledgeViewer $viewer, int $articleId): void
 {
+    // Once per article per request. One permission edit checks the article
+    // several times (before, inside and after the write), and three identical
+    // rows for one action bury the record rather than keep it. (PR #378 review.)
+    static $logged = [];
+    $key = $viewer->analystId() . ':' . $articleId;
+    if (isset($logged[$key])) return;
+    $logged[$key] = true;
     knowledgeAuditLog($conn, 'article', $articleId, 'admin_override',
                       $viewer->analystId(), ['capability' => capKey(Cap::KNOWLEDGE_MANAGE)]);
 }
