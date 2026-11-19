@@ -268,6 +268,11 @@ return [
     ],
     'list' => [
         'search' => 'Rechercher',
+        // GH #397: People is a view, so New hands off to the screen that creates it.
+        'new' => 'Nouveau',
+        'new_person_title' => 'Ajouter une personne dans Tickets -> Utilisateurs',
+        'new_company_title' => 'Ajouter une entreprise dans Système -> Entreprises',
+        'new_supplier_title' => 'Ajouter un fournisseur dans Contrats -> Fournisseurs',
         'search_ph' => 'Nom, e-mail, intitulé du poste...',
         'show' => 'Afficher',
         'status_active' => 'Personnes actuelles',

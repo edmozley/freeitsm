@@ -42,6 +42,9 @@ $path_prefix = '../';
                 <option value="active"><?php echo pplE(t('people.suppliers.status_active')); ?></option>
                 <option value="all"><?php echo pplE(t('people.suppliers.status_all')); ?></option>
             </select>
+            <?php if (analystCanWriteModule($conn, $analystId, 'contracts')): ?>
+            <a class="ppl-btn ppl-btn-primary" href="<?php echo BASE_URL; ?>contracts/suppliers/?new=1" title="<?php echo pplE(t('people.list.new_supplier_title')); ?>"><?php echo pplE(t('people.list.new')); ?></a>
+            <?php endif; ?>
         </div>
 
         <section class="ppl-card">

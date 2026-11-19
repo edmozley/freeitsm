@@ -170,6 +170,7 @@ return [
     ],
     'reading_pane' => [
         'unknown_sender' => 'Remitente desconocido',
+        'open_person' => 'Abrir a esta persona en Usuarios',   // GH #397
         'select_ticket' => 'Seleccione un ticket para ver los detalles',
         'properties_title' => 'Propiedades del ticket',
         'summary_dept' => 'Dpto.:',

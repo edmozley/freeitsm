@@ -201,6 +201,7 @@ return [
 
     'reading_pane' => [
         'unknown_sender'      => 'Unknown sender',
+        'open_person' => 'Open this person in Users',   // GH #397
         'select_ticket' => 'Select a ticket to view details',
 
         // Ticket properties panel (collapsible) + field labels

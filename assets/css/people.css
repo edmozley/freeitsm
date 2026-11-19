@@ -69,6 +69,11 @@ body { --ppl-accent: #a21caf; --ppl-accent-soft: rgba(162, 28, 175, .1); }
     border: 1px solid var(--border, #ddd); background: var(--surface, #fff); color: var(--text, #333) !important; text-decoration: none !important;
 }
 .ppl-btn:hover { background: var(--surface-hover, #f3f4f6); }
+/* GH #397: New - People is a view, so it hands off to the screen that creates the
+   record (Tickets -> Users, System -> Companies, Contracts -> Suppliers). */
+.ppl-btn-primary { background: var(--ppl-accent); border-color: transparent; color: var(--on-accent) !important; }
+.ppl-btn-primary:hover { filter: brightness(0.92); background: var(--ppl-accent); }
+.ppl-list-head { display: flex; justify-content: flex-end; margin-bottom: 10px; }
 
 /* ---------- stat strip ---------------------------------------------------- */
 .ppl-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }

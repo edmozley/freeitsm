@@ -170,6 +170,7 @@ return [
     ],
     'reading_pane' => [
         'unknown_sender' => 'Невідомий відправник',
+        'open_person' => 'Відкрити цю особу в Користувачах',   // GH #397
         'select_ticket' => 'Виберіть заявку для перегляду деталей',
         'properties_title' => 'Властивості заявки',
         'summary_dept' => 'Відділ:',

@@ -170,6 +170,7 @@ return [
     ],
     'reading_pane' => [
         'unknown_sender' => 'Pengirim tidak dikenal',
+        'open_person' => 'Buka orang ini di Pengguna',   // GH #397
         'select_ticket' => 'Pilih tiket untuk melihat detail',
         'properties_title' => 'Properti Tiket',
         'summary_dept' => 'Dept:',

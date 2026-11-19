@@ -36,6 +36,9 @@ $path_prefix = '../';
             <?php if (count($companies) > 1): ?>
             <input type="search" class="ppl-co-search" id="pplCoSearch" placeholder="<?php echo pplE(t('people.companies.search_ph')); ?>" aria-label="<?php echo pplE(t('people.companies.search_ph')); ?>" autocomplete="off">
             <?php endif; ?>
+            <?php if (sessionIsAdmin()): ?>
+            <a class="ppl-btn ppl-btn-primary" href="<?php echo BASE_URL; ?>system/companies/?new=1" title="<?php echo pplE(t('people.list.new_company_title')); ?>"><?php echo pplE(t('people.list.new')); ?></a>
+            <?php endif; ?>
         </div>
 
         <div class="ppl-co-grid" id="pplCoGrid">

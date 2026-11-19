@@ -268,6 +268,11 @@ return [
     ],
     'list' => [
         'search' => 'Cari',
+        // GH #397: People is a view, so New hands off to the screen that creates it.
+        'new' => 'Baru',
+        'new_person_title' => 'Tambah orang di Tiket -> Pengguna',
+        'new_company_title' => 'Tambah perusahaan di Sistem -> Perusahaan',
+        'new_supplier_title' => 'Tambah pemasok di Kontrak -> Pemasok',
         'search_ph' => 'Nama, email, jabatan...',
         'show' => 'Tampilkan',
         'status_active' => 'Orang saat ini',

@@ -979,6 +979,18 @@ body.ticket-popout .ticket-toolbar {
 .email-meta-value {
     color: var(--text, #333);
 }
+/* GH #397: a person in the header opens on Tickets -> Users. Quiet until hovered, so
+   the header still reads as text. */
+.email-person-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--text-faint, #999);
+}
+.email-person-link:hover {
+    color: var(--accent, #0078d4);
+    border-bottom-style: solid;
+    border-bottom-color: currentColor;
+}
 
 /* Date sits on the To: row, pushed to the right edge */
 .email-meta-date {

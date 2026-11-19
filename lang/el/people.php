@@ -268,6 +268,11 @@ return [
     ],
     'list' => [
         'search' => 'Αναζήτηση',
+        // GH #397: People is a view, so New hands off to the screen that creates it.
+        'new' => 'Νέο',
+        'new_person_title' => 'Προσθήκη ατόμου στα Αιτήματα -> Χρήστες',
+        'new_company_title' => 'Προσθήκη εταιρείας στο Σύστημα -> Εταιρείες',
+        'new_supplier_title' => 'Προσθήκη προμηθευτή στις Συμβάσεις -> Προμηθευτές',
         'search_ph' => 'Όνομα, email, θέση εργασίας...',
         'show' => 'Εμφάνιση',
         'status_active' => 'Τρέχοντα άτομα',

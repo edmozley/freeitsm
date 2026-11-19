@@ -859,6 +859,8 @@ $translationNamespaces = ['common', 'system'];
     });
 
     document.getElementById('addCompanyBtn').addEventListener('click', () => openModal(null));
+    // GH #397: People -> Companies -> New lands here with ?new=1.
+    if (new URLSearchParams(location.search).get('new') === '1') openModal(null);
     document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 

@@ -170,6 +170,7 @@ return [
     ],
     'reading_pane' => [
         'unknown_sender' => 'Ukendt afsender',
+        'open_person' => 'Åbn denne person under Brugere',   // GH #397
         'select_ticket' => 'Vælg en sag for at se detaljer',
         'properties_title' => 'Sagsegenskaber',
         'summary_dept' => 'Afd.:',

@@ -552,8 +552,24 @@ $translationNamespaces = ['common', 'tickets'];
             // Deep link: ?user_id=N opens that person - the same spelling Assets ->
             // Users uses, so Manager access can send you back to who you were on.
             const deepLink = parseInt(new URLSearchParams(window.location.search).get('user_id') || '', 10);
-            loadUsers().then(() => { if (deepLink > 0) selectUser(deepLink); });
-            loadUserCompanies();
+            // GH #397: ?email= - from an address in a ticket's header. Searches for it and
+            // opens the person if exactly that address is found; otherwise the search
+            // stays filled in, so you can see there is nobody with it.
+            const deepEmail = (new URLSearchParams(window.location.search).get('email') || '').trim();
+            if (deepEmail && !(deepLink > 0)) {
+                const box = document.getElementById('userSearch');
+                if (box) box.value = deepEmail;
+                loadUsers(deepEmail).then(() => {
+                    const hit = users.find(u => String(u.email || '').toLowerCase() === deepEmail.toLowerCase());
+                    if (hit) selectUser(hit.id);
+                });
+            } else {
+                loadUsers().then(() => { if (deepLink > 0) selectUser(deepLink); });
+            }
+            // GH #397: ?new=1 (People -> New) opens the Add dialog, once the company
+            // picker it needs has loaded.
+            const wantNew = new URLSearchParams(window.location.search).get('new') === '1';
+            loadUserCompanies().then(() => { if (wantNew) openUserModal(); });
             // Loaded up front rather than when the tab is first opened: the answer
             // carries `can_manage`, which decides whether the Add button is drawn
             // at all, and a button that appears a moment later reads as a glitch.

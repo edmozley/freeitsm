@@ -66,6 +66,9 @@ $path_prefix = '../';
             <p class="ppl-dim ppl-intro"><?php echo pplE(t('people.list.intro')); ?></p>
         </aside>
         <main class="ppl-main-list">
+            <?php if (analystCanWriteModule($conn, $analystId, 'tickets')): ?>
+            <div class="ppl-list-head"><a class="ppl-btn ppl-btn-primary" href="<?php echo BASE_URL; ?>tickets/users.php?new=1" title="<?php echo pplE(t('people.list.new_person_title')); ?>"><?php echo pplE(t('people.list.new')); ?></a></div>
+            <?php endif; ?>
             <section class="ppl-card">
                 <div class="ppl-table-wrap"><table class="ppl-table ppl-list">
                     <thead><tr>

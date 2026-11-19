@@ -3570,23 +3570,23 @@ function displayEmail(email, recordings) {
             <div class="email-meta">
                 <div class="email-meta-row">
                     <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_from'))}</div>
-                    <div class="email-meta-value">${senderLabel(email.from_name, email.from_address, true)}${requesterDialHtml(email)}
+                    <div class="email-meta-value">${linkPerson(senderLabel(email.from_name, email.from_address, true), email.from_address, sameAddress(email.from_address, email.requester_email) ? email.user_id : null)}${requesterDialHtml(email)}
                         <a href="#" class="req-change-link" onclick="event.preventDefault();openChangeRequester();">${escapeHtml(t('tickets.change_requester.link'))}</a></div>
                 </div>
                 ${email.requester_email && String(email.requester_email).toLowerCase() !== String(email.from_address || '').toLowerCase() ? `
                 <div class="email-meta-row">
                     <div class="email-meta-label">${escapeHtml(t('tickets.change_requester.requester'))}</div>
-                    <div class="email-meta-value">${senderLabel(email.requester_name, email.requester_email, true)}</div>
+                    <div class="email-meta-value">${linkPerson(senderLabel(email.requester_name, email.requester_email, true), email.requester_email, email.user_id)}</div>
                 </div>` : ''}
                 <div class="email-meta-row">
                     <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_to'))}</div>
-                    <div class="email-meta-value">${escapeHtml(email.to_recipients)}</div>
+                    <div class="email-meta-value">${linkAddresses(email.to_recipients)}</div>
                     <div class="email-meta-date"><span class="email-meta-date-label">${escapeHtml(t('tickets.reading_pane.meta_date'))}</span> ${formatFullDateTime(email.received_datetime)}</div>
                 </div>
                 ${email.cc_recipients ? `
                 <div class="email-meta-row">
                     <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_cc'))}</div>
-                    <div class="email-meta-value">${escapeHtml(email.cc_recipients)}</div>
+                    <div class="email-meta-value">${linkAddresses(email.cc_recipients)}</div>
                 </div>
                 ` : ''}
             </div>
@@ -6343,6 +6343,40 @@ function inboxRowName(email) {
  *
  * @param withAngles  true to show "Name <address>" when both are known
  */
+/**
+ * GH #397: the people in a message's header open on Tickets -> Users, in a new tab so
+ * the inbox keeps its place. By id when we know who it is (the requester), else by
+ * address (users.php?email= finds them). Returns escaped HTML.
+ *
+ * @param {string} labelHtml  already-escaped text to wrap (senderLabel()'s output)
+ * @param {string|null} address
+ * @param {number|null} userId
+ */
+function linkPerson(labelHtml, address, userId) {
+    const a = (address || '').trim();
+    if (!userId && !a) return labelHtml;
+    const href = 'users.php?' + (userId ? 'user_id=' + encodeURIComponent(userId) : 'email=' + encodeURIComponent(a));
+    return `<a class="email-person-link" href="${href}" target="_blank" rel="noopener" title="${escapeHtml(t('tickets.reading_pane.open_person'))}">${labelHtml}</a>`;
+}
+
+/** Every address in a To / CC list as a link (linkPerson), the rest of the text escaped. */
+function linkAddresses(text) {
+    const out = [];
+    const re = /[A-Z0-9._%+'-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+    const s = String(text || '');
+    let last = 0, m;
+    while ((m = re.exec(s)) !== null) {
+        out.push(escapeHtml(s.slice(last, m.index)), linkPerson(escapeHtml(m[0]), m[0], null));
+        last = m.index + m[0].length;
+    }
+    out.push(escapeHtml(s.slice(last)));
+    return out.join('');
+}
+
+function sameAddress(a, b) {
+    return !!a && !!b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+}
+
 function senderLabel(name, address, withAngles) {
     const n = (name || '').trim();
     const a = (address || '').trim();

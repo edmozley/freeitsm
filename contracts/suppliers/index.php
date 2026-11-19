@@ -361,8 +361,10 @@ $translationNamespaces = ['common', 'contracts'];
         let supplierStatuses = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadSupplierTypes();
-            loadSupplierStatuses();
+            // GH #397: People -> Suppliers -> New lands here with ?new=1 - opened once
+            // the type and status pickers the dialog fills from have loaded.
+            const wantNew = new URLSearchParams(window.location.search).get('new') === '1';
+            Promise.all([loadSupplierTypes(), loadSupplierStatuses()]).then(() => { if (wantNew) openModal(); });
             loadSuppliers();
         });
 

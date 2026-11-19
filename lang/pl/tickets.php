@@ -170,6 +170,7 @@ return [
     ],
     'reading_pane' => [
         'unknown_sender' => 'Nieznany nadawca',
+        'open_person' => 'Otwórz tę osobę w Użytkownikach',   // GH #397
         'select_ticket' => 'Wybierz zgłoszenie, aby zobaczyć szczegóły',
         'properties_title' => 'Właściwości zgłoszenia',
         'summary_dept' => 'Dział:',
