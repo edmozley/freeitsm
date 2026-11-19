@@ -628,6 +628,7 @@ function getActiveTenantId(PDO $conn, ?int $analystId = null): int {
     if (!isMultiTenant($conn)) {
         return getDefaultTenantId($conn);
     }
+    tenancyRestoreRememberedCompany($conn);
 
     $sessionId = isset($_SESSION['active_tenant_id']) ? (int) $_SESSION['active_tenant_id'] : 0;
     if ($sessionId > 0 && ($analystId === null || analystCanAccessTenant($conn, $analystId, $sessionId))) {
@@ -652,6 +653,7 @@ function setActiveTenantId(int $tenantId): void {
     // Picking a specific company always leaves the consolidated view. Without
     // this, choosing a school from the switcher would appear to do nothing.
     $_SESSION['active_tenant_all'] = false;
+    $_SESSION['active_tenant_restored'] = (int)($_SESSION['analyst_id'] ?? 0);   // an explicit pick: never overwrite it with the remembered one
 }
 
 // ─── The consolidated view: "All companies" (#1554) ─────────────────────────
@@ -675,7 +677,95 @@ function isActiveTenantAll(PDO $conn): bool {
     if (!isMultiTenant($conn)) {
         return false;   // meaningless at N=1, and never worth rendering there
     }
+    tenancyRestoreRememberedCompany($conn);
     return !empty($_SESSION['active_tenant_all']);
+}
+
+// ─── The company switcher can remember the last pick across sign-ins ────────
+//
+// The switcher's choice lives in the session, so every sign-in starts at the
+// Default company (or the first one the analyst may see). Someone who works in
+// one company, or in "All companies", switches again on every sign-in.
+//
+// OPT-IN, per analyst: My preferences -> "Start in the company I last used"
+// (remember_company = 'on'). Off by default, so nothing changes until somebody
+// turns it on - which matters, because the company also decides where a new
+// ticket is filed. The pick itself is always kept (one row per analyst), so
+// turning the preference on works from the very next sign-in.
+//
+// ⚠️ It only fills an EMPTY session: once anything sets the company in this
+// session the session wins. And it grants nothing: the restored company must
+// still be one the analyst may access AND an active company; otherwise nothing
+// is restored and the usual fallback applies. "All companies" is only ever the
+// companies the analyst may already see. (The row can be written by the
+// analyst through set_user_preference.php - which is why it is checked here.)
+
+const TENANCY_REMEMBERED_COMPANY_PREF = 'active_company';
+const TENANCY_REMEMBER_COMPANY_OPTIN  = 'remember_company';
+
+/**
+ * Keep the switcher's pick for the next sign-in. Best effort, logged: failing
+ * to remember must never fail the switch itself.
+ *
+ * @param int  $tenantId the company now active (also the write target under "All companies")
+ * @param bool $all      true when the "All companies" view is on
+ */
+function tenancyRememberCompany(PDO $conn, int $analystId, int $tenantId, bool $all): void {
+    if ($analystId < 1) {
+        return;
+    }
+    try {
+        $conn->prepare(
+            "INSERT INTO user_preferences (analyst_id, preference_key, preference_value, updated_datetime)
+             VALUES (?, ?, ?, UTC_TIMESTAMP())
+             ON DUPLICATE KEY UPDATE preference_value = VALUES(preference_value), updated_datetime = UTC_TIMESTAMP()"
+        )->execute([$analystId, TENANCY_REMEMBERED_COMPANY_PREF, json_encode(['tenant_id' => $tenantId, 'all' => $all])]);
+    } catch (Exception $e) {
+        error_log('tenancyRememberCompany: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Put the remembered pick into a session that has no company set yet, for an
+ * analyst who opted in. Read once per session and analyst (a flag holding the
+ * analyst id stops it re-reading); a session opened read-only cannot keep the
+ * flag, so such a request may read it again - one indexed lookup.
+ */
+function tenancyRestoreRememberedCompany(PDO $conn): void {
+    $analystId = (int)($_SESSION['analyst_id'] ?? 0);
+    if ($analystId < 1 || isset($_SESSION['active_tenant_id'])
+        || (int)($_SESSION['active_tenant_restored'] ?? 0) === $analystId) {
+        return;
+    }
+    try {
+        $stmt = $conn->prepare(
+            "SELECT preference_key, preference_value FROM user_preferences
+             WHERE analyst_id = ? AND preference_key IN (?, ?)"
+        );
+        $stmt->execute([$analystId, TENANCY_REMEMBERED_COMPANY_PREF, TENANCY_REMEMBER_COMPANY_OPTIN]);
+        $prefs = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (Exception $e) {
+        return;   // not pinned: a later request tries again; meanwhile, today's behaviour
+    }
+    $_SESSION['active_tenant_restored'] = $analystId;
+
+    if (($prefs[TENANCY_REMEMBER_COMPANY_OPTIN] ?? '') !== 'on') {
+        return;
+    }
+    $saved = json_decode((string)($prefs[TENANCY_REMEMBERED_COMPANY_PREF] ?? ''), true);
+    $tenantId = is_array($saved) ? (int)($saved['tenant_id'] ?? 0) : 0;
+    if ($tenantId < 1) {
+        return;
+    }
+    // Checked here as well as in getActiveTenantId(): some callers ask that one to
+    // skip the check. A company the analyst has lost, or one since deactivated,
+    // must not come back - and then nothing of the old pick is restored.
+    $tenant = getTenantById($conn, $tenantId);
+    if (!$tenant || !$tenant['is_active'] || !analystCanAccessTenant($conn, $analystId, $tenantId)) {
+        return;
+    }
+    $_SESSION['active_tenant_id']  = $tenantId;
+    $_SESSION['active_tenant_all'] = !empty($saved['all']);
 }
 
 /**
@@ -685,6 +775,7 @@ function isActiveTenantAll(PDO $conn): bool {
  */
 function setActiveTenantAll(bool $on): void {
     $_SESSION['active_tenant_all'] = $on;
+    $_SESSION['active_tenant_restored'] = (int)($_SESSION['analyst_id'] ?? 0);   // an explicit pick: never overwrite it with the remembered one
 }
 
 /**

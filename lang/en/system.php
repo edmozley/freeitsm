@@ -1714,6 +1714,9 @@ return [
         'section_memory_heading' => 'Coming back to a module',   // GH #376
         'section_memory_desc' => 'When you open a module from the menu, the home page or Ctrl+K, go back to the section you last used there - Assets → Servers, say - instead of its front page. Links to a particular page or record still open exactly that. Remembered in this browser.',
         'section_memory_label' => 'Reopen the last section of each module',
+        'remember_company_heading' => 'Company at sign-in',
+        'remember_company_desc' => 'Start each sign-in in the company you last picked in the company switcher (or in All companies), instead of the Default company. A company you can no longer see, or one that has been deactivated, is skipped. New tickets are filed to the company you are working in, so check the switcher before you create one.',
+        'remember_company_label' => 'Start in the company I last used',
         'landing_heading' => 'Start page',
         'workcal_heading' => 'My work calendar',
         'taskcal_heading'    => 'Tasks in this calendar',

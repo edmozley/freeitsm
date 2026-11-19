@@ -46,7 +46,9 @@ try {
         // ⚠️ The active company is deliberately LEFT ALONE. It is what a WRITE
         // still resolves against — ticket numbering, mailboxes, SLA — so it has
         // to keep naming a real company while the view is widened.
+        $writeTenantId = getActiveTenantId($conn, $analystId);
         setActiveTenantAll(true);
+        tenancyRememberCompany($conn, $analystId, $writeTenantId, true);   // for the next sign-in
         echo json_encode(['success' => true, 'all_companies' => true]);
         exit;
     }
@@ -57,6 +59,7 @@ try {
     }
 
     setActiveTenantId($tenantId);   // also clears the consolidated view
+    tenancyRememberCompany($conn, $analystId, $tenantId, false);   // for the next sign-in
 
     echo json_encode(['success' => true, 'tenant_id' => $tenantId, 'all_companies' => false]);
 } catch (Exception $e) {
