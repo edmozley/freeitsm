@@ -949,6 +949,20 @@ return [
             'tld-swap' => 'Akhiran berbeda',
         ],
     ],
+    // GH #384: move a domain to another company.
+    'move' => [
+        'button'      => 'Pindahkan',
+        'title'       => 'Pindahkan ke perusahaan lain',
+        'company'     => 'Perusahaan',
+        'intro'       => '{name} dan semua yang tercatat padanya - riwayat, temuan, endpoint, sertifikat - dipindahkan ke perusahaan yang Anda pilih.',
+        'with_others' => 'Ini ikut dipindahkan, karena tidak bisa berada di perusahaan yang berbeda darinya: {names}.',
+        'cleared'     => 'Akun registrar, pusat biaya, dan orang pelanggan dikosongkan jika perusahaan baru tidak memilikinya.',
+        'refused'     => 'Pemindahan ditolak jika perusahaan baru sudah memiliki nama itu, atau selama domain tertaut ke tiket, objek CMDB, atau kontrak - lepaskan tautan itu dulu.',
+        'none'        => 'Anda tidak dapat menjangkau perusahaan lain.',
+        'done'        => 'Dipindahkan ke {company}',
+        'done_many'   => 'Dipindahkan ke {company}. Catatan yang dipindahkan: {n}',
+        'cleared_list'=> 'Dikosongkan: {list}',
+    ],
     'hist' => [
         'none' => 'Belum ada riwayat.',
         'created' => 'Ditambahkan ke daftar',
@@ -1008,6 +1022,8 @@ return [
             'dns_dmarc' => 'Rekaman DMARC',
             'renewal_task' => 'Tugas perpanjangan dibuat',
             'renewal_ticket' => 'Tiket perpanjangan dibuat',
+            'company' => 'Perusahaan',   // GH #384
+            'cost_centre_id' => 'Pusat biaya',
         ],
     ],
     'settings' => [
@@ -1403,6 +1419,8 @@ return [
             'p2' => 'Nama domain yang sama dapat dicatat di bawah dua perusahaan - berguna bagi MSP yang mengelola nama untuk klien.',
             'p3' => 'Entri Kalender tidak memiliki perusahaan, sehingga tanggal domain dan sertifikat yang dimasukkan ke Kalender terlihat oleh semua orang yang dapat membukanya, seperti tanggal kontrak dan garansi yang sudah ada.',
             'p4' => 'Koneksi juga mengikuti perusahaan: item CMDB atau tiket hanya dapat ditautkan ke domain di perusahaan yang sama. Layanan Status Layanan dan artikel pengetahuan bukan rekaman perusahaan, sehingga domain menautkannya sesuai izin masing-masing.',
+            'p5' => '**Pindahkan** (di halaman domain) memindahkan domain ke perusahaan lain yang dapat Anda jangkau. Tampilan internal dan subdomainnya ikut dipindahkan, karena tidak bisa berada di perusahaan lain; subdomain dipindahkan bersama induknya, bukan sendirian. Riwayat, temuan, endpoint, dan sertifikat ikut serta. Akun registrar, pusat biaya, dan orang pelanggan dikosongkan bila perusahaan baru tidak memilikinya, dan riwayat mencatatnya.',
+            'p6' => 'Pemindahan ditolak bila perusahaan baru sudah memiliki nama yang sama dalam cakupan yang sama, atau selama domain tertaut ke tiket, objek CMDB, atau kontrak - lepaskan tautan itu dulu. Lewat REST API caranya `POST /domains/{id}/move-to-company`; perusahaan tidak bisa diubah dengan PATCH.',
         ],
         'people' => [
             'nav' => 'Pemilik, kontak teknis, pelanggan',

@@ -949,6 +949,20 @@ return [
             'tld-swap' => 'Inne zakończenie',
         ],
     ],
+    // GH #384: move a domain to another company.
+    'move' => [
+        'button'      => 'Przenieś',
+        'title'       => 'Przenieś do innej firmy',
+        'company'     => 'Firma',
+        'intro'       => '{name} i wszystko, co jest przy nim zapisane - historia, ustalenia, endpointy, certyfikaty - trafia do wybranej firmy.',
+        'with_others' => 'Te zostaną przeniesione razem z nim, bo nie mogą być w innej firmie: {names}.',
+        'cleared'     => 'Konto rejestratora, centrum kosztów i osoba klienta zostaną wyczyszczone, jeśli nowa firma ich nie ma.',
+        'refused'     => 'Przeniesienie zostanie odrzucone, jeśli nowa firma ma już tę nazwę, lub dopóki domena jest powiązana ze zgłoszeniami, obiektami CMDB albo umową - najpierw usuń te powiązania.',
+        'none'        => 'Nie masz dostępu do żadnej innej firmy.',
+        'done'        => 'Przeniesiono do {company}',
+        'done_many'   => 'Przeniesiono do {company}. Przeniesione rekordy: {n}',
+        'cleared_list'=> 'Wyczyszczono: {list}',
+    ],
     'hist' => [
         'none' => 'Brak historii.',
         'created' => 'Dodano do rejestru',
@@ -1008,6 +1022,8 @@ return [
             'dns_dmarc' => 'Rekord DMARC',
             'renewal_task' => 'Zgłoszono zadanie odnowienia',
             'renewal_ticket' => 'Zgłoszono zgłoszenie odnowienia',
+            'company' => 'Firma',   // GH #384
+            'cost_centre_id' => 'Centrum kosztów',
         ],
     ],
     'settings' => [
@@ -1403,6 +1419,8 @@ return [
             'p2' => 'Ta sama nazwa domeny może być zapisana w dwóch firmach - przydatne dla MSP zarządzającego nazwami klientów.',
             'p3' => 'Wpisy w Kalendarzu nie mają firmy, więc daty domen i certyfikatów umieszczone w Kalendarzu są widoczne dla każdego, kto może go otworzyć, tak jak daty umów i gwarancji.',
             'p4' => 'Powiązania również trzymają się firmy: element CMDB lub zgłoszenie można powiązać tylko z domeną w tej samej firmie. Usługi Statusu usług i artykuły wiedzy nie są rekordami firmy, więc domena łączy się z nimi według ich własnych uprawnień.',
+            'p5' => '**Przenieś** (na stronie domeny) przenosi domenę do innej firmy, do której masz dostęp. Jej widok wewnętrzny i subdomeny przechodzą razem z nią, bo nie mogą być w innej firmie; subdomenę przenosi się z domeną nadrzędną, nie osobno. Historia, ustalenia, endpointy i certyfikaty idą razem z nią. Konto rejestratora, centrum kosztów i osoba klienta są czyszczone, gdy nowa firma ich nie ma, a historia to odnotowuje.',
+            'p6' => 'Przeniesienie jest odrzucane, gdy nowa firma ma już tę samą nazwę w tym samym zakresie, lub dopóki domena jest powiązana ze zgłoszeniami, obiektami CMDB albo umową - najpierw usuń te powiązania. W REST API jest to `POST /domains/{id}/move-to-company`; firmy nie można zmienić przez PATCH.',
         ],
         'people' => [
             'nav' => 'Właściciel, kontakt techniczny, klient',

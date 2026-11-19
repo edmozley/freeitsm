@@ -949,6 +949,20 @@ return [
             'tld-swap' => 'Extension différente',
         ],
     ],
+    // GH #384: move a domain to another company.
+    'move' => [
+        'button'      => 'Déplacer',
+        'title'       => 'Déplacer vers une autre entreprise',
+        'company'     => 'Entreprise',
+        'intro'       => '{name} et tout ce qui y est enregistré - historique, constats, endpoints, certificats - passent dans l\'entreprise choisie.',
+        'with_others' => 'Ceux-ci sont déplacés avec lui, car ils ne peuvent pas être dans une autre entreprise : {names}.',
+        'cleared'     => 'Le compte registrar, le centre de coûts et la personne cliente sont vidés si la nouvelle entreprise ne les a pas.',
+        'refused'     => 'Le déplacement est refusé si la nouvelle entreprise a déjà ce nom, ou tant que le domaine est lié à des tickets, des objets CMDB ou un contrat - retirez ces liens d\'abord.',
+        'none'        => 'Vous n\'avez accès à aucune autre entreprise.',
+        'done'        => 'Déplacé vers {company}',
+        'done_many'   => 'Déplacé vers {company}. Enregistrements déplacés : {n}',
+        'cleared_list'=> 'Vidé : {list}',
+    ],
     'hist' => [
         'none' => 'Pas encore d\'historique.',
         'created' => 'Ajouté au registre',
@@ -1008,6 +1022,8 @@ return [
             'dns_dmarc' => 'Enregistrement DMARC',
             'renewal_task' => 'Tâche de renouvellement créée',
             'renewal_ticket' => 'Ticket de renouvellement créé',
+            'company' => 'Entreprise',   // GH #384
+            'cost_centre_id' => 'Centre de coûts',
         ],
     ],
     'settings' => [
@@ -1403,6 +1419,8 @@ return [
             'p2' => 'Le même nom de domaine peut être enregistré sous deux entreprises - utile pour un MSP qui gère des noms pour des clients.',
             'p3' => 'Les entrées du Calendrier n\'ont pas d\'entreprise, donc les dates de domaines et de certificats placées dans le Calendrier sont visibles de toute personne pouvant l\'ouvrir, comme le sont déjà les dates de contrats et de garanties.',
             'p4' => 'Les connexions respectent aussi l\'entreprise : un élément de la CMDB ou un ticket ne peut être lié qu\'à un domaine de la même entreprise. Les services d\'État des services et les articles de connaissances ne sont pas des enregistrements d\'entreprise, un domaine s\'y relie donc selon leurs propres permissions.',
+            'p5' => '**Déplacer** (sur la page du domaine) transfère un domaine vers une autre entreprise à laquelle vous avez accès. Sa vue interne et ses sous-domaines suivent, car ils ne peuvent pas être dans une autre entreprise ; un sous-domaine est déplacé avec son parent, pas seul. L\'historique, les constats, les endpoints et les certificats suivent. Le compte registrar, le centre de coûts et la personne cliente sont vidés quand la nouvelle entreprise ne les a pas, et l\'historique l\'indique.',
+            'p6' => 'Un déplacement est refusé quand la nouvelle entreprise a déjà le même nom dans la même portée, ou tant que le domaine est lié à des tickets, des objets CMDB ou un contrat - retirez ces liens d\'abord. Via l\'API REST, c\'est `POST /domains/{id}/move-to-company` ; l\'entreprise ne peut pas être changée par PATCH.',
         ],
         'people' => [
             'nav' => 'Propriétaire, contact technique, client',

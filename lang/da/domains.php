@@ -949,6 +949,20 @@ return [
             'tld-swap' => 'Anden endelse',
         ],
     ],
+    // GH #384: move a domain to another company.
+    'move' => [
+        'button'      => 'Flyt',
+        'title'       => 'Flyt til en anden virksomhed',
+        'company'     => 'Virksomhed',
+        'intro'       => '{name} og alt, der er registreret på det - historik, fund, endpoints, certifikater - flyttes til den virksomhed, du vælger.',
+        'with_others' => 'Disse flyttes med, fordi de ikke kan ligge i en anden virksomhed end det: {names}.',
+        'cleared'     => 'Registrarkonto, omkostningssted og kundeperson ryddes, hvis den nye virksomhed ikke har dem.',
+        'refused'     => 'Flytningen afvises, hvis den nye virksomhed allerede har navnet, eller mens domænet er knyttet til sager, CMDB-objekter eller en kontrakt - fjern dem først.',
+        'none'        => 'Du har ikke adgang til nogen anden virksomhed.',
+        'done'        => 'Flyttet til {company}',
+        'done_many'   => 'Flyttet til {company}. Flyttede poster: {n}',
+        'cleared_list'=> 'Ryddet: {list}',
+    ],
     'hist' => [
         'none' => 'Ingen historik endnu.',
         'created' => 'Tilføjet til registret',
@@ -1008,6 +1022,8 @@ return [
             'dns_dmarc' => 'DMARC-post',
             'renewal_task' => 'Fornyelsesopgave oprettet',
             'renewal_ticket' => 'Fornyelsessag oprettet',
+            'company' => 'Virksomhed',   // GH #384
+            'cost_centre_id' => 'Omkostningssted',
         ],
     ],
     'settings' => [
@@ -1403,6 +1419,8 @@ return [
             'p2' => 'Det samme domænenavn kan registreres under to virksomheder - nyttigt for en MSP, der administrerer navne for kunder.',
             'p3' => 'Kalenderposter har ingen virksomhed, så domæne- og certifikatdatoer i Kalenderen er synlige for alle, der kan åbne den, ligesom kontrakt- og garantidatoer allerede er.',
             'p4' => 'Forbindelser holder sig også til virksomheden: et CMDB-element eller en sag kan kun knyttes til et domæne i samme virksomhed. Servicestatus-tjenester og videnartikler er ikke virksomhedsposter, så et domæne knyttes til dem under deres egne tilladelser.',
+            'p5' => '**Flyt** (på domænets side) flytter et domæne til en anden virksomhed, du har adgang til. Dets interne visning og underdomæner flyttes med, da de ikke kan ligge i en anden virksomhed end det; et underdomæne flyttes med sit overordnede domæne, ikke alene. Historik, fund, endpoints og certifikater følger med. Registrarkonto, omkostningssted og kundeperson ryddes, når den nye virksomhed ikke har dem, og historikken siger det.',
+            'p6' => 'En flytning afvises, når den nye virksomhed allerede har samme navn i samme omfang, eller mens domænet er knyttet til sager, CMDB-objekter eller en kontrakt - fjern dem først. Via REST API er det `POST /domains/{id}/move-to-company`; virksomheden kan ikke ændres med PATCH.',
         ],
         'people' => [
             'nav' => 'Ejer, teknisk kontakt, kunde',

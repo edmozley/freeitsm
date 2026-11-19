@@ -950,6 +950,20 @@ return [
             'tld-swap' => 'Terminación distinta',
         ],
     ],
+    // GH #384: move a domain to another company.
+    'move' => [
+        'button'      => 'Mover',
+        'title'       => 'Mover a otra empresa',
+        'company'     => 'Empresa',
+        'intro'       => '{name} y todo lo registrado en él (historial, hallazgos, endpoints, certificados) pasan a la empresa que elijas.',
+        'with_others' => 'Estos se mueven con él, porque no pueden estar en otra empresa distinta: {names}.',
+        'cleared'     => 'La cuenta del registrador, el centro de coste y la persona cliente se vacían si la nueva empresa no los tiene.',
+        'refused'     => 'El traslado se rechaza si la nueva empresa ya tiene el nombre, o mientras el dominio esté vinculado a tickets, objetos de la CMDB o un contrato: desvincúlalos primero.',
+        'none'        => 'No tienes acceso a ninguna otra empresa.',
+        'done'        => 'Movido a {company}',
+        'done_many'   => 'Movido a {company}. Registros movidos: {n}',
+        'cleared_list'=> 'Vaciado: {list}',
+    ],
     'hist' => [
         'none' => 'Aún no hay historial.',
         'created' => 'Añadido al registro',
@@ -1009,6 +1023,8 @@ return [
             'dns_dmarc' => 'Registro DMARC',
             'renewal_task' => 'Tarea de renovación creada',
             'renewal_ticket' => 'Ticket de renovación creado',
+            'company' => 'Empresa',   // GH #384
+            'cost_centre_id' => 'Centro de coste',
         ],
     ],
     'settings' => [
@@ -1404,6 +1420,8 @@ return [
             'p2' => 'El mismo nombre de dominio puede registrarse en dos empresas, lo que resulta útil para un MSP que gestiona nombres para sus clientes.',
             'p3' => 'Los eventos del Calendario no tienen empresa, así que las fechas de dominios y certificados que se ponen en el Calendario las ve cualquiera que pueda abrirlo, igual que ya ocurre con las fechas de contratos y garantías.',
             'p4' => 'Las conexiones también respetan la empresa: un elemento de la CMDB o un ticket solo puede vincularse a un dominio de la misma empresa. Los servicios de Estado del servicio y los artículos de conocimiento no son registros de empresa, así que un dominio se vincula a ellos según sus propios permisos.',
+            'p5' => '**Mover** (en la página del dominio) lleva un dominio a otra empresa a la que tengas acceso. Su vista interna y sus subdominios se mueven con él, ya que no pueden estar en otra empresa; un subdominio se mueve con su dominio padre, no por separado. El historial, los hallazgos, los endpoints y los certificados van con él. La cuenta del registrador, el centro de coste y la persona cliente se vacían cuando la nueva empresa no los tiene, y el historial lo indica.',
+            'p6' => 'El traslado se rechaza cuando la nueva empresa ya tiene el mismo nombre en el mismo ámbito, o mientras el dominio esté vinculado a tickets, objetos de la CMDB o un contrato: desvincúlalos primero. En la API REST es `POST /domains/{id}/move-to-company`; la empresa no se puede cambiar con PATCH.',
         ],
         'people' => [
             'nav' => 'Responsable, contacto técnico, cliente',

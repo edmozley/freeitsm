@@ -950,6 +950,20 @@ return [
             'tld-swap' => 'Andere Endung',
         ],
     ],
+    // GH #384: move a domain to another company.
+    'move' => [
+        'button'      => 'Verschieben',
+        'title'       => 'In ein anderes Unternehmen verschieben',
+        'company'     => 'Unternehmen',
+        'intro'       => '{name} und alles, was dazu erfasst ist - Verlauf, Befunde, Endpunkte, Zertifikate - wird in das gewählte Unternehmen verschoben.',
+        'with_others' => 'Diese werden mitverschoben, da sie nicht in einem anderen Unternehmen liegen können: {names}.',
+        'cleared'     => 'Registrar-Konto, Kostenstelle und Kundenperson werden geleert, wenn das neue Unternehmen sie nicht hat.',
+        'refused'     => 'Das Verschieben wird abgelehnt, wenn das neue Unternehmen den Namen bereits hat oder solange die Domain mit Tickets, CMDB-Objekten oder einem Vertrag verknüpft ist - lösen Sie diese zuerst.',
+        'none'        => 'Sie haben auf kein anderes Unternehmen Zugriff.',
+        'done'        => 'Verschoben nach {company}',
+        'done_many'   => 'Verschoben nach {company}. Verschobene Einträge: {n}',
+        'cleared_list'=> 'Geleert: {list}',
+    ],
     'hist' => [
         'none' => 'Noch kein Verlauf.',
         'created' => 'Zum Register hinzugefügt',
@@ -1009,6 +1023,8 @@ return [
             'dns_dmarc' => 'DMARC-Eintrag',
             'renewal_task' => 'Verlängerungsaufgabe erstellt',
             'renewal_ticket' => 'Verlängerungsticket erstellt',
+            'company' => 'Unternehmen',   // GH #384
+            'cost_centre_id' => 'Kostenstelle',
         ],
     ],
     'settings' => [
@@ -1404,6 +1420,8 @@ return [
             'p2' => 'Derselbe Domainname kann unter zwei Unternehmen erfasst werden - nützlich für einen MSP, der Namen für Kunden verwaltet.',
             'p3' => 'Kalendereinträge haben kein Unternehmen, daher sind Domain- und Zertifikatsdaten im Kalender für alle sichtbar, die ihn öffnen können, wie es Vertrags- und Garantiedaten bereits sind.',
             'p4' => 'Auch Verbindungen bleiben im Unternehmen: Ein CMDB-Eintrag oder Ticket kann nur mit einer Domain im selben Unternehmen verknüpft werden. Service-Status-Services und Wissensartikel sind keine Unternehmensdatensätze, daher verknüpft sich eine Domain mit ihnen nach deren eigenen Berechtigungen.',
+            'p5' => '**Verschieben** (auf der Seite der Domain) verschiebt eine Domain in ein anderes Unternehmen, auf das Sie Zugriff haben. Ihre interne Ansicht und ihre Subdomains werden mitverschoben, da sie nicht in einem anderen Unternehmen liegen können; eine Subdomain wird mit ihrer übergeordneten Domain verschoben, nicht allein. Verlauf, Befunde, Endpunkte und Zertifikate gehen mit. Registrar-Konto, Kostenstelle und Kundenperson werden geleert, wenn das neue Unternehmen sie nicht hat, und der Verlauf vermerkt es.',
+            'p6' => 'Das Verschieben wird abgelehnt, wenn das neue Unternehmen denselben Namen im selben Bereich bereits hat oder solange die Domain mit Tickets, CMDB-Objekten oder einem Vertrag verknüpft ist - lösen Sie diese zuerst. Über die REST-API ist es `POST /domains/{id}/move-to-company`; das Unternehmen kann nicht per PATCH geändert werden.',
         ],
         'people' => [
             'nav' => 'Eigentümer, technischer Kontakt, Kunde',
