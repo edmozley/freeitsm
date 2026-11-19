@@ -39,11 +39,12 @@ services:
       # by default.
       # - TRUST_PROXY_HTTPS=1
       # Behind a reverse proxy (with or without HTTPS of its own), FreeITSM sees every
-      # request as coming from the proxy. Name the proxy - addresses or ranges - and
-      # the client's real address is taken from the header it sends: X-Forwarded-For,
-      # or CF-Connecting-IP for a Cloudflare Tunnel. The header is believed only on
-      # requests from these addresses, because anyone else can write it.
-      # - TRUSTED_PROXIES=10.0.0.5
+      # request as coming from the proxy. Name the proxy's own address and the
+      # client's real address is taken from the header it sends: X-Forwarded-For, or
+      # CF-Connecting-IP for a Cloudflare Tunnel. The header is believed only on
+      # requests from these addresses, because anyone else can write it - so list the
+      # proxy, not a whole network. Help: System -> Docker -> Behind a reverse proxy.
+      # - TRUSTED_PROXIES=192.0.2.10
       # - TRUSTED_PROXY_HEADER=X-Forwarded-For
       # The container runs FreeITSM's background jobs itself (SLA checks, webhooks,
       # directory imports...). Set to 0 only if you run cron/run.php from the host.

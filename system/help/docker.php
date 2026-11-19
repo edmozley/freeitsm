@@ -16,7 +16,7 @@ require __DIR__ . '/_top.php';
     </div>
     <p>The card only appears when FreeITSM is running in its Docker image. On any other install, your web server (Apache, IIS or nginx) handles HTTPS, and you set it up there.</p>
     <div class="help-note">If a reverse proxy such as Caddy, Traefik or nginx already sits in front of the container, let it handle HTTPS and ignore this page.</div>
-    <div class="help-note"><strong>Behind a proxy, every request comes from the proxy's address</strong>, and that is what System &rarr; Logs, the audit trails and API key allow-lists see. To record the real address instead, name the proxy in <code>docker-compose.yml</code>, for example <code>TRUSTED_PROXIES=10.0.0.5</code>. It takes IPv4 or IPv6 addresses, ranges such as <code>10.0.0.0/8</code>, or the proxy's container name, separated by spaces or commas. The address is then read from <code>X-Forwarded-For</code>; for a Cloudflare Tunnel, add <code>TRUSTED_PROXY_HEADER=CF-Connecting-IP</code>. The header is believed only on requests from the addresses you list, so list the proxy and nothing wider. It works with or without the container's own certificate and does not need <code>TRUST_PROXY_HTTPS</code>. Run <code>docker compose up -d</code> after changing it; <code>docker logs</code> says whether it was accepted. On other installs, set up <code>mod_remoteip</code> (Apache) or your web server's equivalent.</div>
+    <div class="help-note">Behind a proxy, FreeITSM records the proxy's address for every request until you name it - see <a href="#proxy">Behind a reverse proxy</a>.</div>
 </div>
 
 <!-- 2. Why -->
@@ -59,7 +59,29 @@ require __DIR__ . '/_top.php';
     <p>Pressing <strong>Generate</strong> again with the same name and IP keeps the existing authority, so the PCs need nothing new. Do this to renew the certificate before it expires (it lasts a little over two years).</p>
 </div>
 
-<!-- 5. Troubleshooting -->
+<!-- 5. Proxy -->
+<div class="help-section" id="proxy">
+    <div class="help-section-header"><?php echo helpSectionNum('proxy'); ?>
+        <div>
+            <h3>Behind a reverse proxy</h3>
+        </div>
+    </div>
+    <p>When a reverse proxy, load balancer or Cloudflare Tunnel sits in front of the container, every request reaches FreeITSM from the proxy. So System &rarr; Logs, the audit trails and API key allow-lists all see the proxy's address, not the person's.</p>
+    <p>To record the real address, name the proxy in <code>docker-compose.yml</code> and run <code>docker compose up -d</code>:</p>
+    <pre><code>      - TRUSTED_PROXIES=192.0.2.10</code></pre>
+    <ul>
+        <li>The address is then read from the <code>X-Forwarded-For</code> header the proxy adds. For a Cloudflare Tunnel, also set <code>TRUSTED_PROXY_HEADER=CF-Connecting-IP</code>.</li>
+        <li>Several proxies: separate them with spaces or commas. IPv6 addresses work too.</li>
+        <li><code>docker logs</code> says whether it was accepted, and why not if it wasn't. A wrong value is ignored; FreeITSM still starts.</li>
+        <li>It works whether the proxy or the container handles HTTPS, and does not need <code>TRUST_PROXY_HTTPS</code>.</li>
+        <li>An API key's allowed addresses must then list the real addresses, not the proxy.</li>
+    </ul>
+    <div class="help-note warn"><strong>List the proxy's own address, nothing wider.</strong> The header is believed only on requests from the addresses you list, because anyone can write it. A range such as <code>10.0.0.0/8</code> or the whole Docker network also trusts every other machine in it, and any of them could then pretend to be any address. <code>docker logs</code> warns about wide ranges.</div>
+    <div class="help-note">A container name such as <code>proxy</code> also works, but it is looked up once when FreeITSM starts: restart FreeITSM after the proxy gets a new address, and start the proxy first.</div>
+    <p>On other installs, set this up in the web server instead: <code>mod_remoteip</code> on Apache, or the equivalent on IIS or nginx.</p>
+</div>
+
+<!-- 6. Troubleshooting -->
 <div class="help-section" id="trouble">
     <div class="help-section-header"><?php echo helpSectionNum('trouble'); ?>
         <div>

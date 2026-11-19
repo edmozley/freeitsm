@@ -75,9 +75,11 @@ proxy's, and an `X-Forwarded-For` the caller wrote itself must change nothing:
 sh docker/proxy-test/check-ip.sh [admin-password]
 ```
 
-It signs in through the proxy (plain, then with a forged `X-Forwarded-For`) and
-straight to the app from inside its container (forged again), and reads back the
-address `system_logs` recorded each time - what System -> Logs shows.
+It signs in through the proxy (plain, then with a forged client address, then a
+forged `127.0.0.1`) and straight to the app from inside its container (forged
+again), and reads back the address `system_logs` recorded for each sign-in -
+what System -> Logs shows. It forges whichever header the app reads
+(`TRUSTED_PROXY_HEADER`), and checks `/server-status` stays closed.
 
 The Cloudflare header, and the negative case (with `TRUSTED_PROXIES` empty, every
 sign-in is the proxy's):
