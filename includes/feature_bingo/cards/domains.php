@@ -340,4 +340,16 @@ return [
         'link'     => 'domains/',
         'check'    => ['rows', 'domain_manual_certificates'],
     ],
+    [
+        'id'       => 'domains.move_company',   // GH #384
+        'module'   => 'domains',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Move a domain to another company',
+        'what'     => 'Move on a domain page takes the domain, its internal view and its subdomains to another company in one go, refusing - and saying why - while it is linked to another company\'s tickets, CMDB objects or contract.',
+        'why'      => 'A domain filed under the wrong client, or added through the API without a company, no longer has to be deleted and added again, losing its history and checks.',
+        'done'     => 'At least one domain has been moved to another company.',
+        'link'     => 'domains/',
+        'check'    => ['rows', 'domain_audit', "field_name = 'company'"],
+    ],
 ];

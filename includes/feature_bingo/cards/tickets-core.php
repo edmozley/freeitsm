@@ -835,6 +835,18 @@ return [
         ]],
     ],
     [
+        'id'       => 'tickets.reply_cleanup_prompt',   // GH #396
+        'module'   => 'tickets',
+        'tier'     => 'extra',
+        'category' => 'ai',
+        'title'    => 'Your own Reply Cleanup prompt',
+        'what'     => 'Tickets -> Settings -> Reply Cleanup: change the prompt the AI is sent, with every saved version kept - Restore puts an earlier one back, Reset returns to the built-in prompt.',
+        'why'      => 'The rewrite follows your house style, and a change that makes it worse is one click from being undone.',
+        'done'     => 'The Reply Cleanup prompt has been edited at least once.',
+        'link'     => 'tickets/settings/#reply-cleanup',
+        'check'    => ['rows', 'ticket_reply_cleanup_prompts', 'prompt_text IS NOT NULL'],
+    ],
+    [
         'id'       => 'tickets.ai_read_for_me',
         'module'   => 'tickets',
         'tier'     => 'extra',
