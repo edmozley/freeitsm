@@ -62,3 +62,11 @@ jobs:
       # someone" on a project did nothing in 5.5.0. Files only.
       - name: no page repeats an element id
         run: php tests/duplicate-element-ids.php
+
+      # The API script library (System -> API -> Scripts): every script exists in
+      # PowerShell and Python, calls only real endpoints with the permissions it
+      # declares, carries no key, previews before it writes, Python uses only the
+      # standard library, and both parse (the runner has python3 and pwsh). Also
+      # checks script-library/ is denied to direct web requests. Files only.
+      - name: API script library is honest
+        run: php tests/api-script-library.php

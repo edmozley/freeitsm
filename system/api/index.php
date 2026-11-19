@@ -129,6 +129,42 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         .api-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border, #e0e0e0); margin: 0 0 24px 0; }
         .api-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--text-dim, #888); cursor: pointer; margin-bottom: -1px; }
         .api-tab.active { color: var(--text, #333); border-bottom-color: var(--sys-accent, #546e7a); }
+        /* The API script library (System -> API -> Scripts) */
+        .scr-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; margin-top: 14px; }
+        .scr-search { width: 100%; box-sizing: border-box; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .scr-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+        .scr-filters select { padding: 6px 8px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 12.5px; background: var(--surface, #fff); color: var(--text, #333); min-width: 0; }
+        .scr-count { font-size: 12px; color: var(--text-dim, #888); margin: 4px 0 6px; }
+        .scr-list { list-style: none; margin: 0; padding: 0; max-height: 640px; overflow-y: auto; border: 1px solid var(--border-soft, #eee); border-radius: 6px; }
+        .scr-item { display: block; width: 100%; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border-soft, #eee); padding: 9px 12px; cursor: pointer; color: var(--text, #333); }
+        .scr-item:hover { background: var(--surface-hover, #f5f5f5); }
+        .scr-item.active { background: var(--surface-hover, #f0f0f0); box-shadow: inset 3px 0 0 var(--sys-accent, #546e7a); }
+        .scr-item-title { display: block; font-size: 13px; font-weight: 600; }
+        .scr-item-meta { display: block; font-size: 11.5px; color: var(--text-dim, #888); margin-top: 2px; }
+        .scr-empty { padding: 14px 12px; font-size: 13px; color: var(--text-dim, #888); }
+        .scr-pick { color: var(--text-dim, #888); font-size: 13px; padding: 30px 0; text-align: center; }
+        .scr-title { margin: 0 0 4px; font-size: 16px; color: var(--text, #333); }
+        .scr-summary { margin: 0 0 8px; font-size: 13px; color: var(--text-muted, #555); }
+        .scr-note { font-size: 12.5px; padding: 7px 10px; border-radius: 6px; background: var(--info-bg, #eef6fb); color: var(--text, #333); margin: 0 0 10px; }
+        .scr-note.writes { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); border: 1px solid var(--warning-border, #f0d9a8); }
+        .scr-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .scr-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim, #888); margin-bottom: 4px; }
+        .scr-chips { display: flex; flex-wrap: wrap; gap: 4px; font-size: 12px; color: var(--text-muted, #555); }
+        .scr-chip { font-size: 11.5px; padding: 2px 6px; border-radius: 4px; background: var(--surface-hover, #f3f3f3); border: 1px solid var(--border-soft, #eee); color: var(--text, #333); }
+        .scr-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+        .scr-langs { display: inline-flex; border: 1px solid var(--border, #ddd); border-radius: 6px; overflow: hidden; }
+        .scr-lang { background: var(--surface, #fff); border: none; padding: 6px 12px; font-size: 12.5px; font-weight: 600; color: var(--text-muted, #555); cursor: pointer; }
+        .scr-lang + .scr-lang { border-left: 1px solid var(--border, #ddd); }
+        .scr-lang.active { background: var(--sys-accent, #546e7a); color: #fff; }
+        .scr-file { font-family: Consolas, Monaco, monospace; font-size: 12px; color: var(--text-dim, #888); }
+        .scr-actions { margin-left: auto; display: inline-flex; gap: 8px; }
+        .scr-code { margin: 0; max-height: 640px; overflow: auto; padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border, #ddd); background: var(--surface-hover, #f7f7f7); font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.5; color: var(--text, #333); white-space: pre; tab-size: 4; }
+        .scr-comment { color: var(--text-dim, #888); font-style: italic; }
+        @media (max-width: 900px) {
+            .scr-layout { grid-template-columns: 1fr; }
+            .scr-list { max-height: 280px; }
+            .scr-facts { grid-template-columns: 1fr; }
+        }
         .restrict-box { border: 1px solid var(--border-soft, #eee); border-radius: 6px; padding: 14px; margin-bottom: 16px; }
         .restrict-box h4 { margin: 0 0 2px; font-size: 13px; color: var(--text, #333); }
         .restrict-box .hint { font-size: 12px; color: var(--text-faint, #999); margin-bottom: 10px; }
@@ -193,6 +229,7 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
             <button class="api-tab active" data-tab="keys" role="tab"><?php echo htmlspecialchars(t('system.api.tab_keys')); ?></button>
             <button class="api-tab" data-tab="threats" role="tab"><?php echo htmlspecialchars(t('system.api.tab_threats')); ?></button>
             <button class="api-tab" data-tab="activity" role="tab"><?php echo htmlspecialchars(t('system.api.tab_activity')); ?></button>
+            <button class="api-tab" data-tab="scripts" role="tab"><?php echo htmlspecialchars(t('system.api.tab_scripts')); ?></button>
         </div>
         <div id="tabKeys">
 
@@ -339,6 +376,49 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
                 <h3><?php echo htmlspecialchars(t('system.api.ac_archives')); ?></h3>
                 <p class="card-desc"><?php echo htmlspecialchars(t('system.api.ac_archives_desc')); ?></p>
                 <table class="keys"><tbody id="acArchives"></tbody></table>
+            </div>
+        </div>
+        <!-- The API script library (5.7.0): files in script-library/, shown read only. Wiki: API-Script-Library-Design. -->
+        <div id="tabScripts" style="display:none;">
+            <div class="settings-card">
+                <h3 id="api-scripts"><?php echo htmlspecialchars(t('system.api.scripts.heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.api.scripts.intro')); ?></p>
+                <div class="scr-layout">
+                    <div class="scr-side">
+                        <input type="search" id="scrSearch" class="scr-search" placeholder="<?php echo htmlspecialchars(t('system.api.scripts.search_placeholder')); ?>" aria-label="<?php echo htmlspecialchars(t('system.api.scripts.search_placeholder')); ?>">
+                        <div class="scr-filters">
+                            <select id="scrLang" aria-label="<?php echo htmlspecialchars(t('system.api.scripts.language')); ?>"><option value="powershell">PowerShell</option><option value="python">Python</option></select>
+                            <select id="scrModule" aria-label="<?php echo htmlspecialchars(t('system.api.scripts.module')); ?>"><option value=""><?php echo htmlspecialchars(t('system.api.scripts.module_all')); ?></option></select>
+                            <select id="scrChanges" aria-label="<?php echo htmlspecialchars(t('system.api.scripts.kind_all')); ?>"><option value=""><?php echo htmlspecialchars(t('system.api.scripts.kind_all')); ?></option><option value="no"><?php echo htmlspecialchars(t('system.api.scripts.kind_read')); ?></option><option value="yes"><?php echo htmlspecialchars(t('system.api.scripts.kind_write')); ?></option></select>
+                            <select id="scrLevel" aria-label="<?php echo htmlspecialchars(t('system.api.scripts.level_all')); ?>"><option value=""><?php echo htmlspecialchars(t('system.api.scripts.level_all')); ?></option><option value="starter"><?php echo htmlspecialchars(t('system.api.scripts.level_starter')); ?></option><option value="intermediate"><?php echo htmlspecialchars(t('system.api.scripts.level_intermediate')); ?></option><option value="advanced"><?php echo htmlspecialchars(t('system.api.scripts.level_advanced')); ?></option></select>
+                        </div>
+                        <div class="scr-count" id="scrCount"></div>
+                        <ul class="scr-list" id="scrList"></ul>
+                    </div>
+                    <div class="scr-view" id="scrView">
+                        <p class="scr-pick"><?php echo htmlspecialchars(t('system.api.scripts.pick')); ?></p>
+                        <div id="scrDetail" hidden>
+                            <h4 class="scr-title" id="scrTitle"></h4>
+                            <p class="scr-summary" id="scrSummary"></p>
+                            <p class="scr-note" id="scrNote"></p>
+                            <div class="scr-facts">
+                                <div><span class="scr-label"><?php echo htmlspecialchars(t('system.api.scripts.endpoints')); ?></span><div class="scr-chips" id="scrEndpoints"></div></div>
+                                <div><span class="scr-label"><?php echo htmlspecialchars(t('system.api.scripts.permissions')); ?></span><div class="scr-chips" id="scrPerms"></div></div>
+                            </div>
+                            <div class="scr-bar">
+                                <div class="scr-langs" role="group" aria-label="<?php echo htmlspecialchars(t('system.api.scripts.language')); ?>">
+                                    <button type="button" class="scr-lang" data-lang="powershell">PowerShell</button><button type="button" class="scr-lang" data-lang="python">Python</button>
+                                </div>
+                                <span class="scr-file" id="scrFile"></span>
+                                <span class="scr-actions">
+                                    <button type="button" class="btn btn-secondary" id="scrCopy"><?php echo htmlspecialchars(t('system.api.scripts.copy')); ?></button>
+                                    <a class="btn btn-primary" id="scrDownload" href="#"><?php echo htmlspecialchars(t('system.api.scripts.download')); ?></a>
+                                </span>
+                            </div>
+                            <pre class="scr-code"><code id="scrCode"></code></pre>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -764,6 +844,8 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         document.getElementById('tabKeys').style.display = name === 'keys' ? '' : 'none';
         document.getElementById('tabThreats').style.display = name === 'threats' ? '' : 'none';
         document.getElementById('tabActivity').style.display = name === 'activity' ? '' : 'none';
+        document.getElementById('tabScripts').style.display = name === 'scripts' ? '' : 'none';
+        if (name === 'scripts') ApiScripts.load();
         if (name === 'threats' && !tpLoaded) { tpLoaded = true; loadThreats(); }
         if (name === 'activity' && !acLoaded) { acLoaded = true; loadActivitySettings(); loadActivity(); loadArchives(); }
         try { history.replaceState(null, '', name === 'keys' ? location.pathname : '?tab=' + name); } catch (e) {}
@@ -808,8 +890,9 @@ $mcpUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 
         } finally { btn.disabled = false; }
     });
 
-    loadKeys().then(() => { const tb = new URLSearchParams(location.search).get('tab'); if (tb === 'threats' || tb === 'activity') showTab(tb); });
+    loadKeys().then(() => { const tb = new URLSearchParams(location.search).get('tab'); if (tb === 'threats' || tb === 'activity' || tb === 'scripts') showTab(tb); });
     </script>
+    <script src="../../assets/js/api-scripts.js?v=1"></script>
     <script src="../../assets/js/mobile.js?v=83"></script>
 </body>
 </html>

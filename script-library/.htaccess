@@ -1,0 +1,11 @@
+# The API script library (System -> API -> Scripts). Shown and downloaded ONLY
+# through api/system/api_keys/scripts.php, as escaped text / text-plain downloads.
+# Never served from here: on some hosts a .py or .ps1 in a web folder can be run
+# as a CGI program. IIS: web.config beside this. nginx: deploy/nginx/freeitsm.conf.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+</IfModule>
