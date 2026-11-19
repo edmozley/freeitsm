@@ -401,6 +401,10 @@ $translationNamespaces = ['common', 'change-management'];
                             <div class="help-card-icon plain">&#128269;</div>
                             <div><strong><?php echo htmlspecialchars(t('change-management.help.tip_audit')); ?></strong><br><?php echo htmlspecialchars(t('change-management.help.tip_audit_desc')); ?></div>
                         </div>
+                        <div class="help-card row">
+                            <div class="help-card-icon plain">&#127970;</div>
+                            <div><strong><?php echo htmlspecialchars(t('change-management.help.tip_company')); ?></strong><br><?php echo htmlspecialchars(t('change-management.help.tip_company_desc')); ?></div>
+                        </div>
                     </div>
                 </div>
 

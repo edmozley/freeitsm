@@ -8,6 +8,17 @@ return array (
   'schemas' => 
   array (
     // GH #328: what hangs off a ticket - on GET /tickets/{id}, GET /tickets?include=related and the Full record webhook.
+    // GH #390: POST /changes/{id}/move-to-company.
+    'ChangeMoved' => [
+      'allOf' => [
+        ['$ref' => '#/components/schemas/Change'],
+        ['type' => 'object', 'properties' => [
+          'moved' => ['type' => 'integer', 'description' => '1 when the change moved; 0 when it was already in that company.'],
+          'tasks_moved' => ['type' => 'integer', 'description' => 'Linked tasks (with their subtasks) that moved with it.'],
+          'moved_task_ids' => ['type' => 'array', 'items' => ['type' => 'integer']],
+        ]],
+      ],
+    ],
     // GH #384: POST /domains/{id}/move-to-company.
     'DomainMoved' => [
       'allOf' => [
@@ -15579,6 +15590,7 @@ return array (
       '$ref' => '#/components/schemas/DomainCheckResult',
     ),
     'POST /domains/{id}/move-to-company' => ['$ref' => '#/components/schemas/DomainMoved'],   // GH #384
+    'POST /changes/{id}/move-to-company' => ['$ref' => '#/components/schemas/ChangeMoved'],   // GH #390
     'POST /domains/{id}/lookup' => 
     array (
       '$ref' => '#/components/schemas/DomainWithChanges',

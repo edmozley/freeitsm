@@ -3363,7 +3363,7 @@
                     "p": "\/changes\/{id}",
                     "perm": "changes.update",
                     "s": "Update a change",
-                    "d": "Updates any combination of fields with full audit parity: human field labels, display names for lookups, status changes marked as such, risk score\/level recomputed when likelihood\/impact change, and the change.approved workflow event on a genuine transition into Approved. Plan bodies update silently (the UI does not audit long text). Send only what changes.",
+                    "d": "Updates any combination of fields with full audit parity: human field labels, display names for lookups, status changes marked as such, risk score\/level recomputed when likelihood\/impact change, and the change.approved workflow event on a genuine transition into Approved. Plan bodies update silently (the UI does not audit long text). Send only what changes. company_id cannot change here: a different company is 422 - use POST \/changes\/{id}\/move-to-company; the company it is already in is accepted.",
                     "params": [
                         {
                             "name": "id",
@@ -3450,6 +3450,11 @@
                                 "code": 422,
                                 "slug": "invalid_field",
                                 "when": "'risk_likelihood' or 'risk_impact_score' is outside the risk policy's levels (1-5 on the built-in), or only one was sent to re-assess a change rated under an earlier policy."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "company_id names a different company (use POST \/changes\/{id}\/move-to-company)."
                             }
                         ]
                     }
@@ -3485,6 +3490,78 @@
                                 "code": 409,
                                 "slug": "change_has_approval_history",
                                 "when": "The change has approval records and the approval rules do not allow deleting it."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/changes\/{id}\/move-to-company",
+                    "perm": "changes.update",
+                    "s": "Move a change to another company",
+                    "d": "Moves the change to another company the key can reach, with the tasks linked to it and their subtasks (a task's change decides its company). Linked tickets are not moved: they must already be in the target company, so unlink the others first - the message names them. Also refused when a linked task cannot follow: it is part of a project, or linked to a ticket, contract or another change, in another company, or it is a subtask whose parent is in another company and not moving. Moving linked tasks needs write access to Tasks as well. Nothing moves when it is refused. The change's history records the new company, as does each task that moved. Returns the change plus `moved` (1, or 0 when it is already in that company), `tasks_moved` and `moved_task_ids`. The same move as Move to company on the change's right-click menu.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Change id",
+                            "req": true
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "body",
+                            "desc": "The company to move it to",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "company_id": 3
+                    },
+                    "section": "Changes",
+                    "slug": "post-changes-id-move-to-company",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "File a change under the right company",
+                                "note": "A change created without company_id lands in the key's default company; move it, with its linked tasks, to the right one.",
+                                "path": {
+                                    "id": "7"
+                                },
+                                "body": {
+                                    "company_id": 3
+                                }
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "No such change, or it is outside the key's company scope."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "forbidden",
+                                "when": "The target company is outside the key's companies."
+                            },
+                            {
+                                "code": 403,
+                                "slug": "read_only",
+                                "when": "The key's analyst has read-only access to Change Management, or - when the change has linked tasks - read-only or no access to Tasks."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "The change was moved by someone else at the same moment. Try again."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "missing_field",
+                                "when": "company_id is missing."
+                            },
+                            {
+                                "code": 422,
+                                "slug": "invalid_field",
+                                "when": "company_id is not a whole number or an unknown company, or the move is refused: the install has only one company, a linked ticket is in another company, or a linked task cannot follow - the message says which."
                             }
                         ]
                     }
