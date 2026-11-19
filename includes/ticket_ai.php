@@ -251,7 +251,28 @@ function ticketAiLatestSummary(PDO $conn, int $ticketId, string $kind = 'summary
  * like one that did not. And a summary that hides its own uncertainty removes
  * the only signal telling somebody to go and read the thread themselves.
  */
-function ticketAiSummarySystemPrompt(): string
+/**
+ * The rule that makes the ticket AI write in the analyst's language (GH #396) -
+ * empty for English, so an English install's prompts are exactly what they were.
+ *
+ * Whose language: the analyst who asks. A summary is stored per ticket and shared,
+ * but each version is one person's request, shown first on their screen; a team
+ * that shares a language gets that language throughout.
+ *
+ * @param ?string $locale  the analyst's interface locale; null = the current request's
+ */
+function ticketAiLanguageRule(?string $locale = null): string
+{
+    require_once __DIR__ . '/i18n.php';
+    $locale = $locale ?? (string)I18n::getLocale();
+    if ($locale === '' || $locale === 'en') return '';
+    $lang = I18n::englishLanguageName($locale);
+    if ($lang === 'English') return '';
+    return "\n- Write everything in {$lang}, the analyst's language, including the headings: translate each heading above into {$lang} and keep them in the same order. "
+         . "Names, product and system names, reference numbers and quoted error messages stay exactly as written.";
+}
+
+function ticketAiSummarySystemPrompt(?string $locale = null): string
 {
     return "You are summarising one ticket on an IT service desk, for an analyst who is about to pick it up.\n\n"
          . "Write a SHORT standing summary with exactly these headings, each on its own line:\n\n"
@@ -270,7 +291,8 @@ function ticketAiSummarySystemPrompt(): string
          . "- If something important is unclear or missing, say it is unclear. That is a useful answer, not a failure.\n"
          . "- Never invent names, dates, reference numbers, systems or fixes.\n"
          . "- Internal notes are staff-only. You may use them, but write for an analyst and never phrase anything as if it were going to the customer.\n"
-         . "- No greeting, no sign-off, no commentary about being an AI.";
+         . "- No greeting, no sign-off, no commentary about being an AI."
+         . ticketAiLanguageRule($locale);
 }
 
 /**
@@ -281,7 +303,7 @@ function ticketAiSummarySystemPrompt(): string
  * It is allowed to suggest — and required to label a suggestion as one, because
  * the failure mode here is somebody acting on a confident guess.
  */
-function ticketAiReadSystemPrompt(): string
+function ticketAiReadSystemPrompt(?string $locale = null): string
 {
     return "An IT service desk analyst has just opened a ticket they have never seen, and asked you to read it for them.\n\n"
          . "Write a briefing with exactly these headings, each on its own line:\n\n"
@@ -299,5 +321,6 @@ function ticketAiReadSystemPrompt(): string
          . "- Separate what the ticket SAYS from what you are guessing, every time. If you are inferring, say you are inferring.\n"
          . "- Never invent names, dates, reference numbers, systems or fixes.\n"
          . "- If the ticket does not contain enough to answer a section, say so under that heading rather than filling it.\n"
-         . "- No greeting, no sign-off, no commentary about being an AI.";
+         . "- No greeting, no sign-off, no commentary about being an AI."
+         . ticketAiLanguageRule($locale);
 }

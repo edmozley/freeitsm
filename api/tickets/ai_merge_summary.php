@@ -37,6 +37,9 @@ require_once '../../includes/rbac.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/rfp_ai.php';
 require_once '../../includes/ai_settings.php';
+require_once '../../includes/ticket_ai.php';   // ticketAiLanguageRule()
+require_once '../../includes/i18n.php';
+I18n::initFromSession();   // GH #396: the AI writes in the analyst's language
 
 @ini_set('zlib.output_compression', '0');
 @ini_set('output_buffering', '0');
@@ -176,7 +179,8 @@ try {
             . "- Only state what the conversation actually says. If something is unclear or missing, "
             . "say it is unclear rather than guessing.\n"
             . "- Do not invent names, dates, reference numbers or fixes.\n"
-            . "- Do not write a greeting, a sign-off, or any commentary about being an AI.";
+            . "- Do not write a greeting, a sign-off, or any commentary about being an AI."
+            . ticketAiLanguageRule();
 
     $userMessage = '';
     if ($sourceRefs) {

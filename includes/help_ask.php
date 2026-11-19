@@ -98,11 +98,8 @@ function helpAskSectionText(array $s): string
 /** The language name the AI is asked to answer in. */
 function helpAskLanguageName(string $locale): string
 {
-    $names = ['en' => 'English', 'de' => 'German', 'es' => 'Spanish', 'fr' => 'French', 'it' => 'Italian', 'nl' => 'Dutch', 'pt-BR' => 'Brazilian Portuguese',
-              'pl' => 'Polish', 'da' => 'Danish', 'nb' => 'Norwegian Bokmål', 'nn' => 'Norwegian Nynorsk', 'af' => 'Afrikaans', 'ru' => 'Russian', 'uk' => 'Ukrainian', 'el' => 'Greek',
-              'id' => 'Indonesian', 'ms' => 'Malay', 'hi' => 'Hindi', 'bn' => 'Bengali', 'ta' => 'Tamil', 'te' => 'Telugu', 'mr' => 'Marathi', 'kn' => 'Kannada',
-              'ml' => 'Malayalam', 'gu' => 'Gujarati', 'pa' => 'Punjabi'];
-    return $names[$locale] ?? 'English';
+    require_once __DIR__ . '/i18n.php';
+    return I18n::englishLanguageName($locale);   // one map, shared with the ticket AI (GH #396)
 }
 
 /** The rules. Kept in one place so the test can read them. */

@@ -38,6 +38,8 @@ require_once '../../includes/rbac.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/ai_settings.php';
 require_once '../../includes/ticket_ai.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();   // GH #396: the AI writes in the analyst's language
 
 header('Content-Type: application/json');
 

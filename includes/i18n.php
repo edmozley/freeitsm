@@ -115,6 +115,19 @@ class I18n {
     }
 
     /**
+     * A locale's language named in ENGLISH ("de" -> "German"), for telling an AI
+     * model which language to write in - models follow "Write in German" more
+     * reliably than "Write in Deutsch". Unknown codes give English.
+     */
+    public static function englishLanguageName(string $locale): string {
+        $names = ['en' => 'English', 'de' => 'German', 'es' => 'Spanish', 'fr' => 'French', 'it' => 'Italian', 'nl' => 'Dutch', 'pt-BR' => 'Brazilian Portuguese',
+                  'pl' => 'Polish', 'da' => 'Danish', 'nb' => 'Norwegian Bokmål', 'nn' => 'Norwegian Nynorsk', 'af' => 'Afrikaans', 'ru' => 'Russian', 'uk' => 'Ukrainian', 'el' => 'Greek',
+                  'id' => 'Indonesian', 'ms' => 'Malay', 'hi' => 'Hindi', 'bn' => 'Bengali', 'ta' => 'Tamil', 'te' => 'Telugu', 'mr' => 'Marathi', 'kn' => 'Kannada',
+                  'ml' => 'Malayalam', 'gu' => 'Gujarati', 'pa' => 'Punjabi'];
+        return $names[$locale] ?? 'English';
+    }
+
+    /**
      * Initialise the locale for this request, in priority order:
      *   1. Logged-in analyst's `interface_language` user preference
      *   2. Browser Accept-Language header (best match)
