@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID   | Module            | Type        | Description |
 |------|-------------------|-------------|-------------|
+| 3004 | Tickets | Fix | **Right-click flyouts on a ticket no longer run off the bottom of the window (GH #395, reported and fixed by @cloudcogsio).** A flyout (Set status, Set type, Assign to, Move to company...) opened downward from its row with a fixed 320px cap, and the menu itself is moved up when tall, so its lower flyouts ran past the window and their last entries could not be reached. `fitTicketContextSubmenu()` (inbox.js) measures each flyout as it opens (hover or keyboard focus), caps it at the window's height and slides it up until it fits; the phone sheet is unchanged. Reproduced on a test install, 520px window: Set type 135px past the bottom, Assign to 199px, Assign to team 15px; after, every flyout ends inside at 320, 520 and 700px. `inbox.js?v=214`. |
 
 
 
