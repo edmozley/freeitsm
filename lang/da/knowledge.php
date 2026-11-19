@@ -286,7 +286,7 @@ Fordi de to lister betyder det modsatte, ryddes de {people}, der er angivet nu.'
     'ai' => [
         'title' => 'Spørg AI',
         'welcome' => 'Spørg mig om hvad som helst vedrørende artiklerne i din videnbase. Jeg gennemsøger alle udgivne artikler for at finde svaret.',
-        'powered_by' => 'Drevet af Claude Haiku',
+        'powered_by' => 'Svarene kommer fra din konfigurerede AI-model',
         'include_archived' => 'Inkludér arkiverede artikler',
         'include_archived_title' => 'Inkludér arkiverede artikler (papirkurv) i AI-søgning',
         'input_placeholder' => 'Stil et spørgsmål om din videnbase...',

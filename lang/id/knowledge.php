@@ -286,7 +286,7 @@ Karena kedua daftar berarti kebalikan satu sama lain, {people} yang terdaftar se
     'ai' => [
         'title' => 'Tanya AI',
         'welcome' => 'Tanyakan apa saja tentang artikel basis pengetahuan Anda. Saya akan mencari di seluruh artikel yang diterbitkan untuk menemukan jawabannya.',
-        'powered_by' => 'Didukung oleh Claude Haiku',
+        'powered_by' => 'Jawaban berasal dari model AI yang Anda atur',
         'include_archived' => 'Sertakan artikel yang diarsipkan',
         'include_archived_title' => 'Sertakan artikel yang diarsipkan (tempat sampah) dalam pencarian AI',
         'input_placeholder' => 'Ajukan pertanyaan tentang basis pengetahuan Anda...',

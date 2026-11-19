@@ -286,7 +286,7 @@ Ponieważ obie listy oznaczają coś przeciwnego, {people} wymienionych obecnie 
     'ai' => [
         'title' => 'Zapytaj AI',
         'welcome' => 'Zapytaj mnie o cokolwiek dotyczącego artykułów w Twojej bazie wiedzy. Przeszukam wszystkie opublikowane artykuły, aby znaleźć odpowiedź.',
-        'powered_by' => 'Napędzane przez Claude Haiku',
+        'powered_by' => 'Odpowiedzi pochodzą ze skonfigurowanego modelu AI',
         'include_archived' => 'Uwzględnij zarchiwizowane artykuły',
         'include_archived_title' => 'Uwzględnij zarchiwizowane artykuły (z kosza) w wyszukiwaniu AI',
         'input_placeholder' => 'Zadaj pytanie dotyczące Twojej bazy wiedzy...',

@@ -286,7 +286,7 @@ Weil die beiden Listen genau das Gegenteil bedeuten, werden die jetzt aufgeführ
     'ai' => [
         'title' => 'KI fragen',
         'welcome' => 'Fragen Sie mich alles über die Artikel Ihrer Wissensdatenbank. Ich durchsuche alle veröffentlichten Artikel, um die Antwort zu finden.',
-        'powered_by' => 'Unterstützt von Claude Haiku',
+        'powered_by' => 'Antworten stammen von Ihrem konfigurierten KI-Modell',
         'include_archived' => 'Archivierte Artikel einschließen',
         'include_archived_title' => 'Archivierte Artikel (Papierkorb) in die KI-Suche einbeziehen',
         'input_placeholder' => 'Stellen Sie eine Frage zu Ihrer Wissensdatenbank...',

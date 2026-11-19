@@ -330,7 +330,7 @@ return [
     'ai' => [
         'title'             => 'Ask AI',
         'welcome'           => "Ask me anything about your knowledge base articles. I'll search through all published articles to find the answer.",
-        'powered_by'        => 'Powered by Claude Haiku',
+        'powered_by'        => 'Answers come from your configured AI model',
         'include_archived'  => 'Include archived articles',
         'include_archived_title' => 'Include archived (recycle bin) articles in AI search',
         'input_placeholder' => 'Ask a question about your knowledge base...',

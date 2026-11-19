@@ -286,7 +286,7 @@ Comme les deux listes signifient le contraire l\'une de l\'autre, les {people} l
     'ai' => [
         'title' => 'Demander à l\'IA',
         'welcome' => 'Posez-moi n\'importe quelle question sur les articles de votre base de connaissances. Je parcourrai tous les articles publiés pour trouver la réponse.',
-        'powered_by' => 'Propulsé par Claude Haiku',
+        'powered_by' => 'Réponses fournies par le modèle d\'IA que vous avez configuré',
         'include_archived' => 'Inclure les articles archivés',
         'include_archived_title' => 'Inclure les articles archivés (corbeille) dans la recherche de l\'IA',
         'input_placeholder' => 'Posez une question sur votre base de connaissances...',

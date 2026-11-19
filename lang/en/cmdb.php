@@ -770,7 +770,7 @@ return [
         'overview_card2_title' => 'Impact at a glance',
         'overview_card2_body'  => 'Every object shows what would break if it disappeared &mdash; descendants, properties pointing at it, incoming relationships.',
         'overview_card3_title' => 'AI synthesis',
-        'overview_card3_body'  => 'Claude writes a 2-3 sentence summary of every object, and suggests properties &amp; missing classes when you create a new one.',
+        'overview_card3_body'  => 'The AI writes a 2-3 sentence summary of every object, and suggests properties &amp; missing classes when you create a new one.',
         'overview_card4_title' => 'Cross-module',
         'overview_card4_body'  => 'Tickets link to CMDB objects. Each object\'s Activity panel shows the tickets that touch it.',
 
@@ -804,10 +804,10 @@ return [
 
         // 4. AI Suggest Properties
         'ai_suggest_heading' => 'AI Suggest Properties',
-        'ai_suggest_intro'   => 'Claude asks about <em>your</em> environment, then suggests tailored properties.',
+        'ai_suggest_intro'   => 'The AI asks about <em>your</em> environment, then suggests tailored properties.',
         'ai_suggest_lead'    => 'When you click <strong>&#x2728; Suggest with AI</strong> in the per-class properties manager, the wizard runs in two stages:',
-        'ai_suggest_step1'   => '<strong>Clarifying questions.</strong> Claude asks 3-5 short questions about your specific environment &mdash; for <em>Database</em> that might be "What kind &mdash; SQL Server / Postgres / Mongo / Redis?", "Do you track schemas separately?". Skip any you\'re not sure about.',
-        'ai_suggest_step2'   => '<strong>Suggestions.</strong> Based on your answers, Claude proposes 6-12 properties tailored to <em>your</em> stack &mdash; with type, key, required flag, and a one-line "why". Untick anything you don\'t want, click <strong>Add Selected</strong>.',
+        'ai_suggest_step1'   => '<strong>Clarifying questions.</strong> The AI asks 3-5 short questions about your specific environment &mdash; for <em>Database</em> that might be "What kind &mdash; SQL Server / Postgres / Mongo / Redis?", "Do you track schemas separately?". Skip any you\'re not sure about.',
+        'ai_suggest_step2'   => '<strong>Suggestions.</strong> Based on your answers, the AI proposes 6-12 properties tailored to <em>your</em> stack &mdash; with type, key, required flag, and a one-line "why". Untick anything you don\'t want, click <strong>Add Selected</strong>.',
         'ai_suggest_step3'   => '<strong>Real records first.</strong> An owner, support team, site or vendor is suggested as a Person, Team, Location or Supplier property that points at the real record. A reference to another object (e.g. <em>Host &rarr; Server</em>) still needs a class: if you don\'t have one yet, the CMDB creates it on the fly so the link works straight away. The Result panel lists exactly what was added and what was created.',
         'ai_suggest_tip'     => 'Re-running the wizard later is safe &mdash; suggestions whose label or key already exist on the class are filtered out, so you can run it again after adding a few properties manually and only get new ideas.',
         // GH #313: the CMDB assistant
