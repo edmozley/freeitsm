@@ -707,6 +707,7 @@ return [
         'change_saved' => 'Changement enregistré avec succès',
         'change_deleted' => 'Changement supprimé',
         'error_loading' => 'Erreur lors du chargement du changement',
+        'lookup_load_error' => 'Impossible de charger les types de changement, les priorités et les impacts. Rechargez la page et réessayez.',
         'error_saving' => 'Erreur lors de l\'enregistrement du changement',
         'error_deleting' => 'Erreur lors de la suppression du changement',
         'error_prefix' => 'Erreur : {message}',

@@ -704,6 +704,7 @@ return [
         'change_saved' => 'Ændring gemt',
         'change_deleted' => 'Ændring slettet',
         'error_loading' => 'Fejl ved indlæsning af ændring',
+        'lookup_load_error' => 'Ændringstyper, prioriteter og konsekvenser kunne ikke indlæses. Genindlæs siden, og prøv igen.',
         'error_saving' => 'Fejl ved gemning af ændring',
         'error_deleting' => 'Fejl ved sletning af ændring',
         'error_prefix' => 'Fejl: {message}',

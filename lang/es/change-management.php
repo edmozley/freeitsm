@@ -705,6 +705,7 @@ return [
         'change_saved' => 'Cambio guardado correctamente',
         'change_deleted' => 'Cambio eliminado',
         'error_loading' => 'Error al cargar el cambio',
+        'lookup_load_error' => 'No se pudieron cargar los tipos de cambio, las prioridades y los impactos. Vuelva a cargar la página e inténtelo de nuevo.',
         'error_saving' => 'Error al guardar el cambio',
         'error_deleting' => 'Error al eliminar el cambio',
         'error_prefix' => 'Error: {message}',

@@ -707,6 +707,7 @@ return [
         'change_saved' => 'Perubahan berhasil disimpan',
         'change_deleted' => 'Perubahan dihapus',
         'error_loading' => 'Gagal memuat perubahan',
+        'lookup_load_error' => 'Tidak dapat memuat jenis perubahan, prioritas, dan dampak. Muat ulang halaman lalu coba lagi.',
         'error_saving' => 'Gagal menyimpan perubahan',
         'error_deleting' => 'Gagal menghapus perubahan',
         'error_prefix' => 'Kesalahan: {message}',

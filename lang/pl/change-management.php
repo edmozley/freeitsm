@@ -707,6 +707,7 @@ return [
         'change_saved' => 'Zmiana zapisana pomyślnie',
         'change_deleted' => 'Zmiana usunięta',
         'error_loading' => 'Błąd ładowania zmiany',
+        'lookup_load_error' => 'Nie udało się wczytać typów zmian, priorytetów i wpływów. Odśwież stronę i spróbuj ponownie.',
         'error_saving' => 'Błąd zapisywania zmiany',
         'error_deleting' => 'Błąd usuwania zmiany',
         'error_prefix' => 'Błąd: {message}',

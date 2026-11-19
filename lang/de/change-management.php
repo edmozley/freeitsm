@@ -705,6 +705,7 @@ return [
         'change_saved' => 'Change erfolgreich gespeichert',
         'change_deleted' => 'Change gelöscht',
         'error_loading' => 'Fehler beim Laden des Changes',
+        'lookup_load_error' => 'Change-Typen, Prioritäten und Auswirkungen konnten nicht geladen werden. Laden Sie die Seite neu und versuchen Sie es erneut.',
         'error_saving' => 'Fehler beim Speichern des Changes',
         'error_deleting' => 'Fehler beim Löschen des Changes',
         'error_prefix' => 'Fehler: {message}',
