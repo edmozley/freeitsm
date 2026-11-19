@@ -5109,7 +5109,7 @@
                     "p": "\/knowledge\/articles\/{id}\/images",
                     "perm": "knowledge_images.create",
                     "s": "Upload a protected inline image",
-                    "d": "JSON upload, maximum 10 MiB decoded. Uses the shared image extension\/content whitelist (PNG, JPEG, GIF, WebP, BMP, HEIC\/HEIF; no SVG), random storage names and the existing protected uploads volume. The parent article must exist and be writable before any file is stored. No unattached\/public uploads. Reuse the returned url in HTML; it checks article access for analyst, portal and public viewers on every read. API clients use \/knowledge\/images\/{id}\/content with their key. Each image belongs to one article; copying content to another article requires its own upload. Original images linked from thumbnails can be uploaded separately.",
+                    "d": "JSON upload, maximum 10 MiB decoded. Uses the shared image extension\/content whitelist (PNG, JPEG, GIF, WebP, BMP, HEIC\/HEIF; no SVG), random storage names and the existing protected uploads volume. The parent article must exist and be writable before any file is stored. No unattached\/public uploads. Reuse the returned url in HTML; it re-checks article access on every read for signed-in analysts and portal users; nobody signed in gets 404, even for a public article. API clients use \/knowledge\/images\/{id}\/content with their key. Each image belongs to one article; copying content to another article requires its own upload. Original images linked from thumbnails can be uploaded separately.",
                     "params": [
                         {
                             "name": "id",

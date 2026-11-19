@@ -305,4 +305,20 @@ return [
             ['setting', 'knowledge_gap_min_richness', 'nonempty'],
         ]],
     ],
+    [
+        // PR #378 (GH #377): bring a knowledge base in through the REST API.
+        'id'       => 'knowledge.rest_migration',
+        'module'   => 'knowledge',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Migrate a knowledge base through the API',
+        'what'     => 'A script recreates your old knowledge base in FreeITSM over the REST API - folders, articles, access lists and their pictures - and can be stopped and run again without making duplicates.',
+        'why'      => 'Years of articles in another tool do not have to be copied by hand or left behind, and a restricted article is never briefly open to everybody on the way in.',
+        'done'     => 'At least one article or folder has been created through the API with a client_reference, or one picture uploaded to an article.',
+        'link'     => 'knowledge/',
+        'check'    => ['any', [
+            ['rows', 'knowledge_api_references'],
+            ['rows', 'knowledge_images'],
+        ]],
+    ],
 ];
