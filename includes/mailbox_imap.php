@@ -324,10 +324,7 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
     // both — and every mailbox saved before those columns existed — leaves them
     // blank and lands here exactly as it did before.
     //
-    // ⚠️ Blank means "same as IMAP", NOT "send without authenticating". The
-    // AUTH LOGIN below is still skipped when the resolved username is empty, but
-    // an IMAP mailbox always has one, so an unauthenticated relay is not
-    // reachable through these fields and the help text does not claim it is.
+    // Blank means "same as IMAP". Only smtp_auth_enabled = 0 opts out of SMTP authentication.
     $user = trim((string) ($mailbox['smtp_username'] ?? ''));
     $pass = (string) ($mailbox['smtp_password'] ?? '');
     if ($user === '') {
@@ -393,7 +390,7 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
         }
 
         // AUTH LOGIN (username + password, each base64).
-        if ($user !== '') {
+        if (($mailbox['smtp_auth_enabled'] ?? true) && $user !== '') {
             try {
                 imapSmtpCommand($fp, 'AUTH LOGIN', [334]);
                 imapSmtpCommand($fp, base64_encode($user), [334]);

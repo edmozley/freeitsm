@@ -107,26 +107,36 @@ function mailboxTestResolve(?array $stored, array $form): array
         }
     }
     $mb['provider'] = 'imap';
+    if (array_key_exists('smtp_auth_enabled', $form)) {
+        if (!in_array($form['smtp_auth_enabled'], [true, false, 1, 0, '1', '0'], true)) {
+            return [null, 'Invalid SMTP authentication setting.', false];
+        }
+        $mb['smtp_auth_enabled'] = (int)$form['smtp_auth_enabled'];
+    }
+    $smtpAuth = (bool)($mb['smtp_auth_enabled'] ?? true);
     if (trim((string)($mb['smtp_server'] ?? '')) === '') {
         return [null, 'Fill in the SMTP server first.', false];
     }
     $serverUnchanged = $stored !== null && $same($stored['smtp_server'] ?? '', $mb['smtp_server'] ?? '');
+    // Without SMTP authentication the IMAP password is only used to file Sent.
+    $imapPasswordHostUnchanged = $smtpAuth ? $serverUnchanged
+        : ($stored !== null && $same($stored['imap_server'] ?? '', $mb['imap_server'] ?? ''));
 
     // The IMAP login: typed, or the stored one if nothing it goes to has changed.
     if ($typed($form['imap_password'] ?? '')) {
         $mb['imap_password'] = (string)$form['imap_password'];
-    } elseif (!($serverUnchanged && $same($stored['imap_username'] ?? '', $mb['imap_username'] ?? '') && ($stored['imap_password'] ?? '') !== '')) {
+    } elseif (!($imapPasswordHostUnchanged && $same($stored['imap_username'] ?? '', $mb['imap_username'] ?? '') && ($stored['imap_password'] ?? '') !== '')) {
         $mb['imap_password'] = '';
     }
 
     $sameAsImap = !array_key_exists('smtp_same_as_imap', $form) ? trim((string)($mb['smtp_username'] ?? '')) === '' : !empty($form['smtp_same_as_imap']);
-    if ($sameAsImap) {
+    if ($smtpAuth && $sameAsImap) {
         $mb['smtp_username'] = '';
         $mb['smtp_password'] = '';
         if ($mb['imap_password'] === '') {
             return [null, 'Type the password to test - the saved one is only used with the server and username it was saved for.', false];
         }
-    } else {
+    } elseif ($smtpAuth) {
         $mb['smtp_username'] = trim((string)($form['smtp_username'] ?? ($stored['smtp_username'] ?? '')));
         if ($typed($form['smtp_password'] ?? '')) {
             $mb['smtp_password'] = (string)$form['smtp_password'];

@@ -103,6 +103,22 @@ ok('a new, unsaved IMAP mailbox with the password typed - tests', $err === null 
 ok('no SMTP server - says so', $mb === null && str_contains((string)$err, 'SMTP server'), $err);
 
 $ms = ['id' => 1, 'provider' => 'microsoft', 'name' => 'ITSM'];
+foreach ([false, 0, '0'] as $off) {
+    [$mb, $err] = mailboxTestResolve(null, ['smtp_auth_enabled' => $off] + $form);
+    ok('relay without authentication needs no SMTP password', $err === null && empty($mb['smtp_auth_enabled']), $err);
+}
+[$mb, $err] = mailboxTestResolve(['smtp_auth_enabled' => 0] + $storedSep, $formSep);
+ok('omitted authentication setting keeps the saved relay mode', $err === null && empty($mb['smtp_auth_enabled']));
+[$mb, $err] = mailboxTestResolve($storedSep, ['smtp_auth_enabled' => false, 'smtp_server' => 'relay.example.test', 'save_sent_copy' => true] + $formSep);
+ok('relay at a changed SMTP host can still file Sent on the unchanged IMAP host', $err === null && !empty($mb['save_sent_copy']) && $mb['imap_password'] === $storedSep['imap_password'], $err);
+[$mb, $err] = mailboxTestResolve($storedSep, ['smtp_auth_enabled' => false, 'imap_server' => 'other.example.test', 'save_sent_copy' => true] + $formSep);
+ok('relay does not release saved IMAP credentials to a changed IMAP host', $err === null && empty($mb['save_sent_copy']) && empty($mb['imap_password']) && !empty($mb['sent_copy_not_tried']), $err);
+[$mb, $err] = mailboxTestResolve(['smtp_auth_enabled' => 0] + $stored, ['smtp_auth_enabled' => true, 'smtp_server' => 'other.example.test'] + $form);
+ok('re-enabling authentication still protects saved credentials at a changed SMTP host', $mb === null && $err !== null);
+foreach ([null, '', 'false', 2, []] as $invalid) {
+    [$mb, $err] = mailboxTestResolve($stored, ['smtp_auth_enabled' => $invalid] + $form);
+    ok('invalid explicit authentication setting is rejected', $mb === null && $err !== null);
+}
 [$mb, $err, $saved] = mailboxTestResolve($ms, ['provider' => 'microsoft']);
 ok('Microsoft: tested as SAVED, and says so', $mb === $ms && $err === null && $saved === true);
 [$mb, $err] = mailboxTestResolve(null, ['provider' => 'google']);

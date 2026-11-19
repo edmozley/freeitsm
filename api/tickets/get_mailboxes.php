@@ -29,6 +29,7 @@ try {
     $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'oversize_policy'")->fetch() ? ' oversize_policy,' : ' NULL AS oversize_policy,';
     // Save a copy of sent mail (GH #270), once Database Verification has added the columns.
     $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'save_sent_copy'")->fetch() ? ' save_sent_copy, sent_folder,' : ' 0 AS save_sent_copy, NULL AS sent_folder,';
+    $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'smtp_auth_enabled'")->fetch() ? ' smtp_auth_enabled,' : ' 1 AS smtp_auth_enabled,';
     // Its department (GH #315), once Database Verification has added the column.
     $sensCol .= $conn->query("SHOW COLUMNS FROM target_mailboxes LIKE 'department_id'")->fetch() ? ' department_id,' : ' NULL AS department_id,';
 
@@ -65,6 +66,7 @@ try {
         $mailbox['id'] = (int)$mailbox['id'];
         $mailbox['imap_port'] = (int)$mailbox['imap_port'];
         $mailbox['smtp_port'] = (int)($mailbox['smtp_port'] ?? 587);
+        $mailbox['smtp_auth_enabled'] = (bool)$mailbox['smtp_auth_enabled'];
         $mailbox['max_emails_per_check'] = (int)$mailbox['max_emails_per_check'];
         // Multi-tenancy: the company this mailbox is pinned to (null = shared intake).
         $mailbox['tenant_id'] = ($mailbox['tenant_id'] === null) ? null : (int)$mailbox['tenant_id'];

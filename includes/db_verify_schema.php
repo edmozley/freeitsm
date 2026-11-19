@@ -1459,6 +1459,7 @@ return [
         'smtp_server'             => 'TEXT NULL',
         'smtp_port'               => 'INT NULL DEFAULT 587',
         'smtp_encryption'         => 'VARCHAR(10) NULL DEFAULT \'tls\'',
+        'smtp_auth_enabled'       => 'TINYINT(1) NOT NULL DEFAULT 1',
         // Separate sending credentials; blank means "use the IMAP ones".
         'smtp_username'           => 'TEXT NULL',
         'smtp_password'           => 'TEXT NULL',
