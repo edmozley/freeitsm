@@ -27,10 +27,11 @@
 #   location        a location name, or its full path written with ">" between
 #                   the levels when two places share a name ("UK > London > Floor 1")
 #   dates           YYYY-MM-DD, the format the API accepts
-#   asset_tag       the label stuck on the device. Only used when CREATING: the
-#                   REST API does not return or search asset tags, so it cannot be
-#                   used to find an asset again, or be changed later from here.
-#                   Leave it out if your company has automatic tag numbering on.
+#   asset_tag       the label stuck on the device. Set on new assets, and changed
+#                   on existing ones when the file says something different (the
+#                   API returns and changes asset tags since FreeITSM 5.7.0). A tag
+#                   another asset in the company already has is refused (409).
+#                   Leave the column out if your company has automatic tag numbering on.
 #
 # WHY MATCH ON SERIAL FIRST: a serial number belongs to one physical machine for
 # its whole life, while hostnames get reused (a replacement laptop often takes the
@@ -223,6 +224,13 @@ foreach ($row in $rows) {
             $patch[$Columns[$col].Field] = $want[$col]
             $changes += "$col -> '$($label[$col])'"
         }
+    }
+    # The tag is not in $Columns because it is not looked up or validated here:
+    # FreeITSM checks it is free in the asset's company. Sent only when it differs.
+    $tag = Get-Cell $row 'asset_tag'
+    if ($tag -and [string]$asset.asset_tag -cne $tag) {
+        $patch['asset_tag'] = $tag
+        $changes += "asset_tag -> '$tag'"
     }
     $action = if ($patch.Count) { 'update' } else { 'unchanged' }
     $plan += @{ Action = $action; Name = $hostname; Id = $asset.id; Body = $patch; Changes = $changes; Line = $line }

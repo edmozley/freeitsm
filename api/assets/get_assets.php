@@ -89,6 +89,12 @@ try {
     $contractAssetsTableExists = $tableCheckFor('contract_assets') && $tableCheckFor('contracts');
 
     $retiredReady = assetRetirementReady($conn);
+    // GH #403: net / gross - selected only once Database Verification has added it. Left
+    // OUT before then (not NULL AS ...), so the screen hides the selector rather than
+    // offering one that cannot save.
+    require_once __DIR__ . '/../../includes/services/assets.php';
+    $basisReady = AssetsService::costBasisReady($conn);
+    $basisCol = $basisReady ? 'a.purchase_cost_basis,' : '';
     $retiredCol = $retiredReady ? 'a.retired_datetime, a.retired_reason,' : 'NULL AS retired_datetime, NULL AS retired_reason,';
     // Build query with optional search
     if ($tableExists) {
@@ -108,6 +114,7 @@ try {
                     a.location_id,
                     a.purchase_date,
                     a.purchase_cost,
+                    {$basisCol}
                     a.supplier_id,
                     a.order_number,
                     a.warranty_expiry,
@@ -174,6 +181,7 @@ try {
                     a.location_id,
                     a.purchase_date,
                     a.purchase_cost,
+                    {$basisCol}
                     a.supplier_id,
                     a.order_number,
                     a.warranty_expiry,
@@ -259,7 +267,7 @@ try {
     }
 
     if ($tableExists) {
-        $groupBy = " GROUP BY a.id, a.hostname, a.manufacturer, a.model, a.memory, a.service_tag, a.operating_system, a.feature_release, a.build_number, a.cpu_name, a.speed, a.bios_version, a.location_id, a.purchase_date, a.purchase_cost, a.supplier_id" . ($leaseReady ? ', a.lease_expiry' : '') . ($leaseStartReady ? ', a.lease_start' : '') . ($ccReady ? ', a.cost_centre_id' : '') . ", a.order_number, a.warranty_expiry, a.first_seen, a.last_seen" . ($retiredReady ? ', a.retired_datetime, a.retired_reason' : '');
+        $groupBy = " GROUP BY a.id, a.hostname, a.manufacturer, a.model, a.memory, a.service_tag, a.operating_system, a.feature_release, a.build_number, a.cpu_name, a.speed, a.bios_version, a.location_id, a.purchase_date, a.purchase_cost, a.supplier_id" . ($basisReady ? ', a.purchase_cost_basis' : '') . ($leaseReady ? ', a.lease_expiry' : '') . ($leaseStartReady ? ', a.lease_start' : '') . ($ccReady ? ', a.cost_centre_id' : '') . ", a.order_number, a.warranty_expiry, a.first_seen, a.last_seen" . ($retiredReady ? ', a.retired_datetime, a.retired_reason' : '');
         if ($typeTableExists) {
             $groupBy .= ", a.asset_type_id, aty.name";
         }

@@ -38,6 +38,9 @@
         { key: 'location_path',     label: tt('field.location'),            type: 'string', defaultVisible: true,  defaultOrder: 14 },
         { key: 'purchase_date',     label: tt('field.purchase_date'),       type: 'date',   defaultVisible: false, defaultOrder: 15 },
         { key: 'purchase_cost',     label: tt('table.col_cost'),            type: 'number', defaultVisible: false, defaultOrder: 16 },
+        // GH #403: net / gross beside the amount, so a CSV export cannot mix them up unseen.
+        { key: 'purchase_cost_basis', label: tt('table.col_cost_basis'),    type: 'string', defaultVisible: false, defaultOrder: 16.5,
+          display: r => r.purchase_cost_basis ? tt('cost_basis.' + r.purchase_cost_basis) : (r.purchase_cost != null ? tt('cost_basis.unspecified') : '') },
         { key: 'supplier_name',     label: tt('field.supplier'),            type: 'string', defaultVisible: false, defaultOrder: 17 },
         // GH #160: "CODE Name" of the cost centre it is charged to - sortable and filterable like any text column.
         { key: 'cost_centre_label', label: tt('field.cost_centre'),         type: 'string', defaultVisible: false, defaultOrder: 17.5 },

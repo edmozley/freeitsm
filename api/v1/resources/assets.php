@@ -154,6 +154,10 @@ function apiSerializeAsset(PDO $conn, array $r): array {
     return [
         'id'       => (int)$r['id'],
         'hostname' => $r['hostname'],
+        // The number on the asset's label. Returned since 5.7.0: it was accepted on create
+        // but never read back, so a script could not match on it (found building the
+        // asset import script for the API script library).
+        'asset_tag' => ($r['asset_tag'] ?? null) !== '' ? ($r['asset_tag'] ?? null) : null,
         'company'  => $rel($r['tenant_id'] ?? null, $r['company_name'] ?? null),
         'type'     => $rel($r['asset_type_id'], $r['type_name']),
         'status'   => $rel($r['asset_status_id'], $r['status_name']),
@@ -186,6 +190,8 @@ function apiSerializeAsset(PDO $conn, array $r): array {
         'lifecycle' => [
             'purchase_date'   => $r['purchase_date'],
             'purchase_cost'   => $r['purchase_cost'] !== null ? (float)$r['purchase_cost'] : null,
+            // GH #403: 'net' (excluding tax), 'gross' (including tax) or null = not specified.
+            'purchase_cost_basis' => $r['purchase_cost_basis'] ?? null,
             'supplier'        => $rel($r['supplier_id'], $r['supplier_name']),
             'cost_centre'     => !empty($r['cost_centre_id'])
                 ? ['id' => (int)$r['cost_centre_id'], 'code' => $r['cost_centre_code'] ?? null, 'name' => $r['cost_centre_name'] ?? null]
@@ -311,6 +317,15 @@ function apiAssetsList(PDO $conn, array $apiKey, array $params, array $body): vo
     if (isset($_GET['service_tag']) && $_GET['service_tag'] !== '') {
         $where[] = 'a.service_tag = ?';
         $args[]  = trim($_GET['service_tag']);
+    }
+    if (isset($_GET['asset_tag']) && $_GET['asset_tag'] !== '') {
+        require_once dirname(__DIR__, 3) . '/includes/asset_labels.php';
+        if (assetLabelsSchemaReady($conn)) {
+            $where[] = 'a.asset_tag = ?';
+            $args[]  = trim($_GET['asset_tag']);
+        } else {
+            $where[] = '1 = 0';   // no tags exist yet, so nothing can match
+        }
     }
     if (isset($_GET['q']) && trim($_GET['q']) !== '') {
         $where[] = '(a.hostname LIKE ? OR a.service_tag LIKE ? OR a.model LIKE ? OR a.manufacturer LIKE ?)';
@@ -471,7 +486,32 @@ function apiAssetsCreate(PDO $conn, array $apiKey, array $params, array $body): 
 // ---------------------------------------------------------------------------
 function apiAssetsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
     try {
-        AssetsService::updateFields($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+        $ctx = ActorContext::fromApiKey($apiKey);
+        // A clashing tag is refused BEFORE anything is written, so a PATCH never saves
+        // half its fields and then fails on the tag. (assign() checks again under its
+        // lock; this early check only avoids the half-done write.)
+        if (array_key_exists('asset_tag', $body) && trim((string)$body['asset_tag']) !== '') {
+            require_once dirname(__DIR__, 3) . '/includes/asset_labels.php';
+            require_once dirname(__DIR__, 3) . '/includes/services/asset_tags.php';
+            $own = apiLoadAsset($conn, $apiKey, $params[0]);   // 404 outside the key's companies
+            $store = ($own['tenant_id'] ?? null) === null ? null : (int)$own['tenant_id'];
+            if (!assetTagAvailable($conn, $store, (string)$body['asset_tag'], (int)$params[0])) {
+                apiError(409, 'conflict', AssetTagsService::clashMessage($conn, $store, trim((string)$body['asset_tag']), (int)$params[0]));
+            }
+        }
+        AssetsService::updateFields($conn, $ctx, (int)$params[0], $body);
+        // TRAP: asset_tag used to be listed as a known key and then dropped, so a PATCH
+        // answered 200 to a change it never made. It goes through AssetTagsService::assign()
+        // - the asset page's own path - so uniqueness, locking and history stay in one place.
+        // updateFields() above has already proved the key may reach this asset.
+        if (array_key_exists('asset_tag', $body)) {
+            require_once dirname(__DIR__, 3) . '/includes/asset_labels.php';
+            require_once dirname(__DIR__, 3) . '/includes/services/asset_tags.php';
+            if (!assetLabelsSchemaReady($conn)) {
+                apiError(422, 'invalid_field', 'Asset tags need System > Database Verification first.');
+            }
+            AssetTagsService::assign($conn, $ctx, (int)$params[0], (string)($body['asset_tag'] ?? ''));
+        }
     } catch (ServiceError $e) { apiFailFromService($e); }
     $out = apiSerializeAsset($conn, apiLoadAsset($conn, $apiKey, $params[0]));
     if ($ignored = AssetsService::ignoredKeys($body, false)) $out['ignored'] = $ignored;

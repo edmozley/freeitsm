@@ -3676,6 +3676,9 @@ CREATE TABLE IF NOT EXISTS `assets` (
     -- Procurement & warranty (Snipe-IT-style lifecycle fields)
     `purchase_date`     DATE NULL,
     `purchase_cost`     DECIMAL(12,2) NULL,
+    -- GH #403: whether purchase_cost includes tax. 'net' / 'gross'; NULL = not specified
+    -- (every amount entered before 5.7.0 - its basis cannot be guessed).
+    `purchase_cost_basis` VARCHAR(5) NULL,
     `supplier_id`       INT NULL,
     `cost_centre_id`    INT NULL,   -- GH #160: the cost centre it is charged to (fk added by db_verify)
     `order_number`      VARCHAR(100) NULL,

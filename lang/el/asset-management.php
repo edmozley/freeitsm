@@ -367,6 +367,13 @@ return [
         'none_option' => '-- Κανένα --',
         'unknown' => 'Άγνωστο',
     ],
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Δεν έχει οριστεί',
+        'net' => 'Καθαρό (χωρίς φόρο)',
+        'gross' => 'Μικτό (με φόρο)',
+        'help' => 'Αν το κόστος αγοράς περιλαμβάνει ΦΠΑ ή φόρο πωλήσεων. Η αλλαγή του δεν αλλάζει ποτέ το ποσό.',
+    ],
     'field' => [
         'asset_tag' => 'Ετικέτα παγίου',
         'asset_tag_ph' => 'π.χ. LT0001',
@@ -385,6 +392,7 @@ return [
         'bios_version' => 'Έκδοση BIOS',
         'purchase_date' => 'Ημερομηνία αγοράς',
         'purchase_cost' => 'Κόστος αγοράς',
+        'purchase_cost_basis' => 'Βάση κόστους αγοράς',   // GH #403
         'supplier' => 'Προμηθευτής',
         'cost_centre' => 'Κέντρο κόστους',
         'cost_centre_inactive' => 'ανενεργό',
@@ -716,6 +724,7 @@ return [
         'col_tickets' => 'Αιτήματα',
         'col_open_tickets' => 'Ανοιχτά αιτήματα',
         'col_cost' => 'Κόστος',
+        'col_cost_basis' => 'Βάση κόστους',
         'stale_notice' => 'Εμφανίζονται {count} πάγια που δεν έχουν αναφερθεί εδώ και {days} ημέρες.',
         'stale_notice_one' => 'Εμφανίζεται 1 πάγιο που δεν έχει αναφερθεί εδώ και {days} ημέρες.',
         'stale_show_all' => 'Εμφάνιση όλων',

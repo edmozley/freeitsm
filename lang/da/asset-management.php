@@ -367,6 +367,13 @@ return [
         'none_option' => '-- Ingen --',
         'unknown' => 'Ukendt',
     ],
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Ikke angivet',
+        'net' => 'Netto (ekskl. moms)',
+        'gross' => 'Brutto (inkl. moms)',
+        'help' => 'Om købsprisen er inklusive moms. Ændres dette, ændres beløbet aldrig.',
+    ],
     'field' => [
         'asset_tag' => 'Aktivmærke',
         'asset_tag_ph' => 'f.eks. LT0001',
@@ -385,6 +392,7 @@ return [
         'bios_version' => 'BIOS-version',
         'purchase_date' => 'Købsdato',
         'purchase_cost' => 'Købspris',
+        'purchase_cost_basis' => 'Grundlag for købspris',   // GH #403
         'supplier' => 'Leverandør',
         'cost_centre' => 'Omkostningssted',
         'cost_centre_inactive' => 'inaktiv',
@@ -716,6 +724,7 @@ Omdøb det alligevel?',
         'col_tickets' => 'Sager',
         'col_open_tickets' => 'Åbne sager',
         'col_cost' => 'Pris',
+        'col_cost_basis' => 'Prisgrundlag',
         'stale_notice' => 'Viser {count} aktiver, der ikke har indberettet i {days} dage.',
         'stale_notice_one' => 'Viser 1 aktiv, der ikke har indberettet i {days} dage.',
         'stale_show_all' => 'Vis alle',

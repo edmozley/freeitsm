@@ -3817,6 +3817,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 supplier_id: 'asset-management.field.supplier',
                 purchase_date: 'asset-management.field.purchase_date',
                 purchase_cost: 'asset-management.field.purchase_cost',
+                purchase_cost_basis: 'asset-management.field.purchase_cost_basis',   // GH #403
                 order_number: 'asset-management.field.order_number',
                 warranty_expiry: 'asset-management.field.warranty_expiry',
                 cost_centre_id: 'asset-management.field.cost_centre',
@@ -4345,6 +4346,7 @@ $translationNamespaces = ['common', 'asset-management'];
             'supplier': 'supplier', 'order number': 'order_number',
             'purchase date': 'purchase_date', 'purchase cost': 'purchase_cost',
             'cost': 'purchase_cost', 'price': 'purchase_cost',
+            'cost basis': 'purchase_cost_basis', 'tax basis': 'purchase_cost_basis', 'net or gross': 'purchase_cost_basis',   // GH #403
             'warranty': 'warranty_expiry', 'warranty expiry': 'warranty_expiry',
             'memory': 'memory', 'ram': 'memory', 'cpu': 'cpu',
             'operating system': 'operating_system', 'os': 'operating_system',

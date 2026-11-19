@@ -367,6 +367,13 @@ return [
         'none_option' => '-- Aucun --',
         'unknown' => 'Inconnu',
     ],
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Non précisé',
+        'net' => 'HT (hors taxes)',
+        'gross' => 'TTC (taxes comprises)',
+        'help' => 'Indique si le coût d\'achat inclut la TVA ou la taxe de vente. Le modifier ne change jamais le montant.',
+    ],
     'field' => [
         'asset_tag' => 'Étiquette d\'actif',
         'asset_tag_ph' => 'ex. LT0001',
@@ -385,6 +392,7 @@ return [
         'bios_version' => 'Version du BIOS',
         'purchase_date' => 'Date d\'achat',
         'purchase_cost' => 'Coût d\'achat',
+        'purchase_cost_basis' => 'Base du coût d\'achat',   // GH #403
         'supplier' => 'Fournisseur',
         'cost_centre' => 'Centre de coûts',
         'cost_centre_inactive' => 'inactif',
@@ -716,6 +724,7 @@ Le renommer quand même ?',
         'col_tickets' => 'Tickets',
         'col_open_tickets' => 'Tickets ouverts',
         'col_cost' => 'Coût',
+        'col_cost_basis' => 'Base du coût',
         'stale_notice' => 'Affichage de {count} actifs qui ne se sont pas signalés depuis {days} jours.',
         'stale_notice_one' => 'Affichage d\'1 actif qui ne s\'est pas signalé depuis {days} jours.',
         'stale_show_all' => 'Tout afficher',

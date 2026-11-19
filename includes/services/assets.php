@@ -91,6 +91,9 @@ class AssetsService
             'cost_centre_id'   => ['audit' => 'cost_centre',     'kind' => 'cost_centre'],
             'purchase_date'    => ['audit' => 'purchase_date',   'kind' => 'date'],
             'purchase_cost'    => ['audit' => 'purchase_cost',   'kind' => 'decimal'],
+            // GH #403: does purchase_cost include tax? NULL = not specified. Setting it never
+            // touches the amount - a basis is a label on the number, not a conversion.
+            'purchase_cost_basis' => ['audit' => 'purchase_cost_basis', 'kind' => 'enum', 'values' => ['net', 'gross']],
             'order_number'     => ['audit' => 'order_number',    'kind' => 'string', 'max' => 100],
             'warranty_expiry'  => ['audit' => 'warranty_expiry', 'kind' => 'date'],
             'lease_start'      => ['audit' => 'lease_start',     'kind' => 'date'],
@@ -946,6 +949,11 @@ class AssetsService
      */
     private static function validateField(PDO $conn, string $field, $value, array $def)
     {
+        // Checked before the empty case: even clearing it is a write to a column an
+        // install that has not run Database Verification does not have yet.
+        if ($field === 'purchase_cost_basis' && !self::costBasisReady($conn)) {
+            throw new ServiceError('validation', 'invalid_field', 'Run System > Database Verification before setting purchase_cost_basis.');
+        }
         if ($value === '' || $value === null) {
             return null;
         }
@@ -976,6 +984,14 @@ class AssetsService
                     throw new ServiceError('validation', 'invalid_field', "'{$field}' must be a number.");
                 }
                 return (string)round((float)$value, 2);
+            case 'enum':
+                // A fixed set of stable keys (stored lower-case); anything else is refused,
+                // never guessed - "incl" is not quietly read as gross.
+                $v = strtolower(trim((string)$value));
+                if (!in_array($v, $def['values'], true)) {
+                    throw new ServiceError('validation', 'invalid_field', "'{$field}' must be one of: " . implode(', ', $def['values']) . ' (or empty for not specified).');
+                }
+                return $v;
             default: // string
                 $v = trim((string)$value);
                 if (isset($def['max']) && mb_strlen($v) > $def['max']) {
@@ -983,6 +999,20 @@ class AssetsService
                 }
                 return $v === '' ? null : $v;
         }
+    }
+
+    /**
+     * Has Database Verification added assets.purchase_cost_basis (GH #403)? Reads and
+     * the screen check this too, so an install mid-upgrade keeps working.
+     */
+    public static function costBasisReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $ready = (bool)$conn->query("SHOW COLUMNS FROM assets LIKE 'purchase_cost_basis'")->fetch(); }
+            catch (Throwable) { $ready = false; }
+        }
+        return $ready;
     }
 
     /**

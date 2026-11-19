@@ -1295,7 +1295,7 @@
                     "p": "\/assets",
                     "perm": "assets.read",
                     "s": "List \/ search assets",
-                    "d": "Lists assets with hardware, classification and lifecycle filters. Assets are install-wide (they have no company), so company scope does not apply.",
+                    "d": "Lists assets with hardware, classification and lifecycle filters. Assets belong to companies: a key sees only its own companies' assets, and company_id narrows further (the Default company also matches assets with no company). Each asset returns its asset_tag and, beside purchase_cost, purchase_cost_basis (net \/ gross \/ null = not specified).",
                     "params": [
                         {
                             "name": "q",
@@ -1304,9 +1304,15 @@
                             "req": false
                         },
                         {
-                            "name": "hostname \/ service_tag",
+                            "name": "hostname \/ service_tag \/ asset_tag",
                             "in": "query",
-                            "desc": "Exact lookups",
+                            "desc": "Exact lookups. asset_tag (5.7.0) is the number on the label, unique within its company",
+                            "req": false
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "query",
+                            "desc": "Only this company's assets (must be within the key's scope - 403 otherwise)",
                             "req": false
                         },
                         {
@@ -1413,9 +1419,9 @@
                             "req": false
                         },
                         {
-                            "name": "purchase_date \/ purchase_cost \/ supplier_id \/ order_number \/ warranty_expiry \/ lease_start \/ lease_expiry \/ cost_centre_id",
+                            "name": "purchase_date \/ purchase_cost \/ purchase_cost_basis \/ supplier_id \/ order_number \/ warranty_expiry \/ lease_start \/ lease_expiry \/ cost_centre_id",
                             "in": "body",
-                            "desc": "Lifecycle (dates YYYY-MM-DD). cost_centre_id: an ACTIVE cost centre of the asset's own company (422 otherwise)",
+                            "desc": "Lifecycle (dates YYYY-MM-DD). cost_centre_id: an ACTIVE cost centre of the asset's own company (422 otherwise). purchase_cost_basis (5.7.0, GH #403): \"net\" (excluding tax), \"gross\" (including tax), or null \/ \"\" for not specified - any other value is 422, and setting it never changes the amount",
                             "req": false
                         },
                         {
@@ -1565,15 +1571,21 @@
                             "req": false
                         },
                         {
-                            "name": "purchase_date \/ purchase_cost \/ order_number \/ warranty_expiry",
+                            "name": "purchase_date \/ purchase_cost \/ purchase_cost_basis \/ order_number \/ warranty_expiry",
                             "in": "body",
-                            "desc": "Lifecycle",
+                            "desc": "Lifecycle. purchase_cost_basis (5.7.0, GH #403): \"net\" (excluding tax), \"gross\" (including tax), or null \/ \"\" for not specified - any other value is 422, and setting it never changes the amount",
                             "req": false
                         },
                         {
                             "name": "hostname",
                             "in": "body",
                             "desc": "Rename — uniqueness enforced (409 on clash)",
+                            "req": false
+                        },
+                        {
+                            "name": "asset_tag",
+                            "in": "body",
+                            "desc": "Change the label number (5.7.0) - unique within the asset's company; \"\" clears it. A clash is 409 and nothing in the request is written. Before 5.7.0 this key was accepted and silently ignored.",
                             "req": false
                         },
                         {
@@ -3070,7 +3082,7 @@
                     "p": "\/changes",
                     "perm": "changes.read",
                     "s": "List \/ search changes",
-                    "d": "Lists changes with filters, search, sorting and pagination. Changes are install-wide (not company-scoped), matching the UI.",
+                    "d": "Lists changes with filters, search, sorting and pagination. Changes belong to companies: a key sees only its own companies' changes (every by-id call is a 404 outside them), and company_id narrows further - the Default company also matches changes with no company.",
                     "params": [
                         {
                             "name": "state",
@@ -3118,6 +3130,12 @@
                             "name": "q",
                             "in": "query",
                             "desc": "Search title; \"CHG-0042\" finds a change by its reference",
+                            "req": false
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "query",
+                            "desc": "Only this company's changes (must be within the key's scope - 403 otherwise)",
                             "req": false
                         },
                         {
@@ -3195,6 +3213,12 @@
                             "in": "body",
                             "desc": "Change title",
                             "req": true
+                        },
+                        {
+                            "name": "company_id",
+                            "in": "body",
+                            "desc": "The company the change belongs to - within the key's scope (403 otherwise; unknown id 422). Omitted: the key's default company",
+                            "req": false
                         },
                         {
                             "name": "change_type \/ change_type_id · status \/ status_id · priority \/ priority_id · impact \/ impact_id",

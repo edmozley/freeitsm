@@ -367,6 +367,13 @@ return [
         'none_option' => '-- Brak --',
         'unknown' => 'Nieznany',
     ],
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Nie określono',
+        'net' => 'Netto (bez podatku)',
+        'gross' => 'Brutto (z podatkiem)',
+        'help' => 'Czy koszt zakupu zawiera VAT lub podatek od sprzedaży. Zmiana tego nigdy nie zmienia kwoty.',
+    ],
     'field' => [
         'asset_tag' => 'Numer inwentarzowy',
         'asset_tag_ph' => 'np. LT0001',
@@ -385,6 +392,7 @@ return [
         'bios_version' => 'Wersja BIOS',
         'purchase_date' => 'Data zakupu',
         'purchase_cost' => 'Koszt zakupu',
+        'purchase_cost_basis' => 'Podstawa kosztu zakupu',   // GH #403
         'supplier' => 'Dostawca',
         'cost_centre' => 'Centrum kosztów',
         'cost_centre_inactive' => 'nieaktywne',
@@ -716,6 +724,7 @@ Czy mimo to zmienić nazwę?',
         'col_tickets' => 'Zgłoszenia',
         'col_open_tickets' => 'Otwarte zgłoszenia',
         'col_cost' => 'Koszt',
+        'col_cost_basis' => 'Podstawa kosztu',
         'stale_notice' => 'Wyświetlono {count} zasobów, które nie zgłosiły się od {days} dni.',
         'stale_notice_one' => 'Wyświetlono 1 zasób, który nie zgłosił się od {days} dni.',
         'stale_show_all' => 'Pokaż wszystkie',

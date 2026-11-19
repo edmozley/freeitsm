@@ -884,6 +884,10 @@ $translationNamespaces = ['common', 'asset-management'];
         .cf-req { color: var(--danger-text, #c0392b); margin-left: 3px; }
         .cf-numrow { display: flex; align-items: center; gap: 6px; }
         .cf-numrow .info-value-input { flex: 1 1 auto; min-width: 0; }
+        /* GH #403: the amount, with its net / gross basis right under it. Stacked, not side
+           by side: the grid column is narrow and "Brutto (inkl. Steuer)" would be cut off. */
+        .cost-basis-row { display: flex; flex-direction: column; gap: 4px; }
+        .cost-basis-row .cost-basis-select { font-size: 12px; }
         .cf-unit { font-size: 12px; color: var(--text-muted, #666); flex-shrink: 0; }
         .cf-hint { display: block; font-size: 11px; color: var(--text-muted, #666); margin-top: 3px; }
         .cf-empty { padding: 14px 20px; font-size: 13px; color: var(--text-faint, #999); }
@@ -2727,7 +2731,14 @@ $translationNamespaces = ['common', 'asset-management'];
                         </div>
                         <div class="info-item">
                             <span class="info-label">${window.t('asset-management.field.purchase_cost')}</span>
+                            <div class="cost-basis-row">
                             <input type="number" step="0.01" min="0" class="info-value-input" value="${selectedAsset.purchase_cost != null ? selectedAsset.purchase_cost : ''}" placeholder="0.00" onchange="updateAssetField('purchase_cost', this.value)">
+                            ${selectedAsset.purchase_cost_basis !== undefined ? `<select class="info-value-select cost-basis-select" aria-label="${window.t('asset-management.field.purchase_cost_basis')}" title="${window.t('asset-management.cost_basis.help')}" onchange="updateAssetField('purchase_cost_basis', this.value)">
+                                <option value="">${window.t('asset-management.cost_basis.unspecified')}</option>
+                                <option value="net" ${selectedAsset.purchase_cost_basis === 'net' ? 'selected' : ''}>${window.t('asset-management.cost_basis.net')}</option>
+                                <option value="gross" ${selectedAsset.purchase_cost_basis === 'gross' ? 'selected' : ''}>${window.t('asset-management.cost_basis.gross')}</option>
+                            </select>` : ''}
+                            </div>
                         </div>
                         <div class="info-item">
                             <span class="info-label">${window.t('asset-management.field.supplier')}</span>
@@ -4344,7 +4355,7 @@ $translationNamespaces = ['common', 'asset-management'];
             os:         ['operating_system', 'feature_release', 'build_number', 'bios_version'],
             reporting:  ['first_seen', 'last_seen'],
         };
-        const atlFinancialFields = ['purchase_date', 'purchase_cost', 'supplier_id', 'order_number', 'warranty_expiry',
+        const atlFinancialFields = ['purchase_date', 'purchase_cost', 'purchase_cost_basis', 'supplier_id', 'order_number', 'warranty_expiry',
                                     'lease_start', 'lease_expiry', 'cost_centre_id'];
         const atlBadges = { devices: 'devicesCountBadge', software: 'softwareCountBadge', connected: 'connectedCountBadge', tickets: 'ticketsCountBadge', contracts: 'contractsCountBadge' };
 
@@ -5419,13 +5430,15 @@ $translationNamespaces = ['common', 'asset-management'];
             // localise here. Legacy rows hold an English label (with spaces/capitals)
             // — those don't match a key, so we show them as-is.
             const FIELD_KEYS = ['type','status','location','supplier','purchase_date',
-                'purchase_cost','order_number','warranty_expiry','lease_start','lease_expiry','cost_centre','assigned_user',
+                'purchase_cost','purchase_cost_basis','order_number','warranty_expiry','lease_start','lease_expiry','cost_centre','assigned_user',
                 'hostname','asset_created','asset_discovered','hostname_reused','connection','review','merged','protected','released','cmdb_link'];
 
             history.forEach(entry => {
                 const noneEm = `<em style="color:#999;">${window.t('asset-management.common.none')}</em>`;
-                const oldVal = entry.old_value ? escapeHtml(entry.old_value) : noneEm;
-                const newVal = entry.new_value ? escapeHtml(entry.new_value) : noneEm;
+                // GH #403: net / gross are stored keys - show them in the reader's language.
+                const shown = v => entry.field_name === 'purchase_cost_basis' && (v === 'net' || v === 'gross') ? window.t('asset-management.cost_basis.' + v) : v;
+                const oldVal = entry.old_value ? escapeHtml(shown(entry.old_value)) : noneEm;
+                const newVal = entry.new_value ? escapeHtml(shown(entry.new_value)) : noneEm;
                 const fieldLabel = FIELD_KEYS.includes(entry.field_name)
                     ? window.t('asset-management.field.' + entry.field_name)
                     : entry.field_name;

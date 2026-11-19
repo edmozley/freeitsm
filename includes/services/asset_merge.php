@@ -180,6 +180,11 @@ final class AssetMergeService
                 $has = $gone[$f] !== null && !(is_string($gone[$f]) && trim($gone[$f]) === '');
                 if ($empty && $has) { $sets[] = "`$f` = ?"; $args[] = $gone[$f]; $filled[] = $f; }
             }
+            // GH #403: the net/gross basis describes ITS amount, so it moves only with the
+            // cost. Filling it onto the kept asset's own cost would mislabel that number.
+            if (in_array('purchase_cost', $filled, true) && array_key_exists('purchase_cost_basis', $keep) && !empty($gone['purchase_cost_basis'])) {
+                $sets[] = '`purchase_cost_basis` = ?'; $args[] = $gone['purchase_cost_basis']; $filled[] = 'purchase_cost_basis';
+            }
             if (!empty($gone['first_seen']) && (empty($keep['first_seen']) || $gone['first_seen'] < $keep['first_seen'])) { $sets[] = 'first_seen = ?'; $args[] = $gone['first_seen']; }
             if (!empty($gone['last_seen']) && (empty($keep['last_seen']) || $gone['last_seen'] > $keep['last_seen'])) { $sets[] = 'last_seen = ?'; $args[] = $gone['last_seen']; }
 

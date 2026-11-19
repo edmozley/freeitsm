@@ -2170,6 +2170,7 @@ return [
         'gpu_name'          => 'VARCHAR(250) NULL',
         'purchase_date'     => 'DATE NULL',
         'purchase_cost'     => 'DECIMAL(12,2) NULL',
+        'purchase_cost_basis' => 'VARCHAR(5) NULL',   // GH #403: net / gross / NULL = not specified
         'supplier_id'       => 'INT NULL',
         'cost_centre_id'  => 'INT NULL',   // GH #160: the cost centre it is charged to - see includes/cost_centre_assign.php
         'order_number'      => 'VARCHAR(100) NULL',

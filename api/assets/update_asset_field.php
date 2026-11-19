@@ -52,7 +52,7 @@ try {
     // makes the next report create a SECOND asset. The UI warns before that
     // happens — it does not block, because plenty of assets never report.
     $allowedFields = ['asset_type_id', 'asset_status_id', 'location_id',
-                      'purchase_date', 'purchase_cost', 'supplier_id', 'order_number', 'warranty_expiry',
+                      'purchase_date', 'purchase_cost', 'purchase_cost_basis', 'supplier_id', 'order_number', 'warranty_expiry',   // basis: GH #403
                       'lease_start', 'lease_expiry', 'cost_centre_id',   // GH #160
                       'hostname', 'service_tag', 'manufacturer', 'model',
                       'retired_reason'];   // why a retired asset left - the date comes with its status

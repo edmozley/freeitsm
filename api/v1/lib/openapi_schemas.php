@@ -460,6 +460,12 @@ return array (
         array (
           'type' => 'string',
         ),
+        'asset_tag' => 
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'The number on the asset\'s label, unique within its company. Filter with ?asset_tag=; change with PATCH (5.7.0).',
+        ),
         'type' => 
         array (
           'type' => 'object',
@@ -623,6 +629,18 @@ return array (
             array (
               'type' => 'number',
               'nullable' => true,
+            ),
+            'purchase_cost_basis' => 
+            array (
+              'type' => 'string',
+              'nullable' => true,
+              'enum' => 
+              array (
+                0 => 'net',
+                1 => 'gross',
+                2 => NULL,
+              ),
+              'description' => 'GH #403: net = excluding tax, gross = including tax, null = not specified. A label on purchase_cost; setting it never changes the amount.',
             ),
             'supplier' => 
             array (
@@ -1148,6 +1166,18 @@ return array (
                 array (
                   'type' => 'number',
                   'nullable' => true,
+                ),
+                'purchase_cost_basis' => 
+                array (
+                  'type' => 'string',
+                  'nullable' => true,
+                  'enum' => 
+                  array (
+                    0 => 'net',
+                    1 => 'gross',
+                    2 => NULL,
+                  ),
+                  'description' => 'GH #403: net = excluding tax, gross = including tax, null = not specified. A label on purchase_cost; setting it never changes the amount.',
                 ),
                 'supplier' => 
                 array (
@@ -17653,6 +17683,8 @@ return array (
       'required' => ['hostname'],
       'properties' => [
         'hostname' => ['type' => 'string', 'maxLength' => 50],
+        'asset_tag' => ['type' => 'string', 'maxLength' => 64, 'description' => 'The label number, unique within the company; empty clears it. A clash is 409 and nothing else in the request is written.'],
+        'purchase_cost_basis' => ['type' => 'string', 'enum' => ['net', 'gross', ''], 'nullable' => true, 'description' => 'GH #403: net (excluding tax) or gross (including tax); empty or null = not specified. Any other value is 422.'],
         'fields' => [
           'type' => 'object',
           'description' => 'Custom values keyed by applicable field_key. Omitted keys are kept; null or an empty string clears a non-required value. An empty object changes nothing. Unknown/inapplicable keys and invalid values are 422. Core and custom edits are atomic.',
@@ -17666,6 +17698,8 @@ return array (
     'PATCH /assets/{id}' => [
       'type' => 'object',
       'properties' => [
+        'asset_tag' => ['type' => 'string', 'maxLength' => 64, 'description' => 'The label number, unique within the company; empty clears it. A clash is 409 and nothing else in the request is written.'],
+        'purchase_cost_basis' => ['type' => 'string', 'enum' => ['net', 'gross', ''], 'nullable' => true, 'description' => 'GH #403: net (excluding tax) or gross (including tax); empty or null = not specified. Any other value is 422.'],
         'fields' => [
           'type' => 'object',
           'description' => 'Partial custom-field map, with the same validation and clear semantics as POST /assets. Values not supplied remain unchanged. An empty object changes nothing. Invalid custom values roll back core edits too.',

@@ -398,6 +398,19 @@ return [
         'check'    => ['rows', 'assets', "is_demo = 0 AND (purchase_date IS NOT NULL OR purchase_cost IS NOT NULL OR (order_number IS NOT NULL AND order_number <> ''))"],
     ],
     [
+        // GH #403: net or gross purchase cost.
+        'id'       => 'assets.purchase_cost_basis',
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Net or gross purchase costs',
+        'what'     => 'Each purchase cost marked Net (excluding tax) or Gross (including tax), on the asset\'s Financial tab, in imports and over the API.',
+        'why'      => 'A bare number cannot tell you whether VAT is in it, so net and gross amounts get added together without anyone noticing - and the total is wrong.',
+        'done'     => 'At least one asset (demo data not counted) has its purchase cost marked net or gross.',
+        'link'     => 'asset-management/',
+        'check'    => ['rows', 'assets', "is_demo = 0 AND purchase_cost_basis IN ('net', 'gross')"],
+    ],
+    [
         'id'       => 'assets.warranty_dates',
         'module'   => 'assets',
         'tier'     => 'recommended',

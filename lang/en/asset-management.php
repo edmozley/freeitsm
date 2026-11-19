@@ -391,6 +391,13 @@ return [
     ],
 
     // Inline-editable asset fields (info grid + table columns)
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Not specified',
+        'net' => 'Net (excl. tax)',
+        'gross' => 'Gross (incl. tax)',
+        'help' => 'Whether the purchase cost includes VAT or sales tax. Changing this never changes the amount.',
+    ],
     'field' => [
         // QR labels (#935). "per company" matters: two companies on one install
         // may each run their own LT0001, and the message has to say so.
@@ -412,6 +419,7 @@ return [
         'bios_version'     => 'BIOS Version',
         'purchase_date'    => 'Purchase date',
         'purchase_cost'    => 'Purchase cost',
+        'purchase_cost_basis' => 'Purchase cost basis',   // GH #403
         'supplier'         => 'Supplier',
         'cost_centre'      => 'Cost centre',
         'cost_centre_inactive' => 'inactive',
@@ -834,6 +842,7 @@ return [
         'col_tickets' => 'Tickets',   // GH #310
         'col_open_tickets' => 'Open tickets',
         'col_cost'            => 'Cost',
+        'col_cost_basis' => 'Cost basis',
 
         // Arriving from the Watchtower "not seen" count (discussion #97). The
         // banner is not decoration: a table silently showing a fraction of the

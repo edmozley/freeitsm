@@ -367,6 +367,13 @@ return [
         'none_option' => '-- Tidak ada --',
         'unknown' => 'Tidak diketahui',
     ],
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Tidak ditentukan',
+        'net' => 'Neto (tanpa pajak)',
+        'gross' => 'Bruto (termasuk pajak)',
+        'help' => 'Apakah biaya pembelian sudah termasuk PPN atau pajak penjualan. Mengubahnya tidak pernah mengubah jumlahnya.',
+    ],
     'field' => [
         'asset_tag' => 'Tag aset',
         'asset_tag_ph' => 'mis. LT0001',
@@ -385,6 +392,7 @@ return [
         'bios_version' => 'Versi BIOS',
         'purchase_date' => 'Tanggal pembelian',
         'purchase_cost' => 'Biaya pembelian',
+        'purchase_cost_basis' => 'Dasar biaya pembelian',   // GH #403
         'supplier' => 'Pemasok',
         'cost_centre' => 'Pusat biaya',
         'cost_centre_inactive' => 'nonaktif',
@@ -716,6 +724,7 @@ Tetap ganti nama?',
         'col_tickets' => 'Tiket',
         'col_open_tickets' => 'Tiket terbuka',
         'col_cost' => 'Biaya',
+        'col_cost_basis' => 'Dasar biaya',
         'stale_notice' => 'Menampilkan {count} aset yang belum melapor dalam {days} hari.',
         'stale_notice_one' => 'Menampilkan 1 aset yang belum melapor dalam {days} hari.',
         'stale_show_all' => 'Tampilkan semua',

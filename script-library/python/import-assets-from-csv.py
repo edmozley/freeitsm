@@ -27,10 +27,11 @@
 #   location        a location name, or its full path written with ">" between
 #                   the levels when two places share a name ("UK > London > Floor 1")
 #   dates           YYYY-MM-DD, the format the API accepts
-#   asset_tag       the label stuck on the device. Only used when CREATING: the
-#                   REST API does not return or search asset tags, so it cannot be
-#                   used to find an asset again, or be changed later from here.
-#                   Leave it out if your company has automatic tag numbering on.
+#   asset_tag       the label stuck on the device. Set on new assets, and changed
+#                   on existing ones when the file says something different (the
+#                   API returns and changes asset tags since FreeITSM 5.7.0). A tag
+#                   another asset in the company already has is refused (409).
+#                   Leave the column out if your company has automatic tag numbering on.
 #
 # WHY MATCH ON SERIAL FIRST: a serial number belongs to one physical machine for
 # its whole life, while hostnames get reused (a replacement laptop often takes the
@@ -248,6 +249,12 @@ for line, row in enumerate(rows, start=2):   # the header is line 1
         if str(have) != str(wanted):
             patch[field] = wanted
             changes.append(f"{column} -> '{label[column]}'")
+    # The tag is not in COLUMNS because it is not looked up or validated here:
+    # FreeITSM checks it is free in the asset's company. Sent only when it differs.
+    tag = cell(row, "asset_tag")
+    if tag and str(asset.get("asset_tag") or "") != tag:
+        patch["asset_tag"] = tag
+        changes.append(f"asset_tag -> '{tag}'")
     plan.append({"action": "update" if patch else "unchanged", "name": hostname,
                  "id": asset["id"], "body": patch, "changes": changes})
 

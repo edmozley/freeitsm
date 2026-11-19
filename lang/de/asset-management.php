@@ -367,6 +367,13 @@ return [
         'none_option' => '-- Keine --',
         'unknown' => 'Unbekannt',
     ],
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Nicht angegeben',
+        'net' => 'Netto (ohne Steuer)',
+        'gross' => 'Brutto (inkl. Steuer)',
+        'help' => 'Ob die Anschaffungskosten Mehrwert- oder Umsatzsteuer enthalten. Eine Änderung ändert den Betrag nie.',
+    ],
     'field' => [
         'asset_tag' => 'Inventarnummer',
         'asset_tag_ph' => 'z. B. LT0001',
@@ -385,6 +392,7 @@ return [
         'bios_version' => 'BIOS-Version',
         'purchase_date' => 'Kaufdatum',
         'purchase_cost' => 'Anschaffungskosten',
+        'purchase_cost_basis' => 'Basis der Anschaffungskosten',   // GH #403
         'supplier' => 'Lieferant',
         'cost_centre' => 'Kostenstelle',
         'cost_centre_inactive' => 'inaktiv',
@@ -716,6 +724,7 @@ Trotzdem umbenennen?',
         'col_tickets' => 'Tickets',
         'col_open_tickets' => 'Offene Tickets',
         'col_cost' => 'Kosten',
+        'col_cost_basis' => 'Kostenbasis',
         'stale_notice' => 'Zeigt {count} Assets, die seit {days} Tagen nicht mehr gemeldet wurden.',
         'stale_notice_one' => 'Zeigt 1 Asset, das seit {days} Tagen nicht mehr gemeldet wurde.',
         'stale_show_all' => 'Alle anzeigen',

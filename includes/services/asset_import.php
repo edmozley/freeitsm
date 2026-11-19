@@ -57,6 +57,7 @@ class AssetImportService
         'hostname', 'asset_type_id', 'asset_status_id', 'location_id',
         'manufacturer', 'model', 'service_tag',
         'supplier_id', 'purchase_date', 'purchase_cost', 'order_number', 'warranty_expiry',
+        'purchase_cost_basis',   // GH #403 - net / gross; validated by the service like any field
         'cost_centre_id',   // GH #160 - by code, see resolveLookups()
         'lease_start', 'lease_expiry',
     ];
@@ -244,6 +245,7 @@ class AssetImportService
             'model' => ['model', 'modelnumber', 'modelno'],
             'purchase_date' => ['purchasedate', 'datepurchased', 'acquired', 'purchased', 'boughton'],
             'purchase_cost' => ['purchasecost', 'cost', 'price', 'value'],
+            'purchase_cost_basis' => ['purchasecostbasis', 'costbasis', 'taxbasis', 'netgross', 'grossnet', 'vatbasis', 'taxincluded'],
             'order_number' => ['ordernumber', 'ponumber', 'po'],
             'warranty_expiry' => ['warrantyexpiry', 'warranty', 'warrantyend', 'warrantyends', 'warrantyexpires', 'warrantyuntil'],
             'cost_centre_id' => ['costcentre', 'costcenter', 'costcentrecode', 'costcentercode', 'costcode', 'kostenstelle'],
@@ -1064,7 +1066,9 @@ class AssetImportService
     /** An asset's id and core columns, for comparing with an import row. */
     private static function loadCore(PDO $conn, int $assetId): array
     {
-        $cols = implode(', ', array_map(static fn($c) => "`{$c}`", self::CORE_TARGETS));
+        // GH #403: the basis only once Database Verification has added the column.
+        $targets = array_filter(self::CORE_TARGETS, static fn($c) => $c !== 'purchase_cost_basis' || AssetsService::costBasisReady($conn));
+        $cols = implode(', ', array_map(static fn($c) => "`{$c}`", $targets));
         $stmt = $conn->prepare("SELECT id, {$cols} FROM assets WHERE id = ?");
         $stmt->execute([$assetId]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];

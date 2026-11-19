@@ -367,6 +367,13 @@ return [
         'none_option' => '-- Немає --',
         'unknown' => 'Невідомо',
     ],
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Не вказано',
+        'net' => 'Нетто (без податку)',
+        'gross' => 'Брутто (з податком)',
+        'help' => 'Чи містить вартість придбання ПДВ або податок з продажу. Зміна цього ніколи не змінює суму.',
+    ],
     'field' => [
         'asset_tag' => 'Інвентарний номер',
         'asset_tag_ph' => 'напр., LT0001',
@@ -385,6 +392,7 @@ return [
         'bios_version' => 'Версія BIOS',
         'purchase_date' => 'Дата придбання',
         'purchase_cost' => 'Вартість придбання',
+        'purchase_cost_basis' => 'Основа вартості придбання',   // GH #403
         'supplier' => 'Постачальник',
         'cost_centre' => 'Центр витрат',
         'cost_centre_inactive' => 'неактивний',
@@ -716,6 +724,7 @@ return [
         'col_tickets' => 'Заявки',
         'col_open_tickets' => 'Відкриті заявки',
         'col_cost' => 'Вартість',
+        'col_cost_basis' => 'Основа вартості',
         'stale_notice' => 'Показано {count} активів, які не звітували {days} дн.',
         'stale_notice_one' => 'Показано 1 актив, який не звітував {days} дн.',
         'stale_show_all' => 'Показати всі',

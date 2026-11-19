@@ -367,6 +367,13 @@ return [
         'none_option' => '-- Ninguno --',
         'unknown' => 'Desconocido',
     ],
+    // GH #403: whether a purchase cost includes tax. Stored as net / gross / NULL.
+    'cost_basis' => [
+        'unspecified' => 'Sin especificar',
+        'net' => 'Neto (sin impuestos)',
+        'gross' => 'Bruto (con impuestos)',
+        'help' => 'Si el coste de compra incluye el IVA o el impuesto sobre las ventas. Cambiarlo nunca cambia el importe.',
+    ],
     'field' => [
         'asset_tag' => 'Etiqueta de activo',
         'asset_tag_ph' => 'p. ej. LT0001',
@@ -385,6 +392,7 @@ return [
         'bios_version' => 'Versión de BIOS',
         'purchase_date' => 'Fecha de compra',
         'purchase_cost' => 'Coste de compra',
+        'purchase_cost_basis' => 'Base del coste de compra',   // GH #403
         'supplier' => 'Proveedor',
         'cost_centre' => 'Centro de coste',
         'cost_centre_inactive' => 'inactivo',
@@ -716,6 +724,7 @@ Hay dos formas de evitarlo: cambie también el nombre en la hoja de cálculo, o 
         'col_tickets' => 'Tickets',
         'col_open_tickets' => 'Tickets abiertos',
         'col_cost' => 'Coste',
+        'col_cost_basis' => 'Base del coste',
         'stale_notice' => 'Mostrando {count} activos que no han informado en {days} días.',
         'stale_notice_one' => 'Mostrando 1 activo que no ha informado en {days} días.',
         'stale_show_all' => 'Mostrar todos',
