@@ -32,7 +32,7 @@ $dtSearchPlaceholder = t('domains.table.search');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('domains', t('domains.nav.table'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
     <link rel="stylesheet" href="../../assets/css/data-table.css?v=7">
     <link rel="stylesheet" href="../../assets/css/domains.css?v=8">
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=196">

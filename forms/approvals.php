@@ -43,7 +43,7 @@ $translationNamespaces = ['common', 'forms'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <!-- inbox.css carries the shared header/nav styles (.header, .nav-btn); forms.css
          the module chrome. Same set forms/index.php loads. -->
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=96">
     <link rel="stylesheet" href="../assets/css/forms.css">
     <style>
         .ca-container { display: flex; height: calc(100vh - 48px); background: var(--app-bg, #f5f5f5); }

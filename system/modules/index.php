@@ -27,7 +27,7 @@ $translationNamespaces = ['common', 'system'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.modules.title'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
     <style>
         /* System module accent (blue-grey). --on-accent is pinned too: in dark the
            accent is a LIGHT blue-grey, so text on it must go dark, not white. */

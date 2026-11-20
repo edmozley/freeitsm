@@ -32,7 +32,7 @@ $translationNamespaces = ['common', 'software'];
     <?php echo Money::scriptTag(); ?>
     <script src="../../assets/js/money.js?v=1"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
     <style>
         /* Module accent (indigo). */
         body { --accent: var(--sw-accent, #5c6bc0); --accent-hover: var(--sw-accent-hover, #3f51b5); }

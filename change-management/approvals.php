@@ -29,7 +29,7 @@ $translationNamespaces = ['common', 'change-management'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('changes', t('change-management.nav.approvals'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=96">
     <link rel="stylesheet" href="../assets/css/change-management.css?v=14">
     <style>
         .approvals-container {

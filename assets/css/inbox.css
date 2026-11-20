@@ -244,6 +244,31 @@ body {
     .header.header-fit-icons .tenant-switcher-btn { max-width: 140px; }
 }
 
+/* Icon-only nav scrolls sideways with its scrollbar hidden, so nothing
+   showed that more buttons sat past an edge. Fade whichever edge has more
+   to scroll to. The fade follows the nav's own scroll position (a scroll
+   timeline), so it appears only while the nav really overflows; browsers
+   without scroll timelines show no fade, as before. A mask uses only the
+   alpha of its colours, so it works on every module's header colour. */
+@property --hdr-fade-start { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --hdr-fade-end   { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@keyframes hdr-nav-fade {
+    from { --hdr-fade-start: 0px;                     --hdr-fade-end: var(--space-6, 24px); }
+    8%   { --hdr-fade-start: var(--space-6, 24px); }
+    92%  { --hdr-fade-end: var(--space-6, 24px); }
+    to   { --hdr-fade-start: var(--space-6, 24px);    --hdr-fade-end: 0px; }
+}
+@supports (animation-timeline: scroll()) {
+    @media (min-width: 769px) {
+        .header.header-fit-icons .header-nav {
+            animation: hdr-nav-fade linear both;
+            animation-timeline: scroll(self inline);
+            -webkit-mask-image: linear-gradient(to right, transparent, black var(--hdr-fade-start), black calc(100% - var(--hdr-fade-end)), transparent);
+                    mask-image: linear-gradient(to right, transparent, black var(--hdr-fade-start), black calc(100% - var(--hdr-fade-end)), transparent);
+        }
+    }
+}
+
 .user-info {
     font-size: 14px;
 }

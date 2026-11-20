@@ -51,7 +51,7 @@ $translationNamespaces = ['common', 'forms'];
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/ai-settings.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
     <style>
         /* Module accent (teal) — tabs, toggles, focus rings, shared buttons. */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }

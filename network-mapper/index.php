@@ -34,7 +34,7 @@ $translationNamespaces = ['common', 'network-mapper'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('network-mapper')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=96">
     <style>
         body { --accent: var(--nm-accent, #06b6d4); background: var(--app-bg, #f5f5f5); height: 100vh; overflow: hidden; }
 

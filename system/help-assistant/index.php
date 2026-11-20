@@ -39,7 +39,7 @@ $h = fn(string $k, array $p = []) => htmlspecialchars(t('system.help_assistant.'
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=4"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
     <style>
         body {
             --accent: var(--sys-accent, #546e7a);

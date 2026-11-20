@@ -42,7 +42,7 @@ $translationNamespaces = ['common', 'forms', 'tasks'];   // tasks: filling a tas
     <script src="../assets/js/form-logic.js?v=9"></script>
     <script src="../assets/js/form-render.js?v=3"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=96">
     <!-- Presentation shared with the portal and the builder preview: blocks
          (notes, images) and label position. A notice panel and a picture have no
          reason to look different in the three places; an INPUT does. -->

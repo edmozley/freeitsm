@@ -38,7 +38,7 @@ $translationNamespaces = ['common', 'calendar'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('calendar', t('calendar.nav.settings'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
     <style>
         /* Module accent — drives toggle, focus rings, button colours.
            Modal form CSS lives entirely in inbox.css. */

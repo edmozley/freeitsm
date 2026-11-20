@@ -127,7 +127,7 @@ $ms365Set = $entraImporting || $intuneSet;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.integrations.title'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=95">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
     <link rel="stylesheet" href="../../assets/css/integrations.css?v=3">
     <style>
         /* Only the card grid — the container, title and warning come from
