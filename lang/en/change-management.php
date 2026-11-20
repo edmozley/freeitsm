@@ -404,6 +404,14 @@ return [
         'open_change'   => 'Open Change',
     ],
 
+    // Preferences → Change list labels (Ed, 2026-11-20).
+    'list_labels' => [
+        'heading' => 'Change list labels',
+        'colour' => 'Coloured',
+        'plain' => 'Plain text',
+        'note' => 'How Risk, Priority, Type and Status show in the Changes list: coloured, with a dot, or plain text.',
+    ],
+
     'table' => [
         'col_ref'         => 'Ref',
         'col_title'       => 'Title',

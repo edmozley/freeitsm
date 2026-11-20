@@ -769,6 +769,18 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 </p>
             </div>
 
+            <?php /* The Changes list's Risk / Priority / Type / Status (Ed, 2026-11-20). */ ?>
+            <div class="pref-section">
+                <h3 id="change-labels"><?php echo htmlspecialchars(t('change-management.list_labels.heading')); ?></h3>
+                <div class="anim-toggle" id="chgLabelsToggle">
+                    <button class="anim-option" data-chglabels="colour"><?php echo htmlspecialchars(t('change-management.list_labels.colour')); ?></button>
+                    <button class="anim-option" data-chglabels="plain"><?php echo htmlspecialchars(t('change-management.list_labels.plain')); ?></button>
+                </div>
+                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);">
+                    <?php echo htmlspecialchars(t('change-management.list_labels.note')); ?>
+                </p>
+            </div>
+
             <?php
                 // My work calendar (GH #75). Today the only option is a subscribe
                 // link; when the Graph push lands it becomes a third choice in the
@@ -2340,6 +2352,31 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     // Back where it was: a control showing a state the server
                     // refused is a lie about what will happen.
                     paint(previous ? previous.dataset.wtimp : 'show');
+                    showToast(window.t('system.preferences.save_failed'), 'error');
+                }
+            });
+        })();
+        // ── Change list labels (Ed, 2026-11-20) ──────────────────────────────
+        (function () {
+            const root = document.getElementById('chgLabelsToggle');
+            if (!root) return;
+            const paint = v => root.querySelectorAll('.anim-option').forEach(b =>
+                b.classList.toggle('active', b.dataset.chglabels === (v === 'plain' ? 'plain' : 'colour')));
+            fetch('../../api/system/get_user_preference.php?key=change_list_labels', { credentials: 'same-origin' })
+                .then(r => r.json()).then(d => paint(d.value || d.preference_value || 'colour')).catch(() => paint('colour'));
+            root.addEventListener('click', async function (e) {
+                const btn = e.target.closest('.anim-option');
+                if (!btn) return;
+                const previous = root.querySelector('.anim-option.active');
+                paint(btn.dataset.chglabels);
+                try {
+                    const r = await fetch('../../api/system/set_user_preference.php', {
+                        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key: 'change_list_labels', value: btn.dataset.chglabels })
+                    }).then(r => r.json());
+                    if (!r || !r.success) throw new Error(r && r.error);
+                } catch (err) {
+                    paint(previous ? previous.dataset.chglabels : 'colour');
                     showToast(window.t('system.preferences.save_failed'), 'error');
                 }
             });

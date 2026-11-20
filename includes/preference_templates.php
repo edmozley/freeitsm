@@ -56,6 +56,7 @@ const PREF_TEMPLATE_SECTIONS = [
     'work-fold'      => ['system.preferences.work_fold_heading',       ['tasks_collapse_empty_work']],
     'start-page'     => ['system.preferences.landing_heading',         ['default_landing_page']],
     'watchtower'     => ['watchtower.scope.impersonal_heading',        ['watchtower_impersonal', 'watchtower_refresh_minutes']],
+    'change-labels'  => ['change-management.list_labels.heading',      ['change_list_labels']],
     'notifications'  => ['system.preferences.notif_heading',           ['notification_types']],
     'sound'          => ['system.preferences.sound_heading',           ['notification_sound']],
     'desktop'        => ['system.preferences.desktop_heading',         ['desktop_notifications']],

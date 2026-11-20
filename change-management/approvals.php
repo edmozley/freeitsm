@@ -30,7 +30,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes', t('change-management.nav.approvals'))); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/change-management.css?v=15">
+    <link rel="stylesheet" href="../assets/css/change-management.css?v=18">
     <style>
         .approvals-container {
             display: flex;

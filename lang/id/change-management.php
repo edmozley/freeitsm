@@ -371,6 +371,14 @@ return [
         'assigned_to' => 'Ditugaskan Kepada',
         'open_change' => 'Buka Perubahan',
     ],
+    // Preferences → Change list labels (Ed, 2026-11-20).
+    'list_labels' => [
+        'heading' => 'Label daftar perubahan',
+        'colour' => 'Berwarna',
+        'plain' => 'Teks biasa',
+        'note' => 'Cara Risiko, Prioritas, Jenis, dan Status ditampilkan di daftar perubahan: berwarna dengan titik, atau teks biasa.',
+    ],
+
     'table' => [
         'col_ref' => 'Ref',
         'col_title' => 'Judul',

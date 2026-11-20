@@ -371,6 +371,14 @@ return [
         'assigned_to' => 'Tildelt',
         'open_change' => 'Åbn ændring',
     ],
+    // Preferences → Change list labels (Ed, 2026-11-20).
+    'list_labels' => [
+        'heading' => 'Etiketter i ændringslisten',
+        'colour' => 'Farvet',
+        'plain' => 'Ren tekst',
+        'note' => 'Hvordan Risiko, Prioritet, Type og Status vises i ændringslisten: farvet med en prik eller som ren tekst.',
+    ],
+
     'table' => [
         'col_ref' => 'Ref',
         'col_title' => 'Titel',

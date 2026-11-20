@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=15">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=18">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -37,7 +37,17 @@ $translationNamespaces = ['common', 'change-management'];
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/project-links.css?v=1">
 </head>
 <?php $cmLevel = analystModuleLevel(connectToDatabase(), (int)($_SESSION['analyst_id'] ?? 0), 'changes'); /* #180: 'full' or 'read' */ ?>
-<body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>"<?php echo $cmLevel === 'read' ? ' class="module-read-only"' : ''; ?>>
+<?php
+    // Preferences → Change list labels (Ed, 2026-11-20): coloured (default) or plain text.
+    $chgPlain = false;
+    try {
+        $__cp = connectToDatabase()->prepare("SELECT preference_value FROM user_preferences WHERE analyst_id = ? AND preference_key = 'change_list_labels' LIMIT 1");
+        $__cp->execute([(int)($_SESSION['analyst_id'] ?? 0)]);
+        $chgPlain = $__cp->fetchColumn() === 'plain';
+    } catch (Throwable $e) { $chgPlain = false; }
+    $__bodyClasses = trim(($cmLevel === 'read' ? 'module-read-only' : '') . ($chgPlain ? ' chg-plain-labels' : ''));
+?>
+<body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>"<?php echo $__bodyClasses !== '' ? ' class="' . $__bodyClasses . '"' : ''; ?>>
     <?php include __DIR__ . '/includes/header.php'; ?>
     <?php /* The action row (#185): New change was at the foot of the list's
              sidebar and missing from the Calendar and Table views. Read only
@@ -617,7 +627,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
     <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=43"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=45"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

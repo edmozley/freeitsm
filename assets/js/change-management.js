@@ -586,11 +586,28 @@ function renderChangeList() {
         ? window.t('change-management.list.count', { count: changes.length })
         : window.t('change-management.list.count_plural', { count: changes.length });
 
-    container.innerHTML = changes.map(c => {
+    /* Ed, 2026-11-20: four unlabelled pills - risk, type, priority, status - read as one
+       muddle ("MEDIUM ... Medium" was risk then priority). So the list has labelled COLUMNS:
+       a header row on a desktop, and on a phone a small label before each value. The values
+       are coloured text with a dot, or plain text (Preferences: Change list labels). The
+       colour classes are the same ones the detail view and table use. */
+    const colLabel = k => window.t('change-management.table.col_' + k);
+    // A status's own colour from Settings (statuses are configurable; a custom one has no CSS class).
+    const statusColourStyle = name => {
+        const st = changeStatuses.find(x => x.name === name);
+        return st && /^#[0-9a-f]{3,8}$/i.test(st.colour || '') ? ` style="color:${st.colour}"` : '';
+    };
+    const cell = (k, html) => `<span class="chg-cell chg-cell-${k}"><span class="chg-cell-label">${escapeHtml(colLabel(k))}</span>${html || '<span class="chg-cell-none">-</span>'}</span>`;
+    const head = `<div class="chg-list-head" aria-hidden="true"><span>${escapeHtml(colLabel('ref'))}</span><span>${escapeHtml(colLabel('title'))}</span>`
+        + ['risk', 'priority', 'type', 'status'].map(k => `<span>${escapeHtml(colLabel(k))}</span>`).join('') + `</div>`;
+
+    container.innerHTML = head + changes.map(c => {
         const ref = 'CHG-' + String(c.id).padStart(4, '0');
-        const statusClass = c.status.toLowerCase().replace(/\s+/g, '-');
-        const typeClass = c.change_type.toLowerCase();
-        const priorityClass = c.priority.toLowerCase();
+        // A change with no type, priority or status used to stop the WHOLE list drawing
+        // (null.toLowerCase()) - the count updated and no cards appeared.
+        const statusClass = String(c.status || '').toLowerCase().replace(/\s+/g, '-');
+        const typeClass = String(c.change_type || '').toLowerCase();
+        const priorityClass = String(c.priority || '').toLowerCase();
         const assignedName = c.assigned_to_name || window.t('change-management.list.unassigned');
         const workStart = c.work_start_datetime ? formatDate(c.work_start_datetime) : '';
 
@@ -606,10 +623,10 @@ function renderChangeList() {
                     </div>
                 </div>
                 <div class="change-card-badges">
-                    ${ChangeRisk.badge(c)}
-                    <span class="type-badge ${typeClass}">${escapeHtml(c.change_type)}</span>
-                    <span class="priority-badge ${priorityClass}">${escapeHtml(c.priority)}</span>
-                    <span class="status-badge ${statusClass}">${escapeHtml(c.status)}</span>
+                    ${cell('risk', ChangeRisk.badge(c))}
+                    ${cell('priority', c.priority ? `<span class="priority-badge ${priorityClass}">${escapeHtml(c.priority)}</span>` : '')}
+                    ${cell('type', c.change_type ? `<span class="type-badge ${typeClass}">${escapeHtml(c.change_type)}</span>` : '')}
+                    ${cell('status', c.status ? `<span class="status-badge ${statusClass}"${statusColourStyle(c.status)}>${escapeHtml(c.status)}</span>` : '')}
                 </div>
             </div>
         `;

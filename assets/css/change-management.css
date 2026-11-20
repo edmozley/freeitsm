@@ -2045,3 +2045,61 @@ body.module-read-only #fileUploadArea { display: none !important; }
 
 .link-incident-title { font-weight: 600; color: var(--text, #1a1a1a); font-size: var(--font-size-lg, 14px); }
 .link-incident-meta { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #6b7280); }
+
+/* ── The changes list: labelled columns (Ed, 2026-11-20) ──────────────────────────
+   Risk, Priority, Type and Status were four unlabelled pills; "MEDIUM" next to "Medium"
+   was risk then priority. Now: a header row and aligned columns on a desktop, a small
+   label before each value on a phone. The values keep their colour classes but are drawn
+   as text with a dot - or plain (body.chg-plain-labels, Preferences → Change list labels).
+   Scoped to #changeList: the detail view and the table keep their pills. */
+.chg-list-head { display: none; }
+.chg-cell-label { display: none; }
+.chg-cell-none { color: var(--text-dim, #999); }
+#changeList .change-card-badges .risk-badge,
+#changeList .change-card-badges .priority-badge,
+#changeList .change-card-badges .type-badge,
+#changeList .change-card-badges .status-badge {
+    background: none !important; border: 0 !important; padding: 0; border-radius: 0;
+    font-size: var(--font-size-md, 13px); font-weight: 600; text-transform: none; letter-spacing: normal;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+#changeList .change-card-badges .risk-badge::before,
+#changeList .change-card-badges .priority-badge::before,
+#changeList .change-card-badges .type-badge::before,
+#changeList .change-card-badges .status-badge::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0;
+}
+body.chg-plain-labels #changeList .change-card-badges .risk-badge,
+body.chg-plain-labels #changeList .change-card-badges .priority-badge,
+body.chg-plain-labels #changeList .change-card-badges .type-badge,
+body.chg-plain-labels #changeList .change-card-badges .status-badge { color: var(--text, #333) !important; font-weight: 400; }
+body.chg-plain-labels #changeList .change-card-badges .risk-badge::before,
+body.chg-plain-labels #changeList .change-card-badges .priority-badge::before,
+body.chg-plain-labels #changeList .change-card-badges .type-badge::before,
+body.chg-plain-labels #changeList .change-card-badges .status-badge::before { display: none; }
+
+/* A solid pill's text was white on its colour (Critical): as text it takes that colour. */
+#changeList .change-card-badges .priority-badge.critical { color: var(--danger-accent, #d13438); }
+/* Dark themes: the pill colours were chosen for light backgrounds - lift them so dark
+   green, dark blue and the like stay readable as text. */
+[data-theme-mode="dark"] #changeList .change-card-badges :is(.risk-badge, .priority-badge, .type-badge, .status-badge) { filter: brightness(1.45) saturate(1.1); }
+body.chg-plain-labels #changeList .change-card-badges :is(.risk-badge, .priority-badge, .type-badge, .status-badge) { filter: none; }
+/* --danger-accent is already the dark theme's own red - brightening it would wash it out. */
+[data-theme-mode="dark"] #changeList .change-card-badges .priority-badge.critical { filter: none; }
+
+@media (min-width: 769px) {
+    /* One grid for the header and every row, so the columns line up. */
+    #changeList .chg-list-head, #changeList .change-card {
+        display: grid; grid-template-columns: 90px minmax(0, 1fr) 120px 110px 110px 160px; column-gap: 16px; align-items: center;
+    }
+    #changeList .chg-list-head {
+        padding: 0 21px 6px; font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #666);
+    }
+    #changeList .change-card .change-card-badges { display: contents; }
+    #changeList .chg-cell { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 768px) {
+    #changeList .chg-cell { display: inline-flex; align-items: center; gap: 4px; }
+    #changeList .chg-cell-label { display: inline; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
+    #changeList .chg-cell-label::after { content: ':'; }
+}

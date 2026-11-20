@@ -372,6 +372,14 @@ return [
         'assigned_to' => 'Asignado a',
         'open_change' => 'Abrir cambio',
     ],
+    // Preferences → Change list labels (Ed, 2026-11-20).
+    'list_labels' => [
+        'heading' => 'Etiquetas de la lista de cambios',
+        'colour' => 'En color',
+        'plain' => 'Texto sin formato',
+        'note' => 'Cómo se muestran Riesgo, Prioridad, Tipo y Estado en la lista de cambios: en color, con un punto, o como texto sin formato.',
+    ],
+
     'table' => [
         'col_ref' => 'Ref',
         'col_title' => 'Título',
