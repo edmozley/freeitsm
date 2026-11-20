@@ -52,7 +52,7 @@ $e = function (string $k, array $p = []): string { return htmlspecialchars(t('sy
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.files_held.heading'))); ?></title>
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=96">
     <style>
         body {
             /* System's dark accent is a LIGHT colour, so --on-accent is pinned too

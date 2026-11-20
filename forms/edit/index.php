@@ -113,7 +113,7 @@ foreach ($formActionDefs as $def) {
     <script src="<?php echo BASE_URL; ?>assets/js/form-logic.js?v=9"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/form-render.js?v=3"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=96">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <!-- Blocks (notes) - shared with the filler and the portal. -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/form-shared.css?v=6">

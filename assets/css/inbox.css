@@ -113,6 +113,11 @@ body {
    waffle/title and the avatar. The min-width is picked per-module
    to comfortably fit that module's longest label without padding
    short labels excessively.
+   Centring is "safe": once the buttons are wider than the nav
+   (header-fit-icons scrolls them sideways) they start at its left
+   edge instead of spilling past both edges, where the first ones
+   could not be scrolled back into view. A browser without "safe"
+   keeps the plain centre from the line above it.
    --------------------------------------------------------------- */
 .assets-header .header-nav,
 .calendar-header .header-nav,
@@ -142,6 +147,7 @@ body {
 .workflow-header .header-nav {
     flex: 1;
     justify-content: center;
+    justify-content: safe center;
     margin-left: 0;
 }
 
@@ -192,7 +198,7 @@ body {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: var(--space-5, 20px);
 }
 
 /* ---------------------------------------------------------------
@@ -211,14 +217,14 @@ body {
     .header > .waffle-menu-container,
     .header > .header-right { flex-shrink: 0; }
 
-    .header.header-fit-tight .header-nav { gap: 4px; }
+    .header.header-fit-tight .header-nav { gap: var(--space-1, 4px); }
     .header.header-fit-tight .header-nav .nav-btn {
         min-width: 0;
         padding: 8px 10px;
         white-space: nowrap;
     }
-    .header.header-fit-tight .header-right { gap: 12px; }
-    .header.header-fit-tight .tenant-switcher { margin-right: 4px; }
+    .header.header-fit-tight .header-right { gap: var(--space-3, 12px); }
+    .header.header-fit-tight .tenant-switcher { margin-right: var(--space-1, 4px); }
     .header.header-fit-tight .tenant-switcher-btn { max-width: 170px; }
 
     .header.header-fit-icons .header-nav {
@@ -230,12 +236,37 @@ body {
     .header.header-fit-icons .header-nav .nav-btn {
         flex-shrink: 0;
         width: 38px;
-        padding: 8px;
-        gap: 16px;
+        padding: var(--space-2, 8px);
+        gap: var(--space-4, 16px);
         justify-content: flex-start;
         overflow: hidden;
     }
     .header.header-fit-icons .tenant-switcher-btn { max-width: 140px; }
+}
+
+/* Icon-only nav scrolls sideways with its scrollbar hidden, so nothing
+   showed that more buttons sat past an edge. Fade whichever edge has more
+   to scroll to. The fade follows the nav's own scroll position (a scroll
+   timeline), so it appears only while the nav really overflows; browsers
+   without scroll timelines show no fade, as before. A mask uses only the
+   alpha of its colours, so it works on every module's header colour. */
+@property --hdr-fade-start { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --hdr-fade-end   { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@keyframes hdr-nav-fade {
+    from { --hdr-fade-start: 0px;                     --hdr-fade-end: var(--space-6, 24px); }
+    8%   { --hdr-fade-start: var(--space-6, 24px); }
+    92%  { --hdr-fade-end: var(--space-6, 24px); }
+    to   { --hdr-fade-start: var(--space-6, 24px);    --hdr-fade-end: 0px; }
+}
+@supports (animation-timeline: scroll()) {
+    @media (min-width: 769px) {
+        .header.header-fit-icons .header-nav {
+            animation: hdr-nav-fade linear both;
+            animation-timeline: scroll(self inline);
+            -webkit-mask-image: linear-gradient(to right, transparent, black var(--hdr-fade-start), black calc(100% - var(--hdr-fade-end)), transparent);
+                    mask-image: linear-gradient(to right, transparent, black var(--hdr-fade-start), black calc(100% - var(--hdr-fade-end)), transparent);
+        }
+    }
 }
 
 .user-info {

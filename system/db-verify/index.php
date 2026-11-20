@@ -52,7 +52,7 @@ $phState = !$phLast ? 'never' : (($phLast['version'] ?? '') !== freeitsmVersion(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.db_verify.heading'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=93">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=96">
     <style>
         /* System module accent (blue-grey) */
         body {
