@@ -46,7 +46,7 @@ $ready = assetLabelsSchemaReady($conn);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('assets', t('asset-management.scanner.browser_title'))); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <style>
         /* Self-contained: shares no layout with the desktop module. Every
            colour is a theme token so it follows light/dark like everything else. */

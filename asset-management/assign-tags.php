@@ -42,7 +42,7 @@ $ready = assetLabelsSchemaReady($conn);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('assets', 'Assign asset tags')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <style>
         /* Narrow-first: this is a job done standing up, on a phone or a laptop
            with a USB scanner. Same reasoning as scan.php. */

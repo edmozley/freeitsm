@@ -40,7 +40,7 @@ $translationNamespaces = ['common', 'forms'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('forms', t('forms.nav.approvals'))); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <!-- inbox.css carries the shared header/nav styles (.header, .nav-btn); forms.css
          the module chrome. Same set forms/index.php loads. -->
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">

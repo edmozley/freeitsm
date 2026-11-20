@@ -36,7 +36,7 @@ $tt = fn(string $k) => htmlspecialchars(t('starters.' . $k));
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=4"></script>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=28">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
     <link rel="stylesheet" href="../assets/css/starters.css?v=8">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=196">

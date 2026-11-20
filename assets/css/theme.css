@@ -107,6 +107,9 @@
     --kb-accent:       #8764b8;  --kb-accent-hover: #6b4fa2;
     --kb-accent-soft:  #f3eef8;  --kb-on-accent:    #ffffff;
 
+    /* Workflow branches (GH #364) - the purple of an If / Choose box on the canvas */
+    --wf-branch:       #7c3aed;  --wf-branch-soft:  rgba(124, 58, 237, 0.08);
+
     /* Change Management module (teal) accents — buttons, filters, CAB */
     --cm-accent:       #00897b;  --cm-accent-hover: #00695c;
     --cm-accent-soft:  #e0f2f1;  --cm-on-accent:    #ffffff;
@@ -273,6 +276,9 @@
     /* Knowledge module (purple) — accent nudged lighter to read on dark */
     --kb-accent:       #a98cd8;  --kb-accent-hover: #bda3e4;
     --kb-accent-soft:  #2a2238;  --kb-on-accent:    #ffffff;
+
+    /* Workflow branches (GH #364) - lighter to read on dark */
+    --wf-branch:       #a78bfa;  --wf-branch-soft:  rgba(167, 139, 250, 0.12);
 
     /* Change Management module (teal) — accent nudged lighter to read on dark */
     --cm-accent:       #26a69a;  --cm-accent-hover: #4db6ac;

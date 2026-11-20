@@ -40,7 +40,7 @@ foreach (getMaintenanceTools() as $tool) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(pageTitle('system', t('system.maintenance.heading'))); ?></title>
-    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css?v=97">
     <style>
         body {

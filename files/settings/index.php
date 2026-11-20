@@ -52,7 +52,7 @@ $tt = fn(string $k) => htmlspecialchars(t('files.settings.' . $k));
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=4"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=27">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
     <style>
         /* Full-width settings page. ⚠️ max-width alone is not enough: inbox.css's
