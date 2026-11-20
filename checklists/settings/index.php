@@ -18,6 +18,7 @@ require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/i18n.php';
 require_once __DIR__ . '/../../includes/theme.php';
 require_once __DIR__ . '/../../includes/timezone.php';
+require_once __DIR__ . '/../../includes/settings_manifest.php';
 
 I18n::initFromSession();
 Tz::init();
@@ -80,8 +81,19 @@ $roles = $conn->query(
       ORDER BY r.name ASC"
 )->fetchAll(PDO::FETCH_ASSOC);
 
+// The tabs, drawn by the shared renderSettingsTabBar() like every other settings page
+// (so the page gets the Tabs / One page switch, GH #399). There is deliberately NO
+// checklists/settings/manifest.php: manifests are discovered by glob and each one adds a
+// module to System -> Roles. Every tab here has always been open to anyone with module
+// access, so each is declared 'cap' => null - exactly today's behaviour. Gating them is
+// a separate decision, and would be made by moving this list into a manifest.
+$chkTabs = [
+    ['id' => 'categories', 'cap' => null, 'label_key' => 'checklists.settings.tab_categories'],
+    ['id' => 'roles',      'cap' => null, 'label_key' => 'checklists.settings.tab_roles'],
+    ['id' => 'layout',     'cap' => null, 'label_key' => 'checklists.settings.tab_layout'],
+];
 $activeTab = $_GET['tab'] ?? 'categories';
-if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
+if (!settingsTabVisible($chkTabs, $activeTab)) {
     $activeTab = 'categories';
 }
 ?>
@@ -108,9 +120,10 @@ if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
             max-width: none; width: 100%; margin: 0;
             box-sizing: border-box; padding: 24px 32px 40px;
         }
-        .tab-bar { display: flex; gap: 8px; border-bottom: 1px solid var(--border-soft, #e2e8f0); margin-bottom: 24px; }
-        .tab-btn { padding: 10px 18px; font-size: 14px; font-weight: 600; color: var(--text-muted, #64748b); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
-        .tab-btn.active { color: #0d9488; border-bottom-color: #0d9488; }
+        /* The shared tab bar (inbox.css .tabs/.tab) in the module's teal. Each panel already
+           holds its own .settings-card, so the shared .tab-content card look is switched off. */
+        body { --accent: var(--checklists-accent, #0d9488); }
+        .tab-content { background: none; padding: 0; box-shadow: none; border-radius: 0; }
         .settings-card { background: var(--surface, #fff); border: 1px solid var(--border-soft, #e2e8f0); border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .table { width: 100%; border-collapse: collapse; margin-top: 16px; }
         .table th, .table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border-soft, #e2e8f0); font-size: 13px; color: var(--text, #1e293b); }
@@ -169,14 +182,10 @@ if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
             <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 0;"><?php echo htmlspecialchars(t('checklists.settings.heading_sub')); ?></p>
         </div>
 
-        <div class="tab-bar">
-            <button class="tab-btn <?php echo $activeTab === 'categories' ? 'active' : ''; ?>" onclick="switchTab('categories', this)"><?php echo htmlspecialchars(t('checklists.settings.tab_categories')); ?></button>
-            <button class="tab-btn <?php echo $activeTab === 'roles' ? 'active' : ''; ?>" onclick="switchTab('roles', this)"><?php echo htmlspecialchars(t('checklists.settings.tab_roles')); ?></button>
-            <button class="tab-btn <?php echo $activeTab === 'layout' ? 'active' : ''; ?>" onclick="switchTab('layout', this)"><?php echo htmlspecialchars(t('checklists.settings.tab_layout')); ?></button>
-        </div>
+        <?php renderSettingsTabBar($chkTabs, $activeTab); ?>
 
         <!-- Tab 1: Categories -->
-        <div id="tabCategories" class="tab-pane" style="display: <?php echo $activeTab === 'categories' ? 'block' : 'none'; ?>;">
+        <div id="categories-tab" class="tab-content<?php echo $activeTab === 'categories' ? ' active' : ''; ?>">
             <div class="settings-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div>
@@ -215,7 +224,7 @@ if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
         </div>
 
         <!-- Tab 2: Suggested Roles -->
-        <div id="tabRoles" class="tab-pane" style="display: <?php echo $activeTab === 'roles' ? 'block' : 'none'; ?>;">
+        <div id="roles-tab" class="tab-content<?php echo $activeTab === 'roles' ? ' active' : ''; ?>">
             <div class="settings-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div>
@@ -254,7 +263,7 @@ if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
         </div>
 
         <!-- Tab 3: Left Panel (Hover Mode) -->
-        <div id="tabLayout" class="tab-pane" style="display: <?php echo $activeTab === 'layout' ? 'block' : 'none'; ?>;">
+        <div id="layout-tab" class="tab-content<?php echo $activeTab === 'layout' ? ' active' : ''; ?>">
             <div class="settings-card">
                 <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('checklists.settings.layout_heading')); ?></h3>
                 <p style="margin: 0 0 20px 0; font-size: 13px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.settings.layout_sub')); ?></p>
@@ -309,12 +318,9 @@ if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
         // ⚠️ Every settings page must define its own switchTab — the shared tab
         // bar emits onclick="switchTab('…')" and provides no handler. A page that
         // forgets it renders perfectly and its tabs silently do nothing.
-        function switchTab(tab, el) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            if (el) el.classList.add('active');
-            document.getElementById('tabCategories').style.display = tab === 'categories' ? 'block' : 'none';
-            document.getElementById('tabRoles').style.display = tab === 'roles' ? 'block' : 'none';
-            document.getElementById('tabLayout').style.display = tab === 'layout' ? 'block' : 'none';
+        function switchTab(tab) {
+            document.querySelectorAll('.tabs .tab[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            document.querySelectorAll('.tab-content').forEach(p => p.classList.toggle('active', p.id === tab + '-tab'));
             if (history.replaceState) {
                 history.replaceState(null, '', '?tab=' + tab);
             }

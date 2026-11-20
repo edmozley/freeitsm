@@ -25,7 +25,7 @@
     body.sv-page .container > * { grid-column: 2; }
     body.sv-page .container > .sv-index {
         display: block; grid-column: 1; grid-row: 1 / span 999;
-        position: sticky; top: 12px; max-height: calc(100vh - 90px); overflow-y: auto;
+        position: sticky; top: 12px; max-height: calc(100vh - 120px); overflow-y: auto;
         background: var(--surface, #fff); border: 1px solid var(--border-soft, #eee); border-radius: 8px; padding: 10px;
     }
     .sv-index .sv-switch { display: flex; float: none; margin: 0 0 10px; }

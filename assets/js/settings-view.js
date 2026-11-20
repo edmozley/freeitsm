@@ -23,6 +23,29 @@
     const L = (k, fallback) => (cfg.labels && cfg.labels[k]) || fallback;
     const phone = window.matchMedia('(max-width: 768px)');
 
+    // TRAP: never panel.scrollIntoView() here. Several settings pages (Tickets is one)
+    // scroll inside .container under a fixed-height shell whose body is overflow:hidden.
+    // scrollIntoView scrolls EVERY scrollable ancestor - and a script may scroll an
+    // overflow:hidden element - so it also scrolled the body, pushing the navbar off the
+    // top and leaving a gap at the bottom that the person cannot scroll back (Ed, 2026-11-20).
+    // Scroll only the nearest ancestor that really scrolls, or the window if none does.
+    function goTo(panel, smooth) {
+        let el = panel.parentElement;
+        while (el && el !== document.body && el !== document.documentElement) {
+            const oy = getComputedStyle(el).overflowY;
+            if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) break;
+            el = el.parentElement;
+        }
+        const behavior = smooth ? 'smooth' : 'auto';
+        const gap = 12;
+        if (el && el !== document.body && el !== document.documentElement) {
+            const top = panel.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - gap;
+            el.scrollTo({ top, behavior });
+        } else {
+            window.scrollTo({ top: panel.getBoundingClientRect().top + window.scrollY - gap, behavior });
+        }
+    }
+
     function start() {
         const bar = document.querySelector('.tabs');
         if (!bar || bar.dataset.svReady) return;
@@ -84,7 +107,7 @@
                 a.textContent = it.label + ' ↗';
             } else if (it.panel) {
                 a.href = '#' + it.panel.id;
-                a.addEventListener('click', e => { e.preventDefault(); it.panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+                a.addEventListener('click', e => { e.preventDefault(); goTo(it.panel, true); });
             } else return;
             it.link = a;
             list.appendChild(a);
@@ -142,7 +165,7 @@
                 // Arrived on ?tab=x (a link from elsewhere): go to that section.
                 const want = new URLSearchParams(location.search).get('tab') || location.hash.replace('#', '');
                 const it = want && panels.find(p => p.id === want || p.panel.id === want);
-                if (it && !save) setTimeout(() => it.panel.scrollIntoView({ block: 'start' }), 50);
+                if (it && !save) setTimeout(() => goTo(it.panel, false), 50);
             } else {
                 search.value = '';
                 panels.forEach(it => it.panel.classList.remove('sv-hidden'));
