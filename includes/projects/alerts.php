@@ -106,13 +106,17 @@ function projectDispatch(string $event, array $payload): void
  */
 function projectAlertsAsSystem(callable $fn)
 {
-    if (!isset($_SESSION) || !is_array($_SESSION)) return $fn();
+    require_once __DIR__ . '/../notification_actor.php';
+    $asSystem = ['kind' => 'system', 'id' => null, 'name' => null, 'source' => 'scheduled'];
+    if (!isset($_SESSION) || !is_array($_SESSION)) return NotificationActor::run($asSystem, $fn);
     $saved = [];
     foreach (['analyst_id', 'analyst_name'] as $k) {
         if (array_key_exists($k, $_SESSION)) { $saved[$k] = $_SESSION[$k]; unset($_SESSION[$k]); }
     }
     try {
-        return $fn();
+        // GH #365 (5.8.0): and SAY it is FreeITSM's own scheduled work, so the bell shows
+        // "by FreeITSM" and records source 'scheduled' instead of an empty name ("Someone").
+        return NotificationActor::run($asSystem, $fn);
     } finally {
         foreach ($saved as $k => $v) $_SESSION[$k] = $v;
     }
