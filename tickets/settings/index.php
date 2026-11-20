@@ -156,7 +156,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
     <title><?php echo htmlspecialchars(pageTitle('tickets', t('tickets.nav.settings'))); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=29">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../../assets/css/ticket-type-rules.css?v=2">
+    <link rel="stylesheet" href="../../assets/css/ticket-type-rules.css?v=3">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=4"></script>
     <script src="../../assets/js/ai-settings.js?v=4"></script>
@@ -707,6 +707,27 @@ function renderOversizeFields(string $px, bool $withLimits): void
            "Closing a ticket with steps outstanding"). Further sections are h3.ts-sub. */
         .ts-sub { font-size: var(--font-size-2xl, 18px); font-weight: 600; margin: 0 0 10px; color: var(--text, #333); }
         .section-header > .ts-sub { margin: 0; }
+
+        /* ONE heading scale for every section (Ed, 2026-11-20: "things that are headings should
+           be a heading size"). Before this, sub-headings came in six sizes - 13px (.tc-sub /
+           .tt-sub, the same as body text), 14, 15, 18 and the browser's 18.72px default - and
+           field labels, with no size of their own, came out at 16px, so a label was often
+           bigger than the heading above it. Now, in every panel:
+             section title  h2                        24px  (.section-header h2)
+             sub-section    h3, .ts-sub/.tc-sub/.tt-sub 18px
+             group          h4, .tc-sub4              16px, normal case
+             field label    label                     14px
+           Set here, so no tab chooses its own; a heading needs no inline font-size. */
+        .tab-content h3,
+        .tab-content .ts-sub, .tab-content .tc-sub, .tab-content .tt-sub {
+            font-size: var(--font-size-2xl, 18px); font-weight: 600; color: var(--text, #333);
+            text-transform: none; letter-spacing: normal;
+        }
+        .tab-content h4, .tab-content .tc-sub4 {
+            font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333);
+            text-transform: none; letter-spacing: normal;
+        }
+        .tab-content label, .tab-content label .toggle-label { font-size: var(--font-size-lg, 14px); }
     </style>
     <!-- Mobile: LAYER 15e (container, tab strip, fields, all tables scroll).
          data-mobile-shell="own" opts OUT of LAYER 2's flex body — this page
@@ -1063,7 +1084,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
             <h3 class="ts-sub"><?php echo htmlspecialchars(t('tickets.settings.headings.mandatory_fields')); ?></h3>
             <p style="margin-bottom: 20px; color: var(--text-muted, #666); max-width: 720px;"><?php echo htmlspecialchars(t('tickets.settings.intros.mandatory_fields')); ?></p>
 
-            <h3 style="font-size: var(--font-size-lg, 14px); margin: 0 0 10px; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.when_heading')); ?></h3>
+            <h4 style="margin: 0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.mandatory.when_heading')); ?></h4>
             <div style="display: flex; flex-direction: column; gap: 14px; max-width: 720px;">
                 <?php foreach (['warn', 'notify', 'block'] as $mfMode): ?>
                 <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
@@ -1091,7 +1112,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
                 </div>
             </label>
 
-            <h3 style="font-size: var(--font-size-lg, 14px); margin: 24px 0 6px; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.mandatory.fields_heading')); ?></h3>
+            <h4 style="margin: 24px 0 6px;"><?php echo htmlspecialchars(t('tickets.settings.mandatory.fields_heading')); ?></h4>
             <p style="font-size: var(--font-size-sm, 12px); color: var(--text-muted, #64748b); margin: 0 0 10px; max-width: 720px;"><?php echo htmlspecialchars(t('tickets.settings.mandatory.fields_hint')); ?></p>
             <div class="mf-field-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 20px; max-width: 720px;">
                 <?php foreach (array_keys(MandatoryFieldsService::FIELDS) as $mfKey): ?>
@@ -10411,7 +10432,7 @@ function renderOversizeFields(string $px, bool $withLimits): void
     </script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/ticket-type-rules.js?v=2"></script>
+    <script src="../../assets/js/ticket-type-rules.js?v=3"></script>
     <script src="../../assets/js/mobile.js?v=87"></script>
 </body>
 </html>

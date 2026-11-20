@@ -12,7 +12,7 @@
 .ttr-crit textarea { resize: vertical; min-height: 58px; }
 .ttr-default select { max-width: 360px; width: auto; flex: 0 1 360px; }
 .ttr-rules-head { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
-.ttr-rules-head h3, .ttr-sub { margin: 0; font-size: var(--font-size-xl, 16px); }
+.ttr-rules-head h4, .ttr-sub { margin: 0; font-size: var(--font-size-xl, 16px); }
 .ttr-sub { margin-top: 24px; }
 .ttr-table { width: 100%; }
 .ttr-table td { vertical-align: top; }

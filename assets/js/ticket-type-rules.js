@@ -87,11 +87,11 @@
             + '<div class="ttr-default"><label for="ttrDefault">' + esc(T('default_label')) + '</label><select id="ttrDefault" class="form-control">' + defSel + '</select>'
             + '<button class="btn btn-primary" type="button" id="ttrDefaultSave">' + esc(window.t('common.save')) + '</button></div>'
             + '<p class="ttr-hint">' + esc(T('default_hint')) + '</p>'
-            + '<div class="ttr-rules-head"><h3>' + esc(T('rules_title')) + '</h3><button class="add-btn" type="button" id="ttrAdd">' + esc(window.t('common.add')) + '</button></div>'
+            + '<div class="ttr-rules-head"><h4>' + esc(T('rules_title')) + '</h4><button class="add-btn" type="button" id="ttrAdd">' + esc(window.t('common.add')) + '</button></div>'
             + '<p class="ttr-hint">' + esc(T('rules_hint')) + '</p>'
             + (D.rules.length ? table(D.rules, false) : '<p class="ttr-empty">' + esc(T('rules_none')) + '</p>');
         if (!shared && D.shared.length) {
-            html += '<h3 class="ttr-sub">' + esc(T('shared_title')) + '</h3><p class="ttr-hint">' + esc(T('shared_hint')) + '</p>' + table(D.shared, true);
+            html += '<h4 class="ttr-sub">' + esc(T('shared_title')) + '</h4><p class="ttr-hint">' + esc(T('shared_hint')) + '</p>' + table(D.shared, true);
         }
         html += tryBox();
         body.innerHTML = html;
