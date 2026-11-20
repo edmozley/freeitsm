@@ -146,26 +146,43 @@
         }
 
         /**
-         * Open the table with whichever view this analyst made their default.
+         * Open the table with the view this analyst last picked on it, or else
+         * the one they made their default.
          *
-         * ⚠️ AFTER loadPreferences, so a default view wins over the loose column
+         * The last pick wins: choosing a view from the library and then reloading,
+         * or opening a record and coming back, must not drop it. Reset forgets the
+         * pick, which brings the default back.
+         *
+         * ⚠️ AFTER loadPreferences, so a view wins over the loose column
          * state — picking a view is the more deliberate act of the two.
          *
-         * A default pointing at a view that has since been deleted, or shared
-         * with a team the reader has left, simply does not load: they get the
-         * table's own defaults, which is what they would have had anyway. Better
-         * than an error every morning about a view they cannot do anything about.
+         * A view that has since been deleted, or shared with a team the reader
+         * has left, simply does not load: they get the next choice down, then
+         * the table's own defaults. Better than an error every morning about a
+         * view they cannot do anything about.
          */
         async function applyDefaultView() {
             if (!viewsKey) return;
+            let views = [];
             try {
-                const views = await loadViews('');
-                if (!viewDefaultId) return;
-                const view = views.find(v => Number(v.id) === Number(viewDefaultId));
-                if (!view) return;
-                applyViewConfig(typeof view.config === 'string' ? JSON.parse(view.config) : view.config);
+                // A failed read of the last pick must not cost the default view too.
+                [views, lastViewId] = await Promise.all([loadViews(''), loadLastViewId().catch(() => null)]);
+            } catch (e) { return; /* the table's own defaults are a fine answer */ }
+            // A page that opens the table already scoped (Tickets, from a folder:
+            // config.initialFilters) keeps that scope over a casual last pick. Only
+            // the default view - a deliberate "open with this" - replaces it, as before.
+            const scoped = Object.keys(config.initialFilters || {}).length > 0;
+            for (const id of [scoped ? null : lastViewId, viewDefaultId]) {
+                if (!id) continue;
+                const view = views.find(v => Number(v.id) === Number(id));
+                if (!view) continue;
+                try {
+                    applyViewConfig(typeof view.config === 'string' ? JSON.parse(view.config) : view.config);
+                } catch (e) { continue; }
                 activeViewId = Number(view.id);
-            } catch (e) { /* the table's own defaults are a fine answer */ }
+                activeViewName = view.name || '';
+                return;
+            }
         }
 
         /** Shorthand for document.getElementById. */
@@ -317,7 +334,12 @@
         async function setQuery(next) {
             if (next.sort) sort = { ...next.sort };
             if (next.search !== undefined) searchTerm = next.search;
-            if (next.filters) filters = Object.fromEntries(Object.entries(next.filters).map(([k, v]) => [k, new Set(v)]));
+            if (next.filters) {
+                filters = Object.fromEntries(Object.entries(next.filters).map(([k, v]) => [k, new Set(v)]));
+                // The host moved the table somewhere else (Tickets: a folder click), so
+                // it no longer shows the view; stop naming it, and stop reopening it.
+                if (activeViewId) { activeViewId = null; markActiveView(); rememberView(null); }
+            }
             page = next.page || 1;
             if ([25, 50, 100].includes(next.pageSize)) pageSize = next.pageSize;
             return reload();
@@ -416,7 +438,37 @@
         let   viewTeams = [];
         let   viewDefaultId = null;
         let   activeViewId = null;
+        let   activeViewName = '';
+        let   lastViewId = null;                            // the remembered pick, as last read or written
         let   viewLayout = 'list';                          // 'list' | 'cards'
+        // The view last picked on this table, kept in the analyst's preferences so
+        // it follows them to another browser. Beside the column preference
+        // (prefKey) rather than inside it: that one is rewritten on every column
+        // drag, and a view is a separate, rarer choice.
+        const lastViewPrefKey = viewsKey ? prefKey + '_view' : null;
+
+        /** The id of the view last picked on this table, or null. */
+        async function loadLastViewId() {
+            if (!lastViewPrefKey) return null;
+            const res = await fetch(`${prefApi}get_user_preference.php?key=${encodeURIComponent(lastViewPrefKey)}`);
+            const data = await res.json();
+            const id = data && data.success ? Number(data.value) : 0;
+            return id > 0 ? id : null;
+        }
+
+        /**
+         * Remember the view now on (or, with null, that none is). Fire and forget:
+         * failing to remember must never stop somebody looking at their table.
+         */
+        function rememberView(id) {
+            if (!lastViewPrefKey) return;
+            lastViewId = id || null;
+            fetch(prefApi + 'set_user_preference.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: lastViewPrefKey, value: id ? String(id) : null }),
+            }).catch(e => console.error('remember view:', e));
+        }
 
         /**
          * Translate, falling back to English — the engine has no i18n of its own.
@@ -510,7 +562,9 @@
                 return;
             }
             activeViewId = Number(id);
+            activeViewName = view.name || '';
             markActiveView();
+            rememberView(activeViewId);
             // Stamp it used. Fire and forget: a failed stamp must not stop
             // somebody looking at their table.
             viewsFetch('use.php', {
@@ -524,7 +578,7 @@
             const btn = byId('dtViewsBtn');
             if (!btn) return;
             const label = btn.querySelector('.dt-views-label');
-            if (label) label.textContent = name || vt('button', 'Views');
+            if (label) label.textContent = name || (activeViewId && activeViewName) || vt('button', 'Views');
             btn.classList.toggle('dt-views-on', !!activeViewId);
         }
 
@@ -778,7 +832,15 @@
                 });
                 if (!data.success) { alertViews(data.error); return; }
                 wrap.remove();
-                if (!editing) { activeViewId = Number(data.id); markActiveView(name); }
+                if (!editing) {
+                    activeViewId = Number(data.id);
+                    activeViewName = name;
+                    markActiveView(name);
+                    rememberView(activeViewId);
+                } else if (Number(view.id) === activeViewId) {
+                    activeViewName = name;          // renamed the view on screen
+                    markActiveView();
+                }
                 refreshViewsList();
             });
         }
@@ -790,7 +852,7 @@
                 body: JSON.stringify({ id: id }),
             });
             if (!data.success) { alertViews(data.error); return; }
-            if (activeViewId === id) { activeViewId = null; markActiveView(); }
+            if (activeViewId === id) { activeViewId = null; markActiveView(); rememberView(null); }
             refreshViewsList();
         }
 
@@ -801,6 +863,11 @@
                 body: JSON.stringify({ table_key: viewsKey, default_id: id }),
             });
             if (!data.success) { alertViews(data.error); return; }
+            // The star says "open the table with this view", so it must not lose to
+            // an older pick: starring one also makes it the remembered view, and
+            // un-starring the remembered one forgets it.
+            if (id) rememberView(id);
+            else if (lastViewId && lastViewId === Number(viewDefaultId)) rememberView(null);
             viewDefaultId = id;
             refreshViewsList();
         }
@@ -853,6 +920,9 @@
                 closePopover();
                 render();
                 savePreferences();
+                // Reset leaves the view too, and forgets it, so the next visit
+                // opens with the default view (if any) instead of this one.
+                if (activeViewId) { activeViewId = null; markActiveView(); rememberView(null); }
             });
             // Saved views. The button is in the shared toolbar for every table,
             // but only wired up on tables that asked for views, and hidden
