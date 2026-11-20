@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         onUpdate: () => loadTasks(),
         fullEditUrl: id => '../index.php?task=' + id,
     });
+    // The details card on hovering a bar or chip (month and week views). The day
+    // view lists the same details in each row, so it needs none.
+    TasksHoverCard.init({ selector: '.cal-bar[data-hc]' });
 });
 
 /** Loads the Tasks settings the calendar uses - the span mode and whether tags show on the calendar. */
@@ -467,8 +470,8 @@ function renderBars(iv) {
     const done = Number(t.status_is_closed) === 1;
     const top = 28 + iv.lane * 24;
     const title = esc(t.title);
-    // A subtask carries its parent's name in the tooltip: on a month grid the
-    // title alone ("Rack it") rarely says which piece of work it belongs to (#90).
+    // A subtask's hover card names its parent: on a month grid the title
+    // alone ("Rack it") rarely says which piece of work it belongs to (#90).
     const isSub = !!t.parent_task_id;
     // A task that is one of a repeating series carries the same mark here as in
     // the detail panel (#94). One shape wherever it appears.
@@ -476,11 +479,6 @@ function renderBars(iv) {
     // A projection has no row behind it: it is drawn faintly and clicking it
     // opens the task the series comes from, because there is nothing else to open.
     const isProj = !!t.projected;
-    const projLabel = isProj ? ' · ' + window.t('tasks.recur.projected') : '';
-    const tip = esc(t.title + (isSub && t.parent_title ? ' (' + t.parent_title + ')' : '') +
-        (t.analyst_name ? ' · ' + t.analyst_name : '') +
-        ' · ' + (iv.p.start !== iv.p.end ? fmt(iv.p.start) + ' → ' + fmt(iv.p.end) : fmt(iv.p.end)) +
-        projLabel);
 
     const tagDots = (surfaceTags && t.tags && t.tags.length)
         ? t.tags.slice(0, 4).map(tg =>
@@ -496,7 +494,7 @@ function renderBars(iv) {
         const width = `calc(${span} / 7 * 100% - 6px)`;
         return `<div class="cal-bar ${extraCls}${done ? ' cal-bar-done' : ''}${isSub ? ' cal-bar-subtask' : ''}${isRecur ? ' cal-bar-recur' : ''}${isProj ? ' cal-bar-projected' : ''}"
             style="left:${left};width:${width};top:${top}px;background:${colour}"
-            title="${tip}" onclick="openTask(${isProj ? t.source_task_id : t.id})">
+            data-hc="${TasksHoverCard.ref(t)}" onclick="openTask(${isProj ? t.source_task_id : t.id})">
             <span class="cal-bar-label">${isRecur ? CAL_ICON_RECUR : ''}${title}</span>${tagDots}</div>`;
     };
 

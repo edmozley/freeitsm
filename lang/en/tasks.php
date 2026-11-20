@@ -123,6 +123,14 @@ return [
         'col_due'      => 'Due',
         'col_subtasks' => 'Subtasks',
         'no_tasks'     => 'No tasks found',
+        'col_id'       => 'ID',
+    ],
+
+    // The details card on hovering a task in the Calendar and the Timeline
+    // (assets/js/tasks-hover-card.js). Its field labels reuse detail.*.
+    'hover' => [
+        'subtask_of' => 'Subtask of',
+        'repeating'  => 'Repeats',
     ],
 
     'detail' => [
@@ -1010,6 +1018,7 @@ return [
         'list_heading' => 'List view',
         'list_intro'   => 'The list is the board\'s data twin &mdash; the same tasks as a sortable table. Switch to it with the View toggle in the sidebar.',
         'list_body'    => 'Click any column header &mdash; Title, Status, Priority, Assignee, Team, Due &mdash; to sort by it; click again to reverse the direction. The search and sidebar filters work exactly as they do on the board, so you can narrow the list down and then sort what\'s left. Click a row to open the task.',
+        'list_id'      => 'The first column is the task\'s <strong>ID</strong>, the same number shown as #ID on each board card. Sort by it to see the newest tasks first.',
         'list_tip'     => 'The list is the place to find a task whose status has no board column (for example a custom "Icebox" status) &mdash; the list shows every task regardless of status.',
 
         // 4. Calendar view
@@ -1018,6 +1027,7 @@ return [
         'calendar_body'    => 'The toolbar has <strong>Today</strong>, prev / next, and a <strong>Month / Week / Day</strong> view toggle on the right. <em>Month</em> is the familiar 4&ndash;6 week grid; <em>Week</em> zooms in on a single seven-day row that stretches to fill the screen; <em>Day</em> drops to a single date and lists every task occurring on it as a card row. Prev / next steps by month, week or day to match whichever view is active.',
         'calendar_sidebar' => 'The sidebar shows a colour legend, the same My / All / Team / Analyst filters as the board, and a <strong>Span mode</strong> panel with a Change link straight to the Calendar settings.',
         'calendar_click_heading' => 'Clicking a task',
+        'calendar_hover_body'    => 'Rest the pointer on a task in the Month or Week view and a card shows its details: number, status, priority, assignee, team, project, dates (with Overdue when it is late), subtasks, tags and the start of the description. The card always stays inside the window.',
         'calendar_click_body'    => 'Clicking a task chip, bar or day-view row opens a slide-in <strong>quick panel</strong> on the right of the calendar &mdash; you stay where you are. Title, status, priority, assignee, team and dates are all editable in the panel; the launch icon at the top opens the dashboard\'s full editor when you need rich-text description, subtasks or comments.',
         'calendar_multiday_heading' => 'How multi-day tasks are drawn',
         'calendar_multiday_body'    => 'A task with a start date earlier than its due date covers a range of days. How that range is shown is set once, per install, in Settings &rarr; Calendar:',
@@ -1039,6 +1049,7 @@ return [
         'timeline_rightclick_heading' => 'Right-click for quick actions',
         'timeline_rightclick_body'    => 'Right-click any bar for the same context menu the board uses &mdash; <strong>Assign analyst</strong>, <strong>Assign team</strong>, <strong>Change status</strong>, <strong>Change priority</strong> &mdash; without opening anything. Each submenu marks the task\'s current value with a tick.',
         'timeline_click_heading' => 'Clicking a bar',
+        'timeline_hover_body'    => 'Rest the pointer on a bar or a task name to see the same details card as the calendar. It is not shown while you drag a bar.',
         'timeline_click_body'    => 'A normal click on a bar (or on the task-name column on the left) opens the same slide-in quick panel the calendar uses, on the right of the timeline. Edit the everyday fields in place, or hit the launch icon at the top of the panel to jump to the dashboard\'s full editor.',
 
         // 6. Table view
@@ -1053,6 +1064,7 @@ return [
         'table_views_remember'     => 'The table remembers the view you last picked and opens with it next time, on any browser &mdash; until you pick another, or use <strong>Reset</strong>, after which it opens with your default view again.',
         'table_views_note'         => 'Columns, sort and filters are saved; the search box deliberately is not, because a search is a question you asked once rather than a way you like to look at things. The same views exist on the Assets, Calendar and Change Management tables, each keeping its own.',
         'table_columns_heading' => 'Columns: show, hide, reorder',
+        'table_columns_extra'   => 'Besides the columns shown at first, the drawer offers Start, Created, Subtasks, <strong>ID</strong> (the task number shown as #ID on board cards) and <strong>Company</strong>.',
         'table_columns_body'    => 'Click the <strong>Columns</strong> button on the toolbar to open a drawer with every column the table knows about. Tick the ones you want visible; drag the rows to reorder. The drag handle on a column header also reorders columns directly. Your visibility and order are saved to your account, so the next time you open the table it\'s the way you left it.',
         'table_sort_heading' => 'Sort, filter, search',
         'table_field_sort'   => '<strong>Sort</strong> &mdash; click any column header to sort by it. Click again to flip the direction. The active sort is saved per analyst alongside the column layout.',

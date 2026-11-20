@@ -137,7 +137,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title><?php echo htmlspecialchars(pageTitle('tasks')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=27">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="../assets/css/tasks.css?v=59">
+    <link rel="stylesheet" href="../assets/css/tasks.css?v=61">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -294,6 +294,7 @@ $translationNamespaces = ['common', 'tasks'];
                 <table class="task-table">
                     <thead>
                         <tr>
+                            <th class="sortable task-list-id" data-sort="id" onclick="sortList('id')"><?php echo htmlspecialchars(t('tasks.list.col_id')); ?></th>
                             <th class="sortable" data-sort="title" onclick="sortList('title')"><?php echo htmlspecialchars(t('tasks.list.col_title')); ?></th>
                             <th class="sortable" data-sort="status" onclick="sortList('status')"><?php echo htmlspecialchars(t('tasks.list.col_status')); ?></th>
                             <th class="sortable" data-sort="priority" onclick="sortList('priority')"><?php echo htmlspecialchars(t('tasks.list.col_priority')); ?></th>
@@ -421,7 +422,7 @@ $translationNamespaces = ['common', 'tasks'];
     <!-- The one cleaner for HTML from elsewhere: Knowledge procedure bodies and task instructions in the Work view (GH #190). -->
     <script src="../assets/js/safe-html.js?v=4"></script>
     <?php if ($taskEmbedded): ?><script src="../assets/js/task-embed-bridge.js?v=3"></script><?php endif; ?>
-    <script src="../assets/js/tasks.js?v=79"></script>
+    <script src="../assets/js/tasks.js?v=80"></script>
     <?php if (!$taskEmbedded): ?><script src="../assets/js/mobile.js?v=86"></script><?php endif; ?>
 
 </body>

@@ -2777,3 +2777,154 @@ body.module-read-only #ctxMenu .ctx-sep { display: none !important; }
 
 /* GH #218: a note under a read-only field, e.g. a contractor kept while contractor fields are hidden. */
 .detail-field .detail-hint { margin-top: 4px; font-size: 12px; color: var(--text-muted, #666); }
+
+/* ── Hover card (Calendar and Timeline): assets/js/tasks-hover-card.js ── */
+.task-hover-card {
+    position: fixed;
+    z-index: 10050;
+    left: 0;
+    top: 0;
+    width: 320px;
+    max-width: calc(100vw - 16px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    background: var(--surface, #fff);
+    color: var(--text, #1f2937);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px var(--shadow);
+    font-size: 12.5px;
+    line-height: 1.45;
+    text-align: left;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .12s ease, visibility 0s linear .12s;
+}
+.task-hover-card.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity .12s ease;
+}
+.task-hover-card .thc-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+.task-hover-card .thc-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted, #6b7280);
+    background: var(--surface-2, #f3f4f6);
+    border-radius: 4px;
+    padding: 1px 6px;
+}
+.task-hover-card .thc-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 999px;
+    color: var(--thc-st);
+    background: color-mix(in srgb, var(--thc-st) 14%, transparent);
+}
+.task-hover-card .thc-flag {
+    font-size: 11px;
+    color: var(--text-muted, #6b7280);
+    border: 1px dashed var(--border, #d1d5db);
+    border-radius: 999px;
+    padding: 0 7px;
+}
+.task-hover-card .thc-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text, #111827);
+    word-break: break-word;
+}
+.task-hover-card .thc-title.is-done { text-decoration: line-through; color: var(--text-muted, #6b7280); }
+.task-hover-card .thc-parent {
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--text-muted, #6b7280);
+}
+.task-hover-card .thc-rows {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-soft, var(--border, #eef0f3));
+    display: grid;
+    gap: 4px;
+}
+.task-hover-card .thc-row {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    gap: 8px;
+    align-items: baseline;
+}
+.task-hover-card .thc-label { color: var(--text-muted, #6b7280); font-size: 11.5px; }
+.task-hover-card .thc-value { min-width: 0; word-break: break-word; }
+.task-hover-card .thc-muted { color: var(--text-muted, #6b7280); }
+.task-hover-card .thc-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: 1px;
+}
+.task-hover-card .thc-overdue {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--danger-text, #b91c1c);
+    margin-left: 4px;
+}
+.task-hover-card .thc-bar {
+    display: inline-block;
+    width: 60px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--surface-3, #e5e7eb);
+    overflow: hidden;
+    margin-right: 6px;
+    vertical-align: 1px;
+}
+.task-hover-card .thc-bar > span { display: block; height: 100%; background: var(--tsk-accent, #7c3aed); }
+.task-hover-card .thc-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+.task-hover-card .thc-tag {
+    font-size: 10.5px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    color: var(--thc-tg);
+    background: color-mix(in srgb, var(--thc-tg) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--thc-tg) 35%, transparent);
+}
+.task-hover-card .thc-desc {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-soft, var(--border, #eef0f3));
+    color: var(--text-dim, var(--text-muted, #4b5563));
+    font-size: 12px;
+}
+@media (hover: none) { .task-hover-card { display: none; } }
+
+/* The task ID on board cards and in the board's List view. */
+.task-card-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted, #6b7280);
+    margin-right: 6px;
+    vertical-align: 1px;
+}
+.task-table .task-list-id {
+    width: 1%;
+    white-space: nowrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--text-muted, #6b7280);
+}
+.task-table th.task-list-id { font-family: inherit; }

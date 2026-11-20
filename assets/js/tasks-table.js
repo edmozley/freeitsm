@@ -50,7 +50,30 @@
           value: t => t.created_datetime || '', display: t => formatDate(t.created_datetime) },
         { key: 'subtask_progress', label: 'Subtasks', type: 'string', defaultVisible: false, defaultOrder: 8,
           display: t => (t.subtasks && t.subtasks.total > 0) ? `${t.subtasks.done}/${t.subtasks.total}` : '—' },
+        { key: 'id', label: 'ID', type: 'number', defaultVisible: false, defaultOrder: 9,
+          value: t => Number(t.id), display: t => '#' + t.id },
+        // Like the Company column on the ticket and domain tables. Hidden by default.
+        { key: 'company_name', label: 'Company', type: 'string', defaultVisible: false, defaultOrder: 10,
+          display: t => companyName(t.tenant_id) },
     ];
+
+    // The companies this analyst can reach, for the Company column. A task with no
+    // tenant_id belongs to the Default company (the same rule as api/tasks/list.php).
+    let companies = [];
+    function companyName(tenantId) {
+        if (tenantId === null || tenantId === undefined || tenantId === '') {
+            const def = companies.find(c => c.is_default);
+            return def ? def.name : '';
+        }
+        const c = companies.find(x => String(x.id) === String(tenantId));
+        return c ? c.name : '';
+    }
+    async function loadCompanies() {
+        try {
+            const d = await fetch('../../api/system/get_tenants.php?accessible=1').then(r => r.json());
+            companies = (d && d.success && d.companies) ? d.companies : [];
+        } catch (e) { companies = []; }
+    }
 
     /** Loads the active task statuses and priorities for the table. */
     async function loadLookups() {
@@ -155,7 +178,7 @@
             // Lookups must be ready before the first render so the inline
             // status/priority/assignee/team selects can build their options.
             if (!lookupsLoaded) { await loadLookups(); lookupsLoaded = true; }
-            if (!dropdownsLoaded) { await loadDropdowns(); dropdownsLoaded = true; }
+            if (!dropdownsLoaded) { await Promise.all([loadDropdowns(), loadCompanies()]); dropdownsLoaded = true; }
 
             let url = API_BASE + 'list.php?filter=' + currentFilter;
             if (currentFilter === 'team' && currentFilterTeamId) url += '&team_id=' + currentFilterTeamId;
