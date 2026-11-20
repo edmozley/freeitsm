@@ -871,6 +871,8 @@ return [
         'tip_attachments' => 'Pièces jointes',
         'tip_attachments_desc' => 'Téléversez des captures d\'écran, des sauvegardes de configuration ou des e-mails d\'approbation avec le changement. L\'ajout ou le retrait d\'un fichier est enregistré, avec l\'empreinte du fichier.',
         'tip_audit' => 'Piste d\'audit',
+        'tip_company'   => 'Déplacer vers une autre entreprise',
+        'tip_company_desc' => 'Classé sous la mauvaise entreprise ? Faites un clic droit sur le changement et choisissez Déplacer vers l\'entreprise (ou utilisez POST /changes/{id}/move-to-company dans l\'API). Les tâches liées au changement le suivent (cela demande aussi un accès en écriture aux Tâches). Les tickets liés, non : ils doivent déjà être dans la nouvelle entreprise, donc détachez ceux qui n\'y sont pas. Le déplacement est enregistré dans la chronologie d\'activité.',
         'tip_audit_desc' => 'Chaque modification de champ est suivie dans la chronologie d\'activité, et chaque version du texte long est conservée en intégralité - ouvrez-la depuis « Voir » ou le lien Versions d\'une section.',
     ],
 ];

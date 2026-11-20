@@ -871,6 +871,8 @@ return [
         'tip_attachments' => 'Lampiran',
         'tip_attachments_desc' => 'Unggah tangkapan layar, cadangan konfigurasi, atau email persetujuan bersama perubahan. Menambah atau menghapus file dicatat, beserta sidik jari file.',
         'tip_audit' => 'Jejak audit',
+        'tip_company'   => 'Memindahkan ke perusahaan lain',
+        'tip_company_desc' => 'Tercatat di perusahaan yang salah? Klik kanan perubahan dan pilih Pindahkan ke perusahaan (atau gunakan POST /changes/{id}/move-to-company di API). Tugas yang terhubung ke perubahan ikut pindah (ini juga memerlukan akses tulis ke Tugas). Tiket terlampir tidak: tiket harus sudah berada di perusahaan baru, jadi lepaskan tautan tiket yang belum. Pemindahan dicatat di linimasa Aktivitas.',
         'tip_audit_desc' => 'Setiap perubahan bidang dilacak di linimasa Aktivitas, dan setiap versi teks panjang disimpan secara utuh - buka dari "Lihat" atau tautan Versi pada bagian.',
     ],
 ];

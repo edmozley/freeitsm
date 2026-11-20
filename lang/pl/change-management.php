@@ -871,6 +871,8 @@ return [
         'tip_attachments' => 'Załączniki',
         'tip_attachments_desc' => 'Załączaj zrzuty ekranu, kopie zapasowe konfiguracji lub e-maile z zatwierdzeniem razem ze zmianą. Dodanie lub usunięcie pliku jest rejestrowane, wraz z odciskiem pliku.',
         'tip_audit' => 'Ścieżka audytu',
+        'tip_company'   => 'Przenoszenie do innej firmy',
+        'tip_company_desc' => 'Zapisano w niewłaściwej firmie? Kliknij zmianę prawym przyciskiem i wybierz Przenieś do firmy (albo użyj POST /changes/{id}/move-to-company w API). Zadania powiązane ze zmianą przenoszą się razem z nią (do tego potrzebny jest też dostęp do zapisu w Zadaniach). Dołączone zgłoszenia nie: muszą już być w nowej firmie, więc odłącz te, które nie są. Przeniesienie jest zapisywane na osi czasu Aktywność.',
         'tip_audit_desc' => 'Każda zmiana pola jest śledzona na osi czasu Aktywność, a każda wersja długiego tekstu jest przechowywana w całości - otwórz ją przez „Pokaż” lub link Wersje w sekcji.',
     ],
 ];

@@ -869,6 +869,8 @@ return [
         'tip_attachments' => 'Anhänge',
         'tip_attachments_desc' => 'Laden Sie Screenshots, Konfigurationssicherungen oder Genehmigungs-E-Mails zum Change hoch. Das Hinzufügen oder Entfernen einer Datei wird mit einem Fingerabdruck der Datei protokolliert.',
         'tip_audit' => 'Prüfprotokoll',
+        'tip_company'   => 'In ein anderes Unternehmen verschieben',
+        'tip_company_desc' => 'Unter dem falschen Unternehmen abgelegt? Klicken Sie mit der rechten Maustaste auf den Change und wählen Sie In Unternehmen verschieben (oder nutzen Sie POST /changes/{id}/move-to-company in der API). Die mit dem Change verknüpften Aufgaben werden mitverschoben (dafür ist auch Schreibzugriff auf Aufgaben nötig). Verknüpfte Tickets nicht: Sie müssen bereits im neuen Unternehmen sein, also lösen Sie die Verknüpfung bei allen anderen. Die Verschiebung wird in der Aktivitätszeitleiste festgehalten.',
         'tip_audit_desc' => 'Jede Feldänderung wird in der Aktivitätszeitleiste nachverfolgt, und jede Version der langen Texte wird vollständig aufbewahrt - öffnen Sie sie über „Ansehen“ oder den Link „Versionen“ eines Abschnitts.',
     ],
 ];

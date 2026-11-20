@@ -869,6 +869,8 @@ return [
         'tip_attachments' => 'Adjuntos',
         'tip_attachments_desc' => 'Suba capturas de pantalla, copias de seguridad de la configuración o correos de aprobación junto con el cambio. Añadir o quitar un archivo queda registrado, con una huella digital del archivo.',
         'tip_audit' => 'Registro de auditoría',
+        'tip_company'   => 'Mover a otra empresa',
+        'tip_company_desc' => '¿Archivado en la empresa equivocada? Haz clic derecho en el cambio y elige Mover a empresa (o usa POST /changes/{id}/move-to-company en la API). Las tareas vinculadas al cambio se mueven con él (para eso también necesitas acceso de escritura a Tareas). Los tickets asociados no: deben estar ya en la nueva empresa, así que desvincula los que no lo estén. El movimiento queda registrado en la cronología de Actividad.',
         'tip_audit_desc' => 'Cada cambio de campo se registra en la cronología de Actividad, y cada versión del texto largo se conserva íntegra - ábrala desde "Ver" o desde el enlace Versiones de una sección.',
     ],
 ];

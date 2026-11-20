@@ -868,6 +868,8 @@ return [
         'tip_attachments' => 'Vedhæftede filer',
         'tip_attachments_desc' => 'Upload skærmbilleder, konfigurationssikkerhedskopier eller godkendelsesmails sammen med ændringen. Tilføjelse eller fjernelse af en fil registreres, med et fingeraftryk af filen.',
         'tip_audit' => 'Revisionsspor',
+        'tip_company'   => 'Flytte til en anden virksomhed',
+        'tip_company_desc' => 'Registreret under den forkerte virksomhed? Højreklik på ændringen, og vælg Flyt til virksomhed (eller brug POST /changes/{id}/move-to-company i API\'et). De opgaver, der er knyttet til ændringen, flytter med (det kræver også skriveadgang til Opgaver). Tilknyttede sager gør ikke: de skal allerede være i den nye virksomhed, så fjern tilknytningen til dem, der ikke er. Flytningen registreres i aktivitetstidslinjen.',
         'tip_audit_desc' => 'Hver feltændring spores i aktivitetstidslinjen, og hver version af den lange tekst bevares i sin helhed - åbn den via "Vis" eller et afsnits link Versioner.',
     ],
 ];
