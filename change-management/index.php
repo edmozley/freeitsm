@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=18">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=19">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -617,6 +617,8 @@ $translationNamespaces = ['common', 'change-management'];
         } catch (Throwable $e) { $__linkStatus = null; }
     } ?>
     <script>window.CHG_LINK_STATUS = <?php echo json_encode($__linkStatus, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
+    <?php require_once __DIR__ . '/../includes/branding.php'; require_once __DIR__ . '/../includes/system_name.php'; ?>
+    <script>window.CHG_BRAND = <?php echo json_encode(['logo' => brandingCustomLogoUrl(), 'name' => systemName()], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;   /* the PDF's header (Ed, 2026-11-20) */</script>
     <script>window.CHG_SHOW_PROJECTS = <?php echo analystCanAccessModule(connectToDatabase(), (int)$_SESSION['analyst_id'], 'projects') ? 'true' : 'false'; ?>; window.CHG_BASE = <?php echo json_encode(BASE_URL); ?>;
         // "Choose approvers" (#180): comfort for the editor; ChangesService enforces it.
         // Read only (#180): the page leaves out what the server would refuse.
@@ -627,7 +629,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
     <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=45"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=49"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

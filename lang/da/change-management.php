@@ -337,6 +337,7 @@ return [
         'created' => 'Oprettet: {datetime}',
         'created_by' => 'Oprettet: {datetime} af {name}',
         'last_modified' => 'Sidst ændret: {datetime}',
+        'generated' => 'Oprettet {datetime}',   // the branded header (Ed, 2026-11-20)
     ],
     'approvals' => [
         'filter' => 'Filtrér',

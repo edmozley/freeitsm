@@ -337,6 +337,7 @@ return [
         'created' => 'Δημιουργήθηκε: {datetime}',
         'created_by' => 'Δημιουργήθηκε: {datetime} από {name}',
         'last_modified' => 'Τελευταία τροποποίηση: {datetime}',
+        'generated' => 'Δημιουργήθηκε {datetime}',   // the branded header (Ed, 2026-11-20)
     ],
     'approvals' => [
         'filter' => 'Φίλτρο',

@@ -367,6 +367,7 @@ return [
         'created'       => 'Created: {datetime}',
         'created_by'    => 'Created: {datetime} by {name}',
         'last_modified' => 'Last Modified: {datetime}',
+        'generated' => 'Generated {datetime}',   // the branded header (Ed, 2026-11-20)
     ],
 
     'approvals' => [

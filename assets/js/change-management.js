@@ -2774,12 +2774,25 @@ async function changePdfDocument(content) {
     const holder = document.createElement('div');
     // A PDF page is always white, so the text colour is set here rather than
     // inherited from the screen's theme - in dark mode it would be pale grey on white.
-    holder.style.cssText = 'position: fixed; left: -10000px; top: 0; background: #fff; color: #333; width: '
+    holder.style.cssText = 'position: fixed; left: -10000px; top: 0; background: #fff; color: #333; '
+        // The sections reuse the change view's own markup and classes (the risk matrix, the
+        // approvals panel...), whose colours are theme tokens - pale on dark. Light values here.
+        + '--text: #333; --text-muted: #666; --text-dim: #888; --surface: #fff; --surface-2: #f8f9fa; --surface-hover: #f3f4f6; '
+        + '--border: #ddd; --border-soft: #eee; --app-bg: #fff; --shadow: rgba(0,0,0,0.08); width: '
         + Math.round(pageW * 96 / 25.4) + 'px;';   // the printable width at 96 CSS px per inch
     holder.appendChild(content);
     document.body.appendChild(holder);
     try {
-        const canvas = await html2canvas(content, { scale: 2, backgroundColor: '#ffffff' });
+        // The logo must have loaded before the page is drawn, or the header is blank.
+        await Promise.all(Array.from(content.querySelectorAll('img')).map(img => img.complete ? null
+            : new Promise(done => { img.onload = img.onerror = done; })));
+        // A PDF page is white: html2canvas draws a COPY of the page, so that copy is put in the
+        // light theme (Ed, 2026-11-20: the approvals panel came out dark in dark mode) - the
+        // screen itself never changes.
+        const canvas = await html2canvas(content, { scale: 2, backgroundColor: '#ffffff', onclone: doc => {
+            doc.documentElement.setAttribute('data-theme', 'default');   // the built-in light theme (Theme::DEFAULT_THEME)
+            doc.documentElement.setAttribute('data-theme-mode', 'light');
+        } });
         const pxPerMm = canvas.width / pageW;
         const slice = Math.floor(pageH * pxPerMm);
         const page = document.createElement('canvas');
@@ -2922,8 +2935,21 @@ function buildPdfContent() {
     const c = currentChange;
     const ref = getChangeRef();
 
+    // The organisation's branding (Ed, 2026-11-20): its own logo - never FreeITSM's (GH #254) -
+    // and the system's name, as the other exported documents carry.
+    const brand = window.CHG_BRAND || {};
+    const brandHead = `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 2px solid #00897b; padding-bottom: 10px; margin-bottom: 18px;">
+            <div>${brand.logo ? `<img src="${escapeHtml(brand.logo)}" alt="" style="max-height: 52px; max-width: 220px; display: block;">` : ''}</div>
+            <div style="text-align: right; color: #666; font-size: var(--font-size-sm, 12px); line-height: 1.5;">
+                ${brand.name ? `<div style="font-weight: 600; color: #333; font-size: var(--font-size-lg, 14px);">${escapeHtml(brand.name)}</div>` : ''}
+                <div>${escapeHtml(window.t('change-management.pdf.generated', { datetime: formatDateTime(new Date().toISOString()) }))}</div>
+            </div>
+        </div>`;
+
     let html = `
         <div style="font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px;">
+            ${brandHead}
             <h1 style="color: #00897b; margin-bottom: 5px;">${ref}</h1>
             <h2 style="color: #333; margin-top: 0; margin-bottom: 20px;">${escapeHtml(c.title)}</h2>
 
@@ -2940,6 +2966,14 @@ function buildPdfContent() {
                     <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.impact')}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(c.impact)}</td>
                 </tr>
+                ${c.risk_level ? `<tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.detail.risk_level')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${ChangeRisk.badge(c, true)}</td>
+                </tr>` : ''}
+                ${c.approval_datetime ? `<tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.detail.approved')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${formatDateTime(c.approval_datetime)}</td>
+                </tr>` : ''}
                 ${c.category ? `<tr>
                     <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.category')}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${escapeHtml(c.category)}</td>
@@ -2988,6 +3022,24 @@ function buildPdfContent() {
         }
     });
 
+    // Everything else the change view shows (Ed: "includes all info about the change e.g. the
+    // score diagram"). The view's own renderers, so the PDF can never show something different;
+    // their buttons and inputs are taken out below.
+    if (c.risk_likelihood && c.risk_impact_score) html += `<div style="margin-top: 20px;">${ChangeRisk.matrix(c)}</div>`;
+    if (c.status_stage === 'done' && (c.pir_was_successful !== null || c.pir_actual_start || c.pir_lessons_learned)) html += renderPirDetail(c);
+    try { html += renderApprovalPanel(c); } catch (e) { /* approvals not in use */ }
+    html += renderLinkedIncidents(c);
+    if (c.attachments && c.attachments.length) {
+        html += `<h3 style="color: #00897b; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;">${escapeHtml(window.t('change-management.detail.attachments', { count: c.attachments.length }))}</h3>`
+            + `<ul style="margin: 6px 0 0 18px; padding: 0;">${c.attachments.map(a => `<li>${escapeHtml(a.file_name || a.filename || a.name || '')}</li>`).join('')}</ul>`;
+    }
+    // The activity history as it is on screen (loaded with the change).
+    const timeline = document.getElementById('activityTimeline');
+    if (timeline && timeline.textContent.trim()) {
+        html += `<h3 style="color: #00897b; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;">${escapeHtml(window.t('change-management.detail.activity'))}</h3>`
+            + `<div class="activity-timeline">${timeline.innerHTML}</div>`;
+    }
+
     html += `
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
             <p style="font-size: var(--font-size-xs, 11px); color: #888;">
@@ -2999,6 +3051,16 @@ function buildPdfContent() {
 
     const container = document.createElement('div');
     container.innerHTML = html;
+    // A document has nothing to click: the reused sections' buttons, inputs and menus go.
+    container.querySelectorAll('button, input, textarea, select, .comment-input-area, .share-dropdown, [contenteditable="true"]').forEach(el => el.remove());
+    // html2canvas cannot draw rotated text or CSS outlines: the matrix's Likelihood label goes above
+    // the grid as plain text, and the change's own square gets a real border.
+    container.querySelectorAll('.risk-matrix-y-label').forEach(el => {
+        el.style.cssText = 'position: static; writing-mode: horizontal-tb; transform: none; margin: 0 0 6px; text-align: center; width: 100%;';
+        const gc = el.closest('.risk-matrix-grid-container');
+        if (gc) gc.style.flexDirection = 'column';
+    });
+    container.querySelectorAll('.risk-matrix-cell.active').forEach(el => { el.style.boxShadow = 'none'; el.style.outline = 'none'; el.style.border = '3px solid #333'; });
     return container;
 }
 

@@ -337,6 +337,7 @@ return [
         'created' => 'Dibuat: {datetime}',
         'created_by' => 'Dibuat: {datetime} oleh {name}',
         'last_modified' => 'Terakhir Diubah: {datetime}',
+        'generated' => 'Dibuat {datetime}',   // the branded header (Ed, 2026-11-20)
     ],
     'approvals' => [
         'filter' => 'Filter',

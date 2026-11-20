@@ -936,7 +936,8 @@ body.cm-editor-open .editor-form {
     position: sticky;
     top: -20px;
     background: var(--surface, #fff);
-    padding: 35px 20px 15px;
+    /* 16px, not 35, above Back / Share / Edit / Delete (Ed, 2026-11-20: the gap was too big). */
+    padding: 16px 20px 15px;
     margin: -30px -30px 20px -30px;
     border-bottom: 1px solid var(--border, #e0e0e0);
     z-index: 10;

@@ -337,6 +337,7 @@ return [
         'created' => 'Створено: {datetime}',
         'created_by' => 'Створено: {datetime} користувачем {name}',
         'last_modified' => 'Остання зміна: {datetime}',
+        'generated' => 'Створено {datetime}',   // the branded header (Ed, 2026-11-20)
     ],
     'approvals' => [
         'filter' => 'Фільтр',
