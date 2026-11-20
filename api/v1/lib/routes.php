@@ -100,6 +100,7 @@ return [
     ['GET',    '#^/changes/(\d+)/approvals$#',             ['change_approvals', 'read'],      'apiChangeApprovalsList'],
     ['POST',   '#^/changes/(\d+)/approval/decide$#',       ['change_approvals', 'decide'],    'apiChangeApprovalDecide'],
     ['POST',   '#^/changes/(\d+)/cancel$#',                ['changes', 'update'],             'apiChangesCancel'],
+    ['POST',   '#^/changes/(\d+)/move-to-company$#',       ['changes', 'update'],             'apiChangesMoveToCompany'],   // GH #390
     ['GET',    '#^/changes/(\d+)/revisions$#',             ['change_revisions', 'read'],      'apiChangeRevisionsList'],
     ['GET',    '#^/changes/(\d+)/revisions/(\d+)$#',       ['change_revisions', 'read'],      'apiChangeRevisionGet'],
     ['GET',    '#^/change-statuses$#',                     ['reference', 'read'],             'apiChangeStatusesList'],

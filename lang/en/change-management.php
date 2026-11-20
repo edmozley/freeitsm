@@ -938,6 +938,8 @@ return [
         'tip_attachments' => 'Attachments',
         'tip_attachments_desc' => 'Upload screenshots, config backups, or approval emails alongside the change. Adding or removing a file is recorded, with a fingerprint of the file.',
         'tip_audit'     => 'Audit trail',
+        'tip_company'   => 'Moving to another company',
+        'tip_company_desc' => 'Filed under the wrong company? Right-click the change and choose Move to company (or use POST /changes/{id}/move-to-company in the API). The tasks linked to the change move with it (that needs write access to Tasks too). Linked tickets do not: they must already be in the new company, so unlink any that are not. The move is recorded in the Activity timeline.',
         'tip_audit_desc' => 'Every field change is tracked in the Activity timeline, and every version of the long text is kept in full - open it from "View" or a section\'s Versions link.',
     ],
 ];

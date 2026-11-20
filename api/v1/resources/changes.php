@@ -430,10 +430,51 @@ function apiChangesCreate(PDO $conn, array $apiKey, array $params, array $body):
 // PATCH /changes/{id}
 // ---------------------------------------------------------------------------
 function apiChangesUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
+    // GH #390: company_id is not changed here. It used to be ignored without a word,
+    // so the call looked like it worked. A different company is now a 422 naming the
+    // endpoint that moves it (as PATCH /projects and /domains); the company it is
+    // already in is accepted, so clients that send it back unchanged keep working.
+    if (isset($body['company_id']) && $body['company_id'] !== '' && $body['company_id'] !== null && isMultiTenant($conn)) {
+        $row = apiLoadChange($conn, $apiKey, (int)$params[0]);   // 404 first, before any body check
+        $current = ($row['tenant_id'] ?? null) === null ? (int)getDefaultTenantId($conn) : (int)$row['tenant_id'];
+        if ((int)$body['company_id'] !== $current) {
+            apiError(422, 'invalid_field', "'company_id' cannot be changed with PATCH. Use POST /changes/{$params[0]}/move-to-company.");
+        }
+    }
+    unset($body['company_id']);
     try {
         ChangesService::updateChange($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
     } catch (ServiceError $e) { apiFailFromService($e); }
     apiRespond(apiSerializeChange(apiLoadChange($conn, $apiKey, $params[0])));
+}
+
+// ---------------------------------------------------------------------------
+// POST /changes/{id}/move-to-company — move a change to another company (GH #390)
+// ---------------------------------------------------------------------------
+// The key must reach both companies. ChangesService::moveToCompany() holds the
+// rules: linked tickets must already be in the target; the tasks linked to the
+// change move with it, unless one of them cannot (a project, ticket or contract
+// in another company, or a parent task staying behind).
+function apiChangesMoveToCompany(PDO $conn, array $apiKey, array $params, array $body): void {
+    $id = (int)$params[0];
+    apiLoadChange($conn, $apiKey, $id);          // 404 first, before any body check
+    if (!isset($body['company_id']) || $body['company_id'] === '' || $body['company_id'] === null) {
+        apiError(422, 'missing_field', 'company_id is required.');
+    }
+    if (filter_var($body['company_id'], FILTER_VALIDATE_INT) === false || (int)$body['company_id'] <= 0) {
+        apiError(422, 'invalid_field', 'company_id must be a positive integer.');
+    }
+    $target = (int)$body['company_id'];
+    if (!getTenantById($conn, $target)) apiError(422, 'invalid_field', "Unknown company id: {$target}");
+    if (!apiKeyCanAccessTenant($conn, $apiKey, $target)) apiError(403, 'forbidden', 'This API key is not scoped to that company.');
+    try {
+        $r = ChangesService::moveToCompany($conn, ActorContext::fromApiKey($apiKey), $id, $target);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    $out = apiSerializeChange(apiLoadChange($conn, $apiKey, $id));
+    $out['moved']          = $r['moved'];
+    $out['tasks_moved']    = $r['tasks_moved'];
+    $out['moved_task_ids'] = $r['task_ids'];
+    apiRespond($out);
 }
 
 // ---------------------------------------------------------------------------

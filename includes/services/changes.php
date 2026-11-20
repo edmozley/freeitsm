@@ -41,6 +41,8 @@ require_once __DIR__ . '/../changes/revisions.php';
 require_once __DIR__ . '/../rbac.php';   // analystMayAct() - "Choose approvers" (#180 Part 3)
 require_once __DIR__ . '/../changes/templates.php';
 require_once __DIR__ . '/../changes/risk_policy.php';
+require_once __DIR__ . '/../contract_party.php';   // contractTenantOf() - the change move (#390)
+require_once __DIR__ . '/tasks.php';               // TasksService::assertCanWrite() - the change move (#390)
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class ChangesService
@@ -1276,6 +1278,217 @@ class ChangesService
         }
         self::auditWrite($conn, $changeId, $ctx->actorId, 'field_change', 'Linked incident', $ticketNumber, null);
         $conn->prepare("UPDATE changes SET modified_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$changeId]);
+    }
+
+    // ======================================================================
+    //  Company
+    // ======================================================================
+
+    /**
+     * Move a change to another company (GH #390), with the tasks linked to it, in
+     * one transaction. Shared by the right-click "Move to company" item
+     * (api/change-management/move_to_company.php) and
+     * POST /api/v1/changes/{id}/move-to-company.
+     *
+     * Modelled on TasksService::moveTaskToCompany() and the project move (#370):
+     * the same two access checks on the target, and the same rule - REFUSE, saying
+     * what is in the way, rather than quietly fix. Nothing moves when it refuses.
+     *
+     * LINKED TICKETS stay where they are and must already be in the target
+     * company: linkTicket() refuses a ticket from another company, and a ticket
+     * belongs to its requester and may be linked to other changes too. Deleted
+     * tickets do not count - nobody can see or unlink them.
+     *
+     * LINKED TASKS move with the change, with their subtasks. A task's change
+     * decides its company (moveTaskToCompany() refuses to leave a task in a
+     * different company from its change), so leaving them behind would strand
+     * them: they could no longer be moved on their own either. Refused when one
+     * of them cannot follow:
+     *  - it is part of a project in another company (a project's tasks are in its company);
+     *  - it is also linked to a ticket, contract or ANOTHER change in another
+     *    company (a subtask can carry its own change link);
+     *  - it is a subtask whose parent is not moving and is in another company
+     *    (a subtask is always in its parent's company);
+     *  - it is in a company the actor cannot reach (not named: that would say it exists).
+     * Moving tasks is a Tasks write too, so it needs write access to Tasks as
+     * well as Changes; a change with no linked tasks does not ask for it.
+     *
+     * History: the change gets the same "Company" row the app wrote before; every
+     * task that moves gets a "Company" row in its own history.
+     *
+     * @param int $changeId  the change to move
+     * @param int $targetTenantId  the company (tenants.id) to move it to; the actor must reach it
+     * @return array{moved:int, from:string, to:string, tasks_moved:int, task_ids:int[]}
+     *         moved is 0 when the change is already in that company
+     */
+    public static function moveToCompany(PDO $conn, ActorContext $ctx, int $changeId, int $targetTenantId): array
+    {
+        self::assertCanWrite($conn, $ctx);
+        $change = self::loadJoined($conn, $ctx, $changeId);   // 404 if gone / out of scope
+        if (!isMultiTenant($conn)) {
+            throw new ServiceError('validation', 'invalid_field',
+                'This install has only one company, so there is nowhere to move a change to.');
+        }
+        // The caller's scope AND the person behind it - see moveTaskToCompany() for
+        // why both. Never analyst 0: "no analyst" is not "every company". One message
+        // for "no access" and "no such company", so probing ids cannot reveal which
+        // companies exist.
+        $noAccess = new ServiceError('validation', 'invalid_field', 'You do not have access to that company.');
+        if ($ctx->actorId < 1
+                || ($ctx->companyScope !== null && !in_array($targetTenantId, $ctx->companyScope, true))
+                || !analystCanAccessTenant($conn, $ctx->actorId, $targetTenantId)) {
+            throw $noAccess;
+        }
+        $target = getTenantById($conn, $targetTenantId);
+        if (!$target) throw $noAccess;
+
+        // NULL means the Default company - resolved before comparing, so moving a
+        // Default change into Default is not mistaken for a move.
+        $default   = (int)getDefaultTenantId($conn);
+        $norm      = fn($t) => $t === null ? $default : (int)$t;
+        $oldTenant = $norm($change['tenant_id']);
+        if ($oldTenant === $targetTenantId) {
+            return ['moved' => 0, 'from' => $target['name'], 'to' => $target['name'], 'tasks_moved' => 0, 'task_ids' => []];
+        }
+        $oldName = getTenantById($conn, $oldTenant)['name'] ?? 'Unknown';
+        $source  = $ctx->source === 'api' ? 'api' : 'app';
+
+        return self::inTransaction($conn, function () use ($conn, $ctx, $changeId, $change, $targetTenantId, $target, $oldName, $norm, $source) {
+            // Lock first, then read what we act on: the FIRST statement is a locking
+            // read, so later reads see rows committed before the lock, not a snapshot
+            // taken earlier. A change moved meanwhile by someone else is a conflict.
+            $lk = $conn->prepare("SELECT tenant_id FROM changes WHERE id = ? FOR UPDATE");
+            $lk->execute([$changeId]);
+            $now = $lk->fetch(PDO::FETCH_ASSOC);
+            if (!$now || $norm($now['tenant_id']) !== $norm($change['tenant_id'])) {
+                throw new ServiceError('conflict', 'conflict', 'This change changed while it was being moved. Try again.');
+            }
+
+            // --- linked tickets: must already be in the target -----------------
+            $t = $conn->prepare(
+                "SELECT t.ticket_number, t.tenant_id FROM change_tickets ct
+                   JOIN tickets t ON t.id = ct.ticket_id AND t.deleted_datetime IS NULL
+                  WHERE ct.change_id = ? ORDER BY t.id");
+            $t->execute([$changeId]);
+            $away = [];
+            foreach ($t->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                if ($norm($r['tenant_id']) !== $targetTenantId) $away[] = (string)$r['ticket_number'];
+            }
+            if ($away) {
+                $list = implode(', ', array_slice($away, 0, 5)) . (count($away) > 5 ? ' and ' . (count($away) - 5) . ' more' : '');
+                throw new ServiceError('validation', 'invalid_field',
+                    "Linked tickets must be in the change's company, and these are not in {$target['name']}: {$list}. "
+                    . 'Unlink them from the change first.');
+            }
+
+            // --- linked tasks and everything beneath them ----------------------
+            // Locking reads, so a task linked or added meanwhile is moved too.
+            $st = $conn->prepare("SELECT id FROM tasks WHERE change_id = ? FOR UPDATE");
+            $st->execute([$changeId]);
+            $linked = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+            $ids = []; $frontier = $linked;
+            while ($frontier) {                                     // iterative: MySQL 5.7 has no recursive CTE
+                $ids = array_merge($ids, $frontier);
+                $in  = implode(',', array_fill(0, count($frontier), '?'));
+                $ch  = $conn->prepare("SELECT id FROM tasks WHERE parent_task_id IN ($in) FOR UPDATE");
+                $ch->execute($frontier);
+                $frontier = array_values(array_diff(array_map('intval', $ch->fetchAll(PDO::FETCH_COLUMN)), $ids));
+            }
+            $tasks = [];
+            if ($ids) {
+                $in = implode(',', array_fill(0, count($ids), '?'));
+                $q = $conn->prepare("SELECT id, title, tenant_id, parent_task_id, project_id, ticket_id, contract_id, change_id FROM tasks WHERE id IN ($in) ORDER BY id");
+                $q->execute($ids);
+                foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $r) $tasks[(int)$r['id']] = $r;
+            }
+            if ($tasks) {
+                // A Tasks write as well: read-only (or no) access to Tasks moves no task.
+                TasksService::assertCanWrite($conn, $ctx);
+                if ($ctx->actorId > 0 && analystModuleLevel($conn, $ctx->actorId, 'tasks') === null) {
+                    throw new ServiceError('forbidden', 'forbidden',
+                        'The tasks linked to this change would move with it, and you do not have access to Tasks.');
+                }
+            }
+            foreach ($tasks as $r) {
+                $title = (string)$r['title'];
+                // Outside the actor's companies: refused without its name, which would
+                // tell them it exists. Only reachable with data already out of step.
+                if ($ctx->companyScope !== null && !in_array($norm($r['tenant_id']), $ctx->companyScope, true)) {
+                    throw new ServiceError('validation', 'invalid_field',
+                        'A task linked to this change is in a company you do not have access to, so the change cannot be moved.');
+                }
+                if (!empty($r['parent_task_id']) && !isset($tasks[(int)$r['parent_task_id']])) {
+                    $p = $conn->prepare("SELECT title, tenant_id FROM tasks WHERE id = ?");
+                    $p->execute([(int)$r['parent_task_id']]);
+                    $parent = $p->fetch(PDO::FETCH_ASSOC);
+                    if ($parent && $norm($parent['tenant_id']) !== $targetTenantId) {
+                        throw new ServiceError('validation', 'invalid_field',
+                            "The linked task \"{$title}\" is a subtask of \"{$parent['title']}\", and a subtask is always in its parent's company. "
+                            . "Remove the link from \"{$title}\", or move \"{$parent['title']}\" to {$target['name']} first.");
+                    }
+                }
+                if (!empty($r['project_id'])) {
+                    $p = $conn->prepare("SELECT name, tenant_id FROM projects WHERE id = ?");
+                    $p->execute([(int)$r['project_id']]);
+                    $proj = $p->fetch(PDO::FETCH_ASSOC);
+                    if ($proj && $norm($proj['tenant_id']) !== $targetTenantId) {
+                        throw new ServiceError('validation', 'invalid_field',
+                            "The linked task \"{$title}\" is part of the project \"{$proj['name']}\", and a project's tasks are in its company. "
+                            . 'Take it out of the project, or remove its link to this change, then move the change.');
+                    }
+                }
+                if (!empty($r['ticket_id'])) {
+                    $p = $conn->prepare("SELECT tenant_id FROM tickets WHERE id = ?");
+                    $p->execute([(int)$r['ticket_id']]);
+                    $tt = $p->fetch(PDO::FETCH_ASSOC);
+                    if ($tt && $norm($tt['tenant_id']) !== $targetTenantId) {
+                        throw new ServiceError('validation', 'invalid_field',
+                            "The linked task \"{$title}\" is also linked to a ticket in another company. Remove one of the links, then move the change.");
+                    }
+                }
+                // A subtask can be linked to a change of its own: that change decides its
+                // company too, so it is not dragged away from it.
+                if (!empty($r['change_id']) && (int)$r['change_id'] !== $changeId) {
+                    $p = $conn->prepare("SELECT tenant_id FROM changes WHERE id = ?");
+                    $p->execute([(int)$r['change_id']]);
+                    $oc = $p->fetch(PDO::FETCH_ASSOC);
+                    if ($oc && $norm($oc['tenant_id']) !== $targetTenantId) {
+                        throw new ServiceError('validation', 'invalid_field',
+                            "The linked task \"{$title}\" is also linked to another change in another company. Remove one of the links, then move the change.");
+                    }
+                }
+                // Contracts have a company since 3.5.0; before Database Verification
+                // they have none, and then cannot stand in the way.
+                if (!empty($r['contract_id']) && contractTenantReady($conn)) {
+                    $ct = contractTenantOf($conn, (int)$r['contract_id']);
+                    if ($ct !== null && $ct !== $targetTenantId) {
+                        throw new ServiceError('validation', 'invalid_field',
+                            "The linked task \"{$title}\" is also linked to a contract in another company. Remove one of the links, then move the change.");
+                    }
+                }
+            }
+
+            // --- the move ------------------------------------------------------
+            $conn->prepare("UPDATE changes SET tenant_id = ?, modified_datetime = UTC_TIMESTAMP() WHERE id = ?")
+                 ->execute([$targetTenantId, $changeId]);
+            self::auditWrite($conn, $changeId, $ctx->actorId, 'field_change', 'Company', $oldName, $target['name']);
+
+            // Only the tasks not already there; each says in its history why it moved.
+            $movedTasks = array_values(array_map('intval', array_keys(array_filter($tasks, fn($r) => $norm($r['tenant_id']) !== $targetTenantId))));
+            if ($movedTasks) {
+                $in = implode(',', array_fill(0, count($movedTasks), '?'));
+                $conn->prepare("UPDATE tasks SET tenant_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id IN ($in)")
+                     ->execute(array_merge([$targetTenantId], $movedTasks));
+                $aud = $conn->prepare(
+                    "INSERT INTO task_audit (task_id, analyst_id, field_name, old_value, new_value, source, created_datetime)
+                     VALUES (?, ?, 'Company', ?, ?, ?, UTC_TIMESTAMP())");
+                foreach ($movedTasks as $tid) {
+                    $from = getTenantById($conn, $norm($tasks[$tid]['tenant_id']))['name'] ?? 'Unknown';
+                    $aud->execute([$tid, $ctx->actorId, $from, $target['name'], $source]);
+                }
+            }
+            return ['moved' => 1, 'from' => $oldName, 'to' => $target['name'], 'tasks_moved' => count($movedTasks), 'task_ids' => $movedTasks];
+        });
     }
 
     // ======================================================================
