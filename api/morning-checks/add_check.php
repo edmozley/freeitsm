@@ -31,6 +31,8 @@ try {
     // keys unconditionally would wipe an assignment on any partial update.
     if (array_key_exists('groupId', $input))   { $payload['group_id']            = $input['groupId']; }
     if (array_key_exists('analystId', $input)) { $payload['assigned_analyst_id'] = $input['analystId']; }
+    // GH #383: { type, days, month_when, month_day }; only when sent, as above.
+    if (array_key_exists('schedule', $input))  { $payload['schedule']            = $input['schedule']; }
     MorningChecksService::saveCheck($conn, ActorContext::fromSession($conn), $payload);
     echo json_encode(['success' => true]);
 } catch (Exception $e) {

@@ -40,21 +40,31 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     // wtMorningCheckScope(). Both queries expose c and g so the one clause fits.
     [$mcScopeSql, $mcScopeArgs] = wtMorningCheckScope($conn, $analystId, $scope);
 
+    // GH #383: only the checks DUE today count - a weekly check is not outstanding on the
+    // six days it is not due. The schedule is decided in PHP (includes/morning_check_schedule.php,
+    // the one place that knows), so the due checks' ids go into the two queries below.
+    require_once __DIR__ . '/morning_check_schedule.php';
     $mcTotalStmt = $conn->prepare(
-        "SELECT COUNT(*)
+        "SELECT c.CheckID, c.ScheduleType, c.ScheduleDays, c.ScheduleMonthWhen, c.ScheduleMonthDay
            FROM morningChecks_Checks c
       LEFT JOIN morningChecks_Groups g ON g.GroupID = c.GroupID
           WHERE c.IsActive = 1{$mcScopeSql}"
     );
     $mcTotalStmt->execute($mcScopeArgs);
-    $mcTotal = (int)$mcTotalStmt->fetchColumn();
+    $mcDueIds = [];
+    foreach ($mcTotalStmt->fetchAll(PDO::FETCH_ASSOC) as $mcRow) {
+        if (MorningCheckSchedule::isDue($mcRow, $today)) $mcDueIds[] = (int)$mcRow['CheckID'];
+    }
+    $mcTotal = count($mcDueIds);
+    // Ints only, so they can be written into the SQL; none due = nothing matches.
+    $mcDueSql = $mcDueIds ? ' AND c.CheckID IN (' . implode(',', $mcDueIds) . ')' : ' AND 1 = 0';
 
     $mcDoneStmt = $conn->prepare(
         "SELECT COUNT(DISTINCT r.CheckID)
          FROM morningChecks_Results r
          JOIN morningChecks_Checks c ON r.CheckID = c.CheckID
     LEFT JOIN morningChecks_Groups g ON g.GroupID = c.GroupID
-         WHERE c.IsActive = 1 AND DATE(r.CheckDate) = ?{$mcScopeSql}"
+         WHERE c.IsActive = 1 AND DATE(r.CheckDate) = ?{$mcScopeSql}{$mcDueSql}"
     );
     $mcDoneStmt->execute(array_merge([$today], $mcScopeArgs));
     $mcDone = (int)$mcDoneStmt->fetchColumn();
@@ -78,7 +88,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
          JOIN morningChecks_Checks c ON c.CheckID = r.CheckID
     LEFT JOIN morningChecks_Groups g ON g.GroupID = c.GroupID
          LEFT JOIN morningChecks_Statuses s ON s.StatusID = r.StatusID
-         WHERE DATE(r.CheckDate) = ?{$mcScopeSql}
+         WHERE DATE(r.CheckDate) = ?{$mcScopeSql}{$mcDueSql}
          GROUP BY COALESCE(s.Label, r.Status)
          ORDER BY sort_order, label"
     );

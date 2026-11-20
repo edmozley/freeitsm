@@ -63,6 +63,9 @@
         if (panels.length < 2) return;   // nothing to gather, or a tab bar that is not a settings page (SSO pages have none)
         bar.dataset.svReady = '1';
         const container = bar.parentElement;
+        // TRAP: never assume the page calls it .container - Morning Checks uses .settings-container.
+        // The One page CSS targets this class, which the script sets itself.
+        container.classList.add('sv-host');
         let warmed = false;
         let mode = cfg.mode === 'page' ? 'page' : 'tabs';
 
@@ -83,7 +86,10 @@
         bar.insertAdjacentElement('beforebegin', sw);
 
         // ---- the index (built once, shown in One page) ----
-        const index = document.createElement('nav');
+        // TRAP: a div with role=navigation, not a <nav>: a module stylesheet may style every
+        // <nav> on its page (Morning Checks made this one a visible flex row in Tabs view).
+        const index = document.createElement('div');
+        index.setAttribute('role', 'navigation');
         index.className = 'sv-index';
         index.setAttribute('aria-label', L('index', 'Settings'));
         const search = document.createElement('input');

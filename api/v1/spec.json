@@ -12908,7 +12908,7 @@
                     "p": "\/morning-checks\/board",
                     "perm": "morning_check_results.read",
                     "s": "The day board",
-                    "d": "Every ACTIVE check with its result for one date (null if not yet done) — the dashboard's exact view. Results whose status was later deleted come back with is_orphan and the original label. Install-wide.",
+                    "d": "Every ACTIVE check with its result for one date (null if not yet done) — the dashboard's exact view. Results whose status was later deleted come back with is_orphan and the original label. Install-wide. Each check carries due (does its schedule fall on this date?) and its schedule - a check that is not due is still listed and can still be recorded.",
                     "params": [
                         {
                             "name": "date",
@@ -13175,7 +13175,7 @@
                     "p": "\/morning-checks\/checks",
                     "perm": "morning_checks.create",
                     "s": "Add a check",
-                    "d": "Only name is required.",
+                    "d": "Only name is required. schedule says when it falls due: {type: daily | weekdays | weekly | monthly, days: [1-7] for weekly (1 = Monday), month_when: day | first_weekday | last_weekday | last_day, month_day: 1-31} - absent means every day.",
                     "params": [
                         {
                             "name": "name",
@@ -13259,7 +13259,7 @@
                     "p": "\/morning-checks\/checks\/{id}",
                     "perm": "morning_checks.update",
                     "s": "Update a check",
-                    "d": "Send only what changes. Deactivating (is_active: false) removes it from the board but keeps its history.",
+                    "d": "Send only what changes. Deactivating (is_active: false) removes it from the board but keeps its history. schedule says when it falls due: {type: daily | weekdays | weekly | monthly, days: [1-7] for weekly (1 = Monday), month_when: day | first_weekday | last_weekday | last_day, month_day: 1-31} - null means every day.",
                     "params": [
                         {
                             "name": "id",

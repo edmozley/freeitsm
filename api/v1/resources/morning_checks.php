@@ -28,6 +28,7 @@
  */
 
 require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/morning_check_schedule.php';   // GH #383
 require_once dirname(__DIR__, 3) . '/includes/services/morning_checks.php';
 
 // ---------------------------------------------------------------------------
@@ -46,6 +47,8 @@ function apiSerializeMorningCheck(array $r): array {
         'description' => $r['CheckDescription'],
         'is_active'   => (bool)$r['IsActive'],
         'sort_order'  => (int)$r['SortOrder'],
+        // GH #383: { type: daily|weekdays|weekly|monthly, days, month_when, month_day }
+        'schedule'    => MorningCheckSchedule::toArray($r),
         'created_at'  => apiIsoDate($r['CreatedDate']),
         'modified_at' => apiIsoDate($r['ModifiedDate']),
     ];
@@ -200,6 +203,7 @@ function apiMorningChecksBoard(PDO $conn, array $apiKey, array $params, array $b
 
     $stmt = $conn->prepare(
         "SELECT c.CheckID, c.CheckName, c.CheckDescription, c.SortOrder,
+                c.ScheduleType, c.ScheduleDays, c.ScheduleMonthWhen, c.ScheduleMonthDay,
                 r.ResultID, r.StatusID, r.Status AS OrphanLabel, r.Notes,
                 s.Label AS StatusLabel, s.Colour AS StatusColour
          FROM morningChecks_Checks c
@@ -233,6 +237,10 @@ function apiMorningChecksBoard(PDO $conn, array $apiKey, array $params, array $b
             'name'        => $r['CheckName'],
             'description' => $r['CheckDescription'],
             'sort_order'  => (int)$r['SortOrder'],
+            // GH #383: every active check is listed; due says whether its schedule
+            // falls on this date. A check that is not due can still be recorded.
+            'due'         => MorningCheckSchedule::isDue($r, $date),
+            'schedule'    => MorningCheckSchedule::toArray($r),
             'result'      => $result,
         ];
     }

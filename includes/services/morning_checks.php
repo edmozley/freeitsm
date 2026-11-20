@@ -20,6 +20,7 @@
 
 require_once __DIR__ . '/../service_context.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
+require_once dirname(__DIR__) . '/morning_check_schedule.php';   // GH #383
 
 class MorningChecksService
 {
@@ -30,7 +31,8 @@ class MorningChecksService
     /**
      * Create (no id) or update (id present) a check. Returns the id.
      *
-     * @param array $in  id (absent = new), name, description, sort_order, is_active, group_id, assigned_analyst_id - null or '' clears
+     * @param array $in  id (absent = new), name, description, sort_order, is_active, group_id, assigned_analyst_id - null or '' clears;
+     *                   schedule { type, days, month_when, month_day } (GH #383; absent = unchanged, null = every day)
      */
     public static function saveCheck(PDO $conn, ActorContext $ctx, array $in): int
     {
@@ -51,7 +53,9 @@ class MorningChecksService
             $conn->prepare(
                 "UPDATE morningChecks_Checks
                  SET CheckName = ?, CheckDescription = ?, SortOrder = ?, IsActive = ?,
-                     GroupID = ?, AssignedAnalystID = ?, ModifiedDate = UTC_TIMESTAMP()
+                     GroupID = ?, AssignedAnalystID = ?,
+                     ScheduleType = ?, ScheduleDays = ?, ScheduleMonthWhen = ?, ScheduleMonthDay = ?,
+                     ModifiedDate = UTC_TIMESTAMP()
                  WHERE CheckID = ?"
             )->execute([
                 $name,
@@ -64,6 +68,10 @@ class MorningChecksService
                 array_key_exists('assigned_analyst_id', $in)
                     ? self::assertExists($conn, self::nullableId($in['assigned_analyst_id']), 'analysts', 'id', 'assigned_analyst_id')
                     : ($current['AssignedAnalystID'] ?? null),
+                ...array_values(array_key_exists('schedule', $in) ? self::scheduleColumns($in['schedule']) : [
+                    $current['ScheduleType'] ?? null, $current['ScheduleDays'] ?? null,
+                    $current['ScheduleMonthWhen'] ?? null, $current['ScheduleMonthDay'] ?? null,
+                ]),
                 $id,
             ]);
             WorkflowEngine::emitCrud('morning_check', 'updated', $id, $name);
@@ -75,8 +83,9 @@ class MorningChecksService
             throw new ServiceError('validation', 'missing_field', "'name' is required.");
         }
         $conn->prepare(
-            "INSERT INTO morningChecks_Checks (CheckName, CheckDescription, SortOrder, IsActive, GroupID, AssignedAnalystID, CreatedDate, ModifiedDate)
-             VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+            "INSERT INTO morningChecks_Checks (CheckName, CheckDescription, SortOrder, IsActive, GroupID, AssignedAnalystID,
+                                               ScheduleType, ScheduleDays, ScheduleMonthWhen, ScheduleMonthDay, CreatedDate, ModifiedDate)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
         )->execute([
             $name,
             trim((string)($in['description'] ?? '')),
@@ -84,10 +93,29 @@ class MorningChecksService
             isset($in['is_active']) ? (int)(bool)$in['is_active'] : 1,
             self::assertExists($conn, self::nullableId($in['group_id'] ?? null), 'morningChecks_Groups', 'GroupID', 'group_id'),
             self::assertExists($conn, self::nullableId($in['assigned_analyst_id'] ?? null), 'analysts', 'id', 'assigned_analyst_id'),
+            ...array_values(self::scheduleColumns($in['schedule'] ?? null)),
         ]);
         $newId = (int)$conn->lastInsertId();
         WorkflowEngine::emitCrud('morning_check', 'created', $newId, $name);
         return $newId;
+    }
+
+    /**
+     * A schedule from a request as its four columns (GH #383), or a validation error the
+     * caller shows as it is. null or type 'daily' = every day.
+     *
+     * @param mixed $schedule  { type, days, month_when, month_day }
+     */
+    private static function scheduleColumns($schedule): array
+    {
+        if ($schedule !== null && !is_array($schedule)) {
+            throw new ServiceError('validation', 'invalid_field', "'schedule' must be an object: { type, days, month_when, month_day }.");
+        }
+        try {
+            return MorningCheckSchedule::columns($schedule);
+        } catch (InvalidArgumentException $e) {
+            throw new ServiceError('validation', 'invalid_field', $e->getMessage());
+        }
     }
 
     /**

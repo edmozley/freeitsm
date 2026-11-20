@@ -100,4 +100,16 @@ return [
         'link'     => 'morning-checks/',
         'check'    => ['rows', 'morningChecks_ResultLinks'],
     ],
+    [
+        'id'       => 'morning-checks.schedules',
+        'module'   => 'morning-checks',
+        'tier'     => 'extra',
+        'category' => 'organisation',
+        'title'    => 'Checks on a schedule',
+        'what'     => 'A check that falls due every weekday, weekly on chosen days or monthly (a date, the first or last weekday, or the last day) instead of every day. On other days it is greyed out with when it is next due.',
+        'why'      => 'A weekly backup test that sits on the round every morning gets ignored. On a schedule it appears when it matters, says when it was last done, and is flagged if a due day was missed.',
+        'done'     => 'At least one check has a schedule other than every day.',
+        'link'     => 'morning-checks/settings/',
+        'check'    => ['rows', 'morningChecks_Checks', 'ScheduleType IS NOT NULL AND IsActive = 1'],
+    ],
 ];

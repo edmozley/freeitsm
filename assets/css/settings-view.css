@@ -19,11 +19,11 @@
 
     /* One page: the index in a left column, every panel in the right one. Nothing is moved -
        the grid places the existing children - so page scripts and ids keep working. */
-    body.sv-page .container {
+    body.sv-page .sv-host {
         display: grid; grid-template-columns: 230px minmax(0, 1fr); column-gap: 24px; align-items: start;
     }
-    body.sv-page .container > * { grid-column: 2; }
-    body.sv-page .container > .sv-index {
+    body.sv-page .sv-host > * { grid-column: 2; }
+    body.sv-page .sv-host > .sv-index {
         display: block; grid-column: 1; grid-row: 1 / span 999;
         position: sticky; top: 12px; max-height: calc(100vh - 120px); overflow-y: auto;
         background: var(--surface, #fff); border: 1px solid var(--border-soft, #eee); border-radius: 8px; padding: 10px;

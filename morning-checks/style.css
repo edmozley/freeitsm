@@ -655,3 +655,10 @@ tr.status-red {
 @media (prefers-reduced-motion: reduce) {
     .mc-icon-btn:active, .mc-kind-btn:active { transform: none; }
 }
+
+/* GH #383: a check that is not due on the day viewed - greyed, never hidden, and still
+   clickable (a weekly check done a day late is better recorded than not). */
+tr.mc-not-due > td { opacity: 0.55; transition: opacity 0.15s; }
+tr.mc-not-due:hover > td, tr.mc-not-due:focus-within > td { opacity: 0.9; }
+.mc-due-note { display: block; margin-top: 4px; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
+.mc-due-note .mc-missed { color: var(--warning-text, #92400e); font-weight: 600; }

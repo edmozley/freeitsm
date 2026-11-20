@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/morning_check_schedule.php';   // GH #383
 
 header('Content-Type: application/json');
 
@@ -21,7 +22,8 @@ try {
     // modal to pre-select the pickers. Without them the modal would open showing
     // "no group" for a grouped check and quietly clear the grouping on save.
     $sql = "SELECT CheckID, CheckName, CheckDescription, IsActive, SortOrder,
-                   GroupID, AssignedAnalystID, CreatedDate, ModifiedDate
+                   GroupID, AssignedAnalystID, CreatedDate, ModifiedDate,
+                   ScheduleType, ScheduleDays, ScheduleMonthWhen, ScheduleMonthDay
             FROM morningChecks_Checks
             ORDER BY SortOrder, CheckName";
 
@@ -38,6 +40,9 @@ try {
         // rather than selecting whichever option happens to have id 0.
         $check['GroupID'] = $check['GroupID'] !== null ? (int)$check['GroupID'] : null;
         $check['AssignedAnalystID'] = $check['AssignedAnalystID'] !== null ? (int)$check['AssignedAnalystID'] : null;
+        // GH #383: the schedule as the edit modal fills it in.
+        $check['Schedule'] = MorningCheckSchedule::toArray($check);
+        unset($check['ScheduleType'], $check['ScheduleDays'], $check['ScheduleMonthWhen'], $check['ScheduleMonthDay']);
     }
 
     echo json_encode($checks);

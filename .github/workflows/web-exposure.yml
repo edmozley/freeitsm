@@ -64,6 +64,11 @@ jobs:
       - name: no file gains hard-coded font sizes
         run: php tests/font-size-guard.php
 
+      # GH #383: when a morning check falls due - pure date logic (weekly, monthly on the
+      # 31st in a short month, last weekday...). No database, so it runs here.
+      - name: morning check schedules
+        run: php tests/morning-check-schedule.php
+
       # GH #392: no page repeats an element id. getElementById() finds only the first,
       # so a second dialog's button is silently wired to the first one's - "Add
       # someone" on a project did nothing in 5.5.0. Files only.

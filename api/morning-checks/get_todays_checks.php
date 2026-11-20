@@ -12,7 +12,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
-require_once '../../includes/services/morning_checks.php';   // resolveAssignment()
+require_once '../../includes/services/morning_checks.php';   // resolveAssignment(); brings morning_check_schedule.php
 
 header('Content-Type: application/json');
 
@@ -49,7 +49,8 @@ try {
                    g.AssignedAnalystID AS GroupAnalystID,
                    ga.full_name        AS GroupAnalystName,
                    g.AssignedTeamID    AS GroupTeamID,
-                   gt.name             AS GroupTeamName
+                   gt.name             AS GroupTeamName,
+                   c.ScheduleType, c.ScheduleDays, c.ScheduleMonthWhen, c.ScheduleMonthDay
             FROM morningChecks_Checks c
             LEFT JOIN morningChecks_Results r
                 ON c.CheckID = r.CheckID AND r.CheckDate = ?
@@ -69,6 +70,23 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$checkDate]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // GH #383: a check not due on this day is still listed (greyed, and it can still be
+    // recorded), with when it was last done, when it is next due, and - when its last due
+    // day went by with nothing recorded - that it was missed. One query for the lot: the
+    // results of the scheduled checks over the last 62 days, which is as far back as any
+    // schedule's previous due day can be.
+    $scheduled = array_values(array_unique(array_map(fn($r) => (int)$r['CheckID'], array_filter($rows, fn($r) => !empty($r['ScheduleType'])))));
+    $lastDone = [];   // [CheckID] => Y-m-d, on or before the day viewed
+    if ($scheduled) {
+        $in = implode(',', array_fill(0, count($scheduled), '?'));
+        $st = $conn->prepare("SELECT CheckID, DATE_FORMAT(CheckDate, '%Y-%m-%d') AS d FROM morningChecks_Results
+                                WHERE CheckID IN ($in) AND CheckDate <= ? AND CheckDate >= ? - INTERVAL 62 DAY");
+        $st->execute(array_merge($scheduled, [$checkDate, $checkDate]));
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $x) {
+            if (!isset($lastDone[(int)$x['CheckID']]) || $x['d'] > $lastDone[(int)$x['CheckID']]) $lastDone[(int)$x['CheckID']] = $x['d'];
+        }
+    }
 
     $checks = [];
     foreach ($rows as $r) {
@@ -110,7 +128,9 @@ try {
             'AssignedLabel'        => $assignedLabel,
             'AssignedSource'       => $assignedSource,     // 'check' | 'group' | 'team' | null
             'AssignedTeamID'       => $assignedSource === 'team' && $r['GroupTeamID'] !== null ? (int)$r['GroupTeamID'] : null,
-        ];
+            // GH #383
+            'Schedule'             => MorningCheckSchedule::toArray($r),
+        ] + mcScheduleState($r, $checkDate, $lastDone);
     }
 
     echo json_encode($checks);
@@ -118,4 +138,28 @@ try {
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
+}
+
+/**
+ * GH #383: Due on this day, and - for a check that is not - when it was last done, when it is
+ * next due, and the due day it missed (its last due day before this one, with nothing recorded).
+ *
+ * @param array $r         the check row with its Schedule* columns
+ * @param array $lastDone  [CheckID] => Y-m-d
+ */
+function mcScheduleState(array $r, string $date, array $lastDone): array
+{
+    $id = (int)$r['CheckID'];
+    if (MorningCheckSchedule::isDue($r, $date)) {
+        return ['Due' => true, 'NextDue' => null, 'LastDone' => $lastDone[$id] ?? null, 'MissedOn' => null];
+    }
+    $prev = MorningCheckSchedule::previousDue($r, $date);
+    // Missed = its last due day passed with nothing recorded on it or after it.
+    $missed = ($prev !== null && !(isset($lastDone[$id]) && $lastDone[$id] >= $prev)) ? $prev : null;
+    return [
+        'Due'      => false,
+        'NextDue'  => MorningCheckSchedule::nextDue($r, $date),
+        'LastDone' => $lastDone[$id] ?? null,
+        'MissedOn' => $missed,
+    ];
 }

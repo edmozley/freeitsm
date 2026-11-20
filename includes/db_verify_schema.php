@@ -3781,6 +3781,12 @@ return [
         'CreatedDate'       => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'ModifiedDate'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+        // GH #383: when the check falls due. ScheduleType NULL = every day (every check made
+        // before schedules). includes/morning_check_schedule.php reads these - nothing else.
+        'ScheduleType'      => 'VARCHAR(12) NULL',     // weekdays | weekly | monthly
+        'ScheduleDays'      => 'VARCHAR(20) NULL',     // weekly: ISO days, "1,4" = Mon and Thu
+        'ScheduleMonthWhen' => 'VARCHAR(16) NULL',     // monthly: day | first_weekday | last_weekday | last_day
+        'ScheduleMonthDay'  => 'TINYINT NULL',         // monthly 'day': 1-31 (31 = last day of a short month)
     ],
 
     // Tickets/tasks raised from a check. A link table rather than columns on the
