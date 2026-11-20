@@ -15,6 +15,7 @@ require_once '../../includes/timezone.php';
 require_once '../../includes/theme.php';
 require_once '../../includes/storage_persistence.php';
 require_once '../../includes/docker_tls.php';
+require_once '../../includes/docker_proxy.php';   // Behind a reverse proxy (GH #410)
 I18n::initFromSession();
 Tz::init();
 
@@ -43,6 +44,8 @@ $httpsPort = $browser['https'] ? ($browser['port'] ?? 443) : 8443;
 $httpsUrl  = 'https://' . $savedHost . ($httpsPort === 443 ? '' : ':' . $httpsPort) . '/';
 
 $restartCmd = 'docker compose restart';
+// Behind a reverse proxy (GH #410): what Apache actually loaded at start, not just the variable.
+$proxy = $inContainer ? dockerProxyState() : null;
 
 /**
  * Escape a translated string, then drop pre-built HTML into its {placeholders}.
@@ -140,6 +143,21 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
         .form-help { font-size: 12px; color: var(--text-dim, #888); margin-top: 5px; }
         .form-warn { font-size: 12px; color: #b45309; margin-top: 5px; display: none; }
         .form-error { color: #d32f2f; margin-top: 10px; display: none; }
+
+        /* Behind a reverse proxy (GH #410). The danger box is always shown: the point is
+           that somebody reads what a wrong value does BEFORE they type one. */
+        .notice.is-danger { background: #fdecea; border-color: #f5c2c0; color: #8a1c14; }
+        .notice.is-danger ul { margin: 6px 0 0; padding-left: 20px; }
+        .notice.is-danger li { margin-bottom: 6px; }
+        .proxy-result { margin-top: 14px; padding: 12px 14px; border-radius: 6px; border-left: 4px solid #90a4ae; background: var(--surface-hover, #f5f5f5); color: var(--text, #333); display: none; }
+        .proxy-result.is-good { border-left-color: #107c10; }
+        .proxy-result.is-bad  { border-left-color: #d32f2f; }
+        .proxy-result.is-info { border-left-color: #1e88e5; }
+        .proxy-result p { margin: 0 0 8px; }
+        .proxy-result p:last-child { margin-bottom: 0; }
+        .proxy-result .proxy-ip { font-family: 'Consolas', 'Courier New', monospace; font-weight: 600; }
+        .proxy-headers { font-size: 12px; color: var(--text-muted, #555); }
+        :root[data-theme="dark"] .notice.is-danger, :root[data-theme-mode="dark"] .notice.is-danger { background: #3b1715; border-color: #6b2a25; color: #f6c7c3; }
 
         .btn {
             display: inline-flex; align-items: center; gap: 8px;
@@ -313,6 +331,52 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
                 </ol>
             </div>
     <?php endif; ?>
+
+            <!-- Behind a reverse proxy (GH #410). Set in docker-compose.yml and applied by
+                 docker/entrypoint.sh; this panel reads what Apache loaded, warns what a wrong
+                 value does, and tests the request in front of it. It changes nothing. -->
+            <div class="panel" id="proxy">
+                <h3><?php echo dk('proxy_heading'); ?></h3>
+                <p><?php echo dk('proxy_intro'); ?></p>
+
+    <?php if ($proxy['state'] === 'on'): ?>
+                <div class="panel status-card is-on" style="box-shadow:none;padding:12px 16px;margin-bottom:16px">
+                    <div class="status-title"><?php echo dk('proxy_on_title'); ?></div>
+                    <p><?php echo dk('proxy_on_body', ['header' => dkCode($proxy['header']), 'list' => dkCode(implode(' ', $proxy['list']))]); ?></p>
+                </div>
+    <?php elseif ($proxy['state'] === 'refused'): ?>
+                <div class="panel status-card is-restart" style="box-shadow:none;padding:12px 16px;margin-bottom:16px">
+                    <div class="status-title"><?php echo dk('proxy_refused_title'); ?></div>
+                    <p><?php echo dk('proxy_refused_body', ['list' => dkCode(implode(' ', $proxy['list'])), 'cmd' => dkCode('docker compose logs app')]); ?></p>
+                </div>
+    <?php else: ?>
+                <div class="panel status-card is-off" style="box-shadow:none;padding:12px 16px;margin-bottom:16px">
+                    <div class="status-title"><?php echo dk('proxy_off_title'); ?></div>
+                    <p><?php echo dk('proxy_off_body'); ?></p>
+                </div>
+    <?php endif; ?>
+
+    <?php if ($proxy['wide']): ?>
+                <div class="notice is-danger"><strong><?php echo dk('proxy_wide_title'); ?></strong><?php echo dk('proxy_wide_body', ['ranges' => dkCode(implode(' ', $proxy['wide']))]); ?></div>
+    <?php endif; ?>
+
+                <div class="notice is-danger">
+                    <strong><?php echo dk('proxy_danger_title'); ?></strong>
+                    <ul>
+                        <li><?php echo dk('proxy_danger_wide', ['example' => dkCode('10.0.0.0/8')]); ?></li>
+                        <li><?php echo dk('proxy_danger_missing'); ?></li>
+                        <li><?php echo dk('proxy_danger_wrong'); ?></li>
+                    </ul>
+                </div>
+
+                <p><?php echo dk('proxy_how'); ?></p>
+                <span class="code-block">      - TRUSTED_PROXIES=192.0.2.10</span>
+                <p><?php echo dk('proxy_how_cf', ['setting' => dkCode('TRUSTED_PROXY_HEADER=CF-Connecting-IP')]); ?></p>
+
+                <p style="margin-top:16px"><strong><?php echo dk('proxy_test_heading'); ?></strong> <?php echo dk('proxy_test_intro'); ?></p>
+                <button type="button" class="btn btn-primary" id="proxyTest"><?php echo dk('proxy_test'); ?></button>
+                <div class="proxy-result" id="proxyResult" role="status" aria-live="polite"></div>
+            </div>
 <?php endif; ?>
         </div>
     </div>
@@ -384,5 +448,42 @@ $overrideFile = "services:\n  app:\n    ports:\n      - \"8443:443\"\n    volume
     })();
     </script>
     <script src="../../assets/js/mobile.js?v=87"></script>
+    <script>
+    // Behind a reverse proxy -> Test (GH #410). Read-only: asks the server what it recorded
+    // for this very request and explains it. Everything shown is set with textContent.
+    (function () {
+        const btn = document.getElementById('proxyTest');
+        const out = document.getElementById('proxyResult');
+        if (!btn || !out) return;
+        const T = (k, p) => window.t('system.docker.' + k, p);
+        const para = (text, cls) => { const p = document.createElement('p'); if (cls) p.className = cls; p.textContent = text; out.appendChild(p); return p; };
+        btn.addEventListener('click', async function () {
+            btn.disabled = true;
+            out.className = 'proxy-result'; out.style.display = 'block'; out.textContent = T('proxy_testing');
+            let d;
+            try {
+                d = await (await fetch('<?php echo $path_prefix; ?>api/system/docker_proxy_check.php', { credentials: 'same-origin', cache: 'no-store' })).json();
+                if (!d.success) throw new Error(d.error || '');
+            } catch (e) {
+                out.className = 'proxy-result is-bad'; out.textContent = T('proxy_test_failed');
+                btn.disabled = false; return;
+            }
+            out.textContent = '';
+            const rec = para(T('proxy_recorded') + ' ');
+            const ip = document.createElement('span'); ip.className = 'proxy-ip'; ip.textContent = d.recorded || '?'; rec.appendChild(ip);
+            const names = Object.keys(d.headers || {});
+            const cls = { working: 'is-good', direct: 'is-info', off_proxy: 'is-bad', still_proxy: 'is-bad', refused: 'is-bad' }[d.verdict] || '';
+            out.className = 'proxy-result ' + cls;
+            para(T('verdict_' + d.verdict, { ip: d.suggest || d.recorded || '?', header: d.header || 'X-Forwarded-For', headers: names.join(', ') }));
+            if (d.verdict === 'off_proxy' && d.suggest) {
+                const code = document.createElement('span'); code.className = 'code-block'; code.textContent = '      - TRUSTED_PROXIES=' + d.suggest; out.appendChild(code);
+                para(T('proxy_suggest_then'));
+            }
+            const h = para('', 'proxy-headers');
+            h.textContent = names.length ? T('proxy_headers_seen') + ' ' + names.map(n => n + ': ' + d.headers[n]).join(' · ') : T('proxy_headers_none');
+            btn.disabled = false;
+        });
+    })();
+    </script>
 </body>
 </html>

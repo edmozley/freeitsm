@@ -66,7 +66,7 @@ require __DIR__ . '/_top.php';
             <h3>Behind a reverse proxy</h3>
         </div>
     </div>
-    <p>When a reverse proxy, load balancer or Cloudflare Tunnel sits in front of the container, every request reaches FreeITSM from the proxy. So System &rarr; Logs, the audit trails and API key allow-lists all see the proxy's address, not the person's.</p>
+    <p>When a reverse proxy, load balancer or Cloudflare Tunnel sits in front of the container, every request reaches FreeITSM from the proxy. So Reporting &rarr; Logs, the audit trails and API key allow-lists all see the proxy's address, not the person's.</p>
     <p>To record the real address, name the proxy in <code>docker-compose.yml</code> and run <code>docker compose up -d</code>:</p>
     <pre><code>      - TRUSTED_PROXIES=192.0.2.10</code></pre>
     <ul>
