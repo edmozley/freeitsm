@@ -118,7 +118,6 @@ return [
         'first_seen' => 'Eerst gezien',
         'left' => 'Vertrokken',
         'leaver' => 'Vertrokken',
-        'edit_in' => 'Bewerken in',
         'tickets_app' => 'Tickets',
         'assets_app' => 'Assets',
     ],
@@ -288,8 +287,6 @@ return [
         'edit' => [
             'nav' => 'Iemand wijzigen',
             'title' => 'De gegevens van iemand wijzigen',
-            'intro' => 'Personen leest. Gegevens worden bijgehouden, en gewijzigd, waar ze altijd al stonden.',
-            'p1' => '**Bewerken in → Tickets** of **Assets** bovenaan de pagina van een persoon opent diegene in Tickets → Gebruikers of Assets → Gebruikers, waar de gegevens, manager en aanmelding worden bewerkt - in beide dezelfde editor.',
             'p2' => 'Een persoon wiens gegevens uit een directory of adresboek komen, wordt daar bijgewerkt, zoals voorheen; de pagina hier toont gewoon het resultaat.',
         ],
         'who' => [

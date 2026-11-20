@@ -328,7 +328,7 @@ return [
         'first_seen' => 'Première détection',
         'left' => 'Départ',
         'leaver' => 'Parti',
-        'edit_in' => 'Modifier dans',
+        'open_in' => 'Ouvrir dans',   // GH #397: Edit is on the page; these only open
         'tickets_app' => 'Tickets',
         'assets_app' => 'Actifs',
         'org' => 'Organisation',
@@ -519,8 +519,8 @@ return [
         'edit' => [
             'nav' => 'Modifier quelqu\'un',
             'title' => 'Modifier les informations de quelqu\'un',
-            'intro' => 'Personnes lit. Les informations sont conservées, et modifiées, là où elles l\'ont toujours été.',
-            'p1' => '**Modifier dans → Tickets** ou **Actifs** en haut de la page d\'une personne l\'ouvre dans Tickets → Utilisateurs ou Actifs → Utilisateurs, où ses informations, son responsable et sa connexion se modifient - le même éditeur dans les deux cas.',
+            'intro' => 'La plupart des informations se modifient directement ici.',
+            'p1' => '**Modifier** en haut de la page d\'une personne change ses informations, son responsable et sa connexion sans quitter Personnes - le même éditeur que Tickets → Utilisateurs et Actifs → Utilisateurs, proposé à quiconque peut ouvrir l\'un des deux. **Ouvrir dans → Tickets** ou **Actifs** ouvre plutôt la personne dans ce module.',
             'p2' => 'Une personne dont les informations proviennent d\'un annuaire ou d\'un carnet d\'adresses est mise à jour là-bas, comme avant ; sa page ici affiche simplement le résultat.',
         ],
         'who' => [

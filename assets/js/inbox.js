@@ -836,6 +836,47 @@ function handleFiles(files) {
     renderAttachments();
 }
 
+// ===== From Files in the reply box (GH #397) =================================
+// A file already in Files, sent WITH the email as an ordinary attachment. Unlike a note
+// (where a link can stay in Files' hands) an email leaves FreeITSM, so it is always a
+// copy - fetched through api/files/download.php, which checks the person holds Download
+// on the folder and audits it, exactly as if they had downloaded it and attached it by
+// hand. It then joins emailAttachments like a file from the computer, so sending, the
+// Sent copy and the ticket's record of it are unchanged. The picker offers only files
+// the person can download.
+
+/** Shows the From Files link to someone who can open Files, on a ticket. */
+function syncReplyFromFiles() {
+    const wrap = document.getElementById('replyFromFilesWrap');
+    if (wrap) wrap.hidden = !(window.TICKET_SAVE_TO_FILES && window.FilesPicker && currentEmail);
+}
+
+/** Opens the Files picker; the pick is fetched and added to the email's attachments. */
+function replyFromFiles() {
+    if (!window.FilesPicker || !currentEmail) return;
+    window.FilesPicker.open({
+        mode: 'copy',
+        title: t('tickets.reply_modal.from_files_title'),
+        copyLabel: t('tickets.reply_modal.from_files_attach'),
+        copyTip: t('tickets.reply_modal.from_files_attach_tip'),
+        parentType: 'ticket', parentId: Number(currentEmail.ticket_id),
+        onPick: (itemId, how, name, picked) => addReplyFromFiles(itemId, name, picked)
+    });
+}
+
+/** Fetches a Files item and adds it to the email's attachments, as a File. */
+async function addReplyFromFiles(itemId, name, picked) {
+    try {
+        const r = await fetch(`../api/files/download.php?id=${Number(itemId)}`, { credentials: 'same-origin' });
+        // A refusal comes back as JSON; a file always as application/octet-stream.
+        if (!r.ok || (r.headers.get('Content-Type') || '').includes('json')) throw new Error('refused');
+        const blob = await r.blob();
+        handleFiles([new File([blob], name, { type: (picked && picked.mime) || '' })]);
+    } catch (e) {
+        showToast(t('tickets.reply_modal.from_files_failed'), 'error');
+    }
+}
+
 // Render attachment list
 function renderAttachments() {
     const list = document.getElementById('attachmentList');
@@ -7948,6 +7989,7 @@ function openReplyModal(fromEmail) {
 
     applyDefaultSignature();
     setReplyCleanupVisibility('reply');
+    syncReplyFromFiles();   // GH #397
     document.getElementById('emailModal').classList.add('active');
     // Tell colleagues we're writing, and show their warning if they already are.
     setPresenceComposing(true);
@@ -8009,6 +8051,7 @@ function openForwardModal(fromEmail) {
 
     applyDefaultSignature();
     setReplyCleanupVisibility('forward');
+    syncReplyFromFiles();   // GH #397
     document.getElementById('emailModal').classList.add('active');
     setPresenceComposing(true);
     renderComposerCollisionWarning();

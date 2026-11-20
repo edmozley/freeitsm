@@ -118,7 +118,6 @@ return [
         'first_seen' => 'Mula dilihat',
         'left' => 'Berhenti',
         'leaver' => 'Telah berhenti',
-        'edit_in' => 'Sunting dalam',
         'tickets_app' => 'Tiket',
         'assets_app' => 'Aset',
     ],
@@ -288,8 +287,6 @@ return [
         'edit' => [
             'nav' => 'Menukar butiran seseorang',
             'title' => 'Menukar butiran seseorang',
-            'intro' => 'Orang hanya membaca. Butiran disimpan, dan diubah, di tempat asalnya.',
-            'p1' => '**Sunting dalam → Tiket** atau **Aset** di bahagian atas halaman seseorang membukanya dalam Tiket → Pengguna atau Aset → Pengguna, tempat butiran, pengurus dan log masuk mereka disunting - penyunting yang sama dari kedua-duanya.',
             'p2' => 'Orang yang butirannya datang daripada direktori atau buku alamat dikemas kini di sana, seperti sebelum ini; halaman mereka di sini hanya menunjukkan hasilnya.',
         ],
         'who' => [

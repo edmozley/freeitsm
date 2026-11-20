@@ -118,7 +118,6 @@ return [
         'first_seen' => 'Først sett',
         'left' => 'Sluttet',
         'leaver' => 'Sluttet',
-        'edit_in' => 'Rediger i',
         'tickets_app' => 'Saker',
         'assets_app' => 'Ressurser',
     ],
@@ -288,8 +287,6 @@ return [
         'edit' => [
             'nav' => 'Endre noen',
             'title' => 'Endre noens detaljer',
-            'intro' => 'Personer leser. Detaljer lagres, og endres, der de alltid har vært.',
-            'p1' => '**Rediger i → Saker** eller **Ressurser** øverst på en persons side åpner dem i Saker → Brukere eller Ressurser → Brukere, der detaljene, lederen og påloggingen deres redigeres - samme redigeringsvindu fra begge.',
             'p2' => 'En person hvis detaljer kommer fra en katalog eller en adressebok, oppdateres der, som før; siden deres her viser bare resultatet.',
         ],
         'who' => [

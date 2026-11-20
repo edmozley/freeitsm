@@ -118,7 +118,6 @@ return [
         'first_seen' => 'Primo rilevamento',
         'left' => 'Uscita',
         'leaver' => 'Ex dipendente',
-        'edit_in' => 'Modifica in',
         'tickets_app' => 'Ticket',
         'assets_app' => 'Asset',
     ],
@@ -288,8 +287,6 @@ return [
         'edit' => [
             'nav' => 'Modificare una persona',
             'title' => 'Modificare i dati di una persona',
-            'intro' => 'Persone legge. I dati restano, e si modificano, dove sono sempre stati.',
-            'p1' => '**Modifica in → Ticket** o **Asset** in cima alla pagina di una persona la apre in Ticket → Utenti o Asset → Utenti, dove si modificano i suoi dati, il responsabile e l\'accesso: è lo stesso editor da entrambe le parti.',
             'p2' => 'Una persona i cui dati provengono da una directory o da una rubrica viene aggiornata lì, come prima; la sua pagina qui ne mostra semplicemente il risultato.',
         ],
         'who' => [

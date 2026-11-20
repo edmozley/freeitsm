@@ -328,7 +328,7 @@ return [
         'first_seen' => 'Først set',
         'left' => 'Fratrådt',
         'leaver' => 'Fratrådt',
-        'edit_in' => 'Redigér i',
+        'open_in' => 'Åbn i',   // GH #397: Edit is on the page; these only open
         'tickets_app' => 'Sager',
         'assets_app' => 'Aktiver',
         'org' => 'Organisation',
@@ -519,8 +519,8 @@ return [
         'edit' => [
             'nav' => 'Ændring af en person',
             'title' => 'Ændring af en persons oplysninger',
-            'intro' => 'Personer læser. Oplysninger opbevares og ændres, hvor de altid har været.',
-            'p1' => '**Redigér i → Sager** eller **Aktiver** øverst på en persons side åbner dem i Sager → Brugere eller Aktiver → Brugere, hvor deres oplysninger, leder og login redigeres - den samme editor fra begge.',
+            'intro' => 'De fleste oplysninger kan ændres lige her.',
+            'p1' => '**Redigér** øverst på en persons side ændrer deres oplysninger, leder og login uden at forlade Personer - den samme editor som Sager → Brugere og Aktiver → Brugere, og den vises for alle, der kan åbne en af dem. **Åbn i → Sager** eller **Aktiver** åbner i stedet personen i det modul.',
             'p2' => 'En person, hvis oplysninger kommer fra et katalog eller en adressebog, opdateres dér, som før; deres side her viser blot resultatet.',
         ],
         'who' => [

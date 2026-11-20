@@ -118,7 +118,6 @@ return [
         'first_seen' => 'Eerste gesien',
         'left' => 'Vertrek',
         'leaver' => 'Vertrekker',
-        'edit_in' => 'Wysig in',
         'tickets_app' => 'Kaartjies',
         'assets_app' => 'Bates',
     ],
@@ -288,8 +287,6 @@ return [
         'edit' => [
             'nav' => 'Iemand verander',
             'title' => 'Iemand se besonderhede verander',
-            'intro' => 'Mense lees. Besonderhede word gehou, en verander, waar hulle nog altyd was.',
-            'p1' => '**Wysig in → Kaartjies** of **Bates** bo-aan \'n persoon se bladsy maak hulle oop in Kaartjies → Gebruikers of Bates → Gebruikers, waar hul besonderhede, bestuurder en aanmelding gewysig word - dieselfde redigeerder van albei kante.',
             'p2' => '\'n Persoon wie se besonderhede uit \'n gidsdiens of \'n adresboek kom, word daar bygewerk, soos voorheen; hul bladsy hier wys bloot die resultaat.',
         ],
         'who' => [

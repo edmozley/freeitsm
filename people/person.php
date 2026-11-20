@@ -15,6 +15,7 @@ require_once '../includes/timezone.php';
 require_once '../includes/people.php';
 require_once '../includes/recent_trail.php';
 require_once '../includes/phone_dial.php';   // the Call button beside a number
+require_once '../includes/person_editor.php';   // GH #397: Edit without leaving People
 require_once 'includes/render.php';
 I18n::initFromSession();
 Tz::init();
@@ -64,7 +65,11 @@ $multi = isMultiTenant($conn);
             </div>
             <?php if ($canTickets || $canAssets): ?>
             <div class="ppl-hero-actions">
-                <span class="ppl-dim"><?php echo pplE(t('people.person.edit_in')); ?></span>
+                <?php /* GH #397: Edit opens the ONE shared person editor (includes/person_editor.php) here.
+                         Same rule as its endpoint, api/tickets/save_user.php: Tickets or Assets access,
+                         then analystCanAccessUser() on the person. */ ?>
+                <button type="button" class="ppl-btn ppl-btn-primary" onclick="pplEditPerson(<?php echo (int)$p['id']; ?>)"><?php echo pplE(t('common.edit')); ?></button>
+                <span class="ppl-dim"><?php echo pplE(t('people.person.open_in')); ?></span>
                 <?php if ($canTickets): ?><a class="ppl-btn" href="<?php echo BASE_URL; ?>tickets/users.php?user_id=<?php echo (int)$p['id']; ?>"><?php echo pplE(t('people.person.tickets_app')); ?></a><?php endif; ?>
                 <?php if ($canAssets): ?><a class="ppl-btn" href="<?php echo BASE_URL; ?>asset-management/users.php?user_id=<?php echo (int)$p['id']; ?>"><?php echo pplE(t('people.person.assets_app')); ?></a><?php endif; ?>
             </div>
@@ -126,6 +131,12 @@ $multi = isMultiTenant($conn);
         </div>
     <?php endif; ?>
     </main>
+    <?php if ($p && ($canTickets || $canAssets)): personEditorRender(); ?>
+    <script>
+    /* GH #397: edit in place; the page is drawn from the saved record, so reload to show it. */
+    function pplEditPerson(id) { PersonEditor.open(id, { onSaved: async function () { location.reload(); } }); }
+    </script>
+    <?php endif; ?>
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/confirm.js?v=7"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/people-emails.js?v=1"></script>   <!-- GH #308 -->

@@ -328,7 +328,7 @@ return [
         'first_seen' => 'Visto por primera vez',
         'left' => 'Baja',
         'leaver' => 'Baja',
-        'edit_in' => 'Editar en',
+        'open_in' => 'Abrir en',   // GH #397: Edit is on the page; these only open
         'tickets_app' => 'Tickets',
         'assets_app' => 'Activos',
         'org' => 'Organización',
@@ -519,8 +519,8 @@ return [
         'edit' => [
             'nav' => 'Cambiar a alguien',
             'title' => 'Cambiar los detalles de alguien',
-            'intro' => 'Personas solo lee. Los detalles se guardan y se cambian donde siempre.',
-            'p1' => '**Editar en → Tickets** o **Activos** en la parte superior de la página de una persona la abre en Tickets → Usuarios o Activos → Usuarios, donde se editan sus detalles, su responsable y su inicio de sesión - el mismo editor desde cualquiera de los dos.',
+            'intro' => 'La mayoría de los datos se pueden cambiar aquí mismo.',
+            'p1' => '**Editar** en la parte superior de la página de una persona cambia sus detalles, su responsable y su inicio de sesión sin salir de Personas - el mismo editor que Tickets → Usuarios y Activos → Usuarios, disponible para quien pueda abrir cualquiera de los dos. **Abrir en → Tickets** o **Activos** abre a la persona en ese módulo.',
             'p2' => 'Una persona cuyos datos proceden de un directorio o de una libreta de direcciones se actualiza allí, como antes; su página aquí simplemente muestra el resultado.',
         ],
         'who' => [

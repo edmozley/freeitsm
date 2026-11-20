@@ -118,7 +118,6 @@ return [
         'first_seen' => 'Først sett',
         'left' => 'Slutta',
         'leaver' => 'Slutta',
-        'edit_in' => 'Rediger i',
         'tickets_app' => 'Saker',
         'assets_app' => 'Ressursar',
     ],
@@ -288,8 +287,6 @@ return [
         'edit' => [
             'nav' => 'Endre nokon',
             'title' => 'Endre detaljane til nokon',
-            'intro' => 'Personar les. Detaljane blir haldne og endra der dei alltid har vore.',
-            'p1' => '**Rediger i → Saker** eller **Ressursar** øvst på sida til ein person opnar dei i Saker → Brukarar eller Ressursar → Brukarar, der detaljane, leiaren og innlogginga deira blir redigerte - same redigeringsverktøy frå begge.',
             'p2' => 'Ein person med detaljar frå ein katalog eller ei adressebok blir oppdatert der, som før; sida deira her viser berre resultatet.',
         ],
         'who' => [

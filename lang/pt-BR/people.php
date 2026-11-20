@@ -118,7 +118,6 @@ return [
         'first_seen' => 'Visto pela primeira vez',
         'left' => 'Saída',
         'leaver' => 'Desligado',
-        'edit_in' => 'Editar em',
         'tickets_app' => 'Tickets',
         'assets_app' => 'Ativos',
     ],
@@ -288,8 +287,6 @@ return [
         'edit' => [
             'nav' => 'Alterando alguém',
             'title' => 'Alterando os dados de alguém',
-            'intro' => 'Pessoas lê. Os dados são mantidos e alterados onde sempre estiveram.',
-            'p1' => '**Editar em → Tickets** ou **Ativos** no topo da página de uma pessoa a abre em Tickets → Usuários ou Ativos → Usuários, onde se editam seus dados, gestor e acesso - o mesmo editor nos dois.',
             'p2' => 'Uma pessoa cujos dados vêm de um diretório ou de um catálogo de endereços é atualizada lá, como antes; a página dela aqui apenas mostra o resultado.',
         ],
         'who' => [

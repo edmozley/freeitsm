@@ -328,7 +328,7 @@ return [
         'first_seen' => 'Po raz pierwszy widziano',
         'left' => 'Odejście',
         'leaver' => 'Odchodzący',
-        'edit_in' => 'Edytuj w',
+        'open_in' => 'Otwórz w',   // GH #397: Edit is on the page; these only open
         'tickets_app' => 'Zgłoszenia',
         'assets_app' => 'Zasoby',
         'org' => 'Organizacja',
@@ -519,8 +519,8 @@ return [
         'edit' => [
             'nav' => 'Zmiana danych',
             'title' => 'Zmiana danych osoby',
-            'intro' => 'Osoby tylko czytają. Dane są przechowywane i zmieniane tam, gdzie zawsze były.',
-            'p1' => '**Edytuj w → Zgłoszenia** lub **Zasoby** na górze strony osoby otwiera ją w Zgłoszenia → Użytkownicy lub Zasoby → Użytkownicy, gdzie edytuje się jej dane, przełożonego i logowanie - tym samym edytorem z obu miejsc.',
+            'intro' => 'Większość danych można zmienić bezpośrednio tutaj.',
+            'p1' => '**Edytuj** na górze strony osoby zmienia jej dane, przełożonego i logowanie bez wychodzenia z Osób - ten sam edytor co w Zgłoszenia → Użytkownicy i Zasoby → Użytkownicy, dostępny dla każdego, kto może otworzyć którykolwiek z nich. **Otwórz w → Zgłoszenia** lub **Zasoby** otwiera osobę w tym module.',
             'p2' => 'Osoba, której dane pochodzą z katalogu lub książki adresowej, jest aktualizowana tam, jak dotąd; jej strona tutaj po prostu pokazuje wynik.',
         ],
         'who' => [

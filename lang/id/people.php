@@ -328,7 +328,7 @@ return [
         'first_seen' => 'Pertama terlihat',
         'left' => 'Keluar',
         'leaver' => 'Karyawan keluar',
-        'edit_in' => 'Ubah di',
+        'open_in' => 'Buka di',   // GH #397: Edit is on the page; these only open
         'tickets_app' => 'Tiket',
         'assets_app' => 'Aset',
         'org' => 'Organisasi',
@@ -519,8 +519,8 @@ return [
         'edit' => [
             'nav' => 'Mengubah seseorang',
             'title' => 'Mengubah detail seseorang',
-            'intro' => 'Orang hanya membaca. Detail disimpan, dan diubah, di tempat asalnya.',
-            'p1' => '**Ubah di → Tiket** atau **Aset** di bagian atas halaman seseorang membukanya di Tiket → Pengguna atau Aset → Pengguna, tempat detail, manajer, dan login mereka diubah - editor yang sama dari keduanya.',
+            'intro' => 'Sebagian besar data dapat diubah langsung di sini.',
+            'p1' => '**Edit** di bagian atas halaman seseorang mengubah detail, manajer, dan login mereka tanpa meninggalkan Orang - editor yang sama dengan Tiket → Pengguna dan Aset → Pengguna, tersedia bagi siapa pun yang dapat membuka salah satunya. **Buka di → Tiket** atau **Aset** membuka orang tersebut di modul itu.',
             'p2' => 'Orang yang detailnya berasal dari direktori atau buku alamat diperbarui di sana, seperti sebelumnya; halaman mereka di sini hanya menampilkan hasilnya.',
         ],
         'who' => [

@@ -334,7 +334,7 @@ return [
         'first_seen'  => 'First seen',
         'left'        => 'Left',
         'leaver'      => 'Leaver',
-        'edit_in'     => 'Edit in',
+        'open_in' => 'Open in',   // GH #397: Edit is on the page; these only open
         'tickets_app' => 'Tickets',
         'assets_app'  => 'Assets',
         'org'         => 'Organisation',
@@ -535,8 +535,8 @@ return [
         'edit' => [
             'nav'   => 'Changing someone',
             'title' => 'Changing someone\'s details',
-            'intro' => 'People reads. Details are kept, and changed, where they always were.',
-            'p1'    => '**Edit in → Tickets** or **Assets** at the top of a person\'s page opens them in Tickets → Users or Assets → Users, where their details, manager and sign-in are edited - the same editor from either.',
+            'intro' => 'Most details can be changed right here.',
+            'p1' => '**Edit** at the top of a person\'s page changes their details, manager and sign-in without leaving People - the same editor as Tickets → Users and Assets → Users, there for anyone who can open either. **Open in → Tickets** or **Assets** opens the person in that module instead.',
             'p2'    => 'A person whose details come from a directory or an address book is updated there, as before; their page here simply shows the result.',
         ],
         'who' => [

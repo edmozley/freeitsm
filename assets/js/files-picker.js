@@ -3,7 +3,12 @@
  * down the left, the folder's files on the right, a search box, and Link / Copy - in
  * a draggable, resizable floating window (FloatWin.page(), as the viewer uses).
  *
- *   FilesPicker.open({ mode: 'link'|'copy'|'both', title?, onPick: function (itemId, how, name) {} })
+ *   FilesPicker.open({ mode: 'link'|'copy'|'both', title?, copyLabel?, copyTip?,
+ *                      onPick: function (itemId, how, name, picked) {} })
+ *
+ * picked is { item_id, name, level, mime, size } - mime and size as Files stored them
+ * (a search result may have no mime). copyLabel / copyTip rename the Copy button where
+ * "copy" means something else - the reply box sends it as an email attachment (GH #397).
  *
  * What it shows comes from Files' own endpoints, so it is only ever what the person
  * could see in Files: api/files/list.php (folders and files, with the person's level
@@ -69,7 +74,7 @@
         var tree = w.body.querySelector('.fpk-tree'), tbody = w.body.querySelector('tbody'), empty = w.body.querySelector('.fpk-empty');
         var pathEl = w.body.querySelector('.fpk-path'), search = w.body.querySelector('.fpk-search');
         var selEl = w.body.querySelector('.fpk-sel'), foot = w.body.querySelector('.fpk-foot');
-        var selected = null;   // { item_id, name, level }
+        var selected = null;   // { item_id, name, level, mime, size }
 
         // ── the footer buttons ────────────────────────────────────────────
         var btn = function (label, cls, run) {
@@ -78,10 +83,10 @@
             b.addEventListener('click', run); foot.appendChild(b); return b;
         };
         var linkBtn = mode !== 'copy' ? btn(T('link', 'Link'), 'fpk-primary', function () { pick('link'); }) : null;
-        var copyBtn = mode !== 'link' ? btn(T('copy', 'Copy'), mode === 'copy' ? 'fpk-primary' : '', function () { pick('copy'); }) : null;
+        var copyBtn = mode !== 'link' ? btn(o.copyLabel || T('copy', 'Copy'), mode === 'copy' ? 'fpk-primary' : '', function () { pick('copy'); }) : null;
         btn(T('cancel', 'Cancel'), '', function () { w.close(); });
         if (linkBtn) linkBtn.title = T('link_tip', 'A link: opened through Files, under its folder\'s permissions, always the latest version');
-        if (copyBtn) copyBtn.title = T('copy_tip', 'A copy of the current version, readable by everyone who can see it');
+        if (copyBtn) copyBtn.title = o.copyTip || T('copy_tip', 'A copy of the current version, readable by everyone who can see it');
 
         /** Enables the buttons for what is selected - Copy only with Download on its folder. */
         function refreshButtons() {
@@ -93,7 +98,7 @@
         function pick(how) {
             if (!selected) return;
             if (how === 'copy' && selected.level < LV_DOWNLOAD) return;
-            o.onPick(selected.item_id, how, selected.name);
+            o.onPick(selected.item_id, how, selected.name, selected);
             w.close();
         }
         /** The default for a double-click: a link when offered, else a copy. */
@@ -114,7 +119,7 @@
                 var choose = function () {
                     Array.prototype.forEach.call(tbody.querySelectorAll('tr.fpk-on'), function (x) { x.classList.remove('fpk-on'); });
                     tr.classList.add('fpk-on');
-                    selected = { item_id: r.id, name: r.name, level: r.level };
+                    selected = { item_id: r.id, name: r.name, level: r.level, mime: r.mime || '', size: r.size || 0 };
                     refreshButtons();
                 };
                 tr.addEventListener('click', choose);
@@ -130,7 +135,7 @@
             var node = tree.querySelector('.fpk-node[data-id="' + id + '"]');
             if (node) node.classList.add('fpk-cur');
             getJson(LIST + '?folder=' + id).then(function (r) {
-                showRows((r.items || []).map(function (it) { return { id: it.id, name: it.name, size: it.size, modified: it.modified, level: level }; }), false);
+                showRows((r.items || []).map(function (it) { return { id: it.id, name: it.name, size: it.size, modified: it.modified, mime: it.mime, level: level }; }), false);
             }).catch(function (e) { tbody.innerHTML = ''; empty.hidden = false; empty.textContent = e.message; });
         }
 
@@ -173,7 +178,7 @@
                 pathEl.textContent = T('results_for', 'Results for "{q}"', { q: q });
                 getJson(BASE + 'api/documents/find.php?q=' + encodeURIComponent(q) + '&parent_type=' + encodeURIComponent(o.parentType) + '&parent_id=' + encodeURIComponent(o.parentId))
                     .then(function (r) {
-                        showRows((r.files || []).map(function (f) { return { id: f.item_id, name: f.name, size: f.size, path: f.path, level: f.can_copy ? LV_DOWNLOAD : 1 }; }), true);
+                        showRows((r.files || []).map(function (f) { return { id: f.item_id, name: f.name, size: f.size, path: f.path, mime: f.mime, level: f.can_copy ? LV_DOWNLOAD : 1 }; }), true);
                     }).catch(function (e) { tbody.innerHTML = ''; empty.hidden = false; empty.textContent = e.message; });
             }, 250);
         });

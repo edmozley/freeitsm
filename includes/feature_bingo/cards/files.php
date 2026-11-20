@@ -133,7 +133,7 @@ return [
         'tier'     => 'extra',
         'category' => 'organisation',
         'title'    => 'Files attached to tickets and tasks',
-        'what'     => 'A file in Files attached to a ticket, task or any record - as a link that keeps Files\' folder permissions, or as a copy.',
+        'what'     => 'A file in Files attached to a ticket, task or any record - as a link that keeps Files\' folder permissions, or as a copy - or sent with an emailed reply (From Files in the reply box).',
         'why'      => 'The contract, the quote or the network diagram is on the ticket where it is needed, without a second copy drifting out of date or opening it up to everyone.',
         'done'     => 'A file from Files is attached to a record.',
         'link'     => 'files/',

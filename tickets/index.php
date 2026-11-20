@@ -340,6 +340,9 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
                         <div class="dropzone-content">
                             <span class="dropzone-icon">📎</span>
                             <span><?php echo htmlspecialchars(t('tickets.reply_modal.drop_files')); ?> <a href="#" onclick="document.getElementById('attachmentInput').click(); return false;"><?php echo htmlspecialchars(t('tickets.reply_modal.browse')); ?></a></span>
+                            <?php /* GH #397: a file already in Files, sent as an attachment. Shown by inbox.js
+                                     (syncReplyFromFiles) only to someone who can open Files. */ ?>
+                            <span id="replyFromFilesWrap" hidden>&middot; <a href="#" onclick="replyFromFiles(); return false;"><?php echo htmlspecialchars(t('tickets.reply_modal.from_files')); ?></a></span>
                         </div>
                     </div>
                     <div class="attachment-list" id="attachmentList"></div>
@@ -1195,10 +1198,10 @@ $jsTranslations['files'] = array_intersect_key($filesStrings, array_flip(['wm', 
     <script src="../assets/js/files-viewer.js?v=10"></script>
     <script src="../assets/js/note-images.js?v=2"></script>
     <script src="../assets/js/save-to-files.js?v=2"></script>
-    <script src="../assets/js/files-picker.js?v=2"></script>
+    <script src="../assets/js/files-picker.js?v=3"></script>
     <script src="../assets/js/address-suggest.js?v=1"></script>   <!-- GH #307: before inbox.js, which attaches it to To and Cc -->
     <script src="../assets/js/location-picker.js?v=1"></script>   <!-- GH #311: before inbox.js -->
-    <script src="../assets/js/inbox.js?v=215"></script>
+    <script src="../assets/js/inbox.js?v=216"></script>
     <script src="../assets/js/ticket-folders-pane.js?v=2"></script>   <!-- discussion #292 -->
     <script src="../assets/js/ticket-watchers.js?v=2"></script>
     <script src="../assets/js/ticket-forms.js?v=5"></script>
