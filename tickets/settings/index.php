@@ -708,26 +708,48 @@ function renderOversizeFields(string $px, bool $withLimits): void
         .ts-sub { font-size: var(--font-size-2xl, 18px); font-weight: 600; margin: 0 0 10px; color: var(--text, #333); }
         .section-header > .ts-sub { margin: 0; }
 
-        /* ONE heading scale for every section (Ed, 2026-11-20: "things that are headings should
-           be a heading size"). Before this, sub-headings came in six sizes - 13px (.tc-sub /
-           .tt-sub, the same as body text), 14, 15, 18 and the browser's 18.72px default - and
-           field labels, with no size of their own, came out at 16px, so a label was often
-           bigger than the heading above it. Now, in every panel:
-             section title  h2                        24px  (.section-header h2)
-             sub-section    h3, .ts-sub/.tc-sub/.tt-sub 18px
-             group          h4, .tc-sub4              16px, normal case
-             field label    label                     14px
-           Set here, so no tab chooses its own; a heading needs no inline font-size. */
+        /* ONE type scale for every section (Ed, 2026-11-20). The first pass made the headings
+           bigger; the real trouble was the BODY: nothing set its size, so paragraphs, table
+           cells and headers fell back to the browser's 16px - bigger than the labels, dropdowns
+           and buttons (14px) and the help text (12px) - and the headings had to shout over it.
+           So the body comes DOWN to the app's size and the headings stay modest:
+             section title  .section-header h2               24px
+             sub-section    h3 (.ts-sub/.tc-sub/.tt-sub)       18px, 600 - after the first among
+                            its neighbours it starts with a line, so a group heading (16px) reads
+                            as sitting UNDER it rather than beside it
+             group          h4 (.tc-sub4)                      16px, 600, normal case
+             body           paragraphs, cells, inputs, labels  14px
+             table header   th                                 13px, 600, muted - never a heading
+             help           small, hints, notes, descriptions  13px (no line-length cap: on a wide
+                            settings page a narrow column of text broke mid-sentence beside full-width tables)
+             count badge    .tc-count                          12px pill
+           Set here, so no tab chooses its own. A heading or a paragraph needs no inline font-size. */
+        .tab-content { font-size: var(--font-size-lg, 14px); }
+        .tab-content :is(select, textarea, input:not([type="checkbox"]):not([type="radio"])) { font-size: var(--font-size-lg, 14px); }
+        .tab-content th { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text-muted, #666); }
+
         .tab-content h3,
         .tab-content .ts-sub, .tab-content .tc-sub, .tab-content .tt-sub {
             font-size: var(--font-size-2xl, 18px); font-weight: 600; color: var(--text, #333);
             text-transform: none; letter-spacing: normal;
         }
+        .tab-content :is(h3, .section-header:has(> h3)) ~ :is(h3, .section-header:has(> h3)) {
+            margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-soft, #e5e7eb);
+        }
         .tab-content h4, .tab-content .tc-sub4 {
             font-size: var(--font-size-xl, 16px); font-weight: 600; color: var(--text, #333);
             text-transform: none; letter-spacing: normal;
         }
+
         .tab-content label, .tab-content label .toggle-label { font-size: var(--font-size-lg, 14px); }
+        .tab-content .tc-switch-label strong { font-size: var(--font-size-lg, 14px); font-weight: 600; }
+        .tab-content :is(small, .form-hint, .tc-note, .tt-note, .tc-desc, .tc-switch-label span) {
+            font-size: var(--font-size-md, 13px);
+        }
+        .tab-content .tc-count {
+            font-size: var(--font-size-sm, 12px); padding: 1px 8px; border-radius: 999px;
+            background: var(--surface-2, #f1f5f9); color: var(--text-muted, #666);
+        }
     </style>
     <!-- Mobile: LAYER 15e (container, tab strip, fields, all tables scroll).
          data-mobile-shell="own" opts OUT of LAYER 2's flex body — this page
