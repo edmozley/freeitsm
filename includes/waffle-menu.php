@@ -1681,6 +1681,20 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         /* Avatar & User Menu */
         .header-right { position: relative; }
 
+        /* The right-hand icons (help, bell, war room, mail check, account) spaced by ONE
+           tight gap (Ed 2026-11-20: they sprawled, so the company drop-down bunched up
+           against the nav buttons). Each icon used to add its own margin on top of a 20px
+           gap, and the war room wrapper - in the row even with nothing to show - took two
+           more gaps, so bell to refresh was ~52px. Desktop only: the phone header is its own. */
+        @media (min-width: 769px) {
+            .header-right, .header.header-fit-tight .header-right { gap: 8px; }
+            .header-right > .nb-wrap, .header-right > .wra-wrap,
+            .header-right > .hlpa-launch, .header-right > .mail-check-btn { margin-right: 0; }
+            /* TRAP: the war room button is shown by JS setting style.display = 'flex'; until
+               then its wrapper is an empty flex item that still takes a gap on each side. */
+            .header-right > .wra-wrap:not(:has(> .wra-btn[style*="flex"])) { display: none; }
+        }
+
         .mail-check-btn {
             background: none;
             border: none;
