@@ -2559,6 +2559,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     <div class="detail-tab-panel detail-tab-panel--scroll active" id="keyinfoPanel" data-dtab-panel="keyinfo">
                     <div class="atl-notice atl-hidden" id="layoutNotice" role="status"></div>
                     <div class="atl-notice atl-hidden" id="reviewNotice" role="status"></div>
+                    <div class="atl-notice atl-hidden" id="missingNotice" role="status"></div>   <!-- GH #404 -->
                     <div class="asset-info-grid">
                         <?php /* The number printed on the label. Saved on change through its
                                  own endpoint, because it is unique per company and the generic
@@ -2830,6 +2831,7 @@ $translationNamespaces = ['common', 'asset-management'];
             loadDevices(assetId);
             if (window.ASSET_MODULE_ON.software) loadInstalledSoftware(assetId);   // GH #217: not while switched off
             loadInventoryStatus(assetId);
+            loadMissingNotice(assetId);   // GH #404
             loadConnections(assetId);
             loadIntuneDevice(assetId);
             loadAssetTickets(assetId);
@@ -3415,6 +3417,7 @@ $translationNamespaces = ['common', 'asset-management'];
                 const wasProtected = !!((invStatus && invStatus.protected) || {})[field];
                 showToast(window.t(data.protected && !wasProtected ? 'asset-management.protect.saved_protected' : 'asset-management.detail.saved'), 'success');
                 if (['hostname', 'manufacturer', 'model'].includes(field)) loadInventoryStatus(selectedAsset.id);
+                loadMissingNotice(selectedAsset.id);   // GH #404: a field filled in leaves the line at once
             } catch (e) {
                 showToast(e.message || window.t('asset-management.detail.save_failed'), 'error');
                 // Put the stored value back, so the screen never shows something
@@ -4592,6 +4595,59 @@ $translationNamespaces = ['common', 'asset-management'];
             }
         }
 
+        /**
+         * GH #404: what this asset's type expects that is still empty, and what has been marked
+         * Not applicable. Flags only - saving is never held up. Hidden when the type expects
+         * nothing (or before Database Verification), so most installs never see it.
+         */
+        async function loadMissingNotice(assetId) {
+            const box = document.getElementById('missingNotice');
+            if (!box) return;
+            let d;
+            try { d = await (await fetch(API_BASE + 'missing_info.php?asset_id=' + encodeURIComponent(assetId), { cache: 'no-store' })).json(); } catch (e) { d = null; }
+            if (String(assetId) !== String(selectedAssetId)) return;   // the person moved on
+            const M = (k, p) => window.t('asset-management.missing.' + k, p);
+            box.textContent = '';
+            if (!d || !d.success || (!d.missing.length && !d.not_applicable.length)) { box.classList.add('atl-hidden'); return; }
+            box.classList.remove('atl-hidden');
+            box.style.flexDirection = 'column'; box.style.alignItems = 'flex-start';   // the two lines one under the other
+            const label = k => (d.labels && d.labels[k]) || k;
+            const button = (text, title, onClick) => {
+                const b = document.createElement('button'); b.type = 'button'; b.className = 'atl-link'; b.textContent = text; b.title = title;
+                b.style.cssText = 'border:none;background:none;padding:0;cursor:pointer;';
+                b.addEventListener('click', onClick); return b;
+            };
+            const toggle = async (key, on) => {
+                try {
+                    const r = await fetch(API_BASE + 'missing_info.php', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ asset_id: Number(assetId), field: key, not_applicable: on }) });
+                    const j = await r.json();
+                    if (!j.success) throw new Error(j.error || '');
+                    showToast(M(on ? 'marked_na' : 'unmarked_na'), 'success');
+                } catch (e) { showToast(e.message || M('failed'), 'error'); }
+                loadMissingNotice(assetId);
+            };
+            if (d.missing.length) {
+                const line = document.createElement('div');
+                line.appendChild(document.createTextNode(M('asset_missing') + ' '));
+                d.missing.forEach((k, i) => {
+                    if (i) line.appendChild(document.createTextNode(', '));
+                    const s = document.createElement('strong'); s.textContent = label(k); line.appendChild(s);
+                    if (d.can_write) { line.appendChild(document.createTextNode(' ')); line.appendChild(button('(' + M('not_applicable') + ')', M('not_applicable_tip'), () => toggle(k, true))); }
+                });
+                box.appendChild(line);
+            }
+            if (d.not_applicable.length) {
+                const line = document.createElement('div'); line.style.marginTop = d.missing.length ? '4px' : '0';
+                line.appendChild(document.createTextNode(M('asset_na') + ' '));
+                d.not_applicable.forEach((n, i) => {
+                    if (i) line.appendChild(document.createTextNode(', '));
+                    line.appendChild(document.createTextNode(label(n.key)));
+                    if (d.can_write) { line.appendChild(document.createTextNode(' ')); line.appendChild(button('(' + M('undo') + ')', M('undo_tip'), () => toggle(n.key, false))); }
+                });
+                box.appendChild(line);
+            }
+        }
         /**
          * GH #200 part D: this asset is in the review list (shares a serial, wears a reused
          * name, or a tool reported a device on it that matches nothing). Says so, with the

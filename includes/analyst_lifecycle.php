@@ -79,6 +79,7 @@ function analystReferenceRegistry(): array {
         ['change_notifications', 'analyst_id', 'personal'],
         ['notifications', 'analyst_id', 'personal'],
         ['notifications', 'actor_analyst_id', 'history'],   // GH #365: who caused it - kept, like an audit line
+        ['asset_field_not_applicable', 'set_by_analyst_id', 'history'],   // GH #404: who marked a field Not applicable
         ['feature_bingo_dismissed', 'dismissed_by_analyst_id', 'personal'],
         ['watchtower_items', 'analyst_id', 'personal'],
         ['watchtower_item_members', 'analyst_id', 'personal'],

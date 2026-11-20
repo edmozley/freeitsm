@@ -2550,6 +2550,21 @@ return [
         'sort_order'        => 'INT NOT NULL DEFAULT 0',
     ],
 
+    // GH #404: expected fields per asset type, and per-asset Not applicable.
+    'asset_type_expected_fields' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'asset_type_id'     => 'INT NOT NULL',
+        'field_key'         => 'VARCHAR(40) NOT NULL',
+    ],
+
+    'asset_field_not_applicable' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'asset_id'          => 'INT NOT NULL',
+        'field_key'         => 'VARCHAR(40) NOT NULL',
+        'set_by_analyst_id' => 'INT NULL',
+        'set_datetime'      => 'DATETIME NULL',
+    ],
+
     'asset_field_set_assets' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'asset_id'              => 'INT NOT NULL',

@@ -4139,6 +4139,30 @@ CREATE TABLE IF NOT EXISTS `asset_type_layout` (
 -- is two rows, and each source only ever opens or closes its own. asset_id is the
 -- side that reported it (the asset a REST report was about, or the one a person was
 -- on); the page shows a connection from both ends. disconnected_at NULL = connected.
+-- GH #404: what each asset type is expected to have filled in eventually. Flags, never
+-- refuses (includes/services/asset_completeness.php). field_key is a built-in key
+-- ('purchase_date', 'supplier_id', ...) or 'custom:<asset_fields.id>'. No row: nothing expected.
+CREATE TABLE IF NOT EXISTS `asset_type_expected_fields` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `asset_type_id`     INT NOT NULL,
+    `field_key`         VARCHAR(40) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_type_expected` (`asset_type_id`, `field_key`),
+    CONSTRAINT `fk_ate_type` FOREIGN KEY (`asset_type_id`) REFERENCES `asset_types` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- GH #404: an expected field marked Not applicable for one asset - an explicit, reversible
+-- exception, never a placeholder written into the field.
+CREATE TABLE IF NOT EXISTS `asset_field_not_applicable` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `asset_id`          INT NOT NULL,
+    `field_key`         VARCHAR(40) NOT NULL,
+    `set_by_analyst_id` INT NULL,
+    `set_datetime`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_field_na` (`asset_id`, `field_key`),
+    CONSTRAINT `fk_afna_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `asset_connections` (
     `id`                  INT NOT NULL AUTO_INCREMENT,
     `asset_id`            INT NOT NULL,

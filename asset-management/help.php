@@ -136,6 +136,10 @@ $translationNamespaces = ['common', 'asset-management'];
                 <span class="help-nav-num">22</span>
                 <?php echo htmlspecialchars(t('asset-management.help.retired.nav')); ?>
             </a>
+            <a href="#missing-info" class="help-nav-link" data-section="missing-info">
+                <span class="help-nav-num">23</span>
+                <?php echo htmlspecialchars(t('asset-management.help.missing.nav')); ?>
+            </a>
             <a href="#tips" class="help-nav-link" data-section="tips">
                 <span class="help-nav-num">23</span>
                 <?php echo htmlspecialchars(t('asset-management.help.nav_tips')); ?>
@@ -900,6 +904,20 @@ $translationNamespaces = ['common', 'asset-management'];
                         <div><?php echo t('asset-management.help.retired.p2'); ?></div>
                         <div><?php echo t('asset-management.help.retired.p3'); ?></div>
                         <div><?php echo t('asset-management.help.retired.p4'); ?></div>
+                    </div>
+                </div>
+
+<div class="help-section" id="missing-info">   <!-- GH #404 -->
+                    <div class="help-section-header">
+                        <span class="help-section-num">23</span>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.missing.heading')); ?></h3>
+                    </div>
+                    <p><?php echo t('asset-management.help.missing.intro'); ?></p>
+                    <div class="help-list">
+                        <div><?php echo t('asset-management.help.missing.p1'); ?></div>
+                        <div><?php echo t('asset-management.help.missing.p2'); ?></div>
+                        <div><?php echo t('asset-management.help.missing.p3'); ?></div>
+                        <div><?php echo t('asset-management.help.missing.p4'); ?></div>
                     </div>
                 </div>
 

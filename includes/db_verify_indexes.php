@@ -261,6 +261,8 @@ return [
     ['asset_type_field_sets', 'uq_asset_type_field_set', 'unique', '(`asset_type_id`,`set_id`)'],
     ['asset_type_field_sets', 'ix_atfs_set', 'key', '(`set_id`)'],
     ['asset_type_layout', 'uq_asset_type_layout_item', 'unique', '(`asset_type_id`,`item_kind`,`item_key`)'],
+    ['asset_type_expected_fields', 'uq_asset_type_expected', 'unique', '(`asset_type_id`,`field_key`)'],
+    ['asset_field_not_applicable', 'uq_asset_field_na', 'unique', '(`asset_id`,`field_key`)'],
     ['asset_connections', 'idx_asset_connections_asset', 'key', '(`asset_id`,`disconnected_at`)'],
     ['asset_connections', 'idx_asset_connections_other', 'key', '(`connected_asset_id`,`disconnected_at`)'],
     ['asset_ci_links', 'idx_asset_ci_links_asset', 'key', '(`asset_id`,`unlinked_at`)'],

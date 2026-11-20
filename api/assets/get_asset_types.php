@@ -23,6 +23,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/services/asset_type_layout.php';
+require_once '../../includes/services/asset_completeness.php';   // GH #404
 
 header('Content-Type: application/json');
 
@@ -64,6 +65,8 @@ try {
     // Which built-in sections and tabs each type shows (GH #200). Every consumer gets it: the
     // asset page draws from it, and the settings modal edits it.
     $layouts = AssetTypeLayout::forTypes($conn, array_column($rows, 'id'));
+    // GH #404: expected fields, and the custom fields each type could expect.
+    $expected = AssetCompleteness::expectedForTypes($conn, array_column($rows, 'id'));
 
     // GH #201: which CMDB class each type becomes through "Create linked CI". Read on its
     // own, so the list still loads before Database Verification adds the column.
@@ -80,6 +83,8 @@ try {
     foreach ($rows as &$r) {
         $r['cmdb_class_id'] = isset($classOf[$r['id']]) ? (int)$classOf[$r['id']] : null;
         $r['layout']    = $layouts[(int)$r['id']] ?? AssetTypeLayout::defaults();
+        $r['expected']  = $expected[(int)$r['id']] ?? [];
+        $r['expected_custom'] = AssetCompleteness::ready($conn) ? AssetCompleteness::customCandidates($conn, (int)$r['id']) : [];
         $r['is_active'] = (bool)$r['is_active'];
         $r['scope']     = ($r['tenant_id'] === null) ? 'global' : 'company';
         $r['icon_id']   = isset($r['icon_id']) && $r['icon_id'] !== null ? (int)$r['icon_id'] : null;
@@ -139,6 +144,9 @@ try {
                 'icon_key'      => $f['icon_key'] ?? null,
                 'layout'        => $f['layout'] ?? AssetTypeLayout::forTypes($conn, [(int)$o['id']])[(int)$o['id']],
                 'cmdb_class_id' => $f['cmdb_class_id'] ?? null,
+                // GH #404: carried here too, or Save on a company's own type would wipe them.
+                'expected'        => $f['expected'] ?? (AssetCompleteness::expectedForTypes($conn, [(int)$o['id']])[(int)$o['id']] ?? []),
+                'expected_custom' => $f['expected_custom'] ?? (AssetCompleteness::ready($conn) ? AssetCompleteness::customCandidates($conn, (int)$o['id']) : []),
             ];
         }
 

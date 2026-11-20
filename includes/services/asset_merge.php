@@ -69,6 +69,7 @@ final class AssetMergeService
         ['asset_review_items',         'other_asset_id',     'review'],
         ['asset_merges',               'into_asset_id',      'move'],
         ['asset_protected_fields',     'asset_id',           'unique', ['field_name']],
+        ['asset_field_not_applicable', 'asset_id',           'unique', ['field_key']],   // GH #404: a Not applicable mark follows the merge
         ['asset_ci_links',             'asset_id',           'ci_links'],
     ];
 

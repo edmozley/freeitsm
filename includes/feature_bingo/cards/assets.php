@@ -39,6 +39,18 @@ return [
         'check'    => ['rows', 'asset_type_layout'],
     ],
     [
+        'id'       => 'assets.expected_information',   // GH #404
+        'module'   => 'assets',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Know what is still to fill in',
+        'what'     => 'Each asset type says which fields its assets should have eventually - purchase date, supplier, cost centre - and Missing information lists every asset still lacking one, with the field named.',
+        'why'      => 'Assets are recorded with what is known on day one and finished later. Without a list, the purchase details nobody added are only found when an audit or a warranty claim needs them. Nothing is refused, so capture never slows down.',
+        'done'     => 'At least one asset type expects a field.',
+        'link'     => 'asset-management/settings/?tab=asset-types',
+        'check'    => ['rows', 'asset_type_expected_fields'],
+    ],
+    [
         'id'       => 'assets.type_icons',
         'module'   => 'assets',
         'tier'     => 'extra',

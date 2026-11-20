@@ -41,6 +41,7 @@ if ($movedTo !== null) {
 
 
 require_once __DIR__ . '/../../includes/services/asset_type_layout.php';
+require_once __DIR__ . '/../../includes/services/asset_completeness.php';   // GH #404
 
 /**
  * The shared icon library, for the asset-type icon picker (#1146).
@@ -310,6 +311,9 @@ $translationNamespaces = ['common', 'asset-management'];
         /* Scoped to the row: `.modal .form-group label` makes every label a block. */
         #itemLayoutRow .atl-opt { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; margin: 0; cursor: pointer; font-weight: normal; }
         #itemLayoutRow .atl-opt input { margin-top: 3px; flex-shrink: 0; }
+        /* GH #404: the Expected information ticks - the same tick rows, two to a line. */
+        #itemExpectedRow .atl-opt { display: inline-flex; align-items: center; gap: 8px; width: 48%; padding: 4px 0; margin: 0; cursor: pointer; font-weight: normal; vertical-align: top; }
+        #itemExpectedRow .atl-opt input { flex-shrink: 0; margin: 0; }
         #itemLayoutRow .atl-tab-opt { display: flex; margin: 0; }
         .atl-opt-name { display: block; font-size: 14px; }
         .atl-opt-desc { display: block; font-size: 12px; color: var(--text-muted, #666); }
@@ -1925,6 +1929,28 @@ $translationNamespaces = ['common', 'asset-management'];
                         <div id="itemLayoutTabs"></div>
                     </div>
                 </div>
+                <?php /* GH #404: what this type is expected to have filled in eventually. Flags,
+                         never refuses - see includes/services/asset_completeness.php. Asset TYPES
+                         only; saved with the type by Save. Shown once Database Verification has
+                         added the tables. */ ?>
+                <?php if (AssetCompleteness::ready(connectToDatabase())): ?>
+                <div class="form-group" id="itemExpectedRow" style="display:none;">
+                    <label><?php echo htmlspecialchars(t('asset-management.missing.expected_heading')); ?></label>
+                    <div class="atl-box">
+                        <p class="atl-intro"><?php echo htmlspecialchars(t('asset-management.missing.expected_intro')); ?></p>
+                        <?php $byS = []; foreach (AssetCompleteness::BUILTIN as $k => $d) $byS[$d[0]][] = $k; ?>
+                        <?php foreach ($byS as $sec => $keys): ?>
+                        <div class="atl-sub"><?php echo htmlspecialchars(t('asset-management.missing.section_' . $sec)); ?></div>
+                        <?php foreach ($keys as $k): ?>
+                        <label class="atl-opt"><input type="checkbox" data-expected="<?php echo $k; ?>"><span><span class="atl-opt-name"><?php echo htmlspecialchars(t('asset-management.missing.field_' . $k)); ?></span></span></label>
+                        <?php endforeach; ?>
+                        <?php endforeach; ?>
+                        <div class="atl-sub"><?php echo htmlspecialchars(t('asset-management.missing.section_custom')); ?></div>
+                        <div id="itemExpectedCustom"></div>
+                        <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.missing.expected_hint')); ?></div>
+                    </div>
+                </div>
+                <?php endif; ?>
                 <div class="form-group">
                     <label class="toggle-label">
                         <span class="toggle-switch">
@@ -2764,6 +2790,7 @@ $translationNamespaces = ['common', 'asset-management'];
             document.getElementById('itemActive').checked = true;
             icSetup(type, null);
             atlSetup(type, null);
+            expSetup(type, null);   // GH #404
             cmdbClassSetup(type, null);
             leaseKindSetup(type, null);
             retiredTickSetup(type, null);
@@ -2784,6 +2811,7 @@ $translationNamespaces = ['common', 'asset-management'];
             document.getElementById('itemActive').checked = item.is_active;
             icSetup(type, item.icon_id || null);
             atlSetup(type, item.layout || null);
+            expSetup(type, item);   // GH #404
             cmdbClassSetup(type, item.cmdb_class_id || null);
             leaseKindSetup(type, item);
             retiredTickSetup(type, item);
@@ -2834,6 +2862,7 @@ $translationNamespaces = ['common', 'asset-management'];
             };
             if (type === 'asset-type') {
                 payload.layout = atlCollect();
+                if (document.getElementById('itemExpectedRow')) payload.expected = expCollect();   // GH #404
                 payload.cmdb_class_id = document.getElementById('itemCmdbClass').value || null;
             }
             if (type === 'asset-status') {
@@ -3277,6 +3306,41 @@ $translationNamespaces = ['common', 'asset-management'];
 
         let atlTabs = null;   // the ReorderList of tabs, while the dialog is open
 
+        // =========================================================
+        //  Expected information (GH #404): which fields this type should have filled
+        //  in eventually. Built-in ticks are in the markup; the custom fields offered
+        //  are the ones in the field sets attached to this type (from get_asset_types).
+        // =========================================================
+        /** Show the block for asset types, ticked from the type's expected fields. */
+        function expSetup(type, item) {
+            const row = document.getElementById('itemExpectedRow');
+            if (!row) return;
+            const isType = (type === 'asset-type');
+            row.style.display = isType ? '' : 'none';
+            if (!isType) return;
+            const on = new Set((item && item.expected) || []);
+            document.querySelectorAll('[data-expected]').forEach(cb => { cb.checked = on.has(cb.dataset.expected); });
+            const host = document.getElementById('itemExpectedCustom');
+            const custom = (item && item.expected_custom) || [];
+            host.textContent = '';
+            if (!custom.length) {
+                const p = document.createElement('div');
+                p.className = 'atl-note';
+                p.textContent = window.t('asset-management.missing.no_custom');
+                host.appendChild(p);
+                return;
+            }
+            custom.forEach(c => {
+                const lab = document.createElement('label'); lab.className = 'atl-opt';
+                const cb = document.createElement('input'); cb.type = 'checkbox'; cb.dataset.expected = c.key; cb.checked = on.has(c.key);
+                const sp = document.createElement('span'); const nm = document.createElement('span'); nm.className = 'atl-opt-name'; nm.textContent = c.label;
+                sp.appendChild(nm); lab.append(cb, sp); host.appendChild(lab);
+            });
+        }
+        /** The ticked keys, for Save. */
+        function expCollect() {
+            return Array.from(document.querySelectorAll('[data-expected]:checked')).map(cb => cb.dataset.expected);
+        }
         /** Show the editor for asset types, filled from the type's layout; hide it otherwise. */
         function atlSetup(type, layout) {
             const row = document.getElementById('itemLayoutRow');

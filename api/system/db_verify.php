@@ -1275,6 +1275,8 @@ try {
         ['asset_type_field_sets',  'fk_atfs_type',                 'asset_types',       'asset_type_id',         'id', 'CASCADE'],
         ['asset_type_field_sets',  'fk_atfs_set',                  'asset_field_sets',  'set_id',                'id', 'CASCADE'],
         ['asset_type_layout',      'fk_atl_type',                  'asset_types',       'asset_type_id',         'id', 'CASCADE'],
+        ['asset_type_expected_fields', 'fk_ate_type',              'asset_types',       'asset_type_id',         'id', 'CASCADE'],   // GH #404
+        ['asset_field_not_applicable', 'fk_afna_asset',            'assets',            'asset_id',              'id', 'CASCADE'],   // GH #404
         // GH #200 parts C and D: a connection or a review case goes with either asset.
         ['asset_connections',      'fk_asset_connections_asset',   'assets',            'asset_id',              'id', 'CASCADE'],
         ['asset_connections',      'fk_asset_connections_other',   'assets',            'connected_asset_id',    'id', 'CASCADE'],

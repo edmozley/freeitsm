@@ -80,6 +80,21 @@ require_once $path_prefix . 'includes/waffle-menu.php';
             </svg>
             <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.leases') : 'Leases'); ?></span>
         </a>
+        <?php
+        // GH #404: Missing information - only once some asset type expects something, so an
+        // install that does not use it sees no new button. One indexed LIMIT 1 lookup.
+        require_once __DIR__ . '/../../includes/services/asset_completeness.php';
+        $showMissing = $current_page === 'missing';
+        if (!$showMissing) { try { $showMissing = AssetCompleteness::anyExpected(connectToDatabase()); } catch (Throwable $e) { $showMissing = false; } }
+        if ($showMissing): ?>
+        <a href="<?php echo BASE_URL; ?>asset-management/missing/" class="nav-btn <?php echo $current_page === 'missing' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.missing') : 'Missing information'); ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.missing') : 'Missing information'); ?></span>
+        </a>
+        <?php endif; ?>
         <a href="<?php echo BASE_URL; ?>asset-management/settings/" class="nav-btn <?php echo $current_page === 'settings' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.settings') : 'Settings'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>

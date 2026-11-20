@@ -16,6 +16,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/services/asset_type_layout.php';
+require_once '../../includes/services/asset_completeness.php';   // GH #404
 
 // Changes data: never on a GET, which a link on another site can send (csrf.php).
 csrfRequireWriteMethod();
@@ -112,6 +113,12 @@ try {
     // the type itself, because it is part of the type.
     if (array_key_exists('layout', $data)) {
         AssetTypeLayout::save($conn, (int)$id, AssetTypeLayout::normalise($data['layout']));
+    }
+
+    // GH #404: which fields the type expects to be filled in eventually - only when sent, like
+    // the layout. Flags, never refuses: nothing about saving an asset changes.
+    if (array_key_exists('expected', $data)) {
+        AssetCompleteness::saveExpected($conn, (int)$id, $data['expected']);
     }
 
     // GH #201: the CMDB class "Create linked CI" makes for this type - only when sent, like
