@@ -754,8 +754,11 @@ function renderChangeDetail() {
                 ${badgesHtml ? `<div class="sticky-header-badges">${badgesHtml}</div>` : ''}
             </div>
             ${v('title') ? `<div class="change-detail-title">${escapeHtml(c.title)}</div>` : ''}
-            ${metaItems ? `<div class="detail-meta-grid">${metaItems}</div>` : ''}
         </div>
+        ${/* The details grid scrolls with the change (Ed, 2026-11-20): inside the sticky header it
+             stayed pinned and, at up to 13 items, left only a sliver of the change visible. Only
+             the actions, reference, title and status stay put. */ ''}
+        ${metaItems ? `<div class="detail-meta-grid chg-meta-below">${metaItems}</div>` : ''}
     `;
 
     // Approval panel (#180): the current round, the CAB or the approver, earlier rounds.

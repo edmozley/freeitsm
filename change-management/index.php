@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title><?php echo htmlspecialchars(pageTitle('changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=29">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=97">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=19">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=20">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=196">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -629,7 +629,7 @@ $translationNamespaces = ['common', 'change-management'];
     <script src="<?php echo BASE_URL; ?>assets/js/change-revisions.js?v=3"></script>
     <?php require_once __DIR__ . '/../includes/changes/risk_policy.php'; echo ChangeRiskPolicy::jsBootstrap(connectToDatabase()); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/change-risk.js?v=1"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=49"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=50"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=83"></script>
 </body>
 </html>

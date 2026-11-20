@@ -2104,3 +2104,6 @@ body.chg-plain-labels #changeList .change-card-badges :is(.risk-badge, .priority
     #changeList .chg-cell-label { display: inline; font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); }
     #changeList .chg-cell-label::after { content: ':'; }
 }
+
+/* The details grid, now below the sticky header so it scrolls away (Ed, 2026-11-20). */
+.detail-meta-grid.chg-meta-below { margin-top: 0; }
