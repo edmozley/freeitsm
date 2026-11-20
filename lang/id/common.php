@@ -565,6 +565,10 @@ return [
         'loading' => 'Memuat…',
         'load_failed' => 'Tidak dapat memuat notifikasi.',
         'someone' => 'Seseorang',
+        // GH #365: named after "by" when no person did it.
+        'actor_workflow' => 'alur kerja "{name}"',
+        'actor_system' => 'FreeITSM',
+        'actor_email' => 'email',
         'just_now' => 'baru saja',
         'minutes' => '{n} mnt lalu',
         'hours' => '{n} j lalu',

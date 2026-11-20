@@ -357,6 +357,10 @@ class NotificationsService
         $title      = self::clip($in['title'] ?? null, 255);
         $body       = self::clip($in['body'] ?? null, 500);
         $actorName  = self::clip($in['actor_name'] ?? null, 100);
+        // GH #365 (5.8.0): what really made the change, on the analyst bell. $in['actor'] is a
+        // NotificationActor array from the router; a direct caller that sends only actor_id
+        // is a person. Written only once Database Verification has added the columns.
+        $detail = (!$isPortal && self::actorColumnsReady($conn)) ? self::actorDetail($in) : null;
 
         // ── Rule 3: coalesce ──────────────────────────────────────────────────
         // Same analyst, same object, still unread, within the window → bump the
@@ -390,6 +394,12 @@ class NotificationsService
                          updated_datetime = UTC_TIMESTAMP()
                      WHERE id = ?"
                 )->execute([$eventType, $title, $body, $actorName, (int)$existingId]);
+                // The merged row now describes the LATEST event, so its actor must too -
+                // otherwise it would pair the newest name with the first event's kind.
+                if ($detail !== null) {
+                    $conn->prepare("UPDATE $table SET actor_kind = ?, actor_analyst_id = ?, source = ?, workflow_id = ?, api_key_id = ? WHERE id = ?")
+                         ->execute([...array_values($detail), (int)$existingId]);
+                }
                 return (int)$existingId;
             }
 
@@ -400,12 +410,50 @@ class NotificationsService
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([$analystId, $eventType, $entityType, $entityId, $entityRef, $title, $body, $actorName]);
 
-            return (int)$conn->lastInsertId();
+            $newId = (int)$conn->lastInsertId();
+            if ($detail !== null) {
+                $conn->prepare("UPDATE $table SET actor_kind = ?, actor_analyst_id = ?, source = ?, workflow_id = ?, api_key_id = ? WHERE id = ?")
+                     ->execute([...array_values($detail), $newId]);
+            }
+            return $newId;
         } catch (Exception $e) {
             // A notification is never worth failing the thing that caused it.
             error_log('[NotificationsService::notify] ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Has Database Verification added the actor columns (GH #365, 5.8.0)?
+     */
+    private static function actorColumnsReady(PDO $conn): bool
+    {
+        static $ready = null;
+        if ($ready === null) {
+            try { $ready = (bool)$conn->query("SHOW COLUMNS FROM notifications LIKE 'actor_kind'")->fetch(); }
+            catch (Throwable) { $ready = false; }
+        }
+        return $ready;
+    }
+
+    /**
+     * [actor_kind, actor_analyst_id, source, workflow_id, api_key_id] for the row.
+     * actor_analyst_id holds an ANALYST id only (a person, or the analyst an API key
+     * acts as) - never a portal user's or a workflow's - because it is on the
+     * analyst lifecycle list as `history`.
+     */
+    private static function actorDetail(array $in): array
+    {
+        $a = isset($in['actor']) && is_array($in['actor']) ? $in['actor']
+            : (!empty($in['actor_id']) ? ['kind' => 'analyst', 'id' => (int)$in['actor_id']] : ['kind' => 'system']);
+        $kind = in_array($a['kind'] ?? null, ['analyst', 'portal_user', 'workflow', 'system', 'api'], true) ? $a['kind'] : null;
+        return [
+            'actor_kind'       => $kind,
+            'actor_analyst_id' => in_array($kind, ['analyst', 'api'], true) && !empty($a['id']) ? (int)$a['id'] : null,
+            'source'           => isset($a['source']) ? substr((string)$a['source'], 0, 16) : null,
+            'workflow_id'      => !empty($a['workflow_id']) ? (int)$a['workflow_id'] : null,
+            'api_key_id'       => !empty($a['api_key_id']) ? (int)$a['api_key_id'] : null,
+        ];
     }
 
     /**
@@ -468,7 +516,9 @@ class NotificationsService
         $limit = max(1, min($limit, self::LIST_LIMIT));
         $stmt = $conn->prepare(
             "SELECT id, event_type, entity_type, entity_id, entity_ref, title, body,
-                    actor_name, event_count, created_datetime, updated_datetime, read_datetime
+                    actor_name, event_count, created_datetime, updated_datetime, read_datetime"
+            // GH #365: what made it, so the bell can say "by the workflow ..." (5.8.0)
+            . ((!$isPortal && self::actorColumnsReady($conn)) ? ', actor_kind, source' : '') . "
              FROM $table
              WHERE $col = ?" . self::switchedOffClause($conn) . "
              ORDER BY updated_datetime DESC, id DESC

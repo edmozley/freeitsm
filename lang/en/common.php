@@ -582,6 +582,10 @@ return [
         'loading'     => 'Loading…',
         'load_failed' => 'Could not load notifications.',
         'someone'     => 'Someone',
+        // GH #365: named after "by" when no person did it.
+        'actor_workflow' => 'the workflow "{name}"',
+        'actor_system' => 'FreeITSM',
+        'actor_email' => 'email',
         'just_now'    => 'just now',
         'minutes'     => '{n}m ago',
         'hours'       => '{n}h ago',

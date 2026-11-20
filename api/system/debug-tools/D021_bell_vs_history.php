@@ -141,7 +141,7 @@ d021_section($sections, 'TICKET', [
 // ---- 3. What the bell recorded --------------------------------------------------
 
 $cols = $conn->query("SHOW COLUMNS FROM notifications")->fetchAll(PDO::FETCH_COLUMN);
-$extra = array_values(array_intersect(['actor_kind', 'actor_id', 'source', 'workflow_id', 'api_key_id'], $cols));   // 5.8.0+
+$extra = array_values(array_intersect(['actor_kind', 'actor_analyst_id', 'source', 'workflow_id', 'api_key_id'], $cols));   // 5.8.0+
 $bell = $conn->prepare('SELECT n.*, a.full_name AS recipient FROM notifications n LEFT JOIN analysts a ON a.id = n.analyst_id
                          WHERE n.entity_type = \'ticket\' AND n.entity_id = ? ORDER BY n.created_datetime, n.id');
 $bell->execute([$tid]);
@@ -154,7 +154,10 @@ $words = function (array $r) use ($en): string {
     $tpl = $en['notifications']['event'] ?? null;
     foreach (explode('.', (string)$r['event_type']) as $part) $tpl = is_array($tpl) ? ($tpl[$part] ?? null) : null;
     if (!is_string($tpl)) $tpl = null;
-    $actor = $r['actor_name'] !== null && $r['actor_name'] !== '' ? $r['actor_name'] : ($en['notifications']['someone'] ?? 'Someone');
+    $kind = $r['actor_kind'] ?? null;
+    if ($kind === 'workflow') $actor = str_replace('{name}', (string)$r['actor_name'], $en['notifications']['actor_workflow'] ?? 'the workflow "{name}"');
+    elseif ($kind === 'system') $actor = ($r['source'] ?? '') === 'mail_import' ? ($en['notifications']['actor_email'] ?? 'email') : ($en['notifications']['actor_system'] ?? 'FreeITSM');
+    else $actor = $r['actor_name'] !== null && $r['actor_name'] !== '' ? $r['actor_name'] : ($en['notifications']['someone'] ?? 'Someone');
     return $tpl ? str_replace('{actor}', $actor, preg_replace('/\{to\}/', '...', $tpl)) : "({$r['event_type']}) {$actor}";
 };
 
@@ -179,7 +182,7 @@ foreach ($changes as $i => $c) {
     $b[] = sprintf('#%d  %s  %s', $i + 1, $c['time'], $c['event_type']);
     $b[] = '     Says      : "' . $c['words'] . '"';
     $b[] = '     Name kept : ' . ($c['actor_name'] ?? '(none - a system event)');
-    foreach ($c['extra'] as $k => $v) $b[] = sprintf('     %-10s: %s', $k, $v === null ? '(not recorded)' : $v);
+    foreach ($c['extra'] as $k => $v) $b[] = sprintf('     %-17s: %s', $k, $v === null ? '-' : $v);
     if (!$extra) $b[] = '     Recorded  : name only (a row written before 5.8.0 keeps no actor id or kind)';
     $b[] = '     Sent to   : ' . implode(', ', array_unique($c['recipients']));
     if ($c['grouped']) $b[] = '     GROUPED   : several events on this ticket arrived before it was read, and the bell merged them into this one row - it keeps only the LATEST event\'s kind, name and time (' . $c['updated'] . '); the earlier ones were overwritten and cannot be checked from the bell';
@@ -270,9 +273,13 @@ foreach ($changes as $i => $c) {
         continue;
     }
     $bellName = (string)($c['actor_name'] ?? '');
+    $bellKind = $c['extra']['actor_kind'] ?? null;   // recorded from 5.8.0; null on older rows
     $runsNear = [];
     foreach ((array)$runs as $r) if (abs(strtotime($r['started_datetime'] . ' UTC') - $ts) <= D021_WINDOW) $runsNear[] = '"' . $r['workflow_name'] . '" at ' . $r['started_datetime'];
-    if ($isSystem && $bellName !== '') {
+    if ($isSystem && in_array($bellKind, ['workflow', 'system'], true)) {
+        $v = 'MATCH';
+        $why = 'the bell recorded an automatic change (' . $bellKind . ($bellName !== '' ? ': ' . $bellName : '') . ') and the history agrees';
+    } elseif ($isSystem && $bellName !== '') {
         $v = 'AUTOMATIC CREDITED TO A PERSON';
         $why = "the history says an automatic change made it, but the bell names {$bellName} - the person whose session it ran in, not the person who did it (GH #365)";
     } elseif (!$isSystem && $actual !== null && $bellName !== '' && mb_strtolower($bellName) !== mb_strtolower(preg_replace('/\s*<.*$/', '', $actual))) {

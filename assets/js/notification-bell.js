@@ -54,6 +54,19 @@ window.NotificationBell = {
             return window.t('common.notifications.days', { n: Math.floor(hrs / 24) });
         }
 
+        /**
+         * Who to name after "by" (GH #365). A workflow names itself - "the workflow
+         * 'Route Company A'" - and FreeITSM acting on its own (mail arriving, a scheduled
+         * job) is said so, instead of whoever happened to be signed in. Rows from before
+         * 5.8.0 have no kind and show the name they kept.
+         */
+        function actorLabel(n) {
+            const tt = (k, p) => { const v = window.t('common.notifications.' + k, p); return v === 'common.notifications.' + k ? '' : v; };
+            if (n.actor_kind === 'workflow') return tt('actor_workflow', { name: n.actor_name || '' }) || n.actor_name || '';
+            if (n.actor_kind === 'system') return n.source === 'mail_import' ? (tt('actor_email') || 'email') : (tt('actor_system') || 'FreeITSM');
+            return n.actor_name || window.t('common.notifications.someone');
+        }
+
         /** The notification's one-line description in the viewer's language, falling back to the actor's name when no string exists for the event type. */
         function describe(n) {
             // Translated at render time, never baked into the row — otherwise a
@@ -71,8 +84,8 @@ window.NotificationBell = {
             }
             const base = 'common.notifications.event.' + n.event_type;
             const key = to || !/(status_changed|due_date_changed)$/.test(n.event_type) ? base : base + '_plain';
-            const txt = window.t(key, { actor: n.actor_name || window.t('common.notifications.someone'), to: to });
-            return txt === key ? (n.actor_name || '') : txt;
+            const txt = window.t(key, { actor: actorLabel(n), to: to });
+            return txt === key ? actorLabel(n) : txt;
         }
 
         /** Draws the notification rows into the panel, or the empty message when there are none. */

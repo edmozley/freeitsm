@@ -399,6 +399,14 @@ CREATE TABLE IF NOT EXISTS `notifications` (
     `title`             VARCHAR(255) NULL,        -- the ticket subject at the time
     `body`              VARCHAR(500) NULL,        -- 'Sam Cover replied'
     `actor_name`        VARCHAR(100) NULL,        -- who caused it, NULL for system events
+    -- GH #365 (5.8.0): what really made the change, so a wrong name can be traced.
+    -- Before this the bell kept only actor_name - the signed-in person's - even when a
+    -- workflow running inside their request did it. See includes/notification_actor.php.
+    `actor_kind`        VARCHAR(16) NULL,         -- analyst / portal_user / workflow / system / api
+    `actor_analyst_id`  INT NULL,                 -- the analyst, when a person (or their API key) did it
+    `source`            VARCHAR(16) NULL,         -- screen / portal / api / workflow / mail_import / scheduled
+    `workflow_id`       INT NULL,                 -- which workflow, when one did it
+    `api_key_id`        INT NULL,                 -- which API key, when it came through the REST API
     `event_count`       INT NOT NULL DEFAULT 1,   -- >1 once coalesced
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

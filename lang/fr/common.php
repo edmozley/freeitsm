@@ -565,6 +565,10 @@ return [
         'loading' => 'Chargement…',
         'load_failed' => 'Impossible de charger les notifications.',
         'someone' => 'Quelqu\'un',
+        // GH #365: named after "by" when no person did it.
+        'actor_workflow' => 'le workflow « {name} »',
+        'actor_system' => 'FreeITSM',
+        'actor_email' => 'e-mail',
         'just_now' => 'à l\'instant',
         'minutes' => 'il y a {n} min',
         'hours' => 'il y a {n} h',

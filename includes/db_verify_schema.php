@@ -3704,6 +3704,12 @@ return [
         'title'            => 'VARCHAR(255) NULL',
         'body'             => 'VARCHAR(500) NULL',
         'actor_name'       => 'VARCHAR(100) NULL',
+        // GH #365 (5.8.0): what really made the change - includes/notification_actor.php.
+        'actor_kind'       => 'VARCHAR(16) NULL',
+        'actor_analyst_id' => 'INT NULL',
+        'source'           => 'VARCHAR(16) NULL',
+        'workflow_id'      => 'INT NULL',
+        'api_key_id'       => 'INT NULL',
         'event_count'      => 'INT NOT NULL DEFAULT 1',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',

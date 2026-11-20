@@ -565,6 +565,10 @@ return [
         'loading' => 'Indlæser…',
         'load_failed' => 'Kunne ikke hente notifikationer.',
         'someone' => 'Nogen',
+        // GH #365: named after "by" when no person did it.
+        'actor_workflow' => 'workflowet "{name}"',
+        'actor_system' => 'FreeITSM',
+        'actor_email' => 'e-mail',
         'just_now' => 'lige nu',
         'minutes' => 'for {n} min. siden',
         'hours' => 'for {n} t. siden',

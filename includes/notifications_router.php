@@ -18,10 +18,18 @@
 
 require_once __DIR__ . '/services/notifications.php';
 require_once __DIR__ . '/services/ticket_watchers.php';   // GH #277: watchers join the ticket events' audience
+require_once __DIR__ . '/notification_actor.php';         // GH #365: who or what really made the change
 
 /**
- * Who caused this? Resolved centrally from the session rather than threaded
- * through 48 dispatch payloads.
+ * Who caused this? Resolved centrally rather than threaded through 48 dispatch
+ * payloads - by NotificationActor (includes/notification_actor.php) since 5.8.0.
+ *
+ * TRAP (GH #365): it used to be the SESSION, full stop. A workflow assigning a team
+ * inside somebody's request was then announced as "Handed to your team by" that
+ * person, and they were left out of their own team's notification. Whatever acts
+ * now says so (the workflow engine, the mailbox import), and the session is only
+ * the fallback. Returns [person id or 0, name] - the id only when a PERSON acted,
+ * because it drives "never notify me about my own action".
  *
  * This is what makes "never notify me about my own action" possible at all. A
  * web request is caused by whoever is signed in; a cron run is caused by nobody,
@@ -33,9 +41,8 @@ require_once __DIR__ . '/services/ticket_watchers.php';   // GH #277: watchers j
  */
 function notificationsCurrentActor(): array
 {
-    $id   = isset($_SESSION['analyst_id']) ? (int)$_SESSION['analyst_id'] : 0;
-    $name = isset($_SESSION['analyst_name']) ? (string)$_SESSION['analyst_name'] : '';
-    return [$id, $name !== '' ? $name : null];
+    $a = NotificationActor::current();
+    return [NotificationActor::isPerson($a) ? (int)$a['id'] : 0, $a['name'] ?? null];
 }
 
 /**
@@ -62,6 +69,7 @@ function notificationsHandleEvent(string $event, array $payload): void
         }
 
         [$actorId, $actorName] = notificationsCurrentActor();
+        $actor = NotificationActor::current();   // the full detail, stored on the row (5.8.0)
 
         $conn       = connectToDatabase();
         $recipients = notificationsAudienceFor($conn, $event, $payload);
@@ -112,6 +120,7 @@ function notificationsHandleEvent(string $event, array $payload): void
                 'body'        => notificationsBodyFor($event, $actorName, $payload, $conn),
                 'actor_id'    => $actorId,
                 'actor_name'  => $actorName,
+                'actor'       => $actor,
             ]);
         }
     } catch (Throwable $e) {

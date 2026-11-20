@@ -565,6 +565,10 @@ return [
         'loading' => 'Φόρτωση…',
         'load_failed' => 'Δεν ήταν δυνατή η φόρτωση των ειδοποιήσεων.',
         'someone' => 'Κάποιος',
+        // GH #365: named after "by" when no person did it.
+        'actor_workflow' => 'τη ροή εργασιών «{name}»',
+        'actor_system' => 'το FreeITSM',
+        'actor_email' => 'email',
         'just_now' => 'μόλις τώρα',
         'minutes' => 'πριν από {n} λ.',
         'hours' => 'πριν από {n} ώ.',

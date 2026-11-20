@@ -565,6 +565,10 @@ return [
         'loading' => 'Завантаження…',
         'load_failed' => 'Не вдалося завантажити сповіщення.',
         'someone' => 'Хтось',
+        // GH #365: named after "by" when no person did it.
+        'actor_workflow' => 'робочий процес «{name}»',
+        'actor_system' => 'FreeITSM',
+        'actor_email' => 'email',
         'just_now' => 'щойно',
         'minutes' => '{n} хв тому',
         'hours' => '{n} год тому',

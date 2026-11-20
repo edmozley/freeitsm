@@ -78,6 +78,7 @@ function analystReferenceRegistry(): array {
         ['calendar_sync_events', 'analyst_id', 'personal'],
         ['change_notifications', 'analyst_id', 'personal'],
         ['notifications', 'analyst_id', 'personal'],
+        ['notifications', 'actor_analyst_id', 'history'],   // GH #365: who caused it - kept, like an audit line
         ['feature_bingo_dismissed', 'dismissed_by_analyst_id', 'personal'],
         ['watchtower_items', 'analyst_id', 'personal'],
         ['watchtower_item_members', 'analyst_id', 'personal'],

@@ -2052,7 +2052,13 @@ class WorkflowEngine
         self::$runsThisRequest++;
         $saved = [self::$ctxWorkflowId, self::$ctxExecutionId, self::$ctxWorkflowTenant, self::$ctxEventTenant];
         try {
-            return self::runInner($wf, $event, $payload, $isManual, $dryRun);
+            // GH #365: everything this run changes is the WORKFLOW's doing, not the
+            // person whose request it happens to run inside. The bell reads this.
+            require_once __DIR__ . '/../../includes/notification_actor.php';
+            return NotificationActor::run(
+                ['kind' => 'workflow', 'id' => null, 'name' => (string)($wf['name'] ?? ''), 'source' => 'workflow', 'workflow_id' => $wfId],
+                fn() => self::runInner($wf, $event, $payload, $isManual, $dryRun)
+            );
         } finally {
             [self::$ctxWorkflowId, self::$ctxExecutionId, self::$ctxWorkflowTenant, self::$ctxEventTenant] = $saved;
             // Pop this workflow off the active stack and unwind the depth even
@@ -2714,7 +2720,15 @@ class WorkflowEngine
             $execId = (int)$conn->lastInsertId();
             self::$ctxExecutionId = $execId;
 
-            [$status, $errorMessage] = self::executeActionList($actions, $payload, $stepLog, false);
+            // GH #365: a form's own action list acts as itself, like a workflow.
+            require_once __DIR__ . '/../../includes/notification_actor.php';
+            [$status, $errorMessage] = NotificationActor::run(
+                ['kind' => 'workflow', 'id' => null, 'name' => $label, 'source' => 'workflow'],
+                // A closure capturing BY REFERENCE, not an arrow fn: executeActionList()
+                // fills $stepLog and may change $payload through its & parameters, and an
+                // arrow fn would hand it copies - the step log would come back empty.
+                function () use ($actions, &$payload, &$stepLog) { return self::executeActionList($actions, $payload, $stepLog, false); }
+            );
 
             $conn->prepare(
                 "UPDATE workflow_executions

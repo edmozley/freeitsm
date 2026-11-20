@@ -38,6 +38,13 @@ if (!$mailboxId) {
     exit;
 }
 
+// GH #365: the mail this fetches - and every ticket, reply and routing it causes - is
+// the mailbox's doing, not the analyst's whose open inbox happened to ask. Without
+// this the bell credited them ("Raised by ...", "Handed to your team by ...").
+// A workflow that runs on the new ticket still names itself, on top of this.
+require_once '../../includes/notification_actor.php';
+NotificationActor::push(['kind' => 'system', 'id' => null, 'name' => null, 'source' => 'mail_import']);
+
 try {
     $conn = connectToDatabase();
 

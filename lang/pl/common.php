@@ -565,6 +565,10 @@ return [
         'loading' => 'Ładowanie…',
         'load_failed' => 'Nie udało się wczytać powiadomień.',
         'someone' => 'Ktoś',
+        // GH #365: named after "by" when no person did it.
+        'actor_workflow' => 'przepływ pracy „{name}”',
+        'actor_system' => 'FreeITSM',
+        'actor_email' => 'e-mail',
         'just_now' => 'przed chwilą',
         'minutes' => '{n} min temu',
         'hours' => '{n} godz. temu',
