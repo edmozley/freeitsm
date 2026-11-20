@@ -166,6 +166,11 @@ try {
             flex-shrink: 0;
         }
         .wt-card-icon svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 2; fill: none; }
+        .wt-card-icon-link { cursor: pointer; }
+        /* #388: a count is a link - no underline, the card's own colours, a hover cue. */
+        a.wt-metric-link, .wt-metric-link { text-decoration: none; color: inherit; cursor: pointer; border-radius: 6px; }
+        .wt-metric-link:hover, .wt-metric-link:focus-visible { background: var(--surface-hover, #f3f4f6); outline: none; }
+        .wt-card-icon-link:hover { filter: brightness(1.1); }
         .wt-card-name {
             font-size: var(--font-size-lg, 14px);
             font-weight: 600;
@@ -748,8 +753,28 @@ try {
     // The colour passed in is DATA (green = done, amber = warning, red = fail) and
     // is used as given. The DEFAULT is chrome — plain text — so it must follow the
     // theme, or a neutral metric would be dark slate on a dark card.
-    function metric(value, label, color) {
-        return `<div class="wt-metric"><div class="wt-metric-value" style="color:${color || 'var(--text, #334155)'}">${value}</div><div class="wt-metric-label">${label}</div></div>`;
+    /* A count on a card. With href it is a link (discussion #388): a ticket status count opens
+       the ticket list on that status. Without one, linkCardMetrics() points it at the card's
+       own module, so every number on the board goes somewhere. */
+    function metric(value, label, color, href) {
+        const inner = `<div class="wt-metric-value" style="color:${color || 'var(--text, #334155)'}">${value}</div><div class="wt-metric-label">${label}</div>`;
+        return href ? `<a class="wt-metric wt-metric-link" href="${escapeHtml(href)}">${inner}</a>` : `<div class="wt-metric">${inner}</div>`;
+    }
+    /** Every count not already a link goes where its card's name goes (#388). */
+    function linkCardMetrics() {
+        document.querySelectorAll('.wt-card').forEach(card => {
+            const a = card.querySelector('.wt-card-name a');
+            if (!a) return;
+            card.querySelectorAll('div.wt-metric:not(.wt-metric-link)').forEach(m => {
+                m.classList.add('wt-metric-link');
+                m.setAttribute('role', 'link');
+                m.tabIndex = 0;
+                m.title = a.textContent.trim();
+                const go = () => { window.location.href = a.href; };
+                m.addEventListener('click', go);
+                m.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+            });
+        });
     }
 
     function renderMorningChecks(d) {
@@ -814,12 +839,13 @@ try {
         }
 
         let html = '<div class="wt-metrics">';
-        html += metric(totalOpen, window.t('watchtower.tickets.metric_open'), 'var(--text, #334155)');
+        html += metric(totalOpen, window.t('watchtower.tickets.metric_open'), 'var(--text, #334155)', '../tickets/');
         // One per open status, under its own name and colour, in the order they are
         // arranged in Tickets → Settings. Names come from the database, so they are
         // already in the reader's language and cannot drift out of date.
         byStatus.forEach(s => {
-            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8');
+            html += metric(s.count, escapeHtml(s.name), s.count > 0 ? (safeColour(s.colour) || 'var(--text, #334155)') : '#94a3b8',
+                           '../tickets/?status=' + encodeURIComponent(s.name));   // #388: All Tickets on this status
         });
         html += '</div>';
 
@@ -1380,6 +1406,7 @@ try {
                 renderTasks(d);
                 renderProjects(d);
                 renderWorkflows(d);
+                linkCardMetrics();   // #388: every count goes somewhere
 
                 // 🔴 LAST. applyCardVisibility() and renderWorkflows() both set
                 // display themselves, so running this any earlier would have its
@@ -1402,8 +1429,22 @@ try {
     // Initial load
     loadDashboard();
 
-    // Auto-refresh every 5 minutes
-    refreshTimer = setInterval(loadDashboard, 5 * 60 * 1000);
+    // Auto-refresh - every 5 minutes unless the person chose otherwise (discussion #388:
+    // a wall screen wants it sooner). Preferences → General → Watchtower refreshes every.
+    // The session stays signed in however long the screen is left: every refresh is a
+    // request, and includes/session_keepalive.php (GH #107) keeps the session's clock fresh.
+    refreshTimer = setInterval(loadDashboard, <?php echo (int)wtRefreshMinutes(connectToDatabase(), (int)$_SESSION['analyst_id']); ?> * 60 * 1000);
+
+    // The card's icon goes where its name goes (#388). The name is the real link - the one
+    // a keyboard or a screen reader reaches - so the icon is a pointer shortcut, not a second link.
+    document.querySelectorAll('.wt-card-icon').forEach(icon => {
+        const a = icon.parentElement && icon.parentElement.querySelector('.wt-card-name a');
+        if (!a) return;
+        icon.classList.add('wt-card-icon-link');
+        icon.setAttribute('aria-hidden', 'true');
+        icon.title = a.textContent.trim();
+        icon.addEventListener('click', () => { window.location.href = a.href; });
+    });
     </script>
     <script src="../assets/js/mobile.js?v=87"></script>
 </body>

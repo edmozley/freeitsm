@@ -771,8 +771,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initTinyMCE();
     initAttachmentHandlers();
 
-    // Load all tickets by default
-    inboxPrefsReady.then(loadEmails);
+    // Load all tickets by default - or, arriving with ?status=Name (Watchtower's status
+    // counts link here, discussion #388), All Tickets on that status: the GH #73 view,
+    // with its folder opened and lit so it is plain why the list is short.
+    const startStatus = new URLSearchParams(window.location.search).get('status');
+    if (startStatus) {
+        expandedFolders['all'] = true;
+        inboxPrefsReady.then(() => selectAllStatus(startStatus));   // loads the list itself
+    } else {
+        inboxPrefsReady.then(loadEmails);
+    }
 
     // Check for ticket_id in URL and auto-load that ticket
     const urlParams = new URLSearchParams(window.location.search);

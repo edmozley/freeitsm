@@ -334,5 +334,9 @@ return [
         'impersonal_show' => 'Seguir mostrándolas',
         'impersonal_hide' => 'Ocultarlas',
         'impersonal_note' => 'El estado del servicio, los flujos de trabajo, el equipo, el calendario compartido, los contratos, el conocimiento, las licencias de software y los dominios pertenecen al equipo y no a una persona, por lo que no se pueden acotar a usted. Mantenerlos es lo más seguro: un servicio degradado es lo último que debería desaparecer por haber cambiado a una vista personal.',
+        // Discussion #388
+        'refresh_heading' => 'Watchtower se actualiza cada',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Más a menudo conviene para una pantalla en la pared: un usuario que solo inicia sesión para ella sigue conectado y el panel se actualiza solo.',
     ],
 ];

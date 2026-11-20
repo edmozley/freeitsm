@@ -312,7 +312,7 @@ return [
         's1_feat2_title' => 'Colour-coded status',
         's1_feat2_desc'  => 'Every module card displays a green, amber, or red status dot for instant triage. You can tell at a glance which areas are healthy, which need attention, and which require immediate action.',
         's1_feat3_title' => 'Auto-refresh',
-        's1_feat3_desc'  => 'The dashboard automatically refreshes every 5 minutes, so the information stays current without any manual action. Leave Watchtower open and it keeps itself up to date in the background.',
+        's1_feat3_desc'  => 'The dashboard refreshes itself every 5 minutes - or every 1, 2, 10 or 15, as you choose under Preferences → General - so the information stays current without any manual action. Leave Watchtower open and it keeps itself up to date in the background.',
         's1_feat4_title' => 'Click-through',
         's1_feat4_desc'  => 'Jump directly into any module from its card. Each module name is a clickable link that takes you straight to the relevant area, so you can act on issues without searching for the right page.',
 
@@ -381,10 +381,10 @@ return [
         // Section 5 — Auto-refresh
         's5_title' => 'Auto-refresh and manual refresh',
         's5_intro' => 'Watchtower is designed to be a passive monitoring tool that you can leave open in a browser tab throughout the day. The dashboard keeps itself current through automatic refresh cycles.',
-        's5_step1' => '<strong>Automatic refresh</strong> &mdash; the dashboard fetches fresh data from all modules every 5 minutes. You do not need to reload the page or click anything; the cards and status dots update silently in the background.',
+        's5_step1' => '<strong>Automatic refresh</strong> &mdash; the dashboard fetches fresh data from all modules every 5 minutes, or as often as you choose under <strong>Preferences &rarr; General &rarr; Watchtower refreshes every</strong> (1, 2, 5, 10 or 15 minutes). You do not need to reload the page or click anything; the cards and status dots update silently in the background.',
         's5_step2' => '<strong>Manual refresh</strong> &mdash; click the <strong>Refresh</strong> button in the top-right corner to fetch the latest data immediately. The button icon spins while the request is in progress, confirming that new data is being loaded.',
         's5_step3' => '<strong>Updated timestamp</strong> &mdash; next to the refresh button, a timestamp shows the last time data was fetched (e.g. "Updated 09:15"). This tells you exactly how current the displayed information is.',
-        's5_tip' => 'Keep Watchtower open in a dedicated browser tab for passive monitoring. The 5-minute refresh cycle means you always have a near-real-time view of your IT operations without needing to manually check each module.',
+        's5_tip' => 'Keep Watchtower open in a dedicated browser tab for passive monitoring - or on a screen on the wall: sign in a user just for it, choose 1 minute, and it stays signed in and up to date on its own. Every number on a card is a link: a ticket status opens the ticket list on that status, and the rest open their module.',
 
         // Section 6 — Quick tips
         's6_title' => 'Quick tips',
@@ -425,6 +425,10 @@ return [
         'impersonal_show'      => 'Keep showing them',
         'impersonal_hide'      => 'Hide them',
         'impersonal_note'      => 'Service status, workflows, equipment, the shared calendar, contracts, knowledge, software licences and domains belong to the team rather than to a person, so they cannot narrow to you. Keeping them is the safer answer: a degraded service is the last thing that should disappear because you switched to a personal view.',
+        // Discussion #388
+        'refresh_heading' => 'Watchtower refreshes every',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Sooner suits a screen on the wall: a user signed in just for it stays signed in, and the dashboard updates itself.',
     ],
 
 ];

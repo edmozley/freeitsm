@@ -334,5 +334,9 @@ return [
         'impersonal_show' => 'Bliv ved med at vise dem',
         'impersonal_hide' => 'Skjul dem',
         'impersonal_note' => 'Servicestatus, arbejdsgange, udstyr, den fælles kalender, kontrakter, viden, softwarelicenser og domæner tilhører teamet frem for en person, så de kan ikke indsnævres til dig. At beholde dem er det sikreste svar: en forringet tjeneste er det sidste, der bør forsvinde, fordi du skiftede til en personlig visning.',
+        // Discussion #388
+        'refresh_heading' => 'Watchtower opdateres hvert',
+        'refresh_minutes' => '{n} min.',
+        'refresh_note' => 'Oftere passer til en skærm på væggen: en bruger, der kun er logget ind til den, forbliver logget ind, og dashboardet opdaterer sig selv.',
     ],
 ];

@@ -348,5 +348,9 @@ return [
         'impersonal_show' => 'Pokazuj je nadal',
         'impersonal_hide' => 'Ukryj je',
         'impersonal_note' => 'Status usług, przepływy pracy, sprzęt, wspólny kalendarz, kontrakty, baza wiedzy, licencje oprogramowania i domeny należą do zespołu, a nie do osoby, więc nie mogą się zawęzić do Ciebie. Ich zachowanie jest bezpieczniejszą odpowiedzią: zdegradowana usługa to ostatnia rzecz, która powinna zniknąć dlatego, że przełączasz się na widok osobisty.',
+        // Discussion #388
+        'refresh_heading' => 'Watchtower odświeża się co',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Częściej sprawdza się na ekranie na ścianie: użytkownik zalogowany tylko do niego pozostaje zalogowany, a pulpit sam się aktualizuje.',
     ],
 ];

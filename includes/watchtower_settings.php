@@ -452,3 +452,22 @@ function wtIdListSql(array $ids): string
     $ids = array_values(array_unique(array_map('intval', $ids)));
     return $ids ? '(' . implode(',', $ids) . ')' : '(0)';
 }
+
+/** How often Watchtower refreshes itself, in minutes - one of these (discussion #388). */
+const WT_REFRESH_CHOICES = [1, 2, 5, 10, 15];
+
+/**
+ * The person's chosen Watchtower refresh, in minutes; 5 when they have not chosen.
+ * Preferences → General → "Watchtower refreshes every" (user_preferences.watchtower_refresh_minutes).
+ */
+function wtRefreshMinutes(PDO $conn, int $analystId): int
+{
+    try {
+        $st = $conn->prepare("SELECT preference_value FROM user_preferences WHERE analyst_id = ? AND preference_key = 'watchtower_refresh_minutes' LIMIT 1");
+        $st->execute([$analystId]);
+        $v = (int)$st->fetchColumn();
+        return in_array($v, WT_REFRESH_CHOICES, true) ? $v : 5;
+    } catch (Throwable $e) {
+        return 5;
+    }
+}

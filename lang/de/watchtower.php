@@ -334,5 +334,9 @@ return [
         'impersonal_show' => 'Weiter anzeigen',
         'impersonal_hide' => 'Ausblenden',
         'impersonal_note' => 'Servicestatus, Workflows, Geräte, der gemeinsame Kalender, Verträge, Wissen, Software-Lizenzen und Domänen gehören dem Team und nicht einer Person, daher lassen sie sich nicht auf Sie einschränken. Sie zu behalten ist die sicherere Antwort: Ein beeinträchtigter Service sollte als Letztes verschwinden, nur weil Sie zu einer persönlichen Ansicht gewechselt haben.',
+        // Discussion #388
+        'refresh_heading' => 'Watchtower aktualisiert alle',
+        'refresh_minutes' => '{n} Min.',
+        'refresh_note' => 'Kürzer passt zu einem Bildschirm an der Wand: Ein nur dafür angemeldeter Benutzer bleibt angemeldet, und das Dashboard aktualisiert sich selbst.',
     ],
 ];

@@ -348,5 +348,9 @@ return [
         'impersonal_show' => 'Tetap tampilkan',
         'impersonal_hide' => 'Sembunyikan',
         'impersonal_note' => 'Status layanan, workflow, peralatan, kalender bersama, kontrak, pengetahuan, lisensi perangkat lunak, dan domain milik tim, bukan milik seseorang, jadi tidak dapat menyempit ke Anda. Tetap menampilkannya adalah jawaban yang lebih aman: layanan yang terdegradasi adalah hal terakhir yang seharusnya hilang hanya karena Anda beralih ke tampilan pribadi.',
+        // Discussion #388
+        'refresh_heading' => 'Watchtower diperbarui setiap',
+        'refresh_minutes' => '{n} mnt',
+        'refresh_note' => 'Lebih sering cocok untuk layar di dinding: pengguna yang masuk khusus untuk itu tetap masuk, dan dasbor memperbarui dirinya sendiri.',
     ],
 ];

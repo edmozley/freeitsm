@@ -759,6 +759,14 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                 <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);">
                     <?php echo htmlspecialchars(t('watchtower.scope.impersonal_note')); ?>
                 </p>
+                <?php /* #388: how often Watchtower refreshes itself - sooner for a wall screen. */ ?>
+                <h4 style="margin:18px 0 8px;"><?php echo htmlspecialchars(t('watchtower.scope.refresh_heading')); ?></h4>
+                <div class="anim-toggle" id="wtRefreshToggle">
+                    <?php foreach ([1, 2, 5, 10, 15] as $m): ?><button class="anim-option" data-wtref="<?php echo $m; ?>"><?php echo htmlspecialchars(t('watchtower.scope.refresh_minutes', ['n' => $m])); ?></button><?php endforeach; ?>
+                </div>
+                <p class="pref-hint" style="margin-top:8px;color:var(--text-muted,#666);font-size:var(--font-size-sm, 12px);">
+                    <?php echo htmlspecialchars(t('watchtower.scope.refresh_note')); ?>
+                </p>
             </div>
 
             <?php
@@ -2332,6 +2340,34 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
                     // Back where it was: a control showing a state the server
                     // refused is a lie about what will happen.
                     paint(previous ? previous.dataset.wtimp : 'show');
+                    showToast(window.t('system.preferences.save_failed'), 'error');
+                }
+            });
+        })();
+        // ── Watchtower refreshes every (#388) ────────────────────────────────
+        (function () {
+            const root = document.getElementById('wtRefreshToggle');
+            if (!root) return;
+            const paint = v => root.querySelectorAll('.anim-option').forEach(b =>
+                b.classList.toggle('active', b.dataset.wtref === String(v || '5')));
+            fetch('../../api/system/get_user_preference.php?key=watchtower_refresh_minutes', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(d => paint(d.value || d.preference_value || '5'))
+                .catch(() => paint('5'));
+            root.addEventListener('click', async function (e) {
+                const btn = e.target.closest('.anim-option');
+                if (!btn) return;
+                const previous = root.querySelector('.anim-option.active');
+                paint(btn.dataset.wtref);
+                try {
+                    const r = await fetch('../../api/system/set_user_preference.php', {
+                        method: 'POST', credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key: 'watchtower_refresh_minutes', value: btn.dataset.wtref })
+                    }).then(r => r.json());
+                    if (!r || !r.success) throw new Error(r && r.error);
+                } catch (err) {
+                    paint(previous ? previous.dataset.wtref : '5');
                     showToast(window.t('system.preferences.save_failed'), 'error');
                 }
             });

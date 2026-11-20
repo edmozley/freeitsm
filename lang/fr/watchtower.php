@@ -348,5 +348,9 @@ return [
         'impersonal_show' => 'Continuer à les afficher',
         'impersonal_hide' => 'Les masquer',
         'impersonal_note' => 'L\'état des services, les workflows, l\'équipement, le calendrier partagé, les contrats, les connaissances, les licences logicielles et les domaines appartiennent à l\'équipe plutôt qu\'à une personne, ils ne peuvent donc pas se restreindre à vous. Les conserver est la réponse la plus sûre : un service dégradé est la dernière chose qui devrait disparaître parce que vous êtes passé à une vue personnelle.',
+        // Discussion #388
+        'refresh_heading' => 'Watchtower s\'actualise toutes les',
+        'refresh_minutes' => '{n} min',
+        'refresh_note' => 'Plus souvent convient à un écran mural : un utilisateur connecté uniquement pour lui reste connecté, et le tableau de bord se met à jour seul.',
     ],
 ];
