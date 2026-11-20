@@ -133,4 +133,10 @@
     }
     #emailModal .modal-body > .form-group:has(#attachmentDropzone) { margin-bottom: 0; }
     #emailModal .attachment-dropzone { padding: 10px 16px; }
+    /* One 12px rhythm between the fields (Ed: To -> Subject was 28px - each box's own 12px
+       margin plus its row's 16px), and no phantom gap under the drop zone: the attachment
+       list keeps a 10px top margin even when empty. Body padding (canonical) untouched. */
+    #emailModal .reply-addr-row { margin-bottom: 12px; }
+    #emailModal .reply-addr-row > .reply-addr { margin-bottom: 0; }
+    #emailModal .attachment-list:empty { margin-top: 0; }
 }
