@@ -42,6 +42,11 @@ require_once __DIR__ . '/session_keepalive.php';
 // check. See the file for why the rule is deliberately this narrow.
 require_once __DIR__ . '/request_guard.php';
 
+// After signing in, back to the page that sent you to the sign-in screen. Installed
+// before the gates below, because the active-analyst gate redirects as it loads.
+require_once __DIR__ . '/login_return.php';
+loginReturnInstallHook();
+
 // Enforces "you must change your password" on every request, not just as a redirect
 // at the end of login — otherwise typing a URL walks straight past it, which would
 // make the seeded-credentials fix cosmetic. See the file.

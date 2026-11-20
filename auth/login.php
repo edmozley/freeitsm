@@ -156,7 +156,21 @@ function logLoginAttempt($conn, $analystId, $username, $success) {
     }
 }
 
-// If already logged in, redirect to inbox
+// The page that sent the analyst here (includes/login_return.php). Kept in the session
+// so it survives the POST, the MFA step and an SSO round trip. Opening the sign-in page
+// plainly forgets an old one, so it cannot resurface on a later, ordinary sign-in.
+// Not when an SSO attempt has just bounced back here with an error: that is the
+// same sign-in, still under way.
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+    if (isset($_GET['return'])) {
+        loginReturnRemember(is_string($_GET['return']) ? $_GET['return'] : null);
+    } elseif (($_SERVER['QUERY_STRING'] ?? '') === '' && $sso_error === null
+              && !isset($_SESSION['mfa_pending_analyst_id'])) {
+        loginReturnRemember(null);
+    }
+}
+
+// If already logged in, redirect to the page they came from, or the landing page
 /* 🔴 …unless an administrator is PREVIEWING this page.
 
    Everybody who uses the login designer is, by definition, logged in — so
@@ -171,7 +185,7 @@ function logLoginAttempt($conn, $analystId, $username, $success) {
    and changes no session state. */
 $brandPreviewAllowed = $brandPreview && isset($_SESSION['analyst_id']) && !empty($_SESSION['is_admin']);
 if (isset($_SESSION['analyst_id']) && !$brandPreviewAllowed) {
-    header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'index.php');
+    header('Location: ' . loginReturnTake());
     exit;
 }
 
@@ -182,7 +196,10 @@ if (isset($_GET['cancel_mfa'])) {
     unset($_SESSION['mfa_pending_name']);
     unset($_SESSION['mfa_pending_email']);
     unset($_SESSION['mfa_pending_allowed_modules']);
-    header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'auth/login.php');
+    // Starting the sign-in again keeps the page it was for.
+    $cancelReturn = loginReturnPeek();
+    header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'auth/login.php'
+        . ($cancelReturn !== null ? '?return=' . rawurlencode($cancelReturn) : ''));
     exit;
 }
 
@@ -456,7 +473,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $_SESSION['password_expired'] = true;
                             header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'auth/force_password_change.php');
                         } else {
-                            header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'index.php');
+                            header('Location: ' . loginReturnTake());
                         }
                         exit;
                     }
@@ -500,7 +517,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['password_expired'] = true;
                         header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'auth/force_password_change.php');
                     } else {
-                        header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'index.php');
+                        header('Location: ' . loginReturnTake());
                     }
                     exit;
                 }

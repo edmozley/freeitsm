@@ -15,6 +15,12 @@ if (!isset($_SESSION['analyst_id']) || empty($_SESSION['password_expired'])) {
 }
 
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
+
+// Once the password is changed: the page that sent them to sign in, or the landing page.
+require_once __DIR__ . '/../includes/base_url.php';
+require_once __DIR__ . '/../includes/login_return.php';
+// Peeked, not used up, so reloading this page keeps it.
+$afterChange = loginReturnPeek() ?? ((defined('BASE_URL') ? BASE_URL : '/') . 'index.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?= trLocale() ?>">
@@ -220,7 +226,7 @@ $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
             if (data.success) {
                 msgEl.className = 'msg success';
                 msgEl.textContent = <?= trj('expired_success', 'Password changed successfully. Redirecting...') ?>;
-                setTimeout(() => { window.location.href = '<?php echo defined('BASE_URL') ? BASE_URL : '/'; ?>index.php'; }, 1500);
+                setTimeout(() => { window.location.href = <?php echo json_encode($afterChange, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES); ?>; }, 1500);
             } else {
                 msgEl.className = 'msg error';
                 msgEl.textContent = data.error;
