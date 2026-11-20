@@ -118,6 +118,9 @@ body {
    edge instead of spilling past both edges, where the first ones
    could not be scrolled back into view. A browser without "safe"
    keeps the plain centre from the line above it.
+   TRAP: never plain "center" on a row that can scroll. Content spilling past
+   the left edge is outside the scroll range, and scrollWidth does not count
+   it, so a "does it fit?" check passes (GH #411).
    --------------------------------------------------------------- */
 .assets-header .header-nav,
 .calendar-header .header-nav,
