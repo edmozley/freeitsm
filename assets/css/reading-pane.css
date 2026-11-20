@@ -140,3 +140,15 @@
     #emailModal .reply-addr-row > .reply-addr { margin-bottom: 0; }
     #emailModal .attachment-list:empty { margin-top: 0; }
 }
+
+/* The ticket right-click menu when it is taller than the window (inbox.js,
+   openTicketContextMenu): first the rows tighten; if it still does not fit it scrolls,
+   with no visible scrollbar - a scrollbar between a row and its flyout is a gap the
+   pointer falls through, closing the flyout. Flyouts are then pinned to the window by
+   fitTicketContextSubmenu(). Desktop only: the phone shows the menu as a sheet. */
+@media (min-width: 769px) {
+    .ticket-context-menu.ctx-compact .ticket-context-menu-item { padding-top: 5px; padding-bottom: 5px; }
+    .ticket-context-menu.ctx-compact .ticket-context-menu-header { padding-top: 5px; padding-bottom: 4px; }
+    .ticket-context-menu.ctx-scroll { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+    .ticket-context-menu.ctx-scroll::-webkit-scrollbar { display: none; }
+}

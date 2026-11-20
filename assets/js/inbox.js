@@ -11295,11 +11295,25 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
 
     // Position at cursor — flip if it would overflow the viewport
     menu.classList.add('active');
+    // Taller than the window (Ed, 2026-11-20: Trash, the last item, was below the bottom
+    // edge and could not be reached). First tighten the rows; if it still does not fit,
+    // cap it at the window and let it scroll - and then fitTicketContextSubmenu() pins
+    // each flyout to the window, because a scrolling box clips anything outside it.
+    const MENU_MARGIN = 6;
+    const roomY = window.innerHeight - 2 * MENU_MARGIN;
+    menu.classList.remove('ctx-compact', 'ctx-scroll');
+    menu.style.maxHeight = '';
+    menu.scrollTop = 0;
+    if (menu.getBoundingClientRect().height > roomY) menu.classList.add('ctx-compact');
+    if (menu.getBoundingClientRect().height > roomY) {
+        menu.classList.add('ctx-scroll');
+        menu.style.maxHeight = roomY + 'px';
+    }
     const rect = menu.getBoundingClientRect();
     let x = event.clientX;
     let y = event.clientY;
     if (x + rect.width  > window.innerWidth)  x = window.innerWidth  - rect.width  - 4;
-    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
+    if (y + rect.height > window.innerHeight - MENU_MARGIN) y = Math.max(MENU_MARGIN, window.innerHeight - rect.height - MENU_MARGIN);
     menu.style.left = x + 'px';
     menu.style.top  = y + 'px';
 
@@ -12777,7 +12791,24 @@ function fitTicketContextSubmenu(parent) {
     const MARGIN = 6;
     sub.style.top = '';
     sub.style.maxHeight = '';
+    sub.style.position = sub.style.left = sub.style.right = '';
     if (ticketMenuIsSheet()) return;   // the phone sheet shows a second level instead
+
+    // The menu itself scrolls (taller than the window): a scrolling box clips anything
+    // outside it, so the flyout is placed against the WINDOW instead - beside the row,
+    // overlapping the menu's edge by a couple of pixels so the pointer never crosses a
+    // gap on its way in (the menu's scrollbar is hidden for the same reason).
+    const menu = parent.closest('.ticket-context-menu');
+    if (menu && menu.classList.contains('ctx-scroll')) {
+        const mr = menu.getBoundingClientRect(), pr = parent.getBoundingClientRect();
+        sub.style.position = 'fixed';
+        sub.style.right = 'auto';
+        sub.style.maxHeight = Math.min(parseFloat(getComputedStyle(sub).maxHeight) || Infinity, window.innerHeight - 2 * MARGIN) + 'px';
+        const w = sub.offsetWidth, h = sub.offsetHeight;
+        sub.style.left = (menu.classList.contains('flip-sub') ? mr.left - w + 2 : mr.right - 2) + 'px';
+        sub.style.top = Math.max(MARGIN, Math.min(pr.top - 5, window.innerHeight - MARGIN - h)) + 'px';
+        return;
+    }
     const cssMax = parseFloat(getComputedStyle(sub).maxHeight) || Infinity;
     sub.style.maxHeight = Math.min(cssMax, window.innerHeight - 2 * MARGIN) + 'px';
     const r = sub.getBoundingClientRect();
@@ -12795,6 +12826,12 @@ function fitTicketContextSubmenu(parent) {
         fitTicketContextSubmenu(parent);
     });
 });
+// A scrolling menu moves its rows under an open flyout: put the flyout back beside its row.
+document.addEventListener('scroll', function (e) {
+    const menu = e.target;
+    if (!(menu instanceof Element) || !menu.classList.contains('ctx-scroll')) return;
+    menu.querySelectorAll('.ticket-context-menu-parent:hover, .ticket-context-menu-parent:focus-within').forEach(fitTicketContextSubmenu);
+}, true);
 // Right-clicking a different row should reopen, not stack
 window.addEventListener('blur', closeTicketContextMenu);
 window.addEventListener('scroll', function (e) {
