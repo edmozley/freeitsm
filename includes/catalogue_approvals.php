@@ -1059,6 +1059,19 @@ function catalogueSubmissionBodyHtml(PDO $conn, int $submissionId, string $formT
                . '</tr>';
     }
     $html .= '</table>';
+    // #298: answers the approver changed while it waited, so the desk can see the
+    // request is not exactly what was asked - who changed what, from what, and why.
+    $changes = catalogueAnswerChanges($conn, $submissionId);
+    if ($changes) {
+        $html .= '<p style="margin-top:12px;"><strong>' . $esc(t('forms.approval.changed_heading')) . '</strong></p><ul style="margin:4px 0 0 18px;padding:0;">';
+        foreach ($changes as $c) {
+            $html .= '<li>' . $esc(t('forms.approval.changed_line', [
+                'field' => $c['label'], 'old' => $c['old'] !== '' ? $c['old'] : t('forms.approval.changed_blank'),
+                'new' => $c['new'] !== '' ? $c['new'] : t('forms.approval.changed_blank'), 'name' => (string)($c['by'] ?? ''),
+            ])) . ($c['reason'] !== '' ? ' - ' . $esc($c['reason']) : '') . '</li>';
+        }
+        $html .= '</ul>';
+    }
     return $html;
 }
 
@@ -1188,7 +1201,11 @@ function catalogueApprovalsList(PDO $conn, int $analystId, string $filter = 'min
             && !($policy['exclude_requester'] && catalogueAnalystIsRequester($conn, $analystId, $it));
         $it['can_override'] = $pending && $isAdmin && $policy['mode'] === 'team';
         $it['can_move'] = $pending && $isAdmin;
+        // #298: the approver may correct or complete the answers while it waits. The events
+        // table arrived with team approvals, so both need it ($team).
+        $it['can_edit'] = $team && catalogueCanEditAnswers($conn, $analystId, $it);
         $it['events'] = $team ? catalogueApprovalEvents($conn, (int)$it['id']) : [];
+        if ($it['can_edit']) $it['edit_fields'] = catalogueEditableFields($conn, (int)$it['id'], (int)$it['form_id']);
         // "Mine" lists only what I can act on: a team request I have voted on, or am
         // excluded from as its requester, is not waiting on me.
         if ($filter === 'mine' && $policy['mode'] === 'team' && !$it['can_vote']) continue;
@@ -1284,4 +1301,172 @@ function catalogueScalar(PDO $conn, string $sql, array $params) {
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
     return $stmt->fetchColumn();
+}
+
+// ===========================================================================
+//  Editing a waiting request's answers (discussion #298)
+// ===========================================================================
+//
+// An approver often knows something the requester did not - the right cost centre, the
+// username the new starter will get, a date that has moved. They can now correct or
+// complete the answers while the request waits, instead of approving something wrong or
+// rejecting it to be asked again. Ed: "the proper solution is to let the approver make
+// edits but there to be an audit trail." So:
+//   - only while it is pending, and only by someone who could decide it (the approver,
+//     a member of the approving team, or an administrator) - never the requester;
+//   - every changed answer is a form_submission_approval_events row ('answer_changed'):
+//     the field, the old and the new value, who and when, and an optional reason;
+//   - the answers are checked by FormsService::checkPlainAnswer(), the very rules a
+//     submission passes, so an edit is never held to looser ones;
+//   - the ticket raised on approval reads form_submission_data, so it gets the corrected
+//     answers, and its body lists what was changed.
+
+/** The answer types an approver may change in place. A lookup and a table keep the answer they were given. */
+const CATALOGUE_EDITABLE_TYPES = ['text', 'textarea', 'email', 'number', 'datetime', 'dropdown', 'radio', 'checkbox', 'checkboxes'];
+
+/**
+ * May this analyst change this request's answers?
+ *
+ * The same people who may decide it: the named approver, a current member of the
+ * approving team, or an administrator - and never the person who asked, even when the
+ * request does not stop them approving it.
+ *
+ * @param array $sub  the form_submissions row
+ */
+function catalogueCanEditAnswers(PDO $conn, int $analystId, array $sub): bool {
+    if (($sub['approval_status'] ?? '') !== 'pending' || $analystId <= 0) return false;
+    if (catalogueAnalystIsRequester($conn, $analystId, $sub)) return false;
+    if (function_exists('sessionIsAdmin') && sessionIsAdmin()) return true;
+    $policy = catalogueApprovalPolicy($sub);
+    if ($policy['mode'] === 'team') return in_array($analystId, catalogueEligibleMembers($conn, $sub), true);
+    return $policy['approver_id'] === $analystId;
+}
+
+/**
+ * The form's questions with this request's answers, for the edit window: every question
+ * that takes an answer, including ones the requester was not shown (an approver often
+ * fills those - "AD username"). editable is false for a lookup or a table.
+ *
+ * @return array<int, array{id:int, label:string, type:string, required:bool, options:array, date_mode:?string, value:string, text:string, editable:bool}>
+ */
+function catalogueEditableFields(PDO $conn, int $submissionId, int $formId): array {
+    require_once __DIR__ . '/services/forms.php';
+    $st = $conn->prepare(
+        "SELECT ff.id, ff.label, ff.field_type, ff.is_required, ff.options, ff.config,
+                (SELECT sd.field_value FROM form_submission_data sd
+                  WHERE sd.submission_id = ? AND sd.field_id = ff.id ORDER BY sd.id LIMIT 1) AS field_value
+           FROM form_fields ff
+          WHERE ff.form_id = ?
+       ORDER BY ff.sort_order, ff.id"
+    );
+    $st->execute([$submissionId, $formId]);
+    $out = [];
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        if (!FormsService::isAnswerable($r['field_type'])) continue;
+        $opts = json_decode((string)($r['options'] ?? ''), true);
+        $out[] = [
+            'id'        => (int)$r['id'],
+            'label'     => $r['label'],
+            'type'      => $r['field_type'],
+            'required'  => (bool)$r['is_required'],
+            'options'   => is_array($opts) ? array_values(array_map('strval', $opts)) : [],
+            'date_mode' => $r['field_type'] === 'datetime' ? FormsService::dateModeOf($r) : null,
+            'value'     => (string)($r['field_value'] ?? ''),
+            'text'      => catalogueAnswerText($r['field_value'], $r['field_type'], $r),
+            'editable'  => in_array($r['field_type'], CATALOGUE_EDITABLE_TYPES, true),
+        ];
+    }
+    return $out;
+}
+
+/**
+ * Changes a waiting request's answers, recording each change.
+ *
+ * @param array  $answers  field id => new value (a checkbox as a bool or '1'/'0', several ticks as an array)
+ * @param string $reason   optional, kept with every change
+ * @return array<int, array{field_id:int, label:string, old:string, new:string}>  what actually changed
+ * @throws Exception  a request that is not waiting, someone who may not edit it, or an answer that fails its question's rules
+ */
+function catalogueEditAnswers(PDO $conn, int $actorId, int $submissionId, array $answers, string $reason = ''): array {
+    require_once __DIR__ . '/services/forms.php';
+    $reason = trim($reason);
+    if (!$answers) throw new Exception('Nothing to change');
+
+    $conn->beginTransaction();
+    try {
+        $sub = catalogueLockSubmission($conn, $submissionId);   // FOR UPDATE; refuses one that is not pending
+        if (!catalogueCanEditAnswers($conn, $actorId, $sub)) {
+            throw new Exception(catalogueAnalystIsRequester($conn, $actorId, $sub)
+                ? 'You cannot change the answers on a request you made yourself'
+                : 'Only the approver of this request can change its answers');
+        }
+        $fs = $conn->prepare("SELECT id, label, field_type, is_required, options, config FROM form_fields WHERE form_id = ?");
+        $fs->execute([(int)$sub['form_id']]);
+        $fields = [];
+        foreach ($fs->fetchAll(PDO::FETCH_ASSOC) as $row) $fields[(int)$row['id']] = $row;
+
+        $cur = $conn->prepare("SELECT id, field_value FROM form_submission_data WHERE submission_id = ? AND field_id = ? ORDER BY id LIMIT 1");
+        $changes = [];
+        foreach ($answers as $fid => $value) {
+            $fid = (int)$fid;
+            $field = $fields[$fid] ?? null;
+            if (!$field) throw new Exception('That question is not on this form');
+            if (!in_array($field['field_type'], CATALOGUE_EDITABLE_TYPES, true)) {
+                throw new Exception('"' . $field['label'] . '" cannot be changed here');
+            }
+            // Stored exactly as a submission stores it (FormsService::submitForm).
+            if (is_bool($value)) $value = $value ? '1' : '0';
+            if (is_array($value)) $value = json_encode(array_values($value));
+            $value = (string)$value;
+            if ($field['field_type'] !== 'textarea') $value = trim($value);
+            if ($field['field_type'] === 'checkbox' && $value === '0') $value = '';
+            try {
+                FormsService::checkPlainAnswer($field, $value);
+            } catch (ServiceError $se) {
+                throw new Exception($se->getMessage());
+            }
+
+            $cur->execute([$submissionId, $fid]);
+            $row = $cur->fetch(PDO::FETCH_ASSOC);
+            $old = $row ? (string)$row['field_value'] : '';
+            $oldText = catalogueAnswerText($old, $field['field_type'], $field);
+            $newText = catalogueAnswerText($value, $field['field_type'], $field);
+            if ($old === $value || ($oldText === $newText && $field['field_type'] === 'checkbox')) continue;   // unchanged
+
+            if ($row) {
+                $conn->prepare("UPDATE form_submission_data SET field_value = ? WHERE id = ?")->execute([$value, (int)$row['id']]);
+            } else {
+                $conn->prepare("INSERT INTO form_submission_data (submission_id, field_id, field_value) VALUES (?, ?, ?)")
+                     ->execute([$submissionId, $fid, $value]);
+            }
+            $detail = json_encode(['field_id' => $fid, 'label' => $field['label'], 'old' => $oldText, 'new' => $newText,
+                                   'old_raw' => $old, 'new_raw' => $value], JSON_UNESCAPED_UNICODE);
+            catalogueApprovalEvent($conn, $submissionId, $actorId, 'answer_changed', $detail, $reason);
+            $changes[] = ['field_id' => $fid, 'label' => $field['label'], 'old' => $oldText, 'new' => $newText];
+        }
+        $conn->commit();
+        return $changes;
+    } catch (Throwable $e) {
+        if ($conn->inTransaction()) $conn->rollBack();
+        throw $e;
+    }
+}
+
+/**
+ * The answers changed while a request waited (#298), oldest first - for the ticket's
+ * body, the portal's "Your requests" and the submissions list.
+ *
+ * @return array<int, array{label:string, old:string, new:string, by:?string, at:string, reason:string}>
+ */
+function catalogueAnswerChanges(PDO $conn, int $submissionId): array {
+    $out = [];
+    try {
+        foreach (catalogueApprovalEvents($conn, $submissionId) as $ev) {
+            if ($ev['action'] !== 'answer_changed') continue;
+            $d = json_decode((string)$ev['detail'], true) ?: [];
+            $out[] = ['label' => (string)($d['label'] ?? ''), 'old' => (string)($d['old'] ?? ''), 'new' => (string)($d['new'] ?? ''),
+                      'by' => $ev['full_name'], 'at' => (string)$ev['event_datetime'], 'reason' => (string)($ev['reason'] ?? '')];
+        }
+    } catch (Throwable $e) { /* an install without the events table has no changes to show */ }
+    return $out;
 }

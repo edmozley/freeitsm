@@ -215,6 +215,10 @@ return [
         'req_sent'           => 'Sent',
         'req_cancelled'      => 'Cancelled',
         'req_cancel'         => 'Cancel',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Answers changed after you sent it ({n})',
+        'req_changed_line' => '{field}: {old} → {new}',
+        'req_changed_blank' => '(blank)',
         'req_cancel_title'   => 'Cancel this request?',
         'req_cancel_text'    => 'Your request for "{what}" will be cancelled. Whoever was to approve it will no longer see it as waiting.',
         'req_cancel_reason'  => 'Why are you cancelling it?',

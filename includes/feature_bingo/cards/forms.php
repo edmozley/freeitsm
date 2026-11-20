@@ -255,4 +255,16 @@ return [
         'link'     => 'forms/',
         'check'    => ['rows', 'form_fields', "field_type = 'lookup' AND config LIKE '%\"lookup_source\":\"company\"%' AND is_deleted = 0 AND is_demo = 0"],
     ],
+    [
+        'id'       => 'forms.approver_edits',
+        'module'   => 'forms',
+        'tier'     => 'extra',
+        'category' => 'governance',
+        'title'    => 'Approvers correct requests',
+        'what'     => 'An approver changes a waiting request\x27s answers before deciding it - a username, a site, a date - and every change is recorded with who, when, the old and new value and why.',
+        'why'      => 'A request that is nearly right gets put right instead of approved wrong or rejected and asked again, and nothing changes without a trace the requester and the desk can see.',
+        'done'     => 'An approver has changed at least one answer on a waiting request.',
+        'link'     => 'forms/approvals.php',
+        'check'    => ['rows', 'form_submission_approval_events', "action = 'answer_changed'"],
+    ],
 ];

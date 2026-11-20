@@ -176,6 +176,10 @@ return [
         'req_sent' => 'Надіслано',
         'req_cancelled' => 'Скасовано',
         'req_cancel' => 'Скасувати',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Відповіді змінено після надсилання ({n})',
+        'req_changed_line' => '{field}: {old} → {new}',
+        'req_changed_blank' => '(порожньо)',
         'req_cancel_title' => 'Скасувати цей запит?',
         'req_cancel_text' => 'Ваш запит на «{what}» буде скасовано. Той, хто мав його погодити, більше не бачитиме його як такий, що очікує.',
         'req_cancel_reason' => 'Чому ви його скасовуєте?',

@@ -293,8 +293,14 @@ document.addEventListener('DOMContentLoaded', loadTraining);
                 if (r.can_cancel) {
                     statusCell += `<button type="button" class="req-cancel" onclick="openCancelRequest(${Number(r.id)})">${escapeHtml(window.t('self-service.dashboard.req_cancel'))}</button>`;
                 }
+                // #298: answers the approver changed after it was sent - folded, one line each.
+                const blank = window.t('self-service.dashboard.req_changed_blank');
+                const changes = (r.changes || []).length
+                    ? `<details class="ticket-date"><summary>${escapeHtml(window.t('self-service.dashboard.req_changed', { n: r.changes.length }))}</summary>`
+                      + r.changes.map(c => `<div>${escapeHtml(window.t('self-service.dashboard.req_changed_line', { field: c.label, old: c.old || blank, new: c.new || blank }))} · ${formatDate(c.at)}</div>`).join('')
+                      + `</details>` : '';
                 return `<tr>
-                    <td>${escapeHtml(r.form_title)}${r.price_label ? `<div class="ticket-date">${escapeHtml(r.price_label)}</div>` : ''}</td>
+                    <td>${escapeHtml(r.form_title)}${r.price_label ? `<div class="ticket-date">${escapeHtml(r.price_label)}</div>` : ''}${changes}</td>
                     <td>${statusCell}</td>
                     <td><span class="ticket-date">${formatDate(r.submitted_date)}</span></td>
                 </tr>`;

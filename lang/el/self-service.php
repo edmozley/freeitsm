@@ -175,6 +175,10 @@ return [
         'req_sent' => 'Εστάλη',
         'req_cancelled' => 'Ακυρώθηκε',
         'req_cancel' => 'Ακύρωση',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Απαντήσεις που άλλαξαν μετά την αποστολή ({n})',
+        'req_changed_line' => '{field}: {old} → {new}',
+        'req_changed_blank' => '(κενό)',
         'req_cancel_title' => 'Να ακυρωθεί αυτό το αίτημα;',
         'req_cancel_text' => 'Το αίτημά σας για «{what}» θα ακυρωθεί. Όποιος επρόκειτο να το εγκρίνει δεν θα το βλέπει πλέον ως σε αναμονή.',
         'req_cancel_reason' => 'Γιατί το ακυρώνετε;',

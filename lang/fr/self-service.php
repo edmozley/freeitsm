@@ -175,6 +175,10 @@ return [
         'req_sent' => 'Envoyée',
         'req_cancelled' => 'Annulée',
         'req_cancel' => 'Annuler',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Réponses modifiées après votre envoi ({n})',
+        'req_changed_line' => '{field} : {old} → {new}',
+        'req_changed_blank' => '(vide)',
         'req_cancel_title' => 'Annuler cette demande ?',
         'req_cancel_text' => 'Votre demande pour « {what} » sera annulée. La personne qui devait l\'approuver ne la verra plus comme en attente.',
         'req_cancel_reason' => 'Pourquoi l\'annulez-vous ?',

@@ -175,6 +175,10 @@ return [
         'req_sent' => 'Terkirim',
         'req_cancelled' => 'Dibatalkan',
         'req_cancel' => 'Batalkan',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Jawaban diubah setelah Anda mengirimnya ({n})',
+        'req_changed_line' => '{field}: {old} → {new}',
+        'req_changed_blank' => '(kosong)',
         'req_cancel_title' => 'Batalkan permintaan ini?',
         'req_cancel_text' => 'Permintaan Anda untuk "{what}" akan dibatalkan. Penyetuju yang seharusnya menyetujuinya tidak akan lagi melihatnya sebagai menunggu.',
         'req_cancel_reason' => 'Mengapa Anda membatalkannya?',

@@ -163,6 +163,10 @@ try {
             // Whether the person may still cancel it (GH #348); the reason shows only on a cancelled one.
             $r['can_cancel'] = catalogueRequestCancellable($r);
             if ($r['approval_status'] !== 'cancelled') $r['approval_comment'] = null;
+            // #298: answers the approver changed after it was sent - what and when, never the
+            // approver's reason (that may be an internal note; the desk sees it on the ticket).
+            $r['changes'] = array_map(fn($c) => ['label' => $c['label'], 'old' => $c['old'], 'new' => $c['new'], 'at' => $c['at']],
+                                      catalogueAnswerChanges($conn, (int)$r['id']));
         }
         unset($r);
     } catch (Exception $e) {

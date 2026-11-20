@@ -175,6 +175,10 @@ return [
         'req_sent' => 'Wysłano',
         'req_cancelled' => 'Anulowano',
         'req_cancel' => 'Anuluj',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Odpowiedzi zmienione po wysłaniu ({n})',
+        'req_changed_line' => '{field}: {old} → {new}',
+        'req_changed_blank' => '(puste)',
         'req_cancel_title' => 'Anulować to zgłoszenie?',
         'req_cancel_text' => 'Twoje zgłoszenie dotyczące „{what}” zostanie anulowane. Osoba, która miała je zatwierdzić, nie zobaczy go już jako oczekującego.',
         'req_cancel_reason' => 'Dlaczego je anulujesz?',

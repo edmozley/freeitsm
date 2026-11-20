@@ -175,6 +175,10 @@ return [
         'req_sent' => 'Sendt',
         'req_cancelled' => 'Annulleret',
         'req_cancel' => 'Annullér',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Svar ændret, efter du sendte den ({n})',
+        'req_changed_line' => '{field}: {old} → {new}',
+        'req_changed_blank' => '(tom)',
         'req_cancel_title' => 'Annullér denne anmodning?',
         'req_cancel_text' => 'Din anmodning om "{what}" bliver annulleret. Den, der skulle godkende den, ser den ikke længere som afventende.',
         'req_cancel_reason' => 'Hvorfor annullerer du den?',

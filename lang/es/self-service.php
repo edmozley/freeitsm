@@ -175,6 +175,10 @@ return [
         'req_sent' => 'Enviada',
         'req_cancelled' => 'Cancelada',
         'req_cancel' => 'Cancelar',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Respuestas cambiadas después de enviarla ({n})',
+        'req_changed_line' => '{field}: {old} → {new}',
+        'req_changed_blank' => '(vacío)',
         'req_cancel_title' => '¿Cancelar esta solicitud?',
         'req_cancel_text' => 'Se cancelará su solicitud de «{what}». Quien debía aprobarla dejará de verla como pendiente.',
         'req_cancel_reason' => '¿Por qué la cancela?',

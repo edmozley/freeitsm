@@ -88,6 +88,25 @@ $translationNamespaces = ['common', 'forms'];
         .ca-event { font-size: var(--font-size-sm, 12px); color: var(--text-muted, #666); margin: 2px 0; }
         .ca-move { display: none; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
         .ca-move.open { display: flex; }
+        /* #298: changing a waiting request's answers. */
+        .ca-edit { display: none; margin-top: 12px; padding: 12px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; background: var(--surface-2, #fafafa); }
+        .ca-edit.open { display: block; }
+        .ca-edit-hint { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); margin: 0 0 10px; }
+        .ca-edit-row { display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 10px; align-items: start; padding: 6px 0; }
+        .ca-edit-row > label { font-size: var(--font-size-md, 13px); font-weight: 600; color: var(--text, #333); padding-top: 7px; }
+        .ca-edit-row input[type="text"], .ca-edit-row input[type="email"], .ca-edit-row input[type="number"],
+        .ca-edit-row input[type="date"], .ca-edit-row input[type="time"], .ca-edit-row input[type="datetime-local"],
+        .ca-edit-row select, .ca-edit-row textarea, .ca-edit-reason {
+            width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 5px;
+            font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); font-family: inherit;
+        }
+        .ca-edit-row textarea { min-height: 64px; resize: vertical; }
+        .ca-edit-ticks { display: flex; flex-wrap: wrap; gap: 6px 14px; padding-top: 6px; }
+        .ca-edit-ticks label { display: inline-flex; gap: 5px; align-items: center; font-size: var(--font-size-md, 13px); }
+        .ca-edit-locked { font-size: var(--font-size-md, 13px); color: var(--text-muted, #666); padding-top: 7px; }
+        .ca-edit-locked em { font-style: normal; color: var(--text-dim, #999); margin-left: 6px; }
+        .ca-edit-reason { margin-top: 8px; }
+        .ca-event-change { font-size: var(--font-size-md, 13px); }
         .ca-move select, .ca-move input { padding: 7px 9px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: var(--font-size-md, 13px); background: var(--surface, #fff); color: var(--text, #333); }
         .ca-move input[type=text] { flex: 1; min-width: 160px; }
         .ca-move input[type=number] { width: 70px; }
@@ -261,6 +280,8 @@ $translationNamespaces = ['common', 'forms'];
 
         function renderApprovals(items) {
             const list = document.getElementById('caList');
+            CA_ITEMS = {};
+            items.forEach(it => { CA_ITEMS[it.id] = it; });   // #298: the edit panel reads its fields from here
             if (!items.length) {
                 list.innerHTML = `<div class="ca-empty"><h3>${esc(window.t('forms.approval.empty_heading'))}</h3><p>${esc(window.t('forms.approval.empty_text'))}</p></div>`;
                 return;
@@ -287,7 +308,7 @@ $translationNamespaces = ['common', 'forms'];
                         + (votes ? `<ul class="ca-votes">${votes}</ul>` : '');
                 }
                 const stuck = (!decided && pr.stuck) ? `<div class="ca-stuck">${esc(window.t('forms.approval.stuck'))}</div>` : '';
-                const events = (it.events || []).map(e => `<div class="ca-event">${esc(e.action === 'moved'
+                const events = (it.events || []).map(e => e.action === 'answer_changed' ? changeEventHtml(e) : `<div class="ca-event">${esc(e.action === 'moved'
                     ? window.t('forms.approval.event_moved', { name: e.full_name || '', detail: e.detail || '', reason: e.reason || '' })
                     : window.t('forms.approval.event_override', { name: e.full_name || '', decision: window.t('forms.approval.voted_' + e.action.replace('override_', '')), reason: e.reason || '' }))}</div>`).join('');
                 let footer;
@@ -309,6 +330,9 @@ $translationNamespaces = ['common', 'forms'];
                     const override = !it.can_vote && it.can_override;
                     const canAct = it.can_vote || it.can_decide || override;
                     const placeholder = team || override ? window.t('forms.approval.reason_placeholder') : window.t('forms.approval.comment_placeholder');
+                    // #298: change the answers before deciding - every change recorded.
+                    const editBtn = it.can_edit
+                        ? `<button class="ca-btn ca-btn-secondary" onclick="toggleEdit(${it.id})">${esc(window.t('forms.approval.edit'))}</button>` : '';
                     const moveBtn = it.can_move
                         ? `<button class="ca-btn ca-btn-secondary" title="${escAttr(window.t('forms.approval.move_title'))}" onclick="toggleMove(${it.id})">${esc(window.t('forms.approval.move'))}</button>` : '';
                     footer = (override ? `<div class="ca-override-hint">${esc(window.t('forms.approval.override_hint'))}</div>` : '')
@@ -317,8 +341,9 @@ $translationNamespaces = ['common', 'forms'];
                         <div class="ca-actions">
                             <button class="ca-btn ca-btn-approve" onclick="decide(${it.id}, 'approved', this, ${override}, ${team})">${esc(window.t('forms.approval.approve'))}</button>
                             <button class="ca-btn ca-btn-reject" onclick="decide(${it.id}, 'rejected', this, ${override}, ${team})">${esc(window.t('forms.approval.reject'))}</button>
-                            ${moveBtn}
-                        </div>` : (moveBtn ? `<div class="ca-actions">${moveBtn}</div>` : ''))
+                            ${editBtn}${moveBtn}
+                        </div>` : ((editBtn || moveBtn) ? `<div class="ca-actions">${editBtn}${moveBtn}</div>` : ''))
+                        + (it.can_edit ? `<div class="ca-edit" id="edit-${it.id}"></div>` : '')
                         + (it.can_move ? `<div class="ca-move" id="move-${it.id}"></div>` : '');
                 }
 
@@ -378,6 +403,109 @@ $translationNamespaces = ['common', 'forms'];
 
         // ===== Move a waiting request (GH #220, administrators) =====
         let moveChoices = null;   // {teams, people}, fetched the first time a Move panel opens
+        /* ── #298: changing a waiting request's answers ─────────────────────────────
+           Every question that takes an answer is listed, including ones the requester
+           was not shown (the approver often fills those). A lookup or a table cannot be
+           changed here. Only the answers actually changed are sent; the server checks
+           them by the same rules a submission passes and records each change. */
+        let CA_ITEMS = {};
+
+        function changeEventHtml(e) {
+            let d = {};
+            try { d = JSON.parse(e.detail || '{}') || {}; } catch (x) { /* an unreadable detail still shows who and when */ }
+            const blank = window.t('forms.approval.changed_blank');
+            const line = window.t('forms.approval.changed_event', {
+                name: e.full_name || '', field: d.label || '',
+                old: d.old !== undefined && d.old !== '' ? d.old : blank, new: d.new !== undefined && d.new !== '' ? d.new : blank
+            });
+            return `<div class="ca-event ca-event-change">${esc(line)} · ${esc(formatDate(e.event_datetime))}${e.reason ? ' · ' + esc(e.reason) : ''}</div>`;
+        }
+
+        function editInput(f) {
+            const id = `ef-${f.id}`;
+            if (!f.editable) return `<div class="ca-edit-locked">${esc(f.text || '—')}<em>${esc(window.t('forms.approval.edit_locked'))}</em></div>`;
+            const v = f.value || '';
+            switch (f.type) {
+                case 'textarea': return `<textarea id="${id}">${esc(v)}</textarea>`;
+                case 'email':    return `<input type="email" id="${id}" value="${escAttr(v)}">`;
+                case 'number':   return `<input type="number" step="any" id="${id}" value="${escAttr(v)}">`;
+                case 'datetime': {
+                    const kind = f.date_mode === 'time' ? 'time' : (f.date_mode === 'datetime' ? 'datetime-local' : 'date');
+                    return `<input type="${kind}" id="${id}" value="${escAttr(v)}">`;
+                }
+                case 'dropdown':
+                case 'radio':
+                    return `<select id="${id}"><option value=""></option>${f.options.map(o =>
+                        `<option value="${escAttr(o)}"${o === v ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+                case 'checkbox':
+                    return `<div class="ca-edit-ticks"><label><input type="checkbox" id="${id}"${['1', 'true', 'yes', 'on'].includes(String(v).toLowerCase()) ? ' checked' : ''}></label></div>`;
+                case 'checkboxes': {
+                    let chosen = [];
+                    try { chosen = JSON.parse(v || '[]') || []; } catch (x) { chosen = []; }
+                    return `<div class="ca-edit-ticks" id="${id}">${f.options.map(o =>
+                        `<label><input type="checkbox" value="${escAttr(o)}"${chosen.includes(o) ? ' checked' : ''}> ${esc(o)}</label>`).join('')}</div>`;
+                }
+                default:         return `<input type="text" id="${id}" value="${escAttr(v)}">`;
+            }
+        }
+
+        function toggleEdit(id) {
+            const box = document.getElementById('edit-' + id);
+            const it = CA_ITEMS[id];
+            if (!box || !it) return;
+            if (box.classList.toggle('open')) {
+                box.innerHTML = `<p class="ca-edit-hint">${esc(window.t('forms.approval.edit_hint'))}</p>`
+                    + (it.edit_fields || []).map(f => `<div class="ca-edit-row"><label for="ef-${f.id}">${esc(f.label)}${f.required ? ' *' : ''}</label>${editInput(f)}</div>`).join('')
+                    + `<input type="text" class="ca-edit-reason" id="ef-reason-${id}" placeholder="${escAttr(window.t('forms.approval.edit_reason'))}">`
+                    + `<div class="ca-actions"><button class="ca-btn ca-btn-approve" onclick="saveEdit(${id}, this)">${esc(window.t('forms.approval.edit_save'))}</button>`
+                    + `<button class="ca-btn ca-btn-secondary" onclick="toggleEdit(${id})">${esc(window.t('forms.approval.edit_cancel'))}</button></div>`;
+            } else {
+                box.innerHTML = '';
+            }
+        }
+
+        /** What the panel says for one question, in the stored form - or undefined when untouched. */
+        function editedValue(f) {
+            if (f.type === 'checkboxes') {
+                const box = document.getElementById(`ef-${f.id}`);
+                const now = Array.from(box.querySelectorAll('input:checked')).map(c => c.value);
+                let was = [];
+                try { was = JSON.parse(f.value || '[]') || []; } catch (x) { was = []; }
+                return JSON.stringify(now) === JSON.stringify(was) ? undefined : now;
+            }
+            const el = document.getElementById(`ef-${f.id}`);
+            if (f.type === 'checkbox') {
+                const was = ['1', 'true', 'yes', 'on'].includes(String(f.value || '').toLowerCase());
+                return el.checked === was ? undefined : (el.checked ? '1' : '');
+            }
+            const now = f.type === 'textarea' ? el.value : el.value.trim();
+            return now === (f.value || '') ? undefined : now;
+        }
+
+        async function saveEdit(id, btn) {
+            const it = CA_ITEMS[id];
+            const answers = {};
+            (it.edit_fields || []).filter(f => f.editable).forEach(f => {
+                const v = editedValue(f);
+                if (v !== undefined) answers[f.id] = v;
+            });
+            if (!Object.keys(answers).length) { showToast(window.t('forms.approval.edit_none'), 'info'); return; }
+            btn.disabled = true;
+            try {
+                const r = await fetch('../api/forms/edit_submission_answers.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ submission_id: id, answers, reason: (document.getElementById('ef-reason-' + id) || {}).value || '' })
+                });
+                const d = await r.json();
+                if (!d.success) { showToast(d.error || window.t('forms.approval.edit_failed'), 'error'); btn.disabled = false; return; }
+                showToast(window.t('forms.approval.edit_saved'), 'success');
+                loadApprovals();
+            } catch (x) {
+                showToast(window.t('forms.approval.edit_failed'), 'error');
+                btn.disabled = false;
+            }
+        }
+
         async function toggleMove(id) {
             const box = document.getElementById('move-' + id);
             if (box.classList.toggle('open') && !box.innerHTML) {

@@ -39,6 +39,13 @@ require __DIR__ . '/_top.php';
     <p>Team members do not need access to the Forms module to vote - being in a team that approves a form is enough to open the inbox.</p>
 <?php helpSectionEnd(); ?>
 
+<?php helpSection('edit', 'Changing the answers before you decide',
+    'Correct or complete a request while it waits - every change is recorded.'); ?>
+    <p>The requester does not always know everything: the username the new starter will get, the right site, a start date that has moved. <strong>Edit</strong> on a waiting request opens its answers, so you can put them right before you approve instead of approving something wrong or rejecting it to be asked again.</p>
+    <p>Every question is listed, including ones the requester left empty. Change what you need, add a reason if it helps, and <strong>Save</strong>. The answers are checked by the same rules as when the request was made - a choice must be on the list, a number must be a number, a required answer cannot be emptied. Lookups and tables cannot be changed here.</p>
+    <p><strong>Nothing is changed quietly.</strong> Each change shows on the request's card - who changed which answer, from what, to what, when and why. The requester sees what changed on their portal under <em>Your requests</em> (without your reason, which may be an internal note), and the ticket raised on approval uses the corrected answers and lists the changes.</p>
+    <p>The people who can decide a request can edit it: its approver, a member of its approving team, or an administrator. The person who made the request never can, and nobody can once it has been decided.</p>
+<?php helpSectionEnd(); ?>
 <?php helpSection('admins', 'When an administrator steps in',
     'Override and Move, both with a reason, both written on the request.'); ?>
     <p><strong>An administrator's click is not a vote.</strong> On a team request, an administrator who is not voting sees a note saying their Approve or Reject <em>overrides</em> the team. The note box becomes the reason, and it must be filled in.</p>

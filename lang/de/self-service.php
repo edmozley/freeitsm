@@ -175,6 +175,10 @@ return [
         'req_sent' => 'Gesendet',
         'req_cancelled' => 'Abgebrochen',
         'req_cancel' => 'Abbrechen',
+        // Discussion #298: answers changed after it was sent.
+        'req_changed' => 'Nach dem Absenden geänderte Antworten ({n})',
+        'req_changed_line' => '{field}: {old} → {new}',
+        'req_changed_blank' => '(leer)',
         'req_cancel_title' => 'Diese Anfrage abbrechen?',
         'req_cancel_text' => 'Ihre Anfrage für „{what}“ wird abgebrochen. Wer sie genehmigen sollte, sieht sie dann nicht mehr als ausstehend.',
         'req_cancel_reason' => 'Warum brechen Sie sie ab?',
