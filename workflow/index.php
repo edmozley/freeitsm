@@ -37,7 +37,9 @@ $translationNamespaces = ['common', 'workflow'];
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=4"></script>
     <style>
-        .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
+        /* Full width (Ed, 2026-11-20). margin:0 + width:100% as well as max-width:none - the body is a flex
+           column, where inbox.css's auto side margins would shrink the list to fit its content. */
+        .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; width: 100%; margin: 0; box-sizing: border-box; padding: 24px 32px 40px; }
     </style>
     <!-- Mobile layer LAST, after this page's own stylesheet AND its inline
          <style> block, or a rule at equal specificity loses on document order
