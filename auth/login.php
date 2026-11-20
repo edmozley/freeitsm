@@ -643,6 +643,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: calc(100% - 2 * var(--space-5, 20px));
             max-width: 400px;
         }
+        /* On a phone the 40px padding leaves the fields a narrow column. */
+        @media (max-width: 480px) {
+            .login-container { padding: var(--space-6, 24px) var(--space-5, 20px); }
+        }
 
         .login-header {
             text-align: center;

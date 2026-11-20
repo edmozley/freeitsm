@@ -46,6 +46,10 @@ if (isset($_SESSION['analyst_id'])) {
             width: calc(100% - 2 * var(--space-5, 20px));
             max-width: 400px;
         }
+        /* On a phone the 40px padding leaves the fields a narrow column. */
+        @media (max-width: 480px) {
+            .container { padding: var(--space-6, 24px) var(--space-5, 20px); }
+        }
 
         .header {
             text-align: center;
